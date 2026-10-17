@@ -21,7 +21,32 @@ SCALE = 0.01
 NO_DEFORM = ('c_', 'a_weapon', 'e_taser', 'root_point', 'eyeAim', 'aim', 'BackPack', '#')
 
 hl = Hashlist(str(WORK / 'PAYDAY-2-Hashlist/hashlist'))
-m = DieselModel(str(OUT / 'clover/npc_criminal_female_1.model'), hl)
+
+CHARS = {
+    'clover': dict(model='clover/npc_criminal_female_1.model',
+                   out='lawson_mesh.json',
+                   fit=('g_body', 'g_hands', 'g_head_fem1')),
+    'bonnie': dict(model='Bonie/npc_criminal_bonnie.model',
+                   out='lawson_mesh_bonnie.json',
+                   fit=('g_body', 'g_hands', 'g_head')),
+    'sydney': dict(model='Sydney/npc_criminal_sydney.model',
+                   out='lawson_mesh_sydney.json',
+                   fit=('g_body', 'g_hands', 'g_head')),
+}
+CHAR = sys.argv[1] if len(sys.argv) > 1 else 'clover'
+SPEC = CHARS[CHAR]
+m = DieselModel(str(OUT / SPEC['model']), hl)
+# target bbox (meters, root space) from the pieces we will replace
+tb_lo = [1e9]*3; tb_hi = [-1e9]*3
+for s in m.sections:
+    if s.tag == 'model_data' and (s.obj.name or '') in SPEC['fit']:
+        gp = m.by_id[s.obj.passthrough_id].obj
+        geo = m.by_id[gp.geometry_id].obj
+        for p in geo.positions:
+            for i in range(3):
+                tb_lo[i] = min(tb_lo[i], p[i]*SCALE)
+                tb_hi[i] = max(tb_hi[i], p[i]*SCALE)
+print(f"[{CHAR}] target bbox:", [round(x,3) for x in tb_lo], [round(x,3) for x in tb_hi])
 worlds = m.world_rows()
 def wpos(sec_id):
     W = worlds[sec_id]
@@ -30,8 +55,8 @@ def wpos(sec_id):
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
 # ---- armature: Object3D sections only (model_data nodes are mesh instances) ----
-arm_data = bpy.data.armatures.new('CloverRig')
-arm_obj = bpy.data.objects.new('CloverRig', arm_data)
+arm_data = bpy.data.armatures.new(CHAR + 'Rig')
+arm_obj = bpy.data.objects.new(CHAR + 'Rig', arm_data)
 bpy.context.collection.objects.link(arm_obj)
 bpy.context.view_layer.objects.active = arm_obj
 bpy.ops.object.mode_set(mode='EDIT')
@@ -104,13 +129,15 @@ if ext.z < max(ext.x, ext.y) * 0.9:
     law.rotation_euler = Euler((-math.pi/2, 0, 0)) if ext.y >= ext.x else Euler((-math.pi/2, 0, math.pi/2))
     bpy.ops.object.transform_apply(rotation=True)
     lo, hi = bbox(law); ext = hi - lo
-ref_h = 1.902  # Clover skinned-mesh height (m) incl. hair volume
-s = ref_h / (ext.z or 1.0)
+# fit Lawson's height to the target character's body pieces, then bbox-match
+tb_h = tb_hi[2] - tb_lo[2]
+s = tb_h / (ext.z or 1.0)
 law.scale = (s, s, s)
 bpy.ops.object.transform_apply(scale=True)
 lo, hi = bbox(law)
 cx, cy = (lo.x+hi.x)/2, (lo.y+hi.y)/2
-law.location = (0 - cx, 0.07 - cy, -0.012 - lo.z)  # match ref bbox center/ground
+tcx, tcy = (tb_lo[0]+tb_hi[0])/2, (tb_lo[1]+tb_hi[1])/2
+law.location = (tcx - cx, tcy - cy, tb_lo[2] - lo.z)
 bpy.ops.object.transform_apply(location=True)
 lo, hi = bbox(law)
 print(f"lawson aligned: {tuple(round(x,3) for x in lo)}..{tuple(round(x,3) for x in hi)} scale={s:.4f}")
@@ -220,7 +247,7 @@ for i, name in enumerate(mats):
 out['weights'] = {str(v.index): [(law.vertex_groups[g.group].name, round(g.weight, 5))
                                   for g in sorted(v.groups, key=lambda g: -g.weight)[:4]]
                    for v in law.data.vertices if v.groups}
-json.dump(out, open(OUT/'lawson_mesh.json', 'w'))
+json.dump(out, open(OUT/SPEC['out'], 'w'))
 print(f"lawson_mesh.json: {len(out['verts'])} verts, {len(out['faces'])} faces, {len(mats)} materials")
 for mt in out['materials']:
     print("  mat", mt)

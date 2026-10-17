@@ -49,6 +49,11 @@ def export(model_path, out_glb, plan_path=None, only=None):
         'mtr_hair_2': 'Miranda_scalp_d.png', 'mtr_hair_3': 'HMF_HED_PROMiranda_Lashes.png',
         'mtr_head': 'Miranda_face_d.png', 'mtr_arms': 'miranda limbs d.png',
         'mtr_suite_body': 'miranda body d.png', 'mtr_hands': 'Miranda_eye_d.png',
+        'lawson_face': 'Miranda_face_d.png', 'lawson_scalp': 'Miranda_scalp_d.png',
+        'lawson_lashes': 'HMF_HED_PROMiranda_Lashes.png', 'lawson_eyes': 'Miranda_eye_d.png',
+        'lawson_hair': 'Miranda_hair_d.png', 'lawson_body': 'miranda body d.png',
+        'lawson_limbs': 'miranda limbs d.png', 'lawson_outfit': 'Vixen_d.png',
+        'lawson_under': 'underwear_d.png', 'lawson_swim': 'Cri_swimmers_base.png',
     }
     # piece -> material name (matches build_model ASSIGN)
     PIECE_MTR = {
@@ -56,6 +61,8 @@ def export(model_path, out_glb, plan_path=None, only=None):
         'g_hair_cloth1': 'mtr_hair_1', 'g_hair_cloth2': 'mtr_hair_1', 'g_hair_cloth3': 'mtr_hair_1',
     }
     images = []; textures = []
+    from dmodel import hash_str as _hs
+    NAME_BY_HASH = {_hs(n): n for n in PNG}
     def add_image(png_path):
         data = open(png_path, 'rb').read()
         bv = add_view(data)
@@ -83,7 +90,7 @@ def export(model_path, out_glb, plan_path=None, only=None):
             mtr_name = 'mtr_head'
             if mg and atom['material_id'] < len(mg.obj.items):
                 mi = m.by_id[mg.obj.items[atom['material_id']]]
-                mtr_name = mi.obj.name or mtr_name
+                mtr_name = NAME_BY_HASH.get(mi.obj.name_hash) or mi.obj.name or mtr_name
             pv = add_view(struct.pack(f'<{len(sub_pos)*3}f', *[x for p in sub_pos for x in p]), 34962)
             nv = add_view(struct.pack(f'<{len(sub_nrm)*3}f', *[x for p in sub_nrm for x in p]), 34962)
             tv = add_view(struct.pack(f'<{len(sub_uv)*2}f', *[x for p in sub_uv for x in p]), 34962)
