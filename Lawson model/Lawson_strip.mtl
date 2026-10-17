@@ -1,0 +1,51 @@
+newmtl Model001_Material001
+map_Kd Vixen_d.png
+map_bump Vixen_n.png
+
+newmtl Model001_Material002
+map_Kd Vixen_d.png
+map_bump Vixen_n.png
+
+newmtl Model001_Material003
+map_Kd Cri_swimmers_base.png
+map_bump Cri_swimmers_nrm.png
+
+newmtl Model001_Material004
+map_Kd underwear_d.png
+map_bump underwear_n.png
+
+newmtl Model001_Material005
+map_Kd Miranda_hair_d.png
+map_bump Miranda_hair_n.png
+
+newmtl Model001_Material006
+map_Kd HMF_HED_PROMiranda_Lashes.png
+
+newmtl Model001_Material007
+map_Kd Miranda_eye_d.png
+map_bump eye_iris_norm.png
+
+newmtl Model001_Material008
+map_Kd miranda limbs d.png
+map_bump miranda limbs n.png
+
+newmtl Model001_Material009
+map_Kd miranda limbs d.png
+map_bump miranda limbs n.png
+
+newmtl Model001_Material010
+map_Kd miranda body d.png
+map_bump miranda body n.png
+
+newmtl Model001_Material011
+map_Kd miranda body d.png
+map_bump miranda body n.png
+
+newmtl Model001_Material012
+map_Kd Miranda_face_d.png
+map_bump hmf_hed_promiranda_face_norm.png
+
+newmtl Model001_Material013
+map_Kd Miranda_scalp_d.png
+map_bump hmf_hed_promiranda_scalp_norm.png
+
