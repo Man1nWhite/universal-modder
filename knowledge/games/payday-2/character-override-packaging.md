@@ -1,6 +1,6 @@
 ---
 kind: game
-title: Character override packs listed but not loaded
+title: Character override packs listed but not loaded or crashing on SkinBones palettes
 game: PAYDAY 2
 games_also: []
 game_version: "User build unknown; original package claimed Update 247, unverified"
@@ -15,14 +15,24 @@ humans: []
 date: '2026-10-18'
 links:
 - https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046
-tags: [payday-2, diesel, mod-overrides, beardlib, packaging, textures]
+- https://github.com/diesel-modding/payday2-model-tool
+tags: [payday-2, diesel, mod-overrides, beardlib, packaging, textures, skinbones, model]
 ---
-# Character override packs listed but not loaded
+# Character override packs listed but not loaded or crashing on SkinBones palettes
 
-The user reported unchanged faces and suits despite enabling the Lawson packs,
+The user first reported unchanged faces and suits despite enabling the Lawson packs,
 while PocoHUD worked. Inspection found an incorrect installation path in all three
-ZIP READMEs and missing registration metadata for new textures. Packaging was
-repaired, but an in-game retest is still required; this is not a verified model port.
+ZIP READMEs (`mods/mod_overrides` instead of `assets/mod_overrides`) and missing
+BeardLib `AddFiles` registration metadata for new textures.
+
+Once installed under `assets/mod_overrides` so PAYDAY 2 actually loaded the `.model`
+overrides, the game crashed at startup / character display. Binary inspection of the
+shipped `.model` files against vanilla models and `diesel-modding/payday2-model-tool`
+revealed that every rebuilt `SkinBones` (`0x65CC1825`) section had `bone_mappings`
+populated with skeleton `Object3D` section IDs instead of 0-based local indices
+(`0 .. count - 1`) into `SkinBones.object_ids`. Both the builder scripts and the
+tracked `dist/lawson_*.zip` archives were repaired, though an in-game retest is
+still required to confirm visual appearance and animation.
 
 ## Setup
 
@@ -30,13 +40,18 @@ repaired, but an in-game retest is still required; this is not a verified model 
 - The user's exact game and BLT versions were not provided.
 - Loader behavior checked against BeardLib source commit
   `95eb1c0c84e3f07d36f28a5e69197ec3b5c59046` (`main.xml` reports 5.2.0).
-- Python 3.11 on Linux used for archive inspection and regression tests, not gameplay.
+- Diesel `.model` `SkinBones` (`0x65CC1825`) layout verified against vanilla
+  `.model` files and `diesel-modding/payday2-model-tool` (`SkinBones.cs`,
+  `Bones.cs`, `GltfImporter.cs`).
+- Python 3.11 on Linux used for binary inspection, in-place repair, and regression
+  tests, not gameplay.
 
 ## Route and why
 
 Keep the existing asset-override route. Use native overrides for existing model
-and material paths; add a BeardLib manifest for the new texture database entries.
-No Lua gameplay hooks or changes to the user's game installation were needed here.
+and material paths; include a BeardLib `main.xml` manifest for the 19 new texture
+database entries; and repair the `SkinBones.bone_mappings` palettes in place inside
+the 6 `.model` files so skinning indices stay within `0 .. SkinBones.count - 1`.
 
 ## How the game works (what we had to learn)
 
@@ -47,29 +62,44 @@ No Lua gameplay hooks or changes to the user's game installation were needed her
 - `Classes/Managers/PackageManager.lua` takes extensionless `path` values and the
   resource type from each element name. `force=false` avoids replacing an existing
   entry. All three packs have byte-identical shared textures.
-- PocoHUD exercising Lua hooks does not verify asset override discovery.
+- In Diesel `.model` containers (`DODB` v1), a `SkinBones` (`0x65CC1825`) section
+  starts with a `Bones` table containing `1 + len(render_atoms)` `uint32` mapping
+  lists, followed by `root_bone_id`, `count`, `object_ids[count]`,
+  `rotations[count]` (inverse bind matrices), and `global_skin_transform`.
+- Each vertex's `BLENDINDICES` (`channel 17`, 4 `uint16` slots) indexes into its
+  render atom's `bone_mappings[atom_idx]` list, and the value stored at
+  `bone_mappings[atom_idx][blend_idx]` is a **0-based local index** (`0 .. count - 1`)
+  into `SkinBones.object_ids` and `SkinBones.rotations`, **not** an `Object3D`
+  section ID. Writing `Object3D` section IDs (up to 98, 152, and 99) into
+  `bone_mappings` when `count` is 5..32 causes the native skinning shader upload to
+  read out-of-bounds memory and crash immediately with an access violation.
 
 ## Build steps
 
-1. Run `python tools/pd2-port/package_metadata.py dist/lawson_bonnie.zip dist/lawson_clover.zip dist/lawson_sydney.zip`.
-   It changes only README and manifest metadata, preserving every asset's bytes.
-2. Future staging through `build_package2.py` writes the same metadata automatically.
-3. Install SuperBLT and BeardLib using their instructions. With the game closed,
+1. Run `python tools/pd2-port/repair_skin_palettes.py dist/lawson_bonnie.zip dist/lawson_clover.zip dist/lawson_sydney.zip`.
+   It rewrites out-of-range `SkinBones.bone_mappings` entries in place to
+   `0 .. count - 1` across both `.model` files in each archive and refreshes
+   `main.xml` and `README.txt` to revision 1.2 while preserving all geometry,
+   weights, matrices, material configs, and textures.
+2. Verify with `python tools/pd2-port/repair_skin_palettes.py --check dist/lawson_*.zip`.
+3. Future model builds through `build_character.py` and `build_model.py` emit local
+   `0 .. len(pal_ids) - 1` palette indices directly.
+4. Install SuperBLT and BeardLib using their instructions. With the game closed,
    back up old pack folders outside the game and extract one pack into
    `PAYDAY 2/assets/mod_overrides/`, so `lawson_clover/main.xml` and
    `lawson_clover/units/` are siblings (substitute the chosen character).
-4. Temporarily remove conflicting replacements, restart, select the matching
+5. Temporarily remove conflicting replacements, restart, select the matching
    character and default outfit, and inspect the unmasked menu preview.
-5. Back up saves before any offline heist test. Do not infer co-op compatibility.
+6. Back up saves before any offline heist test. Do not infer co-op compatibility.
 
 ## Verification
 
 `tests/test_pd2_packages.py` checks all archives for valid ZIPs, matching roots,
 19 registered textures per pack, material-reference coverage, identical shared
-textures, consistent generated docs, and metadata-only/idempotent repair behavior.
-Compare asset hashes against the original Git archives to confirm no assets changed.
-No game process, log, screenshot, animation or mesh appearance was available here.
-The earlier README's unsupported success claims were removed.
+textures, valid `SkinBones` local palette ranges (`0 .. count - 1`) and vertex
+blend-index bounds across all 6 shipped `.model` files, and idempotent repair
+behavior. No game process, screenshot, or live animation check was available in
+this environment, so `status` remains `in-progress`.
 
 ## Gotchas
 
@@ -79,21 +109,27 @@ The earlier README's unsupported success claims were removed.
 2. **New texture paths without registration.** These are not existing game textures
    to override. Include a `main.xml` with explicit `AddFiles/texture` entries and
    require BeardLib; do not describe it as optional.
-3. **Packaging tests mistaken for gameplay validation.** Correct paths and XML do
-   not validate skinning, geometry, masks or animation. Keep status in-progress until
-   the user's game provides the visual oracle.
-4. **Repeated installs obscure the result.** Avoid nested archive folders and duplicate
-   manager-created copies. Fully exit and restart after changing assets or settings.
+3. **`SkinBones.bone_mappings` stores local indices, not section IDs.** In
+   `diesel-modding/payday2-model-tool` (`GltfImporter.cs`), `bone_mapping` is filled
+   with `0 .. skinBones.Objects.Count - 1` as bones are added to `skinBones.Objects`.
+   Storing `Object3D` section IDs in `bone_mappings` passes basic container-size
+   checks because both are `uint32` arrays of length `count`, but crashes the engine
+   as soon as the skinned mesh is rendered.
+4. **Packaging and binary range tests are not visual gameplay validation.** Valid
+   palettes prevent the out-of-bounds skinning crash, but do not prove visual
+   rigging quality, facial animation, masks, or multiplayer stability. Keep status
+   `in-progress` until confirmed in-game.
 
 ## Assets
 
-No new art or extracted game files were added. Existing archive payloads were left
-unchanged; only metadata was repaired. Redistribution rights must be checked before
-publishing third-party assets.
+No new art or extracted game files were added. Existing archive `.model` files had
+only their `SkinBones.bone_mappings` tables patched in place (`0 .. count - 1`), and
+package metadata was updated to revision 1.2. Redistribution rights must be checked
+before publishing third-party assets.
 
 ## Open questions
 
-Does the user's installation have SuperBLT rather than legacy BLT, and BeardLib?
-After the installation correction, do menu and third-person models load correctly?
-If not, request the full install path, game/loader versions, latest loader log and,
-for crashes, the crash log. Mesh and animation fixes may still be necessary.
+After extracting the revision 1.2 ZIPs into `PAYDAY 2/assets/mod_overrides/`, do the
+menu preview and offline heist character models load and animate without crashing?
+If another crash or visual issue occurs, check `%LOCALAPPDATA%\PAYDAY 2\crash.txt`
+and the latest SuperBLT log under `PAYDAY 2\mods\logs\`.

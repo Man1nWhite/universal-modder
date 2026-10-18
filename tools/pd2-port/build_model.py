@@ -278,29 +278,13 @@ def main():
         t.u64(hash_str(name + '.Topology'))
 
         # skinbones: mappings = [all] + one per atom (per GltfImporter)
+        # Each mapping entry is a 0..N-1 local index into SkinBones.object_ids.
         sb = BW()
         sb.u32(1 + len(atoms))
         for _ in range(1 + len(atoms)):
             sb.u32(len(pal_ids))
-            for pid in pal_ids:
-                sb.u32(pid)
-        sb.u32(hips.id)            # ProbablyRootBone
-        sb.u32(len(pal_ids))
-        for pid in pal_ids:
-            sb.u32(pid)
-        for pid in pal_ids:        # Rotations = inv(bone world)
-            rows = minv(worlds[pid])
-            sb.matrix([rows[i//4][i % 4] if False else rows[i % 4][i//4] for i in range(16)])
-        # NOTE: write matrices row-major as System.Numerics rows = M[i][j] at index 4*i+j
-        # (rewritten correctly below in write_rows helper; kept simple here)
-        for i in range(len(pal_ids)):
-            pass
-        sb = BW()  # redo cleanly
-        sb.u32(1 + len(atoms))
-        for _ in range(1 + len(atoms)):
-            sb.u32(len(pal_ids))
-            for pid in pal_ids:
-                sb.u32(pid)
+            for local_idx in range(len(pal_ids)):
+                sb.u32(local_idx)
         sb.u32(hips.id)
         sb.u32(len(pal_ids))
         for pid in pal_ids:

@@ -3984,7 +3984,7 @@
  {
   "path": "games/payday-2/character-override-packaging.md",
   "kind": "game",
-  "title": "Character override packs listed but not loaded",
+  "title": "Character override packs listed but not loaded or crashing on SkinBones palettes",
   "game": "PAYDAY 2",
   "games_also": [],
   "game_version": "User build unknown; original package claimed Update 247, unverified",
@@ -4004,7 +4004,8 @@
   "humans": [],
   "date": "2026-10-18",
   "links": [
-   "https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046"
+   "https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046",
+   "https://github.com/diesel-modding/payday2-model-tool"
   ],
   "tags": [
    "payday-2",
@@ -4012,7 +4013,9 @@
    "mod-overrides",
    "beardlib",
    "packaging",
-   "textures"
+   "textures",
+   "skinbones",
+   "model"
   ]
  },
  {
