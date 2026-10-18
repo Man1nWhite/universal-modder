@@ -107,9 +107,16 @@ loaded fine) → wire `.material_config` and textures.
 Automated path (ours, `tools/pd2-port/`): `me2_dae.py` imports the rigged
 source, `rig_target.py` maps bones by name (folds twists/fingers/face to parent
 bones; swaps sides when the source labels `Left*` at +X) and rebinds the skin
-mathematically to the PD2 bind, `las_model.py` writes the DODB model (3-weight
-channels), `build_las_pack.py` writes the unit/object/material_config/LAS hook
-and DXT5 textures.
+mathematically to the PD2 bind — one **bone-segment-fit** rigid transform per
+target bone (source bone head→tail aligned onto the target bone, minimal
+rotation; stored frame orientations never enter, they differ per engine and
+tear the mesh at joints), with folded joints sharing one transform and the
+weight field smoothed over the **welded** vertex graph first —
+`las_model.py` writes the DODB model (3-weight channels),
+`build_las_pack.py` writes the unit/object/material_config/LAS hook and DXT5
+textures. `preview_check.py report|render` verifies the transfer offline
+(edge preservation, displacement spikes, twin separation, bone anchors) and
+rasters source/retarget/decoded previews without Blender.
 
 ## Verification
 
@@ -147,6 +154,23 @@ success. Nothing here is game-verified by us.
 8. **Symptom.** Effects/interactions break (tase, bags). **Cause:** locator
    objects (`Aim`, `e_taser`, `BackPack1`…) deleted from the unit. **Fix:** keep
    them; they are not mesh.
+9. **Symptom.** Retargeted pieces sit at mutually wrong angles ("complete
+   mess") although each piece is intact. **Cause:** operators built from
+   stored joint-frame orientations (`minv(W_s) @ W_t`) — per-bone frame
+   conventions differ between engines and land as mesh rotations. **Fix:**
+   fit bone SEGMENTS (head→tail directions) instead; frame orientation must
+   not enter the transfer.
+10. **Symptom.** Face/eyelid meshes tear apart during any per-vertex process.
+    **Cause:** many source joints fold onto one target bone (face→Head), each
+    with its own transform. **Fix:** one shared transform per target bone
+    (representative = most-weighted source joint of the fold).
+11. **Symptom.** Mesh shreds into per-triangle confetti after smoothing or
+    welding, while per-triangle metrics look fine. **Cause:** game-ripped DAEs
+    are corner-split (positions duplicated per vertex-normal/UV corner);
+    index-based adjacency is blind across triangles. **Fix:** weld by position
+    for any neighbour operation (smooth weights on the welded graph and
+    broadcast back), and gate on twin separation (coincident vertices must
+    stay coincident).
 
 ## Assets
 

@@ -126,7 +126,8 @@ def atom_for(rm, material: str, keep=None) -> "las_model.Atom":
 
 
 def build_models(scene, rig, log=print):
-    rigged = {m.name: rig_target.rebind_mesh(m, scene, rig) for m in scene.meshes}
+    rigged = {m.name: rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
+              for m in scene.meshes}
 
     tpp_drawables: dict[str, list] = {}
     for mesh_name, (drawable, material) in TPP_LAYOUT.items():

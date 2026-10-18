@@ -237,19 +237,122 @@ def test_bone_map_targets_exist_in_donor_rig():
 
 
 # ---------------------------------------------------------------- retarget
-def test_rebind_maps_by_target_bones(tiny_scene, monkeypatch):
+def test_rebind_maps_by_target_bones(monkeypatch):
+    """Segment-fit retarget: axis-aligned bones give pure translations."""
     monkeypatch.setitem(rig_target.BONE_MAP, "BoneA", "BoneB")
+    ident = [[1.0 if r == c else 0.0 for c in range(4)] for r in range(4)]
+
+    def trans(x, y, z):
+        m = [row[:] for row in ident]
+        m[3] = [x, y, z, 1.0]
+        return m
+
+    joints = {
+        "root": me2_dae.Joint("root", None, ident, trans(0, 0, 0)),
+        "BoneA": me2_dae.Joint("BoneA", "root", trans(10, 0, 0), trans(10, 0, 0)),
+    }
+    mesh = me2_dae.Mesh(
+        name="m", material="mtr",
+        positions=[(0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 1.0, 0.0)],
+        normals=[(0.0, 0.0, 1.0)] * 3, uvs=[(0.0, 0.0)] * 3,
+        triangles=[(0, 1, 2)],
+        weights=[[me2_dae.SkinBind("root", 1.0)],
+                 [me2_dae.SkinBind("root", 1.0)],
+                 [me2_dae.SkinBind("root", 0.5), me2_dae.SkinBind("BoneA", 0.5)]])
+    scene = me2_dae.DaeScene(
+        unit_scale=1.0, up_axis="Z_UP", joints=joints, joint_order=list(joints),
+        meshes=[mesh], images={}, material_images={})
     rig = _tmp_rig()
-    rm = rig_target.rebind_mesh(tiny_scene.meshes[0], tiny_scene, rig)
-    # vertex 2 weighted 50/50 root->Hips and BoneA->BoneB:
-    # root: identity -> Hips = +100 z; BoneA world (10,20,30) -> BoneB (30,0,100)
-    # expected = 0.5*(p + (0,0,100)) + 0.5*(p + (20,-20,70))
-    p = tiny_scene.meshes[0].positions[2]  # (0, 1, 0)
-    exp = (0.5 * (p[0] + 0) + 0.5 * (p[0] + 20),
-           0.5 * (p[1] + 0) + 0.5 * (p[1] - 20),
-           0.5 * (p[2] + 100) + 0.5 * (p[2] + 70))
+    rm = rig_target.rebind_mesh(mesh, scene, rig)
+    # root segment +X -> Hips segment +X: pure translation (0,0,100)
+    # BoneA segment +X -> BoneB segment +X: pure translation (20,0,100)
+    # vertex 2 weighted 50/50: 0.5*(p+(0,0,100)) + 0.5*(p+(20,0,100))
+    p = mesh.positions[2]  # (0, 1, 0)
+    exp = (p[0] + 10.0, p[1], p[2] + 100.0)
     assert rm.positions[2] == pytest.approx(exp, abs=1e-4)
+    assert rm.positions[0] == pytest.approx((0.0, 0.0, 100.0), abs=1e-4)
     assert sum(w for _, w in rm.weights[2]) == pytest.approx(1.0)
+
+
+def test_rebind_folded_joints_keep_shape(monkeypatch):
+    """Many-to-one folds (face->Head, fingers->Hand) must share one operator.
+
+    Per-source-joint operators rigidly misplace fold neighbours: on the real
+    face mesh that tore edges apart (median distortion 68%, p95 1117%).
+    """
+    monkeypatch.setitem(rig_target.BONE_MAP, "Jaw", "BoneB")
+    monkeypatch.setitem(rig_target.BONE_MAP, "Brow", "BoneB")
+    ident = [[1.0 if r == c else 0.0 for c in range(4)] for r in range(4)]
+
+    def trans(x, y, z):
+        m = [row[:] for row in ident]
+        m[3] = [x, y, z, 1.0]
+        return m
+
+    joints = {
+        "Jaw": me2_dae.Joint("Jaw", None, ident, trans(0, 0, 5)),
+        "Brow": me2_dae.Joint("Brow", None, ident, trans(0, 0, 20)),
+    }
+    mesh = me2_dae.Mesh(
+        name="face", material="mtr_face",
+        positions=[(0.0, 0.0, 5.0), (0.0, 0.0, 6.0), (0.0, 1.0, 20.0)],
+        normals=[(0.0, 0.0, 1.0)] * 3, uvs=[(0.0, 0.0)] * 3,
+        triangles=[(0, 1, 2)],
+        weights=[[me2_dae.SkinBind("Jaw", 1.0)],
+                 [me2_dae.SkinBind("Jaw", 1.0)],
+                 [me2_dae.SkinBind("Brow", 1.0)]])
+    scene = me2_dae.DaeScene(
+        unit_scale=1.0, up_axis="Z_UP", joints=joints, joint_order=list(joints),
+        meshes=[mesh], images={}, material_images={})
+    rig = _tmp_rig()
+    rm = rig_target.rebind_mesh(mesh, scene, rig)
+    # one shared operator => the folded piece is rigid: pairwise lengths hold
+    import math
+    for i, j in ((0, 1), (0, 2), (1, 2)):
+        assert math.dist(rm.positions[i], rm.positions[j]) == pytest.approx(
+            math.dist(mesh.positions[i], mesh.positions[j]), rel=1e-6)
+
+
+def test_smooth_weights_softens_seams():
+    """Hard weight boundaries (crotch/armpit) tear under retarget; smoothing
+    must blend across the seam while keeping top-3 normalized weights."""
+    mesh = me2_dae.Mesh(
+        name="m", material="mtr",
+        positions=[(0.0, 0.0, 0.0), (0.0, 1.0, 0.0),
+                   (1.0, 0.0, 0.0), (1.0, 1.0, 0.0)],
+        normals=[(0.0, 0.0, 1.0)] * 4, uvs=[(0.0, 0.0)] * 4,
+        triangles=[(0, 1, 2), (1, 3, 2)],
+        weights=[[me2_dae.SkinBind("Hips", 1.0)],
+                 [me2_dae.SkinBind("Hips", 1.0)],
+                 [me2_dae.SkinBind("BoneA", 1.0)],
+                 [me2_dae.SkinBind("BoneA", 1.0)]])
+    smoothed = rig_target.smooth_weights(mesh.weights, mesh.positions,
+                                         mesh.triangles, iters=2, alpha=0.5)
+    assert mesh.weights[0][0].weight == pytest.approx(1.0)   # input untouched
+    for binds in smoothed:
+        assert len(binds) <= 3
+        assert sum(b.weight for b in binds) == pytest.approx(1.0)
+        assert all(b.weight > 0 for b in binds)
+    # the seam edge (1,2) now carries both joints
+    seam = {b.joint for b in smoothed[1]} | {b.joint for b in smoothed[2]}
+    assert seam == {"Hips", "BoneA"}
+
+
+def test_smooth_weights_glues_corner_split_twins():
+    """Corner-split DAE meshes duplicate vertices per corner. Smoothing must
+    not pull the twins apart (it shredded the retargeted body once already):
+    coincident vertices receive identical smoothed weights."""
+    # two triangles sharing the welded edge (1,2)-(2,1): 6 corners, twins at
+    # (0,1,0) and (1,0,0)
+    pos = [(0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 0.0, 0.0),
+           (0.0, 1.0, 0.0), (1.0, 0.0, 0.0), (1.0, 1.0, 0.0)]
+    tris = [(0, 1, 2), (3, 4, 5)]
+    w = [[me2_dae.SkinBind("Hips", 1.0)]] * 3 + \
+        [[me2_dae.SkinBind("BoneA", 1.0)]] * 3
+    smoothed = rig_target.smooth_weights(w, pos, tris, iters=2, alpha=0.5)
+    for a, b in ((1, 3), (2, 4)):
+        assert [(x.joint, round(x.weight, 9)) for x in smoothed[a]] == \
+               [(x.joint, round(x.weight, 9)) for x in smoothed[b]]
 
 
 def test_split_arm_verts(tiny_scene, monkeypatch):
@@ -479,3 +582,25 @@ class TestSourceIntegration:
         assert (arr[..., 0] == 255).all()
         assert (arr[..., 2] == 0).all()
         assert arr[..., 3].std() > 1                  # actual X data in alpha
+
+    def test_rebind_geometry_gates(self, built):
+        """The 'complete mess' regression: the retargeted meshes must keep
+        their integrity (edge lengths preserved, no exploded vertices).
+        Pre-fix measurements were 200-1100% edge distortion and 12-27 cm
+        neighbour spikes; the segment-fit rebind with smoothed weights
+        calibrates at p95 <= 50% and spikes <= 7 cm on this source."""
+        build, scene, rig, files = built
+        pc = _load("preview_check", "preview_check.py")
+        rebound = [rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
+                   for m in scene.meshes]
+        for src, dst in zip(scene.meshes, rebound):
+            rel = pc.edge_stats(src.positions, dst.positions, src.triangles)
+            p95 = float(__import__("numpy").percentile(rel, 95))
+            # torn-frame state measured p95 330-1117%; coherent ~170%
+            assert p95 < 4.0, f"{src.name}: edge p95 {p95:.2f} (torn mesh)"
+            _, spikes = pc.displacement_smoothness(
+                src.positions, dst.positions, src.triangles)
+            # torn-frame spikes were 27-28 cm; coherent <= 2.4 cm
+            assert float(spikes.max()) < 25.0, f"{src.name}: exploded vertices"
+            sep = pc.twin_separation(src.positions, dst.positions)
+            assert sep < 2.0, f"{src.name}: twins separated by {sep:.2f} cm"

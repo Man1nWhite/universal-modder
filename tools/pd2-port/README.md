@@ -27,6 +27,8 @@ python tools/pd2-port/build_las_pack.py          # -> dist/lawson_las.zip
 python tools/pd2-port/build_las_pack.py --check  # validate only
 # --keep-nm-green keeps the source Y channel instead of the default PD2 flip
 # (only for sources already authored with PD2's green convention)
+python tools/pd2-port/preview_check.py report    # geometry gates on the rebind
+python tools/pd2-port/preview_check.py render DIR  # + raster previews
 python -m pytest -q tests/test_las_pack.py
 ```
 
@@ -76,6 +78,10 @@ after the preview works, try a backed-up offline heist.
   `knowledge/games/payday-2/las-moog-outfit-porting.md`): `group=`-keyed
   materials with attested-only render templates, contour on TPP, DEPTH_SCALING
   on FPS, and PD2 normal layout (X in alpha, R white, B black, Y-flipped).
+- The skin transfer is segment-fit (frame conventions never enter), folds
+  share one transform per target bone, and weights are smoothed over the
+  welded vertex graph; `preview_check.py` gates all of it offline and rasters
+  previews (source vs retarget vs decoded-from-pack).
 - Provenance: the ME2 model/textures are ripped game assets and `2b.rar` is a
   third-party reference. Fine for private use; **not cleared for
   redistribution** (`CREDITS.txt` repeats this).

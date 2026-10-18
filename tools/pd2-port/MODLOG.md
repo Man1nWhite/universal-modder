@@ -1,5 +1,45 @@
 # Lawson pack journal
 
+## 2026-10-18 — offline geometry verification; rebind rewritten twice (NEW)
+
+- Built `tools/pd2-port/preview_check.py` (`report` / `render`): quantitative
+  gates on the skin transfer (edge preservation, displacement spikes over the
+  WELDED vertex graph, corner-split twin separation, dominant-bone anchors,
+  bounds vs the 2B donor) plus a numpy/PIL software raster (no Blender here):
+  source bind, retarget, decoded-from-pack, pixel diffs, skeleton overlay.
+  The donor rig itself renders as a clean A-pose — almost the same pose as the
+  ME2 source, so a correct transfer must look like the source figure.
+- The naive retarget was a torn mess. Two root causes found and fixed in
+  `rig_target.py`:
+  1. **Frame conventions.** `minv(W_s) @ W_t` bakes per-bone frame
+     orientation deltas into the mesh; consecutive pieces (arm chain) landed
+     at mutually wrong angles. Replaced with one **segment-fit** rigid
+     transform per target bone (source bone head→tail aligned to the target
+     bone, minimal rotation). Folded joints (face→Head, fingers→Hand,
+     rolls/twists→parent) share the transform of the most-weighted source
+     joint of the fold — per-fold transforms tore the face (edge distortion
+     68% median). Calibrated result: weld-aware neighbour spikes 27-28 cm →
+     **≤2.4 cm**, face/mouth/eyes/teeth edges 0% distortion.
+  2. **Corner-split meshes.** The DAE duplicates vertices per corner (Body 1:
+     10,437 verts, 1,789 unique positions). Weight smoothing on index
+     adjacency treats each triangle as an island and shreds the surface —
+     per-triangle metrics stayed green while it happened (blind). Smoothing
+     now welds by position (one weight per unique position, smoothed on the
+     welded graph, broadcast back) and the report gates **twin separation**
+     (0.000000 cm across all meshes). The verify tool's own first metric
+     design was blind to this; recorded as gotcha 11 in the knowledge note.
+- Encode/decode verified end-to-end: pixel-diff of retarget vs decoded-from-
+  pack renders = 0 mismatched pixels on 3 views; numeric per-axis max |Δ| =
+  7.6e-06 cm (f32 quantization). Side-swap verified by world side (ME2 Left
+  bones map onto same-side PD2 bones). 2B contract parity re-audited field by
+  field (table/hooks/AddFiles/Lua) — clean; the 3 intentional diffs (hooks
+  casing, no empty cooked_physics, no unregistered ss.model) unchanged.
+- Tests: 3 new (fold transform, welded smoothing, corner-split twin glue) +
+  an integration gate on the real source; full suite **178 passed, 5 skipped**.
+  Remaining known cosmetic: small waistband wrinkle where shirt hem overlaps
+  pants (pose difference at the hips, spikes ≤2 cm; present in source too).
+  Offline only; nothing game-verified.
+
 > **2026-10-18: the old-model route is retired.** The character swaps and both
 > outfit packs were built from an un-rigged OBJ force-fitted onto Clover's
 > skeleton; user runtime results (broken mesh, spawn crashes) made this a dead
