@@ -33,6 +33,12 @@ They belong in **`PAYDAY 2\assets\mod_overrides\`**, not `mods\mod_overrides`, a
 **SuperBLT + BeardLib** for the custom texture registration included in the corrected packages.
 In-game model/animation compatibility still needs verification.
 
+For a selectable outfit rather than a character swap, the separate
+[`lawson_outfit_BeardLib.zip` builder and install guide](tools/pd2-port/README.md#standalone-beardlib-outfit)
+provide a native BeardLib player style, **without Legendary Armour Skins**.
+The existing archives are retained unchanged; the new variant is offline-validated,
+not game-tested.
+
 ## Install
 
 Pick your agent. Each gets the same skills (Agent Skills format), the fal MCP server, and the `um` CLI.
