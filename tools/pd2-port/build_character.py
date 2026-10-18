@@ -22,6 +22,7 @@ WORK = Path('/home/user/pd2-work')
 OUT = WORK / 'clover-lawson'
 sys.path.insert(0, '/home/user/universal-modder/tools/pd2-port')
 from dmodel import DieselModel, Hashlist, hash_str, minv, TAGS_INV
+from repair_skin_palettes import normalize_model_container
 
 MAX_PALETTE = 32
 M64MASK = (1 << 64) - 1
@@ -393,8 +394,6 @@ def main():
         write_mat(w, rows)
         w.vec3(md.pos)
         w.u32(md.parent_id)
-        if md.remaining:
-            w.raw(md.remaining)
         w.u32(3)
         gp_id, tp_id, mg_id, sb_id = new_id(), new_id(), new_id(), new_id()
         w.u32(gp_id); w.u32(tp_id)
@@ -411,6 +410,8 @@ def main():
         rad = max(math.sqrt(x*x+y*y+z*z) for x, y, z in pverts)
         w.f32(rad); w.u32(md.bounding_int)
         w.u32(sb_id)
+        if md.remaining:
+            w.raw(md.remaining)
 
         for pm in mat_order:
             tex_plan.setdefault(pm, mat_by_name[pm].id)
@@ -458,8 +459,12 @@ def main():
     out.u32(16 + len(payload))
     out.u32(count)
     out.raw(payload)
-    data = bytearray(out.b)
-    struct.pack_into('<I', data, 8, len(data))
+    data = bytes(out.b)
+    # canonical DODB layout: contiguous section IDs 1..count, materials first,
+    # mesh groups after the model_data block (see repair_skin_palettes docstring)
+    data, fixed = normalize_model_container(data)
+    if fixed:
+        print(f"normalize: repaired sections {fixed}")
     dest = OUT / spec['model_out']
     dest.write_bytes(data)
     (OUT / (spec['model_out'].replace('.model', '_menu.model'))).write_bytes(data)
