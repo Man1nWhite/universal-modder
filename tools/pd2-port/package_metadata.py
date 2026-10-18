@@ -22,7 +22,7 @@ def package_metadata(character: str, texture_paths: list[str]) -> dict[str, byte
         raise ValueError(f"Unknown character: {character}")
     if not texture_paths:
         raise ValueError("No Lawson textures found")
-    root = ET.Element("table", name=f"Lawson - {character.title()}", version="1.1")
+    root = ET.Element("table", name=f"Lawson - {character.title()}", version="1.2")
     # Existing models/material_configs are native overrides. Only the new DB
     # paths need AddFiles. force=false lets the three packs share identical maps.
     add = ET.SubElement(root, "AddFiles", directory=".", force="false")
@@ -35,9 +35,9 @@ def package_metadata(character: str, texture_paths: list[str]) -> dict[str, byte
     manifest = ET.tostring(root, encoding="utf-8", xml_declaration=True) + b"\n"
     readme = f"""# {character.title()} -> Miranda Lawson (PAYDAY 2 character swap)
 
-Packaging revision 1.1. In-game appearance, animation and compatibility have
-NOT been verified by this packaging repair. The previous 'works in-game'
-claim was not supported by an in-game test.
+Packaging revision 1.2. In-game appearance, animation and compatibility have
+NOT been verified by this packaging and SkinBones repair. The previous
+'works in-game' claim was not supported by an in-game test.
 
 ## Requirements
 
@@ -82,7 +82,10 @@ claim was not supported by an in-game test.
 
 - Rebuilt menu and third-person .model files and two .material_config files.
 - Nineteen diffuse/normal .texture files; main.xml registers their new DB paths.
-- This repair changes metadata only, not geometry, rigging or textures.
+- Repaired SkinBones bone-palette mappings in .model files (local 0..N-1
+  indices into SkinBones.object_ids instead of Object3D section IDs) to fix
+  native skinning out-of-bounds crashes; geometry, weights and textures are
+  unchanged.
 - Custom outfits may use different models; vanilla armor/bags may clip.
 - First-person arms, facial animation, masks, ragdolls and co-op compatibility
   are not verified. Test offline first; do not assume multiplayer safety.
