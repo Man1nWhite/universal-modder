@@ -137,8 +137,9 @@ def test_native_style_and_body_replacement_schema(pack):
 
 def test_ids_and_asset_paths_do_not_collide_with_legacy_pack(pack):
     with ZipFile(ROOT / "dist/lawson_outfit.zip") as old:
-        old_style = ET.fromstring(old.read("Lawson_LAS/main.xml")).find("PlayerStyle")
-        assert old_style.get("id") != builder.STYLE_ID
+        las_info = json.loads(old.read("Lawson_LAS/BUILD_INFO.json"))
+        assert las_info["variant"] == "legendary-armour-skins"
+        assert las_info["las4_style_id"] != builder.STYLE_ID
         old_assets = {n.removeprefix("Lawson_LAS/assets/") for n in old.namelist() if "/assets/" in n}
     assets = {n.removeprefix(PREFIX + "assets/") for n in pack.namelist() if "/assets/" in n}
     assert not assets & old_assets

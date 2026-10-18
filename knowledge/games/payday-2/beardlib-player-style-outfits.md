@@ -3,7 +3,7 @@ kind: game
 title: Standalone BeardLib player-style outfits without LAS
 game: PAYDAY 2
 games_also: []
-game_version: "User build unknown; no game runtime available"
+game_version: "User crash logs: 1.0.0-159028; no agent-side game runtime available"
 platform: windows
 engine: native
 route: loader-api
@@ -27,6 +27,17 @@ structural tests, and its configuration passes an actual-upstream Lua API smoke
 test in a stubbed host. **It has not been tested in PAYDAY 2**; status remains
 in-progress until visual, animation and outfit-switching checks succeed.
 
+**Runtime follow-up (2026-10-18):** the user reports that the source
+`lawson_clover` replacement loads without crashing but has a badly broken model;
+the legacy `Lawson_LAS` outfit crashes. Three recent crash records fail in the
+menu's `spawn_unit` / `spawn_and_link_unit` path; older package-loading failures
+must be kept separate. No exact bad resource is identified by those logs. The
+native BeardLib variant has no user runtime result yet and reuses the broken
+source rig: its structural tests and rebuilt ZIP are not evidence of a visual
+or crash fix. Keep the legacy outfit disabled and obtain a screenshot before
+choosing a mesh/UV/rig repair. See the latest [journal](../../../tools/pd2-port/MODLOG.md)
+entry for the observed source arm-side mismatch and unchanged-artifact hashes.
+
 ## Setup
 
 - Engine: Diesel (the KB's generic `native` engine family); target PC/Windows.
@@ -43,11 +54,14 @@ in-progress until visual, animation and outfit-switching checks succeed.
 ## Route and why
 
 The request was an additional BeardLib version, preserving the existing archives.
-The legacy `Lawson_LAS` archive actually already contains a `PlayerStyle`
-manifest despite its LAS branding. Renaming it would preserve its resource-ID
-collisions, missing material and order-dependent FPS cut. The separate builder
-uses its own `lawson_beardlib` item/global-value ID, asset paths and icon bundle,
+The original `Lawson_LAS` archive contained a `PlayerStyle` manifest despite its
+LAS branding. Renaming it would have preserved its resource-ID collisions,
+missing material and order-dependent FPS cut. The separate native builder uses
+its own `lawson_beardlib` item/global-value ID, asset paths and icon bundle,
 without requiring LAS, Wardrobe Mod or the source character replacement at runtime.
+The user subsequently requested work on the LAS edition; it now has a separate
+[actual LAS registration/resource repair](las-outfit-unit-resources.md). The
+native BeardLib ZIP remains byte-identical after sharing model helpers.
 
 ## How the game works (what we had to learn)
 

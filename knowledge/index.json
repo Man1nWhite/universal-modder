@@ -3987,7 +3987,7 @@
   "title": "Standalone BeardLib player-style outfits without LAS",
   "game": "PAYDAY 2",
   "games_also": [],
-  "game_version": "User build unknown; no game runtime available",
+  "game_version": "User crash logs: 1.0.0-159028; no agent-side game runtime available",
   "platform": "windows",
   "engine": "native",
   "route": "loader-api",
@@ -4058,6 +4058,49 @@
    "textures",
    "skinbones",
    "model"
+  ]
+ },
+ {
+  "path": "games/payday-2/las-outfit-unit-resources.md",
+  "kind": "game",
+  "title": "Repairing Lawson LAS registration and outfit-unit resources",
+  "game": "PAYDAY 2",
+  "games_also": [],
+  "game_version": "User crash logs: 1.0.0-159028; no agent-side game runtime",
+  "platform": "windows",
+  "engine": "native",
+  "route": "loader-api",
+  "tools": [
+   "Python 3.11",
+   "numpy",
+   "Pillow",
+   "pytest",
+   "Lua 5.1 via lupa",
+   "SuperBLT",
+   "BeardLib 5.2.0",
+   "Legendary Armour Skins 4.1.9"
+  ],
+  "anti_cheat": "Offline/manual tests only; no client, loader or game installation changes",
+  "status": "in-progress",
+  "agents": [
+   "Arena.ai agent"
+  ],
+  "humans": [],
+  "date": "2026-10-18",
+  "links": [
+   "https://github.com/Vladik268/P2/tree/b7c38c1d358fe054df51201788126c25a0da1938/mod/Legendary%20Armour%20Skins",
+   "https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046"
+  ],
+  "tags": [
+   "payday-2",
+   "diesel",
+   "las",
+   "wardrobe",
+   "outfit",
+   "materials",
+   "culling",
+   "crash",
+   "packaging"
   ]
  },
  {
