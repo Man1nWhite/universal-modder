@@ -1,4 +1,40 @@
-# Lawson pack repair journal
+# Lawson pack journal
+
+> **2026-10-18: the old-model route is retired.** The character swaps and both
+> outfit packs were built from an un-rigged OBJ force-fitted onto Clover's
+> skeleton; user runtime results (broken mesh, spawn crashes) made this a dead
+> end. Everything derived from that model has been deleted; this journal is kept
+> as the record of what was tried and why it failed. The rebuild starts from the
+> rigged ME2 COLLADA source on the Legendary Armour Skins contract of `2b.rar`.
+> See the [restart audit](../../docs/audits/2026-10-18-old-model-retired-las-restart.md).
+
+## 2026-10-18 — restart on the LAS route with the rigged ME2 source (NEW)
+
+- User direction: `2b.rar` is the example of what to make — an additive,
+  equipable LAS outfit, not model swaps. Delete the old model and everything
+  built from it. Start anew from `PC _ Computer - Mass Effect 2 - Non-Playable
+  Characters - Miranda Lawson (Romance).zip`.
+- Deleted: `Lawson model/`, `LawsonME2/`, `Bonie/`, `Sydney/`, `clover/`, all
+  five `dist/lawson_*.zip`, and the old-source builders
+  (`rig_lawson`, `build_model`, `build_character`, `build_package{,2}`,
+  `build_outfit{,_beardlib}`, `outfit_model`, `repair_skin_palettes`,
+  `package_metadata`, `glb_export`) plus their tests. Kept `dmodel.py`,
+  `dds.py`, `glb_render.py` (generic format layer), the knowledge notes, audits
+  and this journal. `l4d2_miranda_lawson_1.zip` is a third-party Source-engine
+  reference, not old-model lineage; kept pending user word.
+- Extracted and re-read `2b.rar` as the contract (its Lua registration, manifest
+  and unit/object/material files). Decoded the LAS unit skeleton from
+  `2b.model` name hashes: the standard PD2 biped (`root_point`, `Hips → Spine →
+  Spine1 → Spine2 → Neck → Head`, shoulder/arm/hand chains with rolls, leg
+  chains to toe bases). This is the rig target; it is stored as
+  `tools/pd2-port/reference/las_rig.json` (skeleton data only — no 2B art).
+- The new source is fully rigged and skinned COLLADA (8 meshes, 8 skin
+  controllers, ME2 facial biped). Skin transfer becomes a bind-pose rebind
+  against the PD2 rig (`rig_target.py`) instead of the old positional
+  heuristics. New pipeline: `me2_dae.py` → `rig_target.py` → `las_model.py` →
+  `build_las_pack.py`, output `dist/lawson_las.zip` on the 2B contract with
+  `LegendaryArmours.lawson`.
+- Offline only. No game, loader, or install changes. Nothing game-verified.
 
 ## 2026-10-18 — work on Lawson_LAS; put the BeardLib ZIP in dist
 

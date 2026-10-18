@@ -52,13 +52,13 @@ def _expand565(v):
     )
 
 
-def _decode_block(block: bytes, force_4color: bool = False) -> list[tuple[int, int, int, int]]:
+def _decode_block(block: bytes, force_4color: bool = True) -> list[tuple[int, int, int, int]]:
     """Decode one DXT5 block to 16 RGBA tuples (row-major 4x4).
 
-    Colour mode follows the spec: c0 > c1 selects the 4-colour palette,
-    c0 <= c1 selects 3 colours + transparent. With force_4color=True the
-    4-colour palette is assumed regardless (matching how build_package2's
-    encoder intended its endpoints, including the c0 < c1 mis-orders).
+    DXT5 (BC3) has a separate alpha block and its RGB part is **always** the
+    4-colour palette — unlike BC1 there is no 3-colour + transparent mode, so
+    c0 < c1 is not a corrupt block. ``force_4color`` is kept for call
+    compatibility and ignored.
     """
     a0, a1 = block[0], block[1]
     a_bits = int.from_bytes(block[2:8], "little")
@@ -70,30 +70,19 @@ def _decode_block(block: bytes, force_4color: bool = False) -> list[tuple[int, i
     c_bits = int.from_bytes(block[12:16], "little")
     e0 = _expand565(c0)
     e1 = _expand565(c1)
-    if force_4color or c0 > c1:
-        pal_c = [
-            e0,
-            e1,
-            tuple((2 * e0[i] + e1[i]) // 3 for i in range(3)),
-            tuple((e0[i] + 2 * e1[i]) // 3 for i in range(3)),
-        ]
-    else:
-        pal_c = [
-            e0,
-            e1,
-            tuple((e0[i] + e1[i]) // 2 for i in range(3)),
-            (0, 0, 0),
-        ]
+    pal_c = [
+        e0,
+        e1,
+        tuple((2 * e0[i] + e1[i]) // 3 for i in range(3)),
+        tuple((e0[i] + 2 * e1[i]) // 3 for i in range(3)),
+    ]
     out = []
     for px in range(16):
         ai = (a_bits >> (3 * px)) & 7
         ci = (c_bits >> (2 * px)) & 3
         col = pal_c[ci]
         alpha = pal_a[ai]
-        if ci == 3 and not force_4color and c0 <= c1:
-            out.append((0, 0, 0, 0))
-        else:
-            out.append((col[0], col[1], col[2], alpha))
+        out.append((col[0], col[1], col[2], alpha))
     return out
 
 
@@ -254,7 +243,11 @@ def dds_mip0_slice(dds_bytes: bytes) -> tuple[int, int, memoryview]:
 
 
 def misordered_blocks(mip0: bytes, size: int) -> list[int]:
-    """Block offsets whose colour endpoints have c0 < c1 (decoder mode mismatch)."""
+    """Block offsets whose colour endpoints have c0 < c1.
+
+    Valid in DXT5 (always 4-colour RGB) but non-canonical for the old encoder's
+    assumptions; kept as a normalization aid, not a corruption detector.
+    """
     bad = []
     nblocks = max(1, size // 4) ** 2
     for b in range(nblocks):
@@ -320,11 +313,8 @@ def validate_dxt5_texture(dds_bytes: bytes) -> list[str]:
         errors.append(f"dwPitchOrLinearSize={pitch} != mip0 size {mip0_len}")
     if len(dds_bytes) != expected_total:
         errors.append(f"DDS byte length {len(dds_bytes)} != expected {expected_total}")
-    if not errors:
-        mip0 = dds_bytes[DDS_HEADER_SIZE : DDS_HEADER_SIZE + mip0_len]
-        bad = misordered_blocks(mip0, w)
-        if bad:
-            errors.append(f"{len(bad)} DXT5 blocks with c0 < c1 endpoints (decoder mode mismatch)")
+    # NOTE: c0 < c1 colour endpoints are valid DXT5 (always 4-colour RGB) and
+    # are not flagged as corruption here (audit A07).
     return errors
 
 
