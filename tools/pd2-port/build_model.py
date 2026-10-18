@@ -282,8 +282,8 @@ def main():
         sb.u32(1 + len(atoms))
         for _ in range(1 + len(atoms)):
             sb.u32(len(pal_ids))
-            for pid in pal_ids:
-                sb.u32(pid)
+            for idx in range(len(pal_ids)):
+                sb.u32(idx)
         sb.u32(hips.id)            # ProbablyRootBone
         sb.u32(len(pal_ids))
         for pid in pal_ids:
@@ -299,8 +299,8 @@ def main():
         sb.u32(1 + len(atoms))
         for _ in range(1 + len(atoms)):
             sb.u32(len(pal_ids))
-            for pid in pal_ids:
-                sb.u32(pid)
+            for idx in range(len(pal_ids)):
+                sb.u32(idx)
         sb.u32(hips.id)
         sb.u32(len(pal_ids))
         for pid in pal_ids:

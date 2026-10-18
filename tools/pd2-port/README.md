@@ -61,6 +61,24 @@ been removed. Test offline first.
 both `main.xml` and `README.txt` through `package_metadata.py`. `build_package.py`
 is the older Clover-only prototype, not the release builder.
 
+To validate the binary skin palettes in the shipped models (out-of-range
+indices were a reported crash cause before revision 1.2):
+
+```sh
+python tools/pd2-port/repair_skin_palettes.py dist/lawson_clover.zip
+python tools/pd2-port/repair_skin_palettes.py dist/lawson_clover.zip --output /tmp/lawson_clover_skinfix.zip
+python -m pytest -q tests/test_pd2_packages.py
+```
+
+`repair_skin_palettes.py` uses only the Python standard library. Without
+`--output` it checks; with it, it writes a new ZIP beside the original,
+changing only the specific faulty bone-mapping words in the two `.model`
+files and adding `SKIN_PALETTE_REPAIR.txt`. The staged builders
+`build_character.py` and `build_model.py` are now fixed to write
+0..N-1 indices instead of skeleton object IDs, so future rebuilds do not
+reintroduce the defect. For users without Python, the same logic is
+available as a Windows PowerShell snippet (see the release note).
+
 To repair metadata on an existing local set of archives without rebuilding models
 or textures (Python standard library only):
 

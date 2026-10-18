@@ -14,6 +14,12 @@ spec = importlib.util.spec_from_file_location(
 metadata = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(metadata)
 
+spec2 = importlib.util.spec_from_file_location(
+    "pd2_repair_skin", ROOT / "tools/pd2-port/repair_skin_palettes.py"
+)
+repair_skin = importlib.util.module_from_spec(spec2)
+spec2.loader.exec_module(repair_skin)
+
 
 @pytest.mark.parametrize("character", metadata.CHARACTERS)
 def test_shipped_package(character):
@@ -44,6 +50,8 @@ def test_shipped_package(character):
             assert custom
             assert all(path + ".texture" in registered for path in custom)
         assert len([n for n in names if n.endswith(".model")]) == 2
+        for m in [n for n in names if n.endswith(".model")]:
+            repair_skin.validate_skin_palettes(archive.read(m))
         expected = metadata.package_metadata(character, list(textures))
         for name, data in expected.items():
             assert archive.read(prefix + name) == data
@@ -52,6 +60,20 @@ def test_shipped_package(character):
         assert "BeardLib is REQUIRED" in readme
         assert "NOT been verified" in readme
         assert "BeardLib optional" not in readme
+
+
+@pytest.mark.parametrize("character", metadata.CHARACTERS)
+def test_skin_palette_indices_in_range(character):
+    """Every SkinBones mapping must index inside its object_ids palette (0..N-1)."""
+    with ZipFile(ROOT / "dist" / f"lawson_{character}.zip") as archive:
+        for name in archive.namelist():
+            if not name.endswith(".model"):
+                continue
+            data = archive.read(name)
+            count = repair_skin.validate_skin_palettes(data)
+            # At least one SkinBones section per shipped model; the fixture packs
+            # have 19-24 sections.
+            assert count >= 1
 
 
 def test_shared_textures_are_identical():
