@@ -1,5 +1,9 @@
 # Repository audit — PAYDAY 2 Lawson / 2B reference
 
+> **Historical scope:** this report predates the separate BeardLib outfit builder. See the
+> [current-checkout follow-up](2026-10-18-current-checkout-audit.md) for revalidated results,
+> fixes limited to the new variant, and remaining findings at commit `2a64e1e`.
+
 **Date:** 2026-10-18
 
 **Audited commit:** `52cc0bef4ae17acd2bfee0f289bce475bd45708c`

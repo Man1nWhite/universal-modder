@@ -1,5 +1,115 @@
 # Lawson pack repair journal
 
+## 2026-10-18 — work on Lawson_LAS; put the BeardLib ZIP in dist
+
+- User explicitly requested `lawson_outfit_BeardLib.zip` in `dist/` and work on
+  `Lawson_LAS`, not another investigation of the Clover appearance first.
+  Kept the native ZIP there and added a narrow `.gitignore` exception so that
+  specific distribution is visible; other generated output remains ignored.
+- Chosen route: fix the LAS edition as a real LAS/Wardrobe add-on, independently
+  of the native `lawson_beardlib` edition. The original outfit's `PlayerStyle
+  id="lawson"` did not implement the supplied 2B integration. Registered
+  `LegendaryArmours.lawson` on `lib/tweak_data/armorskinstweakdata` instead,
+  with the 2B hide/replace flags. LAS 4.x maps this to `las_lawson` in Outfits.
+- Source of truth: safely re-extracted the supplied 2B reference; read LAS 4.1.9
+  in Vladik268/P2 at `b7c38c1d358fe054df51201788126c25a0da1938`, particularly
+  `hooks/outfits/loader.lua` and GUI/visual hooks, plus BeardLib 5.2.0 at
+  `95eb1c0c84e3f07d36f28a5e69197ec3b5c59046` (`HooksModule`, `PackageManager`,
+  `AddFilesModule`, `FileManager`). Public-copy versions are not asserted to be
+  installed/latest. Sources and extracted 2B assets stay outside Git.
+- Confirmed the old TPP model retained **52 drawables**, including collision,
+  bag/vest and unused hair chains with undefined sidecar materials, in addition
+  to the enabled `s_body` missing `shadow_caster`. Pruned to **7 TPP / 2 FPS**
+  drawables and defined every retained material. Missing definitions fail the
+  build. This is a reproducible resource defect, not proof of the exact native
+  fault instruction in the user's crash logs.
+- Shared model preparation moved to `outfit_model.py`: keep the full skeleton,
+  preserve TPP geometry/topology/weights, use bounded `g_body` culling instead of
+  empty `co_box`, and cut FPS with an immutable one-ring seed (1,998 body + 4,538
+  original hand vertices). No source re-rig or UV/hand alignment repair attempted.
+  Broader audited parser/normalizer defects are not claimed fixed by the move.
+- Kept `unit_mat auto_cp="true"`: actual BeardLib code supplies its built-in
+  default cooked_physics. No invented empty physics payload or eager physics
+  load. Case-consistent hook paths, standard JSON, LAS + native fallback icon
+  paths, credits and deterministic/atomic builds with input overwrite guards.
+- Rebuilt **`dist/lawson_outfit.zip`**, root `Lawson_LAS/`, **1.1.0-rc1**, 35 files,
+  6,092,512 bytes. SHA-256:
+  `f729868d51bb8a7547a4cfddbd3e8184e12c8c72112c11536fdf1c5f6fca7230`.
+  Preserved the original archive privately outside the checkout before replacing
+  it (original SHA-256 `5f58d8f86d3bdc49ada4efcb6f7e32d6121207c1bd8b94b2e55c3114e090cefe`).
+- Verified a fresh native BeardLib build after helper extraction is byte-identical
+  to the requested dist ZIP: 6,155,761 bytes, SHA-256
+  `591f6d7b9c6ef9a8c6a8b6f2c0183519e2d1a728711e0ed8a75fc555cfe7283f`.
+  Clover/Bonnie/Sydney archives and `2b.rar` are unchanged. New archives are kept
+  as private downloads too; no game-derived asset commit or publication performed.
+- **87 related tests passed**. Full suite with FFmpeg/ffprobe on PATH and Lua 5.1
+  available via optional lupa: **240 passed, 1 skipped** (MSYS-only), one existing
+  Pillow deprecation warning, 55.37 seconds. ZIP CRC/payload hash/current-build
+  checks pass. KB/index: 247 notes pass (one pre-existing Diesel engine warning).
+  Repository publish lint: 764 files, 0 failures, 8 existing warnings; unpacked
+  LAS payload lint: 35 files, 0 failures, 0 warnings. ZIP lint is not redistribution
+  clearance. Documented the repair and baseline-audit historical scope.
+- Extra manual Lua 5.1 smoke executed actual pinned BeardLib HooksModule,
+  LoadConfigUnitShortcutNode and LAS 4.1.9 loader against the generated pack.
+  Verified post-hook path/source/case, 10 implicit unit resources including
+  external default physics, LAS units/default-glove flags, mask/body maps equal
+  to the supplied 2B registration, icons and native-ID coexistence. Engine/file
+  boundaries and host objects were stubbed: NOT a PAYDAY 2 spawn/render test.
+- No game runtime, installation, save/profile/loader edits, OS input, online test,
+  commit, push, PR or publication. The original failure is authoritative; crash
+  resolution and visuals remain unverified. The candidate inherits the known
+  bad Clover rig and is not described as a complete fix.
+- Next oracle: back up, select vanilla if possible, move the old Lawson_LAS
+  completely outside mod_overrides (do not merely rename it there), extract the
+  candidate, restart completely, and try only the [LAS] Miranda Lawson menu
+  preview with Default gloves and other appearance packs disabled. If it
+  crashes, stop and obtain fresh crash/loader logs and exact dependency versions.
+  Proceed to an offline heist only after the preview works; do not repeat the
+  same failing legacy test. The bundled README gives upgrade/rollback details.
+
+## 2026-10-18 — user runtime feedback: broken Clover mesh, legacy outfit spawn crash
+
+- User reports `lawson_clover` no longer crashes but the displayed model is a
+  "complete mess"; `Lawson_LAS` crashes. This is evidence of failure, not a
+  successful in-game verification. No screenshot is available yet to separate
+  geometry deformation, texture corruption and animation/rigging problems.
+- Read the supplied crash.txt and crashlog.txt without copying the raw logs into
+  Git. Game build: 1.0.0-159028. The latest crash.txt and three recent crashlog
+  entries fail on the Main thread in `ManageSpawnedUnits:spawn_unit`, through
+  `spawn_and_link_unit`, `CriminalsManager:set_character_visual_state` and the
+  menu's character-visual update. Eleven older records instead fail during
+  `MenuSetup:load_packages`; one additional record has no script stack.
+- The new failure is at outfit-unit spawn/link time, not evidence that the
+  earlier package-loading diagnosis still applies. No offending resource path
+  or native fault instruction is identified. Repeated AK::WriteBytesCount and
+  the presence of WSOCK32 are not proof of an audio or SuperBLT defect. Missing
+  shadow material / culling / model resources remain suspects, not proven causes.
+- Confirmed a source-rigging discrepancy worth fixing during a real source
+  rebuild: `rig_lawson.py` labels positive-X arm vertices Left, but Clover's
+  world-space LeftArm/LeftHand have negative X (-20.86/-45.98 cm); Right is
+  positive X. The shipped Lawson `g_hands` already spans approximately
+  -89.27..89.25 cm in bind geometry, versus -52.65..52.65 cm in the vanilla
+  reference. This supports investigating the source arm alignment in addition
+  to the previously identified UV seam export defect. It does not prove a sole
+  cause of the user's observed model without seeing it in-game.
+- Checked the tempting base-vertex hypothesis and did NOT change topology:
+  tracked vanilla multi-atom meshes also use absolute topology references with
+  nonzero BaseVertex. Blindly subtracting BaseVertex would be speculative.
+- `lawson_outfit_BeardLib.zip` was absent: only the builder is tracked, and its
+  `dist/` output is ignored/excluded from snapshots. Regenerated the unchanged
+  builder's output, copied it into local dist/, and supplied an actual private
+  download outside the checkout (`mod-deliverables/lawson_outfit_BeardLib.zip`).
+  SHA-256 remains `591f6d7b9c6ef9a8c6a8b6f2c0183519e2d1a728711e0ed8a75fc555cfe7283f`,
+  6,155,761 bytes, 36 files. Verified ZIP CRC and all BUILD_INFO payload hashes.
+- The BeardLib pack inherits the same Clover-rigged geometry and is NOT a mesh
+  repair. Do not describe this regeneration as fixing the user's model or crash.
+  Dedicated PD2/package tests: 64 passed. No production code or existing tracked
+  archives changed; no game, installation, save or loader modifications performed.
+- Next: keep the legacy crashing outfit disabled; request a screenshot of the
+  broken Clover model (and outfit/character selection). Rebuild rig/UV data from
+  the source only after distinguishing the visual failure. Do not ask the user
+  to keep repeating the same failing legacy outfit test.
+
 ## 2026-10-18 — separate BeardLib-native outfit variant (built; not game-verified)
 
 - Request: add `lawson_outfit_BeardLib` alongside the existing outfit/character

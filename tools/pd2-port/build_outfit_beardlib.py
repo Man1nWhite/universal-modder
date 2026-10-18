@@ -2,7 +2,7 @@
 """Build the additive BeardLib-native Lawson PlayerStyle (no LAS dependency).
 
 Reuses the supplied repaired Clover pack; this does not re-rig the original OBJ.
-The legacy outfit builder and its shipped ZIP remain byte-for-byte untouched.
+The LAS edition is built separately; this variant retains its own registration.
 Game compatibility still needs a real PAYDAY 2 test. See README.md and MODLOG.md.
 """
 from __future__ import annotations
@@ -12,7 +12,6 @@ import copy
 import hashlib
 import io
 import json
-import math
 import os
 from pathlib import Path
 import struct
@@ -27,6 +26,7 @@ import build_outfit as base
 import dds
 import dmodel
 import repair_skin_palettes as rp
+from outfit_model import material_hashes, prepare_model, select_arm_verts, validate_model
 
 REPO = Path(__file__).resolve().parents[2]
 MOD_NAME = "Lawson_Outfit_BeardLib"
@@ -52,145 +52,6 @@ PROTECTED_ARCHIVES = tuple(REPO / "dist" / f"lawson_{name}.zip"
 def xml_bytes(root: ET.Element) -> bytes:
     ET.indent(root, space="    ")
     return ET.tostring(root, encoding="utf-8", xml_declaration=True) + b"\n"
-
-
-def validate_model(data: bytes) -> None:
-    """Additional range checks, independent of the old validator's blind spots.
-
-    This builder intentionally accepts only modern DODB input. Vertex references
-    are UInt16; the topology's *index count* is UInt32, not limited to 65,535.
-    This is structural validation, not proof the engine can animate the model.
-    """
-    if data[:8] != b"DODB\x01\x00\x00\x00":
-        raise ValueError("Expected a repaired modern DODB version-1 model")
-    sections, _, _, filesize, by_id = rp.parse_model_bytes(data)
-    if filesize != len(data) or not sections or sections[-1].end != len(data):
-        raise ValueError("Model container length mismatch")
-    if len(by_id) != len(sections):
-        raise ValueError("Duplicate model section IDs")
-    errors = rp._check_section_refs(sections, by_id)
-    if errors:
-        raise ValueError("; ".join(errors))
-    for sec in sections:
-        if sec.tag != "model_data" or sec.obj.version == 6:
-            continue
-        md = sec.obj
-        gp = by_id[md.passthrough_id].obj
-        geo = by_id[gp.geometry_id].obj
-        topo_sec = by_id[gp.topology_id]
-        topo = topo_sec.obj
-        vertex_count = len(geo.positions)
-        index_count = struct.unpack_from("<I", data, topo_sec.start + 4)[0]
-        if index_count != len(topo.faces) * 3:
-            raise ValueError(f"Model {sec.id}: topology index count is not a triangle list")
-        if any(not math.isfinite(v) for p in geo.positions for v in p):
-            raise ValueError(f"Model {sec.id}: non-finite vertex position")
-        if any(v >= vertex_count for face in topo.faces for v in face):
-            raise ValueError(f"Model {sec.id}: vertex reference outside geometry")
-        materials = by_id[md.matgroup_id].obj.items
-        for atom in md.render_atoms:
-            v0, v1 = atom["base_vertex"], atom["base_vertex"] + atom["geo_len"]
-            i0, i1 = atom["base_index"], atom["base_index"] + atom["tri_count"] * 3
-            if not (0 <= v0 <= v1 <= vertex_count):
-                raise ValueError(f"Model {sec.id}: render-atom vertex range outside geometry")
-            if i0 % 3 or not (0 <= i0 <= i1 <= index_count):
-                raise ValueError(f"Model {sec.id}: render-atom index range outside topology")
-            if atom["material_id"] >= len(materials):
-                raise ValueError(f"Model {sec.id}: render-atom material outside material group")
-            if any(not v0 <= v < v1 for face in topo.faces[i0 // 3:i1 // 3] for v in face):
-                raise ValueError(f"Model {sec.id}: vertex reference outside render-atom range")
-        if md.skinbones_id:
-            if len(geo.joints) != vertex_count or len(geo.weights3) != vertex_count:
-                raise ValueError(f"Model {sec.id}: missing skin channels")
-            if any(not math.isfinite(w) for weights in geo.weights3 for w in weights):
-                raise ValueError(f"Model {sec.id}: non-finite skin weight")
-    errors = rp.validate_model_skinning(data, strict_layout=False)
-    if errors:
-        raise ValueError("; ".join(errors))
-
-
-def select_arm_verts(md, geo, topo, skin, arm_ids: set[int]) -> set[int]:
-    """Select arm-bound vertices plus ONE ring, never flood-fill in face order."""
-    seeds = frozenset(
-        i for atom in md.render_atoms
-        for i in range(atom["base_vertex"], atom["base_vertex"] + atom["geo_len"])
-        if base._vert_bones(geo, skin, i) & arm_ids
-    )
-    selected = set(seeds)
-    for face in topo.faces:
-        if any(v in seeds for v in face):
-            selected.update(face)
-    return selected
-
-
-def material_hashes(data: bytes) -> set[int]:
-    sections, _, _, _, by_id = rp.parse_model_bytes(data)
-    used = set()
-    for sec in sections:
-        if sec.tag != "model_data" or sec.obj.version == 6:
-            continue
-        md = sec.obj
-        group = by_id[md.matgroup_id].obj.items
-        used.update(by_id[group[a["material_id"]]].obj.name_hash for a in md.render_atoms)
-    return used
-
-
-def prepare_model(data: bytes, *, first_person: bool) -> bytes:
-    """Keep the heister skeleton, but remove unused mesh chains and materials."""
-    validate_model(data)
-    sections, _, _, _, by_id = rp.parse_model_bytes(data)
-    names = FPS_DRAWABLES if first_person else TPP_DRAWABLES
-    wanted = {base._model_by_name(sections, n).id for n in names}
-    payloads = {s.id: bytearray(data[s.start:s.end]) for s in sections}
-    keep_chain, keep_groups = set(), set()
-    culling_positions = []
-    for sid in wanted:
-        md = by_id[sid].obj
-        keep_chain.update(base._chain_ids(md, by_id))
-        keep_groups.add(md.matgroup_id)
-        gp = by_id[md.passthrough_id].obj
-        geo, topo = by_id[gp.geometry_id].obj, by_id[gp.topology_id].obj
-        if first_person and sid == base._model_by_name(sections, "g_body").id:
-            selected = select_arm_verts(md, geo, topo, by_id[md.skinbones_id].obj, base._arm_bone_ids(sections))
-            if not selected:
-                raise ValueError("Arm selection is empty")
-            base.rebuild_drawable(sections, by_id, payloads, by_id[sid], selected)
-            culling_positions.extend(geo.positions[i] for i in sorted(selected))
-        else:
-            culling_positions.extend(geo.positions)
-
-    drop = set()
-    for sec in sections:
-        if sec.tag == "model_data" and sec.id not in wanted:
-            drop.add(sec.id)
-            if sec.obj.version != 6:
-                drop.update(set(base._chain_ids(sec.obj, by_id)) - keep_chain)
-    keep_materials = {mid for gid in keep_groups for mid in by_id[gid].obj.items}
-    drop.update(s.id for s in sections if s.tag == "material_group" and s.id not in keep_groups)
-    drop.update(s.id for s in sections if s.tag == "material" and s.id not in keep_materials)
-
-    # Use a real bounded drawable for culling, not an empty co_box locator.
-    # Conservatively expand g_body's bounds to include every retained mesh.
-    body = base._model_by_name(sections, "g_body")
-    raw = bytearray(payloads[body.id])
-    prefix_len = len(base._serialize_object_prefix(body.obj))
-    atom_count = struct.unpack_from("<I", raw, prefix_len + 12)[0]
-    bounds_off = prefix_len + 16 + 20 * atom_count + 12
-    lo = [min(p[i] for p in culling_positions) for i in range(3)]
-    hi = [max(p[i] for p in culling_positions) for i in range(3)]
-    radius = math.sqrt(sum(max(abs(a), abs(b)) ** 2 for a, b in zip(lo, hi)))
-    struct.pack_into("<7f", raw, bounds_off, *lo, *hi, radius)
-    payloads[body.id] = bytes(raw)
-
-    kept = [s for s in sections if s.id not in drop]
-    result = bytearray(b"DODB" + struct.pack("<III", 1, 0, len(kept)))
-    for sec in kept:
-        payload = payloads[sec.id]
-        result += struct.pack("<III", sec.type, sec.id, len(payload)) + payload
-    struct.pack_into("<I", result, 8, len(result))
-    normalized, _ = rp.normalize_model_container(bytes(result))
-    validate_model(normalized)
-    return normalized
 
 
 def encode_texture(rgba: np.ndarray) -> bytes:
