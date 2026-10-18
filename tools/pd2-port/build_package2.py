@@ -9,6 +9,9 @@ ADDED lawson_* blocks (vanilla blocks untouched), and the rebuilt .model pair.
 import os, re, shutil, struct, sys
 import numpy as np
 from PIL import Image
+from pathlib import Path
+
+from package_metadata import write_metadata
 
 SRC = '/home/user/pd2-work/clover-lawson'
 LAW = os.path.join(SRC, 'lawson')
@@ -181,6 +184,7 @@ def build_char(char):
         print(f"  {char}/{cfg}: +{n} lawson blocks")
     for f in (spec['model'], spec['menu']):
         shutil.copy2(os.path.join(SRC, f), os.path.join(cfg_out, f))
+    write_metadata(Path(root), char)
     total = sum(os.path.getsize(os.path.join(dp, f))
                 for dp, _, fs in os.walk(root) for f in fs)
     print(f"{char}: {total/1e6:.1f} MB at {root}")

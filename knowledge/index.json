@@ -3982,6 +3982,40 @@
   ]
  },
  {
+  "path": "games/payday-2/character-override-packaging.md",
+  "kind": "game",
+  "title": "Character override packs listed but not loaded",
+  "game": "PAYDAY 2",
+  "games_also": [],
+  "game_version": "User build unknown; original package claimed Update 247, unverified",
+  "platform": "windows",
+  "engine": "diesel",
+  "route": "asset-only",
+  "tools": [
+   "Python",
+   "SuperBLT",
+   "BeardLib"
+  ],
+  "anti_cheat": "Not assessed on user's installation; offline testing only",
+  "status": "in-progress",
+  "agents": [
+   "Arena.ai agent"
+  ],
+  "humans": [],
+  "date": "2026-10-18",
+  "links": [
+   "https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046"
+  ],
+  "tags": [
+   "payday-2",
+   "diesel",
+   "mod-overrides",
+   "beardlib",
+   "packaging",
+   "textures"
+  ]
+ },
+ {
   "path": "games/portal-2/portal-2-portal-gun-viewmodel-converted-for-another-engine-v.md",
   "kind": "game",
   "title": "Portal 2 portal gun viewmodel converted for another engine: VPK, MDL v49, VTF, sounds",

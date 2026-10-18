@@ -26,6 +26,13 @@
   <a href="https://discord.com/invite/sEZWaf7vV"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/discord-dark.svg"><img src="docs/media/discord-light.svg" height="32" alt="join the discord"></picture></a>
 </p>
 
+## PAYDAY 2 character-pack troubleshooting
+
+For the Lawson packs in `dist/`, see the [installation and troubleshooting guide](tools/pd2-port/README.md).
+They belong in **`PAYDAY 2\assets\mod_overrides\`**, not `mods\mod_overrides`, and require
+**SuperBLT + BeardLib** for the custom texture registration included in the corrected packages.
+In-game model/animation compatibility still needs verification.
+
 ## Install
 
 Pick your agent. Each gets the same skills (Agent Skills format), the fal MCP server, and the `um` CLI.
