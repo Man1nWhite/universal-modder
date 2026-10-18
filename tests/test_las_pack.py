@@ -350,6 +350,22 @@ def test_model_rejects_invalid_weight():
 
 
 # ---------------------------------------------------------------- dds A07
+def test_pd2_normal_channels_repacks_layout():
+    import numpy as np
+    arr = np.zeros((2, 2, 4), dtype=np.uint8)
+    arr[..., 0] = 40          # X
+    arr[..., 1] = 200         # Y
+    arr[..., 2] = 70          # Z (dropped)
+    arr[..., 3] = 255
+    out = dds.pd2_normal_channels(arr, invert_y=True)
+    assert (out[..., 0] == 255).all()          # red unused -> white
+    assert (out[..., 2] == 0).all()            # blue unused -> black
+    assert (out[..., 3] == 40).all()           # X moved to alpha
+    assert (out[..., 1] == 55).all()           # green Y inverted (255-200)
+    out2 = dds.pd2_normal_channels(arr, invert_y=False)
+    assert (out2[..., 1] == 200).all()
+
+
 def test_dxt5_decodes_4color_when_c0_lt_c1():
     """Audit A07: DXT5 has separate alpha; c0 < c1 is not a transparent hole."""
     c0, c1 = 0x0000, 0xFFFF                      # c0 < c1 on purpose
@@ -435,3 +451,31 @@ class TestSourceIntegration:
         main = files[f"{build.ROOT_DIR}/main.xml"].decode()
         assert 'source_file="lib/tweak_data/armorskinstweakdata"' in main
         assert 'directory="hooks"' in main            # case-consistent (2B mix not copied)
+
+    def test_materials_follow_moog_guide(self, built):
+        """ModWorkshop LAS/MOOG guide: group + unique + CONTOUR variables on
+        TPP materials, DEPTH_SCALING on FPS, no invented template combos."""
+        build, scene, rig, files = built
+        tpp = files[f"{build.ROOT_DIR}/{build.UNIT_DIR}/lawson.material_config"].decode()
+        fps = files[f"{build.ROOT_DIR}/{build.UNIT_DIR}/fps_lawson.material_config"].decode()
+        assert '<materials version="3" group="lawson">' in tpp
+        assert '<materials version="3" group="fps_criminals_suit_lawson">' in fps
+        assert tpp.count('unique="true"') == 7        # every non-masked material
+        assert "generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS" in tpp
+        assert 'name="contour_color"' in tpp and 'name="contour_opacity"' in tpp
+        # masked lashes keep the attested 2B combo; no CONTOUR invention
+        assert "generic:ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_1WEIGHT" in tpp
+        assert "CONTOUR:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF" not in tpp
+        # FPS: DEPTH_SCALING present, no contour
+        assert "generic:DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS" in fps
+        assert "CONTOUR" not in fps
+
+    def test_normal_maps_use_pd2_layout(self, built):
+        build, scene, rig, files = built
+        nm = files[f"{build.ROOT_DIR}/{build.UNIT_DIR}/face_nm.texture"]
+        size, mips, view = dds.dds_mip0_slice(nm)
+        arr = dds.decode_dxt5(bytes(view), size, size)
+        # X lives in alpha, not red; red is constant white, blue constant black
+        assert (arr[..., 0] == 255).all()
+        assert (arr[..., 2] == 0).all()
+        assert arr[..., 3].std() > 1                  # actual X data in alpha

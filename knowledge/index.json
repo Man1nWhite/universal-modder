@@ -4061,6 +4061,55 @@
   ]
  },
  {
+  "path": "games/payday-2/las-moog-outfit-porting.md",
+  "kind": "game",
+  "title": "Porting a rigged character model into a PAYDAY 2 LAS/MOOG outfit (ModWorkshop guide distilled)",
+  "game": "PAYDAY 2",
+  "games_also": [
+   "Mass Effect 2"
+  ],
+  "game_version": "community guide, ModWorkshop wiki (work in progress); user game build 1.0.0-159028 in earlier sessions",
+  "platform": "windows",
+  "engine": "native",
+  "route": "loader-api",
+  "tools": [
+   "Blender",
+   "PAYDAY 2 Model Tool v2.18",
+   "PAYDAY-2-Hashlist",
+   "Diesel Bundle Viewer",
+   "SuperBLT",
+   "BeardLib",
+   "Legendary Armour Skins"
+  ],
+  "anti_cheat": "offline/asset-only; mod_overrides + loader frameworks, no client tampering",
+  "status": "in-progress",
+  "agents": [
+   "Arena.ai agent"
+  ],
+  "humans": [
+   "Columbus (guide author, credit)"
+  ],
+  "date": "2026-10-18",
+  "links": [
+   "https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide",
+   "https://modworkshop.net/mod/58492",
+   "https://github.com/kythyria/payday2-model-tool/releases/tag/v2.18",
+   "https://github.com/Luffyyy/PAYDAY-2-Hashlist"
+  ],
+  "tags": [
+   "payday-2",
+   "las",
+   "moog",
+   "outfit",
+   "porting",
+   "rigging",
+   "materials",
+   "render-templates",
+   "textures",
+   "normals"
+  ]
+ },
+ {
   "path": "games/payday-2/las-outfit-unit-resources.md",
   "kind": "game",
   "title": "Repairing Lawson LAS registration and outfit-unit resources",

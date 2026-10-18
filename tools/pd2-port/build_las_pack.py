@@ -58,7 +58,7 @@ TEXTURE_SLOTS = {
     "Face": ("HMF_HED_PROMiranda_Face_Diff.png", "HMF_HED_PROMiranda_Face_Norm.png", "face"),
     "Hair": ("HMF_HED_PROMiranda_Scalp_Diff.png", "HMF_HED_PROMiranda_Scalp_Norm.png", "hair"),
     "Eyes": ("EYE_Diff.png", "EYE_Lens_Norm.png", "eyes"),
-    "Eyelashes": ("miranda_eyelashes.png", None, "lashes"),
+    "Eyelashes": ("miranda_eyelashes.png", "__flat__", "lashes"),
     "Teeth": ("HMF_HED_PROMiranda_Scalp_Diff.png", "HMF_HED_PROMiranda_Scalp_Norm.png", "teeth"),
     "Mouth Inside": ("HMF_HED_PROMiranda_Scalp_Diff.png", "HMF_HED_PROMiranda_Scalp_Norm.png", "mouth"),
 }
@@ -86,7 +86,7 @@ TEMPLATE = {
     "mtr_face": ("DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS", True, False),
     "mtr_hair": ("DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS", True, False),
     "mtr_eyes": ("DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS", True, False),
-    "mtr_lashes": ("ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:SKINNED_3WEIGHTS", False, True),
+    "mtr_lashes": ("ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_1WEIGHT", True, True),
     "mtr_teeth": ("DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS", True, False),
     "mtr_mouth": ("DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS", True, False),
 }
@@ -152,8 +152,12 @@ def build_models(scene, rig, log=print):
     return tpp_res, fps_res
 
 
-def encode_textures(source: dict[str, bytes], log=print):
-    """PNG bytes -> {texture path: DDS bytes} + the icon."""
+def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=print):
+    """PNG bytes -> {texture path: DDS bytes} + the icon.
+
+    Normal maps are repacked into PD2's packed layout (X in alpha) by
+    ``dds.pd2_normal_channels``; ``invert_nm_y`` converts DirectX-style green.
+    """
     import dds
     try:
         from PIL import Image
@@ -168,10 +172,19 @@ def encode_textures(source: dict[str, bytes], log=print):
             path = f"{UNIT_DIR}/{base}_{suffix}.texture"
             if path in out:
                 continue
-            img = Image.open(io.BytesIO(source[png])).convert("RGBA")
+            if png == "__flat__":
+                from PIL import Image
+                img = Image.new("RGBA", (256, 256), (128, 128, 255, 255))
+            else:
+                img = Image.open(io.BytesIO(source[png])).convert("RGBA")
             if img.width != img.height or img.width & (img.width - 1):
                 raise ValueError(f"{png}: expected square power-of-two, got {img.size}")
-            out[path] = dds.pack_dds(dds.mip_payloads_from_image(img), img.width)
+            if suffix == "nm":
+                arr = dds.pd2_normal_channels(img, invert_y=invert_nm_y)
+                mip = dds.mip_payloads_from_image(arr)
+            else:
+                mip = dds.mip_payloads_from_image(img)
+            out[path] = dds.pack_dds(mip, img.width)
             problems = dds.validate_dxt5_texture(out[path])
             if problems:
                 raise ValueError(f"{path}: {problems}")
@@ -186,26 +199,50 @@ def encode_textures(source: dict[str, bytes], log=print):
 
 
 def material_config(materials: list[str], unit_base: str, fps: bool = False) -> str:
-    lines = ['<materials version="3">']
+    """material_config per the ModWorkshop LAS/MOOG guide.
+
+    - header ``group`` (free-form name);
+    - TPP materials use the guide's standard ported-model template
+      ``CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS`` with
+      ``unique="true"`` and the contour variables (without them the
+      wall-outline does not render);
+    - masked materials (lashes) keep the 2B-attested ALPHA_MASKED template —
+      combining CONTOUR with ALPHA_MASKED is not attested and invented
+      keyword combinations render black;
+    - FPS materials use ``DEPTH_SCALING`` (guide: arms draw in front of world
+      geometry) and no contour.
+    """
+    group = "fps_criminals_suit_lawson" if fps else "lawson"
+    lines = [f'<materials version="3" group="{group}">']
     for m in materials:
         if m == "shadow_caster":
             lines.append('    <material name="shadow_caster" '
                          'render_template="shadow_caster_only:SKINNED_1WEIGHT" version="2"/>')
             continue
         extras, has_nm, masked = TEMPLATE[m]
-        if fps and not masked:
-            extras = extras.replace("DIFFUSE_TEXTURE", "DEPTH_SCALING:DIFFUSE_TEXTURE")
-        base = MAT_BASE[m]
-        attrs = f'name="{m}" render_template="generic:{extras}" version="2"'
+        contour = False
         if masked:
-            attrs = (f'name="{m}" decal_material="steel_no_decal" '
-                     f'render_template="generic:{extras}" version="2"')
+            pass                                    # keep the attested combo as-is
+        elif fps:
+            extras = extras.replace("DIFFUSE_TEXTURE", "DEPTH_SCALING:DIFFUSE_TEXTURE")
+        else:
+            extras = "CONTOUR:" + extras
+            contour = True
+        base = MAT_BASE[m]
+        unique = ' unique="true"' if contour else ""
+        attrs = (f'name="{m}"{unique} render_template="generic:{extras}" version="2"'
+                 if not masked else
+                 f'name="{m}" decal_material="steel_no_decal" '
+                 f'render_template="generic:{extras}" version="2"')
         lines.append(f"    <material {attrs}>")
         lines.append(f'        <diffuse_texture file="{UNIT_DIR}/{base}_df"/>')
         if has_nm:
             lines.append(f'        <bump_normal_texture file="{UNIT_DIR}/{base}_nm"/>')
         if masked:
             lines.append('        <variable value="0.5" type="scalar" name="alpha_ref"/>')
+        if contour:
+            lines.append('        <variable value="1 1 1" type="vector3" name="contour_color"/>')
+            lines.append('        <variable value="0" type="scalar" name="contour_opacity"/>')
         lines.append("    </material>")
     lines.append("</materials>")
     return "\n".join(lines) + "\n"
@@ -266,8 +303,6 @@ def main_xml() -> str:
     adds = [f'        <texture path="{GUI_DIR}/lawson"/>']
     for b in seen:
         adds.append(f'        <df_nm path="{UNIT_DIR}/{b}"/>')
-    if TEXTURE_SLOTS["Eyelashes"][1] is None:
-        adds.append(f'        <texture path="{UNIT_DIR}/lashes_df"/>')
     adds += [
         f'        <unit_mat path="{UNIT_DIR}/lawson"/>',
         f'        <unit_mat path="{UNIT_DIR}/fps_lawson"/>',
@@ -313,9 +348,10 @@ def credits_txt() -> str:
     )
 
 
-def assemble(scene, rig, source: dict[str, bytes], log=print) -> dict[str, bytes]:
+def assemble(scene, rig, source: dict[str, bytes], invert_nm_y: bool = True,
+             log=print) -> dict[str, bytes]:
     tpp_res, fps_res = build_models(scene, rig, log)
-    textures = encode_textures(source, log)
+    textures = encode_textures(source, invert_nm_y=invert_nm_y, log=log)
 
     tpp_mats = ["mtr_body1", "mtr_body2", "mtr_face", "mtr_hair", "mtr_eyes",
                 "mtr_lashes", "mtr_teeth", "mtr_mouth", "shadow_caster"]
@@ -429,6 +465,9 @@ def main() -> None:
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     ap.add_argument("--check", action="store_true",
                     help="build in memory and validate; do not write the zip")
+    ap.add_argument("--keep-nm-green", action="store_true",
+                    help="do not invert the normal-map green channel "
+                         "(source is OpenGL-style Y+ already)")
     args = ap.parse_args()
 
     print(f"source: {args.source}")
@@ -440,7 +479,7 @@ def main() -> None:
     rig = rig_target.load_target_rig(RIG_JSON)
     print(f"  rig: {len(rig.entries)} object3Ds, {len(rig.names)} named bones")
 
-    files = assemble(scene, rig, source)
+    files = assemble(scene, rig, source, invert_nm_y=not args.keep_nm_green)
     validate(files)
 
     manifest = {
@@ -449,6 +488,7 @@ def main() -> None:
         "source_zip": args.source.name,
         "source_sha256": sha256(args.source.read_bytes()),
         "dae": DAE_NAME,
+        "normal_maps": {"layout": "pd2 (X in alpha)", "invert_green": not args.keep_nm_green},
         "files": {p: sha256(d) for p, d in sorted(files.items())},
     }
     files[f"{ROOT_DIR}/build_manifest.json"] = json.dumps(manifest, indent=1).encode()

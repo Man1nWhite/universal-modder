@@ -8,7 +8,36 @@
 > rigged ME2 COLLADA source on the Legendary Armour Skins contract of `2b.rar`.
 > See the [restart audit](../../docs/audits/2026-10-18-old-model-retired-las-restart.md).
 
-## 2026-10-18 — restart on the LAS route with the rigged ME2 source (NEW)
+## 2026-10-18 — aligned the LAS pack with the ModWorkshop LAS/MOOG guide (NEW)
+
+- Read the Legendary Armour Skins/MOOG/Outfit module guide (Columbus, WIP) and
+  distilled it into `knowledge/games/payday-2/las-moog-outfit-porting.md`
+  (porting checklist, render-template reference from the live outfits,
+  material_config contract, texture/DDS gotchas). The notes-first protocol was
+  followed: knowledge first, then code.
+- Normal maps: PD2 wants the normal **X channel in alpha**, R flat white, B
+  flat black (G = Y, flip only when the source is DirectX-style). Our ME2 PNGs
+  are standard RGB normals (B≈254 flat), so the builder now repacks them
+  (`dds.pd2_normal_channels`; `--keep-nm-green` opts out of the Y flip).
+  Without the repack the game reads bogus X and shading breaks.
+- Materials: every material_config now carries `group=` (units reference by
+  group; a global default risks clashes and engine fallbacks) and exactly the
+  template keywords the shipped outfits use: TPP = `CONTOUR:DIFFUSE_TEXTURE:
+  NORMALMAP:SKINNED_3WEIGHTS` (+ `unique="true"` + `contour_color` 1 1 1 /
+  `contour_opacity` 0), FPS = `DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:
+  SKINNED_3WEIGHTS` with no contour, lashes = the 2B-attested masked combo
+  `ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_1WEIGHT`
+  over a generated flat normal. Never invent keyword combinations — unknown
+  combos can render black.
+- Kept unchanged because the guide confirms them: locators/culling
+  (`c_block`, `BackPack1`, `Aim`, `e_taser`) intact, skin weights ≤3 per
+  vertex, texture config paths extensionless, textures `generate_mipmaps=true`,
+  DXT5-family formats only.
+- Tests: 3 new (channel remap, attested material set, whole-pack normal
+  layout) — 174 passed, 5 skipped. Rebuilt `dist/lawson_las.zip`
+  (30 files, sha256 `a6b0ad79…`). Offline only; nothing game-verified.
+
+## 2026-10-18 — restart on the LAS route with the rigged ME2 source
 
 - User direction: `2b.rar` is the example of what to make — an additive,
   equipable LAS outfit, not model swaps. Delete the old model and everything

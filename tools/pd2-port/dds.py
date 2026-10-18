@@ -127,6 +127,32 @@ def _encode_block(pixels) -> bytes:
     return ab + cb
 
 
+def pd2_normal_channels(arr, invert_y: bool = True):
+    """Repack a standard RGB normal map into PAYDAY 2's packed layout.
+
+    Per the ModWorkshop LAS/MOOG porting guide: Diesel's normal shader reads
+    only alpha (X) and green (Y). Move the source red (X) into alpha, set red
+    to white and blue to black (unused channels), and keep green as Y —
+    ``invert_y`` converts DirectX-style (Y-) sources to the OpenGL-style (Y+)
+    convention PD2's shaders expect. Compress the result with DXT5 (every PD2
+    normal map uses an alpha channel).
+    """
+    np = _np()
+    src = np.asarray(arr, dtype=np.uint8)
+    if src.ndim != 3 or src.shape[2] < 3:
+        raise ValueError(f"expected HxWx3/4 array, got {src.shape}")
+    out = np.zeros((src.shape[0], src.shape[1], 4), dtype=np.uint8)
+    x = src[..., 0].astype(np.int16)
+    y = src[..., 1].astype(np.int16)
+    out[..., 0] = 255                       # red: unused, kept white
+    if invert_y:
+        y = 255 - y
+    out[..., 1] = np.clip(y, 0, 255).astype(np.uint8)   # green: Y+
+    out[..., 2] = 0                         # blue: unused, kept black
+    out[..., 3] = x.astype(np.uint8)        # alpha: X
+    return out
+
+
 def encode_dxt5(img) -> bytes:
     """Encode an (h, w, 4) uint8 RGBA array; h and w must be multiples of 4."""
     np = _np()
