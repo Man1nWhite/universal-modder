@@ -3982,105 +3982,24 @@
   ]
  },
  {
-  "path": "games/payday-2/beardlib-player-style-outfits.md",
+  "path": "games/payday-2/las-armor-skin-outfit.md",
   "kind": "game",
-  "title": "Standalone BeardLib player-style outfits without LAS",
+  "title": "LAS armor-skin outfits in PAYDAY 2 from a Source-engine character mod",
   "game": "PAYDAY 2",
-  "games_also": [],
-  "game_version": "User crash logs: 1.0.0-159028; no agent-side game runtime available",
-  "platform": "windows",
-  "engine": "native",
-  "route": "loader-api",
-  "tools": [
-   "Python 3.11",
-   "Pillow",
-   "numpy",
-   "pytest",
-   "SuperBLT",
-   "BeardLib 5.2.0",
-   "Lua 5.1 via lupa"
+  "games_also": [
+   "Left 4 Dead 2"
   ],
-  "anti_cheat": "Not assessed on user's installation; offline tests only, no game/client modifications performed",
-  "status": "in-progress",
-  "agents": [
-   "Arena.ai agent"
-  ],
-  "humans": [],
-  "date": "2026-10-18",
-  "links": [
-   "https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046",
-   "https://github.com/steam-test1/Payday-2-LuaJIT-Complete/tree/e3a8b6168a8dca75ebe741cd77babd1080904032",
-   "https://github.com/diesel-modding/PAYDAY2-SuperBLT-Lua/tree/5602d35c9a0020c2cba87cd79f25563f8d5435d7"
-  ],
-  "tags": [
-   "payday-2",
-   "diesel",
-   "beardlib",
-   "player-style",
-   "outfit",
-   "materials",
-   "first-person",
-   "packaging"
-  ]
- },
- {
-  "path": "games/payday-2/character-override-packaging.md",
-  "kind": "game",
-  "title": "Character override packs listed but not loaded or crashing on SkinBones palettes",
-  "game": "PAYDAY 2",
-  "games_also": [],
-  "game_version": "User build unknown; original package claimed Update 247, unverified",
+  "game_version": "User build 1.0.0-159028 for the earlier crash logs; no agent-side game runtime",
   "platform": "windows",
   "engine": "diesel",
   "route": "asset-only",
   "tools": [
-   "Python",
-   "SuperBLT",
-   "BeardLib"
-  ],
-  "anti_cheat": "Not assessed on user's installation; offline testing only",
-  "status": "in-progress",
-  "agents": [
-   "Arena.ai agent"
-  ],
-  "humans": [],
-  "date": "2026-10-18",
-  "links": [
-   "https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046",
-   "https://github.com/diesel-modding/payday2-model-tool"
-  ],
-  "tags": [
-   "payday-2",
-   "diesel",
-   "mod-overrides",
-   "beardlib",
-   "packaging",
-   "textures",
-   "skinbones",
-   "model"
-  ]
- },
- {
-  "path": "games/payday-2/las-outfit-unit-resources.md",
-  "kind": "game",
-  "title": "Repairing Lawson LAS registration and outfit-unit resources",
-  "game": "PAYDAY 2",
-  "games_also": [],
-  "game_version": "User crash logs: 1.0.0-159028; no agent-side game runtime",
-  "platform": "windows",
-  "engine": "native",
-  "route": "loader-api",
-  "tools": [
    "Python 3.11",
-   "numpy",
-   "Pillow",
-   "pytest",
-   "Lua 5.1 via lupa",
    "SuperBLT",
    "BeardLib 5.2.0",
-   "Legendary Armour Skins 4.1.9"
+   "Legendary Armour Skins 4.x"
   ],
-  "anti_cheat": "Offline/manual tests only; no client, loader or game installation changes",
+  "anti_cheat": "Offline only; no client, loader or game installation changes",
   "status": "in-progress",
   "agents": [
    "Arena.ai agent"
@@ -4095,12 +4014,13 @@
    "payday-2",
    "diesel",
    "las",
-   "wardrobe",
-   "outfit",
-   "materials",
-   "culling",
-   "crash",
-   "packaging"
+   "armor-skin",
+   "l4d2",
+   "source-engine",
+   "vpk",
+   "mdl",
+   "vtf",
+   "outfit"
   ]
  },
  {

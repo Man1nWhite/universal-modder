@@ -5,11 +5,6 @@ uv.lock
 .env
 build/
 dist/
-# Keep the specifically requested BeardLib distribution visible in dist/.
-# Other generated distributions remain ignored (the four existing ZIPs are tracked).
-!/dist/
-/dist/*
-!/dist/lawson_outfit_BeardLib.zip
 *.egg-info/
 # captures and scratch
 *.mkv

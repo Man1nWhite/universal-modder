@@ -26,18 +26,20 @@
   <a href="https://discord.com/invite/sEZWaf7vV"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/discord-dark.svg"><img src="docs/media/discord-light.svg" height="32" alt="join the discord"></picture></a>
 </p>
 
-## PAYDAY 2 character-pack troubleshooting
+## PAYDAY 2 — Miranda Lawson outfit (work in progress)
 
-For the Lawson packs in `dist/`, see the [installation and troubleshooting guide](tools/pd2-port/README.md).
-They belong in **`PAYDAY 2\assets\mod_overrides\`**, not `mods\mod_overrides`, and require
-**SuperBLT + BeardLib** for the custom texture registration included in the corrected packages.
-In-game model/animation compatibility still needs verification.
+The current work is a **Legendary Armour Skins (LAS) armor-skin add-on** — a
+selectable, equipable full-body outfit with its own third-person model and
+first-person arms, following the contract of the reference pack `2b.rar` — built
+from the source assets in `l4d2_miranda_lawson_1.zip` (an L4D2 Miranda Lawson
+replacement for Rochelle). Pipeline and status: [`tools/pd2-las/`](tools/pd2-las/README.md).
 
-For a selectable outfit rather than a character swap, the separate
-[`lawson_outfit_BeardLib.zip` builder and install guide](tools/pd2-port/README.md#standalone-beardlib-outfit)
-provide a native BeardLib player style, **without Legendary Armour Skins**.
-The existing archives are retained unchanged; the new variant is offline-validated,
-not game-tested.
+An earlier approach that surgically replaced heister character models
+(Clover/Bonnie/Sydney, plus outfit packs built on the same mesh) was **retired as
+a dead end** on 2026-10-18: the source rig was broken, the packs crashed or
+rendered wrong in-game, and the model-editing pipeline was not reproducible from a
+clean checkout. Nothing built on that model remains in the repository; see the
+[route-change audit](docs/audits/2026-10-18-route-change-audit.md).
 
 ## Install
 
