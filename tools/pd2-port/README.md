@@ -1,5 +1,111 @@
 # PAYDAY 2 Lawson character packs
 
+## Choose a package
+
+| Archive | Integration | Where it appears |
+| --- | --- | --- |
+| `lawson_outfit_BeardLib.zip` | **Standalone BeardLib-native `PlayerStyle`; no LAS** | Native Outfit / Player Styles selector: **Miranda Lawson (BeardLib)** |
+| `lawson_outfit.zip` | Legacy **LAS-branded**, but its manifest also uses `PlayerStyle` | Legacy `lawson` style; retained unchanged |
+| `lawson_bonnie.zip`, `lawson_clover.zip`, `lawson_sydney.zip` | Character asset replacements | Replaces the corresponding heister; no new outfit entry |
+
+The new BeardLib variant is additive: its item ID, asset paths, icon bundle and
+folder are independent of the legacy pack. The original four archives and
+`2b.rar` are not rebuilt or modified. None of these packages is game-verified;
+see the [repository audit](../../docs/audits/2026-10-18-repository-audit.md) for
+the older packages' remaining limitations.
+
+## Standalone BeardLib outfit
+
+**Build output:** `dist/lawson_outfit_BeardLib.zip`. Requires **SuperBLT + BeardLib**
+with the `PlayerStyle` module (API checked against BeardLib 5.2.0). **Legendary
+Armour Skins / Wardrobe Mod is not required or bundled.** The source Clover ZIP
+is a build input only; it does not have to be installed, and you do not have to
+play as Clover to select this outfit.
+
+### Install / equip
+
+1. With the game closed, back up `assets/mod_overrides/` and your save/profile.
+2. Extract the ZIP directly into `PAYDAY 2/assets/mod_overrides/`. Check this exact
+   layout (no extra enclosing directory):
+
+   ```text
+   PAYDAY 2/
+     mods/BeardLib/mod.txt
+     assets/mod_overrides/
+       Lawson_Outfit_BeardLib/
+         main.xml
+         README.txt
+         CREDITS.txt
+         BUILD_INFO.json
+         loc/english.txt
+         assets/units/mods/lawson_beardlib/...
+         assets/guis/dlcs/lawson_beardlib/...
+   ```
+
+3. Open the native **Outfit / Player Styles** list in Inventory and select
+   **Miranda Lawson (BeardLib)**, not a LAS armor-skin entry. Choose **Default
+   gloves** to use the included hands. No extra outfit-unlocker is needed for
+   this custom item.
+4. Initially disable other character replacements/appearance mods. Check the
+   preview, then an **offline** heist: FPS weapon alignment, reloads, movement,
+   mask-on, armor/heister changes, switching back to a vanilla outfit and restart.
+   Separate IDs prevent registration/resource collisions with the old outfit;
+   they are not proof that all appearance mods work together.
+5. To remove it, **equip a vanilla outfit first**, close the game, then remove
+   only `assets/mod_overrides/Lawson_Outfit_BeardLib/`. Leave shared loaders and
+   the original Lawson folders alone. Restore the backup if needed.
+
+### Rebuild / checks
+
+From the repository root, using Python 3.10+ with the project's Pillow/numpy
+requirements and pytest installed:
+
+```sh
+python tools/pd2-port/build_outfit_beardlib.py
+# Optional explicit inputs/output (defaults shown):
+python tools/pd2-port/build_outfit_beardlib.py --source dist/lawson_clover.zip --icon "Lawson model/Miranda_face_d.png" --out dist/lawson_outfit_BeardLib.zip
+python -m pytest -q tests/test_outfit_beardlib_pack.py tests/test_outfit_pack.py
+```
+
+The builder works from other working directories, refuses to overwrite the four
+original archives / reference archive / inputs, writes atomically, and produces
+a deterministic ZIP. `BUILD_INFO.json` records source/icon hashes, the checked
+API commits and every other payload's SHA-256. The generated ZIP follows the
+existing ignored `dist/` convention; game/model assets are not added to Git or
+published by this change. Keep the private download, or regenerate it locally.
+
+Implementation details:
+
+- `PlayerStyle id="lawson_beardlib"`, global FPS/TPP unit fallback (no incomplete
+  per-character allowlist), and both `body_replacement` /
+  `third_body_replacement` with native boolean attributes.
+- Full third-person mesh, separate FPS arms/hands on the supplied heister
+  skeleton; unused vanilla drawables/material groups are pruned. The new FPS
+  selector expands **one ring from an immutable arm-bound seed set**, so changing
+  triangle order cannot flood-fill the torso. This does not make the cut watertight.
+- Real `g_body` culling geometry with bounds covering retained mesh positions,
+  complete render-atom material coverage including `shadow_caster`, and
+  `DEPTH_SCALING` first-person shaders. Reference/material/index-range checks
+  supplement (not repair globally) the older model validator.
+- The 19 repaired input textures are unchanged. Two full-mip grayscale opacity
+  maps are derived from the supplied hair/lash alpha, plus a flat normal for the
+  alpha-masked lashes. No Clover-specific head/hair textures are required at
+  runtime; only the game's standard hair cubemap remains an external material
+  resource. Shader behavior still needs a visual check.
+- Standard JSON localization, own outfit icon bundle, no runtime Lua hooks,
+  updater, downloads, vanilla unit-path overrides, save edits or gameplay changes.
+
+**Verification limits:** structural tests are not an engine test. This reuses the
+already-rigged source, so rig deformation, UV seams, hand/weapon alignment,
+materials, armor clipping, culling and animations are still unverified. Native
+`PlayerStyle` replacement does **not** hide the separately equipped mask; mask
+clipping is possible. Non-default gloves may override the supplied hands. VR,
+individual heister proportions and online synchronization are untested; do not
+assume unmodded peers can see the outfit. It is not a demonstrated equivalent of
+the 2B reference. Input asset authorship/redistribution permissions remain
+unresolved: this is a **private experimental derivative, not a cleared public
+release** (see bundled `CREDITS.txt`).
+
 ## Characters unchanged or crashing at startup when the packs load?
 
 Four defects existed in the earlier Lawson archives:
@@ -87,14 +193,14 @@ not prove that in-game mesh deformation, rig alignment, animations, masks, or
 multiplayer work. No PAYDAY 2 installation is available in this development
 environment. Test offline first.
 
-## LAS wearable outfit pack (`dist/lawson_outfit.zip`)
+## Legacy LAS-branded outfit (`dist/lawson_outfit.zip`)
 
-`build_outfit.py` turns the repaired Clover->Lawson assets into a **Legendary
-Armour Skins** ("Wardrobe Mod") outfit pack — the same system as ModWorkShop
-packs like "Yorha No. 2 Type B (2B) [LAS]" (install the framework by Cpone,
-<https://modworkshop.net/mod/24006>, plus SuperBLT and BeardLib). The Lawson
-model becomes an equippable armor-skin ("Customize Armor" menu) instead of a
-character swap:
+`build_outfit.py` and the original ZIP are retained unchanged. Despite the
+`Lawson_LAS` folder and `wardrobe_mod` resource names, its actual registration is
+BeardLib's native **`PlayerStyle`**, not a `LegendaryArmours` Lua skin. The name
+alone does not make it use the same integration as `2b.rar`. Prefer the separate
+[standalone BeardLib edition](#standalone-beardlib-outfit) above for the explicit
+no-LAS variant and its additional checks. To reproduce the legacy payload:
 
 ```sh
 python tools/pd2-port/build_outfit.py --source dist/lawson_clover.zip --out dist/lawson_outfit.zip
@@ -114,9 +220,10 @@ standard heister skeleton (`Hips`..fingers, `a_weapon_left_front/right_front`,
 must already be repaired (`repair_skin_palettes.py`), so textures come out as
 full DXT5 pyramids.
 
-Not verified in-game; test offline first. Unknowns: LAS acceptance of the
-body_replacement mapping, FPS arms deformation, `co_box` culling as an empty
-locator, and co-op safety.
+Not verified in-game; test offline first. Known concerns in this retained
+archive include incomplete material coverage and order-dependent FPS selection,
+as documented in the [audit](../../docs/audits/2026-10-18-repository-audit.md).
+FPS deformation, empty-locator culling, masks and co-op remain unverified.
 
 ## Maintaining the packages
 
@@ -127,8 +234,10 @@ locator, and co-op safety.
 - `build_package2.py` is the three-character staging builder and writes `main.xml`
   and `README.txt` through `package_metadata.py`. Its textures are built by
   `dds.py` with full mipmap pyramids and strictly ordered DXT5 endpoints.
-- `build_outfit.py` builds `dist/lawson_outfit.zip`, the LAS armor-skin pack,
-  from a repaired `dist/lawson_*.zip` (see above). It reuses
+- `build_outfit_beardlib.py` builds the separate native BeardLib variant from
+  `dist/lawson_clover.zip`; see [above](#standalone-beardlib-outfit).
+- `build_outfit.py` builds `dist/lawson_outfit.zip`, the legacy LAS-branded outfit
+  with a native `PlayerStyle` manifest, from a repaired source pack (see above). It reuses
   `repair_skin_palettes.normalize_model_container` / `validate_model_skinning`
   for every model it emits and `dds.encode_dxt5` for the icon.
 - `repair_skin_palettes.py` inspects (`--check`) or repairs in place the

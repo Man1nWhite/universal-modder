@@ -1,5 +1,72 @@
 # Lawson pack repair journal
 
+## 2026-10-18 — separate BeardLib-native outfit variant (built; not game-verified)
+
+- Request: add `lawson_outfit_BeardLib` alongside the existing outfit/character
+  packs. Keep the existing four ZIPs and `2b.rar` unchanged.
+- Route: a standalone BeardLib `PlayerStyle`, requiring SuperBLT + BeardLib only,
+  with its own `lawson_beardlib` item ID and asset/icon namespace. Do not register
+  `LegendaryArmours`, depend on LAS/Wardrobe Mod, or override vanilla heister paths.
+- Source of truth: BeardLib 5.2.0 at
+  `95eb1c0c84e3f07d36f28a5e69197ec3b5c59046` (`PlayerStyleModule`,
+  `GlobalValueModule`, `PlayerStyleGloveHooks`) and the game's player-style value
+  fallback / body-replacement behavior. The native replacement map supports head,
+  body, hands, arms, vest and armor; it does not automatically hide the separate
+  mask, so do not promise LAS-style mask hiding.
+- Reuse the supplied repaired Clover->Lawson mesh, not a fresh speculative rig.
+  Prune unused vanilla drawables/material groups, include the shadow material,
+  make FPS selection triangle-order independent, and validate actual render-atom
+  references and material coverage. Keep the original builder's output intact.
+- Package generated game/model assets only as an ignored local/private download;
+  no publication or new game-asset commit. Add the reproducible builder, tests,
+  install instructions and provenance/verification limits to source control.
+- Implemented `build_outfit_beardlib.py`, separate from the unchanged legacy
+  builder. Output: `dist/lawson_outfit_BeardLib.zip`, root
+  `Lawson_Outfit_BeardLib/`, 36 files, 6,155,761 bytes. SHA-256:
+  `591f6d7b9c6ef9a8c6a8b6f2c0183519e2d1a728711e0ed8a75fc555cfe7283f`.
+  The ignored ZIP is also provided as a private download outside `dist/` so it
+  survives workspace snapshots; no new game/model assets are added to Git.
+- Retained TPP geometry/topology and the complete source skeleton; removed
+  unused drawable chains and material groups. FPS body: 1,825 arm-bound seed
+  vertices + an immutable one-ring expansion = 1,998 vertices, plus the 4,538
+  original hand vertices. Reversed/shuffled face orders produce the same cut.
+  This is not a watertightness or animation guarantee.
+- Used native `.unit` / `dynamic_object` schemas, real `g_body` culling geometry
+  with conservative bounds, complete used-material coverage (including
+  `shadow_caster`), and FPS `DEPTH_SCALING` templates. All 19 source texture
+  payloads remain unchanged; added two alpha-derived grayscale opacity maps
+  and one small flat normal, with full DXT5 mip chains. The source's existing
+  alpha-masked Clover-hair shader permutation is used for lashes; shader
+  appearance still needs an engine test.
+- Added deterministic ordering/timestamps, atomic output, original-input/archive
+  overwrite protection, standard JSON localization and `BUILD_INFO.json` hashes.
+  The 34 dedicated tests passed; full repository suite with FFmpeg/ffprobe on
+  PATH: **217 passed, 1 skipped** (MSYS-only), one existing Pillow deprecation
+  warning, in 112.38 seconds. Existing outfit-payload parity tests also passed.
+- Manual API contract smoke in Lua 5.1: executed the pinned BeardLib XML boolean
+  conversion, `PlayerStyleModule` registration, actual game global fallback,
+  BeardLib default-glove getters and actual SuperBLT json10 decoding against
+  the generated config. FPS/TPP paths resolved for five names; default gloves
+  returned false; non-default gloves remained selectable; the legacy `lawson`
+  registration stayed intact. Host objects and character-name conversion were
+  stubbed: this is **not a PAYDAY 2 rendering/animation test**. New localization loads in json10;
+  the old comma-less localization is not being labeled a runtime blocker.
+- KB: 246 notes pass with the original Diesel catalog warning. Publish lint:
+  **761 files, 0 failures, 8 existing warnings**. This lint does not inspect ZIP
+  payloads or clear redistribution rights; package contents were checked
+  separately by the dedicated tests. Added an in-progress native-outfit field
+  note and install/equip/rollback instructions, and corrected the old guide's
+  LAS-versus-PlayerStyle branding without modifying its archive or builder.
+- SHA-256 rechecks preserve all four original ZIPs and `2b.rar` exactly as
+  recorded in the audit. Source Clover SHA-256:
+  `95f3d4ab3718c71a84c8ed4695e130712e3b5c132b6b68e377530f40460b271f`.
+- No PAYDAY 2 installation is available: in-game visual/animation/mask behavior,
+  per-heister proportions, VR, other appearance mods and online sync remain
+  unverified. Native masks stay separate; use Default gloves for Lawson hands.
+  No loader installation, input automation, game-folder/save edits, commits,
+  pushes, PRs or publication were performed. Next: user-controlled offline test,
+  with logs/screenshots if loading, clipping or animation fails.
+
 ## 2026-10-18 — LAS wearable outfit pack (dist/lawson_outfit.zip)
 
 - Request: build a Legendary Armour Skins ("Wardrobe Mod") outfit pack like

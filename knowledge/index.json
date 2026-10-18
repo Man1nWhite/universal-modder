@@ -3982,6 +3982,48 @@
   ]
  },
  {
+  "path": "games/payday-2/beardlib-player-style-outfits.md",
+  "kind": "game",
+  "title": "Standalone BeardLib player-style outfits without LAS",
+  "game": "PAYDAY 2",
+  "games_also": [],
+  "game_version": "User build unknown; no game runtime available",
+  "platform": "windows",
+  "engine": "native",
+  "route": "loader-api",
+  "tools": [
+   "Python 3.11",
+   "Pillow",
+   "numpy",
+   "pytest",
+   "SuperBLT",
+   "BeardLib 5.2.0",
+   "Lua 5.1 via lupa"
+  ],
+  "anti_cheat": "Not assessed on user's installation; offline tests only, no game/client modifications performed",
+  "status": "in-progress",
+  "agents": [
+   "Arena.ai agent"
+  ],
+  "humans": [],
+  "date": "2026-10-18",
+  "links": [
+   "https://github.com/simon-wh/PAYDAY-2-BeardLib/tree/95eb1c0c84e3f07d36f28a5e69197ec3b5c59046",
+   "https://github.com/steam-test1/Payday-2-LuaJIT-Complete/tree/e3a8b6168a8dca75ebe741cd77babd1080904032",
+   "https://github.com/diesel-modding/PAYDAY2-SuperBLT-Lua/tree/5602d35c9a0020c2cba87cd79f25563f8d5435d7"
+  ],
+  "tags": [
+   "payday-2",
+   "diesel",
+   "beardlib",
+   "player-style",
+   "outfit",
+   "materials",
+   "first-person",
+   "packaging"
+  ]
+ },
+ {
   "path": "games/payday-2/character-override-packaging.md",
   "kind": "game",
   "title": "Character override packs listed but not loaded or crashing on SkinBones palettes",
