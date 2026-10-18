@@ -85,6 +85,17 @@ HEAD_MAT_SLOT = {"miranda_face": "mtr_face", "miranda_head": "mtr_head",
                  "miranda_hair": "mtr_hair", "eyeball_l": "mtr_eyes",
                  "eyeball_r": "mtr_eyes"}
 
+# 48-byte material defaults, copied verbatim from the 2B LAS materials
+# (six little-endian qwords: 0, 0, (0.0, 1.0), 0, (0.0, 1.0), 0)
+MAT_SKIPPED_DEFAULT = bytes.fromhex(
+    "0000000000000000"
+    "0000000000000000"
+    "000000000000803f"
+    "0000000000000000"
+    "000000000000803f"
+    "0000000000000000"
+)
+
 FACE_COLORS = {
     "mtr_body": (196, 158, 132), "mtr_face": (224, 184, 162),
     "mtr_head": (210, 168, 144), "mtr_hair": (86, 58, 40),
@@ -526,7 +537,7 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
     mat_secs = []
     for name, mid in zip(out_mats, mat_ids):
         mat_secs.append(dm.Section(dm.MATERIAL, mid, dm.encode_material(
-            {"name_hash": dm.hash64(name), "skipped": bytes(48), "items": [],
+            {"name_hash": dm.hash64(name), "skipped": MAT_SKIPPED_DEFAULT, "items": [],
              "remaining": b""})))
     mg_id = ids[5 + len(out_mats)]
     sections += mat_secs
@@ -788,16 +799,14 @@ def main(argv=None) -> int:
     unit_dir = pack_dir / "assets" / "units" / "miranda" / "skins" / "miranda"
     if unit_dir.is_dir():
         import shutil
+        import las_pack
+
         for label, out_path in packs:
             shutil.copy2(out_path, unit_dir / out_path.name)
         wip = pack_dir / "WIP_DO_NOT_INSTALL.txt"
         if wip.exists():
             wip.unlink()
-        info_path = pack_dir / "BUILD_INFO.json"
-        if info_path.exists():
-            info = json.loads(info_path.read_text())
-            info["models_present"] = True
-            info_path.write_text(json.dumps(info, indent=2) + "\n")
+        las_pack.refresh_build_info(pack_dir)
         print(f"pack updated: {unit_dir}")
     return 0
 

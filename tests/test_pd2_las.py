@@ -304,6 +304,39 @@ class TestLasScaffold:
         digest = hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()
         assert inv["source_zip_sha256"] == digest
 
+    def test_material_config_weight_classes(self, pack):
+        """Eyeballs are 3-weight skinned; shadow matches the 2B contract."""
+        cfg = (
+            pack / "assets/units/miranda/skins/miranda/miranda.material_config"
+        ).read_text()
+        assert 'name="mtr_eyes" render_template="generic:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS"' in cfg
+        assert 'name="shadow_caster" render_template="shadow_caster_only:SKINNED_1WEIGHT"' in cfg
+        for name in ("mtr_body", "mtr_face", "mtr_head", "mtr_hair"):
+            assert f'name="{name}"' in cfg
+
+    def test_refresh_build_info_sees_models(self, pack, tmp_path):
+        """refresh_build_info flips models_present and re-hashes the tree."""
+        import shutil
+
+        from las_pack import refresh_build_info
+
+        clone = tmp_path / "Miranda_LAS"
+        shutil.copytree(pack, clone)
+        unit = clone / "assets/units/miranda/skins/miranda"
+        (unit / "miranda.model").write_bytes(b"fake model")
+        (unit / "fps_miranda.model").write_bytes(b"fake fps model")
+        (clone / "WIP_DO_NOT_INSTALL.txt").unlink()
+        refresh_build_info(clone)
+        info = json.loads((clone / "BUILD_INFO.json").read_text())
+        assert info["models_present"] is True
+        assert "WIP_DO_NOT_INSTALL.txt" not in info["payload_sha256"]
+        for rel in (
+            "assets/units/miranda/skins/miranda/miranda.model",
+            "assets/units/miranda/skins/miranda/fps_miranda.model",
+        ):
+            digest = hashlib.sha256((clone / rel).read_bytes()).hexdigest()
+            assert info["payload_sha256"][rel] == digest
+
     def test_reference_archive_untouched(self):
         ref = REPO / "2b.rar"
         if ref.is_file():

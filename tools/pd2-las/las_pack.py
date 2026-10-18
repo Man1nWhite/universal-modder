@@ -199,7 +199,7 @@ def render_material_config(base: str, fps: bool) -> str:
         "\n",
         (
             '    <material name="mtr_eyes" render_template="generic:DIFFUSE_TEXTURE:'
-            'SKINNED_1WEIGHT" version="2">\n'
+            'SKINNED_3WEIGHTS" version="2">\n'
             f'        <diffuse_texture file="{UNIT_BASE}/{eye_tex}"/>\n'
             "    </material>\n"
         ),
@@ -280,3 +280,27 @@ def write_pack(
     }
     (pack / "BUILD_INFO.json").write_text(json.dumps(build_info, indent=2, sort_keys=True) + "\n")
     return pack
+
+
+def refresh_build_info(pack: Path, **overrides) -> None:
+    """Re-hash the final pack tree into BUILD_INFO.json (call after adding models).
+
+    ``models_present`` flips true automatically once the unit .model files
+    exist; extra keyword overrides are merged into the stored info.
+    """
+    info_path = pack / "BUILD_INFO.json"
+    info = json.loads(info_path.read_text()) if info_path.exists() else {}
+
+    def sha256(data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
+
+    payload = {}
+    for path in sorted(pack.rglob("*")):
+        if path.is_file() and path.name != "BUILD_INFO.json":
+            payload[path.relative_to(pack).as_posix()] = sha256(path.read_bytes())
+    info["payload_sha256"] = payload
+    unit_dir = pack / "assets" / UNIT_BASE
+    models_present = (unit_dir / "miranda.model").is_file() and (unit_dir / "fps_miranda.model").is_file()
+    info["models_present"] = models_present
+    info.update(overrides)
+    info_path.write_text(json.dumps(info, indent=2, sort_keys=True) + "\n")
