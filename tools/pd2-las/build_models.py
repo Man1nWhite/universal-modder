@@ -807,7 +807,8 @@ def main(argv=None) -> int:
         if wip.exists():
             wip.unlink()
         las_pack.refresh_build_info(pack_dir)
-        print(f"pack updated: {unit_dir}")
+        zip_path = las_pack.zip_pack(pack_dir)
+        print(f"pack updated: {unit_dir} (+ {zip_path.name})")
     return 0
 
 

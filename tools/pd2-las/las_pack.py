@@ -304,3 +304,15 @@ def refresh_build_info(pack: Path, **overrides) -> None:
     info["models_present"] = models_present
     info.update(overrides)
     info_path.write_text(json.dumps(info, indent=2, sort_keys=True) + "\n")
+
+
+def zip_pack(pack: Path) -> Path:
+    """Zip the pack folder in installable layout (top-level = folder name)."""
+    import zipfile
+
+    out = pack.with_suffix(".zip")
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for path in sorted(pack.rglob("*")):
+            if path.is_file():
+                z.write(path, path.relative_to(pack.parent).as_posix())
+    return out

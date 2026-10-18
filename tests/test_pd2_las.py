@@ -337,6 +337,23 @@ class TestLasScaffold:
             digest = hashlib.sha256((clone / rel).read_bytes()).hexdigest()
             assert info["payload_sha256"][rel] == digest
 
+    def test_zip_pack_layout(self, pack, tmp_path):
+        import shutil
+        import zipfile
+
+        from las_pack import refresh_build_info, zip_pack
+
+        clone = tmp_path / "Miranda_LAS"
+        shutil.copytree(pack, clone)
+        refresh_build_info(clone)
+        out = zip_pack(clone)
+        assert out.name == "Miranda_LAS.zip"
+        with zipfile.ZipFile(out) as z:
+            names = z.namelist()
+        assert "Miranda_LAS/main.xml" in names
+        assert "Miranda_LAS/BUILD_INFO.json" in names
+        assert all(n.startswith("Miranda_LAS/") for n in names)
+
     def test_reference_archive_untouched(self):
         ref = REPO / "2b.rar"
         if ref.is_file():

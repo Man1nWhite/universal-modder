@@ -62,6 +62,10 @@ python tools/pd2-las/build_models.py --templates /tmp/2bsrc/2B\ -\ LAS/assets/un
 python -m pytest -q tests/                      # 188 tests, run offline
 ```
 
+The installable test pack is `build/pd2-las/Miranda_LAS/` (zip copy at
+`build/pd2-las/Miranda_LAS.zip`); verify it in game with
+`docs/pd2-las/in-game-checklist.md` before any public release.
+
 ## Geometry authoring (build_models.py)
 
 Meshes from the L4D source (`l4d2_miranda_lawson_1.zip`, `VpkArchive.from_zip`)
@@ -84,7 +88,8 @@ codec (`diesel_model.py`, byte-exact round-trips vs p2mt):
 - **Previews** land in `build/pd2-las/previews/` — geometry flat-shaded per
   material plus the source-texture reference renders.
 
-Remaining for install: an in-game check. The material layer is complete
+Remaining for install: an in-game check — follow
+`docs/pd2-las/in-game-checklist.md`. The material layer is complete
 (`2b.material_config` proved the contract: model materials are name-hash
 carriers; the `*.material_config` side binds names to `render_template`
 combos + `df`/`nm` textures, and `main.xml` registers `df_nm`/`texture`/
