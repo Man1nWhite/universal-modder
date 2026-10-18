@@ -16,6 +16,7 @@ WORK = Path('/home/user/pd2-work')
 OUT = WORK / 'clover-lawson'
 sys.path.insert(0, '/home/user/universal-modder/tools/pd2-port')
 from dmodel import (DieselModel, Hashlist, hash_str, mmul, minv, TAGS_INV)
+from repair_skin_palettes import normalize_model_container
 
 MAX_PALETTE = 32
 
@@ -339,8 +340,6 @@ def main():
         write_mat(w, rows)
         w.vec3(md.pos)
         w.u32(md.parent_id)
-        if md.remaining:
-            w.raw(md.remaining)
         w.u32(3)
         w.u32(gp_id); w.u32(tp_id)
         w.u32(len(atoms))
@@ -356,6 +355,8 @@ def main():
         rad = max(math.sqrt(x*x+y*y+z*z) for x, y, z in pverts)
         w.f32(rad); w.u32(md.bounding_int)
         w.u32(sb_id)
+        if md.remaining:
+            w.raw(md.remaining)
 
         for pm in mat_order:
             hit = [s for s in m.sections if s.tag == 'material' and s.obj.name == pm][0]
@@ -404,9 +405,11 @@ def main():
     out.u32(count)
     out.raw(payload)
     data = bytes(out.b)
-    # fix filesize to actual total
-    data = bytearray(data)
-    struct.pack_into('<I', data, 8, len(data))
+    # canonical DODB layout: contiguous section IDs 1..count, materials first,
+    # mesh groups after the model_data block (see repair_skin_palettes docstring)
+    data, fixed = normalize_model_container(data)
+    if fixed:
+        print(f"normalize: repaired sections {fixed}")
     dest = OUT / 'npc_criminal_female_1.model'
     dest.write_bytes(data)
     (OUT / 'npc_criminal_female_1_menu.model').write_bytes(data)

@@ -3,14 +3,15 @@
 
 Usage: build_package2.py clover|bonnie|sydney|all
 
-Per character: DXT5 .texture files (shared lawson path), material_configs with
-ADDED lawson_* blocks (vanilla blocks untouched), and the rebuilt .model pair.
+Per character: DXT5 .texture files (shared lawson path) with full vanilla
+mipmap pyramids (see dds.py), material_configs with ADDED lawson_* blocks
+(vanilla blocks untouched), and the rebuilt .model pair.
 """
-import os, re, shutil, struct, sys
-import numpy as np
+import os, re, shutil, sys
 from PIL import Image
 from pathlib import Path
 
+import dds
 from package_metadata import write_metadata
 
 SRC = '/home/user/pd2-work/clover-lawson'
@@ -61,69 +62,6 @@ def dds_name(png):
     return re.sub(r'[^A-Za-z0-9_]+', '_', os.path.splitext(png)[0].strip()).strip('_').lower()
 
 # ---------------- DXT5 ----------------
-def _rgb565(c):
-    r, g, b = c[..., 0], c[..., 1], c[..., 2]
-    return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
-
-def _expand565(v):
-    r = ((v >> 11) & 31) * 255 // 31
-    g = ((v >> 5) & 63) * 255 // 63
-    b = (v & 31) * 255 // 31
-    return np.stack([r, g, b], axis=-1).astype(np.int32)
-
-def encode_dxt5(img):
-    h, w = img.shape[:2]
-    a = img[..., 3].astype(np.int32)
-    rgb = img[..., :3].astype(np.int32)
-    out = np.zeros((h // 4, w // 4, 16), dtype=np.uint8)
-    for by in range(h // 4):
-        for bx in range(w // 4):
-            pa = a[by*4:by*4+4, bx*4:bx*4+4].reshape(-1)
-            pc = rgb[by*4:by*4+4, bx*4:bx*4+4].reshape(-1, 3)
-            a0 = int(pa.max()); a1 = int(pa.min())
-            if a0 == a1:
-                ab = bytes([a0, a1]) + b'\x00' * 6
-            else:
-                pal = np.array([a0, a1,
-                                (6*a0+a1)//7, (5*a0+2*a1)//7, (4*a0+3*a1)//7, (3*a0+4*a1)//7,
-                                (2*a0+5*a1)//7, (a0+6*a1)//7], dtype=np.int32)
-                idx = np.abs(pa[:, None] - pal[None, :]).argmin(axis=1)
-                bits = 0
-                for i, ix in enumerate(idx):
-                    bits |= int(ix) << (3 * i)
-                ab = bytes([a0, a1]) + bits.to_bytes(6, 'little')
-            s = pc.sum(axis=1)
-            c0 = pc[s.argmax()]; c1 = pc[s.argmin()]
-            e0 = int(_rgb565(c0.reshape(1, 1, 3))[0, 0]); e1 = int(_rgb565(c1.reshape(1, 1, 3))[0, 0])
-            if e0 == e1:
-                cb = struct.pack('<HH', e0, e1) + b'\x00' * 4
-            else:
-                e0c = _expand565(np.array([e0]))[0]
-                e1c = _expand565(np.array([e1]))[0]
-                pal = np.stack([e0c, e1c, (2*e0c+e1c)//3, (e0c+2*e1c)//3])
-                d = pc[:, None, :] - pal[None, :, :]
-                idx = (d * d).sum(axis=2).argmin(axis=1)
-                bits = 0
-                for i, ix in enumerate(idx):
-                    bits |= int(ix) << (2 * i)
-                cb = struct.pack('<HH', e0, e1) + bits.to_bytes(4, 'little')
-            out[by, bx, :8] = np.frombuffer(ab, dtype=np.uint8)
-            out[by, bx, 8:] = np.frombuffer(cb, dtype=np.uint8)
-    data = out.tobytes()
-    header = struct.pack('<4sI', b'DDS ', 124)
-    header += struct.pack('<I', 0x00081007)
-    header += struct.pack('<2I', h, w)
-    header += struct.pack('<I', len(data))
-    header += struct.pack('<2I', 0, 0)
-    header += b'\x00' * 44
-    header += struct.pack('<I', 32)
-    header += struct.pack('<I', 0x4)
-    header += struct.pack('<I', 0x35545844)
-    header += struct.pack('<5I', 0, 0, 0, 0, 0)
-    header += struct.pack('<5I', 0x1000, 0, 0, 0, 0)
-    assert len(header) == 128
-    return header + data
-
 def png_to_dds(png_path, dds_path):
     im = Image.open(png_path).convert('RGBA')
     s = 1
@@ -133,8 +71,9 @@ def png_to_dds(png_path, dds_path):
         canvas = Image.new('RGBA', (s, s), (0, 0, 0, 0))
         canvas.paste(im, (0, 0))
         im = canvas
+    payloads = dds.mip_payloads_from_image(im)
     with open(dds_path, 'wb') as f:
-        f.write(encode_dxt5(np.array(im)))
+        f.write(dds.pack_dds(payloads, s))
     return im.size
 
 # ---------------- config patch: ADD lawson blocks ----------------
