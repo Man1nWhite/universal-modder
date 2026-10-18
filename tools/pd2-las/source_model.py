@@ -159,7 +159,8 @@ def _read_vtx_meshes(
     """Walk the VTX bodypart/model/lod/mesh tree into per-mesh triangle lists.
 
     Appends ``(mdl_mesh_index, triangles)`` where each triangle is three
-    origMeshVertID values (model-space VVD indices).
+    origMeshVertID values (mesh-local; the MDL mesh vertexoffset rebases them
+    into model-space VVD indices in :func:`load_model`).
     """
     if len(vtx) < 36:
         raise SourceModelError("VTX truncated")
@@ -301,13 +302,16 @@ def load_model(mdl: bytes, vvd: bytes, vtx: bytes) -> ModelData:
 
     out = ModelData(name=model_name, bones=bones, materials=materials, vertices=vertices)
     nverts = len(vertices)
-    for (material_index, _voff), (_mi, triangles) in zip(mesh_specs, vtx_meshes):
+    for (material_index, voff), (_mi, triangles) in zip(mesh_specs, vtx_meshes):
         flat: list[int] = []
         for tri in triangles:
             for idx in tri:
-                if not 0 <= idx < nverts:
-                    raise SourceModelError(f"vertex index {idx} out of range (0..{nverts})")
-                flat.append(idx)
+                # origMeshVertID is mesh-local; rebase with the mesh's
+                # mstudiomesh_t.vertexoffset into the global VVD vertex list.
+                gidx = voff + idx
+                if not 0 <= gidx < nverts:
+                    raise SourceModelError(f"vertex index {gidx} out of range (0..{nverts})")
+                flat.append(gidx)
         out.meshes.append(
             SubMesh(material=materials[material_index], triangle_indices=tuple(flat))
         )

@@ -1,6 +1,8 @@
 # pd2-las — Miranda Lawson as a PAYDAY 2 Legendary Armour Skins outfit
 
-**Status: pipeline foundation, offline-tested. The pack is not installable yet**
+**Status: textures + scaffold + geometry authoring done offline; materials
+(shader params / texture links) still template-default. Not installable until
+the material pass and an in-game check**
 (Diesel `.model` authoring is the remaining step — see [Roadmap](#roadmap)).
 
 Build one equipable **Legendary Armour Skins (LAS) armor-skin add-on** for
@@ -53,8 +55,38 @@ derivatives.
 ```sh
 python tools/pd2-las/build_las.py              # extract → inventory → textures → scaffold
 python tools/pd2-las/build_las.py --stage inventory   # JSON summary on stdout
-python -m pytest -q tests/test_pd2_las.py      # 23 structural tests, run offline
+python tools/pd2-las/build_models.py --templates /tmp/2bsrc/2B\ -\ LAS/assets/units/2b/skins/2b
+                                                   # author miranda.model + fps_miranda.model
+python -m pytest -q tests/                      # 186 tests, run offline
 ```
+
+## Geometry authoring (build_models.py)
+
+Meshes from the L4D source (`l4d2_miranda_lawson_1.zip`, `VpkArchive.from_zip`)
+are re-authored onto the 2B LAS skeleton and written with the verified Diesel
+codec (`diesel_model.py`, byte-exact round-trips vs p2mt):
+
+- **Retargeting** (`retarget_maps`): one similarity fit (Umeyama/Procrustes,
+  numpy SVD, proper rotation, uniform scale clamped to [0.5, 6.0]) per TARGET
+  bone, shared by every source bone that resolves to it (explicit
+  `skeleton_map.json` pairs + ancestor walk). Pairs are fit over the source
+  joints whose targets lie in that target's subtree of the template skeleton;
+  single-pair targets use the global registration with exact joint placement.
+  Vertices transfer as `v' = Σ_j w_j · v · X_j` in world space (source world is
+  inches, target cm — the fits carry the ≈2.54 scale). Faces and UVs are
+  copied verbatim (3-weight renormalized; winding swapped `(a,b,c)→(a,c,b)`
+  to match p2mt's GLTF import, signed volume positive like the 2B reference).
+- **Groups**: `g_body`, `g_head`, `s_body` (TPP, per-material palettes), `g_arms`,
+  `s_arms` (FPS); template `c_block` and all shared skeleton/material plumbing
+  are kept untouched. LODs share lod0's group sections (same contract as 2B).
+- **Previews** land in `build/pd2-las/previews/` — geometry flat-shaded per
+  material plus the source-texture reference renders.
+
+Remaining for install: material pass (link authored materials to the pack
+textures, EyeRefract eyes / phong-ish hair+brows+lashes params as in the 2B
+models), then the in-game checklist in the task notes (UV orientation of
+`TEXCOORD0` is `v = 1 − v_src` per the p2mt GLTF import convention — confirm
+in game and flip if the textures read upside-down).
 
 Output under `build/pd2-las/` (gitignored):
 
