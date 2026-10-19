@@ -23,6 +23,10 @@ jobs:
         # pack; without it those two tests silently skip, and a checker that
         # only runs on release tags is not a check
         run: uv run python tools/pd2-port/build_las_pack.py
+      - name: the tracked pack must equal a fresh build
+        # a stale tracked pack (or a non-deterministic build) must not slip
+        # through on a branch push
+        run: diff -u dist/lawson_las.zip.sha256 <(sha256sum dist/lawson_las.zip)
       - run: uv run --with pytest pytest -q tests
       - run: ./bin/um --help && for g in scan fal comfy sprite render3d video win backup publish kb; do ./bin/um $g --help > /dev/null; done
       - name: knowledge base
