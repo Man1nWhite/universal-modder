@@ -43,11 +43,13 @@ requiring **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe Mod**.
 Nothing is game-verified yet.
 
 The pack is audited against the ModWorkshop LAS/MOOG guide on every build
-(`tools/pd2-port/check_guide_compliance.py`: 36 checks pass, 1 warning, 0
-failures) and the auditor is itself mutation-tested — it must fail on 15
-deliberately broken packs, and it does.
+(`tools/pd2-port/check_guide_compliance.py`: 38 checks pass, 1 warning, 0
+failures) and the auditor is itself mutation-tested — it must fail on 16
+deliberately broken packs, and it does. The audit also rejects a pack whose
+triangles are wound inside out (the game culls those, and they leave holes
+in the skin); pack 0.1.1 had 1,027 of them, 0.1.2 has none.
 
-**Download:** [`lawson-las-v1` release](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1)
+**Download:** [`lawson-las-v2` release](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2)
 — `lawson_las.zip` is tracked in the repo and rebuilt by CI on every
 `lawson-las-v*` tag, so the release asset and `dist/lawson_las.zip` are the
 same bytes.

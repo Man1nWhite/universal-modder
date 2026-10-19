@@ -18,7 +18,7 @@ and the journal in [`MODLOG.md`](MODLOG.md).
 | Rig contract | `reference/las_rig.json` — the PD2 biped skeleton an LAS unit animates on, extracted from `2b.rar`'s model by `extract_las_rig.py` (skeleton data only; no 2B art) |
 | Output | `dist/lawson_las.zip`, root `Lawson_LAS/` (deterministic build; **tracked in git** and published as the release asset) |
 | Checksum | `dist/lawson_las.zip.sha256` (tracked; CI refuses to publish a build that differs from it) |
-| Release | [`lawson-las-v1`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1) — notes in [`releases/lawson-las-v1.md`](releases/lawson-las-v1.md) |
+| Release | [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2) — notes in [`releases/lawson-las-v2.md`](releases/lawson-las-v2.md) (v1 kept for comparison; it has holes in the skin) |
 
 ## Build
 
@@ -28,7 +28,7 @@ Python 3.10+, Pillow and numpy (the repo's own dependencies):
 python tools/pd2-port/build_las_pack.py          # -> dist/lawson_las.zip
 python tools/pd2-port/build_las_pack.py --check  # validate only
 # --version stamps the release version into build_manifest.json
-# (default 0.1.1; the release notes carry the same value)
+# (default 0.1.2; the release notes carry the same value)
 # --keep-nm-green keeps the source Y channel instead of the default PD2 flip
 # (only for sources already authored with PD2's green convention)
 python tools/pd2-port/preview_check.py report    # geometry gates on the rebind
@@ -37,7 +37,17 @@ python tools/pd2-port/check_guide_compliance.py  # audit the pack against the
                                                 # ModWorkshop LAS/MOOG guide
 python tools/pd2-port/check_guide_compliance_self_test.py
                                                 # prove the auditor fails on
-                                                # broken packs (15 mutations)
+                                                # broken packs (16 mutations)
+python tools/pd2-port/check_mesh_geometry.py     # winding / tangent frame of
+                                                # the built model (no inverted
+                                                # triangles may survive)
+python tools/pd2-port/shade_check.py DIR         # shaded render of the rebind
+                                                # with the pack's own normals
+python tools/pd2-port/check_nm_convention.py     # the source normal maps'
+                                                # green-channel convention
+python tools/pd2-port/check_test_suite_mutations.py
+                                                # prove the pack-level tests
+                                                # fail on a broken pack
 python tools/pd2-port/resolve_rig_names.py       # recover PD2 bone names from
                                                 # the rig contract's hashes
 python -m pytest -q tests/test_las_pack.py
@@ -84,21 +94,26 @@ against the guide's rules, each check citing the rule it enforces:
 | Packaging | `main.xml` with Localization/Hooks/AddFiles, every AddFiles entry resolving, the full LAS flag set, menu localization |
 
 The audit runs in the test suite (`test_built_pack_passes_the_guide_compliance_check`),
-so a pack that drifts from the guide fails the build. Current state: **36 pass,
+so a pack that drifts from the guide fails the build. Current state: **38 pass,
 1 warning, 0 failures** — the warning is the normal maps' green-channel
-convention, which only the running game can settle.
+convention, which the files cannot settle (see `check_nm_convention.py`) and
+only the running game can confirm.
 
 The auditor is itself tested: `check_guide_compliance_self_test.py` mutates the
 built pack the way the guide forbids (invented render template, contour
 without `unique="true"`, FPS without `DEPTH_SCALING`, mip-0-only texture,
 unregistered texture, hook flag switched off, ...) and asserts that the
-matching check fails — 15/15 mutations are caught. It runs in the suite as
+matching check fails — 16/16 mutations are caught (including a triangle wound
+inside out). It runs in the suite as
 `test_the_compliance_checker_actually_fails_on_broken_packs`, because an
-auditor that only ever passes proves nothing.
+auditor that only ever passes proves nothing. The pytest wrappers around the
+auditor are mutation-tested too:
+`check_test_suite_mutations.py` breaks the shipped pack five ways and
+requires the matching test to fail — a test that passes or skips is a hole.
 
 ## Install (when you have a candidate)
 
-Download `lawson_las.zip` from the [release page](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1)
+Download `lawson_las.zip` from the [release page](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2)
 (or build it yourself — the bytes are identical).
 
 PAYDAY 2 with **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe Mod**.

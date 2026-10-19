@@ -115,6 +115,8 @@ target bone (source bone head→tail aligned onto the target bone, minimal
 rotation; stored frame orientations never enter, they differ per engine and
 tear the mesh at joints), with folded joints sharing one transform and the
 weight field smoothed over the **welded** vertex graph first —
+the triangles that this per-bone fit folds inside out are detected and
+re-wound afterwards (`rig_target.repair_winding`, see gotcha 19) —
 `las_model.py` writes the DODB model (3-weight channels),
 `build_las_pack.py` writes the unit/object/material_config/LAS hook and DXT5
 textures. `preview_check.py report|render` verifies the transfer offline
@@ -130,9 +132,10 @@ The guide is community documentation, not an oracle; its claims above are
 prescriptions. We adopted its material/normal-map/FPS rules into the Lawson
 build and verified the **offline** invariants only (config↔model material
 coverage, 3-weight geometry, DXT5 validity). `check_guide_compliance.py`
-turns the guide's rules into an automated audit of the built pack: 36 checks
-pass, 1 warning (the normal maps' green-channel convention, which only the
-game can settle), 0 failures — after the finger-binding fix in gotcha 14. The
+turns the guide's rules into an automated audit of the built pack: 38 checks
+pass, 1 warning (the normal maps' green-channel convention, which the files
+cannot settle — see gotcha 19 — and only the game can confirm), 0 failures —
+after the finger-binding fix in gotcha 14. The
 guide's own in-game heuristic:
 load the model before editing materials — black/grey in the default pose is
 success. Nothing here is game-verified by us.
@@ -256,9 +259,11 @@ LAS flags to be switched **on**, not merely present).
     that a flag name appears in the hook, not that the flag is set to true).
     **Fix.** Mutation-test the auditor: break the pack the way the guide
     forbids and assert that the matching check fails
-    (`check_guide_compliance_self_test.py`, 15/15 caught). Keep the negative
+    (`check_guide_compliance_self_test.py`, 16/16 caught). Keep the negative
     controls too — a pre-fix pack from git history must still fail the
-    check that caught it.
+    check that caught it. Mutation-test the *test suite* as well
+    (`check_test_suite_mutations.py`): break the shipped pack and require the
+    matching pytest to fail — a test that passes or skips is a hole.
 
 18. **Symptom.** A working reference pack's bytes look incompatible with
     yours — its weights sit in vertex channel 20 where yours sit in 19, its
@@ -272,6 +277,35 @@ LAS flags to be switched **on**, not merely present).
     shape, locator set, skin palettes — not the raw bytes. Its
     `custom_hashlist` section is a plain list of custom names, which decodes
     the whole rig without any hashlist.
+
+
+19. **Symptom.** A pack passes every structural audit and still shows holes
+    and black patches on the skin in game. **Cause.** The bind-pose transfer
+    fits every bone piece independently, and where the two rigs disagree
+    (hips, wrists, ankles) the fits end up 120-156° apart: the triangles
+    between the pieces fold back on themselves and are wound inside out. The
+    game culls them, so they leave holes. Neither the guide audit nor the
+    preview gates looked at triangle winding, and the preview's flat colours
+    cannot show a fold. **Fix.** Check the winding of every triangle against
+    its own vertex normals (`check_mesh_geometry.py`, and as audit check
+    `N3`), and repair it where it disagrees: the vertex normals describe the
+    unfolded surface, so the winding is what is wrong — reverse the triangle
+    and leave the vertices where they are. Corner-split meshes make this
+    safe: no edge is shared, so flipping one triangle cannot desync its
+    neighbours. Note the limits of the repair: it fixes the holes, not the
+    crease, because the crease comes from the rigs disagreeing.
+
+20. **Symptom.** The normal map's green channel has to be flipped, and there
+    is no way to tell from the files which way it is. **Cause.** The
+    convention is a property of the engine that authored the map, not of the
+    file: an OpenGL (Y+) and a DirectX (Y-) map are equally self-consistent
+    with their own image layout, and a saturated blue channel hides the
+    height field that would otherwise give the answer. **Fix.** Measure what
+    the files can say (`check_nm_convention.py`: they *are* tangent-space
+    normal maps, and the convention is not recoverable), then fall back to
+    the provenance — Mass Effect 2 is a DirectX 9 game, so its maps are Y- and
+    PD2's Y+ wants them inverted. Keep the build switch either way: the
+    in-game look is the final word.
 
 ## Assets
 

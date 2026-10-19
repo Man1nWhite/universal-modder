@@ -198,6 +198,21 @@ def m_missing_unit_mat(files):
     return files
 
 
+def m_inverted_triangle(files):
+    """N3: a triangle wound inside out (the game culls it: a hole)."""
+    dmodel = _load("dmodel_las", "dmodel.py")
+    data = bytearray(files[TPP_MODEL])
+    model = dmodel.DieselModel.from_bytes(bytes(data))
+    topo = next(s for s in model.sections if s.tag == "topology")
+    off = topo.start + 8          # primitive + index count
+    a = int.from_bytes(data[off:off + 2], "little")
+    b = int.from_bytes(data[off + 2:off + 4], "little")
+    data[off:off + 2] = b.to_bytes(2, "little")
+    data[off + 2:off + 4] = a.to_bytes(2, "little")
+    files[TPP_MODEL] = bytes(data)
+    return files
+
+
 MUTATIONS = [
     (m_invented_template, "M4", "invented render template"),
     (m_no_unique, "M5", "contour without unique=true"),
@@ -214,6 +229,7 @@ MUTATIONS = [
     (m_texture_extension, "M7", "texture path with a file extension"),
     (m_skinning_keyword, "K1", "skinning keyword below the geometry's influences"),
     (m_missing_unit_mat, "P2", "FPS unit not registered"),
+    (m_inverted_triangle, "N3", "triangle wound inside out"),
 ]
 
 

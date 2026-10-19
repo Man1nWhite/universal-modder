@@ -1,5 +1,78 @@
 # Lawson pack journal
 
+## 2026-10-19 — fourth check: the geometry was broken, and the checks could not see it (NEW)
+
+- Asked for a fourth pass that attacks the *claims* instead of re-running the
+  same checker. Five angles: (A) rebuild the pack from a fresh clone, (B)
+  look at the geometry itself — winding, tangent frame, normal-map
+  convention, (C) settle the normal map's green channel, (D) verify every
+  factual claim of the release body, (E) mutation-test the pack-level test
+  suite.
+- **A: the build is reproducible.** A fresh `git clone` of the branch, a new
+  venv (`pillow==13.0.0`, `numpy==2.4.6`) and
+  `python tools/pd2-port/build_las_pack.py` produced the **byte-identical**
+  pack (8,015,689 B, sha256 `063d5f64…`) in 84 s. Nothing in the build
+  depends on the sandbox it was made in. (CI has to pin the same interpreter
+  and libraries: a different Python/zlib changes the deflate output, which is
+  why `uv run` in CI produced a different zip.)
+- **B: the skin was punched full of holes.** A new tool
+  (`tools/pd2-port/check_mesh_geometry.py`) decodes the built model and
+  compares every triangle's winding with its own vertex normals. The 0.1.1
+  pack has **946 of 10,189 body triangles (7.7 % of the body area) and 81
+  head triangles wound inside out**, plus 291 in the first-person arms. An
+  inside-out triangle is culled by the game: it leaves a **hole** in the
+  chest, the shoulders and the arms, and the skin around it shades
+  backwards.
+  - The source ME2 meshes have **zero** inverted triangles, so the retarget
+    introduced them. The cause: the bind-pose transfer fits every bone piece
+    independently (one rigid transform per target bone), and the fits are
+    not consistent with each other — the hips' fit is 156° away from the
+    spine's, the ankles' 133°, the wrists' 122° — so the neighbouring pieces
+    are rotated against each other and the triangles between them fold over.
+  - Two fixes were prototyped. Making the operators hierarchical (each bone
+    relative to its parent) removes every tear, but it also throws the
+    shape-matching away: the arms keep the ME2 proportions instead of the
+    PD2 rig's, which is wrong for a skin that has to follow PD2's skeleton.
+    Using the parent's offset as the bone direction is worse still. A real
+    fix is a bind-pose transfer that fits the rigs *consistently* — a bigger
+    piece of work than a check should smuggle in.
+  - The shipped fix is surgical: `rig_target.repair_winding()` finds every
+    triangle that faces away from its own vertex normals and reverses its
+    winding. The vertex normals describe the unfolded surface, so the
+    winding is what is wrong; the ME2 meshes are corner-split, so flipping a
+    triangle cannot make its neighbours inconsistent. **1,027 triangles** are
+    repaired this way, and the check now reports 0 inverted triangles.
+  - The audit gained a check (`N3`) that fails a pack with inverted
+    triangles — it failed on 0.1.1 and passes on 0.1.2 — plus a
+    "triangle wound inside out" mutation in the auditor's self-test
+    (**16/16** now).
+  - A second new tool (`tools/pd2-port/shade_check.py`) renders the
+    retargeted mesh with the pack's own normals: before the repair 336 body
+    faces (6.1 % of the area) were lit backwards, after it 0.
+- **C: the green channel cannot be read out of the files.**
+  `tools/pd2-port/check_nm_convention.py` measures the source maps: they are
+  genuine tangent-space normal maps (blue saturated at 255, red and green
+  centred on 128), but their blue channel is saturated, so the height field
+  is not recoverable and an OpenGL (Y+) and a DirectX (Y-) map are equally
+  self-consistent with their own image layout. Only the authoring engine
+  settles it — and Mass Effect 2 runs on DirectX 9, whose maps are Y-, while
+  PD2 wants Y+. So the default build (which inverts the green channel) is the
+  right one; `--keep-nm-green` would only be right for a Y+ source.
+- **D: the release body was checked line by line.** The size, the sha256, the
+  pack version, the check count and the test count were all re-measured
+  (they now say 0.1.2, 8,015,688 B, `a24f0b7c…`, 38 checks, 187 tests). The
+  claims that survived: "no weld discontinuities above 2.4 cm" (the preview's
+  metric says 2.38 cm), "pixel-identical encode/decode round trip on three
+  views (7.63e-06 cm)", "arm-only FPS cut of 10,468 vertices", the 2B
+  field-by-field diff, and the 15-mutation self-test (now 16).
+- **E: the pack-level tests are load-bearing.**
+  `tools/pd2-port/check_test_suite_mutations.py` breaks the shipped pack five
+  ways (an inside-out triangle, an unregistered FPS unit, an emptied
+  localization, the tangent channels deleted) and requires the matching test
+  to **fail** — a test that passes or skips is reported as a hole. 5/5 caught.
+- The pack is now **0.1.2** (8,015,688 B, sha256 `a24f0b7c…`); the 0.1.1
+  release stays up for comparison, but it has holes in it.
+
 ## 2026-10-19 — third check: the auditor itself, the 2B oracle, the guide text (NEW)
 
 - Asked for a third pass that attacks the *checker* instead of re-running it.

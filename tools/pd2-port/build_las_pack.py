@@ -54,7 +54,7 @@ DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
 ROOT_DIR = "Lawson_LAS"
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 # The pack is an unlicensed fan derivative of ripped ME2 assets: offline
 # validated, not game-verified, not cleared for commercial redistribution.
 STATUS = "experimental - offline validated, not game-verified"
@@ -184,6 +184,9 @@ def build_models(scene, rig, log=print):
     extra = ("shadow_caster",)
     tpp_res = las_model.build_model(rig, tpp, extra_materials=extra)
     fps_res = las_model.build_model(rig, fps, extra_materials=extra)
+    repaired = sum(m.flipped_faces for m in rigged.values())
+    log(f"  winding: {repaired} triangles reversed (they were folded inside out "
+        f"by the bind-pose transfer)")
     for label, res in (("TPP", tpp_res), ("FPS", fps_res)):
         log(f"  {label}: {res.section_count} sections, "
             + ", ".join(f"{k}={v['verts']}v/{v['tris']}t/{v['atoms']}a/{v['palette']}b"

@@ -318,6 +318,60 @@ def check_tangents(rep: Report, model: DieselModel) -> None:
                f"({total} vectors)")
 
 
+def check_winding(rep: Report, model: DieselModel) -> None:
+    """No triangle may be wound against its own vertex normals.
+
+    A triangle that faces away from the surface is culled by the game: the
+    skin gets a hole where it was, and the shading around it is wrong.  The
+    ME2 meshes are corner-split, so the check is per triangle.
+    """
+    inverted = 0
+    total = 0
+    worst = 0.0
+    for s in model.sections:
+        if s.tag != "model_data" or s.obj is None:
+            continue
+        md = s.obj
+        pas = model.by_id.get(md.passthrough_id)
+        if pas is None or pas.obj is None:
+            continue
+        geo = model.by_id.get(pas.obj.geometry_id)
+        top = model.by_id.get(pas.obj.topology_id)
+        if geo is None or top is None or geo.obj is None or top.obj is None:
+            continue
+        pos = geo.obj.positions
+        nrm = geo.obj.normals
+        for a, b, c in top.obj.faces:
+            if a >= len(pos) or b >= len(pos) or c >= len(pos):
+                continue
+            e1 = (pos[b][0] - pos[a][0], pos[b][1] - pos[a][1], pos[b][2] - pos[a][2])
+            e2 = (pos[c][0] - pos[a][0], pos[c][1] - pos[a][1], pos[c][2] - pos[a][2])
+            gn = (e1[1] * e2[2] - e1[2] * e2[1],
+                  e1[2] * e2[0] - e1[0] * e2[2],
+                  e1[0] * e2[1] - e1[1] * e2[0])
+            ln = (gn[0] ** 2 + gn[1] ** 2 + gn[2] ** 2) ** 0.5
+            if ln < 1e-9:
+                continue
+            total += 1
+            d = (gn[0] * (nrm[a][0] + nrm[b][0] + nrm[c][0])
+                 + gn[1] * (nrm[a][1] + nrm[b][1] + nrm[c][1])
+                 + gn[2] * (nrm[a][2] + nrm[b][2] + nrm[c][2])) / ln
+            if d < 0:
+                inverted += 1
+                worst = min(worst, d)
+    if not total:
+        rep.warn("N3", "guide: the skin must be a closed, correctly wound mesh",
+                 "no triangles found to check")
+    elif inverted:
+        rep.fail("N3", "guide: the skin must be a closed, correctly wound mesh",
+                 f"{inverted} of {total} triangles are wound against their own "
+                 f"vertex normals (worst dot {worst:.3f}) - they are culled by "
+                 f"the game and leave holes in the skin")
+    else:
+        rep.ok("N3", "guide: the skin must be a closed, correctly wound mesh",
+               f"all {total} triangles face the same way as their normals")
+
+
 def check_skinning(rep: Report, model: DieselModel, by_hash) -> None:
     """Weights: at most 3 influences, no twist bones, skinning keyword match."""
     max_inf = 0
@@ -761,6 +815,8 @@ def audit(pack_path: Path) -> Report:
         check_skeleton(rep, tpp, by_hash, _by_id)
         check_finger_binds(rep, tpp, rig)
         check_tangents(rep, tpp)
+        check_winding(rep, tpp)
+        check_winding(rep, fps)
         check_skinning(rep, tpp, by_hash)
         check_materials(rep, pack, tpp, tpp_cfg, fps=False)
         check_materials(rep, pack, fps, fps_cfg, fps=True)
@@ -774,10 +830,13 @@ def audit(pack_path: Path) -> Report:
     # the guide's open question the pack cannot settle offline
     rep.warn("G1", "guide: invert the green channel if the source map is "
                    "DirectX-style (PD2 wants OpenGL-style Y+)",
-             "the pack's normal maps are built with the green channel inverted "
-             "(source assumed DirectX). Only the running game can confirm the "
-             "source's convention; rebuild with --keep-nm-green if the lighting "
-             "looks inverted in game")
+             "the pack's normal maps are built with the green channel inverted. "
+             "The source is a Mass Effect 2 (DirectX 9) asset, whose normal "
+             "maps are Y-, and PD2 wants Y+ - see "
+             "tools/pd2-port/check_nm_convention.py. The file itself cannot "
+             "settle it (the blue channel is saturated, so both conventions "
+             "are self-consistent); rebuild with --keep-nm-green if the "
+             "lighting looks inverted in game")
     return rep
 
 

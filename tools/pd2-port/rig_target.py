@@ -144,6 +144,43 @@ class RiggedMesh:
     triangles: list[tuple[int, int, int]]
     # per vertex, up to 3 (pd2_bone_name, weight), normalized
     weights: list[list[tuple[str, float]]]
+    flipped_faces: int = 0                   # triangles repaired by repair_winding()
+
+
+def repair_winding(positions, normals, triangles):
+    """Reverse the triangles that face away from their own vertex normals.
+
+    The bind-pose transfer rotates every bone piece independently (each piece
+    is fitted onto the PD2 bone it is bound to), so where the ME2 and the PD2
+    rigs disagree -- the hips, the wrists, the ankles -- the neighbouring
+    pieces end up rotated against each other and a band of triangles folds
+    back on itself.  A folded triangle is wound inside out: the game culls it
+    (a hole in the skin) and the skin shades it backwards (a black patch).
+
+    The vertex normals are the smooth normals of the *unfolded* surface, so
+    the triangle's own winding is the thing that is wrong: swapping two
+    indices puts the triangle back in front of the skin without moving a
+    single vertex.  The ME2 meshes are corner-split (no shared edges), so
+    flipping a triangle cannot make its neighbours inconsistent.
+
+    Returns the repaired triangles and the number of flips.
+    """
+    out = []
+    flipped = 0
+    for a, b, c in triangles:
+        p0, p1, p2 = positions[a], positions[b], positions[c]
+        e1 = _sub(p1, p0)
+        e2 = _sub(p2, p0)
+        gn = _cross(e1, e2)
+        ln = _dot(gn, gn) ** 0.5
+        if ln > 1e-12:
+            gn = [gn[0] / ln, gn[1] / ln, gn[2] / ln]
+            avg = [normals[a][i] + normals[b][i] + normals[c][i] for i in range(3)]
+            if _dot(gn, avg) < 0.0:
+                b, c = c, b
+                flipped += 1
+        out.append((a, b, c))
+    return out, flipped
 
 
 @dataclass
@@ -456,14 +493,17 @@ def rebind_mesh(mesh: Mesh, scene: DaeScene, rig: TargetRig,
     if not weights:
         weights = [[] for _ in positions]
 
+    triangles, flipped = repair_winding(positions, normals, mesh.triangles)
+
     return RiggedMesh(
         name=mesh.name,
         material=mesh.material,
         positions=positions,
         normals=normals,
         uvs=mesh.uvs,
-        triangles=mesh.triangles,
+        triangles=triangles,
         weights=weights,
+        flipped_faces=flipped,
     )
 
 

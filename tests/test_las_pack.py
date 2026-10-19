@@ -728,3 +728,71 @@ def test_the_compliance_checker_actually_fails_on_broken_packs():
         if expect not in ids:
             missed.append(f"{expect} ({label}) -> failed {sorted(ids) or 'nothing'}")
     assert not missed, "the checker did not catch: " + "; ".join(missed)
+
+
+def test_repair_winding_reverses_only_the_folded_triangles():
+    """A triangle that faces away from its own normals must be reversed.
+
+    The bind-pose transfer rotates every bone piece independently, so bands
+    of triangles fold back on themselves where the ME2 and the PD2 rigs
+    disagree.  The vertex normals still describe the unfolded surface, so the
+    winding is what has to be repaired -- and only where it disagrees.
+    """
+    # a flat, correctly wound triangle in the xy plane (normal +z)
+    positions = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0),
+                 (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 0.0, 0.0)]
+    normals = [(0.0, 0.0, 1.0)] * 6
+    tris = [(0, 1, 2), (3, 4, 5)]
+    fixed, flipped = rig_target.repair_winding(positions, normals, tris)
+    assert flipped == 1, "only the backwards triangle may be reversed"
+    assert fixed[0] == (0, 1, 2), "the correct triangle must be left alone"
+    assert fixed[1] == (3, 5, 4), "the folded triangle must be reversed"
+    # a second pass finds nothing left to do
+    _again, flipped2 = rig_target.repair_winding(positions, normals, fixed)
+    assert flipped2 == 0
+
+
+def test_the_built_pack_has_no_inverted_faces():
+    """Every triangle of the shipped pack must face the same way as its normals.
+
+    An inverted triangle is culled by the game: it leaves a hole in the skin
+    and the shading around it is wrong.  The quadruple check found 946 of
+    them in pack 0.1.1; the builder now repairs the winding.
+    """
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    with zipfile.ZipFile(pack) as z:
+        for name in ("Lawson_LAS/units/lawson/skins/lawson/lawson.model",
+                     "Lawson_LAS/units/lawson/skins/lawson/fps_lawson.model"):
+            raw = z.read(name)
+            model = dmodel.DieselModel.from_bytes(raw)
+            inverted = total = 0
+            for s in model.sections:
+                if s.tag != "model_data" or s.obj is None:
+                    continue
+                pas = model.by_id.get(s.obj.passthrough_id)
+                if pas is None or pas.obj is None:
+                    continue
+                geo = model.by_id.get(pas.obj.geometry_id)
+                top = model.by_id.get(pas.obj.topology_id)
+                if geo is None or top is None or geo.obj is None or top.obj is None:
+                    continue
+                pos, nrm = geo.obj.positions, geo.obj.normals
+                for a, b, c in top.obj.faces:
+                    if max(a, b, c) >= len(pos):
+                        continue
+                    e1 = [pos[b][i] - pos[a][i] for i in range(3)]
+                    e2 = [pos[c][i] - pos[a][i] for i in range(3)]
+                    gn = [e1[1] * e2[2] - e1[2] * e2[1],
+                          e1[2] * e2[0] - e1[0] * e2[2],
+                          e1[0] * e2[1] - e1[1] * e2[0]]
+                    ln = sum(x * x for x in gn) ** 0.5
+                    if ln < 1e-9:
+                        continue
+                    total += 1
+                    if sum(gn[i] * (nrm[a][i] + nrm[b][i] + nrm[c][i])
+                           for i in range(3)) < 0:
+                        inverted += 1
+            assert total, f"{name}: no triangles found"
+            assert inverted == 0, f"{name}: {inverted} of {total} triangles are inverted"
