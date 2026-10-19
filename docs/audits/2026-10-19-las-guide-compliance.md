@@ -74,6 +74,42 @@ Verified after the fixes: one-command build from a clean tree produces
 the full pack + zip; zip is byte-identical across rebuilds (5,388,811 B);
 BUILD_INFO covers all 20 files with matching hashes; suite 191 passed.
 
+## Triple-check pass (same day) — deep artifact probes
+
+Byte-level verification of the shipped zip, beyond the test suite:
+
+- **Units/objects/lua vs 2B reference**: exact structural parity — same
+  lua schema (`category`, `unit`, `fps_unit`, five flags), same `.unit`
+  extensions (`unit_data`, `ContourExt`), same `.object` drawables and
+  enable flags (`g_body`/`g_head` on, LODs off, `c_block` culling,
+  `root_point` orientation). Every `main.xml` path resolves to files in
+  the pack; localization keys complete.
+- **Geometry placement**: every drawable named in the `.object` files
+  exists in the matching model; enabled drawables carry geometry
+  (tpp `g_body` 9,548 tris, `g_head` 6,885 tris in 5 material atoms;
+  fps `g_body` carries the arms). Weights: every vertex sums to 1 with
+  no negative components (≤3 influences by format).
+- **UV convention, numerically**: stored UVs are exactly `1 − v_src`
+  (p2mt import convention). Source UVs are intentionally tiled — tpp
+  v_src spans [0, 1.999], fps v_src sits at [1.23, 1.63] — so stored V
+  falls outside [0, 1] on the tiled rows and wraps in-game exactly as it
+  did in Source. 2B's clean [0, 1] range is its authored content, not a
+  different convention. The 8 degenerate (100, 100) sentinel vertices in
+  the fps model match the 2B reference exactly (8 = 8).
+- **Skinbones**: all 52 (tpp) / 36 (fps) bones satisfy
+  `rotations[i] · world_i = I` with hierarchy-accumulated worlds, and
+  `global` equals the Hips world (tpp) / skeleton root world (fps — the
+  arms rig has no Hips bone by design).
+- **Codec round-trip**: both shipped models are byte-exact under
+  `ModelFile.read → write`. All textures are DXT5 power-of-two; the
+  armor-skin icon is 256×256 BC3. Zip entries carry the fixed
+  2020-01-01 timestamps and 0644 permissions.
+- **2B pack extras we intentionally omit**: `*.cooked_physics` (0-byte
+  export placeholders) and `ss.model` (3.9 MB, referenced by nothing in
+  the 2B pack). The only other layout difference is texture naming (2B
+  ships 2 `base_*` textures; we ship 7 region-mapped ones) and our
+  `BUILD_INFO.json` provenance file.
+
 ## Not applicable to this pipeline
 
 Blender import/export steps (Bone Dir = Blender, Apply Modifiers off,
