@@ -282,7 +282,17 @@ PARSERS = {'object3D': Object3D, 'model_data': Model, 'topology': Topology,
 
 class DieselModel:
     def __init__(self, path, hashlist=None):
-        self.data = Path(path).read_bytes()
+        self._load(Path(path).read_bytes(), hashlist)
+
+    @classmethod
+    def from_bytes(cls, data: bytes, hashlist=None):
+        """Same reader, but from memory (a model inside a pack)."""
+        self = cls.__new__(cls)
+        self._load(data, hashlist)
+        return self
+
+    def _load(self, data: bytes, hashlist=None) -> None:
+        self.data = data
         self.sections, self.legacy, self.version, self.filesize = read_container(self.data)
         hl = hashlist or Hashlist()
         self.hl = hl

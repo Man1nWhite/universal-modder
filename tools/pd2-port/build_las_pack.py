@@ -22,6 +22,11 @@ the tracked rig contract. Nothing here is game-verified.
 Usage:
     python tools/pd2-port/build_las_pack.py            # -> dist/lawson_las.zip
     python tools/pd2-port/build_las_pack.py --check    # validate only
+
+The build is deterministic: same source + same tool code -> same zip bytes.
+``dist/lawson_las.zip`` is tracked in git and published as the asset of the
+GitHub release tagged ``lawson-las-v1``; ``--version`` stamps the release
+version into the pack's ``build_manifest.json``.
 """
 from __future__ import annotations
 
@@ -49,7 +54,10 @@ DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
 ROOT_DIR = "Lawson_LAS"
-VERSION = "0.1.0-dev"
+VERSION = "0.1.2"
+# The pack is an unlicensed fan derivative of ripped ME2 assets: offline
+# validated, not game-verified, not cleared for commercial redistribution.
+STATUS = "experimental - offline validated, not game-verified"
 
 # Texture Setup.txt slots -> (diffuse png, normal png or None, file base name)
 TEXTURE_SLOTS = {
@@ -176,6 +184,9 @@ def build_models(scene, rig, log=print):
     extra = ("shadow_caster",)
     tpp_res = las_model.build_model(rig, tpp, extra_materials=extra)
     fps_res = las_model.build_model(rig, fps, extra_materials=extra)
+    repaired = sum(m.flipped_faces for m in rigged.values())
+    log(f"  winding: {repaired} triangles reversed (they were folded inside out "
+        f"by the bind-pose transfer)")
     for label, res in (("TPP", tpp_res), ("FPS", fps_res)):
         log(f"  {label}: {res.section_count} sections, "
             + ", ".join(f"{k}={v['verts']}v/{v['tris']}t/{v['atoms']}a/{v['palette']}b"
@@ -365,17 +376,21 @@ def localization() -> str:
 
 def credits_txt() -> str:
     return (
-        "Miranda Lawson LAS outfit (experimental)\n"
-        "=========================================\n"
+        "Miranda Lawson LAS outfit (experimental, unlicensed fan derivative)\n"
+        "====================================================================\n"
         "\n"
         "3D model and textures: ripped from Mass Effect 2 (BioWare/EA), supplied\n"
         "via The Models Resource as 'PC / Computer - Mass Effect 2 - Non-Playable\n"
         "Characters - Miranda Lawson (Romance)'. Registration/layout follows the\n"
-        "user-supplied 2B LAS reference pack (2b.rar).\n"
+        "user-supplied 2B Legendary Armour Skins reference pack (2b.rar).\n"
         "\n"
-        "Private experimental derivative. No redistribution permission is claimed\n"
-        "or granted for the model, textures or reference pack. Not game-verified.\n"
-        "Build: tools/pd2-port/build_las_pack.py\n"
+        "Not affiliated with or endorsed by BioWare/EA or Supermassive Games.\n"
+        "The model, the textures and the reference pack are not ours to license:\n"
+        "this is an unlicensed, non-commercial fan derivative and no\n"
+        "redistribution permission is claimed. The original artists and\n"
+        "publishers keep all rights to their work.\n"
+        "\n"
+        "Not game-verified. Build: tools/pd2-port/build_las_pack.py\n"
     )
 
 
@@ -499,6 +514,8 @@ def main() -> None:
     ap.add_argument("--keep-nm-green", action="store_true",
                     help="do not invert the normal-map green channel "
                          "(source is OpenGL-style Y+ already)")
+    ap.add_argument("--version", default=VERSION,
+                    help=f"version stamped into build_manifest.json (default: {VERSION})")
     args = ap.parse_args()
 
     print(f"source: {args.source}")
@@ -514,7 +531,8 @@ def main() -> None:
     validate(files)
 
     manifest = {
-        "version": VERSION,
+        "version": args.version,
+        "status": STATUS,
         "runtime_verified": False,
         "source_zip": args.source.name,
         "source_sha256": sha256(args.source.read_bytes()),

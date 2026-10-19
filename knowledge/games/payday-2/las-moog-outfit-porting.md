@@ -56,7 +56,9 @@ human (Blender) workflow; we automate the mechanical parts of the same recipe.
   middle/ring/pinky), thigh, lower leg, foot, toebase. Source rigs must be
   converted to exactly this set: merge twist/extra bones, then **rename to PD2
   bone names**. Leave engine locator/effect objects alone (`BackPack1`, `Aim`,
-  `e_taser`, …) — deleting them breaks effects and interactions.
+  `e_taser`, …) — deleting them breaks effects and interactions. The finger
+  chains are not decoration: a hand whose vertices are all bound to the wrist
+  bone is a mitten that cannot articulate.
 - **Weights.** Maximum **3 influences per vertex** (Blender: Weight Paint →
   Weights → Limit Total → 3, subset All Groups). Anything more misbehaves.
 - **Fitting.** Scale/rotate the source to the PD2 proportions, then **pose it
@@ -105,27 +107,49 @@ touching materials (a black/grey model in the default pose means the model
 loaded fine) → wire `.material_config` and textures.
 
 Automated path (ours, `tools/pd2-port/`): `me2_dae.py` imports the rigged
-source, `rig_target.py` maps bones by name (folds twists/fingers/face to parent
-bones; swaps sides when the source labels `Left*` at +X) and rebinds the skin
+source, `rig_target.py` maps bones by name (folds twists/face to parent bones
+and maps the finger chains onto PD2's finger bones; swaps sides when the source
+labels `Left*` at +X) and rebinds the skin
 mathematically to the PD2 bind — one **bone-segment-fit** rigid transform per
 target bone (source bone head→tail aligned onto the target bone, minimal
 rotation; stored frame orientations never enter, they differ per engine and
 tear the mesh at joints), with folded joints sharing one transform and the
 weight field smoothed over the **welded** vertex graph first —
+the triangles that this per-bone fit folds inside out are detected and
+re-wound afterwards (`rig_target.repair_winding`, see gotcha 19) —
 `las_model.py` writes the DODB model (3-weight channels),
 `build_las_pack.py` writes the unit/object/material_config/LAS hook and DXT5
 textures. `preview_check.py report|render` verifies the transfer offline
 (edge preservation, displacement spikes, twin separation, bone anchors) and
 rasters source/retarget/decoded previews without Blender.
+`check_all.py` runs every check of the Lawson build in one command (the
+audit, the winding check, the normal-map analysis, the mutation tests and
+the pytest suite); the state of that work, its open problems and its traps
+are written down in `tools/pd2-port/STATUS.md`.
+`check_guide_compliance.py` audits the built pack against this guide's rules
+(one check per rule, each citing it); it runs in the test suite, so a pack
+that drifts from the guide fails the build.
 
 ## Verification
 
 The guide is community documentation, not an oracle; its claims above are
 prescriptions. We adopted its material/normal-map/FPS rules into the Lawson
 build and verified the **offline** invariants only (config↔model material
-coverage, 3-weight geometry, DXT5 validity). The guide's own in-game heuristic:
+coverage, 3-weight geometry, DXT5 validity). `check_guide_compliance.py`
+turns the guide's rules into an automated audit of the built pack: 38 checks
+pass, 1 warning (the normal maps' green-channel convention, which the files
+cannot settle — see gotcha 19 — and only the game can confirm), 0 failures —
+after the finger-binding fix in gotcha 14. The
+guide's own in-game heuristic:
 load the model before editing materials — black/grey in the default pose is
 success. Nothing here is game-verified by us.
+
+A third pass attacked the *auditor* instead of the pack: the audit is now
+mutation-tested (gotcha 17), the guide text was re-read rule by rule, and the
+2B reference pack was decoded field by field as an oracle (gotcha 18). The
+pack's bytes did not change; the auditor gained two fixes (P2 now also
+requires every shipped texture/unit to be *registered*, P3 now requires the
+LAS flags to be switched **on**, not merely present).
 
 ## Gotchas
 
@@ -192,6 +216,101 @@ success. Nothing here is game-verified by us.
     show what the mesh samples. Verify suspected texture bugs with a UV-box
     overlay before changing anything.
 
+14. **Symptom.** The outfit's hands are mittens: the fingers never move.
+    **Cause.** The source's finger joints were folded onto the wrist bone.
+    The rig contract's finger bones are hash-only (the Model Tool writes
+    names only with the PAYDAY-2-Hashlist installed), so there were no names
+    to map onto and every finger token was folded to the hand. **Fix.**
+    Recover the names offline — the contract's hash is the lookup3 variant in
+    `dmodel.hash64`, so hash PD2's naming convention
+    (`LeftHandThumb1..3`, `LeftHandIndex1..3`, `LeftHandMiddle1..3`,
+    `LeftHandRing1..3`, `LeftHandPinky1..3` and the Right set) and match it
+    against the stored `name_hash` values (`resolve_rig_names.py` in
+    `tools/pd2-port/`, 30 of 187 hash-only bones resolve); then map the
+    source's finger chains one-to-one onto them (side swaps with the arms;
+    ME2's "Pink" is PD2's "Pinky"). Check the result: every finger bone
+    should hold vertices, and the finger-dominant vertices should sit within
+    a couple of cm of their bone's origin.
+
+15. **Symptom.** A rig contract full of `#a1b2c3d4e5f60718` names and no
+    way to get the real ones. **Cause.** The Model Tool stores bone names
+    only with the PAYDAY-2-Hashlist installed; without it, only the hash
+    survives. **Fix.** Do not install the hashlist for this: the hash is a
+    plain lookup3 over the name, so brute-force the naming convention over
+    the game's own bone names and match. A name that hashes to the stored
+    value is proven correct — keep the stored hash and add the name next to
+    it (never edit the hash), and add a test that every named bone hashes to
+    its own `name_hash`.
+
+16. **Symptom.** The first-person view model has hands cut off at the
+    knuckles, or a part of the body silently disappears from the FPS unit
+    after a re-rig. **Cause.** The FPS unit is cut by *dominant* bone
+    against a fixed bone list (arm, forearm, wrist). A re-rig that moves
+    vertices onto new bones (here: the finger chains) moves them out of that
+    list's bucket, and they are dropped from the view model — the third-person
+    unit still shows them, so the pack looks fine in the preview and breaks in
+    first person. **Fix.** Make the cut a rule, not a list: keep the arm cut
+    in step with the rig (here `is_arm_bone` matches the finger chains too),
+    and check the two units against each other — the FPS unit must carry the
+    same hand/finger bones as the third-person one, and its vertex count must
+    not change silently between builds.
+
+17. **Symptom.** A compliance auditor reports "all green" for a pack that
+    breaks the guide in half the places. **Cause.** The auditor was only
+    ever run against a good pack; nobody checked that it *can* fail, and two
+    of its rules were one-directional (they checked that the registered
+    files resolve, not that every shipped file is registered; they checked
+    that a flag name appears in the hook, not that the flag is set to true).
+    **Fix.** Mutation-test the auditor: break the pack the way the guide
+    forbids and assert that the matching check fails
+    (`check_guide_compliance_self_test.py`, 16/16 caught). Keep the negative
+    controls too — a pre-fix pack from git history must still fail the
+    check that caught it. Mutation-test the *test suite* as well
+    (`check_test_suite_mutations.py`): break the shipped pack and require the
+    matching pytest to fail — a test that passes or skips is a hole.
+
+18. **Symptom.** A working reference pack's bytes look incompatible with
+    yours — its weights sit in vertex channel 20 where yours sit in 19, its
+    section table has different ids, it carries `animation_data`/`author`/
+    `custom_hashlist` sections you do not have. **Cause.** The reference is
+    a *legacy* Diesel container: its channel ids above TEXCOORD7 are shifted
+    by +2, and the extra sections are stock-model metadata. **Fix.** Read it
+    as a behavioural oracle, not a byte template: map the channel ids
+    (legacy 15→BLENDINDICES, 17→BLENDWEIGHT0, 20/21→the two UV-direction
+    streams) and compare the *structure* — flag set, unit/object/config
+    shape, locator set, skin palettes — not the raw bytes. Its
+    `custom_hashlist` section is a plain list of custom names, which decodes
+    the whole rig without any hashlist.
+
+
+19. **Symptom.** A pack passes every structural audit and still shows holes
+    and black patches on the skin in game. **Cause.** The bind-pose transfer
+    fits every bone piece independently, and where the two rigs disagree
+    (hips, wrists, ankles) the fits end up 120-156° apart: the triangles
+    between the pieces fold back on themselves and are wound inside out. The
+    game culls them, so they leave holes. Neither the guide audit nor the
+    preview gates looked at triangle winding, and the preview's flat colours
+    cannot show a fold. **Fix.** Check the winding of every triangle against
+    its own vertex normals (`check_mesh_geometry.py`, and as audit check
+    `N3`), and repair it where it disagrees: the vertex normals describe the
+    unfolded surface, so the winding is what is wrong — reverse the triangle
+    and leave the vertices where they are. Corner-split meshes make this
+    safe: no edge is shared, so flipping one triangle cannot desync its
+    neighbours. Note the limits of the repair: it fixes the holes, not the
+    crease, because the crease comes from the rigs disagreeing.
+
+20. **Symptom.** The normal map's green channel has to be flipped, and there
+    is no way to tell from the files which way it is. **Cause.** The
+    convention is a property of the engine that authored the map, not of the
+    file: an OpenGL (Y+) and a DirectX (Y-) map are equally self-consistent
+    with their own image layout, and a saturated blue channel hides the
+    height field that would otherwise give the answer. **Fix.** Measure what
+    the files can say (`check_nm_convention.py`: they *are* tangent-space
+    normal maps, and the convention is not recoverable), then fall back to
+    the provenance — Mass Effect 2 is a DirectX 9 game, so its maps are Y- and
+    PD2's Y+ wants them inverted. Keep the build switch either way: the
+    in-game look is the final word.
+
 ## Assets
 
 Reference-only in this repo: `2b.rar` (working LAS pack, user-supplied), the
@@ -202,9 +321,18 @@ render-template zip are external downloads.
 
 - The green-channel orientation of ripped ME2 normals (DirectX vs OpenGL) is
   not decidable offline; currently flipped by default with a build flag.
-- Exact inventory of locator/effect object names an LAS outfit unit should
-  carry (the 2B reference's undecoded object3Ds) — the guide only lists three
-  examples.
 - Whether `CONTOUR` can combine with `ALPHA_MASKED` for masked materials
   (lashes/hair cards) is not attested; such materials currently use the 2B
   template without contour.
+- Whether the forearm twist bones should carry weight: the 2B reference
+  keeps `Left/RightForeArmRoll` in its skin palette, our model keeps the
+  bone in the skeleton but binds no weight to it — which is what the guide
+  asks of a *ported* model ("merge the twist bones down"). The forearm
+  therefore does not twist with the animation.
+
+Resolved in the third pass: the locator/effect inventory. The 2B
+`custom_hashlist` decodes the rig's names, and the working pack carries
+exactly five locator objects — `aim`, `BackPack1`, `eyeAim`,
+`a_weapon_left_front`, `a_weapon_right_front` — the last two hanging off the
+hands (they are the weapon sockets, not thumb tips). Our model carries the
+same five, and the audit now checks them by name.

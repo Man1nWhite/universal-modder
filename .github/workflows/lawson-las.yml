@@ -1,0 +1,72 @@
+name: lawson LAS pack
+
+# Builds dist/lawson_las.zip from the tracked ME2 source and publishes it:
+#  - every push to main: a workflow artifact with the pack;
+#  - every lawson-las-v* tag: the pack as the asset of that GitHub release.
+on:
+  push:
+    branches: [main]
+    tags: ["lawson-las-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lawson-las-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: install build deps
+        # the same dependency set the repo declares: pillow + numpy build the
+        # pack, pyyaml is needed by the um/kb tests, pytest runs them.
+        # The versions are pinned: the tracked pack is compared byte for byte,
+        # and a different Pillow/numpy or zlib changes the deflate output.
+        run: python -m pip install --upgrade pip "pillow==13.0.0" "numpy==2.4.6" "pyyaml>=6" pytest
+      - name: build the pack
+        # the pack version is the one stamped in the release notes
+        env:
+          NOTES: tools/pd2-port/releases/${{ github.ref_name }}.md
+        run: |
+          VERSION=""
+          if [ -f "${NOTES}" ]; then
+            VERSION=$(sed -n 's/.*<!-- pack_version: \(.*\) -->.*/\1/p' "${NOTES}")
+          fi
+          echo "building version ${VERSION:-0.1.0}"
+          python tools/pd2-port/build_las_pack.py --version "${VERSION:-0.1.0}"
+      - name: verify the build matches the tracked pack
+        # the release asset must be the same bytes as the tracked
+        # dist/lawson_las.zip: a mismatch means the source or the builder
+        # changed without the pack being rebuilt and committed
+        run: diff -u dist/lawson_las.zip.sha256 <(sha256sum dist/lawson_las.zip)
+      - name: tests
+        run: python -m pytest -q tests
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lawson_las
+          path: dist/lawson_las.zip
+          if-no-files-found: error
+      - name: publish to the GitHub release
+        if: startsWith(github.ref, 'refs/tags/lawson-las-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="tools/pd2-port/releases/${GITHUB_REF_NAME}.md"
+          if ! gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release create "${GITHUB_REF_NAME}" \
+              --title "Miranda Lawson — Legendary Armour Skins outfit ${GITHUB_REF_NAME#lawson-las-v}" \
+              --notes-file "${notes}" \
+              --verify-tag
+          fi
+          sha256sum dist/lawson_las.zip > dist/lawson_las.zip.sha256
+          gh release upload "${GITHUB_REF_NAME}" \
+            dist/lawson_las.zip dist/lawson_las.zip.sha256 --clobber

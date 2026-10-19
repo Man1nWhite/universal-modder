@@ -1,5 +1,252 @@
 # Lawson pack journal
 
+> The **current state** lives in [`STATUS.md`](STATUS.md) — what is shipped,
+> the measured check results, the open problem and the workflow traps. This
+> journal is the history behind it.
+
+## 2026-10-19 — fourth check: the geometry was broken, and the checks could not see it (NEW)
+
+- Asked for a fourth pass that attacks the *claims* instead of re-running the
+  same checker. Five angles: (A) rebuild the pack from a fresh clone, (B)
+  look at the geometry itself — winding, tangent frame, normal-map
+  convention, (C) settle the normal map's green channel, (D) verify every
+  factual claim of the release body, (E) mutation-test the pack-level test
+  suite.
+- **A: the build is reproducible.** A fresh `git clone` of the branch, a new
+  venv (`pillow==13.0.0`, `numpy==2.4.6`) and
+  `python tools/pd2-port/build_las_pack.py` produced the **byte-identical**
+  pack (8,015,689 B, sha256 `063d5f64…`) in 84 s. Nothing in the build
+  depends on the sandbox it was made in. (CI has to pin the same interpreter
+  and libraries: a different Python/zlib changes the deflate output, which is
+  why `uv run` in CI produced a different zip.)
+- **B: the skin was punched full of holes.** A new tool
+  (`tools/pd2-port/check_mesh_geometry.py`) decodes the built model and
+  compares every triangle's winding with its own vertex normals. The 0.1.1
+  pack has **946 of 10,189 body triangles (7.7 % of the body area) and 81
+  head triangles wound inside out**, plus 291 in the first-person arms. An
+  inside-out triangle is culled by the game: it leaves a **hole** in the
+  chest, the shoulders and the arms, and the skin around it shades
+  backwards.
+  - The source ME2 meshes have **zero** inverted triangles, so the retarget
+    introduced them. The cause: the bind-pose transfer fits every bone piece
+    independently (one rigid transform per target bone), and the fits are
+    not consistent with each other — the hips' fit is 156° away from the
+    spine's, the ankles' 133°, the wrists' 122° — so the neighbouring pieces
+    are rotated against each other and the triangles between them fold over.
+  - Two fixes were prototyped. Making the operators hierarchical (each bone
+    relative to its parent) removes every tear, but it also throws the
+    shape-matching away: the arms keep the ME2 proportions instead of the
+    PD2 rig's, which is wrong for a skin that has to follow PD2's skeleton.
+    Using the parent's offset as the bone direction is worse still. A real
+    fix is a bind-pose transfer that fits the rigs *consistently* — a bigger
+    piece of work than a check should smuggle in.
+  - The shipped fix is surgical: `rig_target.repair_winding()` finds every
+    triangle that faces away from its own vertex normals and reverses its
+    winding. The vertex normals describe the unfolded surface, so the
+    winding is what is wrong; the ME2 meshes are corner-split, so flipping a
+    triangle cannot make its neighbours inconsistent. **1,027 triangles** are
+    repaired this way, and the check now reports 0 inverted triangles.
+  - The audit gained a check (`N3`) that fails a pack with inverted
+    triangles — it failed on 0.1.1 and passes on 0.1.2 — plus a
+    "triangle wound inside out" mutation in the auditor's self-test
+    (**16/16** now).
+  - A second new tool (`tools/pd2-port/shade_check.py`) renders the
+    retargeted mesh with the pack's own normals: before the repair 336 body
+    faces (6.1 % of the area) were lit backwards, after it 0.
+- **C: the green channel cannot be read out of the files.**
+  `tools/pd2-port/check_nm_convention.py` measures the source maps: they are
+  genuine tangent-space normal maps (blue saturated at 255, red and green
+  centred on 128), but their blue channel is saturated, so the height field
+  is not recoverable and an OpenGL (Y+) and a DirectX (Y-) map are equally
+  self-consistent with their own image layout. Only the authoring engine
+  settles it — and Mass Effect 2 runs on DirectX 9, whose maps are Y-, while
+  PD2 wants Y+. So the default build (which inverts the green channel) is the
+  right one; `--keep-nm-green` would only be right for a Y+ source.
+- **D: the release body was checked line by line.** The size, the sha256, the
+  pack version, the check count and the test count were all re-measured
+  (they now say 0.1.2, 8,015,688 B, `a24f0b7c…`, 38 checks, 187 tests). The
+  claims that survived: "no weld discontinuities above 2.4 cm" (the preview's
+  metric says 2.38 cm), "pixel-identical encode/decode round trip on three
+  views (7.63e-06 cm)", "arm-only FPS cut of 10,468 vertices", the 2B
+  field-by-field diff, and the 15-mutation self-test (now 16).
+- **E: the pack-level tests are load-bearing.**
+  `tools/pd2-port/check_test_suite_mutations.py` breaks the shipped pack five
+  ways (an inside-out triangle, an unregistered FPS unit, an emptied
+  localization, the tangent channels deleted) and requires the matching test
+  to **fail** — a test that passes or skips is reported as a hole. 5/5 caught.
+- The pack is now **0.1.2** (8,015,688 B, sha256 `a24f0b7c…`); the 0.1.1
+  release stays up for comparison, but it has holes in it.
+
+## 2026-10-19 — third check: the auditor itself, the 2B oracle, the guide text (NEW)
+
+- Asked for a third pass that attacks the *checker* instead of re-running it.
+  Five angles: mutation-test the auditor, re-read the guide, diff the pack
+  against the 2B reference pack, and the two assumptions nothing had tested
+  yet (degenerate finger segments, 0-based skin palettes).
+- **The auditor had two blind spots; a mutation test found them.** New
+  `tools/pd2-port/check_guide_compliance_self_test.py` mutates the built pack
+  the way the guide forbids (invented render template, contour without
+  `unique="true"`, contour without `contour_opacity`, FPS without
+  `DEPTH_SCALING`, mip-0-only texture, plain-RGB normal map, missing
+  `df_nm` entry, missing `unit_mat` entry, manifest without Hooks, hook flag
+  switched off, missing localization key, renamed material, wrong
+  `materials` version, texture path with an extension, skinning keyword below
+  the geometry's influences) and asserts that the matching check fails.
+  Two mutations were **not** caught: P2 only checked that the registered
+  files resolve, not that every shipped texture/unit *is* registered (an
+  unregistered texture is never loaded by BeardLib), and P3 only looked for
+  the flag names, not for their values (`fps_replace_body = false` passed).
+  Both fixed; the self-test now detects **15/15** mutations and runs in the
+  test suite (`test_the_compliance_checker_actually_fails_on_broken_packs`).
+- **Negative controls from git history.** The pre-finger pack (7,967,568 B)
+  fails exactly S6 ("no finger bone carries a vertex") and the pre-FPS-fix
+  pack (7,943,697 B) fails exactly F3 ("the FPS unit is missing 18 finger
+  bones") — the skeleton checks fail on real defects, not just on synthetic
+  ones.
+- **The guide, re-read from the wiki** (all four chunks): the 54-bone rig
+  (1 pelvis + 3 spine + neck/head + shoulders/arms/forearms/hands + 3 bones
+  per finger + legs/feet/toebases, forearm twist bones included), 3
+  influences, `DEPTH_SCALING` for the FPS unit, `unique="true"` plus
+  `contour_color`/`contour_opacity`, texture paths without an extension, no
+  invented render templates, tangents on, vertex colours off, DXT5 ARGB 8bpp
+  interpolated alpha, X in alpha / red white / blue black / green OpenGL Y+.
+  Every rule the auditor enforces is in the source text; the one open
+  question (the source's green-channel convention) is exactly the guide's
+  "invert the green channel if needed".
+- **The 2B reference pack, as an oracle.** The archive is RAR5 and the
+  sandbox has no extractor, so `unrar` was built from source
+  (`github.com/pmachapman/Unrar`) and the reference extracted. Field by
+  field: `main.xml` (table/Localization/Hooks/`armorskinstweakdata`/
+  AddFiles), the hook's flag set, the `.unit` (type `dah`, slot 1, the
+  `unit_data` + `contour` extensions), the `.object` (`diesel` +
+  `graphic_group`), the JSON localization keys and the material configs all
+  match ours. Our model carries the same five locator/effect objects
+  (`aim`, `BackPack1`, `eyeAim`, `a_weapon_left_front`,
+  `a_weapon_right_front`); the auditor now checks them **by name** (S3)
+  instead of counting unnamed objects.
+- **A false alarm, resolved.** 2B's geometry stores its weights in channel
+  id 20 where ours uses 19, which looked like an incompatible vertex layout.
+  It is the legacy container's channel-id shift (audit A06: ids above
+  TEXCOORD7 move by +2), so after the shift both files use the same
+  channels: POSITION0, TEXCOORD0, BLENDINDICES, BLENDWEIGHT0, NORMAL0 and
+  the two UV-direction streams. Our layout is right; 2B is a behavioural
+  oracle, not a byte template.
+- **The two untested assumptions, checked.** The PD2 finger bones are
+  1.89-4.03 cm long and the ME2 finger segments 1.75-4.40 cm, so the
+  segment fit cannot collapse on a zero-length bone; and every skin palette
+  in the pack maps 0-based local indices (the retired route's bug class) with
+  contiguous 1..N section ids.
+- **Speed.** The auditor decoded the whole mip pyramid of every normal map;
+  the layout rule is a property of the encoder, so mip 0 is enough now
+  (12.6 s -> 8.3 s per audit, ~2 min for the self-test).
+- Result: **36 pass, 1 warn, 0 fail**, and the *pack bytes did not change*
+  (8,015,689 B, sha256 `063d5f64...`) - only the auditor and the tests
+  grew. Suite: 185 passed, 5 skipped.
+- **Still open:** the normal maps' green-channel convention (only the running
+  game can settle it), and the forearm twist bones: the reference keeps
+  `ForeArmRoll` in its skin palette, ours keeps the bone in the skeleton but
+  binds no weight to it - which is what the guide asks of a ported model
+  ("merge the twist bones down"). The twist is therefore not animated on the
+  forearm.
+
+## 2026-10-19 — guide-compliance audit: mitten hands found, fingers now articulate (NEW)
+
+- Asked to check the pack against the ModWorkshop LAS/MOOG outfit guide.
+  Wrote `tools/pd2-port/check_guide_compliance.py`: it re-reads the built zip
+  and checks it against the guide's rules (skeleton, weights, materials,
+  render templates, FPS unit, texture format, BeardLib packaging), each check
+  citing the rule it enforces. 35 checks + 1 open question.
+- **One real failure.** The guide's PD2 rig has three bones per finger; the
+  rig contract has them, but the retarget folded every ME2 finger joint onto
+  the wrist bone — the hands were mittens that could not articulate. Cause:
+  `rig_target.map_joint` folded anything matching a finger token to the hand
+  (the finger bones were hash-only in the contract, so there were no names to
+  map onto).
+- **Fix, step 1 — recover the bone names offline.** The contract stores a
+  name *hash* per bone (the Model Tool writes names only with the
+  PAYDAY-2-Hashlist installed). The hash is the lookup3 variant in
+  `dmodel.hash64`, so PD2's naming convention can be hashed and matched
+  against the stored hashes: 30 of 187 hash-only bones resolve
+  (`LeftHandThumb1..3`, `LeftHandIndex1..3`, `LeftHandMiddle1..3`,
+  `LeftHandRing1..3`, `LeftHandPinky1..3` and the Right set). New tool
+  `tools/pd2-port/resolve_rig_names.py` does it and patches the contract
+  (`name` only — the stored hashes are never touched, and a test now checks
+  that every named bone hashes to its stored `name_hash`).
+- **Fix, step 2 — map the fingers.** `rig_target` now maps the ME2 finger
+  chains one-to-one onto the PD2 finger bones (`LeftIndexFinger` ->
+  `RightHandIndex1`, `LeftIndexFinger2` -> `RightHandIndex3`, ...; the side
+  swaps with the arms, and ME2's "Pink" is PD2's "Pinky"). The face still
+  folds to Head (PD2 has no facial bones).
+- **Verified.** All 30 finger bones now carry weight (58-253 vertices each),
+  and every finger-dominant vertex sits 0.9-2.6 cm from its bone's origin
+  (max 4.5 cm) — the weights are on the fingers, not scattered. The geometry
+  gates still pass (max neighbour spike 2.38 cm, twin separation 0.000 cm, no
+  degenerate faces) and the encode/decode round trip is still pixel-identical.
+- **Second defect, caught by re-checking: the FPS cut dropped the fingers.**
+  `rig_target.ARM_BONES` lists the arm and wrist bones only, and the FPS
+  (arms-only) unit is cut by dominant bone — so 5,028 finger vertices were
+  classified as "body" and left out of the view model: the first-person hands
+  would have been cut off at the knuckles. The cut now knows the finger
+  chains (`is_arm_bone`), the FPS unit carries all 30 finger bones and is back
+  to 10,468 vertices (z 113-149 cm, the shoulder-to-hand band).
+  The audit gained a check for it (F3: the FPS unit must carry the same
+  finger chains as the third-person one) — it reproduced the defect on the
+  pre-fix pack, and a unit test pins the cut.
+- Pack rebuilt as **0.1.1**: 8,015,689 bytes, sha256
+  `063d5f64ba7878edc88d43901d690dc32a3324ba6e6b319fe93941ed0a556dbb`.
+- The compliance audit is now part of the test suite
+  (`test_built_pack_passes_the_guide_compliance_check`), so a pack that drifts
+  from the guide fails the build. Suite: 184 passed, 5 skipped.
+  Compliance: 36 pass, 1 warn, 0 fail.
+- **Still open:** the normal maps' green-channel convention (source assumed
+  DirectX-style, inverted to PD2's OpenGL-style Y+). The guide's rule can only
+  be settled in game; `--keep-nm-green` is the switch.
+
+## 2026-10-19 — pack published: `dist/lawson_las.zip` tracked + GitHub release page (NEW)
+
+- User direction: get `dist/lawson_las.zip` into GitHub and give it a release
+  page. Built it with `python tools/pd2-port/build_las_pack.py`: 30 files,
+  18,261,456 uncompressed bytes, 7,967,568 bytes, sha256
+  `8629051ead84cd7a180a427c9969844363987213885c242eb05f6f34707247f3`.
+- `dist/` was gitignored ("built packs are outputs, not sources"). The rule is
+  now `dist/*` + `!dist/lawson_las.zip`, so the release asset is tracked and
+  the repository always carries the exact bytes the release serves.
+- Builder changes: `VERSION` `0.1.0-dev` -> `0.1.0`, new `--version` flag that
+  stamps `build_manifest.json`, and a new `status` field ("experimental -
+  offline validated, not game-verified") so the shipped artifact states its own
+  verification level. `CREDITS.txt` rewritten: it still called the pack a
+  "private experimental derivative" with no redistribution permission while the
+  pack was about to be published publicly; it now says plainly that the model,
+  the textures and the 2B reference pack are not ours to license, that this is
+  an unlicensed non-commercial fan derivative, and that the original artists
+  and publishers keep all rights to their work.
+- The release page body is a file in the repo,
+  `releases/lawson-las-v1.md`, with a `<!-- pack_version: 0.1.0 -->` marker
+  the CI reads for the version stamp — the page text is versioned and
+  reviewable instead of only typed into GitHub.
+- New workflow `.github/workflows/lawson-las.yml`: builds the pack, runs the
+  tests, uploads a workflow artifact on every push to `main`, and on a
+  `lawson-las-v*` tag creates or updates the release and attaches
+  `lawson_las.zip` + `lawson_las.zip.sha256`. A step diffs the runner's build
+  against the tracked `dist/lawson_las.zip.sha256`, so a release asset can
+  never drift from the committed pack.
+- Release `lawson-las-v1` published on GitHub with the pack as its asset
+  (marked **pre-release**: the pack is not game-verified, and the page says so
+  before the install steps rather than in a footnote). The upload itself ran
+  in CI, not from this session: the sandbox cannot reach
+  `uploads.github.com`/`release-assets.githubusercontent.com`, so the first
+  workflow run (missing `pyyaml` in the runner's pip install) and the tag
+  move to the fixed commit were needed before the asset landed.
+- `dist/lawson_las.zip.sha256` is tracked too, so a download can be checked
+  against the repo without downloading the release.
+- Tests: 179 passed, 5 skipped — unchanged. (A first local run showed 10
+  kb/um failures; they were only a missing `pyyaml` in the local venv, not a
+  regression. The same missing dependency broke the first CI run, which is
+  why the workflow now installs `pyyaml` as well.) Determinism re-checked:
+  rebuilding with the same version reproduces the same sha256, and the CI
+  runner's build matches it byte for byte.
+- Still **not game-verified**.
+
 ## 2026-10-18 — texture/UV verification session; eye iris fix; FPS verified (NEW)
 
 - Added a textured software raster (`preview_check.raster_textured`, DF

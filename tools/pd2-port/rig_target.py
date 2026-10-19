@@ -25,6 +25,7 @@ the PD2 skeleton with ``SkinBones.rotations = inv(W_target)``.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from me2_dae import DaeScene, Mesh, SkinBind, mmul, minv
@@ -99,6 +100,23 @@ BONE_MAP: dict[str, str] = {
 _FINGER_TOKENS = ("ThumbFinger", "PinkFinger", "IndexFinger",
                   "MiddleFinger", "RingFinger", "Finger")
 
+# ME2's five finger chains (three joints each) map one-to-one onto PD2's five
+# three-bone finger chains, so the fingers articulate instead of riding along
+# with the hand. Sides swap with the arms: ME2 ``Left*`` is world +X = PD2
+# ``Right*``. PD2 spells the little finger "Pinky"; ME2 spells it "Pink".
+_FINGER_CHAINS = {
+    "Thumb": "Thumb",
+    "Index": "Index",
+    "Middle": "Middle",
+    "Ring": "Ring",
+    "Pink": "Pinky",
+}
+for _me2_side, _pd2_side in (("Left", "Right"), ("Right", "Left")):
+    for _me2_finger, _pd2_finger in _FINGER_CHAINS.items():
+        for _joint in range(3):
+            _me2_name = f"{_me2_side}{_me2_finger}Finger" + (str(_joint) if _joint else "")
+            BONE_MAP[_me2_name] = f"{_pd2_side}Hand{_pd2_finger}{_joint + 1}"
+
 # Facial chains fold to Head.
 _FACE_TOKENS = ("brow", "Brow", "eye", "Eye", "Lip", "lip", "Cheek", "cheek",
                 "Lid", "lid", "Nose", "nose")
@@ -126,6 +144,43 @@ class RiggedMesh:
     triangles: list[tuple[int, int, int]]
     # per vertex, up to 3 (pd2_bone_name, weight), normalized
     weights: list[list[tuple[str, float]]]
+    flipped_faces: int = 0                   # triangles repaired by repair_winding()
+
+
+def repair_winding(positions, normals, triangles):
+    """Reverse the triangles that face away from their own vertex normals.
+
+    The bind-pose transfer rotates every bone piece independently (each piece
+    is fitted onto the PD2 bone it is bound to), so where the ME2 and the PD2
+    rigs disagree -- the hips, the wrists, the ankles -- the neighbouring
+    pieces end up rotated against each other and a band of triangles folds
+    back on itself.  A folded triangle is wound inside out: the game culls it
+    (a hole in the skin) and the skin shades it backwards (a black patch).
+
+    The vertex normals are the smooth normals of the *unfolded* surface, so
+    the triangle's own winding is the thing that is wrong: swapping two
+    indices puts the triangle back in front of the skin without moving a
+    single vertex.  The ME2 meshes are corner-split (no shared edges), so
+    flipping a triangle cannot make its neighbours inconsistent.
+
+    Returns the repaired triangles and the number of flips.
+    """
+    out = []
+    flipped = 0
+    for a, b, c in triangles:
+        p0, p1, p2 = positions[a], positions[b], positions[c]
+        e1 = _sub(p1, p0)
+        e2 = _sub(p2, p0)
+        gn = _cross(e1, e2)
+        ln = _dot(gn, gn) ** 0.5
+        if ln > 1e-12:
+            gn = [gn[0] / ln, gn[1] / ln, gn[2] / ln]
+            avg = [normals[a][i] + normals[b][i] + normals[c][i] for i in range(3)]
+            if _dot(gn, avg) < 0.0:
+                b, c = c, b
+                flipped += 1
+        out.append((a, b, c))
+    return out, flipped
 
 
 @dataclass
@@ -438,14 +493,17 @@ def rebind_mesh(mesh: Mesh, scene: DaeScene, rig: TargetRig,
     if not weights:
         weights = [[] for _ in positions]
 
+    triangles, flipped = repair_winding(positions, normals, mesh.triangles)
+
     return RiggedMesh(
         name=mesh.name,
         material=mesh.material,
         positions=positions,
         normals=normals,
         uvs=mesh.uvs,
-        triangles=mesh.triangles,
+        triangles=triangles,
         weights=weights,
+        flipped_faces=flipped,
     )
 
 
@@ -453,6 +511,16 @@ ARM_BONES = {
     "LeftArm", "LeftForeArm", "LeftForeArmRoll", "LeftHand",
     "RightArm", "RightForeArm", "RightForeArmRoll", "RightHand",
 }
+
+# The hand's finger chains belong to the arm for the FPS cut: without them the
+# first-person unit loses the fingers (their vertices are dominated by the
+# finger bones, not the wrist).
+FINGER_BONE_RE = re.compile(r"^(?:Left|Right)Hand(?:Thumb|Index|Middle|Ring|Pinky)[123]$")
+
+
+def is_arm_bone(name: str) -> bool:
+    """True for the arm bones and the finger chains hanging off the hands."""
+    return name in ARM_BONES or bool(FINGER_BONE_RE.match(name))
 
 
 def dominant_bone(weights: list[tuple[str, float]]) -> str:
@@ -464,5 +532,5 @@ def split_arm_verts(mesh: RiggedMesh) -> tuple[set[int], set[int]]:
     body: set[int] = set()
     arms: set[int] = set()
     for i, w in enumerate(mesh.weights):
-        (arms if dominant_bone(w) in ARM_BONES else body).add(i)
+        (arms if is_arm_bone(dominant_bone(w)) else body).add(i)
     return body, arms

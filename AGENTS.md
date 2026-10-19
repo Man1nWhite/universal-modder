@@ -9,7 +9,12 @@ repo, they almost always want to **mod a game**, or to learn how a game was modd
    source of truth → vertical slice → assets → verify in the real game → showcase → publish.
 2. **Search the knowledge base first:** `bin/um kb search "<game or engine>"`. Other agents may already have
    written down the exact versions, routes and gotchas (`knowledge/INDEX.md`).
-3. **At the end, share what you learned:** write a field note (`bin/um kb new ...`) and, once your human
+3. **On a long-running project, keep a status page:** the agent that picks
+   the work up next should not have to reconstruct the state from a journal.
+   The PAYDAY 2 LAS pack keeps one at `tools/pd2-port/STATUS.md` (shipped
+   artefacts, measured check results, the open problem, the traps) next to
+   its journal — copy that pattern.
+4. **At the end, share what you learned:** write a field note (`bin/um kb new ...`) and, once your human
    agrees, open a PR (`bin/um kb pr <note> --yes`). See `knowledge/README.md` and `CONTRIBUTING.md`.
 
 ## Tools
@@ -57,6 +62,8 @@ repo, they almost always want to **mod a game**, or to learn how a game was modd
   - installing loaders into game folders or changing the registry;
   - publishing anything, PRs included.
 - **Keep a journal:** a `MODLOG.md` in the mod's working folder. It becomes your field note at the end.
+- **Sequence your file edits:** parallel edits to the same file race, and the
+  loser silently clobbers the winner.
 
 ## Working on the toolkit itself
 - **Python:** 3.10+, deps Pillow, numpy and PyYAML (`uv` handles them via `bin/um`). Code lives in `um/`,

@@ -758,7 +758,7 @@
   },
   {
    "id": 32,
-   "name": null,
+   "name": "LeftHandThumb1",
    "name_hash": "503ffe69b376401f",
    "parent_id": 31,
    "local": [
@@ -816,7 +816,7 @@
   },
   {
    "id": 33,
-   "name": null,
+   "name": "LeftHandThumb2",
    "name_hash": "eee5e91b7dfa8789",
    "parent_id": 32,
    "local": [
@@ -874,7 +874,7 @@
   },
   {
    "id": 34,
-   "name": null,
+   "name": "LeftHandThumb3",
    "name_hash": "baca46451578143d",
    "parent_id": 33,
    "local": [
@@ -932,7 +932,7 @@
   },
   {
    "id": 35,
-   "name": null,
+   "name": "LeftHandIndex1",
    "name_hash": "a06feb5f3e7be38a",
    "parent_id": 31,
    "local": [
@@ -990,7 +990,7 @@
   },
   {
    "id": 36,
-   "name": null,
+   "name": "LeftHandIndex2",
    "name_hash": "65de04893fd1e6ac",
    "parent_id": 35,
    "local": [
@@ -1048,7 +1048,7 @@
   },
   {
    "id": 37,
-   "name": null,
+   "name": "LeftHandIndex3",
    "name_hash": "0dda088ba39c2598",
    "parent_id": 36,
    "local": [
@@ -1106,7 +1106,7 @@
   },
   {
    "id": 38,
-   "name": null,
+   "name": "LeftHandMiddle1",
    "name_hash": "3b2f3b92d4b779c3",
    "parent_id": 31,
    "local": [
@@ -1164,7 +1164,7 @@
   },
   {
    "id": 39,
-   "name": null,
+   "name": "LeftHandMiddle2",
    "name_hash": "813354fdb8dab058",
    "parent_id": 38,
    "local": [
@@ -1222,7 +1222,7 @@
   },
   {
    "id": 40,
-   "name": null,
+   "name": "LeftHandMiddle3",
    "name_hash": "639eeba388bee19a",
    "parent_id": 39,
    "local": [
@@ -1280,7 +1280,7 @@
   },
   {
    "id": 41,
-   "name": null,
+   "name": "LeftHandRing1",
    "name_hash": "5aad17ffdbd2fb7a",
    "parent_id": 31,
    "local": [
@@ -1338,7 +1338,7 @@
   },
   {
    "id": 42,
-   "name": null,
+   "name": "LeftHandRing2",
    "name_hash": "a5a71df63c656eed",
    "parent_id": 41,
    "local": [
@@ -1396,7 +1396,7 @@
   },
   {
    "id": 43,
-   "name": null,
+   "name": "LeftHandRing3",
    "name_hash": "e45280d1e36792f6",
    "parent_id": 42,
    "local": [
@@ -1454,7 +1454,7 @@
   },
   {
    "id": 44,
-   "name": null,
+   "name": "LeftHandPinky1",
    "name_hash": "d6177076d64a9a24",
    "parent_id": 31,
    "local": [
@@ -1512,7 +1512,7 @@
   },
   {
    "id": 45,
-   "name": null,
+   "name": "LeftHandPinky2",
    "name_hash": "f2ff1a6d8fcd9fb8",
    "parent_id": 44,
    "local": [
@@ -1570,7 +1570,7 @@
   },
   {
    "id": 46,
-   "name": null,
+   "name": "LeftHandPinky3",
    "name_hash": "47fe0c510f695b69",
    "parent_id": 45,
    "local": [
@@ -1976,7 +1976,7 @@
   },
   {
    "id": 55,
-   "name": null,
+   "name": "RightHandThumb1",
    "name_hash": "4d66a4b1fe947996",
    "parent_id": 54,
    "local": [
@@ -2034,7 +2034,7 @@
   },
   {
    "id": 56,
-   "name": null,
+   "name": "RightHandThumb2",
    "name_hash": "fc9b6a918fedb7e3",
    "parent_id": 55,
    "local": [
@@ -2092,7 +2092,7 @@
   },
   {
    "id": 57,
-   "name": null,
+   "name": "RightHandThumb3",
    "name_hash": "59128c203bd02d52",
    "parent_id": 56,
    "local": [
@@ -2150,7 +2150,7 @@
   },
   {
    "id": 58,
-   "name": null,
+   "name": "RightHandIndex1",
    "name_hash": "263d39c7dc74085e",
    "parent_id": 54,
    "local": [
@@ -2208,7 +2208,7 @@
   },
   {
    "id": 59,
-   "name": null,
+   "name": "RightHandIndex2",
    "name_hash": "77b65c343281d3a8",
    "parent_id": 58,
    "local": [
@@ -2266,7 +2266,7 @@
   },
   {
    "id": 60,
-   "name": null,
+   "name": "RightHandIndex3",
    "name_hash": "cc764297d3da1e9e",
    "parent_id": 59,
    "local": [
@@ -2324,7 +2324,7 @@
   },
   {
    "id": 61,
-   "name": null,
+   "name": "RightHandMiddle1",
    "name_hash": "d6072918ba34db83",
    "parent_id": 54,
    "local": [
@@ -2382,7 +2382,7 @@
   },
   {
    "id": 62,
-   "name": null,
+   "name": "RightHandMiddle2",
    "name_hash": "2773f32cc561517e",
    "parent_id": 61,
    "local": [
@@ -2440,7 +2440,7 @@
   },
   {
    "id": 63,
-   "name": null,
+   "name": "RightHandMiddle3",
    "name_hash": "b5294f46766547ee",
    "parent_id": 62,
    "local": [
@@ -2498,7 +2498,7 @@
   },
   {
    "id": 64,
-   "name": null,
+   "name": "RightHandRing1",
    "name_hash": "cd1f8908d82823f6",
    "parent_id": 54,
    "local": [
@@ -2556,7 +2556,7 @@
   },
   {
    "id": 65,
-   "name": null,
+   "name": "RightHandRing2",
    "name_hash": "8df6526f110fb768",
    "parent_id": 64,
    "local": [
@@ -2614,7 +2614,7 @@
   },
   {
    "id": 66,
-   "name": null,
+   "name": "RightHandRing3",
    "name_hash": "a5b77c25221f6b0b",
    "parent_id": 65,
    "local": [
@@ -2672,7 +2672,7 @@
   },
   {
    "id": 67,
-   "name": null,
+   "name": "RightHandPinky1",
    "name_hash": "d16a2b3ff05c4a18",
    "parent_id": 54,
    "local": [
@@ -2730,7 +2730,7 @@
   },
   {
    "id": 68,
-   "name": null,
+   "name": "RightHandPinky2",
    "name_hash": "4de175465deebde2",
    "parent_id": 67,
    "local": [
@@ -2788,7 +2788,7 @@
   },
   {
    "id": 69,
-   "name": null,
+   "name": "RightHandPinky3",
    "name_hash": "29cdaf031646e70d",
    "parent_id": 68,
    "local": [

@@ -6,6 +6,7 @@ source zip (skipped when absent).
 """
 import importlib.util
 import io
+import json
 import struct
 import sys
 import zipfile
@@ -217,9 +218,15 @@ def test_map_joint_core_and_side_swap():
     assert rig_target.map_joint("Neck1") == "Neck"
 
 
-def test_map_joint_folds_fingers_and_face():
-    assert rig_target.map_joint("LeftIndexFinger2") == "RightHand"
-    assert rig_target.map_joint("RightRingFinger1") == "LeftHand"
+def test_map_joint_maps_fingers_to_finger_bones_and_folds_the_face():
+    # the guide's PD2 rig has three bones per finger; the source's finger
+    # chains map onto them one-to-one (sides swap with the arms) so the
+    # fingers articulate instead of riding along with the hand
+    assert rig_target.map_joint("LeftIndexFinger2") == "RightHandIndex3"
+    assert rig_target.map_joint("RightRingFinger1") == "LeftHandRing2"
+    assert rig_target.map_joint("LeftThumbFinger") == "RightHandThumb1"
+    assert rig_target.map_joint("RightPinkFinger2") == "LeftHandPinky3"
+    # the face still folds to the head (PD2 has no facial bones)
     assert rig_target.map_joint("brow_Left") == "Head"
     assert rig_target.map_joint("innerUpperLip_right") == "Head"
     assert rig_target.map_joint("eyeLookBackAt") == "Head"
@@ -228,6 +235,64 @@ def test_map_joint_folds_fingers_and_face():
 def test_map_joint_unknown_raises():
     with pytest.raises(KeyError):
         rig_target.map_joint("NotABone")
+
+
+def test_rig_contract_names_hash_to_their_stored_hashes():
+    """The contract's names are recovered by hashing PD2's naming convention.
+
+    Every named bone must hash to the name_hash the 2B model stored, so a
+    mis-recovered name cannot slip into the rig.
+    """
+    rig = json.loads((PD2 / "reference" / "las_rig.json").read_text())
+    named = [b for b in rig["bones"] if b.get("name")]
+    assert len(named) >= 55
+    for b in named:
+        assert f"{dmodel.hash_str(b['name']):016x}" == b["name_hash"], b
+
+
+def test_finger_bones_are_named_in_the_rig_contract():
+    rig = json.loads((PD2 / "reference" / "las_rig.json").read_text())
+    names = {b["name"] for b in rig["bones"] if b.get("name")}
+    for side in ("Left", "Right"):
+        for finger in ("Thumb", "Index", "Middle", "Ring", "Pinky"):
+            for n in (1, 2, 3):
+                assert f"{side}Hand{finger}{n}" in names
+
+
+def test_finger_bones_carry_weight_in_the_built_model():
+    """Mitten hands were a guide-compliance failure: no finger bone had a
+    vertex. The retarget must bind the hand's vertices to the finger chains."""
+    build = _load("build_las_pack", "build_las_pack.py")
+    source = build.load_source(build.SOURCE_ZIP)
+    scene = me2_dae.load_dae(source[build.DAE_NAME])
+    rig = rig_target.load_target_rig(build.RIG_JSON)
+    rigged = {m.name: rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
+              for m in scene.meshes}
+    used = set()
+    for mesh in rigged.values():
+        for weights in mesh.weights:
+            for bone, _w in weights:
+                used.add(bone)
+    finger_bones = {n for n in used if "Hand" in n and n[-1].isdigit()}
+    assert len(finger_bones) >= 20, f"only {sorted(finger_bones)} carry weight"
+
+
+def test_fps_cut_keeps_the_fingers():
+    """The FPS unit holds the arm mesh - hands included.
+
+    The fingers' vertices are dominated by the finger bones, so an arm cut
+    that only knows the arm bones drops them and the view model loses the
+    fingers (the compliance audit's F3 check caught exactly that).
+    """
+    mesh = rig_target.RiggedMesh(
+        name="Body 2", material="mtr_body2", positions=[], normals=[],
+        uvs=[], triangles=[],
+        weights=[[("RightHandThumb1", 1.0)],
+                 [("RightHandIndex3", 0.9), ("RightHand", 0.1)],
+                 [("Hips", 1.0)]])
+    body, arms = rig_target.split_arm_verts(mesh)
+    assert arms == {0, 1}, "finger vertices must stay in the first-person cut"
+    assert body == {2}
 
 
 def test_bone_map_targets_exist_in_donor_rig():
@@ -623,3 +688,135 @@ class TestSourceIntegration:
             assert float(spikes.max()) < 25.0, f"{src.name}: exploded vertices"
             sep = pc.twin_separation(src.positions, dst.positions)
             assert sep < 2.0, f"{src.name}: twins separated by {sep:.2f} cm"
+
+
+def test_built_pack_passes_the_guide_compliance_check():
+    """The shipped pack must satisfy the ModWorkshop LAS/MOOG guide.
+
+    `check_guide_compliance.py` re-reads the built zip and checks it against
+    the guide's rules (skeleton, weights, materials, render templates, FPS
+    unit, texture format, BeardLib packaging). A FAIL here is a guide
+    violation in the pack, not a flake.
+    """
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    checker = _load("check_guide_compliance", "check_guide_compliance.py")
+    report = checker.audit(pack)
+    fails = [c for c in report.checks if c["status"] == "FAIL"]
+    assert not fails, "; ".join(f"{c['id']}: {c['detail']}" for c in fails)
+
+
+def test_the_compliance_checker_actually_fails_on_broken_packs():
+    """A checker that only ever passes proves nothing.
+
+    The self-test mutates the built pack the way the guide forbids (invented
+    render template, missing `unique="true"`, no DEPTH_SCALING, DXT1-style
+    texture, an unregistered texture, a hook flag switched off, ...) and
+    asserts that the matching check fails. It is the checker's own test.
+    """
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    selftest = _load("check_guide_compliance_self_test",
+                     "check_guide_compliance_self_test.py")
+    missed = []
+    base = selftest.read_pack()
+    for mutate, expect, label in selftest.MUTATIONS:
+        files = mutate(dict(base))
+        ids = selftest.failed_ids(selftest.audit_pack(files))
+        if expect not in ids:
+            missed.append(f"{expect} ({label}) -> failed {sorted(ids) or 'nothing'}")
+    assert not missed, "the checker did not catch: " + "; ".join(missed)
+
+
+def test_repair_winding_reverses_only_the_folded_triangles():
+    """A triangle that faces away from its own normals must be reversed.
+
+    The bind-pose transfer rotates every bone piece independently, so bands
+    of triangles fold back on themselves where the ME2 and the PD2 rigs
+    disagree.  The vertex normals still describe the unfolded surface, so the
+    winding is what has to be repaired -- and only where it disagrees.
+    """
+    # a flat, correctly wound triangle in the xy plane (normal +z)
+    positions = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0),
+                 (0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 0.0, 0.0)]
+    normals = [(0.0, 0.0, 1.0)] * 6
+    tris = [(0, 1, 2), (3, 4, 5)]
+    fixed, flipped = rig_target.repair_winding(positions, normals, tris)
+    assert flipped == 1, "only the backwards triangle may be reversed"
+    assert fixed[0] == (0, 1, 2), "the correct triangle must be left alone"
+    assert fixed[1] == (3, 5, 4), "the folded triangle must be reversed"
+    # a second pass finds nothing left to do
+    _again, flipped2 = rig_target.repair_winding(positions, normals, fixed)
+    assert flipped2 == 0
+
+
+def test_the_built_pack_has_no_inverted_faces():
+    """Every triangle of the shipped pack must face the same way as its normals.
+
+    An inverted triangle is culled by the game: it leaves a hole in the skin
+    and the shading around it is wrong.  The quadruple check found 946 of
+    them in pack 0.1.1; the builder now repairs the winding.
+    """
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    with zipfile.ZipFile(pack) as z:
+        for name in ("Lawson_LAS/units/lawson/skins/lawson/lawson.model",
+                     "Lawson_LAS/units/lawson/skins/lawson/fps_lawson.model"):
+            raw = z.read(name)
+            model = dmodel.DieselModel.from_bytes(raw)
+            inverted = total = 0
+            for s in model.sections:
+                if s.tag != "model_data" or s.obj is None:
+                    continue
+                pas = model.by_id.get(s.obj.passthrough_id)
+                if pas is None or pas.obj is None:
+                    continue
+                geo = model.by_id.get(pas.obj.geometry_id)
+                top = model.by_id.get(pas.obj.topology_id)
+                if geo is None or top is None or geo.obj is None or top.obj is None:
+                    continue
+                pos, nrm = geo.obj.positions, geo.obj.normals
+                for a, b, c in top.obj.faces:
+                    if max(a, b, c) >= len(pos):
+                        continue
+                    e1 = [pos[b][i] - pos[a][i] for i in range(3)]
+                    e2 = [pos[c][i] - pos[a][i] for i in range(3)]
+                    gn = [e1[1] * e2[2] - e1[2] * e2[1],
+                          e1[2] * e2[0] - e1[0] * e2[2],
+                          e1[0] * e2[1] - e1[1] * e2[0]]
+                    ln = sum(x * x for x in gn) ** 0.5
+                    if ln < 1e-9:
+                        continue
+                    total += 1
+                    if sum(gn[i] * (nrm[a][i] + nrm[b][i] + nrm[c][i])
+                           for i in range(3)) < 0:
+                        inverted += 1
+            assert total, f"{name}: no triangles found"
+            assert inverted == 0, f"{name}: {inverted} of {total} triangles are inverted"
+
+
+def test_the_status_page_matches_the_shipped_pack():
+    """`tools/pd2-port/STATUS.md` is the handoff page - it must not drift.
+
+    A status page that quotes a stale size, checksum or audit result is
+    worse than none: the next agent trusts it.
+    """
+    import hashlib
+    import re
+
+    status = (PD2 / "STATUS.md").read_text()
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    raw = pack.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()
+    assert digest in status, "STATUS.md does not quote the pack's sha256"
+    assert f"{len(raw):,}" in status, "STATUS.md does not quote the pack's size"
+
+    checker = _load("check_guide_compliance", "check_guide_compliance.py")
+    counts = checker.audit(pack).counts()
+    assert f"**{counts['PASS']} pass, {counts['WARN']} warn, {counts['FAIL']} fail**" in status, (
+        "STATUS.md does not quote the audit's result")
