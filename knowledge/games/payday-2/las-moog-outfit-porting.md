@@ -172,6 +172,26 @@ success. Nothing here is game-verified by us.
     broadcast back), and gate on twin separation (coincident vertices must
     stay coincident).
 
+12. **Symptom.** Eyes render as blank pink spheres with no iris. **Cause:**
+    ME2's eye shader placed the iris (Iris/Lens/4×spec maps are shader
+    inputs); `EYE_Diff.png` draws it at the tile centre and the DAE UVs land
+    that circle ON the eyeball's u-seam facing the camera — triangles
+    spanning the seam smear it. `EYE_Diff_s.png` is a black mask layer, not
+    an alternate diffuse. **Fix:** planar-project each eyeball's UVs from its
+    frontal plane (`build_las_pack.eye_uv_planar` — static approximation of
+    that shader). Diagnose with UVs-as-colour renders: a colour seam across
+    the region of interest means wrap interpolation is corrupting it.
+
+13. **Symptom.** Teeth/Mouth texture tiles look like hair art. **Cause:** the
+    source head atlas `HMF_HED_PROMiranda_Scalp_Diff.png` is SHARED — its
+    islands include hair AND the teeth (u≈0.002–0.159, v≈0.248–0.543, white
+    teeth + pink gums) AND the mouth interior (u≈0.921–0.998, v≈0.306–0.468).
+    `TEXTURE_SLOTS` mapping those meshes to Scalp_Diff is faithful. **Do not**
+    "fix" it to a separate teeth texture or flag the tiles as mislabeled —
+    contact-sheet tiles show the whole atlas; only per-mesh textured renders
+    show what the mesh samples. Verify suspected texture bugs with a UV-box
+    overlay before changing anything.
+
 ## Assets
 
 Reference-only in this repo: `2b.rar` (working LAS pack, user-supplied), the

@@ -1,6 +1,34 @@
 # Lawson pack journal
 
-## 2026-10-18 — offline geometry verification; rebind rewritten twice (NEW)
+## 2026-10-18 — texture/UV verification session; eye iris fix; FPS verified (NEW)
+
+- Added a textured software raster (`preview_check.raster_textured`, DF
+  sampling with DirectX texel space, alpha-test 128) and textured sheets +
+  face close-ups to `preview_check render`. Upright unmirrored face proves
+  the writer's V-negation end-to-end. Three suspected texture bugs audited:
+  1. **Teeth/Mouth tiles showing hair art — DISPROVEN.** The source head
+     atlas HMF_HED_PROMiranda_Scalp_Diff.png legitimately contains teeth
+     (u≈0.002–0.159, v≈0.248–0.543) and mouth-interior (u≈0.921–0.998,
+     v≈0.306–0.468) islands; UV-box overlay + per-mesh textured renders
+     (dental arch with pink gums, dark interior) show the
+     `TEXTURE_SLOTS` mapping is faithful. Gotcha 13.
+  2. **Eyelash tile black on contact sheet — DISPROVEN.** real alpha 0–255,
+     23% opaque black strands; the sheet just alpha-composites them.
+  3. **Eyes with no iris — REAL BUG, FIXED.** ME2's eye shader placed the
+     iris; plain diffuse sampling smears it across the eyeball's u-seam
+     (blank pink spheres). `build_las_pack.eye_uv_planar` now planar-projects
+     each eyeball's UVs from its frontal plane (per-sphere centre + radius):
+     round centered irises in the pack pipeline. `EYE_Diff_s.png` is a black
+     mask layer, not a diffuse — never map it. Gotcha 12.
+- **FPS model visually verified** for the first time: exactly the dominant-arm
+  cut (10,468 verts = Body 1 1,792 + Body 2 8,676, z 116–149 shoulder-to-hand
+  band), complete sleeves + hands + fingers, open shell at the shoulder as
+  expected for a camera view model.
+- New test `test_eye_uv_planar_centers_iris`; suite now 179 passed / 5
+  skipped. Pack rebuilt (eye UVs change the model bytes):
+  7,967,402 bytes, sha256 `9602c38cc04e0168aa87e72628bf2990a3fbbd52dc2189cda0748e40c13990c7`.
+
+## 2026-10-18 — offline geometry verification; rebind rewritten twice
 
 - Built `tools/pd2-port/preview_check.py` (`report` / `render`): quantitative
   gates on the skin transfer (edge preservation, displacement spikes over the

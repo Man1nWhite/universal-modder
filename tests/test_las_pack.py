@@ -313,6 +313,25 @@ def test_rebind_folded_joints_keep_shape(monkeypatch):
             math.dist(mesh.positions[i], mesh.positions[j]), rel=1e-6)
 
 
+def test_eye_uv_planar_centers_iris():
+    """ME2's eye shader placed the iris; plain diffuse sampling needs planar
+    UVs or the iris lands on the u-seam and smears (blank pink spheres)."""
+    b = _load("build_las_pack_eye", "build_las_pack.py")
+    r = 1.5
+    pts = []
+    for cx in (-3.0, 3.0):
+        for dx, dy, dz in ((0, r, 0), (0, -r, 0), (r, 0, 0), (-r, 0, 0),
+                           (0, 0, r), (0, 0, -r)):
+            pts.append((cx + dx, 3.0 + dy, 174.0 + dz))
+    uvs = b.eye_uv_planar(pts)
+    # forward pole (0, +r, 0 offset) must map to the iris centre (0.5, 0.5)
+    assert uvs[0] == pytest.approx((0.5, 0.5), abs=1e-6)
+    assert uvs[6] == pytest.approx((0.5, 0.5), abs=1e-6)
+    # up point maps above the centre
+    assert uvs[4][1] > 0.7 and uvs[4][0] == pytest.approx(0.5, abs=1e-6)
+    assert all(0.0 <= u <= 1.0 and 0.0 <= v <= 1.0 for u, v in uvs)
+
+
 def test_smooth_weights_softens_seams():
     """Hard weight boundaries (crotch/armpit) tear under retarget; smoothing
     must blend across the seam while keeping top-3 normalized weights."""

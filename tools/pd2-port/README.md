@@ -28,7 +28,7 @@ python tools/pd2-port/build_las_pack.py --check  # validate only
 # --keep-nm-green keeps the source Y channel instead of the default PD2 flip
 # (only for sources already authored with PD2's green convention)
 python tools/pd2-port/preview_check.py report    # geometry gates on the rebind
-python tools/pd2-port/preview_check.py render DIR  # + raster previews
+python tools/pd2-port/preview_check.py render DIR  # + raster previews (flat, textured, diff)
 python -m pytest -q tests/test_las_pack.py
 ```
 

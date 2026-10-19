@@ -97,6 +97,34 @@ MAT_BASE = {
 }
 
 
+def eye_uv_planar(positions) -> list[tuple[float, float]]:
+    """Planar-project each eyeball's UVs from its frontal plane.
+
+    ME2's eye shader placed the iris itself (EYE_Iris_Norm / EYE_Lens_Norm /
+    four spec maps), so the DAE UVs put the diffuse iris right on the u-seam
+    facing the camera — triangles spanning the seam smear the texture and the
+    eyes render as blank pink spheres. Projecting each eyeball from its own
+    frontal plane centers a round iris on the pupil direction. This is the
+    static-mesh approximation of that shader; the sphere sides/back map
+    outside the unit square but sit inside the head.
+    """
+    out = [(0.5, 0.5)] * len(positions)
+    for pred in (lambda x: x < 0.0, lambda x: x >= 0.0):
+        idx = [i for i, p in enumerate(positions) if pred(p[0])]
+        if not idx:
+            continue
+        cx = sum(positions[i][0] for i in idx) / len(idx)
+        cy = sum(positions[i][1] for i in idx) / len(idx)
+        cz = sum(positions[i][2] for i in idx) / len(idx)
+        r = sum(((positions[i][0] - cx) ** 2 + (positions[i][1] - cy) ** 2 +
+                 (positions[i][2] - cz) ** 2) ** 0.5 for i in idx) / len(idx) or 1.0
+        scale = 0.42 / (0.9 * r)
+        for i in idx:
+            out[i] = (0.5 + scale * (positions[i][0] - cx),
+                      0.5 + scale * (positions[i][2] - cz))
+    return out
+
+
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -128,6 +156,8 @@ def atom_for(rm, material: str, keep=None) -> "las_model.Atom":
 def build_models(scene, rig, log=print):
     rigged = {m.name: rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
               for m in scene.meshes}
+    # static approximation of ME2's eye shader (see eye_uv_planar)
+    rigged["Eyes"].uvs = eye_uv_planar(rigged["Eyes"].positions)
 
     tpp_drawables: dict[str, list] = {}
     for mesh_name, (drawable, material) in TPP_LAYOUT.items():

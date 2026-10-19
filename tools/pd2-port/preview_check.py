@@ -133,6 +133,101 @@ def model_bounds(path: Path):
 # ----------------------------------------------------------------- raster
 
 
+def raster_textured(mats, width=760, height=1160, bounds=None,
+                    yaw_deg=0.0, pitch_deg=0.0, bg=(18, 18, 24)):
+    """Like raster() but samples a DF texture through per-vertex UVs.
+
+    mats: list of (verts, faces, uvs, texarr). Sampling uses DirectX texel
+    space (v=0 at top) which equals the writer's V-negated convention — an
+    upright face proves texture orientation end-to-end. RGBA textures are
+    alpha-tested at 128 (lashes)."""
+    yaw = math.radians(yaw_deg)
+    pitch = math.radians(pitch_deg)
+    cy, sy = math.cos(yaw), math.sin(yaw)
+    cp, sp = math.cos(pitch), math.sin(pitch)
+    fwd = np.array([sy * cp, -cy * cp, sp])
+    right = np.array([cy, sy, 0.0])
+    up = np.cross(fwd, right)
+    all_pts = np.concatenate([t[0] for t in mats], axis=0)
+    if bounds is None:
+        lo = all_pts.min(axis=0)
+        hi = all_pts.max(axis=0)
+    else:
+        lo, hi = bounds
+    ctr = (lo + hi) / 2.0
+    span = float(np.max(hi - lo)) * 1.08
+
+    img = np.zeros((height, width, 3), dtype=np.float64)
+    img[:] = np.array(bg, dtype=np.float64) / 255.0
+    zbuf = np.full((height, width), 1e30)
+    light = np.array([0.35, -0.75, 0.55])
+    light = light / np.linalg.norm(light)
+
+    def project(p):
+        d = p - ctr
+        sx = ((d @ right) / span + 0.5) * (width - 1)
+        sy_ = (1.0 - ((d @ up) / span + 0.5)) * (height - 1)
+        return sx, sy_, d @ fwd
+
+    faces_all = []
+    for verts, faces, uvs, texarr in mats:
+        sx, sy_, sz = project(verts)
+        uv = np.asarray(uvs, dtype=np.float64)
+        for f3 in faces:
+            faces_all.append((f3, sx, sy_, sz, verts, uv, texarr))
+    order = sorted(range(len(faces_all)),
+                   key=lambda i: -max(faces_all[i][3][v] for v in faces_all[i][0]))
+
+    for i in order:
+        f3, sx, sy_, sz, verts, uv, texarr = faces_all[i]
+        x0, x1 = sx[f3].min(), sx[f3].max()
+        y0, y1 = sy_[f3].min(), sy_[f3].max()
+        if x1 < 0 or y1 < 0 or x0 >= width or y0 >= height:
+            continue
+        ix0, ix1 = max(int(x0), 0), min(int(x1) + 1, width - 1)
+        iy0, iy1 = max(int(y0), 0), min(int(y1) + 1, height - 1)
+        if ix1 < ix0 or iy1 < iy0:
+            continue
+        ax, ay = sx[f3[0]], sy_[f3[0]]
+        bx, by = sx[f3[1]], sy_[f3[1]]
+        cx, cy_ = sx[f3[2]], sy_[f3[2]]
+        det = (by - cy_) * (ax - cx) + (cx - bx) * (ay - cy_)
+        if abs(det) < 1e-12:
+            continue
+        xs = np.arange(ix0, ix1 + 1)
+        ys = np.arange(iy0, iy1 + 1)
+        gx, gy = np.meshgrid(xs, ys)
+        w0 = ((by - cy_) * (gx - cx) + (cx - bx) * (gy - cy_)) / det
+        w1 = ((cy_ - ay) * (gx - cx) + (ax - cx) * (gy - cy_)) / det
+        w2 = 1.0 - w0 - w1
+        mask = (w0 >= -1e-6) & (w1 >= -1e-6) & (w2 >= -1e-6)
+        if not mask.any():
+            continue
+        zpix = w0 * sz[f3[0]] + w1 * sz[f3[1]] + w2 * sz[f3[2]]
+        sub = zbuf[iy0:iy1 + 1, ix0:ix1 + 1]
+        upd = mask & (zpix < sub)
+        sub[upd] = zpix[upd]
+        a3, b3, c3 = verts[f3[0]], verts[f3[1]], verts[f3[2]]
+        fn = np.cross(b3 - a3, c3 - a3)
+        ln = np.linalg.norm(fn)
+        shade = 0.45
+        if ln > 1e-12:
+            shade = 0.35 + 0.65 * max(0.0, float(fn @ light / ln))
+        u = w0 * uv[f3[0], 0] + w1 * uv[f3[1], 0] + w2 * uv[f3[2], 0]
+        v = w0 * uv[f3[0], 1] + w1 * uv[f3[1], 1] + w2 * uv[f3[2], 1]
+        th, tw = texarr.shape[:2]
+        tx = np.clip((u * tw).astype(np.int64), 0, tw - 1)
+        ty = np.clip(((1.0 - v) * th).astype(np.int64), 0, th - 1)
+        col = texarr[ty, tx, :3].astype(np.float64) / 255.0
+        if texarr.shape[2] == 4:
+            upd = upd & (texarr[ty, tx, 3] >= 128)
+        img_sub = img[iy0:iy1 + 1, ix0:ix1 + 1]
+        img_sub[upd] = col[upd] * shade
+
+    from PIL import Image
+    return Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8))
+
+
 def raster(tris, colors, width=760, height=1160, bounds=None,
            yaw_deg=0.0, pitch_deg=0.0, bg=(18, 18, 24), lines=None):
     """Painter's-algorithm orthographic raster of (verts, faces, color)."""
@@ -442,6 +537,37 @@ def gather_render(scene, rig, rebound, out_dir: Path):
                      lines=lines)
         img.save(out_dir / f"retarget_skeleton_{vname}.png")
         print(f"  wrote retarget_skeleton_{vname}.png")
+
+    # textured sheets from the source DF textures (eye UVs as shipped, i.e.
+    # after eye_uv_planar) — texture orientation proof: an upright,
+    # unmirrored face. RGBA tex alpha-tested at 128 (lashes).
+    from PIL import Image
+    import io
+    src = build.load_source(build.SOURCE_ZIP)
+    tex = {}
+    for mesh_name, (df_png, _nm, _key) in build.TEXTURE_SLOTS.items():
+        im = Image.open(io.BytesIO(src[df_png])).convert("RGBA")
+        tex[mesh_name] = np.asarray(im, dtype=np.uint8)
+    mats = []
+    for m in rebound:
+        uvs = [(u, v) for u, v in m.uvs]
+        if m.name == "Eyes":
+            uvs = build.eye_uv_planar(m.positions)
+        mats.append((np.asarray(m.positions, dtype=np.float64),
+                     np.asarray(m.triangles, dtype=np.int64),
+                     uvs, tex[m.name]))
+    for vname, yaw, pitch in views:
+        img = raster_textured(mats, yaw_deg=yaw, pitch_deg=pitch)
+        img.save(out_dir / f"textured_{vname}.png")
+        print(f"  wrote textured_{vname}.png")
+    # face close-up (hair hides the face in the full sheet): Face/Eyes/Lashes
+    face_mats = [t for t, m in zip(mats, rebound)
+                 if m.name in ("Face", "Eyes", "Eyelashes")]
+    for vname, yaw, pitch in views:
+        head = raster_textured(face_mats, width=640, height=800,
+                               yaw_deg=yaw, pitch_deg=5.0)
+        head.save(out_dir / f"textured_head_{vname}.png")
+        print(f"  wrote textured_head_{vname}.png")
 
 
 def main(argv):
