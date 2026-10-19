@@ -26,7 +26,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: install build deps
-        run: python -m pip install --upgrade pip "pillow>=10" "numpy>=1.24" pytest
+        # the same dependency set the repo declares: pillow + numpy build the
+        # pack, pyyaml is needed by the um/kb tests, pytest runs them
+        run: python -m pip install --upgrade pip "pillow>=10" "numpy>=1.24" "pyyaml>=6" pytest
       - name: build the pack
         # the pack version is the one stamped in the release notes
         env:
