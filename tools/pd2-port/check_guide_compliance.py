@@ -34,6 +34,7 @@ from dmodel import DieselModel, hash_str  # noqa: E402
 
 RIG_JSON = HERE / "reference" / "las_rig.json"
 DEFAULT_PACK = ROOT / "dist" / "lawson_las.zip"
+ASSET_DIR = "assets"
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
 
@@ -697,23 +698,26 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
                            "with Localization, Hooks and AddFiles",
                      f"main.xml lacks {label}")
 
-    # AddFiles entries must resolve (paths are relative to the table root,
-    # i.e. the pack's Lawson_LAS/ folder, and carry no extension)
+    # AddFiles entries must resolve (paths are relative to the AddFiles
+    # directory attribute inside Lawson_LAS/, and carry no extension)
+    m_dir = re.search(r'<AddFiles\b[^>]*\bdirectory="([^"]*)"', main)
+    add_dir = m_dir.group(1).strip("/") if m_dir else ""
+    add_prefix = f"{add_dir}/" if add_dir else ""
     missing = []
     registered: set[str] = set()
     for kind, path in re.findall(r'<(texture|df_nm|unit_mat) path="([^"]+)"', main):
         if kind == "texture":
-            registered.add(f"{path}.texture")
-            if f"Lawson_LAS/{path}.texture" not in pack:
+            registered.add(f"{add_prefix}{path}.texture")
+            if f"Lawson_LAS/{add_prefix}{path}.texture" not in pack:
                 missing.append(f"texture {path}")
         elif kind == "df_nm":
             for suffix in ("_df.texture", "_nm.texture"):
-                registered.add(f"{path}{suffix}")
-                if f"Lawson_LAS/{path}{suffix}" not in pack:
+                registered.add(f"{add_prefix}{path}{suffix}")
+                if f"Lawson_LAS/{add_prefix}{path}{suffix}" not in pack:
                     missing.append(f"df_nm {path}{suffix}")
         else:
-            registered.add(f"{path}.material_config")
-            if f"Lawson_LAS/{path}.material_config" not in pack:
+            registered.add(f"{add_prefix}{path}.material_config")
+            if f"Lawson_LAS/{add_prefix}{path}.material_config" not in pack:
                 missing.append(f"unit_mat {path}")
     # ...and the other way round: an unregistered texture or unit is never
     # loaded by the game (BeardLib only serves what AddFiles lists), so the
@@ -799,10 +803,10 @@ def audit(pack_path: Path) -> Report:
     by_hash, _by_id = rig_maps()
     rig = json.loads(RIG_JSON.read_text())
 
-    tpp_bytes = pack.get(f"Lawson_LAS/{UNIT_DIR}/lawson.model")
-    fps_bytes = pack.get(f"Lawson_LAS/{UNIT_DIR}/fps_lawson.model")
-    tpp_cfg = pack.get(f"Lawson_LAS/{UNIT_DIR}/lawson.material_config", b"").decode()
-    fps_cfg = pack.get(f"Lawson_LAS/{UNIT_DIR}/fps_lawson.material_config", b"").decode()
+    tpp_bytes = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/lawson.model")
+    fps_bytes = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model")
+    tpp_cfg = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/lawson.material_config", b"").decode()
+    fps_cfg = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.material_config", b"").decode()
 
     with tempfile.TemporaryDirectory() as tmp:
         tpp_path = Path(tmp) / "lawson.model"

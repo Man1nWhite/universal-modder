@@ -305,8 +305,22 @@ def build_model(rig: TargetRig, drawables: list[Drawable], *,
         w.u32(sb_id)
         return bytes(w.b)
 
+    def bounds_model_payload(name_hash, bounds) -> bytes:
+        w = BW()
+        w.u64(name_hash)
+        w.u32(0)                                    # anim_ids
+        w.matrix(inv_hips)
+        w.vec3((inv_hips[3][0], inv_hips[3][1], inv_hips[3][2]))
+        w.u32(bone_new[hips["id"]])                 # parent = Hips (2B convention)
+        w.u32(6)                                    # version 6 (bounds-only model_data)
+        w.vec3(bounds[0])
+        w.vec3(bounds[1])
+        w.f32(bounds[2])
+        w.u32(0)                                    # dist_int
+        return bytes(w.b)
+
     emit(TAGS_INV['model_data'], cull_id,
-         model_payload(hash_str(cull_name), [], 0, 0, (bmin, bmax, rad), 0, 0))
+         bounds_model_payload(hash_str(cull_name), (bmin, bmax, rad)))
 
     for p in packed:
         xs = [q[0] for q in p["positions"]]
@@ -354,7 +368,7 @@ def build_model(rig: TargetRig, drawables: list[Drawable], *,
             g.vec3((x, y, z))
         for u, v in p["uvs"]:
             g.u16(half(u))
-            g.u16(half(v))
+            g.u16(half(-v))
         for ent in p["weights"]:
             i0, i1, i2 = (list(ent) + [(0, 0.0), (0, 0.0), (0, 0.0)])[:3]
             g.u16(i0[0]); g.u16(i1[0]); g.u16(i2[0]); g.u16(0)

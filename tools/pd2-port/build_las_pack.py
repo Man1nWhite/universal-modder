@@ -53,6 +53,7 @@ DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
 
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
+ASSET_DIR = "assets"
 ROOT_DIR = "Lawson_LAS"
 VERSION = "0.1.2"
 # The pack is an unlicensed fan derivative of ripped ME2 assets: offline
@@ -407,20 +408,20 @@ def assemble(scene, rig, source: dict[str, bytes], invert_nm_y: bool = True,
     files[f"{ROOT_DIR}/main.xml"] = main_xml().encode()
     files[f"{ROOT_DIR}/hooks/lawson.lua"] = hook_lua().encode()
     files[f"{ROOT_DIR}/localization/english.txt"] = localization().encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.unit"] = unit_xml("lawson").encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.unit"] = unit_xml("fps_lawson").encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.object"] = object_xml(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.unit"] = unit_xml("lawson").encode()
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.unit"] = unit_xml("fps_lawson").encode()
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.object"] = object_xml(
         "lawson", ["g_body", "g_head"]).encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.object"] = object_xml(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.object"] = object_xml(
         "fps_lawson", ["g_body"]).encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.material_config"] = material_config(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.material_config"] = material_config(
         tpp_mats, "lawson").encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.material_config"] = material_config(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.material_config"] = material_config(
         fps_mats, "fps_lawson", fps=True).encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.model"] = tpp_res.data
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.model"] = fps_res.data
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.model"] = tpp_res.data
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model"] = fps_res.data
     for path, data in textures.items():
-        files[f"{ROOT_DIR}/{path}"] = data
+        files[f"{ROOT_DIR}/{ASSET_DIR}/{path}"] = data
     files[f"{ROOT_DIR}/CREDITS.txt"] = credits_txt().encode()
     return files
 
@@ -430,7 +431,8 @@ def validate(files: dict[str, bytes], log=print) -> None:
     problems: list[str] = []
     required = [
         f"{ROOT_DIR}/main.xml", f"{ROOT_DIR}/hooks/lawson.lua",
-        f"{ROOT_DIR}/{UNIT_DIR}/lawson.model", f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.model",
+        f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.model",
+        f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model",
     ]
     for r in required:
         if r not in files:
@@ -447,8 +449,8 @@ def validate(files: dict[str, bytes], log=print) -> None:
                    "fps_hide_armor", "fps_replace_body", "fps_unit"):
         if needle not in hook:
             problems.append(f"hook lacks {needle!r}")
-    for cfg_name in (f"{ROOT_DIR}/{UNIT_DIR}/lawson.material_config",
-                     f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.material_config"):
+    for cfg_name in (f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.material_config",
+                     f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.material_config"):
         cfg = files.get(cfg_name, b"").decode()
         if 'name="shadow_caster"' not in cfg:
             problems.append(f"{cfg_name}: no shadow_caster")
@@ -457,12 +459,25 @@ def validate(files: dict[str, bytes], log=print) -> None:
             problems.append(f"{p}: empty cooked_physics should not be shipped (auto_cp)")
     # model <-> material_config coverage
     import re as _re
+    m_dir = _re.search(r'<AddFiles\b[^>]*\bdirectory="([^"]*)"', main)
+    add_prefix = f"{ROOT_DIR}/{m_dir.group(1).strip('/')}/" if (m_dir and m_dir.group(1).strip("/")) else f"{ROOT_DIR}/"
+    for kind, rpath in _re.findall(r'<(texture|df_nm|unit_mat) path="([^"]+)"', main):
+        if kind == "texture" and f"{add_prefix}{rpath}.texture" not in files:
+            problems.append(f"AddFiles texture missing at {add_prefix}{rpath}.texture")
+        elif kind == "df_nm":
+            for sfx in ("_df.texture", "_nm.texture"):
+                if f"{add_prefix}{rpath}{sfx}" not in files:
+                    problems.append(f"AddFiles df_nm missing at {add_prefix}{rpath}{sfx}")
+        elif kind == "unit_mat":
+            for sfx in (".unit", ".object", ".model", ".material_config"):
+                if f"{add_prefix}{rpath}{sfx}" not in files:
+                    problems.append(f"AddFiles unit_mat missing at {add_prefix}{rpath}{sfx}")
     for base in ("lawson", "fps_lawson"):
-        cfg = files.get(f"{ROOT_DIR}/{UNIT_DIR}/{base}.material_config", b"").decode()
+        cfg = files.get(f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/{base}.material_config", b"").decode()
         cfg_mats = set(_re.findall(r'<material name="([^"]+)"', cfg))
         from dmodel import DieselModel
         import tempfile, os
-        model = files[f"{ROOT_DIR}/{UNIT_DIR}/{base}.model"]
+        model = files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/{base}.model"]
         tmp = tempfile.mktemp(suffix=".model")
         Path(tmp).write_bytes(model)
         try:

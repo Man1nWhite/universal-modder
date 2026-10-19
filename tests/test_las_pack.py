@@ -208,24 +208,26 @@ def test_dae_skips_non_joint_nodes(tiny_scene):
 
 # ---------------------------------------------------------------- bone map
 def test_map_joint_core_and_side_swap():
-    # ME2 Left* is world +X = PD2 Right*
-    assert rig_target.map_joint("LeftWrist") == "RightHand"
-    assert rig_target.map_joint("RightWrist") == "LeftHand"
-    assert rig_target.map_joint("LeftHip") == "RightUpLeg"
-    assert rig_target.map_joint("RightToe") == "LeftToeBase"
+    # In the ME2 COLLADA file Miranda faces -Y with +X = Left; 180 deg Z
+    # rotation aligns -Y -> +Y and +X -> -X, so Left* maps to PD2 Left*.
+    assert rig_target.map_joint("LeftWrist") == "LeftHand"
+    assert rig_target.map_joint("RightWrist") == "RightHand"
+    assert rig_target.map_joint("LeftHip") == "LeftUpLeg"
+    assert rig_target.map_joint("RightToe") == "RightToeBase"
     assert rig_target.map_joint("root") == "Hips"
-    assert rig_target.map_joint("LowerBack") == "Spine"
+    assert rig_target.map_joint("Pelvis") == "Hips"
+    assert rig_target.map_joint("Chest") == "Spine"
     assert rig_target.map_joint("Neck1") == "Neck"
 
 
 def test_map_joint_maps_fingers_to_finger_bones_and_folds_the_face():
     # the guide's PD2 rig has three bones per finger; the source's finger
-    # chains map onto them one-to-one (sides swap with the arms) so the
-    # fingers articulate instead of riding along with the hand
-    assert rig_target.map_joint("LeftIndexFinger2") == "RightHandIndex3"
-    assert rig_target.map_joint("RightRingFinger1") == "LeftHandRing2"
-    assert rig_target.map_joint("LeftThumbFinger") == "RightHandThumb1"
-    assert rig_target.map_joint("RightPinkFinger2") == "LeftHandPinky3"
+    # chains map onto them one-to-one so the fingers articulate instead of
+    # riding along with the hand
+    assert rig_target.map_joint("LeftIndexFinger2") == "LeftHandIndex3"
+    assert rig_target.map_joint("RightRingFinger1") == "RightHandRing2"
+    assert rig_target.map_joint("LeftThumbFinger") == "LeftHandThumb1"
+    assert rig_target.map_joint("RightPinkFinger2") == "RightHandPinky3"
     # the face still folds to the head (PD2 has no facial bones)
     assert rig_target.map_joint("brow_Left") == "Head"
     assert rig_target.map_joint("innerUpperLip_right") == "Head"
@@ -604,9 +606,9 @@ class TestSourceIntegration:
             f"{build.ROOT_DIR}/main.xml",
             f"{build.ROOT_DIR}/hooks/lawson.lua",
             f"{build.ROOT_DIR}/localization/english.txt",
-            f"{build.ROOT_DIR}/{build.UNIT_DIR}/lawson.model",
-            f"{build.ROOT_DIR}/{build.UNIT_DIR}/fps_lawson.model",
-            f"{build.ROOT_DIR}/{build.GUI_DIR}/lawson.texture",
+            f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.UNIT_DIR}/lawson.model",
+            f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.UNIT_DIR}/fps_lawson.model",
+            f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.GUI_DIR}/lawson.texture",
             f"{build.ROOT_DIR}/CREDITS.txt",
         ):
             assert required in names, required
@@ -643,8 +645,8 @@ class TestSourceIntegration:
         """ModWorkshop LAS/MOOG guide: group + unique + CONTOUR variables on
         TPP materials, DEPTH_SCALING on FPS, no invented template combos."""
         build, scene, rig, files = built
-        tpp = files[f"{build.ROOT_DIR}/{build.UNIT_DIR}/lawson.material_config"].decode()
-        fps = files[f"{build.ROOT_DIR}/{build.UNIT_DIR}/fps_lawson.material_config"].decode()
+        tpp = files[f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.UNIT_DIR}/lawson.material_config"].decode()
+        fps = files[f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.UNIT_DIR}/fps_lawson.material_config"].decode()
         assert '<materials version="3" group="lawson">' in tpp
         assert '<materials version="3" group="fps_criminals_suit_lawson">' in fps
         assert tpp.count('unique="true"') == 7        # every non-masked material
@@ -659,7 +661,7 @@ class TestSourceIntegration:
 
     def test_normal_maps_use_pd2_layout(self, built):
         build, scene, rig, files = built
-        nm = files[f"{build.ROOT_DIR}/{build.UNIT_DIR}/face_nm.texture"]
+        nm = files[f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.UNIT_DIR}/face_nm.texture"]
         size, mips, view = dds.dds_mip0_slice(nm)
         arr = dds.decode_dxt5(bytes(view), size, size)
         # X lives in alpha, not red; red is constant white, blue constant black
@@ -763,8 +765,8 @@ def test_the_built_pack_has_no_inverted_faces():
     if not pack.exists():
         pytest.skip("no built pack")
     with zipfile.ZipFile(pack) as z:
-        for name in ("Lawson_LAS/units/lawson/skins/lawson/lawson.model",
-                     "Lawson_LAS/units/lawson/skins/lawson/fps_lawson.model"):
+        for name in ("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model",
+                     "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"):
             raw = z.read(name)
             model = dmodel.DieselModel.from_bytes(raw)
             inverted = total = 0

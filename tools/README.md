@@ -9,19 +9,11 @@ merged**. Read `docs/pd2-las/HANDOFF.md` (L4D2 route) and
 | --- | --- | --- |
 | Source | ME2 *Romance* COLLADA zip | `l4d2_miranda_lawson_1.zip` (MDL/VVD/VTX in a VPK) |
 | Output | `dist/lawson_las.zip` (tracked, sha256-pinned) | `Miranda_LAS.zip`, `dist/Miranda_LAS.zip`, `build/pd2-las/Miranda_LAS.zip` (tracked, sha256-pinned, byte-reproducible) |
-| Pack layout | `Lawson_LAS/units/…` (no inner `assets/`) | `Miranda_LAS/assets/units/…` (2B-identical) |
+| Pack layout | `Lawson_LAS/assets/units/…` (2B-identical) | `Miranda_LAS/assets/units/…` (2B-identical) |
 | Install | `assets/mod_overrides/` (both — the 2B/MOOG convention; BeardLib's AddFramework loads `main.xml` packs from there) | same |
-
-> Note (2026-10-19): the ME2 pack's `main.xml` declares
-> `<AddFiles directory="assets">` but its zip has no inner `assets/` folder
-> (files sit at `Lawson_LAS/units/…`, unlike 2B and `Miranda_LAS` whose files
-> are at `<pack>/assets/units/…`). BeardLib's `AddFilesModule` resolves every
-> entry under `<ModPath>/<directory>`, so those registrations look at a
-> missing directory on that pack — worth checking when that line is next
-> game-tested.
 | `.model` dialect | DODB container, unshifted channel types, packed normals | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) |
-| Rig work | `rig_target.py` + `reference/las_rig.json` (per-bone fits) | `skeleton_map.json` + divergence-filter Umeyama in `build_models.py` |
-| Verification | `check_all.py` (5 stages, mutation-tested), release CI | 234-test suite incl. `test_diesel_model` byte round-trips |
+| Rig work | `rig_target.py` + `reference/las_rig.json` (anatomically partitioned similarity retarget) | `skeleton_map.json` + anatomically partitioned similarity retarget in `build_models.py` |
+| Verification | `check_all.py` (5 stages, mutation-tested), release CI | 235-test suite incl. `test_diesel_model` byte round-trips |
 
 ## Why they are not merged (measured, 2026-10-19)
 

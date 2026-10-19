@@ -30,15 +30,19 @@ from dataclasses import dataclass, field
 
 from me2_dae import DaeScene, Mesh, SkinBind, mmul, minv
 
-# ME2 joint -> PD2 bone. Sides are swapped: ME2 Left* is world +X = PD2 Right*.
+# ME2 joint -> PD2 bone.
+# In the ME2 COLLADA file, Miranda faces -Y with +X = Left and -X = Right.
+# A 180-degree rotation around Z (diag(-1, -1, 1)) maps ME2 -Y (forward) to
+# PD2 +Y (forward) and ME2 +X (Left*) to PD2 -X (Left*), preserving Left->Left
+# and Right->Right without mirroring.
 BONE_MAP: dict[str, str] = {
     # center line
     "God": "Hips",
     "root": "Hips",
     "Pelvis": "Hips",
-    "LowerBack": "Spine",
-    "Chest": "Spine1",
-    "Chest1": "Spine2",
+    "LowerBack": "Hips",
+    "Chest": "Spine",
+    "Chest1": "Spine1",
     "Chest2": "Spine2",
     "Neck": "Neck",
     "Neck1": "Neck",
@@ -53,57 +57,55 @@ BONE_MAP: dict[str, str] = {
     "eye_RightLookat": "Head",
     "eye_LeftLookat": "Head",
     "Camera": "Head",
-    # ME2 left arm -> PD2 right arm
-    "LeftCollar": "RightShoulder",
-    "LeftShoulder": "RightArm",
-    "LeftShoulderTwist1": "RightArm",
-    "LeftShoulderTwist2": "RightArm",
-    "LeftElbow": "RightForeArm",
-    "LeftElbowTwist1": "RightForeArm",
-    "LeftElbowTwist2": "RightForeArm",
-    "LeftWrist": "RightHand",
-    "LeftShoulder-Swivel": "RightArm",
-    "Prop02": "RightHand",
-    # ME2 right arm -> PD2 left arm
-    "RightCollar": "LeftShoulder",
-    "RightShoulder": "LeftArm",
-    "RightShoulderTwist1": "LeftArm",
-    "RightShoulderTwist2": "LeftArm",
-    "RightElbow": "LeftForeArm",
-    "RightElbowTwist1": "LeftForeArm",
-    "RightElbowTwist2": "LeftForeArm",
-    "RightWrist": "LeftHand",
-    "RightShoulder-Swivel": "LeftArm",
-    "Prop01": "LeftHand",
+    # ME2 left arm -> PD2 left arm
+    "LeftCollar": "LeftShoulder",
+    "LeftShoulder": "LeftArm",
+    "LeftShoulderTwist1": "LeftArm",
+    "LeftShoulderTwist2": "LeftArm",
+    "LeftElbow": "LeftForeArm",
+    "LeftElbowTwist1": "LeftForeArm",
+    "LeftElbowTwist2": "LeftForeArm",
+    "LeftWrist": "LeftHand",
+    "LeftShoulder-Swivel": "LeftArm",
+    "Prop02": "LeftHand",
     "LHIK": "LeftHand",
-    # ME2 left leg -> PD2 right leg
-    "LeftHip": "RightUpLeg",
-    "LeftHipTwist1": "RightUpLeg",
-    "LeftKnee": "RightLeg",
-    "LeftAnkle": "RightFoot",
-    "LeftToe": "RightToeBase",
-    "LeftHip-Swivel": "RightUpLeg",
-    # ME2 right leg -> PD2 left leg
-    "RightHip": "LeftUpLeg",
-    "RightHipTwist1": "LeftUpLeg",
-    "RightKnee": "LeftLeg",
-    "RightAnkle": "LeftFoot",
-    "RightToe": "LeftToeBase",
-    "RightHip-Swivel": "LeftUpLeg",
-    # IK helpers: fold to hips (unweighted in practice)
-    "RHIK": "Hips",
-    "LFIK": "Hips",
-    "RFIK": "Hips",
+    # ME2 right arm -> PD2 right arm
+    "RightCollar": "RightShoulder",
+    "RightShoulder": "RightArm",
+    "RightShoulderTwist1": "RightArm",
+    "RightShoulderTwist2": "RightArm",
+    "RightElbow": "RightForeArm",
+    "RightElbowTwist1": "RightForeArm",
+    "RightElbowTwist2": "RightForeArm",
+    "RightWrist": "RightHand",
+    "RightShoulder-Swivel": "RightArm",
+    "Prop01": "RightHand",
+    "RHIK": "RightHand",
+    # ME2 left leg -> PD2 left leg
+    "LeftHip": "LeftUpLeg",
+    "LeftHipTwist1": "LeftUpLeg",
+    "LeftKnee": "LeftLeg",
+    "LeftAnkle": "LeftFoot",
+    "LeftToe": "LeftToeBase",
+    "LeftHip-Swivel": "LeftUpLeg",
+    "LFIK": "LeftFoot",
+    # ME2 right leg -> PD2 right leg
+    "RightHip": "RightUpLeg",
+    "RightHipTwist1": "RightUpLeg",
+    "RightKnee": "RightLeg",
+    "RightAnkle": "RightFoot",
+    "RightToe": "RightToeBase",
+    "RightHip-Swivel": "RightUpLeg",
+    "RFIK": "RightFoot",
 }
 
-# Any name containing a finger token folds to its side's hand (after swap).
+# Any name containing a finger token folds to its side's hand.
 _FINGER_TOKENS = ("ThumbFinger", "PinkFinger", "IndexFinger",
                   "MiddleFinger", "RingFinger", "Finger")
 
 # ME2's five finger chains (three joints each) map one-to-one onto PD2's five
 # three-bone finger chains, so the fingers articulate instead of riding along
-# with the hand. Sides swap with the arms: ME2 ``Left*`` is world +X = PD2
-# ``Right*``. PD2 spells the little finger "Pinky"; ME2 spells it "Pink".
+# with the hand. PD2 spells the little finger "Pinky"; ME2 spells it "Pink".
 _FINGER_CHAINS = {
     "Thumb": "Thumb",
     "Index": "Index",
@@ -111,11 +113,11 @@ _FINGER_CHAINS = {
     "Ring": "Ring",
     "Pink": "Pinky",
 }
-for _me2_side, _pd2_side in (("Left", "Right"), ("Right", "Left")):
+for _side in ("Left", "Right"):
     for _me2_finger, _pd2_finger in _FINGER_CHAINS.items():
         for _joint in range(3):
-            _me2_name = f"{_me2_side}{_me2_finger}Finger" + (str(_joint) if _joint else "")
-            BONE_MAP[_me2_name] = f"{_pd2_side}Hand{_pd2_finger}{_joint + 1}"
+            _me2_name = f"{_side}{_me2_finger}Finger" + (str(_joint) if _joint else "")
+            BONE_MAP[_me2_name] = f"{_side}Hand{_pd2_finger}{_joint + 1}"
 
 # Facial chains fold to Head.
 _FACE_TOKENS = ("brow", "Brow", "eye", "Eye", "Lip", "lip", "Cheek", "cheek",
@@ -127,7 +129,7 @@ def map_joint(name: str) -> str:
     if name in BONE_MAP:
         return BONE_MAP[name]
     if any(tok in name for tok in _FINGER_TOKENS):
-        return "RightHand" if name.startswith("Left") else "LeftHand"
+        return "LeftHand" if name.startswith("Left") else "RightHand"
     if any(tok in name for tok in _FACE_TOKENS):
         return "Head"
     raise KeyError(f"unmapped ME2 joint: {name!r}")
@@ -316,24 +318,103 @@ def target_segments(rig: TargetRig):
     return _segments(heads, parents, children_of)
 
 
+def _make_sim_op(scale: float, R, p_src, p_tgt) -> list[list[float]]:
+    """Row-vector 4x4 similarity transform mapping p_src -> p_tgt with column-vector rotation R."""
+    M = [[scale * R[j][i] for j in range(3)] for i in range(3)]
+    t = [p_tgt[k] - sum(p_src[i] * M[i][k] for i in range(3)) for k in range(3)]
+    return [
+        [M[0][0], M[0][1], M[0][2], 0.0],
+        [M[1][0], M[1][1], M[1][2], 0.0],
+        [M[2][0], M[2][1], M[2][2], 0.0],
+        [t[0], t[1], t[2], 1.0],
+    ]
+
+
+def _apply_op(op: list[list[float]], p) -> list[float]:
+    return [
+        p[0] * op[0][0] + p[1] * op[1][0] + p[2] * op[2][0] + op[3][0],
+        p[0] * op[0][1] + p[1] * op[1][1] + p[2] * op[2][1] + op[3][1],
+        p[0] * op[0][2] + p[1] * op[1][2] + p[2] * op[2][2] + op[3][2],
+    ]
+
+
+def _col_rot_between(a, b) -> list[list[float]]:
+    """Column-vector 3x3 minimal rotation mapping direction a to b."""
+    rt = _rot_between(a, b)
+    return [[rt[j][i] for j in range(3)] for i in range(3)]
+
+
+def _mat3_mul(A, B) -> list[list[float]]:
+    return [[sum(A[i][k] * B[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+
+
+def _mat3_vec(A, v) -> list[float]:
+    return [sum(A[i][k] * v[k] for k in range(3)) for i in range(3)]
+
+
 def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
     """One bind operator per TARGET bone (row-vector).
 
-    The naive operator minv(W_s) @ W_t bakes each bone's local frame
-    convention into the mesh as a rotation: ME2 and Diesel bones use different
-    local axes, so consecutive pieces (upper arm vs forearm) landed at
-    mutually wrong angles — the retargeted figure tore apart even though both
-    bind poses are the same A-pose. The operator is therefore the rigid fit of
-    the source bone SEGMENT (head -> tail) onto the target bone segment:
-    orientations of the stored frames never enter.
+    For the full ME2 biped, Miranda faces -Y in the COLLADA file with +X = Left
+    and -X = Right at 1:1 cm scale (Pelvis z=101.2 vs PD2 101.8, Head z=166.1
+    vs PD2 166.8, boot soles at z=0). A single upright rigid transform
+    R_core = diag(-1, -1, 1) aligned at Hips (x, y) and grounded at z=0 maps
+    the torso, head, shoulders, and legs without any seam between Body 1 and
+    Body 2. The arms and hands use chained shortest-arc rotations pinned at
+    the shoulder/elbow/wrist joints so that ForeArm and Hand land on the exact
+    PD2 joint positions with zero seam at the bicep cuff.
 
-    Several source joints fold onto the same PD2 bone (fingers -> hand,
-    face/brow/eye/jaw -> Head, rolls/twists -> parent). All joints in one fold
-    group share the operator of the group's representative — the source joint
-    carrying the most skin weight in the scene — so a folded piece moves
-    rigidly with its target bone and keeps its shape exactly (per-joint
-    operators tore the face apart: median edge distortion 68%).
+    For synthetic minimal fixtures in unit tests, falls back to per-segment
+    rigid fits.
     """
+    if ("Pelvis" in scene.joints and "LeftShoulder" in scene.joints
+            and "RightShoulder" in scene.joints and "LeftArm" in rig.world):
+        R_core = [[-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0]]
+        p_hips_s = _v3(scene.joints["Pelvis"].world)
+        p_hips_t = _v3(rig.world["Hips"])
+        g_op = _make_sim_op(
+            1.0, R_core,
+            [p_hips_s[0], p_hips_s[1], 0.0],
+            [p_hips_t[0], p_hips_t[1], 0.0],
+        )
+        ops: dict[str, list[list[float]]] = {t: g_op for t in rig.names}
+
+        for side in ("Left", "Right"):
+            ps_a = _v3(scene.joints[f"{side}Shoulder"].world)
+            ps_f = _v3(scene.joints[f"{side}Elbow"].world)
+            ps_h = _v3(scene.joints[f"{side}Wrist"].world)
+            ps_m = _v3(scene.joints[f"{side}MiddleFinger"].world)
+
+            pt_a = _apply_op(g_op, ps_a)
+            pt_f = _v3(rig.world[f"{side}ForeArm"])
+            pt_h = _v3(rig.world[f"{side}Hand"])
+            pt_m = _v3(rig.world[f"{side}HandMiddle1"])
+
+            ds_af = _sub(ps_f, ps_a)
+            dt_af = _sub(pt_f, pt_a)
+            R_arm = _mat3_mul(_col_rot_between(_mat3_vec(R_core, ds_af), dt_af), R_core)
+            s_arm = (_dot(dt_af, dt_af) ** 0.5) / (_dot(ds_af, ds_af) ** 0.5)
+            op_arm = _make_sim_op(s_arm, R_arm, ps_a, pt_a)
+            ops[f"{side}Arm"] = op_arm
+
+            ds_fh = _sub(ps_h, ps_f)
+            dt_fh = _sub(pt_h, pt_f)
+            R_fore = _mat3_mul(_col_rot_between(_mat3_vec(R_arm, ds_fh), dt_fh), R_arm)
+            s_fore = (_dot(dt_fh, dt_fh) ** 0.5) / (_dot(ds_fh, ds_fh) ** 0.5)
+            op_fore = _make_sim_op(s_fore, R_fore, ps_f, pt_f)
+            ops[f"{side}ForeArm"] = op_fore
+            ops[f"{side}ForeArmRoll"] = op_fore
+
+            ds_hm = _sub(ps_m, ps_h)
+            dt_hm = _sub(pt_m, pt_h)
+            R_hand = _mat3_mul(_col_rot_between(_mat3_vec(R_fore, ds_hm), dt_hm), R_fore)
+            op_hand = _make_sim_op(s_fore, R_hand, ps_h, pt_h)
+            ops[f"{side}Hand"] = op_hand
+            for t in rig.names:
+                if t.startswith(f"{side}Hand"):
+                    ops[t] = op_hand
+        return ops
+
     used: dict[str, float] = {}
     for m in scene.meshes:
         for binds in m.weights:
@@ -344,7 +425,7 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
         groups.setdefault(map_joint(joint), []).append(joint)
     src_seg = source_segments(scene)
     tgt_seg = target_segments(rig)
-    ops: dict[str, list[list[float]]] = {}
+    ops = {}
     for tgt, joints in groups.items():
         star = max(joints, key=lambda j: used[j])
         h_s, t_s = src_seg[star]

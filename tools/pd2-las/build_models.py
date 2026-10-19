@@ -192,146 +192,202 @@ def _umeyama_fit(src_pts, tgt_pts, weights):
     return m
 
 
+def _unit_vec(v):
+    import numpy as np
+
+    arr = np.asarray(v, dtype=np.float64)
+    n = float(np.linalg.norm(arr))
+    return arr / n if n > 1e-12 else arr
+
+
+def _rodrigues_arc(u, w):
+    """Shortest-arc 3x3 rotation matrix mapping unit(u) -> unit(w) without axial twist."""
+    import numpy as np
+
+    u = _unit_vec(u)
+    w = _unit_vec(w)
+    c = float(np.dot(u, w))
+    if c > 1.0 - 1e-9:
+        return np.eye(3, dtype=np.float64)
+    if c < -1.0 + 1e-9:
+        axis = _unit_vec(
+            np.cross(u, [1.0, 0.0, 0.0])
+            if abs(float(u[0])) < 0.9
+            else np.cross(u, [0.0, 1.0, 0.0])
+        )
+        return -np.eye(3, dtype=np.float64) + 2.0 * np.outer(axis, axis)
+    v = np.cross(u, w)
+    s = float(np.linalg.norm(v))
+    k = np.array(
+        [[0.0, -v[2], v[1]], [v[2], 0.0, -v[0]], [-v[1], v[0], 0.0]],
+        dtype=np.float64,
+    )
+    return np.eye(3, dtype=np.float64) + k + (k @ k) * ((1.0 - c) / (s * s))
+
+
+def _make_sim_mat(scale: float, rot, p_src, p_tgt) -> dm.Mat:
+    """Row-convention similarity matrix (v' = v*M + t) with column-vector rotation ``rot``."""
+    import numpy as np
+
+    s = min(FIT_SCALE_CLAMP[1], max(FIT_SCALE_CLAMP[0], float(scale)))
+    rot = np.asarray(rot, dtype=np.float64)
+    p_s = np.asarray(p_src, dtype=np.float64)
+    p_t = np.asarray(p_tgt, dtype=np.float64)
+    t = p_t - s * (rot @ p_s)
+    m = s * rot
+    return (
+        float(m[0, 0]), float(m[1, 0]), float(m[2, 0]), 0.0,
+        float(m[0, 1]), float(m[1, 1]), float(m[2, 1]), 0.0,
+        float(m[0, 2]), float(m[1, 2]), float(m[2, 2]), 0.0,
+        float(t[0]),    float(t[1]),    float(t[2]),    1.0,
+    )
+
+
+def _decompose_sim_mat(m: dm.Mat):
+    """Extract (scale, col_vec_R, t) from a row-convention similarity matrix."""
+    import numpy as np
+
+    sc = math.sqrt(m[0] * m[0] + m[1] * m[1] + m[2] * m[2]) or 1.0
+    rot = np.array(
+        [
+            [m[0] / sc, m[4] / sc, m[8] / sc],
+            [m[1] / sc, m[5] / sc, m[9] / sc],
+            [m[2] / sc, m[6] / sc, m[10] / sc],
+        ],
+        dtype=np.float64,
+    )
+    t = np.array([m[12], m[13], m[14]], dtype=np.float64)
+    return sc, rot, t
+
+
 def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[int, dm.Mat]:
     """Per source bone: similarity map source-world -> target-world.
 
-    One fit per TARGET bone, shared by every source bone that resolves to it
-    (explicit map entries and ancestor-walk fallbacks alike) so regions like
-    the face transfer rigidly instead of tearing. The fit for target T is the
-    weighted Procrustes (Umeyama) over the explicit bone pairs whose target
-    lies in T's subtree of the template skeleton. Two corrections keep the
-    frames coherent: (1) targets under a Hand in the template tree share the
-    hand's fit (fingers ride the palm — per-knuckle fits tear at the joints);
-    (2) a fit that deviates from the global registration by more than
-    FIT_MAX_DIVERGENCE_DEG inherits the nearest ancestor's fit instead (the
-    2-pair neck neighborhood, with its diagonal neck->head segment, produced
-    a 58-degree rogue frame this way). Single-pair targets keep exact joint
-    placement on top of their fit.
+    Anatomically partitioned similarity retargeting that avoids the three
+    failure modes of unconstrained per-subtree Procrustes fits:
+    1. Core torso + neck + head (`Hips`, `Spine`, `Spine1`, `Spine2`, `Neck`,
+       `Head`) share one upright Umeyama fit over the torso/shoulder/hip core
+       (excluding the bent forearms and 30 finger bones so the spine is not
+       pitched backward, and keeping `Head`/face/hair in the same rigid frame).
+    2. Each leg (`UpLeg`, `Leg`, `Foot`, `ToeBase`) shares a 4-joint Umeyama
+       fit (avoiding rank-1 2-point SVD roll on `Foot -> ToeBase`).
+    3. Each arm + hand (`Shoulder`, `Arm`, `ForeArm`, `Hand` + 15 fingers)
+       uses chained shortest-arc (Rodrigues) segment alignment from the core
+       frame with zero axial twist, and all 15 finger bones share their parent
+       `Hand` similarity transform at forearm scale.
     """
+    import numpy as np
+
     src_worlds = source_bone_worlds(model)
-    src_pos = [(w[12], w[13], w[14]) for w in src_worlds]
+    src_pos = [np.array(w[12:15], dtype=np.float64) for w in src_worlds]
+
+    direct_src: dict[str, list[int]] = {}
+    primary_src: dict[str, int] = {}
+    for i, bone in enumerate(model.bones):
+        tname = skel_map["map"].get(bone.name)
+        if tname is not None and tname in template.name_id:
+            direct_src.setdefault(tname, []).append(i)
+            if bone.name != "ValveBiped.Bip01_Spine4":
+                primary_src.setdefault(tname, i)
+
+    if not direct_src:
+        return {}
+
+    def src_centroid(tname: str):
+        return np.mean([src_pos[i] for i in direct_src[tname]], axis=0)
 
     def tgt_pos(tname: str):
         w = template.worlds[template.name_id[tname]]
-        return (w[12], w[13], w[14])
+        return np.array(w[12:15], dtype=np.float64)
 
-    # explicit pairs (source bone -> target name) present in this model
-    explicit: list[tuple[int, str]] = []
-    for i in range(len(model.bones)):
-        tname = skel_map["map"].get(model.bones[i].name)
-        if tname is not None and tname in template.name_id:
-            explicit.append((i, tname))
+    core_candidates = (
+        "Hips", "Spine", "Spine1", "Spine2", "Neck", "Head",
+        "LeftShoulder", "RightShoulder", "LeftUpLeg", "RightUpLeg",
+    )
+    core_present = [t for t in core_candidates if t in direct_src]
+    if len(core_present) < 4:
+        core_present = [
+            t for t in (
+                "Spine", "Spine1", "Spine2",
+                "LeftShoulder", "RightShoulder", "LeftArm", "RightArm",
+            )
+            if t in direct_src
+        ]
+    if len(core_present) < 3:
+        core_present = list(direct_src.keys())
 
-    # target-tree descendants (name based)
-    children: dict[str, list[str]] = {}
-    parent_of: dict[str, str] = {}
-    for sid, obj in template.id_obj.items():
-        name = template.id_name.get(sid, "")
-        parent = template.id_name.get(obj["parent"], "")
-        if name and parent:
-            children.setdefault(parent, []).append(name)
-            parent_of[name] = parent
-
-    def subtree(tname: str) -> set[str]:
-        out = {tname}
-        stack = list(children.get(tname, []))
-        while stack:
-            n = stack.pop()
-            if n not in out:
-                out.add(n)
-                stack.extend(children.get(n, []))
-        return out
-
-    pair_by_target: dict[str, list[tuple[int, str]]] = {}
-    for si, tname in explicit:
-        pair_by_target.setdefault(tname, []).append((si, tname))
-
-    g_pts_s = [src_pos[si] for si, _ in explicit]
-    g_pts_t = [tgt_pos(t) for _s, t in explicit]
-    g_fit = _umeyama_fit(g_pts_s, g_pts_t, [1.0] * len(explicit)) if explicit else None
-
-    def unique_pairs(tname: str) -> list[tuple[int, str]]:
-        names = subtree(tname)
-        seen: set[int] = set()
-        uniq = []
-        for si, t in explicit:
-            if t in names and si not in seen:
-                seen.add(si)
-                uniq.append((si, t))
-        return uniq
-
-    def fit_angle(m: dm.Mat) -> float:
-        tr = m[0] + m[5] + m[10]
-        sc = (m[0] ** 2 + m[1] ** 2 + m[2] ** 2) ** 0.5
-        cosv = max(-1.0, min(1.0, tr / (sc * 3)))
-        return math.degrees(math.acos(cosv))
-
-    g_angle = fit_angle(g_fit) if g_fit else 0.0
-
-    # hands: every target below a Hand shares the hand's fit
-    hand_targets: set[str] = set()
-    for hand in ("RightHand", "LeftHand"):
-        if hand in template.name_id:
-            hand_targets |= subtree(hand) - {hand}
-
-    # v2 own fits (>= 2 unique pairs)
-    own_fit: dict[str, dm.Mat] = {}
-    for tname in pair_by_target:
-        uniq = unique_pairs(tname)
-        if len(uniq) >= 2 and tname not in hand_targets:
-            pts_s = [src_pos[si] for si, _ in uniq]
-            pts_t = [tgt_pos(t) for _, t in uniq]
-            own_fit[tname] = _umeyama_fit(pts_s, pts_t, [1.0] * len(uniq))
-
-    # divergence filter: rogue local frames inherit the nearest kept ancestor
-    def kept_fit(tname: str) -> dm.Mat:
-        n = tname
-        while n:
-            if n in own_fit:
-                f = own_fit[n]
-                if abs(fit_angle(f) - g_angle) <= FIT_MAX_DIVERGENCE_DEG:
-                    return f
-                # drop the rogue frame; continue upward
-                del own_fit[n]
-            n = parent_of.get(n, "")
-        return g_fit
+    g_fit = _umeyama_fit(
+        [tuple(src_centroid(t).tolist()) for t in core_present],
+        [tuple(tgt_pos(t).tolist()) for t in core_present],
+        [1.0] * len(core_present),
+    )
+    _s_core, r_core, _ = _decompose_sim_mat(g_fit)
 
     fit_for_target: dict[str, dm.Mat] = {}
-    for tname in pair_by_target:
-        uniq = unique_pairs(tname)
-        if tname in hand_targets:
-            n = tname
-            while n and n not in ("RightHand", "LeftHand"):
-                n = parent_of.get(n, "")
-            base = kept_fit(n if n else tname)
-        else:
-            base = kept_fit(tname)
-        if len(uniq) == 1:
-            # single pair: inherited frame, translation snapped to the joint
-            si, _ = uniq[0]
-            tmp = dm.mat_apply_point(base, src_pos[si])
-            o_t = tgt_pos(tname)
-            fit_for_target[tname] = (
-                base[0], base[1], base[2], base[3], base[4], base[5], base[6], base[7],
-                base[8], base[9], base[10], base[11],
-                o_t[0] - tmp[0], o_t[1] - tmp[1], o_t[2] - tmp[2], 1.0)
-        else:
-            fit_for_target[tname] = base
+    for tname in ("Hips", "Spine", "Spine1", "Spine2", "Neck", "Head",
+                  "LeftShoulder", "RightShoulder"):
+        if tname in direct_src:
+            fit_for_target[tname] = g_fit
 
-    # every template name resolves (ancestor-walk fallbacks included)
-    for sid, name in template.id_name.items():
-        if name and name not in fit_for_target:
-            n = name
-            while n and n not in own_fit:
-                n = parent_of.get(n, "")
-            fit_for_target[name] = own_fit.get(n, g_fit) if n else g_fit
+    # Legs: 4-joint Umeyama fit per leg so thigh/calf/foot/toe move coherently
+    for side in ("Left", "Right"):
+        leg_targets = (f"{side}UpLeg", f"{side}Leg", f"{side}Foot", f"{side}ToeBase")
+        if all(t in primary_src for t in leg_targets):
+            leg_fit = _umeyama_fit(
+                [tuple(src_pos[primary_src[t]].tolist()) for t in leg_targets],
+                [tuple(tgt_pos(t).tolist()) for t in leg_targets],
+                [1.0] * len(leg_targets),
+            )
+            for t in leg_targets:
+                fit_for_target[t] = leg_fit
+
+    # Arms + Hands: chained shortest-arc alignment without axial roll
+    for side in ("Left", "Right"):
+        t_sh = f"{side}Shoulder"
+        t_arm = f"{side}Arm"
+        t_fore = f"{side}ForeArm"
+        t_hand = f"{side}Hand"
+        t_mid1 = f"{side}HandMiddle1"
+        if not all(t in primary_src for t in (t_arm, t_fore, t_hand, t_mid1)):
+            continue
+        ps_a = src_pos[primary_src[t_arm]]
+        ps_f = src_pos[primary_src[t_fore]]
+        ps_h = src_pos[primary_src[t_hand]]
+        ps_m = src_pos[primary_src[t_mid1]]
+
+        pt_a = tgt_pos(t_arm)
+        pt_f = tgt_pos(t_fore)
+        pt_h = tgt_pos(t_hand)
+        pt_m = tgt_pos(t_mid1)
+
+        if t_sh in primary_src:
+            ps_sh = src_pos[primary_src[t_sh]]
+            pt_sh = np.array(dm.mat_apply_point(g_fit, tuple(ps_sh.tolist())), dtype=np.float64)
+            r_sh = _rodrigues_arc(r_core @ (ps_a - ps_sh), pt_a - pt_sh) @ r_core
+            s_sh = float(np.linalg.norm(pt_a - pt_sh) / max(1e-9, np.linalg.norm(ps_a - ps_sh)))
+            fit_for_target[t_sh] = _make_sim_mat(s_sh, r_sh, ps_sh, pt_sh)
+
+        r_arm = _rodrigues_arc(r_core @ (ps_f - ps_a), pt_f - pt_a) @ r_core
+        s_arm = float(np.linalg.norm(pt_f - pt_a) / max(1e-9, np.linalg.norm(ps_f - ps_a)))
+        fit_for_target[t_arm] = _make_sim_mat(s_arm, r_arm, ps_a, pt_a)
+
+        r_fore = _rodrigues_arc(r_arm @ (ps_h - ps_f), pt_h - pt_f) @ r_arm
+        s_fore = float(np.linalg.norm(pt_h - pt_f) / max(1e-9, np.linalg.norm(ps_h - ps_f)))
+        fit_for_target[t_fore] = _make_sim_mat(s_fore, r_fore, ps_f, pt_f)
+
+        r_hand = _rodrigues_arc(r_fore @ (ps_m - ps_h), pt_m - pt_h) @ r_fore
+        m_hand = _make_sim_mat(s_fore, r_hand, ps_h, pt_h)
+        fit_for_target[t_hand] = m_hand
+        for tname in direct_src:
+            if tname.startswith(f"{side}Hand"):
+                fit_for_target[tname] = m_hand
 
     maps: dict[int, dm.Mat] = {}
     for i in range(len(model.bones)):
         tname = _map_source_bone(model, i, skel_map)
-        if tname is None or fit_for_target.get(tname) is None:
+        if tname is None or tname not in template.name_id:
             continue
-        maps[i] = fit_for_target[tname]
+        maps[i] = fit_for_target.get(tname, g_fit)
     return maps
 
 
@@ -480,7 +536,16 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         base_i = len(g.faces) * 3
         for vi in slice_verts:
             sv = model.vertices[vi]
-            infl = [(bi, w) for bi, w in sv.weights if bi in per_src_T and w > 1e-6]
+            by_target: dict[str, tuple[int, float]] = {}
+            for bi, w in sv.weights:
+                if bi in per_src_T and w > 1e-6:
+                    tname, _ = target_for_src[bi]
+                    if tname in by_target:
+                        rep_bi, prev_w = by_target[tname]
+                        by_target[tname] = (rep_bi, prev_w + w)
+                    else:
+                        by_target[tname] = (bi, w)
+            infl = list(by_target.values())
             infl.sort(key=lambda t: -t[1])
             infl = infl[:3]
             total = sum(w for _, w in infl) or 1.0
@@ -517,12 +582,18 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
             slot = group_spec["out_materials"][0]
         g.mat_slots.append(slot)
 
-    # palette: template 53-order first, then any extras by name
+    # palette: template 53-order first (root-first starting with Hips), then any extras by name
     order_ref = []
-    for skin in template.drawable_skin.values():
-        objs = skin.get("objects", [])
-        if len(objs) > len(order_ref):
-            order_ref = [template.id_name.get(o, "") for o in objs]
+    preferred_skin = template.drawable_skin.get("g_body", {})
+    if preferred_skin.get("objects"):
+        order_ref = [template.id_name.get(o, "") for o in preferred_skin["objects"]]
+    else:
+        for skin in template.drawable_skin.values():
+            objs = skin.get("objects", [])
+            if len(objs) > len(order_ref) or (
+                len(objs) == len(order_ref) and objs and objs[0] == template.hips_id
+            ):
+                order_ref = [template.id_name.get(o, "") for o in objs]
     named = sorted(used_bones)
     ordered = [n for n in order_ref if n in used_bones]
     ordered += [n for n in named if n not in ordered]

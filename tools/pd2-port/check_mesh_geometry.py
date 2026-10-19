@@ -30,8 +30,8 @@ sys.path.insert(0, str(HERE))
 from dmodel import DieselModel  # noqa: E402
 
 PACK = ROOT / "dist" / "lawson_las.zip"
-TPP_MODEL = "Lawson_LAS/units/lawson/skins/lawson/lawson.model"
-FPS_MODEL = "Lawson_LAS/units/lawson/skins/lawson/fps_lawson.model"
+TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"
+FPS_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"
 
 
 # ------------------------------------------------------------------ helpers
