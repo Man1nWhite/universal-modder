@@ -143,6 +143,21 @@ def analyse(name: str, g: Geometry, tris) -> dict:
     t_sign = []
     frame_hand = []
     zero_tangent = 0
+    # Edge-orientation breaks: the exact hole test on a *welded* mesh (a
+    # shared edge must be traversed in opposite directions by its two faces).
+    # On welded, skinned meshes the vertex-normal heuristic over-fires at
+    # joints (blended normals lean away while the winding is correct), so the
+    # effective flipped count uses orientation breaks when the mesh has shared
+    # edges, and falls back to the normal heuristic for corner-split meshes
+    # (like the ME2 source) where no edges are shared at all.
+    edge_dir = {}
+    for a, b, c in tris:
+        for x, y in ((a, b), (b, c), (c, a)):
+            key = (x, y) if x < y else (y, x)
+            edge_dir.setdefault(key, []).append(1 if x < y else -1)
+    breaks = sum(1 for dirs in edge_dir.values()
+                 if len(dirs) == 2 and dirs[0] == dirs[1])
+    welded = any(len(dirs) >= 2 for dirs in edge_dir.values())
     for v in range(len(g.tangent)):
         if math.sqrt(dot(g.tangent[v], g.tangent[v])) < 0.1:
             zero_tangent += 1
@@ -178,7 +193,10 @@ def analyse(name: str, g: Geometry, tris) -> dict:
     return {
         "name": name,
         "tris": len(tris),
-        "flipped": flipped,
+        "flipped": breaks if welded else flipped,
+        "normal_flagged": flipped,
+        "orientation_breaks": breaks,
+        "welded": welded,
         "degenerate": degenerate,
         "volume": signed_volume,
         "tangent_agree": sum(1 for s in t_sign if s > 0) / max(1, len(t_sign)),
