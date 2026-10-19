@@ -352,6 +352,58 @@ def _mat3_vec(A, v) -> list[float]:
     return [sum(A[i][k] * v[k] for k in range(3)) for i in range(3)]
 
 
+def _mat3_inv_t(M) -> list[list[float]]:
+    """Inverse-transpose (cofactor / det) of a 3x3 matrix."""
+    c00 = M[1][1] * M[2][2] - M[1][2] * M[2][1]
+    c01 = -(M[1][0] * M[2][2] - M[1][2] * M[2][0])
+    c02 = M[1][0] * M[2][1] - M[1][1] * M[2][0]
+    c10 = -(M[0][1] * M[2][2] - M[0][2] * M[2][1])
+    c11 = M[0][0] * M[2][2] - M[0][2] * M[2][0]
+    c12 = -(M[0][0] * M[2][1] - M[0][1] * M[2][0])
+    c20 = M[0][1] * M[1][2] - M[0][2] * M[1][1]
+    c21 = -(M[0][0] * M[1][2] - M[0][2] * M[1][0])
+    c22 = M[0][0] * M[1][1] - M[0][1] * M[1][0]
+    det = M[0][0] * c00 + M[0][1] * c01 + M[0][2] * c02
+    inv_d = 1.0 / det
+    return [
+        [c00 * inv_d, c01 * inv_d, c02 * inv_d],
+        [c10 * inv_d, c11 * inv_d, c12 * inv_d],
+        [c20 * inv_d, c21 * inv_d, c22 * inv_d],
+    ]
+
+
+def _umeyama_sim_op(src_pts, tgt_pts, weights):
+    """Weighted Umeyama similarity fit returning (op, R_col, scale)."""
+    w_sum = sum(weights)
+    w = [wi / w_sum for wi in weights]
+    cs = [sum(w[k] * src_pts[k][i] for k in range(len(w))) for i in range(3)]
+    ct = [sum(w[k] * tgt_pts[k][i] for k in range(len(w))) for i in range(3)]
+    p0 = [[src_pts[k][i] - cs[i] for i in range(3)] for k in range(len(w))]
+    q0 = [[tgt_pts[k][i] - ct[i] for i in range(3)] for k in range(len(w))]
+    # H_T[i][j] = sum_k w[k] * q0[k][i] * p0[k][j]
+    X = [[sum(w[k] * q0[k][i] * p0[k][j] for k in range(len(w))) for j in range(3)] for i in range(3)]
+    H_T = [row[:] for row in X]
+    for _ in range(12):
+        inv_t = _mat3_inv_t(X)
+        nx = sum(X[i][j] * X[i][j] for i in range(3) for j in range(3)) ** 0.5
+        ni = sum(inv_t[i][j] * inv_t[i][j] for i in range(3) for j in range(3)) ** 0.5
+        g = (ni / nx) ** 0.5
+        X = [[0.5 * (g * X[i][j] + inv_t[i][j] / g) for j in range(3)] for i in range(3)]
+    var_p = sum(w[k] * sum(p0[k][i] * p0[k][i] for i in range(3)) for k in range(len(w)))
+    tr = sum(X[i][j] * H_T[i][j] for i in range(3) for j in range(3))
+    s = tr / var_p if var_p > 1e-12 else 1.0
+    return _make_sim_op(s, X, cs, ct), X, s
+
+
+_FINGER_CHAINS = (
+    ("Thumb", "ThumbFinger"),
+    ("Index", "IndexFinger"),
+    ("Middle", "MiddleFinger"),
+    ("Ring", "RingFinger"),
+    ("Pinky", "PinkFinger"),
+)
+
+
 def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
     """One bind operator per TARGET bone (row-vector).
 
@@ -360,9 +412,8 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
     vs PD2 166.8, boot soles at z=0). A single upright rigid transform
     R_core = diag(-1, -1, 1) aligned at Hips (x, y) and grounded at z=0 maps
     the torso, head, shoulders, and legs without any seam between Body 1 and
-    Body 2. The arms and hands use chained shortest-arc rotations pinned at
-    the shoulder/elbow/wrist joints so that ForeArm and Hand land on the exact
-    PD2 joint positions with zero seam at the bicep cuff.
+    Body 2. The arms, palms, and 5 three-joint finger chains are retargeted so
+    each knuckle and phalanx sits directly on its PD2 bone pivot.
 
     For synthetic minimal fixtures in unit tests, falls back to per-segment
     rigid fits.
@@ -383,12 +434,9 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
             ps_a = _v3(scene.joints[f"{side}Shoulder"].world)
             ps_f = _v3(scene.joints[f"{side}Elbow"].world)
             ps_h = _v3(scene.joints[f"{side}Wrist"].world)
-            ps_m = _v3(scene.joints[f"{side}MiddleFinger"].world)
 
             pt_a = _apply_op(g_op, ps_a)
             pt_f = _v3(rig.world[f"{side}ForeArm"])
-            pt_h = _v3(rig.world[f"{side}Hand"])
-            pt_m = _v3(rig.world[f"{side}HandMiddle1"])
 
             ds_af = _sub(ps_f, ps_a)
             dt_af = _sub(pt_f, pt_a)
@@ -397,22 +445,62 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
             op_arm = _make_sim_op(s_arm, R_arm, ps_a, pt_a)
             ops[f"{side}Arm"] = op_arm
 
+            src_h = [
+                _v3(scene.joints[f"{side}IndexFinger"].world),
+                _v3(scene.joints[f"{side}MiddleFinger"].world),
+                _v3(scene.joints[f"{side}RingFinger"].world),
+                _v3(scene.joints[f"{side}PinkFinger"].world),
+                _v3(scene.joints[f"{side}ThumbFinger"].world),
+                ps_h,
+            ]
+            tgt_h = [
+                _v3(rig.world[f"{side}HandIndex1"]),
+                _v3(rig.world[f"{side}HandMiddle1"]),
+                _v3(rig.world[f"{side}HandRing1"]),
+                _v3(rig.world[f"{side}HandPinky1"]),
+                _v3(rig.world[f"{side}HandThumb1"]),
+                _v3(rig.world[f"{side}Hand"]),
+            ]
+            op_hand, R_hand, _ = _umeyama_sim_op(src_h, tgt_h, [1.0, 1.0, 1.0, 1.0, 0.8, 0.2])
+            ops[f"{side}Hand"] = op_hand
+            pt_wrist = _apply_op(op_hand, ps_h)
+
             ds_fh = _sub(ps_h, ps_f)
-            dt_fh = _sub(pt_h, pt_f)
+            dt_fh = _sub(pt_wrist, pt_f)
             R_fore = _mat3_mul(_col_rot_between(_mat3_vec(R_arm, ds_fh), dt_fh), R_arm)
             s_fore = (_dot(dt_fh, dt_fh) ** 0.5) / (_dot(ds_fh, ds_fh) ** 0.5)
             op_fore = _make_sim_op(s_fore, R_fore, ps_f, pt_f)
             ops[f"{side}ForeArm"] = op_fore
             ops[f"{side}ForeArmRoll"] = op_fore
 
-            ds_hm = _sub(ps_m, ps_h)
-            dt_hm = _sub(pt_m, pt_h)
-            R_hand = _mat3_mul(_col_rot_between(_mat3_vec(R_fore, ds_hm), dt_hm), R_fore)
-            op_hand = _make_sim_op(s_fore, R_hand, ps_h, pt_h)
-            ops[f"{side}Hand"] = op_hand
-            for t in rig.names:
-                if t.startswith(f"{side}Hand"):
-                    ops[t] = op_hand
+            for f_pd2, f_me2 in _FINGER_CHAINS:
+                s1 = _v3(scene.joints[f"{side}{f_me2}"].world)
+                s2 = _v3(scene.joints[f"{side}{f_me2}1"].world)
+                s3 = _v3(scene.joints[f"{side}{f_me2}2"].world)
+                tw1 = _v3(rig.world[f"{side}Hand{f_pd2}1"])
+                tw2 = _v3(rig.world[f"{side}Hand{f_pd2}2"])
+                tw3 = _v3(rig.world[f"{side}Hand{f_pd2}3"])
+
+                t1 = _apply_op(op_hand, s1)
+                ds_12 = _sub(s2, s1)
+                dt_12 = _sub(tw2, tw1)
+                R_f1 = _mat3_mul(_col_rot_between(_mat3_vec(R_hand, ds_12), dt_12), R_hand)
+                raw_s1 = (_dot(dt_12, dt_12) ** 0.5) / (_dot(ds_12, ds_12) ** 0.5)
+                s_f1 = max(0.85, min(1.35, raw_s1))
+                op_f1 = _make_sim_op(s_f1, R_f1, s1, t1)
+                ops[f"{side}Hand{f_pd2}1"] = op_f1
+
+                t2 = _apply_op(op_f1, s2)
+                ds_23 = _sub(s3, s2)
+                dt_23 = _sub(tw3, tw2)
+                R_f2 = _mat3_mul(_col_rot_between(_mat3_vec(R_f1, ds_23), dt_23), R_f1)
+                raw_s2 = (_dot(dt_23, dt_23) ** 0.5) / (_dot(ds_23, ds_23) ** 0.5)
+                s_f2 = max(0.85, min(1.35, raw_s2))
+                op_f2 = _make_sim_op(s_f2, R_f2, s2, t2)
+                ops[f"{side}Hand{f_pd2}2"] = op_f2
+
+                t3 = _apply_op(op_f2, s3)
+                ops[f"{side}Hand{f_pd2}3"] = _make_sim_op(s_f2, R_f2, s3, t3)
         return ops
 
     used: dict[str, float] = {}

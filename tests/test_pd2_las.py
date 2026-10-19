@@ -438,3 +438,25 @@ class TestLasScaffold:
                 actual = hashlib.sha256(z.read(f"Miranda_LAS/{rel}")).hexdigest()
                 assert actual == expected, rel
 
+    def test_tracked_pack_specular_alpha_and_pd2_normal_layout(self):
+        """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""
+        import numpy as np
+
+        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
+        with zipfile.ZipFile(build_zip) as z:
+            for stem in ("miranda_body_df", "miranda_face_df", "miranda_head_df", "miranda_eyes"):
+                raw = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{stem}.texture")
+                blocks = np.frombuffer(raw[128:], dtype=np.uint8).reshape(-1, 16)
+                assert int(blocks[:, 0].max()) <= 72, f"{stem} alpha too glossy: {blocks[:, 0].max()}"
+                assert float(blocks[:, 0].mean()) < 35.0, f"{stem} mean alpha too high"
+            for stem in ("miranda_body_nm", "miranda_face_nm", "miranda_head_nm"):
+                raw = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{stem}.texture")
+                blocks = np.frombuffer(raw[128:], dtype=np.uint8).reshape(-1, 16)
+                c0 = blocks[:, 8].astype(np.int32) | (blocks[:, 9].astype(np.int32) << 8)
+                c1 = blocks[:, 10].astype(np.int32) | (blocks[:, 11].astype(np.int32) << 8)
+                assert np.all(((c0 >> 11) & 31) == 31), f"{stem} red channel not 255"
+                assert np.all((c0 & 31) == 0), f"{stem} blue channel not 0"
+                assert np.all(c0 >= c1), f"{stem} has c0 < c1"
+                assert int(blocks[:, 0].max()) - int(blocks[:, 1].min()) > 16, f"{stem} alpha flat"
+
+

@@ -72,6 +72,20 @@ TEXTURE_SLOTS = {
     "Mouth Inside": ("HMF_HED_PROMiranda_Scalp_Diff.png", "HMF_HED_PROMiranda_Scalp_Norm.png", "mouth"),
 }
 
+# PAYDAY 2's DIFFUSE_TEXTURE:NORMALMAP shader reads the specular/gloss mask
+# from the diffuse texture's alpha channel (0 = matte, 255 = full mirror gloss;
+# 2B reference has mean ~8, p90 = 28..48, max = 92..96).
+# Base name -> (optional ME2 spec PNG, scale, max_alpha, default_alpha)
+SPECULAR_SLOTS = {
+    "body1": ("HMF_MIR_NKDa_SPEC.png", 0.18, 42, 12),
+    "body2": ("HMF_MIR_LGTa_Spec.png", 0.25, 64, 16),
+    "face": ("HMF_HED_PROMiranda_Face_Spec.png", 0.16, 32, 8),
+    "hair": ("HMF_HED_PROMiranda_Scalp_Spec.png", 0.14, 38, 14),
+    "eyes": ("EYE_Spec.png", 0.35, 72, 20),
+    "teeth": (None, 0.0, 14, 14),
+    "mouth": (None, 0.0, 6, 6),
+}
+
 # mesh name -> (drawable, material) for the TPP model
 TPP_LAYOUT = {
     "Body 1": ("g_body", "mtr_body1"),
@@ -195,11 +209,60 @@ def build_models(scene, rig, log=print):
     return tpp_res, fps_res
 
 
+def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
+    """Pack PD2 specular/gloss intensity into diffuse alpha and shade eye sclera."""
+    import numpy as np
+    from PIL import Image
+
+    rgba = np.asarray(img.convert("RGBA"), dtype=np.uint8).copy()
+    if base == "eyes":
+        # ME2's EYE_Diff.png has unshaded pure-white (255,255,255) outside the
+        # iris radius because the UE3 eye shader computed sclera falloff.
+        # Apply soft radial sclera shading outside the iris so the eyeballs
+        # don't render as flat white spheres.
+        h, w = rgba.shape[:2]
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        cx, cy = 0.5 * (w - 1), 0.5 * (h - 1)
+        r = np.hypot(xx - cx, yy - cy) / (0.5 * w)
+        t = np.clip((r - 0.27) / 0.55, 0.0, 1.0)
+        mask = (r > 0.27)[:, :, None]
+        # Soft warm-grey sclera gradient: (224, 216, 214) near iris -> (172, 152, 148) at rim
+        target_r = 224.0 - 52.0 * t
+        target_g = 216.0 - 64.0 * t
+        target_b = 214.0 - 66.0 * t
+        sclera = np.stack([target_r, target_g, target_b], axis=-1)
+        blend = np.clip((r - 0.25) / 0.06, 0.0, 1.0)[:, :, None]
+        rgb_f = rgba[:, :, :3].astype(np.float32)
+        rgba[:, :, :3] = np.where(
+            mask,
+            np.clip(rgb_f * (1.0 - blend) + sclera * blend, 0.0, 255.0),
+            rgb_f,
+        ).astype(np.uint8)
+
+    if base in SPECULAR_SLOTS:
+        spec_png, scale, max_a, default_a = SPECULAR_SLOTS[base]
+        if spec_png and spec_png in source:
+            s_img = Image.open(io.BytesIO(source[spec_png])).convert("L")
+            if s_img.size != (rgba.shape[1], rgba.shape[0]):
+                s_img = s_img.resize((rgba.shape[1], rgba.shape[0]))
+            s_arr = np.asarray(s_img, dtype=np.float32)
+            alpha = np.clip(s_arr * scale, 2.0, float(max_a)).astype(np.uint8)
+            if base == "eyes":
+                # Keep cornea specular highlight over iris and low wet sheen on sclera
+                alpha = np.maximum(alpha, 16)
+            rgba[:, :, 3] = alpha
+        else:
+            rgba[:, :, 3] = default_a
+    return rgba
+
+
 def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=print):
     """PNG bytes -> {texture path: DDS bytes} + the icon.
 
     Normal maps are repacked into PD2's packed layout (X in alpha) by
     ``dds.pd2_normal_channels``; ``invert_nm_y`` converts DirectX-style green.
+    Diffuse textures receive attenuated specular masks in their alpha channel
+    per PAYDAY 2's ``DIFFUSE_TEXTURE:NORMALMAP`` shader convention.
     """
     import dds
     try:
@@ -226,7 +289,8 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
                 arr = dds.pd2_normal_channels(img, invert_y=invert_nm_y)
                 mip = dds.mip_payloads_from_image(arr)
             else:
-                mip = dds.mip_payloads_from_image(img)
+                arr = _prepare_diffuse_rgba(base, img, source)
+                mip = dds.mip_payloads_from_image(arr)
             out[path] = dds.pack_dds(mip, img.width)
             problems = dds.validate_dxt5_texture(out[path])
             if problems:

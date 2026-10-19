@@ -160,13 +160,67 @@ def encode_dxt5(img) -> bytes:
     h, w = arr.shape[:2]
     if h % 4 or w % 4:
         raise ValueError(f"encode_dxt5 needs multiples of 4, got {w}x{h}")
-    blocks = arr.reshape(h // 4, 4, w // 4, 4, 4).transpose(0, 2, 1, 3, 4)
-    out = bytearray()
-    for by in range(h // 4):
-        for bx in range(w // 4):
-            flat = [tuple(int(x) for x in px) for px in blocks[by, bx].reshape(16, 4)]
-            out += _encode_block(flat)
-    return bytes(out)
+    bh, bw = h // 4, w // 4
+    blocks = arr.reshape(bh, 4, bw, 4, 4).transpose(0, 2, 1, 3, 4).reshape(-1, 16, 4)
+    n = blocks.shape[0]
+
+    alpha = blocks[:, :, 3].astype(np.int32)
+    a0 = alpha.max(axis=1)
+    a1 = alpha.min(axis=1)
+    pal_a = np.empty((n, 8), dtype=np.int32)
+    pal_a[:, 0] = a0
+    pal_a[:, 1] = a1
+    for i in range(1, 7):
+        pal_a[:, i + 1] = ((7 - i) * a0 + i * a1) // 7
+    idx_a = np.abs(alpha[:, :, None] - pal_a[:, None, :]).argmin(axis=2).astype(np.uint64)
+    idx_a[a0 == a1] = 0
+    shifts_a = (3 * np.arange(16, dtype=np.uint64))[None, :]
+    bits_a = (idx_a << shifts_a).sum(axis=1, dtype=np.uint64)
+    ab = np.empty((n, 8), dtype=np.uint8)
+    ab[:, 0] = a0.astype(np.uint8)
+    ab[:, 1] = a1.astype(np.uint8)
+    for b in range(6):
+        ab[:, 2 + b] = ((bits_a >> np.uint64(8 * b)) & np.uint64(0xFF)).astype(np.uint8)
+
+    rgb = blocks[:, :, :3].astype(np.int32)
+    sums = rgb.sum(axis=2)
+    i0 = sums.argmax(axis=1)
+    c_max = rgb[np.arange(n), i0]
+    dist = ((rgb - c_max[:, None, :]) ** 2).sum(axis=2)
+    i1 = dist.argmax(axis=1)
+    c_min = rgb[np.arange(n), i1]
+
+    e0 = ((c_max[:, 0] >> 3) << 11) | ((c_max[:, 1] >> 2) << 5) | (c_max[:, 2] >> 3)
+    e1 = ((c_min[:, 0] >> 3) << 11) | ((c_min[:, 1] >> 2) << 5) | (c_min[:, 2] >> 3)
+    swap = e0 < e1
+    e0_s = np.where(swap, e1, e0)
+    e1_s = np.where(swap, e0, e1)
+
+    def _exp565_vec(v):
+        r = ((v >> 11) & 31) * 255 // 31
+        g = ((v >> 5) & 63) * 255 // 63
+        b = (v & 31) * 255 // 31
+        return np.stack([r, g, b], axis=-1)
+
+    p0 = _exp565_vec(e0_s)
+    p1 = _exp565_vec(e1_s)
+    p2 = (2 * p0 + p1) // 3
+    p3 = (p0 + 2 * p1) // 3
+    pal_c = np.stack([p0, p1, p2, p3], axis=1)
+    idx_c = ((rgb[:, :, None, :] - pal_c[:, None, :, :]) ** 2).sum(axis=3).argmin(axis=2).astype(np.uint32)
+    idx_c[e0_s == e1_s] = 0
+    shifts_c = (2 * np.arange(16, dtype=np.uint32))[None, :]
+    bits_c = (idx_c << shifts_c).sum(axis=1, dtype=np.uint32)
+
+    cb = np.empty((n, 8), dtype=np.uint8)
+    cb[:, 0] = (e0_s & 0xFF).astype(np.uint8)
+    cb[:, 1] = ((e0_s >> 8) & 0xFF).astype(np.uint8)
+    cb[:, 2] = (e1_s & 0xFF).astype(np.uint8)
+    cb[:, 3] = ((e1_s >> 8) & 0xFF).astype(np.uint8)
+    for b in range(4):
+        cb[:, 4 + b] = ((bits_c >> np.uint32(8 * b)) & np.uint32(0xFF)).astype(np.uint8)
+
+    return np.concatenate([ab, cb], axis=1).tobytes()
 
 
 def decode_dxt5(data: bytes, w: int, h: int):
@@ -175,14 +229,57 @@ def decode_dxt5(data: bytes, w: int, h: int):
     bw, bh = w // 4, h // 4
     if w % 4 or h % 4:
         raise ValueError(f"decode_dxt5 needs multiples of 4, got {w}x{h}")
-    if len(data) < bh * bw * 16:
-        raise ValueError(f"DXT5 payload too short: {len(data)} < {bh * bw * 16}")
-    out = np.zeros((bh, 4, bw, 4, 4), dtype=np.uint8)
-    for by in range(bh):
-        for bx in range(bw):
-            block = data[(by * bw + bx) * 16 : (by * bw + bx + 1) * 16]
-            out[by, :, bx] = np.array(_decode_block(block), dtype=np.uint8).reshape(4, 4, 4)
-    return out.reshape(h, w, 4)
+    n = bh * bw
+    if len(data) < n * 16:
+        raise ValueError(f"DXT5 payload too short: {len(data)} < {n * 16}")
+    blocks = np.frombuffer(data, dtype=np.uint8, count=n * 16).reshape(n, 16)
+
+    a0 = blocks[:, 0].astype(np.int32)
+    a1 = blocks[:, 1].astype(np.int32)
+    a_bits = np.zeros(n, dtype=np.uint64)
+    for b in range(6):
+        a_bits |= blocks[:, 2 + b].astype(np.uint64) << np.uint64(8 * b)
+    pal_a8 = np.empty((n, 8), dtype=np.int32)
+    pal_a8[:, 0] = a0
+    pal_a8[:, 1] = a1
+    for i in range(1, 7):
+        pal_a8[:, i + 1] = ((7 - i) * a0 + i * a1) // 7
+    pal_a6 = np.empty((n, 8), dtype=np.int32)
+    pal_a6[:, 0] = a0
+    pal_a6[:, 1] = a1
+    for i in range(1, 5):
+        pal_a6[:, i + 1] = ((5 - i) * a0 + i * a1) // 5
+    pal_a6[:, 6] = 0
+    pal_a6[:, 7] = 255
+    pal_a = np.where((a0 > a1)[:, None], pal_a8, pal_a6)
+
+    c0 = blocks[:, 8].astype(np.int32) | (blocks[:, 9].astype(np.int32) << 8)
+    c1 = blocks[:, 10].astype(np.int32) | (blocks[:, 11].astype(np.int32) << 8)
+    c_bits = (
+        blocks[:, 12].astype(np.uint32)
+        | (blocks[:, 13].astype(np.uint32) << 8)
+        | (blocks[:, 14].astype(np.uint32) << 16)
+        | (blocks[:, 15].astype(np.uint32) << 24)
+    )
+
+    def _exp565_v(v):
+        r = ((v >> 11) & 31) * 255 // 31
+        g = ((v >> 5) & 63) * 255 // 63
+        b = (v & 31) * 255 // 31
+        return np.stack([r, g, b], axis=-1)
+
+    e0 = _exp565_v(c0)
+    e1 = _exp565_v(c1)
+    pal_c = np.stack([e0, e1, (2 * e0 + e1) // 3, (e0 + 2 * e1) // 3], axis=1)
+
+    out = np.empty((n, 16, 4), dtype=np.uint8)
+    ar_n = np.arange(n)
+    for px in range(16):
+        ai = (a_bits >> np.uint64(3 * px)) & np.uint64(7)
+        ci = (c_bits >> np.uint32(2 * px)) & np.uint32(3)
+        out[:, px, :3] = pal_c[ar_n, ci]
+        out[:, px, 3] = pal_a[ar_n, ai]
+    return out.reshape(bh, bw, 4, 4, 4).transpose(0, 2, 1, 3, 4).reshape(h, w, 4)
 
 
 def downsample2x2(img):

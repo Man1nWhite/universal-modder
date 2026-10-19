@@ -639,23 +639,29 @@ def check_textures(rep: Report, pack: dict[str, bytes]) -> None:
             mip0_len = max(16, size * size)      # DXT5: 16 bytes per 4x4 block
             payload = data[dds.DDS_HEADER_SIZE:]
             img = dds.decode_dxt5(payload[:mip0_len], size, size)
-            flat = img.reshape(-1, 4) if hasattr(img, "reshape") else img
-            ch = list(zip(*flat))
-            r, g, b, a = ch[0], ch[1], ch[2], ch[3]
-            is_flat = (max(r) - min(r) < 4 and max(g) - min(g) < 4
-                       and max(b) - min(b) < 4 and max(a) - min(a) < 4)
+            if hasattr(img, "min") and hasattr(img, "ndim") and img.ndim == 3:
+                r_min, g_min, b_min, a_min = (int(x) for x in img.min(axis=(0, 1)))
+                r_max, g_max, b_max, a_max = (int(x) for x in img.max(axis=(0, 1)))
+            else:
+                ch = list(zip(*img))
+                r_min, r_max = min(ch[0]), max(ch[0])
+                g_min, g_max = min(ch[1]), max(ch[1])
+                b_min, b_max = min(ch[2]), max(ch[2])
+                a_min, a_max = min(ch[3]), max(ch[3])
+            is_flat = (r_max - r_min < 4 and g_max - g_min < 4
+                       and b_max - b_min < 4 and a_max - a_min < 4)
             if is_flat:
                 # a synthesized flat normal (the source has no normal map for
                 # this material): the layout rules do not apply to it
                 flat_maps.append(path.rsplit("/", 1)[-1])
                 continue
-            if min(r) < 250:
-                normal_bad.append(f"{path}: red is not white (min {min(r)})")
-            if max(b) > 8:
-                normal_bad.append(f"{path}: blue is not black (max {max(b)})")
-            if max(a) - min(a) < 8:
+            if r_min < 250:
+                normal_bad.append(f"{path}: red is not white (min {r_min})")
+            if b_max > 8:
+                normal_bad.append(f"{path}: blue is not black (max {b_max})")
+            if a_max - a_min < 8:
                 normal_bad.append(f"{path}: alpha is flat - X is not in alpha")
-            if max(g) - min(g) < 4:
+            if g_max - g_min < 4:
                 normal_bad.append(f"{path}: green is flat - no Y in the normal map")
     if dxt_bad:
         rep.fail("T1", "guide: compress with DXT5 (DXT1 discards alpha)",

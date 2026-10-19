@@ -341,7 +341,8 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
             for t in leg_targets:
                 fit_for_target[t] = leg_fit
 
-    # Arms + Hands: chained shortest-arc alignment without axial roll
+    # Arms + Hands + Fingers: chained alignment with knuckle-fitted palm
+    # and per-phalanx placement onto PD2's finger bone pivots
     for side in ("Left", "Right"):
         t_sh = f"{side}Shoulder"
         t_arm = f"{side}Arm"
@@ -353,12 +354,9 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
         ps_a = src_pos[primary_src[t_arm]]
         ps_f = src_pos[primary_src[t_fore]]
         ps_h = src_pos[primary_src[t_hand]]
-        ps_m = src_pos[primary_src[t_mid1]]
 
         pt_a = tgt_pos(t_arm)
         pt_f = tgt_pos(t_fore)
-        pt_h = tgt_pos(t_hand)
-        pt_m = tgt_pos(t_mid1)
 
         if t_sh in primary_src:
             ps_sh = src_pos[primary_src[t_sh]]
@@ -371,16 +369,72 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
         s_arm = float(np.linalg.norm(pt_f - pt_a) / max(1e-9, np.linalg.norm(ps_f - ps_a)))
         fit_for_target[t_arm] = _make_sim_mat(s_arm, r_arm, ps_a, pt_a)
 
-        r_fore = _rodrigues_arc(r_arm @ (ps_h - ps_f), pt_h - pt_f) @ r_arm
-        s_fore = float(np.linalg.norm(pt_h - pt_f) / max(1e-9, np.linalg.norm(ps_h - ps_f)))
+        hand_landmarks = [
+            (f"{side}HandIndex1", 1.0),
+            (f"{side}HandMiddle1", 1.0),
+            (f"{side}HandRing1", 1.0),
+            (f"{side}HandPinky1", 1.0),
+            (f"{side}HandThumb1", 0.8),
+            (t_hand, 0.2),
+        ]
+        present_hl = [(t, w) for t, w in hand_landmarks if t in primary_src]
+        if len(present_hl) >= 3:
+            m_hand = _umeyama_fit(
+                [tuple(src_pos[primary_src[t]].tolist()) for t, _ in present_hl],
+                [tuple(tgt_pos(t).tolist()) for t, _ in present_hl],
+                [w for _, w in present_hl],
+            )
+            _, r_hand, _ = _decompose_sim_mat(m_hand)
+        else:
+            ps_m = src_pos[primary_src[t_mid1]]
+            pt_h_raw = tgt_pos(t_hand)
+            pt_m = tgt_pos(t_mid1)
+            r_fore_tmp = _rodrigues_arc(r_arm @ (ps_h - ps_f), pt_h_raw - pt_f) @ r_arm
+            s_fore_tmp = float(np.linalg.norm(pt_h_raw - pt_f) / max(1e-9, np.linalg.norm(ps_h - ps_f)))
+            r_hand = _rodrigues_arc(r_fore_tmp @ (ps_m - ps_h), pt_m - pt_h_raw) @ r_fore_tmp
+            m_hand = _make_sim_mat(s_fore_tmp, r_hand, ps_h, pt_h_raw)
+
+        fit_for_target[t_hand] = m_hand
+        pt_wrist = np.array(dm.mat_apply_point(m_hand, tuple(ps_h.tolist())), dtype=np.float64)
+
+        r_fore = _rodrigues_arc(r_arm @ (ps_h - ps_f), pt_wrist - pt_f) @ r_arm
+        s_fore = float(np.linalg.norm(pt_wrist - pt_f) / max(1e-9, np.linalg.norm(ps_h - ps_f)))
         fit_for_target[t_fore] = _make_sim_mat(s_fore, r_fore, ps_f, pt_f)
 
-        r_hand = _rodrigues_arc(r_fore @ (ps_m - ps_h), pt_m - pt_h) @ r_fore
-        m_hand = _make_sim_mat(s_fore, r_hand, ps_h, pt_h)
-        fit_for_target[t_hand] = m_hand
-        for tname in direct_src:
-            if tname.startswith(f"{side}Hand"):
-                fit_for_target[tname] = m_hand
+        s_min_f = 0.85 * _s_core
+        s_max_f = 1.35 * _s_core
+        for fname in ("Thumb", "Index", "Middle", "Ring", "Pinky"):
+            f1 = f"{side}Hand{fname}1"
+            f2 = f"{side}Hand{fname}2"
+            f3 = f"{side}Hand{fname}3"
+            if not all(t in primary_src for t in (f1, f2, f3)):
+                for t in (f1, f2, f3):
+                    if t in direct_src:
+                        fit_for_target[t] = m_hand
+                continue
+            s1 = src_pos[primary_src[f1]]
+            s2 = src_pos[primary_src[f2]]
+            s3 = src_pos[primary_src[f3]]
+            tw1 = tgt_pos(f1)
+            tw2 = tgt_pos(f2)
+            tw3 = tgt_pos(f3)
+
+            t1 = np.array(dm.mat_apply_point(m_hand, tuple(s1.tolist())), dtype=np.float64)
+            r_f1 = _rodrigues_arc(r_hand @ (s2 - s1), tw2 - tw1) @ r_hand
+            raw_s1 = float(np.linalg.norm(tw2 - tw1) / max(1e-9, np.linalg.norm(s2 - s1)))
+            s_f1 = float(np.clip(raw_s1, s_min_f, s_max_f))
+            m_f1 = _make_sim_mat(s_f1, r_f1, s1, t1)
+            fit_for_target[f1] = m_f1
+
+            t2 = np.array(dm.mat_apply_point(m_f1, tuple(s2.tolist())), dtype=np.float64)
+            r_f2 = _rodrigues_arc(r_f1 @ (s3 - s2), tw3 - tw2) @ r_f1
+            raw_s2 = float(np.linalg.norm(tw3 - tw2) / max(1e-9, np.linalg.norm(s3 - s2)))
+            s_f2 = float(np.clip(raw_s2, s_min_f, s_max_f))
+            m_f2 = _make_sim_mat(s_f2, r_f2, s2, t2)
+            fit_for_target[f2] = m_f2
+
+            t3 = np.array(dm.mat_apply_point(m_f2, tuple(s3.tolist())), dtype=np.float64)
+            fit_for_target[f3] = _make_sim_mat(s_f2, r_f2, s3, t3)
 
     maps: dict[int, dm.Mat] = {}
     for i in range(len(model.bones)):
@@ -948,18 +1002,16 @@ def main(argv=None) -> int:
             preview_from_model(out_path, args.out / "previews", f"{label}_authored")
             print(f"[{label}] previews -> {args.out / 'previews'}")
 
-    # update pack scaffold — build it first if this is a fresh checkout
+    # update pack scaffold and textures (build_las --stage all)
     pack_dir = args.out / "Miranda_LAS"
     unit_dir = pack_dir / "assets" / "units" / "miranda" / "skins" / "miranda"
-    if not unit_dir.is_dir():
-        import build_las
+    import build_las
 
-        print("pack scaffold missing — building it (build_las --stage all)")
-        rc = build_las.main(
-            ["--stage", "all", "--source", str(args.source_zip), "--out", str(args.out)]
-        )
-        if rc != 0:
-            raise SystemExit(f"build_las failed with exit code {rc}")
+    rc = build_las.main(
+        ["--stage", "all", "--source", str(args.source_zip), "--out", str(args.out)]
+    )
+    if rc != 0:
+        raise SystemExit(f"build_las failed with exit code {rc}")
     if not unit_dir.is_dir():
         raise SystemExit(f"pack scaffold still missing at {unit_dir}")
     import shutil

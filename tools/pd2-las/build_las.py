@@ -25,6 +25,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+from dds_encode import (  # noqa: E402
+    attenuate_dxt5_alpha_from_normal,
+    set_dxt5_constant_alpha,
+    swizzle_source_normal_dxt5_to_pd2,
+)
 from las_pack import write_pack  # noqa: E402
 from source_model import load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
@@ -58,6 +63,12 @@ VTF_TO_PACK = {
     "miranda_head_color": "miranda_head_df",
     "miranda_head_normal": "miranda_head_nm",
     "miranda_eyes": "miranda_eyes",
+}
+# Specular attenuation parameters for diffuse alpha (normal VTF stem, scale, max_alpha)
+DF_SPECULAR_FROM_NORMAL = {
+    "miranda_body_color": ("miranda_body_normal", 0.25, 64),
+    "miranda_face_color": ("miranda_face_normal", 0.18, 42),
+    "miranda_head_color": ("miranda_head_normal", 0.20, 48),
 }
 
 
@@ -138,10 +149,24 @@ def main(argv: list[str] | None = None) -> int:
         tex_dir = out / "textures"
         tex_dir.mkdir(parents=True, exist_ok=True)
         vtf_info = {}
+        raw_vtf_imgs = {
+            stem: parse_vtf(arc.read(f"materials/models/miranda/{stem}.vtf"))
+            for stem in sorted(VTF_TO_PACK)
+        }
+        raw_dds = {stem: to_dds(img) for stem, img in raw_vtf_imgs.items()}
         for stem, pack_name in sorted(VTF_TO_PACK.items()):
-            raw = arc.read(f"materials/models/miranda/{stem}.vtf")
-            img = parse_vtf(raw)
-            dds = to_dds(img)
+            img = raw_vtf_imgs[stem]
+            if stem in DF_SPECULAR_FROM_NORMAL:
+                nm_stem, scale, max_a = DF_SPECULAR_FROM_NORMAL[stem]
+                dds = attenuate_dxt5_alpha_from_normal(
+                    raw_dds[stem], raw_dds[nm_stem], scale, max_a
+                )
+            elif stem.endswith("_normal"):
+                dds = swizzle_source_normal_dxt5_to_pd2(raw_dds[stem], invert_y=True)
+            elif stem == "miranda_eyes":
+                dds = set_dxt5_constant_alpha(raw_dds[stem], 24)
+            else:
+                dds = raw_dds[stem]
             textures[f"{pack_name}.texture"] = dds
             (tex_dir / f"{pack_name}.texture").write_bytes(dds)
             (png_dir / f"{stem}.png").write_bytes(to_png(img))

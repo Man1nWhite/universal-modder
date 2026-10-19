@@ -862,3 +862,20 @@ def test_the_tracked_pack_carries_the_builder_version():
     builder = (PD2 / "build_las_pack.py").read_text()
     version = re.search(r'^VERSION\s*=\s*"([^"]+)"', builder, re.M).group(1)
     assert manifest["version"] == version
+
+
+def test_diffuse_specular_alpha_and_finger_pivots():
+    """Diffuse textures carry attenuated specular alpha and finger vertices sit on PD2 pivots."""
+    import zipfile
+    import numpy as np
+
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    with zipfile.ZipFile(pack) as z:
+        for base in ("body1", "body2", "face", "hair", "eyes", "teeth", "mouth"):
+            raw = z.read(f"Lawson_LAS/assets/units/lawson/skins/lawson/{base}_df.texture")
+            blocks = np.frombuffer(raw[128:], dtype=np.uint8).reshape(-1, 16)
+            assert int(blocks[:, 0].max()) <= 80, f"{base}_df alpha too glossy: {blocks[:, 0].max()}"
+            assert float(blocks[:, 0].mean()) < 40.0, f"{base}_df mean alpha too high"
+

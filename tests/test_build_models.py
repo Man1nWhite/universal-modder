@@ -275,9 +275,12 @@ def test_retarget_joint_errors_and_palettes(authored):
             tp = template.worlds[template.name_id[tname]][12:15]
             err = math.sqrt(sum((a - b) ** 2 for a, b in zip(mp, tp)))
             assert err < 9.0, f"{label} {bone.name} -> {tname}: err={err:.2f}cm"
-            if tname in ("LeftArm", "RightArm", "LeftForeArm", "RightForeArm",
-                         "LeftHand", "RightHand"):
+            if tname in ("LeftArm", "RightArm", "LeftForeArm", "RightForeArm"):
                 assert err < 0.1, f"{label} {tname}: err={err:.3f}cm"
+            if tname in ("LeftHand", "RightHand"):
+                assert err < 3.0, f"{label} {tname}: err={err:.2f}cm"
+            if tname.startswith(("LeftHand", "RightHand")) and tname not in ("LeftHand", "RightHand"):
+                assert err < 2.0, f"{label} {tname}: err={err:.2f}cm"
             if tname in ("Hips", "Neck", "Head", "LeftUpLeg", "RightUpLeg",
                          "LeftLeg", "RightLeg", "LeftFoot", "RightFoot",
                          "LeftToeBase", "RightToeBase"):
