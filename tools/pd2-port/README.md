@@ -16,7 +16,8 @@ and the journal in [`MODLOG.md`](MODLOG.md).
 |---|---|
 | Source of truth | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` (repo root) — rigged COLLADA + textures |
 | Rig contract | `reference/las_rig.json` — the PD2 biped skeleton an LAS unit animates on, extracted from `2b.rar`'s model by `extract_las_rig.py` (skeleton data only; no 2B art) |
-| Output | `dist/lawson_las.zip`, root `Lawson_LAS/` (generated; not tracked) |
+| Output | `dist/lawson_las.zip`, root `Lawson_LAS/` (deterministic build; **tracked in git** and published as the release asset) |
+| Release | [`lawson-las-v1`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1) — notes in [`releases/lawson-las-v1.md`](releases/lawson-las-v1.md) |
 
 ## Build
 
@@ -25,12 +26,18 @@ Python 3.10+, Pillow and numpy (the repo's own dependencies):
 ```sh
 python tools/pd2-port/build_las_pack.py          # -> dist/lawson_las.zip
 python tools/pd2-port/build_las_pack.py --check  # validate only
+# --version stamps the release version into build_manifest.json
+# (default 0.1.0; the release notes carry the same value)
 # --keep-nm-green keeps the source Y channel instead of the default PD2 flip
 # (only for sources already authored with PD2's green convention)
 python tools/pd2-port/preview_check.py report    # geometry gates on the rebind
 python tools/pd2-port/preview_check.py render DIR  # + raster previews (flat, textured, diff)
 python -m pytest -q tests/test_las_pack.py
 ```
+
+The build is **deterministic**: same source + same tool code -> the same zip
+bytes (fixed zip timestamps, sorted entries). The tracked
+`dist/lawson_las.zip` is therefore exactly what the release serves.
 
 ## Pipeline
 
@@ -56,6 +63,9 @@ in Blender if you need one.
 
 ## Install (when you have a candidate)
 
+Download `lawson_las.zip` from the [release page](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1)
+(or build it yourself — the bytes are identical).
+
 PAYDAY 2 with **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe Mod**.
 Extract `Lawson_LAS/` into **`PAYDAY 2\assets\mod_overrides\`** (not
 `mods\mod_overrides`). Back up saves and `mod_overrides` first; with the game
@@ -67,6 +77,28 @@ gloves.
 Test the menu preview first. If it crashes, stop and collect fresh crash/loader
 logs plus exact game/BeardLib/LAS versions before trying anything else. Only
 after the preview works, try a backed-up offline heist.
+
+## Publish a release
+
+The GitHub release is tag-driven — the
+[`lawson-las-pack` workflow](../../.github/workflows/lawson-las.yml) rebuilds
+the pack, runs the tests and attaches the zip to the release of that tag:
+
+```sh
+git tag lawson-las-v1 && git push origin lawson-las-v1
+```
+
+1. Update `releases/lawson-las-v1.md` (the release page body) and the
+   `<!-- pack_version: X.Y.Z -->` marker in it — the workflow stamps that
+   version into the pack.
+2. Rebuild and commit the pack: `python tools/pd2-port/build_las_pack.py` and
+   commit `dist/lawson_las.zip` (the zip must match the release asset).
+3. Tag and push; the workflow creates the release page, uploads
+   `lawson_las.zip` + `lawson_las.zip.sha256`, and fails loudly if the tests
+   fail.
+
+Every push to `main` also rebuilds the pack and exposes it as a workflow
+artifact, so the zip is always downloadable from GitHub even between releases.
 
 ## Status and limits
 
@@ -84,6 +116,7 @@ after the preview works, try a backed-up offline heist.
   previews (source vs retarget vs decoded-from-pack).
 - Provenance: the ME2 model/textures are ripped game assets and `2b.rar` is a
   third-party reference. Fine for private use; **not cleared for
-  redistribution** (`CREDITS.txt` repeats this).
+  redistribution** — the release ships as an unlicensed, non-commercial fan
+  derivative, credited in `CREDITS.txt` and on the release page.
 - No cooked-physics payloads are shipped; BeardLib's `unit_mat` registration
   supplies its default.

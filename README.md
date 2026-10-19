@@ -42,6 +42,11 @@ Build with `python tools/pd2-port/build_las_pack.py` (see
 requiring **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe Mod**.
 Nothing is game-verified yet.
 
+**Download:** [`lawson-las-v1` release](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1)
+— `lawson_las.zip` is tracked in the repo and rebuilt by CI on every
+`lawson-las-v*` tag, so the release asset and `dist/lawson_las.zip` are the
+same bytes.
+
 ## Install
 
 Pick your agent. Each gets the same skills (Agent Skills format), the fal MCP server, and the `um` CLI.

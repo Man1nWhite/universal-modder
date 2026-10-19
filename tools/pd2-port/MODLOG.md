@@ -1,5 +1,39 @@
 # Lawson pack journal
 
+## 2026-10-19 — pack published: `dist/lawson_las.zip` tracked + GitHub release page (NEW)
+
+- User direction: get `dist/lawson_las.zip` into GitHub and give it a release
+  page. Built it with `python tools/pd2-port/build_las_pack.py`: 30 files,
+  18,261,456 uncompressed bytes, 7,967,568 bytes, sha256
+  `8629051ead84cd7a180a427c9969844363987213885c242eb05f6f34707247f3`.
+- `dist/` was gitignored ("built packs are outputs, not sources"). The rule is
+  now `dist/*` + `!dist/lawson_las.zip`, so the release asset is tracked and
+  the repository always carries the exact bytes the release serves.
+- Builder changes: `VERSION` `0.1.0-dev` -> `0.1.0`, new `--version` flag that
+  stamps `build_manifest.json`, and a new `status` field ("experimental -
+  offline validated, not game-verified") so the shipped artifact states its own
+  verification level. `CREDITS.txt` rewritten: it still called the pack a
+  "private experimental derivative" with no redistribution permission while the
+  pack was about to be published publicly; it now says plainly that the model,
+  the textures and the 2B reference pack are not ours to license, that this is
+  an unlicensed non-commercial fan derivative, and that the original artists
+  and publishers keep all rights to their work.
+- The release page body is a file in the repo,
+  `releases/lawson-las-v1.md`, with a `<!-- pack_version: 0.1.0 -->` marker
+  the CI reads for the version stamp — the page text is versioned and
+  reviewable instead of only typed into GitHub.
+- New workflow `.github/workflows/lawson-las.yml`: builds the pack, runs the
+  tests, uploads a workflow artifact on every push to `main`, and on a
+  `lawson-las-v*` tag creates or updates the release and attaches
+  `lawson_las.zip` + `lawson_las.zip.sha256`.
+- Release `lawson-las-v1` published on GitHub with the pack as its asset.
+- Tests: 179 passed, 5 skipped — unchanged. (A first run showed 10 kb/um
+  failures; they were only a missing `pyyaml` in the local venv, not a
+  regression.) Determinism re-checked: rebuilding with the same version
+  reproduces the same sha256.
+- Still **not game-verified**, and the release page says so before the install
+  steps, not in a footnote.
+
 ## 2026-10-18 — texture/UV verification session; eye iris fix; FPS verified (NEW)
 
 - Added a textured software raster (`preview_check.raster_textured`, DF
