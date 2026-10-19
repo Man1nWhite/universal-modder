@@ -219,7 +219,6 @@ def test_face_region_upright_near_head(authored):
     verts, _, _ = _slice_verts(authored["tpp"]["groups"]["head"], "miranda_face")
     assert verts
     xs = [p[0] for p in verts]
-    ys = [p[1] for p in verts]
     zs = [p[2] for p in verts]
     # head sits high (z ~ 150-185 cm), face near the centerline
     assert 120 < sum(zs) / len(zs) < 200, sum(zs) / len(zs)

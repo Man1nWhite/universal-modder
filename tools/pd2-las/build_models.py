@@ -35,7 +35,6 @@ import argparse
 import json
 import math
 import sys
-import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -329,7 +328,7 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
     maps: dict[int, dm.Mat] = {}
     for i in range(len(model.bones)):
         tname = _map_source_bone(model, i, skel_map)
-        if tname is None or tname not in fit_for_target:
+        if tname is None or fit_for_target.get(tname) is None:
             continue
         maps[i] = fit_for_target[tname]
     return maps
@@ -443,9 +442,8 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
                    template: Template, group_name: str) -> Group:
     g = Group(name=group_name)
     wanted = group_spec.get("materials")
-    src_worlds = source_bone_worlds(model)
 
-    # per-bone similarity maps (minimal-rotation retarget)
+    # target-centric similarity retarget (see retarget_maps)
     per_src_T = retarget_maps(model, skel_map, template)
 
     target_for_src: dict[int, tuple[str, dm.Mat]] = {}
@@ -479,7 +477,6 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
 
         base_v = len(g.verts)
         base_i = len(g.faces) * 3
-        pal_of_bone: dict[int, int] = {}
         for vi in slice_verts:
             sv = model.vertices[vi]
             infl = [(bi, w) for bi, w in sv.weights if bi in per_src_T and w > 1e-6]
@@ -755,7 +752,6 @@ def preview_from_model(path: Path, out_dir: Path, prefix: str) -> None:
         md = dm.decode_model_data(s.payload)
         if md.get("version") != 3:
             continue
-        name = "model"
         gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
         geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
         topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)

@@ -59,7 +59,7 @@ python tools/pd2-las/build_las.py              # extract → inventory → textu
 python tools/pd2-las/build_las.py --stage inventory   # JSON summary on stdout
 python tools/pd2-las/build_models.py --templates /tmp/2bsrc/2B\ -\ LAS/assets/units/2b/skins/2b
                                                    # author miranda.model + fps_miranda.model
-python -m pytest -q tests/                      # 188 tests, run offline
+python -m pytest -q tests/                      # 190 tests, run offline
 ```
 
 The installable test pack is `build/pd2-las/Miranda_LAS/` (zip copy at

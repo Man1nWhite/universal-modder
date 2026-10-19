@@ -24,7 +24,7 @@ Key format facts encoded here (see docs/audits/2026-10-18-route-change-audit.md)
 from __future__ import annotations
 
 import struct
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 # ---------------------------------------------------------------- hash names
 

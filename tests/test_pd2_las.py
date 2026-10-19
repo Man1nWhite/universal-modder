@@ -353,6 +353,12 @@ class TestLasScaffold:
         assert "Miranda_LAS/main.xml" in names
         assert "Miranda_LAS/BUILD_INFO.json" in names
         assert all(n.startswith("Miranda_LAS/") for n in names)
+        # reproducible: a second pack of identical content is byte-identical
+        clone2 = tmp_path / "copy" / "Miranda_LAS"
+        clone2.parent.mkdir()
+        shutil.copytree(clone, clone2)
+        out2 = zip_pack(clone2)
+        assert out.read_bytes() == out2.read_bytes()
 
     def test_reference_archive_untouched(self):
         ref = REPO / "2b.rar"

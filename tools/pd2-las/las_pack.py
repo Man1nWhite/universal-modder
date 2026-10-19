@@ -307,12 +307,20 @@ def refresh_build_info(pack: Path, **overrides) -> None:
 
 
 def zip_pack(pack: Path) -> Path:
-    """Zip the pack folder in installable layout (top-level = folder name)."""
+    """Zip the pack folder in installable layout (top-level = folder name).
+
+    Reproducible: fixed timestamps and permissions so identical content
+    yields an identical archive (release-integrity friendly).
+    """
     import zipfile
 
     out = pack.with_suffix(".zip")
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for path in sorted(pack.rglob("*")):
             if path.is_file():
-                z.write(path, path.relative_to(pack.parent).as_posix())
+                info = zipfile.ZipInfo(path.relative_to(pack.parent).as_posix(),
+                                       date_time=(2020, 1, 1, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = 0o644 << 16
+                z.writestr(info, path.read_bytes())
     return out

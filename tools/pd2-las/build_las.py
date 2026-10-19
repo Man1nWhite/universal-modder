@@ -25,7 +25,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from las_pack import TEXTURE_PAIRS, SINGLE_TEXTURES, write_pack  # noqa: E402
+from las_pack import write_pack  # noqa: E402
 from source_model import load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 from vtf import parse_vtf, to_dds, to_png  # noqa: E402

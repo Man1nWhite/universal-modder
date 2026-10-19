@@ -122,8 +122,9 @@ def parse_vtf(data: bytes) -> VtfImage:
         raise VtfError(f"multi-frame VTFs are not supported (frames={frames})")
 
     # Resource entries (7.2+): 8 bytes each, (u24 tag | u8 flags, u32 value),
-    # until a zero tag. IMAGE tag = 0x30, LOWRES tag = 0x01.
-    image_off = lowres_off = None
+    # until a zero tag. IMAGE tag = 0x30; LOWRES (0x01) is parsed past and
+    # intentionally unused (mip 0 only).
+    image_off = None
     pos = 80 if ver_minor >= 3 else 64
     while pos + 8 <= header_size:
         tag = int.from_bytes(data[pos : pos + 3], "little")
@@ -133,8 +134,7 @@ def parse_vtf(data: bytes) -> VtfImage:
             break
         if tag == 0x30 and not (flags_r & 0x02):
             image_off = value
-        elif tag == 0x01 and not (flags_r & 0x02):
-            lowres_off = value
+        # tag 0x01 = low-res image; intentionally unused (mip 0 only)
         pos += 8
     if image_off is None:
         raise VtfError("VTF has no high-res image resource")

@@ -1,6 +1,5 @@
 """Diesel .model codec tests: byte-exact round-trip of the 2B reference models."""
 
-import struct
 import sys
 from pathlib import Path
 
