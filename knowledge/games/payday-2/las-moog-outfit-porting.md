@@ -137,6 +137,13 @@ guide's own in-game heuristic:
 load the model before editing materials — black/grey in the default pose is
 success. Nothing here is game-verified by us.
 
+A third pass attacked the *auditor* instead of the pack: the audit is now
+mutation-tested (gotcha 17), the guide text was re-read rule by rule, and the
+2B reference pack was decoded field by field as an oracle (gotcha 18). The
+pack's bytes did not change; the auditor gained two fixes (P2 now also
+requires every shipped texture/unit to be *registered*, P3 now requires the
+LAS flags to be switched **on**, not merely present).
+
 ## Gotchas
 
 1. **Symptom.** Model loads with hash strings instead of names. **Cause:**
@@ -241,6 +248,31 @@ success. Nothing here is game-verified by us.
     same hand/finger bones as the third-person one, and its vertex count must
     not change silently between builds.
 
+17. **Symptom.** A compliance auditor reports "all green" for a pack that
+    breaks the guide in half the places. **Cause.** The auditor was only
+    ever run against a good pack; nobody checked that it *can* fail, and two
+    of its rules were one-directional (they checked that the registered
+    files resolve, not that every shipped file is registered; they checked
+    that a flag name appears in the hook, not that the flag is set to true).
+    **Fix.** Mutation-test the auditor: break the pack the way the guide
+    forbids and assert that the matching check fails
+    (`check_guide_compliance_self_test.py`, 15/15 caught). Keep the negative
+    controls too — a pre-fix pack from git history must still fail the
+    check that caught it.
+
+18. **Symptom.** A working reference pack's bytes look incompatible with
+    yours — its weights sit in vertex channel 20 where yours sit in 19, its
+    section table has different ids, it carries `animation_data`/`author`/
+    `custom_hashlist` sections you do not have. **Cause.** The reference is
+    a *legacy* Diesel container: its channel ids above TEXCOORD7 are shifted
+    by +2, and the extra sections are stock-model metadata. **Fix.** Read it
+    as a behavioural oracle, not a byte template: map the channel ids
+    (legacy 15→BLENDINDICES, 17→BLENDWEIGHT0, 20/21→the two UV-direction
+    streams) and compare the *structure* — flag set, unit/object/config
+    shape, locator set, skin palettes — not the raw bytes. Its
+    `custom_hashlist` section is a plain list of custom names, which decodes
+    the whole rig without any hashlist.
+
 ## Assets
 
 Reference-only in this repo: `2b.rar` (working LAS pack, user-supplied), the
@@ -251,14 +283,18 @@ render-template zip are external downloads.
 
 - The green-channel orientation of ripped ME2 normals (DirectX vs OpenGL) is
   not decidable offline; currently flipped by default with a build flag.
-- Exact inventory of locator/effect object names an LAS outfit unit should
-  carry (the 2B reference's undecoded object3Ds) — the guide only lists three
-  examples. (The contract keeps the main tree's unnamed objects: 3 locators
-  plus the 32 finger bones; 150 more hash-only bones in the duplicated
-  10000+ tree stay unresolved.)
 - Whether `CONTOUR` can combine with `ALPHA_MASKED` for masked materials
   (lashes/hair cards) is not attested; such materials currently use the 2B
   template without contour.
-- Whether the 2B reference's two extra per-hand children (one under each
-  Hand) are weapon sockets or thumb tips — their hashes match no plausible
-  PD2 name, so they stay unnamed and unused.
+- Whether the forearm twist bones should carry weight: the 2B reference
+  keeps `Left/RightForeArmRoll` in its skin palette, our model keeps the
+  bone in the skeleton but binds no weight to it — which is what the guide
+  asks of a *ported* model ("merge the twist bones down"). The forearm
+  therefore does not twist with the animation.
+
+Resolved in the third pass: the locator/effect inventory. The 2B
+`custom_hashlist` decodes the rig's names, and the working pack carries
+exactly five locator objects — `aim`, `BackPack1`, `eyeAim`,
+`a_weapon_left_front`, `a_weapon_right_front` — the last two hanging off the
+hands (they are the weapon sockets, not thumb tips). Our model carries the
+same five, and the audit now checks them by name.

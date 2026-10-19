@@ -61,6 +61,12 @@ NAMED_BONES = [
     "RightUpLeg", "RightLeg", "RightFoot", "RightToeBase",
 ]
 
+# The locator / effect objects a PD2 character model carries. The reference LAS
+# pack (2B, a stock PD2 character model) has exactly this set; the guide warns
+# that deleting them causes problems in game.
+LOCATOR_OBJECTS = ["aim", "BackPack1", "eyeAim",
+                   "a_weapon_left_front", "a_weapon_right_front"]
+
 PASS, WARN, FAIL = "PASS", "WARN", "FAIL"
 
 
@@ -186,7 +192,9 @@ def check_skeleton(rep: Report, model: DieselModel, by_hash, by_id) -> None:
         rep.fail("S2", "guide: 3 bones per finger, 5 fingers, both hands (30)",
                  f"only {finger_total} finger bones in the skeleton")
 
-    # locators / effect objects: the unnamed object3Ds that are not fingers
+    # locators / effect objects: the guide says to leave them alone, and the
+    # reference LAS pack carries exactly this set (aim, backpack, eye aim and
+    # the two weapon locators) - so check them by name, not just by count
     finger_ids = set()
     for h in hands:
         for c in kids.get(h, []):
@@ -194,9 +202,17 @@ def check_skeleton(rep: Report, model: DieselModel, by_hash, by_id) -> None:
             finger_ids.update(descendants(objs, kids, c))
     locators = [sid for sid, o in objs.items()
                 if o["hash"] not in by_hash and sid not in finger_ids]
-    if locators:
+    hashes = {o["hash"] for o in objs.values()}
+    found = [n for n in LOCATOR_OBJECTS if hash_str(n) in hashes]
+    gone = [n for n in LOCATOR_OBJECTS if n not in found]
+    if locators and not gone:
         rep.ok("S3", "guide: leave locator/effect objects (Aim, e_taser, ...) alone",
-               f"{len(locators)} unnamed locator objects kept in the unit")
+               f"locator objects kept: {', '.join(found)} "
+               f"(+{len(locators)} other unnamed rig objects)")
+    elif gone:
+        rep.fail("S3", "guide: leave locator/effect objects (Aim, e_taser, ...) alone",
+                 f"locator objects missing from the unit: {gone} - deleting them "
+                 "can cause problems in game")
     else:
         rep.warn("S3", "guide: leave locator/effect objects (Aim, e_taser, ...) alone",
                  "no locator objects in the unit - tase/bag interactions may break")
@@ -562,8 +578,12 @@ def check_textures(rep: Report, pack: dict[str, bytes]) -> None:
         size = struct.unpack_from("<I", data, 12)[0]
         if path.endswith("_nm.texture"):
             normals_checked += 1
-            mip0 = data[dds.DDS_HEADER_SIZE:]
-            img = dds.decode_dxt5(mip0, size, size)
+            # the layout convention is a property of the encoder, so mip 0 plus
+            # the smallest mip are enough to judge it - decoding the whole
+            # pyramid here costs seconds per pack
+            mip0_len = max(16, size * size)      # DXT5: 16 bytes per 4x4 block
+            payload = data[dds.DDS_HEADER_SIZE:]
+            img = dds.decode_dxt5(payload[:mip0_len], size, size)
             flat = img.reshape(-1, 4) if hasattr(img, "reshape") else img
             ch = list(zip(*flat))
             r, g, b, a = ch[0], ch[1], ch[2], ch[3]
@@ -626,32 +646,51 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
     # AddFiles entries must resolve (paths are relative to the table root,
     # i.e. the pack's Lawson_LAS/ folder, and carry no extension)
     missing = []
+    registered: set[str] = set()
     for kind, path in re.findall(r'<(texture|df_nm|unit_mat) path="([^"]+)"', main):
         if kind == "texture":
+            registered.add(f"{path}.texture")
             if f"Lawson_LAS/{path}.texture" not in pack:
                 missing.append(f"texture {path}")
         elif kind == "df_nm":
             for suffix in ("_df.texture", "_nm.texture"):
+                registered.add(f"{path}{suffix}")
                 if f"Lawson_LAS/{path}{suffix}" not in pack:
                     missing.append(f"df_nm {path}{suffix}")
         else:
+            registered.add(f"{path}.material_config")
             if f"Lawson_LAS/{path}.material_config" not in pack:
                 missing.append(f"unit_mat {path}")
+    # ...and the other way round: an unregistered texture or unit is never
+    # loaded by the game (BeardLib only serves what AddFiles lists), so the
+    # outfit would render with missing textures
+    for name in pack:
+        if not name.startswith("Lawson_LAS/"):
+            continue
+        rel = name[len("Lawson_LAS/"):]
+        if rel.endswith(".texture") and rel not in registered:
+            missing.append(f"unregistered texture {rel}")
+        if rel.endswith(".material_config") and rel not in registered:
+            missing.append(f"unregistered material_config {rel}")
     if missing:
         rep.fail("P2", "guide: AddFiles registers the pack's own files",
                  f"unresolved: {missing}")
     else:
         rep.ok("P2", "guide: AddFiles registers the pack's own files",
-               "every texture, df_nm and unit_mat entry resolves in the pack")
+               "every texture, df_nm and unit_mat entry resolves in the pack, "
+               "and every shipped texture and unit is registered")
 
     hook = pack.get("Lawson_LAS/hooks/lawson.lua", b"").decode()
+    fields = dict(re.findall(r"(\w+)\s*=\s*(\"[^\"]*\"|true|false)", hook))
     need = ["category", "unit", "fps_unit", "hide_mask", "hide_armor",
             "replace_all", "fps_hide_armor", "fps_replace_body"]
-    gone = [n for n in need if n not in hook]
-    if gone:
+    gone = [n for n in need if n not in fields]
+    # the flags must be switched ON, not just mentioned
+    off = [n for n in need[3:] if fields.get(n) == "false"]
+    if gone or off:
         rep.fail("P3", "guide: the LAS registration hides the mask and armour "
                        "and replaces the body in third person and first person",
-                 f"hook lacks {gone}")
+                 f"hook lacks {gone}" + (f", flags not set: {off}" if off else ""))
     else:
         rep.ok("P3", "guide: the LAS registration hides the mask and armour "
                      "and replaces the body in third person and first person",

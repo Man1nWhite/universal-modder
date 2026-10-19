@@ -705,3 +705,26 @@ def test_built_pack_passes_the_guide_compliance_check():
     report = checker.audit(pack)
     fails = [c for c in report.checks if c["status"] == "FAIL"]
     assert not fails, "; ".join(f"{c['id']}: {c['detail']}" for c in fails)
+
+
+def test_the_compliance_checker_actually_fails_on_broken_packs():
+    """A checker that only ever passes proves nothing.
+
+    The self-test mutates the built pack the way the guide forbids (invented
+    render template, missing `unique="true"`, no DEPTH_SCALING, DXT1-style
+    texture, an unregistered texture, a hook flag switched off, ...) and
+    asserts that the matching check fails. It is the checker's own test.
+    """
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    selftest = _load("check_guide_compliance_self_test",
+                     "check_guide_compliance_self_test.py")
+    missed = []
+    base = selftest.read_pack()
+    for mutate, expect, label in selftest.MUTATIONS:
+        files = mutate(dict(base))
+        ids = selftest.failed_ids(selftest.audit_pack(files))
+        if expect not in ids:
+            missed.append(f"{expect} ({label}) -> failed {sorted(ids) or 'nothing'}")
+    assert not missed, "the checker did not catch: " + "; ".join(missed)

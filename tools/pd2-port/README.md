@@ -35,6 +35,9 @@ python tools/pd2-port/preview_check.py report    # geometry gates on the rebind
 python tools/pd2-port/preview_check.py render DIR  # + raster previews (flat, textured, diff)
 python tools/pd2-port/check_guide_compliance.py  # audit the pack against the
                                                 # ModWorkshop LAS/MOOG guide
+python tools/pd2-port/check_guide_compliance_self_test.py
+                                                # prove the auditor fails on
+                                                # broken packs (15 mutations)
 python tools/pd2-port/resolve_rig_names.py       # recover PD2 bone names from
                                                 # the rig contract's hashes
 python -m pytest -q tests/test_las_pack.py
@@ -84,6 +87,14 @@ The audit runs in the test suite (`test_built_pack_passes_the_guide_compliance_c
 so a pack that drifts from the guide fails the build. Current state: **36 pass,
 1 warning, 0 failures** — the warning is the normal maps' green-channel
 convention, which only the running game can settle.
+
+The auditor is itself tested: `check_guide_compliance_self_test.py` mutates the
+built pack the way the guide forbids (invented render template, contour
+without `unique="true"`, FPS without `DEPTH_SCALING`, mip-0-only texture,
+unregistered texture, hook flag switched off, ...) and asserts that the
+matching check fails — 15/15 mutations are caught. It runs in the suite as
+`test_the_compliance_checker_actually_fails_on_broken_packs`, because an
+auditor that only ever passes proves nothing.
 
 ## Install (when you have a candidate)
 

@@ -1,5 +1,77 @@
 # Lawson pack journal
 
+## 2026-10-19 — third check: the auditor itself, the 2B oracle, the guide text (NEW)
+
+- Asked for a third pass that attacks the *checker* instead of re-running it.
+  Five angles: mutation-test the auditor, re-read the guide, diff the pack
+  against the 2B reference pack, and the two assumptions nothing had tested
+  yet (degenerate finger segments, 0-based skin palettes).
+- **The auditor had two blind spots; a mutation test found them.** New
+  `tools/pd2-port/check_guide_compliance_self_test.py` mutates the built pack
+  the way the guide forbids (invented render template, contour without
+  `unique="true"`, contour without `contour_opacity`, FPS without
+  `DEPTH_SCALING`, mip-0-only texture, plain-RGB normal map, missing
+  `df_nm` entry, missing `unit_mat` entry, manifest without Hooks, hook flag
+  switched off, missing localization key, renamed material, wrong
+  `materials` version, texture path with an extension, skinning keyword below
+  the geometry's influences) and asserts that the matching check fails.
+  Two mutations were **not** caught: P2 only checked that the registered
+  files resolve, not that every shipped texture/unit *is* registered (an
+  unregistered texture is never loaded by BeardLib), and P3 only looked for
+  the flag names, not for their values (`fps_replace_body = false` passed).
+  Both fixed; the self-test now detects **15/15** mutations and runs in the
+  test suite (`test_the_compliance_checker_actually_fails_on_broken_packs`).
+- **Negative controls from git history.** The pre-finger pack (7,967,568 B)
+  fails exactly S6 ("no finger bone carries a vertex") and the pre-FPS-fix
+  pack (7,943,697 B) fails exactly F3 ("the FPS unit is missing 18 finger
+  bones") — the skeleton checks fail on real defects, not just on synthetic
+  ones.
+- **The guide, re-read from the wiki** (all four chunks): the 54-bone rig
+  (1 pelvis + 3 spine + neck/head + shoulders/arms/forearms/hands + 3 bones
+  per finger + legs/feet/toebases, forearm twist bones included), 3
+  influences, `DEPTH_SCALING` for the FPS unit, `unique="true"` plus
+  `contour_color`/`contour_opacity`, texture paths without an extension, no
+  invented render templates, tangents on, vertex colours off, DXT5 ARGB 8bpp
+  interpolated alpha, X in alpha / red white / blue black / green OpenGL Y+.
+  Every rule the auditor enforces is in the source text; the one open
+  question (the source's green-channel convention) is exactly the guide's
+  "invert the green channel if needed".
+- **The 2B reference pack, as an oracle.** The archive is RAR5 and the
+  sandbox has no extractor, so `unrar` was built from source
+  (`github.com/pmachapman/Unrar`) and the reference extracted. Field by
+  field: `main.xml` (table/Localization/Hooks/`armorskinstweakdata`/
+  AddFiles), the hook's flag set, the `.unit` (type `dah`, slot 1, the
+  `unit_data` + `contour` extensions), the `.object` (`diesel` +
+  `graphic_group`), the JSON localization keys and the material configs all
+  match ours. Our model carries the same five locator/effect objects
+  (`aim`, `BackPack1`, `eyeAim`, `a_weapon_left_front`,
+  `a_weapon_right_front`); the auditor now checks them **by name** (S3)
+  instead of counting unnamed objects.
+- **A false alarm, resolved.** 2B's geometry stores its weights in channel
+  id 20 where ours uses 19, which looked like an incompatible vertex layout.
+  It is the legacy container's channel-id shift (audit A06: ids above
+  TEXCOORD7 move by +2), so after the shift both files use the same
+  channels: POSITION0, TEXCOORD0, BLENDINDICES, BLENDWEIGHT0, NORMAL0 and
+  the two UV-direction streams. Our layout is right; 2B is a behavioural
+  oracle, not a byte template.
+- **The two untested assumptions, checked.** The PD2 finger bones are
+  1.89-4.03 cm long and the ME2 finger segments 1.75-4.40 cm, so the
+  segment fit cannot collapse on a zero-length bone; and every skin palette
+  in the pack maps 0-based local indices (the retired route's bug class) with
+  contiguous 1..N section ids.
+- **Speed.** The auditor decoded the whole mip pyramid of every normal map;
+  the layout rule is a property of the encoder, so mip 0 is enough now
+  (12.6 s -> 8.3 s per audit, ~2 min for the self-test).
+- Result: **36 pass, 1 warn, 0 fail**, and the *pack bytes did not change*
+  (8,015,689 B, sha256 `063d5f64...`) - only the auditor and the tests
+  grew. Suite: 185 passed, 5 skipped.
+- **Still open:** the normal maps' green-channel convention (only the running
+  game can settle it), and the forearm twist bones: the reference keeps
+  `ForeArmRoll` in its skin palette, ours keeps the bone in the skeleton but
+  binds no weight to it - which is what the guide asks of a ported model
+  ("merge the twist bones down"). The twist is therefore not animated on the
+  forearm.
+
 ## 2026-10-19 — guide-compliance audit: mitten hands found, fingers now articulate (NEW)
 
 - Asked to check the pack against the ModWorkshop LAS/MOOG outfit guide.

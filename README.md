@@ -42,6 +42,11 @@ Build with `python tools/pd2-port/build_las_pack.py` (see
 requiring **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe Mod**.
 Nothing is game-verified yet.
 
+The pack is audited against the ModWorkshop LAS/MOOG guide on every build
+(`tools/pd2-port/check_guide_compliance.py`: 36 checks pass, 1 warning, 0
+failures) and the auditor is itself mutation-tested — it must fail on 15
+deliberately broken packs, and it does.
+
 **Download:** [`lawson-las-v1` release](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1)
 — `lawson_las.zip` is tracked in the repo and rebuilt by CI on every
 `lawson-las-v*` tag, so the release asset and `dist/lawson_las.zip` are the

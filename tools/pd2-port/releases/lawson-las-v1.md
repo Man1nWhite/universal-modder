@@ -26,7 +26,9 @@ the heister's mask and armour while the skin is worn.
 - **A guide-compliance audit** (`tools/pd2-port/check_guide_compliance.py`)
   now runs over the built pack: 36 checks pass, 1 warning, 0 failures against
   the ModWorkshop LAS/MOOG outfit guide. The audit is part of the test suite,
-  so a pack that drifts from the guide fails the build.
+  so a pack that drifts from the guide fails the build — and the audit itself
+  is mutation-tested (`check_guide_compliance_self_test.py`): 15 deliberately
+  broken packs, 15 caught.
 
 ---
 
@@ -123,11 +125,15 @@ rebuilds and re-publishes it on every `lawson-las-v*` tag.
 
 **Nothing here is game-verified.** The pack is offline-validated only:
 
-- 184 automated tests pass, including an end-to-end test on the real source
+- 185 automated tests pass, including an end-to-end test on the real source
   zip (ME2 COLLADA import, rig retarget, model authoring, pack assembly).
 - The guide-compliance audit passes: 36 checks against the ModWorkshop
   LAS/MOOG rules, 0 failures (1 warning: the normal maps' green-channel
-  convention can only be settled in game).
+  convention can only be settled in game). The auditor is itself tested: it
+  must fail on 15 deliberately broken packs, and it does.
+- The pack's structure was diffed field by field against the working 2B
+  Legendary Armour Skins reference pack (manifest, hook flags, unit, object,
+  material config, localization, locator objects) — it matches.
 - The geometry gates in `tools/pd2-port/preview_check.py` pass: no weld
   discontinuities above 2.4 cm, no face/mouth/eye distortion, zero corner-split
   twin separation, arm-only FPS cut of 10,468 vertices.
