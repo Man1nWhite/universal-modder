@@ -47,6 +47,33 @@ this audit checks.
   the guide is newer and states them as required, so this pack follows the
   guide and treats 2B only as the LAS registration/geometry contract.
 
+## Double-check pass (same day) — build-flow fixes & model/config parity
+
+A verification sweep after the compliance changes found and fixed two
+pipeline bugs and one benign deviation:
+
+1. **`build_las.py --stage inventory` never wrote `source_inventory.json`**
+   (the file write was gated to *other* stages, which also omitted the
+   models section). Fixed: the models inventory is computed for every
+   stage and the record is always persisted (`--stage inventory` still
+   dumps pure JSON to stdout).
+2. **`build_models.py` silently skipped the pack/zip step** when no
+   scaffold existed (fresh checkout → no deliverable, no warning), while
+   the README documents it as a one-command build. Fixed: it now builds
+   the scaffold via `build_las --stage all` first and refuses to finish
+   without a pack.
+3. **fps `c_block` material is undefined in `material_config`** — this is
+   **2B parity, not a defect**: the kept template drawable `c_block`
+   references template material `0x8db63936…`, which the working 2B
+   reference also leaves undefined (the 2B fps model carries 5
+   config-undefined materials; we carry 1). The probe now asserts
+   "defined in config OR kept-template parity with 2B". The third-person
+   model has zero gaps: all 6 atom-referenced materials are defined.
+
+Verified after the fixes: one-command build from a clean tree produces
+the full pack + zip; zip is byte-identical across rebuilds (5,388,811 B);
+BUILD_INFO covers all 20 files with matching hashes; suite 191 passed.
+
 ## Not applicable to this pipeline
 
 Blender import/export steps (Bone Dir = Blender, Apply Modifiers off,

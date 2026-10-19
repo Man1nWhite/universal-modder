@@ -304,6 +304,18 @@ class TestLasScaffold:
         digest = hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()
         assert inv["source_zip_sha256"] == digest
 
+    def test_inventory_stage_always_persists(self, tmp_path):
+        """--stage inventory must write source_inventory.json (with models),
+        not only dump JSON to stdout — otherwise the build leaves no record."""
+        import build_las
+
+        rc = build_las.main(["--stage", "inventory", "--out", str(tmp_path)])
+        assert rc == 0
+        inv = json.loads((tmp_path / "source_inventory.json").read_text())
+        assert inv["source_zip_sha256"] == hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()
+        assert "third_person" in inv["models"]
+        assert inv["models"]["third_person"]["triangles"] > 0
+
     def test_material_config_weight_classes(self, pack):
         """Guide contract: contour template + unique on TPP skins, fps depth scaling."""
         tpp_cfg = (

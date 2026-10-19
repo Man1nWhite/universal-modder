@@ -102,6 +102,7 @@ def main(argv: list[str] | None = None) -> int:
 
     source = Path(args.source)
     out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
     if not source.is_file():
         print(f"error: source not found: {source}", file=sys.stderr)
         return 2
@@ -121,14 +122,14 @@ def main(argv: list[str] | None = None) -> int:
         written = arc.extract(ext)
         print(f"extract: {len(written)} files -> {ext}")
 
-    if args.stage in ("inventory", "all"):
-        tpp = load_model(*(arc.read(p) for p in TPP_MDLS))
-        fps = load_model(*(arc.read(p) for p in FPS_MDLS))
-        inventory["models"] = {"third_person": model_inventory(tpp), "first_person": model_inventory(fps)}
-        print(
-            f"models: tpp={tpp.name} ({len(tpp.bones)} bones, {tpp.triangle_count} tris) "
-            f"fps={fps.name} ({len(fps.bones)} bones, {fps.triangle_count} tris)"
-        )
+    # Model inventory is cheap and belongs in every persisted record.
+    tpp = load_model(*(arc.read(p) for p in TPP_MDLS))
+    fps = load_model(*(arc.read(p) for p in FPS_MDLS))
+    inventory["models"] = {"third_person": model_inventory(tpp), "first_person": model_inventory(fps)}
+    print(
+        f"models: tpp={tpp.name} ({len(tpp.bones)} bones, {tpp.triangle_count} tris) "
+        f"fps={fps.name} ({len(fps.bones)} bones, {fps.triangle_count} tris)"
+    )
 
     textures: dict[str, bytes] = {}
     if args.stage in ("textures", "all"):
@@ -175,12 +176,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"pack scaffold: {pack}")
         print("NOTE: Diesel .model files are not generated yet; scaffold is marked WIP.")
 
+    inv_path = out / "source_inventory.json"
+    inv_path.write_text(json.dumps(inventory, indent=2) + "\n")
     if args.stage == "inventory":
+        # keep stdout pure JSON for scripting; the file is always persisted
         json.dump(inventory, sys.stdout, indent=2)
         print()
     else:
-        (out / "source_inventory.json").write_text(json.dumps(inventory, indent=2) + "\n")
-        print(f"inventory: {out / 'source_inventory.json'}")
+        print(f"inventory: {inv_path}")
     return 0
 
 

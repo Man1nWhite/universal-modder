@@ -853,21 +853,32 @@ def main(argv=None) -> int:
             preview_from_model(out_path, args.out / "previews", f"{label}_authored")
             print(f"[{label}] previews -> {args.out / 'previews'}")
 
-    # update pack scaffold if present
+    # update pack scaffold — build it first if this is a fresh checkout
     pack_dir = args.out / "Miranda_LAS"
     unit_dir = pack_dir / "assets" / "units" / "miranda" / "skins" / "miranda"
-    if unit_dir.is_dir():
-        import shutil
-        import las_pack
+    if not unit_dir.is_dir():
+        import build_las
 
-        for label, out_path in packs:
-            shutil.copy2(out_path, unit_dir / out_path.name)
-        wip = pack_dir / "WIP_DO_NOT_INSTALL.txt"
-        if wip.exists():
-            wip.unlink()
-        las_pack.refresh_build_info(pack_dir)
-        zip_path = las_pack.zip_pack(pack_dir)
-        print(f"pack updated: {unit_dir} (+ {zip_path.name})")
+        print("pack scaffold missing — building it (build_las --stage all)")
+        rc = build_las.main(
+            ["--stage", "all", "--source", str(args.source_zip), "--out", str(args.out)]
+        )
+        if rc != 0:
+            raise SystemExit(f"build_las failed with exit code {rc}")
+    if not unit_dir.is_dir():
+        raise SystemExit(f"pack scaffold still missing at {unit_dir}")
+    import shutil
+
+    import las_pack
+
+    for label, out_path in packs:
+        shutil.copy2(out_path, unit_dir / out_path.name)
+    wip = pack_dir / "WIP_DO_NOT_INSTALL.txt"
+    if wip.exists():
+        wip.unlink()
+    las_pack.refresh_build_info(pack_dir)
+    zip_path = las_pack.zip_pack(pack_dir)
+    print(f"pack updated: {unit_dir} (+ {zip_path.name})")
     return 0
 
 
