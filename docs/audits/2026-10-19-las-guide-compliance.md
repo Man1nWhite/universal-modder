@@ -110,6 +110,33 @@ Byte-level verification of the shipped zip, beyond the test suite:
   ships 2 `base_*` textures; we ship 7 region-mapped ones) and our
   `BUILD_INFO.json` provenance file.
 
+## Structural comparison vs the 2B reference (same day)
+
+Systematic schema diff of the two packs:
+
+**Identical structure** — `main.xml` element tree (same tags/attributes;
+only the texture entry count differs), lua hook keys (all 8, same
+schema), `.unit` and `.object` XML shapes (shape-equal on all four),
+model drawables (tpp `g_body/_lod1`, `g_head/_lod1`, `s_body`; fps adds
+`c_block`), the Object3D tree (212 nodes tpp / 98 fps — the full rig,
+locators included), skinbones block format and inv-world convention, and
+the geometry channel layout.
+
+**Explainable differences**:
+
+| Difference | Why |
+| --- | --- |
+| skinbones palette 52 bones (ours) vs 22 (2B) | Content: our mesh weights fingers/toes/Hips/Spine1; 2B's dress weights only 22 bones. Same skeleton tree — ours is a weighted-bone superset. |
+| `AUTHOR` section present in 2B, absent in ours | Intentional: `assemble_model` drops p2mt/OVERKILL authoring metadata (2B carries `alfred.roettinger@starbreeze` build strings). |
+| material_config sets differ (ours: mtr_face/hair/eyes + guide CONTOUR contract; 2B: `*_lod1`, `alpha_ref`, ALPHA_MASKED head) | Content: our hair is a solid mesh (no alpha cards); the guide's newer contract adds group/unique/CONTOUR. |
+| Textures: 7 region-mapped DXT5 vs 2B's 2 giant atlases (`base_df` 22 MB) | Content: region-mapped from the L4D2 source (TEXTURE_PAIRS contract). |
+| 19 MATERIAL sections (ours, per-group copies) vs 7 (2B) | Re-authoring artifact; same name contract, atom→matgroup resolution verified identical. |
+| `BUILD_INFO.json`, no `cooked_physics`/`ss.model` | Ours adds provenance; 2B's extras are 0-byte/orphan export leftovers. |
+
+Verdict: structurally the same product shape as 2B at every level the
+engine reads — pack schema, unit/object graphs, skeleton tree, drawable
+names, and skinning conventions — with content-driven differences only.
+
 ## Not applicable to this pipeline
 
 Blender import/export steps (Bone Dir = Blender, Apply Modifiers off,
