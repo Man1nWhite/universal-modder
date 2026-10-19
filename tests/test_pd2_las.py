@@ -295,6 +295,18 @@ class TestLasScaffold:
         digest = hashlib.sha256((pack / "main.xml").read_bytes()).hexdigest()
         assert info["payload_sha256"]["main.xml"] == digest
 
+    def test_build_info_records_template_hashes(self, pack):
+        """Build-input hashes must persist in BUILD_INFO (override merge)."""
+        import las_pack
+
+        las_pack.refresh_build_info(
+            pack, templates={"2b.model": "a" * 64, "fps_2b.model": "b" * 64}
+        )
+        info = json.loads((pack / "BUILD_INFO.json").read_text())
+        assert info["templates"] == {"2b.model": "a" * 64, "fps_2b.model": "b" * 64}
+        digest = hashlib.sha256((pack / "main.xml").read_bytes()).hexdigest()
+        assert info["payload_sha256"]["main.xml"] == digest
+
     def test_source_zip_hash_recorded(self):
         """The repo source zip hash must match what the last build recorded."""
         inv_path = REPO / "build" / "pd2-las" / "source_inventory.json"

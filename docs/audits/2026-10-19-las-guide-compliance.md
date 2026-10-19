@@ -137,6 +137,37 @@ Verdict: structurally the same product shape as 2B at every level the
 engine reads — pack schema, unit/object graphs, skeleton tree, drawable
 names, and skinning conventions — with content-driven differences only.
 
+## Quadruple-check pass (same day) — crash-safety & provenance
+
+Engine-failure-oriented probes, plus one provenance gap closed:
+
+- **Index/atom bounds**: for every drawable in both shipped models —
+  topology indices < geometry vertex count, atom `material_id` within
+  the matgroup item list, atom spans inside the index buffer, all
+  blendindices < palette size (52/36). No out-of-range values anywhere;
+  nothing here should crash the engine.
+- **Weight resolution**: every source vertex has ≥1 weighted bone that
+  resolves through `skeleton_map` (direct map or nearest-mapped-ancestor
+  fold) to a real target — 0 unresolvable vertices (tpp: 13,027 direct +
+  6,759 folded influences; fps: 2,697 + 440). The 51 facial/helper bones
+  that are not in `map` (`brow_*`, `jawBone`, `hlp_*`, `ValveBiped.*`)
+  fold into their mapped ancestors by design; `drop.patterns` documents
+  the intended merges.
+- **Material coverage**: every source material is claimed by a group
+  spec (fps `materials: None` = all non-`phy`), nothing dropped silently.
+- **Texture provenance**: all 7 pack textures are byte-identical to a
+  fresh `to_dds(parse_vtf(source.vtf))` re-derivation from the source
+  zip; the icon is byte-identical to a recomputed face-crop BC3 encode;
+  the material_config texture refs and the pack texture files are a
+  7-to-7 bijection.
+- **Build-input hashing (fixed here)**: BUILD_INFO now records the
+  sha256 of both 2B template models under `templates` (the other build
+  input beside the source zip), merged via
+  `refresh_build_info(**overrides)`. Regression-tested.
+- **Reproducibility**: a full second build is byte-identical —
+  `miranda.model` 683ba1f1…, `fps_miranda.model` 050b5a26… (unchanged
+  from the original verified baselines), zip reproducible.
+
 ## Not applicable to this pipeline
 
 Blender import/export steps (Bone Dir = Blender, Apply Modifiers off,

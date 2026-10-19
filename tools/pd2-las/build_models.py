@@ -32,6 +32,7 @@ The template directory must contain 2b.model and fps_2b.model (extracted from
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import sys
@@ -876,7 +877,10 @@ def main(argv=None) -> int:
     wip = pack_dir / "WIP_DO_NOT_INSTALL.txt"
     if wip.exists():
         wip.unlink()
-    las_pack.refresh_build_info(pack_dir)
+    las_pack.refresh_build_info(pack_dir, templates={
+        name: hashlib.sha256((args.templates / name).read_bytes()).hexdigest()
+        for name in ("2b.model", "fps_2b.model")
+    })
     zip_path = las_pack.zip_pack(pack_dir)
     print(f"pack updated: {unit_dir} (+ {zip_path.name})")
     return 0
