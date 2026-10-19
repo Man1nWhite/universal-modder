@@ -7,6 +7,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      # the LAS pack is a byte-reproducible artifact: it must be built with the
+      # same interpreter and library versions as the release workflow, or the
+      # deflate output (and so the sha256) differs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: install deps
+        run: python -m pip install --upgrade pip "pillow==13.0.0" "numpy==2.4.6" "pyyaml>=6" pytest
       # ffmpeg is only for test_compile_small_edl. Without recommends apt skips mesa, VA/VDPAU drivers and
       # pocketsphinx-en-us (about half the download), and with man-db's auto-update off dpkg skips the man-page
       # reindex that can take minutes on the runner. When the Ubuntu mirror crawls (it has, at ~150 KB/s), the step
@@ -22,7 +30,7 @@ jobs:
         # the guide-compliance audit and its mutation self-test read the built
         # pack; without it those two tests silently skip, and a checker that
         # only runs on release tags is not a check
-        run: uv run python tools/pd2-port/build_las_pack.py
+        run: python tools/pd2-port/build_las_pack.py
       - name: the tracked pack must equal a fresh build
         # a stale tracked pack (or a non-deterministic build) must not slip
         # through on a branch push
