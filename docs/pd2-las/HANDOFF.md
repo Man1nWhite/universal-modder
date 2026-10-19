@@ -6,7 +6,9 @@ built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
 **State:** the pack is built and offline-verified to the limit of what a
 sandbox can prove. Deliverable: `build/pd2-las/Miranda_LAS.zip` (drop the
-inner `Miranda_LAS/` into PD2 `mods/`; needs BeardLib + LegendaryArmours).
+inner `Miranda_LAS/` into `PAYDAY 2\assets\mod_overrides\` — the 2B/MOOG
+convention; BeardLib loads the `main.xml` packs from there and the hooks
+register the skin — needs BeardLib + LegendaryArmours).
 Remaining: (1) in-game checklist run by the user, (2) ME2 redistribution
 rights gate before any public release. Nothing else is pending.
 

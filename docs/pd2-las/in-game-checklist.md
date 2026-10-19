@@ -2,8 +2,10 @@
 
 Pack to install: `build/pd2-las/Miranda_LAS` (or the zipped copy
 `build/pd2-las/Miranda_LAS.zip`) → drop the `Miranda_LAS` folder into
-`PAYDAY 2/mods/`. Requires BeardLib + the LegendaryArmours (LAS) framework,
-exactly like the 2B reference pack (`2b.rar`).
+`PAYDAY 2\assets\mod_overrides\`. Requires BeardLib + the LegendaryArmours
+(LAS) framework, exactly like the 2B reference pack (`2b.rar`), which
+installs the same way (its `main.xml` + `hooks/` are loaded by BeardLib's
+AddFramework from `assets/mod_overrides/`).
 
 Nothing here can be verified offline — every item needs the running game.
 Report failures with the item number and a screenshot.
