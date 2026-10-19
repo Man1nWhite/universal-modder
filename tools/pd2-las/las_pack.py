@@ -163,11 +163,23 @@ def render_object_xml(base: str, fps: bool) -> str:
 
 
 def render_material_config(base: str, fps: bool) -> str:
+    """Material config per the ModWorkshop LAS/MOOG module guide.
+
+    - root header carries ``version="3"`` and a ``group`` name;
+    - third-person character materials use the guide's CONTOUR template with
+      ``unique="true"`` and the contour variables (wall-outline support);
+    - first-person materials match the guide's fps example (DEPTH_SCALING,
+      no contour);
+    - texture paths carry no file extension.
+    """
+    group = Path(base).name
+
     def mat(name: str, pair: tuple[str, str], extra: str = "") -> str:
         df, nm = pair
-        template = "generic:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
         if fps and name == "mtr_body":
             template = "generic:DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
+        else:
+            template = "generic:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
         return (
             f'    <material name="{name}" render_template="{template}" version="2">\n'
             f'        <diffuse_texture file="{UNIT_BASE}/{df}"/>\n'
@@ -176,26 +188,33 @@ def render_material_config(base: str, fps: bool) -> str:
             "    </material>\n"
         )
 
+    def contour_mat(name: str, pair: tuple[str, str]) -> str:
+        df, nm = pair
+        return (
+            f'    <material name="{name}" unique="true" version="2"\n'
+            '              render_template="generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS">\n'
+            f'        <diffuse_texture file="{UNIT_BASE}/{df}"/>\n'
+            f'        <bump_normal_texture file="{UNIT_BASE}/{nm}"/>\n'
+            '        <variable value="1 1 1" type="vector3" name="contour_color"/>\n'
+            '        <variable value="0" type="scalar" name="contour_opacity"/>\n'
+            "    </material>\n"
+        )
+
     body_pair = TEXTURE_PAIRS["body"]
     face_pair = TEXTURE_PAIRS["face"]
     head_pair = TEXTURE_PAIRS["head"]
     eye_tex = SINGLE_TEXTURES["eyes"]
+    skin_mat = contour_mat if not fps else mat
     parts = [
-        '<materials version="3">\n',
+        f'<materials version="3" group="{group}">\n',
         "\n",
-        mat("mtr_body", body_pair),
+        skin_mat("mtr_body", body_pair),
         "\n",
-        mat("mtr_face", face_pair),
+        skin_mat("mtr_face", face_pair),
         "\n",
-        mat("mtr_head", head_pair),
+        skin_mat("mtr_head", head_pair),
         "\n",
-        (
-            '    <material name="mtr_hair" render_template="generic:DIFFUSE_TEXTURE:'
-            'NORMALMAP:SKINNED_3WEIGHTS" version="2">\n'
-            f'        <diffuse_texture file="{UNIT_BASE}/{head_pair[0]}"/>\n'
-            f'        <bump_normal_texture file="{UNIT_BASE}/{head_pair[1]}"/>\n'
-            "    </material>\n"
-        ),
+        skin_mat("mtr_hair", head_pair),
         "\n",
         (
             '    <material name="mtr_eyes" render_template="generic:DIFFUSE_TEXTURE:'

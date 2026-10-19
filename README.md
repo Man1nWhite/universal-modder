@@ -34,6 +34,13 @@ first-person arms, following the contract of the reference pack `2b.rar` — bui
 from the source assets in `l4d2_miranda_lawson_1.zip` (an L4D2 Miranda Lawson
 replacement for Rochelle). Pipeline and status: [`tools/pd2-las/`](tools/pd2-las/README.md).
 
+The pack follows the ModWorkshop Wiki
+[LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide):
+`CONTOUR` template with `unique="true"` and contour variables on third-person
+skin materials, `DEPTH_SCALING` on the first-person material, `group` in the
+`<materials>` header, ≤3 weights per vertex, extension-less texture paths, DXT5
+diffuse/normal. Audit: [guide compliance](docs/audits/2026-10-19-las-guide-compliance.md).
+
 An earlier approach that surgically replaced heister character models
 (Clover/Bonnie/Sydney, plus outfit packs built on the same mesh) was **retired as
 a dead end** on 2026-10-18: the source rig was broken, the packs crashed or

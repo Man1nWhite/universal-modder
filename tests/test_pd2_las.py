@@ -305,14 +305,38 @@ class TestLasScaffold:
         assert inv["source_zip_sha256"] == digest
 
     def test_material_config_weight_classes(self, pack):
-        """Eyeballs are 3-weight skinned; shadow matches the 2B contract."""
-        cfg = (
+        """Guide contract: contour template + unique on TPP skins, fps depth scaling."""
+        tpp_cfg = (
             pack / "assets/units/miranda/skins/miranda/miranda.material_config"
         ).read_text()
-        assert 'name="mtr_eyes" render_template="generic:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS"' in cfg
-        assert 'name="shadow_caster" render_template="shadow_caster_only:SKINNED_1WEIGHT"' in cfg
+        fps_cfg = (
+            pack / "assets/units/miranda/skins/miranda/fps_miranda.material_config"
+        ).read_text()
+        # root header per guide: version="3" + group
+        for cfg in (tpp_cfg, fps_cfg):
+            assert cfg.startswith('<materials version="3" group="')
+        # third-person skins: CONTOUR template, unique="true", contour variables
         for name in ("mtr_body", "mtr_face", "mtr_head", "mtr_hair"):
-            assert f'name="{name}"' in cfg
+            assert f'name="{name}" unique="true"' in tpp_cfg, name
+        assert tpp_cfg.count(
+            'render_template="generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"'
+        ) == 4
+        assert tpp_cfg.count('name="contour_color"') == 4
+        assert tpp_cfg.count('name="contour_opacity"') == 4
+        # eyes: diffuse-only 3 weights; shadow: 2B contract
+        assert 'name="mtr_eyes" render_template="generic:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS"' in tpp_cfg
+        assert 'name="shadow_caster" render_template="shadow_caster_only:SKINNED_1WEIGHT"' in tpp_cfg
+        # fps: guide fps example exactly, no contour
+        assert (
+            'name="mtr_body" render_template="generic:DEPTH_SCALING:DIFFUSE_TEXTURE:'
+            'NORMALMAP:SKINNED_3WEIGHTS"' in fps_cfg
+        )
+        assert "CONTOUR" not in fps_cfg
+        # texture paths carry no file extension (guide)
+        for cfg in (tpp_cfg, fps_cfg):
+            for line in cfg.splitlines():
+                if "_texture file=" in line:
+                    assert ".texture" not in line and ".dds" not in line, line
 
     def test_refresh_build_info_sees_models(self, pack, tmp_path):
         """refresh_build_info flips models_present and re-hashes the tree."""
