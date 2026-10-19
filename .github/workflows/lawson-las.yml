@@ -32,7 +32,10 @@ jobs:
         # and a different Pillow/numpy or zlib changes the deflate output.
         run: python -m pip install --upgrade pip "pillow==13.0.0" "numpy==2.4.6" "pyyaml>=6" pytest
       - name: build the pack
-        # the pack version is the one stamped in the release notes
+        # The pack version is the one stamped in the release notes of the tag.
+        # A plain push to main has no notes, so the builder's own version is
+        # used - and a stale fallback here would stamp a different version
+        # into the manifest and fail the byte check below.
         env:
           NOTES: tools/pd2-port/releases/${{ github.ref_name }}.md
         run: |
@@ -40,8 +43,13 @@ jobs:
           if [ -f "${NOTES}" ]; then
             VERSION=$(sed -n 's/.*<!-- pack_version: \(.*\) -->.*/\1/p' "${NOTES}")
           fi
-          echo "building version ${VERSION:-0.1.0}"
-          python tools/pd2-port/build_las_pack.py --version "${VERSION:-0.1.0}"
+          if [ -n "${VERSION}" ]; then
+            echo "building version ${VERSION} (from ${NOTES})"
+            python tools/pd2-port/build_las_pack.py --version "${VERSION}"
+          else
+            echo "building the builder's own version (no ${NOTES})"
+            python tools/pd2-port/build_las_pack.py
+          fi
       - name: verify the build matches the tracked pack
         # the release asset must be the same bytes as the tracked
         # dist/lawson_las.zip: a mismatch means the source or the builder

@@ -41,7 +41,7 @@ first; it is the fastest way to tell a fresh checkout from a broken one.
 | Winding / tangent frame | `check_mesh_geometry.py` | **0** inverted triangles in TPP body, TPP head and FPS arms |
 | Pack-level test mutations | `check_test_suite_mutations.py` | **5/5** broken packs caught by the pytest wrappers |
 | Normal-map convention | `check_nm_convention.py` | not decidable from the files — the provenance decides it (§5) |
-| Test suite | `pytest -q tests` | **188 passed, 5 skipped** |
+| Test suite | `pytest -q tests` | **190 passed, 5 skipped** |
 | Geometry gates | `preview_check.py report` | RESULT OK (max weld discontinuity 2.38 cm) |
 
 The single warning is `G1` (the normal maps' green channel) — it is a *known,

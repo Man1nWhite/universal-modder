@@ -820,3 +820,43 @@ def test_the_status_page_matches_the_shipped_pack():
     counts = checker.audit(pack).counts()
     assert f"**{counts['PASS']} pass, {counts['WARN']} warn, {counts['FAIL']} fail**" in status, (
         "STATUS.md does not quote the audit's result")
+
+
+def test_the_builder_version_matches_the_latest_release_notes():
+    """Two sources of truth for the pack version - they must agree.
+
+    The release workflow stamps the version from the release notes of the
+    tag; a push without notes falls back to the builder's own VERSION. If
+    the two drift, the workflow builds a pack with a different version in
+    its manifest and the byte check fails (which is how it was found).
+    """
+    import re
+
+    builder = (PD2 / "build_las_pack.py").read_text()
+    version = re.search(r'^VERSION\s*=\s*"([^"]+)"', builder, re.M).group(1)
+
+    notes = sorted(
+        PD2.glob("releases/lawson-las-v*.md"),
+        key=lambda p: int(re.search(r"v(\d+)\.md$", p.name).group(1)),
+    )
+    assert notes, "no release notes found"
+    latest = notes[-1]
+    stamped = re.search(r"<!--\s*pack_version:\s*([^>]+?)\s*-->", latest.read_text()).group(1)
+    assert version == stamped, (
+        f"the builder stamps {version} but {latest.name} says {stamped}")
+
+
+def test_the_tracked_pack_carries_the_builder_version():
+    """The shipped pack's manifest must carry the current version."""
+    import json
+    import re
+    import zipfile
+
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    with zipfile.ZipFile(pack) as z:
+        manifest = json.loads(z.read("Lawson_LAS/build_manifest.json"))
+    builder = (PD2 / "build_las_pack.py").read_text()
+    version = re.search(r'^VERSION\s*=\s*"([^"]+)"', builder, re.M).group(1)
+    assert manifest["version"] == version
