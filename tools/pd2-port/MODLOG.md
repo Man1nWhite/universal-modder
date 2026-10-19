@@ -25,14 +25,25 @@
 - New workflow `.github/workflows/lawson-las.yml`: builds the pack, runs the
   tests, uploads a workflow artifact on every push to `main`, and on a
   `lawson-las-v*` tag creates or updates the release and attaches
-  `lawson_las.zip` + `lawson_las.zip.sha256`.
-- Release `lawson-las-v1` published on GitHub with the pack as its asset.
-- Tests: 179 passed, 5 skipped — unchanged. (A first run showed 10 kb/um
-  failures; they were only a missing `pyyaml` in the local venv, not a
-  regression.) Determinism re-checked: rebuilding with the same version
-  reproduces the same sha256.
-- Still **not game-verified**, and the release page says so before the install
-  steps, not in a footnote.
+  `lawson_las.zip` + `lawson_las.zip.sha256`. A step diffs the runner's build
+  against the tracked `dist/lawson_las.zip.sha256`, so a release asset can
+  never drift from the committed pack.
+- Release `lawson-las-v1` published on GitHub with the pack as its asset
+  (marked **pre-release**: the pack is not game-verified, and the page says so
+  before the install steps rather than in a footnote). The upload itself ran
+  in CI, not from this session: the sandbox cannot reach
+  `uploads.github.com`/`release-assets.githubusercontent.com`, so the first
+  workflow run (missing `pyyaml` in the runner's pip install) and the tag
+  move to the fixed commit were needed before the asset landed.
+- `dist/lawson_las.zip.sha256` is tracked too, so a download can be checked
+  against the repo without downloading the release.
+- Tests: 179 passed, 5 skipped — unchanged. (A first local run showed 10
+  kb/um failures; they were only a missing `pyyaml` in the local venv, not a
+  regression. The same missing dependency broke the first CI run, which is
+  why the workflow now installs `pyyaml` as well.) Determinism re-checked:
+  rebuilding with the same version reproduces the same sha256, and the CI
+  runner's build matches it byte for byte.
+- Still **not game-verified**.
 
 ## 2026-10-18 — texture/UV verification session; eye iris fix; FPS verified (NEW)
 

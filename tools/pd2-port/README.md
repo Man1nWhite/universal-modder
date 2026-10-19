@@ -17,6 +17,7 @@ and the journal in [`MODLOG.md`](MODLOG.md).
 | Source of truth | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` (repo root) — rigged COLLADA + textures |
 | Rig contract | `reference/las_rig.json` — the PD2 biped skeleton an LAS unit animates on, extracted from `2b.rar`'s model by `extract_las_rig.py` (skeleton data only; no 2B art) |
 | Output | `dist/lawson_las.zip`, root `Lawson_LAS/` (deterministic build; **tracked in git** and published as the release asset) |
+| Checksum | `dist/lawson_las.zip.sha256` (tracked; CI refuses to publish a build that differs from it) |
 | Release | [`lawson-las-v1`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v1) — notes in [`releases/lawson-las-v1.md`](releases/lawson-las-v1.md) |
 
 ## Build
@@ -92,10 +93,11 @@ git tag lawson-las-v1 && git push origin lawson-las-v1
    `<!-- pack_version: X.Y.Z -->` marker in it — the workflow stamps that
    version into the pack.
 2. Rebuild and commit the pack: `python tools/pd2-port/build_las_pack.py` and
-   commit `dist/lawson_las.zip` (the zip must match the release asset).
+   commit `dist/lawson_las.zip` + `dist/lawson_las.zip.sha256` (the zip must
+   match the release asset).
 3. Tag and push; the workflow creates the release page, uploads
    `lawson_las.zip` + `lawson_las.zip.sha256`, and fails loudly if the tests
-   fail.
+   fail or if the runner's build differs from the committed bytes.
 
 Every push to `main` also rebuilds the pack and exposes it as a workflow
 artifact, so the zip is always downloadable from GitHub even between releases.
