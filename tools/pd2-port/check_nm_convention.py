@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import io
 import sys
-import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -53,7 +52,6 @@ def measure(arr: np.ndarray) -> tuple[float, float, float, float]:
 
 
 def main() -> int:
-    z = zipfile.ZipFile(SOURCE_ZIP)
     source = build.load_source(Path(SOURCE_ZIP))
     rows = []
     for mesh_name, (_df, nm_png, base) in build.TEXTURE_SLOTS.items():

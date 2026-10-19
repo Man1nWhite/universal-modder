@@ -17,7 +17,6 @@ one looks at the shape itself:
 from __future__ import annotations
 
 import argparse
-import io
 import math
 import struct
 import sys
@@ -28,7 +27,6 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
-import dds  # noqa: E402
 from dmodel import DieselModel  # noqa: E402
 
 PACK = ROOT / "dist" / "lawson_las.zip"

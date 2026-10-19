@@ -1,5 +1,9 @@
 # Miranda Lawson — Legendary Armour Skins outfit (v1)
 
+> **Superseded by [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2).**
+> This build has holes in the skin: 1,027 of its triangles are wound inside
+> out, and the game culls them. The 0.1.2 pack repairs them. Use v2.
+
 <!-- pack_version: 0.1.1 -->
 
 **Asset:** `lawson_las.zip` (8,015,689 bytes)

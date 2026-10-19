@@ -13,10 +13,8 @@ passes or skips is a hole in the suite.
 """
 from __future__ import annotations
 
-import shutil
 import subprocess
 import sys
-import tempfile
 import zipfile
 from pathlib import Path
 
@@ -86,7 +84,6 @@ def m_no_tangent_channels(files: dict[str, bytes]) -> dict[str, bytes]:
     geo = next(s for s in model.sections if s.tag == "geometry")
     # the header block: vertex count, header count, then (size, type) pairs
     import struct
-    n = struct.unpack_from("<I", data, geo.start)[0]
     hc = struct.unpack_from("<I", data, geo.start + 4)[0]
     for i in range(hc):
         at = geo.start + 8 + i * 8
@@ -118,8 +115,7 @@ def main() -> int:
     base = _read()
     backup = PACK.read_bytes()
     misses = []
-    with tempfile.TemporaryDirectory() as tmp:
-        for mutate, test, label in MUTATIONS:
+    for mutate, test, label in MUTATIONS:
             files = dict(base)
             mutate(files)
             _write(files, PACK)
