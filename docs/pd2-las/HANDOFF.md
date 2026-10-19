@@ -35,7 +35,8 @@ the remote branch.
 | `tools/pd2-las/README.md` | the pipeline manual (read next) |
 | `tools/pd2-las/build_models.py` | the build: retarget + geometry + pack |
 | `tools/pd2-las/diesel_model.py` | verified Diesel `.model` codec (byte-exact) |
-| `docs/audits/2026-10-19-las-guide-compliance.md` | every verification pass + 2B structural diff |
+| `tools/pd2-port/STATUS.md` | the sibling ME2-route handoff (read to avoid duplication) |
+| `docs/audits/2026-10-19-las-guide-compliance.md` | every verification pass + 2B structural diff + cross-route winding audit |
 | `docs/pd2-las/in-game-checklist.md` | 18 items for the user-side game test |
 | `knowledge/games/payday-2/las-armor-skin-outfit.md` | engine field notes + gotchas |
 | `2b.rar`, `l4d2_miranda_lawson_1.zip` | reference pack + source (both tracked) |
@@ -56,7 +57,11 @@ las_pack.write_pack + zip → Miranda_LAS.zip`. Textures: VTF→DDS via
 - ≤3 weights/vertex, weights sum to 1; UVs stored as `1 − v_src` (p2mt
   convention) — source V is intentionally tiled, out-of-[0,1] is normal.
 - Winding `(a,b,c)→(a,c,b)`, unit scale exactly 2.54; shadow signed
-  volume ≈ 81572 (tpp) / 1188 (fps).
+  volume ≈ 81572 (tpp) / 1188 (fps); **0 edge-orientation breaks**
+  (`build_models.orientation_breaks`) — the exact hole-by-culling test on
+  these welded meshes. Do not apply the ME2 line's vertex-normal
+  flip-repair here: it misreads skinned normal blending and *creates*
+  breaks (analysis in the audit doc).
 - Retarget: one Umeyama fit per target bone, hand-subtree shares the palm
   fit, fits >30° from global rotation inherit the nearest kept ancestor.
 - Material names in `*.material_config` must hash64-match the model's

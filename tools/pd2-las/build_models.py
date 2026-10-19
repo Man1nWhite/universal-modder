@@ -530,7 +530,30 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     pal_index = {n: i for i, n in enumerate(ordered)}
 
     g.weights = [[(pal_index[n], w) for n, w in infl] for infl in g.weights]
+    breaks = orientation_breaks(g)
+    print(f"[{group_name}] orientation breaks: {breaks}")
     return g
+
+
+def orientation_breaks(g: Group) -> int:
+    """Count shared edges whose two faces traverse it in the same direction.
+
+    On a welded mesh this is the exact hole test: an orientation break is a
+    triangle wound inside-out relative to its neighbours, which the engine
+    back-face-culls into a hole. (A vertex-normal disagreement is NOT that:
+    skinned meshes blend normals at joints and can shade slightly off while
+    the winding stays correct — flipping those creates real breaks. Corner-
+    split meshes such as the ME2 source have no shared edges and must use
+    the vertex-normal heuristic instead; see
+    tools/pd2-port/check_mesh_geometry.py.)
+    """
+    edge_dir: dict[tuple[int, int], list[int]] = {}
+    for a, b, c in g.faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            key = (x, y) if x < y else (y, x)
+            edge_dir.setdefault(key, []).append(1 if x < y else -1)
+    return sum(1 for dirs in edge_dir.values()
+               if len(dirs) == 2 and dirs[0] == dirs[1])
 
 
 # ------------------------------------------------------------ authoring

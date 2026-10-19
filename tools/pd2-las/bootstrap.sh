@@ -14,7 +14,9 @@ echo "== 1/5 venv =="
 if [ ! -x .venv/bin/python ]; then
     python3 -m venv .venv
 fi
-.venv/bin/pip install -q pytest pillow numpy pyyaml pyflakes
+# pillow/numpy are pinned: the tracked dist/lawson_las.zip bytes depend on
+# them (tools/pd2-port/STATUS.md §7) — both routes build in this venv.
+.venv/bin/pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes
 .venv/bin/python -c "import pytest, PIL, numpy, yaml" && echo "venv ok"
 
 echo "== 2/5 extract 2B reference pack (templates) =="

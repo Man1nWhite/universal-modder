@@ -140,6 +140,23 @@ def authored():
     return _author()
 
 
+def test_no_inverted_triangles(authored):
+    """Winding must be orientation-consistent (holes-by-culling guard).
+
+    On a welded mesh the exact hole test is edge orientation: every shared
+    edge must be traversed in opposite directions by its two faces. A break
+    is a triangle wound inside-out relative to its neighbours — the engine
+    back-face-culls it into a hole. (Vertex-normal disagreement is only a
+    shading artifact of skinned normal blending; see orientation_breaks in
+    build_models.py and the analysis in
+    docs/audits/2026-10-19-las-guide-compliance.md.)
+    """
+    for label in ("tpp", "fps"):
+        for gname, g in authored[label]["groups"].items():
+            breaks = bm.orientation_breaks(g)
+            assert breaks == 0, f"{label}/{gname}: {breaks} orientation breaks"
+
+
 def _slice_verts(g, material):
     verts, uvs, ntris = [], [], 0
     for (mat, base_v, base_i, tris, nverts) in g.slices:

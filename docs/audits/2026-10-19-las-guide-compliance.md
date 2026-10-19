@@ -175,3 +175,40 @@ export .glb, Model Tool add-on, MOOG template editing) — replaced by the
 programmatic authoring path; the produced `.model`/`.material_config`/
 `.unit`/`.object` files are what matter. GSMA/IL/OP texture types are
 optional and unused (diffuse + normal only, as in the 2B reference).
+
+## Winding / holes-by-culling — cross-audit vs the ME2 line (2026-10-19, post-merge)
+
+The ME2 route's `check_mesh_geometry.py` judges winding by dot(geometric normal,
+averaged vertex normals) < 0 and calls those culled-hole triangles. Running it on
+this line's pack (adapter over the same `analyse`) reports 915/539/376 tpp and
+373 fps flagged triangles. Investigation:
+
+1. **Source convention**: the untouched L4D2 source is 100% "flagged" by that
+   criterion (Valve winds CW); after the pipeline's CW→CCW swap the source has
+   0.03% flagged (3 triangles of 19,325). So the criterion is convention-sensitive.
+2. **Edge-orientation test** (the exact hole test on a welded mesh — every shared
+   edge must be traversed in opposite directions by its two faces): this line's
+   transferred meshes have **0 orientation breaks** (13,468 shared edges, body
+   group) and globally correct outward orientation (shadow signed volume
+   81,572 cm³). **No triangle is wound inside-out; there are no culling holes.**
+3. Of the 539 vertex-normal flags in the body group, geometric-neighbor
+   classification shows 485 are **blended-normal artifacts** (geometry agrees
+   with its face-neighbors; only the skinned normal blend leans away at joints)
+   and 54 sit at fold-flap creases without any orientation break — self-overlap,
+   which renders as overlap, not holes.
+4. **Conclusion**: on welded, skinned meshes the vertex-normal heuristic
+   over-fires; flipping those triangles *creates* real orientation breaks
+   (verified: flipping the 539 turned the fps volume negative and broke edge
+   consistency). The ME2 meshes are corner-split (no shared edges — their own
+   STATUS notes this), where the normal heuristic is the only available one and
+   flipping is neighbour-free — so the heuristic is right *there* and wrong
+   *here*. `check_mesh_geometry.analyse` now picks the orientation test when a
+   mesh has shared edges and keeps the normal heuristic for corner-split meshes
+   (their pack unchanged: 20,677 triangles, 0 inverted).
+5. Both container conventions remain in use by design: this line matches the
+   game-tested 2B template (plain container, shifted disk channel types 15/17/20/21,
+   float normals); the ME2 line matches game-unit DODB convention (unshifted
+   17/19/22/23, packed normals). Each is backed by a known-good provenance.
+
+Gate added: `build_models.orientation_breaks` (printed per group at build, asserted
+0 by `tests/test_build_models.py::test_no_inverted_triangles`).
