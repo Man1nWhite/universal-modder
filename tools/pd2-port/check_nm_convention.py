@@ -99,6 +99,9 @@ def main() -> int:
     print()
     print("  The remaining risk is the in-game one: if the lighting looks")
     print("  inverted in game, rebuild with --keep-nm-green.")
+    print()
+    print("VERDICT: the source is DirectX-style (Y-); the default build "
+          "inverts the green channel, which is what PD2 wants.")
     return 0
 
 

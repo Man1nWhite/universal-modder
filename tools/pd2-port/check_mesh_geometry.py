@@ -197,12 +197,16 @@ def main(argv=None) -> int:
         raw_tpp = z.read(TPP_MODEL)
         raw_fps = z.read(FPS_MODEL)
 
+    flipped = degenerate = tris_total = 0
     for label, raw, key in (("third person", raw_tpp, TPP_MODEL),
                             ("first person", raw_fps, FPS_MODEL)):
         model = DieselModel.from_bytes(raw)
         print(f"=== {label} unit")
         for i, (g, tris) in enumerate(meshes_of(model, raw)):
             r = analyse(f"mesh {i}", g, tris)
+            flipped += r["flipped"]
+            degenerate += r["degenerate"]
+            tris_total += r["tris"]
             print(f"  mesh {i}: {r['tris']} triangles")
             print(f"    winding: {r['flipped']} flipped, {r['degenerate']} degenerate"
                   f"  (signed volume {r['volume'] / 1000:.1f} cm3)")
@@ -210,7 +214,10 @@ def main(argv=None) -> int:
                   f"tangents agree with the UVs; handedness "
                   f"{r['frame_hand']:+.3f}; "
                   f"{r['zero_tangent']}/{r['verts']} vertices have no UV frame")
-    return 0
+    print()
+    print(f"summary: {tris_total} triangles, {flipped} inverted, "
+          f"{degenerate} degenerate")
+    return 1 if flipped else 0
 
 
 

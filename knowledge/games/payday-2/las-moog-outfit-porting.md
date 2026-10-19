@@ -122,6 +122,10 @@ re-wound afterwards (`rig_target.repair_winding`, see gotcha 19) —
 textures. `preview_check.py report|render` verifies the transfer offline
 (edge preservation, displacement spikes, twin separation, bone anchors) and
 rasters source/retarget/decoded previews without Blender.
+`check_all.py` runs every check of the Lawson build in one command (the
+audit, the winding check, the normal-map analysis, the mutation tests and
+the pytest suite); the state of that work, its open problems and its traps
+are written down in `tools/pd2-port/STATUS.md`.
 `check_guide_compliance.py` audits the built pack against this guide's rules
 (one check per rule, each citing it); it runs in the test suite, so a pack
 that drifts from the guide fails the build.

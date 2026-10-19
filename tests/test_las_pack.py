@@ -796,3 +796,27 @@ def test_the_built_pack_has_no_inverted_faces():
                         inverted += 1
             assert total, f"{name}: no triangles found"
             assert inverted == 0, f"{name}: {inverted} of {total} triangles are inverted"
+
+
+def test_the_status_page_matches_the_shipped_pack():
+    """`tools/pd2-port/STATUS.md` is the handoff page - it must not drift.
+
+    A status page that quotes a stale size, checksum or audit result is
+    worse than none: the next agent trusts it.
+    """
+    import hashlib
+    import re
+
+    status = (PD2 / "STATUS.md").read_text()
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    raw = pack.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()
+    assert digest in status, "STATUS.md does not quote the pack's sha256"
+    assert f"{len(raw):,}" in status, "STATUS.md does not quote the pack's size"
+
+    checker = _load("check_guide_compliance", "check_guide_compliance.py")
+    counts = checker.audit(pack).counts()
+    assert f"**{counts['PASS']} pass, {counts['WARN']} warn, {counts['FAIL']} fail**" in status, (
+        "STATUS.md does not quote the audit's result")

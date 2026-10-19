@@ -1,5 +1,9 @@
 # Lawson pack journal
 
+> The **current state** lives in [`STATUS.md`](STATUS.md) — what is shipped,
+> the measured check results, the open problem and the workflow traps. This
+> journal is the history behind it.
+
 ## 2026-10-19 — fourth check: the geometry was broken, and the checks could not see it (NEW)
 
 - Asked for a fourth pass that attacks the *claims* instead of re-running the

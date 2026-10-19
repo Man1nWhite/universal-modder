@@ -50,6 +50,8 @@ triangles are wound inside out (the game culls those, and they leave holes
 in the skin); pack 0.1.1 had 1,027 of them, 0.1.2 has none.
 
 **Download:** [`lawson-las-v2` release](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2)
+— the current state of that work, its open problems and the workflow traps
+are in [`tools/pd2-port/STATUS.md`](tools/pd2-port/STATUS.md).
 — `lawson_las.zip` is tracked in the repo and rebuilt by CI on every
 `lawson-las-v*` tag, so the release asset and `dist/lawson_las.zip` are the
 same bytes.

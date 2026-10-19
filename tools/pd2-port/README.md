@@ -10,6 +10,20 @@ The previous character swaps (`lawson_clover` / `lawson_bonnie` /
 the [restart audit](../../docs/audits/2026-10-18-old-model-retired-las-restart.md)
 and the journal in [`MODLOG.md`](MODLOG.md).
 
+## Status and handoff
+
+[`STATUS.md`](STATUS.md) is the **current state** of this work: what is
+shipped, the measured check results, the open problem (a bind-pose transfer
+that keeps the two rigs consistent) and the workflow traps. Read it before
+touching the pipeline; [`MODLOG.md`](MODLOG.md) is the journal behind it.
+
+One command tells you whether a checkout is sound:
+
+```sh
+python tools/pd2-port/check_all.py          # build check, audit, winding, nm, mutations
+python tools/pd2-port/check_all.py --full   # + the auditor self-test and pytest
+```
+
 ## Source and outputs
 
 | | |
@@ -48,6 +62,7 @@ python tools/pd2-port/check_nm_convention.py     # the source normal maps'
 python tools/pd2-port/check_test_suite_mutations.py
                                                 # prove the pack-level tests
                                                 # fail on a broken pack
+python tools/pd2-port/check_all.py              # run every check, one verdict
 python tools/pd2-port/resolve_rig_names.py       # recover PD2 bone names from
                                                 # the rig contract's hashes
 python -m pytest -q tests/test_las_pack.py
