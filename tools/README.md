@@ -8,7 +8,7 @@ merged**. Read `docs/pd2-las/HANDOFF.md` (L4D2 route) and
 | | `tools/pd2-port/` — ME2 route | `tools/pd2-las/` — L4D2 route |
 | --- | --- | --- |
 | Source | ME2 *Romance* COLLADA zip | `l4d2_miranda_lawson_1.zip` (MDL/VVD/VTX in a VPK) |
-| Output | `dist/lawson_las.zip` (tracked, sha256-pinned) | `build/pd2-las/Miranda_LAS.zip` (reproducible) |
+| Output | `dist/lawson_las.zip` (tracked, sha256-pinned) | `Miranda_LAS.zip`, `dist/Miranda_LAS.zip`, `build/pd2-las/Miranda_LAS.zip` (tracked, sha256-pinned, byte-reproducible) |
 | Pack layout | `Lawson_LAS/units/…` (no inner `assets/`) | `Miranda_LAS/assets/units/…` (2B-identical) |
 | Install | `assets/mod_overrides/` (both — the 2B/MOOG convention; BeardLib's AddFramework loads `main.xml` packs from there) | same |
 

@@ -41,6 +41,8 @@ test -f "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b/2b.model" && echo "templat
 echo "== 3/5 build models + pack =="
 .venv/bin/python tools/pd2-las/build_models.py \
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+sha256sum -c build/pd2-las/Miranda_LAS.zip.sha256
+sha256sum -c dist/Miranda_LAS.zip.sha256
 
 echo "== 4/5 tests =="
 .venv/bin/python -m pytest -q tests/
@@ -50,5 +52,5 @@ echo "== 5/5 lint =="
     tests/test_build_models.py tests/test_diesel_model.py && echo "pyflakes clean"
 
 echo
-echo "bootstrap complete: deliverable at build/pd2-las/Miranda_LAS.zip"
+echo "bootstrap complete: deliverable at Miranda_LAS.zip, dist/Miranda_LAS.zip, and build/pd2-las/Miranda_LAS.zip"
 echo "next: docs/pd2-las/in-game-checklist.md (user side) + HANDOFF.md (context)"

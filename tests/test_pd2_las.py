@@ -413,3 +413,28 @@ class TestLasScaffold:
         if ref.is_file():
             # 2b.rar is the contract reference; the pipeline must not rewrite it.
             assert zipfile.is_zipfile(ref) is False
+
+    def test_tracked_miranda_las_pack(self):
+        """The built Miranda_LAS.zip deliverable is tracked and self-consistent."""
+        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
+        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        root_zip = REPO / "Miranda_LAS.zip"
+        build_sha = REPO / "build" / "pd2-las" / "Miranda_LAS.zip.sha256"
+        dist_sha = REPO / "dist" / "Miranda_LAS.zip.sha256"
+        for p in (build_zip, dist_zip, root_zip, build_sha, dist_sha):
+            assert p.is_file(), f"missing tracked deliverable: {p}"
+        raw = build_zip.read_bytes()
+        assert dist_zip.read_bytes() == raw
+        assert root_zip.read_bytes() == raw
+        digest = hashlib.sha256(raw).hexdigest()
+        assert build_sha.read_text().split()[0] == digest
+        assert dist_sha.read_text().split()[0] == digest
+        with zipfile.ZipFile(build_zip) as z:
+            info = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))
+            assert info["models_present"] is True
+            assert "WIP_DO_NOT_INSTALL.txt" not in info["payload_sha256"]
+            assert len(info["payload_sha256"]) == 19
+            for rel, expected in info["payload_sha256"].items():
+                actual = hashlib.sha256(z.read(f"Miranda_LAS/{rel}")).hexdigest()
+                assert actual == expected, rel
+

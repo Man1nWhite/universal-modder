@@ -905,7 +905,20 @@ def main(argv=None) -> int:
         for name in ("2b.model", "fps_2b.model")
     })
     zip_path = las_pack.zip_pack(pack_dir)
-    print(f"pack updated: {unit_dir} (+ {zip_path.name})")
+    zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+    (zip_path.parent / f"{zip_path.name}.sha256").write_text(
+        f"{zip_sha}  build/pd2-las/{zip_path.name}\n"
+    )
+    if args.out.resolve() == (REPO / "build" / "pd2-las").resolve():
+        dist_dir = REPO / "dist"
+        dist_dir.mkdir(parents=True, exist_ok=True)
+        dist_zip = dist_dir / zip_path.name
+        shutil.copy2(zip_path, dist_zip)
+        (dist_dir / f"{zip_path.name}.sha256").write_text(
+            f"{zip_sha}  dist/{zip_path.name}\n"
+        )
+        shutil.copy2(zip_path, REPO / zip_path.name)
+    print(f"pack updated: {unit_dir} (+ {zip_path.name}, sha256={zip_sha[:16]}…)")
     return 0
 
 

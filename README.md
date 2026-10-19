@@ -46,9 +46,10 @@ Current state, open problems and workflow traps:
 
 **2. L4D2 Source route — parallel line.** `tools/pd2-las/`, built from
 `l4d2_miranda_lawson_1.zip` (an L4D2 Miranda replacement for Rochelle) onto
-the 2B template skeleton. Output `build/pd2-las/Miranda_LAS.zip`, installed
-to **`PAYDAY 2\assets\mod_overrides\`** like 2B itself. Pipeline:
-[`tools/pd2-las/`](tools/pd2-las/README.md);
+the 2B template skeleton. Output `Miranda_LAS.zip` (tracked at
+`Miranda_LAS.zip`, `dist/Miranda_LAS.zip`, and `build/pd2-las/Miranda_LAS.zip`
+with `.sha256` checksums), installed to **`PAYDAY 2\assets\mod_overrides\`**
+like 2B itself. Pipeline: [`tools/pd2-las/`](tools/pd2-las/README.md);
 agents start at [`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md)
 (one-command bootstrap, verified invariants, dead ends). Its
 divergence-filter bind-pose retarget is the candidate fix for the ME2
