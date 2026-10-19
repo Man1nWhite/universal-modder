@@ -26,18 +26,21 @@
   <a href="https://discord.com/invite/sEZWaf7vV"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/discord-dark.svg"><img src="docs/media/discord-light.svg" height="32" alt="join the discord"></picture></a>
 </p>
 
-## PAYDAY 2 character-pack troubleshooting
+## PAYDAY 2 — Miranda Lawson (LAS outfit)
 
-For the Lawson packs in `dist/`, see the [installation and troubleshooting guide](tools/pd2-port/README.md).
-They belong in **`PAYDAY 2\assets\mod_overrides\`**, not `mods\mod_overrides`, and require
-**SuperBLT + BeardLib** for the custom texture registration included in the corrected packages.
-In-game model/animation compatibility still needs verification.
+The Lawson work in `tools/pd2-port/` is being rebuilt as a **Legendary Armour
+Skins add-on** (an equipable full-body outfit, like the supplied `2b.rar`
+reference), not as character-model replacements. The earlier character-swap and
+old-model packs are retired and removed; see the
+[restart audit](docs/audits/2026-10-18-old-model-retired-las-restart.md).
 
-For a selectable outfit rather than a character swap, the separate
-[`lawson_outfit_BeardLib.zip` builder and install guide](tools/pd2-port/README.md#standalone-beardlib-outfit)
-provide a native BeardLib player style, **without Legendary Armour Skins**.
-The existing archives are retained unchanged; the new variant is offline-validated,
-not game-tested.
+Source of truth: `PC _ Computer - Mass Effect 2 - Non-Playable Characters -
+Miranda Lawson (Romance).zip` (rigged COLLADA + textures at the repo root).
+Build with `python tools/pd2-port/build_las_pack.py` (see
+[`tools/pd2-port/README.md`](tools/pd2-port/README.md)); output is
+`dist/lawson_las.zip`, installed to **`PAYDAY 2\assets\mod_overrides\`** and
+requiring **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe Mod**.
+Nothing is game-verified yet.
 
 ## Install
 

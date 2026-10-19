@@ -1,4 +1,137 @@
-# Lawson pack repair journal
+# Lawson pack journal
+
+## 2026-10-18 — texture/UV verification session; eye iris fix; FPS verified (NEW)
+
+- Added a textured software raster (`preview_check.raster_textured`, DF
+  sampling with DirectX texel space, alpha-test 128) and textured sheets +
+  face close-ups to `preview_check render`. Upright unmirrored face proves
+  the writer's V-negation end-to-end. Three suspected texture bugs audited:
+  1. **Teeth/Mouth tiles showing hair art — DISPROVEN.** The source head
+     atlas HMF_HED_PROMiranda_Scalp_Diff.png legitimately contains teeth
+     (u≈0.002–0.159, v≈0.248–0.543) and mouth-interior (u≈0.921–0.998,
+     v≈0.306–0.468) islands; UV-box overlay + per-mesh textured renders
+     (dental arch with pink gums, dark interior) show the
+     `TEXTURE_SLOTS` mapping is faithful. Gotcha 13.
+  2. **Eyelash tile black on contact sheet — DISPROVEN.** real alpha 0–255,
+     23% opaque black strands; the sheet just alpha-composites them.
+  3. **Eyes with no iris — REAL BUG, FIXED.** ME2's eye shader placed the
+     iris; plain diffuse sampling smears it across the eyeball's u-seam
+     (blank pink spheres). `build_las_pack.eye_uv_planar` now planar-projects
+     each eyeball's UVs from its frontal plane (per-sphere centre + radius):
+     round centered irises in the pack pipeline. `EYE_Diff_s.png` is a black
+     mask layer, not a diffuse — never map it. Gotcha 12.
+- **FPS model visually verified** for the first time: exactly the dominant-arm
+  cut (10,468 verts = Body 1 1,792 + Body 2 8,676, z 116–149 shoulder-to-hand
+  band), complete sleeves + hands + fingers, open shell at the shoulder as
+  expected for a camera view model.
+- New test `test_eye_uv_planar_centers_iris`; suite now 179 passed / 5
+  skipped. Pack rebuilt (eye UVs change the model bytes):
+  7,967,402 bytes, sha256 `9602c38cc04e0168aa87e72628bf2990a3fbbd52dc2189cda0748e40c13990c7`.
+
+## 2026-10-18 — offline geometry verification; rebind rewritten twice
+
+- Built `tools/pd2-port/preview_check.py` (`report` / `render`): quantitative
+  gates on the skin transfer (edge preservation, displacement spikes over the
+  WELDED vertex graph, corner-split twin separation, dominant-bone anchors,
+  bounds vs the 2B donor) plus a numpy/PIL software raster (no Blender here):
+  source bind, retarget, decoded-from-pack, pixel diffs, skeleton overlay.
+  The donor rig itself renders as a clean A-pose — almost the same pose as the
+  ME2 source, so a correct transfer must look like the source figure.
+- The naive retarget was a torn mess. Two root causes found and fixed in
+  `rig_target.py`:
+  1. **Frame conventions.** `minv(W_s) @ W_t` bakes per-bone frame
+     orientation deltas into the mesh; consecutive pieces (arm chain) landed
+     at mutually wrong angles. Replaced with one **segment-fit** rigid
+     transform per target bone (source bone head→tail aligned to the target
+     bone, minimal rotation). Folded joints (face→Head, fingers→Hand,
+     rolls/twists→parent) share the transform of the most-weighted source
+     joint of the fold — per-fold transforms tore the face (edge distortion
+     68% median). Calibrated result: weld-aware neighbour spikes 27-28 cm →
+     **≤2.4 cm**, face/mouth/eyes/teeth edges 0% distortion.
+  2. **Corner-split meshes.** The DAE duplicates vertices per corner (Body 1:
+     10,437 verts, 1,789 unique positions). Weight smoothing on index
+     adjacency treats each triangle as an island and shreds the surface —
+     per-triangle metrics stayed green while it happened (blind). Smoothing
+     now welds by position (one weight per unique position, smoothed on the
+     welded graph, broadcast back) and the report gates **twin separation**
+     (0.000000 cm across all meshes). The verify tool's own first metric
+     design was blind to this; recorded as gotcha 11 in the knowledge note.
+- Encode/decode verified end-to-end: pixel-diff of retarget vs decoded-from-
+  pack renders = 0 mismatched pixels on 3 views; numeric per-axis max |Δ| =
+  7.6e-06 cm (f32 quantization). Side-swap verified by world side (ME2 Left
+  bones map onto same-side PD2 bones). 2B contract parity re-audited field by
+  field (table/hooks/AddFiles/Lua) — clean; the 3 intentional diffs (hooks
+  casing, no empty cooked_physics, no unregistered ss.model) unchanged.
+- Tests: 3 new (fold transform, welded smoothing, corner-split twin glue) +
+  an integration gate on the real source; full suite **178 passed, 5 skipped**.
+  Remaining known cosmetic: small waistband wrinkle where shirt hem overlaps
+  pants (pose difference at the hips, spikes ≤2 cm; present in source too).
+  Offline only; nothing game-verified.
+
+> **2026-10-18: the old-model route is retired.** The character swaps and both
+> outfit packs were built from an un-rigged OBJ force-fitted onto Clover's
+> skeleton; user runtime results (broken mesh, spawn crashes) made this a dead
+> end. Everything derived from that model has been deleted; this journal is kept
+> as the record of what was tried and why it failed. The rebuild starts from the
+> rigged ME2 COLLADA source on the Legendary Armour Skins contract of `2b.rar`.
+> See the [restart audit](../../docs/audits/2026-10-18-old-model-retired-las-restart.md).
+
+## 2026-10-18 — aligned the LAS pack with the ModWorkshop LAS/MOOG guide (NEW)
+
+- Read the Legendary Armour Skins/MOOG/Outfit module guide (Columbus, WIP) and
+  distilled it into `knowledge/games/payday-2/las-moog-outfit-porting.md`
+  (porting checklist, render-template reference from the live outfits,
+  material_config contract, texture/DDS gotchas). The notes-first protocol was
+  followed: knowledge first, then code.
+- Normal maps: PD2 wants the normal **X channel in alpha**, R flat white, B
+  flat black (G = Y, flip only when the source is DirectX-style). Our ME2 PNGs
+  are standard RGB normals (B≈254 flat), so the builder now repacks them
+  (`dds.pd2_normal_channels`; `--keep-nm-green` opts out of the Y flip).
+  Without the repack the game reads bogus X and shading breaks.
+- Materials: every material_config now carries `group=` (units reference by
+  group; a global default risks clashes and engine fallbacks) and exactly the
+  template keywords the shipped outfits use: TPP = `CONTOUR:DIFFUSE_TEXTURE:
+  NORMALMAP:SKINNED_3WEIGHTS` (+ `unique="true"` + `contour_color` 1 1 1 /
+  `contour_opacity` 0), FPS = `DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:
+  SKINNED_3WEIGHTS` with no contour, lashes = the 2B-attested masked combo
+  `ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_1WEIGHT`
+  over a generated flat normal. Never invent keyword combinations — unknown
+  combos can render black.
+- Kept unchanged because the guide confirms them: locators/culling
+  (`c_block`, `BackPack1`, `Aim`, `e_taser`) intact, skin weights ≤3 per
+  vertex, texture config paths extensionless, textures `generate_mipmaps=true`,
+  DXT5-family formats only.
+- Tests: 3 new (channel remap, attested material set, whole-pack normal
+  layout) — 174 passed, 5 skipped. Rebuilt `dist/lawson_las.zip`
+  (30 files, sha256 `a6b0ad79…`). Offline only; nothing game-verified.
+
+## 2026-10-18 — restart on the LAS route with the rigged ME2 source
+
+- User direction: `2b.rar` is the example of what to make — an additive,
+  equipable LAS outfit, not model swaps. Delete the old model and everything
+  built from it. Start anew from `PC _ Computer - Mass Effect 2 - Non-Playable
+  Characters - Miranda Lawson (Romance).zip`.
+- Deleted: `Lawson model/`, `LawsonME2/`, `Bonie/`, `Sydney/`, `clover/`, all
+  five `dist/lawson_*.zip`, and the old-source builders
+  (`rig_lawson`, `build_model`, `build_character`, `build_package{,2}`,
+  `build_outfit{,_beardlib}`, `outfit_model`, `repair_skin_palettes`,
+  `package_metadata`, `glb_export`) plus their tests. Kept `dmodel.py`,
+  `dds.py`, `glb_render.py` (generic format layer), the knowledge notes, audits
+  and this journal. `l4d2_miranda_lawson_1.zip` is a third-party Source-engine
+  reference, not old-model lineage; kept pending user word.
+- Extracted and re-read `2b.rar` as the contract (its Lua registration, manifest
+  and unit/object/material files). Decoded the LAS unit skeleton from
+  `2b.model` name hashes: the standard PD2 biped (`root_point`, `Hips → Spine →
+  Spine1 → Spine2 → Neck → Head`, shoulder/arm/hand chains with rolls, leg
+  chains to toe bases). This is the rig target; it is stored as
+  `tools/pd2-port/reference/las_rig.json` (skeleton data only — no 2B art).
+- The new source is fully rigged and skinned COLLADA (8 meshes, 8 skin
+  controllers, ME2 facial biped). Skin transfer becomes a bind-pose rebind
+  against the PD2 rig (`rig_target.py`) instead of the old positional
+  heuristics. New pipeline: `me2_dae.py` → `rig_target.py` → `las_model.py` →
+  `build_las_pack.py`, output `dist/lawson_las.zip` on the 2B contract with
+  `LegendaryArmours.lawson`.
+- Offline only. No game, loader, or install changes. Nothing game-verified.
 
 ## 2026-10-18 — work on Lawson_LAS; put the BeardLib ZIP in dist
 
