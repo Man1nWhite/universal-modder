@@ -4,7 +4,12 @@ __pycache__/
 uv.lock
 .env
 build/
-dist/
+# generated distributions (built packs are outputs, not sources)
+dist/*
+# ...except the published LAS pack: it is the release asset and is tracked
+# so the repository always carries the exact bytes of the release.
+!dist/lawson_las.zip
+!dist/lawson_las.zip.sha256
 *.egg-info/
 # captures and scratch
 *.mkv
@@ -13,3 +18,4 @@ dist/
 .pytest_cache/
 # the parent repo ignores bin/ (build output); the CLI launcher lives here
 !bin/
+preview_tmp/

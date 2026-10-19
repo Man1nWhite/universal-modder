@@ -26,29 +26,43 @@
   <a href="https://discord.com/invite/sEZWaf7vV"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/discord-dark.svg"><img src="docs/media/discord-light.svg" height="32" alt="join the discord"></picture></a>
 </p>
 
-## PAYDAY 2 — Miranda Lawson outfit (work in progress)
+## PAYDAY 2 — Miranda Lawson (LAS outfit)
 
-The current work is a **Legendary Armour Skins (LAS) armor-skin add-on** — a
-selectable, equipable full-body outfit with its own third-person model and
-first-person arms, following the contract of the reference pack `2b.rar` — built
-from the source assets in `l4d2_miranda_lawson_1.zip` (an L4D2 Miranda Lawson
-replacement for Rochelle). Pipeline and status: [`tools/pd2-las/`](tools/pd2-las/README.md).
-**Next agent: start at [`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md)**
-— quickstart, verified invariants, dead ends, recovery procedure.
+Miranda Lawson ships as a **Legendary Armour Skins (LAS) add-on** — an
+equipable, full-body outfit with its own units and first-person arms (the
+`2b.rar` product shape), built through **two complementary routes**:
 
-The pack follows the ModWorkshop Wiki
-[LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide):
-`CONTOUR` template with `unique="true"` and contour variables on third-person
-skin materials, `DEPTH_SCALING` on the first-person material, `group` in the
-`<materials>` header, ≤3 weights per vertex, extension-less texture paths, DXT5
-diffuse/normal. Audit: [guide compliance](docs/audits/2026-10-19-las-guide-compliance.md).
+**1. ME2 COLLADA route — primary, released.** `tools/pd2-port/`, built from
+`PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson
+(Romance).zip` (rigged COLLADA + textures at the repo root). Output is
+`dist/lawson_las.zip` (tracked), installed to **`PAYDAY 2\assets\mod_overrides\`**
+and requiring **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe**.
+Audited against the ModWorkshop LAS/MOOG guide on every build
+(`check_guide_compliance.py`: 38 pass / 1 warn / 0 fail, the auditor itself
+mutation-tested) and guarded against winding defects that leave holes in the
+skin. Release: [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2).
+Current state, open problems and workflow traps:
+[`tools/pd2-port/STATUS.md`](tools/pd2-port/STATUS.md).
 
-An earlier approach that surgically replaced heister character models
-(Clover/Bonnie/Sydney, plus outfit packs built on the same mesh) was **retired as
-a dead end** on 2026-10-18: the source rig was broken, the packs crashed or
-rendered wrong in-game, and the model-editing pipeline was not reproducible from a
-clean checkout. Nothing built on that model remains in the repository; see the
-[route-change audit](docs/audits/2026-10-18-route-change-audit.md).
+**2. L4D2 Source route — parallel line.** `tools/pd2-las/`, built from
+`l4d2_miranda_lawson_1.zip` (an L4D2 Miranda replacement for Rochelle) onto
+the 2B template skeleton. Pipeline: [`tools/pd2-las/`](tools/pd2-las/README.md);
+agents start at [`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md)
+(one-command bootstrap, verified invariants, dead ends). Its
+divergence-filter bind-pose retarget is the candidate fix for the ME2
+route's open transfer problem (`STATUS.md` §6).
+
+Both lines follow the ModWorkshop Wiki
+[LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide)
+and are offline-validated only — nothing is game-verified yet.
+
+The earlier approach that surgically replaced heister character models
+(Clover/Bonnie/Sydney, plus outfit packs built on the same mesh) was **retired
+as a dead end** on 2026-10-18: the source rig was broken, the packs crashed or
+rendered wrong in-game, and the model-editing pipeline was not reproducible
+from a clean checkout. Audits:
+[route change (LAS line)](docs/audits/2026-10-18-route-change-audit.md) ·
+[old model retired (ME2 line)](docs/audits/2026-10-18-old-model-retired-las-restart.md).
 
 ## Install
 
