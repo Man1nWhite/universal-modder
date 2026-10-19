@@ -40,6 +40,11 @@ jobs:
           fi
           echo "building version ${VERSION:-0.1.0}"
           python tools/pd2-port/build_las_pack.py --version "${VERSION:-0.1.0}"
+      - name: verify the build matches the tracked pack
+        # the release asset must be the same bytes as the tracked
+        # dist/lawson_las.zip: a mismatch means the source or the builder
+        # changed without the pack being rebuilt and committed
+        run: diff -u dist/lawson_las.zip.sha256 <(sha256sum dist/lawson_las.zip)
       - name: tests
         run: python -m pytest -q tests
       - name: upload artifact
