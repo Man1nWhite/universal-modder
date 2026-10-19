@@ -54,7 +54,7 @@ DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
 ROOT_DIR = "Lawson_LAS"
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 # The pack is an unlicensed fan derivative of ripped ME2 assets: offline
 # validated, not game-verified, not cleared for commercial redistribution.
 STATUS = "experimental - offline validated, not game-verified"

@@ -1,5 +1,47 @@
 # Lawson pack journal
 
+## 2026-10-19 — guide-compliance audit: mitten hands found, fingers now articulate (NEW)
+
+- Asked to check the pack against the ModWorkshop LAS/MOOG outfit guide.
+  Wrote `tools/pd2-port/check_guide_compliance.py`: it re-reads the built zip
+  and checks it against the guide's rules (skeleton, weights, materials,
+  render templates, FPS unit, texture format, BeardLib packaging), each check
+  citing the rule it enforces. 35 checks + 1 open question.
+- **One real failure.** The guide's PD2 rig has three bones per finger; the
+  rig contract has them, but the retarget folded every ME2 finger joint onto
+  the wrist bone — the hands were mittens that could not articulate. Cause:
+  `rig_target.map_joint` folded anything matching a finger token to the hand
+  (the finger bones were hash-only in the contract, so there were no names to
+  map onto).
+- **Fix, step 1 — recover the bone names offline.** The contract stores a
+  name *hash* per bone (the Model Tool writes names only with the
+  PAYDAY-2-Hashlist installed). The hash is the lookup3 variant in
+  `dmodel.hash64`, so PD2's naming convention can be hashed and matched
+  against the stored hashes: 30 of 187 hash-only bones resolve
+  (`LeftHandThumb1..3`, `LeftHandIndex1..3`, `LeftHandMiddle1..3`,
+  `LeftHandRing1..3`, `LeftHandPinky1..3` and the Right set). New tool
+  `tools/pd2-port/resolve_rig_names.py` does it and patches the contract
+  (`name` only — the stored hashes are never touched, and a test now checks
+  that every named bone hashes to its stored `name_hash`).
+- **Fix, step 2 — map the fingers.** `rig_target` now maps the ME2 finger
+  chains one-to-one onto the PD2 finger bones (`LeftIndexFinger` ->
+  `RightHandIndex1`, `LeftIndexFinger2` -> `RightHandIndex3`, ...; the side
+  swaps with the arms, and ME2's "Pink" is PD2's "Pinky"). The face still
+  folds to Head (PD2 has no facial bones).
+- **Verified.** All 30 finger bones now carry weight (58-253 vertices each),
+  and every finger-dominant vertex sits 0.9-2.6 cm from its bone's origin
+  (max 4.5 cm) — the weights are on the fingers, not scattered. The geometry
+  gates still pass (max neighbour spike 2.38 cm, twin separation 0.000 cm, no
+  degenerate faces) and the encode/decode round trip is still pixel-identical.
+- Pack rebuilt as **0.1.1**: 7,943,697 bytes, sha256
+  `2cb1ed018b51b256ec42bec32a1a8a5c2105ff13b85f02e2d7ffefa96d680076`.
+- The compliance audit is now part of the test suite
+  (`test_built_pack_passes_the_guide_compliance_check`), so a pack that drifts
+  from the guide fails the build. Suite: 183 passed, 5 skipped.
+- **Still open:** the normal maps' green-channel convention (source assumed
+  DirectX-style, inverted to PD2's OpenGL-style Y+). The guide's rule can only
+  be settled in game; `--keep-nm-green` is the switch.
+
 ## 2026-10-19 — pack published: `dist/lawson_las.zip` tracked + GitHub release page (NEW)
 
 - User direction: get `dist/lawson_las.zip` into GitHub and give it a release

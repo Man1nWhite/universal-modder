@@ -99,6 +99,23 @@ BONE_MAP: dict[str, str] = {
 _FINGER_TOKENS = ("ThumbFinger", "PinkFinger", "IndexFinger",
                   "MiddleFinger", "RingFinger", "Finger")
 
+# ME2's five finger chains (three joints each) map one-to-one onto PD2's five
+# three-bone finger chains, so the fingers articulate instead of riding along
+# with the hand. Sides swap with the arms: ME2 ``Left*`` is world +X = PD2
+# ``Right*``. PD2 spells the little finger "Pinky"; ME2 spells it "Pink".
+_FINGER_CHAINS = {
+    "Thumb": "Thumb",
+    "Index": "Index",
+    "Middle": "Middle",
+    "Ring": "Ring",
+    "Pink": "Pinky",
+}
+for _me2_side, _pd2_side in (("Left", "Right"), ("Right", "Left")):
+    for _me2_finger, _pd2_finger in _FINGER_CHAINS.items():
+        for _joint in range(3):
+            _me2_name = f"{_me2_side}{_me2_finger}Finger" + (str(_joint) if _joint else "")
+            BONE_MAP[_me2_name] = f"{_pd2_side}Hand{_pd2_finger}{_joint + 1}"
+
 # Facial chains fold to Head.
 _FACE_TOKENS = ("brow", "Brow", "eye", "Eye", "Lip", "lip", "Cheek", "cheek",
                 "Lid", "lid", "Nose", "nose")

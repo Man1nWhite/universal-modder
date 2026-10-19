@@ -1,15 +1,28 @@
 # Miranda Lawson — Legendary Armour Skins outfit (v1)
 
-<!-- pack_version: 0.1.0 -->
+<!-- pack_version: 0.1.1 -->
 
-**Asset:** `lawson_las.zip` (7,967,568 bytes)
-**sha256:** `8629051ead84cd7a180a427c9969844363987213885c242eb05f6f34707247f3`
-**Pack version:** `0.1.0` — *experimental, offline validated, not game-verified*
+**Asset:** `lawson_las.zip` (7,943,697 bytes)
+**sha256:** `2cb1ed018b51b256ec42bec32a1a8a5c2105ff13b85f02e2d7ffefa96d680076`
+**Pack version:** `0.1.1` — *experimental, offline validated, not game-verified*
 
 Miranda Lawson (Mass Effect 2) as an **equipable full-body outfit** for PAYDAY 2,
 registered as a **Legendary Armour Skins** add-on. This is *not* a character
 swap: it uses its own units and its own FPS (first-person) arms, and it hides
 the heister's mask and armour while the skin is worn.
+
+## What changed in 0.1.1
+
+- **The fingers articulate.** The outfit is now bound to PD2's 30 finger bones
+  instead of folding the whole hand onto the wrist bone, so the fingers move
+  with the heister's hands instead of staying rigid mittens. The finger bone
+  names were recovered offline by hashing PD2's naming convention against the
+  2B rig's stored hashes (`tools/pd2-port/resolve_rig_names.py`); the ME2
+  finger chains map onto them one-to-one.
+- **A guide-compliance audit** (`tools/pd2-port/check_guide_compliance.py`)
+  now runs over the built pack: 35 checks pass, 1 warning, 0 failures against
+  the ModWorkshop LAS/MOOG outfit guide. The audit is part of the test suite,
+  so a pack that drifts from the guide fails the build.
 
 ---
 
@@ -81,6 +94,15 @@ welded vertex graph). Models are authored as DODB `.model` files; textures are
 repacked into PD2's DXT5 layout with full mip pyramids and the PD2 normal-map
 convention (X in alpha, Y flipped).
 
+The build follows the [ModWorkshop LAS/MOOG outfit guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide)
+(Columbus): PD2's 54-bone skeleton (including the 3-bones-per-finger chains),
+at most 3 weight influences per vertex, one `material_config` entry per mesh
+material with the attested render templates only, contour materials with
+`unique="true"` plus `contour_color`/`contour_opacity`, a separate
+arms-only first-person unit with `DEPTH_SCALING`, and DXT5 textures with
+full mip pyramids. `tools/pd2-port/check_guide_compliance.py` re-checks the
+built pack against those rules on every build.
+
 Build it yourself from the repository:
 
 ```sh
@@ -97,8 +119,11 @@ rebuilds and re-publishes it on every `lawson-las-v*` tag.
 
 **Nothing here is game-verified.** The pack is offline-validated only:
 
-- 179 automated tests pass, including an end-to-end test on the real source
+- 183 automated tests pass, including an end-to-end test on the real source
   zip (ME2 COLLADA import, rig retarget, model authoring, pack assembly).
+- The guide-compliance audit passes: 35 checks against the ModWorkshop
+  LAS/MOOG rules, 0 failures (1 warning: the normal maps' green-channel
+  convention can only be settled in game).
 - The geometry gates in `tools/pd2-port/preview_check.py` pass: no weld
   discontinuities above 2.4 cm, no face/mouth/eye distortion, zero corner-split
   twin separation, arm-only FPS cut of 10,468 vertices.
@@ -109,6 +134,9 @@ Still unknown until someone runs it in the game:
 
 - how the shoulder and hip alignment look on the real animation set;
 - whether the contour (wall outline) renders as intended on every heister;
+- whether the fingers articulate as expected (they are bound to PD2's finger
+  bones, and the offline weight check puts every finger vertex within 2.6 cm
+  of its bone, but only the game can show the animation);
 - FPS arm visibility and deformation in first person;
 - multiplayer safety. **Test offline only until it is verified.**
 
@@ -119,6 +147,9 @@ Still unknown until someone runs it in the game:
   ME2 model too).
 - The side swap maps by world side: if the source mesh is mirrored, asymmetric
   surface detail will show it.
+- The normal maps assume the source is DirectX-style (green inverted to PD2's
+  OpenGL-style Y+). If the lighting looks inverted in game, rebuild with
+  `--keep-nm-green`.
 - No cooked-physics payloads are shipped; BeardLib's `unit_mat` registration
   supplies the default.
 

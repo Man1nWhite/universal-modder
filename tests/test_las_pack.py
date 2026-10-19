@@ -6,6 +6,7 @@ source zip (skipped when absent).
 """
 import importlib.util
 import io
+import json
 import struct
 import sys
 import zipfile
@@ -217,9 +218,15 @@ def test_map_joint_core_and_side_swap():
     assert rig_target.map_joint("Neck1") == "Neck"
 
 
-def test_map_joint_folds_fingers_and_face():
-    assert rig_target.map_joint("LeftIndexFinger2") == "RightHand"
-    assert rig_target.map_joint("RightRingFinger1") == "LeftHand"
+def test_map_joint_maps_fingers_to_finger_bones_and_folds_the_face():
+    # the guide's PD2 rig has three bones per finger; the source's finger
+    # chains map onto them one-to-one (sides swap with the arms) so the
+    # fingers articulate instead of riding along with the hand
+    assert rig_target.map_joint("LeftIndexFinger2") == "RightHandIndex3"
+    assert rig_target.map_joint("RightRingFinger1") == "LeftHandRing2"
+    assert rig_target.map_joint("LeftThumbFinger") == "RightHandThumb1"
+    assert rig_target.map_joint("RightPinkFinger2") == "LeftHandPinky3"
+    # the face still folds to the head (PD2 has no facial bones)
     assert rig_target.map_joint("brow_Left") == "Head"
     assert rig_target.map_joint("innerUpperLip_right") == "Head"
     assert rig_target.map_joint("eyeLookBackAt") == "Head"
@@ -228,6 +235,46 @@ def test_map_joint_folds_fingers_and_face():
 def test_map_joint_unknown_raises():
     with pytest.raises(KeyError):
         rig_target.map_joint("NotABone")
+
+
+def test_rig_contract_names_hash_to_their_stored_hashes():
+    """The contract's names are recovered by hashing PD2's naming convention.
+
+    Every named bone must hash to the name_hash the 2B model stored, so a
+    mis-recovered name cannot slip into the rig.
+    """
+    rig = json.loads((PD2 / "reference" / "las_rig.json").read_text())
+    named = [b for b in rig["bones"] if b.get("name")]
+    assert len(named) >= 55
+    for b in named:
+        assert f"{dmodel.hash_str(b['name']):016x}" == b["name_hash"], b
+
+
+def test_finger_bones_are_named_in_the_rig_contract():
+    rig = json.loads((PD2 / "reference" / "las_rig.json").read_text())
+    names = {b["name"] for b in rig["bones"] if b.get("name")}
+    for side in ("Left", "Right"):
+        for finger in ("Thumb", "Index", "Middle", "Ring", "Pinky"):
+            for n in (1, 2, 3):
+                assert f"{side}Hand{finger}{n}" in names
+
+
+def test_finger_bones_carry_weight_in_the_built_model():
+    """Mitten hands were a guide-compliance failure: no finger bone had a
+    vertex. The retarget must bind the hand's vertices to the finger chains."""
+    build = _load("build_las_pack", "build_las_pack.py")
+    source = build.load_source(build.SOURCE_ZIP)
+    scene = me2_dae.load_dae(source[build.DAE_NAME])
+    rig = rig_target.load_target_rig(build.RIG_JSON)
+    rigged = {m.name: rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
+              for m in scene.meshes}
+    used = set()
+    for mesh in rigged.values():
+        for weights in mesh.weights:
+            for bone, _w in weights:
+                used.add(bone)
+    finger_bones = {n for n in used if "Hand" in n and n[-1].isdigit()}
+    assert len(finger_bones) >= 20, f"only {sorted(finger_bones)} carry weight"
 
 
 def test_bone_map_targets_exist_in_donor_rig():
@@ -623,3 +670,20 @@ class TestSourceIntegration:
             assert float(spikes.max()) < 25.0, f"{src.name}: exploded vertices"
             sep = pc.twin_separation(src.positions, dst.positions)
             assert sep < 2.0, f"{src.name}: twins separated by {sep:.2f} cm"
+
+
+def test_built_pack_passes_the_guide_compliance_check():
+    """The shipped pack must satisfy the ModWorkshop LAS/MOOG guide.
+
+    `check_guide_compliance.py` re-reads the built zip and checks it against
+    the guide's rules (skeleton, weights, materials, render templates, FPS
+    unit, texture format, BeardLib packaging). A FAIL here is a guide
+    violation in the pack, not a flake.
+    """
+    pack = ROOT / "dist" / "lawson_las.zip"
+    if not pack.exists():
+        pytest.skip("no built pack")
+    checker = _load("check_guide_compliance", "check_guide_compliance.py")
+    report = checker.audit(pack)
+    fails = [c for c in report.checks if c["status"] == "FAIL"]
+    assert not fails, "; ".join(f"{c['id']}: {c['detail']}" for c in fails)

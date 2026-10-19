@@ -56,7 +56,9 @@ human (Blender) workflow; we automate the mechanical parts of the same recipe.
   middle/ring/pinky), thigh, lower leg, foot, toebase. Source rigs must be
   converted to exactly this set: merge twist/extra bones, then **rename to PD2
   bone names**. Leave engine locator/effect objects alone (`BackPack1`, `Aim`,
-  `e_taser`, …) — deleting them breaks effects and interactions.
+  `e_taser`, …) — deleting them breaks effects and interactions. The finger
+  chains are not decoration: a hand whose vertices are all bound to the wrist
+  bone is a mitten that cannot articulate.
 - **Weights.** Maximum **3 influences per vertex** (Blender: Weight Paint →
   Weights → Limit Total → 3, subset All Groups). Anything more misbehaves.
 - **Fitting.** Scale/rotate the source to the PD2 proportions, then **pose it
@@ -105,8 +107,9 @@ touching materials (a black/grey model in the default pose means the model
 loaded fine) → wire `.material_config` and textures.
 
 Automated path (ours, `tools/pd2-port/`): `me2_dae.py` imports the rigged
-source, `rig_target.py` maps bones by name (folds twists/fingers/face to parent
-bones; swaps sides when the source labels `Left*` at +X) and rebinds the skin
+source, `rig_target.py` maps bones by name (folds twists/face to parent bones
+and maps the finger chains onto PD2's finger bones; swaps sides when the source
+labels `Left*` at +X) and rebinds the skin
 mathematically to the PD2 bind — one **bone-segment-fit** rigid transform per
 target bone (source bone head→tail aligned onto the target bone, minimal
 rotation; stored frame orientations never enter, they differ per engine and
@@ -117,13 +120,20 @@ weight field smoothed over the **welded** vertex graph first —
 textures. `preview_check.py report|render` verifies the transfer offline
 (edge preservation, displacement spikes, twin separation, bone anchors) and
 rasters source/retarget/decoded previews without Blender.
+`check_guide_compliance.py` audits the built pack against this guide's rules
+(one check per rule, each citing it); it runs in the test suite, so a pack
+that drifts from the guide fails the build.
 
 ## Verification
 
 The guide is community documentation, not an oracle; its claims above are
 prescriptions. We adopted its material/normal-map/FPS rules into the Lawson
 build and verified the **offline** invariants only (config↔model material
-coverage, 3-weight geometry, DXT5 validity). The guide's own in-game heuristic:
+coverage, 3-weight geometry, DXT5 validity). `check_guide_compliance.py`
+turns the guide's rules into an automated audit of the built pack: 35 checks
+pass, 1 warning (the normal maps' green-channel convention, which only the
+game can settle), 0 failures — after the finger-binding fix in gotcha 14. The
+guide's own in-game heuristic:
 load the model before editing materials — black/grey in the default pose is
 success. Nothing here is game-verified by us.
 
@@ -192,6 +202,32 @@ success. Nothing here is game-verified by us.
     show what the mesh samples. Verify suspected texture bugs with a UV-box
     overlay before changing anything.
 
+14. **Symptom.** The outfit's hands are mittens: the fingers never move.
+    **Cause.** The source's finger joints were folded onto the wrist bone.
+    The rig contract's finger bones are hash-only (the Model Tool writes
+    names only with the PAYDAY-2-Hashlist installed), so there were no names
+    to map onto and every finger token was folded to the hand. **Fix.**
+    Recover the names offline — the contract's hash is the lookup3 variant in
+    `dmodel.hash64`, so hash PD2's naming convention
+    (`LeftHandThumb1..3`, `LeftHandIndex1..3`, `LeftHandMiddle1..3`,
+    `LeftHandRing1..3`, `LeftHandPinky1..3` and the Right set) and match it
+    against the stored `name_hash` values (`resolve_rig_names.py` in
+    `tools/pd2-port/`, 30 of 187 hash-only bones resolve); then map the
+    source's finger chains one-to-one onto them (side swaps with the arms;
+    ME2's "Pink" is PD2's "Pinky"). Check the result: every finger bone
+    should hold vertices, and the finger-dominant vertices should sit within
+    a couple of cm of their bone's origin.
+
+15. **Symptom.** A rig contract full of `#a1b2c3d4e5f60718` names and no
+    way to get the real ones. **Cause.** The Model Tool stores bone names
+    only with the PAYDAY-2-Hashlist installed; without it, only the hash
+    survives. **Fix.** Do not install the hashlist for this: the hash is a
+    plain lookup3 over the name, so brute-force the naming convention over
+    the game's own bone names and match. A name that hashes to the stored
+    value is proven correct — keep the stored hash and add the name next to
+    it (never edit the hash), and add a test that every named bone hashes to
+    its own `name_hash`.
+
 ## Assets
 
 Reference-only in this repo: `2b.rar` (working LAS pack, user-supplied), the
@@ -204,7 +240,12 @@ render-template zip are external downloads.
   not decidable offline; currently flipped by default with a build flag.
 - Exact inventory of locator/effect object names an LAS outfit unit should
   carry (the 2B reference's undecoded object3Ds) — the guide only lists three
-  examples.
+  examples. (The contract keeps the main tree's unnamed objects: 3 locators
+  plus the 32 finger bones; 150 more hash-only bones in the duplicated
+  10000+ tree stay unresolved.)
 - Whether `CONTOUR` can combine with `ALPHA_MASKED` for masked materials
   (lashes/hair cards) is not attested; such materials currently use the 2B
   template without contour.
+- Whether the 2B reference's two extra per-hand children (one under each
+  Hand) are weapon sockets or thumb tips — their hashes match no plausible
+  PD2 name, so they stay unnamed and unused.

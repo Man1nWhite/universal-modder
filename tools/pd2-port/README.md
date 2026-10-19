@@ -28,11 +28,15 @@ Python 3.10+, Pillow and numpy (the repo's own dependencies):
 python tools/pd2-port/build_las_pack.py          # -> dist/lawson_las.zip
 python tools/pd2-port/build_las_pack.py --check  # validate only
 # --version stamps the release version into build_manifest.json
-# (default 0.1.0; the release notes carry the same value)
+# (default 0.1.1; the release notes carry the same value)
 # --keep-nm-green keeps the source Y channel instead of the default PD2 flip
 # (only for sources already authored with PD2's green convention)
 python tools/pd2-port/preview_check.py report    # geometry gates on the rebind
 python tools/pd2-port/preview_check.py render DIR  # + raster previews (flat, textured, diff)
+python tools/pd2-port/check_guide_compliance.py  # audit the pack against the
+                                                # ModWorkshop LAS/MOOG guide
+python tools/pd2-port/resolve_rig_names.py       # recover PD2 bone names from
+                                                # the rig contract's hashes
 python -m pytest -q tests/test_las_pack.py
 ```
 
@@ -61,6 +65,25 @@ bytes (fixed zip timestamps, sorted entries). The tracked
 Shared format libraries: `dmodel.py` (Diesel `.model` reader) and `dds.py`
 (DXT5 encode/decode). `glb_render.py` renders a GLB bind-pose preview headless
 in Blender if you need one.
+
+## Guide compliance
+
+The pack follows the [ModWorkshop LAS/MOOG outfit guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide)
+(Columbus). `check_guide_compliance.py` re-reads the built zip and checks it
+against the guide's rules, each check citing the rule it enforces:
+
+| Area | Checks |
+|---|---|
+| Skeleton | PD2's 54-bone set (incl. 3 bones per finger), locators kept, twist bones merged, ≤ 3 influences per vertex, finger bones actually carry weight, tangents present and non-degenerate |
+| Materials | `version="3"` + `group=`, one entry per model material (hash-checked), attested render templates only, contour materials with `unique="true"` + `contour_color`/`contour_opacity`, extensionless texture paths that resolve, skinning keyword matching the geometry |
+| First person | separate unit, arms only, `DEPTH_SCALING` template |
+| Textures | DXT5 with a full mip pyramid, PD2 normal layout (X in alpha, R white, B black) |
+| Packaging | `main.xml` with Localization/Hooks/AddFiles, every AddFiles entry resolving, the full LAS flag set, menu localization |
+
+The audit runs in the test suite (`test_built_pack_passes_the_guide_compliance_check`),
+so a pack that drifts from the guide fails the build. Current state: **35 pass,
+1 warning, 0 failures** — the warning is the normal maps' green-channel
+convention, which only the running game can settle.
 
 ## Install (when you have a candidate)
 
