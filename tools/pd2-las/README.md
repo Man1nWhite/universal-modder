@@ -76,12 +76,16 @@ codec (`diesel_model.py`, byte-exact round-trips vs p2mt):
   numpy SVD, proper rotation, uniform scale clamped to [0.5, 6.0]) per TARGET
   bone, shared by every source bone that resolves to it (explicit
   `skeleton_map.json` pairs + ancestor walk). Pairs are fit over the source
-  joints whose targets lie in that target's subtree of the template skeleton;
-  single-pair targets use the global registration with exact joint placement.
-  Vertices transfer as `v' = Σ_j w_j · v · X_j` in world space (source world is
-  inches, target cm — the fits carry the ≈2.54 scale). Faces and UVs are
-  copied verbatim (3-weight renormalized; winding swapped `(a,b,c)→(a,c,b)`
-  to match p2mt's GLTF import, signed volume positive like the 2B reference).
+  joints whose targets lie in that target's subtree of the template skeleton.
+  Two coherence rules: everything under a Hand shares the hand's fit (fingers
+  ride the palm), and a fit deviating >30° from the global registration
+  inherits the nearest ancestor's fit (kills rogue 2-pair frames like the
+  diagonal neck). Single-pair targets keep exact joint placement on top of
+  their fit. Vertices transfer as `v' = Σ_j w_j · v · X_j` in world space
+  (source world is inches, target cm — the fits carry the ≈2.54 scale).
+  Faces and UVs are copied verbatim (3-weight renormalized; winding swapped
+  `(a,b,c)→(a,c,b)` to match p2mt's GLTF import, signed volume positive like
+  the 2B reference).
 - **Groups**: `g_body`, `g_head`, `s_body` (TPP, per-material palettes), `g_arms`,
   `s_arms` (FPS); template `c_block` and all shared skeleton/material plumbing
   are kept untouched. LODs share lod0's group sections (same contract as 2B).

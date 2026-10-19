@@ -31,12 +31,14 @@ Report failures with the item number and a screenshot.
 5. **Winding** — surfaces opaque from all angles; no inside-out faces
    (signed volume matches the 2B reference offline, so this should hold).
 6. Skin weights: elbows, knees, shoulders bend smoothly; no candy-wrapper
-   or spiking at joints. Fingers are the weakest area of the retarget —
-   expect minor noise there; the face (all bones under `Head`) shares one
-   rigid fit and should read cleanly.
+   or spiking at joints. Fingers share the hand's similarity fit (rigid
+   with the palm), so expect clean but slightly averaged fingers. The face
+   region shares one frame and should read cleanly.
 7. Face intact at close range: eyes, nose, lips present; slight lip/jaw
    softness is known/acceptable for v1.
-8. Shadow (`s_body`) renders under the character.
+8. Shadow (`s_body`) renders under the character. Ground contact: the
+   boot soles may sit a few cm below the target ground plane (z ≈ -12 cm
+   offline) — check for floor clipping and report if visible.
 
 ## First person (arms)
 

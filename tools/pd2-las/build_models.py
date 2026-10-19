@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 import zipfile
 from dataclasses import dataclass, field
@@ -108,6 +109,11 @@ FACE_COLORS = {
 # uniform scale clamp for target-registration fits (inch->cm is ~2.54; the
 # clamp only guards against degenerate neighborhoods)
 FIT_SCALE_CLAMP = (0.5, 6.0)
+
+# a local fit whose rotation deviates more than this from the global
+# registration is treated as a rogue frame (noisy 2-pair neighborhoods) and
+# inherits the nearest ancestor's fit instead
+FIT_MAX_DIVERGENCE_DEG = 30.0
 
 
 def quat_to_mat(q) -> dm.Mat:
@@ -193,8 +199,14 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
     (explicit map entries and ancestor-walk fallbacks alike) so regions like
     the face transfer rigidly instead of tearing. The fit for target T is the
     weighted Procrustes (Umeyama) over the explicit bone pairs whose target
-    lies in T's subtree of the template skeleton; single-pair targets fall
-    back to the global registration so leaves (head, toes) follow the body.
+    lies in T's subtree of the template skeleton. Two corrections keep the
+    frames coherent: (1) targets under a Hand in the template tree share the
+    hand's fit (fingers ride the palm — per-knuckle fits tear at the joints);
+    (2) a fit that deviates from the global registration by more than
+    FIT_MAX_DIVERGENCE_DEG inherits the nearest ancestor's fit instead (the
+    2-pair neck neighborhood, with its diagonal neck->head segment, produced
+    a 58-degree rogue frame this way). Single-pair targets keep exact joint
+    placement on top of their fit.
     """
     src_worlds = source_bone_worlds(model)
     src_pos = [(w[12], w[13], w[14]) for w in src_worlds]
@@ -212,11 +224,13 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
 
     # target-tree descendants (name based)
     children: dict[str, list[str]] = {}
+    parent_of: dict[str, str] = {}
     for sid, obj in template.id_obj.items():
         name = template.id_name.get(sid, "")
         parent = template.id_name.get(obj["parent"], "")
         if name and parent:
             children.setdefault(parent, []).append(name)
+            parent_of[name] = parent
 
     def subtree(tname: str) -> set[str]:
         out = {tname}
@@ -236,32 +250,81 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
     g_pts_t = [tgt_pos(t) for _s, t in explicit]
     g_fit = _umeyama_fit(g_pts_s, g_pts_t, [1.0] * len(explicit)) if explicit else None
 
-    fit_for_target: dict[str, dm.Mat] = {}
-    for tname in pair_by_target:
+    def unique_pairs(tname: str) -> list[tuple[int, str]]:
         names = subtree(tname)
-        pts = [(si, t) for si, t in explicit if t in names]
-        # dedupe source bones
         seen: set[int] = set()
         uniq = []
-        for si, t in pts:
-            if si not in seen:
+        for si, t in explicit:
+            if t in names and si not in seen:
                 seen.add(si)
                 uniq.append((si, t))
-        if len(uniq) >= 2:
+        return uniq
+
+    def fit_angle(m: dm.Mat) -> float:
+        tr = m[0] + m[5] + m[10]
+        sc = (m[0] ** 2 + m[1] ** 2 + m[2] ** 2) ** 0.5
+        cosv = max(-1.0, min(1.0, tr / (sc * 3)))
+        return math.degrees(math.acos(cosv))
+
+    g_angle = fit_angle(g_fit) if g_fit else 0.0
+
+    # hands: every target below a Hand shares the hand's fit
+    hand_targets: set[str] = set()
+    for hand in ("RightHand", "LeftHand"):
+        if hand in template.name_id:
+            hand_targets |= subtree(hand) - {hand}
+
+    # v2 own fits (>= 2 unique pairs)
+    own_fit: dict[str, dm.Mat] = {}
+    for tname in pair_by_target:
+        uniq = unique_pairs(tname)
+        if len(uniq) >= 2 and tname not in hand_targets:
             pts_s = [src_pos[si] for si, _ in uniq]
             pts_t = [tgt_pos(t) for _, t in uniq]
-            weights = [1.0] * len(uniq)
-            fit_for_target[tname] = _umeyama_fit(pts_s, pts_t, weights)
+            own_fit[tname] = _umeyama_fit(pts_s, pts_t, [1.0] * len(uniq))
+
+    # divergence filter: rogue local frames inherit the nearest kept ancestor
+    def kept_fit(tname: str) -> dm.Mat:
+        n = tname
+        while n:
+            if n in own_fit:
+                f = own_fit[n]
+                if abs(fit_angle(f) - g_angle) <= FIT_MAX_DIVERGENCE_DEG:
+                    return f
+                # drop the rogue frame; continue upward
+                del own_fit[n]
+            n = parent_of.get(n, "")
+        return g_fit
+
+    fit_for_target: dict[str, dm.Mat] = {}
+    for tname in pair_by_target:
+        uniq = unique_pairs(tname)
+        if tname in hand_targets:
+            n = tname
+            while n and n not in ("RightHand", "LeftHand"):
+                n = parent_of.get(n, "")
+            base = kept_fit(n if n else tname)
         else:
+            base = kept_fit(tname)
+        if len(uniq) == 1:
+            # single pair: inherited frame, translation snapped to the joint
             si, _ = uniq[0]
-            # leaf pair: global registration, exact joint placement
-            m = g_fit
-            tmp = dm.mat_apply_point(m, src_pos[si])
+            tmp = dm.mat_apply_point(base, src_pos[si])
             o_t = tgt_pos(tname)
-            m = (m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7],
-                 m[8], m[9], m[10], m[11],
-                 o_t[0] - tmp[0], o_t[1] - tmp[1], o_t[2] - tmp[2], 1.0)
-            fit_for_target[tname] = m
+            fit_for_target[tname] = (
+                base[0], base[1], base[2], base[3], base[4], base[5], base[6], base[7],
+                base[8], base[9], base[10], base[11],
+                o_t[0] - tmp[0], o_t[1] - tmp[1], o_t[2] - tmp[2], 1.0)
+        else:
+            fit_for_target[tname] = base
+
+    # every template name resolves (ancestor-walk fallbacks included)
+    for sid, name in template.id_name.items():
+        if name and name not in fit_for_target:
+            n = name
+            while n and n not in own_fit:
+                n = parent_of.get(n, "")
+            fit_for_target[name] = own_fit.get(n, g_fit) if n else g_fit
 
     maps: dict[int, dm.Mat] = {}
     for i in range(len(model.bones)):
