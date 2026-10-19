@@ -1,5 +1,8 @@
 # pd2-las — Miranda Lawson as a PAYDAY 2 Legendary Armour Skins outfit
 
+> Quickstart: `bash tools/pd2-las/bootstrap.sh` (venv + 2B templates + build +
+> tests). Context for a new agent: [`docs/pd2-las/HANDOFF.md`](../../docs/pd2-las/HANDOFF.md).
+
 **Status: textures + scaffold + geometry authoring done offline and wired to
 the material layer (`*.material_config` render templates + textures, model
 materials named `mtr_body`/`mtr_face`/`mtr_head`/`mtr_hair`/`mtr_eyes`/

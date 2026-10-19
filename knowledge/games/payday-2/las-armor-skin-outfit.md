@@ -21,12 +21,16 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 
 # LAS armor-skin outfits in PAYDAY 2 from a Source-engine character mod
 
-> Route change for the Miranda Lawson project: retired surgical heister-model
-> replacement (a dead end) and started an equipable Legendary Armour Skins
-> (LAS) armor-skin add-on — the same product shape as the supplied `2b.rar`
-> reference — built from the L4D2 "Miranda Rochelle" Source model. Extraction,
-> Source model/VTF parsing and the LAS registration scaffold are working offline;
-> the Diesel `.model` authoring and any in-game test remain.
+> **Status 2026-10-19:** the standalone LAS pack is built and offline-verified
+> end to end — Diesel `.model` authoring (verified codec + divergence-filter
+> retarget onto the 2B skeleton), guide-compliant `material_config`s, textures,
+> reproducible `Miranda_LAS.zip`, 192 tests. Four verification passes and a
+> structural diff vs the 2B reference are in
+> `docs/audits/2026-10-19-las-guide-compliance.md`. What remains: the user-side
+> in-game checklist (`docs/pd2-las/in-game-checklist.md`) and the ME2
+> redistribution-rights gate before any public release. Start-here doc for the
+> next agent: `docs/pd2-las/HANDOFF.md`; one-command rebuild:
+> `bash tools/pd2-las/bootstrap.sh`.
 
 ## Setup
 
@@ -91,28 +95,35 @@ a broken rig this time — the L4D2 mod is a complete, working character model
 ## Build steps
 
 ```sh
-python tools/pd2-las/build_las.py            # extract + inventory + textures + scaffold
-python -m pytest -q tests/test_pd2_las.py    # offline structural tests (23)
+bash tools/pd2-las/bootstrap.sh    # venv + 2B templates + build + tests + lint
+# or, manually:
+python tools/pd2-las/build_models.py --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+python -m pytest -q tests/
 ```
 
-Output goes to `build/pd2-las/` (gitignored): `extracted/` (VPK contents),
-`previews/` (PNG textures), `textures/` (DDS `.texture` files),
-`Miranda_LAS/` (the LAS pack scaffold: main.xml, `miranda_las.lua` hook,
-localization, converted textures, icon, unit/object/material_config XMLs,
-`BUILD_INFO.json` with per-file hashes, `WIP_DO_NOT_INSTALL.txt`).
+`build_las.py` (extract / inventory / textures / scaffold stages) feeds the
+pack scaffold; `build_models.py` builds the models and auto-creates the
+scaffold if missing, then zips. Output goes to `build/pd2-las/` (gitignored):
+`miranda.model`, `fps_miranda.model`, `Miranda_LAS/` (installable pack) and
+`Miranda_LAS.zip` (reproducible, fixed timestamps), plus `previews/`,
+`textures/`, `source_inventory.json`. Provenance (payload hashes, source zip
+hash, 2B template input hashes) lives in `Miranda_LAS/BUILD_INFO.json`.
 
 ## Verification
 
-- 23 structural tests pass against the tracked source zip: VPK inventory and
-  CRC-checked reads, safe extraction, both models parsed (104/53 bones,
-  16,433/2,892 triangles, valid weights and indices), all 7 VTFs converted with
-  exact DDS chain sizes, mip-order proof, PNG previews, BC3 icon round-trip,
-  and scaffold assertions against the 2B registration contract.
-- Texture previews decode cleanly (face/body atlases) and the icon renders.
-- **Not verified:** anything in-game. The Diesel `.model` authoring
-  (Source mesh → PD2-skeleton skinned model) is not done, so the scaffold is
-  deliberately incomplete and marked `WIP_DO_NOT_INSTALL.txt`. No claim about
-  loading, animation, mask handling or multiplayer sync.
+- 192 offline tests (5 skip without ffmpeg): readers against the tracked
+  source zip, byte-exact Diesel codec round-trips, retarget coherence
+  (weights, winding, signed volumes, bind placement), pack/registration
+  contract vs 2B, guide material_config contract, zip reproducibility.
+- Four verification sweeps (see the compliance audit): guide conformance
+  audit + fixes, build-flow bug fixes, deep artifact probes (index/atom
+  bounds, skinbones `rotations=inv(world)`, UV = `1 − v_src` numerically,
+  texture provenance byte-equal to fresh VTF re-derivations), and a
+  structural diff vs the 2B reference (identical schema at every layer the
+  engine reads).
+- **Not verified:** anything in-game. Known watch items are checklist
+  items 17–18 (normal-map Y+ orientation, contour silhouette) plus the
+  boot-sole ground clip (~12 cm).
 
 ## Gotchas
 
@@ -139,6 +150,35 @@ localization, converted textures, icon, unit/object/material_config XMLs,
    **Cause:** VTX structs are `#pragma pack(1)` (mesh 9 bytes, strip 27,
    group 25) while MDL structs are 32-bit aligned (mesh 116). **Fix:** take
    strides from `source-sdk-2013` headers; verify arrays tile exactly.
+7. **Symptom:** retargeted models came out as ribbon blades or collapsed
+   limbs. **Cause:** raw frame-delta transfer fails in every form tried
+   (`v·inv(S_j)·W`, anatomical frames, shortest-arc, per-source Umeyama,
+   unit-scaled deltas), and a single shared fit across both legs collapses
+   the thighs onto one point. **Fix:** target-centric per-bone Umeyama fits
+   with divergence filtering (>30° from global rotation → inherit nearest
+   kept ancestor), hand subtrees sharing the palm fit, leg fits kept local
+   and mirrored. See `retarget_maps` in `tools/pd2-las/build_models.py`.
+8. **Symptom:** `Miranda_LAS.zip` differed byte-wise between identical
+   builds. **Cause:** `zipfile` embeds file mtimes. **Fix:** fixed ZipInfo
+   timestamps (2020-01-01) + 0644 perms in `las_pack.zip_pack`; asserted in
+   tests.
+9. **Symptom:** a clean-checkout build silently produced no pack and no zip;
+   `--stage inventory` left no `source_inventory.json`. **Cause:**
+   `build_models.py` only refreshed a pre-existing scaffold, and
+   `build_las.py` gated the inventory write to *other* stages. **Fix:**
+   auto-scaffold in `build_models.py`, inventory always persisted. Both
+   covered by tests now.
+10. **Symptom:** arena sandbox wipes `.venv`/`/tmp`/`build` and rewinds local
+    git so the worktree looks like untracked files on `66cfdb7`. **Cause:**
+    sandbox snapshot restore. **Fix:** the work is on the remote —
+    `git fetch && git reset --hard origin/<branch>`, then
+    `bash tools/pd2-las/bootstrap.sh`. Push early; this happened 3×.
+11. **Symptom:** API friction. **Cause:** convenience wrappers differ from
+    stdlib guesses. **Fix:** `VpkArchive.from_zip(path_str, name)` takes a
+    path not a `ZipFile`; `ModelFile.read(data)` not `read_bytes`;
+    `skeleton_map.json` is `map` / `drop.patterns` / `target_only.names`;
+    dropped/unmapped source bones fold into the nearest mapped ancestor
+    (that is how facial flex bones and `hlp_*` helpers are absorbed).
 
 ## Assets
 
@@ -150,15 +190,17 @@ materials).
 
 ## Open questions
 
-1. Source mesh → Diesel `.model` authoring: skin `miranda.smd` to the PD2
-   player skeleton (ValveBiped → Hips/Spine/… mapping), emit `g_body`/`g_head`
-   drawables with `s_body` and culling objects, plus `fps_miranda` from
-   `miranda_arms.smd`. The retired `tools/pd2-port/dmodel.py` format knowledge
-   (DODB section order, SkinBones local-index rule) is gone with the dead end —
-   re-derive from `payday2-model-tool` research notes if needed.
-2. Material strategy: Source EyeRefract eyes and phong hair need Diesel
-   equivalents (`mtr_head` alpha-masked lashes in the 2B reference).
-3. Redistribution rights for ME2-derived assets remain unresolved: private
-   experimental use only, never a public release.
-4. In-game verification ladder (menu preview → offline heist → animations,
-   mask/armor hiding, FPS alignment) is entirely untouched.
+1. **In-game verification ladder** (menu preview → offline heist →
+   animations, mask/armor hiding, FPS alignment) — the only remaining
+   engineering unknown. Checklist: `docs/pd2-las/in-game-checklist.md`.
+   Watch items: normal-map OpenGL Y+ (flip green if lighting inverts),
+   contour silhouette, boot-sole ground clip (~12 cm).
+2. **Redistribution rights** for ME2-derived assets: private experimental
+   use only until resolved; never a public release. This is a release gate,
+   not a code problem.
+
+Resolved since the route change: Source mesh → Diesel `.model` authoring
+(verified `diesel_model.py` codec + retarget, see `tools/pd2-las/README.md`);
+material strategy (`*.material_config` with diffuse+normal DXT5, `CONTOUR`
+per the ModWorkshop guide, `DEPTH_SCALING` on fps — no in-model texture
+hashing, no EyeRefract/phong surgery).

@@ -33,6 +33,8 @@ selectable, equipable full-body outfit with its own third-person model and
 first-person arms, following the contract of the reference pack `2b.rar` — built
 from the source assets in `l4d2_miranda_lawson_1.zip` (an L4D2 Miranda Lawson
 replacement for Rochelle). Pipeline and status: [`tools/pd2-las/`](tools/pd2-las/README.md).
+**Next agent: start at [`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md)**
+— quickstart, verified invariants, dead ends, recovery procedure.
 
 The pack follows the ModWorkshop Wiki
 [LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide):
