@@ -54,7 +54,9 @@ route's open transfer problem (`STATUS.md` §6).
 
 Both lines follow the ModWorkshop Wiki
 [LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide)
-and are offline-validated only — nothing is game-verified yet.
+and are offline-validated only — nothing is game-verified yet. The two tool
+trees stay separate by design; [`tools/README.md`](tools/README.md) records
+why and where the boundary is.
 
 The earlier approach that surgically replaced heister character models
 (Clover/Bonnie/Sydney, plus outfit packs built on the same mesh) was **retired
