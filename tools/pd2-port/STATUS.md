@@ -171,7 +171,30 @@ has to absorb it without folding.
   run both before pushing (0 failures, the warnings are pre-existing).
 * Sequence file edits — parallel edits to the same file race.
 
-## 8. Where the code is
+## 8. Related work on other branches (do not duplicate it)
+
+A parallel agent session works on `arena/136395ac-universal-modder` (branch
+`136395ac`). It ran its own double/triple/quadruple sweeps and added a
+**handoff kit of its own**:
+
+* `docs/pd2-las/HANDOFF.md` — a 5-minute start-here (state, quickstart,
+  do-not-break invariants, dead ends, environment traps, next actions);
+* `tools/pd2-las/bootstrap.sh` — one command from a clean checkout (or after
+  a sandbox wipe) to a built pack and green tests: venv, 2B template
+  extraction, build, pytest, pyflakes;
+* `knowledge/games/payday-2/las-armor-skin-outfit.md` — its own knowledge
+  note (a different file from the one this branch edits, so the two do not
+  conflict textually).
+
+The two lines are complementary and neither contains the other: **this
+branch** has the winding defect and its repair, the guide audit with the
+`N3` check, and this status page; **that branch** has the bootstrap script
+and its own sweeps (crash-safety bounds, build-input provenance, a 2B
+structural comparison). It does *not* have the winding fix — the defect is
+only found on this line. If both are to be kept, merge them deliberately
+(the root `README.md` is the one file both sides edit).
+
+## 9. Where the code is
 
 | File | What it is |
 |---|---|
