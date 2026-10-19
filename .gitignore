@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 uv.lock
 .env
-build/
 # generated distributions (built packs are outputs, not sources)
 dist/*
 # ...except the published LAS pack: it is the release asset and is tracked
