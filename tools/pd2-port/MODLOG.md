@@ -33,11 +33,22 @@
   (max 4.5 cm) — the weights are on the fingers, not scattered. The geometry
   gates still pass (max neighbour spike 2.38 cm, twin separation 0.000 cm, no
   degenerate faces) and the encode/decode round trip is still pixel-identical.
-- Pack rebuilt as **0.1.1**: 7,943,697 bytes, sha256
-  `2cb1ed018b51b256ec42bec32a1a8a5c2105ff13b85f02e2d7ffefa96d680076`.
+- **Second defect, caught by re-checking: the FPS cut dropped the fingers.**
+  `rig_target.ARM_BONES` lists the arm and wrist bones only, and the FPS
+  (arms-only) unit is cut by dominant bone — so 5,028 finger vertices were
+  classified as "body" and left out of the view model: the first-person hands
+  would have been cut off at the knuckles. The cut now knows the finger
+  chains (`is_arm_bone`), the FPS unit carries all 30 finger bones and is back
+  to 10,468 vertices (z 113-149 cm, the shoulder-to-hand band).
+  The audit gained a check for it (F3: the FPS unit must carry the same
+  finger chains as the third-person one) — it reproduced the defect on the
+  pre-fix pack, and a unit test pins the cut.
+- Pack rebuilt as **0.1.1**: 8,015,689 bytes, sha256
+  `063d5f64ba7878edc88d43901d690dc32a3324ba6e6b319fe93941ed0a556dbb`.
 - The compliance audit is now part of the test suite
   (`test_built_pack_passes_the_guide_compliance_check`), so a pack that drifts
-  from the guide fails the build. Suite: 183 passed, 5 skipped.
+  from the guide fails the build. Suite: 184 passed, 5 skipped.
+  Compliance: 36 pass, 1 warn, 0 fail.
 - **Still open:** the normal maps' green-channel convention (source assumed
   DirectX-style, inverted to PD2's OpenGL-style Y+). The guide's rule can only
   be settled in game; `--keep-nm-green` is the switch.

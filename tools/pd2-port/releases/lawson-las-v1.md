@@ -2,8 +2,8 @@
 
 <!-- pack_version: 0.1.1 -->
 
-**Asset:** `lawson_las.zip` (7,943,697 bytes)
-**sha256:** `2cb1ed018b51b256ec42bec32a1a8a5c2105ff13b85f02e2d7ffefa96d680076`
+**Asset:** `lawson_las.zip` (8,015,689 bytes)
+**sha256:** `063d5f64ba7878edc88d43901d690dc32a3324ba6e6b319fe93941ed0a556dbb`
 **Pack version:** `0.1.1` — *experimental, offline validated, not game-verified*
 
 Miranda Lawson (Mass Effect 2) as an **equipable full-body outfit** for PAYDAY 2,
@@ -19,8 +19,12 @@ the heister's mask and armour while the skin is worn.
   names were recovered offline by hashing PD2's naming convention against the
   2B rig's stored hashes (`tools/pd2-port/resolve_rig_names.py`); the ME2
   finger chains map onto them one-to-one.
+- **The first-person hands keep their fingers too.** Binding the fingers to
+  their own bones moved their vertices out of the old "arm" bucket, which
+  silently cut them from the view model; the arm cut now knows the finger
+  chains, so the FPS unit carries all 30 of them.
 - **A guide-compliance audit** (`tools/pd2-port/check_guide_compliance.py`)
-  now runs over the built pack: 35 checks pass, 1 warning, 0 failures against
+  now runs over the built pack: 36 checks pass, 1 warning, 0 failures against
   the ModWorkshop LAS/MOOG outfit guide. The audit is part of the test suite,
   so a pack that drifts from the guide fails the build.
 
@@ -119,9 +123,9 @@ rebuilds and re-publishes it on every `lawson-las-v*` tag.
 
 **Nothing here is game-verified.** The pack is offline-validated only:
 
-- 183 automated tests pass, including an end-to-end test on the real source
+- 184 automated tests pass, including an end-to-end test on the real source
   zip (ME2 COLLADA import, rig retarget, model authoring, pack assembly).
-- The guide-compliance audit passes: 35 checks against the ModWorkshop
+- The guide-compliance audit passes: 36 checks against the ModWorkshop
   LAS/MOOG rules, 0 failures (1 warning: the normal maps' green-channel
   convention can only be settled in game).
 - The geometry gates in `tools/pd2-port/preview_check.py` pass: no weld

@@ -37,6 +37,9 @@ DEFAULT_PACK = ROOT / "dist" / "lawson_las.zip"
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
 
+# PD2's finger bones (three per finger, per hand)
+FINGER_RE = re.compile(r"^(?:Left|Right)Hand(?:Thumb|Index|Middle|Ring|Pinky)[123]$")
+
 # Render templates the guide attests (its material_config example, its
 # first-person example, plus the ones the 2B reference pack ships). Anything
 # else risks a black material - guide: "You cannot create your own render
@@ -487,9 +490,24 @@ def check_skinning_keyword(rep: Report, model: DieselModel, cfg: str,
                f"{label}: every material's skinning keyword covers its geometry")
 
 
+def palette_of(model: DieselModel, by_hash) -> set[str]:
+    """Bone names used by the model's skin palettes."""
+    sec2name = {s.id: by_hash.get(s.obj.name_hash)
+                for s in model.sections
+                if s.tag == "object3D" and s.obj is not None}
+    out: set[str] = set()
+    for s in model.sections:
+        if s.tag == "skinbones" and s.obj is not None:
+            for oid in s.obj.object_ids:
+                name = sec2name.get(oid)
+                if name:
+                    out.add(name)
+    return out
+
+
 def check_fps(rep: Report, pack: dict[str, bytes], fps_model: DieselModel,
-              fps_cfg: str) -> None:
-    """The FPS unit must contain arms and nothing else."""
+              fps_cfg: str, tpp_model: DieselModel, by_hash) -> None:
+    """The FPS unit must contain the arms - hands and fingers included."""
     names = []
     for s in fps_model.sections:
         if s.tag == "model_data" and s.obj is not None and s.obj.render_atoms:
@@ -509,6 +527,25 @@ def check_fps(rep: Report, pack: dict[str, bytes], fps_model: DieselModel,
     else:
         rep.ok("F2", "guide: the FPS unit carries no head/face materials",
                f"FPS materials: {fps_mats}")
+
+    # the hands belong to the arms: the first-person unit must carry the same
+    # finger chains as the third-person one, or the view model loses the
+    # fingers (their vertices are dominated by the finger bones)
+    tpp_fingers = {n for n in palette_of(tpp_model, by_hash)
+                   if FINGER_RE.match(n)}
+    fps_fingers = {n for n in palette_of(fps_model, by_hash)
+                   if FINGER_RE.match(n)}
+    if not tpp_fingers:
+        rep.warn("F3", "guide: the FPS unit holds the arm mesh - hands included",
+                 "the third-person model uses no finger bones")
+    elif fps_fingers >= tpp_fingers:
+        rep.ok("F3", "guide: the FPS unit holds the arm mesh - hands included",
+               f"the FPS unit carries all {len(tpp_fingers)} finger bones")
+    else:
+        missing = sorted(tpp_fingers - fps_fingers)
+        rep.fail("F3", "guide: the FPS unit holds the arm mesh - hands included",
+                 f"the FPS unit is missing {len(missing)} finger bone(s): "
+                 f"{missing}")
 
 
 def check_textures(rep: Report, pack: dict[str, bytes]) -> None:
@@ -690,7 +727,7 @@ def audit(pack_path: Path) -> Report:
         check_materials(rep, pack, fps, fps_cfg, fps=True)
         check_skinning_keyword(rep, tpp, tpp_cfg, "TPP")
         check_skinning_keyword(rep, fps, fps_cfg, "FPS")
-        check_fps(rep, pack, fps, fps_cfg)
+        check_fps(rep, pack, fps, fps_cfg, tpp, by_hash)
         check_textures(rep, pack)
         check_packaging(rep, pack)
         check_notes(rep, pack)

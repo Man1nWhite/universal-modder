@@ -25,6 +25,7 @@ the PD2 skeleton with ``SkinBones.rotations = inv(W_target)``.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from me2_dae import DaeScene, Mesh, SkinBind, mmul, minv
@@ -471,6 +472,16 @@ ARM_BONES = {
     "RightArm", "RightForeArm", "RightForeArmRoll", "RightHand",
 }
 
+# The hand's finger chains belong to the arm for the FPS cut: without them the
+# first-person unit loses the fingers (their vertices are dominated by the
+# finger bones, not the wrist).
+FINGER_BONE_RE = re.compile(r"^(?:Left|Right)Hand(?:Thumb|Index|Middle|Ring|Pinky)[123]$")
+
+
+def is_arm_bone(name: str) -> bool:
+    """True for the arm bones and the finger chains hanging off the hands."""
+    return name in ARM_BONES or bool(FINGER_BONE_RE.match(name))
+
 
 def dominant_bone(weights: list[tuple[str, float]]) -> str:
     return max(weights, key=lambda bw: bw[1])[0] if weights else "Hips"
@@ -481,5 +492,5 @@ def split_arm_verts(mesh: RiggedMesh) -> tuple[set[int], set[int]]:
     body: set[int] = set()
     arms: set[int] = set()
     for i, w in enumerate(mesh.weights):
-        (arms if dominant_bone(w) in ARM_BONES else body).add(i)
+        (arms if is_arm_bone(dominant_bone(w)) else body).add(i)
     return body, arms

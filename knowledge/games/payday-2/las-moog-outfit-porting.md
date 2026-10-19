@@ -130,7 +130,7 @@ The guide is community documentation, not an oracle; its claims above are
 prescriptions. We adopted its material/normal-map/FPS rules into the Lawson
 build and verified the **offline** invariants only (config↔model material
 coverage, 3-weight geometry, DXT5 validity). `check_guide_compliance.py`
-turns the guide's rules into an automated audit of the built pack: 35 checks
+turns the guide's rules into an automated audit of the built pack: 36 checks
 pass, 1 warning (the normal maps' green-channel convention, which only the
 game can settle), 0 failures — after the finger-binding fix in gotcha 14. The
 guide's own in-game heuristic:
@@ -227,6 +227,19 @@ success. Nothing here is game-verified by us.
     value is proven correct — keep the stored hash and add the name next to
     it (never edit the hash), and add a test that every named bone hashes to
     its own `name_hash`.
+
+16. **Symptom.** The first-person view model has hands cut off at the
+    knuckles, or a part of the body silently disappears from the FPS unit
+    after a re-rig. **Cause.** The FPS unit is cut by *dominant* bone
+    against a fixed bone list (arm, forearm, wrist). A re-rig that moves
+    vertices onto new bones (here: the finger chains) moves them out of that
+    list's bucket, and they are dropped from the view model — the third-person
+    unit still shows them, so the pack looks fine in the preview and breaks in
+    first person. **Fix.** Make the cut a rule, not a list: keep the arm cut
+    in step with the rig (here `is_arm_bone` matches the finger chains too),
+    and check the two units against each other — the FPS unit must carry the
+    same hand/finger bones as the third-person one, and its vertex count must
+    not change silently between builds.
 
 ## Assets
 

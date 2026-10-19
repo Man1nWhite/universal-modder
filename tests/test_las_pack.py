@@ -277,6 +277,24 @@ def test_finger_bones_carry_weight_in_the_built_model():
     assert len(finger_bones) >= 20, f"only {sorted(finger_bones)} carry weight"
 
 
+def test_fps_cut_keeps_the_fingers():
+    """The FPS unit holds the arm mesh - hands included.
+
+    The fingers' vertices are dominated by the finger bones, so an arm cut
+    that only knows the arm bones drops them and the view model loses the
+    fingers (the compliance audit's F3 check caught exactly that).
+    """
+    mesh = rig_target.RiggedMesh(
+        name="Body 2", material="mtr_body2", positions=[], normals=[],
+        uvs=[], triangles=[],
+        weights=[[("RightHandThumb1", 1.0)],
+                 [("RightHandIndex3", 0.9), ("RightHand", 0.1)],
+                 [("Hips", 1.0)]])
+    body, arms = rig_target.split_arm_verts(mesh)
+    assert arms == {0, 1}, "finger vertices must stay in the first-person cut"
+    assert body == {2}
+
+
 def test_bone_map_targets_exist_in_donor_rig():
     rig = rig_target.load_target_rig(PD2 / "reference" / "las_rig.json")
     missing = {t for t in rig_target.BONE_MAP.values() if t not in rig.by_name}

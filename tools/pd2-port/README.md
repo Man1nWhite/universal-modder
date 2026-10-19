@@ -76,12 +76,12 @@ against the guide's rules, each check citing the rule it enforces:
 |---|---|
 | Skeleton | PD2's 54-bone set (incl. 3 bones per finger), locators kept, twist bones merged, ≤ 3 influences per vertex, finger bones actually carry weight, tangents present and non-degenerate |
 | Materials | `version="3"` + `group=`, one entry per model material (hash-checked), attested render templates only, contour materials with `unique="true"` + `contour_color`/`contour_opacity`, extensionless texture paths that resolve, skinning keyword matching the geometry |
-| First person | separate unit, arms only, `DEPTH_SCALING` template |
+| First person | separate unit, arms only (hands and fingers included), `DEPTH_SCALING` template |
 | Textures | DXT5 with a full mip pyramid, PD2 normal layout (X in alpha, R white, B black) |
 | Packaging | `main.xml` with Localization/Hooks/AddFiles, every AddFiles entry resolving, the full LAS flag set, menu localization |
 
 The audit runs in the test suite (`test_built_pack_passes_the_guide_compliance_check`),
-so a pack that drifts from the guide fails the build. Current state: **35 pass,
+so a pack that drifts from the guide fails the build. Current state: **36 pass,
 1 warning, 0 failures** — the warning is the normal maps' green-channel
 convention, which only the running game can settle.
 
