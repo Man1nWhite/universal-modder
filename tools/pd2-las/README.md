@@ -86,16 +86,21 @@ codec (`diesel_model.py`, byte-exact round-trips vs p2mt):
   `s_arms` (FPS); template `c_block` and all shared skeleton/material plumbing
   are kept untouched. LODs share lod0's group sections (same contract as 2B).
 - **Previews** land in `build/pd2-las/previews/` — geometry flat-shaded per
-  material plus the source-texture reference renders.
+  material plus the source-texture reference renders. `uv_check.py` renders
+  the authored UVs against the known-good 2B model with an identical
+  sampler (the `uvcheck_*` PNGs) — the offline proof that the TEXCOORD0
+  convention matches the reference.
 
 Remaining for install: an in-game check — follow
-`docs/pd2-las/in-game-checklist.md`. The material layer is complete
+`docs/pd2-las/in-game-checklist.md`. The material
+layer is complete
 (`2b.material_config` proved the contract: model materials are name-hash
 carriers; the `*.material_config` side binds names to `render_template`
 combos + `df`/`nm` textures, and `main.xml` registers `df_nm`/`texture`/
-`unit_mat` entries). UV orientation of `TEXCOORD0` is `v = 1 − v_src` per
-the p2mt GLTF import convention — confirm in game and flip if the textures
-read upside-down. Release also waits on the ME2 asset redistribution rights.
+`unit_mat` entries). UV orientation of `TEXCOORD0` (`v = 1 − v_src`, the p2mt
+GLTF import convention) is pre-verified offline against the 2B reference via
+`uv_check.py` — if a future change flips it, the probe PNGs will show it.
+Release also waits on the ME2 asset redistribution rights.
 
 Output under `build/pd2-las/` (gitignored):
 

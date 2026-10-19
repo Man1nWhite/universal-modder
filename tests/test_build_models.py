@@ -72,6 +72,43 @@ def test_umeyama_scale_clamped():
     assert sc <= bm.FIT_SCALE_CLAMP[1] + 1e-9
 
 
+def test_render_textured_sampler_orientation(tmp_path):
+    """The UV probe's sampler: (u, v) -> (u*(w-1), v*(h-1)), nearest texel.
+
+    An 8x8 gradient (r grows with u, g grows with v) sampled through a
+    triangle with known corner uvs locks both the mapping and the flip
+    orientation used to compare our UVs with the 2B reference (uv_check.py).
+    """
+    import preview
+
+    class Tex:
+        size = (8, 8)
+
+        def getpixel(self, xy):
+            i, j = xy
+            return (i * 28, j * 28, 40)
+
+    # triangle in the z=0 plane: uv (0,0) at world origin, u along +x, v along +y
+    verts = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)]
+    uvs = [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)]
+    out = tmp_path / "t.png"
+    preview.render_textured(verts, [(0, 1, 2)], uvs, Tex(), out, view="top", size=64)
+    from PIL import Image
+
+    im = Image.open(out)
+    w, h = im.size
+
+    def px(fx, fy):
+        return im.getpixel((int(w * fx), int(h * fy)))[:3]
+
+    bl = px(0.32, 0.68)   # near uv (0,0): both channels low
+    br = px(0.68, 0.68)   # near uv (1,0): r high
+    tl = px(0.32, 0.32)   # near uv (0,1): g high
+    assert br[0] > bl[0] + 100, (bl, br)      # u axis -> r channel
+    assert tl[1] > bl[1] + 100, (bl, tl)      # v axis -> g channel
+    assert bl[0] < 80 and bl[1] < 80, bl      # corner (0,0) stays dark
+
+
 # ------------------------------------------------------- integration: author
 
 

@@ -19,11 +19,15 @@ Report failures with the item number and a screenshot.
 3. Full body visible in the lobby preview and in-game: head, torso, arms,
    legs, boots — no missing groups (`g_body`, `g_head` enabled per
    `miranda.object`; `s_body` handled by the engine).
-4. **Texture orientation** — UVs were written with the p2mt GLTF import
-   convention `v = 1 − v_src`. If any texture reads upside-down or mirrored
-   (watch the face: lips above eyes is the failure mode), it is a single
-   sign flip in `build_models.py` (`transfer_group`, the `g.uvs` append)
-   plus the same flip in `tests/test_build_models.py`.
+4. **Texture orientation** — **pre-verified offline** against the 2B
+   reference: `tools/pd2-las/uv_check.py` renders our UVs and the known-good
+   2B UVs with an identical sampler; the results match (see
+   `build/pd2-las/previews/uvcheck_*` — face/outfit/eyes all land
+   anatomically). The stored convention is the p2mt GLTF import
+   `v = 1 − v_src`, same as 2B. Still confirm in game; if it ever reads
+   flipped, it is a single sign flip in `build_models.py`
+   (`transfer_group`, the `g.uvs` append) plus the same flip in
+   `tests/test_build_models.py`.
 5. **Winding** — surfaces opaque from all angles; no inside-out faces
    (signed volume matches the 2B reference offline, so this should hold).
 6. Skin weights: elbows, knees, shoulders bend smoothly; no candy-wrapper

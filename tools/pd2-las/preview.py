@@ -106,3 +106,86 @@ def render(verts, faces, colors, out_path, view="front", size=640):
 
 
 VIEW_ORDER = ("front", "side", "iso")
+
+
+def render_textured(verts, faces, uvs, texture, out_path, view="front", size=640):
+    """Render triangles sampling ``texture`` (object with .size=(w,h) and
+    .getpixel((x, y)) -> (r, g, b), PIL-style) via nearest texel at
+    (u, v) -> (u*(w-1), v*(h-1)).
+
+    Used for the UV-convention probe: the same sampler is applied to the
+    known-good 2B model and to our authored model; if both render the same
+    way, our stored UV convention matches the reference.
+    """
+    if not verts:
+        return
+    tw, th = texture.size
+    tget = texture.getpixel
+    xs = [v[0] for v in verts]; ys = [v[1] for v in verts]; zs = [v[2] for v in verts]
+    cx = (min(xs) + max(xs)) / 2; cy = (min(ys) + max(ys)) / 2; cz = (min(zs) + max(zs)) / 2
+    extent = max(max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)) or 1.0
+    scale = (size * 0.42) / extent
+
+    if view == "front":
+        right, up, fwd = (1, 0, 0), (0, 0, 1), (0, -1, 0)
+    elif view == "back":
+        right, up, fwd = (-1, 0, 0), (0, 0, 1), (0, 1, 0)
+    elif view == "side":
+        right, up, fwd = (0, 1, 0), (0, 0, 1), (1, 0, 0)
+    elif view == "top":
+        right, up, fwd = (1, 0, 0), (0, 1, 0), (0, 0, -1)
+    else:  # iso
+        right = _norm((1, 1, 0))
+        up = _norm((-0.4, -0.4, 1.2))
+        fwd = _norm((-1, -1, 1.2))
+
+    def project(p):
+        x, y, z = p[0] - cx, p[1] - cy, p[2] - cz
+        sx = x * right[0] + y * right[1] + z * right[2]
+        sy = x * up[0] + y * up[1] + z * up[2]
+        sz = x * fwd[0] + y * fwd[1] + z * fwd[2]
+        return (size / 2 + sx * scale, size / 2 - sy * scale, sz)
+
+    proj = [project(v) for v in verts]
+    zb = [1e30] * (size * size)
+    img = bytearray(b"\x20\x24\x28" * size * size)
+
+    light = _norm((0.35, -0.6, 0.75))
+    for (a, b, c) in faces:
+        (ax, ay, az), (bx, by, bz), (cx2, cy2, cz2) = proj[a], proj[b], proj[c]
+        area = (bx - ax) * (cy2 - ay) - (by - ay) * (cx2 - ax)
+        if abs(area) < 1e-9:
+            continue
+        va, vb, vc = verts[a], verts[b], verts[c]
+        e1 = (vb[0] - va[0], vb[1] - va[1], vb[2] - va[2])
+        e2 = (vc[0] - va[0], vc[1] - va[1], vc[2] - va[2])
+        n = _norm((e1[1] * e2[2] - e1[2] * e2[1],
+                   e1[2] * e2[0] - e1[0] * e2[2],
+                   e1[0] * e2[1] - e1[1] * e2[0]))
+        lam = 0.40 + 0.60 * max(0.0, abs(n[0] * light[0] + n[1] * light[1] + n[2] * light[2]))
+        (u0, v0), (u1, v1), (u2, v2) = uvs[a], uvs[b], uvs[c]
+        minx = max(0, int(min(ax, bx, cx2))); maxx = min(size - 1, int(max(ax, bx, cx2)) + 1)
+        miny = max(0, int(min(ay, by, cy2))); maxy = min(size - 1, int(max(ay, by, cy2)) + 1)
+        for py in range(miny, maxy + 1):
+            for px in range(minx, maxx + 1):
+                w0 = (bx - ax) * (py - ay) - (by - ay) * (px - ax)
+                w1 = (cx2 - bx) * (py - by) - (cy2 - by) * (px - bx)
+                w2 = (ax - cx2) * (py - cy2) - (ay - cy2) * (px - cx2)
+                if (w0 >= 0 and w1 >= 0 and w2 >= 0) or (w0 <= 0 and w1 <= 0 and w2 <= 0):
+                    depth = (az + bz + cz2) / 3
+                    idx = py * size + px
+                    if depth < zb[idx]:
+                        zb[idx] = depth
+                        b0 = ((bx - px) * (cy2 - py) - (by - py) * (cx2 - px)) / area
+                        b1 = ((cx2 - px) * (ay - py) - (cy2 - py) * (ax - px)) / area
+                        b2 = 1.0 - b0 - b1
+                        u = b0 * u0 + b1 * u1 + b2 * u2
+                        v = b0 * v0 + b1 * v1 + b2 * v2
+                        tx = int(u * (tw - 1)) % tw
+                        ty = int(v * (th - 1)) % th
+                        r, g, bl = tget((tx, ty))[:3]
+                        img[idx * 3:idx * 3 + 3] = bytes((
+                            min(255, int(r * lam)),
+                            min(255, int(g * lam)),
+                            min(255, int(bl * lam))))
+    write_png(out_path, size, size, bytes(img))
