@@ -415,21 +415,19 @@ class TestLasScaffold:
             assert zipfile.is_zipfile(ref) is False
 
     def test_tracked_miranda_las_pack(self):
-        """The built Miranda_LAS.zip deliverable is tracked and self-consistent."""
+        """The built Miranda_LAS.zip deliverable is tracked in dist/ and self-consistent."""
         build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
         dist_zip = REPO / "dist" / "Miranda_LAS.zip"
-        root_zip = REPO / "Miranda_LAS.zip"
         build_sha = REPO / "build" / "pd2-las" / "Miranda_LAS.zip.sha256"
         dist_sha = REPO / "dist" / "Miranda_LAS.zip.sha256"
-        for p in (build_zip, dist_zip, root_zip, build_sha, dist_sha):
+        for p in (build_zip, dist_zip, build_sha, dist_sha):
             assert p.is_file(), f"missing tracked deliverable: {p}"
-        raw = build_zip.read_bytes()
-        assert dist_zip.read_bytes() == raw
-        assert root_zip.read_bytes() == raw
+        raw = dist_zip.read_bytes()
+        assert build_zip.read_bytes() == raw
         digest = hashlib.sha256(raw).hexdigest()
         assert build_sha.read_text().split()[0] == digest
         assert dist_sha.read_text().split()[0] == digest
-        with zipfile.ZipFile(build_zip) as z:
+        with zipfile.ZipFile(dist_zip) as z:
             info = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))
             assert info["models_present"] is True
             assert "WIP_DO_NOT_INSTALL.txt" not in info["payload_sha256"]
@@ -437,6 +435,37 @@ class TestLasScaffold:
             for rel, expected in info["payload_sha256"].items():
                 actual = hashlib.sha256(z.read(f"Miranda_LAS/{rel}")).hexdigest()
                 assert actual == expected, rel
+
+    def test_tracked_joy_head_replacement_packs(self):
+        """Both Joy head-replacement mod_overrides packs in dist/ are tracked and valid."""
+        import diesel_model as dm
+
+        for zip_name, prefix in (
+            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy"),
+            ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy"),
+        ):
+            zp = REPO / "dist" / zip_name
+            sp = REPO / "dist" / f"{zip_name}.sha256"
+            assert zp.is_file(), f"missing {zp}"
+            assert sp.is_file(), f"missing {sp}"
+            raw = zp.read_bytes()
+            assert sp.read_text().split()[0] == hashlib.sha256(raw).hexdigest()
+            unit_dir = f"{prefix}/units/pd2_dlc_joy/characters/npc_criminals_joy_1"
+            icon_path = f"{prefix}/guis/dlcs/joy/textures/pd2/blackmarket/icons/characters/joy.texture"
+            with zipfile.ZipFile(zp) as z:
+                names = set(z.namelist())
+                assert icon_path in names
+                assert len(z.read(icon_path)) == 65664
+                m_bytes = z.read(f"{unit_dir}/npc_criminal_joy_1.model")
+                assert m_bytes == z.read(f"{unit_dir}/npc_criminal_joy_1_menu.model")
+                mf = dm.ModelFile.read(m_bytes)
+                for did, gid, tid in ((120, 228, 229), (121, 233, 234)):
+                    md = dm.decode_model_data(mf.by_id(did).payload)
+                    geo = dm.decode_geometry(mf.by_id(gid).payload)
+                    topo = dm.decode_topology(mf.by_id(tid).payload)
+                    assert len(md["atoms"]) == 2
+                    assert geo["vert_count"] > 4000
+                    assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
 
     def test_tracked_pack_specular_alpha_and_pd2_normal_layout(self):
         """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""

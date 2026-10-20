@@ -66,7 +66,7 @@ python -m pytest -q tests/                      # 190 tests, run offline
 ```
 
 The installable test pack is `build/pd2-las/Miranda_LAS/` (tracked zip copies
-at `Miranda_LAS.zip`, `dist/Miranda_LAS.zip`, and `build/pd2-las/Miranda_LAS.zip`);
+at `dist/Miranda_LAS.zip` and `build/pd2-las/Miranda_LAS.zip`);
 verify it in game with `docs/pd2-las/in-game-checklist.md` before any public
 release.
 

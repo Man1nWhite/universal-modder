@@ -1,16 +1,17 @@
-# tools/ — two independent tool trees, on purpose
+# tools/ — PAYDAY 2 Miranda Lawson build pipelines
 
-Two Lawson LAS routes live side by side. They answer the same product brief
-from different source assets, and their tool trees are **deliberately not
-merged**. Read `docs/pd2-las/HANDOFF.md` (L4D2 route) and
-`tools/pd2-port/STATUS.md` (ME2 route) for each pipeline's own start-here.
+Three PAYDAY 2 pipelines live in `tools/`, producing the four tracked deliverables in **`dist/`**:
 
-| | `tools/pd2-port/` — ME2 route | `tools/pd2-las/` — L4D2 route |
-| --- | --- | --- |
-| Source | ME2 *Romance* COLLADA zip | `l4d2_miranda_lawson_1.zip` (MDL/VVD/VTX in a VPK) |
-| Output | `dist/lawson_las.zip` (tracked, sha256-pinned) | `Miranda_LAS.zip`, `dist/Miranda_LAS.zip`, `build/pd2-las/Miranda_LAS.zip` (tracked, sha256-pinned, byte-reproducible) |
-| Pack layout | `Lawson_LAS/assets/units/…` (2B-identical) | `Miranda_LAS/assets/units/…` (2B-identical) |
-| Install | `assets/mod_overrides/` (both — the 2B/MOOG convention; BeardLib's AddFramework loads `main.xml` packs from there) | same |
+1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`** (`9,101,185` bytes). See `tools/pd2-port/STATUS.md`.
+2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`** (`5,844,737` bytes). See `docs/pd2-las/HANDOFF.md`.
+3. **`tools/build_joy_head_mods.py`** — Two Joy head-replacement `mod_overrides` packages modeled on `Ada Wong over Joy.7z` → **`dist/Miranda_L4D2_over_Joy.zip`** (`10,496,415` bytes) and **`dist/Miranda_Romance_over_Joy.zip`** (`10,660,971` bytes).
+
+| | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Joy Head Mods |
+| --- | --- | --- | --- |
+| Source | ME2 *Romance* COLLADA zip + `2b.rar` | `l4d2_miranda_lawson_1.zip` + `2b.rar` | Both sources + `Ada Wong over Joy.7z` |
+| Output in `dist/` | `dist/lawson_las.zip` (tracked, sha256-pinned) | `dist/Miranda_LAS.zip` (tracked, sha256-pinned) | `dist/Miranda_L4D2_over_Joy.zip` & `dist/Miranda_Romance_over_Joy.zip` (tracked, sha256-pinned) |
+| Pack layout | `Lawson_LAS/assets/units/…` (LAS outfit) | `Miranda_LAS/assets/units/…` (LAS outfit) | `Miranda {L4D2,Romance} over Joy/units/pd2_dlc_joy/…` (vanilla Joy head override) |
+| Install | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (vanilla Joy head replacement) |
 | `.model` dialect | DODB container, unshifted channel types, packed normals | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) |
 | Rig work | `rig_target.py` + `reference/las_rig.json` (anatomically partitioned similarity retarget) | `skeleton_map.json` + anatomically partitioned similarity retarget in `build_models.py` |
 | Verification | `check_all.py` (5 stages, mutation-tested), release CI | 235-test suite incl. `test_diesel_model` byte round-trips |

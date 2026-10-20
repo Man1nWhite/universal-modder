@@ -11,12 +11,16 @@ build/pd2-las/*
 !build/pd2-las/Miranda_LAS.zip.sha256
 # generated distributions (built packs are outputs, not sources)
 dist/*
-# ...except the published LAS packs: they are tracked so the repository always
-# carries the exact bytes of the built deliverables.
+# ...except the published LAS and Joy head-replacement packs: they are tracked
+# so the repository always carries the exact bytes of the built deliverables.
 !dist/lawson_las.zip
 !dist/lawson_las.zip.sha256
 !dist/Miranda_LAS.zip
 !dist/Miranda_LAS.zip.sha256
+!dist/Miranda_L4D2_over_Joy.zip
+!dist/Miranda_L4D2_over_Joy.zip.sha256
+!dist/Miranda_Romance_over_Joy.zip
+!dist/Miranda_Romance_over_Joy.zip.sha256
 *.egg-info/
 # captures and scratch
 *.mkv

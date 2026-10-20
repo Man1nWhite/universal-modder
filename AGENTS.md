@@ -74,3 +74,42 @@ repo, they almost always want to **mod a game**, or to learn how a game was modd
   `um publish check .`.
 - **Wording:** keep skills and docs agent-neutral ("the agent", not a product name) except in sections
   about one specific agent.
+
+## Active Project: PAYDAY 2 Miranda Lawson Mods (`dist/`)
+
+All built PAYDAY 2 deliverables live in **`dist/`** (tracked in git with `.sha256` sidecars), while source archives sit at the repository root:
+
+| Deliverable in `dist/` | Type | Source Archive | Builder Script |
+|---|---|---|---|
+| `dist/lawson_las.zip` (`9,101,185` B) | Full-body LAS outfit (ME2 Romance) | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `2b.rar` | `tools/pd2-port/build_las_pack.py` |
+| `dist/Miranda_LAS.zip` (`5,844,737` B) | Full-body LAS outfit (L4D2 port) | `l4d2_miranda_lawson_1.zip` + `2b.rar` | `tools/pd2-las/build_models.py` |
+| `dist/Miranda_L4D2_over_Joy.zip` (`10,496,415` B) | Joy head-replacement `mod_overrides` (L4D2) | `l4d2_miranda_lawson_1.zip` + `Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_Romance_over_Joy.zip` (`10,660,971` B) | Joy head-replacement `mod_overrides` (ME2 Romance) | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
+
+### Agent Quickstart & Sandbox Recovery
+Arena sandboxes do not persist `.venv/`, `/tmp/`, or untracked `dist/`/`build/` files across container restarts, and local `HEAD` may rewind to the branch base on restart. Always run:
+```bash
+git fetch origin && git reset --hard origin/$(git rev-parse --abbrev-ref HEAD)
+bash tools/pd2-las/bootstrap.sh
+.venv/bin/python tools/pd2-port/check_all.py
+```
+`bash tools/pd2-las/bootstrap.sh` sets up `.venv` (pinned `pillow==13.0.0 numpy==2.4.6 pyyaml pytest pyflakes py7zr`), extracts `2b.rar` and `Ada Wong over Joy.7z`, rebuilds `dist/Miranda_LAS.zip`, `dist/Miranda_L4D2_over_Joy.zip`, and `dist/Miranda_Romance_over_Joy.zip`, verifies all four `dist/*.zip.sha256` digests, and runs the full `pytest` and `pyflakes` suites.
+
+### Critical Diesel Engine & PAYDAY 2 Invariants (Do Not Break)
+1. **Two Diesel `.model` Parsers**:
+   - `tools/pd2-las/diesel_model.py` (`dm.ModelFile.read` + `dm.decode_geometry` / `dm.decode_topology` / `dm.decode_model_data`) decodes any legacy PAYDAY 2 `.model` (`2b.model`, `miranda.model`, `npc_criminal_joy_1.model`).
+   - `tools/pd2-port/dmodel.py` (`DieselModel.from_bytes`) only populates `geo.weights3` for `lawson.model`.
+2. **Global `Topology` Indices in Multi-Atom Drawables**:
+   - In Diesel `.model` files (`npc_criminal_joy_1.model`, `miranda.model`), triangle indices in `Topology` for `RenderAtom` `i` are **global vertex indices** in `[base_vertex, base_vertex + slice_len - 1]`, never local `0 .. slice_len - 1`.
+3. **UV Coordinate Convention (`v_diesel = 1.0 - v_img`)**:
+   - Diesel `Geometry.uv0` stores OpenGL/COLLADA bottom-up `v` (`v = 1.0` is top row `y_img = 0` of the DDS image; `v = 0.0` is bottom row `y_img = H - 1`).
+   - When packing a 2×2 atlas at top-down quadrant `(qx, qy) ∈ {0, 1}²`, map `u_diesel = 0.5 * qx + 0.5 * u_img` and `v_diesel = 1.0 - (0.5 * qy + 0.5 * v_img)`.
+4. **DXT5 Diffuse Alpha = Specular/Gloss & DXT5nm Normal Maps**:
+   - In `generic:...:DIFFUSE_TEXTURE:NORMALMAP:...` shaders (without `ALPHA_MASKED`), the diffuse texture's alpha channel is **gloss/specular intensity** (`alpha = 255` makes skin/fabric look like wet plastic in-game). Keep diffuse alpha low (`<= 28` or normal-slope attenuated).
+   - Diesel normal maps use swizzled **DXT5nm** (`R = G = B = ny`, `A = nx`, DirectX Y− green channel inverted to Y+ via `dds.pd2_normal_channels(arr, invert_y=True)`).
+5. **Standing-Pose Shoulder/Arm Alignment & Elbow Hinge Axis (Full-Body LAS)**:
+   - PAYDAY 2's in-game standing pose swings `RightShoulder`/`LeftShoulder` ~19° downward from bind pose (`z: 147→142 cm`). Retargeting must align clavicle/upper-arm/forearm directions in the **animated standing pose** and align the source elbow hinge axis (`local +Z`) with PD2's `RightForeArm`/`LeftForeArm` local `+Z` axis so elbows never shear when bending.
+6. **Joy Head-Replacement (`mod_overrides`) Collar & Skinning Contract**:
+   - `npc_criminal_joy_1.model` (`and identical npc_criminal_joy_1_menu.model`) uses `g_head_mask_off` (`id=120`, `geo=228`, `topo=229`) and `g_head` (`id=121`, `geo=233`, `topo=234`), both bound to `SkinBones 44` (`['Spine2', 'Neck', 'Head']`).
+   - Joy's `g_body` hoodie collar (`z ∈ [151, 160]`) is weighted `95.5%` to `Spine2` (`0% Neck`), with an inner collar cone at `y ≈ 7.2–8.5 cm` and outer V-neck lapel at `y ∈ [12.9, 15.5] cm`. Keep lower-throat vertices in the collar channel `y ∈ [9.0, 10.6] cm` and weight `z <= 156 cm` `100%` to `Spine2` so the neck never separates from the collar when `Neck`/`Head` rotate.
+

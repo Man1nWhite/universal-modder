@@ -640,8 +640,6 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         if tname is not None and tname not in t_mat_by_name:
             t_mat_by_name[tname] = T
 
-    _id_mat = (1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0)
-    g_fit = per_src_T.get(0, next(iter(per_src_T.values()), _id_mat))
     T_col: dict[str, np.ndarray] = {
         tn: np.array(m, dtype=np.float64).reshape(4, 4).T
         for tn, m in t_mat_by_name.items()
@@ -1132,8 +1130,7 @@ def main(argv=None) -> int:
         (dist_dir / f"{zip_path.name}.sha256").write_text(
             f"{zip_sha}  dist/{zip_path.name}\n"
         )
-        shutil.copy2(zip_path, REPO / zip_path.name)
-    print(f"pack updated: {unit_dir} (+ {zip_path.name}, sha256={zip_sha[:16]}…)")
+    print(f"pack updated: {unit_dir} (+ dist/{zip_path.name}, sha256={zip_sha[:16]}…)")
     return 0
 
 

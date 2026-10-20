@@ -58,6 +58,8 @@ jobs:
           diff -u dist/lawson_las.zip.sha256 <(sha256sum dist/lawson_las.zip)
           diff -u dist/Miranda_LAS.zip.sha256 <(sha256sum dist/Miranda_LAS.zip)
           diff -u build/pd2-las/Miranda_LAS.zip.sha256 <(sha256sum build/pd2-las/Miranda_LAS.zip)
+          diff -u dist/Miranda_L4D2_over_Joy.zip.sha256 <(sha256sum dist/Miranda_L4D2_over_Joy.zip)
+          diff -u dist/Miranda_Romance_over_Joy.zip.sha256 <(sha256sum dist/Miranda_Romance_over_Joy.zip)
       - name: tests
         run: python -m pytest -q tests
       - name: upload artifact
@@ -67,6 +69,8 @@ jobs:
           path: |
             dist/lawson_las.zip
             dist/Miranda_LAS.zip
+            dist/Miranda_L4D2_over_Joy.zip
+            dist/Miranda_Romance_over_Joy.zip
           if-no-files-found: error
       - name: publish to the GitHub release
         if: startsWith(github.ref, 'refs/tags/lawson-las-v')

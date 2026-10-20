@@ -1,33 +1,32 @@
 #!/usr/bin/env python3
 """Build two PAYDAY 2 `mod_overrides` head-replacement mods over Joy:
 
-1. `Miranda_L4D2_over_Joy.zip` (and `dist/Miranda_L4D2_over_Joy.zip`):
-   Built from the L4D2 Miranda Lawson mod (`l4d2_miranda_lawson_1.zip` / `Miranda_LAS.zip`).
-2. `Miranda_Romance_over_Joy.zip` (and `dist/Miranda_Romance_over_Joy.zip`):
+1. `dist/Miranda_L4D2_over_Joy.zip` (+ `.sha256`):
+   Built from the L4D2 Miranda Lawson mod (`l4d2_miranda_lawson_1.zip` / `dist/Miranda_LAS.zip`).
+2. `dist/Miranda_Romance_over_Joy.zip` (+ `.sha256`):
    Built from the Mass Effect 2 Romance Miranda Lawson archive
    (`PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`).
 
 Both packages follow the exact `mod_overrides` structure and Diesel `.model` /
-`.material_config` / `.texture` conventions of `Ada Wong over Joy.7z`.
+`.material_config` / `.texture` conventions of `Ada Wong over Joy.7z`, and use
+fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
 """
 from __future__ import annotations
 
+import hashlib
 import io
-import struct
 import subprocess
 import sys
-import tempfile
 import zipfile
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools" / "pd2-port"))
 sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 
-import build_models as bm  # noqa: E402
 import dds  # noqa: E402
 import diesel_model as dm  # noqa: E402
 import me2_dae  # noqa: E402
@@ -46,7 +45,13 @@ def ensure_ada_reference(tmp_dir: Path) -> Path:
     if not archive.exists():
         raise FileNotFoundError(f"Missing reference archive: {archive}")
     tmp_dir.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["7z", "x", "-y", f"-o{tmp_dir}", str(archive)], check=True)
+    try:
+        import py7zr  # type: ignore
+
+        with py7zr.SevenZipFile(archive, mode="r") as z:
+            z.extractall(path=tmp_dir)
+    except ImportError:
+        subprocess.run(["7z", "x", "-y", f"-o{tmp_dir}", str(archive)], check=True)
     return ada_root
 
 
@@ -420,9 +425,38 @@ def render_head_portrait(atom0_mesh: dict, atom1_mesh: dict, atlas_rgb: np.ndarr
     return Image.fromarray(img)
 
 
+def find_miranda_las_zip() -> Path:
+    for candidate in (
+        ROOT / "dist" / "Miranda_LAS.zip",
+        ROOT / "build" / "pd2-las" / "Miranda_LAS.zip",
+        ROOT / "Miranda_LAS.zip",
+    ):
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError("Missing dist/Miranda_LAS.zip (run tools/pd2-las/build_models.py first)")
+
+
+def write_deterministic_zip(files: dict[str, bytes], out_zip_paths: list[Path]) -> None:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+        for k in sorted(files.keys()):
+            zi = zipfile.ZipInfo(filename=k, date_time=(2020, 1, 1, 0, 0, 0))
+            zi.compress_type = zipfile.ZIP_DEFLATED
+            zi.external_attr = 0o644 << 16
+            zf.writestr(zi, files[k], compress_type=zipfile.ZIP_DEFLATED, compresslevel=6)
+    raw = buf.getvalue()
+    sha = hashlib.sha256(raw).hexdigest()
+    for zp in out_zip_paths:
+        zp.parent.mkdir(parents=True, exist_ok=True)
+        zp.write_bytes(raw)
+        rel = zp.relative_to(ROOT) if zp.is_relative_to(ROOT) else zp
+        zp.with_name(f"{zp.name}.sha256").write_text(f"{sha}  {rel.as_posix()}\n", encoding="utf-8")
+        print(f"Wrote {zp} ({len(raw):,} bytes, sha256={sha[:16]}…)")
+
+
 def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
-    """Build Version 1: L4D2 Miranda over Joy (`Miranda_L4D2_over_Joy.zip`)."""
-    with zipfile.ZipFile(ROOT / "Miranda_LAS.zip") as zf:
+    """Build Version 1: L4D2 Miranda over Joy (`dist/Miranda_L4D2_over_Joy.zip`)."""
+    with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
         face_df_im = Image.open(io.BytesIO(zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda_face_df.texture"))).convert("RGBA")
         face_nm_im = Image.open(io.BytesIO(zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda_face_nm.texture"))).convert("RGBA")
@@ -465,11 +499,6 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
     pg_head = dm.decode_passthroughgp(pm_mir.by_id(md_head["passthroughgp"]).payload)
     geo_head = dm.decode_geometry(pm_mir.by_id(pg_head["geometry"]).payload)
     topo_head = np.array(dm.decode_topology(pm_mir.by_id(pg_head["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
-
-    md_body = dm.decode_model_data(pm_mir.by_id(93).payload)
-    pg_body = dm.decode_passthroughgp(pm_mir.by_id(md_body["passthroughgp"]).payload)
-    geo_body = dm.decode_geometry(pm_mir.by_id(pg_body["geometry"]).payload)
-    topo_body = np.array(dm.decode_topology(pm_mir.by_id(pg_body["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
 
     vh = np.asarray(geo_head["verts"], dtype=np.float32)
     nh = np.asarray(geo_head["normals"], dtype=np.float32)
@@ -553,17 +582,12 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
         f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_df.texture": lashes_df_dds,
         f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_op.texture": lashes_op_dds,
     }
-    for zp in out_zip_paths:
-        zp.parent.mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(zp, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
-            for k, v in files.items():
-                zf.writestr(k, v)
-        print(f"Wrote {zp} ({zp.stat().st_size:,} bytes)")
+    write_deterministic_zip(files, out_zip_paths)
 
 
 def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path]) -> None:
-    """Build Version 2: ME2 Romance Miranda over Joy (`Miranda_Romance_over_Joy.zip`)."""
-    with zipfile.ZipFile(ROOT / "Miranda_LAS.zip") as zf:
+    """Build Version 2: ME2 Romance Miranda over Joy (`dist/Miranda_Romance_over_Joy.zip`)."""
+    with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
     pm_mir = dm.ModelFile.read(mir_bytes)
     md_head = dm.decode_model_data(pm_mir.by_id(94).payload)
@@ -736,12 +760,7 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
         f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_df.texture": lashes_df_dds,
         f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_op.texture": lashes_op_dds,
     }
-    for zp in out_zip_paths:
-        zp.parent.mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(zp, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
-            for k, v in files.items():
-                zf.writestr(k, v)
-        print(f"Wrote {zp} ({zp.stat().st_size:,} bytes)")
+    write_deterministic_zip(files, out_zip_paths)
 
 
 def main() -> None:
@@ -750,18 +769,12 @@ def main() -> None:
 
     build_l4d2_joy_mod(
         ada_root,
-        [
-            ROOT / "Miranda_L4D2_over_Joy.zip",
-            ROOT / "dist" / "Miranda_L4D2_over_Joy.zip",
-        ],
+        [ROOT / "dist" / "Miranda_L4D2_over_Joy.zip"],
     )
     build_me2_romance_joy_mod(
         ada_root,
         me2_dir,
-        [
-            ROOT / "Miranda_Romance_over_Joy.zip",
-            ROOT / "dist" / "Miranda_Romance_over_Joy.zip",
-        ],
+        [ROOT / "dist" / "Miranda_Romance_over_Joy.zip"],
     )
 
 
