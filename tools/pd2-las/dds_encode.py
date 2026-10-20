@@ -202,7 +202,7 @@ def set_dxt5_constant_alpha(df_dds: bytes, alpha_val: int) -> bytes:
 
 
 def swizzle_source_normal_dxt5_to_pd2(nm_dds: bytes, invert_y: bool = True) -> bytes:
-    """Swizzle Source DXT5 normal map (R=nx, G=ny, B=nz) to PD2 format (R=255, G=255-ny, B=0, A=nx)."""
+    """Swizzle UE3/ME2-derived Source DXT5 normal map (R=ny_down, G=nx_right, B=nz) to PD2 DXT5nm (R=255, G=255-ny_down, B=0, A=nx_right)."""
     hdr = nm_dds[:128]
     blocks = np.frombuffer(nm_dds[128:], dtype=np.uint8).reshape(-1, 16)
     n = blocks.shape[0]
@@ -217,17 +217,20 @@ def swizzle_source_normal_dxt5_to_pd2(nm_dds: bytes, invert_y: bool = True) -> b
         | (blocks[:, 15].astype(np.uint32) << 24)
     )
 
-    r0_8 = ((c0 >> 11) & 31) * 255 // 31
-    r1_8 = ((c1 >> 11) & 31) * 255 // 31
-    g0_6 = (c0 >> 5) & 63
-    g1_6 = (c1 >> 5) & 63
+    # Source VTFs extracted from UE3/ME2 store horizontal X in Green and vertical Y_down in Red.
+    nx0_8 = ((c0 >> 5) & 63) * 255 // 63
+    nx1_8 = ((c1 >> 5) & 63) * 255 // 63
+    ny0_5 = (c0 >> 11) & 31
+    ny1_5 = (c1 >> 11) & 31
     if invert_y:
-        g0_6 = 63 - g0_6
-        g1_6 = 63 - g1_6
+        ny0_5 = 31 - ny0_5
+        ny1_5 = 31 - ny1_5
+    g0_6 = (ny0_5 * 63 + 15) // 31
+    g1_6 = (ny1_5 * 63 + 15) // 31
 
-    swap_r = r0_8 < r1_8
-    a0 = np.where(swap_r, r1_8, r0_8).astype(np.uint8)
-    a1 = np.where(swap_r, r0_8, r1_8).astype(np.uint8)
+    swap_r = nx0_8 < nx1_8
+    a0 = np.where(swap_r, nx1_8, nx0_8).astype(np.uint8)
+    a1 = np.where(swap_r, nx0_8, nx1_8).astype(np.uint8)
     out[:, 0] = a0
     out[:, 1] = a1
 

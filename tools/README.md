@@ -2,13 +2,13 @@
 
 Three PAYDAY 2 pipelines live in `tools/`, producing the ten tracked deliverables in **`dist/`**:
 
-1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`** (`9,101,185` bytes). See `tools/pd2-port/STATUS.md`.
-2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`** (`5,844,737` bytes). See `docs/pd2-las/HANDOFF.md`.
+1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`** (`9,107,070` bytes). See `tools/pd2-port/STATUS.md`.
+2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`** (`5,864,923` bytes). See `docs/pd2-las/HANDOFF.md`.
 3. **`tools/build_joy_head_mods.py`** — Eight female-heister head-replacement `mod_overrides` packages (**L4D2** and **ME2 Romance** variants over **Joy**, **Clover**, **Bonnie**, and **Sydney**), modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`:
-   - **`dist/Miranda_L4D2_over_Joy.zip`** (`10,496,279` B) & **`dist/Miranda_Romance_over_Joy.zip`** (`10,660,996` B)
-   - **`dist/Miranda_L4D2_over_Clover.zip`** (`7,529,231` B) & **`dist/Miranda_Romance_over_Clover.zip`** (`7,708,609` B)
-   - **`dist/Miranda_L4D2_over_Bonnie.zip`** (`8,057,953` B) & **`dist/Miranda_Romance_over_Bonnie.zip`** (`8,199,363` B)
-   - **`dist/Miranda_L4D2_over_Sydney.zip`** (`7,037,082` B) & **`dist/Miranda_Romance_over_Sydney.zip`** (`7,208,018` B)
+   - **`dist/Miranda_L4D2_over_Joy.zip`** (`10,634,831` B) & **`dist/Miranda_Romance_over_Joy.zip`** (`10,368,473` B)
+   - **`dist/Miranda_L4D2_over_Clover.zip`** (`7,684,781` B) & **`dist/Miranda_Romance_over_Clover.zip`** (`7,424,198` B)
+   - **`dist/Miranda_L4D2_over_Bonnie.zip`** (`8,194,781` B) & **`dist/Miranda_Romance_over_Bonnie.zip`** (`7,921,882` B)
+   - **`dist/Miranda_L4D2_over_Sydney.zip`** (`7,186,118` B) & **`dist/Miranda_Romance_over_Sydney.zip`** (`6,931,272` B)
 
 | | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Female Heister Head Mods |
 | --- | --- | --- | --- |

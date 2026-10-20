@@ -455,7 +455,7 @@ def render_heister_head_sheet(
     a0, a1 = md_head["atoms"][0], md_head["atoms"][1]
 
     parts.append((vh, nh, topo_head[a0["base_index"] // 3 : a0["base_index"] // 3 + a0["tri_count"]], uvh, head_df, False, False))
-    parts.append((vh, nh, topo_head[a1["base_index"] // 3 : a1["base_index"] // 3 + a1["tri_count"]], uvh, sec_df, is_rom, False))
+    parts.append((vh, nh, topo_head[a1["base_index"] // 3 : a1["base_index"] // 3 + a1["tri_count"]], uvh, sec_df, True, False))
 
     W_col, H_row = 360, 480
     canvas = Image.new("RGB", (W_col * 4, H_row + 58), (18, 22, 30))

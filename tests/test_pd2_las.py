@@ -564,4 +564,67 @@ class TestLasScaffold:
                 assert np.all(c0 >= c1), f"{stem} has c0 < c1"
                 assert int(blocks[:, 0].max()) - int(blocks[:, 1].min()) > 16, f"{stem} alpha flat"
 
+    def test_ingame_visual_artifact_regressions(self):
+        """Guard against the 5 in-game visual artifacts:
+        1. Corrupted right-cheek/mouth-corner skin boundary normals.
+        2. Non-orthogonal or un-welded tangent basis vectors (uvdir_u, uvdir_v).
+        3. Duplicate eyeball triangles in Atom 1 (causing Z-fighting black eyes).
+        4. Untinted white / slit eyeballs in head_df quadrant (1, 1).
+        5. Lower front hair poking through the front throat skin (z < 161.5).
+        """
+        import io
+        import numpy as np
+        from PIL import Image
+        import diesel_model as dm
+
+        specs = [
+            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_nm.texture", "g_head"),
+            ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_nm.texture", "g_head"),
+            ("Miranda_L4D2_over_Clover.zip", "Miranda L4D2 over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
+            ("Miranda_Romance_over_Clover.zip", "Miranda Romance over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
+        ]
+        for zip_name, prefix, model_rel, df_rel, nm_rel, head_draw in specs:
+            with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
+                mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
+                md_by_hash = {
+                    dm.decode_model_data(s.payload)["name_hash"]: s
+                    for s in mf.by_type(dm.MODEL_DATA)
+                }
+                md = dm.decode_model_data(md_by_hash[dm.hash64(head_draw)].payload)
+                pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+                geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+                a0, a1 = md["atoms"][0], md["atoms"][1]
+                # 1. Atom 1 is 3D eyelashes only (never duplicated eyeballs)
+                assert a1["tri_count"] == 224, f"{zip_name}: expected 224 eyelash tris in Atom 1, got {a1['tri_count']}"
+                # 2. Orthonormal tangent basis
+                nrm = np.asarray(geo["normals"], dtype=np.float64)
+                tu = np.asarray(geo["uvdir_u"], dtype=np.float64)
+                tv = np.asarray(geo["uvdir_v"], dtype=np.float64)
+                assert float(np.abs(np.sum(nrm * tu, axis=1)).max()) < 1e-4
+                assert float(np.abs(np.sum(nrm * tv, axis=1)).max()) < 1e-4
+                # 3. Lower front hair (z < 161.5) stays strictly behind front throat skin
+                p0 = np.asarray(geo["verts"], dtype=np.float64)[: a0["slice_len"]]
+                uv0 = np.asarray(geo["uv0"], dtype=np.float64)[: a0["slice_len"]]
+                uv_img_y = 1.0 - uv0[:, 1]
+                # Hair in quadrant (1, 0) has u in [0.5, 1.0], v_img in [0.0, 0.5] with local v_img <= 0.41
+                is_hair = (uv0[:, 0] > 0.5) & (uv_img_y < 0.41)
+                low_hair = is_hair & (p0[:, 2] < 161.5)
+                assert float(p0[low_hair, 1].max()) < 5.0, f"{zip_name}: low hair pokes forward to y={p0[low_hair, 1].max():.2f}"
+                # 4. Crisp sapphire iris in quadrant (1, 1) of head_df
+                df_im = np.asarray(Image.open(io.BytesIO(z.read(f"{prefix}/{df_rel}"))).convert("RGBA"))
+                eye_quad = df_im[1024:2048, 1024:2048]
+                yy, xx = np.mgrid[0:1024, 0:1024].astype(np.float32)
+                r = np.hypot((xx - 511.5) / 1024.0, (yy - 511.5) / 1024.0)
+                iris_ring = (r > 0.10) & (r < 0.19)
+                mean_r = float(eye_quad[iris_ring, 0].mean())
+                mean_b = float(eye_quad[iris_ring, 2].mean())
+                assert mean_b > mean_r + 40.0, f"{zip_name}: eye iris not sapphire blue (R={mean_r:.1f}, B={mean_b:.1f})"
+                # 5. PD2 DXT5nm normal map layout in head_nm
+                nm_raw = z.read(f"{prefix}/{nm_rel}")
+                nm_blocks = np.frombuffer(nm_raw[128:], dtype=np.uint8).reshape(-1, 16)
+                c0 = nm_blocks[:, 8].astype(np.int32) | (nm_blocks[:, 9].astype(np.int32) << 8)
+                assert np.all(((c0 >> 11) & 31) == 31), f"{zip_name}: head_nm red channel not 255"
+                assert np.all((c0 & 31) == 0), f"{zip_name}: head_nm blue channel not 0"
+
+
 

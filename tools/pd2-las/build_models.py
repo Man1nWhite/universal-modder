@@ -745,9 +745,64 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     pal_index = {n: i for i, n in enumerate(ordered)}
 
     g.weights = [[(pal_index[n], w) for n, w in infl] for infl in g.weights]
+    if group_name == "head":
+        repair_skin_boundary_normals(g)
     breaks = orientation_breaks(g)
     print(f"[{group_name}] orientation breaks: {breaks}")
     return g
+
+
+def repair_skin_boundary_normals(g: Group) -> None:
+    """Repair corrupted boundary normals along the face/neck seam and mouth corners.
+
+    In the ME2/L4D2 source mesh, 7 right-cheek/temple boundary vertices on
+    ``miranda_face`` (and their 4 matching twins on ``miranda_head`` neck skin)
+    plus 3 mouth-corner vertices have normals corrupted by adjacent hair cards
+    or mouthbag geometry (dot with true skin surface normal = 0.017..0.540),
+    which produces a bright vertical shading streak on the right cheek in-game.
+    """
+    import numpy as np
+
+    if not g.verts or not g.faces:
+        return
+    p = np.asarray(g.verts, dtype=np.float64)
+    n = np.asarray(g.normals, dtype=np.float64)
+    uv = np.asarray(g.uvs, dtype=np.float64)
+    uv_img_y = 1.0 - uv[:, 1]
+    skin_vert_mask = np.zeros(len(p), dtype=bool)
+    skin_tris: list[tuple[int, int, int]] = []
+    for mat_name, base_v, base_i, tri_count, slice_len in g.slices:
+        if mat_name == "miranda_face":
+            skin_vert_mask[base_v : base_v + slice_len] = True
+            skin_tris.extend(g.faces[base_i // 3 : base_i // 3 + tri_count])
+        elif mat_name == "miranda_head":
+            for f in g.faces[base_i // 3 : base_i // 3 + tri_count]:
+                a, b, c = f
+                if (
+                    uv[a, 0] < 0.59 and uv_img_y[a] > 0.72
+                    and uv[b, 0] < 0.59 and uv_img_y[b] > 0.72
+                    and uv[c, 0] < 0.59 and uv_img_y[c] > 0.72
+                ):
+                    skin_vert_mask[a] = skin_vert_mask[b] = skin_vert_mask[c] = True
+                    skin_tris.append(f)
+    if not skin_tris:
+        return
+    t = np.asarray(skin_tris, dtype=np.int32)
+    v0, v1, v2 = p[t[:, 0]], p[t[:, 1]], p[t[:, 2]]
+    fn = np.cross(v1 - v0, v2 - v0)
+    rounded = np.round(p * 100.0).astype(np.int64)
+    _, inv = np.unique(rounded, axis=0, return_inverse=True)
+    gn_u = np.zeros((inv.max() + 1, 3), dtype=np.float64)
+    for k in range(3):
+        np.add.at(gn_u, inv[t[:, k]], fn)
+    gn_u /= np.maximum(np.linalg.norm(gn_u, axis=1, keepdims=True), 1e-8)
+    gn = gn_u[inv]
+    if float(np.sum(n[skin_vert_mask] * gn[skin_vert_mask], axis=1).mean()) < 0.0:
+        gn = -gn
+    dots = np.sum(n * gn, axis=1)
+    bad = skin_vert_mask & (dots < 0.75)
+    for vi in np.nonzero(bad)[0]:
+        g.normals[int(vi)] = (float(gn[vi, 0]), float(gn[vi, 1]), float(gn[vi, 2]))
 
 
 def orientation_breaks(g: Group) -> int:
@@ -792,6 +847,18 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
         pal_w.append((ws[0] / s, ws[1] / s, ws[2] / s))
 
     du, dv = dm.compute_uv_directions(g.verts, g.uvs, g.faces)
+    if len(g.normals) == len(g.verts) and len(g.verts) > 0:
+        import numpy as np
+
+        n_arr = np.asarray(g.normals, dtype=np.float64)
+        u_arr = np.asarray(du, dtype=np.float64)
+        v_arr = np.asarray(dv, dtype=np.float64)
+        u_arr = u_arr - np.sum(u_arr * n_arr, axis=1, keepdims=True) * n_arr
+        v_arr = v_arr - np.sum(v_arr * n_arr, axis=1, keepdims=True) * n_arr
+        u_arr /= np.maximum(np.linalg.norm(u_arr, axis=1, keepdims=True), 1e-8)
+        v_arr /= np.maximum(np.linalg.norm(v_arr, axis=1, keepdims=True), 1e-8)
+        du = [tuple(map(float, row)) for row in u_arr]
+        dv = [tuple(map(float, row)) for row in v_arr]
     geo = {
         "vert_count": len(g.verts),
         "headers": [

@@ -136,15 +136,15 @@ def eye_uv_planar(positions) -> list[tuple[float, float]]:
         idx = [i for i, p in enumerate(positions) if pred(p[0])]
         if not idx:
             continue
-        cx = sum(positions[i][0] for i in idx) / len(idx)
-        cy = sum(positions[i][1] for i in idx) / len(idx)
-        cz = sum(positions[i][2] for i in idx) / len(idx)
-        r = sum(((positions[i][0] - cx) ** 2 + (positions[i][1] - cy) ** 2 +
-                 (positions[i][2] - cz) ** 2) ** 0.5 for i in idx) / len(idx) or 1.0
-        scale = 0.42 / (0.9 * r)
+        cx = 0.5 * (min(positions[i][0] for i in idx) + max(positions[i][0] for i in idx))
+        cz = 0.5 * (min(positions[i][2] for i in idx) + max(positions[i][2] for i in idx))
+        rx = 0.5 * (max(positions[i][0] for i in idx) - min(positions[i][0] for i in idx)) or 1.0
+        # Match L4D2 miranda.model eyeball UV scale (0.50 / rx) for r_uv = 0.218 iris
+        scale = 0.50 / rx
         for i in idx:
-            out[i] = (0.5 + scale * (positions[i][0] - cx),
-                      0.5 + scale * (positions[i][2] - cz))
+            u = min(0.98, max(0.02, 0.5 + scale * (positions[i][0] - cx)))
+            v = min(0.98, max(0.02, 0.5 + scale * (positions[i][2] - cz)))
+            out[i] = (u, v)
     return out
 
 
@@ -176,9 +176,64 @@ def atom_for(rm, material: str, keep=None) -> "las_model.Atom":
                           uvs=u, weights=w, faces=f)
 
 
+def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
+    """Repair corrupted boundary normals along the face/neck seam and mouth corners.
+
+    In the ME2 source mesh, 7 right-cheek/temple boundary vertices on ``Face``
+    (and their 4 matching twins on ``Hair`` neck skin) plus 3 mouth-corner
+    vertices have normals corrupted by adjacent hair cards or mouthbag
+    geometry (dot with true skin surface normal = 0.017..0.540).
+    """
+    import numpy as np
+
+    pf = np.asarray(face_rm.positions, dtype=np.float64)
+    ph = np.asarray(hair_rm.positions, dtype=np.float64)
+    nf = np.asarray(face_rm.normals, dtype=np.float64)
+    nh = np.asarray(hair_rm.normals, dtype=np.float64)
+    uvh = np.asarray(hair_rm.uvs, dtype=np.float64)
+    uvh_img_y = 1.0 - uvh[:, 1]
+
+    tf = np.asarray(face_rm.triangles, dtype=np.int32)
+    th = np.asarray(hair_rm.triangles, dtype=np.int32)
+    is_ns = (uvh[:, 0] < 0.59) & (uvh_img_y > 0.72)
+    ns_tri_mask = is_ns[th[:, 0]] & is_ns[th[:, 1]] & is_ns[th[:, 2]]
+    th_ns = th[ns_tri_mask] + len(pf)
+
+    p_all = np.vstack([pf, ph])
+    t_skin = np.vstack([tf, th_ns])
+    v0, v1, v2 = p_all[t_skin[:, 0]], p_all[t_skin[:, 1]], p_all[t_skin[:, 2]]
+    fn = np.cross(v1 - v0, v2 - v0)
+    rounded = np.round(p_all * 100.0).astype(np.int64)
+    _, inv = np.unique(rounded, axis=0, return_inverse=True)
+    gn_u = np.zeros((inv.max() + 1, 3), dtype=np.float64)
+    for k in range(3):
+        np.add.at(gn_u, inv[t_skin[:, k]], fn)
+    gn_u /= np.maximum(np.linalg.norm(gn_u, axis=1, keepdims=True), 1e-8)
+    gn_all = gn_u[inv]
+    if float(np.sum(nf * gn_all[: len(pf)], axis=1).mean()) < 0.0:
+        gn_all = -gn_all
+
+    gn_f = gn_all[: len(pf)]
+    gn_h = gn_all[len(pf) :]
+    bad_f = np.sum(nf * gn_f, axis=1) < 0.75
+    for vi in np.nonzero(bad_f)[0]:
+        face_rm.normals[int(vi)] = (float(gn_f[vi, 0]), float(gn_f[vi, 1]), float(gn_f[vi, 2]))
+    bad_h = is_ns & (np.sum(nh * gn_h, axis=1) < 0.75)
+    for vi in np.nonzero(bad_h)[0]:
+        hair_rm.normals[int(vi)] = (float(gn_h[vi, 0]), float(gn_h[vi, 1]), float(gn_h[vi, 2]))
+    face_rm.triangles, _ = rig_target.repair_winding(
+        face_rm.positions, face_rm.normals, face_rm.triangles
+    )
+    hair_rm.triangles, _ = rig_target.repair_winding(
+        hair_rm.positions, hair_rm.normals, hair_rm.triangles
+    )
+
+
 def build_models(scene, rig, log=print):
     rigged = {m.name: rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
               for m in scene.meshes}
+    if "Face" in rigged and "Hair" in rigged:
+        repair_rebound_skin_normals(rigged["Face"], rigged["Hair"])
     # static approximation of ME2's eye shader (see eye_uv_planar)
     rigged["Eyes"].uvs = eye_uv_planar(rigged["Eyes"].positions)
 
@@ -216,28 +271,51 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
 
     rgba = np.asarray(img.convert("RGBA"), dtype=np.uint8).copy()
     if base == "eyes":
-        # ME2's EYE_Diff.png has unshaded pure-white (255,255,255) outside the
-        # iris radius because the UE3 eye shader computed sclera falloff.
-        # Apply soft radial sclera shading outside the iris so the eyeballs
-        # don't render as flat white spheres.
+        # ME2's EYE_Diff.png has an untinted white elliptical iris (rx=0.095,
+        # ry=0.148) and unshaded pure-white sclera because the UE3 eye shader
+        # tinted the iris and computed sclera falloff. Synthesize a crisp round
+        # deep-sapphire iris (r_uv=0.218, matching miranda_eyes.texture) with
+        # radial fibers sampled from EYE_Diff.png and warm-taupe sclera shading.
         h, w = rgba.shape[:2]
         yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
-        cx, cy = 0.5 * (w - 1), 0.5 * (h - 1)
-        r = np.hypot(xx - cx, yy - cy) / (0.5 * w)
-        t = np.clip((r - 0.27) / 0.55, 0.0, 1.0)
-        mask = (r > 0.27)[:, :, None]
-        # Soft warm-grey sclera gradient: (224, 216, 214) near iris -> (172, 152, 148) at rim
-        target_r = 224.0 - 52.0 * t
-        target_g = 216.0 - 64.0 * t
-        target_b = 214.0 - 66.0 * t
-        sclera = np.stack([target_r, target_g, target_b], axis=-1)
-        blend = np.clip((r - 0.25) / 0.06, 0.0, 1.0)[:, :, None]
-        rgb_f = rgba[:, :, :3].astype(np.float32)
-        rgba[:, :, :3] = np.where(
-            mask,
-            np.clip(rgb_f * (1.0 - blend) + sclera * blend, 0.0, 255.0),
-            rgb_f,
-        ).astype(np.uint8)
+        u = (xx + 0.5) / w - 0.5
+        v = (yy + 0.5) / h - 0.5
+        r = np.hypot(u, v)
+
+        src_f = rgba[:, :, :3].astype(np.float32) / 255.0
+        su = np.clip((0.5 + u * (0.088 / 0.215)) * (w - 1), 0, w - 1).astype(np.int32)
+        sv = np.clip((0.5 + v * (0.142 / 0.215)) * (h - 1), 0, h - 1).astype(np.int32)
+        fiber_lum = src_f[sv, su].mean(axis=2)
+        fiber_detail = np.clip((fiber_lum - 0.72) / 0.22, -0.5, 0.6)
+
+        t_iris = np.clip((r - 0.080) / (0.205 - 0.080), 0.0, 1.0)
+        iris_r = 26.0 * (1.0 - t_iris) + 64.0 * t_iris + 34.0 * fiber_detail
+        iris_g = 54.0 * (1.0 - t_iris) + 112.0 * t_iris + 52.0 * fiber_detail
+        iris_b = 98.0 * (1.0 - t_iris) + 168.0 * t_iris + 68.0 * fiber_detail
+        col_ring = np.exp(-((r - 0.118) / 0.022) ** 2)
+        iris_r += 22.0 * col_ring * (0.5 + 0.5 * fiber_detail)
+        iris_g += 38.0 * col_ring * (0.5 + 0.5 * fiber_detail)
+        iris_b += 54.0 * col_ring * (0.5 + 0.5 * fiber_detail)
+        iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1)
+
+        limbal_rgb = np.array([12.0, 20.0, 36.0], dtype=np.float32)
+        pupil_rgb = np.array([4.0, 5.0, 8.0], dtype=np.float32)
+
+        t_sc = np.clip((r - 0.225) / 0.36, 0.0, 1.0)
+        top_shadow = np.clip((-v - 0.02) / 0.28, 0.0, 1.0) * 0.28
+        sc_r = (212.0 - 52.0 * t_sc) * (1.0 - top_shadow)
+        sc_g = (194.0 - 58.0 * t_sc) * (1.0 - top_shadow)
+        sc_b = (188.0 - 60.0 * t_sc) * (1.0 - top_shadow)
+        sclera_rgb = np.stack([sc_r, sc_g, sc_b], axis=-1)
+
+        w_pupil = np.clip((0.086 - r) / 0.014, 0.0, 1.0)[:, :, None]
+        w_limbal = np.exp(-((r - 0.212) / 0.018) ** 2)[:, :, None]
+        w_sclera = np.clip((r - 0.216) / 0.018, 0.0, 1.0)[:, :, None]
+
+        rgb = iris_rgb * (1.0 - w_limbal) + limbal_rgb * w_limbal
+        rgb = rgb * (1.0 - w_pupil) + pupil_rgb * w_pupil
+        rgb = rgb * (1.0 - w_sclera) + sclera_rgb * w_sclera
+        rgba[:, :, :3] = np.clip(rgb, 0.0, 255.0).astype(np.uint8)
 
     if base in SPECULAR_SLOTS:
         spec_png, scale, max_a, default_a = SPECULAR_SLOTS[base]
@@ -265,6 +343,7 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
     per PAYDAY 2's ``DIFFUSE_TEXTURE:NORMALMAP`` shader convention.
     """
     import dds
+    import numpy as np
     try:
         from PIL import Image
     except ImportError as exc:
@@ -286,7 +365,11 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
             if img.width != img.height or img.width & (img.width - 1):
                 raise ValueError(f"{png}: expected square power-of-two, got {img.size}")
             if suffix == "nm":
-                arr = dds.pd2_normal_channels(img, invert_y=invert_nm_y)
+                nm_in = img
+                if png != "__flat__":
+                    # UE3/ME2 extracted normal PNGs store vertical Y_down in Red and horizontal X_right in Green
+                    nm_in = np.asarray(img, dtype=np.uint8)[..., [1, 0, 2, 3]]
+                arr = dds.pd2_normal_channels(nm_in, invert_y=invert_nm_y)
                 mip = dds.mip_payloads_from_image(arr)
             else:
                 arr = _prepare_diffuse_rgba(base, img, source)
