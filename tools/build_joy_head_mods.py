@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
-"""Build two PAYDAY 2 `mod_overrides` head-replacement mods over Joy:
+"""Build PAYDAY 2 `mod_overrides` Miranda Lawson head-replacement mods over female heisters:
 
-1. `dist/Miranda_L4D2_over_Joy.zip` (+ `.sha256`):
-   Built from the L4D2 Miranda Lawson mod (`l4d2_miranda_lawson_1.zip` / `dist/Miranda_LAS.zip`).
-2. `dist/Miranda_Romance_over_Joy.zip` (+ `.sha256`):
-   Built from the Mass Effect 2 Romance Miranda Lawson archive
-   (`PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`).
+1. Joy (`npc_criminals_joy_1`):
+   - `dist/Miranda_L4D2_over_Joy.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance_over_Joy.zip` (+ `.sha256`)
+2. Clover (`npc_criminal_female_1` + Safe House `npc_criminal_female_chill`):
+   - `dist/Miranda_L4D2_over_Clover.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance_over_Clover.zip` (+ `.sha256`)
+3. Bonnie (`npc_criminal_bonnie` + Safe House `npc_criminal_bonnie_chill`):
+   - `dist/Miranda_L4D2_over_Bonnie.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance_over_Bonnie.zip` (+ `.sha256`)
+4. Sydney (`npc_criminals_fem_3` / `npc_criminal_sydney`):
+   - `dist/Miranda_L4D2_over_Sydney.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance_over_Sydney.zip` (+ `.sha256`)
 
-Both packages follow the exact `mod_overrides` structure and Diesel `.model` /
-`.material_config` / `.texture` conventions of `Ada Wong over Joy.7z`, and use
-fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
+All packages use fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
 """
 from __future__ import annotations
 
 import hashlib
 import io
+import re
 import subprocess
 import sys
 import zipfile
@@ -34,6 +40,19 @@ import me2_dae  # noqa: E402
 
 JOY_UNIT_DIR = "units/pd2_dlc_joy/characters/npc_criminals_joy_1"
 JOY_ICON_PATH = "guis/dlcs/joy/textures/pd2/blackmarket/icons/characters/joy.texture"
+
+CLOVER_UNIT_DIR = "units/payday2/characters/npc_criminal_female_1"
+CLOVER_TEX_DIR = "units/payday2/characters/shared_textures"
+CLOVER_ICON_PATH = "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture"
+
+BONNIE_UNIT_DIR = "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie"
+BONNIE_ICON_PATH = "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture"
+
+SYDNEY_UNIT_DIR = "units/pd2_dlc_opera/characters/npc_criminals_fem_3"
+SYDNEY_ICON_PATH = "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture"
+
+CHILL_UNIT_DIR = "units/pd2_dlc_chill/characters/shared_character"
+FPS_GLOVES_ZIP_PREFIX = "Heister - FPS Gloves in TPS/Heister - FPS Gloves in TPS/"
 
 
 def ensure_ada_reference(tmp_dir: Path) -> Path:
@@ -80,14 +99,14 @@ def smoothstep(t: np.ndarray) -> np.ndarray:
     return t * t * (3.0 - 2.0 * t)
 
 
-def compute_joy_head_weights(verts: np.ndarray) -> tuple[list[tuple[int, ...]], list[tuple[float, ...]]]:
-    """Compute continuous 3-bone weights on SkinBones 44 palette ['Spine2', 'Neck', 'Head'].
+def compute_joy_head_weights(
+    verts: np.ndarray, bone_offset: int = 0
+) -> tuple[list[tuple[int, ...]], list[tuple[float, ...]]]:
+    """Compute continuous 3-bone weights on ['Spine2', 'Neck', 'Head'] (+ optional bone_offset).
 
-    - z_eff <= 156.0: 100% Spine2 (slot 0), locking the base of the neck and lower hair tips
-      to Joy's hoodie collar (which is weighted to Spine2).
-    - z_eff in [156.0, 161.5]: smooth transition from Spine2 (slot 0) to Neck (slot 1).
-    - z_eff in [161.5, 166.0]: smooth transition from Neck (slot 1) to Head (slot 2).
-    - z_eff >= 166.0: 100% Head (slot 2), keeping the chin, jaw, face, eyes, and eyelashes rigid.
+    - When bone_offset == 0 (Joy): palette is ['Spine2', 'Neck', 'Head'] -> indices (0, 1, 2).
+    - When bone_offset == 1 (Clover, Bonnie, Sydney): palette starts with ['Hips', 'Spine2', 'Neck', 'Head', ...]
+      -> active indices are (1, 2, 3).
     """
     z = verts[:, 2]
     y = verts[:, 1]
@@ -108,13 +127,13 @@ def compute_joy_head_weights(verts: np.ndarray) -> tuple[list[tuple[int, ...]], 
     pal_w: list[tuple[float, ...]] = []
     for row in W:
         order = np.argsort(-row)
-        i0, i1, i2 = int(order[0]), int(order[1]), int(order[2])
-        w0, w1, w2 = float(row[i0]), float(row[i1]), float(row[i2])
+        i0, i1, i2 = int(order[0]) + bone_offset, int(order[1]) + bone_offset, int(order[2]) + bone_offset
+        w0, w1, w2 = float(row[order[0]]), float(row[order[1]]), float(row[order[2]])
         s = w0 + w1 + w2
         if s > 0:
             w0, w1, w2 = w0 / s, w1 / s, w2 / s
         else:
-            i0, i1, i2 = 2, 0, 0
+            i0, i1, i2 = 2 + bone_offset, 0, 0
             w0, w1, w2 = 1.0, 0.0, 0.0
         if w1 < 1e-5:
             i1 = 0
@@ -135,10 +154,15 @@ def encode_rgba_dds(arr: np.ndarray) -> bytes:
     return dds.pack_dds(dds.mip_payloads_from_image(arr), size)
 
 
-def tuck_hair_for_joy_hood(p: np.ndarray) -> np.ndarray:
+def tuck_hair_for_joy_hood(p: np.ndarray, uv_img: np.ndarray | None = None) -> np.ndarray:
     """Smoothly tuck lower back/side hair inside Joy's raised hood collar while preserving front locks."""
     p = p.copy()
-    z, y, x = p[:, 2], p[:, 1], p[:, 0]
+    is_hair = np.ones(len(p), dtype=bool)
+    if uv_img is not None:
+        is_hair = ~((uv_img[:, 0] < 0.59) & (uv_img[:, 1] > 0.82))
+    if not is_hair.any():
+        return p
+    z, y, x = p[is_hair, 2], p[is_hair, 1], p[is_hair, 0]
     wz = np.clip((162.5 - z) / 7.5, 0.0, 1.0)
     wy = np.clip((8.5 - y) / 4.5, 0.0, 1.0)
     w = wz * wy
@@ -147,19 +171,19 @@ def tuck_hair_for_joy_hood(p: np.ndarray) -> np.ndarray:
         r = np.hypot(dx, dy) + 1e-6
         r_target = np.minimum(r, 5.8 + (1.0 - wz) * 2.5)
         scale_r = (r * (1.0 - w) + r_target * w) / r
-        p[:, 0] = dx * scale_r
-        p[:, 1] = 3.8 + dy * scale_r
+        p[is_hair, 0] = dx * scale_r
+        p[is_hair, 1] = 3.8 + dy * scale_r
     return p
 
 
 def extend_scalp_neck_skin_into_collar(
     p: np.ndarray, uv_img: np.ndarray, z_drop: float = 3.8, y_push: float = 2.2
 ) -> np.ndarray:
-    """Smoothly extend the bottom rim of the Scalp_Diff neck-skin cylinder (u < 0.46, v_img > 0.70)
+    """Smoothly extend the bottom rim of the Scalp_Diff neck-skin cylinder (u < 0.59, v_img > 0.82)
     down into Joy's collar channel (z ~ 153cm, y ~ 9.2..10.4cm) so the entire throat is a single
     seamless mesh with zero horizontal seam."""
     p = p.copy()
-    is_neck_skin = (uv_img[:, 0] < 0.46) & (uv_img[:, 1] > 0.70)
+    is_neck_skin = (uv_img[:, 0] < 0.59) & (uv_img[:, 1] > 0.82)
     if not is_neck_skin.any():
         return p
     z = p[is_neck_skin, 2]
@@ -184,6 +208,52 @@ def extend_scalp_neck_skin_into_collar(
     p[is_neck_skin, 0] = x
     p[is_neck_skin, 1] = y_new
     p[is_neck_skin, 2] = z_new
+    return p
+
+
+def shape_neck_and_hair_for_suit_collar(
+    p: np.ndarray, uv_img: np.ndarray, z_drop: float = 5.4, y_push: float = 3.0, x_flare: float = 0.28
+) -> np.ndarray:
+    """Shape the Scalp_Diff neck-skin cylinder and lower hair for Clover, Bonnie, and Sydney's suit collars."""
+    p = p.copy()
+    is_neck_skin = (uv_img[:, 0] < 0.59) & (uv_img[:, 1] > 0.82)
+    if is_neck_skin.any():
+        z = p[is_neck_skin, 2]
+        y = p[is_neck_skin, 1]
+        x = p[is_neck_skin, 0]
+
+        w_bot = np.clip((162.0 - z) / 4.5, 0.0, 1.0)
+        w_front = np.clip((y - 1.0) / 4.5, 0.0, 1.0)
+        w_side = np.clip((np.abs(x) - 1.5) / 3.5, 0.0, 1.0)
+
+        extra_side_drop = 2.0 * w_side * w_bot
+        z_new = z - (z_drop * (w_bot ** 1.1) + extra_side_drop)
+        y_new = y + y_push * w_bot * w_front
+        x_new = x * (1.0 + x_flare * w_bot)
+
+        low = z_new < 157.0
+        if low.any():
+            t_z = np.clip((157.0 - z_new[low]) / 5.5, 0.0, 1.0)
+            y_cap = 10.8 + (1.0 - t_z) * 1.0
+            y_new[low] = np.minimum(y_new[low], y_cap)
+            y_new[low] = np.maximum(y_new[low], -1.6 - (1.0 - t_z) * 0.6)
+            x_cap = 7.2 + (1.0 - t_z) * 0.8
+            x_new[low] = np.clip(x_new[low], -x_cap, x_cap)
+
+        p[is_neck_skin, 0] = x_new
+        p[is_neck_skin, 1] = y_new
+        p[is_neck_skin, 2] = z_new
+
+    is_hair = ~is_neck_skin
+    if is_hair.any():
+        zh, yh, xh = p[is_hair, 2], p[is_hair, 1], p[is_hair, 0]
+        wz = np.clip((163.5 - zh) / 8.0, 0.0, 1.0)
+        dx, dy = xh - 0.0, yh - 4.5
+        r = np.hypot(dx, dy) + 1e-6
+        r_target = np.minimum(r, 5.2 + (1.0 - wz) * 2.5)
+        scale_r = (r * (1.0 - wz) + r_target * wz) / r
+        p[is_hair, 0] = dx * scale_r
+        p[is_hair, 1] = 4.5 + dy * scale_r
     return p
 
 
@@ -272,14 +342,12 @@ def deduplicate_mesh(p: np.ndarray, n: np.ndarray, uv: np.ndarray, tris: np.ndar
     return p_f[keep], n_f[keep], uv_f[keep], new_tris
 
 
-def patch_joy_model(
-    joy_model_path: Path,
+def _prepare_combined_head_arrays(
     atom0_mesh: dict[str, np.ndarray],
     atom1_mesh: dict[str, np.ndarray],
-) -> bytes:
-    """Replace `g_head_mask_off` (120 -> 228/229) and `g_head` (121 -> 233/234) in `npc_criminal_joy_1.model`."""
-    mf = dm.ModelFile.read(joy_model_path.read_bytes())
-
+    bone_offset: int,
+) -> dict:
+    """Deduplicate and pack Atom 0 and Atom 1 into Diesel Geometry/Topology/ModelData arrays."""
     v0, n0, uv0, t0 = deduplicate_mesh(
         atom0_mesh["verts"], atom0_mesh["normals"], atom0_mesh["uvs"], atom0_mesh["tris"]
     )
@@ -294,7 +362,7 @@ def patch_joy_model(
     uvs_all = np.vstack([uv0, uv1])
     tris_all = np.vstack([t0, t1 + len(v0)])
 
-    pal_idx, pal_w = compute_joy_head_weights(verts_all)
+    pal_idx, pal_w = compute_joy_head_weights(verts_all, bone_offset=bone_offset)
     uvdir_v, uvdir_u = compute_tangents(verts_all, norms_all, uvs_all, tris_all)
 
     verts_list = [tuple(map(float, row)) for row in verts_all]
@@ -322,30 +390,54 @@ def patch_joy_model(
     bmax = tuple(map(float, verts_all.max(axis=0)))
     center = 0.5 * (verts_all.min(axis=0) + verts_all.max(axis=0))
     radius = float(np.linalg.norm(verts_all - center, axis=1).max())
+    return {
+        "verts": verts_list,
+        "normals": norms_list,
+        "uv0": uvs_list,
+        "blendindices": pal_idx,
+        "blendweights": pal_w,
+        "uvdir_v": uvdir_v,
+        "uvdir_u": uvdir_u,
+        "indices": flat_indices,
+        "atoms": atoms,
+        "bmin": bmin,
+        "bmax": bmax,
+        "radius": radius,
+    }
+
+
+def patch_joy_model(
+    joy_model_path: Path,
+    atom0_mesh: dict[str, np.ndarray],
+    atom1_mesh: dict[str, np.ndarray],
+) -> bytes:
+    """Replace `g_head_mask_off` (120 -> 228/229) and `g_head` (121 -> 233/234) in `npc_criminal_joy_1.model`."""
+    mf = dm.ModelFile.read(joy_model_path.read_bytes())
+    packed = _prepare_combined_head_arrays(atom0_mesh, atom1_mesh, bone_offset=0)
 
     new_sections: list[dm.Section] = []
     for s in mf.sections:
         if s.id in (228, 233):
             dec = dm.decode_geometry(s.payload)
-            dec["vert_count"] = len(verts_list)
-            dec["verts"] = verts_list
-            dec["normals"] = norms_list
-            dec["uv0"] = uvs_list
-            dec["blendindices"] = pal_idx
-            dec["blendweights"] = pal_w
-            dec["uvdir_v"] = uvdir_v
-            dec["uvdir_u"] = uvdir_u
+            dec["vert_count"] = len(packed["verts"])
+            dec["verts"] = packed["verts"]
+            dec["normals"] = packed["normals"]
+            dec["uv0"] = packed["uv0"]
+            dec["blendindices"] = packed["blendindices"]
+            dec["blendweights"] = packed["blendweights"]
+            dec["uvdir_v"] = packed["uvdir_v"]
+            dec["uvdir_u"] = packed["uvdir_u"]
             new_sections.append(dm.Section(s.type, s.id, dm.encode_geometry(dec)))
         elif s.id in (229, 234):
             dec = dm.decode_topology(s.payload)
-            dec["indices"] = flat_indices
+            dec["indices"] = packed["indices"]
             new_sections.append(dm.Section(s.type, s.id, dm.encode_topology(dec)))
         elif s.id in (120, 121):
             dec = dm.decode_model_data(s.payload)
-            dec["atoms"] = atoms
-            dec["bounds_min"] = bmin
-            dec["bounds_max"] = bmax
-            dec["bounding_radius"] = radius
+            dec["atoms"] = packed["atoms"]
+            dec["bounds_min"] = packed["bmin"]
+            dec["bounds_max"] = packed["bmax"]
+            dec["bounding_radius"] = packed["radius"]
             new_sections.append(dm.Section(s.type, s.id, dm.encode_model_data(dec)))
         else:
             new_sections.append(s)
@@ -354,18 +446,200 @@ def patch_joy_model(
     return out_mf.write()
 
 
+def patch_female_heister_model(
+    model_bytes: bytes,
+    head_drawables: list[str],
+    collapse_drawables: list[str],
+    head_mat_name: str,
+    hair_mat_name: str,
+    packed_head: dict,
+) -> bytes:
+    """Patch head drawables and collapse legacy hair drawables in Clover, Bonnie, or Sydney `.model`."""
+    mf = dm.ModelFile.read(model_bytes)
+
+    mat_by_hash = {
+        dm.decode_material(s.payload)["name_hash"]: s.id
+        for s in mf.by_type(dm.MATERIAL)
+    }
+    head_mat_id = mat_by_hash[dm.hash64(head_mat_name)]
+    hair_mat_id = mat_by_hash[dm.hash64(hair_mat_name)]
+
+    head_hashes = {dm.hash64(n) for n in head_drawables}
+    collapse_hashes = {dm.hash64(n) for n in collapse_drawables}
+
+    head_md_ids: set[int] = set()
+    head_geo_ids: set[int] = set()
+    head_topo_ids: set[int] = set()
+    head_mg_ids: set[int] = set()
+    head_sb_ids: set[int] = set()
+
+    col_md_ids: set[int] = set()
+    col_geo_ids: set[int] = set()
+    col_topo_ids: set[int] = set()
+    col_mg_ids: set[int] = set()
+    col_sb_ids: set[int] = set()
+
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        nh = md.get("name_hash")
+        if nh in head_hashes:
+            pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            head_md_ids.add(s.id)
+            head_geo_ids.add(pg["geometry"])
+            head_topo_ids.add(pg["topology"])
+            head_mg_ids.add(md["matgroup"])
+            head_sb_ids.add(md["skinbones"])
+        elif nh in collapse_hashes:
+            pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            col_md_ids.add(s.id)
+            col_geo_ids.add(pg["geometry"])
+            col_topo_ids.add(pg["topology"])
+            col_mg_ids.add(md["matgroup"])
+            col_sb_ids.add(md["skinbones"])
+
+    # Tiny non-degenerate triangle hidden deep inside the Head bone (0.0, 5.33, 166.76)
+    c_verts = [(0.0, 5.33, 166.76), (0.05, 5.33, 166.76), (0.0, 5.38, 166.76)]
+    c_norms = [(0.0, 0.0, 1.0)] * 3
+    c_uvs = [(0.0, 0.0), (0.01, 0.0), (0.0, 0.01)]
+    c_bi = [(1, 0, 0, 0)] * 3
+    c_bw = [(1.0, 0.0, 0.0)] * 3
+    c_uv_v = [(0.0, 1.0, 0.0)] * 3
+    c_uv_u = [(1.0, 0.0, 0.0)] * 3
+    c_atoms = [{"base_vertex": 0, "tri_count": 1, "base_index": 0, "slice_len": 3, "material_id": 0}]
+
+    new_sections: list[dm.Section] = []
+    for s in mf.sections:
+        if s.id in head_geo_ids:
+            dec = dm.decode_geometry(s.payload)
+            dec["vert_count"] = len(packed_head["verts"])
+            dec["verts"] = packed_head["verts"]
+            dec["normals"] = packed_head["normals"]
+            dec["uv0"] = packed_head["uv0"]
+            dec["blendindices"] = packed_head["blendindices"]
+            dec["blendweights"] = packed_head["blendweights"]
+            dec["uvdir_v"] = packed_head["uvdir_v"]
+            dec["uvdir_u"] = packed_head["uvdir_u"]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_geometry(dec)))
+        elif s.id in head_topo_ids:
+            dec = dm.decode_topology(s.payload)
+            dec["indices"] = packed_head["indices"]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_topology(dec)))
+        elif s.id in head_md_ids:
+            dec = dm.decode_model_data(s.payload)
+            dec["atoms"] = packed_head["atoms"]
+            dec["bounds_min"] = packed_head["bmin"]
+            dec["bounds_max"] = packed_head["bmax"]
+            dec["bounding_radius"] = packed_head["radius"]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_model_data(dec)))
+        elif s.id in head_mg_ids:
+            dec = dm.decode_material_group(s.payload)
+            dec["material_ids"] = [head_mat_id, hair_mat_id]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_material_group(dec)))
+        elif s.id in head_sb_ids:
+            dec = dm.decode_skinbones(s.payload)
+            dec["maps"] = [list(range(len(dec["objects"]))) for _ in range(len(packed_head["atoms"]) + 1)]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_skinbones(dec)))
+        elif s.id in col_geo_ids:
+            dec = dm.decode_geometry(s.payload)
+            dec["vert_count"] = 3
+            dec["verts"] = c_verts
+            dec["normals"] = c_norms
+            dec["uv0"] = c_uvs
+            dec["blendindices"] = c_bi
+            dec["blendweights"] = c_bw
+            dec["uvdir_v"] = c_uv_v
+            dec["uvdir_u"] = c_uv_u
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_geometry(dec)))
+        elif s.id in col_topo_ids:
+            dec = dm.decode_topology(s.payload)
+            dec["indices"] = [0, 1, 2]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_topology(dec)))
+        elif s.id in col_md_ids:
+            dec = dm.decode_model_data(s.payload)
+            dec["atoms"] = c_atoms
+            dec["bounds_min"] = (0.0, 5.33, 166.76)
+            dec["bounds_max"] = (0.05, 5.38, 166.76)
+            dec["bounding_radius"] = 0.05
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_model_data(dec)))
+        elif s.id in col_mg_ids:
+            dec = dm.decode_material_group(s.payload)
+            dec["material_ids"] = [dec["material_ids"][0]]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_material_group(dec)))
+        elif s.id in col_sb_ids:
+            dec = dm.decode_skinbones(s.payload)
+            dec["maps"] = [list(range(len(dec["objects"]))) for _ in range(2)]
+            new_sections.append(dm.Section(s.type, s.id, dm.encode_skinbones(dec)))
+        else:
+            new_sections.append(s)
+
+    return dm.ModelFile(new_sections).write()
+
+
+def disable_objects_in_xml(xml_bytes: bytes, obj_names: list[str]) -> bytes:
+    """Set enabled=\"false\" on the given <object name=\"...\" .../> entries in a .object XML."""
+    text = xml_bytes.decode("utf-8", errors="ignore")
+    for name in obj_names:
+        pattern = rf'(<object\s+name="{re.escape(name)}"\s+enabled=")true(")'
+        text = re.sub(pattern, r"\1false\2", text)
+    return text.encode("utf-8")
+
+
+def patch_clover_material_config(xml_bytes: bytes) -> bytes:
+    """Replace mtr_hair_1 in Clover's .material_config with opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS."""
+    text = xml_bytes.decode("utf-8", errors="ignore")
+    new_hair_1 = (
+        '<material name="mtr_hair_1" render_template="opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS" version="2">\n'
+        '        <opacity_texture file="units/payday2/characters/shared_textures/npc_female_hair_1_op"/>\n'
+        '        <diffuse_texture file="units/payday2/characters/shared_textures/npc_criminal_female_1_hair_df"/>\n'
+        "    </material>"
+    )
+    text = re.sub(
+        r'<material\s+[^>]*name="mtr_hair_1"[^>]*>.*?</material>',
+        new_hair_1,
+        text,
+        flags=re.DOTALL,
+    )
+    return text.encode("utf-8")
+
+
+def patch_bonnie_material_config(xml_bytes: bytes, alpha_ref: str) -> bytes:
+    """Update alpha_ref in Bonnie's mtr_hair material."""
+    text = xml_bytes.decode("utf-8", errors="ignore")
+    text = text.replace('value="0.050000000745058"', f'value="{alpha_ref}"')
+    return text.encode("utf-8")
+
+
+def patch_sydney_material_config(xml_bytes: bytes, alpha_masked: bool) -> bytes:
+    """For ME2 Romance over Sydney, make mtr_hair use ALPHA_MASKED for clean eyelash cutouts."""
+    if not alpha_masked:
+        return xml_bytes
+    text = xml_bytes.decode("utf-8", errors="ignore")
+    new_hair = (
+        '<material name="mtr_hair" unique="true" version="2" '
+        'render_template="generic:ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_3WEIGHTS">\n'
+        '        <diffuse_texture file="units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_hair_df"/>\n'
+        '        <bump_normal_texture file="units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_hair_nm"/>\n'
+        '        <variable value="0.30" type="scalar" name="alpha_ref"/>\n'
+        "    </material>"
+    )
+    text = re.sub(
+        r'<material\s+[^>]*name="mtr_hair"[^>]*>.*?</material>',
+        new_hair,
+        text,
+        flags=re.DOTALL,
+    )
+    return text.encode("utf-8")
+
+
 def make_character_icon_dds(ada_icon_path: Path, portrait_rgb: Image.Image) -> bytes:
     """Create a 128x128 uncompressed BGRA8 DDS character icon in PAYDAY 2 high-contrast B&W style."""
     header = ada_icon_path.read_bytes()[:128]
     gray = portrait_rgb.convert("L").resize((128, 128), Image.Resampling.LANCZOS)
     arr = np.asarray(gray, dtype=np.float32)
-    # Mask background (very dark pixels in our render [28,30,38] have luminance ~30)
     bg_mask = arr <= 34.0
-    # Contrast curve matching Ada Wong over Joy icon
     norm = np.clip((arr - 42.0) / 135.0, 0.0, 1.0)
     contrasted = np.power(norm, 0.85) * 255.0
     contrasted[bg_mask] = 0.0
-    # Vignette fade at bottom neck edge
     yy, xx = np.mgrid[0:128, 0:128]
     fade = np.clip((122.0 - yy) / 14.0, 0.0, 1.0)
     val = np.clip(contrasted * fade, 0.0, 255.0).astype(np.uint8)
@@ -454,8 +728,182 @@ def write_deterministic_zip(files: dict[str, bytes], out_zip_paths: list[Path]) 
         print(f"Wrote {zp} ({len(raw):,} bytes, sha256={sha[:16]}…)")
 
 
-def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
-    """Build Version 1: L4D2 Miranda over Joy (`dist/Miranda_L4D2_over_Joy.zip`)."""
+def _emit_female_heister_packages(
+    variant_tag: str,
+    packed_suit_head: dict,
+    head_df_dds: bytes,
+    head_nm_dds: bytes,
+    sec_df_dds: bytes,
+    sec_op_dds: bytes,
+    sec_nm_dds: bytes,
+    icon_dds: bytes,
+    is_romance: bool,
+) -> None:
+    """Package Clover, Bonnie, and Sydney mod_overrides zips from Heister - FPS Gloves in TPS 2.zip."""
+    fps_zip = ROOT / "Heister - FPS Gloves in TPS 2.zip"
+    if not fps_zip.exists():
+        return
+
+    with zipfile.ZipFile(fps_zip) as zf:
+        # 1. Clover (npc_criminal_female_1 + Safe House chill)
+        clover_hair_objs = [
+            "g_hair_cloth1",
+            "g_hair_cloth2",
+            "g_hair_cloth3",
+            "g_hair_mask_cloth1",
+            "g_hair_mask_cloth2",
+            "g_hair_mask_cloth3",
+        ]
+        clover_heist_model = patch_female_heister_model(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/npc_criminal_female_1.model"),
+            head_drawables=["g_head_fem1"],
+            collapse_drawables=clover_hair_objs,
+            head_mat_name="mtr_head",
+            hair_mat_name="mtr_hair_1",
+            packed_head=packed_suit_head,
+        )
+        clover_chill_model = patch_female_heister_model(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/npc_criminal_female_chill.model"),
+            head_drawables=["g_head_fem1"],
+            collapse_drawables=["g_hair_cloth1", "g_hair_cloth2", "g_hair_cloth3"],
+            head_mat_name="mtr_head",
+            hair_mat_name="mtr_hair_1",
+            packed_head=packed_suit_head,
+        )
+        clover_obj = disable_objects_in_xml(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/npc_criminal_female_1.object"),
+            clover_hair_objs,
+        )
+        clover_menu_obj = disable_objects_in_xml(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/npc_criminal_female_1_menu.object"),
+            clover_hair_objs,
+        )
+        clover_mtr = patch_clover_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/mtr_fem1.material_config")
+        )
+        clover_mtr_cc = patch_clover_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/mtr_fem1_cc.material_config")
+        )
+        clover_chill_mtr = patch_clover_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_fem1.material_config")
+        )
+        clover_prefix = f"Miranda {variant_tag} over Clover"
+        clover_files = {
+            f"{clover_prefix}/{CLOVER_ICON_PATH}": icon_dds,
+            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1.model": clover_heist_model,
+            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1_menu.model": clover_heist_model,
+            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1.object": clover_obj,
+            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1_menu.object": clover_menu_obj,
+            f"{clover_prefix}/{CLOVER_UNIT_DIR}/mtr_fem1.material_config": clover_mtr,
+            f"{clover_prefix}/{CLOVER_UNIT_DIR}/mtr_fem1_cc.material_config": clover_mtr_cc,
+            f"{clover_prefix}/{CHILL_UNIT_DIR}/npc_criminal_female_chill.model": clover_chill_model,
+            f"{clover_prefix}/{CHILL_UNIT_DIR}/mtr_fem1.material_config": clover_chill_mtr,
+            f"{clover_prefix}/{CLOVER_TEX_DIR}/clover_head_df.texture": head_df_dds,
+            f"{clover_prefix}/{CLOVER_TEX_DIR}/clover_head_nm.texture": head_nm_dds,
+            f"{clover_prefix}/{CLOVER_TEX_DIR}/npc_criminal_female_1_hair_df.texture": sec_df_dds,
+            f"{clover_prefix}/{CLOVER_TEX_DIR}/npc_female_hair_1_op.texture": sec_op_dds,
+        }
+        write_deterministic_zip(clover_files, [ROOT / "dist" / f"Miranda_{variant_tag}_over_Clover.zip"])
+
+        # 2. Bonnie (npc_criminal_bonnie + Safe House chill)
+        bonnie_heist_model = patch_female_heister_model(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/npc_criminal_bonnie.model"),
+            head_drawables=["g_head", "g_head_mask_on"],
+            collapse_drawables=[],
+            head_mat_name="mtr_head",
+            hair_mat_name="mtr_hair",
+            packed_head=packed_suit_head,
+        )
+        bonnie_chill_model = patch_female_heister_model(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/npc_criminal_bonnie_chill.model"),
+            head_drawables=["g_head"],
+            collapse_drawables=[],
+            head_mat_name="mtr_head",
+            hair_mat_name="mtr_hair",
+            packed_head=packed_suit_head,
+        )
+        bonnie_alpha = "0.30" if is_romance else "0.05"
+        bonnie_mtr = patch_bonnie_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/mtr_bonnie.material_config"), bonnie_alpha
+        )
+        bonnie_mtr_cc = patch_bonnie_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/mtr_bonnie_cc.material_config"), bonnie_alpha
+        )
+        bonnie_chill_mtr = patch_bonnie_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_bonnie.material_config"), bonnie_alpha
+        )
+        bonnie_prefix = f"Miranda {variant_tag} over Bonnie"
+        bonnie_files = {
+            f"{bonnie_prefix}/{BONNIE_ICON_PATH}": icon_dds,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie.model": bonnie_heist_model,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_menu.model": bonnie_heist_model,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie.object": zf.read(
+                f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/npc_criminal_bonnie.object"
+            ),
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_menu.object": zf.read(
+                f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/npc_criminal_bonnie_menu.object"
+            ),
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/mtr_bonnie.material_config": bonnie_mtr,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/mtr_bonnie_cc.material_config": bonnie_mtr_cc,
+            f"{bonnie_prefix}/{CHILL_UNIT_DIR}/npc_criminal_bonnie_chill.model": bonnie_chill_model,
+            f"{bonnie_prefix}/{CHILL_UNIT_DIR}/mtr_bonnie.material_config": bonnie_chill_mtr,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_head_df.texture": head_df_dds,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_head_nm.texture": head_nm_dds,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_hair_df.texture": sec_df_dds,
+            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_hair_nm.texture": sec_nm_dds,
+        }
+        write_deterministic_zip(bonnie_files, [ROOT / "dist" / f"Miranda_{variant_tag}_over_Bonnie.zip"])
+
+        # 3. Sydney (npc_criminals_fem_3 / npc_criminal_sydney)
+        sydney_hair_objs = ["g_hair_mask_off", "g_hair_mask_on"]
+        sydney_heist_model = patch_female_heister_model(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/npc_criminal_sydney.model"),
+            head_drawables=["g_head"],
+            collapse_drawables=sydney_hair_objs,
+            head_mat_name="mtr_head",
+            hair_mat_name="mtr_hair",
+            packed_head=packed_suit_head,
+        )
+        sydney_obj = disable_objects_in_xml(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/npc_criminal_sydney.object"),
+            sydney_hair_objs,
+        )
+        sydney_menu_obj = disable_objects_in_xml(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/npc_criminal_sydney_menu.object"),
+            sydney_hair_objs,
+        )
+        sydney_mtr = patch_sydney_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/mtr_criminal_sydney.material_config"),
+            alpha_masked=is_romance,
+        )
+        sydney_mtr_cc = patch_sydney_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/mtr_criminal_sydney_cc.material_config"),
+            alpha_masked=is_romance,
+        )
+        sydney_chill_mtr = patch_sydney_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_criminal_sydney.material_config"),
+            alpha_masked=is_romance,
+        )
+        sydney_prefix = f"Miranda {variant_tag} over Sydney"
+        sydney_files = {
+            f"{sydney_prefix}/{SYDNEY_ICON_PATH}": icon_dds,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney.model": sydney_heist_model,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney_menu.model": sydney_heist_model,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney.object": sydney_obj,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney_menu.object": sydney_menu_obj,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/mtr_criminal_sydney.material_config": sydney_mtr,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/mtr_criminal_sydney_cc.material_config": sydney_mtr_cc,
+            f"{sydney_prefix}/{CHILL_UNIT_DIR}/mtr_criminal_sydney.material_config": sydney_chill_mtr,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_head_df.texture": head_df_dds,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_head_nm.texture": head_nm_dds,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_hair_df.texture": sec_df_dds,
+            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_hair_nm.texture": sec_nm_dds,
+        }
+        write_deterministic_zip(sydney_files, [ROOT / "dist" / f"Miranda_{variant_tag}_over_Sydney.zip"])
+
+
+def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path], sec_nm_dds: bytes) -> None:
+    """Build Version 1 (L4D2 Miranda) over Joy, Clover, Bonnie, and Sydney."""
     with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
         face_df_im = Image.open(io.BytesIO(zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda_face_df.texture"))).convert("RGBA")
@@ -467,7 +915,6 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
         eyes_df_im = Image.open(io.BytesIO(zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda_eyes.texture"))).convert("RGBA").resize((1024, 1024), Image.Resampling.LANCZOS)
 
     body_df_arr = np.asarray(body_df_im).copy()
-    # Inpaint choker shadow on front neck patch of miranda_body_df (u in [0.58, 0.75], v_img in [0.48, 0.56])
     by0, by1 = int(0.48 * body_df_arr.shape[0]), int(0.56 * body_df_arr.shape[0])
     bx0, bx1 = int(0.58 * body_df_arr.shape[1]), int(0.75 * body_df_arr.shape[1])
     bpatch = body_df_arr[by0:by1, bx0:bx1, :3]
@@ -475,14 +922,11 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
     bpatch[bpatch.mean(axis=2) < 130] = bskin_med
     body_df_arr[by0:by1, bx0:bx1, :3] = bpatch
 
-    # Assemble 2048x2048 diffuse & normal atlases:
-    # Q00 (top-left): Face, Q10 (top-right): Scalp/Hair/Mouth, Q01 (bottom-left): Neck (body), Q11 (bottom-right): Eyes
     atlas_df = np.zeros((2048, 2048, 4), dtype=np.uint8)
     atlas_df[0:1024, 0:1024] = np.asarray(face_df_im)
     atlas_df[0:1024, 1024:2048] = np.asarray(head_df_im)
     atlas_df[1024:2048, 0:1024] = body_df_arr
     atlas_df[1024:2048, 1024:2048] = np.asarray(eyes_df_im)
-    # Keep diffuse alpha low (matte skin/hair specular in Diesel generic:DIFFUSE_TEXTURE:NORMALMAP shader)
     atlas_df[0:1024, 0:1024, 3] = np.minimum(atlas_df[0:1024, 0:1024, 3], 18)
     atlas_df[0:1024, 1024:2048, 3] = 16
     atlas_df[1024:2048, 0:1024, 3] = np.minimum(atlas_df[1024:2048, 0:1024, 3], 18)
@@ -492,7 +936,6 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
     atlas_nm[0:1024, 0:1024] = np.asarray(face_nm_im)
     atlas_nm[0:1024, 1024:2048] = np.asarray(head_nm_im)
     atlas_nm[1024:2048, 0:1024] = np.asarray(body_nm_im)
-    # Q11 (eyes): neutral flat DXT5nm normal (128, 128, 128, 128)
 
     pm_mir = dm.ModelFile.read(mir_bytes)
     md_head = dm.decode_model_data(pm_mir.by_id(94).payload)
@@ -504,53 +947,58 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
     nh = np.asarray(geo_head["normals"], dtype=np.float32)
     uvh_img = np.column_stack([np.asarray(geo_head["uv0"])[:, 0], 1.0 - np.asarray(geo_head["uv0"])[:, 1]])
 
-    # Build Atom 0 (Face + Scalp/Mouth + Hair + Neck + Eyes) and Atom 1 (Eyes copy with native [0,1] UVs)
-    a0_verts, a0_norms, a0_uvs, a0_tris = [], [], [], []
-    a1_verts, a1_norms, a1_uvs, a1_tris = [], [], [], []
+    def build_l4d2_meshes(for_suit: bool) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
+        a0_verts, a0_norms, a0_uvs, a0_tris = [], [], [], []
+        a1_verts, a1_norms, a1_uvs, a1_tris = [], [], [], []
 
-    def append_part(target_v, target_n, target_uv, target_t, p, n, uv, t):
-        offset = sum(len(x) for x in target_v)
-        target_v.append(p)
-        target_n.append(n)
-        target_uv.append(uv)
-        target_t.append(t + offset)
+        def append_part(target_v, target_n, target_uv, target_t, p, n, uv, t):
+            offset = sum(len(x) for x in target_v)
+            target_v.append(p)
+            target_n.append(n)
+            target_uv.append(uv)
+            target_t.append(t + offset)
 
-    # Map material_id -> atlas quadrant (qx, qy):
-    # mat_id 1 (Face) -> (0, 0)
-    # mat_id 2, 3 (Scalp/Mouth, Hair) -> (1, 0)
-    # mat_id 0 (Eyes) -> (1, 1) AND Atom 1
-    mat_quad = {1: (0, 0), 2: (1, 0), 3: (1, 0), 0: (1, 1)}
-    for atom in md_head["atoms"]:
-        bv, sl, bi, tc, mid = atom["base_vertex"], atom["slice_len"], atom["base_index"], atom["tri_count"], atom["material_id"]
-        p_s = vh[bv : bv + sl].copy()
-        n_s = nh[bv : bv + sl].copy()
-        uv_s = uvh_img[bv : bv + sl].copy()
-        t_s = topo_head[bi // 3 : bi // 3 + tc] - bv
-        if mid in (2, 3):
-            p_s = extend_scalp_neck_skin_into_collar(p_s, uv_s, z_drop=3.2, y_push=2.0)
-            p_s = tuck_hair_for_joy_hood(p_s)
-        qx, qy = mat_quad[mid]
-        uv_q = map_uv_to_quadrant(uv_s, qx, qy)
-        append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p_s, n_s, uv_q, t_s)
-        if mid == 0:
-            uv_native = np.column_stack([uv_s[:, 0], 1.0 - uv_s[:, 1]]).astype(np.float32)
-            append_part(a1_verts, a1_norms, a1_uvs, a1_tris, p_s, n_s, uv_native, t_s)
+        mat_quad = {1: (0, 0), 2: (1, 0), 3: (1, 0), 0: (1, 1)}
+        for atom in md_head["atoms"]:
+            bv, sl, bi, tc, mid = atom["base_vertex"], atom["slice_len"], atom["base_index"], atom["tri_count"], atom["material_id"]
+            p_s = vh[bv : bv + sl].copy()
+            n_s = nh[bv : bv + sl].copy()
+            uv_s = uvh_img[bv : bv + sl].copy()
+            t_s = topo_head[bi // 3 : bi // 3 + tc] - bv
+            if mid in (2, 3):
+                if for_suit:
+                    p_s = shape_neck_and_hair_for_suit_collar(p_s, uv_s, z_drop=5.4, y_push=3.0, x_flare=0.28)
+                else:
+                    p_s = extend_scalp_neck_skin_into_collar(p_s, uv_s, z_drop=3.2, y_push=2.0)
+                    p_s = tuck_hair_for_joy_hood(p_s, uv_s)
+            qx, qy = mat_quad[mid]
+            uv_q = map_uv_to_quadrant(uv_s, qx, qy)
+            append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p_s, n_s, uv_q, t_s)
+            if mid == 0:
+                uv_native = np.column_stack([uv_s[:, 0], 1.0 - uv_s[:, 1]]).astype(np.float32)
+                append_part(a1_verts, a1_norms, a1_uvs, a1_tris, p_s, n_s, uv_native, t_s)
 
-    atom0_mesh = {
-        "verts": np.vstack(a0_verts),
-        "normals": np.vstack(a0_norms),
-        "uvs": np.vstack(a0_uvs),
-        "tris": np.vstack(a0_tris),
-    }
-    atom1_mesh = {
-        "verts": np.vstack(a1_verts),
-        "normals": np.vstack(a1_norms),
-        "uvs": np.vstack(a1_uvs),
-        "tris": np.vstack(a1_tris),
-    }
+        return (
+            {
+                "verts": np.vstack(a0_verts),
+                "normals": np.vstack(a0_norms),
+                "uvs": np.vstack(a0_uvs),
+                "tris": np.vstack(a0_tris),
+            },
+            {
+                "verts": np.vstack(a1_verts),
+                "normals": np.vstack(a1_norms),
+                "uvs": np.vstack(a1_uvs),
+                "tris": np.vstack(a1_tris),
+            },
+        )
+
+    atom0_joy, atom1_joy = build_l4d2_meshes(for_suit=False)
+    atom0_suit, atom1_suit = build_l4d2_meshes(for_suit=True)
+    packed_suit_head = _prepare_combined_head_arrays(atom0_suit, atom1_suit, bone_offset=1)
 
     joy_model_path = ada_root / JOY_UNIT_DIR / "npc_criminal_joy_1.model"
-    model_bytes = patch_joy_model(joy_model_path, atom0_mesh, atom1_mesh)
+    model_bytes = patch_joy_model(joy_model_path, atom0_joy, atom1_joy)
 
     head_df_dds = encode_rgba_dds(atlas_df)
     head_nm_dds = encode_rgba_dds(atlas_nm)
@@ -563,7 +1011,7 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
     lashes_op_arr = np.full((512, 512, 4), 255, dtype=np.uint8)
     lashes_op_dds = encode_rgba_dds(lashes_op_arr)
 
-    portrait = render_head_portrait(atom0_mesh, atom1_mesh, atlas_df[:, :, :3], eye_512_arr, alpha_cut=False)
+    portrait = render_head_portrait(atom0_joy, atom1_joy, atlas_df[:, :, :3], eye_512_arr, alpha_cut=False)
     icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
 
     mtr_cfg = (ada_root / JOY_UNIT_DIR / "mtr_criminal_joy_1.material_config").read_bytes()
@@ -584,9 +1032,21 @@ def build_l4d2_joy_mod(ada_root: Path, out_zip_paths: list[Path]) -> None:
     }
     write_deterministic_zip(files, out_zip_paths)
 
+    _emit_female_heister_packages(
+        variant_tag="L4D2",
+        packed_suit_head=packed_suit_head,
+        head_df_dds=head_df_dds,
+        head_nm_dds=head_nm_dds,
+        sec_df_dds=eyes_df_dds,
+        sec_op_dds=lashes_op_dds,
+        sec_nm_dds=sec_nm_dds,
+        icon_dds=icon_dds,
+        is_romance=False,
+    )
 
-def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path]) -> None:
-    """Build Version 2: ME2 Romance Miranda over Joy (`dist/Miranda_Romance_over_Joy.zip`)."""
+
+def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path], sec_nm_dds: bytes) -> None:
+    """Build Version 2 (ME2 Romance Miranda) over Joy, Clover, Bonnie, and Sydney."""
     with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
     pm_mir = dm.ModelFile.read(mir_bytes)
@@ -597,7 +1057,6 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     dae_path = me2_dir / "Miranda Lawson (Romance) - Adjusted Version.dae"
     scene = me2_dae.load_dae(dae_path.read_bytes())
 
-    # Compute exact 3D similarity transform from ME2 Face to PD2 Joy/Miranda head space
     m_me2_face = [m for m in scene.meshes if m.name == "Face"][0]
     a3 = md_head["atoms"][3]
     pos_l4d_face = np.asarray(geo_mir_head["verts"], dtype=np.float64)[a3["base_vertex"] : a3["base_vertex"] + a3["slice_len"]]
@@ -623,11 +1082,9 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     def xform_n(nrm: np.ndarray) -> np.ndarray:
         return (R @ np.asarray(nrm, dtype=np.float64).T).T.astype(np.float32)
 
-    # Load and prepare ME2 Romance textures
     face_df = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Face_Diff.png").convert("RGBA")).copy()
     scalp_df = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Scalp_Diff.png").convert("RGBA")).copy()
     nkd_df = np.asarray(Image.open(me2_dir / "HMF_MIR_NKDa_DIFF.png").convert("RGBA")).copy()
-    # Inpaint baked choker shadow on front neck region of NKDa_DIFF
     y0, y1 = int(0.60 * nkd_df.shape[0]), int(0.88 * nkd_df.shape[0])
     x0, x1 = int(0.35 * nkd_df.shape[1]), int(0.60 * nkd_df.shape[1])
     patch = nkd_df[y0:y1, x0:x1, :3]
@@ -645,7 +1102,6 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     atlas_df[0:1024, 1024:2048] = scalp_df
     atlas_df[1024:2048, 0:1024] = nkd_df
     atlas_df[1024:2048, 1024:2048] = eyes_df
-    # Low diffuse alpha for natural matte skin/hair specular in Diesel
     atlas_df[0:1024, 0:1024, 3] = 12
     atlas_df[0:1024, 1024:2048, 3] = 16
     atlas_df[1024:2048, 0:1024, 3] = 12
@@ -656,7 +1112,6 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     nkd_raw_nm = np.asarray(
         Image.open(me2_dir / "HMF_MIR_NKDa_Norm.png").convert("RGBA").resize((1024, 1024), Image.Resampling.LANCZOS)
     ).copy()
-    # Smooth out the choker groove in the normal map over the front throat patch
     nkd_raw_nm[y0:y1, x0:x1, 0] = 128
     nkd_raw_nm[y0:y1, x0:x1, 1] = 128
     nkd_raw_nm[y0:y1, x0:x1, 2] = 255
@@ -671,52 +1126,62 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     atlas_nm[1024:2048, 0:1024] = nkd_nm
     atlas_nm[1024:2048, 1024:2048] = eyes_nm
 
-    a0_verts, a0_norms, a0_uvs, a0_tris = [], [], [], []
-    a1_verts, a1_norms, a1_uvs, a1_tris = [], [], [], []
+    def build_romance_meshes(for_suit: bool) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
+        a0_verts, a0_norms, a0_uvs, a0_tris = [], [], [], []
+        a1_verts, a1_norms, a1_uvs, a1_tris = [], [], [], []
 
-    def append_part(target_v, target_n, target_uv, target_t, p, n, uv, t_idx):
-        offset = sum(len(x) for x in target_v)
-        target_v.append(p)
-        target_n.append(n)
-        target_uv.append(uv)
-        target_t.append(t_idx + offset)
+        def append_part(target_v, target_n, target_uv, target_t, p, n, uv, t_idx):
+            offset = sum(len(x) for x in target_v)
+            target_v.append(p)
+            target_n.append(n)
+            target_uv.append(uv)
+            target_t.append(t_idx + offset)
 
-    for m in scene.meshes:
-        if m.name == "Body 2":
-            continue
-        p = xform_p(m.positions)
-        n = xform_n(m.normals)
-        uv_dae = np.asarray(m.uvs, dtype=np.float32)
-        uv_img = np.column_stack([uv_dae[:, 0], 1.0 - uv_dae[:, 1]])
-        tris = np.asarray(m.triangles, dtype=np.int32)
+        for m in scene.meshes:
+            if m.name == "Body 2":
+                continue
+            p = xform_p(m.positions)
+            n = xform_n(m.normals)
+            uv_dae = np.asarray(m.uvs, dtype=np.float32)
+            uv_img = np.column_stack([uv_dae[:, 0], 1.0 - uv_dae[:, 1]])
+            tris = np.asarray(m.triangles, dtype=np.int32)
 
-        if m.name == "Face":
-            append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 0, 0), tris)
-        elif m.name in ("Hair", "Teeth", "Mouth Inside"):
-            if m.name == "Hair":
-                p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2)
-                p = tuck_hair_for_joy_hood(p)
-            append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 1, 0), tris)
-        elif m.name == "Eyes":
-            append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 1, 1), tris)
-        elif m.name == "Eyelashes":
-            append_part(a1_verts, a1_norms, a1_uvs, a1_tris, p, n, uv_dae, tris)
+            if m.name == "Face":
+                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 0, 0), tris)
+            elif m.name in ("Hair", "Teeth", "Mouth Inside"):
+                if m.name == "Hair":
+                    if for_suit:
+                        p = shape_neck_and_hair_for_suit_collar(p, uv_img, z_drop=5.6, y_push=3.0, x_flare=0.28)
+                    else:
+                        p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2)
+                        p = tuck_hair_for_joy_hood(p, uv_img)
+                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 1, 0), tris)
+            elif m.name == "Eyes":
+                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 1, 1), tris)
+            elif m.name == "Eyelashes":
+                append_part(a1_verts, a1_norms, a1_uvs, a1_tris, p, n, uv_dae, tris)
 
-    atom0_mesh = {
-        "verts": np.vstack(a0_verts),
-        "normals": np.vstack(a0_norms),
-        "uvs": np.vstack(a0_uvs),
-        "tris": np.vstack(a0_tris),
-    }
-    atom1_mesh = {
-        "verts": np.vstack(a1_verts),
-        "normals": np.vstack(a1_norms),
-        "uvs": np.vstack(a1_uvs),
-        "tris": np.vstack(a1_tris),
-    }
+        return (
+            {
+                "verts": np.vstack(a0_verts),
+                "normals": np.vstack(a0_norms),
+                "uvs": np.vstack(a0_uvs),
+                "tris": np.vstack(a0_tris),
+            },
+            {
+                "verts": np.vstack(a1_verts),
+                "normals": np.vstack(a1_norms),
+                "uvs": np.vstack(a1_uvs),
+                "tris": np.vstack(a1_tris),
+            },
+        )
+
+    atom0_joy, atom1_joy = build_romance_meshes(for_suit=False)
+    atom0_suit, atom1_suit = build_romance_meshes(for_suit=True)
+    packed_suit_head = _prepare_combined_head_arrays(atom0_suit, atom1_suit, bone_offset=1)
 
     joy_model_path = ada_root / JOY_UNIT_DIR / "npc_criminal_joy_1.model"
-    model_bytes = patch_joy_model(joy_model_path, atom0_mesh, atom1_mesh)
+    model_bytes = patch_joy_model(joy_model_path, atom0_joy, atom1_joy)
 
     head_df_dds = encode_rgba_dds(atlas_df)
     head_nm_dds = encode_rgba_dds(atlas_nm)
@@ -731,7 +1196,7 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     lash_op[:, :, 3] = 255
     lashes_op_dds = encode_rgba_dds(lash_op)
 
-    portrait = render_head_portrait(atom0_mesh, atom1_mesh, atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
+    portrait = render_head_portrait(atom0_joy, atom1_joy, atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
     icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
 
     mtr_cfg = (
@@ -762,19 +1227,34 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     }
     write_deterministic_zip(files, out_zip_paths)
 
+    _emit_female_heister_packages(
+        variant_tag="Romance",
+        packed_suit_head=packed_suit_head,
+        head_df_dds=head_df_dds,
+        head_nm_dds=head_nm_dds,
+        sec_df_dds=eyes_df_dds,
+        sec_op_dds=lashes_op_dds,
+        sec_nm_dds=sec_nm_dds,
+        icon_dds=icon_dds,
+        is_romance=True,
+    )
+
 
 def main() -> None:
     ada_root = ensure_ada_reference(Path("/tmp/ada_joy"))
     me2_dir = ensure_me2_extracted(Path("/tmp/me2_extract"))
+    sec_nm_dds = encode_rgba_dds(np.full((512, 512, 4), 128, dtype=np.uint8))
 
     build_l4d2_joy_mod(
         ada_root,
         [ROOT / "dist" / "Miranda_L4D2_over_Joy.zip"],
+        sec_nm_dds=sec_nm_dds,
     )
     build_me2_romance_joy_mod(
         ada_root,
         me2_dir,
         [ROOT / "dist" / "Miranda_Romance_over_Joy.zip"],
+        sec_nm_dds=sec_nm_dds,
     )
 
 

@@ -8,7 +8,11 @@ built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 Deliverables in **`dist/`**:
 - `dist/Miranda_LAS.zip` (`5,844,737` bytes, sha256 `983257a9319dfddaa64c2007ce3d9436c2e59396f4b272a0bf7de3131b767947`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
 - `dist/lawson_las.zip` (`9,101,185` bytes, sha256 `0a353e56f9fd3e90b713f30e444ea0522a9c6bb2bd8078b8c97ecc2b53596ed4`) — Full-body LAS outfit from ME2 Romance.
-- `dist/Miranda_L4D2_over_Joy.zip` (`10,496,415` bytes) & `dist/Miranda_Romance_over_Joy.zip` (`10,660,971` bytes) — Joy head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`.
+- Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
+  - `dist/Miranda_L4D2_over_Joy.zip` (`10,496,279` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,660,996` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (`7,529,231` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,708,609` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,057,953` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`8,199,363` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,037,082` B) & `dist/Miranda_Romance_over_Sydney.zip` (`7,208,018` B)
 
 ## Quickstart
 

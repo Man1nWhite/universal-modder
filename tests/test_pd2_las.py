@@ -467,6 +467,82 @@ class TestLasScaffold:
                     assert geo["vert_count"] > 4000
                     assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
 
+    def test_tracked_clover_bonnie_sydney_head_replacement_packs(self):
+        """Clover, Bonnie, and Sydney head-replacement mod_overrides packs in dist/ are tracked and valid."""
+        import diesel_model as dm
+
+        specs = [
+            (
+                "Miranda_L4D2_over_Clover.zip",
+                "Miranda L4D2 over Clover",
+                "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
+                "g_head_fem1",
+                "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
+            ),
+            (
+                "Miranda_Romance_over_Clover.zip",
+                "Miranda Romance over Clover",
+                "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
+                "g_head_fem1",
+                "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
+            ),
+            (
+                "Miranda_L4D2_over_Bonnie.zip",
+                "Miranda L4D2 over Bonnie",
+                "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
+                "g_head",
+                "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
+            ),
+            (
+                "Miranda_Romance_over_Bonnie.zip",
+                "Miranda Romance over Bonnie",
+                "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
+                "g_head",
+                "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
+            ),
+            (
+                "Miranda_L4D2_over_Sydney.zip",
+                "Miranda L4D2 over Sydney",
+                "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
+                "g_head",
+                "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
+            ),
+            (
+                "Miranda_Romance_over_Sydney.zip",
+                "Miranda Romance over Sydney",
+                "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
+                "g_head",
+                "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
+            ),
+        ]
+        for zip_name, prefix, model_rel, head_draw, icon_rel in specs:
+            zp = REPO / "dist" / zip_name
+            sp = REPO / "dist" / f"{zip_name}.sha256"
+            assert zp.is_file(), f"missing {zp}"
+            assert sp.is_file(), f"missing {sp}"
+            raw = zp.read_bytes()
+            assert sp.read_text().split()[0] == hashlib.sha256(raw).hexdigest()
+            with zipfile.ZipFile(zp) as z:
+                names = set(z.namelist())
+                assert f"{prefix}/{icon_rel}" in names
+                assert len(z.read(f"{prefix}/{icon_rel}")) == 65664
+                mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
+                md_by_hash = {
+                    dm.decode_model_data(s.payload)["name_hash"]: s
+                    for s in mf.by_type(dm.MODEL_DATA)
+                }
+                md = dm.decode_model_data(md_by_hash[dm.hash64(head_draw)].payload)
+                pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+                geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+                topo = dm.decode_topology(mf.by_id(pg["topology"]).payload)
+                mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
+                sb = dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)
+                assert len(md["atoms"]) == 2
+                assert len(mg["material_ids"]) == 2
+                assert len(sb["maps"]) == 3
+                assert geo["vert_count"] > 4000
+                assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
+
     def test_tracked_pack_specular_alpha_and_pd2_normal_layout(self):
         """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""
         import numpy as np

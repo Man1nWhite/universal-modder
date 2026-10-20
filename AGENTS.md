@@ -83,8 +83,10 @@ All built PAYDAY 2 deliverables live in **`dist/`** (tracked in git with `.sha25
 |---|---|---|---|
 | `dist/lawson_las.zip` (`9,101,185` B) | Full-body LAS outfit (ME2 Romance) | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `2b.rar` | `tools/pd2-port/build_las_pack.py` |
 | `dist/Miranda_LAS.zip` (`5,844,737` B) | Full-body LAS outfit (L4D2 port) | `l4d2_miranda_lawson_1.zip` + `2b.rar` | `tools/pd2-las/build_models.py` |
-| `dist/Miranda_L4D2_over_Joy.zip` (`10,496,415` B) | Joy head-replacement `mod_overrides` (L4D2) | `l4d2_miranda_lawson_1.zip` + `Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Joy.zip` (`10,660,971` B) | Joy head-replacement `mod_overrides` (ME2 Romance) | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Joy.zip` (`10,496,279` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,660,996` B) | Joy head-replacement `mod_overrides` (L4D2 & ME2 Romance) | Both sources + `Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Clover.zip` (`7,529,231` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,708,609` B) | Clover + Safe House head-replacement `mod_overrides` | Both sources + `Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Bonnie.zip` (`8,057,953` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`8,199,363` B) | Bonnie + Safe House head-replacement `mod_overrides` | Both sources + `Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Sydney.zip` (`7,037,082` B) & `dist/Miranda_Romance_over_Sydney.zip` (`7,208,018` B) | Sydney head-replacement `mod_overrides` | Both sources + `Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
 
 ### Agent Quickstart & Sandbox Recovery
 Arena sandboxes do not persist `.venv/`, `/tmp/`, or untracked `dist/`/`build/` files across container restarts, and local `HEAD` may rewind to the branch base on restart. Always run:

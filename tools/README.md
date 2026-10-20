@@ -1,17 +1,21 @@
 # tools/ — PAYDAY 2 Miranda Lawson build pipelines
 
-Three PAYDAY 2 pipelines live in `tools/`, producing the four tracked deliverables in **`dist/`**:
+Three PAYDAY 2 pipelines live in `tools/`, producing the ten tracked deliverables in **`dist/`**:
 
 1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`** (`9,101,185` bytes). See `tools/pd2-port/STATUS.md`.
 2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`** (`5,844,737` bytes). See `docs/pd2-las/HANDOFF.md`.
-3. **`tools/build_joy_head_mods.py`** — Two Joy head-replacement `mod_overrides` packages modeled on `Ada Wong over Joy.7z` → **`dist/Miranda_L4D2_over_Joy.zip`** (`10,496,415` bytes) and **`dist/Miranda_Romance_over_Joy.zip`** (`10,660,971` bytes).
+3. **`tools/build_joy_head_mods.py`** — Eight female-heister head-replacement `mod_overrides` packages (**L4D2** and **ME2 Romance** variants over **Joy**, **Clover**, **Bonnie**, and **Sydney**), modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`:
+   - **`dist/Miranda_L4D2_over_Joy.zip`** (`10,496,279` B) & **`dist/Miranda_Romance_over_Joy.zip`** (`10,660,996` B)
+   - **`dist/Miranda_L4D2_over_Clover.zip`** (`7,529,231` B) & **`dist/Miranda_Romance_over_Clover.zip`** (`7,708,609` B)
+   - **`dist/Miranda_L4D2_over_Bonnie.zip`** (`8,057,953` B) & **`dist/Miranda_Romance_over_Bonnie.zip`** (`8,199,363` B)
+   - **`dist/Miranda_L4D2_over_Sydney.zip`** (`7,037,082` B) & **`dist/Miranda_Romance_over_Sydney.zip`** (`7,208,018` B)
 
-| | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Joy Head Mods |
+| | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Female Heister Head Mods |
 | --- | --- | --- | --- |
-| Source | ME2 *Romance* COLLADA zip + `2b.rar` | `l4d2_miranda_lawson_1.zip` + `2b.rar` | Both sources + `Ada Wong over Joy.7z` |
-| Output in `dist/` | `dist/lawson_las.zip` (tracked, sha256-pinned) | `dist/Miranda_LAS.zip` (tracked, sha256-pinned) | `dist/Miranda_L4D2_over_Joy.zip` & `dist/Miranda_Romance_over_Joy.zip` (tracked, sha256-pinned) |
-| Pack layout | `Lawson_LAS/assets/units/…` (LAS outfit) | `Miranda_LAS/assets/units/…` (LAS outfit) | `Miranda {L4D2,Romance} over Joy/units/pd2_dlc_joy/…` (vanilla Joy head override) |
-| Install | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (vanilla Joy head replacement) |
+| Source | ME2 *Romance* COLLADA zip + `2b.rar` | `l4d2_miranda_lawson_1.zip` + `2b.rar` | Both sources + `Ada Wong over Joy.7z` + `Heister - FPS Gloves in TPS 2.zip` |
+| Output in `dist/` | `dist/lawson_las.zip` (tracked, sha256-pinned) | `dist/Miranda_LAS.zip` (tracked, sha256-pinned) | `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (tracked, sha256-pinned) |
+| Pack layout | `Lawson_LAS/assets/units/…` (LAS outfit) | `Miranda_LAS/assets/units/…` (LAS outfit) | `Miranda {L4D2,Romance} over {Joy,Clover,Bonnie,Sydney}/units/…` |
+| Install | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (vanilla heister head replacement) |
 | `.model` dialect | DODB container, unshifted channel types, packed normals | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) |
 | Rig work | `rig_target.py` + `reference/las_rig.json` (anatomically partitioned similarity retarget) | `skeleton_map.json` + anatomically partitioned similarity retarget in `build_models.py` |
 | Verification | `check_all.py` (5 stages, mutation-tested), release CI | 235-test suite incl. `test_diesel_model` byte round-trips |

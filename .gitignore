@@ -21,6 +21,18 @@ dist/*
 !dist/Miranda_L4D2_over_Joy.zip.sha256
 !dist/Miranda_Romance_over_Joy.zip
 !dist/Miranda_Romance_over_Joy.zip.sha256
+!dist/Miranda_L4D2_over_Clover.zip
+!dist/Miranda_L4D2_over_Clover.zip.sha256
+!dist/Miranda_Romance_over_Clover.zip
+!dist/Miranda_Romance_over_Clover.zip.sha256
+!dist/Miranda_L4D2_over_Bonnie.zip
+!dist/Miranda_L4D2_over_Bonnie.zip.sha256
+!dist/Miranda_Romance_over_Bonnie.zip
+!dist/Miranda_Romance_over_Bonnie.zip.sha256
+!dist/Miranda_L4D2_over_Sydney.zip
+!dist/Miranda_L4D2_over_Sydney.zip.sha256
+!dist/Miranda_Romance_over_Sydney.zip
+!dist/Miranda_Romance_over_Sydney.zip.sha256
 *.egg-info/
 # captures and scratch
 *.mkv

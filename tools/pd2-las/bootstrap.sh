@@ -43,10 +43,9 @@ echo "== 3/5 build models + packs =="
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
 .venv/bin/python tools/build_joy_head_mods.py
 sha256sum -c build/pd2-las/Miranda_LAS.zip.sha256
-sha256sum -c dist/Miranda_LAS.zip.sha256
-sha256sum -c dist/lawson_las.zip.sha256
-sha256sum -c dist/Miranda_L4D2_over_Joy.zip.sha256
-sha256sum -c dist/Miranda_Romance_over_Joy.zip.sha256
+for sha_file in dist/*.zip.sha256; do
+    sha256sum -c "$sha_file"
+done
 
 echo "== 4/5 tests =="
 .venv/bin/python -m pytest -q tests/
