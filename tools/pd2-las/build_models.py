@@ -351,27 +351,13 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
         t_mid1 = f"{side}HandMiddle1"
         if not all(t in primary_src for t in (t_arm, t_fore, t_hand, t_mid1)):
             continue
-        ps_a_raw = src_pos[primary_src[t_arm]]
+        ps_a = src_pos[primary_src[t_arm]]
         ps_f = src_pos[primary_src[t_fore]]
         ps_h = src_pos[primary_src[t_hand]]
 
         pt_a = tgt_pos(t_arm)
         pt_f = tgt_pos(t_fore)
-
-        # Keep Shoulder (Clavicle) on the core torso similarity frame g_fit
-        # rather than applying a 1.50x isotropic scale to bridge the medial
-        # L4D2 UpperArm head (-16.0 cm) to PD2's lateral Arm pivot (-20.86 cm).
-        # Anchor the UpperArm segment at the anatomical deltoid/bicep center
-        # (14% along UpperArm -> Forearm, matching hlp_l/r_bicep and PD2's
-        # Left/RightArm Z height 146.7 cm) so the shoulder cap is not shifted
-        # 4.8 cm outward while the elbow lands on pt_f.
-        ps_a = ps_a_raw + 0.14 * (ps_f - ps_a_raw)
-        if t_sh in primary_src:
-            fit_for_target[t_sh] = g_fit
-
-        r_arm = _rodrigues_arc(r_core @ (ps_f - ps_a), pt_f - pt_a) @ r_core
-        s_arm = float(np.linalg.norm(pt_f - pt_a) / max(1e-9, np.linalg.norm(ps_f - ps_a)))
-        fit_for_target[t_arm] = _make_sim_mat(s_arm, r_arm, ps_a, pt_a)
+        pt_h = tgt_pos(t_hand)
 
         hand_landmarks = [
             (f"{side}HandIndex1", 1.0),
@@ -393,7 +379,8 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
             ps_m = src_pos[primary_src[t_mid1]]
             pt_h_raw = tgt_pos(t_hand)
             pt_m = tgt_pos(t_mid1)
-            r_fore_tmp = _rodrigues_arc(r_arm @ (ps_h - ps_f), pt_h_raw - pt_f) @ r_arm
+            r_arm_tmp = _rodrigues_arc(r_core @ (ps_f - ps_a), pt_f - pt_a) @ r_core
+            r_fore_tmp = _rodrigues_arc(r_arm_tmp @ (ps_h - ps_f), pt_h_raw - pt_f) @ r_arm_tmp
             s_fore_tmp = float(np.linalg.norm(pt_h_raw - pt_f) / max(1e-9, np.linalg.norm(ps_h - ps_f)))
             r_hand = _rodrigues_arc(r_fore_tmp @ (ps_m - ps_h), pt_m - pt_h_raw) @ r_fore_tmp
             m_hand = _make_sim_mat(s_fore_tmp, r_hand, ps_h, pt_h_raw)
@@ -401,9 +388,91 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
         fit_for_target[t_hand] = m_hand
         pt_wrist = np.array(dm.mat_apply_point(m_hand, tuple(ps_h.tolist())), dtype=np.float64)
 
-        r_fore = _rodrigues_arc(r_arm @ (ps_h - ps_f), pt_wrist - pt_f) @ r_arm
-        s_fore = float(np.linalg.norm(pt_wrist - pt_f) / max(1e-9, np.linalg.norm(ps_h - ps_f)))
-        fit_for_target[t_fore] = _make_sim_mat(s_fore, r_fore, ps_f, pt_f)
+        def _axial_mat(s_start: np.ndarray, s_end: np.ndarray,
+                       t_start: np.ndarray, t_end: np.ndarray,
+                       r_base: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+            ds = s_end - s_start
+            dt = t_end - t_start
+            r_seg = _rodrigues_arc(r_base @ ds, dt) @ r_base
+            len_dt = max(1e-9, float(np.linalg.norm(dt)))
+            lam = len_dt / max(1e-9, float(np.linalg.norm(ds)))
+            v = dt / len_dt
+            s_seg = _s_core * np.eye(3, dtype=np.float64) + (lam - _s_core) * np.outer(v, v)
+            m_seg = np.eye(4, dtype=np.float64)
+            m_seg[:3, :3] = s_seg @ r_seg
+            m_seg[:3, 3] = t_start - (m_seg[:3, :3] @ s_start)
+            return m_seg, r_seg
+
+        if "Hips" in direct_src:
+            # Full-body third-person character: construct Shoulder, Arm, and
+            # ForeArm bind operators via PD2's standing menu pose
+            # M_menu = W_posed @ inv(W_bind):
+            # 1. In the standing pose, Shoulder and Arm meet at a natural
+            #    feminine shoulder width (+1.2 cm outward from L4D2's UpperArm
+            #    head) so Spine2, Shoulder, and Arm agree at the shoulder
+            #    without a bicep bulge or under-shoulder dent.
+            # 2. The standing elbow is shifted 2.8 cm inward along the exact
+            #    invariant hinge axis of inv(M_menu[Arm]) @ M_menu[ForeArm], so
+            #    Arm and ForeArm meet with 0.000 cm gap in BOTH bind pose and
+            #    standing pose while eliminating the outward elbow bow.
+            # 3. Rank-1 axial scaling along each segment preserves 100% of the
+            #    native radial arm thickness.
+            sgn = -1.0 if side == "Left" else 1.0
+            d_arm_bind = pt_f - pt_a
+            d_fa_bind = pt_h - pt_f
+            r_w_arm = _rodrigues_arc(d_arm_bind, np.array([sgn * 0.17, -0.05, -0.98], dtype=np.float64))
+            r_w_fa_rel = _rodrigues_arc(r_w_arm @ d_fa_bind, np.array([sgn * 0.05, 0.25, -0.96], dtype=np.float64))
+            r_w_fa = r_w_fa_rel @ r_w_arm
+
+            pt_f_posed = pt_a + (r_w_arm @ d_arm_bind)
+            m_arm_menu = np.eye(4, dtype=np.float64)
+            m_arm_menu[:3, :3] = r_w_arm
+            m_arm_menu[:3, 3] = pt_a - (r_w_arm @ pt_a)
+            m_fa_menu = np.eye(4, dtype=np.float64)
+            m_fa_menu[:3, :3] = r_w_fa
+            m_fa_menu[:3, 3] = pt_f_posed - (r_w_fa @ pt_f)
+            m_arm_menu_inv = np.linalg.inv(m_arm_menu)
+            m_fa_menu_inv = np.linalg.inv(m_fa_menu)
+
+            hinge_raw = np.array([
+                r_w_fa_rel[2, 1] - r_w_fa_rel[1, 2],
+                r_w_fa_rel[0, 2] - r_w_fa_rel[2, 0],
+                r_w_fa_rel[1, 0] - r_w_fa_rel[0, 1],
+            ], dtype=np.float64)
+            ax_p = hinge_raw / max(1e-9, float(np.linalg.norm(hinge_raw)))
+            if float(ax_p[0]) * (-sgn) < 0.0:
+                ax_p = -ax_p
+
+            ps_a_g = np.array(dm.mat_apply_point(g_fit, tuple(ps_a.tolist())), dtype=np.float64)
+            pt_a_stand = ps_a_g + np.array([sgn * 1.2, 0.0, -0.3], dtype=np.float64)
+            pt_f_stand = pt_f_posed + 2.8 * ax_p
+            pt_h_stand = (m_fa_menu @ np.append(pt_wrist, 1.0))[:3]
+
+            if t_sh in primary_src:
+                ps_sh = src_pos[primary_src[t_sh]]
+                pt_sh_stand = np.array(dm.mat_apply_point(g_fit, tuple(ps_sh.tolist())), dtype=np.float64)
+                m_sh_menu, _ = _axial_mat(ps_sh, ps_a, pt_sh_stand, pt_a_stand, r_core)
+                fit_for_target[t_sh] = tuple(float(x) for x in m_sh_menu.T.reshape(16))
+
+            m_arm_stand, r_arm_m = _axial_mat(ps_a, ps_f, pt_a_stand, pt_f_stand, r_core)
+            m_fa_stand, _ = _axial_mat(ps_f, ps_h, pt_f_stand, pt_h_stand, r_arm_m)
+
+            m_arm_bind = m_arm_menu_inv @ m_arm_stand
+            m_fa_bind = m_fa_menu_inv @ m_fa_stand
+            fit_for_target[t_arm] = tuple(float(x) for x in m_arm_bind.T.reshape(16))
+            fit_for_target[t_fore] = tuple(float(x) for x in m_fa_bind.T.reshape(16))
+        else:
+            # First-person arms-only viewmodel: align directly to PD2's
+            # viewmodel Arm -> ForeArm -> Wrist pivots with rank-1 axial scaling.
+            if t_sh in primary_src:
+                ps_sh = src_pos[primary_src[t_sh]]
+                pt_sh = tgt_pos(t_sh)
+                m_sh_bind, _ = _axial_mat(ps_sh, ps_a, pt_sh, pt_a, r_core)
+                fit_for_target[t_sh] = tuple(float(x) for x in m_sh_bind.T.reshape(16))
+            m_arm_bind, r_arm_b = _axial_mat(ps_a, ps_f, pt_a, pt_f, r_core)
+            m_fa_bind, _ = _axial_mat(ps_f, ps_h, pt_f, pt_wrist, r_arm_b)
+            fit_for_target[t_arm] = tuple(float(x) for x in m_arm_bind.T.reshape(16))
+            fit_for_target[t_fore] = tuple(float(x) for x in m_fa_bind.T.reshape(16))
 
         s_min_f = 0.85 * _s_core
         s_max_f = 1.35 * _s_core
@@ -609,35 +678,11 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         base_i = len(g.faces) * 3
         for vi in slice_verts:
             sv = model.vertices[vi]
-            pg = dm.mat_apply_point(g_fit, sv.pos)
             by_target: dict[str, float] = {}
             for bi, w in sv.weights:
                 if bi in per_src_T and w > 1e-6:
-                    bname = model.bones[bi].name
                     tname, _ = target_for_src[bi]
-                    # Partition hlp_l/r_shoulder smoothly between Shoulder
-                    # (medial collarbone / upper trapezius above the ball
-                    # joint) and Arm (lateral deltoid cap below/lateral to the
-                    # ball joint) so lowering the arm in-game neither leaves a
-                    # shoulder wing nor rolls the upper shoulder outward.
-                    if (
-                        bname in ("hlp_l_shoulder", "hlp_r_shoulder")
-                        and "LeftArm" in T_col
-                        and "RightArm" in T_col
-                    ):
-                        side_s = "Left" if bname == "hlp_l_shoulder" else "Right"
-                        t_arm = f"{side_s}Arm"
-                        t_sh = f"{side_s}Shoulder"
-                        ax = abs(pg[0])
-                        fx = float(np.clip((ax - 16.5) / (20.5 - 16.5), 0.0, 1.0))
-                        fz = float(np.clip((151.0 - pg[2]) / (151.0 - 144.0), 0.0, 1.0))
-                        f_arm = fx * fz
-                        if f_arm > 1e-6:
-                            by_target[t_arm] = by_target.get(t_arm, 0.0) + w * f_arm
-                        if 1.0 - f_arm > 1e-6:
-                            by_target[t_sh] = by_target.get(t_sh, 0.0) + w * (1.0 - f_arm)
-                    else:
-                        by_target[tname] = by_target.get(tname, 0.0) + w
+                    by_target[tname] = by_target.get(tname, 0.0) + w
             infl = [(tn, w) for tn, w in by_target.items() if w > 1e-6]
             infl.sort(key=lambda t: -t[1])
             infl = infl[:3]

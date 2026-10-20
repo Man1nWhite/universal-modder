@@ -432,45 +432,14 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
 
         for side in ("Left", "Right"):
             ps_sh = _v3(scene.joints[f"{side}Collar"].world)
-            ps_a_raw = _v3(scene.joints[f"{side}Shoulder"].world)
+            ps_a = _v3(scene.joints[f"{side}Shoulder"].world)
             ps_f = _v3(scene.joints[f"{side}Elbow"].world)
             ps_h = _v3(scene.joints[f"{side}Wrist"].world)
-
-            # ME2's bare feminine shoulders are ~3.8 cm narrower than PD2's
-            # male rig and its Shoulder joint sits at |x| = 15.5 cm vs PD2's
-            # Left/RightArm at |x| = 20.86 cm (both at z = 146.7 cm).
-            # Shifting the source shoulder anchor 1.5 cm outward horizontally
-            # (+X for Left, -X for Right in ME2 space) keeps Z identical
-            # (zero vertical step) while centering the deltoid cap on PD2's
-            # ball joint without over-widening the bare shoulder silhouette.
-            sgn_me2 = 1.0 if side == "Left" else -1.0
-            ps_a = [ps_a_raw[0] + sgn_me2 * 1.5, ps_a_raw[1], ps_a_raw[2]]
 
             pt_sh = _apply_op(g_op, ps_sh)
             pt_a = _v3(rig.world[f"{side}Arm"])
             pt_f = _v3(rig.world[f"{side}ForeArm"])
-
-            # Rank-1 axial stretch along Collar -> Shoulder -> Arm so the
-            # collarbone bridges cleanly to pt_a without inflating Z thickness.
-            ds_sh = _sub(ps_a, ps_sh)
-            dt_sh = _sub(pt_a, pt_sh)
-            R_sh = _mat3_mul(_col_rot_between(_mat3_vec(R_core, ds_sh), dt_sh), R_core)
-            len_dt_sh = (_dot(dt_sh, dt_sh) ** 0.5) or 1.0
-            lam_sh = len_dt_sh / ((_dot(ds_sh, ds_sh) ** 0.5) or 1.0)
-            v_sh = [dt_sh[0] / len_dt_sh, dt_sh[1] / len_dt_sh, dt_sh[2] / len_dt_sh]
-            S_ax = [
-                [(1.0 if r == c else 0.0) + (lam_sh - 1.0) * v_sh[r] * v_sh[c] for c in range(3)]
-                for r in range(3)
-            ]
-            A_sh = _mat3_mul(S_ax, R_sh)
-            ops[f"{side}Shoulder"] = _make_sim_op(1.0, A_sh, ps_sh, pt_sh)
-
-            ds_af = _sub(ps_f, ps_a)
-            dt_af = _sub(pt_f, pt_a)
-            R_arm = _mat3_mul(_col_rot_between(_mat3_vec(R_core, ds_af), dt_af), R_core)
-            s_arm = (_dot(dt_af, dt_af) ** 0.5) / (_dot(ds_af, ds_af) ** 0.5)
-            op_arm = _make_sim_op(s_arm, R_arm, ps_a, pt_a)
-            ops[f"{side}Arm"] = op_arm
+            pt_h = _v3(rig.world[f"{side}Hand"])
 
             src_h = [
                 _v3(scene.joints[f"{side}IndexFinger"].world),
@@ -486,17 +455,77 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
                 _v3(rig.world[f"{side}HandRing1"]),
                 _v3(rig.world[f"{side}HandPinky1"]),
                 _v3(rig.world[f"{side}HandThumb1"]),
-                _v3(rig.world[f"{side}Hand"]),
+                pt_h,
             ]
             op_hand, R_hand, _ = _umeyama_sim_op(src_h, tgt_h, [1.0, 1.0, 1.0, 1.0, 0.8, 0.2])
             ops[f"{side}Hand"] = op_hand
             pt_wrist = _apply_op(op_hand, ps_h)
 
-            ds_fh = _sub(ps_h, ps_f)
-            dt_fh = _sub(pt_wrist, pt_f)
-            R_fore = _mat3_mul(_col_rot_between(_mat3_vec(R_arm, ds_fh), dt_fh), R_arm)
-            s_fore = (_dot(dt_fh, dt_fh) ** 0.5) / (_dot(ds_fh, ds_fh) ** 0.5)
-            op_fore = _make_sim_op(s_fore, R_fore, ps_f, pt_f)
+            # Construct Shoulder, Arm, and ForeArm bind operators via PD2's
+            # standing menu pose M_menu = W_posed @ inv(W_bind):
+            # 1. In the standing pose, the shoulder sits at a natural feminine
+            #    width (+1.2 cm outward from ME2's native Shoulder) so the
+            #    bare deltoid cap is round without a pointy overhang or gap
+            #    between Body 1 and Body 2.
+            # 2. The standing elbow is shifted 2.8 cm inward along the exact
+            #    invariant hinge axis of inv(M_menu[Arm]) @ M_menu[ForeArm],
+            #    so Arm and ForeArm meet with 0.000 cm gap in BOTH bind pose
+            #    and standing pose while eliminating the outward elbow bow.
+            # 3. Rank-1 axial scaling along each bone preserves 100% of the
+            #    native radial arm thickness.
+            sgn = -1.0 if side == "Left" else 1.0
+            d_arm_bind = _sub(pt_f, pt_a)
+            d_fa_bind = _sub(pt_h, pt_f)
+            R_w_arm = _col_rot_between(d_arm_bind, [sgn * 0.17, -0.05, -0.98])
+            R_w_fa_rel = _col_rot_between(_mat3_vec(R_w_arm, d_fa_bind), [sgn * 0.05, 0.25, -0.96])
+            R_w_fa = _mat3_mul(R_w_fa_rel, R_w_arm)
+
+            pt_f_posed = _add(pt_a, _mat3_vec(R_w_arm, d_arm_bind))
+            M_arm_menu = _make_sim_op(1.0, R_w_arm, pt_a, pt_a)
+            M_fa_menu = _make_sim_op(1.0, R_w_fa, pt_f, pt_f_posed)
+            M_arm_menu_inv = minv(M_arm_menu)
+            M_fa_menu_inv = minv(M_fa_menu)
+
+            # Exact invariant hinge axis of R_w_fa_rel in posed space:
+            hinge_raw = [
+                R_w_fa_rel[2][1] - R_w_fa_rel[1][2],
+                R_w_fa_rel[0][2] - R_w_fa_rel[2][0],
+                R_w_fa_rel[1][0] - R_w_fa_rel[0][1],
+            ]
+            len_h = (_dot(hinge_raw, hinge_raw) ** 0.5) or 1.0
+            ax_p = [hinge_raw[0] / len_h, hinge_raw[1] / len_h, hinge_raw[2] / len_h]
+            if ax_p[0] * (-sgn) < 0.0:
+                ax_p = [-ax_p[0], -ax_p[1], -ax_p[2]]
+
+            ps_a_g = _apply_op(g_op, ps_a)
+            pt_a_stand = [ps_a_g[0] + sgn * 1.2, ps_a_g[1], ps_a_g[2] - 0.3]
+            pt_f_stand = [
+                pt_f_posed[0] + 2.8 * ax_p[0],
+                pt_f_posed[1] + 2.8 * ax_p[1],
+                pt_f_posed[2] + 2.8 * ax_p[2],
+            ]
+            pt_h_stand = _apply_op(M_fa_menu, pt_wrist)
+
+            def _axial_op(s_start, s_end, t_start, t_end, R_base):
+                ds = _sub(s_end, s_start)
+                dt = _sub(t_end, t_start)
+                R_seg = _mat3_mul(_col_rot_between(_mat3_vec(R_base, ds), dt), R_base)
+                len_dt = (_dot(dt, dt) ** 0.5) or 1.0
+                lam = len_dt / ((_dot(ds, ds) ** 0.5) or 1.0)
+                v = [dt[0] / len_dt, dt[1] / len_dt, dt[2] / len_dt]
+                S_seg = [
+                    [(1.0 if r == c else 0.0) + (lam - 1.0) * v[r] * v[c] for c in range(3)]
+                    for r in range(3)
+                ]
+                return _make_sim_op(1.0, _mat3_mul(S_seg, R_seg), s_start, t_start), R_seg
+
+            op_sh_menu, _ = _axial_op(ps_sh, ps_a, pt_sh, pt_a_stand, R_core)
+            op_arm_menu, R_arm_m = _axial_op(ps_a, ps_f, pt_a_stand, pt_f_stand, R_core)
+            op_fa_menu, _ = _axial_op(ps_f, ps_h, pt_f_stand, pt_h_stand, R_arm_m)
+
+            ops[f"{side}Shoulder"] = op_sh_menu
+            ops[f"{side}Arm"] = mmul(op_arm_menu, M_arm_menu_inv)
+            op_fore = mmul(op_fa_menu, M_fa_menu_inv)
             ops[f"{side}ForeArm"] = op_fore
             ops[f"{side}ForeArmRoll"] = op_fore
 
