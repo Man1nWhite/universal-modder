@@ -13,7 +13,7 @@ If you are a new agent picking this work up: read this page first, then
 
 | | |
 |---|---|
-| Pack | `dist/lawson_las.zip` — **0.1.2**, 9,101,248 bytes, sha256 `eee984881e5445acc9acb4d4d568ec5d1f72fd9f6d8f25bfd7daa892db5fb263` |
+| Pack | `dist/lawson_las.zip` — **0.1.2**, 9,101,297 bytes, sha256 `ea715834aaf910a3dafaa49c6f1ac151576a7e0e38e891a1c00bd7bbdf0e28e4` |
 | Release | [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2) (pre-release) — assets: the zip + `lawson_las.zip.sha256` |
 | Tag | `lawson-las-v2` → commit `282703f`; the v1 release stays up but **has holes in the skin** (see §4) |
 | Docs | [`releases/lawson-las-v2.md`](releases/lawson-las-v2.md) is the release body (the workflow reads its `pack_version:` marker to stamp the build) |

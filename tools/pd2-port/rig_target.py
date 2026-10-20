@@ -431,12 +431,39 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
         ops: dict[str, list[list[float]]] = {t: g_op for t in rig.names}
 
         for side in ("Left", "Right"):
-            ps_a = _v3(scene.joints[f"{side}Shoulder"].world)
+            ps_sh = _v3(scene.joints[f"{side}Collar"].world)
+            ps_a_raw = _v3(scene.joints[f"{side}Shoulder"].world)
             ps_f = _v3(scene.joints[f"{side}Elbow"].world)
             ps_h = _v3(scene.joints[f"{side}Wrist"].world)
 
-            pt_a = _apply_op(g_op, ps_a)
+            # ME2's bare feminine shoulders are ~3.8 cm narrower than PD2's
+            # male rig and its Shoulder joint sits at |x| = 15.5 cm vs PD2's
+            # Left/RightArm at |x| = 20.86 cm (both at z = 146.7 cm).
+            # Shifting the source shoulder anchor 1.5 cm outward horizontally
+            # (+X for Left, -X for Right in ME2 space) keeps Z identical
+            # (zero vertical step) while centering the deltoid cap on PD2's
+            # ball joint without over-widening the bare shoulder silhouette.
+            sgn_me2 = 1.0 if side == "Left" else -1.0
+            ps_a = [ps_a_raw[0] + sgn_me2 * 1.5, ps_a_raw[1], ps_a_raw[2]]
+
+            pt_sh = _apply_op(g_op, ps_sh)
+            pt_a = _v3(rig.world[f"{side}Arm"])
             pt_f = _v3(rig.world[f"{side}ForeArm"])
+
+            # Rank-1 axial stretch along Collar -> Shoulder -> Arm so the
+            # collarbone bridges cleanly to pt_a without inflating Z thickness.
+            ds_sh = _sub(ps_a, ps_sh)
+            dt_sh = _sub(pt_a, pt_sh)
+            R_sh = _mat3_mul(_col_rot_between(_mat3_vec(R_core, ds_sh), dt_sh), R_core)
+            len_dt_sh = (_dot(dt_sh, dt_sh) ** 0.5) or 1.0
+            lam_sh = len_dt_sh / ((_dot(ds_sh, ds_sh) ** 0.5) or 1.0)
+            v_sh = [dt_sh[0] / len_dt_sh, dt_sh[1] / len_dt_sh, dt_sh[2] / len_dt_sh]
+            S_ax = [
+                [(1.0 if r == c else 0.0) + (lam_sh - 1.0) * v_sh[r] * v_sh[c] for c in range(3)]
+                for r in range(3)
+            ]
+            A_sh = _mat3_mul(S_ax, R_sh)
+            ops[f"{side}Shoulder"] = _make_sim_op(1.0, A_sh, ps_sh, pt_sh)
 
             ds_af = _sub(ps_f, ps_a)
             dt_af = _sub(pt_f, pt_a)
@@ -619,36 +646,9 @@ def rebind_mesh(mesh: Mesh, scene: DaeScene, rig: TargetRig,
         root_name = "root" if "root" in scene.joints else "God"
         return mmul(minv(scene.joints[root_name].world), rig.world["Hips"])
 
-    positions = []
-    for p in mesh.positions:
-        acc = [0.0, 0.0, 0.0]
-        binds = src_weights[len(positions)] if src_weights else []
-        if not binds:
-            binds = []
-        for b in binds:
-            op = ops[map_joint(b.joint)]
-            w = b.weight
-            acc[0] += w * (p[0] * op[0][0] + p[1] * op[1][0] + p[2] * op[2][0] + op[3][0])
-            acc[1] += w * (p[0] * op[0][1] + p[1] * op[1][1] + p[2] * op[2][1] + op[3][1])
-            acc[2] += w * (p[0] * op[0][2] + p[1] * op[1][2] + p[2] * op[2][2] + op[3][2])
-        if not binds:
-            op = root_op()
-            acc = [p[0] * op[0][0] + p[1] * op[1][0] + p[2] * op[2][0] + op[3][0],
-                   p[0] * op[0][1] + p[1] * op[1][1] + p[2] * op[2][1] + op[3][1],
-                   p[0] * op[0][2] + p[1] * op[1][2] + p[2] * op[2][2] + op[3][2]]
-        positions.append((acc[0], acc[1], acc[2]))
-
-    normals = []
-    for n in mesh.normals:
-        acc = [0.0, 0.0, 0.0]
-        for b in (src_weights[len(normals)] if src_weights else []):
-            op = ops[map_joint(b.joint)]
-            w = b.weight
-            acc[0] += w * (n[0] * op[0][0] + n[1] * op[1][0] + n[2] * op[2][0])
-            acc[1] += w * (n[0] * op[0][1] + n[1] * op[1][1] + n[2] * op[2][1])
-            acc[2] += w * (n[0] * op[0][2] + n[1] * op[1][2] + n[2] * op[2][2])
-        ln = (acc[0] ** 2 + acc[1] ** 2 + acc[2] ** 2) ** 0.5 or 1.0
-        normals.append((acc[0] / ln, acc[1] / ln, acc[2] / ln))
+    ops_inv = {t: minv(op) for t, op in ops.items()}
+    r_op = None
+    r_op_inv = None
 
     weights: list[list[tuple[str, float]]] = []
     for binds in src_weights:
@@ -660,7 +660,44 @@ def rebind_mesh(mesh: Mesh, scene: DaeScene, rig: TargetRig,
         total = sum(w for _, w in top) or 1.0
         weights.append([(n, w / total) for n, w in top])
     if not weights:
-        weights = [[] for _ in positions]
+        weights = [[] for _ in mesh.positions]
+
+    positions = []
+    normals = []
+    for vi, p in enumerate(mesh.positions):
+        infl = weights[vi] if vi < len(weights) else []
+        if not infl:
+            if r_op is None:
+                r_op = root_op()
+                r_op_inv = minv(r_op)
+            op = r_op
+            op_inv = r_op_inv
+        elif len(infl) == 1:
+            t0 = infl[0][0]
+            op = ops[t0]
+            op_inv = ops_inv[t0]
+        else:
+            # Harmonic (matrix-inverse) blend so runtime LBS unbending
+            # recovers the true unbent joint cross-section without pinching.
+            op_inv = [[0.0, 0.0, 0.0, 0.0] for _ in range(4)]
+            for tn, w in infl:
+                inv_k = ops_inv[tn]
+                for r in range(4):
+                    for c in range(4):
+                        op_inv[r][c] += w * inv_k[r][c]
+            op = minv(op_inv)
+        px = p[0] * op[0][0] + p[1] * op[1][0] + p[2] * op[2][0] + op[3][0]
+        py = p[0] * op[0][1] + p[1] * op[1][1] + p[2] * op[2][1] + op[3][1]
+        pz = p[0] * op[0][2] + p[1] * op[1][2] + p[2] * op[2][2] + op[3][2]
+        positions.append((px, py, pz))
+
+        if vi < len(mesh.normals):
+            n = mesh.normals[vi]
+            nx = n[0] * op_inv[0][0] + n[1] * op_inv[0][1] + n[2] * op_inv[0][2]
+            ny = n[0] * op_inv[1][0] + n[1] * op_inv[1][1] + n[2] * op_inv[1][2]
+            nz = n[0] * op_inv[2][0] + n[1] * op_inv[2][1] + n[2] * op_inv[2][2]
+            ln = (nx * nx + ny * ny + nz * nz) ** 0.5 or 1.0
+            normals.append((nx / ln, ny / ln, nz / ln))
 
     triangles, flipped = repair_winding(positions, normals, mesh.triangles)
 

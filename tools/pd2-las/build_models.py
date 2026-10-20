@@ -351,19 +351,23 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
         t_mid1 = f"{side}HandMiddle1"
         if not all(t in primary_src for t in (t_arm, t_fore, t_hand, t_mid1)):
             continue
-        ps_a = src_pos[primary_src[t_arm]]
+        ps_a_raw = src_pos[primary_src[t_arm]]
         ps_f = src_pos[primary_src[t_fore]]
         ps_h = src_pos[primary_src[t_hand]]
 
         pt_a = tgt_pos(t_arm)
         pt_f = tgt_pos(t_fore)
 
+        # Keep Shoulder (Clavicle) on the core torso similarity frame g_fit
+        # rather than applying a 1.50x isotropic scale to bridge the medial
+        # L4D2 UpperArm head (-16.0 cm) to PD2's lateral Arm pivot (-20.86 cm).
+        # Anchor the UpperArm segment at the anatomical deltoid/bicep center
+        # (14% along UpperArm -> Forearm, matching hlp_l/r_bicep and PD2's
+        # Left/RightArm Z height 146.7 cm) so the shoulder cap is not shifted
+        # 4.8 cm outward while the elbow lands on pt_f.
+        ps_a = ps_a_raw + 0.14 * (ps_f - ps_a_raw)
         if t_sh in primary_src:
-            ps_sh = src_pos[primary_src[t_sh]]
-            pt_sh = np.array(dm.mat_apply_point(g_fit, tuple(ps_sh.tolist())), dtype=np.float64)
-            r_sh = _rodrigues_arc(r_core @ (ps_a - ps_sh), pt_a - pt_sh) @ r_core
-            s_sh = float(np.linalg.norm(pt_a - pt_sh) / max(1e-9, np.linalg.norm(ps_a - ps_sh)))
-            fit_for_target[t_sh] = _make_sim_mat(s_sh, r_sh, ps_sh, pt_sh)
+            fit_for_target[t_sh] = g_fit
 
         r_arm = _rodrigues_arc(r_core @ (ps_f - ps_a), pt_f - pt_a) @ r_core
         s_arm = float(np.linalg.norm(pt_f - pt_a) / max(1e-9, np.linalg.norm(ps_f - ps_a)))
@@ -551,6 +555,8 @@ def _map_source_bone(model: ModelData, idx: int, skel_map: dict) -> str | None:
 
 def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
                    template: Template, group_name: str) -> Group:
+    import numpy as np
+
     g = Group(name=group_name)
     wanted = group_spec.get("materials")
 
@@ -558,9 +564,22 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     per_src_T = retarget_maps(model, skel_map, template)
 
     target_for_src: dict[int, tuple[str, dm.Mat]] = {}
+    t_mat_by_name: dict[str, dm.Mat] = {}
     for i, T in per_src_T.items():
         tname = _map_source_bone(model, i, skel_map)
         target_for_src[i] = (tname, T)
+        if tname is not None and tname not in t_mat_by_name:
+            t_mat_by_name[tname] = T
+
+    _id_mat = (1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0)
+    g_fit = per_src_T.get(0, next(iter(per_src_T.values()), _id_mat))
+    T_col: dict[str, np.ndarray] = {
+        tn: np.array(m, dtype=np.float64).reshape(4, 4).T
+        for tn, m in t_mat_by_name.items()
+    }
+    T_inv: dict[str, np.ndarray] = {
+        tn: np.linalg.inv(m) for tn, m in T_col.items()
+    }
 
     used_bones: set[str] = set()
     # material -> slice plan: gather triangles per source material
@@ -590,42 +609,70 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         base_i = len(g.faces) * 3
         for vi in slice_verts:
             sv = model.vertices[vi]
-            by_target: dict[str, tuple[int, float]] = {}
+            pg = dm.mat_apply_point(g_fit, sv.pos)
+            by_target: dict[str, float] = {}
             for bi, w in sv.weights:
                 if bi in per_src_T and w > 1e-6:
+                    bname = model.bones[bi].name
                     tname, _ = target_for_src[bi]
-                    if tname in by_target:
-                        rep_bi, prev_w = by_target[tname]
-                        by_target[tname] = (rep_bi, prev_w + w)
+                    # Partition hlp_l/r_shoulder smoothly between Shoulder
+                    # (medial collarbone / upper trapezius above the ball
+                    # joint) and Arm (lateral deltoid cap below/lateral to the
+                    # ball joint) so lowering the arm in-game neither leaves a
+                    # shoulder wing nor rolls the upper shoulder outward.
+                    if (
+                        bname in ("hlp_l_shoulder", "hlp_r_shoulder")
+                        and "LeftArm" in T_col
+                        and "RightArm" in T_col
+                    ):
+                        side_s = "Left" if bname == "hlp_l_shoulder" else "Right"
+                        t_arm = f"{side_s}Arm"
+                        t_sh = f"{side_s}Shoulder"
+                        ax = abs(pg[0])
+                        fx = float(np.clip((ax - 16.5) / (20.5 - 16.5), 0.0, 1.0))
+                        fz = float(np.clip((151.0 - pg[2]) / (151.0 - 144.0), 0.0, 1.0))
+                        f_arm = fx * fz
+                        if f_arm > 1e-6:
+                            by_target[t_arm] = by_target.get(t_arm, 0.0) + w * f_arm
+                        if 1.0 - f_arm > 1e-6:
+                            by_target[t_sh] = by_target.get(t_sh, 0.0) + w * (1.0 - f_arm)
                     else:
-                        by_target[tname] = (bi, w)
-            infl = list(by_target.values())
+                        by_target[tname] = by_target.get(tname, 0.0) + w
+            infl = [(tn, w) for tn, w in by_target.items() if w > 1e-6]
             infl.sort(key=lambda t: -t[1])
             infl = infl[:3]
             total = sum(w for _, w in infl) or 1.0
-            infl = [(bi, w / total) for bi, w in infl]
+            infl = [(tn, w / total) for tn, w in infl]
             if not infl:
                 # vertices weighted only to unmapped bones: stick to the
                 # lowest mapped source bone (pelvis in practice)
                 if not per_src_T:
                     raise SystemExit("no mapped source bones at all")
-                infl = [(min(per_src_T), 1.0)]
-            vx = vy = vz = 0.0
-            nx = ny = nz = 0.0
-            for bi, w in infl:
-                tname, _ = target_for_src[bi]
-                used_bones.add(tname)
-                vx += w * dm.mat_apply_point(per_src_T[bi], sv.pos)[0]
-                vy += w * dm.mat_apply_point(per_src_T[bi], sv.pos)[1]
-                vz += w * dm.mat_apply_point(per_src_T[bi], sv.pos)[2]
-                n = dm.mat_apply_vec(per_src_T[bi], sv.normal)
-                nx += w * n[0]; ny += w * n[1]; nz += w * n[2]
-            ln = (nx * nx + ny * ny + nz * nz) ** 0.5 or 1.0
-            g.verts.append((vx, vy, vz))
-            g.normals.append((nx / ln, ny / ln, nz / ln))
+                first_tn = target_for_src[min(per_src_T)][0]
+                infl = [(first_tn, 1.0)]
+            for tn, _ in infl:
+                used_bones.add(tn)
+            p4 = np.array([sv.pos[0], sv.pos[1], sv.pos[2], 1.0], dtype=np.float64)
+            n3 = np.array([sv.normal[0], sv.normal[1], sv.normal[2]], dtype=np.float64)
+            if len(infl) == 1:
+                tn0 = infl[0][0]
+                M = T_col[tn0]
+                M_inv3 = T_inv[tn0][:3, :3]
+            else:
+                # Harmonic (matrix-inverse) blend: v_bind = (sum w_k T_k^-1)^-1 v_src
+                # so runtime linear-blend skinning (sum w_k T_k^-1) v_bind recovers
+                # the exact unbent joint cross-section without elbow/shoulder pinch.
+                M_inv = sum(w * T_inv[tn] for tn, w in infl)
+                M = np.linalg.inv(M_inv)
+                M_inv3 = M_inv[:3, :3]
+            vb = M @ p4
+            nb = M_inv3.T @ n3
+            ln = float(np.linalg.norm(nb)) or 1.0
+            g.verts.append((float(vb[0]), float(vb[1]), float(vb[2])))
+            g.normals.append((float(nb[0] / ln), float(nb[1] / ln), float(nb[2] / ln)))
             g.uvs.append((sv.uv[0], 1.0 - sv.uv[1]))  # p2mt GLTF-import convention
             # palette indices assigned after palette is fixed; store bone names
-            g.weights.append([(target_for_src[bi][0], w) for bi, w in infl])
+            g.weights.append(infl)
         g.faces.extend((a + base_v, b + base_v, c + base_v) for a, b, c in slice_faces)
         g.slices.append((mesh.material, base_v, base_i, len(slice_faces),
                          len(slice_verts)))
