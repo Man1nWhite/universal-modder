@@ -101,8 +101,8 @@ def model_inventory(model) -> dict:
 def main(argv: list[str] | None = None) -> int:
     repo = HERE.parents[1]
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--source", default=str(repo / "l4d2_miranda_lawson_1.zip"),
-                    help="the L4D2 source zip (default: repo root copy)")
+    ap.add_argument("--source", default=str(repo / "models" / "l4d2_miranda_lawson_1.zip"),
+                    help="the L4D2 source zip (default: models/l4d2_miranda_lawson_1.zip)")
     ap.add_argument("--vpk-inner", default="miranda_rochelle.vpk",
                     help="VPK member name inside the zip")
     ap.add_argument("--out", default=str(repo / "build" / "pd2-las"),

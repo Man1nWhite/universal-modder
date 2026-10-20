@@ -60,7 +60,7 @@ def ensure_ada_reference(tmp_dir: Path) -> Path:
     ada_root = tmp_dir / "Ada Wong over Joy"
     if (ada_root / JOY_UNIT_DIR / "npc_criminal_joy_1.model").exists():
         return ada_root
-    archive = ROOT / "Ada Wong over Joy.7z"
+    archive = ROOT / "references" / "Ada Wong over Joy.7z"
     if not archive.exists():
         raise FileNotFoundError(f"Missing reference archive: {archive}")
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -79,7 +79,7 @@ def ensure_me2_extracted(tmp_dir: Path) -> Path:
     dae_file = tmp_dir / "Miranda Lawson (Romance) - Adjusted Version.dae"
     if dae_file.exists():
         return tmp_dir
-    archive = ROOT / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+    archive = ROOT / "models" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
     if not archive.exists():
         raise FileNotFoundError(f"Missing ME2 Romance archive: {archive}")
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -905,7 +905,7 @@ def _emit_female_heister_packages(
     is_romance: bool,
 ) -> None:
     """Package Clover, Bonnie, and Sydney mod_overrides zips from Heister - FPS Gloves in TPS 2.zip."""
-    fps_zip = ROOT / "Heister - FPS Gloves in TPS 2.zip"
+    fps_zip = ROOT / "references" / "Heister - FPS Gloves in TPS 2.zip"
     if not fps_zip.exists():
         return
 

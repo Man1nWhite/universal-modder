@@ -31,7 +31,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import build_las_pack as build  # noqa: E402
 
-SOURCE_ZIP = "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+SOURCE_ZIP = "models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 
 
 def measure(arr: np.ndarray) -> tuple[float, float, float, float]:

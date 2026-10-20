@@ -33,7 +33,7 @@ const { createExtractorFromFile } = require("node-unrar-js");
   const files = [...extractor.extract().files];
   console.log("extracted entries:", files.length);
 })().catch((e) => { console.error(e); process.exit(1); });' \
-        "$REPO/2b.rar"
+        "$REPO/references/2b.rar"
     cd "$REPO"
 fi
 test -f "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b/2b.model" && echo "templates ok"

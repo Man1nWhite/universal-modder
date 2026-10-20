@@ -17,7 +17,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PD2 = ROOT / "tools" / "pd2-port"
 sys.path.insert(0, str(PD2))
-SOURCE_ZIP = ROOT / ("PC _ Computer - Mass Effect 2 - Non-Playable "
+SOURCE_ZIP = ROOT / "models" / ("PC _ Computer - Mass Effect 2 - Non-Playable "
                      "Characters - Miranda Lawson (Romance).zip")
 
 

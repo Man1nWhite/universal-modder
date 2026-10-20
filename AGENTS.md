@@ -77,16 +77,16 @@ repo, they almost always want to **mod a game**, or to learn how a game was modd
 
 ## Active Project: PAYDAY 2 Miranda Lawson Mods (`dist/`)
 
-All built PAYDAY 2 deliverables live in **`dist/`** (tracked in git with `.sha256` sidecars), while source archives sit at the repository root:
+All built PAYDAY 2 deliverables live in **`dist/`** (tracked in git with `.sha256` sidecars), while source model archives sit in **`models/`** and reference mod archives sit in **`references/`**:
 
-| Deliverable in `dist/` | Type | Source Archive | Builder Script |
+| Deliverable in `dist/` | Type | Source & Reference Archives | Builder Script |
 |---|---|---|---|
-| `dist/lawson_las.zip` (`9,107,070` B) | Full-body LAS outfit (ME2 Romance) | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `2b.rar` | `tools/pd2-port/build_las_pack.py` |
-| `dist/Miranda_LAS.zip` (`5,864,923` B) | Full-body LAS outfit (L4D2 port) | `l4d2_miranda_lawson_1.zip` + `2b.rar` | `tools/pd2-las/build_models.py` |
-| `dist/Miranda_L4D2_over_Joy.zip` (`10,634,831` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,368,473` B) | Joy head-replacement `mod_overrides` (L4D2 & ME2 Romance) | Both sources + `Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Clover.zip` (`7,684,781` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,424,198` B) | Clover + Safe House head-replacement `mod_overrides` | Both sources + `Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Bonnie.zip` (`8,194,781` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,921,882` B) | Bonnie + Safe House head-replacement `mod_overrides` | Both sources + `Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Sydney.zip` (`7,186,118` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,931,272` B) | Sydney head-replacement `mod_overrides` | Both sources + `Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+| `dist/lawson_las.zip` (`9,107,070` B) | Full-body LAS outfit (ME2 Romance) | `models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `references/2b.rar` | `tools/pd2-port/build_las_pack.py` |
+| `dist/Miranda_LAS.zip` (`5,864,923` B) | Full-body LAS outfit (L4D2 port) | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `tools/pd2-las/build_models.py` |
+| `dist/Miranda_L4D2_over_Joy.zip` (`10,634,831` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,368,473` B) | Joy head-replacement `mod_overrides` (L4D2 & ME2 Romance) | `models/*` + `references/Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Clover.zip` (`7,684,781` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,424,198` B) | Clover + Safe House head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Bonnie.zip` (`8,194,781` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,921,882` B) | Bonnie + Safe House head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Sydney.zip` (`7,186,118` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,931,272` B) | Sydney head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
 
 ### Agent Quickstart & Sandbox Recovery
 Arena sandboxes do not persist `.venv/`, `/tmp/`, or untracked `dist/`/`build/` files across container restarts, and local `HEAD` may rewind to the branch base on restart. Always run:

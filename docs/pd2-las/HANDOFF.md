@@ -43,7 +43,7 @@ the remote branch.
 | `docs/audits/2026-10-19-las-guide-compliance.md` | every verification pass + 2B structural diff + cross-route winding audit |
 | `docs/pd2-las/in-game-checklist.md` | 18 items for the user-side game test |
 | `knowledge/games/payday-2/las-armor-skin-outfit.md` | engine field notes + gotchas |
-| `2b.rar`, `l4d2_miranda_lawson_1.zip` | reference pack + source (both tracked) |
+| `references/2b.rar`, `models/l4d2_miranda_lawson_1.zip` | reference pack + source (both tracked) |
 
 ## Pipeline in one breath
 

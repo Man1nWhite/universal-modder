@@ -113,7 +113,7 @@ def test_render_textured_sampler_orientation(tmp_path):
 
 
 def _author():
-    arc = VpkArchive.from_zip(str(REPO / "l4d2_miranda_lawson_1.zip"), "miranda_rochelle.vpk")
+    arc = VpkArchive.from_zip(str(REPO / "models" / "l4d2_miranda_lawson_1.zip"), "miranda_rochelle.vpk")
     tpp = load_model(*(arc.read(p) for p in bm.TPP_MDLS))
     fps = load_model(*(arc.read(p) for p in bm.FPS_MDLS))
     skel_map = json.loads((REPO / "tools/pd2-las/skeleton_map.json").read_text())

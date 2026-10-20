@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SOURCE_ZIP = REPO / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 pytestmark = pytest.mark.skipif(
@@ -409,7 +409,7 @@ class TestLasScaffold:
         assert out.read_bytes() == out2.read_bytes()
 
     def test_reference_archive_untouched(self):
-        ref = REPO / "2b.rar"
+        ref = REPO / "references" / "2b.rar"
         if ref.is_file():
             # 2b.rar is the contract reference; the pipeline must not rewrite it.
             assert zipfile.is_zipfile(ref) is False

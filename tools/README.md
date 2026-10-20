@@ -12,7 +12,7 @@ Three PAYDAY 2 pipelines live in `tools/`, producing the ten tracked deliverable
 
 | | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Female Heister Head Mods |
 | --- | --- | --- | --- |
-| Source | ME2 *Romance* COLLADA zip + `2b.rar` | `l4d2_miranda_lawson_1.zip` + `2b.rar` | Both sources + `Ada Wong over Joy.7z` + `Heister - FPS Gloves in TPS 2.zip` |
+| Source | `models/PC _ Computer … Miranda Lawson (Romance).zip` + `references/2b.rar` | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `models/*` + `references/Ada Wong over Joy.7z` + `references/Heister - FPS Gloves in TPS 2.zip` |
 | Output in `dist/` | `dist/lawson_las.zip` (tracked, sha256-pinned) | `dist/Miranda_LAS.zip` (tracked, sha256-pinned) | `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (tracked, sha256-pinned) |
 | Pack layout | `Lawson_LAS/assets/units/…` (LAS outfit) | `Miranda_LAS/assets/units/…` (LAS outfit) | `Miranda {L4D2,Romance} over {Joy,Clover,Bonnie,Sydney}/units/…` |
 | Install | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (vanilla heister head replacement) |

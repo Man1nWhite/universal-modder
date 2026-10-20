@@ -46,7 +46,7 @@ import las_model  # noqa: E402
 import rig_target  # noqa: E402
 from me2_dae import load_dae  # noqa: E402
 
-SOURCE_ZIP = ROOT / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+SOURCE_ZIP = ROOT / "models" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 RIG_JSON = HERE / "reference" / "las_rig.json"
 DEFAULT_OUT = ROOT / "dist" / "lawson_las.zip"
 DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
