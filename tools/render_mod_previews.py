@@ -425,6 +425,7 @@ def render_heister_head_sheet(
         ("g_hands", glove_tex),
         ("g_arms", skin_tex),
         ("g_female_forearms", skin_tex),
+        ("g_male_forearms", skin_tex),
     ]:
         h = dm.hash64(dname)
         if h not in md_by_hash:
@@ -460,10 +461,16 @@ def render_heister_head_sheet(
     W_col, H_row = 360, 480
     canvas = Image.new("RGB", (W_col * 4, H_row + 58), (18, 22, 30))
 
-    p_front = rasterize_parts(parts, W_col, H_row, 0, 164.0, 12.2, z_min_clip=135.0)
-    p_34 = rasterize_parts(parts, W_col, H_row, 32, 164.0, 12.2, z_min_clip=135.0)
-    p_back = rasterize_parts(parts, W_col, H_row, 180, 164.0, 12.2, z_min_clip=135.0)
-    p_full = rasterize_parts(parts, W_col, H_row, 22, 92.0, 2.55)
+    if "wild" in model_rel:
+        z_portrait, s_portrait = 171.8, 11.4
+        z_full, s_full = 97.5, 2.40
+    else:
+        z_portrait, s_portrait = 164.0, 12.2
+        z_full, s_full = 92.0, 2.55
+    p_front = rasterize_parts(parts, W_col, H_row, 0, z_portrait, s_portrait, z_min_clip=135.0)
+    p_34 = rasterize_parts(parts, W_col, H_row, 32, z_portrait, s_portrait, z_min_clip=135.0)
+    p_back = rasterize_parts(parts, W_col, H_row, 180, z_portrait, s_portrait, z_min_clip=135.0)
+    p_full = rasterize_parts(parts, W_col, H_row, 22, z_full, s_full)
 
     for i, (im, lbl) in enumerate([
         (p_front, "Portrait Front (0°)"),
@@ -631,6 +638,21 @@ def main() -> None:
             "dist/Miranda_Romance_over_Sydney.zip — Sydney Head Replacement (ME2 Romance)",
             "Replaces Sydney's head & hair (heist & menu) + FPS gloves in TPS + character icon",
             "Miranda_Romance_over_Sydney.zip",
+        ),
+        (
+            "11_Geralt_over_Rust.png",
+            "Geralt_over_Rust.zip",
+            "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1.model",
+            "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_df.texture",
+            "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_hair_df.texture",
+            "guis/dlcs/wild/textures/pd2/blackmarket/icons/characters/wild.texture",
+            "g_head",
+            (64, 58, 52),
+            (48, 44, 42),
+            True,
+            "dist/Geralt_over_Rust.zip — Rust Head Replacement (Witcher 3 Geralt of Rivia)",
+            "Replaces Rust's head, hair & beard (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
+            "Geralt_over_Rust.zip",
         ),
     ]
 

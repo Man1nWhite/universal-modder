@@ -666,5 +666,84 @@ class TestLasScaffold:
             assert int(chin.sum()) >= 15
             assert float(np.abs(n0[ii][chin] - n1[jj][chin]).max()) < 1e-5, "Under-chin seam has normal mismatch"
 
+    def test_geralt_over_rust_package(self):
+        """Verify dist/Geralt_over_Rust.zip geometry, 2-atom mtr_head+mtr_hair setup, textures, and preview."""
+        import io
+        import diesel_model as dm
+        import numpy as np
+        from PIL import Image
+
+        zp = REPO / "dist" / "Geralt_over_Rust.zip"
+        sp = REPO / "dist" / "Geralt_over_Rust.zip.sha256"
+        assert zp.is_file() and sp.is_file()
+        assert sp.read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
+
+        prefix = "Geralt over Rust"
+        wild_dir = f"{prefix}/units/pd2_dlc_wild/characters/npc_criminals_wild_1"
+        with zipfile.ZipFile(zp) as z:
+            names = set(z.namelist())
+            assert f"{prefix}/guis/dlcs/wild/textures/pd2/blackmarket/icons/characters/wild.texture" in names
+            assert f"{wild_dir}/npc_criminal_wild_1.model" in names
+            assert f"{wild_dir}/npc_criminal_wild_1_menu.model" in names
+
+            mf = dm.ModelFile.read(z.read(f"{wild_dir}/npc_criminal_wild_1.model"))
+            hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
+            assert "mtr_hair" in hl["names"]
+
+            mat_by_hash = {
+                dm.decode_material(s.payload)["name_hash"]: s.id
+                for s in mf.by_type(dm.MATERIAL)
+            }
+            assert dm.hash64("mtr_head") in mat_by_hash
+            assert dm.hash64("mtr_hair") in mat_by_hash
+
+            md_by_hash = {
+                dm.decode_model_data(s.payload)["name_hash"]: s
+                for s in mf.by_type(dm.MODEL_DATA)
+            }
+            md = dm.decode_model_data(md_by_hash[dm.hash64("g_head")].payload)
+            assert len(md["atoms"]) == 2
+            mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
+            assert mg["material_ids"] == [mat_by_hash[dm.hash64("mtr_head")], mat_by_hash[dm.hash64("mtr_hair")]]
+
+            pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+            nrm = np.asarray(geo["normals"], dtype=np.float64)
+            tu = np.asarray(geo["uvdir_u"], dtype=np.float64)
+            tv = np.asarray(geo["uvdir_v"], dtype=np.float64)
+            assert float(np.abs(np.sum(nrm * tu, axis=1)).max()) < 1e-4
+            assert float(np.abs(np.sum(nrm * tv, axis=1)).max()) < 1e-4
+
+            p0 = np.asarray(geo["verts"], dtype=np.float64)[: md["atoms"][0]["slice_len"]]
+            low_front = (p0[:, 2] < 157.5) & (p0[:, 1] > 5.0)
+            assert float(p0[low_front, 1].max()) <= 10.36
+
+            for mcfg in (
+                f"{wild_dir}/mtr_criminal_wild_1.material_config",
+                f"{wild_dir}/mtr_criminal_wild_1_cc.material_config",
+                f"{prefix}/units/pd2_dlc_chill/characters/shared_character/mtr_criminal_wild_1.material_config",
+            ):
+                txt = z.read(mcfg).decode("utf-8")
+                assert 'name="mtr_head"' in txt
+                assert 'name="mtr_hair"' in txt
+                assert 'ALPHA_MASKED' in txt
+
+            for tex_name in (
+                "npc_criminal_wild_1_head_df.texture",
+                "npc_criminal_wild_1_head_nm.texture",
+                "npc_criminal_wild_1_hair_df.texture",
+                "npc_criminal_wild_1_hair_nm.texture",
+            ):
+                raw = z.read(f"{wild_dir}/{tex_name}")
+                assert raw[:4] == b"DDS "
+                im = Image.open(io.BytesIO(raw))
+                assert im.size == (2048, 2048)
+
+        prev = REPO / "docs" / "previews" / "11_Geralt_over_Rust.png"
+        assert prev.is_file()
+        with Image.open(prev) as pim:
+            assert pim.size == (1440, 538)
+
+
 
 

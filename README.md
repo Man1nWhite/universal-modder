@@ -53,12 +53,13 @@ the 2B template skeleton. Output `dist/Miranda_LAS.zip` (tracked in `dist/` and
 [`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md) (one-command bootstrap,
 verified invariants, dead ends).
 
-**3. Joy Head-Replacement `mod_overrides` (both sources).**
-`tools/build_joy_head_mods.py` builds two standalone `mod_overrides` packages
-over Joy (modeled on `Ada Wong over Joy.7z`):
-`dist/Miranda_L4D2_over_Joy.zip` (from the L4D2 archive) and
-`dist/Miranda_Romance_over_Joy.zip` (from the ME2 Romance archive), each with
-its `.sha256` sidecar in `dist/`.
+**3. Heister Head-Replacement `mod_overrides` (Joy, Clover, Bonnie, Sydney, and Geralt over Rust).**
+`tools/build_joy_head_mods.py` builds standalone `mod_overrides` head-replacement packages:
+- **Miranda Lawson** (both L4D2 and ME2 Romance sources) over **Joy, Clover, Bonnie, and Sydney**:
+  `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (8 packages).
+- **Geralt of Rivia** (built from `models/Geralt.7z`, Witcher 3 L4D2 port) over **Rust (`npc_criminal_wild_1`)**:
+  `dist/Geralt_over_Rust.zip` (2-atom `mtr_head` + `ALPHA_MASKED` `mtr_hair` setup with `2048x2048` face/eyes/teeth and hair/beard/eyelashes atlases, heist + menu `.model`, 3 `.material_config` files, and B&W HUD/Menu icon).
+All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`).
 
 Both LAS lines follow the ModWorkshop Wiki
 [LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide).
