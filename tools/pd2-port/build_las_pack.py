@@ -397,9 +397,9 @@ def build_models(scene, rig, log=print):
     rigged["Eyes"].uvs = eye_uv_planar(
         rigged["Eyes"].positions,
         dx_frac=0.13,
-        dz_frac=-0.09,
+        dz_frac=-0.125,
         radius_scale=0.45,
-        dx_frac_pos=0.09,
+        dx_frac_pos=0.08,
     )
     eye_nrms = []
     for nx, ny, nz in rigged["Eyes"].normals:
@@ -443,10 +443,8 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
 
     rgba = np.asarray(img.convert("RGBA"), dtype=np.uint8).copy()
     if base == "eyes":
-        # ME2's EYE_Diff.png has an untinted white elliptical iris (rx=0.095,
-        # ry=0.148) with off-center top shading and unshaded pure-white sclera.
-        # Synthesize a radially symmetric deep-sapphire iris (r_uv=0.214) with
-        # clean stromal fibers and recessed eye-socket sclera shading.
+        # Synthesize the exact full-aperture deep-sapphire iris (iris_outer=0.28,
+        # iris_inner=0.25, pupil_r=0.115) matching Miranda_LAS (build_las.py).
         h, w = rgba.shape[:2]
         yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
         u = (xx + 0.5) / w - 0.5
@@ -454,45 +452,47 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
         r = np.hypot(u, v)
         theta = np.arctan2(v, u)
 
+        iris_outer = 0.28
+        iris_inner = 0.25
+        pupil_r = 0.115
+
         f1 = np.sin(theta * 58.0 + 0.35 * np.sin(theta * 7.0))
         f2 = np.cos(theta * 94.0 - 0.40 * np.cos(theta * 11.0))
         f3 = np.sin(theta * 142.0 + r * 28.0)
-        radial_env = np.clip(1.0 - ((r - 0.155) / 0.062) ** 2, 0.0, 1.0)
-        fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * radial_env
+        fiber_detail = 0.45 * f1 + 0.35 * f2 + 0.20 * f3
 
-        t_iris = np.clip((r - 0.112) / (0.206 - 0.112), 0.0, 1.0)
-        iris_r = 18.0 * (1.0 - t_iris) + 38.0 * t_iris + 14.0 * fiber_detail
-        iris_g = 56.0 * (1.0 - t_iris) + 96.0 * t_iris + 22.0 * fiber_detail
-        iris_b = 128.0 * (1.0 - t_iris) + 174.0 * t_iris + 28.0 * fiber_detail
-        col_ring = np.exp(-((r - 0.142) / 0.018) ** 2)
-        iris_r += 8.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-        iris_g += 16.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-        iris_b += 24.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+        rn = np.clip((r - pupil_r) / max(iris_inner - pupil_r, 1e-4), 0.0, 1.0)
+        collarette = np.exp(-(((rn - 0.28) / 0.14) ** 2))
+        radial = 1.0 - 0.38 * (rn ** 1.35) + 0.12 * collarette + 0.14 * fiber_detail
+        radial = np.clip(radial, 0.22, 1.25)
 
-        lid_ao = (
-            np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.24
-            + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.20
-        )
-        iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1) * (1.0 - 0.65 * lid_ao[:, :, None])
+        upper_iris_ao = np.clip(1.0 - 0.12 * np.clip((-v - 0.04) / 0.22, 0.0, 1.0), 0.85, 1.0)
+        iris_r = np.clip((38.0 * radial + 8.0 * collarette) * upper_iris_ao, 6.0, 75.0)
+        iris_g = np.clip((102.0 * radial + 16.0 * collarette) * upper_iris_ao, 24.0, 148.0)
+        iris_b = np.clip((196.0 * radial + 24.0 * collarette) * upper_iris_ao, 72.0, 228.0)
 
-        limbal_rgb = np.array([10.0, 18.0, 34.0], dtype=np.float32)
-        pupil_rgb = np.array([2.0, 3.0, 5.0], dtype=np.float32)
+        limbus_t = np.clip((r - (iris_inner - 0.025)) / (iris_outer - (iris_inner - 0.025)), 0.0, 1.0)
+        limbus_dark = 1.0 - 0.78 * (limbus_t ** 1.4)
+        iris_r *= limbus_dark
+        iris_g *= limbus_dark
+        iris_b *= limbus_dark
 
-        t_sc = np.clip((r - 0.218) / 0.28, 0.0, 1.0)
-        sc_r = (166.0 - 54.0 * t_sc) * (1.0 - lid_ao)
-        sc_g = (152.0 - 52.0 * t_sc) * (1.0 - lid_ao)
-        sc_b = (146.0 - 50.0 * t_sc) * (1.0 - lid_ao)
-        sclera_rgb = np.stack([sc_r, sc_g, sc_b], axis=-1)
+        pupil_mask = np.clip((pupil_r + 0.012 - r) / 0.018, 0.0, 1.0)
+        iris_r = iris_r * (1.0 - pupil_mask) + 2.0 * pupil_mask
+        iris_g = iris_g * (1.0 - pupil_mask) + 3.0 * pupil_mask
+        iris_b = iris_b * (1.0 - pupil_mask) + 5.0 * pupil_mask
 
-        w_pupil = np.clip((0.115 - r) / 0.014, 0.0, 1.0)[:, :, None]
-        w_limbal = np.exp(-((r - 0.210) / 0.018) ** 2)[:, :, None]
-        w_sclera = np.clip((r - 0.214) / 0.016, 0.0, 1.0)[:, :, None]
+        sclera_ao = np.clip(1.0 - 0.32 * np.clip((r - iris_outer) / 0.22, 0.0, 1.0), 0.62, 1.0)
+        eyelid_ao = np.clip(1.0 - 0.22 * np.clip((-v - 0.05) / 0.25, 0.0, 1.0), 0.72, 1.0)
+        sc_r = 162.0 * sclera_ao * eyelid_ao
+        sc_g = 148.0 * sclera_ao * eyelid_ao
+        sc_b = 142.0 * sclera_ao * eyelid_ao
 
-        rgb = iris_rgb * (1.0 - w_limbal) + limbal_rgb * w_limbal
-        rgb = rgb * (1.0 - w_pupil) + pupil_rgb * w_pupil
-        rgb = rgb * (1.0 - w_sclera) + sclera_rgb * w_sclera
-        rgba[:, :, :3] = np.clip(rgb, 0.0, 255.0).astype(np.uint8)
-        cornea_gloss = np.where(r < 0.118, 4, np.where(r < 0.22, 12, 8)).astype(np.uint8)
+        iris_mask = np.clip((iris_outer + 0.012 - r) / 0.022, 0.0, 1.0)
+        rgba[:, :, 0] = np.clip(sc_r * (1.0 - iris_mask) + iris_r * iris_mask, 0.0, 255.0).astype(np.uint8)
+        rgba[:, :, 1] = np.clip(sc_g * (1.0 - iris_mask) + iris_g * iris_mask, 0.0, 255.0).astype(np.uint8)
+        rgba[:, :, 2] = np.clip(sc_b * (1.0 - iris_mask) + iris_b * iris_mask, 0.0, 255.0).astype(np.uint8)
+        cornea_gloss = np.where(r < 0.125, 4, np.where(r < 0.28, 10, 8)).astype(np.uint8)
         rgba[:, :, 3] = cornea_gloss
         return rgba
 
@@ -554,6 +554,8 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
                 arr = dds.pd2_normal_channels(nm_in, invert_y=invert_nm_y)
                 mip = dds.mip_payloads_from_image(arr)
             else:
+                if base == "eyes" and img.width < 512:
+                    img = img.resize((512, 512))
                 arr = _prepare_diffuse_rgba(base, img, source)
                 mip = dds.mip_payloads_from_image(arr)
             out[path] = dds.pack_dds(mip, img.width)

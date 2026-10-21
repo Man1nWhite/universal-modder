@@ -826,9 +826,9 @@ def repair_skin_boundary_normals(g: Group) -> None:
                 cz_bbox = 0.5 * (float(sub_p[:, 2].min()) + float(sub_p[:, 2].max()))
                 rx = 0.5 * (float(sub_p[:, 0].max()) - float(sub_p[:, 0].min())) or 1.0
                 sign = -1.0 if cx_bbox < 0.0 else 1.0
-                dx_frac = 0.09 if sign > 0.0 else 0.13
+                dx_frac = 0.08 if sign > 0.0 else 0.13
                 cx = cx_bbox + sign * dx_frac * rx
-                cz = cz_bbox - 0.09 * rx
+                cz = cz_bbox - 0.125 * rx
                 scale = 0.45 / rx
                 for k in range(slice_len):
                     vi = base_v + k

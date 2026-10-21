@@ -380,47 +380,48 @@ def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarr
     r = np.hypot(u, v)
     theta = np.arctan2(v, u)
 
+    iris_outer = 0.28
+    iris_inner = 0.25
+    pupil_r = 0.115
+
     f1 = np.sin(theta * 58.0 + 0.35 * np.sin(theta * 7.0))
     f2 = np.cos(theta * 94.0 - 0.40 * np.cos(theta * 11.0))
     f3 = np.sin(theta * 142.0 + r * 28.0)
-    radial_env = np.clip(1.0 - ((r - 0.155) / 0.062) ** 2, 0.0, 1.0)
-    fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * radial_env
+    fiber_detail = 0.45 * f1 + 0.35 * f2 + 0.20 * f3
 
-    t_iris = np.clip((r - 0.112) / (0.206 - 0.112), 0.0, 1.0)
-    iris_r = 18.0 * (1.0 - t_iris) + 38.0 * t_iris + 14.0 * fiber_detail
-    iris_g = 56.0 * (1.0 - t_iris) + 96.0 * t_iris + 22.0 * fiber_detail
-    iris_b = 128.0 * (1.0 - t_iris) + 174.0 * t_iris + 28.0 * fiber_detail
-    col_ring = np.exp(-((r - 0.142) / 0.018) ** 2)
-    iris_r += 8.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-    iris_g += 16.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-    iris_b += 24.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+    rn = np.clip((r - pupil_r) / max(iris_inner - pupil_r, 1e-4), 0.0, 1.0)
+    collarette = np.exp(-(((rn - 0.28) / 0.14) ** 2))
+    radial = 1.0 - 0.38 * (rn ** 1.35) + 0.12 * collarette + 0.14 * fiber_detail
+    radial = np.clip(radial, 0.22, 1.25)
 
-    lid_ao = (
-        np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.24
-        + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.20
-    )
-    iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1) * (1.0 - 0.65 * lid_ao[:, :, None])
+    upper_iris_ao = np.clip(1.0 - 0.12 * np.clip((-v - 0.04) / 0.22, 0.0, 1.0), 0.85, 1.0)
+    iris_r = np.clip((38.0 * radial + 8.0 * collarette) * upper_iris_ao, 6.0, 75.0)
+    iris_g = np.clip((102.0 * radial + 16.0 * collarette) * upper_iris_ao, 24.0, 148.0)
+    iris_b = np.clip((196.0 * radial + 24.0 * collarette) * upper_iris_ao, 72.0, 228.0)
 
-    limbal_rgb = np.array([10.0, 18.0, 34.0], dtype=np.float32)
-    pupil_rgb = np.array([2.0, 3.0, 5.0], dtype=np.float32)
+    limbus_t = np.clip((r - (iris_inner - 0.025)) / (iris_outer - (iris_inner - 0.025)), 0.0, 1.0)
+    limbus_dark = 1.0 - 0.78 * (limbus_t ** 1.4)
+    iris_r *= limbus_dark
+    iris_g *= limbus_dark
+    iris_b *= limbus_dark
 
-    t_sc = np.clip((r - 0.218) / 0.28, 0.0, 1.0)
-    sc_r = (166.0 - 54.0 * t_sc) * (1.0 - lid_ao)
-    sc_g = (152.0 - 52.0 * t_sc) * (1.0 - lid_ao)
-    sc_b = (146.0 - 50.0 * t_sc) * (1.0 - lid_ao)
-    sclera_rgb = np.stack([sc_r, sc_g, sc_b], axis=-1)
+    pupil_mask = np.clip((pupil_r + 0.012 - r) / 0.018, 0.0, 1.0)
+    iris_r = iris_r * (1.0 - pupil_mask) + 2.0 * pupil_mask
+    iris_g = iris_g * (1.0 - pupil_mask) + 3.0 * pupil_mask
+    iris_b = iris_b * (1.0 - pupil_mask) + 5.0 * pupil_mask
 
-    w_pupil = np.clip((0.115 - r) / 0.014, 0.0, 1.0)[:, :, None]
-    w_limbal = np.exp(-((r - 0.210) / 0.018) ** 2)[:, :, None]
-    w_sclera = np.clip((r - 0.214) / 0.016, 0.0, 1.0)[:, :, None]
+    sclera_ao = np.clip(1.0 - 0.32 * np.clip((r - iris_outer) / 0.22, 0.0, 1.0), 0.62, 1.0)
+    eyelid_ao = np.clip(1.0 - 0.22 * np.clip((-v - 0.05) / 0.25, 0.0, 1.0), 0.72, 1.0)
+    sc_r = 162.0 * sclera_ao * eyelid_ao
+    sc_g = 148.0 * sclera_ao * eyelid_ao
+    sc_b = 142.0 * sclera_ao * eyelid_ao
 
-    out = iris_rgb * (1.0 - w_limbal) + limbal_rgb * w_limbal
-    out = out * (1.0 - w_pupil) + pupil_rgb * w_pupil
-    out = out * (1.0 - w_sclera) + sclera_rgb * w_sclera
-
+    iris_mask = np.clip((iris_outer + 0.012 - r) / 0.022, 0.0, 1.0)
     rgba = np.zeros((size, size, 4), dtype=np.uint8)
-    rgba[:, :, :3] = np.clip(out, 0.0, 255.0).astype(np.uint8)
-    rgba[:, :, 3] = np.where(r < 0.118, 4, np.where(r < 0.22, 12, 8)).astype(np.uint8)
+    rgba[:, :, 0] = np.clip(sc_r * (1.0 - iris_mask) + iris_r * iris_mask, 0.0, 255.0).astype(np.uint8)
+    rgba[:, :, 1] = np.clip(sc_g * (1.0 - iris_mask) + iris_g * iris_mask, 0.0, 255.0).astype(np.uint8)
+    rgba[:, :, 2] = np.clip(sc_b * (1.0 - iris_mask) + iris_b * iris_mask, 0.0, 255.0).astype(np.uint8)
+    rgba[:, :, 3] = np.where(r < 0.125, 4, np.where(r < 0.28, 10, 8)).astype(np.uint8)
     return rgba
 
 
@@ -437,9 +438,9 @@ def project_me2_eye_uv_img(positions: np.ndarray) -> np.ndarray:
         cx_bbox = 0.5 * (sub[:, 0].min() + sub[:, 0].max())
         cz_bbox = 0.5 * (sub[:, 2].min() + sub[:, 2].max())
         rx = 0.5 * (sub[:, 0].max() - sub[:, 0].min()) or 1.0
-        dx_frac = 0.09 if sign > 0.0 else 0.13
+        dx_frac = 0.08 if sign > 0.0 else 0.13
         cx = cx_bbox + sign * dx_frac * rx
-        cz = cz_bbox - 0.09 * rx
+        cz = cz_bbox - 0.125 * rx
         scale = 0.45 / rx
         u = np.clip(0.5 - scale * (sub[:, 0] - cx), 0.02, 0.98)
         v_img = np.clip(0.5 - scale * (sub[:, 2] - cz), 0.02, 0.98)
