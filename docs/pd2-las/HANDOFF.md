@@ -6,13 +6,13 @@ built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
 **State:** the pack is built, game-tested, tracked in git, and offline-verified.
 Deliverables in **`dist/`**:
-- `dist/Miranda_LAS.zip` (`5,864,923` bytes, sha256 `f4d295e6c37e1cdba1f4dbb3c588a203e04cecaa9e8ccbb55a7472462303039d`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
-- `dist/lawson_las.zip` (`9,107,070` bytes, sha256 `8a93784d6b46aafd52400b83f59f95112d0ddb5c3903d1a7f52c946ce7c65257`) — Full-body LAS outfit from ME2 Romance.
+- `dist/Miranda_LAS.zip` (`5,895,568` bytes, sha256 `b701c9b1935e015347924fe4db0c374fd821fd7c5cc5bb2b41b0e0e7af7dc5eb`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
+- `dist/lawson_las.zip` (`9,083,190` bytes, sha256 `97c389eab8d9846872b1c0715ae79e77b302d768590d0bd323aa65878b7b55c8`) — Full-body LAS outfit from ME2 Romance.
 - Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
-  - `dist/Miranda_L4D2_over_Joy.zip` (`10,634,831` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,368,473` B)
-  - `dist/Miranda_L4D2_over_Clover.zip` (`7,684,781` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,424,198` B)
-  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,194,781` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,921,882` B)
-  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,186,118` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,931,272` B)
+  - `dist/Miranda_L4D2_over_Joy.zip` (`10,614,488` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,188,405` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (`7,665,489` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,247,407` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,170,284` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,741,220` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,169,749` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,755,716` B)
 
 ## Quickstart
 
@@ -21,11 +21,11 @@ bash tools/pd2-las/bootstrap.sh     # venv + 2B templates + build + tests + lint
 ```
 
 That is the whole recovery procedure too. The arena sandbox periodically
-wipes `.venv`, `/tmp` and `build/` and rewinds local git to `66cfdb7` while
+wipes `.venv`, `/tmp` and `build/` and rewinds local git to `0f1d838` while
 the worktree looks dirty — **the work is safe on the remote**. Recover with:
 
 ```bash
-git fetch origin && git reset --hard origin/arena/136395ac-universal-modder
+git fetch origin && git reset --hard origin/arena/ab9ca3e6-universal-modder
 bash tools/pd2-las/bootstrap.sh
 ```
 
