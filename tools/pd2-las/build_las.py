@@ -176,14 +176,14 @@ def main(argv: list[str] | None = None) -> int:
                 sclera_t = np.clip((r - 0.25) / 0.25, 0.0, 1.0)
                 lid_ao = np.clip(
                     1.0
-                    - 0.30 * np.clip((-v - 0.02) / 0.22, 0.0, 1.0)
-                    - 0.20 * np.clip((v - 0.06) / 0.22, 0.0, 1.0)
-                    - 0.26 * (sclera_t**1.2),
-                    0.50,
+                    - 0.32 * np.clip((-v - 0.02) / 0.22, 0.0, 1.0)
+                    - 0.22 * np.clip((v - 0.06) / 0.22, 0.0, 1.0)
+                    - 0.32 * (sclera_t**1.2),
+                    0.46,
                     1.0,
                 )
-                rgb = np.stack([176.0 * lid_ao, 162.0 * lid_ao, 156.0 * lid_ao], axis=-1)
-                iris_outer, iris_inner, pupil_r = 0.28, 0.25, 0.095
+                rgb = np.stack([166.0 * lid_ao, 152.0 * lid_ao, 146.0 * lid_ao], axis=-1)
+                iris_outer, iris_inner, pupil_r = 0.28, 0.25, 0.115
                 iris_mask = np.clip((iris_outer - r) / (iris_outer - iris_inner), 0.0, 1.0)
                 rn = np.clip((r - pupil_r) / max(iris_inner - pupil_r, 1e-4), 0.0, 1.0)
                 f1 = np.sin(theta * 36.0 + 0.4 * np.sin(theta * 7.0))
@@ -191,26 +191,26 @@ def main(argv: list[str] | None = None) -> int:
                 f3 = np.sin(theta * 112.0 + 3.5 * rn)
                 fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * np.sin(rn * np.pi)
                 collarette = np.exp(-(((rn - 0.34) / 0.14) ** 2))
-                radial = 1.0 - 0.48 * (rn**1.35) + 0.22 * collarette + 0.16 * fiber_detail
-                upper_iris_ao = np.clip(1.0 - 0.16 * np.clip((-v - 0.05) / 0.20, 0.0, 1.0), 0.82, 1.0)
+                radial = 1.0 - 0.38 * (rn**1.35) + 0.12 * collarette + 0.14 * fiber_detail
+                upper_iris_ao = np.clip(1.0 - 0.18 * np.clip((-v - 0.05) / 0.20, 0.0, 1.0), 0.80, 1.0)
                 radial = radial * upper_iris_ao
                 iris_rgb = np.stack(
                     [
-                        np.clip(28.0 * radial + 26.0 * collarette + 12.0 * fiber_detail, 8.0, 115.0),
-                        np.clip(98.0 * radial + 42.0 * collarette + 24.0 * fiber_detail, 28.0, 195.0),
-                        np.clip(178.0 * radial + 48.0 * collarette + 32.0 * fiber_detail, 58.0, 248.0),
+                        np.clip(24.0 * radial + 10.0 * collarette + 10.0 * fiber_detail, 8.0, 78.0),
+                        np.clip(68.0 * radial + 18.0 * collarette + 18.0 * fiber_detail, 24.0, 142.0),
+                        np.clip(146.0 * radial + 26.0 * collarette + 24.0 * fiber_detail, 52.0, 204.0),
                     ],
                     axis=-1,
                 )
                 limbus = np.clip((r - (iris_inner - 0.035)) / 0.045, 0.0, 1.0) * np.clip(
                     (iris_outer - r) / 0.025, 0.0, 1.0
                 )
-                iris_rgb = iris_rgb * (1.0 - 0.72 * limbus[..., None])
-                pupil_mask = np.clip((pupil_r + 0.015 - r) / 0.022, 0.0, 1.0)
-                iris_rgb = iris_rgb * (1.0 - pupil_mask[..., None]) + np.array([5.0, 7.0, 12.0], dtype=np.float32) * pupil_mask[..., None]
+                iris_rgb = iris_rgb * (1.0 - 0.78 * limbus[..., None])
+                pupil_mask = np.clip((pupil_r + 0.012 - r) / 0.018, 0.0, 1.0)
+                iris_rgb = iris_rgb * (1.0 - pupil_mask[..., None]) + np.array([2.0, 3.0, 5.0], dtype=np.float32) * pupil_mask[..., None]
                 rgb = rgb * (1.0 - iris_mask[..., None]) + iris_rgb * iris_mask[..., None]
                 cornea_mask = np.clip(1.0 - (r - iris_outer) / 0.03, 0.0, 1.0)
-                alpha = 14.0 + 42.0 * cornea_mask
+                alpha = np.where(r < 0.118, 4.0, 8.0 + 4.0 * cornea_mask)
                 eye_rgba = np.clip(np.dstack([rgb, alpha]), 0, 255).astype(np.uint8)
                 dds = rgba_to_bc3_dds(eye_rgba)
             else:

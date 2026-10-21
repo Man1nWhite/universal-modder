@@ -125,6 +125,7 @@ def eye_uv_planar(
     dx_frac: float = 0.0,
     dz_frac: float = 0.0,
     radius_scale: float = 0.50,
+    dx_frac_pos: float | None = None,
 ) -> list[tuple[float, float]]:
     """Planar-project each eyeball's UVs from its frontal plane.
 
@@ -144,7 +145,8 @@ def eye_uv_planar(
         cx_bbox = 0.5 * (min(positions[i][0] for i in idx) + max(positions[i][0] for i in idx))
         cz_bbox = 0.5 * (min(positions[i][2] for i in idx) + max(positions[i][2] for i in idx))
         rx = 0.5 * (max(positions[i][0] for i in idx) - min(positions[i][0] for i in idx)) or 1.0
-        cx = cx_bbox + sign * dx_frac * rx
+        cur_dx = dx_frac_pos if (sign > 0.0 and dx_frac_pos is not None) else dx_frac
+        cx = cx_bbox + sign * cur_dx * rx
         cz = cz_bbox + dz_frac * rx
         scale = radius_scale / rx
         for i in idx:
@@ -281,6 +283,66 @@ def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
     )
 
 
+def _filter_hair_main_component(hair_rm) -> None:
+    """Drop the 33 disconnected 1.5-mm flyaway wire strips (809 tris) from Hair.
+
+    In ME2's Unreal Engine 3 shader, those 33 sub-millimeter ribbons used a
+    soft alpha-blended hair wisp mask (Scalp_Spec2), whereas in PAYDAY 2's
+    opaque character material they rasterize as 1-pixel jagged black wires
+    slicing across the right eye/cheek and floating in front of the forehead.
+    Keeping the main 3D edge-connected component (2,753 tris: the solid hair
+    cap + neck skin) removes all 33 sub-pixel wire artifacts cleanly.
+    """
+    from collections import defaultdict
+    import numpy as np
+
+    hp = np.asarray(hair_rm.positions, dtype=np.float64)
+    ht = list(hair_rm.triangles)
+    if not ht:
+        return
+    pos_key = [tuple(np.round(p, 3)) for p in hp]
+    edge_to_tris: dict[tuple, list[int]] = defaultdict(list)
+    for ti, (a, b, c) in enumerate(ht):
+        ka, kb, kc = pos_key[a], pos_key[b], pos_key[c]
+        for u, v in ((ka, kb), (kb, kc), (kc, ka)):
+            if u != v:
+                edge_to_tris[tuple(sorted((u, v)))].append(ti)
+    adj: dict[int, set[int]] = defaultdict(set)
+    for tris in edge_to_tris.values():
+        for t1 in tris:
+            for t2 in tris:
+                if t1 != t2:
+                    adj[t1].add(t2)
+    visited: set[int] = set()
+    best_comp: list[int] = []
+    for ti in range(len(ht)):
+        if ti in visited:
+            continue
+        comp: list[int] = []
+        stack = [ti]
+        visited.add(ti)
+        while stack:
+            cur = stack.pop()
+            comp.append(cur)
+            for nxt in adj[cur]:
+                if nxt not in visited:
+                    visited.add(nxt)
+                    stack.append(nxt)
+        if len(comp) > len(best_comp):
+            best_comp = comp
+    if best_comp and len(best_comp) < len(ht):
+        keep_verts = {v for ti in best_comp for v in ht[ti]}
+        cx, cy, cz = 0.0, 5.5, 169.0
+        for vi in range(len(hair_rm.positions)):
+            if vi not in keep_verts:
+                px, py, pz = hair_rm.positions[vi]
+                hair_rm.positions[vi] = (
+                    cx + 0.20 * (px - cx),
+                    cy + 0.20 * (py - cy),
+                    cz + 0.20 * (pz - cz),
+                )
+
+
 def build_models(scene, rig, log=print):
     from dataclasses import replace
     import numpy as np
@@ -308,6 +370,8 @@ def build_models(scene, rig, log=print):
         )
         for m in scene.meshes
     }
+    if "Hair" in rigged:
+        _filter_hair_main_component(rigged["Hair"])
     if "Face" in rigged and "Hair" in rigged:
         repair_rebound_skin_normals(rigged["Face"], rigged["Hair"])
     if "Hair" in rigged and "Body 1" in rigged:
@@ -329,15 +393,20 @@ def build_models(scene, rig, log=print):
                     rigged["Hair"].weights[int(hi)] = list(rigged["Body 1"].weights[bi])
 
     # Center eyeball planar UVs on the visible eyelid opening (palpebral fissure)
-    # and soften vertical normal tilt across the recessed 1.5cm eyeball sphere.
+    # and soften horizontal/vertical normal tilt across the recessed 1.5cm eyeball sphere.
     rigged["Eyes"].uvs = eye_uv_planar(
-        rigged["Eyes"].positions, dx_frac=0.14, dz_frac=-0.15, radius_scale=0.45
+        rigged["Eyes"].positions,
+        dx_frac=0.13,
+        dz_frac=-0.09,
+        radius_scale=0.45,
+        dx_frac_pos=0.09,
     )
     eye_nrms = []
     for nx, ny, nz in rigged["Eyes"].normals:
-        nz_s = nz * 0.45
-        ln = (nx * nx + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
-        eye_nrms.append((nx / ln, ny / ln, nz_s / ln))
+        nx_s = nx * 0.35
+        nz_s = nz * 0.35
+        ln = (nx_s * nx_s + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
+        eye_nrms.append((nx_s / ln, ny / ln, nz_s / ln))
     rigged["Eyes"].normals = eye_nrms
 
     tpp_drawables: dict[str, list] = {}
@@ -388,34 +457,34 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
         f1 = np.sin(theta * 58.0 + 0.35 * np.sin(theta * 7.0))
         f2 = np.cos(theta * 94.0 - 0.40 * np.cos(theta * 11.0))
         f3 = np.sin(theta * 142.0 + r * 28.0)
-        radial_env = np.clip(1.0 - ((r - 0.142) / 0.072) ** 2, 0.0, 1.0)
+        radial_env = np.clip(1.0 - ((r - 0.155) / 0.062) ** 2, 0.0, 1.0)
         fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * radial_env
 
-        t_iris = np.clip((r - 0.078) / (0.206 - 0.078), 0.0, 1.0)
-        iris_r = 32.0 * (1.0 - t_iris) + 58.0 * t_iris + 22.0 * fiber_detail
-        iris_g = 76.0 * (1.0 - t_iris) + 124.0 * t_iris + 34.0 * fiber_detail
-        iris_b = 138.0 * (1.0 - t_iris) + 188.0 * t_iris + 44.0 * fiber_detail
-        col_ring = np.exp(-((r - 0.116) / 0.020) ** 2)
-        iris_r += 18.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-        iris_g += 32.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-        iris_b += 42.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+        t_iris = np.clip((r - 0.112) / (0.206 - 0.112), 0.0, 1.0)
+        iris_r = 18.0 * (1.0 - t_iris) + 38.0 * t_iris + 14.0 * fiber_detail
+        iris_g = 56.0 * (1.0 - t_iris) + 96.0 * t_iris + 22.0 * fiber_detail
+        iris_b = 128.0 * (1.0 - t_iris) + 174.0 * t_iris + 28.0 * fiber_detail
+        col_ring = np.exp(-((r - 0.142) / 0.018) ** 2)
+        iris_r += 8.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+        iris_g += 16.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+        iris_b += 24.0 * col_ring * (0.6 + 0.4 * fiber_detail)
 
         lid_ao = (
-            np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.22
-            + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.18
+            np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.24
+            + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.20
         )
         iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1) * (1.0 - 0.65 * lid_ao[:, :, None])
 
-        limbal_rgb = np.array([12.0, 22.0, 40.0], dtype=np.float32)
-        pupil_rgb = np.array([4.0, 5.0, 8.0], dtype=np.float32)
+        limbal_rgb = np.array([10.0, 18.0, 34.0], dtype=np.float32)
+        pupil_rgb = np.array([2.0, 3.0, 5.0], dtype=np.float32)
 
-        t_sc = np.clip((r - 0.218) / 0.30, 0.0, 1.0)
-        sc_r = (176.0 - 44.0 * t_sc) * (1.0 - lid_ao)
-        sc_g = (162.0 - 48.0 * t_sc) * (1.0 - lid_ao)
-        sc_b = (156.0 - 50.0 * t_sc) * (1.0 - lid_ao)
+        t_sc = np.clip((r - 0.218) / 0.28, 0.0, 1.0)
+        sc_r = (166.0 - 54.0 * t_sc) * (1.0 - lid_ao)
+        sc_g = (152.0 - 52.0 * t_sc) * (1.0 - lid_ao)
+        sc_b = (146.0 - 50.0 * t_sc) * (1.0 - lid_ao)
         sclera_rgb = np.stack([sc_r, sc_g, sc_b], axis=-1)
 
-        w_pupil = np.clip((0.082 - r) / 0.012, 0.0, 1.0)[:, :, None]
+        w_pupil = np.clip((0.115 - r) / 0.014, 0.0, 1.0)[:, :, None]
         w_limbal = np.exp(-((r - 0.210) / 0.018) ** 2)[:, :, None]
         w_sclera = np.clip((r - 0.214) / 0.016, 0.0, 1.0)[:, :, None]
 
@@ -423,7 +492,7 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
         rgb = rgb * (1.0 - w_pupil) + pupil_rgb * w_pupil
         rgb = rgb * (1.0 - w_sclera) + sclera_rgb * w_sclera
         rgba[:, :, :3] = np.clip(rgb, 0.0, 255.0).astype(np.uint8)
-        cornea_gloss = np.where(r < 0.22, 42, 22).astype(np.uint8)
+        cornea_gloss = np.where(r < 0.118, 4, np.where(r < 0.22, 12, 8)).astype(np.uint8)
         rgba[:, :, 3] = cornea_gloss
         return rgba
 
@@ -478,7 +547,10 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
                 nm_in = img
                 if png != "__flat__":
                     # UE3/ME2 extracted normal PNGs store vertical Y_down in Red and horizontal X_right in Green
-                    nm_in = np.asarray(img, dtype=np.uint8)[..., [1, 0, 2, 3]]
+                    nm_in = np.asarray(img, dtype=np.uint8)[..., [1, 0, 2, 3]].copy()
+                    if base == "eyes":
+                        nm_xy = 128.0 + (nm_in[..., :2].astype(np.float32) - 128.0) * 0.22
+                        nm_in[..., :2] = np.clip(np.round(nm_xy), 0, 255).astype(np.uint8)
                 arr = dds.pd2_normal_channels(nm_in, invert_y=invert_nm_y)
                 mip = dds.mip_payloads_from_image(arr)
             else:

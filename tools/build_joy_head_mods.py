@@ -383,34 +383,34 @@ def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarr
     f1 = np.sin(theta * 58.0 + 0.35 * np.sin(theta * 7.0))
     f2 = np.cos(theta * 94.0 - 0.40 * np.cos(theta * 11.0))
     f3 = np.sin(theta * 142.0 + r * 28.0)
-    radial_env = np.clip(1.0 - ((r - 0.142) / 0.072) ** 2, 0.0, 1.0)
+    radial_env = np.clip(1.0 - ((r - 0.155) / 0.062) ** 2, 0.0, 1.0)
     fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * radial_env
 
-    t_iris = np.clip((r - 0.078) / (0.206 - 0.078), 0.0, 1.0)
-    iris_r = 32.0 * (1.0 - t_iris) + 58.0 * t_iris + 22.0 * fiber_detail
-    iris_g = 76.0 * (1.0 - t_iris) + 124.0 * t_iris + 34.0 * fiber_detail
-    iris_b = 138.0 * (1.0 - t_iris) + 188.0 * t_iris + 44.0 * fiber_detail
-    col_ring = np.exp(-((r - 0.116) / 0.020) ** 2)
-    iris_r += 18.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-    iris_g += 32.0 * col_ring * (0.6 + 0.4 * fiber_detail)
-    iris_b += 42.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+    t_iris = np.clip((r - 0.112) / (0.206 - 0.112), 0.0, 1.0)
+    iris_r = 18.0 * (1.0 - t_iris) + 38.0 * t_iris + 14.0 * fiber_detail
+    iris_g = 56.0 * (1.0 - t_iris) + 96.0 * t_iris + 22.0 * fiber_detail
+    iris_b = 128.0 * (1.0 - t_iris) + 174.0 * t_iris + 28.0 * fiber_detail
+    col_ring = np.exp(-((r - 0.142) / 0.018) ** 2)
+    iris_r += 8.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+    iris_g += 16.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+    iris_b += 24.0 * col_ring * (0.6 + 0.4 * fiber_detail)
 
     lid_ao = (
-        np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.22
-        + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.18
+        np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.24
+        + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.20
     )
     iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1) * (1.0 - 0.65 * lid_ao[:, :, None])
 
-    limbal_rgb = np.array([12.0, 22.0, 40.0], dtype=np.float32)
-    pupil_rgb = np.array([4.0, 5.0, 8.0], dtype=np.float32)
+    limbal_rgb = np.array([10.0, 18.0, 34.0], dtype=np.float32)
+    pupil_rgb = np.array([2.0, 3.0, 5.0], dtype=np.float32)
 
-    t_sc = np.clip((r - 0.218) / 0.30, 0.0, 1.0)
-    sc_r = (176.0 - 44.0 * t_sc) * (1.0 - lid_ao)
-    sc_g = (162.0 - 48.0 * t_sc) * (1.0 - lid_ao)
-    sc_b = (156.0 - 50.0 * t_sc) * (1.0 - lid_ao)
+    t_sc = np.clip((r - 0.218) / 0.28, 0.0, 1.0)
+    sc_r = (166.0 - 54.0 * t_sc) * (1.0 - lid_ao)
+    sc_g = (152.0 - 52.0 * t_sc) * (1.0 - lid_ao)
+    sc_b = (146.0 - 50.0 * t_sc) * (1.0 - lid_ao)
     sclera_rgb = np.stack([sc_r, sc_g, sc_b], axis=-1)
 
-    w_pupil = np.clip((0.082 - r) / 0.012, 0.0, 1.0)[:, :, None]
+    w_pupil = np.clip((0.115 - r) / 0.014, 0.0, 1.0)[:, :, None]
     w_limbal = np.exp(-((r - 0.210) / 0.018) ** 2)[:, :, None]
     w_sclera = np.clip((r - 0.214) / 0.016, 0.0, 1.0)[:, :, None]
 
@@ -420,7 +420,7 @@ def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarr
 
     rgba = np.zeros((size, size, 4), dtype=np.uint8)
     rgba[:, :, :3] = np.clip(out, 0.0, 255.0).astype(np.uint8)
-    rgba[:, :, 3] = np.where(r < 0.22, 42, 22).astype(np.uint8)
+    rgba[:, :, 3] = np.where(r < 0.118, 4, np.where(r < 0.22, 12, 8)).astype(np.uint8)
     return rgba
 
 
@@ -437,8 +437,9 @@ def project_me2_eye_uv_img(positions: np.ndarray) -> np.ndarray:
         cx_bbox = 0.5 * (sub[:, 0].min() + sub[:, 0].max())
         cz_bbox = 0.5 * (sub[:, 2].min() + sub[:, 2].max())
         rx = 0.5 * (sub[:, 0].max() - sub[:, 0].min()) or 1.0
-        cx = cx_bbox + sign * 0.14 * rx
-        cz = cz_bbox - 0.15 * rx
+        dx_frac = 0.09 if sign > 0.0 else 0.13
+        cx = cx_bbox + sign * dx_frac * rx
+        cz = cz_bbox - 0.09 * rx
         scale = 0.45 / rx
         u = np.clip(0.5 - scale * (sub[:, 0] - cx), 0.02, 0.98)
         v_img = np.clip(0.5 - scale * (sub[:, 2] - cz), 0.02, 0.98)
@@ -448,9 +449,10 @@ def project_me2_eye_uv_img(positions: np.ndarray) -> np.ndarray:
 
 
 def soften_eyeball_normals(normals: np.ndarray) -> np.ndarray:
-    """Soften vertical normal tilt across the recessed 1.5cm eyeball sphere."""
+    """Soften horizontal and vertical normal tilt across the recessed 1.5cm eyeball sphere."""
     n = np.asarray(normals, dtype=np.float64).copy()
-    n[:, 2] *= 0.45
+    n[:, 0] *= 0.35
+    n[:, 2] *= 0.35
     n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-8)
     return n.astype(np.float32)
 
@@ -1226,7 +1228,7 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
             n_s = nh[bv : bv + sl].copy()
             uv_s = uvh_img[bv : bv + sl].copy()
             t_s = topo_head[bi // 3 : bi // 3 + tc] - bv
-            if mid in (2, 3):
+            if mid == 3:
                 if for_suit:
                     p_s = shape_neck_and_hair_for_suit_collar(p_s, uv_s, z_drop=5.4, y_push=3.0, x_flare=0.28, tris=t_s)
                 else:
@@ -1238,12 +1240,12 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
             atoms_by_mid.setdefault(mid, []).append((p_s, n_s, uv_s, t_s))
 
         face_p, face_n, face_uv, face_t = atoms_by_mid[1][0]
-        scalp_p, scalp_n, scalp_uv, scalp_t = atoms_by_mid[2][0]
+        scalp_p, scalp_n, scalp_uv, scalp_t = atoms_by_mid[3][0]
         face_n, scalp_n = repair_skin_and_neck_normals(
             face_p, face_n, face_t, scalp_p, scalp_n, scalp_uv, scalp_t
         )
         atoms_by_mid[1][0] = (face_p, face_n, face_uv, face_t)
-        atoms_by_mid[2][0] = (scalp_p, scalp_n, scalp_uv, scalp_t)
+        atoms_by_mid[3][0] = (scalp_p, scalp_n, scalp_uv, scalp_t)
 
         mat_quad = {1: (0, 0), 2: (1, 0), 3: (1, 0), 0: (1, 1)}
         for mid in (3, 0, 1, 2):
@@ -1423,11 +1425,51 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
             uv_img = np.column_stack([uv_dae[:, 0], 1.0 - uv_dae[:, 1]])
             tris = np.asarray(m.triangles, dtype=np.int32)
             if m.name == "Hair":
+                # Tuck the 33 sub-millimeter (1.5 mm) flyaway wire strips (809 tris)
+                # inside the solid cranial volume while shaping only the main 2,753-tri
+                # hair cap + neck skin component.
+                from collections import defaultdict
+
+                pos_key = [tuple(np.round(pt, 3)) for pt in p]
+                edge_to_tris: dict[tuple, list[int]] = defaultdict(list)
+                for ti, (a, b, c) in enumerate(tris):
+                    ka, kb, kc = pos_key[int(a)], pos_key[int(b)], pos_key[int(c)]
+                    for u_e, v_e in ((ka, kb), (kb, kc), (kc, ka)):
+                        if u_e != v_e:
+                            edge_to_tris[tuple(sorted((u_e, v_e)))].append(ti)
+                adj: dict[int, set[int]] = defaultdict(set)
+                for t_list in edge_to_tris.values():
+                    for t1 in t_list:
+                        for t2 in t_list:
+                            if t1 != t2:
+                                adj[t1].add(t2)
+                visited: set[int] = set()
+                best_comp: list[int] = []
+                for ti in range(len(tris)):
+                    if ti in visited:
+                        continue
+                    comp: list[int] = []
+                    stack = [ti]
+                    visited.add(ti)
+                    while stack:
+                        cur = stack.pop()
+                        comp.append(cur)
+                        for nxt in adj[cur]:
+                            if nxt not in visited:
+                                visited.add(nxt)
+                                stack.append(nxt)
+                    if len(comp) > len(best_comp):
+                        best_comp = comp
                 if for_suit:
                     p = shape_neck_and_hair_for_suit_collar(p, uv_img, z_drop=5.6, y_push=3.0, x_flare=0.28, tris=tris)
                 else:
                     p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2, tris=tris)
                     p = tuck_hair_for_joy_hood(p, uv_img, tris=tris)
+                if best_comp and len(best_comp) < len(tris):
+                    keep_v = set(np.unique(tris[sorted(best_comp)]).tolist())
+                    wire_mask = np.array([vi not in keep_v for vi in range(len(p))], dtype=bool)
+                    center = np.array([0.0, 6.0, 175.0], dtype=np.float32)
+                    p[wire_mask] = center + 0.20 * (p[wire_mask] - center)
             parts[m.name] = (p, n, uv_dae, uv_img, tris)
 
         fp, fn, f_uv_dae, f_uv_img, ft = parts["Face"]

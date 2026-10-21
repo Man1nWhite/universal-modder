@@ -805,17 +805,30 @@ def repair_skin_boundary_normals(g: Group) -> None:
                 if is_ns[a - base_v] and is_ns[b - base_v] and is_ns[c - base_v]:
                     skin_vert_mask[a] = skin_vert_mask[b] = skin_vert_mask[c] = True
                     skin_tris.append(f)
+        elif mat_name == "miranda_hair":
+            # Tuck the 33 sub-millimeter (1.5 mm) flyaway wire strips inside the
+            # solid cranial volume so they do not rasterize as 1-pixel jagged
+            # black wires across the right eye/cheek or floating in front of the
+            # forehead under PAYDAY 2's opaque character shader, while preserving
+            # vertex/triangle counts, UVs, and edge orientation.
+            center = np.array([0.0, 6.0, 175.0], dtype=np.float64)
+            for k in range(slice_len):
+                vi = base_v + k
+                pt = center + 0.20 * (p[vi] - center)
+                p[vi] = pt
+                g.verts[vi] = (float(pt[0]), float(pt[1]), float(pt[2]))
         elif mat_name in ("eyeball_r", "eyeball_l"):
             # Center eyeball planar UVs on the visible eyelid opening (palpebral fissure)
-            # and soften vertical normal tilt across the recessed 1.5cm eyeball sphere.
+            # and soften horizontal/vertical normal tilt across the recessed 1.5cm eyeball sphere.
             sub_p = p[base_v : base_v + slice_len]
             if len(sub_p) > 0:
                 cx_bbox = 0.5 * (float(sub_p[:, 0].min()) + float(sub_p[:, 0].max()))
                 cz_bbox = 0.5 * (float(sub_p[:, 2].min()) + float(sub_p[:, 2].max()))
                 rx = 0.5 * (float(sub_p[:, 0].max()) - float(sub_p[:, 0].min())) or 1.0
                 sign = -1.0 if cx_bbox < 0.0 else 1.0
-                cx = cx_bbox + sign * 0.14 * rx
-                cz = cz_bbox - 0.15 * rx
+                dx_frac = 0.09 if sign > 0.0 else 0.13
+                cx = cx_bbox + sign * dx_frac * rx
+                cz = cz_bbox - 0.09 * rx
                 scale = 0.45 / rx
                 for k in range(slice_len):
                     vi = base_v + k
@@ -823,9 +836,10 @@ def repair_skin_boundary_normals(g: Group) -> None:
                     v_img_new = min(0.98, max(0.02, 0.5 - scale * (float(p[vi, 2]) - cz)))
                     g.uvs[vi] = (float(u_new), float(1.0 - v_img_new))
                     nx, ny, nz = g.normals[vi]
-                    nz_s = nz * 0.45
-                    ln = (nx * nx + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
-                    g.normals[vi] = (float(nx / ln), float(ny / ln), float(nz_s / ln))
+                    nx_s = nx * 0.35
+                    nz_s = nz * 0.35
+                    ln = (nx_s * nx_s + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
+                    g.normals[vi] = (float(nx_s / ln), float(ny / ln), float(nz_s / ln))
     if not skin_tris:
         return
     t = np.asarray(skin_tris, dtype=np.int32)
