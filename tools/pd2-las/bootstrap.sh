@@ -41,6 +41,8 @@ test -f "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b/2b.model" && echo "templat
 echo "== 3/5 build models + packs =="
 .venv/bin/python tools/pd2-las/build_models.py \
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+.venv/bin/python tools/pd2-port/build_las_pack.py
+sha256sum dist/lawson_las.zip > dist/lawson_las.zip.sha256
 .venv/bin/python tools/build_joy_head_mods.py
 sha256sum -c build/pd2-las/Miranda_LAS.zip.sha256
 for sha_file in dist/*.zip.sha256; do

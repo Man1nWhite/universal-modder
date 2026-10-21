@@ -753,7 +753,8 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
 
 
 def repair_skin_boundary_normals(g: Group) -> None:
-    """Repair corrupted boundary normals along the face/neck seam and mouth corners.
+    """Repair corrupted boundary normals along the face/neck seam and mouth corners,
+    and recenter eyeball planar UVs on the visible eyelid opening (palpebral fissure).
 
     In the ME2/L4D2 source mesh, 7 right-cheek/temple boundary vertices on
     ``miranda_face`` (and their 4 matching twins on ``miranda_head`` neck skin)
@@ -768,7 +769,7 @@ def repair_skin_boundary_normals(g: Group) -> None:
     p = np.asarray(g.verts, dtype=np.float64)
     n = np.asarray(g.normals, dtype=np.float64)
     uv = np.asarray(g.uvs, dtype=np.float64)
-    uv_img_y = 1.0 - uv[:, 1]
+    uv_img = np.column_stack([uv[:, 0], 1.0 - uv[:, 1]])
     skin_vert_mask = np.zeros(len(p), dtype=bool)
     skin_tris: list[tuple[int, int, int]] = []
     for mat_name, base_v, base_i, tri_count, slice_len in g.slices:
@@ -776,15 +777,55 @@ def repair_skin_boundary_normals(g: Group) -> None:
             skin_vert_mask[base_v : base_v + slice_len] = True
             skin_tris.extend(g.faces[base_i // 3 : base_i // 3 + tri_count])
         elif mat_name == "miranda_head":
+            sub_uv = uv_img[base_v : base_v + slice_len]
+            sub_tris = [
+                (a - base_v, b - base_v, c - base_v)
+                for a, b, c in g.faces[base_i // 3 : base_i // 3 + tri_count]
+            ]
+            rounded_uv = np.round(sub_uv * 1000.0).astype(np.int64)
+            _, inv_uv = np.unique(rounded_uv, axis=0, return_inverse=True)
+            parent = list(range(int(inv_uv.max()) + 1))
+
+            def find_uv(x: int) -> int:
+                while parent[x] != x:
+                    parent[x] = parent[parent[x]]
+                    x = parent[x]
+                return x
+
+            for a, b, c in sub_tris:
+                ra, rb, rc = find_uv(int(inv_uv[a])), find_uv(int(inv_uv[b])), find_uv(int(inv_uv[c]))
+                parent[rb] = ra
+                parent[rc] = ra
+            roots = np.array([find_uv(int(inv_uv[i])) for i in range(len(sub_uv))])
+            seed_mask = (sub_uv[:, 0] < 0.45) & (sub_uv[:, 1] > 0.85)
+            seed_roots = set(roots[seed_mask].tolist())
+            is_ns = np.isin(roots, list(seed_roots))
             for f in g.faces[base_i // 3 : base_i // 3 + tri_count]:
                 a, b, c = f
-                if (
-                    uv[a, 0] < 0.59 and uv_img_y[a] > 0.72
-                    and uv[b, 0] < 0.59 and uv_img_y[b] > 0.72
-                    and uv[c, 0] < 0.59 and uv_img_y[c] > 0.72
-                ):
+                if is_ns[a - base_v] and is_ns[b - base_v] and is_ns[c - base_v]:
                     skin_vert_mask[a] = skin_vert_mask[b] = skin_vert_mask[c] = True
                     skin_tris.append(f)
+        elif mat_name in ("eyeball_r", "eyeball_l"):
+            # Center eyeball planar UVs on the visible eyelid opening (palpebral fissure)
+            # and soften vertical normal tilt across the recessed 1.5cm eyeball sphere.
+            sub_p = p[base_v : base_v + slice_len]
+            if len(sub_p) > 0:
+                cx_bbox = 0.5 * (float(sub_p[:, 0].min()) + float(sub_p[:, 0].max()))
+                cz_bbox = 0.5 * (float(sub_p[:, 2].min()) + float(sub_p[:, 2].max()))
+                rx = 0.5 * (float(sub_p[:, 0].max()) - float(sub_p[:, 0].min())) or 1.0
+                sign = -1.0 if cx_bbox < 0.0 else 1.0
+                cx = cx_bbox + sign * 0.14 * rx
+                cz = cz_bbox - 0.15 * rx
+                scale = 0.45 / rx
+                for k in range(slice_len):
+                    vi = base_v + k
+                    u_new = min(0.98, max(0.02, 0.5 - scale * (float(p[vi, 0]) - cx)))
+                    v_img_new = min(0.98, max(0.02, 0.5 - scale * (float(p[vi, 2]) - cz)))
+                    g.uvs[vi] = (float(u_new), float(1.0 - v_img_new))
+                    nx, ny, nz = g.normals[vi]
+                    nz_s = nz * 0.45
+                    ln = (nx * nx + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
+                    g.normals[vi] = (float(nx / ln), float(ny / ln), float(nz_s / ln))
     if not skin_tris:
         return
     t = np.asarray(skin_tris, dtype=np.int32)
@@ -802,7 +843,20 @@ def repair_skin_boundary_normals(g: Group) -> None:
     dots = np.sum(n * gn, axis=1)
     bad = skin_vert_mask & (dots < 0.75)
     for vi in np.nonzero(bad)[0]:
+        n[vi] = gn[vi]
         g.normals[int(vi)] = (float(gn[vi, 0]), float(gn[vi, 1]), float(gn[vi, 2]))
+    # Weld normals across coincident skin seam vertices (miranda_face <-> miranda_head neck skin)
+    by_pos: dict[tuple[int, int, int], list[int]] = {}
+    for vi in np.nonzero(skin_vert_mask)[0]:
+        k = (int(round(p[vi, 0] * 100.0)), int(round(p[vi, 1] * 100.0)), int(round(p[vi, 2] * 100.0)))
+        by_pos.setdefault(k, []).append(int(vi))
+    for v_list in by_pos.values():
+        if len(v_list) > 1:
+            avg_n = n[v_list].mean(axis=0)
+            ln = float(np.linalg.norm(avg_n)) or 1.0
+            nt = (float(avg_n[0] / ln), float(avg_n[1] / ln), float(avg_n[2] / ln))
+            for vi in v_list:
+                g.normals[vi] = nt
 
 
 def orientation_breaks(g: Group) -> int:

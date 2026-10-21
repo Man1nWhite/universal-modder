@@ -154,12 +154,38 @@ def encode_rgba_dds(arr: np.ndarray) -> bytes:
     return dds.pack_dds(dds.mip_payloads_from_image(arr), size)
 
 
-def tuck_hair_for_joy_hood(p: np.ndarray, uv_img: np.ndarray | None = None) -> np.ndarray:
+def neck_skin_uv_island_mask(uv_img: np.ndarray, tris: np.ndarray | None = None) -> np.ndarray:
+    """Select the exact Scalp_Diff neck-skin UV island (u in [0.005, 0.743], v_img in [0.737, 0.995])."""
+    if tris is not None and len(tris) > 0:
+        rounded = np.round(uv_img * 1000.0).astype(np.int64)
+        _, inv = np.unique(rounded, axis=0, return_inverse=True)
+        parent = list(range(int(inv.max()) + 1))
+
+        def find(x: int) -> int:
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+
+        for a, b, c in tris:
+            ra, rb, rc = find(int(inv[a])), find(int(inv[b])), find(int(inv[c]))
+            parent[rb] = ra
+            parent[rc] = ra
+        roots = np.array([find(int(inv[i])) for i in range(len(uv_img))])
+        seed_mask = (uv_img[:, 0] < 0.45) & (uv_img[:, 1] > 0.85)
+        seed_roots = set(roots[seed_mask].tolist())
+        return np.isin(roots, list(seed_roots))
+    return (uv_img[:, 0] < 0.75) & (uv_img[:, 1] > 0.82)
+
+
+def tuck_hair_for_joy_hood(
+    p: np.ndarray, uv_img: np.ndarray | None = None, tris: np.ndarray | None = None
+) -> np.ndarray:
     """Smoothly tuck lower hair inside Joy's collar while keeping low front locks behind the throat skin."""
     p = p.copy()
     is_hair = np.ones(len(p), dtype=bool)
     if uv_img is not None:
-        is_hair = ~((uv_img[:, 0] < 0.59) & (uv_img[:, 1] > 0.82))
+        is_hair = ~neck_skin_uv_island_mask(uv_img, tris)
     if not is_hair.any():
         return p
     zh, yh, xh = p[is_hair, 2], p[is_hair, 1], p[is_hair, 0]
@@ -180,13 +206,17 @@ def tuck_hair_for_joy_hood(p: np.ndarray, uv_img: np.ndarray | None = None) -> n
 
 
 def extend_scalp_neck_skin_into_collar(
-    p: np.ndarray, uv_img: np.ndarray, z_drop: float = 3.8, y_push: float = 2.2
+    p: np.ndarray,
+    uv_img: np.ndarray,
+    z_drop: float = 3.8,
+    y_push: float = 2.2,
+    tris: np.ndarray | None = None,
 ) -> np.ndarray:
-    """Smoothly extend the bottom rim of the Scalp_Diff neck-skin cylinder (u < 0.59, v_img > 0.82)
+    """Smoothly extend the bottom rim of the Scalp_Diff neck-skin cylinder
     down into Joy's collar channel (z ~ 153cm, y ~ 9.2..10.4cm) so the entire throat is a single
     seamless mesh with zero horizontal seam."""
     p = p.copy()
-    is_neck_skin = (uv_img[:, 0] < 0.59) & (uv_img[:, 1] > 0.82)
+    is_neck_skin = neck_skin_uv_island_mask(uv_img, tris)
     if not is_neck_skin.any():
         return p
     z = p[is_neck_skin, 2]
@@ -215,11 +245,16 @@ def extend_scalp_neck_skin_into_collar(
 
 
 def shape_neck_and_hair_for_suit_collar(
-    p: np.ndarray, uv_img: np.ndarray, z_drop: float = 5.4, y_push: float = 3.0, x_flare: float = 0.28
+    p: np.ndarray,
+    uv_img: np.ndarray,
+    z_drop: float = 5.4,
+    y_push: float = 3.0,
+    x_flare: float = 0.28,
+    tris: np.ndarray | None = None,
 ) -> np.ndarray:
     """Shape the Scalp_Diff neck-skin cylinder and lower hair for Clover, Bonnie, and Sydney's suit collars."""
     p = p.copy()
-    is_neck_skin = (uv_img[:, 0] < 0.59) & (uv_img[:, 1] > 0.82)
+    is_neck_skin = neck_skin_uv_island_mask(uv_img, tris)
     if is_neck_skin.any():
         z = p[is_neck_skin, 2]
         y = p[is_neck_skin, 1]
@@ -282,7 +317,7 @@ def repair_skin_and_neck_normals(
     ft = np.asarray(face_t, dtype=np.int32)
     st = np.asarray(scalp_t, dtype=np.int32)
 
-    is_ns = (scalp_uv_img[:, 0] < 0.59) & (scalp_uv_img[:, 1] > 0.72)
+    is_ns = neck_skin_uv_island_mask(scalp_uv_img, st)
     ns_tri_mask = is_ns[st[:, 0]] & is_ns[st[:, 1]] & is_ns[st[:, 2]]
     st_ns = st[ns_tri_mask] + len(fp)
 
@@ -316,48 +351,68 @@ def repair_skin_and_neck_normals(
         blended /= np.maximum(np.linalg.norm(blended, axis=1, keepdims=True), 1e-8)
         sn_out[is_ns] = blended
 
+    # Weld normals across coincident Face <-> Scalp(neck_skin) seam pairs
+    map_f: dict[tuple[int, int, int], list[int]] = {}
+    for i, p in enumerate(fp):
+        k = (int(round(p[0] * 100.0)), int(round(p[1] * 100.0)), int(round(p[2] * 100.0)))
+        map_f.setdefault(k, []).append(i)
+    for j in np.nonzero(is_ns)[0]:
+        p = sp[j]
+        k = (int(round(p[0] * 100.0)), int(round(p[1] * 100.0)), int(round(p[2] * 100.0)))
+        if k in map_f:
+            f_idxs = map_f[k]
+            avg_n = sn_out[j].copy()
+            for fi in f_idxs:
+                avg_n = avg_n + fn_out[fi]
+            avg_n /= max(float(np.linalg.norm(avg_n)), 1e-8)
+            sn_out[j] = avg_n
+            for fi in f_idxs:
+                fn_out[fi] = avg_n
+
     return fn_out.astype(np.float32), sn_out.astype(np.float32)
 
 
 def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarray:
-    """Synthesize a crisp 1024x1024 deep-sapphire Miranda eye texture with r_uv = 0.218 iris."""
-    me2_eye = np.asarray(
-        Image.open(me2_dir / "EYE_Diff.png").convert("RGBA").resize((size, size), Image.Resampling.LANCZOS),
-        dtype=np.float32,
-    )
+    """Synthesize a crisp 1024x1024 radially symmetric deep-sapphire Miranda eye texture."""
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
     u = (xx + 0.5) / size - 0.5
     v = (yy + 0.5) / size - 0.5
     r = np.hypot(u, v)
+    theta = np.arctan2(v, u)
 
-    src_u = np.clip((0.5 + u * (0.088 / 0.215)) * (size - 1), 0, size - 1).astype(np.int32)
-    src_v = np.clip((0.5 + v * (0.142 / 0.215)) * (size - 1), 0, size - 1).astype(np.int32)
-    fiber_lum = me2_eye[src_v, src_u, :3].mean(axis=2) / 255.0
-    fiber_detail = np.clip((fiber_lum - 0.72) / 0.22, -0.5, 0.6)
+    f1 = np.sin(theta * 58.0 + 0.35 * np.sin(theta * 7.0))
+    f2 = np.cos(theta * 94.0 - 0.40 * np.cos(theta * 11.0))
+    f3 = np.sin(theta * 142.0 + r * 28.0)
+    radial_env = np.clip(1.0 - ((r - 0.142) / 0.072) ** 2, 0.0, 1.0)
+    fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * radial_env
 
-    t_iris = np.clip((r - 0.080) / (0.205 - 0.080), 0.0, 1.0)
-    iris_r = 26.0 * (1.0 - t_iris) + 64.0 * t_iris + 34.0 * fiber_detail
-    iris_g = 54.0 * (1.0 - t_iris) + 112.0 * t_iris + 52.0 * fiber_detail
-    iris_b = 98.0 * (1.0 - t_iris) + 168.0 * t_iris + 68.0 * fiber_detail
-    col_ring = np.exp(-((r - 0.118) / 0.022) ** 2)
-    iris_r += 22.0 * col_ring * (0.5 + 0.5 * fiber_detail)
-    iris_g += 38.0 * col_ring * (0.5 + 0.5 * fiber_detail)
-    iris_b += 54.0 * col_ring * (0.5 + 0.5 * fiber_detail)
-    iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1)
+    t_iris = np.clip((r - 0.078) / (0.206 - 0.078), 0.0, 1.0)
+    iris_r = 32.0 * (1.0 - t_iris) + 58.0 * t_iris + 22.0 * fiber_detail
+    iris_g = 76.0 * (1.0 - t_iris) + 124.0 * t_iris + 34.0 * fiber_detail
+    iris_b = 138.0 * (1.0 - t_iris) + 188.0 * t_iris + 44.0 * fiber_detail
+    col_ring = np.exp(-((r - 0.116) / 0.020) ** 2)
+    iris_r += 18.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+    iris_g += 32.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+    iris_b += 42.0 * col_ring * (0.6 + 0.4 * fiber_detail)
 
-    limbal_rgb = np.array([12.0, 20.0, 36.0], dtype=np.float32)
+    lid_ao = (
+        np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.22
+        + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.18
+    )
+    iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1) * (1.0 - 0.65 * lid_ao[:, :, None])
+
+    limbal_rgb = np.array([12.0, 22.0, 40.0], dtype=np.float32)
     pupil_rgb = np.array([4.0, 5.0, 8.0], dtype=np.float32)
 
-    t_sc = np.clip((r - 0.225) / 0.36, 0.0, 1.0)
-    top_shadow = np.clip((-v - 0.02) / 0.28, 0.0, 1.0) * 0.28
-    sc_r = (212.0 - 52.0 * t_sc) * (1.0 - top_shadow)
-    sc_g = (194.0 - 58.0 * t_sc) * (1.0 - top_shadow)
-    sc_b = (188.0 - 60.0 * t_sc) * (1.0 - top_shadow)
+    t_sc = np.clip((r - 0.218) / 0.30, 0.0, 1.0)
+    sc_r = (176.0 - 44.0 * t_sc) * (1.0 - lid_ao)
+    sc_g = (162.0 - 48.0 * t_sc) * (1.0 - lid_ao)
+    sc_b = (156.0 - 50.0 * t_sc) * (1.0 - lid_ao)
     sclera_rgb = np.stack([sc_r, sc_g, sc_b], axis=-1)
 
-    w_pupil = np.clip((0.086 - r) / 0.014, 0.0, 1.0)[:, :, None]
-    w_limbal = np.exp(-((r - 0.212) / 0.018) ** 2)[:, :, None]
-    w_sclera = np.clip((r - 0.216) / 0.018, 0.0, 1.0)[:, :, None]
+    w_pupil = np.clip((0.082 - r) / 0.012, 0.0, 1.0)[:, :, None]
+    w_limbal = np.exp(-((r - 0.210) / 0.018) ** 2)[:, :, None]
+    w_sclera = np.clip((r - 0.214) / 0.016, 0.0, 1.0)[:, :, None]
 
     out = iris_rgb * (1.0 - w_limbal) + limbal_rgb * w_limbal
     out = out * (1.0 - w_pupil) + pupil_rgb * w_pupil
@@ -365,12 +420,13 @@ def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarr
 
     rgba = np.zeros((size, size, 4), dtype=np.uint8)
     rgba[:, :, :3] = np.clip(out, 0.0, 255.0).astype(np.uint8)
-    rgba[:, :, 3] = 28
+    rgba[:, :, 3] = np.where(r < 0.22, 42, 22).astype(np.uint8)
     return rgba
 
 
 def project_me2_eye_uv_img(positions: np.ndarray) -> np.ndarray:
-    """Planar-project ME2 eyeball positions into top-down (u_img, v_img) in [0, 1]^2."""
+    """Planar-project eyeball positions into top-down (u_img, v_img) in [0, 1]^2
+    centered on the visible eyelid opening (palpebral fissure)."""
     p = np.asarray(positions, dtype=np.float64)
     uv_img = np.full((len(p), 2), 0.5, dtype=np.float32)
     for sign in (-1.0, 1.0):
@@ -378,15 +434,25 @@ def project_me2_eye_uv_img(positions: np.ndarray) -> np.ndarray:
         if not mask.any():
             continue
         sub = p[mask]
-        cx = 0.5 * (sub[:, 0].min() + sub[:, 0].max())
-        cz = 0.5 * (sub[:, 2].min() + sub[:, 2].max())
+        cx_bbox = 0.5 * (sub[:, 0].min() + sub[:, 0].max())
+        cz_bbox = 0.5 * (sub[:, 2].min() + sub[:, 2].max())
         rx = 0.5 * (sub[:, 0].max() - sub[:, 0].min()) or 1.0
-        scale = 0.50 / rx
+        cx = cx_bbox + sign * 0.14 * rx
+        cz = cz_bbox - 0.15 * rx
+        scale = 0.45 / rx
         u = np.clip(0.5 - scale * (sub[:, 0] - cx), 0.02, 0.98)
         v_img = np.clip(0.5 - scale * (sub[:, 2] - cz), 0.02, 0.98)
         uv_img[mask, 0] = u.astype(np.float32)
         uv_img[mask, 1] = v_img.astype(np.float32)
     return uv_img
+
+
+def soften_eyeball_normals(normals: np.ndarray) -> np.ndarray:
+    """Soften vertical normal tilt across the recessed 1.5cm eyeball sphere."""
+    n = np.asarray(normals, dtype=np.float64).copy()
+    n[:, 2] *= 0.45
+    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-8)
+    return n.astype(np.float32)
 
 
 def map_uv_to_quadrant(uv_img: np.ndarray, qx: int, qy: int) -> np.ndarray:
@@ -1096,7 +1162,6 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
     atlas_df[0:1024, 0:1024, 3] = np.minimum(atlas_df[0:1024, 0:1024, 3], 18)
     atlas_df[0:1024, 1024:2048, 3] = 16
     atlas_df[1024:2048, 0:1024, 3] = np.minimum(atlas_df[1024:2048, 0:1024, 3], 18)
-    atlas_df[1024:2048, 1024:2048, 3] = 28
 
     atlas_nm = np.zeros((2048, 2048, 4), dtype=np.uint8)
     atlas_nm[:, :] = [255, 128, 0, 128]
@@ -1163,10 +1228,13 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
             t_s = topo_head[bi // 3 : bi // 3 + tc] - bv
             if mid in (2, 3):
                 if for_suit:
-                    p_s = shape_neck_and_hair_for_suit_collar(p_s, uv_s, z_drop=5.4, y_push=3.0, x_flare=0.28)
+                    p_s = shape_neck_and_hair_for_suit_collar(p_s, uv_s, z_drop=5.4, y_push=3.0, x_flare=0.28, tris=t_s)
                 else:
-                    p_s = extend_scalp_neck_skin_into_collar(p_s, uv_s, z_drop=3.2, y_push=2.0)
-                    p_s = tuck_hair_for_joy_hood(p_s, uv_s)
+                    p_s = extend_scalp_neck_skin_into_collar(p_s, uv_s, z_drop=3.2, y_push=2.0, tris=t_s)
+                    p_s = tuck_hair_for_joy_hood(p_s, uv_s, tris=t_s)
+            elif mid == 0:
+                uv_s = project_me2_eye_uv_img(p_s)
+                n_s = soften_eyeball_normals(n_s)
             atoms_by_mid.setdefault(mid, []).append((p_s, n_s, uv_s, t_s))
 
         face_p, face_n, face_uv, face_t = atoms_by_mid[1][0]
@@ -1314,7 +1382,6 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     atlas_df[0:1024, 0:1024, 3] = 12
     atlas_df[0:1024, 1024:2048, 3] = 16
     atlas_df[1024:2048, 0:1024, 3] = 12
-    atlas_df[1024:2048, 1024:2048, 3] = 28
 
     # UE3/ME2 extracted normal PNGs store vertical Y_down in Red and horizontal X_right in Green
     face_raw_nm = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Face_Norm.png").convert("RGBA"))[..., [1, 0, 2, 3]]
@@ -1328,17 +1395,12 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     nkd_raw_nm[y0:y1, x0:x1, 1] = 128
     nkd_raw_nm[y0:y1, x0:x1, 2] = 255
     nkd_nm = dds.pd2_normal_channels(nkd_raw_nm)
-    eyes_raw_nm = np.asarray(
-        Image.open(me2_dir / "EYE_Lens_Norm.png").convert("RGBA").resize((1024, 1024), Image.Resampling.LANCZOS)
-    )[..., [1, 0, 2, 3]]
-    eyes_nm = dds.pd2_normal_channels(eyes_raw_nm)
 
     atlas_nm = np.zeros((2048, 2048, 4), dtype=np.uint8)
     atlas_nm[:, :] = [255, 128, 0, 128]
     atlas_nm[0:1024, 0:1024] = face_nm
     atlas_nm[0:1024, 1024:2048] = scalp_nm
     atlas_nm[1024:2048, 0:1024] = nkd_nm
-    atlas_nm[1024:2048, 1024:2048] = eyes_nm
 
     def build_romance_meshes(for_suit: bool) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
         a0_verts, a0_norms, a0_uvs, a0_tris = [], [], [], []
@@ -1362,10 +1424,10 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
             tris = np.asarray(m.triangles, dtype=np.int32)
             if m.name == "Hair":
                 if for_suit:
-                    p = shape_neck_and_hair_for_suit_collar(p, uv_img, z_drop=5.6, y_push=3.0, x_flare=0.28)
+                    p = shape_neck_and_hair_for_suit_collar(p, uv_img, z_drop=5.6, y_push=3.0, x_flare=0.28, tris=tris)
                 else:
-                    p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2)
-                    p = tuck_hair_for_joy_hood(p, uv_img)
+                    p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2, tris=tris)
+                    p = tuck_hair_for_joy_hood(p, uv_img, tris=tris)
             parts[m.name] = (p, n, uv_dae, uv_img, tris)
 
         fp, fn, f_uv_dae, f_uv_img, ft = parts["Face"]
@@ -1384,7 +1446,8 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
                 append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 1, 0), tris)
             elif name == "Eyes":
                 uv_eye_img = project_me2_eye_uv_img(p)
-                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_eye_img, 1, 1), tris)
+                n_eye = soften_eyeball_normals(n)
+                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n_eye, map_uv_to_quadrant(uv_eye_img, 1, 1), tris)
             elif name == "Eyelashes":
                 append_part(a1_verts, a1_norms, a1_uvs, a1_tris, p, n, uv_dae, tris)
 

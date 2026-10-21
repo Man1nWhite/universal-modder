@@ -120,7 +120,12 @@ MAT_BASE = {
 }
 
 
-def eye_uv_planar(positions) -> list[tuple[float, float]]:
+def eye_uv_planar(
+    positions,
+    dx_frac: float = 0.0,
+    dz_frac: float = 0.0,
+    radius_scale: float = 0.50,
+) -> list[tuple[float, float]]:
     """Planar-project each eyeball's UVs from its frontal plane.
 
     ME2's eye shader placed the iris itself (EYE_Iris_Norm / EYE_Lens_Norm /
@@ -132,15 +137,16 @@ def eye_uv_planar(positions) -> list[tuple[float, float]]:
     outside the unit square but sit inside the head.
     """
     out = [(0.5, 0.5)] * len(positions)
-    for pred in (lambda x: x < 0.0, lambda x: x >= 0.0):
+    for sign, pred in ((-1.0, lambda x: x < 0.0), (1.0, lambda x: x >= 0.0)):
         idx = [i for i, p in enumerate(positions) if pred(p[0])]
         if not idx:
             continue
-        cx = 0.5 * (min(positions[i][0] for i in idx) + max(positions[i][0] for i in idx))
-        cz = 0.5 * (min(positions[i][2] for i in idx) + max(positions[i][2] for i in idx))
+        cx_bbox = 0.5 * (min(positions[i][0] for i in idx) + max(positions[i][0] for i in idx))
+        cz_bbox = 0.5 * (min(positions[i][2] for i in idx) + max(positions[i][2] for i in idx))
         rx = 0.5 * (max(positions[i][0] for i in idx) - min(positions[i][0] for i in idx)) or 1.0
-        # Match L4D2 miranda.model eyeball UV scale (0.50 / rx) for r_uv = 0.218 iris
-        scale = 0.50 / rx
+        cx = cx_bbox + sign * dx_frac * rx
+        cz = cz_bbox + dz_frac * rx
+        scale = radius_scale / rx
         for i in idx:
             u = min(0.98, max(0.02, 0.5 + scale * (positions[i][0] - cx)))
             v = min(0.98, max(0.02, 0.5 + scale * (positions[i][2] - cz)))
@@ -176,6 +182,30 @@ def atom_for(rm, material: str, keep=None) -> "las_model.Atom":
                           uvs=u, weights=w, faces=f)
 
 
+def _neck_skin_uv_island_mask(uv_img, tris):
+    """Select the exact Scalp_Diff neck-skin UV island (645 verts) via UV flood-fill."""
+    import numpy as np
+
+    rounded = np.round(uv_img * 1000.0).astype(np.int64)
+    _, inv = np.unique(rounded, axis=0, return_inverse=True)
+    parent = list(range(int(inv.max()) + 1))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for a, b, c in tris:
+        ra, rb, rc = find(int(inv[a])), find(int(inv[b])), find(int(inv[c]))
+        parent[rb] = ra
+        parent[rc] = ra
+    roots = np.array([find(int(inv[i])) for i in range(len(uv_img))])
+    seed_mask = (uv_img[:, 0] < 0.45) & (uv_img[:, 1] > 0.85)
+    seed_roots = set(roots[seed_mask].tolist())
+    return np.isin(roots, list(seed_roots))
+
+
 def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
     """Repair corrupted boundary normals along the face/neck seam and mouth corners.
 
@@ -191,11 +221,11 @@ def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
     nf = np.asarray(face_rm.normals, dtype=np.float64)
     nh = np.asarray(hair_rm.normals, dtype=np.float64)
     uvh = np.asarray(hair_rm.uvs, dtype=np.float64)
-    uvh_img_y = 1.0 - uvh[:, 1]
+    uvh_img = np.column_stack([uvh[:, 0], 1.0 - uvh[:, 1]])
 
     tf = np.asarray(face_rm.triangles, dtype=np.int32)
     th = np.asarray(hair_rm.triangles, dtype=np.int32)
-    is_ns = (uvh[:, 0] < 0.59) & (uvh_img_y > 0.72)
+    is_ns = _neck_skin_uv_island_mask(uvh_img, th)
     ns_tri_mask = is_ns[th[:, 0]] & is_ns[th[:, 1]] & is_ns[th[:, 2]]
     th_ns = th[ns_tri_mask] + len(pf)
 
@@ -217,10 +247,32 @@ def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
     gn_h = gn_all[len(pf) :]
     bad_f = np.sum(nf * gn_f, axis=1) < 0.75
     for vi in np.nonzero(bad_f)[0]:
+        nf[vi] = gn_f[vi]
         face_rm.normals[int(vi)] = (float(gn_f[vi, 0]), float(gn_f[vi, 1]), float(gn_f[vi, 2]))
     bad_h = is_ns & (np.sum(nh * gn_h, axis=1) < 0.75)
     for vi in np.nonzero(bad_h)[0]:
+        nh[vi] = gn_h[vi]
         hair_rm.normals[int(vi)] = (float(gn_h[vi, 0]), float(gn_h[vi, 1]), float(gn_h[vi, 2]))
+
+    # Weld normals across coincident Face <-> Hair(neck_skin) seam pairs
+    map_f: dict[tuple[int, int, int], list[int]] = {}
+    for i, p in enumerate(pf):
+        k = (int(round(p[0] * 100.0)), int(round(p[1] * 100.0)), int(round(p[2] * 100.0)))
+        map_f.setdefault(k, []).append(i)
+    for j in np.nonzero(is_ns)[0]:
+        p = ph[j]
+        k = (int(round(p[0] * 100.0)), int(round(p[1] * 100.0)), int(round(p[2] * 100.0)))
+        if k in map_f:
+            f_idxs = map_f[k]
+            avg_n = nh[j].copy()
+            for fi in f_idxs:
+                avg_n = avg_n + nf[fi]
+            ln = float(np.linalg.norm(avg_n)) or 1.0
+            n_tuple = (float(avg_n[0] / ln), float(avg_n[1] / ln), float(avg_n[2] / ln))
+            hair_rm.normals[int(j)] = n_tuple
+            for fi in f_idxs:
+                face_rm.normals[int(fi)] = n_tuple
+
     face_rm.triangles, _ = rig_target.repair_winding(
         face_rm.positions, face_rm.normals, face_rm.triangles
     )
@@ -230,12 +282,63 @@ def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
 
 
 def build_models(scene, rig, log=print):
-    rigged = {m.name: rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
-              for m in scene.meshes}
+    from dataclasses import replace
+    import numpy as np
+
+    # Smooth bone weights across the unified welded scene graph so cross-mesh
+    # seams (Face <-> Hair under-chin seam, Body 1 <-> Body 2 catsuit seams)
+    # receive identical weights and never crack apart when posed in-game.
+    all_pos, all_wts, all_tris = [], [], []
+    offsets: dict[str, tuple[int, int]] = {}
+    for m in scene.meshes:
+        off = len(all_pos)
+        offsets[m.name] = (off, len(m.positions))
+        all_pos.extend(m.positions)
+        all_wts.extend(m.weights)
+        for a, b, c in m.triangles:
+            all_tris.append((a + off, b + off, c + off))
+    smoothed_all = rig_target.smooth_weights(all_wts, all_pos, all_tris, iters=2)
+
+    rigged = {
+        m.name: rig_target.rebind_mesh(
+            replace(m, weights=smoothed_all[offsets[m.name][0] : offsets[m.name][0] + offsets[m.name][1]]),
+            scene,
+            rig,
+            smooth_iters=0,
+        )
+        for m in scene.meshes
+    }
     if "Face" in rigged and "Hair" in rigged:
         repair_rebound_skin_normals(rigged["Face"], rigged["Hair"])
-    # static approximation of ME2's eye shader (see eye_uv_planar)
-    rigged["Eyes"].uvs = eye_uv_planar(rigged["Eyes"].positions)
+    if "Hair" in rigged and "Body 1" in rigged:
+        # Snap the bottom collar rim of Hair neck-skin to Body 1 chest skin
+        ph = np.asarray(rigged["Hair"].positions, dtype=np.float64)
+        uvh = np.asarray(rigged["Hair"].uvs, dtype=np.float64)
+        th = np.asarray(rigged["Hair"].triangles, dtype=np.int32)
+        is_ns = _neck_skin_uv_island_mask(np.column_stack([uvh[:, 0], 1.0 - uvh[:, 1]]), th)
+        pb = np.asarray(rigged["Body 1"].positions, dtype=np.float64)
+        top_b_idx = np.nonzero(pb[:, 2] > 148.0)[0]
+        if len(top_b_idx) > 0:
+            top_b = pb[top_b_idx]
+            for hi in np.nonzero(is_ns & (ph[:, 2] < 156.5))[0]:
+                dists = np.linalg.norm(top_b - ph[hi], axis=1)
+                best = int(np.argmin(dists))
+                if dists[best] < 0.20:
+                    bi = int(top_b_idx[best])
+                    rigged["Hair"].positions[int(hi)] = rigged["Body 1"].positions[bi]
+                    rigged["Hair"].weights[int(hi)] = list(rigged["Body 1"].weights[bi])
+
+    # Center eyeball planar UVs on the visible eyelid opening (palpebral fissure)
+    # and soften vertical normal tilt across the recessed 1.5cm eyeball sphere.
+    rigged["Eyes"].uvs = eye_uv_planar(
+        rigged["Eyes"].positions, dx_frac=0.14, dz_frac=-0.15, radius_scale=0.45
+    )
+    eye_nrms = []
+    for nx, ny, nz in rigged["Eyes"].normals:
+        nz_s = nz * 0.45
+        ln = (nx * nx + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
+        eye_nrms.append((nx / ln, ny / ln, nz_s / ln))
+    rigged["Eyes"].normals = eye_nrms
 
     tpp_drawables: dict[str, list] = {}
     for mesh_name, (drawable, material) in TPP_LAYOUT.items():
@@ -272,50 +375,57 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
     rgba = np.asarray(img.convert("RGBA"), dtype=np.uint8).copy()
     if base == "eyes":
         # ME2's EYE_Diff.png has an untinted white elliptical iris (rx=0.095,
-        # ry=0.148) and unshaded pure-white sclera because the UE3 eye shader
-        # tinted the iris and computed sclera falloff. Synthesize a crisp round
-        # deep-sapphire iris (r_uv=0.218, matching miranda_eyes.texture) with
-        # radial fibers sampled from EYE_Diff.png and warm-taupe sclera shading.
+        # ry=0.148) with off-center top shading and unshaded pure-white sclera.
+        # Synthesize a radially symmetric deep-sapphire iris (r_uv=0.214) with
+        # clean stromal fibers and recessed eye-socket sclera shading.
         h, w = rgba.shape[:2]
         yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
         u = (xx + 0.5) / w - 0.5
         v = (yy + 0.5) / h - 0.5
         r = np.hypot(u, v)
+        theta = np.arctan2(v, u)
 
-        src_f = rgba[:, :, :3].astype(np.float32) / 255.0
-        su = np.clip((0.5 + u * (0.088 / 0.215)) * (w - 1), 0, w - 1).astype(np.int32)
-        sv = np.clip((0.5 + v * (0.142 / 0.215)) * (h - 1), 0, h - 1).astype(np.int32)
-        fiber_lum = src_f[sv, su].mean(axis=2)
-        fiber_detail = np.clip((fiber_lum - 0.72) / 0.22, -0.5, 0.6)
+        f1 = np.sin(theta * 58.0 + 0.35 * np.sin(theta * 7.0))
+        f2 = np.cos(theta * 94.0 - 0.40 * np.cos(theta * 11.0))
+        f3 = np.sin(theta * 142.0 + r * 28.0)
+        radial_env = np.clip(1.0 - ((r - 0.142) / 0.072) ** 2, 0.0, 1.0)
+        fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * radial_env
 
-        t_iris = np.clip((r - 0.080) / (0.205 - 0.080), 0.0, 1.0)
-        iris_r = 26.0 * (1.0 - t_iris) + 64.0 * t_iris + 34.0 * fiber_detail
-        iris_g = 54.0 * (1.0 - t_iris) + 112.0 * t_iris + 52.0 * fiber_detail
-        iris_b = 98.0 * (1.0 - t_iris) + 168.0 * t_iris + 68.0 * fiber_detail
-        col_ring = np.exp(-((r - 0.118) / 0.022) ** 2)
-        iris_r += 22.0 * col_ring * (0.5 + 0.5 * fiber_detail)
-        iris_g += 38.0 * col_ring * (0.5 + 0.5 * fiber_detail)
-        iris_b += 54.0 * col_ring * (0.5 + 0.5 * fiber_detail)
-        iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1)
+        t_iris = np.clip((r - 0.078) / (0.206 - 0.078), 0.0, 1.0)
+        iris_r = 32.0 * (1.0 - t_iris) + 58.0 * t_iris + 22.0 * fiber_detail
+        iris_g = 76.0 * (1.0 - t_iris) + 124.0 * t_iris + 34.0 * fiber_detail
+        iris_b = 138.0 * (1.0 - t_iris) + 188.0 * t_iris + 44.0 * fiber_detail
+        col_ring = np.exp(-((r - 0.116) / 0.020) ** 2)
+        iris_r += 18.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+        iris_g += 32.0 * col_ring * (0.6 + 0.4 * fiber_detail)
+        iris_b += 42.0 * col_ring * (0.6 + 0.4 * fiber_detail)
 
-        limbal_rgb = np.array([12.0, 20.0, 36.0], dtype=np.float32)
+        lid_ao = (
+            np.clip((-v - 0.05) / 0.24, 0.0, 1.0) * 0.22
+            + np.clip((v - 0.08) / 0.26, 0.0, 1.0) * 0.18
+        )
+        iris_rgb = np.stack([iris_r, iris_g, iris_b], axis=-1) * (1.0 - 0.65 * lid_ao[:, :, None])
+
+        limbal_rgb = np.array([12.0, 22.0, 40.0], dtype=np.float32)
         pupil_rgb = np.array([4.0, 5.0, 8.0], dtype=np.float32)
 
-        t_sc = np.clip((r - 0.225) / 0.36, 0.0, 1.0)
-        top_shadow = np.clip((-v - 0.02) / 0.28, 0.0, 1.0) * 0.28
-        sc_r = (212.0 - 52.0 * t_sc) * (1.0 - top_shadow)
-        sc_g = (194.0 - 58.0 * t_sc) * (1.0 - top_shadow)
-        sc_b = (188.0 - 60.0 * t_sc) * (1.0 - top_shadow)
+        t_sc = np.clip((r - 0.218) / 0.30, 0.0, 1.0)
+        sc_r = (176.0 - 44.0 * t_sc) * (1.0 - lid_ao)
+        sc_g = (162.0 - 48.0 * t_sc) * (1.0 - lid_ao)
+        sc_b = (156.0 - 50.0 * t_sc) * (1.0 - lid_ao)
         sclera_rgb = np.stack([sc_r, sc_g, sc_b], axis=-1)
 
-        w_pupil = np.clip((0.086 - r) / 0.014, 0.0, 1.0)[:, :, None]
-        w_limbal = np.exp(-((r - 0.212) / 0.018) ** 2)[:, :, None]
-        w_sclera = np.clip((r - 0.216) / 0.018, 0.0, 1.0)[:, :, None]
+        w_pupil = np.clip((0.082 - r) / 0.012, 0.0, 1.0)[:, :, None]
+        w_limbal = np.exp(-((r - 0.210) / 0.018) ** 2)[:, :, None]
+        w_sclera = np.clip((r - 0.214) / 0.016, 0.0, 1.0)[:, :, None]
 
         rgb = iris_rgb * (1.0 - w_limbal) + limbal_rgb * w_limbal
         rgb = rgb * (1.0 - w_pupil) + pupil_rgb * w_pupil
         rgb = rgb * (1.0 - w_sclera) + sclera_rgb * w_sclera
         rgba[:, :, :3] = np.clip(rgb, 0.0, 255.0).astype(np.uint8)
+        cornea_gloss = np.where(r < 0.22, 42, 22).astype(np.uint8)
+        rgba[:, :, 3] = cornea_gloss
+        return rgba
 
     if base in SPECULAR_SLOTS:
         spec_png, scale, max_a, default_a = SPECULAR_SLOTS[base]

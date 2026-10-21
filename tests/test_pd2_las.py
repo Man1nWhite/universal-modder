@@ -615,16 +615,56 @@ class TestLasScaffold:
                 eye_quad = df_im[1024:2048, 1024:2048]
                 yy, xx = np.mgrid[0:1024, 0:1024].astype(np.float32)
                 r = np.hypot((xx - 511.5) / 1024.0, (yy - 511.5) / 1024.0)
-                iris_ring = (r > 0.10) & (r < 0.19)
+                iris_ring = (r > 0.11) & (r < 0.21)
                 mean_r = float(eye_quad[iris_ring, 0].mean())
                 mean_b = float(eye_quad[iris_ring, 2].mean())
                 assert mean_b > mean_r + 40.0, f"{zip_name}: eye iris not sapphire blue (R={mean_r:.1f}, B={mean_b:.1f})"
+                upper_iris = iris_ring & (yy < 512)
+                lower_iris = iris_ring & (yy >= 512)
+                assert abs(float(eye_quad[upper_iris, 2].mean()) - float(eye_quad[lower_iris, 2].mean())) < 25.0, (
+                    f"{zip_name}: top/bottom iris asymmetry detected"
+                )
+                assert float(eye_quad[r > 0.32, 0].mean()) < 185.0, f"{zip_name}: sclera too bright (bloom risk)"
                 # 5. PD2 DXT5nm normal map layout in head_nm
                 nm_raw = z.read(f"{prefix}/{nm_rel}")
                 nm_blocks = np.frombuffer(nm_raw[128:], dtype=np.uint8).reshape(-1, 16)
                 c0 = nm_blocks[:, 8].astype(np.int32) | (nm_blocks[:, 9].astype(np.int32) << 8)
                 assert np.all(((c0 >> 11) & 31) == 31), f"{zip_name}: head_nm red channel not 255"
                 assert np.all((c0 & 31) == 0), f"{zip_name}: head_nm blue channel not 0"
+
+        # 6. Verify lawson_las.zip has unified bone weights and welded normals across the Face <-> Hair under-chin seam
+        sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        import dmodel
+
+        with zipfile.ZipFile(REPO / "dist" / "lawson_las.zip") as z:
+            m_tpp = dmodel.DieselModel.from_bytes(z.read("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"))
+            md_h = m_tpp.by_id[75].obj
+            geo_h = m_tpp.by_id[82].obj
+            topo_h = np.asarray(m_tpp.by_id[83].obj.faces, dtype=np.int32)
+            a_face, a_hair = md_h.render_atoms[0], md_h.render_atoms[1]
+            s0 = np.unique(topo_h[a_face["base_index"] // 3 : a_face["base_index"] // 3 + a_face["tri_count"]])
+            s1 = np.unique(topo_h[a_hair["base_index"] // 3 : a_hair["base_index"] // 3 + a_hair["tri_count"]])
+            v0 = np.asarray(geo_h.positions, dtype=np.float64)[s0]
+            v1 = np.asarray(geo_h.positions, dtype=np.float64)[s1]
+            n0 = np.asarray(geo_h.normals, dtype=np.float64)[s0]
+            n1 = np.asarray(geo_h.normals, dtype=np.float64)[s1]
+            w0 = np.asarray(geo_h.weights3, dtype=np.float64)[s0]
+            w1 = np.asarray(geo_h.weights3, dtype=np.float64)[s1]
+            bi0 = np.asarray(geo_h.joints, dtype=np.int32)[s0]
+            bi1 = np.asarray(geo_h.joints, dtype=np.int32)[s1]
+            k0 = {tuple( row ): idx for idx, row in enumerate(np.round(v0, 3))}
+            ii, jj = [], []
+            for idx1, row1 in enumerate(np.round(v1, 3)):
+                idx0 = k0.get(tuple(row1))
+                if idx0 is not None:
+                    ii.append(idx0)
+                    jj.append(idx1)
+            assert len(ii) >= 100
+            assert np.array_equal(bi0[ii], bi1[jj]), "Face <-> Hair seam has bone index mismatch"
+            assert float(np.abs(w0[ii] - w1[jj]).max()) < 1e-5, "Face <-> Hair seam has bone weight mismatch"
+            chin = v0[ii, 2] < 160.0
+            assert int(chin.sum()) >= 15
+            assert float(np.abs(n0[ii][chin] - n1[jj][chin]).max()) < 1e-5, "Under-chin seam has normal mismatch"
 
 
 
