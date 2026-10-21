@@ -667,7 +667,7 @@ class TestLasScaffold:
             assert float(np.abs(n0[ii][chin] - n1[jj][chin]).max()) < 1e-5, "Under-chin seam has normal mismatch"
 
     def test_geralt_over_rust_package(self):
-        """Verify dist/Geralt_over_Rust.zip geometry, 2-atom mtr_head+mtr_hair setup, textures, and preview."""
+        """Verify dist/Geralt_over_Rust.zip geometry, CCW winding, single-atom ALPHA_MASKED mtr_head, textures, and preview."""
         import io
         import diesel_model as dm
         import numpy as np
@@ -687,36 +687,50 @@ class TestLasScaffold:
             assert f"{wild_dir}/npc_criminal_wild_1_menu.model" in names
 
             mf = dm.ModelFile.read(z.read(f"{wild_dir}/npc_criminal_wild_1.model"))
-            hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
-            assert "mtr_hair" in hl["names"]
-
             mat_by_hash = {
                 dm.decode_material(s.payload)["name_hash"]: s.id
                 for s in mf.by_type(dm.MATERIAL)
             }
             assert dm.hash64("mtr_head") in mat_by_hash
-            assert dm.hash64("mtr_hair") in mat_by_hash
 
             md_by_hash = {
                 dm.decode_model_data(s.payload)["name_hash"]: s
                 for s in mf.by_type(dm.MODEL_DATA)
             }
             md = dm.decode_model_data(md_by_hash[dm.hash64("g_head")].payload)
-            assert len(md["atoms"]) == 2
+            assert len(md["atoms"]) == 1
             mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
-            assert mg["material_ids"] == [mat_by_hash[dm.hash64("mtr_head")], mat_by_hash[dm.hash64("mtr_hair")]]
+            assert mg["material_ids"] == [mat_by_hash[dm.hash64("mtr_head")]]
 
             pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
             geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+            topo = np.asarray(dm.decode_topology(mf.by_id(pg["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+            verts = np.asarray(geo["verts"], dtype=np.float64)
             nrm = np.asarray(geo["normals"], dtype=np.float64)
+            uv0 = np.asarray(geo["uv0"], dtype=np.float64)
             tu = np.asarray(geo["uvdir_u"], dtype=np.float64)
             tv = np.asarray(geo["uvdir_v"], dtype=np.float64)
             assert float(np.abs(np.sum(nrm * tu, axis=1)).max()) < 1e-4
             assert float(np.abs(np.sum(nrm * tv, axis=1)).max()) < 1e-4
 
-            p0 = np.asarray(geo["verts"], dtype=np.float64)[: md["atoms"][0]["slice_len"]]
-            low_front = (p0[:, 2] < 157.5) & (p0[:, 1] > 5.0)
-            assert float(p0[low_front, 1].max()) <= 10.36
+            # Verify 100% CCW triangle winding on opaque head/eyes/teeth (uv_diesel.y >= 0.5)
+            opaque_tri_mask = uv0[topo[:, 0], 1] >= 0.5
+            t_op = topo[opaque_tri_mask]
+            fn = np.cross(verts[t_op[:, 1]] - verts[t_op[:, 0]], verts[t_op[:, 2]] - verts[t_op[:, 0]])
+            vn = nrm[t_op[:, 0]] + nrm[t_op[:, 1]] + nrm[t_op[:, 2]]
+            dot = np.sum(fn * vn, axis=1)
+            assert float((dot > 0).mean()) > 0.999, "Head triangles must have CCW outward winding"
+
+            # Verify double-sided hair/beard/eyelash cards (uv_diesel.y < 0.5): equal + and - winding counts
+            cut_tri_mask = uv0[topo[:, 0], 1] < 0.5
+            t_cut = topo[cut_tri_mask]
+            fn_c = np.cross(verts[t_cut[:, 1]] - verts[t_cut[:, 0]], verts[t_cut[:, 2]] - verts[t_cut[:, 0]])
+            vn_c = nrm[t_cut[:, 0]] + nrm[t_cut[:, 1]] + nrm[t_cut[:, 2]]
+            dot_c = np.sum(fn_c * vn_c, axis=1)
+            assert int((dot_c > 0).sum()) == int((dot_c < 0).sum())
+
+            low_front = (verts[:, 2] < 157.5) & (verts[:, 1] > 5.0)
+            assert float(verts[low_front, 1].max()) <= 10.36
 
             for mcfg in (
                 f"{wild_dir}/mtr_criminal_wild_1.material_config",
@@ -725,19 +739,25 @@ class TestLasScaffold:
             ):
                 txt = z.read(mcfg).decode("utf-8")
                 assert 'name="mtr_head"' in txt
-                assert 'name="mtr_hair"' in txt
                 assert 'ALPHA_MASKED' in txt
+                assert 'npc_criminal_wild_1_head_df' in txt
 
             for tex_name in (
                 "npc_criminal_wild_1_head_df.texture",
                 "npc_criminal_wild_1_head_nm.texture",
-                "npc_criminal_wild_1_hair_df.texture",
-                "npc_criminal_wild_1_hair_nm.texture",
             ):
                 raw = z.read(f"{wild_dir}/{tex_name}")
                 assert raw[:4] == b"DDS "
                 im = Image.open(io.BytesIO(raw))
                 assert im.size == (2048, 2048)
+
+            df_arr = np.asarray(
+                Image.open(io.BytesIO(z.read(f"{wild_dir}/npc_criminal_wild_1_head_df.texture"))).convert("RGBA")
+            )
+            assert np.all(df_arr[0:1024, 0:2048, 3] == 255), "Top half of head_df must be 100% opaque (alpha=255)"
+            hair_tile = df_arr[1024:2048, 0:1024]
+            hair_sat = hair_tile[:, :, :3].max(axis=2).astype(int) - hair_tile[:, :, :3].min(axis=2).astype(int)
+            assert int(hair_sat.max()) <= 30, f"Unexpected color saturation artifact in hair_d tile: {hair_sat.max()}"
 
         prev = REPO / "docs" / "previews" / "11_Geralt_over_Rust.png"
         assert prev.is_file()

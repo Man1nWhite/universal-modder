@@ -100,7 +100,7 @@ def rasterize_parts(
         iy_max = np.minimum(H2 - 1, np.ceil(np.maximum(np.maximum(y0, y1), y2)).astype(np.int32))
 
         denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
-        valid = (np.abs(denom) > 1e-5) & (ix_max >= ix_min) & (iy_max >= iy_min)
+        valid = (denom > 1e-5) & (ix_max >= ix_min) & (iy_max >= iy_min)
         if not valid.any():
             continue
 
@@ -453,10 +453,13 @@ def render_heister_head_sheet(
     vh = np.asarray(geo_head["verts"], np.float32)
     nh = np.asarray(geo_head["normals"], np.float32)
     uvh = np.asarray(geo_head["uv0"], np.float32)
-    a0, a1 = md_head["atoms"][0], md_head["atoms"][1]
-
-    parts.append((vh, nh, topo_head[a0["base_index"] // 3 : a0["base_index"] // 3 + a0["tri_count"]], uvh, head_df, False, False))
-    parts.append((vh, nh, topo_head[a1["base_index"] // 3 : a1["base_index"] // 3 + a1["tri_count"]], uvh, sec_df, True, False))
+    if len(md_head["atoms"]) == 1:
+        a0 = md_head["atoms"][0]
+        parts.append((vh, nh, topo_head[a0["base_index"] // 3 : a0["base_index"] // 3 + a0["tri_count"]], uvh, head_df, True, False))
+    else:
+        a0, a1 = md_head["atoms"][0], md_head["atoms"][1]
+        parts.append((vh, nh, topo_head[a0["base_index"] // 3 : a0["base_index"] // 3 + a0["tri_count"]], uvh, head_df, False, False))
+        parts.append((vh, nh, topo_head[a1["base_index"] // 3 : a1["base_index"] // 3 + a1["tri_count"]], uvh, sec_df, True, False))
 
     W_col, H_row = 360, 480
     canvas = Image.new("RGB", (W_col * 4, H_row + 58), (18, 22, 30))
@@ -644,7 +647,7 @@ def main() -> None:
             "Geralt_over_Rust.zip",
             "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1.model",
             "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_df.texture",
-            "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_hair_df.texture",
+            "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_df.texture",
             "guis/dlcs/wild/textures/pd2/blackmarket/icons/characters/wild.texture",
             "g_head",
             (64, 58, 52),

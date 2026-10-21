@@ -586,6 +586,8 @@ def _prepare_combined_head_arrays(
     atom1_mesh: dict[str, np.ndarray],
     bone_offset: int,
     jaw_lift: float = 3.0,
+    single_atom: bool = False,
+    double_side_atom1: bool = False,
 ) -> dict:
     """Deduplicate and pack Atom 0 and Atom 1 into Diesel Geometry/Topology/ModelData arrays."""
     v0, n0, uv0, t0 = deduplicate_mesh(
@@ -600,32 +602,47 @@ def _prepare_combined_head_arrays(
     n_len = np.linalg.norm(norms_all, axis=1, keepdims=True)
     norms_all = np.where(n_len > 1e-6, norms_all / np.maximum(n_len, 1e-6), np.array([0.0, 1.0, 0.0], dtype=np.float32))
     uvs_all = np.vstack([uv0, uv1])
-    tris_all = np.vstack([t0, t1 + len(v0)])
+    tris_primary = np.vstack([t0, t1 + len(v0)])
 
     pal_idx, pal_w = compute_joy_head_weights(verts_all, bone_offset=bone_offset, jaw_lift=jaw_lift)
-    uvdir_u, uvdir_v = compute_tangents(verts_all, norms_all, uvs_all, tris_all)
+    uvdir_u, uvdir_v = compute_tangents(verts_all, norms_all, uvs_all, tris_primary)
+
+    if double_side_atom1:
+        t1 = np.vstack([t1, t1[:, [0, 2, 1]]])
+    tris_all = np.vstack([t0, t1 + len(v0)])
 
     verts_list = [tuple(map(float, row)) for row in verts_all]
     norms_list = [tuple(map(float, row)) for row in norms_all]
     uvs_list = [tuple(map(float, row)) for row in uvs_all]
     flat_indices = [int(i) for tri in tris_all for i in tri]
 
-    atoms = [
-        {
-            "base_vertex": 0,
-            "tri_count": int(len(t0)),
-            "base_index": 0,
-            "slice_len": int(len(v0)),
-            "material_id": 0,
-        },
-        {
-            "base_vertex": int(len(v0)),
-            "tri_count": int(len(t1)),
-            "base_index": int(len(t0) * 3),
-            "slice_len": int(len(v1)),
-            "material_id": 1,
-        },
-    ]
+    if single_atom:
+        atoms = [
+            {
+                "base_vertex": 0,
+                "tri_count": int(len(tris_all)),
+                "base_index": 0,
+                "slice_len": int(len(verts_all)),
+                "material_id": 0,
+            }
+        ]
+    else:
+        atoms = [
+            {
+                "base_vertex": 0,
+                "tri_count": int(len(t0)),
+                "base_index": 0,
+                "slice_len": int(len(v0)),
+                "material_id": 0,
+            },
+            {
+                "base_vertex": int(len(v0)),
+                "tri_count": int(len(t1)),
+                "base_index": int(len(t0) * 3),
+                "slice_len": int(len(v1)),
+                "material_id": 1,
+            },
+        ]
     bmin = tuple(map(float, verts_all.min(axis=0)))
     bmax = tuple(map(float, verts_all.max(axis=0)))
     center = 0.5 * (verts_all.min(axis=0) + verts_all.max(axis=0))
@@ -691,10 +708,10 @@ def patch_female_heister_model(
     head_drawables: list[str],
     collapse_drawables: list[str],
     head_mat_name: str,
-    hair_mat_name: str,
+    hair_mat_name: str | None,
     packed_head: dict,
 ) -> bytes:
-    """Patch head drawables and collapse legacy hair drawables in Clover, Bonnie, or Sydney `.model`."""
+    """Patch head drawables and collapse legacy hair drawables in Clover, Bonnie, Sydney, or Rust `.model`."""
     mf = dm.ModelFile.read(model_bytes)
 
     mat_by_hash = {
@@ -702,15 +719,17 @@ def patch_female_heister_model(
         for s in mf.by_type(dm.MATERIAL)
     }
     head_mat_id = mat_by_hash[dm.hash64(head_mat_name)]
-    hair_hash = dm.hash64(hair_mat_name)
+    hair_mat_id: int | None = None
     inserted_hair_mat_sec: dm.Section | None = None
-    if hair_hash in mat_by_hash:
-        hair_mat_id = mat_by_hash[hair_hash]
-    else:
-        hair_mat_id = max((s.id for s in mf.sections if s.id < 100000), default=10000) + 1
-        base_mat_dec = dm.decode_material(mf.by_id(head_mat_id).payload)
-        base_mat_dec["name_hash"] = hair_hash
-        inserted_hair_mat_sec = dm.Section(dm.MATERIAL, hair_mat_id, dm.encode_material(base_mat_dec))
+    if hair_mat_name is not None:
+        hair_hash = dm.hash64(hair_mat_name)
+        if hair_hash in mat_by_hash:
+            hair_mat_id = mat_by_hash[hair_hash]
+        else:
+            hair_mat_id = max((s.id for s in mf.sections if s.id < 100000), default=10000) + 1
+            base_mat_dec = dm.decode_material(mf.by_id(head_mat_id).payload)
+            base_mat_dec["name_hash"] = hair_hash
+            inserted_hair_mat_sec = dm.Section(dm.MATERIAL, hair_mat_id, dm.encode_material(base_mat_dec))
 
     head_hashes = {dm.hash64(n) for n in head_drawables}
     collapse_hashes = {dm.hash64(n) for n in collapse_drawables}
@@ -781,7 +800,7 @@ def patch_female_heister_model(
             new_sections.append(dm.Section(s.type, s.id, dm.encode_model_data(dec)))
         elif s.id in head_mg_ids:
             dec = dm.decode_material_group(s.payload)
-            dec["material_ids"] = [head_mat_id, hair_mat_id]
+            dec["material_ids"] = [head_mat_id] if hair_mat_id is None else [head_mat_id, hair_mat_id]
             new_sections.append(dm.Section(s.type, s.id, dm.encode_material_group(dec)))
         elif s.id in head_sb_ids:
             dec = dm.decode_skinbones(s.payload)
@@ -887,20 +906,13 @@ def patch_sydney_material_config(xml_bytes: bytes, alpha_masked: bool) -> bytes:
 
 
 def patch_wild_material_config(xml_bytes: bytes, alpha_ref: str = "0.18") -> bytes:
-    """Upgrade mtr_head to mip 0 and add ALPHA_MASKED mtr_hair in Rust's .material_config files."""
+    """Upgrade mtr_head in Rust's .material_config files to ALPHA_MASKED mip 0 on npc_criminal_wild_1_head_df/_nm."""
     text = xml_bytes.decode("utf-8", errors="ignore")
     new_head = (
         '<material name="mtr_head" unique="true" '
-        'render_template="generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:RL_PLAYERS:SKINNED_3WEIGHTS" version="2">\n'
+        'render_template="generic:ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_3WEIGHTS" version="2">\n'
         '        <diffuse_texture file="units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_df"/>\n'
         '        <bump_normal_texture file="units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_nm"/>\n'
-        '        <variable value="0 0 0" type="vector3" name="contour_color"/>\n'
-        '        <variable value="0" type="scalar" name="contour_opacity"/>\n'
-        '    </material>\n'
-        '    <material name="mtr_hair" unique="true" '
-        'render_template="generic:ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_3WEIGHTS" version="2">\n'
-        '        <diffuse_texture file="units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_hair_df"/>\n'
-        '        <bump_normal_texture file="units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_hair_nm"/>\n'
         f'        <variable value="{alpha_ref}" type="scalar" name="alpha_ref"/>\n'
         "    </material>"
     )
@@ -962,7 +974,7 @@ def render_head_portrait(atom0_mesh: dict, atom1_mesh: dict, atlas_rgb: np.ndarr
             ix_min, ix_max = max(0, int(min(x0, x1, x2))), min(W - 1, int(max(x0, x1, x2)) + 1)
             iy_min, iy_max = max(0, int(min(y0, y1, y2))), min(H - 1, int(max(y0, y1, y2)) + 1)
             denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2)
-            if abs(denom) < 1e-5:
+            if denom <= 1e-5:
                 continue
             inv_d = 1.0 / denom
             for py_i in range(iy_min, iy_max + 1):
@@ -1648,52 +1660,53 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
 
     vtf_by_lower = {p.stem.lower(): p for p in geralt_root.rglob("*.vtf")}
 
-    def load_vtf_rgba(stem: str) -> Image.Image:
+    def load_vtf_rgba(stem: str, size: tuple[int, int] | None = None) -> np.ndarray:
         vimg = vtf_mod.parse_vtf(vtf_by_lower[stem.lower()].read_bytes())
-        return Image.open(io.BytesIO(vtf_mod.to_dds(vimg))).convert("RGBA")
+        im = Image.open(io.BytesIO(vtf_mod.to_dds(vimg))).convert("RGBA")
+        if size is not None and im.size != size:
+            rgb = np.asarray(im.convert("RGB").resize(size, Image.Resampling.LANCZOS))
+            alpha = np.asarray(im.getchannel("A").resize(size, Image.Resampling.LANCZOS))
+            return np.dstack([rgb, alpha]).copy()
+        return np.asarray(im).copy()
 
     def load_pd2_nm(stem: str, size: tuple[int, int]) -> np.ndarray:
-        im = load_vtf_rgba(stem).resize(size, Image.Resampling.LANCZOS)
-        return dds.pd2_normal_channels(np.asarray(im), invert_y=True).copy()
+        arr = load_vtf_rgba(stem, size)
+        return dds.pd2_normal_channels(arr, invert_y=True).copy()
 
-    # Atom 0 (mtr_head, 2048x2048):
-    # - [0:1536, 0:1536]   (u, v_img in [0.00, 0.75]): Geralt_head_BM (1536x1536)
-    # - [0:512, 1536:2048] (u in [0.75, 1.00], v_img in [0.00, 0.25]): Eyes_BM (512x512 native)
-    # - [512:1024, 1536:2048] (u in [0.75, 1.00], v_img in [0.25, 0.50]): Teeths_BM (512x512)
+    # Unified 2048x2048 atlas in npc_criminal_wild_1_head_df / _nm (single vanilla mtr_head with ALPHA_MASKED):
+    # Top half y in [0, 1024] (100% opaque alpha=255):
+    # - [0:1024, 0:1024]     (u in [0.00, 0.50], v_img in [0.00, 0.50]): Geralt_head_BM (1024x1024)
+    # - [0:512, 1024:2048]   (u in [0.50, 1.00], v_img in [0.00, 0.25]): Teeths_BM (1024x512 native)
+    # - [512:1024, 1024:1536] (u in [0.50, 0.75], v_img in [0.25, 0.50]): Eyes_BM (512x512 native)
+    # Bottom half y in [1024, 2048] (cutout alpha in [0, 255] for ALPHA_MASKED alpha_ref=0.18):
+    # - [1024:2048, 0:1024]    (u in [0.00, 0.50], v_img in [0.50, 1.00]): hair_d (1024x1024)
+    # - [1024:1536, 1024:2048] (u in [0.50, 1.00], v_img in [0.50, 0.75]): beard_d (1024x512 native)
+    # - [1536:2048, 1024:1536] (u in [0.50, 0.75], v_img in [0.75, 1.00]): eyelashes (512x512 native)
     head_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    head_bm_arr = np.asarray(load_vtf_rgba("geralt_head_bm").resize((1536, 1536), Image.Resampling.LANCZOS)).copy()
-    head_bm_arr[:, :, 3] = np.minimum(head_bm_arr[:, :, 3], 18)
-    eyes_bm_arr = np.asarray(load_vtf_rgba("eyes_bm").resize((512, 512), Image.Resampling.LANCZOS)).copy()
-    eyes_bm_arr[:, :, 3] = 8
-    teeth_bm_arr = np.asarray(load_vtf_rgba("teeths_bm").resize((512, 512), Image.Resampling.LANCZOS)).copy()
-    teeth_bm_arr[:, :, 3] = 14
+    head_df_atlas[0:1024, 0:2048, 3] = 255
 
-    head_df_atlas[0:1536, 0:1536] = head_bm_arr
-    head_df_atlas[0:512, 1536:2048] = eyes_bm_arr
-    head_df_atlas[512:1024, 1536:2048] = teeth_bm_arr
+    head_bm_arr = load_vtf_rgba("geralt_head_bm", (1024, 1024))
+    head_bm_arr[:, :, 3] = 255
+    teeth_bm_arr = load_vtf_rgba("teeths_bm", (1024, 512))
+    teeth_bm_arr[:, :, 3] = 255
+    eyes_bm_arr = load_vtf_rgba("eyes_bm", (512, 512))
+    eyes_bm_arr[:, :, 3] = 255
+
+    head_df_atlas[0:1024, 0:1024] = head_bm_arr
+    head_df_atlas[0:512, 1024:2048] = teeth_bm_arr
+    head_df_atlas[512:1024, 1024:1536] = eyes_bm_arr
+    head_df_atlas[1024:2048, 0:1024] = load_vtf_rgba("hair_d", (1024, 1024))
+    head_df_atlas[1024:1536, 1024:2048] = load_vtf_rgba("beard_d", (1024, 512))
+    head_df_atlas[1536:2048, 1024:1536] = load_vtf_rgba("eyelashes", (512, 512))
 
     head_nm_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_nm_atlas[:, :] = [255, 128, 0, 128]
-    head_nm_atlas[0:1536, 0:1536] = load_pd2_nm("geralt_head_nm", (1536, 1536))
-    head_nm_atlas[512:1024, 1536:2048] = load_pd2_nm("teeths_nm", (512, 512))
+    head_nm_atlas[0:1024, 0:1024] = load_pd2_nm("geralt_head_nm", (1024, 1024))
+    head_nm_atlas[0:512, 1024:2048] = load_pd2_nm("teeths_nm", (1024, 512))
+    head_nm_atlas[1024:2048, 0:1024] = load_pd2_nm("hair_n", (1024, 1024))
+    head_nm_atlas[1024:1536, 1024:2048] = load_pd2_nm("beard_n", (1024, 512))
     head_nm_atlas[:, :, 0] = 255
     head_nm_atlas[:, :, 2] = 0
-
-    # Atom 1 (mtr_hair, 2048x2048 ALPHA_MASKED):
-    # - [0:1024, 0:2048]     (u in [0.00, 1.00], v_img in [0.00, 0.50]): hair_d (2048x1024 native)
-    # - [1024:2048, 0:1024]  (u in [0.00, 0.50], v_img in [0.50, 1.00]): beard_d (1024x1024)
-    # - [1024:2048, 1024:2048] (u in [0.50, 1.00], v_img in [0.50, 1.00]): eyelashes (1024x1024)
-    hair_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    hair_df_atlas[0:1024, 0:2048] = np.asarray(load_vtf_rgba("hair_d").resize((2048, 1024), Image.Resampling.LANCZOS))
-    hair_df_atlas[1024:2048, 0:1024] = np.asarray(load_vtf_rgba("beard_d").resize((1024, 1024), Image.Resampling.LANCZOS))
-    hair_df_atlas[1024:2048, 1024:2048] = np.asarray(load_vtf_rgba("eyelashes").resize((1024, 1024), Image.Resampling.LANCZOS))
-
-    hair_nm_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    hair_nm_atlas[:, :] = [255, 128, 0, 128]
-    hair_nm_atlas[0:1024, 0:2048] = load_pd2_nm("hair_n", (2048, 1024))
-    hair_nm_atlas[1024:2048, 0:1024] = load_pd2_nm("beard_n", (1024, 1024))
-    hair_nm_atlas[:, :, 0] = 255
-    hair_nm_atlas[:, :, 2] = 0
 
     src_anchor = np.array([0.0, 4.43, 65.80], dtype=np.float32)
     dst_anchor = np.array([0.0, 19.3, 171.8], dtype=np.float32)
@@ -1703,7 +1716,8 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
         mat_name: str, u_off: float, u_scale: float, v_off: float, v_scale: float
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         m = next(x for x in gm.meshes if x.material == mat_name)
-        idx = np.asarray(m.triangle_indices, dtype=np.int32).reshape(-1, 3)
+        # Swap (a, b, c) -> (a, c, b) to convert Source Engine CW winding to PAYDAY 2 Diesel CCW winding
+        idx = np.asarray(m.triangle_indices, dtype=np.int32).reshape(-1, 3)[:, [0, 2, 1]]
 
         p_raw = np.array([gm.vertices[vi].pos for vi in idx.ravel()], dtype=np.float32)
         n_raw = np.array([gm.vertices[vi].normal for vi in idx.ravel()], dtype=np.float32)
@@ -1727,9 +1741,7 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
             w_back = np.clip((1.0 - p[:, 1]) / 6.0, 0.0, 1.0)
             p[:, 2] -= 4.8 * (w_bot ** 1.1)
             p[:, 0] *= 1.0 + 0.32 * w_bot
-            p[:, 1] += 1.8 * w_bot * w_front - 0.8 * w_bot * w_back
-            low_front = (p[:, 2] < 157.5) & (p[:, 1] > 5.0)
-            p[low_front, 1] = np.minimum(p[low_front, 1], 10.35)
+            p[:, 1] += 0.45 * w_bot * w_front - 0.5 * w_bot * w_back
         elif mat_name == "hair_d":
             w_low = np.clip((165.0 - p[:, 2]) / 8.5, 0.0, 1.0)
             w_side = np.clip((p[:, 1] + 6.0) / 8.0, 0.0, 1.0)
@@ -1752,9 +1764,9 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
 
     a0_v, a0_n, a0_uv, a0_t = [], [], [], []
     for mname, uo, us, vo, vs in [
-        ("Geralt_head_BM", 0.0, 0.75, 0.0, 0.75),
-        ("Eyes_BM", 0.75, 0.25, 0.0, 0.25),
-        ("Teeths_BM", 0.75, 0.25, 0.25, 0.25),
+        ("Geralt_head_BM", 0.0, 0.5, 0.0, 0.5),
+        ("Teeths_BM", 0.5, 0.5, 0.0, 0.25),
+        ("Eyes_BM", 0.5, 0.25, 0.25, 0.25),
     ]:
         p, n, uv, t = extract_geralt_part(mname, uo, us, vo, vs)
         off = sum(len(x) for x in a0_v)
@@ -1765,9 +1777,9 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
 
     a1_v, a1_n, a1_uv, a1_t = [], [], [], []
     for mname, uo, us, vo, vs in [
-        ("hair_d", 0.0, 1.0, 0.0, 0.5),
-        ("beard_d", 0.0, 0.5, 0.5, 0.5),
-        ("eyelashes", 0.5, 0.5, 0.5, 0.5),
+        ("hair_d", 0.0, 0.5, 0.5, 0.5),
+        ("beard_d", 0.5, 0.5, 0.5, 0.25),
+        ("eyelashes", 0.5, 0.25, 0.75, 0.25),
     ]:
         p, n, uv, t = extract_geralt_part(mname, uo, us, vo, vs)
         off = sum(len(x) for x in a1_v)
@@ -1790,16 +1802,19 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     }
 
     packed_rust_head = _prepare_combined_head_arrays(
-        atom0_mesh, atom1_mesh, bone_offset=1, jaw_lift=7.5
+        atom0_mesh,
+        atom1_mesh,
+        bone_offset=1,
+        jaw_lift=7.5,
+        single_atom=True,
+        double_side_atom1=True,
     )
 
     head_df_dds = encode_rgba_dds(head_df_atlas)
     head_nm_dds = encode_rgba_dds(head_nm_atlas)
-    hair_df_dds = encode_rgba_dds(hair_df_atlas)
-    hair_nm_dds = encode_rgba_dds(hair_nm_atlas)
 
     portrait = render_head_portrait(
-        atom0_mesh, atom1_mesh, head_df_atlas[:, :, :3], hair_df_atlas, alpha_cut=True
+        atom0_mesh, atom1_mesh, head_df_atlas[:, :, :3], head_df_atlas, alpha_cut=True
     )
     icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
 
@@ -1810,7 +1825,7 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
             head_drawables=["g_head"],
             collapse_drawables=[],
             head_mat_name="mtr_head",
-            hair_mat_name="mtr_hair",
+            hair_mat_name=None,
             packed_head=packed_rust_head,
         )
         rust_obj = zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{WILD_UNIT_DIR}/npc_criminal_wild_1.object")
@@ -1840,8 +1855,6 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
         f"{prefix}/{CHILL_UNIT_DIR}/mtr_criminal_wild_1.material_config": rust_chill_mtr,
         f"{prefix}/{WILD_UNIT_DIR}/npc_criminal_wild_1_head_df.texture": head_df_dds,
         f"{prefix}/{WILD_UNIT_DIR}/npc_criminal_wild_1_head_nm.texture": head_nm_dds,
-        f"{prefix}/{WILD_UNIT_DIR}/npc_criminal_wild_1_hair_df.texture": hair_df_dds,
-        f"{prefix}/{WILD_UNIT_DIR}/npc_criminal_wild_1_hair_nm.texture": hair_nm_dds,
     }
     write_deterministic_zip(files, out_zip_paths)
 
