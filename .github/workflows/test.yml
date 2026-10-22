@@ -20,12 +20,12 @@ jobs:
       # reindex that can take minutes on the runner. When the Ubuntu mirror crawls (it has, at ~150 KB/s), the step
       # gives up after 8 minutes and the run goes on: that one test skips without ffmpeg instead of failing the build.
       - name: ffmpeg
-        timeout-minutes: 8
+        timeout-minutes: 3
         continue-on-error: true
         run: |
           sudo rm -f /var/lib/man-db/auto-update
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg
+          sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 update
+          sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 install -y --no-install-recommends ffmpeg
       - name: build the LAS pack
         # the guide-compliance audit and its mutation self-test read the built
         # pack; without it those two tests silently skip, and a checker that
@@ -35,12 +35,10 @@ jobs:
         # a stale tracked pack (or a non-deterministic build) must not slip
         # through on a branch push
         run: |
-          diff -u dist/lawson_las.zip.sha256 <(sha256sum dist/lawson_las.zip)
-          diff -u dist/Miranda_LAS.zip.sha256 <(sha256sum dist/Miranda_LAS.zip)
-          diff -u build/pd2-las/Miranda_LAS.zip.sha256 <(sha256sum build/pd2-las/Miranda_LAS.zip)
-          diff -u dist/Miranda_L4D2_over_Joy.zip.sha256 <(sha256sum dist/Miranda_L4D2_over_Joy.zip)
-          diff -u dist/Miranda_Romance_over_Joy.zip.sha256 <(sha256sum dist/Miranda_Romance_over_Joy.zip)
-      - run: uv run --with pytest pytest -q tests
+          for sha_file in dist/*.zip.sha256 build/pd2-las/Miranda_LAS.zip.sha256; do
+            sha256sum -c "$sha_file"
+          done
+      - run: python -m pytest -q tests
       - run: ./bin/um --help && for g in scan fal comfy sprite render3d video win backup publish kb; do ./bin/um $g --help > /dev/null; done
       - name: knowledge base
         run: ./bin/um kb check --index

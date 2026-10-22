@@ -1,20 +1,21 @@
-# tools/ — PAYDAY 2 Miranda Lawson build pipelines
+# tools/ — PAYDAY 2 character & head-replacement build pipelines
 
-Three PAYDAY 2 pipelines live in `tools/`, producing the ten tracked deliverables in **`dist/`**:
+Three PAYDAY 2 pipelines live in `tools/`, producing the eleven tracked deliverables in **`dist/`**:
 
-1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`** (`9,107,070` bytes). See `tools/pd2-port/STATUS.md`.
-2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`** (`5,864,923` bytes). See `docs/pd2-las/HANDOFF.md`.
-3. **`tools/build_joy_head_mods.py`** — Eight female-heister head-replacement `mod_overrides` packages (**L4D2** and **ME2 Romance** variants over **Joy**, **Clover**, **Bonnie**, and **Sydney**), modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`:
-   - **`dist/Miranda_L4D2_over_Joy.zip`** (`10,634,831` B) & **`dist/Miranda_Romance_over_Joy.zip`** (`10,368,473` B)
-   - **`dist/Miranda_L4D2_over_Clover.zip`** (`7,684,781` B) & **`dist/Miranda_Romance_over_Clover.zip`** (`7,424,198` B)
-   - **`dist/Miranda_L4D2_over_Bonnie.zip`** (`8,194,781` B) & **`dist/Miranda_Romance_over_Bonnie.zip`** (`7,921,882` B)
-   - **`dist/Miranda_L4D2_over_Sydney.zip`** (`7,186,118` B) & **`dist/Miranda_Romance_over_Sydney.zip`** (`6,931,272` B)
+1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`**. See `tools/pd2-port/STATUS.md`.
+2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`**. See `docs/pd2-las/HANDOFF.md`.
+3. **`tools/build_joy_head_mods.py`** — Nine vanilla-heister head-replacement `mod_overrides` packages (**Miranda L4D2** and **Miranda ME2 Romance** variants over **Joy**, **Clover**, **Bonnie**, and **Sydney**, plus **Witcher 3 Geralt of Rivia** from `models/Geralt.7z` over **Rust**), modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`:
+   - **`dist/Miranda_L4D2_over_Joy.zip`** & **`dist/Miranda_Romance_over_Joy.zip`**
+   - **`dist/Miranda_L4D2_over_Clover.zip`** & **`dist/Miranda_Romance_over_Clover.zip`**
+   - **`dist/Miranda_L4D2_over_Bonnie.zip`** & **`dist/Miranda_Romance_over_Bonnie.zip`**
+   - **`dist/Miranda_L4D2_over_Sydney.zip`** & **`dist/Miranda_Romance_over_Sydney.zip`**
+   - **`dist/Geralt_over_Rust.zip`**
 
-| | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Female Heister Head Mods |
+| | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Heister Head Mods |
 | --- | --- | --- | --- |
 | Source | `models/PC _ Computer … Miranda Lawson (Romance).zip` + `references/2b.rar` | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `models/*` + `references/Ada Wong over Joy.7z` + `references/Heister - FPS Gloves in TPS 2.zip` |
-| Output in `dist/` | `dist/lawson_las.zip` (tracked, sha256-pinned) | `dist/Miranda_LAS.zip` (tracked, sha256-pinned) | `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (tracked, sha256-pinned) |
-| Pack layout | `Lawson_LAS/assets/units/…` (LAS outfit) | `Miranda_LAS/assets/units/…` (LAS outfit) | `Miranda {L4D2,Romance} over {Joy,Clover,Bonnie,Sydney}/units/…` |
+| Output in `dist/` | `dist/lawson_las.zip` (tracked, sha256-pinned) | `dist/Miranda_LAS.zip` (tracked, sha256-pinned) | `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` + `dist/Geralt_over_Rust.zip` (tracked, sha256-pinned) |
+| Pack layout | `Lawson_LAS/assets/units/…` (LAS outfit) | `Miranda_LAS/assets/units/…` (LAS outfit) | `{Miranda …, Geralt} over {Joy,Clover,Bonnie,Sydney,Rust}/units/…` |
 | Install | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (vanilla heister head replacement) |
 | `.model` dialect | DODB container, unshifted channel types, packed normals | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) |
 | Rig work | `rig_target.py` + `reference/las_rig.json` (anatomically partitioned similarity retarget) | `skeleton_map.json` + anatomically partitioned similarity retarget in `build_models.py` |
