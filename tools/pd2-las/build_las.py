@@ -157,7 +157,9 @@ def main(argv: list[str] | None = None) -> int:
             img = raw_vtf_imgs[stem]
             if stem in DF_SPECULAR_FROM_NORMAL:
                 nm_stem, scale, max_a = DF_SPECULAR_FROM_NORMAL[stem]
-                base_dds = raw_dds[stem]
+                dds = attenuate_dxt5_alpha_from_normal(
+                    raw_dds[stem], raw_dds[nm_stem], scale, max_a
+                )
                 if stem == "miranda_face_color":
                     import io
                     import numpy as np
@@ -165,28 +167,53 @@ def main(argv: list[str] | None = None) -> int:
                     from dds_encode import rgba_to_bc3_dds
 
                     face_rgba = np.asarray(
-                        Image.open(io.BytesIO(raw_dds[stem])).convert("RGBA"),
+                        Image.open(io.BytesIO(dds)).convert("RGBA"),
                         dtype=np.uint8,
                     ).copy()
                     yy, xx = np.mgrid[0 : img.height, 0 : img.width].astype(np.float32)
                     u = (xx + 0.5) / img.width
                     v = (yy + 0.5) / img.height
-                    for uc, vc in ((0.452, 0.484), (0.563, 0.493)):
-                        d = np.hypot((u - uc) / 0.014, (v - vc) / 0.012)
-                        w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.82
+                    for uc, vc in ((0.454, 0.472), (0.559, 0.472)):
+                        d = np.hypot((u - uc) / 0.020, (v - vc) / 0.025)
+                        w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.90
                         m = w_n > 0.0
                         if m.any():
                             rgb = face_rgba[m, :3].astype(np.float32)
-                            target = np.array([28.0, 14.0, 10.0], dtype=np.float32)
+                            target = np.array([14.0, 7.0, 5.0], dtype=np.float32)
                             face_rgba[m, :3] = np.clip(
                                 rgb * (1.0 - w_n[m, None]) + target * w_n[m, None],
                                 0.0,
                                 255.0,
                             ).astype(np.uint8)
-                    base_dds = rgba_to_bc3_dds(face_rgba)
-                dds = attenuate_dxt5_alpha_from_normal(
-                    base_dds, raw_dds[nm_stem], scale, max_a
-                )
+                        m_spec = d < 1.0
+                        if m_spec.any():
+                            face_rgba[m_spec, 3] = np.minimum(face_rgba[m_spec, 3], 2)
+                    # Upper eyelid lash liner + upper waterline (L4D2 mesh has no separate 3D Eyelashes mesh)
+                    w_lash = np.zeros_like(u)
+                    for uc, u_min, u_max in ((0.260, 0.190, 0.322), (0.747, 0.684, 0.808)):
+                        du = (u - uc) / 0.062
+                        v_center = 0.293 + 0.003 * (du ** 2)
+                        dv = (v - v_center) / 0.011
+                        w_eye = np.exp(-(du ** 4) - (dv ** 2) * 1.8) * (
+                            (u >= u_min) & (u <= u_max) & (v <= 0.3055)
+                        )
+                        w_lash = np.maximum(w_lash, w_eye)
+                    w_wl = np.maximum(
+                        np.exp(-(((u - 0.068) / 0.042) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+                        np.exp(-(((u - 0.927) / 0.036) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+                    )
+                    w_l = np.clip(np.maximum(w_lash, w_wl) * 0.88, 0.0, 1.0)
+                    m_l = w_l > 0.02
+                    if m_l.any():
+                        rgb = face_rgba[m_l, :3].astype(np.float32)
+                        target_lash = np.array([18.0, 13.0, 11.0], dtype=np.float32)
+                        face_rgba[m_l, :3] = np.clip(
+                            rgb * (1.0 - w_l[m_l, None]) + target_lash * w_l[m_l, None],
+                            0.0,
+                            255.0,
+                        ).astype(np.uint8)
+                        face_rgba[w_l > 0.35, 3] = np.minimum(face_rgba[w_l > 0.35, 3], 4)
+                    dds = rgba_to_bc3_dds(face_rgba)
             elif stem.endswith("_normal"):
                 dds = swizzle_source_normal_dxt5_to_pd2(raw_dds[stem], invert_y=True)
             elif stem == "miranda_eyes":

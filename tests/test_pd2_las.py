@@ -763,6 +763,22 @@ class TestLasScaffold:
             hair_sat = hair_tile[:, :, :3].max(axis=2).astype(int) - hair_tile[:, :, :3].min(axis=2).astype(int)
             assert int(hair_sat.max()) <= 30, f"Unexpected color saturation artifact in hair_d tile: {hair_sat.max()}"
 
+            # Verify coverage-preserving mipmaps keep beard_d visible across mip 0..3
+            sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+            import dds as pd2_dds
+
+            raw_df = z.read(f"{wild_dir}/npc_criminal_wild_1_head_df.texture")
+            off_mip = 128
+            for mip_i in range(4):
+                mw = 2048 >> mip_i
+                mh = 2048 >> mip_i
+                msz = (mw // 4) * (mh // 4) * 16
+                dec_mip = pd2_dds.decode_dxt5(raw_df[off_mip : off_mip + msz], mw, mh)
+                off_mip += msz
+                beard_mip = dec_mip[mh // 2 : (mh * 5) // 8, (mw * 7) // 8 : mw]
+                surv = float((beard_mip[:, :, 3] > 13).mean())
+                assert surv >= 0.22, f"Beard mip {mip_i} alpha survival dropped too low: {surv:.3f}"
+
             # Verify side neck skin stays strictly inside side hair curtain (no poking through below ears)
             is_head_v = (uv0[:, 0] < 0.5) & (uv0[:, 1] >= 0.5)
             is_hair_v = (uv0[:, 0] < 0.5) & (uv0[:, 1] < 0.5)
@@ -774,6 +790,37 @@ class TestLasScaffold:
         assert prev.is_file()
         with Image.open(prev) as pim:
             assert pim.size == (1440, 538)
+
+    def test_miranda_nostril_shadow_and_upper_lash_liner(self):
+        """Regression check: inner nostrils are dark + low-specular across all Miranda packs, and Miranda_LAS has upper lash liner."""
+        import io
+        import numpy as np
+        from PIL import Image
+
+        for zip_name, tex_suffix, uv_scale in (
+            ("lawson_las.zip", "/face_df.texture", 1.0),
+            ("Miranda_LAS.zip", "/miranda_face_df.texture", 1.0),
+            ("Miranda_L4D2_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
+            ("Miranda_Romance_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
+        ):
+            zp = REPO / "dist" / zip_name
+            if not zp.is_file():
+                pytest.skip(f"{zip_name} not built")
+            with zipfile.ZipFile(zp) as z:
+                entry = next(n for n in z.namelist() if n.endswith(tex_suffix))
+                arr = np.asarray(Image.open(io.BytesIO(z.read(entry))).convert("RGBA"))
+            H, W = arr.shape[:2]
+            for uc, vc in ((0.454 * uv_scale, 0.472 * uv_scale), (0.559 * uv_scale, 0.472 * uv_scale)):
+                px, py = int(uc * W), int(vc * H)
+                patch = arr[py - 3 : py + 4, px - 3 : px + 4]
+                assert float(patch[:, :, :3].mean()) < 40.0, f"{zip_name}: nostril RGB too bright ({patch[:, :, :3].mean():.1f})"
+                assert int(patch[:, :, 3].max()) <= 5, f"{zip_name}: nostril specular alpha too high ({patch[:, :, 3].max()})"
+            for uc, vc in ((0.260 * uv_scale, 0.293 * uv_scale), (0.747 * uv_scale, 0.293 * uv_scale)):
+                px, py = int(uc * W), int(vc * H)
+                if zip_name != "lawson_las.zip":
+                    lash_patch = arr[py - 2 : py + 3, px - 4 : px + 5, :3]
+                    assert float(lash_patch.mean()) < 48.0, f"{zip_name}: upper lash liner missing ({lash_patch.mean():.1f})"
+
 
 
 

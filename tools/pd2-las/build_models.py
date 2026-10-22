@@ -444,7 +444,7 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
                 ax_p = -ax_p
 
             ps_a_g = np.array(dm.mat_apply_point(g_fit, tuple(ps_a.tolist())), dtype=np.float64)
-            pt_a_stand = ps_a_g + np.array([sgn * 1.2, 0.0, -0.3], dtype=np.float64)
+            pt_a_stand = ps_a_g + np.array([0.0, 0.0, -0.3], dtype=np.float64)
             pt_f_stand = pt_f_posed + 2.8 * ax_p
             pt_h_stand = (m_fa_menu @ np.append(pt_wrist, 1.0))[:3]
 
@@ -679,8 +679,16 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
             by_target: dict[str, float] = {}
             for bi, w in sv.weights:
                 if bi in per_src_T and w > 1e-6:
-                    tname, _ = target_for_src[bi]
-                    by_target[tname] = by_target.get(tname, 0.0) + w
+                    bname = model.bones[bi].name
+                    if bname == "hlp_l_shoulder" and "LeftShoulder" in t_mat_by_name and "LeftArm" in t_mat_by_name:
+                        by_target["LeftShoulder"] = by_target.get("LeftShoulder", 0.0) + 0.65 * w
+                        by_target["LeftArm"] = by_target.get("LeftArm", 0.0) + 0.35 * w
+                    elif bname == "hlp_r_shoulder" and "RightShoulder" in t_mat_by_name and "RightArm" in t_mat_by_name:
+                        by_target["RightShoulder"] = by_target.get("RightShoulder", 0.0) + 0.65 * w
+                        by_target["RightArm"] = by_target.get("RightArm", 0.0) + 0.35 * w
+                    else:
+                        tname, _ = target_for_src[bi]
+                        by_target[tname] = by_target.get(tname, 0.0) + w
             infl = [(tn, w) for tn, w in by_target.items() if w > 1e-6]
             infl.sort(key=lambda t: -t[1])
             infl = infl[:3]
@@ -871,6 +879,27 @@ def repair_skin_boundary_normals(g: Group) -> None:
             nt = (float(avg_n[0] / ln), float(avg_n[1] / ln), float(avg_n[2] / ln))
             for vi in v_list:
                 g.normals[vi] = nt
+    # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
+    # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
+    for mat_name, base_v, _base_i, _tri_count, slice_len in g.slices:
+        if mat_name == "miranda_face":
+            sub_uv = uv_img[base_v : base_v + slice_len]
+            d_nost = np.minimum(
+                np.hypot((sub_uv[:, 0] - 0.454) / 0.022, (sub_uv[:, 1] - 0.472) / 0.026),
+                np.hypot((sub_uv[:, 0] - 0.559) / 0.022, (sub_uv[:, 1] - 0.472) / 0.026),
+            )
+            n_shadow = np.array([0.0, -0.55, -0.83516465], dtype=np.float64)
+            for k in np.nonzero(d_nost < 1.0)[0]:
+                vi = int(base_v + k)
+                w_t = float(np.clip(1.0 - d_nost[k], 0.0, 1.0)) * 0.90
+                cur_n = np.asarray(g.normals[vi], dtype=np.float64)
+                blended_n = cur_n * (1.0 - w_t) + n_shadow * w_t
+                ln = float(np.linalg.norm(blended_n)) or 1.0
+                g.normals[vi] = (
+                    float(blended_n[0] / ln),
+                    float(blended_n[1] / ln),
+                    float(blended_n[2] / ln),
+                )
 
 
 def orientation_breaks(g: Group) -> int:

@@ -135,7 +135,7 @@ def compute_joy_head_weights(
     z = verts[:, 2]
     y = verts[:, 1]
     # Front chin/jaw transitions to Head earlier so the jaw/beard is 100% rigid with Head.
-    y0 = 9.5 if jaw_lift == 3.0 else 9.0
+    y0 = 9.5 if jaw_lift <= 3.0 else 6.5
     z_eff = z + jaw_lift * np.clip((y - y0) / 4.5, 0.0, 1.0)
 
     u1 = smoothstep((z_eff - 156.0) / 5.5)
@@ -393,6 +393,24 @@ def repair_skin_and_neck_normals(
             sn_out[j] = avg_n
             for fi in f_idxs:
                 fn_out[fi] = avg_n
+
+    # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
+    # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
+    ni_tip = int(np.argmax(fp[:, 1]))
+    y_tip, z_tip = float(fp[ni_tip, 1]), float(fp[ni_tip, 2])
+    nost_mask = (
+        (np.abs(fp[:, 0]) >= 0.30)
+        & (np.abs(fp[:, 0]) <= 1.08)
+        & (fp[:, 1] >= y_tip - 1.75)
+        & (fp[:, 1] <= y_tip - 0.30)
+        & (fp[:, 2] >= z_tip - 1.15)
+        & (fp[:, 2] <= z_tip - 0.12)
+    )
+    if nost_mask.any():
+        n_shadow = np.array([0.0, -0.55, -0.83516465], dtype=np.float64)
+        for vi in np.nonzero(nost_mask)[0]:
+            blended_n = fn_out[vi] * 0.15 + n_shadow * 0.85
+            fn_out[vi] = blended_n / max(float(np.linalg.norm(blended_n)), 1e-8)
 
     return fn_out.astype(np.float32), sn_out.astype(np.float32)
 
@@ -998,18 +1016,57 @@ def render_head_portrait(atom0_mesh: dict, atom1_mesh: dict, atlas_rgb: np.ndarr
 
 
 def shade_nostril_cavities(face_rgba: np.ndarray) -> np.ndarray:
-    """Darken the two nostril-cavity interior UV pockets so inner nostril walls do not catch bright frontal highlights."""
+    """Darken the two nostril-cavity interior UV pockets and zero their specular gloss so inner nostril walls do not catch bright frontal highlights."""
     out = face_rgba.copy()
     H, W = out.shape[:2]
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32) / float(H)
-    w_r = np.exp(-(((xx - 0.452) / 0.014) ** 2 + ((yy - 0.484) / 0.012) ** 2))
-    w_l = np.exp(-(((xx - 0.563) / 0.014) ** 2 + ((yy - 0.493) / 0.012) ** 2))
-    w_nost = np.clip(w_r + w_l, 0.0, 1.0)
-    target_dark = np.array([28.0, 14.0, 10.0], dtype=np.float32)
+    d_r = np.hypot((xx - 0.454) / 0.020, (yy - 0.472) / 0.025)
+    d_l = np.hypot((xx - 0.559) / 0.020, (yy - 0.472) / 0.025)
+    d_min = np.minimum(d_r, d_l)
+    w_nost = np.clip(1.0 - (d_min ** 1.6), 0.0, 1.0) * 0.90
+    target_dark = np.array([14.0, 7.0, 5.0], dtype=np.float32)
     for c_i in range(3):
         out[:, :, c_i] = np.clip(
-            out[:, :, c_i] * (1.0 - 0.82 * w_nost) + target_dark[c_i] * (0.82 * w_nost), 0, 255
+            out[:, :, c_i] * (1.0 - w_nost) + target_dark[c_i] * w_nost, 0, 255
         ).astype(np.uint8)
+    out[:, :, 3] = np.where(d_min < 1.0, np.minimum(out[:, :, 3], 2), out[:, :, 3]).astype(np.uint8)
+    # Darken the upper eyelid lash margin + upper waterline so the upper lash line is crisp
+    w_lash = np.zeros_like(xx)
+    for uc, u_min, u_max in ((0.260, 0.190, 0.322), (0.747, 0.684, 0.808)):
+        du = (xx - uc) / 0.062
+        v_center = 0.293 + 0.003 * (du ** 2)
+        dv = (yy - v_center) / 0.011
+        w_eye = np.exp(-(du ** 4) - (dv ** 2) * 1.8) * (
+            (xx >= u_min) & (xx <= u_max) & (yy <= 0.3055)
+        )
+        w_lash = np.maximum(w_lash, w_eye)
+    w_wl = np.maximum(
+        np.exp(-(((xx - 0.068) / 0.042) ** 4) - (((yy - 0.926) / 0.010) ** 2)),
+        np.exp(-(((xx - 0.927) / 0.036) ** 4) - (((yy - 0.926) / 0.010) ** 2)),
+    )
+    w_l = np.clip(np.maximum(w_lash, w_wl) * 0.88, 0.0, 1.0)
+    target_lash = np.array([18.0, 13.0, 11.0], dtype=np.float32)
+    for c_i in range(3):
+        out[:, :, c_i] = np.clip(
+            out[:, :, c_i] * (1.0 - w_l) + target_lash[c_i] * w_l, 0, 255
+        ).astype(np.uint8)
+    return out
+
+
+def flatten_nostril_normals(face_nm_pd2: np.ndarray) -> np.ndarray:
+    """Flatten PD2 normal map ([255, ny, 0, nx]) inside the two nostril UV pockets to neutral [255, 128, 0, 128]."""
+    out = face_nm_pd2.copy()
+    H, W = out.shape[:2]
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32) / float(H)
+    d_min = np.minimum(
+        np.hypot((xx - 0.454) / 0.022, (yy - 0.472) / 0.026),
+        np.hypot((xx - 0.559) / 0.022, (yy - 0.472) / 0.026),
+    )
+    m = d_min < 1.0
+    out[m, 0] = 255
+    out[m, 1] = 128
+    out[m, 2] = 0
+    out[m, 3] = 128
     return out
 
 
@@ -1258,17 +1315,18 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
     crisp_eye_1024 = build_crisp_miranda_eye_texture(me2_dir, size=1024)
 
     atlas_df = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    atlas_df[0:1024, 0:1024] = shade_nostril_cavities(np.asarray(face_df_im))
+    atlas_df[0:1024, 0:1024] = np.asarray(face_df_im)
     atlas_df[0:1024, 1024:2048] = np.asarray(head_df_im)
     atlas_df[1024:2048, 0:1024] = body_df_arr
     atlas_df[1024:2048, 1024:2048] = crisp_eye_1024
     atlas_df[0:1024, 0:1024, 3] = np.minimum(atlas_df[0:1024, 0:1024, 3], 18)
+    atlas_df[0:1024, 0:1024] = shade_nostril_cavities(atlas_df[0:1024, 0:1024])
     atlas_df[0:1024, 1024:2048, 3] = 16
     atlas_df[1024:2048, 0:1024, 3] = np.minimum(atlas_df[1024:2048, 0:1024, 3], 18)
 
     atlas_nm = np.zeros((2048, 2048, 4), dtype=np.uint8)
     atlas_nm[:, :] = [255, 128, 0, 128]
-    atlas_nm[0:1024, 0:1024] = np.asarray(face_nm_im)
+    atlas_nm[0:1024, 0:1024] = flatten_nostril_normals(np.asarray(face_nm_im))
     atlas_nm[0:1024, 1024:2048] = np.asarray(head_nm_im)
     atlas_nm[1024:2048, 0:1024] = np.asarray(body_nm_im)
     atlas_nm[:, :, 0] = 255
@@ -1485,13 +1543,14 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     atlas_df[1024:2048, 0:1024] = nkd_df
     atlas_df[1024:2048, 1024:2048] = eyes_df
     atlas_df[0:1024, 0:1024, 3] = 12
+    atlas_df[0:1024, 0:1024] = shade_nostril_cavities(atlas_df[0:1024, 0:1024])
     atlas_df[0:1024, 1024:2048, 3] = 16
     atlas_df[1024:2048, 0:1024, 3] = 12
 
     # UE3/ME2 extracted normal PNGs store vertical Y_down in Red and horizontal X_right in Green
     face_raw_nm = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Face_Norm.png").convert("RGBA"))[..., [1, 0, 2, 3]]
     scalp_raw_nm = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Scalp_Norm.png").convert("RGBA"))[..., [1, 0, 2, 3]]
-    face_nm = dds.pd2_normal_channels(face_raw_nm)
+    face_nm = flatten_nostril_normals(dds.pd2_normal_channels(face_raw_nm))
     scalp_nm = dds.pd2_normal_channels(scalp_raw_nm)
     nkd_raw_nm = np.asarray(
         Image.open(me2_dir / "HMF_MIR_NKDa_Norm.png").convert("RGBA").resize((1024, 1024), Image.Resampling.LANCZOS)
@@ -1712,19 +1771,28 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
 
     hair_arr = load_vtf_rgba("hair_d", (1024, 1024))
     hair_arr[:, :, :3] = np.clip(hair_arr[:, :, :3].astype(np.float32) * 0.86, 0, 255).astype(np.uint8)
-    hair_mask = (hair_arr[:, :, 3] >= 75).astype(np.int32)
-    # 3x3 majority despeckle to remove isolated 1-2px floating alpha dots at ponytail tips
+    hair_mask = (hair_arr[:, :, 3] >= 25).astype(np.int32)
+    # Remove only isolated 1px specks (neigh_sum == 1) while preserving 1px diagonal temple hair strands
     padded = np.pad(hair_mask, 1, mode="edge")
     neigh_sum = sum(padded[dy : dy + 1024, dx : dx + 1024] for dy in range(3) for dx in range(3))
-    hair_keep = (hair_mask == 1) & (neigh_sum >= 3)
-    hair_arr[:, :, 3] = np.where(hair_keep, 22, 0).astype(np.uint8)
+    hair_keep = (hair_mask == 1) & (neigh_sum >= 2)
+    hair_arr[:, :, 3] = np.where(hair_keep, 24, 0).astype(np.uint8)
 
     beard_arr = load_vtf_rgba("beard_d", (1024, 512))
-    beard_arr[:, :, :3] = np.clip(beard_arr[:, :, :3].astype(np.float32) * 0.90, 0, 255).astype(np.uint8)
-    beard_arr[:, :, 3] = np.where(beard_arr[:, :, 3] >= 65, 22, 0).astype(np.uint8)
+    beard_rgb_scaled = np.clip(beard_arr[:, :, :3].astype(np.float32) * 0.90, 0, 255)
+    beard_core = beard_arr[:, :, 3] >= 12
+    pad_b = np.pad(beard_core.astype(np.int32), 1, mode="edge")
+    pad_rgb = np.pad(beard_rgb_scaled * beard_core[:, :, None], ((1, 1), (1, 1), (0, 0)), mode="edge")
+    b_cnt = sum(pad_b[dy : dy + 512, dx : dx + 1024] for dy in range(3) for dx in range(3))
+    b_rgb_sum = sum(pad_rgb[dy : dy + 512, dx : dx + 1024] for dy in range(3) for dx in range(3))
+    beard_dil = b_cnt > 0
+    fringe = beard_dil & (~beard_core)
+    beard_rgb_scaled[fringe] = b_rgb_sum[fringe] / np.maximum(b_cnt[fringe, None], 1)
+    beard_arr[:, :, :3] = np.clip(beard_rgb_scaled, 0, 255).astype(np.uint8)
+    beard_arr[:, :, 3] = np.where(beard_dil, 24, 0).astype(np.uint8)
 
     lash_arr = load_vtf_rgba("eyelashes", (512, 512))
-    lash_arr[:, :, 3] = np.where(lash_arr[:, :, 3] >= 65, 22, 0).astype(np.uint8)
+    lash_arr[:, :, 3] = np.where(lash_arr[:, :, 3] >= 25, 24, 0).astype(np.uint8)
 
     head_df_atlas[0:1024, 0:1024] = head_bm_arr
     head_df_atlas[0:512, 1024:2048] = teeth_bm_arr
@@ -1787,6 +1855,9 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
             n[dot < -0.05] *= -1.0
             n = 0.75 * n + 0.25 * radial
             n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-6)
+        elif mat_name == "beard_d":
+            p[:, 1] += 0.18
+            p[:, 0] += 0.06 * np.sign(p[:, 0])
         elif mat_name == "Eyes_BM":
             n = soften_eyeball_normals(n)
 
@@ -1843,7 +1914,38 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
         double_side_atom1=True,
     )
 
-    head_df_dds = encode_rgba_dds(head_df_atlas)
+    def encode_geralt_head_df_dds(arr: np.ndarray) -> bytes:
+        """Encode Geralt's 2048x2048 head_df atlas with coverage-preserving alpha mipmaps in the cutout bottom half."""
+        cur = np.ascontiguousarray(arr, dtype=np.uint8)
+        size = int(cur.shape[0])
+        w, h = size, size
+        payloads: list[bytes] = []
+        while True:
+            payloads.append(dds._level_payload(cur))
+            if w == 1 and h == 1:
+                break
+            nxt = dds.downsample2x2(cur)
+            nh, nw = nxt.shape[0], nxt.shape[1]
+            if nh >= 2 and h >= 4:
+                nxt[: nh // 2, :, 3] = np.maximum(nxt[: nh // 2, :, 3], 18)
+                cur_bot = cur[h // 2 :, :, :].reshape(nh // 2, 2, nw, 2, 4).astype(np.float32)
+                w_a = (cur_bot[..., 3:4] > 0).astype(np.float32)
+                w_sum = w_a.sum(axis=(1, 3))
+                rgb_bot = np.where(
+                    w_sum > 0,
+                    (cur_bot[..., :3] * w_a).sum(axis=(1, 3)) / np.maximum(w_sum, 1.0),
+                    nxt[nh // 2 :, :, :3],
+                )
+                nxt[nh // 2 :, :, :3] = np.clip(np.round(rgb_bot), 0, 255).astype(np.uint8)
+                a_mean = cur_bot[..., 3].mean(axis=(1, 3))
+                nxt[nh // 2 :, :, 3] = np.where(a_mean >= 6.0, 24, 0).astype(np.uint8)
+            else:
+                nxt[:, :, 3] = np.maximum(nxt[:, :, 3], 18)
+            cur = nxt
+            w, h = nw, nh
+        return dds.pack_dds(payloads, size)
+
+    head_df_dds = encode_geralt_head_df_dds(head_df_atlas)
     head_nm_dds = encode_rgba_dds(head_nm_atlas)
 
     portrait = render_head_portrait(

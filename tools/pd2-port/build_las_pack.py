@@ -282,6 +282,29 @@ def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
         hair_rm.positions, hair_rm.normals, hair_rm.triangles
     )
 
+    # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
+    # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
+    fuv = np.asarray(face_rm.uvs, dtype=np.float64)
+    fu = fuv[:, 0]
+    fv_img = 1.0 - fuv[:, 1]
+    d_nost = np.minimum(
+        np.hypot((fu - 0.454) / 0.022, (fv_img - 0.472) / 0.026),
+        np.hypot((fu - 0.559) / 0.022, (fv_img - 0.472) / 0.026),
+    )
+    nost_idx = np.nonzero(d_nost < 1.0)[0]
+    if len(nost_idx) > 0:
+        n_shadow = np.array([0.0, -0.55, -0.83516465], dtype=np.float64)
+        for vi in nost_idx:
+            w_t = float(np.clip(1.0 - d_nost[vi], 0.0, 1.0)) * 0.90
+            cur_n = np.asarray(face_rm.normals[int(vi)], dtype=np.float64)
+            blended_n = cur_n * (1.0 - w_t) + n_shadow * w_t
+            ln = float(np.linalg.norm(blended_n)) or 1.0
+            face_rm.normals[int(vi)] = (
+                float(blended_n[0] / ln),
+                float(blended_n[1] / ln),
+                float(blended_n[2] / ln),
+            )
+
 
 def _filter_hair_main_component(hair_rm) -> None:
     """Drop the 33 disconnected 1.5-mm flyaway wire strips (809 tris) from Hair.
@@ -450,16 +473,28 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
         yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
         u = (xx + 0.5) / w
         v = (yy + 0.5) / h
-        for uc, vc in ((0.452, 0.484), (0.563, 0.493)):
-            d = np.hypot((u - uc) / 0.014, (v - vc) / 0.012)
-            w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.82
+        for uc, vc in ((0.454, 0.472), (0.559, 0.472)):
+            d = np.hypot((u - uc) / 0.020, (v - vc) / 0.025)
+            w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.90
             m = w_n > 0.0
             if m.any():
                 rgb = rgba[m, :3].astype(np.float32)
-                target = np.array([28.0, 14.0, 10.0], dtype=np.float32)
+                target = np.array([14.0, 7.0, 5.0], dtype=np.float32)
                 rgba[m, :3] = np.clip(
                     rgb * (1.0 - w_n[m, None]) + target * w_n[m, None], 0.0, 255.0
                 ).astype(np.uint8)
+        # Upper eyelid waterline & lash margin darkening so bare skin does not peek under 3D lashes
+        w_wl = np.maximum(
+            np.exp(-(((u - 0.068) / 0.042) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+            np.exp(-(((u - 0.927) / 0.036) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+        ) * 0.85
+        m_wl = w_wl > 0.02
+        if m_wl.any():
+            rgb = rgba[m_wl, :3].astype(np.float32)
+            target_lash = np.array([18.0, 13.0, 11.0], dtype=np.float32)
+            rgba[m_wl, :3] = np.clip(
+                rgb * (1.0 - w_wl[m_wl, None]) + target_lash * w_wl[m_wl, None], 0.0, 255.0
+            ).astype(np.uint8)
     if base == "eyes":
         # Synthesize the exact full-aperture deep-sapphire iris (iris_outer=0.28,
         # iris_inner=0.25, pupil_r=0.115) matching Miranda_LAS (build_las.py).
@@ -525,6 +560,16 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
             if base == "eyes":
                 # Keep cornea specular highlight over iris and low wet sheen on sclera
                 alpha = np.maximum(alpha, 16)
+            elif base == "face":
+                h, w = rgba.shape[:2]
+                yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+                u = (xx + 0.5) / w
+                v = (yy + 0.5) / h
+                d_nost = np.minimum(
+                    np.hypot((u - 0.454) / 0.022, (v - 0.472) / 0.026),
+                    np.hypot((u - 0.559) / 0.022, (v - 0.472) / 0.026),
+                )
+                alpha = np.where(d_nost < 1.0, np.minimum(alpha, 2), alpha).astype(np.uint8)
             rgba[:, :, 3] = alpha
         else:
             rgba[:, :, 3] = default_a
@@ -569,6 +614,19 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
                     if base == "eyes":
                         nm_xy = 128.0 + (nm_in[..., :2].astype(np.float32) - 128.0) * 0.22
                         nm_in[..., :2] = np.clip(np.round(nm_xy), 0, 255).astype(np.uint8)
+                    elif base == "face":
+                        h, w = nm_in.shape[:2]
+                        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+                        u = (xx + 0.5) / w
+                        v = (yy + 0.5) / h
+                        d_nost = np.minimum(
+                            np.hypot((u - 0.454) / 0.022, (v - 0.472) / 0.026),
+                            np.hypot((u - 0.559) / 0.022, (v - 0.472) / 0.026),
+                        )
+                        m_nost = d_nost < 1.0
+                        nm_in[m_nost, 0] = 128
+                        nm_in[m_nost, 1] = 128
+                        nm_in[m_nost, 2] = 255
                 arr = dds.pd2_normal_channels(nm_in, invert_y=invert_nm_y)
                 mip = dds.mip_payloads_from_image(arr)
             else:
