@@ -1,27 +1,25 @@
-# tools/ — two independent tool trees, on purpose
+# tools/ — PAYDAY 2 character & head-replacement build pipelines
 
-Two Lawson LAS routes live side by side. They answer the same product brief
-from different source assets, and their tool trees are **deliberately not
-merged**. Read `docs/pd2-las/HANDOFF.md` (L4D2 route) and
-`tools/pd2-port/STATUS.md` (ME2 route) for each pipeline's own start-here.
+Three PAYDAY 2 pipelines live in `tools/`, producing the eleven tracked deliverables in **`dist/`**:
 
-| | `tools/pd2-port/` — ME2 route | `tools/pd2-las/` — L4D2 route |
-| --- | --- | --- |
-| Source | ME2 *Romance* COLLADA zip | `l4d2_miranda_lawson_1.zip` (MDL/VVD/VTX in a VPK) |
-| Output | `dist/lawson_las.zip` (tracked, sha256-pinned) | `build/pd2-las/Miranda_LAS.zip` (reproducible) |
-| Pack layout | `Lawson_LAS/units/…` (no inner `assets/`) | `Miranda_LAS/assets/units/…` (2B-identical) |
-| Install | `assets/mod_overrides/` (both — the 2B/MOOG convention; BeardLib's AddFramework loads `main.xml` packs from there) | same |
+1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`**. See `tools/pd2-port/STATUS.md`.
+2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`**. See `docs/pd2-las/HANDOFF.md`.
+3. **`tools/build_joy_head_mods.py`** — Nine vanilla-heister head-replacement `mod_overrides` packages (**Miranda L4D2** and **Miranda ME2 Romance** variants over **Joy**, **Clover**, **Bonnie**, and **Sydney**, plus **Witcher 3 Geralt of Rivia** from `models/Geralt.7z` over **Rust**), modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`:
+   - **`dist/Miranda_L4D2_over_Joy.zip`** & **`dist/Miranda_Romance_over_Joy.zip`**
+   - **`dist/Miranda_L4D2_over_Clover.zip`** & **`dist/Miranda_Romance_over_Clover.zip`**
+   - **`dist/Miranda_L4D2_over_Bonnie.zip`** & **`dist/Miranda_Romance_over_Bonnie.zip`**
+   - **`dist/Miranda_L4D2_over_Sydney.zip`** & **`dist/Miranda_Romance_over_Sydney.zip`**
+   - **`dist/Geralt_over_Rust.zip`**
 
-> Note (2026-10-19): the ME2 pack's `main.xml` declares
-> `<AddFiles directory="assets">` but its zip has no inner `assets/` folder
-> (files sit at `Lawson_LAS/units/…`, unlike 2B and `Miranda_LAS` whose files
-> are at `<pack>/assets/units/…`). BeardLib's `AddFilesModule` resolves every
-> entry under `<ModPath>/<directory>`, so those registrations look at a
-> missing directory on that pack — worth checking when that line is next
-> game-tested.
+| | `tools/pd2-port/` — ME2 LAS | `tools/pd2-las/` — L4D2 LAS | `tools/build_joy_head_mods.py` — Heister Head Mods |
+| --- | --- | --- | --- |
+| Source | `models/PC _ Computer … Miranda Lawson (Romance).zip` + `references/2b.rar` | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `models/*` + `references/Ada Wong over Joy.7z` + `references/Heister - FPS Gloves in TPS 2.zip` |
+| Output in `dist/` | `dist/lawson_las.zip` (tracked, sha256-pinned) | `dist/Miranda_LAS.zip` (tracked, sha256-pinned) | `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` + `dist/Geralt_over_Rust.zip` (tracked, sha256-pinned) |
+| Pack layout | `Lawson_LAS/assets/units/…` (LAS outfit) | `Miranda_LAS/assets/units/…` (LAS outfit) | `{Miranda …, Geralt} over {Joy,Clover,Bonnie,Sydney,Rust}/units/…` |
+| Install | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (needs SuperBLT + BeardLib + LAS) | `assets/mod_overrides/` (vanilla heister head replacement) |
 | `.model` dialect | DODB container, unshifted channel types, packed normals | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) |
-| Rig work | `rig_target.py` + `reference/las_rig.json` (per-bone fits) | `skeleton_map.json` + divergence-filter Umeyama in `build_models.py` |
-| Verification | `check_all.py` (5 stages, mutation-tested), release CI | 234-test suite incl. `test_diesel_model` byte round-trips |
+| Rig work | `rig_target.py` + `reference/las_rig.json` (anatomically partitioned similarity retarget) | `skeleton_map.json` + anatomically partitioned similarity retarget in `build_models.py` |
+| Verification | `check_all.py` (5 stages, mutation-tested), release CI | 235-test suite incl. `test_diesel_model` byte round-trips |
 
 ## Why they are not merged (measured, 2026-10-19)
 

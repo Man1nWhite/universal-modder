@@ -47,7 +47,7 @@ from source_model import ModelData, load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
 REPO = HERE.parents[1]
-SOURCE_ZIP = REPO / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
 
 TPP_MDLS = (
     "models/survivors/survivor_producer.mdl",
@@ -192,146 +192,329 @@ def _umeyama_fit(src_pts, tgt_pts, weights):
     return m
 
 
+def _unit_vec(v):
+    import numpy as np
+
+    arr = np.asarray(v, dtype=np.float64)
+    n = float(np.linalg.norm(arr))
+    return arr / n if n > 1e-12 else arr
+
+
+def _rodrigues_arc(u, w):
+    """Shortest-arc 3x3 rotation matrix mapping unit(u) -> unit(w) without axial twist."""
+    import numpy as np
+
+    u = _unit_vec(u)
+    w = _unit_vec(w)
+    c = float(np.dot(u, w))
+    if c > 1.0 - 1e-9:
+        return np.eye(3, dtype=np.float64)
+    if c < -1.0 + 1e-9:
+        axis = _unit_vec(
+            np.cross(u, [1.0, 0.0, 0.0])
+            if abs(float(u[0])) < 0.9
+            else np.cross(u, [0.0, 1.0, 0.0])
+        )
+        return -np.eye(3, dtype=np.float64) + 2.0 * np.outer(axis, axis)
+    v = np.cross(u, w)
+    s = float(np.linalg.norm(v))
+    k = np.array(
+        [[0.0, -v[2], v[1]], [v[2], 0.0, -v[0]], [-v[1], v[0], 0.0]],
+        dtype=np.float64,
+    )
+    return np.eye(3, dtype=np.float64) + k + (k @ k) * ((1.0 - c) / (s * s))
+
+
+def _make_sim_mat(scale: float, rot, p_src, p_tgt) -> dm.Mat:
+    """Row-convention similarity matrix (v' = v*M + t) with column-vector rotation ``rot``."""
+    import numpy as np
+
+    s = min(FIT_SCALE_CLAMP[1], max(FIT_SCALE_CLAMP[0], float(scale)))
+    rot = np.asarray(rot, dtype=np.float64)
+    p_s = np.asarray(p_src, dtype=np.float64)
+    p_t = np.asarray(p_tgt, dtype=np.float64)
+    t = p_t - s * (rot @ p_s)
+    m = s * rot
+    return (
+        float(m[0, 0]), float(m[1, 0]), float(m[2, 0]), 0.0,
+        float(m[0, 1]), float(m[1, 1]), float(m[2, 1]), 0.0,
+        float(m[0, 2]), float(m[1, 2]), float(m[2, 2]), 0.0,
+        float(t[0]),    float(t[1]),    float(t[2]),    1.0,
+    )
+
+
+def _decompose_sim_mat(m: dm.Mat):
+    """Extract (scale, col_vec_R, t) from a row-convention similarity matrix."""
+    import numpy as np
+
+    sc = math.sqrt(m[0] * m[0] + m[1] * m[1] + m[2] * m[2]) or 1.0
+    rot = np.array(
+        [
+            [m[0] / sc, m[4] / sc, m[8] / sc],
+            [m[1] / sc, m[5] / sc, m[9] / sc],
+            [m[2] / sc, m[6] / sc, m[10] / sc],
+        ],
+        dtype=np.float64,
+    )
+    t = np.array([m[12], m[13], m[14]], dtype=np.float64)
+    return sc, rot, t
+
+
 def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[int, dm.Mat]:
     """Per source bone: similarity map source-world -> target-world.
 
-    One fit per TARGET bone, shared by every source bone that resolves to it
-    (explicit map entries and ancestor-walk fallbacks alike) so regions like
-    the face transfer rigidly instead of tearing. The fit for target T is the
-    weighted Procrustes (Umeyama) over the explicit bone pairs whose target
-    lies in T's subtree of the template skeleton. Two corrections keep the
-    frames coherent: (1) targets under a Hand in the template tree share the
-    hand's fit (fingers ride the palm — per-knuckle fits tear at the joints);
-    (2) a fit that deviates from the global registration by more than
-    FIT_MAX_DIVERGENCE_DEG inherits the nearest ancestor's fit instead (the
-    2-pair neck neighborhood, with its diagonal neck->head segment, produced
-    a 58-degree rogue frame this way). Single-pair targets keep exact joint
-    placement on top of their fit.
+    Anatomically partitioned similarity retargeting that avoids the three
+    failure modes of unconstrained per-subtree Procrustes fits:
+    1. Core torso + neck + head (`Hips`, `Spine`, `Spine1`, `Spine2`, `Neck`,
+       `Head`) share one upright Umeyama fit over the torso/shoulder/hip core
+       (excluding the bent forearms and 30 finger bones so the spine is not
+       pitched backward, and keeping `Head`/face/hair in the same rigid frame).
+    2. Each leg (`UpLeg`, `Leg`, `Foot`, `ToeBase`) shares a 4-joint Umeyama
+       fit (avoiding rank-1 2-point SVD roll on `Foot -> ToeBase`).
+    3. Each arm + hand (`Shoulder`, `Arm`, `ForeArm`, `Hand` + 15 fingers)
+       uses chained shortest-arc (Rodrigues) segment alignment from the core
+       frame with zero axial twist, and all 15 finger bones share their parent
+       `Hand` similarity transform at forearm scale.
     """
+    import numpy as np
+
     src_worlds = source_bone_worlds(model)
-    src_pos = [(w[12], w[13], w[14]) for w in src_worlds]
+    src_pos = [np.array(w[12:15], dtype=np.float64) for w in src_worlds]
+
+    direct_src: dict[str, list[int]] = {}
+    primary_src: dict[str, int] = {}
+    for i, bone in enumerate(model.bones):
+        tname = skel_map["map"].get(bone.name)
+        if tname is not None and tname in template.name_id:
+            direct_src.setdefault(tname, []).append(i)
+            if bone.name != "ValveBiped.Bip01_Spine4":
+                primary_src.setdefault(tname, i)
+
+    if not direct_src:
+        return {}
+
+    def src_centroid(tname: str):
+        return np.mean([src_pos[i] for i in direct_src[tname]], axis=0)
 
     def tgt_pos(tname: str):
         w = template.worlds[template.name_id[tname]]
-        return (w[12], w[13], w[14])
+        return np.array(w[12:15], dtype=np.float64)
 
-    # explicit pairs (source bone -> target name) present in this model
-    explicit: list[tuple[int, str]] = []
-    for i in range(len(model.bones)):
-        tname = skel_map["map"].get(model.bones[i].name)
-        if tname is not None and tname in template.name_id:
-            explicit.append((i, tname))
+    core_candidates = (
+        "Hips", "Spine", "Spine1", "Spine2", "Neck", "Head",
+        "LeftShoulder", "RightShoulder", "LeftUpLeg", "RightUpLeg",
+    )
+    core_present = [t for t in core_candidates if t in direct_src]
+    if len(core_present) < 4:
+        core_present = [
+            t for t in (
+                "Spine", "Spine1", "Spine2",
+                "LeftShoulder", "RightShoulder", "LeftArm", "RightArm",
+            )
+            if t in direct_src
+        ]
+    if len(core_present) < 3:
+        core_present = list(direct_src.keys())
 
-    # target-tree descendants (name based)
-    children: dict[str, list[str]] = {}
-    parent_of: dict[str, str] = {}
-    for sid, obj in template.id_obj.items():
-        name = template.id_name.get(sid, "")
-        parent = template.id_name.get(obj["parent"], "")
-        if name and parent:
-            children.setdefault(parent, []).append(name)
-            parent_of[name] = parent
-
-    def subtree(tname: str) -> set[str]:
-        out = {tname}
-        stack = list(children.get(tname, []))
-        while stack:
-            n = stack.pop()
-            if n not in out:
-                out.add(n)
-                stack.extend(children.get(n, []))
-        return out
-
-    pair_by_target: dict[str, list[tuple[int, str]]] = {}
-    for si, tname in explicit:
-        pair_by_target.setdefault(tname, []).append((si, tname))
-
-    g_pts_s = [src_pos[si] for si, _ in explicit]
-    g_pts_t = [tgt_pos(t) for _s, t in explicit]
-    g_fit = _umeyama_fit(g_pts_s, g_pts_t, [1.0] * len(explicit)) if explicit else None
-
-    def unique_pairs(tname: str) -> list[tuple[int, str]]:
-        names = subtree(tname)
-        seen: set[int] = set()
-        uniq = []
-        for si, t in explicit:
-            if t in names and si not in seen:
-                seen.add(si)
-                uniq.append((si, t))
-        return uniq
-
-    def fit_angle(m: dm.Mat) -> float:
-        tr = m[0] + m[5] + m[10]
-        sc = (m[0] ** 2 + m[1] ** 2 + m[2] ** 2) ** 0.5
-        cosv = max(-1.0, min(1.0, tr / (sc * 3)))
-        return math.degrees(math.acos(cosv))
-
-    g_angle = fit_angle(g_fit) if g_fit else 0.0
-
-    # hands: every target below a Hand shares the hand's fit
-    hand_targets: set[str] = set()
-    for hand in ("RightHand", "LeftHand"):
-        if hand in template.name_id:
-            hand_targets |= subtree(hand) - {hand}
-
-    # v2 own fits (>= 2 unique pairs)
-    own_fit: dict[str, dm.Mat] = {}
-    for tname in pair_by_target:
-        uniq = unique_pairs(tname)
-        if len(uniq) >= 2 and tname not in hand_targets:
-            pts_s = [src_pos[si] for si, _ in uniq]
-            pts_t = [tgt_pos(t) for _, t in uniq]
-            own_fit[tname] = _umeyama_fit(pts_s, pts_t, [1.0] * len(uniq))
-
-    # divergence filter: rogue local frames inherit the nearest kept ancestor
-    def kept_fit(tname: str) -> dm.Mat:
-        n = tname
-        while n:
-            if n in own_fit:
-                f = own_fit[n]
-                if abs(fit_angle(f) - g_angle) <= FIT_MAX_DIVERGENCE_DEG:
-                    return f
-                # drop the rogue frame; continue upward
-                del own_fit[n]
-            n = parent_of.get(n, "")
-        return g_fit
+    g_fit = _umeyama_fit(
+        [tuple(src_centroid(t).tolist()) for t in core_present],
+        [tuple(tgt_pos(t).tolist()) for t in core_present],
+        [1.0] * len(core_present),
+    )
+    _s_core, r_core, _ = _decompose_sim_mat(g_fit)
 
     fit_for_target: dict[str, dm.Mat] = {}
-    for tname in pair_by_target:
-        uniq = unique_pairs(tname)
-        if tname in hand_targets:
-            n = tname
-            while n and n not in ("RightHand", "LeftHand"):
-                n = parent_of.get(n, "")
-            base = kept_fit(n if n else tname)
-        else:
-            base = kept_fit(tname)
-        if len(uniq) == 1:
-            # single pair: inherited frame, translation snapped to the joint
-            si, _ = uniq[0]
-            tmp = dm.mat_apply_point(base, src_pos[si])
-            o_t = tgt_pos(tname)
-            fit_for_target[tname] = (
-                base[0], base[1], base[2], base[3], base[4], base[5], base[6], base[7],
-                base[8], base[9], base[10], base[11],
-                o_t[0] - tmp[0], o_t[1] - tmp[1], o_t[2] - tmp[2], 1.0)
-        else:
-            fit_for_target[tname] = base
+    for tname in ("Hips", "Spine", "Spine1", "Spine2", "Neck", "Head",
+                  "LeftShoulder", "RightShoulder"):
+        if tname in direct_src:
+            fit_for_target[tname] = g_fit
 
-    # every template name resolves (ancestor-walk fallbacks included)
-    for sid, name in template.id_name.items():
-        if name and name not in fit_for_target:
-            n = name
-            while n and n not in own_fit:
-                n = parent_of.get(n, "")
-            fit_for_target[name] = own_fit.get(n, g_fit) if n else g_fit
+    # Legs: 4-joint Umeyama fit per leg so thigh/calf/foot/toe move coherently
+    for side in ("Left", "Right"):
+        leg_targets = (f"{side}UpLeg", f"{side}Leg", f"{side}Foot", f"{side}ToeBase")
+        if all(t in primary_src for t in leg_targets):
+            leg_fit = _umeyama_fit(
+                [tuple(src_pos[primary_src[t]].tolist()) for t in leg_targets],
+                [tuple(tgt_pos(t).tolist()) for t in leg_targets],
+                [1.0] * len(leg_targets),
+            )
+            for t in leg_targets:
+                fit_for_target[t] = leg_fit
+
+    # Arms + Hands + Fingers: chained alignment with knuckle-fitted palm
+    # and per-phalanx placement onto PD2's finger bone pivots
+    for side in ("Left", "Right"):
+        t_sh = f"{side}Shoulder"
+        t_arm = f"{side}Arm"
+        t_fore = f"{side}ForeArm"
+        t_hand = f"{side}Hand"
+        t_mid1 = f"{side}HandMiddle1"
+        if not all(t in primary_src for t in (t_arm, t_fore, t_hand, t_mid1)):
+            continue
+        ps_a = src_pos[primary_src[t_arm]]
+        ps_f = src_pos[primary_src[t_fore]]
+        ps_h = src_pos[primary_src[t_hand]]
+
+        pt_a = tgt_pos(t_arm)
+        pt_f = tgt_pos(t_fore)
+        pt_h = tgt_pos(t_hand)
+
+        hand_landmarks = [
+            (f"{side}HandIndex1", 1.0),
+            (f"{side}HandMiddle1", 1.0),
+            (f"{side}HandRing1", 1.0),
+            (f"{side}HandPinky1", 1.0),
+            (f"{side}HandThumb1", 0.8),
+            (t_hand, 0.2),
+        ]
+        present_hl = [(t, w) for t, w in hand_landmarks if t in primary_src]
+        if len(present_hl) >= 3:
+            m_hand = _umeyama_fit(
+                [tuple(src_pos[primary_src[t]].tolist()) for t, _ in present_hl],
+                [tuple(tgt_pos(t).tolist()) for t, _ in present_hl],
+                [w for _, w in present_hl],
+            )
+            _, r_hand, _ = _decompose_sim_mat(m_hand)
+        else:
+            ps_m = src_pos[primary_src[t_mid1]]
+            pt_h_raw = tgt_pos(t_hand)
+            pt_m = tgt_pos(t_mid1)
+            r_arm_tmp = _rodrigues_arc(r_core @ (ps_f - ps_a), pt_f - pt_a) @ r_core
+            r_fore_tmp = _rodrigues_arc(r_arm_tmp @ (ps_h - ps_f), pt_h_raw - pt_f) @ r_arm_tmp
+            s_fore_tmp = float(np.linalg.norm(pt_h_raw - pt_f) / max(1e-9, np.linalg.norm(ps_h - ps_f)))
+            r_hand = _rodrigues_arc(r_fore_tmp @ (ps_m - ps_h), pt_m - pt_h_raw) @ r_fore_tmp
+            m_hand = _make_sim_mat(s_fore_tmp, r_hand, ps_h, pt_h_raw)
+
+        fit_for_target[t_hand] = m_hand
+        pt_wrist = np.array(dm.mat_apply_point(m_hand, tuple(ps_h.tolist())), dtype=np.float64)
+
+        def _axial_mat(s_start: np.ndarray, s_end: np.ndarray,
+                       t_start: np.ndarray, t_end: np.ndarray,
+                       r_base: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+            ds = s_end - s_start
+            dt = t_end - t_start
+            r_seg = _rodrigues_arc(r_base @ ds, dt) @ r_base
+            len_dt = max(1e-9, float(np.linalg.norm(dt)))
+            lam = len_dt / max(1e-9, float(np.linalg.norm(ds)))
+            v = dt / len_dt
+            s_seg = _s_core * np.eye(3, dtype=np.float64) + (lam - _s_core) * np.outer(v, v)
+            m_seg = np.eye(4, dtype=np.float64)
+            m_seg[:3, :3] = s_seg @ r_seg
+            m_seg[:3, 3] = t_start - (m_seg[:3, :3] @ s_start)
+            return m_seg, r_seg
+
+        if "Hips" in direct_src:
+            # Full-body third-person character: construct Shoulder, Arm, and
+            # ForeArm bind operators via PD2's standing menu pose
+            # M_menu = W_posed @ inv(W_bind):
+            # 1. In the standing pose, Shoulder and Arm meet at a natural
+            #    feminine shoulder width (+1.2 cm outward from L4D2's UpperArm
+            #    head) so Spine2, Shoulder, and Arm agree at the shoulder
+            #    without a bicep bulge or under-shoulder dent.
+            # 2. The standing elbow is shifted 2.8 cm inward along the exact
+            #    invariant hinge axis of inv(M_menu[Arm]) @ M_menu[ForeArm], so
+            #    Arm and ForeArm meet with 0.000 cm gap in BOTH bind pose and
+            #    standing pose while eliminating the outward elbow bow.
+            # 3. Rank-1 axial scaling along each segment preserves 100% of the
+            #    native radial arm thickness.
+            sgn = -1.0 if side == "Left" else 1.0
+            d_arm_bind = pt_f - pt_a
+            d_fa_bind = pt_h - pt_f
+            r_w_arm = _rodrigues_arc(d_arm_bind, np.array([sgn * 0.17, -0.05, -0.98], dtype=np.float64))
+            r_w_fa_rel = _rodrigues_arc(r_w_arm @ d_fa_bind, np.array([sgn * 0.05, 0.25, -0.96], dtype=np.float64))
+            r_w_fa = r_w_fa_rel @ r_w_arm
+
+            pt_f_posed = pt_a + (r_w_arm @ d_arm_bind)
+            m_arm_menu = np.eye(4, dtype=np.float64)
+            m_arm_menu[:3, :3] = r_w_arm
+            m_arm_menu[:3, 3] = pt_a - (r_w_arm @ pt_a)
+            m_fa_menu = np.eye(4, dtype=np.float64)
+            m_fa_menu[:3, :3] = r_w_fa
+            m_fa_menu[:3, 3] = pt_f_posed - (r_w_fa @ pt_f)
+            m_arm_menu_inv = np.linalg.inv(m_arm_menu)
+            m_fa_menu_inv = np.linalg.inv(m_fa_menu)
+
+            hinge_raw = np.array([
+                r_w_fa_rel[2, 1] - r_w_fa_rel[1, 2],
+                r_w_fa_rel[0, 2] - r_w_fa_rel[2, 0],
+                r_w_fa_rel[1, 0] - r_w_fa_rel[0, 1],
+            ], dtype=np.float64)
+            ax_p = hinge_raw / max(1e-9, float(np.linalg.norm(hinge_raw)))
+            if float(ax_p[0]) * (-sgn) < 0.0:
+                ax_p = -ax_p
+
+            ps_a_g = np.array(dm.mat_apply_point(g_fit, tuple(ps_a.tolist())), dtype=np.float64)
+            pt_a_stand = ps_a_g + np.array([0.0, 0.0, -0.3], dtype=np.float64)
+            pt_f_stand = pt_f_posed + 2.8 * ax_p
+            pt_h_stand = (m_fa_menu @ np.append(pt_wrist, 1.0))[:3]
+
+            if t_sh in primary_src:
+                ps_sh = src_pos[primary_src[t_sh]]
+                pt_sh_stand = np.array(dm.mat_apply_point(g_fit, tuple(ps_sh.tolist())), dtype=np.float64)
+                m_sh_menu, _ = _axial_mat(ps_sh, ps_a, pt_sh_stand, pt_a_stand, r_core)
+                fit_for_target[t_sh] = tuple(float(x) for x in m_sh_menu.T.reshape(16))
+
+            m_arm_stand, r_arm_m = _axial_mat(ps_a, ps_f, pt_a_stand, pt_f_stand, r_core)
+            m_fa_stand, _ = _axial_mat(ps_f, ps_h, pt_f_stand, pt_h_stand, r_arm_m)
+
+            m_arm_bind = m_arm_menu_inv @ m_arm_stand
+            m_fa_bind = m_fa_menu_inv @ m_fa_stand
+            fit_for_target[t_arm] = tuple(float(x) for x in m_arm_bind.T.reshape(16))
+            fit_for_target[t_fore] = tuple(float(x) for x in m_fa_bind.T.reshape(16))
+        else:
+            # First-person arms-only viewmodel: align directly to PD2's
+            # viewmodel Arm -> ForeArm -> Wrist pivots with rank-1 axial scaling.
+            if t_sh in primary_src:
+                ps_sh = src_pos[primary_src[t_sh]]
+                pt_sh = tgt_pos(t_sh)
+                m_sh_bind, _ = _axial_mat(ps_sh, ps_a, pt_sh, pt_a, r_core)
+                fit_for_target[t_sh] = tuple(float(x) for x in m_sh_bind.T.reshape(16))
+            m_arm_bind, r_arm_b = _axial_mat(ps_a, ps_f, pt_a, pt_f, r_core)
+            m_fa_bind, _ = _axial_mat(ps_f, ps_h, pt_f, pt_wrist, r_arm_b)
+            fit_for_target[t_arm] = tuple(float(x) for x in m_arm_bind.T.reshape(16))
+            fit_for_target[t_fore] = tuple(float(x) for x in m_fa_bind.T.reshape(16))
+
+        s_min_f = 0.85 * _s_core
+        s_max_f = 1.35 * _s_core
+        for fname in ("Thumb", "Index", "Middle", "Ring", "Pinky"):
+            f1 = f"{side}Hand{fname}1"
+            f2 = f"{side}Hand{fname}2"
+            f3 = f"{side}Hand{fname}3"
+            if not all(t in primary_src for t in (f1, f2, f3)):
+                for t in (f1, f2, f3):
+                    if t in direct_src:
+                        fit_for_target[t] = m_hand
+                continue
+            s1 = src_pos[primary_src[f1]]
+            s2 = src_pos[primary_src[f2]]
+            s3 = src_pos[primary_src[f3]]
+            tw1 = tgt_pos(f1)
+            tw2 = tgt_pos(f2)
+            tw3 = tgt_pos(f3)
+
+            t1 = np.array(dm.mat_apply_point(m_hand, tuple(s1.tolist())), dtype=np.float64)
+            r_f1 = _rodrigues_arc(r_hand @ (s2 - s1), tw2 - tw1) @ r_hand
+            raw_s1 = float(np.linalg.norm(tw2 - tw1) / max(1e-9, np.linalg.norm(s2 - s1)))
+            s_f1 = float(np.clip(raw_s1, s_min_f, s_max_f))
+            m_f1 = _make_sim_mat(s_f1, r_f1, s1, t1)
+            fit_for_target[f1] = m_f1
+
+            t2 = np.array(dm.mat_apply_point(m_f1, tuple(s2.tolist())), dtype=np.float64)
+            r_f2 = _rodrigues_arc(r_f1 @ (s3 - s2), tw3 - tw2) @ r_f1
+            raw_s2 = float(np.linalg.norm(tw3 - tw2) / max(1e-9, np.linalg.norm(s3 - s2)))
+            s_f2 = float(np.clip(raw_s2, s_min_f, s_max_f))
+            m_f2 = _make_sim_mat(s_f2, r_f2, s2, t2)
+            fit_for_target[f2] = m_f2
+
+            t3 = np.array(dm.mat_apply_point(m_f2, tuple(s3.tolist())), dtype=np.float64)
+            fit_for_target[f3] = _make_sim_mat(s_f2, r_f2, s3, t3)
 
     maps: dict[int, dm.Mat] = {}
     for i in range(len(model.bones)):
         tname = _map_source_bone(model, i, skel_map)
-        if tname is None or fit_for_target.get(tname) is None:
+        if tname is None or tname not in template.name_id:
             continue
-        maps[i] = fit_for_target[tname]
+        maps[i] = fit_for_target.get(tname, g_fit)
     return maps
 
 
@@ -441,6 +624,8 @@ def _map_source_bone(model: ModelData, idx: int, skel_map: dict) -> str | None:
 
 def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
                    template: Template, group_name: str) -> Group:
+    import numpy as np
+
     g = Group(name=group_name)
     wanted = group_spec.get("materials")
 
@@ -448,9 +633,20 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     per_src_T = retarget_maps(model, skel_map, template)
 
     target_for_src: dict[int, tuple[str, dm.Mat]] = {}
+    t_mat_by_name: dict[str, dm.Mat] = {}
     for i, T in per_src_T.items():
         tname = _map_source_bone(model, i, skel_map)
         target_for_src[i] = (tname, T)
+        if tname is not None and tname not in t_mat_by_name:
+            t_mat_by_name[tname] = T
+
+    T_col: dict[str, np.ndarray] = {
+        tn: np.array(m, dtype=np.float64).reshape(4, 4).T
+        for tn, m in t_mat_by_name.items()
+    }
+    T_inv: dict[str, np.ndarray] = {
+        tn: np.linalg.inv(m) for tn, m in T_col.items()
+    }
 
     used_bones: set[str] = set()
     # material -> slice plan: gather triangles per source material
@@ -480,33 +676,54 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         base_i = len(g.faces) * 3
         for vi in slice_verts:
             sv = model.vertices[vi]
-            infl = [(bi, w) for bi, w in sv.weights if bi in per_src_T and w > 1e-6]
+            by_target: dict[str, float] = {}
+            for bi, w in sv.weights:
+                if bi in per_src_T and w > 1e-6:
+                    bname = model.bones[bi].name
+                    if bname == "hlp_l_shoulder" and "LeftShoulder" in t_mat_by_name and "LeftArm" in t_mat_by_name:
+                        by_target["LeftShoulder"] = by_target.get("LeftShoulder", 0.0) + 0.65 * w
+                        by_target["LeftArm"] = by_target.get("LeftArm", 0.0) + 0.35 * w
+                    elif bname == "hlp_r_shoulder" and "RightShoulder" in t_mat_by_name and "RightArm" in t_mat_by_name:
+                        by_target["RightShoulder"] = by_target.get("RightShoulder", 0.0) + 0.65 * w
+                        by_target["RightArm"] = by_target.get("RightArm", 0.0) + 0.35 * w
+                    else:
+                        tname, _ = target_for_src[bi]
+                        by_target[tname] = by_target.get(tname, 0.0) + w
+            infl = [(tn, w) for tn, w in by_target.items() if w > 1e-6]
             infl.sort(key=lambda t: -t[1])
             infl = infl[:3]
             total = sum(w for _, w in infl) or 1.0
-            infl = [(bi, w / total) for bi, w in infl]
+            infl = [(tn, w / total) for tn, w in infl]
             if not infl:
                 # vertices weighted only to unmapped bones: stick to the
                 # lowest mapped source bone (pelvis in practice)
                 if not per_src_T:
                     raise SystemExit("no mapped source bones at all")
-                infl = [(min(per_src_T), 1.0)]
-            vx = vy = vz = 0.0
-            nx = ny = nz = 0.0
-            for bi, w in infl:
-                tname, _ = target_for_src[bi]
-                used_bones.add(tname)
-                vx += w * dm.mat_apply_point(per_src_T[bi], sv.pos)[0]
-                vy += w * dm.mat_apply_point(per_src_T[bi], sv.pos)[1]
-                vz += w * dm.mat_apply_point(per_src_T[bi], sv.pos)[2]
-                n = dm.mat_apply_vec(per_src_T[bi], sv.normal)
-                nx += w * n[0]; ny += w * n[1]; nz += w * n[2]
-            ln = (nx * nx + ny * ny + nz * nz) ** 0.5 or 1.0
-            g.verts.append((vx, vy, vz))
-            g.normals.append((nx / ln, ny / ln, nz / ln))
+                first_tn = target_for_src[min(per_src_T)][0]
+                infl = [(first_tn, 1.0)]
+            for tn, _ in infl:
+                used_bones.add(tn)
+            p4 = np.array([sv.pos[0], sv.pos[1], sv.pos[2], 1.0], dtype=np.float64)
+            n3 = np.array([sv.normal[0], sv.normal[1], sv.normal[2]], dtype=np.float64)
+            if len(infl) == 1:
+                tn0 = infl[0][0]
+                M = T_col[tn0]
+                M_inv3 = T_inv[tn0][:3, :3]
+            else:
+                # Harmonic (matrix-inverse) blend: v_bind = (sum w_k T_k^-1)^-1 v_src
+                # so runtime linear-blend skinning (sum w_k T_k^-1) v_bind recovers
+                # the exact unbent joint cross-section without elbow/shoulder pinch.
+                M_inv = sum(w * T_inv[tn] for tn, w in infl)
+                M = np.linalg.inv(M_inv)
+                M_inv3 = M_inv[:3, :3]
+            vb = M @ p4
+            nb = M_inv3.T @ n3
+            ln = float(np.linalg.norm(nb)) or 1.0
+            g.verts.append((float(vb[0]), float(vb[1]), float(vb[2])))
+            g.normals.append((float(nb[0] / ln), float(nb[1] / ln), float(nb[2] / ln)))
             g.uvs.append((sv.uv[0], 1.0 - sv.uv[1]))  # p2mt GLTF-import convention
             # palette indices assigned after palette is fixed; store bone names
-            g.weights.append([(target_for_src[bi][0], w) for bi, w in infl])
+            g.weights.append(infl)
         g.faces.extend((a + base_v, b + base_v, c + base_v) for a, b, c in slice_faces)
         g.slices.append((mesh.material, base_v, base_i, len(slice_faces),
                          len(slice_verts)))
@@ -517,12 +734,18 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
             slot = group_spec["out_materials"][0]
         g.mat_slots.append(slot)
 
-    # palette: template 53-order first, then any extras by name
+    # palette: template 53-order first (root-first starting with Hips), then any extras by name
     order_ref = []
-    for skin in template.drawable_skin.values():
-        objs = skin.get("objects", [])
-        if len(objs) > len(order_ref):
-            order_ref = [template.id_name.get(o, "") for o in objs]
+    preferred_skin = template.drawable_skin.get("g_body", {})
+    if preferred_skin.get("objects"):
+        order_ref = [template.id_name.get(o, "") for o in preferred_skin["objects"]]
+    else:
+        for skin in template.drawable_skin.values():
+            objs = skin.get("objects", [])
+            if len(objs) > len(order_ref) or (
+                len(objs) == len(order_ref) and objs and objs[0] == template.hips_id
+            ):
+                order_ref = [template.id_name.get(o, "") for o in objs]
     named = sorted(used_bones)
     ordered = [n for n in order_ref if n in used_bones]
     ordered += [n for n in named if n not in ordered]
@@ -530,9 +753,153 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     pal_index = {n: i for i, n in enumerate(ordered)}
 
     g.weights = [[(pal_index[n], w) for n, w in infl] for infl in g.weights]
+    if group_name == "head":
+        repair_skin_boundary_normals(g)
     breaks = orientation_breaks(g)
     print(f"[{group_name}] orientation breaks: {breaks}")
     return g
+
+
+def repair_skin_boundary_normals(g: Group) -> None:
+    """Repair corrupted boundary normals along the face/neck seam and mouth corners,
+    and recenter eyeball planar UVs on the visible eyelid opening (palpebral fissure).
+
+    In the ME2/L4D2 source mesh, 7 right-cheek/temple boundary vertices on
+    ``miranda_face`` (and their 4 matching twins on ``miranda_head`` neck skin)
+    plus 3 mouth-corner vertices have normals corrupted by adjacent hair cards
+    or mouthbag geometry (dot with true skin surface normal = 0.017..0.540),
+    which produces a bright vertical shading streak on the right cheek in-game.
+    """
+    import numpy as np
+
+    if not g.verts or not g.faces:
+        return
+    p = np.asarray(g.verts, dtype=np.float64)
+    n = np.asarray(g.normals, dtype=np.float64)
+    uv = np.asarray(g.uvs, dtype=np.float64)
+    uv_img = np.column_stack([uv[:, 0], 1.0 - uv[:, 1]])
+    skin_vert_mask = np.zeros(len(p), dtype=bool)
+    skin_tris: list[tuple[int, int, int]] = []
+    for mat_name, base_v, base_i, tri_count, slice_len in g.slices:
+        if mat_name == "miranda_face":
+            skin_vert_mask[base_v : base_v + slice_len] = True
+            skin_tris.extend(g.faces[base_i // 3 : base_i // 3 + tri_count])
+        elif mat_name == "miranda_head":
+            sub_uv = uv_img[base_v : base_v + slice_len]
+            sub_tris = [
+                (a - base_v, b - base_v, c - base_v)
+                for a, b, c in g.faces[base_i // 3 : base_i // 3 + tri_count]
+            ]
+            rounded_uv = np.round(sub_uv * 1000.0).astype(np.int64)
+            _, inv_uv = np.unique(rounded_uv, axis=0, return_inverse=True)
+            parent = list(range(int(inv_uv.max()) + 1))
+
+            def find_uv(x: int) -> int:
+                while parent[x] != x:
+                    parent[x] = parent[parent[x]]
+                    x = parent[x]
+                return x
+
+            for a, b, c in sub_tris:
+                ra, rb, rc = find_uv(int(inv_uv[a])), find_uv(int(inv_uv[b])), find_uv(int(inv_uv[c]))
+                parent[rb] = ra
+                parent[rc] = ra
+            roots = np.array([find_uv(int(inv_uv[i])) for i in range(len(sub_uv))])
+            seed_mask = (sub_uv[:, 0] < 0.45) & (sub_uv[:, 1] > 0.85)
+            seed_roots = set(roots[seed_mask].tolist())
+            is_ns = np.isin(roots, list(seed_roots))
+            for f in g.faces[base_i // 3 : base_i // 3 + tri_count]:
+                a, b, c = f
+                if is_ns[a - base_v] and is_ns[b - base_v] and is_ns[c - base_v]:
+                    skin_vert_mask[a] = skin_vert_mask[b] = skin_vert_mask[c] = True
+                    skin_tris.append(f)
+        elif mat_name == "miranda_hair":
+            # Tuck the 33 sub-millimeter (1.5 mm) flyaway wire strips inside the
+            # solid cranial volume so they do not rasterize as 1-pixel jagged
+            # black wires across the right eye/cheek or floating in front of the
+            # forehead under PAYDAY 2's opaque character shader, while preserving
+            # vertex/triangle counts, UVs, and edge orientation.
+            center = np.array([0.0, 6.0, 175.0], dtype=np.float64)
+            for k in range(slice_len):
+                vi = base_v + k
+                pt = center + 0.20 * (p[vi] - center)
+                p[vi] = pt
+                g.verts[vi] = (float(pt[0]), float(pt[1]), float(pt[2]))
+        elif mat_name in ("eyeball_r", "eyeball_l"):
+            # Center eyeball planar UVs on the visible eyelid opening (palpebral fissure)
+            # and soften horizontal/vertical normal tilt across the recessed 1.5cm eyeball sphere.
+            sub_p = p[base_v : base_v + slice_len]
+            if len(sub_p) > 0:
+                cx_bbox = 0.5 * (float(sub_p[:, 0].min()) + float(sub_p[:, 0].max()))
+                cz_bbox = 0.5 * (float(sub_p[:, 2].min()) + float(sub_p[:, 2].max()))
+                rx = 0.5 * (float(sub_p[:, 0].max()) - float(sub_p[:, 0].min())) or 1.0
+                sign = -1.0 if cx_bbox < 0.0 else 1.0
+                dx_frac = 0.08 if sign > 0.0 else 0.13
+                cx = cx_bbox + sign * dx_frac * rx
+                cz = cz_bbox - 0.125 * rx
+                scale = 0.45 / rx
+                for k in range(slice_len):
+                    vi = base_v + k
+                    u_new = min(0.98, max(0.02, 0.5 - scale * (float(p[vi, 0]) - cx)))
+                    v_img_new = min(0.98, max(0.02, 0.5 - scale * (float(p[vi, 2]) - cz)))
+                    g.uvs[vi] = (float(u_new), float(1.0 - v_img_new))
+                    nx, ny, nz = g.normals[vi]
+                    nx_s = nx * 0.35
+                    nz_s = nz * 0.35
+                    ln = (nx_s * nx_s + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
+                    g.normals[vi] = (float(nx_s / ln), float(ny / ln), float(nz_s / ln))
+    if not skin_tris:
+        return
+    t = np.asarray(skin_tris, dtype=np.int32)
+    v0, v1, v2 = p[t[:, 0]], p[t[:, 1]], p[t[:, 2]]
+    fn = np.cross(v1 - v0, v2 - v0)
+    rounded = np.round(p * 100.0).astype(np.int64)
+    _, inv = np.unique(rounded, axis=0, return_inverse=True)
+    gn_u = np.zeros((inv.max() + 1, 3), dtype=np.float64)
+    for k in range(3):
+        np.add.at(gn_u, inv[t[:, k]], fn)
+    gn_u /= np.maximum(np.linalg.norm(gn_u, axis=1, keepdims=True), 1e-8)
+    gn = gn_u[inv]
+    if float(np.sum(n[skin_vert_mask] * gn[skin_vert_mask], axis=1).mean()) < 0.0:
+        gn = -gn
+    dots = np.sum(n * gn, axis=1)
+    bad = skin_vert_mask & (dots < 0.75)
+    for vi in np.nonzero(bad)[0]:
+        n[vi] = gn[vi]
+        g.normals[int(vi)] = (float(gn[vi, 0]), float(gn[vi, 1]), float(gn[vi, 2]))
+    # Weld normals across coincident skin seam vertices (miranda_face <-> miranda_head neck skin)
+    by_pos: dict[tuple[int, int, int], list[int]] = {}
+    for vi in np.nonzero(skin_vert_mask)[0]:
+        k = (int(round(p[vi, 0] * 100.0)), int(round(p[vi, 1] * 100.0)), int(round(p[vi, 2] * 100.0)))
+        by_pos.setdefault(k, []).append(int(vi))
+    for v_list in by_pos.values():
+        if len(v_list) > 1:
+            avg_n = n[v_list].mean(axis=0)
+            ln = float(np.linalg.norm(avg_n)) or 1.0
+            nt = (float(avg_n[0] / ln), float(avg_n[1] / ln), float(avg_n[2] / ln))
+            for vi in v_list:
+                g.normals[vi] = nt
+    # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
+    # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
+    for mat_name, base_v, _base_i, _tri_count, slice_len in g.slices:
+        if mat_name == "miranda_face":
+            sub_uv = uv_img[base_v : base_v + slice_len]
+            d_nost = np.minimum(
+                np.hypot((sub_uv[:, 0] - 0.454) / 0.022, (sub_uv[:, 1] - 0.472) / 0.026),
+                np.hypot((sub_uv[:, 0] - 0.559) / 0.022, (sub_uv[:, 1] - 0.472) / 0.026),
+            )
+            n_shadow = np.array([0.0, -0.55, -0.83516465], dtype=np.float64)
+            for k in np.nonzero(d_nost < 1.0)[0]:
+                vi = int(base_v + k)
+                w_t = float(np.clip(1.0 - d_nost[k], 0.0, 1.0)) * 0.90
+                cur_n = np.asarray(g.normals[vi], dtype=np.float64)
+                blended_n = cur_n * (1.0 - w_t) + n_shadow * w_t
+                ln = float(np.linalg.norm(blended_n)) or 1.0
+                g.normals[vi] = (
+                    float(blended_n[0] / ln),
+                    float(blended_n[1] / ln),
+                    float(blended_n[2] / ln),
+                )
 
 
 def orientation_breaks(g: Group) -> int:
@@ -577,6 +944,18 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
         pal_w.append((ws[0] / s, ws[1] / s, ws[2] / s))
 
     du, dv = dm.compute_uv_directions(g.verts, g.uvs, g.faces)
+    if len(g.normals) == len(g.verts) and len(g.verts) > 0:
+        import numpy as np
+
+        n_arr = np.asarray(g.normals, dtype=np.float64)
+        u_arr = np.asarray(du, dtype=np.float64)
+        v_arr = np.asarray(dv, dtype=np.float64)
+        u_arr = u_arr - np.sum(u_arr * n_arr, axis=1, keepdims=True) * n_arr
+        v_arr = v_arr - np.sum(v_arr * n_arr, axis=1, keepdims=True) * n_arr
+        u_arr /= np.maximum(np.linalg.norm(u_arr, axis=1, keepdims=True), 1e-8)
+        v_arr /= np.maximum(np.linalg.norm(v_arr, axis=1, keepdims=True), 1e-8)
+        du = [tuple(map(float, row)) for row in u_arr]
+        dv = [tuple(map(float, row)) for row in v_arr]
     geo = {
         "vert_count": len(g.verts),
         "headers": [
@@ -877,18 +1256,16 @@ def main(argv=None) -> int:
             preview_from_model(out_path, args.out / "previews", f"{label}_authored")
             print(f"[{label}] previews -> {args.out / 'previews'}")
 
-    # update pack scaffold — build it first if this is a fresh checkout
+    # update pack scaffold and textures (build_las --stage all)
     pack_dir = args.out / "Miranda_LAS"
     unit_dir = pack_dir / "assets" / "units" / "miranda" / "skins" / "miranda"
-    if not unit_dir.is_dir():
-        import build_las
+    import build_las
 
-        print("pack scaffold missing — building it (build_las --stage all)")
-        rc = build_las.main(
-            ["--stage", "all", "--source", str(args.source_zip), "--out", str(args.out)]
-        )
-        if rc != 0:
-            raise SystemExit(f"build_las failed with exit code {rc}")
+    rc = build_las.main(
+        ["--stage", "all", "--source", str(args.source_zip), "--out", str(args.out)]
+    )
+    if rc != 0:
+        raise SystemExit(f"build_las failed with exit code {rc}")
     if not unit_dir.is_dir():
         raise SystemExit(f"pack scaffold still missing at {unit_dir}")
     import shutil
@@ -905,7 +1282,19 @@ def main(argv=None) -> int:
         for name in ("2b.model", "fps_2b.model")
     })
     zip_path = las_pack.zip_pack(pack_dir)
-    print(f"pack updated: {unit_dir} (+ {zip_path.name})")
+    zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+    (zip_path.parent / f"{zip_path.name}.sha256").write_text(
+        f"{zip_sha}  build/pd2-las/{zip_path.name}\n"
+    )
+    if args.out.resolve() == (REPO / "build" / "pd2-las").resolve():
+        dist_dir = REPO / "dist"
+        dist_dir.mkdir(parents=True, exist_ok=True)
+        dist_zip = dist_dir / zip_path.name
+        shutil.copy2(zip_path, dist_zip)
+        (dist_dir / f"{zip_path.name}.sha256").write_text(
+            f"{zip_sha}  dist/{zip_path.name}\n"
+        )
+    print(f"pack updated: {unit_dir} (+ dist/{zip_path.name}, sha256={zip_sha[:16]}…)")
     return 0
 
 

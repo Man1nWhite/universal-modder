@@ -46,19 +46,25 @@ Current state, open problems and workflow traps:
 
 **2. L4D2 Source route — parallel line.** `tools/pd2-las/`, built from
 `l4d2_miranda_lawson_1.zip` (an L4D2 Miranda replacement for Rochelle) onto
-the 2B template skeleton. Output `build/pd2-las/Miranda_LAS.zip`, installed
-to **`PAYDAY 2\assets\mod_overrides\`** like 2B itself. Pipeline:
-[`tools/pd2-las/`](tools/pd2-las/README.md);
-agents start at [`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md)
-(one-command bootstrap, verified invariants, dead ends). Its
-divergence-filter bind-pose retarget is the candidate fix for the ME2
-route's open transfer problem (`STATUS.md` §6).
+the 2B template skeleton. Output `dist/Miranda_LAS.zip` (tracked in `dist/` and
+`build/pd2-las/Miranda_LAS.zip` with `.sha256` checksums), installed to
+**`PAYDAY 2\assets\mod_overrides\`** like 2B itself. Pipeline:
+[`tools/pd2-las/`](tools/pd2-las/README.md); agents start at
+[`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md) (one-command bootstrap,
+verified invariants, dead ends).
 
-Both lines follow the ModWorkshop Wiki
-[LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide)
-and are offline-validated only — nothing is game-verified yet. The two tool
-trees stay separate by design; [`tools/README.md`](tools/README.md) records
-why and where the boundary is.
+**3. Heister Head-Replacement `mod_overrides` (Joy, Clover, Bonnie, Sydney, and Geralt over Rust).**
+`tools/build_joy_head_mods.py` builds standalone `mod_overrides` head-replacement packages:
+- **Miranda Lawson** (both L4D2 and ME2 Romance sources) over **Joy, Clover, Bonnie, and Sydney**:
+  `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (8 packages).
+- **Geralt of Rivia** (built from `models/Geralt.7z`, Witcher 3 L4D2 port) over **Rust (`npc_criminal_wild_1`)**:
+  `dist/Geralt_over_Rust.zip` (2-atom `mtr_head` + `ALPHA_MASKED` `mtr_hair` setup with `2048x2048` face/eyes/teeth and hair/beard/eyelashes atlases, heist + menu `.model`, 3 `.material_config` files, and B&W HUD/Menu icon).
+All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`).
+
+Both LAS lines follow the ModWorkshop Wiki
+[LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide).
+The tool trees stay separate by design; [`tools/README.md`](tools/README.md)
+records why and where the boundary is.
 
 The earlier approach that surgically replaced heister character models
 (Clover/Bonnie/Sydney, plus outfit packs built on the same mesh) was **retired

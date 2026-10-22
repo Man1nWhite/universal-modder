@@ -113,7 +113,7 @@ def test_render_textured_sampler_orientation(tmp_path):
 
 
 def _author():
-    arc = VpkArchive.from_zip(str(REPO / "l4d2_miranda_lawson_1.zip"), "miranda_rochelle.vpk")
+    arc = VpkArchive.from_zip(str(REPO / "models" / "l4d2_miranda_lawson_1.zip"), "miranda_rochelle.vpk")
     tpp = load_model(*(arc.read(p) for p in bm.TPP_MDLS))
     fps = load_model(*(arc.read(p) for p in bm.FPS_MDLS))
     skel_map = json.loads((REPO / "tools/pd2-las/skeleton_map.json").read_text())
@@ -225,22 +225,77 @@ def test_geometry_sane_and_winding_positive(authored):
                 + p[2] * (q[0] * r[1] - q[1] * r[0])) / 6.0
     # healthy transfer ≈ 16x the source signed volume (4141.8 in^3 -> cm^3)
     assert 50000 < vol < 100000, vol
+    xs = [p[0] for p in v]
+    ys = [p[1] for p in v]
     zs = [p[2] for p in v]
-    # loose envelope only: exact ground contact is an in-game check
-    assert min(zs) > -25 and max(zs) < 250, (min(zs), max(zs))
+    # Tight anatomical envelope: feet near z=0, no -Y fingertip/head spikes
+    assert min(zs) > -2.0 and max(zs) < 195.0, (min(zs), max(zs))
+    assert min(ys) > -15.0 and max(ys) < 40.0, (min(ys), max(ys))
+    assert min(xs) > -55.0 and max(xs) < 55.0, (min(xs), max(xs))
+
+    fg = authored["fps"]["groups"]["arms"]
+    fxs = [p[0] for p in fg.verts]
+    fys = [p[1] for p in fg.verts]
+    fzs = [p[2] for p in fg.verts]
+    assert min(fzs) > 110.0 and max(fzs) < 155.0, (min(fzs), max(fzs))
+    assert min(fys) > -10.0 and max(fys) < 40.0, (min(fys), max(fys))
+    assert min(fxs) > -55.0 and max(fxs) < 55.0, (min(fxs), max(fxs))
 
 
 @needs_templates
 def test_face_region_upright_near_head(authored):
-    """Face verts must land in the head box of the target rig, not at the origin."""
+    """Face verts must land in the head box of the target rig, not behind the back."""
     verts, _, _ = _slice_verts(authored["tpp"]["groups"]["head"], "miranda_face")
     assert verts
     xs = [p[0] for p in verts]
+    ys = [p[1] for p in verts]
     zs = [p[2] for p in verts]
-    # head sits high (z ~ 150-185 cm), face near the centerline
-    assert 120 < sum(zs) / len(zs) < 200, sum(zs) / len(zs)
-    assert abs(sum(xs) / len(xs)) < 15, sum(xs) / len(xs)
-    assert (max(zs) - min(zs)) < 60  # not exploded
+    # head sits high (z ~ 163-182 cm), in front of neck (y ~ 5-17 cm), on centerline
+    assert 160.0 < sum(zs) / len(zs) < 185.0, sum(zs) / len(zs)
+    assert 5.0 < sum(ys) / len(ys) < 20.0, sum(ys) / len(ys)
+    assert min(ys) > 0.0 and max(ys) < 25.0, (min(ys), max(ys))
+    assert abs(sum(xs) / len(xs)) < 5.0, sum(xs) / len(xs)
+    assert (max(zs) - min(zs)) < 30.0  # not exploded
+
+
+@needs_templates
+def test_retarget_joint_errors_and_palettes(authored):
+    """Every mapped source joint must land near its target joint in 2b/fps_2b."""
+    skel_map = json.loads((REPO / "tools/pd2-las/skeleton_map.json").read_text())
+    for label in ("tpp", "fps"):
+        model = authored[label]["model"]
+        template = authored[label]["template"]
+        sw = bm.source_bone_worlds(model)
+        per_src_T = bm.retarget_maps(model, skel_map, template)
+        for i, bone in enumerate(model.bones):
+            tname = skel_map["map"].get(bone.name)
+            if not tname or bone.name == "ValveBiped.Bip01_Spine4":
+                continue
+            mp = dm.mat_apply_point(per_src_T[i], sw[i][12:15])
+            tp = template.worlds[template.name_id[tname]][12:15]
+            err = math.sqrt(sum((a - b) ** 2 for a, b in zip(mp, tp)))
+            assert err < 9.0, f"{label} {bone.name} -> {tname}: err={err:.2f}cm"
+            if tname in ("LeftForeArm", "RightForeArm"):
+                assert err < 3.0, f"{label} {tname}: err={err:.3f}cm"
+            if tname in ("LeftArm", "RightArm"):
+                assert err < 5.0, f"{label} {tname}: err={err:.3f}cm"
+            if tname in ("LeftHand", "RightHand"):
+                assert err < 3.0, f"{label} {tname}: err={err:.2f}cm"
+            if tname.startswith(("LeftHand", "RightHand")) and tname not in ("LeftHand", "RightHand"):
+                assert err < 2.0, f"{label} {tname}: err={err:.2f}cm"
+            if tname in ("Hips", "Neck", "Head", "LeftUpLeg", "RightUpLeg",
+                         "LeftLeg", "RightLeg", "LeftFoot", "RightFoot",
+                         "LeftToeBase", "RightToeBase"):
+                assert err < 3.5, f"{label} {tname}: err={err:.2f}cm"
+
+    # Root-first palette order and distinct bone indices per vertex
+    assert authored["tpp"]["groups"]["body"].palette[0] == "Hips"
+    assert authored["tpp"]["groups"]["shadow"].palette[0] == "Hips"
+    for label in ("tpp", "fps"):
+        for g in authored[label]["groups"].values():
+            for infl in g.weights:
+                idxs = [idx for idx, w in infl if w > 1e-6]
+                assert len(idxs) == len(set(idxs)), f"duplicate palette index in {infl}"
 
 
 @needs_templates

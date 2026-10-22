@@ -34,6 +34,7 @@ from dmodel import DieselModel, hash_str  # noqa: E402
 
 RIG_JSON = HERE / "reference" / "las_rig.json"
 DEFAULT_PACK = ROOT / "dist" / "lawson_las.zip"
+ASSET_DIR = "assets"
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
 
@@ -638,23 +639,29 @@ def check_textures(rep: Report, pack: dict[str, bytes]) -> None:
             mip0_len = max(16, size * size)      # DXT5: 16 bytes per 4x4 block
             payload = data[dds.DDS_HEADER_SIZE:]
             img = dds.decode_dxt5(payload[:mip0_len], size, size)
-            flat = img.reshape(-1, 4) if hasattr(img, "reshape") else img
-            ch = list(zip(*flat))
-            r, g, b, a = ch[0], ch[1], ch[2], ch[3]
-            is_flat = (max(r) - min(r) < 4 and max(g) - min(g) < 4
-                       and max(b) - min(b) < 4 and max(a) - min(a) < 4)
+            if hasattr(img, "min") and hasattr(img, "ndim") and img.ndim == 3:
+                r_min, g_min, b_min, a_min = (int(x) for x in img.min(axis=(0, 1)))
+                r_max, g_max, b_max, a_max = (int(x) for x in img.max(axis=(0, 1)))
+            else:
+                ch = list(zip(*img))
+                r_min, r_max = min(ch[0]), max(ch[0])
+                g_min, g_max = min(ch[1]), max(ch[1])
+                b_min, b_max = min(ch[2]), max(ch[2])
+                a_min, a_max = min(ch[3]), max(ch[3])
+            is_flat = (r_max - r_min < 4 and g_max - g_min < 4
+                       and b_max - b_min < 4 and a_max - a_min < 4)
             if is_flat:
                 # a synthesized flat normal (the source has no normal map for
                 # this material): the layout rules do not apply to it
                 flat_maps.append(path.rsplit("/", 1)[-1])
                 continue
-            if min(r) < 250:
-                normal_bad.append(f"{path}: red is not white (min {min(r)})")
-            if max(b) > 8:
-                normal_bad.append(f"{path}: blue is not black (max {max(b)})")
-            if max(a) - min(a) < 8:
+            if r_min < 250:
+                normal_bad.append(f"{path}: red is not white (min {r_min})")
+            if b_max > 8:
+                normal_bad.append(f"{path}: blue is not black (max {b_max})")
+            if a_max - a_min < 8:
                 normal_bad.append(f"{path}: alpha is flat - X is not in alpha")
-            if max(g) - min(g) < 4:
+            if g_max - g_min < 4:
                 normal_bad.append(f"{path}: green is flat - no Y in the normal map")
     if dxt_bad:
         rep.fail("T1", "guide: compress with DXT5 (DXT1 discards alpha)",
@@ -697,23 +704,26 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
                            "with Localization, Hooks and AddFiles",
                      f"main.xml lacks {label}")
 
-    # AddFiles entries must resolve (paths are relative to the table root,
-    # i.e. the pack's Lawson_LAS/ folder, and carry no extension)
+    # AddFiles entries must resolve (paths are relative to the AddFiles
+    # directory attribute inside Lawson_LAS/, and carry no extension)
+    m_dir = re.search(r'<AddFiles\b[^>]*\bdirectory="([^"]*)"', main)
+    add_dir = m_dir.group(1).strip("/") if m_dir else ""
+    add_prefix = f"{add_dir}/" if add_dir else ""
     missing = []
     registered: set[str] = set()
     for kind, path in re.findall(r'<(texture|df_nm|unit_mat) path="([^"]+)"', main):
         if kind == "texture":
-            registered.add(f"{path}.texture")
-            if f"Lawson_LAS/{path}.texture" not in pack:
+            registered.add(f"{add_prefix}{path}.texture")
+            if f"Lawson_LAS/{add_prefix}{path}.texture" not in pack:
                 missing.append(f"texture {path}")
         elif kind == "df_nm":
             for suffix in ("_df.texture", "_nm.texture"):
-                registered.add(f"{path}{suffix}")
-                if f"Lawson_LAS/{path}{suffix}" not in pack:
+                registered.add(f"{add_prefix}{path}{suffix}")
+                if f"Lawson_LAS/{add_prefix}{path}{suffix}" not in pack:
                     missing.append(f"df_nm {path}{suffix}")
         else:
-            registered.add(f"{path}.material_config")
-            if f"Lawson_LAS/{path}.material_config" not in pack:
+            registered.add(f"{add_prefix}{path}.material_config")
+            if f"Lawson_LAS/{add_prefix}{path}.material_config" not in pack:
                 missing.append(f"unit_mat {path}")
     # ...and the other way round: an unregistered texture or unit is never
     # loaded by the game (BeardLib only serves what AddFiles lists), so the
@@ -799,10 +809,10 @@ def audit(pack_path: Path) -> Report:
     by_hash, _by_id = rig_maps()
     rig = json.loads(RIG_JSON.read_text())
 
-    tpp_bytes = pack.get(f"Lawson_LAS/{UNIT_DIR}/lawson.model")
-    fps_bytes = pack.get(f"Lawson_LAS/{UNIT_DIR}/fps_lawson.model")
-    tpp_cfg = pack.get(f"Lawson_LAS/{UNIT_DIR}/lawson.material_config", b"").decode()
-    fps_cfg = pack.get(f"Lawson_LAS/{UNIT_DIR}/fps_lawson.material_config", b"").decode()
+    tpp_bytes = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/lawson.model")
+    fps_bytes = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model")
+    tpp_cfg = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/lawson.material_config", b"").decode()
+    fps_cfg = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.material_config", b"").decode()
 
     with tempfile.TemporaryDirectory() as tmp:
         tpp_path = Path(tmp) / "lawson.model"

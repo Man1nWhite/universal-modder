@@ -25,6 +25,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+from dds_encode import (  # noqa: E402
+    attenuate_dxt5_alpha_from_normal,
+    swizzle_source_normal_dxt5_to_pd2,
+)
 from las_pack import write_pack  # noqa: E402
 from source_model import load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
@@ -59,6 +63,12 @@ VTF_TO_PACK = {
     "miranda_head_normal": "miranda_head_nm",
     "miranda_eyes": "miranda_eyes",
 }
+# Specular attenuation parameters for diffuse alpha (normal VTF stem, scale, max_alpha)
+DF_SPECULAR_FROM_NORMAL = {
+    "miranda_body_color": ("miranda_body_normal", 0.25, 64),
+    "miranda_face_color": ("miranda_face_normal", 0.18, 42),
+    "miranda_head_color": ("miranda_head_normal", 0.20, 48),
+}
 
 
 def sha256_file(path: Path) -> str:
@@ -90,8 +100,8 @@ def model_inventory(model) -> dict:
 def main(argv: list[str] | None = None) -> int:
     repo = HERE.parents[1]
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--source", default=str(repo / "l4d2_miranda_lawson_1.zip"),
-                    help="the L4D2 source zip (default: repo root copy)")
+    ap.add_argument("--source", default=str(repo / "models" / "l4d2_miranda_lawson_1.zip"),
+                    help="the L4D2 source zip (default: models/l4d2_miranda_lawson_1.zip)")
     ap.add_argument("--vpk-inner", default="miranda_rochelle.vpk",
                     help="VPK member name inside the zip")
     ap.add_argument("--out", default=str(repo / "build" / "pd2-las"),
@@ -138,10 +148,127 @@ def main(argv: list[str] | None = None) -> int:
         tex_dir = out / "textures"
         tex_dir.mkdir(parents=True, exist_ok=True)
         vtf_info = {}
+        raw_vtf_imgs = {
+            stem: parse_vtf(arc.read(f"materials/models/miranda/{stem}.vtf"))
+            for stem in sorted(VTF_TO_PACK)
+        }
+        raw_dds = {stem: to_dds(img) for stem, img in raw_vtf_imgs.items()}
         for stem, pack_name in sorted(VTF_TO_PACK.items()):
-            raw = arc.read(f"materials/models/miranda/{stem}.vtf")
-            img = parse_vtf(raw)
-            dds = to_dds(img)
+            img = raw_vtf_imgs[stem]
+            if stem in DF_SPECULAR_FROM_NORMAL:
+                nm_stem, scale, max_a = DF_SPECULAR_FROM_NORMAL[stem]
+                dds = attenuate_dxt5_alpha_from_normal(
+                    raw_dds[stem], raw_dds[nm_stem], scale, max_a
+                )
+                if stem == "miranda_face_color":
+                    import io
+                    import numpy as np
+                    from PIL import Image
+                    from dds_encode import rgba_to_bc3_dds
+
+                    face_rgba = np.asarray(
+                        Image.open(io.BytesIO(dds)).convert("RGBA"),
+                        dtype=np.uint8,
+                    ).copy()
+                    yy, xx = np.mgrid[0 : img.height, 0 : img.width].astype(np.float32)
+                    u = (xx + 0.5) / img.width
+                    v = (yy + 0.5) / img.height
+                    for uc, vc in ((0.454, 0.472), (0.559, 0.472)):
+                        d = np.hypot((u - uc) / 0.020, (v - vc) / 0.025)
+                        w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.90
+                        m = w_n > 0.0
+                        if m.any():
+                            rgb = face_rgba[m, :3].astype(np.float32)
+                            target = np.array([14.0, 7.0, 5.0], dtype=np.float32)
+                            face_rgba[m, :3] = np.clip(
+                                rgb * (1.0 - w_n[m, None]) + target * w_n[m, None],
+                                0.0,
+                                255.0,
+                            ).astype(np.uint8)
+                        m_spec = d < 1.0
+                        if m_spec.any():
+                            face_rgba[m_spec, 3] = np.minimum(face_rgba[m_spec, 3], 2)
+                    # Upper eyelid lash liner + upper waterline (L4D2 mesh has no separate 3D Eyelashes mesh)
+                    w_lash = np.zeros_like(u)
+                    for uc, u_min, u_max in ((0.260, 0.190, 0.322), (0.747, 0.684, 0.808)):
+                        du = (u - uc) / 0.062
+                        v_center = 0.293 + 0.003 * (du ** 2)
+                        dv = (v - v_center) / 0.011
+                        w_eye = np.exp(-(du ** 4) - (dv ** 2) * 1.8) * (
+                            (u >= u_min) & (u <= u_max) & (v <= 0.3055)
+                        )
+                        w_lash = np.maximum(w_lash, w_eye)
+                    w_wl = np.maximum(
+                        np.exp(-(((u - 0.068) / 0.042) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+                        np.exp(-(((u - 0.927) / 0.036) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+                    )
+                    w_l = np.clip(np.maximum(w_lash, w_wl) * 0.88, 0.0, 1.0)
+                    m_l = w_l > 0.02
+                    if m_l.any():
+                        rgb = face_rgba[m_l, :3].astype(np.float32)
+                        target_lash = np.array([18.0, 13.0, 11.0], dtype=np.float32)
+                        face_rgba[m_l, :3] = np.clip(
+                            rgb * (1.0 - w_l[m_l, None]) + target_lash * w_l[m_l, None],
+                            0.0,
+                            255.0,
+                        ).astype(np.uint8)
+                        face_rgba[w_l > 0.35, 3] = np.minimum(face_rgba[w_l > 0.35, 3], 4)
+                    dds = rgba_to_bc3_dds(face_rgba)
+            elif stem.endswith("_normal"):
+                dds = swizzle_source_normal_dxt5_to_pd2(raw_dds[stem], invert_y=True)
+            elif stem == "miranda_eyes":
+                import numpy as np
+
+                from dds_encode import rgba_to_bc3_dds
+
+                size = 512
+                yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+                u = (xx + 0.5) / size - 0.5
+                v = (yy + 0.5) / size - 0.5
+                r = np.hypot(u, v)
+                theta = np.arctan2(v, u)
+                sclera_t = np.clip((r - 0.25) / 0.25, 0.0, 1.0)
+                lid_ao = np.clip(
+                    1.0
+                    - 0.32 * np.clip((-v - 0.02) / 0.22, 0.0, 1.0)
+                    - 0.22 * np.clip((v - 0.06) / 0.22, 0.0, 1.0)
+                    - 0.32 * (sclera_t**1.2),
+                    0.46,
+                    1.0,
+                )
+                rgb = np.stack([166.0 * lid_ao, 152.0 * lid_ao, 146.0 * lid_ao], axis=-1)
+                iris_outer, iris_inner, pupil_r = 0.28, 0.25, 0.115
+                iris_mask = np.clip((iris_outer - r) / (iris_outer - iris_inner), 0.0, 1.0)
+                rn = np.clip((r - pupil_r) / max(iris_inner - pupil_r, 1e-4), 0.0, 1.0)
+                f1 = np.sin(theta * 36.0 + 0.4 * np.sin(theta * 7.0))
+                f2 = np.cos(theta * 64.0 - 0.6 * np.cos(theta * 11.0))
+                f3 = np.sin(theta * 112.0 + 3.5 * rn)
+                fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * np.sin(rn * np.pi)
+                collarette = np.exp(-(((rn - 0.34) / 0.14) ** 2))
+                radial = 1.0 - 0.38 * (rn**1.35) + 0.12 * collarette + 0.14 * fiber_detail
+                upper_iris_ao = np.clip(1.0 - 0.18 * np.clip((-v - 0.05) / 0.20, 0.0, 1.0), 0.80, 1.0)
+                radial = radial * upper_iris_ao
+                iris_rgb = np.stack(
+                    [
+                        np.clip(24.0 * radial + 10.0 * collarette + 10.0 * fiber_detail, 8.0, 78.0),
+                        np.clip(68.0 * radial + 18.0 * collarette + 18.0 * fiber_detail, 24.0, 142.0),
+                        np.clip(146.0 * radial + 26.0 * collarette + 24.0 * fiber_detail, 52.0, 204.0),
+                    ],
+                    axis=-1,
+                )
+                limbus = np.clip((r - (iris_inner - 0.035)) / 0.045, 0.0, 1.0) * np.clip(
+                    (iris_outer - r) / 0.025, 0.0, 1.0
+                )
+                iris_rgb = iris_rgb * (1.0 - 0.78 * limbus[..., None])
+                pupil_mask = np.clip((pupil_r + 0.012 - r) / 0.018, 0.0, 1.0)
+                iris_rgb = iris_rgb * (1.0 - pupil_mask[..., None]) + np.array([2.0, 3.0, 5.0], dtype=np.float32) * pupil_mask[..., None]
+                rgb = rgb * (1.0 - iris_mask[..., None]) + iris_rgb * iris_mask[..., None]
+                cornea_mask = np.clip(1.0 - (r - iris_outer) / 0.03, 0.0, 1.0)
+                alpha = np.where(r < 0.118, 4.0, 8.0 + 4.0 * cornea_mask)
+                eye_rgba = np.clip(np.dstack([rgb, alpha]), 0, 255).astype(np.uint8)
+                dds = rgba_to_bc3_dds(eye_rgba)
+            else:
+                dds = raw_dds[stem]
             textures[f"{pack_name}.texture"] = dds
             (tex_dir / f"{pack_name}.texture").write_bytes(dds)
             (png_dir / f"{stem}.png").write_bytes(to_png(img))

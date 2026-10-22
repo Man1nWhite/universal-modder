@@ -12,8 +12,8 @@ comparison.
 Usage:
     python tools/pd2-las/uv_check.py \
         --two-b /tmp/2bsrc/2B\ -\ LAS/assets/units/2b/skins/2b \
-        --ours /home/user/universal-modder/build/pd2-las/miranda.model \
-        --out /home/user/universal-modder/build/pd2-las/previews
+        --ours build/pd2-las/miranda.model \
+        --out build/pd2-las/previews
 """
 
 from __future__ import annotations

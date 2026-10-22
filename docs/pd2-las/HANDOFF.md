@@ -4,13 +4,15 @@
 as a Legendary Armour Skins (LAS) armor skin (the `2b.rar` product shape),
 built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
-**State:** the pack is built and offline-verified to the limit of what a
-sandbox can prove. Deliverable: `build/pd2-las/Miranda_LAS.zip` (drop the
-inner `Miranda_LAS/` into `PAYDAY 2\assets\mod_overrides\` — the 2B/MOOG
-convention; BeardLib loads the `main.xml` packs from there and the hooks
-register the skin — needs BeardLib + LegendaryArmours).
-Remaining: (1) in-game checklist run by the user, (2) ME2 redistribution
-rights gate before any public release. Nothing else is pending.
+**State:** the pack is built, game-tested, tracked in git, and offline-verified.
+Deliverables in **`dist/`**:
+- `dist/Miranda_LAS.zip` (`5,895,573` bytes, sha256 `1057de877bbfb0da701dd5f96782d9b0852ef52e120e8cb270ff022662c5924e`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
+- `dist/lawson_las.zip` (`9,125,016` bytes, sha256 `4500aa64b3dc107089538e22c6c83002edf0e0767e7b1d24d4ef6d7a1624e4ea`) — Full-body LAS outfit from ME2 Romance.
+- Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
+  - `dist/Miranda_L4D2_over_Joy.zip` (`10,667,372` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,240,529` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (`7,718,388` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,299,496` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,223,196` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,793,345` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,222,643` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,807,892` B)
 
 ## Quickstart
 
@@ -19,11 +21,11 @@ bash tools/pd2-las/bootstrap.sh     # venv + 2B templates + build + tests + lint
 ```
 
 That is the whole recovery procedure too. The arena sandbox periodically
-wipes `.venv`, `/tmp` and `build/` and rewinds local git to `66cfdb7` while
+wipes `.venv`, `/tmp` and `build/` and rewinds local git to `0f1d838` while
 the worktree looks dirty — **the work is safe on the remote**. Recover with:
 
 ```bash
-git fetch origin && git reset --hard origin/arena/136395ac-universal-modder
+git fetch origin && git reset --hard origin/arena/ab9ca3e6-universal-modder
 bash tools/pd2-las/bootstrap.sh
 ```
 
@@ -41,7 +43,7 @@ the remote branch.
 | `docs/audits/2026-10-19-las-guide-compliance.md` | every verification pass + 2B structural diff + cross-route winding audit |
 | `docs/pd2-las/in-game-checklist.md` | 18 items for the user-side game test |
 | `knowledge/games/payday-2/las-armor-skin-outfit.md` | engine field notes + gotchas |
-| `2b.rar`, `l4d2_miranda_lawson_1.zip` | reference pack + source (both tracked) |
+| `references/2b.rar`, `models/l4d2_miranda_lawson_1.zip` | reference pack + source (both tracked) |
 
 ## Pipeline in one breath
 

@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SOURCE_ZIP = REPO / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 pytestmark = pytest.mark.skipif(
@@ -409,7 +409,419 @@ class TestLasScaffold:
         assert out.read_bytes() == out2.read_bytes()
 
     def test_reference_archive_untouched(self):
-        ref = REPO / "2b.rar"
+        ref = REPO / "references" / "2b.rar"
         if ref.is_file():
             # 2b.rar is the contract reference; the pipeline must not rewrite it.
             assert zipfile.is_zipfile(ref) is False
+
+    def test_tracked_miranda_las_pack(self):
+        """The built Miranda_LAS.zip deliverable is tracked in dist/ and self-consistent."""
+        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
+        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        build_sha = REPO / "build" / "pd2-las" / "Miranda_LAS.zip.sha256"
+        dist_sha = REPO / "dist" / "Miranda_LAS.zip.sha256"
+        for p in (build_zip, dist_zip, build_sha, dist_sha):
+            assert p.is_file(), f"missing tracked deliverable: {p}"
+        raw = dist_zip.read_bytes()
+        assert build_zip.read_bytes() == raw
+        digest = hashlib.sha256(raw).hexdigest()
+        assert build_sha.read_text().split()[0] == digest
+        assert dist_sha.read_text().split()[0] == digest
+        with zipfile.ZipFile(dist_zip) as z:
+            info = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))
+            assert info["models_present"] is True
+            assert "WIP_DO_NOT_INSTALL.txt" not in info["payload_sha256"]
+            assert len(info["payload_sha256"]) == 19
+            for rel, expected in info["payload_sha256"].items():
+                actual = hashlib.sha256(z.read(f"Miranda_LAS/{rel}")).hexdigest()
+                assert actual == expected, rel
+
+    def test_tracked_joy_head_replacement_packs(self):
+        """Both Joy head-replacement mod_overrides packs in dist/ are tracked and valid."""
+        import diesel_model as dm
+
+        for zip_name, prefix in (
+            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy"),
+            ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy"),
+        ):
+            zp = REPO / "dist" / zip_name
+            sp = REPO / "dist" / f"{zip_name}.sha256"
+            assert zp.is_file(), f"missing {zp}"
+            assert sp.is_file(), f"missing {sp}"
+            raw = zp.read_bytes()
+            assert sp.read_text().split()[0] == hashlib.sha256(raw).hexdigest()
+            unit_dir = f"{prefix}/units/pd2_dlc_joy/characters/npc_criminals_joy_1"
+            icon_path = f"{prefix}/guis/dlcs/joy/textures/pd2/blackmarket/icons/characters/joy.texture"
+            with zipfile.ZipFile(zp) as z:
+                names = set(z.namelist())
+                assert icon_path in names
+                assert len(z.read(icon_path)) == 65664
+                m_bytes = z.read(f"{unit_dir}/npc_criminal_joy_1.model")
+                assert m_bytes == z.read(f"{unit_dir}/npc_criminal_joy_1_menu.model")
+                mf = dm.ModelFile.read(m_bytes)
+                for did, gid, tid in ((120, 228, 229), (121, 233, 234)):
+                    md = dm.decode_model_data(mf.by_id(did).payload)
+                    geo = dm.decode_geometry(mf.by_id(gid).payload)
+                    topo = dm.decode_topology(mf.by_id(tid).payload)
+                    assert len(md["atoms"]) == 2
+                    assert geo["vert_count"] > 4000
+                    assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
+
+    def test_tracked_clover_bonnie_sydney_head_replacement_packs(self):
+        """Clover, Bonnie, and Sydney head-replacement mod_overrides packs in dist/ are tracked and valid."""
+        import diesel_model as dm
+
+        specs = [
+            (
+                "Miranda_L4D2_over_Clover.zip",
+                "Miranda L4D2 over Clover",
+                "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
+                "g_head_fem1",
+                "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
+            ),
+            (
+                "Miranda_Romance_over_Clover.zip",
+                "Miranda Romance over Clover",
+                "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
+                "g_head_fem1",
+                "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
+            ),
+            (
+                "Miranda_L4D2_over_Bonnie.zip",
+                "Miranda L4D2 over Bonnie",
+                "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
+                "g_head",
+                "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
+            ),
+            (
+                "Miranda_Romance_over_Bonnie.zip",
+                "Miranda Romance over Bonnie",
+                "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
+                "g_head",
+                "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
+            ),
+            (
+                "Miranda_L4D2_over_Sydney.zip",
+                "Miranda L4D2 over Sydney",
+                "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
+                "g_head",
+                "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
+            ),
+            (
+                "Miranda_Romance_over_Sydney.zip",
+                "Miranda Romance over Sydney",
+                "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
+                "g_head",
+                "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
+            ),
+        ]
+        for zip_name, prefix, model_rel, head_draw, icon_rel in specs:
+            zp = REPO / "dist" / zip_name
+            sp = REPO / "dist" / f"{zip_name}.sha256"
+            assert zp.is_file(), f"missing {zp}"
+            assert sp.is_file(), f"missing {sp}"
+            raw = zp.read_bytes()
+            assert sp.read_text().split()[0] == hashlib.sha256(raw).hexdigest()
+            with zipfile.ZipFile(zp) as z:
+                names = set(z.namelist())
+                assert f"{prefix}/{icon_rel}" in names
+                assert len(z.read(f"{prefix}/{icon_rel}")) == 65664
+                mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
+                md_by_hash = {
+                    dm.decode_model_data(s.payload)["name_hash"]: s
+                    for s in mf.by_type(dm.MODEL_DATA)
+                }
+                md = dm.decode_model_data(md_by_hash[dm.hash64(head_draw)].payload)
+                pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+                geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+                topo = dm.decode_topology(mf.by_id(pg["topology"]).payload)
+                mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
+                sb = dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)
+                assert len(md["atoms"]) == 2
+                assert len(mg["material_ids"]) == 2
+                assert len(sb["maps"]) == 3
+                assert geo["vert_count"] > 4000
+                assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
+
+    def test_tracked_pack_specular_alpha_and_pd2_normal_layout(self):
+        """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""
+        import numpy as np
+
+        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
+        with zipfile.ZipFile(build_zip) as z:
+            for stem in ("miranda_body_df", "miranda_face_df", "miranda_head_df", "miranda_eyes"):
+                raw = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{stem}.texture")
+                blocks = np.frombuffer(raw[128:], dtype=np.uint8).reshape(-1, 16)
+                assert int(blocks[:, 0].max()) <= 72, f"{stem} alpha too glossy: {blocks[:, 0].max()}"
+                assert float(blocks[:, 0].mean()) < 35.0, f"{stem} mean alpha too high"
+            for stem in ("miranda_body_nm", "miranda_face_nm", "miranda_head_nm"):
+                raw = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{stem}.texture")
+                blocks = np.frombuffer(raw[128:], dtype=np.uint8).reshape(-1, 16)
+                c0 = blocks[:, 8].astype(np.int32) | (blocks[:, 9].astype(np.int32) << 8)
+                c1 = blocks[:, 10].astype(np.int32) | (blocks[:, 11].astype(np.int32) << 8)
+                assert np.all(((c0 >> 11) & 31) == 31), f"{stem} red channel not 255"
+                assert np.all((c0 & 31) == 0), f"{stem} blue channel not 0"
+                assert np.all(c0 >= c1), f"{stem} has c0 < c1"
+                assert int(blocks[:, 0].max()) - int(blocks[:, 1].min()) > 16, f"{stem} alpha flat"
+
+    def test_ingame_visual_artifact_regressions(self):
+        """Guard against the 5 in-game visual artifacts:
+        1. Corrupted right-cheek/mouth-corner skin boundary normals.
+        2. Non-orthogonal or un-welded tangent basis vectors (uvdir_u, uvdir_v).
+        3. Duplicate eyeball triangles in Atom 1 (causing Z-fighting black eyes).
+        4. Untinted white / slit eyeballs in head_df quadrant (1, 1).
+        5. Lower front hair poking through the front throat skin (z < 161.5).
+        """
+        import io
+        import numpy as np
+        from PIL import Image
+        import diesel_model as dm
+
+        specs = [
+            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_nm.texture", "g_head"),
+            ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_nm.texture", "g_head"),
+            ("Miranda_L4D2_over_Clover.zip", "Miranda L4D2 over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
+            ("Miranda_Romance_over_Clover.zip", "Miranda Romance over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
+        ]
+        for zip_name, prefix, model_rel, df_rel, nm_rel, head_draw in specs:
+            with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
+                mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
+                md_by_hash = {
+                    dm.decode_model_data(s.payload)["name_hash"]: s
+                    for s in mf.by_type(dm.MODEL_DATA)
+                }
+                md = dm.decode_model_data(md_by_hash[dm.hash64(head_draw)].payload)
+                pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+                geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+                a0, a1 = md["atoms"][0], md["atoms"][1]
+                # 1. Atom 1 is 3D eyelashes only (never duplicated eyeballs)
+                assert a1["tri_count"] == 224, f"{zip_name}: expected 224 eyelash tris in Atom 1, got {a1['tri_count']}"
+                # 2. Orthonormal tangent basis
+                nrm = np.asarray(geo["normals"], dtype=np.float64)
+                tu = np.asarray(geo["uvdir_u"], dtype=np.float64)
+                tv = np.asarray(geo["uvdir_v"], dtype=np.float64)
+                assert float(np.abs(np.sum(nrm * tu, axis=1)).max()) < 1e-4
+                assert float(np.abs(np.sum(nrm * tv, axis=1)).max()) < 1e-4
+                # 3. Lower front hair (z < 161.5) stays strictly behind front throat skin
+                p0 = np.asarray(geo["verts"], dtype=np.float64)[: a0["slice_len"]]
+                uv0 = np.asarray(geo["uv0"], dtype=np.float64)[: a0["slice_len"]]
+                uv_img_y = 1.0 - uv0[:, 1]
+                # Hair in quadrant (1, 0) has u in [0.5, 1.0], v_img in [0.0, 0.5] with local v_img <= 0.41
+                is_hair = (uv0[:, 0] > 0.5) & (uv_img_y < 0.41)
+                low_hair = is_hair & (p0[:, 2] < 161.5)
+                assert float(p0[low_hair, 1].max()) < 5.0, f"{zip_name}: low hair pokes forward to y={p0[low_hair, 1].max():.2f}"
+                # 4. Crisp sapphire iris in quadrant (1, 1) of head_df
+                df_im = np.asarray(Image.open(io.BytesIO(z.read(f"{prefix}/{df_rel}"))).convert("RGBA"))
+                eye_quad = df_im[1024:2048, 1024:2048]
+                yy, xx = np.mgrid[0:1024, 0:1024].astype(np.float32)
+                r = np.hypot((xx - 511.5) / 1024.0, (yy - 511.5) / 1024.0)
+                iris_ring = (r > 0.11) & (r < 0.21)
+                mean_r = float(eye_quad[iris_ring, 0].mean())
+                mean_b = float(eye_quad[iris_ring, 2].mean())
+                assert mean_b > mean_r + 40.0, f"{zip_name}: eye iris not sapphire blue (R={mean_r:.1f}, B={mean_b:.1f})"
+                upper_iris = iris_ring & (yy < 512)
+                lower_iris = iris_ring & (yy >= 512)
+                assert abs(float(eye_quad[upper_iris, 2].mean()) - float(eye_quad[lower_iris, 2].mean())) < 25.0, (
+                    f"{zip_name}: top/bottom iris asymmetry detected"
+                )
+                assert float(eye_quad[r > 0.32, 0].mean()) < 185.0, f"{zip_name}: sclera too bright (bloom risk)"
+                # 5. PD2 DXT5nm normal map layout in head_nm
+                nm_raw = z.read(f"{prefix}/{nm_rel}")
+                nm_blocks = np.frombuffer(nm_raw[128:], dtype=np.uint8).reshape(-1, 16)
+                c0 = nm_blocks[:, 8].astype(np.int32) | (nm_blocks[:, 9].astype(np.int32) << 8)
+                assert np.all(((c0 >> 11) & 31) == 31), f"{zip_name}: head_nm red channel not 255"
+                assert np.all((c0 & 31) == 0), f"{zip_name}: head_nm blue channel not 0"
+
+        # 6. Verify lawson_las.zip has unified bone weights and welded normals across the Face <-> Hair under-chin seam
+        sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        import dmodel
+
+        with zipfile.ZipFile(REPO / "dist" / "lawson_las.zip") as z:
+            m_tpp = dmodel.DieselModel.from_bytes(z.read("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"))
+            md_h = m_tpp.by_id[75].obj
+            geo_h = m_tpp.by_id[82].obj
+            topo_h = np.asarray(m_tpp.by_id[83].obj.faces, dtype=np.int32)
+            a_face, a_hair = md_h.render_atoms[0], md_h.render_atoms[1]
+            s0 = np.unique(topo_h[a_face["base_index"] // 3 : a_face["base_index"] // 3 + a_face["tri_count"]])
+            s1 = np.unique(topo_h[a_hair["base_index"] // 3 : a_hair["base_index"] // 3 + a_hair["tri_count"]])
+            v0 = np.asarray(geo_h.positions, dtype=np.float64)[s0]
+            v1 = np.asarray(geo_h.positions, dtype=np.float64)[s1]
+            n0 = np.asarray(geo_h.normals, dtype=np.float64)[s0]
+            n1 = np.asarray(geo_h.normals, dtype=np.float64)[s1]
+            w0 = np.asarray(geo_h.weights3, dtype=np.float64)[s0]
+            w1 = np.asarray(geo_h.weights3, dtype=np.float64)[s1]
+            bi0 = np.asarray(geo_h.joints, dtype=np.int32)[s0]
+            bi1 = np.asarray(geo_h.joints, dtype=np.int32)[s1]
+            k0 = {tuple( row ): idx for idx, row in enumerate(np.round(v0, 3))}
+            ii, jj = [], []
+            for idx1, row1 in enumerate(np.round(v1, 3)):
+                idx0 = k0.get(tuple(row1))
+                if idx0 is not None:
+                    ii.append(idx0)
+                    jj.append(idx1)
+            assert len(ii) >= 100
+            assert np.array_equal(bi0[ii], bi1[jj]), "Face <-> Hair seam has bone index mismatch"
+            assert float(np.abs(w0[ii] - w1[jj]).max()) < 1e-5, "Face <-> Hair seam has bone weight mismatch"
+            chin = v0[ii, 2] < 160.0
+            assert int(chin.sum()) >= 15
+            assert float(np.abs(n0[ii][chin] - n1[jj][chin]).max()) < 1e-5, "Under-chin seam has normal mismatch"
+
+    def test_geralt_over_rust_package(self):
+        """Verify dist/Geralt_over_Rust.zip geometry, CCW winding, single-atom ALPHA_MASKED mtr_head, textures, and preview."""
+        import io
+        import diesel_model as dm
+        import numpy as np
+        from PIL import Image
+
+        zp = REPO / "dist" / "Geralt_over_Rust.zip"
+        sp = REPO / "dist" / "Geralt_over_Rust.zip.sha256"
+        assert zp.is_file() and sp.is_file()
+        assert sp.read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
+
+        prefix = "Geralt over Rust"
+        wild_dir = f"{prefix}/units/pd2_dlc_wild/characters/npc_criminals_wild_1"
+        with zipfile.ZipFile(zp) as z:
+            names = set(z.namelist())
+            assert f"{prefix}/guis/dlcs/wild/textures/pd2/blackmarket/icons/characters/wild.texture" in names
+            assert f"{wild_dir}/npc_criminal_wild_1.model" in names
+            assert f"{wild_dir}/npc_criminal_wild_1_menu.model" in names
+
+            mf = dm.ModelFile.read(z.read(f"{wild_dir}/npc_criminal_wild_1.model"))
+            mat_by_hash = {
+                dm.decode_material(s.payload)["name_hash"]: s.id
+                for s in mf.by_type(dm.MATERIAL)
+            }
+            assert dm.hash64("mtr_head") in mat_by_hash
+
+            md_by_hash = {
+                dm.decode_model_data(s.payload)["name_hash"]: s
+                for s in mf.by_type(dm.MODEL_DATA)
+            }
+            md = dm.decode_model_data(md_by_hash[dm.hash64("g_head")].payload)
+            assert len(md["atoms"]) == 1
+            mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
+            assert mg["material_ids"] == [mat_by_hash[dm.hash64("mtr_head")]]
+
+            pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+            topo = np.asarray(dm.decode_topology(mf.by_id(pg["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+            verts = np.asarray(geo["verts"], dtype=np.float64)
+            nrm = np.asarray(geo["normals"], dtype=np.float64)
+            uv0 = np.asarray(geo["uv0"], dtype=np.float64)
+            tu = np.asarray(geo["uvdir_u"], dtype=np.float64)
+            tv = np.asarray(geo["uvdir_v"], dtype=np.float64)
+            assert float(np.abs(np.sum(nrm * tu, axis=1)).max()) < 1e-4
+            assert float(np.abs(np.sum(nrm * tv, axis=1)).max()) < 1e-4
+
+            # Verify 100% CCW triangle winding on opaque head/eyes/teeth (uv_diesel.y >= 0.5)
+            opaque_tri_mask = uv0[topo[:, 0], 1] >= 0.5
+            t_op = topo[opaque_tri_mask]
+            fn = np.cross(verts[t_op[:, 1]] - verts[t_op[:, 0]], verts[t_op[:, 2]] - verts[t_op[:, 0]])
+            vn = nrm[t_op[:, 0]] + nrm[t_op[:, 1]] + nrm[t_op[:, 2]]
+            dot = np.sum(fn * vn, axis=1)
+            assert float((dot > 0).mean()) > 0.999, "Head triangles must have CCW outward winding"
+
+            # Verify double-sided hair/beard/eyelash cards (uv_diesel.y < 0.5): equal + and - winding counts
+            cut_tri_mask = uv0[topo[:, 0], 1] < 0.5
+            t_cut = topo[cut_tri_mask]
+            fn_c = np.cross(verts[t_cut[:, 1]] - verts[t_cut[:, 0]], verts[t_cut[:, 2]] - verts[t_cut[:, 0]])
+            vn_c = nrm[t_cut[:, 0]] + nrm[t_cut[:, 1]] + nrm[t_cut[:, 2]]
+            dot_c = np.sum(fn_c * vn_c, axis=1)
+            assert int((dot_c > 0).sum()) == int((dot_c < 0).sum())
+
+            low_front = (verts[:, 2] < 157.5) & (verts[:, 1] > 5.0)
+            assert float(verts[low_front, 1].max()) <= 10.36
+
+            for mcfg in (
+                f"{wild_dir}/mtr_criminal_wild_1.material_config",
+                f"{wild_dir}/mtr_criminal_wild_1_cc.material_config",
+                f"{prefix}/units/pd2_dlc_chill/characters/shared_character/mtr_criminal_wild_1.material_config",
+            ):
+                txt = z.read(mcfg).decode("utf-8")
+                assert 'name="mtr_head"' in txt
+                assert 'ALPHA_MASKED' in txt
+                assert 'value="0.05"' in txt
+                assert 'npc_criminal_wild_1_head_df' in txt
+
+            for tex_name in (
+                "npc_criminal_wild_1_head_df.texture",
+                "npc_criminal_wild_1_head_nm.texture",
+            ):
+                raw = z.read(f"{wild_dir}/{tex_name}")
+                assert raw[:4] == b"DDS "
+                im = Image.open(io.BytesIO(raw))
+                assert im.size == (2048, 2048)
+
+            df_arr = np.asarray(
+                Image.open(io.BytesIO(z.read(f"{wild_dir}/npc_criminal_wild_1_head_df.texture"))).convert("RGBA")
+            )
+            assert np.all(
+                (df_arr[0:1024, 0:1536, 3] >= 16) & (df_arr[0:1024, 0:1536, 3] <= 32)
+            ), "Top half of head_df must be 100% opaque (>13) with low natural specular (<=32)"
+            hair_tile = df_arr[1024:2048, 0:1024]
+            assert int(hair_tile[:, :, 3].max()) <= 26, "Hair cutout alpha must keep low specular (<=26)"
+            hair_sat = hair_tile[:, :, :3].max(axis=2).astype(int) - hair_tile[:, :, :3].min(axis=2).astype(int)
+            assert int(hair_sat.max()) <= 30, f"Unexpected color saturation artifact in hair_d tile: {hair_sat.max()}"
+
+            # Verify coverage-preserving mipmaps keep beard_d visible across mip 0..3
+            sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+            import dds as pd2_dds
+
+            raw_df = z.read(f"{wild_dir}/npc_criminal_wild_1_head_df.texture")
+            off_mip = 128
+            for mip_i in range(4):
+                mw = 2048 >> mip_i
+                mh = 2048 >> mip_i
+                msz = (mw // 4) * (mh // 4) * 16
+                dec_mip = pd2_dds.decode_dxt5(raw_df[off_mip : off_mip + msz], mw, mh)
+                off_mip += msz
+                beard_mip = dec_mip[mh // 2 : (mh * 5) // 8, (mw * 7) // 8 : mw]
+                surv = float((beard_mip[:, :, 3] > 13).mean())
+                assert surv >= 0.22, f"Beard mip {mip_i} alpha survival dropped too low: {surv:.3f}"
+
+            # Verify side neck skin stays strictly inside side hair curtain (no poking through below ears)
+            is_head_v = (uv0[:, 0] < 0.5) & (uv0[:, 1] >= 0.5)
+            is_hair_v = (uv0[:, 0] < 0.5) & (uv0[:, 1] < 0.5)
+            neck_band = is_head_v & (verts[:, 2] >= 160.0) & (verts[:, 2] < 164.0) & (verts[:, 1] >= -2.0) & (verts[:, 1] <= 5.0)
+            hair_band = is_hair_v & (verts[:, 2] >= 160.0) & (verts[:, 2] < 164.0) & (verts[:, 1] >= -2.0) & (verts[:, 1] <= 5.0)
+            assert float(np.abs(verts[neck_band, 0]).max()) + 0.5 < float(np.abs(verts[hair_band, 0]).min())
+
+        prev = REPO / "docs" / "previews" / "11_Geralt_over_Rust.png"
+        assert prev.is_file()
+        with Image.open(prev) as pim:
+            assert pim.size == (1440, 538)
+
+    def test_miranda_nostril_shadow_and_upper_lash_liner(self):
+        """Regression check: inner nostrils are dark + low-specular across all Miranda packs, and Miranda_LAS has upper lash liner."""
+        import io
+        import numpy as np
+        from PIL import Image
+
+        for zip_name, tex_suffix, uv_scale in (
+            ("lawson_las.zip", "/face_df.texture", 1.0),
+            ("Miranda_LAS.zip", "/miranda_face_df.texture", 1.0),
+            ("Miranda_L4D2_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
+            ("Miranda_Romance_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
+        ):
+            zp = REPO / "dist" / zip_name
+            if not zp.is_file():
+                pytest.skip(f"{zip_name} not built")
+            with zipfile.ZipFile(zp) as z:
+                entry = next(n for n in z.namelist() if n.endswith(tex_suffix))
+                arr = np.asarray(Image.open(io.BytesIO(z.read(entry))).convert("RGBA"))
+            H, W = arr.shape[:2]
+            for uc, vc in ((0.454 * uv_scale, 0.472 * uv_scale), (0.559 * uv_scale, 0.472 * uv_scale)):
+                px, py = int(uc * W), int(vc * H)
+                patch = arr[py - 3 : py + 4, px - 3 : px + 4]
+                assert float(patch[:, :, :3].mean()) < 40.0, f"{zip_name}: nostril RGB too bright ({patch[:, :, :3].mean():.1f})"
+                assert int(patch[:, :, 3].max()) <= 5, f"{zip_name}: nostril specular alpha too high ({patch[:, :, 3].max()})"
+            for uc, vc in ((0.260 * uv_scale, 0.293 * uv_scale), (0.747 * uv_scale, 0.293 * uv_scale)):
+                px, py = int(uc * W), int(vc * H)
+                if zip_name != "lawson_las.zip":
+                    lash_patch = arr[py - 2 : py + 3, px - 4 : px + 5, :3]
+                    assert float(lash_patch.mean()) < 48.0, f"{zip_name}: upper lash liner missing ({lash_patch.mean():.1f})"
+
+
+
+
+
