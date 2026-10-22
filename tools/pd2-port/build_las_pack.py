@@ -442,6 +442,24 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
     from PIL import Image
 
     rgba = np.asarray(img.convert("RGBA"), dtype=np.uint8).copy()
+    if base == "face":
+        # Darken the two inner-nostril UV pockets (u=0.452, v_img=0.484 and
+        # u=0.563, v_img=0.493) so recessed nostril walls render with natural
+        # cavity ambient occlusion in PAYDAY 2's flat-lit shaders.
+        h, w = rgba.shape[:2]
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        u = (xx + 0.5) / w
+        v = (yy + 0.5) / h
+        for uc, vc in ((0.452, 0.484), (0.563, 0.493)):
+            d = np.hypot((u - uc) / 0.014, (v - vc) / 0.012)
+            w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.82
+            m = w_n > 0.0
+            if m.any():
+                rgb = rgba[m, :3].astype(np.float32)
+                target = np.array([28.0, 14.0, 10.0], dtype=np.float32)
+                rgba[m, :3] = np.clip(
+                    rgb * (1.0 - w_n[m, None]) + target * w_n[m, None], 0.0, 255.0
+                ).astype(np.uint8)
     if base == "eyes":
         # Synthesize the exact full-aperture deep-sapphire iris (iris_outer=0.28,
         # iris_inner=0.25, pupil_r=0.115) matching Miranda_LAS (build_las.py).

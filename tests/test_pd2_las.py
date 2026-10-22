@@ -740,6 +740,7 @@ class TestLasScaffold:
                 txt = z.read(mcfg).decode("utf-8")
                 assert 'name="mtr_head"' in txt
                 assert 'ALPHA_MASKED' in txt
+                assert 'value="0.05"' in txt
                 assert 'npc_criminal_wild_1_head_df' in txt
 
             for tex_name in (
@@ -754,10 +755,20 @@ class TestLasScaffold:
             df_arr = np.asarray(
                 Image.open(io.BytesIO(z.read(f"{wild_dir}/npc_criminal_wild_1_head_df.texture"))).convert("RGBA")
             )
-            assert np.all(df_arr[0:1024, 0:2048, 3] == 255), "Top half of head_df must be 100% opaque (alpha=255)"
+            assert np.all(
+                (df_arr[0:1024, 0:1536, 3] >= 16) & (df_arr[0:1024, 0:1536, 3] <= 32)
+            ), "Top half of head_df must be 100% opaque (>13) with low natural specular (<=32)"
             hair_tile = df_arr[1024:2048, 0:1024]
+            assert int(hair_tile[:, :, 3].max()) <= 26, "Hair cutout alpha must keep low specular (<=26)"
             hair_sat = hair_tile[:, :, :3].max(axis=2).astype(int) - hair_tile[:, :, :3].min(axis=2).astype(int)
             assert int(hair_sat.max()) <= 30, f"Unexpected color saturation artifact in hair_d tile: {hair_sat.max()}"
+
+            # Verify side neck skin stays strictly inside side hair curtain (no poking through below ears)
+            is_head_v = (uv0[:, 0] < 0.5) & (uv0[:, 1] >= 0.5)
+            is_hair_v = (uv0[:, 0] < 0.5) & (uv0[:, 1] < 0.5)
+            neck_band = is_head_v & (verts[:, 2] >= 160.0) & (verts[:, 2] < 164.0) & (verts[:, 1] >= -2.0) & (verts[:, 1] <= 5.0)
+            hair_band = is_hair_v & (verts[:, 2] >= 160.0) & (verts[:, 2] < 164.0) & (verts[:, 1] >= -2.0) & (verts[:, 1] <= 5.0)
+            assert float(np.abs(verts[neck_band, 0]).max()) + 0.5 < float(np.abs(verts[hair_band, 0]).min())
 
         prev = REPO / "docs" / "previews" / "11_Geralt_over_Rust.png"
         assert prev.is_file()

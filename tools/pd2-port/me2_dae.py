@@ -389,6 +389,39 @@ def load_dae(data: bytes | str, *, max_weights: int = 3) -> DaeScene:
                 tri.append(corners[key])
             tri_list.append((tri[0], tri[1], tri[2]))
 
+        if nname == "Eyelashes":
+            # In ME2, Eyelashes is rendered TwoSided and the upper eyelash
+            # ribbon has DAE face/vertex normals with +Y (which becomes -Y,
+            # backward-facing and backface-culled in Direct3D9, after the
+            # 180 deg Z rotation to PAYDAY 2's +Y forward frame). Orient all
+            # 224 eyelash triangles and their vertex normals forward (-Y in
+            # DAE -> +Y in PD2) so upper eyelashes are never backface-culled.
+            fixed_tris: list[tuple[int, int, int]] = []
+            v_acc = [[0.0, 0.0, 0.0] for _ in positions]
+            for a, b, c in tri_list:
+                pa, pb, pc = positions[a], positions[b], positions[c]
+                e1 = (pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2])
+                e2 = (pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2])
+                fny = e1[2] * e2[0] - e1[0] * e2[2]
+                if fny > 0.0:
+                    b, c = c, b
+                    e1, e2 = e2, e1
+                fn = (
+                    e1[1] * e2[2] - e1[2] * e2[1],
+                    e1[2] * e2[0] - e1[0] * e2[2],
+                    e1[0] * e2[1] - e1[1] * e2[0],
+                )
+                fixed_tris.append((a, b, c))
+                for v in (a, b, c):
+                    v_acc[v][0] += fn[0]
+                    v_acc[v][1] += fn[1]
+                    v_acc[v][2] += fn[2]
+            tri_list = fixed_tris
+            for i, (nx, ny, nz) in enumerate(normals):
+                ax, ay, az = v_acc[i]
+                if nx * ax + ny * ay + nz * az < 0.0:
+                    normals[i] = (-nx, -ny, -nz)
+
         meshes.append(Mesh(
             name=nname,
             material=g["material"] or mat_symbol or nname,

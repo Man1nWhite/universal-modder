@@ -157,7 +157,7 @@ def rasterize_parts(
 
                 samp = tex[ty_i, tx_i]
                 if is_cut and tex.shape[2] == 4:
-                    keep = samp[:, 3] >= 85
+                    keep = samp[:, 3] >= 15
                     if not keep.any():
                         continue
                     f_px, f_py, f_z = f_px[keep], f_py[keep], f_z[keep]

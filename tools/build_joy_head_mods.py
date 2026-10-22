@@ -905,7 +905,7 @@ def patch_sydney_material_config(xml_bytes: bytes, alpha_masked: bool) -> bytes:
     return text.encode("utf-8")
 
 
-def patch_wild_material_config(xml_bytes: bytes, alpha_ref: str = "0.18") -> bytes:
+def patch_wild_material_config(xml_bytes: bytes, alpha_ref: str = "0.05") -> bytes:
     """Upgrade mtr_head in Rust's .material_config files to ALPHA_MASKED mip 0 on npc_criminal_wild_1_head_df/_nm."""
     text = xml_bytes.decode("utf-8", errors="ignore")
     new_head = (
@@ -988,13 +988,29 @@ def render_head_portrait(atom0_mesh: dict, atom1_mesh: dict, atlas_rgb: np.ndarr
                             u_p = np.clip(w0 * uv[a, 0] + w1 * uv[b, 0] + w2 * uv[c, 0], 0.0, 1.0)
                             v_img_p = np.clip(1.0 - (w0 * uv[a, 1] + w1 * uv[b, 1] + w2 * uv[c, 1]), 0.0, 1.0)
                             tx_i, ty_i = int(u_p * (tw - 1)), int(v_img_p * (th - 1))
-                            if is_cut and tex.shape[2] == 4 and tex[ty_i, tx_i, 3] < 90:
+                            if is_cut and tex.shape[2] == 4 and tex[ty_i, tx_i, 3] < 15:
                                 continue
                             sh = w0 * shade[a] + w1 * shade[b] + w2 * shade[c]
                             col = np.clip(tex[ty_i, tx_i, :3] * sh, 0, 255).astype(np.uint8)
                             zbuf[py_i, px_i] = z_p
                             img[py_i, px_i] = col
     return Image.fromarray(img)
+
+
+def shade_nostril_cavities(face_rgba: np.ndarray) -> np.ndarray:
+    """Darken the two nostril-cavity interior UV pockets so inner nostril walls do not catch bright frontal highlights."""
+    out = face_rgba.copy()
+    H, W = out.shape[:2]
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32) / float(H)
+    w_r = np.exp(-(((xx - 0.452) / 0.014) ** 2 + ((yy - 0.484) / 0.012) ** 2))
+    w_l = np.exp(-(((xx - 0.563) / 0.014) ** 2 + ((yy - 0.493) / 0.012) ** 2))
+    w_nost = np.clip(w_r + w_l, 0.0, 1.0)
+    target_dark = np.array([28.0, 14.0, 10.0], dtype=np.float32)
+    for c_i in range(3):
+        out[:, :, c_i] = np.clip(
+            out[:, :, c_i] * (1.0 - 0.82 * w_nost) + target_dark[c_i] * (0.82 * w_nost), 0, 255
+        ).astype(np.uint8)
+    return out
 
 
 def prepare_crisp_eyelash_textures(me2_dir: Path) -> tuple[np.ndarray, bytes, bytes]:
@@ -1242,7 +1258,7 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
     crisp_eye_1024 = build_crisp_miranda_eye_texture(me2_dir, size=1024)
 
     atlas_df = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    atlas_df[0:1024, 0:1024] = np.asarray(face_df_im)
+    atlas_df[0:1024, 0:1024] = shade_nostril_cavities(np.asarray(face_df_im))
     atlas_df[0:1024, 1024:2048] = np.asarray(head_df_im)
     atlas_df[1024:2048, 0:1024] = body_df_arr
     atlas_df[1024:2048, 1024:2048] = crisp_eye_1024
@@ -1448,7 +1464,9 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     def xform_n(nrm: np.ndarray) -> np.ndarray:
         return (R @ np.asarray(nrm, dtype=np.float64).T).T.astype(np.float32)
 
-    face_df = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Face_Diff.png").convert("RGBA")).copy()
+    face_df = shade_nostril_cavities(
+        np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Face_Diff.png").convert("RGBA")).copy()
+    )
     scalp_df = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Scalp_Diff.png").convert("RGBA")).copy()
     nkd_df = np.asarray(Image.open(me2_dir / "HMF_MIR_NKDa_DIFF.png").convert("RGBA")).copy()
     y0, y1 = int(0.60 * nkd_df.shape[0]), int(0.88 * nkd_df.shape[0])
@@ -1673,31 +1691,47 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
         arr = load_vtf_rgba(stem, size)
         return dds.pd2_normal_channels(arr, invert_y=True).copy()
 
-    # Unified 2048x2048 atlas in npc_criminal_wild_1_head_df / _nm (single vanilla mtr_head with ALPHA_MASKED):
-    # Top half y in [0, 1024] (100% opaque alpha=255):
-    # - [0:1024, 0:1024]     (u in [0.00, 0.50], v_img in [0.00, 0.50]): Geralt_head_BM (1024x1024)
-    # - [0:512, 1024:2048]   (u in [0.50, 1.00], v_img in [0.00, 0.25]): Teeths_BM (1024x512 native)
-    # - [512:1024, 1024:1536] (u in [0.50, 0.75], v_img in [0.25, 0.50]): Eyes_BM (512x512 native)
-    # Bottom half y in [1024, 2048] (cutout alpha in [0, 255] for ALPHA_MASKED alpha_ref=0.18):
+    # Unified 2048x2048 atlas in npc_criminal_wild_1_head_df / _nm (single vanilla mtr_head with ALPHA_MASKED, alpha_ref=0.05):
+    # Top half y in [0, 1024] (100% opaque with low natural specular alpha=18..28 > 13):
+    # - [0:1024, 0:1024]     (u in [0.00, 0.50], v_img in [0.00, 0.50]): Geralt_head_BM (1024x1024, alpha=18)
+    # - [0:512, 1024:2048]   (u in [0.50, 1.00], v_img in [0.00, 0.25]): Teeths_BM (1024x512 native, alpha=18)
+    # - [512:1024, 1024:1536] (u in [0.50, 0.75], v_img in [0.25, 0.50]): Eyes_BM (512x512 native, alpha=28)
+    # Bottom half y in [1024, 2048] (cutout alpha=0 vs opaque alpha=22 > 13 for ALPHA_MASKED alpha_ref=0.05):
     # - [1024:2048, 0:1024]    (u in [0.00, 0.50], v_img in [0.50, 1.00]): hair_d (1024x1024)
     # - [1024:1536, 1024:2048] (u in [0.50, 1.00], v_img in [0.50, 0.75]): beard_d (1024x512 native)
     # - [1536:2048, 1024:1536] (u in [0.50, 0.75], v_img in [0.75, 1.00]): eyelashes (512x512 native)
     head_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    head_df_atlas[0:1024, 0:2048, 3] = 255
+    head_df_atlas[0:1024, 0:2048, 3] = 18
 
     head_bm_arr = load_vtf_rgba("geralt_head_bm", (1024, 1024))
-    head_bm_arr[:, :, 3] = 255
+    head_bm_arr[:, :, 3] = 18
     teeth_bm_arr = load_vtf_rgba("teeths_bm", (1024, 512))
-    teeth_bm_arr[:, :, 3] = 255
+    teeth_bm_arr[:, :, 3] = 18
     eyes_bm_arr = load_vtf_rgba("eyes_bm", (512, 512))
-    eyes_bm_arr[:, :, 3] = 255
+    eyes_bm_arr[:, :, 3] = 28
+
+    hair_arr = load_vtf_rgba("hair_d", (1024, 1024))
+    hair_arr[:, :, :3] = np.clip(hair_arr[:, :, :3].astype(np.float32) * 0.86, 0, 255).astype(np.uint8)
+    hair_mask = (hair_arr[:, :, 3] >= 75).astype(np.int32)
+    # 3x3 majority despeckle to remove isolated 1-2px floating alpha dots at ponytail tips
+    padded = np.pad(hair_mask, 1, mode="edge")
+    neigh_sum = sum(padded[dy : dy + 1024, dx : dx + 1024] for dy in range(3) for dx in range(3))
+    hair_keep = (hair_mask == 1) & (neigh_sum >= 3)
+    hair_arr[:, :, 3] = np.where(hair_keep, 22, 0).astype(np.uint8)
+
+    beard_arr = load_vtf_rgba("beard_d", (1024, 512))
+    beard_arr[:, :, :3] = np.clip(beard_arr[:, :, :3].astype(np.float32) * 0.90, 0, 255).astype(np.uint8)
+    beard_arr[:, :, 3] = np.where(beard_arr[:, :, 3] >= 65, 22, 0).astype(np.uint8)
+
+    lash_arr = load_vtf_rgba("eyelashes", (512, 512))
+    lash_arr[:, :, 3] = np.where(lash_arr[:, :, 3] >= 65, 22, 0).astype(np.uint8)
 
     head_df_atlas[0:1024, 0:1024] = head_bm_arr
     head_df_atlas[0:512, 1024:2048] = teeth_bm_arr
     head_df_atlas[512:1024, 1024:1536] = eyes_bm_arr
-    head_df_atlas[1024:2048, 0:1024] = load_vtf_rgba("hair_d", (1024, 1024))
-    head_df_atlas[1024:1536, 1024:2048] = load_vtf_rgba("beard_d", (1024, 512))
-    head_df_atlas[1536:2048, 1024:1536] = load_vtf_rgba("eyelashes", (512, 512))
+    head_df_atlas[1024:2048, 0:1024] = hair_arr
+    head_df_atlas[1024:1536, 1024:2048] = beard_arr
+    head_df_atlas[1536:2048, 1024:1536] = lash_arr
 
     head_nm_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_nm_atlas[:, :] = [255, 128, 0, 128]
@@ -1740,13 +1774,12 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
             w_front = np.clip((p[:, 1] - 1.0) / 7.0, 0.0, 1.0)
             w_back = np.clip((1.0 - p[:, 1]) / 6.0, 0.0, 1.0)
             p[:, 2] -= 4.8 * (w_bot ** 1.1)
-            p[:, 0] *= 1.0 + 0.32 * w_bot
+            p[:, 0] *= 1.0 + 0.12 * (w_bot ** 1.4)
             p[:, 1] += 0.45 * w_bot * w_front - 0.5 * w_bot * w_back
         elif mat_name == "hair_d":
-            w_low = np.clip((165.0 - p[:, 2]) / 8.5, 0.0, 1.0)
-            w_side = np.clip((p[:, 1] + 6.0) / 8.0, 0.0, 1.0)
-            p[:, 0] *= 1.0 - 0.30 * (w_low ** 1.1)
-            p[:, 1] *= 1.0 - 0.18 * w_low * w_side
+            w_low = np.clip((161.5 - p[:, 2]) / 6.5, 0.0, 1.0)
+            p[:, 0] *= 1.0 - 0.10 * (w_low ** 1.2)
+            p[:, 2] -= 1.8 * w_low
             center = np.array([0.0, 4.0, 172.0], dtype=np.float32)
             radial = p - center
             radial /= np.maximum(np.linalg.norm(radial, axis=1, keepdims=True), 1e-6)
@@ -1832,15 +1865,15 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
         rust_menu_obj = zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{WILD_UNIT_DIR}/npc_criminal_wild_1_menu.object")
         rust_mtr = patch_wild_material_config(
             zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{WILD_UNIT_DIR}/mtr_criminal_wild_1.material_config"),
-            alpha_ref="0.18",
+            alpha_ref="0.05",
         )
         rust_mtr_cc = patch_wild_material_config(
             zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{WILD_UNIT_DIR}/mtr_criminal_wild_1_cc.material_config"),
-            alpha_ref="0.18",
+            alpha_ref="0.05",
         )
         rust_chill_mtr = patch_wild_material_config(
             zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_criminal_wild_1.material_config"),
-            alpha_ref="0.18",
+            alpha_ref="0.05",
         )
 
     prefix = "Geralt over Rust"

@@ -157,8 +157,35 @@ def main(argv: list[str] | None = None) -> int:
             img = raw_vtf_imgs[stem]
             if stem in DF_SPECULAR_FROM_NORMAL:
                 nm_stem, scale, max_a = DF_SPECULAR_FROM_NORMAL[stem]
+                base_dds = raw_dds[stem]
+                if stem == "miranda_face_color":
+                    import io
+                    import numpy as np
+                    from PIL import Image
+                    from dds_encode import rgba_to_bc3_dds
+
+                    face_rgba = np.asarray(
+                        Image.open(io.BytesIO(raw_dds[stem])).convert("RGBA"),
+                        dtype=np.uint8,
+                    ).copy()
+                    yy, xx = np.mgrid[0 : img.height, 0 : img.width].astype(np.float32)
+                    u = (xx + 0.5) / img.width
+                    v = (yy + 0.5) / img.height
+                    for uc, vc in ((0.452, 0.484), (0.563, 0.493)):
+                        d = np.hypot((u - uc) / 0.014, (v - vc) / 0.012)
+                        w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.82
+                        m = w_n > 0.0
+                        if m.any():
+                            rgb = face_rgba[m, :3].astype(np.float32)
+                            target = np.array([28.0, 14.0, 10.0], dtype=np.float32)
+                            face_rgba[m, :3] = np.clip(
+                                rgb * (1.0 - w_n[m, None]) + target * w_n[m, None],
+                                0.0,
+                                255.0,
+                            ).astype(np.uint8)
+                    base_dds = rgba_to_bc3_dds(face_rgba)
                 dds = attenuate_dxt5_alpha_from_normal(
-                    raw_dds[stem], raw_dds[nm_stem], scale, max_a
+                    base_dds, raw_dds[nm_stem], scale, max_a
                 )
             elif stem.endswith("_normal"):
                 dds = swizzle_source_normal_dxt5_to_pd2(raw_dds[stem], invert_y=True)
