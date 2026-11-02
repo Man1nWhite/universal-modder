@@ -211,6 +211,14 @@ class NifFile:
     collision_blocks: list[str]
     roots: list[int]
     warnings: list[str]
+    parents: dict[int, int] = field(default_factory=dict)  # child block -> node
+
+    def shape_world_matrix(self, shape: "Shape") -> np.ndarray:
+        """Parent-node world transform composed with the shape's own transform."""
+        parent = self.parents.get(shape.index)
+        if parent is None or parent not in self.nodes:
+            return shape.transform.matrix()
+        return self.nodes[parent].world_matrix(self.nodes) @ shape.transform.matrix()
 
     def node_names(self) -> list[str]:
         return [n.name for n in self.nodes.values()]
@@ -729,8 +737,10 @@ def parse(data: bytes, path: str = "<bytes>") -> NifFile:
     for i, (kind, value) in blocks.items():
         if kind == "node":
             nodes[i] = value
+    parents: dict[int, int] = {}
     for i, node in nodes.items():
         for child in node.children:
+            parents[child] = i
             if child in nodes:
                 nodes[child].parent = i
     shapes: list[Shape] = []
@@ -806,4 +816,5 @@ def parse(data: bytes, path: str = "<bytes>") -> NifFile:
         collision_blocks=collision,
         roots=roots,
         warnings=warnings,
+        parents=parents,
     )

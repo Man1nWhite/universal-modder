@@ -623,14 +623,16 @@ def _map_source_bone(model: ModelData, idx: int, skel_map: dict) -> str | None:
 
 
 def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
-                   template: Template, group_name: str) -> Group:
+                   template: Template, group_name: str,
+                   fits: dict | None = None) -> Group:
     import numpy as np
 
     g = Group(name=group_name)
     wanted = group_spec.get("materials")
 
-    # target-centric similarity retarget (see retarget_maps)
-    per_src_T = retarget_maps(model, skel_map, template)
+    # target-centric similarity retarget (see retarget_maps); callers with a
+    # source rig this module's heuristics do not cover can pass their own
+    per_src_T = retarget_maps(model, skel_map, template) if fits is None else fits
 
     target_for_src: dict[int, tuple[str, dm.Mat]] = {}
     t_mat_by_name: dict[str, dm.Mat] = {}
@@ -727,9 +729,11 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         g.faces.extend((a + base_v, b + base_v, c + base_v) for a, b, c in slice_faces)
         g.slices.append((mesh.material, base_v, base_i, len(slice_faces),
                          len(slice_verts)))
-        slot = (HEAD_MAT_SLOT.get(mesh.material)
-                if group_spec.get("out_materials") != ["shadow_caster"]
-                else "shadow_caster")
+        slot = group_spec.get("mat_slots", {}).get(mesh.material)
+        if slot is None:
+            slot = (HEAD_MAT_SLOT.get(mesh.material)
+                    if group_spec.get("out_materials") != ["shadow_caster"]
+                    else "shadow_caster")
         if slot is None:
             slot = group_spec["out_materials"][0]
         g.mat_slots.append(slot)
