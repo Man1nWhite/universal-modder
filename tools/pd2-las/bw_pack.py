@@ -213,11 +213,8 @@ def build_icon(png: bytes, size: int = 256, view: int = 3) -> bytes:
     canvas = np.broadcast_to(
         top_rgb * (1.0 - yy) + bottom_rgb * yy, (size, size, 3)).copy()
 
-    # full figure, 6 % margin, centred on the torso column rather than the box
-    height = bottom - top
-    band = mask[top + int(height * 0.42):top + int(height * 0.72)]
-    torso = np.where(band.any(axis=0))[0]
-    cx = int(np.median(torso)) if len(torso) else (left + right) // 2
+    # full figure with a small margin, cropped to the pixels that differ from
+    # the sheet background (the arms are spread, so the box is wide)
     figure = Image.fromarray(panel.astype(np.uint8)).crop(
         (left, top, right + 1, bottom + 1))
     fw, fh = figure.size
@@ -226,7 +223,7 @@ def build_icon(png: bytes, size: int = 256, view: int = 3) -> bytes:
                            Image.LANCZOS)
 
     # the crop is rectangular but the figure is not: keep the sheet's background
-    # out of the tile by masking on the same brightness test
+    # out of the tile with the same difference test
     fig = np.asarray(figure, dtype=np.int16)
     keep = np.abs(fig - bg).max(axis=2) > 8
     keep[:6] = False

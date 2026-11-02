@@ -184,6 +184,11 @@ def main(argv=None) -> int:
                     help="also write textures, material configs and the LAS folder")
     ap.add_argument("--tex-res", type=int, default=1024,
                     help="shipped texture size for the garments")
+    ap.add_argument("--skin-res", type=int, default=2048,
+                    help="bake resolution for the authored skin (box-filtered "
+                         "down to --tex-res)")
+    ap.add_argument("--no-bake", action="store_true",
+                    help="fail instead of baking the skin when it is missing")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
     args = ap.parse_args(argv)
 
@@ -260,8 +265,28 @@ def main(argv=None) -> int:
 
     if args.pack:
         import bw_pack
-        import dds  # noqa: F401  (encode_dxt5 lives here; skyrim_materials imports it)
+        import skin_texture  # baked below when the textures are missing
         import skyrim_materials as sm
+
+        tex_dir = args.out / "textures"
+        tex_dir.mkdir(parents=True, exist_ok=True)
+        baked = [n for n in ("bw_body_df", "bw_body_nm")
+                 if not (tex_dir / f"{n}.texture").exists()]
+        if baked and not args.no_bake:
+            # the skin is authored, not sourced: bake it first so a clean
+            # checkout goes from 1.zip..5.zip to a zip in one command
+            import skin_texture as st
+
+            print(f"baking skin texture ({', '.join(baked)} missing)")
+            st.main(["--meshes", str(args.out / "meshes"),
+                     "--out", str(tex_dir),
+                     "--res", str(args.skin_res),
+                     "--out-res", str(args.tex_res),
+                     "--cache", str(args.out / "bake.npz")])
+        elif baked:
+            raise SystemExit(
+                f"missing generated skin textures in {tex_dir} "
+                f"({', '.join(baked)}); drop --no-bake or run skin_texture.py")
 
         specs = list(sm.DEFAULT_MATERIALS)
         # a dropped layer must not leave a material pointing at nothing
@@ -272,8 +297,6 @@ def main(argv=None) -> int:
             generated_dir=args.out / "textures",
         )
         # keep every map on disk too: the icon is cut from a render of them
-        tex_dir = args.out / "textures"
-        tex_dir.mkdir(parents=True, exist_ok=True)
         for stem, data in textures.items():
             (tex_dir / f"{stem}.texture").write_bytes(data)
         config = sm.render_material_config(UNIT_BASE, specs)
