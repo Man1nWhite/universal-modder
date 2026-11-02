@@ -34,10 +34,15 @@ TPP_UNIT = f"{UNIT_BASE}/{ITEM_ID}"
 FPS_UNIT = f"{UNIT_BASE}/fps_{ITEM_ID}"
 HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
 
+# LAS maps each flag onto the character parts it replaces (see the mod's
+# hooks/outfits/loader.lua): replace_all sets head=true as well, replace_body
+# only body/hands/arms. This outfit ships no head — Melodic's archives carry
+# none and the template's is someone else's character — so it must not claim
+# replace_all, or LAS drops the heister's head and the unit is decapitated.
 FLAG_KEYS = (
     "hide_mask",
     "hide_armor",
-    "replace_all",
+    "replace_body",
     "fps_hide_armor",
     "fps_replace_body",
 )

@@ -202,6 +202,9 @@ def test_hook_registers_the_table_las_reads():
     assert "fps_unit" not in lua                 # no FPS arms yet
     for flag in bw_pack.FLAG_KEYS:
         assert f"{flag} = true" in lua
+    # replace_all sets third_body_replacement.head, and this unit has no head
+    assert "replace_all" not in lua
+    assert "replace_body = true" in lua
 
 
 def test_hook_declares_fps_unit_only_when_one_is_built():
