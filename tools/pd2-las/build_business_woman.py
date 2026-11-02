@@ -319,7 +319,13 @@ def main(argv=None) -> int:
         pack = bw_pack.write_pack(
             args.dist, out.read_bytes(), textures, icon, config, fps_config,
             fps_model=fps_bytes,
-            extra={"source": "Melodic Business Woman SE 3BA", "private": True},
+            extra={
+                "source": "Melodic Business Woman SE 3BA",
+                "private": False,
+                # Melodic's readme asks for permission before republishing
+                # outside LoversLab; shipped here at the pack owner's direction.
+                "redistribution": "published at the pack owner's direction",
+            },
         )
         print(f"pack  -> {pack}")
         print(f"zip   -> {bw_pack.zip_pack(pack)}")
