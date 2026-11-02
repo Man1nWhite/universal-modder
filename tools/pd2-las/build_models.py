@@ -773,6 +773,192 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     return g
 
 
+def _palette_order(template: Template, used: set[str]) -> list[str]:
+    """Template 53-order first (root-first from Hips), then extras by name."""
+    order_ref: list[str] = []
+    preferred_skin = template.drawable_skin.get("g_body", {})
+    if preferred_skin.get("objects"):
+        order_ref = [template.id_name.get(o, "") for o in preferred_skin["objects"]]
+    else:
+        for skin in template.drawable_skin.values():
+            objs = skin.get("objects", [])
+            if len(objs) > len(order_ref) or (
+                len(objs) == len(order_ref) and objs and objs[0] == template.hips_id
+            ):
+                order_ref = [template.id_name.get(o, "") for o in objs]
+    ordered = [n for n in order_ref if n in used]
+    return ordered + [n for n in sorted(used) if n not in ordered]
+
+
+#: bones whose vertices make up a hand, for graft_pd2_hands
+HAND_BONES = ("Hand", "Thumb", "Index", "Middle", "Ring", "Pinky")
+
+
+def _is_hand_bone(name: str) -> bool:
+    return any(part in name for part in HAND_BONES)
+
+
+def graft_pd2_hands(src_path: Path, slot: str = "mtr_hands") -> Group:
+    """Copy hand geometry and skin weights out of a PD2 heister model.
+
+    Both this mod's model and the donor sit on the stock heister skeleton in
+    its bind pose, so the vertices already land where the destination rig
+    wants them — there is no retargeting to do, and a similarity fit would
+    only introduce error. UVs are taken verbatim from the donor so the donor's
+    own texture (taken with it) samples correctly.
+
+    The Melodic 3BA body stops at the wrist, so without this the outfit ends in
+    a sleeve cuff and the heister's hands are simply missing.
+    """
+    import numpy as np
+
+    mf = dm.ModelFile.read_path(src_path)
+    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
+    names = {dm.hash64(n): n for n in hl["names"]}
+    objs = {}
+    for s in mf.sections:
+        if s.type == dm.OBJECT3D:
+            objs[s.id] = dm.decode_object3d(s.payload)
+        elif s.type == dm.MODEL_DATA:
+            objs[s.id] = dm.decode_model_data(s.payload)
+    id_name = {sid: names.get(o["name_hash"], "") for sid, o in objs.items()}
+
+    g = Group(name="hands")
+    used: set[str] = set()
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        if not md.get("atoms"):
+            continue
+        gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        try:
+            geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+            topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+        except ValueError:
+            continue                       # collision node, not a mesh
+        if not geo["blendindices"] or len(geo["uv0"]) != len(geo["verts"]):
+            continue                       # no skinning or no UVs: not graftable
+        pal = [id_name.get(i, "") for i in
+               dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)["objects"]]
+        V = np.array(geo["verts"], dtype=np.float64)
+
+        # one dominant bone per vertex decides whether it is part of a hand
+        is_hand = np.zeros(len(V), bool)
+        for vi, (bi, bw) in enumerate(zip(geo["blendindices"], geo["blendweights"])):
+            k = int(np.argmax(bw))
+            if bi[k] < len(pal) and _is_hand_bone(pal[bi[k]]):
+                is_hand[vi] = True
+        if not is_hand.any():
+            continue
+
+        donor_normals = (list(geo["normals"])
+                         if len(geo["normals"]) == len(V) else None)
+        idx = topo["indices"]
+        tris = []
+        for t in range(0, len(idx) - 2, 3):
+            a, b, c = idx[t], idx[t + 1], idx[t + 2]
+            if is_hand[a] and is_hand[b] and is_hand[c]:
+                tris.append((a, c, b))     # Diesel winding: swap b/c
+        if not tris:
+            continue
+
+        remap: dict[int, int] = {}
+        order: list[int] = []
+        for tri in tris:
+            for vi in tri:
+                if vi not in remap:
+                    remap[vi] = len(order)
+                    order.append(vi)
+        base_v = len(g.verts)
+        for vi in order:
+            x, y, z = V[vi]
+            g.verts.append((float(x), float(y), float(z)))
+            g.normals.append(donor_normals[vi] if donor_normals else (0.0, 0.0, 0.0))
+            u, v = geo["uv0"][vi]
+            g.uvs.append((float(u), float(-v)))   # back to the on-disk sign
+            infl = []
+            for bi, w in zip(geo["blendindices"][vi], geo["blendweights"][vi]):
+                nm = pal[bi] if bi < len(pal) else ""
+                if w > 1e-6 and _is_hand_bone(nm):
+                    infl.append((nm, float(w)))
+            infl = [t for t in sorted(infl, key=lambda t: -t[1])[:3] if t[1] > 0]
+            total = sum(w for _, w in infl) or 1.0
+            g.weights.append([(nm, w / total) for nm, w in infl])
+            used.update(nm for nm, _ in infl)
+        g.faces.extend(tuple(remap[i] + base_v for i in tri) for tri in tris)
+        g.slices.append(("hands", base_v, len(g.faces) * 3, len(tris), len(order)))
+        g.mat_slots.append(slot)
+
+    if not g.verts:
+        raise SystemExit(f"no hand geometry found in {src_path}")
+
+    # donors may ship no normals at all; accumulate from the winding instead
+    if not any(any(c != 0.0 for c in n) for n in g.normals):
+        acc = np.zeros((len(g.verts), 3), dtype=np.float64)
+        P = np.array(g.verts, dtype=np.float64)
+        for a, b, c in g.faces:
+            n = np.cross(P[b] - P[a], P[c] - P[a])
+            ln = float(np.linalg.norm(n))
+            if ln > 0:
+                acc[a] += n / ln
+                acc[b] += n / ln
+                acc[c] += n / ln
+        ln = np.maximum(np.linalg.norm(acc, axis=1, keepdims=True), 1e-9)
+        g.normals = [tuple(map(float, row)) for row in acc / ln]
+
+    g.palette = sorted(used)
+    pal_index = {n: i for i, n in enumerate(g.palette)}
+    g.weights = [[(pal_index[n], w) for n, w in infl] for infl in g.weights]
+    return g
+
+
+def append_group(base: Group, extra: Group, template: Template) -> None:
+    """Merge ``extra`` into ``base`` as further slices on one drawable."""
+    if not extra.verts:
+        return
+    # everything gets re-indexed against the union palette, in template order
+    names_old = list(base.palette)
+    named_weights = [[(names_old[i], w) for i, w in infl] for infl in base.weights]
+    extra_weights = [[(extra.palette[i], w) for i, w in infl] for infl in extra.weights]
+    used = {n for infl in named_weights for n, _ in infl}
+    used |= {n for infl in extra_weights for n, _ in infl}
+
+    offset = len(base.verts)
+    base.verts.extend(extra.verts)
+    base.normals.extend(extra.normals)
+    base.uvs.extend(extra.uvs)
+    base.faces.extend(tuple(i + offset for i in f) for f in extra.faces)
+    base.slices.extend((mat, bv + offset, bi, nt, nv)
+                       for mat, bv, bi, nt, nv in extra.slices)
+    base.mat_slots.extend(extra.mat_slots)
+
+    base.palette = _palette_order(template, used)
+    index = {n: i for i, n in enumerate(base.palette)}
+    base.weights = [[(index[n], w) for n, w in infl]
+                    for infl in named_weights + extra_weights]
+
+
+def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
+                 z0: float = 158.0, k: float = 0.35) -> int:
+    """Compress the standing collar so it clears the jaw.
+
+    The 3BA blazer and the lace top both stand up to ~169 cm, while the heister
+    head hangs off a Head bone at 166.8 cm: the collar ends up around the chin
+    and swallows the jaw in profile. Squashing everything above ``z0`` toward
+    it is continuous at the boundary, so the garment cannot tear — it just
+    reads as a collar that is folded down rather than popped.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z > z0:
+                g.verts[i] = (x, y, z0 + (z - z0) * k)
+                touched += 1
+    return touched
+
+
 def repair_skin_boundary_normals(g: Group) -> None:
     """Repair corrupted boundary normals along the face/neck seam and mouth corners,
     and recenter eyeball planar UVs on the visible eyelid opening (palpebral fissure).

@@ -55,6 +55,7 @@ MAT_SLOTS = {
     "skirt": "mtr_skirt",
     "heels": "mtr_heels",
     "necklace": "mtr_necklace",
+    "hands": "mtr_hands",
 }
 TPP_GROUPS = {
     "body": {
@@ -96,6 +97,7 @@ def render_sheet(model_path: Path, out_png: Path) -> None:
         "mtr_jacket2": (150, 150, 156),
         "mtr_skirt": (58, 60, 62), "mtr_heels": (226, 220, 206),
         "mtr_necklace": (206, 170, 80),
+        "mtr_hands": (198, 160, 136),
         "shadow_caster": (70, 70, 70),
     }
     mf = dm.ModelFile.read_path(model_path)
@@ -221,6 +223,27 @@ def main(argv=None) -> int:
         for drawable in spec["drawables"]:
             share[drawable] = gname
 
+    # The 3BA body stops at the wrist, so the sleeves would end in a stump.
+    # PD2 heisters share the stock skeleton and its bind pose, so hand
+    # geometry from one of them drops straight onto these wrists.
+    hands = bm.graft_pd2_hands(args.templates / "2b.model")
+    print(f"hands: {len(hands.verts)} verts / {len(hands.faces)} tris "
+          f"({len(hands.palette)} finger bones)")
+    bm.append_group(groups["body"], hands, template)
+    print(f"body+hands: {len(groups['body'].verts)} verts, "
+          f"slots {sorted(set(groups['body'].mat_slots))}")
+    # the shadow caster is the same silhouette; hands missing from it would
+    # leave a handless shadow under a heister that clearly has hands
+    import copy
+    shadow_hands = copy.deepcopy(hands)
+    shadow_hands.mat_slots = ["shadow_caster"] * len(shadow_hands.mat_slots)
+    bm.append_group(groups["shadow"], shadow_hands, template)
+
+    # The collar stands up past the head bone and swallows the jaw in profile.
+    for gname in ("body", "shadow"):
+        n = bm.lower_collar(groups[gname])
+        print(f"[{gname}] collar verts lowered: {n}")
+
     # The outfit has no head: Skyrim ships heads separately and Melodic's
     # archives carry none. Do two things about it: never keep the *template's*
     # head (it is someone else's character, and shipping her face in this pack
@@ -288,9 +311,15 @@ def main(argv=None) -> int:
                 f"missing generated skin textures in {tex_dir} "
                 f"({', '.join(baked)}); drop --no-bake or run skin_texture.py")
 
+        hands_df = tex_dir / "bw_hands_df.texture"
+        if not hands_df.exists():
+            print("building hand textures from the template's own skin maps")
+            st.build_hands_texture(args.templates, tex_dir, args.tex_res)
+
         specs = list(sm.DEFAULT_MATERIALS)
         # a dropped layer must not leave a material pointing at nothing
         keep = {MAT_SLOTS[v] for v in model_materials(report)}
+        keep.add("mtr_hands")          # grafted, no Skyrim source material
         specs = [s for s in specs if s.name in keep]
         textures = sm.build_textures(
             args.root / "1.zip", specs, args.tex_res,

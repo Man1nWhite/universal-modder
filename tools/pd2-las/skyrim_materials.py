@@ -67,6 +67,9 @@ TPL_FPS = "generic:DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
 
 DEFAULT_MATERIALS = (
     MaterialSpec("mtr_body", "", "", generated=True),
+    # hands are grafted from a PD2 heister with that model's own UVs, so they
+    # need their own map rather than a patch of the body atlas
+    MaterialSpec("mtr_hands", "", "", generated=True),
     MaterialSpec("mtr_jacket", "Jacket_diffA", "Jacket_norm", "Jacket_metal",
                  gloss_scale=0.42),
     MaterialSpec("mtr_jacket2", "Jacket2_diffA", "Jacket2_norm", "Jacket2_metal",

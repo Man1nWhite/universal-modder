@@ -357,11 +357,17 @@ def build_diffuse(bake: dict, rng: np.random.Generator,
     return rgba
 
 
-def build_normal(bake: dict, rng: np.random.Generator, strength: float = 3.2) -> np.ndarray:
-    """Pore-scale tangent-space normal map, already in Diesel's packing."""
+def build_normal(bake: dict, rng: np.random.Generator, strength: float = 0.35) -> np.ndarray:
+    """Low-frequency tangent-space normal map, already in Diesel's packing.
+
+    Diesel reads X from alpha and Y from green, so any noise here is shading
+    noise on the surface. The 2B reference (a PD2-pipeline map that renders
+    correctly) sits at ~0.04 per-channel sigma; pore-scale fbm at strength 3.2
+    gave 0.15 and read as speckle, worst of all on the legs.
+    """
     res = bake["coverage"].shape[0]
     cov = bake["coverage"]
-    height = _fbm((res, res), rng, octaves=4, base_cells=res // 16)
+    height = _fbm((res, res), rng, octaves=3, base_cells=res // 64)
     height = (height - height.mean()) / max(float(height.std()), 1e-6)
     # gradient in texel space -> tangent-space normal
     gy, gx = np.gradient(height)
@@ -462,6 +468,59 @@ def mip_pyramid(rgba: np.ndarray, levels: int | None = None) -> list[np.ndarray]
         down = (quad[0::2, 0::2] + quad[1::2, 0::2] + quad[0::2, 1::2] + quad[1::2, 1::2]) // 4
         out.append(down.astype(np.uint8))
     return out
+
+
+def build_hands_texture(donor_dir: Path, out_dir: Path, res: int,
+                        tone: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
+    """Hand maps taken straight out of a PD2 heister: no re-authoring.
+
+    The grafted hand mesh keeps the donor's own UVs, so the donor's own
+    diffuse and normal are the only maps that can sample correctly on it. They
+    are copied at the shipped resolution and only *tinted* toward this outfit's
+    body tone — a donor's hands are usually several shades off the body they
+    end up on, and a mismatch is more obvious than any loss of detail.
+    """
+    base = Path(donor_dir)
+    df = _load_texture(base / "base_df.texture")
+    nm = _load_texture(base / "base_nm.texture")
+    df = _resize_rgb(df, res)
+    nm = _resize_rgb(nm, res)
+
+    if tone is not None:
+        rgb = df[..., :3].astype(np.float32)
+        # only the skin pixels carry the donor's tone; black gaps would drag
+        # the median of a whole atlas down to nothing
+        skin = rgb.max(axis=2) > 40.0
+        if skin.any():
+            have = np.median(rgb[skin], axis=0)
+            want = np.asarray(tone, dtype=np.float32)
+            gain = np.clip(want / np.maximum(have, 1.0), 0.8, 1.25)
+            rgb = np.clip(rgb * gain, 0.0, 255.0)
+            df = np.dstack([rgb.astype(np.uint8), df[..., 3]])
+
+    rgba = np.ascontiguousarray(df.astype(np.uint8))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "bw_hands_df.texture").write_bytes(encode_bc3_mips(rgba))
+    (out_dir / "bw_hands_nm.texture").write_bytes(encode_bc3_mips(
+        np.ascontiguousarray(nm.astype(np.uint8))))
+    return rgba, nm
+
+
+def _load_texture(path: Path) -> np.ndarray:
+    """One `.texture` DDS as HxWx4 uint8, without importing the renderer."""
+    from PIL import Image
+
+    return np.asarray(Image.open(str(path)).convert("RGBA"), dtype=np.uint8)
+
+
+def _resize_rgb(img: np.ndarray, size: int) -> np.ndarray:
+    from PIL import Image
+
+    if img.shape[0] == size and img.shape[1] == size:
+        return img
+    chans = [np.asarray(Image.fromarray(img[..., c]).resize(
+        (size, size), Image.LANCZOS)) for c in range(img.shape[2])]
+    return np.dstack(chans).astype(np.uint8)
 
 
 def encode_bc3_mips(rgba: np.ndarray, levels: int | None = None) -> bytes:
