@@ -64,20 +64,35 @@ class MeshSpec:
     material: str
 
 
-def default_outfit(root: Path, jacket: str = "0_Jacket2") -> list[MeshSpec]:
-    """The Business Woman outfit: 3BA body + feet + one jacket + skirt + heels.
+def default_outfit(root: Path, jacket: str = "both") -> list[MeshSpec]:
+    """The Business Woman outfit: 3BA body + feet + jacket layers + skirt + heels.
 
-    ``jacket`` picks `0_Jacket` (open front) or `0_Jacket2` (buttoned); the
-    archive's full-body shapes ride along with the jacket file because that is
-    where BodySlide merged them.
+    `Jacket_0.nif` holds **two garments worn together**, not two alternatives:
+    `0_Jacket` is the blazer (hips to collar, 101.8-163 cm, sleeves included)
+    and `0_Jacket2` is the buttoned bustier underneath it (waist to collar,
+    116.6-165.1 cm). The plugin's "Business Woman Jacket Xtra" armour record
+    points at the same NIF, so both shapes always render; `jacket="blazer"` or
+    `"bustier"` drops one for experiments.
     """
-    return [
+    layers = {
+        "both": ("0_Jacket", "0_Jacket2"),
+        "blazer": ("0_Jacket",),
+        "bustier": ("0_Jacket2",),
+        "none": (),
+    }[jacket]
+    specs = [
         MeshSpec(root / "Jacket_0.nif", ("3BA", "3BA_Vagina", "3BA_Anus"), "skin"),
         MeshSpec(root / "Heels_0.nif", ("feet",), "skin"),
-        MeshSpec(root / "Jacket_0.nif", (jacket,), "jacket"),
+    ]
+    if "0_Jacket" in layers:
+        specs.append(MeshSpec(root / "Jacket_0.nif", ("0_Jacket",), "jacket"))
+    if "0_Jacket2" in layers:
+        specs.append(MeshSpec(root / "Jacket_0.nif", ("0_Jacket2",), "jacket2"))
+    specs += [
         MeshSpec(root / "Skirt_0.nif", ("0_Skirt",), "skirt"),
         MeshSpec(root / "Heels_0.nif", ("0_Heels001",), "heels"),
     ]
+    return specs
 
 
 # ---------------------------------------------------------------------------
@@ -278,7 +293,11 @@ def load_outfit(specs: list[MeshSpec], bone_map: dict,
                     weights=tuple((bone_index[name], w) for name, w in weights[v])
                     if weights else (),
                 ))
-            tris = (shape.triangles + base).reshape(-1)
+            # NIF front faces are clockwise (the D3D convention); the shared
+            # authoring path takes COLLADA-style counter-clockwise and swaps it
+            # for Diesel on the way out. Reverse here so the two cancel and the
+            # stored normals keep pointing the way the winding says they do.
+            tris = (shape.triangles[:, ::-1] + base).reshape(-1)
             meshes.append(SubMesh(material=spec.material,
                                   triangle_indices=tuple(int(i) for i in tris)))
             entry["shapes"].append(shape_name)

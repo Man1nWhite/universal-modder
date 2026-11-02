@@ -664,7 +664,9 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         slice_faces: list[tuple[int, int, int]] = []
         for k in range(0, len(tris), 3):
             tri = tris[k:k + 3]
-            # Source (CW) -> Diesel/GLTF (CCW): swap b/c
+            # COLLADA-style (CCW, right-handed) -> Diesel/GLTF: swap b/c.
+            # Loaders must hand us CCW like the COLLADA importer does; the
+            # Skyrim reader reverses its NIF winding to match.
             a, b, c = tri[0], tri[2], tri[1]
             for vi in (a, b, c):
                 if vi not in remap:
@@ -760,7 +762,14 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     if group_name == "head":
         repair_skin_boundary_normals(g)
     breaks = orientation_breaks(g)
-    print(f"[{group_name}] orientation breaks: {breaks}")
+    agree = winding_agreement(g.verts, g.faces, g.normals)
+    print(f"[{group_name}] orientation breaks: {breaks}, "
+          f"normals agree with winding: {agree:.1%}")
+    if agree < 0.9:
+        raise SystemExit(
+            f"[{group_name}] normals disagree with the winding ({agree:.1%} agree); "
+            "the model would light inside-out"
+        )
     return g
 
 
@@ -904,6 +913,28 @@ def repair_skin_boundary_normals(g: Group) -> None:
                     float(blended_n[1] / ln),
                     float(blended_n[2] / ln),
                 )
+
+
+def winding_agreement(verts, faces, normals) -> float:
+    """Fraction of faces whose vertex normals agree with the winding.
+
+    The companion check to `orientation_breaks`: that one asks "are the faces
+    consistently wound", this one asks "do the normals point the same way the
+    winding says they do". A shipped reference model scores ~0.99; a model that
+    is uniformly inside-out scores ~0.01 and renders lit from behind.
+    """
+    import numpy as np
+
+    v = np.asarray(verts, dtype=np.float64)
+    f = np.asarray(faces, dtype=np.int64)
+    n = np.asarray(normals, dtype=np.float64)
+    if not len(f):
+        return 1.0
+    face = np.cross(v[f[:, 1]] - v[f[:, 0]], v[f[:, 2]] - v[f[:, 0]])
+    face /= np.maximum(np.linalg.norm(face, axis=1, keepdims=True), 1e-12)
+    vn = n[f[:, 0]] + n[f[:, 1]] + n[f[:, 2]]
+    vn /= np.maximum(np.linalg.norm(vn, axis=1, keepdims=True), 1e-12)
+    return float(((face * vn).sum(axis=1) > 0).mean())
 
 
 def orientation_breaks(g: Group) -> int:

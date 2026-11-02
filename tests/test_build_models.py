@@ -313,3 +313,40 @@ def test_written_models_roundtrip(authored):
             expected += len(g.verts)
             hit = [x for x in geos if x["name_hash"] == dm.hash64(f"{gname}.DieselGeometry")]
             assert len(hit) == 1 and len(hit[0]["verts"]) == len(g.verts), gname
+
+
+# ------------------------------------------------------- winding vs normals
+def _tetra():
+    """A regular tetrahedron wound outward, with matching vertex normals."""
+    import numpy as np
+
+    verts = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0],
+                      [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    faces = np.array([[0, 2, 1], [0, 1, 3], [0, 3, 2], [1, 2, 3]])
+    normals = verts - verts.mean(axis=0)
+    normals /= np.linalg.norm(normals, axis=1, keepdims=True)
+    return verts, faces, normals
+
+
+def test_winding_agreement_accepts_an_outward_mesh():
+    verts, faces, normals = _tetra()
+    assert bm.winding_agreement(verts, faces, normals) == 1.0
+
+
+def test_winding_agreement_catches_reversed_winding():
+    """Swapping two corners inside-out is exactly the failure this guards."""
+    verts, faces, normals = _tetra()
+    flipped = faces[:, [0, 2, 1]]
+    assert bm.winding_agreement(verts, flipped, normals) == 0.0
+
+
+def test_winding_agreement_catches_reversed_normals():
+    verts, faces, normals = _tetra()
+    assert bm.winding_agreement(verts, faces, -normals) == 0.0
+
+
+def test_winding_agreement_is_vacuous_without_faces():
+    import numpy as np
+
+    assert bm.winding_agreement(np.zeros((3, 3)), np.zeros((0, 3), int),
+                                np.zeros((3, 3))) == 1.0

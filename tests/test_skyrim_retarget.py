@@ -67,8 +67,8 @@ def template():
 def test_source_meshes_become_one_skinned_model(model):
     model, report = model
     assert report["vertices"] == len(model.vertices)
-    # body + feet + one jacket + skirt + heels, per material
-    assert set(report["materials"]) == {"skin", "jacket", "skirt", "heels"}
+    # body + feet + both jacket layers + skirt + heels, per material
+    assert set(report["materials"]) == {"skin", "jacket", "jacket2", "skirt", "heels"}
     assert report["triangles"] > 50_000
 
 

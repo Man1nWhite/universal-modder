@@ -221,6 +221,13 @@ def _dilate(img: np.ndarray, mask: np.ndarray, rounds: int = 12) -> np.ndarray:
     return out
 
 
+def _downsample(img: np.ndarray) -> np.ndarray:
+    """2x box downsample of an (h, w, c) uint8 array."""
+    h, w = img.shape[0] // 2 * 2, img.shape[1] // 2 * 2
+    q = img[:h, :w].astype(np.uint16)
+    return ((q[0::2, 0::2] + q[1::2, 0::2] + q[0::2, 1::2] + q[1::2, 1::2]) // 4).astype(np.uint8)
+
+
 def _box_blur(field: np.ndarray, radius: int) -> np.ndarray:
     """Separable box blur that keeps the input shape (edge-clamped)."""
     out = field.astype(np.float32)
@@ -276,6 +283,12 @@ def _anatomy_shading(position: np.ndarray, normal: np.ndarray) -> np.ndarray:
     return np.clip(out, 0.55, 1.15)
 
 
+#: Diesel reads the diffuse alpha as gloss; skin should sit in the low forties
+#: to low hundreds, never pinned at 0 (matte powder) or 255 (wet plastic).
+SKIN_GLOSS_BASE = 40
+SKIN_GLOSS_RANGE = 85
+
+
 def build_diffuse(bake: dict, rng: np.random.Generator,
                   tone: np.ndarray = REFERENCE_TONE) -> np.ndarray:
     res = bake["coverage"].shape[0]
@@ -316,10 +329,24 @@ def build_diffuse(bake: dict, rng: np.random.Generator,
     color[..., 1] *= 1.0 - 0.03 * pink
 
     color = np.clip(color, 0, 255)
+
+    # --- gloss: Diesel reads the diffuse alpha as specular strength, and skin
+    # is a soft, low-gloss surface. Creases hold less sheen than the planes of
+    # a thigh, so the same curvature field drives both occlusion and gloss.
+    sheen = 0.55 + 0.30 * (mottle[..., 0] - 0.5) + 0.20 * (blotch[..., 0] - 0.5)
+    sheen -= 0.30 * np.maximum(norm_cav, 0.0)
+    sheen = np.clip(sheen, 0.0, 1.0)
+    alpha = np.clip(SKIN_GLOSS_BASE + SKIN_GLOSS_RANGE * sheen,
+                    SKIN_GLOSS_BASE, 255).astype(np.uint8)
+
     rgba = np.ones((res, res, 4), np.uint8) * 255
     rgba[..., :3] = color.astype(np.uint8)
-    flat = _dilate(rgba[..., :3].astype(np.float32), cov)
-    rgba[..., :3] = np.clip(flat, 0, 255).astype(np.uint8)
+    rgba[..., 3] = alpha
+    flat_rgb = _dilate(rgba[..., :3].astype(np.float32), cov)
+    rgba[..., :3] = np.clip(flat_rgb, 0, 255).astype(np.uint8)
+    # outside the islands the gloss does not matter visually, but a mip bleed
+    # should land on the same mid value the surface uses, not on a hard edge
+    rgba[~cov, 3] = int(SKIN_GLOSS_BASE + SKIN_GLOSS_RANGE * 0.55)
     return rgba
 
 
@@ -444,7 +471,10 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--meshes", type=Path, default=REPO / "build" / "skyrim-nif" / "meshes")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "skyrim-nif" / "textures")
-    ap.add_argument("--res", type=int, default=DEFAULT_RES)
+    ap.add_argument("--res", type=int, default=2048,
+                    help="bake resolution (uv islands are small; 2048 keeps them clean)")
+    ap.add_argument("--out-res", type=int, default=1024,
+                    help="shipped texture size; the bake is box-filtered down to it")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--no-preview", action="store_true")
     ap.add_argument("--cache", type=Path, default=None,
@@ -471,6 +501,12 @@ def main(argv=None) -> int:
     diffuse = build_diffuse(bake, rng)
     normal = build_normal(bake, np.random.default_rng(args.seed + 1))
 
+    if args.out_res and args.out_res != diffuse.shape[0]:
+        # box-filter down: keeps distant detail that a smaller bake would alias
+        while diffuse.shape[0] > args.out_res:
+            diffuse = _downsample(diffuse)
+            normal = _downsample(normal)
+
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "bw_body_df.texture").write_bytes(encode_bc3_mips(diffuse))
     (args.out / "bw_body_nm.texture").write_bytes(encode_bc3_mips(normal))
@@ -480,7 +516,14 @@ def main(argv=None) -> int:
     Image.fromarray(normal[..., :3]).resize((768, 768), Image.LANCZOS).save(
         args.out / "bw_body_nm_preview.png")
     if not args.no_preview:
-        render_preview(bake, diffuse, args.out / "bw_body_on_mesh.png")
+        # the preview splats texel colours back into 3D, so both sides must
+        # describe the same grid; at out-res < res, previews use the full bake
+        if diffuse.shape[0] == bake["coverage"].shape[0]:
+            render_preview(bake, diffuse, args.out / "bw_body_on_mesh.png")
+        else:
+            preview_bake = {k: v for k, v in bake.items()}
+            render_preview(preview_bake, build_diffuse(bake, np.random.default_rng(args.seed)),
+                           args.out / "bw_body_on_mesh.png")
     print(f"wrote {args.out}/bw_body_df.texture and bw_body_nm.texture")
     return 0
 

@@ -1,12 +1,13 @@
 # Skyrim 3BA outfit (`1.zip` … `5.zip`) — source audit and port plan
 
-Status: **first playable-shape milestone reached** — the outfit (3BA body +
-buttoned jacket + skirt + heels) now exists as a PAYDAY 2 Diesel model with every
-joint on the LAS skeleton. Materials, textures, head and first-person arms are
-still missing, so nothing is installable yet.
+Status: **materials milestone reached** — the outfit (3BA body + both jacket
+layers + skirt + heels) exists as a PAYDAY 2 Diesel model with every joint on the
+LAS skeleton, and it now ships with its own textures, `material_config`s and a
+pack folder. Head, necklace, heel pitch and first-person arms are still missing,
+so nothing is installable yet.
 
 Target decided (2026-11-02): a **PAYDAY 2 LAS outfit, keeping the 3BA body** as
-the outfit's body; **black** palette, **buttoned** jacket, **no glasses** (the
+the outfit's body; **black** palette, **both jacket layers**, **no glasses** (the
 mesh is not in the archives), skin texture **authored** rather than shipped.
 
 This page answers "can you make an LAS outfit out of these `.nif` files, and
@@ -42,7 +43,7 @@ the body from a problem into the deliverable. What remains:
 | 1 | **Body skin textures** — the merged 3BA body points at vanilla `femalebody_1` files that are not in the archives, and 28 % of the body surface stays visible with the garments on (measured: all of the lower legs, most of the thighs, half the hips, the V-neck chest, the hands) | ✅ **authored** — `tools/pd2-las/skin_texture.py` bakes a 2048² diffuse + normal from the mesh itself (cavity AO, anatomy shading, mottle) with the tone sampled as statistics from the 2B pack's skin. No Bethesda pixels, no Overkill pixels. |
 | 2 | **Glasses mesh** — `4.zip` has no `Glasses_*.nif` although the plugin references `Melodic\Business Woman\Glasses_1.nif` | **decided: ship without glasses.** The outfit is jacket + skirt + heels + necklace over the 3BA body. |
 | 3 | **Colourway** — `1.zip` black default; eight palettes across `2.zip`/`3.zip` | **decided: black** (`1.zip` diffuse + normal + metal). |
-| 4 | **Jacket variant** — `0_Jacket` (open) vs `0_Jacket2` (buttoned) in the same NIF | **decided: `0_Jacket2`** (buttoned). The open one remains a one-flag rebuild (`--jacket 0_Jacket`). |
+| 4 | **Jacket variant** — `0_Jacket` vs `0_Jacket2` in the same NIF | **decided: both.** They are not alternatives: `0_Jacket` is the sleeved blazer (101.8-163.0 cm) and `0_Jacket2` is the buttoned bustier worn *under* it (116.6-165.1 cm), which is why the plugin calls the second armour record "Business Woman **Jacket Xtra**" and why both point at the same NIF. Shipping `0_Jacket2` alone leaves the torso and arms bare. `--jacket blazer|bustier` drops one for experiments. |
 | 5 | **Redistribution permission** — `5.zip/Please Read.txt`: *"do not publish this mod outside Loverslab without permission"* (author **Melodic**) | **open.** Private build only until the author says otherwise. |
 | 6 | **In-game check** on Windows (PD2 + SuperBLT + BeardLib + LAS) | **open.** Nothing ships before it. |
 
@@ -117,22 +118,77 @@ Our inventory resolves all garment references — 0 missing after normalization.
 Real output of the pipeline (gitignored, regenerate):
 
 ```
-source: 40425 verts / 73849 tris over 20 PD2 bones
-  materials: {'skin': 23960, 'jacket': 10385, 'skirt': 1312, 'heels': 4768}
-group body: 40425 verts, 73849 tris, palette 18, slots mtr_body/mtr_heels/mtr_jacket/mtr_skirt
-group shadow: 40425 verts, 73849 tris, palette 18, shadow_caster
-wrote build/skyrim-nif/business_woman.model (8433123 bytes)
+source: 55099 verts / 100845 tris over 20 PD2 bones
+  materials: {'skin': 23960, 'jacket': 14674, 'jacket2': 10385, 'skirt': 1312, 'heels': 4768}
+[body] orientation breaks: 0, normals agree with winding: 98.5%
+group body: 55099 verts, 100845 tris, palette 20, slots mtr_body/mtr_heels/mtr_jacket/mtr_jacket2/mtr_skirt
+group shadow: 55099 verts, 100845 tris, palette 20, shadow_caster
+wrote build/skyrim-nif/business_woman.model (10988316 bytes)
+pack  -> dist/BusinessWoman_LAS
+zip   -> dist/BusinessWoman_LAS.zip
 ```
 
-`docs/previews/business_woman_pd2.png` is the four-view sheet of that model:
-the 3BA body with the buttoned jacket, skirt and heels standing in PAYDAY 2
-space at 1.69 m, arms in PD2's bind pose.
+`docs/previews/business_woman_pd2.png` is the four-view flat sheet of that model;
+`docs/previews/business_woman_textured.png` is the same mesh with the packed
+textures sampled through its own UVs, which is what proves the mapping, and
+`docs/previews/business_woman_materials.png` shows every shipped map next to the
+channels PD2 actually reads.
 
 Why the bone list is 20 and not 53: BodySlide exports only the bones the merged
 mesh actually weights, and these garments are skinned to 20 deform joints (no
 fingers past the first thumb, no toes, no neck/head — confirmed against the
 file's node list). The toes, neck and head simply do not exist in the source, so
 nothing has to be invented for them; they ride the chain above them.
+
+### 3.1 Materials: what the two engines disagree about
+
+A Skyrim `BSLightingShaderProperty` hands over up to nine textures; Diesel binds
+two. The mapping is mostly boring (diffuse → `df`, normal → `nm`) except for the
+alpha channels, which mean **opposite things**:
+
+| channel | Skyrim | PAYDAY 2 |
+| --- | --- | --- |
+| diffuse alpha | opacity, tested by `NiAlphaProperty` | **gloss**: 0 = matte, 255 = mirror |
+| normal alpha | specular strength | part of the `DXT5nm` packing (holds X) |
+
+So a verbatim copy would turn every garment chrome and throw the real specular
+away. `skyrim_materials.build_diffuse` keeps the colour texels, discards Skyrim's
+opacity and writes `gloss = normal_alpha x gloss_scale x metal_mask`, which is
+what the `*_metal` maps are for: jacket, jacket2 and skirt ship 16x16 **black**
+(fully matte fabric), the necklace ships **white** (gold). The normal maps are
+swizzled `R = 255, G = 255 - Y, B = 0, X → alpha`, i.e. Diesel's `DXT5nm` layout,
+with every mip level written.
+
+| material | shape | diffuse | normal | gloss source | shipped size |
+| --- | --- | --- | --- | --- | --- |
+| `mtr_body` | `3BA` + `feet` | authored | authored | authored (`skin_texture.py`) | 1024² |
+| `mtr_jacket` | `0_Jacket` | `Jacket_diffA` | `Jacket_norm` | `Jacket_metal` (16² black) | 1024² |
+| `mtr_jacket2` | `0_Jacket2` | `Jacket2_diffA` | `Jacket2_norm` | `Jacket2_metal` (16² black) | 1024² |
+| `mtr_skirt` | `0_Skirt` | `Skirt_diffA` | `Skirt_norm` | `Skirt_metal` (16² black) | 1024² |
+| `mtr_heels` | `0_Heels001` | `Heels_diffA` | `Heels_norm` | `Heels_metal` (512², mean 24) | 1024² |
+
+Two findings worth recording:
+
+* **The Skyrim normal maps are nearly flat** — R and G sit at 126 ± 4…20 with the
+  real detail in alpha (Skyrim's specular). That is faithful: the fabric weave in
+  these garments is painted into the diffuse, and the specular map is what we
+  repurposed as gloss. A "more normal" normal map would be invented detail.
+* **The necklace's normal is inert** (R = G = 126, B = 255) and its metal mask is
+  solid white, so it will read as polished gold for free once it is decimated.
+
+### 3.2 Winding: a bug this pass found
+
+`transfer_group` swapped two triangle corners per face ("CW → CCW"), but carried
+the vertex normals through unchanged, so every mesh it authored came out
+**inside-out**: signed volume −110 346 cm³, normals agreeing with the winding on
+1 % of faces. The shipped 2B reference model and every Skyrim source mesh both
+score ~0.97 with **positive** volume, so the swap was inverting both.
+
+The fix is in the source adapter, not the shared authoring path: `skyrim_source`
+now reverses the NIF's clockwise winding, which the existing swap then cancels
+exactly. `build_models.winding_agreement()` measures it (98.5 % agree, volume
++110 346 cm³) and `transfer_group` refuses to write a model below 90 %, so this
+cannot silently come back.
 
 ### How the reader is validated
 
@@ -206,13 +262,13 @@ full-body replacement: body + buttoned jacket + skirt + heels.
 | 2 | **Fold the helper bones** — twists, belly, butt, breasts; drop the 10 3BA-only bones | ✅ folded before retarget, weights renormalised to ≤3 influences |
 | 3 | **Pose-correct the arms** into PD2's bind pose | ✅ axial chains spread them from the source's 60° hang to PD2's A-pose |
 | 4 | **Skin texture** for the exposed 28 % of the body (authored, PD2-appropriate) | ✅ `skin_texture.py` — 2048² DXT5 df + nm with full mip chain, baked in the mesh's own UV space |
-| 5 | **Materials** — `BSLightingShaderProperty` + 9-slot texture set → `*.material_config` (`df`/`nm`, DXT5nm swizzle with `invert_y`, `*_metal` gloss → constants) | ⬜ |
-| 6 | **Alpha** — all garments use `NiAlphaProperty` 4844 → `ALPHA_MASKED` (sequins, jacket front) | ⬜ |
+| 5 | **Materials** — `BSLightingShaderProperty` + 9-slot texture set → `*.material_config` (`df`/`nm`, DXT5nm swizzle with `invert_y`, `*_metal` gloss → alpha) | ✅ `skyrim_materials.py`; 10 textures, 5 materials, templates copied verbatim from the 2B pack — see §3.1 |
+| 6 | **Alpha** — all garments use `NiAlphaProperty` 4844 | ✅ **nothing to do**: `4844/128` is alpha-*tested*, but no diffuse in `1.zip` has a texel below 128 (measured 0.00 %), so the test never fires and the plain template is correct. A future palette with cut-outs needs `ALPHA_MASKED` + `alpha_ref`. |
 | 7 | **Heels** — keep the shoe's ankle pitch while PD2's foot bones are flat | ⬜ |
 | 8 | **Necklace** — 26 961 verts is a PD2-scale problem: decimate, or drop it into the pack as a separate drawable | ⬜ |
 | 9 | **Head and hair** — Skyrim ships neither; the LAS unit needs a `g_head` (reuse the 2B/PD2 head and its materials, or port a Skyrim head) | ⬜ design decision |
 | 10 | **First-person arms** — derive from the jacket sleeves + body arms, or ship TPP first | ⬜ |
-| 11 | **Pack scaffold** — `las_pack.py` with new IDs, locales, icon, `BUILD_INFO.json` | ⬜ |
+| 11 | **Pack scaffold** — `bw_pack.py` with new IDs, locales, icon, `BUILD_INFO.json` | ✅ `dist/BusinessWoman_LAS/` (11 MB with textures); FPS unit deliberately absent until the arms exist |
 | 12 | **In-game check**, then (only with Melodic's permission) a tracked `dist/*.zip` + sha256 + previews | ⬜ |
 
 Deliverable shape: `BusinessWoman_LAS.zip` with a BeardLib manifest, locales,
@@ -287,9 +343,13 @@ tools/pd2-las/skyrim_source.py        .nif -> ModelData adapter (bones resolved 
 tools/pd2-las/skyrim_retarget.py      XPMSE/3BA -> PD2 skeleton fit (joints land exactly)
 tools/pd2-las/build_business_woman.py the end-to-end build (4.zip -> business_woman.model)
 tools/pd2-las/skin_texture.py         authored skin: UV-space bake -> df + nm DXT5 with mips
+tools/pd2-las/skyrim_materials.py     Skyrim shader -> PD2 df/nm/gloss + material_config
+tools/pd2-las/bw_pack.py              LAS pack folder: manifest, hook, locales, icon, hashes
+tools/pd2-las/preview_textured.py     UV-sampling textured render + texture contact sheet
 tests/test_skyrim_retarget.py         7 offline tests for the two modules above
 tests/test_skin_texture.py            10 offline tests for the baker (incl. real meshes)
-docs/previews/business_woman_*.png    tracked previews (source outfit, textures, PD2 model, skin)
+tests/test_skyrim_materials.py        23 offline tests for materials + pack assembly
+docs/previews/business_woman_*.png    tracked previews (source, PD2 model, textured, materials, skin)
 build/skyrim-nif/                     generated report, inventory, crosscheck, .model (gitignored)
 tools/pd2-las/                        the rest of the LAS pipeline
 ```

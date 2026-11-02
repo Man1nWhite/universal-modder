@@ -104,7 +104,10 @@ def test_diffuse_is_filled_and_skin_coloured():
     rgba = st.build_diffuse(bake, np.random.default_rng(0))
     assert rgba.shape == (64, 64, 4)
     assert rgba.dtype == np.uint8
-    assert rgba[..., 3].min() == 255                    # skin is opaque
+    # alpha is gloss, not opacity: low sheen, never fully matte or mirrored
+    assert st.SKIN_GLOSS_BASE <= int(rgba[..., 3].min())
+    assert int(rgba[..., 3].max()) <= st.SKIN_GLOSS_BASE + st.SKIN_GLOSS_RANGE
+    assert int(rgba[..., 3].std()) > 0                  # the field actually varies
     # nothing is left black: the dilation must reach every texel
     assert int(rgba[..., :3].max(axis=2).min()) > 40
     r, g, b = rgba[32, 32, :3].astype(int)

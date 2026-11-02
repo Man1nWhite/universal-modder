@@ -29,17 +29,25 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent / "pd2-port"))
 
 import build_models as bm  # noqa: E402
 import skyrim_retarget  # noqa: E402
 import skyrim_source as ss  # noqa: E402
 
 BONE_MAP = REPO / "tools" / "skyrim-nif" / "skeleton_map.json"
+UNIT_BASE = "units/businesswoman/skins/businesswoman"
+
+
+def model_materials(report: dict) -> list[str]:
+    """Logical material keys that actually made it into the built model."""
+    return list(report["materials"])
 
 # logical material -> Diesel material slot
 MAT_SLOTS = {
     "skin": "mtr_body",
     "jacket": "mtr_jacket",
+    "jacket2": "mtr_jacket2",
     "skirt": "mtr_skirt",
     "heels": "mtr_heels",
 }
@@ -79,8 +87,9 @@ def render_sheet(model_path: Path, out_png: Path) -> None:
     spec.loader.exec_module(pv)
 
     colors = {
-        "mtr_body": (214, 176, 150), "mtr_jacket": (120, 92, 78),
-        "mtr_skirt": (104, 116, 104), "mtr_heels": (226, 220, 206),
+        "mtr_body": (214, 176, 150), "mtr_jacket": (52, 48, 50),
+        "mtr_jacket2": (150, 150, 156),
+        "mtr_skirt": (58, 60, 62), "mtr_heels": (226, 220, 206),
         "shadow_caster": (70, 70, 70),
     }
     mf = dm.ModelFile.read_path(model_path)
@@ -156,8 +165,14 @@ def main(argv=None) -> int:
                     help="directory with 2b.model / fps_2b.model")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "skyrim-nif")
     ap.add_argument("--root", type=Path, default=REPO)
-    ap.add_argument("--jacket", choices=("0_Jacket", "0_Jacket2"), default="0_Jacket2")
+    ap.add_argument("--jacket", choices=("both", "blazer", "bustier", "none"),
+                    default="both")
     ap.add_argument("--no-previews", action="store_true")
+    ap.add_argument("--pack", action="store_true",
+                    help="also write textures, material configs and the LAS folder")
+    ap.add_argument("--tex-res", type=int, default=1024,
+                    help="shipped texture size for the garments")
+    ap.add_argument("--dist", type=Path, default=REPO / "dist")
     args = ap.parse_args(argv)
 
     src = mesh_root(args.root)
@@ -194,8 +209,44 @@ def main(argv=None) -> int:
     out.write_bytes(mf.write())
     print(f"wrote {out} ({out.stat().st_size} bytes)")
 
+    sheet_path = args.out / "previews" / "business_woman_pd2.png"
     if not args.no_previews:
-        render_sheet(out, args.out / "previews" / "business_woman_pd2.png")
+        render_sheet(out, sheet_path)
+
+    if args.pack:
+        import bw_pack
+        import dds  # noqa: F401  (encode_dxt5 lives here; skyrim_materials imports it)
+        import skyrim_materials as sm
+
+        specs = list(sm.DEFAULT_MATERIALS)
+        # a dropped layer must not leave a material pointing at nothing
+        keep = {MAT_SLOTS[v] for v in model_materials(report)}
+        specs = [s for s in specs if s.name in keep]
+        textures = sm.build_textures(
+            args.root / "1.zip", specs, args.tex_res,
+            generated_dir=args.out / "textures",
+        )
+        # keep every map on disk too: the icon is cut from a render of them
+        tex_dir = args.out / "textures"
+        tex_dir.mkdir(parents=True, exist_ok=True)
+        for stem, data in textures.items():
+            (tex_dir / f"{stem}.texture").write_bytes(data)
+        config = sm.render_material_config(UNIT_BASE, specs)
+        (args.out / "business_woman.material_config").write_text(config)
+
+        # the menu icon is cut from our own textured render, not from the
+        # flat-coloured sheet, so the tile shows the real materials
+        import preview_textured as pt
+
+        textured_sheet = args.out / "previews" / "business_woman_textured.png"
+        pt.main([str(out), str(tex_dir), "--out", str(textured_sheet)])
+        icon = bw_pack.build_icon(textured_sheet.read_bytes())
+        pack = bw_pack.write_pack(
+            args.dist, out.read_bytes(), textures, icon, config, None,
+            extra={"source": "Melodic Business Woman SE 3BA", "private": True},
+        )
+        print(f"pack  -> {pack}")
+        print(f"zip   -> {bw_pack.zip_pack(pack)}")
     return 0
 
 
