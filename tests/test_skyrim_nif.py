@@ -371,3 +371,122 @@ def test_skeleton_map_covers_garment_bones():
             continue
         assert dest in target, f"fold {source} -> {dest} is not a PD2 deform bone"
     assert data["drop"]["fallback_target"] in target
+
+
+# ---------------------------------------------------------------------------
+# legacy geometry: the `_g` collision NIFs use NiTriShape + NiTriShapeData
+# ---------------------------------------------------------------------------
+def _legacy_shape(b: NifBuilder, name: str, data_ref: int,
+                  shader_ref: int = 0xFFFFFFFF) -> int:
+    p = struct.pack("<I", b.string_id(name))          # NiObjectNET name
+    p += struct.pack("<I", 0)                        # extra data array
+    p += struct.pack("<I", 0xFFFFFFFF)               # controller
+    p += struct.pack("<I", 0x0000020E)               # flags
+    p += struct.pack("<3f", 0.0, 0.0, 0.0)           # translation
+    p += struct.pack("<9f", 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+    p += struct.pack("<f", 1.0)                      # scale
+    p += struct.pack("<I", 0xFFFFFFFF)               # collision
+    p += struct.pack("<I", data_ref)                 # data ref
+    p += struct.pack("<I", 0xFFFFFFFF)               # skin ref
+    p += struct.pack("<I", 0)                        # material names
+    p += struct.pack("<I", 0)                        # active material
+    p += struct.pack("<B", 0)                        # defaultMatNeedsUpdateFlag
+    p += struct.pack("<I", shader_ref)               # shader property
+    p += struct.pack("<I", 0xFFFFFFFF)               # alpha property
+    p += struct.pack("<I", 0)                        # particle data size
+    return b.add("NiTriShape", p)
+
+
+def _legacy_data(b: NifBuilder, verts, uvs, normals, tris) -> int:
+    n = len(verts)
+    p = struct.pack("<I", 0)                         # groupID
+    p += struct.pack("<H", n)
+    p += struct.pack("<BB", 0, 0)                    # keep/compress flags
+    p += struct.pack("<B", 1) + np.asarray(verts, "<f4").tobytes()
+    p += struct.pack("<H", 0x0001)                   # data flags: one UV set
+    p += struct.pack("<I", 0)                        # material CRC (stream > 34)
+    p += struct.pack("<B", 1) + np.asarray(normals, "<f4").tobytes()
+    p += struct.pack("<3f", 0.0, 0.0, 10.0)          # bounds centre
+    p += struct.pack("<f", 20.0)                     # bounds radius
+    p += struct.pack("<B", 0)                        # no vertex colours
+    p += np.asarray(uvs, "<f4").tobytes()
+    p += struct.pack("<H", 0x4000)                   # consistency flags (static)
+    p += struct.pack("<I", 0xFFFFFFFF)               # additional data
+    p += struct.pack("<H", len(tris))                # numTriangles
+    p += struct.pack("<I", len(tris) * 3)            # numTrianglePoints
+    p += struct.pack("<B", 1) + np.asarray(tris, "<u2").tobytes()
+    p += struct.pack("<H", 0)                        # no match groups
+    return b.add("NiTriShapeData", p)
+
+
+@pytest.fixture
+def legacy_nif() -> bytes:
+    b = NifBuilder()
+    data = _legacy_data(b, QUAD["verts"], QUAD["uvs"], QUAD["normals"], QUAD["tris"])
+    shape = _legacy_shape(b, "0_Skirt", data)
+    b.node("Scene Root", [shape])
+    return b.build()
+
+
+def test_legacy_nitrishape_geometry(legacy_nif):
+    """`_g` NIFs store geometry in a separate NiTriShapeData block, not inline."""
+    f = nif.parse(legacy_nif, "g.nif")
+    (shape,) = f.shapes
+    assert shape.name == "0_Skirt"
+    assert shape.num_vertices == 4
+    assert shape.num_triangles == 2
+    np.testing.assert_allclose(shape.vertices, np.array(QUAD["verts"], np.float32))
+    np.testing.assert_allclose(shape.uvs, np.array(QUAD["uvs"], np.float32))
+    assert f.shade() == "static mesh (no skinning)"
+
+
+# ---------------------------------------------------------------------------
+# nifly cross-check bridge (needs the compiled library; skipped otherwise)
+# ---------------------------------------------------------------------------
+import nifly_bridge  # noqa: E402
+
+
+def _nifly_lib():
+    try:
+        nifly_bridge.load()
+    except nifly_bridge.NiflyUnavailable as exc:
+        pytest.skip(f"nifly not built: {exc}")
+    return True
+
+
+def test_nifly_bridge_reads_synthetic_file(legacy_nif):
+    """The ctypes bridge must decode the same bytes the Python reader does."""
+    _nifly_lib()
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "g.nif"
+        path.write_bytes(legacy_nif)
+        with nifly_bridge.NiflyFile(path) as f:
+            assert "loaded" in f.status.lower(), f.status
+            (shape,) = f.shapes()
+            assert shape["name"] == "0_Skirt"
+            np.testing.assert_allclose(shape["vertices"],
+                                       np.array(QUAD["verts"], np.float32))
+            assert len(shape["triangles"]) == 2
+
+
+def test_nifly_bridge_rejects_missing_file(tmp_path):
+    """A missing file is a bad argument (ValueError), not a missing library."""
+    _nifly_lib()
+    with pytest.raises(ValueError, match="failed to load"):
+        nifly_bridge.NiflyFile(tmp_path / "nope.nif")
+
+
+@pytest.mark.skipif(not (ROOT / "4.zip").exists(), reason="4.zip absent")
+def test_crosscheck_against_nifly():
+    """Full audit: nif.py and nifly must agree on every user-supplied mesh."""
+    _nifly_lib()
+    import crosscheck
+
+    report = crosscheck.run(ROOT)
+    passed, failed = crosscheck.summarize(report)
+    assert passed > 0
+    failing = [(f["file"], c["check"]) for f in report["files"]
+               for c in f["checks"] if not c["ok"]]
+    assert not failing, f"{failed} failing checks: {failing[:5]}"

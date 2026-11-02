@@ -8,6 +8,13 @@ Nothing here *ports* anything yet: it decodes the source, proves it is readable,
 and measures the facts a port decision needs (geometry, skinning, materials,
 texture coverage, rig fit against a target skeleton).
 
+The reader is **byte-exact against nifly** (the C++ library behind Outfit Studio)
+on every mesh in `4.zip` — 91/91 checks, vertex and UV deltas `0.0`. See
+[`docs/skyrim-nif/TOOLING.md`](../../docs/skyrim-nif/TOOLING.md) for why we run
+nifly through a small ctypes bridge instead of PyNifly/PyFFI/SkyMeshGLTF, and
+[`docs/skyrim-nif/CROSSCHECK.md`](../../docs/skyrim-nif/CROSSCHECK.md) for the
+table itself.
+
 ## Use
 
 ```bash
@@ -19,6 +26,11 @@ bash tools/pd2-las/bootstrap.sh      # or: python3 -m venv .venv && .venv/bin/pi
     --json build/skyrim-nif/source_inventory.json \
     --markdown build/skyrim-nif/REPORT.md \
     --previews docs/previews
+
+# cross-check the reader against nifly (optional; builds a ~4 MB .so in ~90 s)
+bash tools/skyrim-nif/build_nifly.sh
+.venv/bin/python tools/skyrim-nif/crosscheck.py \
+    --markdown docs/skyrim-nif/CROSSCHECK.md
 
 # one file, ad hoc
 .venv/bin/python - <<'PY'
@@ -44,14 +56,16 @@ PY
 * Skinning: `BSDismemberSkinInstance` → bone refs resolved to node names, plus the
   dismember `partID` per partition. Per-vertex weights are kept, so
   `shape.bone_weights()` gives "which bone drives how much of this mesh".
+* Legacy geometry: `NiTriShape` + `NiTriShapeData` (separate data block). The
+  `_g` ground/collision NIFs are built this way, not with `BSTriShape`.
 * Materials: `BSLightingShaderProperty` (SSE layout: the shader type lives in
   NiObjectNET *before* the name, the two fixed flag words follow the name) →
   `BSShaderTextureSet` (9 paths), `NiAlphaProperty` flags/threshold.
 
 Known gaps, all deliberate: `NiSkinData` bodies are skipped (the partition copy is
-authoritative and identical), tangent space is read but discarded, and `_g`
-collision meshes (`NiTriShape` + `bhk*`) are not decoded — they are ground
-models, not garments.
+authoritative and identical), tangent space is read but discarded, and the
+`bhk*` collision blocks inside the `_g` NIFs are skipped by declared size — we
+want their meshes' bounds, not their physics.
 
 ## Verified against
 
@@ -66,6 +80,7 @@ All 12 meshes in `4.zip` parse with a single warning class (the skipped
 | garment placement | skirt around the hips | `0_Skirt` 86.6 → 117.7 cm |
 | UV range | inside 0…1 | 0.01…0.99 on the 2048² atlases |
 | four-view render | an actual outfit | `docs/previews/business_woman_outfit.png` |
+| **nifly, shape by shape** | identical shapes, verts, tris, bones, textures | **91/91 checks, deltas `0.0`** |
 
 Units: one NIF unit = 1.428 cm; an adult NPC is ~128 units tall.
 
@@ -77,3 +92,7 @@ Units: one NIF unit = 1.428 cm; an adult NPC is ~128 units tall.
 | `preview.py` | `.dds` contact sheets + z-buffered four-view mesh renders |
 | `inventory.py` | the report: archives, meshes, textures, colourways, rights |
 | `skeleton_map.json` | XPMSE/3BA → PAYDAY 2 LAS bone map (15 mapped joints, 22 helper folds, 10 dropped 3BA bones) |
+| `nifly_wrap.cpp` | C ABI over `ousnius/nifly` (open, shapes, geometry, skin, materials, nodes) |
+| `nifly_bridge.py` | ctypes loader + `NiflyFile`; honours `NIFLY_WRAP`, defaults to `build/libniflywrap.so` |
+| `build_nifly.sh` | clones nifly into `build/nifly-src` and compiles the wrapper (~90 s, g++ only, no cmake) |
+| `crosscheck.py` | feeds every NIF in `4.zip` to both readers and reports disagreements |

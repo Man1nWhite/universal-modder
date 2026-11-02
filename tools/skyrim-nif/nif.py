@@ -29,6 +29,10 @@ import numpy as np
 # ---------------------------------------------------------------------------
 NODE_TYPES = {"NiNode", "BSFadeNode", "NiBSParticleNode", "RootCollisionNode", "BSTreeNode"}
 SHAPE_TYPES = {"BSTriShape", "BSSubIndexTriShape"}
+# Legacy geometry: the `_g` (ground collision) NIFs use NiTriShape + NiTriShapeData
+# blocks instead of BSTriShape. They carry no skin, but they are the meshes the
+# game plants on the floor, so a port may want their bounds.
+LEGACY_SHAPE_TYPES = {"NiTriShape", "NiTriStrips"}
 SKIN_TYPES = {"BSDismemberSkinInstance", "NiSkinInstance", "BSSkin::Instance"}
 
 # dismember / body-part ids (Skyrim BSDismemberSkinInstance partID)
@@ -101,6 +105,9 @@ class Reader:
             return ""
         raw = self._take(n)
         return raw.rstrip(b"\x00").decode("cp1252", "replace")
+
+    def bool8(self) -> bool:
+        return self.u8() != 0
 
     def strings(self, size: int = 4, count_size: int = 4) -> list[str]:
         n = self.u32() if count_size == 4 else self.u16()
@@ -302,6 +309,91 @@ def _read_av_object(r: Reader, ctx: _Ctx) -> tuple[str, list[int], int | None, T
     collision = r.u32()
     return name, extras, controller, t, flags, collision
 
+
+
+
+def _read_legacy_shape(r: Reader, ctx: _Ctx, index: int, block_type: str) -> Shape:
+    """NiTriShape (NiTriBasedGeom) + its NiTriShapeData payload.
+
+    Layout verified against nifly's NiGeometry::Sync / NiGeometryData::Sync for
+    file version 20.2.0.7 / stream 100.
+    """
+    name, extras, controller, t, flags, collision = _read_av_object(r, ctx)
+    data_ref = r.u32()
+    skin_ref = r.u32()
+    num_materials = r.u32()                       # NiStringVector<NiFixedString>
+    for _ in range(num_materials):
+        r.string(4)
+    if num_materials:
+        for _ in range(num_materials):
+            r.u32()                               # material extra data (i32 each)
+    r.u32()                                       # active material index
+    r.bool8()                                     # defaultMatNeedsUpdateFlag
+    shader_ref = r.u32()
+    alpha_ref = r.u32()
+    r.u32()                                       # particleDataSize (stream 100)
+
+    shape = Shape(
+        index=index, name=name,
+        vertices=np.zeros((0, 3), np.float32), normals=np.zeros((0, 3), np.float32),
+        uvs=np.zeros((0, 2), np.float32), colors=None, weights=None, bone_indices=None,
+        triangles=np.zeros((0, 3), np.int32),
+        shader_type=None, alpha_flags=None, alpha_threshold=None,
+        textures=[], bones=[], body_parts=[], transform=t, flags=flags,
+    )
+    shape._skin_ref = skin_ref
+    shape._shader_ref = shader_ref
+    shape._alpha_ref = alpha_ref
+    shape._data_ref = data_ref
+    return shape
+
+
+def _read_geometry_data(r: Reader, ctx: _Ctx, block_type: str) -> dict:
+    """NiTriShapeData (NiTriShapeData <- NiTriBasedGeomData <- NiGeometryData)."""
+    stream_version = ctx.header["stream_version"]
+    if block_type in ("NiTriShapeData", "NiTriStripsData"):
+        r.u32()                                   # groupID (file >= 10.1.0.114)
+    num_vertices = r.u16()
+    r.u8()                                        # keep flags
+    r.u8()                                        # compress flags
+    verts = np.zeros((num_vertices, 3), np.float32)
+    if r.bool8():                                 # hasVertices
+        verts = np.frombuffer(r._take(12 * num_vertices), "<f4").reshape(-1, 3).copy()
+    data_flags = r.u16()
+    if stream_version > 34:
+        r.u32()                                   # material CRC
+    norms = np.zeros((num_vertices, 3), np.float32)
+    if r.bool8():                                 # hasNormals
+        norms = np.frombuffer(r._take(12 * num_vertices), "<f4").reshape(-1, 3).copy()
+        nbt = data_flags & 0xF000
+        if nbt:
+            r._take(12 * num_vertices)            # tangents
+            r._take(12 * num_vertices)            # bitangents
+    r.vec3()                                      # bounds centre
+    r.f32()                                       # bounds radius
+    colors = None
+    if r.bool8():                                 # hasVertexColors
+        colors = np.frombuffer(r._take(4 * num_vertices), np.uint8).reshape(-1, 4).copy()
+    num_uv_sets = data_flags & 1 if stream_version >= 34 else data_flags & 0x3F
+    uvs = np.zeros((num_vertices, 2), np.float32)
+    for i in range(num_uv_sets):
+        block = np.frombuffer(r._take(8 * num_vertices), "<f4").reshape(-1, 2)
+        if i == 0:
+            uvs = block.copy()
+    r.u16()                                       # consistency flags
+    r.u32()                                       # additional data ref
+    num_triangles = r.u16()                       # NiTriBasedGeomData
+    tris = np.zeros((0, 3), np.int32)
+    if block_type == "NiTriShapeData":
+        r.u32()                                   # numTrianglePoints
+        if r.bool8():                             # hasTriangles
+            tris = np.frombuffer(r._take(6 * num_triangles), "<u2").reshape(-1, 3).astype(np.int32)
+        num_groups = r.u16()
+        for _ in range(num_groups):
+            count = r.u16()
+            r._take(2 * count)
+    return {"vertices": verts, "normals": norms, "uvs": uvs, "colors": colors,
+            "triangles": tris}
 
 
 def _read_vertex_stream(r: Reader, desc: int, num_vertices: int, num_triangles: int,
@@ -573,6 +665,18 @@ def parse(data: bytes, path: str = "<bytes>") -> NifFile:
             except Exception as exc:
                 warnings.append(f"block {i} {btype}: {type(exc).__name__}: {exc}")
                 blocks[i] = ("bad_shape", str(exc))
+        elif btype in LEGACY_SHAPE_TYPES:
+            try:
+                blocks[i] = ("shape", _read_legacy_shape(r, ctx, i, btype))
+            except Exception as exc:
+                warnings.append(f"block {i} {btype}: {type(exc).__name__}: {exc}")
+                blocks[i] = ("bad_shape", str(exc))
+        elif btype == "NiTriShapeData":
+            try:
+                blocks[i] = ("geomdata", _read_geometry_data(r, ctx, btype))
+            except Exception as exc:
+                warnings.append(f"block {i} {btype}: {type(exc).__name__}: {exc}")
+                blocks[i] = ("bad_geomdata", str(exc))
         elif btype in NODE_TYPES:
             name, extras, controller, t, flags, collision = _read_av_object(r, ctx)
             n_children = r.u32()
@@ -657,6 +761,15 @@ def parse(data: bytes, path: str = "<bytes>") -> NifFile:
             alpha = ctx.alphas.get(s._alpha_ref)
             if alpha:
                 s.alpha_flags, s.alpha_threshold = alpha
+        data_ref = getattr(s, "_data_ref", 0xFFFFFFFF)
+        if s.num_vertices == 0 and data_ref != 0xFFFFFFFF:
+            geo = blocks.get(data_ref)
+            if geo and geo[0] == "geomdata":
+                s.vertices = geo[1]["vertices"]
+                s.normals = geo[1]["normals"]
+                s.uvs = geo[1]["uvs"]
+                s.colors = geo[1]["colors"]
+                s.triangles = geo[1]["triangles"]
         if s._skin_ref != 0xFFFFFFFF:
             skin = ctx.skins.get(s._skin_ref)
             if skin:
