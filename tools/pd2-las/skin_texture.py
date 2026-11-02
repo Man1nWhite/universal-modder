@@ -302,7 +302,7 @@ def build_diffuse(bake: dict, rng: np.random.Generator,
     base = tone * BODY_TONE_GAIN
     color = np.ones((res, res, 3), np.float32) * base
     # subtle mottling: skin blotchiness reads at 2-3 %, not at 8 %
-    color *= (1.0 + 0.035 * (mottle - 0.5)) * (1.0 + 0.02 * (blotch - 0.5))
+    color *= (1.0 + 0.020 * (mottle - 0.5)) * (1.0 + 0.012 * (blotch - 0.5))
     # warmth: red follows the mottling a little more than green/blue
     color[..., 0] *= 1.0 + 0.03 * (mottle[..., 0] - 0.5)
     color[..., 2] *= 1.0 - 0.02 * (mottle[..., 0] - 0.5)
@@ -312,7 +312,7 @@ def build_diffuse(bake: dict, rng: np.random.Generator,
     # concave and must not turn into one big smudge, so subtract a blur first
     local = cav - _box_blur(cav, 24)
     norm_cav = _robust_scale(local)
-    occlusion = np.clip(1.0 - 0.16 * np.maximum(norm_cav, 0.0), 0.72, 1.0)
+    occlusion = np.clip(1.0 - 0.10 * np.maximum(norm_cav, 0.0), 0.80, 1.0)
     color *= occlusion[..., None]
 
     # --- anatomy: the exposed half of this body is legs, so shade the joints
@@ -327,6 +327,13 @@ def build_diffuse(bake: dict, rng: np.random.Generator,
     pink = np.clip(np.maximum(0.0, -nrm[..., 2]) * 0.9, 0.0, 1.0)
     color[..., 0] *= 1.0 + 0.06 * pink
     color[..., 1] *= 1.0 - 0.03 * pink
+
+    # Flatten what is left. Any structure in the albedo shows up as a band
+    # wherever two UV islands meet — at heister distance skin is a tone, not a
+    # texture — and blurring preserves the mean, so the tone survives intact.
+    radius = max(4, res // 96)
+    for _ in range(2):
+        color = _box_blur(color, radius)
 
     color = np.clip(color, 0, 255)
 
