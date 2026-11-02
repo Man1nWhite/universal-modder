@@ -21,7 +21,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 ROOT = HERE.parents[1]
 PACK = ROOT / "dist" / "lawson_las.zip"
-TPP_MODEL = "Lawson_LAS/units/lawson/skins/lawson/lawson.model"
+TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"
 
 sys.path.insert(0, str(HERE))
 import importlib.util

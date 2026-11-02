@@ -121,24 +121,6 @@ def parse_vtf(data: bytes) -> VtfImage:
     if frames != 1:
         raise VtfError(f"multi-frame VTFs are not supported (frames={frames})")
 
-    # Resource entries (7.2+): 8 bytes each, (u24 tag | u8 flags, u32 value),
-    # until a zero tag. IMAGE tag = 0x30; LOWRES (0x01) is parsed past and
-    # intentionally unused (mip 0 only).
-    image_off = None
-    pos = 80 if ver_minor >= 3 else 64
-    while pos + 8 <= header_size:
-        tag = int.from_bytes(data[pos : pos + 3], "little")
-        flags_r = data[pos + 3]
-        value = struct.unpack_from("<I", data, pos + 4)[0]
-        if tag == 0:
-            break
-        if tag == 0x30 and not (flags_r & 0x02):
-            image_off = value
-        # tag 0x01 = low-res image; intentionally unused (mip 0 only)
-        pos += 8
-    if image_off is None:
-        raise VtfError("VTF has no high-res image resource")
-
     # sanity-check the payload size against the declared format
     expected = 0
     for mip in range(mipmap_count):
@@ -148,6 +130,36 @@ def parse_vtf(data: bytes) -> VtfImage:
             max(1, height >> mip),
             depth,
         )
+
+    # Resource entries (7.3+): 8 bytes each, (u24 tag | u8 flags, u32 value),
+    # until a zero tag. IMAGE tag = 0x30; LOWRES (0x01) is parsed past and
+    # intentionally unused (mip 0 only). In VTF 7.2 there is no resource
+    # dictionary; the low-res thumbnail starts at header_size and the high-res
+    # mipmap chain immediately follows it.
+    image_off = None
+    if ver_minor >= 3:
+        pos = 80
+        while pos + 8 <= header_size:
+            tag = int.from_bytes(data[pos : pos + 3], "little")
+            flags_r = data[pos + 3]
+            value = struct.unpack_from("<I", data, pos + 4)[0]
+            if tag == 0:
+                break
+            if tag == 0x30 and not (flags_r & 0x02):
+                image_off = value
+            pos += 8
+    elif header_size + expected <= len(data):
+        lowres_bytes = (
+            _mip_size(lowres_format, lowres_width, lowres_height, 1)
+            if (lowres_width > 0 and lowres_height > 0 and lowres_format != 0xFFFFFFFF)
+            else 0
+        )
+        if header_size + lowres_bytes + expected == len(data):
+            image_off = header_size + lowres_bytes
+        else:
+            image_off = len(data) - expected
+    if image_off is None:
+        raise VtfError("VTF has no high-res image resource")
     if image_off + expected > len(data):
         raise VtfError(
             f"high-res data truncated: need {expected} bytes at {image_off}, file is {len(data)}"

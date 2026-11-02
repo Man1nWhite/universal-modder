@@ -46,13 +46,14 @@ import las_model  # noqa: E402
 import rig_target  # noqa: E402
 from me2_dae import load_dae  # noqa: E402
 
-SOURCE_ZIP = ROOT / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+SOURCE_ZIP = ROOT / "models" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 RIG_JSON = HERE / "reference" / "las_rig.json"
 DEFAULT_OUT = ROOT / "dist" / "lawson_las.zip"
 DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
 
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
+ASSET_DIR = "assets"
 ROOT_DIR = "Lawson_LAS"
 VERSION = "0.1.2"
 # The pack is an unlicensed fan derivative of ripped ME2 assets: offline
@@ -69,6 +70,20 @@ TEXTURE_SLOTS = {
     "Eyelashes": ("miranda_eyelashes.png", "__flat__", "lashes"),
     "Teeth": ("HMF_HED_PROMiranda_Scalp_Diff.png", "HMF_HED_PROMiranda_Scalp_Norm.png", "teeth"),
     "Mouth Inside": ("HMF_HED_PROMiranda_Scalp_Diff.png", "HMF_HED_PROMiranda_Scalp_Norm.png", "mouth"),
+}
+
+# PAYDAY 2's DIFFUSE_TEXTURE:NORMALMAP shader reads the specular/gloss mask
+# from the diffuse texture's alpha channel (0 = matte, 255 = full mirror gloss;
+# 2B reference has mean ~8, p90 = 28..48, max = 92..96).
+# Base name -> (optional ME2 spec PNG, scale, max_alpha, default_alpha)
+SPECULAR_SLOTS = {
+    "body1": ("HMF_MIR_NKDa_SPEC.png", 0.18, 42, 12),
+    "body2": ("HMF_MIR_LGTa_Spec.png", 0.25, 64, 16),
+    "face": ("HMF_HED_PROMiranda_Face_Spec.png", 0.16, 32, 8),
+    "hair": ("HMF_HED_PROMiranda_Scalp_Spec.png", 0.14, 38, 14),
+    "eyes": ("EYE_Spec.png", 0.35, 72, 20),
+    "teeth": (None, 0.0, 14, 14),
+    "mouth": (None, 0.0, 6, 6),
 }
 
 # mesh name -> (drawable, material) for the TPP model
@@ -105,7 +120,13 @@ MAT_BASE = {
 }
 
 
-def eye_uv_planar(positions) -> list[tuple[float, float]]:
+def eye_uv_planar(
+    positions,
+    dx_frac: float = 0.0,
+    dz_frac: float = 0.0,
+    radius_scale: float = 0.50,
+    dx_frac_pos: float | None = None,
+) -> list[tuple[float, float]]:
     """Planar-project each eyeball's UVs from its frontal plane.
 
     ME2's eye shader placed the iris itself (EYE_Iris_Norm / EYE_Lens_Norm /
@@ -117,19 +138,21 @@ def eye_uv_planar(positions) -> list[tuple[float, float]]:
     outside the unit square but sit inside the head.
     """
     out = [(0.5, 0.5)] * len(positions)
-    for pred in (lambda x: x < 0.0, lambda x: x >= 0.0):
+    for sign, pred in ((-1.0, lambda x: x < 0.0), (1.0, lambda x: x >= 0.0)):
         idx = [i for i, p in enumerate(positions) if pred(p[0])]
         if not idx:
             continue
-        cx = sum(positions[i][0] for i in idx) / len(idx)
-        cy = sum(positions[i][1] for i in idx) / len(idx)
-        cz = sum(positions[i][2] for i in idx) / len(idx)
-        r = sum(((positions[i][0] - cx) ** 2 + (positions[i][1] - cy) ** 2 +
-                 (positions[i][2] - cz) ** 2) ** 0.5 for i in idx) / len(idx) or 1.0
-        scale = 0.42 / (0.9 * r)
+        cx_bbox = 0.5 * (min(positions[i][0] for i in idx) + max(positions[i][0] for i in idx))
+        cz_bbox = 0.5 * (min(positions[i][2] for i in idx) + max(positions[i][2] for i in idx))
+        rx = 0.5 * (max(positions[i][0] for i in idx) - min(positions[i][0] for i in idx)) or 1.0
+        cur_dx = dx_frac_pos if (sign > 0.0 and dx_frac_pos is not None) else dx_frac
+        cx = cx_bbox + sign * cur_dx * rx
+        cz = cz_bbox + dz_frac * rx
+        scale = radius_scale / rx
         for i in idx:
-            out[i] = (0.5 + scale * (positions[i][0] - cx),
-                      0.5 + scale * (positions[i][2] - cz))
+            u = min(0.98, max(0.02, 0.5 + scale * (positions[i][0] - cx)))
+            v = min(0.98, max(0.02, 0.5 + scale * (positions[i][2] - cz)))
+            out[i] = (u, v)
     return out
 
 
@@ -161,11 +184,253 @@ def atom_for(rm, material: str, keep=None) -> "las_model.Atom":
                           uvs=u, weights=w, faces=f)
 
 
+def _neck_skin_uv_island_mask(uv_img, tris):
+    """Select the exact Scalp_Diff neck-skin UV island (645 verts) via UV flood-fill."""
+    import numpy as np
+
+    rounded = np.round(uv_img * 1000.0).astype(np.int64)
+    _, inv = np.unique(rounded, axis=0, return_inverse=True)
+    parent = list(range(int(inv.max()) + 1))
+
+    def find(x: int) -> int:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for a, b, c in tris:
+        ra, rb, rc = find(int(inv[a])), find(int(inv[b])), find(int(inv[c]))
+        parent[rb] = ra
+        parent[rc] = ra
+    roots = np.array([find(int(inv[i])) for i in range(len(uv_img))])
+    seed_mask = (uv_img[:, 0] < 0.45) & (uv_img[:, 1] > 0.85)
+    seed_roots = set(roots[seed_mask].tolist())
+    return np.isin(roots, list(seed_roots))
+
+
+def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
+    """Repair corrupted boundary normals along the face/neck seam and mouth corners.
+
+    In the ME2 source mesh, 7 right-cheek/temple boundary vertices on ``Face``
+    (and their 4 matching twins on ``Hair`` neck skin) plus 3 mouth-corner
+    vertices have normals corrupted by adjacent hair cards or mouthbag
+    geometry (dot with true skin surface normal = 0.017..0.540).
+    """
+    import numpy as np
+
+    pf = np.asarray(face_rm.positions, dtype=np.float64)
+    ph = np.asarray(hair_rm.positions, dtype=np.float64)
+    nf = np.asarray(face_rm.normals, dtype=np.float64)
+    nh = np.asarray(hair_rm.normals, dtype=np.float64)
+    uvh = np.asarray(hair_rm.uvs, dtype=np.float64)
+    uvh_img = np.column_stack([uvh[:, 0], 1.0 - uvh[:, 1]])
+
+    tf = np.asarray(face_rm.triangles, dtype=np.int32)
+    th = np.asarray(hair_rm.triangles, dtype=np.int32)
+    is_ns = _neck_skin_uv_island_mask(uvh_img, th)
+    ns_tri_mask = is_ns[th[:, 0]] & is_ns[th[:, 1]] & is_ns[th[:, 2]]
+    th_ns = th[ns_tri_mask] + len(pf)
+
+    p_all = np.vstack([pf, ph])
+    t_skin = np.vstack([tf, th_ns])
+    v0, v1, v2 = p_all[t_skin[:, 0]], p_all[t_skin[:, 1]], p_all[t_skin[:, 2]]
+    fn = np.cross(v1 - v0, v2 - v0)
+    rounded = np.round(p_all * 100.0).astype(np.int64)
+    _, inv = np.unique(rounded, axis=0, return_inverse=True)
+    gn_u = np.zeros((inv.max() + 1, 3), dtype=np.float64)
+    for k in range(3):
+        np.add.at(gn_u, inv[t_skin[:, k]], fn)
+    gn_u /= np.maximum(np.linalg.norm(gn_u, axis=1, keepdims=True), 1e-8)
+    gn_all = gn_u[inv]
+    if float(np.sum(nf * gn_all[: len(pf)], axis=1).mean()) < 0.0:
+        gn_all = -gn_all
+
+    gn_f = gn_all[: len(pf)]
+    gn_h = gn_all[len(pf) :]
+    bad_f = np.sum(nf * gn_f, axis=1) < 0.75
+    for vi in np.nonzero(bad_f)[0]:
+        nf[vi] = gn_f[vi]
+        face_rm.normals[int(vi)] = (float(gn_f[vi, 0]), float(gn_f[vi, 1]), float(gn_f[vi, 2]))
+    bad_h = is_ns & (np.sum(nh * gn_h, axis=1) < 0.75)
+    for vi in np.nonzero(bad_h)[0]:
+        nh[vi] = gn_h[vi]
+        hair_rm.normals[int(vi)] = (float(gn_h[vi, 0]), float(gn_h[vi, 1]), float(gn_h[vi, 2]))
+
+    # Weld normals across coincident Face <-> Hair(neck_skin) seam pairs
+    map_f: dict[tuple[int, int, int], list[int]] = {}
+    for i, p in enumerate(pf):
+        k = (int(round(p[0] * 100.0)), int(round(p[1] * 100.0)), int(round(p[2] * 100.0)))
+        map_f.setdefault(k, []).append(i)
+    for j in np.nonzero(is_ns)[0]:
+        p = ph[j]
+        k = (int(round(p[0] * 100.0)), int(round(p[1] * 100.0)), int(round(p[2] * 100.0)))
+        if k in map_f:
+            f_idxs = map_f[k]
+            avg_n = nh[j].copy()
+            for fi in f_idxs:
+                avg_n = avg_n + nf[fi]
+            ln = float(np.linalg.norm(avg_n)) or 1.0
+            n_tuple = (float(avg_n[0] / ln), float(avg_n[1] / ln), float(avg_n[2] / ln))
+            hair_rm.normals[int(j)] = n_tuple
+            for fi in f_idxs:
+                face_rm.normals[int(fi)] = n_tuple
+
+    face_rm.triangles, _ = rig_target.repair_winding(
+        face_rm.positions, face_rm.normals, face_rm.triangles
+    )
+    hair_rm.triangles, _ = rig_target.repair_winding(
+        hair_rm.positions, hair_rm.normals, hair_rm.triangles
+    )
+
+    # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
+    # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
+    fuv = np.asarray(face_rm.uvs, dtype=np.float64)
+    fu = fuv[:, 0]
+    fv_img = 1.0 - fuv[:, 1]
+    d_nost = np.minimum(
+        np.hypot((fu - 0.454) / 0.022, (fv_img - 0.472) / 0.026),
+        np.hypot((fu - 0.559) / 0.022, (fv_img - 0.472) / 0.026),
+    )
+    nost_idx = np.nonzero(d_nost < 1.0)[0]
+    if len(nost_idx) > 0:
+        n_shadow = np.array([0.0, -0.55, -0.83516465], dtype=np.float64)
+        for vi in nost_idx:
+            w_t = float(np.clip(1.0 - d_nost[vi], 0.0, 1.0)) * 0.90
+            cur_n = np.asarray(face_rm.normals[int(vi)], dtype=np.float64)
+            blended_n = cur_n * (1.0 - w_t) + n_shadow * w_t
+            ln = float(np.linalg.norm(blended_n)) or 1.0
+            face_rm.normals[int(vi)] = (
+                float(blended_n[0] / ln),
+                float(blended_n[1] / ln),
+                float(blended_n[2] / ln),
+            )
+
+
+def _filter_hair_main_component(hair_rm) -> None:
+    """Drop the 33 disconnected 1.5-mm flyaway wire strips (809 tris) from Hair.
+
+    In ME2's Unreal Engine 3 shader, those 33 sub-millimeter ribbons used a
+    soft alpha-blended hair wisp mask (Scalp_Spec2), whereas in PAYDAY 2's
+    opaque character material they rasterize as 1-pixel jagged black wires
+    slicing across the right eye/cheek and floating in front of the forehead.
+    Keeping the main 3D edge-connected component (2,753 tris: the solid hair
+    cap + neck skin) removes all 33 sub-pixel wire artifacts cleanly.
+    """
+    from collections import defaultdict
+    import numpy as np
+
+    hp = np.asarray(hair_rm.positions, dtype=np.float64)
+    ht = list(hair_rm.triangles)
+    if not ht:
+        return
+    pos_key = [tuple(np.round(p, 3)) for p in hp]
+    edge_to_tris: dict[tuple, list[int]] = defaultdict(list)
+    for ti, (a, b, c) in enumerate(ht):
+        ka, kb, kc = pos_key[a], pos_key[b], pos_key[c]
+        for u, v in ((ka, kb), (kb, kc), (kc, ka)):
+            if u != v:
+                edge_to_tris[tuple(sorted((u, v)))].append(ti)
+    adj: dict[int, set[int]] = defaultdict(set)
+    for tris in edge_to_tris.values():
+        for t1 in tris:
+            for t2 in tris:
+                if t1 != t2:
+                    adj[t1].add(t2)
+    visited: set[int] = set()
+    best_comp: list[int] = []
+    for ti in range(len(ht)):
+        if ti in visited:
+            continue
+        comp: list[int] = []
+        stack = [ti]
+        visited.add(ti)
+        while stack:
+            cur = stack.pop()
+            comp.append(cur)
+            for nxt in adj[cur]:
+                if nxt not in visited:
+                    visited.add(nxt)
+                    stack.append(nxt)
+        if len(comp) > len(best_comp):
+            best_comp = comp
+    if best_comp and len(best_comp) < len(ht):
+        keep_verts = {v for ti in best_comp for v in ht[ti]}
+        cx, cy, cz = 0.0, 5.5, 169.0
+        for vi in range(len(hair_rm.positions)):
+            if vi not in keep_verts:
+                px, py, pz = hair_rm.positions[vi]
+                hair_rm.positions[vi] = (
+                    cx + 0.20 * (px - cx),
+                    cy + 0.20 * (py - cy),
+                    cz + 0.20 * (pz - cz),
+                )
+
+
 def build_models(scene, rig, log=print):
-    rigged = {m.name: rig_target.rebind_mesh(m, scene, rig, smooth_iters=2)
-              for m in scene.meshes}
-    # static approximation of ME2's eye shader (see eye_uv_planar)
-    rigged["Eyes"].uvs = eye_uv_planar(rigged["Eyes"].positions)
+    from dataclasses import replace
+    import numpy as np
+
+    # Smooth bone weights across the unified welded scene graph so cross-mesh
+    # seams (Face <-> Hair under-chin seam, Body 1 <-> Body 2 catsuit seams)
+    # receive identical weights and never crack apart when posed in-game.
+    all_pos, all_wts, all_tris = [], [], []
+    offsets: dict[str, tuple[int, int]] = {}
+    for m in scene.meshes:
+        off = len(all_pos)
+        offsets[m.name] = (off, len(m.positions))
+        all_pos.extend(m.positions)
+        all_wts.extend(m.weights)
+        for a, b, c in m.triangles:
+            all_tris.append((a + off, b + off, c + off))
+    smoothed_all = rig_target.smooth_weights(all_wts, all_pos, all_tris, iters=2)
+
+    rigged = {
+        m.name: rig_target.rebind_mesh(
+            replace(m, weights=smoothed_all[offsets[m.name][0] : offsets[m.name][0] + offsets[m.name][1]]),
+            scene,
+            rig,
+            smooth_iters=0,
+        )
+        for m in scene.meshes
+    }
+    if "Hair" in rigged:
+        _filter_hair_main_component(rigged["Hair"])
+    if "Face" in rigged and "Hair" in rigged:
+        repair_rebound_skin_normals(rigged["Face"], rigged["Hair"])
+    if "Hair" in rigged and "Body 1" in rigged:
+        # Snap the bottom collar rim of Hair neck-skin to Body 1 chest skin
+        ph = np.asarray(rigged["Hair"].positions, dtype=np.float64)
+        uvh = np.asarray(rigged["Hair"].uvs, dtype=np.float64)
+        th = np.asarray(rigged["Hair"].triangles, dtype=np.int32)
+        is_ns = _neck_skin_uv_island_mask(np.column_stack([uvh[:, 0], 1.0 - uvh[:, 1]]), th)
+        pb = np.asarray(rigged["Body 1"].positions, dtype=np.float64)
+        top_b_idx = np.nonzero(pb[:, 2] > 148.0)[0]
+        if len(top_b_idx) > 0:
+            top_b = pb[top_b_idx]
+            for hi in np.nonzero(is_ns & (ph[:, 2] < 156.5))[0]:
+                dists = np.linalg.norm(top_b - ph[hi], axis=1)
+                best = int(np.argmin(dists))
+                if dists[best] < 0.20:
+                    bi = int(top_b_idx[best])
+                    rigged["Hair"].positions[int(hi)] = rigged["Body 1"].positions[bi]
+                    rigged["Hair"].weights[int(hi)] = list(rigged["Body 1"].weights[bi])
+
+    # Center eyeball planar UVs on the visible eyelid opening (palpebral fissure)
+    # and soften horizontal/vertical normal tilt across the recessed 1.5cm eyeball sphere.
+    rigged["Eyes"].uvs = eye_uv_planar(
+        rigged["Eyes"].positions,
+        dx_frac=0.13,
+        dz_frac=-0.125,
+        radius_scale=0.45,
+        dx_frac_pos=0.08,
+    )
+    eye_nrms = []
+    for nx, ny, nz in rigged["Eyes"].normals:
+        nx_s = nx * 0.35
+        nz_s = nz * 0.35
+        ln = (nx_s * nx_s + ny * ny + nz_s * nz_s) ** 0.5 or 1.0
+        eye_nrms.append((nx_s / ln, ny / ln, nz_s / ln))
+    rigged["Eyes"].normals = eye_nrms
 
     tpp_drawables: dict[str, list] = {}
     for mesh_name, (drawable, material) in TPP_LAYOUT.items():
@@ -194,13 +459,133 @@ def build_models(scene, rig, log=print):
     return tpp_res, fps_res
 
 
+def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
+    """Pack PD2 specular/gloss intensity into diffuse alpha and shade eye sclera."""
+    import numpy as np
+    from PIL import Image
+
+    rgba = np.asarray(img.convert("RGBA"), dtype=np.uint8).copy()
+    if base == "face":
+        # Darken the two inner-nostril UV pockets (u=0.452, v_img=0.484 and
+        # u=0.563, v_img=0.493) so recessed nostril walls render with natural
+        # cavity ambient occlusion in PAYDAY 2's flat-lit shaders.
+        h, w = rgba.shape[:2]
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        u = (xx + 0.5) / w
+        v = (yy + 0.5) / h
+        for uc, vc in ((0.454, 0.472), (0.559, 0.472)):
+            d = np.hypot((u - uc) / 0.020, (v - vc) / 0.025)
+            w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.90
+            m = w_n > 0.0
+            if m.any():
+                rgb = rgba[m, :3].astype(np.float32)
+                target = np.array([14.0, 7.0, 5.0], dtype=np.float32)
+                rgba[m, :3] = np.clip(
+                    rgb * (1.0 - w_n[m, None]) + target * w_n[m, None], 0.0, 255.0
+                ).astype(np.uint8)
+        # Upper eyelid waterline & lash margin darkening so bare skin does not peek under 3D lashes
+        w_wl = np.maximum(
+            np.exp(-(((u - 0.068) / 0.042) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+            np.exp(-(((u - 0.927) / 0.036) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+        ) * 0.85
+        m_wl = w_wl > 0.02
+        if m_wl.any():
+            rgb = rgba[m_wl, :3].astype(np.float32)
+            target_lash = np.array([18.0, 13.0, 11.0], dtype=np.float32)
+            rgba[m_wl, :3] = np.clip(
+                rgb * (1.0 - w_wl[m_wl, None]) + target_lash * w_wl[m_wl, None], 0.0, 255.0
+            ).astype(np.uint8)
+    if base == "eyes":
+        # Synthesize the exact full-aperture deep-sapphire iris (iris_outer=0.28,
+        # iris_inner=0.25, pupil_r=0.115) matching Miranda_LAS (build_las.py).
+        h, w = rgba.shape[:2]
+        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+        u = (xx + 0.5) / w - 0.5
+        v = (yy + 0.5) / h - 0.5
+        r = np.hypot(u, v)
+        theta = np.arctan2(v, u)
+
+        iris_outer = 0.28
+        iris_inner = 0.25
+        pupil_r = 0.115
+
+        f1 = np.sin(theta * 58.0 + 0.35 * np.sin(theta * 7.0))
+        f2 = np.cos(theta * 94.0 - 0.40 * np.cos(theta * 11.0))
+        f3 = np.sin(theta * 142.0 + r * 28.0)
+        fiber_detail = 0.45 * f1 + 0.35 * f2 + 0.20 * f3
+
+        rn = np.clip((r - pupil_r) / max(iris_inner - pupil_r, 1e-4), 0.0, 1.0)
+        collarette = np.exp(-(((rn - 0.28) / 0.14) ** 2))
+        radial = 1.0 - 0.38 * (rn ** 1.35) + 0.12 * collarette + 0.14 * fiber_detail
+        radial = np.clip(radial, 0.22, 1.25)
+
+        upper_iris_ao = np.clip(1.0 - 0.12 * np.clip((-v - 0.04) / 0.22, 0.0, 1.0), 0.85, 1.0)
+        iris_r = np.clip((38.0 * radial + 8.0 * collarette) * upper_iris_ao, 6.0, 75.0)
+        iris_g = np.clip((102.0 * radial + 16.0 * collarette) * upper_iris_ao, 24.0, 148.0)
+        iris_b = np.clip((196.0 * radial + 24.0 * collarette) * upper_iris_ao, 72.0, 228.0)
+
+        limbus_t = np.clip((r - (iris_inner - 0.025)) / (iris_outer - (iris_inner - 0.025)), 0.0, 1.0)
+        limbus_dark = 1.0 - 0.78 * (limbus_t ** 1.4)
+        iris_r *= limbus_dark
+        iris_g *= limbus_dark
+        iris_b *= limbus_dark
+
+        pupil_mask = np.clip((pupil_r + 0.012 - r) / 0.018, 0.0, 1.0)
+        iris_r = iris_r * (1.0 - pupil_mask) + 2.0 * pupil_mask
+        iris_g = iris_g * (1.0 - pupil_mask) + 3.0 * pupil_mask
+        iris_b = iris_b * (1.0 - pupil_mask) + 5.0 * pupil_mask
+
+        sclera_ao = np.clip(1.0 - 0.32 * np.clip((r - iris_outer) / 0.22, 0.0, 1.0), 0.62, 1.0)
+        eyelid_ao = np.clip(1.0 - 0.22 * np.clip((-v - 0.05) / 0.25, 0.0, 1.0), 0.72, 1.0)
+        sc_r = 162.0 * sclera_ao * eyelid_ao
+        sc_g = 148.0 * sclera_ao * eyelid_ao
+        sc_b = 142.0 * sclera_ao * eyelid_ao
+
+        iris_mask = np.clip((iris_outer + 0.012 - r) / 0.022, 0.0, 1.0)
+        rgba[:, :, 0] = np.clip(sc_r * (1.0 - iris_mask) + iris_r * iris_mask, 0.0, 255.0).astype(np.uint8)
+        rgba[:, :, 1] = np.clip(sc_g * (1.0 - iris_mask) + iris_g * iris_mask, 0.0, 255.0).astype(np.uint8)
+        rgba[:, :, 2] = np.clip(sc_b * (1.0 - iris_mask) + iris_b * iris_mask, 0.0, 255.0).astype(np.uint8)
+        cornea_gloss = np.where(r < 0.125, 4, np.where(r < 0.28, 10, 8)).astype(np.uint8)
+        rgba[:, :, 3] = cornea_gloss
+        return rgba
+
+    if base in SPECULAR_SLOTS:
+        spec_png, scale, max_a, default_a = SPECULAR_SLOTS[base]
+        if spec_png and spec_png in source:
+            s_img = Image.open(io.BytesIO(source[spec_png])).convert("L")
+            if s_img.size != (rgba.shape[1], rgba.shape[0]):
+                s_img = s_img.resize((rgba.shape[1], rgba.shape[0]))
+            s_arr = np.asarray(s_img, dtype=np.float32)
+            alpha = np.clip(s_arr * scale, 2.0, float(max_a)).astype(np.uint8)
+            if base == "eyes":
+                # Keep cornea specular highlight over iris and low wet sheen on sclera
+                alpha = np.maximum(alpha, 16)
+            elif base == "face":
+                h, w = rgba.shape[:2]
+                yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+                u = (xx + 0.5) / w
+                v = (yy + 0.5) / h
+                d_nost = np.minimum(
+                    np.hypot((u - 0.454) / 0.022, (v - 0.472) / 0.026),
+                    np.hypot((u - 0.559) / 0.022, (v - 0.472) / 0.026),
+                )
+                alpha = np.where(d_nost < 1.0, np.minimum(alpha, 2), alpha).astype(np.uint8)
+            rgba[:, :, 3] = alpha
+        else:
+            rgba[:, :, 3] = default_a
+    return rgba
+
+
 def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=print):
     """PNG bytes -> {texture path: DDS bytes} + the icon.
 
     Normal maps are repacked into PD2's packed layout (X in alpha) by
     ``dds.pd2_normal_channels``; ``invert_nm_y`` converts DirectX-style green.
+    Diffuse textures receive attenuated specular masks in their alpha channel
+    per PAYDAY 2's ``DIFFUSE_TEXTURE:NORMALMAP`` shader convention.
     """
     import dds
+    import numpy as np
     try:
         from PIL import Image
     except ImportError as exc:
@@ -222,10 +607,33 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
             if img.width != img.height or img.width & (img.width - 1):
                 raise ValueError(f"{png}: expected square power-of-two, got {img.size}")
             if suffix == "nm":
-                arr = dds.pd2_normal_channels(img, invert_y=invert_nm_y)
+                nm_in = img
+                if png != "__flat__":
+                    # UE3/ME2 extracted normal PNGs store vertical Y_down in Red and horizontal X_right in Green
+                    nm_in = np.asarray(img, dtype=np.uint8)[..., [1, 0, 2, 3]].copy()
+                    if base == "eyes":
+                        nm_xy = 128.0 + (nm_in[..., :2].astype(np.float32) - 128.0) * 0.22
+                        nm_in[..., :2] = np.clip(np.round(nm_xy), 0, 255).astype(np.uint8)
+                    elif base == "face":
+                        h, w = nm_in.shape[:2]
+                        yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
+                        u = (xx + 0.5) / w
+                        v = (yy + 0.5) / h
+                        d_nost = np.minimum(
+                            np.hypot((u - 0.454) / 0.022, (v - 0.472) / 0.026),
+                            np.hypot((u - 0.559) / 0.022, (v - 0.472) / 0.026),
+                        )
+                        m_nost = d_nost < 1.0
+                        nm_in[m_nost, 0] = 128
+                        nm_in[m_nost, 1] = 128
+                        nm_in[m_nost, 2] = 255
+                arr = dds.pd2_normal_channels(nm_in, invert_y=invert_nm_y)
                 mip = dds.mip_payloads_from_image(arr)
             else:
-                mip = dds.mip_payloads_from_image(img)
+                if base == "eyes" and img.width < 512:
+                    img = img.resize((512, 512))
+                arr = _prepare_diffuse_rgba(base, img, source)
+                mip = dds.mip_payloads_from_image(arr)
             out[path] = dds.pack_dds(mip, img.width)
             problems = dds.validate_dxt5_texture(out[path])
             if problems:
@@ -407,20 +815,20 @@ def assemble(scene, rig, source: dict[str, bytes], invert_nm_y: bool = True,
     files[f"{ROOT_DIR}/main.xml"] = main_xml().encode()
     files[f"{ROOT_DIR}/hooks/lawson.lua"] = hook_lua().encode()
     files[f"{ROOT_DIR}/localization/english.txt"] = localization().encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.unit"] = unit_xml("lawson").encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.unit"] = unit_xml("fps_lawson").encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.object"] = object_xml(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.unit"] = unit_xml("lawson").encode()
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.unit"] = unit_xml("fps_lawson").encode()
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.object"] = object_xml(
         "lawson", ["g_body", "g_head"]).encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.object"] = object_xml(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.object"] = object_xml(
         "fps_lawson", ["g_body"]).encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.material_config"] = material_config(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.material_config"] = material_config(
         tpp_mats, "lawson").encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.material_config"] = material_config(
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.material_config"] = material_config(
         fps_mats, "fps_lawson", fps=True).encode()
-    files[f"{ROOT_DIR}/{UNIT_DIR}/lawson.model"] = tpp_res.data
-    files[f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.model"] = fps_res.data
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.model"] = tpp_res.data
+    files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model"] = fps_res.data
     for path, data in textures.items():
-        files[f"{ROOT_DIR}/{path}"] = data
+        files[f"{ROOT_DIR}/{ASSET_DIR}/{path}"] = data
     files[f"{ROOT_DIR}/CREDITS.txt"] = credits_txt().encode()
     return files
 
@@ -430,7 +838,8 @@ def validate(files: dict[str, bytes], log=print) -> None:
     problems: list[str] = []
     required = [
         f"{ROOT_DIR}/main.xml", f"{ROOT_DIR}/hooks/lawson.lua",
-        f"{ROOT_DIR}/{UNIT_DIR}/lawson.model", f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.model",
+        f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.model",
+        f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model",
     ]
     for r in required:
         if r not in files:
@@ -447,8 +856,8 @@ def validate(files: dict[str, bytes], log=print) -> None:
                    "fps_hide_armor", "fps_replace_body", "fps_unit"):
         if needle not in hook:
             problems.append(f"hook lacks {needle!r}")
-    for cfg_name in (f"{ROOT_DIR}/{UNIT_DIR}/lawson.material_config",
-                     f"{ROOT_DIR}/{UNIT_DIR}/fps_lawson.material_config"):
+    for cfg_name in (f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/lawson.material_config",
+                     f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.material_config"):
         cfg = files.get(cfg_name, b"").decode()
         if 'name="shadow_caster"' not in cfg:
             problems.append(f"{cfg_name}: no shadow_caster")
@@ -457,12 +866,25 @@ def validate(files: dict[str, bytes], log=print) -> None:
             problems.append(f"{p}: empty cooked_physics should not be shipped (auto_cp)")
     # model <-> material_config coverage
     import re as _re
+    m_dir = _re.search(r'<AddFiles\b[^>]*\bdirectory="([^"]*)"', main)
+    add_prefix = f"{ROOT_DIR}/{m_dir.group(1).strip('/')}/" if (m_dir and m_dir.group(1).strip("/")) else f"{ROOT_DIR}/"
+    for kind, rpath in _re.findall(r'<(texture|df_nm|unit_mat) path="([^"]+)"', main):
+        if kind == "texture" and f"{add_prefix}{rpath}.texture" not in files:
+            problems.append(f"AddFiles texture missing at {add_prefix}{rpath}.texture")
+        elif kind == "df_nm":
+            for sfx in ("_df.texture", "_nm.texture"):
+                if f"{add_prefix}{rpath}{sfx}" not in files:
+                    problems.append(f"AddFiles df_nm missing at {add_prefix}{rpath}{sfx}")
+        elif kind == "unit_mat":
+            for sfx in (".unit", ".object", ".model", ".material_config"):
+                if f"{add_prefix}{rpath}{sfx}" not in files:
+                    problems.append(f"AddFiles unit_mat missing at {add_prefix}{rpath}{sfx}")
     for base in ("lawson", "fps_lawson"):
-        cfg = files.get(f"{ROOT_DIR}/{UNIT_DIR}/{base}.material_config", b"").decode()
+        cfg = files.get(f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/{base}.material_config", b"").decode()
         cfg_mats = set(_re.findall(r'<material name="([^"]+)"', cfg))
         from dmodel import DieselModel
         import tempfile, os
-        model = files[f"{ROOT_DIR}/{UNIT_DIR}/{base}.model"]
+        model = files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/{base}.model"]
         tmp = tempfile.mktemp(suffix=".model")
         Path(tmp).write_bytes(model)
         try:

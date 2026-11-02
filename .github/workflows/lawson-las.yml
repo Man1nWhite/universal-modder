@@ -54,14 +54,23 @@ jobs:
         # the release asset must be the same bytes as the tracked
         # dist/lawson_las.zip: a mismatch means the source or the builder
         # changed without the pack being rebuilt and committed
-        run: diff -u dist/lawson_las.zip.sha256 <(sha256sum dist/lawson_las.zip)
+        run: |
+          diff -u dist/lawson_las.zip.sha256 <(sha256sum dist/lawson_las.zip)
+          diff -u dist/Miranda_LAS.zip.sha256 <(sha256sum dist/Miranda_LAS.zip)
+          diff -u build/pd2-las/Miranda_LAS.zip.sha256 <(sha256sum build/pd2-las/Miranda_LAS.zip)
+          diff -u dist/Miranda_L4D2_over_Joy.zip.sha256 <(sha256sum dist/Miranda_L4D2_over_Joy.zip)
+          diff -u dist/Miranda_Romance_over_Joy.zip.sha256 <(sha256sum dist/Miranda_Romance_over_Joy.zip)
       - name: tests
         run: python -m pytest -q tests
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: lawson_las
-          path: dist/lawson_las.zip
+          path: |
+            dist/lawson_las.zip
+            dist/Miranda_LAS.zip
+            dist/Miranda_L4D2_over_Joy.zip
+            dist/Miranda_Romance_over_Joy.zip
           if-no-files-found: error
       - name: publish to the GitHub release
         if: startsWith(github.ref, 'refs/tags/lawson-las-v')
@@ -76,5 +85,7 @@ jobs:
               --verify-tag
           fi
           sha256sum dist/lawson_las.zip > dist/lawson_las.zip.sha256
+          sha256sum dist/Miranda_LAS.zip > dist/Miranda_LAS.zip.sha256
           gh release upload "${GITHUB_REF_NAME}" \
-            dist/lawson_las.zip dist/lawson_las.zip.sha256 --clobber
+            dist/lawson_las.zip dist/lawson_las.zip.sha256 \
+            dist/Miranda_LAS.zip dist/Miranda_LAS.zip.sha256 --clobber

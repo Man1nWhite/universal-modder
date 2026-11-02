@@ -34,11 +34,11 @@ build = _load("build_las_pack", "build_las_pack.py")
 dds = _load("dds_las", "dds.py")
 
 PACK = ROOT / "dist" / "lawson_las.zip"
-TPP_CFG = "Lawson_LAS/units/lawson/skins/lawson/lawson.material_config"
-FPS_CFG = "Lawson_LAS/units/lawson/skins/lawson/fps_lawson.material_config"
-TPP_MODEL = "Lawson_LAS/units/lawson/skins/lawson/lawson.model"
-FPS_MODEL = "Lawson_LAS/units/lawson/skins/lawson/fps_lawson.model"
-NM_TEXTURE = "Lawson_LAS/units/lawson/skins/lawson/body1_nm.texture"
+TPP_CFG = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.material_config"
+FPS_CFG = "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.material_config"
+TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"
+FPS_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"
+NM_TEXTURE = "Lawson_LAS/assets/units/lawson/skins/lawson/body1_nm.texture"
 
 
 def read_pack() -> dict[str, bytes]:

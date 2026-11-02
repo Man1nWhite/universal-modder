@@ -34,7 +34,7 @@ import me2_dae                           # noqa: E402
 import rig_target                        # noqa: E402
 
 REPO = HERE.parents[1]
-SOURCE_ZIP = REPO / ("PC _ Computer - Mass Effect 2 - Non-Playable "
+SOURCE_ZIP = REPO / "models" / ("PC _ Computer - Mass Effect 2 - Non-Playable "
                      "Characters - Miranda Lawson (Romance).zip")
 RIG_JSON = HERE / "reference" / "las_rig.json"
 REFERENCE_2B = Path("/tmp/rarx/out/2B - LAS/assets/units/2b/skins/2b/2b.model")

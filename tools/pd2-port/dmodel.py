@@ -144,6 +144,8 @@ class Model(Object3D):
         self.version = br.u32()
         self.render_atoms = []
         if self.version == 6:
+            self.passthrough_id = 0; self.topologyip_id = 0
+            self.matgroup_id = 0; self.skinbones_id = 0
             self.bounds_min = br.vec3(); self.bounds_max = br.vec3()
             self.dist_radius = br.f32(); self.dist_int = br.u32()
         else:

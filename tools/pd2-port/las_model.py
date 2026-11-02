@@ -305,8 +305,22 @@ def build_model(rig: TargetRig, drawables: list[Drawable], *,
         w.u32(sb_id)
         return bytes(w.b)
 
+    def bounds_model_payload(name_hash, bounds) -> bytes:
+        w = BW()
+        w.u64(name_hash)
+        w.u32(0)                                    # anim_ids
+        w.matrix(inv_hips)
+        w.vec3((inv_hips[3][0], inv_hips[3][1], inv_hips[3][2]))
+        w.u32(bone_new[hips["id"]])                 # parent = Hips (2B convention)
+        w.u32(6)                                    # version 6 (bounds-only model_data)
+        w.vec3(bounds[0])
+        w.vec3(bounds[1])
+        w.f32(bounds[2])
+        w.u32(0)                                    # dist_int
+        return bytes(w.b)
+
     emit(TAGS_INV['model_data'], cull_id,
-         model_payload(hash_str(cull_name), [], 0, 0, (bmin, bmax, rad), 0, 0))
+         bounds_model_payload(hash_str(cull_name), (bmin, bmax, rad)))
 
     for p in packed:
         xs = [q[0] for q in p["positions"]]
@@ -354,7 +368,7 @@ def build_model(rig: TargetRig, drawables: list[Drawable], *,
             g.vec3((x, y, z))
         for u, v in p["uvs"]:
             g.u16(half(u))
-            g.u16(half(v))
+            g.u16(half(-v))
         for ent in p["weights"]:
             i0, i1, i2 = (list(ent) + [(0, 0.0), (0, 0.0), (0, 0.0)])[:3]
             g.u16(i0[0]); g.u16(i1[0]); g.u16(i2[0]); g.u16(0)
@@ -365,8 +379,24 @@ def build_model(rig: TargetRig, drawables: list[Drawable], *,
             x, y, z = _norm3(n)
             g.raw(bytes([pack_signed_byte(z), pack_signed_byte(y),
                          pack_signed_byte(x), 0]))
-        tan_u = [[0.0, 0.0, 0.0] for _ in p["positions"]]
-        tan_v = [[0.0, 0.0, 0.0] for _ in p["positions"]]
+        # Corner-split DAE meshes duplicate vertices per triangle; weld by
+        # (position, uv) when accumulating tangents so shared vertices receive
+        # smooth area-weighted tangents across incident faces.
+        weld_key_by_vi = []
+        tan_u_by_key: dict[tuple, list[float]] = {}
+        tan_v_by_key: dict[tuple, list[float]] = {}
+        for vi, (pos_v, uv_v) in enumerate(zip(p["positions"], p["uvs"])):
+            k = (
+                round(pos_v[0], 3),
+                round(pos_v[1], 3),
+                round(pos_v[2], 3),
+                round(uv_v[0], 4),
+                round(uv_v[1], 4),
+            )
+            weld_key_by_vi.append(k)
+            if k not in tan_u_by_key:
+                tan_u_by_key[k] = [0.0, 0.0, 0.0]
+                tan_v_by_key[k] = [0.0, 0.0, 0.0]
         for a, b, c in p["faces"]:
             p0, p1, p2 = p["positions"][a], p["positions"][b], p["positions"][c]
             w0, w1, w2 = p["uvs"][a], p["uvs"][b], p["uvs"][c]
@@ -379,11 +409,29 @@ def build_model(rig: TargetRig, drawables: list[Drawable], *,
                 continue
             r = 1.0 / det
             T = [(e1[i] * dv2 - e2[i] * dv1) * r for i in range(3)]
-            B = [(e2[i] * du1 - e1[i] * du2) * r for i in range(3)]
+            # Channel 22 (UV_DIRECTION_V0) stores +dP/dv_img = -dP/dv_diesel (p2mt convention)
+            B = [(e1[i] * du2 - e2[i] * du1) * r for i in range(3)]
             for vi in (a, b, c):
+                k = weld_key_by_vi[vi]
+                tu_acc = tan_u_by_key[k]
+                tv_acc = tan_v_by_key[k]
                 for i in range(3):
-                    tan_u[vi][i] += T[i]
-                    tan_v[vi][i] += B[i]
+                    tu_acc[i] += T[i]
+                    tv_acc[i] += B[i]
+        tan_u = []
+        tan_v = []
+        for vi in range(len(p["positions"])):
+            k = weld_key_by_vi[vi]
+            tu = list(tan_u_by_key[k])
+            tv = list(tan_v_by_key[k])
+            if vi < len(p["normals"]):
+                nx, ny, nz = _norm3(p["normals"][vi])
+                du_n = tu[0] * nx + tu[1] * ny + tu[2] * nz
+                dv_n = tv[0] * nx + tv[1] * ny + tv[2] * nz
+                tu = [tu[0] - du_n * nx, tu[1] - du_n * ny, tu[2] - du_n * nz]
+                tv = [tv[0] - dv_n * nx, tv[1] - dv_n * ny, tv[2] - dv_n * nz]
+            tan_u.append(tu)
+            tan_v.append(tv)
         for vi in range(len(p["positions"])):
             x, y, z = _norm3(tan_v[vi])
             g.raw(bytes([pack_signed_byte(z), pack_signed_byte(y),

@@ -129,7 +129,7 @@ def _read_vvd(vvd: bytes, model_numverts: int) -> list[SkinVertex]:
     def raw_vertex(idx: int) -> SkinVertex:
         base = vertex_start + idx * VERTEX_STRIDE_VVD
         w = struct.unpack_from("<fff", vvd, base)
-        b = struct.unpack_from("<bbb", vvd, base + 12)
+        b = struct.unpack_from("<BBB", vvd, base + 12)
         (num_bones,) = struct.unpack_from("<B", vvd, base + 15)
         pos = struct.unpack_from("<fff", vvd, base + 16)
         normal = struct.unpack_from("<fff", vvd, base + 28)
@@ -143,9 +143,10 @@ def _read_vvd(vvd: bytes, model_numverts: int) -> list[SkinVertex]:
 
     out: list[SkinVertex] = []
     for i in range(num_fixups):
-        lod, vertex_index, file_index = struct.unpack_from("<iii", vvd, fixup_start + i * 12)
-        if lod == 0:
-            out.append(raw_vertex(file_index))
+        lod, src_id, num_v = struct.unpack_from("<iii", vvd, fixup_start + i * 12)
+        if lod >= 0:
+            for k in range(num_v):
+                out.append(raw_vertex(src_id + k))
     if len(out) != lod0_count:
         raise SourceModelError(
             f"VVD fixups produced {len(out)} LOD0 vertices, expected {lod0_count}"
@@ -177,7 +178,7 @@ def _read_vtx_meshes(
         for mi in range(num_models):
             mo = bp + model_off + mi * 8
             num_lods_m, lod_off = struct.unpack_from("<ii", vtx, mo)
-            for li in range(num_lods_m):
+            for li in range(min(1, num_lods_m)):
                 lo = mo + lod_off + li * 12
                 num_meshes, mesh_off, _switch = struct.unpack_from("<iif", vtx, lo)
                 for mesh_i in range(num_meshes):
@@ -279,17 +280,19 @@ def load_model(mdl: bytes, vvd: bytes, vtx: bytes) -> ModelData:
         if num_models < 1:
             raise SourceModelError("bodypart without models")
         mo = bp + model_index
-        model_name = _cstr(mdl, mo)
+        if bi == 0:
+            model_name = _cstr(mdl, mo)
         num_meshes, mesh_index, num_vertices, vertex_index = struct.unpack_from(
             "<iiii", mdl, mo + 64 + 8
         )
+        model_voff = vertex_index // VERTEX_STRIDE_VVD
         model_numverts += num_vertices
         for mesh_i in range(num_meshes):
             me = mo + mesh_index + mesh_i * MESH_STRIDE
             material, _modelindex, _numverts, vertexoffset = struct.unpack_from("<iiii", mdl, me)
             if not 0 <= material < len(materials):
                 raise SourceModelError(f"mesh material index {material} out of range")
-            mesh_specs.append((material, vertexoffset))
+            mesh_specs.append((material, model_voff + vertexoffset))
 
     vertices = _read_vvd(vvd, model_numverts)
 
