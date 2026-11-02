@@ -134,8 +134,17 @@ def retarget_fits(model, template) -> dict[int, dm.Mat]:
     if len(spine) >= 2:
         pairs = [(pos[a], tgt(a), pos[b], tgt(b)) for a, b in zip(spine, spine[1:])]
         mats = _chain(pairs, r_core, s_core)
-        for name, m in zip(spine[1:], mats):
+        # Same convention as the limb chains: a bone is governed by the
+        # segment running from itself to its child. Taking the segment that
+        # *ends* at the bone instead gives the first spine bone the
+        # Hips->Spine hop, which in 3BA is a backward sacrum offset rather
+        # than a direction — that fit rotated the waist by 38 degrees and
+        # arched the torso. The last bone has no child segment of its own
+        # and rides its neighbour's.
+        for name, m in zip(spine[1:], mats[1:]):
             put(name, m)
+        if spine:
+            put(spine[-1], mats[-1])
     last_spine = spine[-1] if spine else "Hips"
     for extra in ("Neck", "Head"):
         if has(extra) and last_spine != extra:

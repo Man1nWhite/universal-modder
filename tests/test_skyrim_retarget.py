@@ -152,3 +152,29 @@ def test_outfit_fits_the_target_silhouette(model, template):
     assert 150.0 < hi[2] < 190.0, "height should be ~1.6-1.8 m"
     assert -70.0 < lo[0] and hi[0] < 70.0, "arms should not fly off the body"
     assert hi[1] - lo[1] < 60.0, "no stretched depth"
+
+
+@needs_source
+@needs_templates
+def test_spine_chain_keeps_the_core_orientation(model, template):
+    """Regression: a bone is governed by the segment running from *itself* to
+    its child, the same convention the limb chains use.
+
+    The spine loop used to assign the segment that *ends* at each bone, so
+    `Spine` inherited the Hips->Spine hop. In 3BA that hop is a backward
+    sacrum offset, not a direction, so the fit rotated the waist by 38 degrees
+    and arched the torso — the belly came out ~8 cm deeper than the source.
+    """
+    outfit, _ = model
+    fits = sr.retarget_fits(outfit, template)
+    seen = 0
+    for i, transform in fits.items():
+        name = outfit.bones[i].name
+        if name not in sr.SPINE_CHAIN:
+            continue
+        seen += 1
+        _, rot, _ = bm._decompose_sim_mat(transform)
+        angle = float(np.degrees(np.arccos(
+            np.clip((float(np.trace(rot)) - 1.0) / 2.0, -1.0, 1.0))))
+        assert angle < 10.0, f"{name} rotated {angle:.1f} deg off the core fit"
+    assert seen >= 3
