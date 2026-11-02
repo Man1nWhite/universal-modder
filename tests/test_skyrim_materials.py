@@ -220,12 +220,21 @@ def test_main_xml_lists_textures_and_unit_materials():
 
 
 def test_object_xml_points_diesel_at_the_material_config():
-    root = ET.fromstring(bw_pack.render_object_xml(bw_pack.TPP_UNIT))
+    root = ET.fromstring(bw_pack.render_object_xml(
+        bw_pack.TPP_UNIT, ["s_body", "g_body_lod1", "g_body"]))
     diesel = root.find("diesel")
     assert diesel.get("materials") == bw_pack.TPP_UNIT
     objects = {o.get("name"): o.get("enabled") for o in root.iter("object")}
-    assert objects["g_body"] == "true"
-    assert objects["g_head"] == "false"          # no head mesh authored yet
+    assert objects == {"g_body": "true", "g_body_lod1": "false"}
+
+
+def test_object_xml_only_lists_drawables_that_exist():
+    """A name with no drawable behind it is a log error at best."""
+    root = ET.fromstring(bw_pack.render_object_xml(
+        bw_pack.TPP_UNIT, ["s_body", "g_body"]))
+    names = [o.get("name") for o in root.iter("object")]
+    assert "g_head" not in names and "g_head_lod1" not in names
+    assert "s_body" not in names                  # engine-owned shadow mesh
 
 
 def test_unit_xml_declares_the_extensions_las_needs():
@@ -264,7 +273,7 @@ def test_write_pack_is_self_consistent(tmp_path):
     pack = bw_pack.write_pack(
         tmp_path, b"MODEL", textures, _dummy_icon(),
         sm.render_material_config(bw_pack.TPP_UNIT, specs), None,
-        extra={"private": True},
+        extra={"private": True}, drawables=["s_body", "g_body"],
     )
     unit = pack / "assets" / bw_pack.UNIT_BASE
 
@@ -278,6 +287,9 @@ def test_write_pack_is_self_consistent(tmp_path):
     assert info["private"] is True
     # the manifest cannot hash itself
     assert "BUILD_INFO.json" not in info["payload_sha256"]
+    import hashlib
+    for rel, want in info["payload_sha256"].items():
+        assert hashlib.sha256((pack / rel).read_bytes()).hexdigest() == want, rel
     assert set(info["payload_sha256"]) == {
         "main.xml",
         "hooks/businesswoman_las.lua", "localization/english.txt",
@@ -289,6 +301,23 @@ def test_write_pack_is_self_consistent(tmp_path):
         f"assets/{bw_pack.UNIT_BASE}/bw_body_nm.texture",
         f"assets/{bw_pack.GUI_BASE}/{bw_pack.ITEM_ID}.texture",
     }
+
+
+def test_rebuild_drops_files_from_the_previous_build(tmp_path):
+    """A pack that shrank must not keep the old build's textures in the zip."""
+    specs = [sm.MaterialSpec("mtr_body", "", "", generated=True)]
+    config = sm.render_material_config(bw_pack.TPP_UNIT, specs)
+    textures = {"bw_body_df": b"\0" * 16, "bw_body_nm": b"\0" * 16,
+                "bw_jacket_df": b"\0" * 16}
+    pack = bw_pack.write_pack(tmp_path, b"MODEL", textures, _dummy_icon(),
+                              config, None, drawables=["g_body"])
+    assert (pack / "assets" / bw_pack.UNIT_BASE / "bw_jacket_df.texture").exists()
+
+    # drop the jacket and rebuild into the same folder
+    pack = bw_pack.write_pack(tmp_path, b"MODEL",
+                              {"bw_body_df": b"\0" * 16, "bw_body_nm": b"\0" * 16},
+                              _dummy_icon(), config, None, drawables=["g_body"])
+    assert not (pack / "assets" / bw_pack.UNIT_BASE / "bw_jacket_df.texture").exists()
 
 
 def test_zip_is_reproducible(tmp_path):

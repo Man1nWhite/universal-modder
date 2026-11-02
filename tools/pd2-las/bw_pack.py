@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import zipfile
 from pathlib import Path
 
@@ -118,23 +119,40 @@ def render_unit_xml(unit_base: str) -> str:
     )
 
 
-def render_object_xml(unit_base: str, fps: bool = False) -> str:
-    if fps:
-        objects = (
-            '\t\t\t<object name="g_body" enabled="true" />\n'
-            '\t\t\t<object name="g_head" enabled="false" />\n'
-            '\t\t\t<object name="g_head_lod1" enabled="false" />\n'
-            '\t\t\t<object name="g_body_lod1" enabled="false" />\n'
-        )
-    else:
-        objects = (
-            '\t\t\t<object name="g_body_lod1" enabled="false" />\n'
-            '\t\t\t<object name="g_body" enabled="true" />\n'
-            '\t\t\t<object name="g_head_lod1" enabled="false" />\n'
-            # no head mesh is authored yet; the socket stays declared so the
-            # engine shows its own head instead of nothing
-            '\t\t\t<object name="g_head" enabled="false" />\n'
-        )
+def model_drawables(model: bytes) -> list[str]:
+    """Names of the drawables a built `.model` actually contains, in order."""
+    from diesel_model import (CUSTOM_HASHLIST, MODEL_DATA, decode_custom_hashlist,
+                              decode_model_data, hash64)
+    from diesel_model import ModelFile
+
+    mf = ModelFile.read(model)
+    names = {hash64(n): n for n in
+             decode_custom_hashlist(mf.by_type(CUSTOM_HASHLIST)[0].payload)["names"]}
+    out = []
+    for shape in mf.by_type(MODEL_DATA):
+        md = decode_model_data(shape.payload)
+        if md.get("version") != 3 or not md.get("atoms"):
+            continue                       # colliders and empty sockets
+        out.append(names.get(md["name_hash"], ""))
+    return [n for n in out if n]
+
+
+def render_object_xml(unit_base: str, drawables: list[str]) -> str:
+    """An object file that lists exactly what the model has.
+
+    Listing an object the model does not contain is at best noise in the log
+    and at worst a load failure, so the list is derived from the built model
+    rather than hard-coded. `g_body` (or the first drawable) is the visible
+    one; LODs stay off, and `g_head` is only declared when a head exists —
+    LAS supplies the heister's own head when the outfit hides the mask.
+    """
+    lines = []
+    primary = "g_body" if "g_body" in drawables else (drawables[0] if drawables else "")
+    for name in drawables:
+        if name.startswith("s_") or name.startswith("c_"):
+            continue                       # shadow meshes and colliders are engine-owned
+        enabled = "true" if name == primary else "false"
+        lines.append(f'\t\t\t<object name="{name}" enabled="{enabled}" />\n')
     return (
         '<?xml version="1.0"?>\n'
         "<dynamic_object>\n"
@@ -142,7 +160,7 @@ def render_object_xml(unit_base: str, fps: bool = False) -> str:
         "\n"
         "\t<graphics>\n"
         '\t\t<graphic_group name="character" enabled="true" culling_object="c_block">\n'
-        f"{objects}"
+        f"{''.join(lines)}"
         "\t\t\n"
         "\t\t</graphic_group>\n"
         "\t</graphics>\n"
@@ -234,9 +252,20 @@ def _sha(data: bytes) -> str:
 
 def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
                icon: bytes, material_config: str, fps_config: str | None,
-               fps_model: bytes | None = None, extra: dict | None = None) -> Path:
-    """Write the installable folder (no zip; see `zip_pack`)."""
+               fps_model: bytes | None = None, extra: dict | None = None,
+               drawables: list[str] | None = None,
+               fps_drawables: list[str] | None = None) -> Path:
+    """Write the installable folder (no zip; see `zip_pack`).
+
+    `drawables` / `fps_drawables` are read back out of the model files when not
+    given; passing them explicitly keeps this callable with synthetic models in
+    tests.
+    """
     pack = Path(out_root) / PACK_DIR_NAME
+    if pack.exists():
+        # a rebuild must not ship files from the previous one: dropping a
+        # garment (--jacket bustier) leaves its textures behind otherwise
+        shutil.rmtree(pack)
     unit_dir = pack / "assets" / UNIT_BASE
     gui_dir = pack / "assets" / GUI_BASE
     unit_dir.mkdir(parents=True, exist_ok=True)
@@ -248,12 +277,18 @@ def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
 
     (unit_dir / f"{ITEM_ID}.model").write_bytes(model)
     (unit_dir / f"{ITEM_ID}.unit").write_text(render_unit_xml(TPP_UNIT))
-    (unit_dir / f"{ITEM_ID}.object").write_text(render_object_xml(TPP_UNIT))
+    if drawables is None:
+        drawables = model_drawables(model)
+    (unit_dir / f"{ITEM_ID}.object").write_text(
+        render_object_xml(TPP_UNIT, drawables))
     (unit_dir / f"{ITEM_ID}.material_config").write_text(material_config)
     if with_fps:
         (unit_dir / f"fps_{ITEM_ID}.model").write_bytes(fps_model)
         (unit_dir / f"fps_{ITEM_ID}.unit").write_text(render_unit_xml(FPS_UNIT))
-        (unit_dir / f"fps_{ITEM_ID}.object").write_text(render_object_xml(FPS_UNIT, fps=True))
+        if fps_drawables is None:
+            fps_drawables = model_drawables(fps_model)
+        (unit_dir / f"fps_{ITEM_ID}.object").write_text(
+            render_object_xml(FPS_UNIT, fps_drawables))
         (unit_dir / f"fps_{ITEM_ID}.material_config").write_text(fps_config)
 
     for stem, data in sorted(textures.items()):
@@ -266,7 +301,8 @@ def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
 
     payload = {}
     for path in sorted(pack.rglob("*")):
-        if path.is_file():
+        if path.is_file() and path.name != "BUILD_INFO.json":
+            # the manifest cannot carry its own hash
             payload[path.relative_to(pack).as_posix()] = _sha(path.read_bytes())
     info = {
         "pack": PACK_DIR_NAME,
