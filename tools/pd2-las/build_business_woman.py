@@ -321,9 +321,10 @@ def main(argv=None) -> int:
             fps_model=fps_bytes,
             extra={
                 "source": "Melodic Business Woman SE 3BA",
-                # Melodic's readme: do not publish outside LoversLab without
-                # permission. Unpublished again at the repo owner's request.
-                "private": True,
+                # Melodic's readme asks for permission before republishing
+                # outside LoversLab; shipped here at the pack owner's direction.
+                "private": False,
+                "redistribution": "published at the pack owner's direction",
             },
         )
         print(f"pack  -> {pack}")

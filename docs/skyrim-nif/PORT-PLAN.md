@@ -45,7 +45,7 @@ the body from a problem into the deliverable. What remains:
 | 2 | **Glasses mesh** — `4.zip` has no `Glasses_*.nif` although the plugin references `Melodic\Business Woman\Glasses_1.nif` | **decided: ship without glasses.** The outfit is jacket + skirt + heels + necklace over the 3BA body. |
 | 3 | **Colourway** — `1.zip` black default; eight palettes across `2.zip`/`3.zip` | **decided: black** (`1.zip` diffuse + normal + metal). |
 | 4 | **Jacket variant** — `0_Jacket` vs `0_Jacket2` in the same NIF | **decided: both.** They are not alternatives: `0_Jacket` is the sleeved blazer (101.8-163.0 cm) and `0_Jacket2` is the buttoned bustier worn *under* it (116.6-165.1 cm), which is why the plugin calls the second armour record "Business Woman **Jacket Xtra**" and why both point at the same NIF. Shipping `0_Jacket2` alone leaves the torso and arms bare. `--jacket blazer|bustier` drops one for experiments. |
-| 5 | **Redistribution permission** — `5.zip/Please Read.txt`: *"do not publish this mod outside Loverslab without permission"* (author **Melodic**) | **open.** Private build; it was briefly in `dist/`, then removed. Still no permission from the author. |
+| 5 | **Redistribution permission** — `5.zip/Please Read.txt`: *"do not publish this mod outside Loverslab without permission"* (author **Melodic**) | **published at the repo owner's direction.** No permission from Melodic; `BUILD_INFO.json` records that rather than implying consent. |
 | 6 | **In-game check** on Windows (PD2 + SuperBLT + BeardLib + LAS) | **open.** Nothing ships before it. |
 
 Open technical question, answerable by us: whether to fake **HDT skirt/necklace
@@ -321,7 +321,7 @@ decoded first, then the same three-step plan (fit → fold → pose-correct).
 * **Body ownership** — the 3BA body is kept (decided), but its vanilla
   `femalebody_*` textures are not: they are replaced by authored ones, so no
   Bethesda asset travels in a pack.
-* **Rights** (§1.5) — private again: Melodic's readme asks for permission before republishing outside LoversLab, and none was obtained. `dist/BusinessWoman_LAS.zip` stays gitignored.
+* **Rights** (§1.5) — Melodic's readme asks for permission before republishing outside LoversLab. The owner chose to publish anyway; `BUILD_INFO.json` says so plainly.
 * **The `.esp` is irrelevant off-Skyrim** — it is useful as documentation of the
   intended set (6 pieces, tempering recipes, the "Xtra" jacket variant) and as
   proof that `Glasses_1.nif` is expected to exist.

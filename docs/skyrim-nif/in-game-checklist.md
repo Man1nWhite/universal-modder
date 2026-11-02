@@ -5,8 +5,8 @@ drop the folder into `PAYDAY 2\assets\mod_overrides\`. Needs BeardLib + the
 LegendaryArmours framework, exactly like the 2B reference pack.
 
 **Private build.** `5.zip/Please Read.txt` (Melodic) says the mod is not to be
-published outside LoversLab without permission. It is gitignored and distributed
-only as a local test build.
+published outside LoversLab without permission. It ships in `dist/` at the repo
+owner's direction; that is a decision, not a permission.
 
 Nothing below can be verified offline; every item needs the running game.
 Report failures with the item number and a screenshot.
