@@ -260,7 +260,14 @@ def load_outfit(specs: list[MeshSpec], bone_map: dict,
             rot = world[:3, :3]
             base = len(vertices)
             verts = shape.vertices.astype(np.float64) @ rot.T + world[:3, 3]
-            norms = shape.normals.astype(np.float64) @ np.linalg.inv(rot).T
+            if nif.has_normals(shape):
+                normals = shape.normals
+            else:
+                # BodySlide writes the 3BA body and `feet` with the normal
+                # attribute off; rebuild them from the topology like a renderer
+                normals = nif.smooth_normals(shape.vertices, shape.triangles)
+                report.setdefault("generated_normals", []).append(shape_name)
+            norms = normals.astype(np.float64) @ np.linalg.inv(rot).T
             norms /= np.maximum(np.linalg.norm(norms, axis=1, keepdims=True), 1e-9)
             weights = _vertex_weights(shape, resolver)
             for v in range(shape.num_vertices):

@@ -241,6 +241,34 @@ class NifFile:
 
 
 # ---------------------------------------------------------------------------
+# helpers for meshes that ship without normals
+# ---------------------------------------------------------------------------
+def smooth_normals(vertices: np.ndarray, triangles: np.ndarray) -> np.ndarray:
+    """Area-weighted vertex normals.
+
+    BodySlide exports the 3BA body (and the heels' `feet` shape) with the
+    normal attribute switched off — descriptor flags `0x043` where the garments
+    carry `0x05b`. Unit normals therefore have to be rebuilt from the topology;
+    face area weighting is what a renderer does when it lights such a mesh.
+    """
+    v = np.asarray(vertices, dtype=np.float64)
+    out = np.zeros_like(v)
+    if len(triangles) == 0:
+        return out.astype(np.float32)
+    a, b, c = triangles[:, 0], triangles[:, 1], triangles[:, 2]
+    face = np.cross(v[b] - v[a], v[c] - v[a])          # magnitude = 2 x area
+    for i, j, k in ((a, b, c), (b, c, a), (c, a, b)):
+        np.add.at(out, i, face)
+    length = np.linalg.norm(out, axis=1, keepdims=True)
+    out = out / np.where(length < 1e-12, 1.0, length)
+    return out.astype(np.float32)
+
+
+def has_normals(shape: "Shape") -> bool:
+    return bool(shape.num_vertices and np.abs(shape.normals).max() > 1e-6)
+
+
+# ---------------------------------------------------------------------------
 # parsing
 # ---------------------------------------------------------------------------
 def _read_header(r: Reader) -> dict:

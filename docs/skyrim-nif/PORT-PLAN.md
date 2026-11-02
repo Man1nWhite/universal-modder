@@ -39,7 +39,7 @@ the body from a problem into the deliverable. What remains:
 
 | # | Item | Status |
 | --- | --- | --- |
-| 1 | **Body skin textures** — the merged 3BA body points at vanilla `femalebody_1` files that are not in the archives, and 28 % of the body surface stays visible with the garments on (measured: all of the lower legs, most of the thighs, half the hips, the V-neck chest, the hands) | **decided: we author one** (PD2-appropriate tone, matched to the necklace's gold and the palette's black). Removes the vanilla-asset dependency from the pack entirely. |
+| 1 | **Body skin textures** — the merged 3BA body points at vanilla `femalebody_1` files that are not in the archives, and 28 % of the body surface stays visible with the garments on (measured: all of the lower legs, most of the thighs, half the hips, the V-neck chest, the hands) | ✅ **authored** — `tools/pd2-las/skin_texture.py` bakes a 2048² diffuse + normal from the mesh itself (cavity AO, anatomy shading, mottle) with the tone sampled as statistics from the 2B pack's skin. No Bethesda pixels, no Overkill pixels. |
 | 2 | **Glasses mesh** — `4.zip` has no `Glasses_*.nif` although the plugin references `Melodic\Business Woman\Glasses_1.nif` | **decided: ship without glasses.** The outfit is jacket + skirt + heels + necklace over the 3BA body. |
 | 3 | **Colourway** — `1.zip` black default; eight palettes across `2.zip`/`3.zip` | **decided: black** (`1.zip` diffuse + normal + metal). |
 | 4 | **Jacket variant** — `0_Jacket` (open) vs `0_Jacket2` (buttoned) in the same NIF | **decided: `0_Jacket2`** (buttoned). The open one remains a one-flag rebuild (`--jacket 0_Jacket`). |
@@ -205,7 +205,7 @@ full-body replacement: body + buttoned jacket + skirt + heels.
 | 1 | **One mesh, one skeleton** — 3BA + feet + `0_Jacket2` + `0_Skirt` + `0_Heels001` merged and retargeted onto the LAS skeleton | ✅ `skyrim_source.py` + `skyrim_retarget.py`; every joint on target (0.00 cm) |
 | 2 | **Fold the helper bones** — twists, belly, butt, breasts; drop the 10 3BA-only bones | ✅ folded before retarget, weights renormalised to ≤3 influences |
 | 3 | **Pose-correct the arms** into PD2's bind pose | ✅ axial chains spread them from the source's 60° hang to PD2's A-pose |
-| 4 | **Skin texture** for the exposed 28 % of the body (authored, PD2-appropriate) | ⬜ next |
+| 4 | **Skin texture** for the exposed 28 % of the body (authored, PD2-appropriate) | ✅ `skin_texture.py` — 2048² DXT5 df + nm with full mip chain, baked in the mesh's own UV space |
 | 5 | **Materials** — `BSLightingShaderProperty` + 9-slot texture set → `*.material_config` (`df`/`nm`, DXT5nm swizzle with `invert_y`, `*_metal` gloss → constants) | ⬜ |
 | 6 | **Alpha** — all garments use `NiAlphaProperty` 4844 → `ALPHA_MASKED` (sequins, jacket front) | ⬜ |
 | 7 | **Heels** — keep the shoe's ankle pitch while PD2's foot bones are flat | ⬜ |
@@ -226,6 +226,10 @@ Two construction notes that are not obvious from the outside:
   the first thumb, no toes, no neck, no head). `skeleton_map.json` covers the 53
   names that appear anywhere in the outfit, but a given NIF carries only its own
   subset. Anything the source lacks rides its chain's fit.
+* **The 3BA body ships without vertex normals.** Its descriptor flags are
+  `0x043` where the garments carry `0x05b`; `nif.smooth_normals()` rebuilds them
+  from the topology (and `skyrim_source` uses it automatically). Anything that
+  reads these SSE meshes has to do the same or it lights them flat black.
 * **`build_models.retarget_maps` cannot drive this rig.** It keys off Source
   names (`HandMiddle1`, `ToeBase`) and needs the full 53-joint skeleton; with 20
   joints and no fingers it silently lands the arms in the wrong place. That is
@@ -282,8 +286,10 @@ docs/skyrim-nif/CROSSCHECK.md         91/91 checks green, vertex Δ = 0
 tools/pd2-las/skyrim_source.py        .nif -> ModelData adapter (bones resolved to PD2 names)
 tools/pd2-las/skyrim_retarget.py      XPMSE/3BA -> PD2 skeleton fit (joints land exactly)
 tools/pd2-las/build_business_woman.py the end-to-end build (4.zip -> business_woman.model)
+tools/pd2-las/skin_texture.py         authored skin: UV-space bake -> df + nm DXT5 with mips
 tests/test_skyrim_retarget.py         7 offline tests for the two modules above
-docs/previews/business_woman_*.png    tracked previews (source outfit, textures, PD2 model)
+tests/test_skin_texture.py            10 offline tests for the baker (incl. real meshes)
+docs/previews/business_woman_*.png    tracked previews (source outfit, textures, PD2 model, skin)
 build/skyrim-nif/                     generated report, inventory, crosscheck, .model (gitignored)
 tools/pd2-las/                        the rest of the LAS pipeline
 ```
