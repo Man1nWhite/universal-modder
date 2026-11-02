@@ -36,6 +36,10 @@ import skyrim_retarget  # noqa: E402
 import skyrim_source as ss  # noqa: E402
 
 BONE_MAP = REPO / "tools" / "skyrim-nif" / "skeleton_map.json"
+#: Everything above this height belongs to the neck opening of the 3BA body.
+NECK_Z_CM = 155.0
+#: Materials the first-person arms keep (skin + the two sleeve layers).
+FPS_MATERIALS = ("mtr_body", "mtr_jacket", "mtr_jacket2")
 UNIT_BASE = "units/businesswoman/skins/businesswoman"
 
 
@@ -50,6 +54,7 @@ MAT_SLOTS = {
     "jacket2": "mtr_jacket2",
     "skirt": "mtr_skirt",
     "heels": "mtr_heels",
+    "necklace": "mtr_necklace",
 }
 TPP_GROUPS = {
     "body": {
@@ -90,6 +95,7 @@ def render_sheet(model_path: Path, out_png: Path) -> None:
         "mtr_body": (214, 176, 150), "mtr_jacket": (52, 48, 50),
         "mtr_jacket2": (150, 150, 156),
         "mtr_skirt": (58, 60, 62), "mtr_heels": (226, 220, 206),
+        "mtr_necklace": (206, 170, 80),
         "shadow_caster": (70, 70, 70),
     }
     mf = dm.ModelFile.read_path(model_path)
@@ -167,6 +173,12 @@ def main(argv=None) -> int:
     ap.add_argument("--root", type=Path, default=REPO)
     ap.add_argument("--jacket", choices=("both", "blazer", "bustier", "none"),
                     default="both")
+    ap.add_argument("--heels", choices=("flatten", "keep"), default="flatten",
+                    help="re-fit the stiletto for Diesel's flat-footed skeleton "
+                         "(default) or ship the source's heel pose")
+    ap.add_argument("--fps", action="store_true", default=True,
+                    help="also build the first-person arms unit (default)")
+    ap.add_argument("--no-fps", dest="fps", action="store_false")
     ap.add_argument("--no-previews", action="store_true")
     ap.add_argument("--pack", action="store_true",
                     help="also write textures, material configs and the LAS folder")
@@ -179,11 +191,12 @@ def main(argv=None) -> int:
     bone_map = json.loads(BONE_MAP.read_text())
     specs = ss.default_outfit(src, jacket=args.jacket)
 
-    model, report = ss.load_outfit(specs, bone_map)
+    model, report = ss.load_outfit(specs, bone_map, heels=args.heels)
     print(f"source: {report['vertices']} verts / {report['triangles']} tris "
           f"over {len(model.bones)} PD2 bones")
     print(f"  materials: {report['materials']}")
     print(f"  dropped (no PD2 bone): {report['unresolved_bones']}")
+    print(f"  feet: {report.get('feet')}")
     (args.out / "source_report.json").write_text(json.dumps(report, indent=2) + "\n")
 
     template = bm.load_template(args.templates / "2b.model")
@@ -203,7 +216,25 @@ def main(argv=None) -> int:
         for drawable in spec["drawables"]:
             share[drawable] = gname
 
-    mf = bm.assemble_model(template, groups, share)
+    # The outfit has no head: Skyrim ships heads separately and Melodic's
+    # archives carry none. Do two things about it: never keep the *template's*
+    # head (it is someone else's character, and shipping her face in this pack
+    # would be both wrong and unlicensed), and close the collar hole it would
+    # otherwise leave behind.
+    body_group = groups["body"]
+    skin_vertices: set[int] = set()
+    for src_mat, base_v, _base_i, _tris, nverts in body_group.slices:
+        if src_mat == "skin":
+            skin_vertices.update(range(base_v, base_v + nverts))
+    for gname in ("body", "shadow"):
+        g = groups[gname]
+        slot = "shadow_caster" if gname == "shadow" else "mtr_body"
+        capped = bm.cap_holes(g, min_z=NECK_Z_CM, slot=slot,
+                              allowed=skin_vertices, max_span=14.0)
+        print(f"[{gname}] neck caps: {capped} triangles")
+
+    mf = bm.assemble_model(template, groups, share,
+                           drop_drawables=("g_head", "g_head_lod1"))
     out = args.out / "business_woman.model"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(mf.write())
@@ -212,6 +243,20 @@ def main(argv=None) -> int:
     sheet_path = args.out / "previews" / "business_woman_pd2.png"
     if not args.no_previews:
         render_sheet(out, sheet_path)
+
+    fps_path = args.out / "fps_business_woman.model"
+    if args.fps:
+        fps_tpl = bm.load_template(args.templates / "fps_2b.model")
+        fps_arms = bm.extract_bones(groups["body"], bm.FPS_BONES, "arms")
+        fps_shadow = bm.extract_bones(groups["shadow"], bm.FPS_BONES, "shadow")
+        print(f"fps arms: {len(fps_arms.verts)} verts / {len(fps_arms.faces)} tris "
+              f"({len(fps_shadow.verts)} shadow)")
+        fps = bm.assemble_model(fps_tpl, {"arms": fps_arms, "shadow": fps_shadow},
+                                {"g_body": "arms", "g_body_lod1": "arms",
+                                 "s_body": "shadow"},
+                                drop_drawables=("g_head", "g_head_lod1"))
+        fps_path.write_bytes(fps.write())
+        print(f"wrote {fps_path} ({fps_path.stat().st_size} bytes)")
 
     if args.pack:
         import bw_pack
@@ -241,8 +286,16 @@ def main(argv=None) -> int:
         textured_sheet = args.out / "previews" / "business_woman_textured.png"
         pt.main([str(out), str(tex_dir), "--out", str(textured_sheet)])
         icon = bw_pack.build_icon(textured_sheet.read_bytes())
+        fps_config = None
+        fps_bytes = None
+        if args.fps and fps_path.exists():
+            # the viewmodel only carries the materials that survived the cut
+            fps_specs = [s for s in specs if s.name in FPS_MATERIALS]
+            fps_config = sm.render_fps_material_config(UNIT_BASE, fps_specs)
+            fps_bytes = fps_path.read_bytes()
         pack = bw_pack.write_pack(
-            args.dist, out.read_bytes(), textures, icon, config, None,
+            args.dist, out.read_bytes(), textures, icon, config, fps_config,
+            fps_model=fps_bytes,
             extra={"source": "Melodic Business Woman SE 3BA", "private": True},
         )
         print(f"pack  -> {pack}")

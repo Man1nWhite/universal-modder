@@ -56,10 +56,13 @@ class MaterialSpec:
         return self.name.replace("mtr_", "bw_")
 
 
-# Attested render templates only. These two are copied verbatim from the 2B LAS
-# pack (a released, working mod): Diesel silently renders a material black when
-# a template names a keyword it does not know, so no experimenting here.
-TPL_TPP = "generic:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
+# Attested render templates only: Diesel renders a material black when a
+# template names a keyword it does not know, so no experimenting here. The
+# third-person one follows the LAS guide (and the game-tested Miranda pack):
+# `CONTOUR` plus `unique="true"` and the contour variables, or the wall-outline
+# bugs out. The 2B reference pack omits them and works, but the guide is newer.
+# First-person keeps `DEPTH_SCALING` and no contour, per the guide's FPS example.
+TPL_TPP = "generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
 TPL_FPS = "generic:DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
 
 DEFAULT_MATERIALS = (
@@ -72,6 +75,9 @@ DEFAULT_MATERIALS = (
                  gloss_scale=0.40),
     MaterialSpec("mtr_heels", "Heels_diffA", "Heels_norm", "Heels_metal",
                  gloss_scale=0.62, gloss_floor=32),
+    # 16x16 white metal mask: polished gold, so the mask is allowed to saturate
+    MaterialSpec("mtr_necklace", "Necklace_diffA", "Necklace_norm", "Necklace_metal",
+                 gloss_scale=0.55, gloss_floor=40),
 )
 
 
@@ -197,14 +203,21 @@ def encode_dds(rgba: np.ndarray) -> bytes:
 # ---------------------------------------------------------------------------
 def render_material_config(unit_base: str, specs: list[MaterialSpec],
                            include_shadow: bool = True) -> str:
-    """`<materials version="3">` with one entry per authored material."""
-    parts = ['<materials version="3">\n']
+    """`<materials version="3">` with one entry per authored material.
+
+    The header's `group` is free-form per the guide; `unique="true"` and the
+    contour variables are load-bearing for the wall outline.
+    """
+    group = Path(unit_base).name
+    parts = [f'<materials version="3" group="{group}">\n']
     for spec in specs:
         stem = spec.pack_name
         parts.append(
-            f'    <material name="{spec.name}" render_template="{TPL_TPP}" version="2">\n'
+            f'    <material name="{spec.name}" unique="true" render_template="{TPL_TPP}" version="2">\n'
             f'        <bump_normal_texture file="{unit_base}/{stem}_nm"/>\n'
             f'        <diffuse_texture file="{unit_base}/{stem}_df"/>\n'
+            '        <variable value="1 1 1" type="vector3" name="contour_color"/>\n'
+            '        <variable value="0" type="scalar" name="contour_opacity"/>\n'
             "    </material>\n"
         )
     if include_shadow:

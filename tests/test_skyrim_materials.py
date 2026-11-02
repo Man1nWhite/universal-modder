@@ -164,11 +164,22 @@ def test_every_material_uses_a_known_render_template():
             }
 
 
-def test_third_person_template_matches_the_shipped_2b_pack():
-    """Copied from a released LAS pack; a typo here renders the material black."""
-    assert sm.TPL_TPP == "generic:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
+def test_templates_follow_the_guide():
+    """The LAS guide's contract; a typo here renders the material black."""
+    assert sm.TPL_TPP == "generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
     assert sm.TPL_FPS == (
         "generic:DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS")
+
+
+def test_contour_materials_are_unique_and_carry_their_variables():
+    """Without `unique` + both variables the wall outline bugs out in game."""
+    specs = [sm.MaterialSpec("mtr_body", "", "", generated=True)]
+    root = ET.fromstring(sm.render_material_config("units/x/skins/x", specs))
+    mat = root.find("material")
+    assert root.get("group") == "x"
+    assert mat.get("unique") == "true"
+    variables = {v.get("name"): v.get("type") for v in mat.findall("variable")}
+    assert variables == {"contour_color": "vector3", "contour_opacity": "scalar"}
 
 
 def test_fps_template_scales_depth_and_drops_contour():

@@ -1,10 +1,11 @@
 # Skyrim 3BA outfit (`1.zip` … `5.zip`) — source audit and port plan
 
-Status: **materials milestone reached** — the outfit (3BA body + both jacket
-layers + skirt + heels) exists as a PAYDAY 2 Diesel model with every joint on the
-LAS skeleton, and it now ships with its own textures, `material_config`s and a
-pack folder. Head, necklace, heel pitch and first-person arms are still missing,
-so nothing is installable yet.
+Status: **feature-complete offline** — the outfit (3BA body + both jacket layers
++ skirt + heels + decimated necklace) exists as a PAYDAY 2 Diesel model with
+every joint on the LAS skeleton, its own textures, `material_config`s, a
+first-person arms unit and a pack folder. It stands on the floor, its neck is
+closed, and the template's head (someone else's character) is stripped out.
+What is left is the in-game check on Windows.
 
 Target decided (2026-11-02): a **PAYDAY 2 LAS outfit, keeping the 3BA body** as
 the outfit's body; **black** palette, **both jacket layers**, **no glasses** (the
@@ -262,18 +263,19 @@ full-body replacement: body + buttoned jacket + skirt + heels.
 | 2 | **Fold the helper bones** — twists, belly, butt, breasts; drop the 10 3BA-only bones | ✅ folded before retarget, weights renormalised to ≤3 influences |
 | 3 | **Pose-correct the arms** into PD2's bind pose | ✅ axial chains spread them from the source's 60° hang to PD2's A-pose |
 | 4 | **Skin texture** for the exposed 28 % of the body (authored, PD2-appropriate) | ✅ `skin_texture.py` — 2048² DXT5 df + nm with full mip chain, baked in the mesh's own UV space |
-| 5 | **Materials** — `BSLightingShaderProperty` + 9-slot texture set → `*.material_config` (`df`/`nm`, DXT5nm swizzle with `invert_y`, `*_metal` gloss → alpha) | ✅ `skyrim_materials.py`; 10 textures, 5 materials, templates copied verbatim from the 2B pack — see §3.1 |
+| 5 | **Materials** — `BSLightingShaderProperty` + 9-slot texture set → `*.material_config` (`df`/`nm`, DXT5nm swizzle with `invert_y`, `*_metal` gloss → alpha) | ✅ `skyrim_materials.py`; 10 textures, 5 materials, guide contract (`CONTOUR`, `unique`, contour variables) — see §3.1 |
 | 6 | **Alpha** — all garments use `NiAlphaProperty` 4844 | ✅ **nothing to do**: `4844/128` is alpha-*tested*, but no diffuse in `1.zip` has a texel below 128 (measured 0.00 %), so the test never fires and the plain template is correct. A future palette with cut-outs needs `ALPHA_MASKED` + `alpha_ref`. |
-| 7 | **Heels** — keep the shoe's ankle pitch while PD2's foot bones are flat | ⬜ |
-| 8 | **Necklace** — 26 961 verts is a PD2-scale problem: decimate, or drop it into the pack as a separate drawable | ⬜ |
-| 9 | **Head and hair** — Skyrim ships neither; the LAS unit needs a `g_head` (reuse the 2B/PD2 head and its materials, or port a Skyrim head) | ⬜ design decision |
-| 10 | **First-person arms** — derive from the jacket sleeves + body arms, or ship TPP first | ⬜ |
+| 7 | **Heels** — keep the shoe's ankle pitch while PD2's foot bones are flat | ✅ **measured, then re-fitted**: the source shoe stands on z = −12 cm (Skyrim raises heel rigs by the heel height), so shipped verbatim the character sank ~12 cm into the floor. `fit_feet_to_ground` compresses the shoe below the ankle joint by 0.42 with an eased ramp; the sole now lands at z = 0.000 and the ankle joint stays put. `--heels keep` ships the source pose. |
+| 8 | **Necklace** — 26 961 verts is a PD2-scale problem: decimate, or drop it into the pack as a separate drawable | ✅ **shipped, decimated 9:1** to 3 000 verts / 3 918 tris. 222 bead islands, 117 verts each, 4 mm across; per-island vertex clustering leaves the silhouette unchanged and 0.05 mm mean / 0.11 mm max off the source surface. Blend weights are copied from the nearest source vertex, never averaged. |
+| 9 | **Head and hair** — Skyrim ships neither; the LAS unit needs a `g_head` (reuse the 2B/PD2 head and its materials, or port a Skyrim head) | ✅ **decided: ship without one, and leave no hole.** The template's `g_head`/`g_head_lod1` are *deleted* from the pack (they are the 2B character; shipping her face here would be both wrong and unlicensed) and the 3BA collar is closed with a 26-triangle fan weighted like the neck it caps. The heister's own head is what LAS supplies when the outfit sets `hide_mask`. |
+| 10 | **First-person arms** — derive from the jacket sleeves + body arms, or ship TPP first | ✅ `extract_bones` slices the already-posed TPP geometry down to the arm chain (12 682 verts / 23 026 tris: skin + both sleeve layers), and both templates share an identical PD2 bind pose (verified: 0.00 cm delta on every arm joint), so no second retarget is needed. `fps_businesswoman.material_config` uses `DEPTH_SCALING`. |
 | 11 | **Pack scaffold** — `bw_pack.py` with new IDs, locales, icon, `BUILD_INFO.json` | ✅ `dist/BusinessWoman_LAS/` (11 MB with textures); FPS unit deliberately absent until the arms exist |
-| 12 | **In-game check**, then (only with Melodic's permission) a tracked `dist/*.zip` + sha256 + previews | ⬜ |
+| 12 | **In-game check**, then (only with Melodic's permission) a tracked `dist/*.zip` + sha256 + previews | ⬜ **the only thing left** — see `docs/skyrim-nif/in-game-checklist.md` |
 
 Deliverable shape: `BusinessWoman_LAS.zip` with a BeardLib manifest, locales,
-2 models, ~6 material configs and ~10 textures — comparable to
-`dist/Miranda_LAS.zip` (5.4 MB).
+2 models, 2 material configs and 12 textures — 13 MB, comparable to
+`dist/Miranda_LAS.zip` (5.4 MB) but with a full-body outfit rather than a
+character replacement.
 
 Two construction notes that are not obvious from the outside:
 
@@ -344,11 +346,14 @@ tools/pd2-las/skyrim_retarget.py      XPMSE/3BA -> PD2 skeleton fit (joints land
 tools/pd2-las/build_business_woman.py the end-to-end build (4.zip -> business_woman.model)
 tools/pd2-las/skin_texture.py         authored skin: UV-space bake -> df + nm DXT5 with mips
 tools/pd2-las/skyrim_materials.py     Skyrim shader -> PD2 df/nm/gloss + material_config
+tools/pd2-las/decimate.py             per-island vertex clustering for over-dense meshes
 tools/pd2-las/bw_pack.py              LAS pack folder: manifest, hook, locales, icon, hashes
 tools/pd2-las/preview_textured.py     UV-sampling textured render + texture contact sheet
+docs/skyrim-nif/in-game-checklist.md  the 14 in-game checks that are still outstanding
 tests/test_skyrim_retarget.py         7 offline tests for the two modules above
 tests/test_skin_texture.py            10 offline tests for the baker (incl. real meshes)
-tests/test_skyrim_materials.py        23 offline tests for materials + pack assembly
+tests/test_skyrim_materials.py        25 offline tests for materials + pack assembly
+tests/test_skyrim_fit.py              24 offline tests for the heel, necklace, cap and fps slicers
 docs/previews/business_woman_*.png    tracked previews (source, PD2 model, textured, materials, skin)
 build/skyrim-nif/                     generated report, inventory, crosscheck, .model (gitignored)
 tools/pd2-las/                        the rest of the LAS pipeline

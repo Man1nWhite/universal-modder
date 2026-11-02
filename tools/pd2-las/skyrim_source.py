@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import numpy as np
@@ -31,6 +31,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 
+import decimate  # noqa: E402
 from source_model import Bone, ModelData, SkinVertex, SubMesh  # noqa: E402
 
 
@@ -62,6 +63,9 @@ class MeshSpec:
     path: Path
     shapes: tuple[str, ...]
     material: str
+    #: cluster-decimate the shape down to this vertex count (see `decimate.py`).
+    #: Jewellery authored for close-up renders needs it; garments do not.
+    decimate_to: int | None = None
 
 
 def default_outfit(root: Path, jacket: str = "both") -> list[MeshSpec]:
@@ -91,6 +95,10 @@ def default_outfit(root: Path, jacket: str = "both") -> list[MeshSpec]:
     specs += [
         MeshSpec(root / "Skirt_0.nif", ("0_Skirt",), "skirt"),
         MeshSpec(root / "Heels_0.nif", ("0_Heels001",), "heels"),
+        # 26,961 vertices for a 4 mm-bead chain: a twelfth of that is visually
+        # identical at heister distance and 0.3 mm off the source surface
+        MeshSpec(root / "Necklace_0.nif", ("0_Necklace",), "necklace",
+                 decimate_to=3000),
     ]
     return specs
 
@@ -241,9 +249,70 @@ def _vertex_weights(shape: nif.Shape, resolver: BoneResolver) -> list[list[tuple
     return out
 
 
+#: How tall the shoe is allowed to stay below the ankle when the outfit is
+#: re-fitted for a flat-footed skeleton. See `fit_feet_to_ground`.
+HEEL_BLEND_CM = 2.5
+
+
+def ankle_height(f: "nif.NifFile") -> float | None:
+    """World Z of the foot joint, in file units (the space `load_outfit` uses)."""
+    for node in f.nodes.values():
+        if " Foot " in node.name or node.name.endswith(" Foot"):
+            return float(node.world_matrix(f.nodes)[2, 3])
+    return None
+
+
+def fit_feet_to_ground(vertices: np.ndarray, ankle_z: float,
+                       blend_cm: float = HEEL_BLEND_CM) -> tuple[np.ndarray, dict]:
+    """Squash the stiletto so the sole lands on z = 0.
+
+    The source is a Skyrim **high-heel** outfit: the shoe is modelled standing
+    on a floor at z = -12 cm, ~20.7 cm below the foot joint, because Skyrim's
+    heel rigs raise the whole character by the heel height. Diesel has no such
+    offset — the unit's origin is the floor and the foot joint sits at 9.9 cm —
+    so shipped verbatim the character stands with her ankles in the ground.
+
+    There is no way to keep a 12 cm stiletto *and* a 9.9 cm ankle: the shoe has
+    to lose the height somewhere. This compresses the geometry below the ankle
+    joint by `k = ankle / (ankle - min_z)` with a short blend so no crease
+    appears; the result is a low-heeled pump that stands and animates
+    correctly. Returning the shoe unchanged is the alternative (`heels="keep"`)
+    and it sinks the character ~12 cm into the floor.
+    """
+    out = vertices.copy()
+    lowest = float(out[:, 2].min())
+    if lowest >= 0.0:
+        return out, {"applied": False, "min_z": lowest}
+    span = ankle_z - lowest
+    k = ankle_z / span
+    below = out[:, 2] < ankle_z
+    if not below.any():
+        return out, {"applied": False, "min_z": lowest}
+    depth = ankle_z - out[below, 2]
+    # ease the squashing in over the first `blend_cm` so the ankle itself is not
+    # pinched, then move every deeper vertex by the same proportion
+    ramp = np.clip(depth / max(blend_cm, 1e-6), 0.0, 1.0)
+    ease = 1.0 - (1.0 - ramp) ** 2                 # smooth start at the joint
+    out[below, 2] = ankle_z - depth * (1.0 - ease * (1.0 - k))
+    out[below, 2] = np.maximum(out[below, 2], 0.0)
+    return out, {
+        "applied": True,
+        "ankle_z": round(ankle_z, 3),
+        "min_z_before": round(lowest, 3),
+        "min_z_after": round(float(out[:, 2].min()), 3),
+        "compression": round(k, 4),
+        "vertices": int(below.sum()),
+    }
+
+
 def load_outfit(specs: list[MeshSpec], bone_map: dict,
-                master: Path | None = None) -> tuple[ModelData, dict]:
-    """Read every NIF and return one `ModelData` + a conversion report."""
+                master: Path | None = None,
+                heels: str = "flatten") -> tuple[ModelData, dict]:
+    """Read every NIF and return one `ModelData` + a conversion report.
+
+    `heels="flatten"` re-fits the outfit for Diesel's flat-footed skeleton (see
+    `fit_feet_to_ground`); `"keep"` leaves the source's heel pose alone.
+    """
     files: dict[Path, nif.NifFile] = {}
     for spec in specs:
         if spec.path not in files:
@@ -285,11 +354,37 @@ def load_outfit(specs: list[MeshSpec], bone_map: dict,
             norms = normals.astype(np.float64) @ np.linalg.inv(rot).T
             norms /= np.maximum(np.linalg.norm(norms, axis=1, keepdims=True), 1e-9)
             weights = _vertex_weights(shape, resolver)
-            for v in range(shape.num_vertices):
+            uvs = np.asarray(shape.uvs, dtype=np.float64)
+
+            if spec.decimate_to:
+                # carry the blend weights over by copying them from the nearest
+                # original vertex — averaging them would invent weights for
+                # bones the bead never touched
+                before = verts.shape[0]
+                dec = decimate.decimate(verts, shape.triangles, uvs=uvs,
+                                        normals=norms, max_vertices=spec.decimate_to)
+                weights = [weights[i] for i in dec.source_index]
+                verts, norms, uvs = dec.vertices, dec.normals, dec.uvs
+                shape_tris = dec.triangles
+                report.setdefault("decimated", []).append({
+                    "shape": shape_name,
+                    "vertices_before": int(before),
+                    "vertices_after": int(verts.shape[0]),
+                    "triangles_after": int(shape_tris.shape[0]),
+                    "cell_cm": round(dec.cell * CM_PER_UNIT, 3),
+                    **{f"error_{k}_cm": round(v * CM_PER_UNIT, 3)
+                       for k, v in decimate.surface_error(
+                           np.asarray(shape.vertices, dtype=np.float64) * CM_PER_UNIT,
+                           shape.triangles, dec.vertices * CM_PER_UNIT).items()},
+                })
+            else:
+                shape_tris = shape.triangles
+
+            for v in range(verts.shape[0]):
                 vertices.append(SkinVertex(
                     pos=tuple(float(x) for x in verts[v]),
                     normal=tuple(float(x) for x in norms[v]),
-                    uv=(float(shape.uvs[v, 0]), float(shape.uvs[v, 1])),
+                    uv=(float(uvs[v, 0]), float(uvs[v, 1])),
                     weights=tuple((bone_index[name], w) for name, w in weights[v])
                     if weights else (),
                 ))
@@ -297,13 +392,25 @@ def load_outfit(specs: list[MeshSpec], bone_map: dict,
             # authoring path takes COLLADA-style counter-clockwise and swaps it
             # for Diesel on the way out. Reverse here so the two cancel and the
             # stored normals keep pointing the way the winding says they do.
-            tris = (shape.triangles[:, ::-1] + base).reshape(-1)
+            tris = (shape_tris[:, ::-1] + base).reshape(-1)
             meshes.append(SubMesh(material=spec.material,
                                   triangle_indices=tuple(int(i) for i in tris)))
             entry["shapes"].append(shape_name)
-            entry["vertices"] += shape.num_vertices
+            entry["vertices"] += int(verts.shape[0])
             report["materials"][spec.material] = \
-                report["materials"].get(spec.material, 0) + shape.num_vertices
+                report["materials"].get(spec.material, 0) + int(verts.shape[0])
+
+    if heels == "flatten":
+        ankle = ankle_height(master_file)
+        if ankle is None:
+            raise KeyError(f"{master_path.name}: no foot joint to fit the heels to")
+        flat, feet_report = fit_feet_to_ground(
+            np.array([v.pos for v in vertices], dtype=np.float64), ankle)
+        vertices = [replace(v, pos=(float(p[0]), float(p[1]), float(p[2])))
+                    for v, p in zip(vertices, flat)]
+        report["feet"] = feet_report
+    elif heels != "keep":
+        raise ValueError(f"heels must be 'flatten' or 'keep', not {heels!r}")
 
     report["bones"] = [b.name for b in bones]
     report["unresolved_bones"] = sorted(unresolved)

@@ -915,6 +915,120 @@ def repair_skin_boundary_normals(g: Group) -> None:
                 )
 
 
+def boundary_loops(faces) -> list[list[int]]:
+    """Directed loops of edges used by exactly one face, largest first.
+
+    Direction matters: the cap that closes a loop has to traverse each edge the
+    opposite way its single owner does, or the cap is inside-out relative to the
+    surface around it. Each loop repeats its first index at the end.
+    """
+    counts: dict[tuple[int, int], int] = {}
+    directed: dict[tuple[int, int], int] = {}
+    for a, b, c in faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            key = (x, y) if x < y else (y, x)
+            counts[key] = counts.get(key, 0) + 1
+            directed[(x, y)] = directed.get((x, y), 0) + 1
+    boundary = [(x, y) for (x, y) in directed
+                if counts[(x, y) if x < y else (y, x)] == 1]
+    if not boundary:
+        return []
+    nxt: dict[int, list[int]] = {}
+    for x, y in boundary:
+        nxt.setdefault(x, []).append(y)
+    seen: set[tuple[int, int]] = set()
+    loops: list[list[int]] = []
+    for x, y in boundary:
+        if (x, y) in seen:
+            continue
+        loop = [x]
+        cur = (x, y)
+        while cur not in seen:
+            seen.add(cur)
+            loop.append(cur[1])
+            candidates = [v for v in nxt.get(cur[1], []) if (cur[1], v) not in seen]
+            if not candidates:
+                break
+            cur = (cur[1], candidates[0])
+        if len(loop) >= 4 and loop[0] == loop[-1]:
+            loops.append(loop)
+    loops.sort(key=len, reverse=True)
+    return loops
+
+
+def cap_holes(g: Group, min_z: float, slot: str,
+              source_material: str = "skin", allowed: set[int] | None = None,
+              max_span: float = 14.0) -> int:
+    """Close boundary loops of the group that lie entirely above `min_z`.
+
+    The 3BA body is authored to wear a *separate* Skyrim head, so it ends in an
+    open collar. Without a head the player sees the inside of her own torso
+    through it, and the shadow mesh is not closed either. Each loop above
+    `min_z` gets a fan to its centroid, with the centroid weighted like the loop
+    it closes so the cap deforms with the neck instead of tearing off.
+    Returns the number of triangles added, and registers them as their own
+    render atom so the engine actually draws the cap.
+    """
+    import numpy as np
+
+    if not g.faces:
+        return 0
+    p = np.asarray(g.verts, dtype=np.float64)
+    z = p[:, 2]
+    base_v = len(g.verts)
+    base_i = len(g.faces) * 3
+    added = 0
+    for loop in boundary_loops(g.faces):
+        idx = [i for i in loop if i < len(g.verts)]
+        if len(idx) < 3:
+            continue
+        if float(z[idx].min()) < min_z:
+            continue
+        if allowed is not None and any(i not in allowed for i in idx):
+            continue
+        # a seam between two UV shells is a boundary loop too; only the real
+        # opening is small and roundish
+        span = float(np.linalg.norm(p[idx].max(axis=0) - p[idx].min(axis=0)))
+        if span > max_span:
+            continue
+        ring = idx[:-1] if len(idx) > 3 and idx[0] == idx[-1] else idx
+        if len(ring) < 3:
+            continue
+        # centroid vertex, weighted and normalised like its neighbours
+        centre = np.array([g.verts[i] for i in ring], dtype=np.float64).mean(axis=0)
+        normal = np.zeros(3)
+        for i in ring:
+            normal += np.asarray(g.normals[i], dtype=np.float64)
+        length = float(np.linalg.norm(normal)) or 1.0
+        normal /= length
+        weight_sum: dict[int, float] = {}
+        for i in ring:
+            for pal, w in g.weights[i]:
+                weight_sum[pal] = weight_sum.get(pal, 0.0) + w / len(ring)
+        total = sum(weight_sum.values()) or 1.0
+        infl = sorted(((p, w / total) for p, w in weight_sum.items()),
+                      key=lambda t: -t[1])[:3]
+        renorm = sum(w for _, w in infl) or 1.0
+        infl = [(p, w / renorm) for p, w in infl]
+        uv = np.array([g.uvs[i] for i in ring], dtype=np.float64).mean(axis=0)
+        new_index = len(g.verts)
+        g.verts.append(tuple(float(x) for x in centre))
+        g.normals.append(tuple(float(x) for x in normal))
+        g.uvs.append((float(uv[0]), float(uv[1])))
+        g.weights.append(infl)
+        for k in range(len(ring)):
+            a, b = ring[k], ring[(k + 1) % len(ring)]
+            # reversed relative to the boundary walk so the fan faces outward,
+            # matching the winding of the surface it closes
+            g.faces.append((b, a, new_index))
+            added += 1
+    if added:
+        g.slices.append((source_material, base_v, base_i, added,
+                         len(g.verts) - base_v))
+        g.mat_slots.append(slot)
+    return added
+
+
 def winding_agreement(verts, faces, normals) -> float:
     """Fraction of faces whose vertex normals agree with the winding.
 
@@ -1064,14 +1178,95 @@ def group_bounds(g: Group):
 
 # ------------------------------------------------------------ assembly
 
+#: Bones that make up a first-person viewmodel. Anything shaded mostly by these
+#: belongs in the fps unit; everything else (torso, legs) is stripped.
+FPS_BONES = tuple(
+    f"{side}{part}"
+    for side in ("Left", "Right")
+    for part in ("Shoulder", "Arm", "ForeArm", "Hand", "HandThumb1")
+)
+
+
+def extract_bones(g: Group, bones, name: str, min_weight: float = 0.5) -> Group:
+    """A new group with only the geometry dominated by ``bones``.
+
+    The fps unit is arms-only — the guide is explicit that a viewmodel shows
+    nothing else. Rather than retarget a second time, this slices the already
+    posed third-person geometry: both templates share the same PD2 bind pose,
+    so the arm vertices land exactly where the viewmodel skeleton expects them.
+
+    Slices are rebuilt per source material, with one contiguous vertex block
+    each, because a Diesel render atom addresses a vertex range.
+    """
+    wanted = set(bones)
+    keep = [i for i, infl in enumerate(g.weights)
+            if sum(w for p, w in infl if g.palette[p] in wanted) >= min_weight]
+    keep_set = set(keep)
+    faces = [(a, b, c) for a, b, c in g.faces
+             if a in keep_set and b in keep_set and c in keep_set]
+    if not faces:
+        raise SystemExit(f"{name}: no geometry dominated by {sorted(wanted)}")
+
+    face_to_slice = {}
+    for si, (_mat, _bv, base_i, tris, _nv) in enumerate(g.slices):
+        for f in range(base_i // 3, base_i // 3 + tris):
+            face_to_slice[f] = si
+
+    # which surviving faces came from which source material
+    by_slice: dict[int, list[int]] = {}
+    for f, tri in enumerate(g.faces):
+        if tri in set(faces):
+            by_slice.setdefault(face_to_slice.get(f, 0), []).append(
+                faces.index(tri))
+    by_slice = {si: sorted(set(v)) for si, v in by_slice.items() if v}
+
+    out = Group(name=name)
+    out.palette = list(g.palette)
+    # vertices are emitted per slice, in first-use order, so each slice owns a
+    # contiguous block: skin arms first, then the sleeve that covers them
+    for si in sorted(by_slice):
+        tri_ids = by_slice[si]
+        used: list[int] = []
+        seen: dict[int, int] = {}
+        local_faces = []
+        for t in tri_ids:
+            a, b, c = faces[t]
+            row = []
+            for v in (a, b, c):
+                if v not in seen:
+                    seen[v] = len(used)
+                    used.append(v)
+                row.append(seen[v])
+            local_faces.append(tuple(row))
+        base_v = len(out.verts)
+        for v in used:
+            out.verts.append(g.verts[v])
+            out.normals.append(g.normals[v])
+            out.uvs.append(g.uvs[v])
+            out.weights.append(g.weights[v])
+        out.slices.append((g.slices[si][0], base_v, len(out.faces) * 3,
+                           len(local_faces), len(used)))
+        out.mat_slots.append(g.mat_slots[si])
+        out.faces.extend((a + base_v, b + base_v, c + base_v)
+                         for a, b, c in local_faces)
+    return out
+
+
 def assemble_model(template: Template, groups: dict[str, Group],
-                   share: dict[str, str]) -> dm.ModelFile:
+                   share: dict[str, str],
+                   drop_drawables: tuple[str, ...] = ()) -> dm.ModelFile:
     """Template sections with mesh blocks and materials replaced.
 
     ``share`` maps drawable name -> group name; drawables not in ``share``
     keep their template geometry blocks untouched (e.g. fps c_block). New
     group blocks are emitted where the template's mesh blocks were; material
     sections go where the template's material sections were.
+
+    ``drop_drawables`` removes named drawables entirely — geometry, topology,
+    skin palette, object-tree nodes and their children. Used to strip a
+    template's own head when the outfit does not ship one: a drawable that is
+    present but disabled would still carry someone else's character in the
+    pack.
     """
     old = template.mf
 
@@ -1089,6 +1284,35 @@ def assemble_model(template: Template, groups: dict[str, Group],
             if s.type == dm.TOPOLOGY_IP and s.id == md["topologyip"]:
                 ip = dm.decode_topologyip(s.payload)
                 block_ids.add(ip["topology"])
+
+    drop_ids: set[int] = set()
+    for dname in drop_drawables:
+        if dname not in template.drawables:
+            raise KeyError(f"template has no drawable {dname!r}")
+        md = template.drawables[dname]
+        drop_ids.add(template.name_id[dname])
+        drop_ids.add(md["skinbones"])
+        drop_ids.add(md["passthroughgp"])
+        drop_ids.add(md["topologyip"])
+        for s in old.sections:
+            if s.type == dm.PASSTHROUGH_GP and s.id == md["passthroughgp"]:
+                gp = dm.decode_passthroughgp(s.payload)
+                drop_ids |= {gp["geometry"], gp["topology"]}
+            if s.type == dm.TOPOLOGY_IP and s.id == md["topologyip"]:
+                ip = dm.decode_topologyip(s.payload)
+                drop_ids.add(ip["topology"])
+    # anything parented to a dropped node has to go with it, or the object tree
+    # keeps a dangling child id
+    changed = True
+    while changed:
+        changed = False
+        for s in old.sections:
+            if s.type in (dm.OBJECT3D, dm.MODEL_DATA) and s.id not in drop_ids:
+                obj = (dm.decode_object3d(s.payload) if s.type == dm.OBJECT3D
+                       else dm.decode_model_data(s.payload))
+                if obj.get("parent") in drop_ids:
+                    drop_ids.add(s.id)
+                    changed = True
 
     # template materials stay (fps c_block keeps referencing them); author
     # metadata is dropped. New materials are inserted before the object tree.
@@ -1147,7 +1371,7 @@ def assemble_model(template: Template, groups: dict[str, Group],
             out_sections.extend(group_secs[gname])
 
     for s in old.sections:
-        if s.type in drop_types:
+        if s.type in drop_types or s.id in drop_ids:
             continue
         if s.type == dm.OBJECT3D and not mats_inserted:
             out_sections.extend(new_mat_secs)

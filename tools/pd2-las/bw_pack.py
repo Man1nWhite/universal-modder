@@ -10,10 +10,9 @@ What this module owns is the *layout*: manifest, hook, locales, unit/object
 XMLs, material configs, textures, icon and `BUILD_INFO.json` with a hash per
 file. Model authoring lives in `build_business_woman.py`.
 
-The first-person unit is deliberately left out of the built pack until the FPS
-arms exist: an LAS entry whose `fps_unit` points at a missing file is worse than
-one without it, and the pack ships a `fps_available: false` marker in
-`BUILD_INFO.json` so the release step can refuse to publish it.
+The first-person unit is optional: `fps_available` in `BUILD_INFO.json` records
+whether it was built, because an LAS entry whose `fps_unit` points at a missing
+file is worse than one without it.
 """
 
 from __future__ import annotations
