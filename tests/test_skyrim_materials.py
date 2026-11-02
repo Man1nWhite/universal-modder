@@ -10,6 +10,7 @@ without the outfit archives.
 from __future__ import annotations
 
 import json
+import re
 import struct
 import sys
 import xml.etree.ElementTree as ET
@@ -196,6 +197,8 @@ def test_hook_registers_the_table_las_reads():
     assert "LegendaryArmours = LegendaryArmours or {}" in lua
     assert f"la.{bw_pack.ITEM_ID} = {{" in lua
     assert f'unit = "{bw_pack.TPP_UNIT}"' in lua
+    # the hook is what LAS actually looks the unit up by, so pin the literal
+    assert 'unit = "units/businesswoman/skins/businesswoman/businesswoman"' in lua
     assert "fps_unit" not in lua                 # no FPS arms yet
     for flag in bw_pack.FLAG_KEYS:
         assert f"{flag} = true" in lua
@@ -214,6 +217,11 @@ def test_main_xml_lists_textures_and_unit_materials():
                      f"{bw_pack.UNIT_BASE}/bw_jacket_df"]
     unit_mat = [e.get("path") for e in root.iter("unit_mat")]
     assert unit_mat == [bw_pack.TPP_UNIT]
+    # pinned as a literal: asserting the constant against itself let a
+    # truncated path (units/businesswoman/skins/businesswoman, no file stem)
+    # pass the suite while loading nothing in game
+    assert unit_mat == ["units/businesswoman/skins/businesswoman/businesswoman"]
+    assert not unit_mat[0].endswith("skins/businesswoman")
     hook = root.find("Hooks/hook")
     assert hook.get("file") == f"{bw_pack.ITEM_ID}_las.lua"
     assert hook.get("source_file") == bw_pack.HOOK_SOURCE
@@ -224,6 +232,7 @@ def test_object_xml_points_diesel_at_the_material_config():
         bw_pack.TPP_UNIT, ["s_body", "g_body_lod1", "g_body"]))
     diesel = root.find("diesel")
     assert diesel.get("materials") == bw_pack.TPP_UNIT
+    assert diesel.get("materials") == "units/businesswoman/skins/businesswoman/businesswoman"
     objects = {o.get("name"): o.get("enabled") for o in root.iter("object")}
     assert objects == {"g_body": "true", "g_body_lod1": "false"}
 
@@ -349,3 +358,48 @@ def test_icon_crop_stays_inside_the_preview_sheet():
     data = bw_pack.build_icon(buf.getvalue(), size=64)
     assert data[:4] == b"DDS "
     assert struct.unpack_from("<II", data, 12) == (64, 64)
+
+
+def test_every_path_the_pack_references_exists(tmp_path):
+    """A truncated path is invisible offline and renders nothing in game.
+
+    The suite passed while main.xml, the hook and the object file all pointed
+    at `units/businesswoman/skins/businesswoman` — a directory, not a unit.
+    """
+    pack = bw_pack.write_pack(
+        tmp_path, b"MODEL", {"bw_body_df": b"df", "bw_body_nm": b"nm"},
+        b"ICON", "config", "fpsconfig", fps_model=b"FPS", extra={},
+        drawables=["g_body"], fps_drawables=["g_body"])
+    assets = pack / "assets"
+    missing = []
+
+    def need(path: str, suffix: str):
+        if not (assets / f"{path}{suffix}").exists():
+            missing.append(f"{path}{suffix}")
+
+    for e in ET.parse(pack / "main.xml").getroot().iter("unit_mat"):
+        need(e.get("path"), ".unit")
+    for e in ET.parse(pack / "main.xml").getroot().iter("df_nm"):
+        # <df_nm path=".../bw_body_df"/> names the pair: _df + _nm
+        stem = e.get("path")
+        need(stem, ".texture")
+        need(stem[:-3] + "_nm" if stem.endswith("_df") else stem + "_nm", ".texture")
+    for e in ET.parse(pack / "main.xml").getroot().iter("texture"):
+        need(e.get("path"), ".texture")
+
+    lua = (pack / "hooks" / f"{bw_pack.ITEM_ID}_las.lua").read_text()
+    for key in ("unit", "fps_unit"):
+        m = re.search(rf'\b{key} = "([^"]+)"', lua)
+        if m:
+            need(m.group(1), ".unit")
+
+    for obj in pack.rglob("*.object"):
+        root = ET.parse(obj).getroot()
+        need(root.find("diesel").get("materials"), ".material_config")
+        unit = obj.with_suffix(".unit")
+        ref = ET.parse(unit).getroot().find("object").get("file")
+        if f"{ref}.object" != f"{bw_pack.TPP_UNIT if obj.stem == bw_pack.ITEM_ID else bw_pack.FPS_UNIT}.object":
+            missing.append(f"{obj.name}: object file mismatch ({ref})")
+        need(ref, ".object")
+
+    assert missing == []

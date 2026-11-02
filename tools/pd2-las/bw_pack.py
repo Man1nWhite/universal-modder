@@ -28,7 +28,9 @@ CATEGORY = "businesswoman"
 PACK_DIR_NAME = "BusinessWoman_LAS"
 UNIT_BASE = f"units/{ITEM_ID}/skins/{ITEM_ID}"
 GUI_BASE = f"guis/dlcs/{ITEM_ID}/armor_skins"
-TPP_UNIT = UNIT_BASE
+# the unit path ends in the file stem, exactly like units/2b/skins/2b/2b:
+# LAS looks this up as a unit, so a directory here loads nothing at all
+TPP_UNIT = f"{UNIT_BASE}/{ITEM_ID}"
 FPS_UNIT = f"{UNIT_BASE}/fps_{ITEM_ID}"
 HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
 
