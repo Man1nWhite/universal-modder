@@ -213,8 +213,10 @@ def test_main_xml_lists_textures_and_unit_materials():
     root = ET.fromstring(bw_pack.render_main_xml(
         ["bw_body_df", "bw_body_nm", "bw_jacket_df", "bw_jacket_nm"]))
     df_nm = [e.get("path") for e in root.iter("df_nm")]
-    assert df_nm == [f"{bw_pack.UNIT_BASE}/bw_body_df",
-                     f"{bw_pack.UNIT_BASE}/bw_jacket_df"]
+    # the stem, not the _df file: the engine appends the suffix itself
+    assert df_nm == [f"{bw_pack.UNIT_BASE}/bw_body",
+                     f"{bw_pack.UNIT_BASE}/bw_jacket"]
+    assert not any(p.endswith("_df") for p in df_nm)
     unit_mat = [e.get("path") for e in root.iter("unit_mat")]
     assert unit_mat == [bw_pack.TPP_UNIT]
     # pinned as a literal: asserting the constant against itself let a
@@ -380,10 +382,11 @@ def test_every_path_the_pack_references_exists(tmp_path):
     for e in ET.parse(pack / "main.xml").getroot().iter("unit_mat"):
         need(e.get("path"), ".unit")
     for e in ET.parse(pack / "main.xml").getroot().iter("df_nm"):
-        # <df_nm path=".../bw_body_df"/> names the pair: _df + _nm
+        # <df_nm path=".../bw_body"/> names the pair: bw_body_df + bw_body_nm
         stem = e.get("path")
-        need(stem, ".texture")
-        need(stem[:-3] + "_nm" if stem.endswith("_df") else stem + "_nm", ".texture")
+        assert not stem.endswith(("_df", "_nm")), stem
+        need(stem + "_df", ".texture")
+        need(stem + "_nm", ".texture")
     for e in ET.parse(pack / "main.xml").getroot().iter("texture"):
         need(e.get("path"), ".texture")
 

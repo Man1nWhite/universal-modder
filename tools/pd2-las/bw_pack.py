@@ -79,8 +79,11 @@ def render_localization() -> str:
 
 
 def render_main_xml(texture_stems: list[str], with_fps: bool = False) -> str:
+    # <df_nm> names the pair by its stem; the engine appends _df/_nm itself.
+    # Passing the full "bw_body_df" makes it look for bw_body_df_df.texture,
+    # which silently leaves every material untextured (flat black in game).
     pairs = "\n".join(
-        f'\t\t\t\t<df_nm path="{UNIT_BASE}/{stem}"/>'
+        f'\t\t\t\t<df_nm path="{UNIT_BASE}/{stem[:-3]}"/>'
         for stem in texture_stems
         if stem.endswith("_df")
     )
