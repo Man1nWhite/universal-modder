@@ -107,7 +107,10 @@ def test_diffuse_is_filled_and_skin_coloured():
     # alpha is gloss, not opacity: low sheen, never fully matte or mirrored
     assert st.SKIN_GLOSS_BASE <= int(rgba[..., 3].min())
     assert int(rgba[..., 3].max()) <= st.SKIN_GLOSS_BASE + st.SKIN_GLOSS_RANGE
-    assert int(rgba[..., 3].std()) > 0                  # the field actually varies
+    # gloss is UNIFORM: a varying sheen (with the old normal-map blobs) read as
+    # camo-like blotches on the legs under the game's specular lighting, so the
+    # field is intentionally constant now.
+    assert int(rgba[..., 3].std()) == 0
     # nothing is left black: the dilation must reach every texel
     assert int(rgba[..., :3].max(axis=2).min()) > 40
     r, g, b = rgba[32, 32, :3].astype(int)

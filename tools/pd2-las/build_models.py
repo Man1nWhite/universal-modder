@@ -693,6 +693,26 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
                     else:
                         tname, _ = target_for_src[bi]
                         by_target[tname] = by_target.get(tname, 0.0) + w
+            # --- shoulder overlap stay (jacket only) ---
+            # The blazer armhole is an *overlap*, not a sewn seam. Under the
+            # arms-down idle the Arm-weighted sleeve shoulder rotates away from
+            # the torso-weighted armhole edge and the overlap opens into a hole
+            # (backface-culled in game). Blend part of the upper-arm weight into
+            # the clavicle at the shoulder so the sleeve top stays with the
+            # torso and the overlap remains closed. Jacket only: the skin below
+            # keeps its own weights. Smooth height falloff avoids a weight seam.
+            if mesh.material in ("jacket", "jacket2"):
+                sx, _sy, sz = sv.pos
+                if 93.0 <= sz <= 113.0 and abs(sx) >= 6.0:
+                    t = (sz - 93.0) / 20.0
+                    fall = t * t * (3.0 - 2.0 * t)      # smoothstep 0..1
+                    for arm, clav in (("LeftArm", "LeftShoulder"),
+                                      ("RightArm", "RightShoulder")):
+                        aw = by_target.get(arm, 0.0)
+                        if aw > 1e-4:
+                            move = aw * 0.45 * fall
+                            by_target[arm] = aw - move
+                            by_target[clav] = by_target.get(clav, 0.0) + move
             infl = [(tn, w) for tn, w in by_target.items() if w > 1e-6]
             infl.sort(key=lambda t: -t[1])
             infl = infl[:3]

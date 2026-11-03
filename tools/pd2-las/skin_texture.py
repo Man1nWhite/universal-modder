@@ -39,7 +39,6 @@ sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
 
 import dds_encode  # noqa: E402
 import nif  # noqa: E402
-from dds import pd2_normal_channels  # noqa: E402  (tools/pd2-port)
 
 DEFAULT_RES = 2048
 BODY_SHAPE = "3BA"
@@ -337,14 +336,13 @@ def build_diffuse(bake: dict, rng: np.random.Generator,
 
     color = np.clip(color, 0, 255)
 
-    # --- gloss: Diesel reads the diffuse alpha as specular strength, and skin
-    # is a soft, low-gloss surface. Creases hold less sheen than the planes of
-    # a thigh, so the same curvature field drives both occlusion and gloss.
-    sheen = 0.55 + 0.30 * (mottle[..., 0] - 0.5) + 0.20 * (blotch[..., 0] - 0.5)
-    sheen -= 0.30 * np.maximum(norm_cav, 0.0)
-    sheen = np.clip(sheen, 0.0, 1.0)
-    alpha = np.clip(SKIN_GLOSS_BASE + SKIN_GLOSS_RANGE * sheen,
-                    SKIN_GLOSS_BASE, 255).astype(np.uint8)
+    # --- gloss: Diesel reads the diffuse alpha as specular strength. Skin is a
+    # soft, low-gloss surface and the gloss must be UNIFORM: the earlier
+    # mottle/curvature-driven sheen varied the specular across the legs and,
+    # with the normal-map blobs, read as camo-like blotches in-game. A constant
+    # low gloss keeps the tone even under the game's lighting.
+    alpha = np.full((res, res),
+                    int(SKIN_GLOSS_BASE + SKIN_GLOSS_RANGE * 0.55), np.uint8)
 
     rgba = np.ones((res, res, 4), np.uint8) * 255
     rgba[..., :3] = color.astype(np.uint8)
@@ -366,26 +364,15 @@ def build_normal(bake: dict, rng: np.random.Generator, strength: float = 0.35) -
     gave 0.15 and read as speckle, worst of all on the legs.
     """
     res = bake["coverage"].shape[0]
-    cov = bake["coverage"]
-    height = _fbm((res, res), rng, octaves=3, base_cells=res // 64)
-    height = (height - height.mean()) / max(float(height.std()), 1e-6)
-    # gradient in texel space -> tangent-space normal
-    gy, gx = np.gradient(height)
-    nx = -gx * strength
-    ny = -gy * strength
-    nz = np.ones_like(nx)
-    norm = np.sqrt(nx * nx + ny * ny + nz * nz)
-    nx, ny, nz = nx / norm, ny / norm, nz / norm
-    rgb = np.stack([
-        (nx * 0.5 + 0.5) * 255.0,
-        (ny * 0.5 + 0.5) * 255.0,
-        (nz * 0.5 + 0.5) * 255.0,
-    ], axis=-1)
-    flat = _dilate(rgb.astype(np.float32), cov)
-    rgb = np.clip(flat, 0, 255).astype(np.uint8)
-    packed = pd2_normal_channels(rgb, invert_y=True)
-    # untextured texels: neutral normal, so a mip bleed cannot light the seam
-    packed[~cov] = np.array([255, 128, 0, 128], np.uint8)
+    # Neutral (flat) tangent-space normal. The earlier low-frequency fbm height
+    # field baked large blobs which, under the game's specular lighting, read as
+    # camo-like blotches on the legs and thighs. The offline diffuse preview is
+    # smooth — only the in-game normal + specular exposed them. Skin at heister
+    # distance is a tone, not a normal-mapped surface, so ship a neutral map and
+    # let the geometry normals do the shading. (strength kept in the signature
+    # for callers; a flat map is intentionally independent of it.)
+    packed = np.empty((res, res, 4), np.uint8)
+    packed[...] = np.array([255, 128, 0, 128], np.uint8)
     return packed
 
 

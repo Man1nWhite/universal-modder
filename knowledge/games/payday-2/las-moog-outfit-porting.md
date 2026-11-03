@@ -451,10 +451,26 @@ same five, and the audit now checks them by name.
       sleeve; the seam just moves up to the elbow. Grafting hands and welding
       the cuff is the only arrangement that holds on a ported body.
 
-27. **Changeable gloves via the vanilla glove adapter — supersedes note 26's
-    "graft is the only way" for a wrist-length body** (2026-11-03, read off
-    `Vladik268/P2` = LAS 4.1.9 + BeardLib, and the decompiled vanilla Lua in
-    `AzureeDev/payday-2-luajit`; shipped on BusinessWoman only).
+27. **Changeable gloves via the vanilla glove adapter — the mechanism is right,
+    but it did NOT render in-game; graft is the shipped default** (2026-11-03,
+    read off `Vladik268/P2` = LAS 4.1.9 + BeardLib, and the decompiled vanilla
+    Lua in `AzureeDev/payday-2-luajit`; BusinessWoman only).
+
+    **Empirical outcome (overrides the theory below):** the adapter route — even
+    with the corrected `default_glove_id = "heist_default"` compat hook, and even
+    though it passes a LuaJIT behavioural test that executes the *verbatim* LAS
+    loader — produced **neither the glove unit nor the `hnd_forearms` adapter
+    in-game** (main menu + blackmarket preview both showed bare, handless cuffs).
+    The in-game spawn path evidently differs from the modelled one (hook timing,
+    or the preview not invoking `set_beardlib_character_visual_state`'s glove
+    block), and it cannot be verified without launching the game. **So the
+    shipped default is `--hands graft`** (note 26): PD2 hands grafted into the
+    mesh + cuff welded, which always render. The adapter route is kept as an
+    option and the mechanism notes below are still the correct *theory* of how
+    vanilla suits do it — but do not ship it as the default until it is confirmed
+    in-game. The lesson: a faithful offline simulation of the *tweak-data* chain
+    is necessary but not sufficient; the *unit-spawn* chain must be confirmed in
+    the actual game.
 
     Note 26 concluded the graft was the only arrangement that holds. That is
     true for a *donor* forearm, but it missed the arrangement the base game
@@ -596,3 +612,33 @@ same five, and the audit now checks them by name.
     not on the packed `.texture`, so it stays reproducible; geometry untouched.
     Watch the UV convention when locating the band: NIF `v` is from the bottom,
     the atlas image row is from the top (`v_top = 1 − v`).
+
+30. **Skin blotches that only appear in-game are the normal map + gloss, not the
+    diffuse** (2026-11-03, BusinessWoman legs). The offline UV-preview render
+    showed smooth legs, but in-game the thighs/calves had large camo-like
+    patches. The diffuse was fine; the culprits were (a) the **low-frequency fbm
+    normal map** (large blobs that perturb the game's specular lighting) and
+    (b) a **mottle/curvature-driven gloss** (the diffuse alpha is Diesel's
+    specular strength, so varying it varies the shine patch-to-patch). Fix: ship
+    a **neutral/flat normal map** for skin and a **uniform gloss** (constant
+    alpha). Skin at heister distance is a tone, not a normal-mapped surface.
+    Diagnose by comparing the offline diffuse preview (smooth) against the
+    in-game render (blotchy): if they disagree, suspect the normal/specular, not
+    the albedo. (`skin_texture.build_normal` / `build_diffuse`.)
+
+31. **A ported garment's overlap armhole opens into a hole under the arms-down
+    idle; keep the sleeve shoulder weighted to the torso** (2026-11-03,
+    BusinessWoman blazer). The blazer armhole is an *overlap* (sleeve fabric
+    lapped over the torso), not a sewn seam — hundreds of boundary edges in the
+    shoulder band. In the bind pose (arms out) the overlap covers the armhole;
+    when the arms adduct in the idle, the Arm-weighted sleeve shoulder rotates
+    away from the torso-weighted armhole edge and the overlap opens into a hole
+    that backface culling exposes. Welding the overlap edges was tried and
+    rejected (it distorts the sleeve into spikes). The safe fix is a **weight
+    stay**: in `transfer_group`, for jacket verts in the shoulder band, blend up
+    to ~45 % of the upper-arm weight into the clavicle with a smooth height
+    falloff, so the sleeve top follows the torso and the overlap stays closed.
+    Verify with an offline **pose simulator** that re-skins the body with the arms
+    adducted (`tools/pd2-las/pose_preview.py`): the static bind-pose preview cannot
+    show a deformation-only hole. Note the offline renderer draws both sides, so
+    it under-reproduces the in-game (backface-culled) hole — confirm in game.

@@ -191,13 +191,16 @@ def main(argv=None) -> int:
                     help="how the sleeve meets the hand when --hands=graft "
                          "(only `weld` is supported; see the notes on LAS's "
                          "cop outfits)")
-    ap.add_argument("--hands", choices=("adapter", "graft"), default="adapter",
-                    help="`adapter` (default): ship no hands and let the "
-                         "heister's own gloves + the vanilla glove adapter "
-                         "(hnd_forearms) show through the sleeves, so gloves "
-                         "stay changeable (glove_adapter). `graft`: the legacy "
-                         "route that grafts PD2 hands and welds the cuff, "
-                         "baking one fixed pair of hands into the outfit.")
+    ap.add_argument("--hands", choices=("adapter", "graft"), default="graft",
+                    help="`graft` (default): graft PD2 hands and weld the cuff, "
+                         "baking one fixed pair of hands into the outfit so they "
+                         "always render (the adapter route shipped no hands "
+                         "in-game twice — neither the glove unit nor the "
+                         "hnd_forearms adapter appeared). `adapter`: ship no "
+                         "hands and rely on the heister's gloves + the vanilla "
+                         "glove adapter so gloves stay changeable; kept as an "
+                         "option but not the default because it is unverified "
+                         "in-game.")
     ap.add_argument("--pack", action="store_true",
                     help="also write textures, material configs and the LAS folder")
     ap.add_argument("--tex-res", type=int, default=1024,

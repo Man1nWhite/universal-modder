@@ -4,7 +4,42 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-03 — BusinessWoman NO-HANDS bug fixed: restore a real default glove (NEW)
+## 2026-11-03 — BusinessWoman in-game review: graft hands, smooth skin, shoulder stay (NEW)
+
+- **Report:** user installed the default-glove pack and sent 7 in-game screenshots:
+  still **no hands** (open cuff ring), large **holes at the shoulder/armhole**,
+  and **camo-like blotches on the legs**. "Fix hands, posture, textures, everything."
+- **Hands → graft (default).** The adapter route produced *neither* the glove unit
+  *nor* the `hnd_forearms` adapter in-game (menu + blackmarket preview), despite
+  passing the LuaJIT behavioural test against the real LAS loader. The in-game
+  spawn path evidently differs from the modelled one (hook timing or the preview
+  not invoking the glove spawn) and cannot be verified without the game. Switched
+  the default to `--hands graft`: PD2 hands are grafted onto the wrists and the
+  cuff welded (2.37 / 2.14 cm gaps closed), so the hands are *in the mesh* and
+  always render. Gloves are no longer changeable on this route; the adapter route
+  remains an option but is unverified in-game. `mtr_hands` + hand texture ship.
+- **Leg blotches → smooth skin.** The offline diffuse preview was always smooth;
+  the in-game blotches came from the **low-frequency normal-map fbm blobs** plus a
+  **mottle/curvature-driven gloss** under the game's specular lighting. Fix:
+  `build_normal` now ships a **neutral (flat)** normal map and `build_diffuse` a
+  **uniform** gloss (alpha ≈ 87). Skin reads as an even tone in-game. Test updated
+  to pin uniform gloss (`std == 0`).
+- **Shoulder holes → overlap weight stay.** The blazer armhole is an *overlap*,
+  not a sewn seam (471 boundary edges in the shoulder band). Under the arms-down
+  idle the Arm-weighted sleeve shoulder rotates away from the torso and the
+  overlap opens into a backface-culled hole. Added a jacket-only weight blend in
+  `transfer_group`: in the shoulder band, shift up to 45 % of the upper-arm weight
+  into the clavicle (smooth height falloff) so the sleeve top stays with the torso.
+  Verified with a new offline **pose simulator** (`tools/pd2-las/pose_preview.py`,
+  re-skins the body with the arms adducted) — the armpit notch and shoulder-top
+  spots reduce and the bind pose is undistorted. This is a smooth weight change,
+  not the rejected geometry weld.
+- **Build/gates:** zip sha256
+  `303fbc77b4ef4e894825a264d0fb11219a9d3c105fefc025209135f271e6b059`, 27 entries
+  (adds the hand texture). pytest 414 passed / 11 skipped / 1 pre-existing Miranda
+  failure; kb PASS 246; publish 27 files / 0 failures / 1 no-README warning.
+
+## 2026-11-03 — BusinessWoman NO-HANDS bug fixed: restore a real default glove
 
 - **Report:** with the shipped adapter pack installed, the outfit had **no
   hands in-game** (user-confirmed). The forearm adapter alone does not draw
