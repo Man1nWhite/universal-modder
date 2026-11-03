@@ -1344,6 +1344,130 @@ def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
     return touched
 
 
+def trim_neck(g: Group, mats=("skin",), z0: float = 159.0, k: float = 0.05) -> int:
+    """Fold the body's neck stub down into the collar.
+
+    The 3BA neck is positioned for a *Skyrim* head: after retarget its capped
+    opening lands at Head-bone height (~167 cm) but ~4-5 cm *forward* of PD2's
+    Head bone (y=5.3), so it juts out in front of the heister's chin instead of
+    meeting the neck. The outfit ships no head (LAS keeps the heister's own), so
+    the skin above the collar is a duplicate neck. Squash it down toward the
+    collar line ``z0`` — continuous at the boundary so it cannot tear — and the
+    neck cap then sits at the collar with the heister's own neck showing above.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z > z0:
+                g.verts[i] = (x, y, z0 + (z - z0) * k)
+                touched += 1
+    return touched
+
+
+def restore_bust(g: Group, mats=("skin", "jacket", "jacket2"),
+                 spine_y: float = 5.3, factor: float = 1.32,
+                 z_lo: float = 122.0, z_hi: float = 154.0,
+                 x_full: float = 10.0, x_zero: float = 15.0) -> int:
+    """Restore the source bust proportion lost to axial spine scaling.
+
+    The retarget stretches the spine *axially* to reach PD2's longer torso, but
+    the bust is *radial* and only receives the smaller global similarity scale,
+    so it lands ~24% flatter than the 3BA source (measured bust/torso 0.485 vs
+    0.640). Scale the front chest's forward protrusion back up by ``factor``,
+    with a smooth height falloff so it blends into the waist and collar without
+    tearing. Only the front (``y > spine_y``) moves; the back is kept, and the
+    displacement is proportional to how far forward a vertex already sits, so
+    the bust peaks gain the most.
+
+    A *lateral* falloff (full for ``|x| <= x_full``, fading to zero by
+    ``|x| = x_zero``) confines the push to the centre bust. Without it the whole
+    front width — including the chest panel beside the sleeve — is pulled
+    forward, which opens a visible gap at the underarm where the jacket's front
+    meets the sleeve (the bust sits at |x| < 12, the underarm seam at ~12–16).
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if y <= spine_y or not (z_lo <= z <= z_hi):
+                continue
+            t = (z - z_lo) / (z_hi - z_lo)
+            # smoothstep ramp over the first/last quarter, full in the middle
+            if t < 0.25:
+                u = t / 0.25
+            elif t > 0.75:
+                u = (1.0 - t) / 0.25
+            else:
+                u = 1.0
+            fall = u * u * (3.0 - 2.0 * u)
+            # lateral smoothstep: keep the underarm/sleeve seam in place
+            ux = (x_zero - abs(x)) / (x_zero - x_full)
+            if ux <= 0.0:
+                continue
+            ux = min(1.0, ux)
+            fall *= ux * ux * (3.0 - 2.0 * ux)
+            dy = (factor - 1.0) * (y - spine_y) * fall
+            g.verts[i] = (x, y + dy, z)
+            touched += 1
+    return touched
+
+
+def tuck_underarm_skin(g: Group, mats=("skin",), amount: float = 0.7,
+                       near: float = 1.6, z_lo: float = 137.0, z_hi: float = 154.0,
+                       x_min: float = 11.0) -> int:
+    """Tuck the underarm skin behind the blazer so it stops poking through.
+
+    The blazer armhole is an *overlap* construction, not a sewn seam, and after
+    the retarget a thin line of body skin renders in front of the jacket at the
+    underarm. Welding the jacket's overlap edges shut distorts the sleeve (see
+    MODLOG dead end), so instead move only the *skin*: any skin vertex in the
+    underarm band within ``near`` cm of the jacket is pushed inward along its own
+    normal by up to ``amount`` cm, with a smooth proximity falloff (full at the
+    jacket, zero at ``near``). The jacket is untouched and the tuck is confined
+    to the hidden armpit.
+
+    This removes the bulk of the poke-through. A thin residue remains that is a
+    genuine *gap* in the jacket's overlap (skin behind it), which no skin tuck
+    can close; pushing harder or along the jacket normal instead distorts the
+    skin and worsens it (both measured, see MODLOG).
+    """
+    import numpy as np
+    jverts = []
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in ("jacket", "jacket2"):
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z_lo <= z <= z_hi and abs(x) >= x_min:
+                jverts.append((x, y, z))
+    if not jverts:
+        return 0
+    jv = np.asarray(jverts, dtype=np.float64)
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if not (z_lo <= z <= z_hi and abs(x) >= x_min):
+                continue
+            d = float(np.linalg.norm(jv - np.array([x, y, z]), axis=1).min())
+            if d >= near:
+                continue
+            t = 1.0 - d / near
+            fall = t * t * (3.0 - 2.0 * t)
+            nx, ny, nz = g.normals[i]
+            push = amount * fall
+            g.verts[i] = (x - nx * push, y - ny * push, z - nz * push)
+            touched += 1
+    return touched
+
+
 def repair_skin_boundary_normals(g: Group) -> None:
     """Repair corrupted boundary normals along the face/neck seam and mouth corners,
     and recenter eyeball planar UVs on the visible eyelid opening (palpebral fissure).

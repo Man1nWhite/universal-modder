@@ -281,10 +281,32 @@ def main(argv=None) -> int:
         print("hands: adapter route — no hands shipped; the heister's gloves + "
               "the vanilla hnd_forearms adapter show through the sleeves")
 
+    # The retarget stretches the spine axially to PD2's longer torso but the bust
+    # is radial, so it lands ~24% flatter than the 3BA source. Restore the source
+    # proportion before the collar/neck work (body + shadow so the shadow matches).
+    for gname in ("body", "shadow"):
+        n = bm.restore_bust(groups[gname])
+        print(f"[{gname}] bust verts restored: {n}")
+
+    # A thin line of underarm skin renders in front of the blazer's overlap
+    # armhole after the retarget. Tuck that skin behind the jacket (the jacket
+    # itself is left alone — welding its overlap edges distorts the sleeve).
+    for gname in ("body", "shadow"):
+        n = bm.tuck_underarm_skin(groups[gname])
+        print(f"[{gname}] underarm skin verts tucked: {n}")
+
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):
         n = bm.lower_collar(groups[gname])
         print(f"[{gname}] collar verts lowered: {n}")
+
+    # The 3BA neck opening lands at Head-bone height but ~4-5 cm forward of the
+    # heister's Head bone, so it juts out in front of the chin. No head is shipped
+    # (LAS keeps the heister's), so fold the duplicate neck stub into the collar
+    # and let the heister's own neck show above it.
+    for gname in ("body", "shadow"):
+        n = bm.trim_neck(groups[gname])
+        print(f"[{gname}] neck verts trimmed: {n}")
 
     # The outfit has no head: Skyrim ships heads separately and Melodic's
     # archives carry none. Do two things about it: never keep the *template's*

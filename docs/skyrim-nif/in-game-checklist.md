@@ -31,11 +31,25 @@ Report failures with the item number and a screenshot.
    foot rolls onto the toe are the ones to watch.
 7. **Neck** — no hole, no dark disc, no seam ring where the collar was capped.
    Look up at the character from below, where the inside of a hole would show.
+   The outfit's neck stub is folded into the collar (`trim_neck`), so the
+   **heister's own neck** should show above the collar — no skin tube jutting
+   forward past the chin, and no second neck in front of the heister's.
 8. **Head** — the heister's own head is expected; confirm it is not the 2B
    character (the template's head is stripped out on purpose) and that no
    transparent or doubled head appears.
 9. Weights: elbows, knees and shoulders bend without candy-wrapping; the
    necklace stays on the chest and does not stretch into the collar.
+9a. **Bust silhouette** — the chest was restored to the source 3BA proportion
+    (`restore_bust`). In profile it should read as full as the original outfit,
+    not flattened; the bustier/blazer should follow it without a gap or a spike,
+    and it should not clip through the jacket when the arms move.
+9b. **Underarm** — the big gap the bust pass first opened is closed (lateral
+    falloff). A *thin* pre-existing sliver was skin poking through the blazer's
+    overlap armhole; `tuck_underarm_skin` tucks that skin behind the jacket. At
+    heister distance the underarm should read clean; a hair-thin line may remain
+    (a genuine gap in the source's overlap seam). Watch it with the arms raised
+    and mid-animation — if a *wide* gap or a skin flap opens there, this is the
+    item. No dent should be visible in the armpit itself.
 10. **Necklace** — the chain follows the body, beads read as beads at heister
     distance (9:1 decimated) and do not shimmer or z-fight.
 11. Skirt does not intersect the jacket flaps when crouching (both are static

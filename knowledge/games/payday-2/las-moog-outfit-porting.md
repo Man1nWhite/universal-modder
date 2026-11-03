@@ -499,3 +499,55 @@ same five, and the audit now checks them by name.
       suits, full character replacements) or the sleeve/hand seam must be
       skinned as one. The adapter trades a skinned cuff for an open sleeve mouth
       the adapter forearm fills — verify the cuff in motion in game.
+
+28. **Axial-vs-radial retarget scaling distorts a ported body's neck and bust**
+    (2026-11-03, measured on the Skyrim 3BA → PD2 BusinessWoman port). A
+    similarity/axial retarget that matches the target's bone lengths does *not*
+    preserve the source's soft-tissue proportions, in two predictable ways:
+
+    - **The bust flattens relative to the torso.** The spine chain is stretched
+      *axially* (rank-1 scale along each segment) to reach PD2's longer torso,
+      but the bust is *radial* — breast helper bones fold into `Spine2`, so the
+      bust only receives the smaller global similarity scale. Measured: source
+      bust protrusion / torso length = **0.640**, after retarget **0.485** (~24%
+      flatter). Fix: scale the front chest's forward protrusion back up by the
+      ratio (≈1.32), proportional to each vertex's existing forward offset and
+      with a smooth height falloff so it blends into waist and collar without
+      tearing (`build_models.restore_bust`). Apply to body **and** shadow.
+      **Also add a *lateral* falloff** (full near the centreline, fading to zero
+      before the underarm): pushing the whole front width pulls the chest panel
+      away from the sleeve and opens a visible armpit gap. Confine the push to
+      the centre bust (|x| ≲ 10–15 cm here) and leave the sleeve/torso seam put.
+    - **The neck lands forward of the target's head.** A body authored for a
+      *separate* head (Skyrim 3BA) keeps its neck opening positioned for that
+      head's bind pose; after retarget it can sit at Head-bone height but several
+      cm *forward* of the target's Head bone, jutting past the chin. If the outfit
+      ships no head (LAS keeps the heister's), that stub is a duplicate neck —
+      fold it down into the collar (`build_models.trim_neck`) and let the
+      heister's own neck show above.
+    - **General rule:** after any retarget, measure soft-tissue landmarks (bust
+      protrusion, neck opening) against *both* the source and the target rig —
+      "every joint lands on target (0.00 cm)" says nothing about the flesh
+      between the joints. Both fixes are continuous vertex edits (no re-topology),
+      so they cannot introduce holes; verify with the orientation-break count.
+    - **The underarm sliver is skin *through* the jacket, not an open seam.** A
+      jacket-only render shows the blazer fully covers the underarm (no hole); a
+      skin=red render plus a per-pixel depth test (skin depth vs jacket depth)
+      prove the thin pre-existing sliver is skin poking through the jacket surface
+      along the overlap seam, plus a little genuine gap in the overlap. Diagnose
+      gap vs poke-through with a depth test before choosing a fix — they need
+      opposite treatments.
+    - **Gentle fix — tuck the skin, not the jacket.**
+      `build_models.tuck_underarm_skin` pushes the near-jacket skin inward along
+      its own normal (≈0.7 cm, smooth proximity falloff, confined to the underarm
+      band), body + shadow. This removes the poke-through bulk without touching
+      the jacket; a thin overlap-gap residue remains for the in-game check.
+    - **Dead ends — do not retry:** (1) welding the panel *overlap* seam shut
+      (zipping the torso/sleeve boundary chains coincident, average position +
+      weights) **distorts the sleeve into spikes and widens the gap** — the sleeve
+      edge *overlaps* the torso edge (~3.7 source units lateral), it is not a
+      meet-seam, and the overlap is load-bearing. (2) A stronger skin tuck and
+      (3) tucking along the **jacket** normal instead of the skin normal both
+      distorted the skin and *increased* the poke-through (depth-test pixel counts
+      rose). The gentle skin-normal tuck is the best gentle outcome; closing the
+      residue fully is a re-drape / re-authoring job, not a vertex nudge.

@@ -47,6 +47,101 @@ def test_lower_collar_ignores_other_slices():
     assert g.verts[0][2] == 170.0
 
 
+def test_trim_neck_folds_only_the_skin_above_the_line():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 9.0, 150.0), (0.0, 9.0, 159.0), (0.0, 9.0, 167.0)]
+    g.slices = [("skin", 0, 0, 1, 3)]
+
+    touched = bm.trim_neck(g, z0=159.0, k=0.05)
+
+    assert touched == 1                        # only the vertex above the line
+    assert g.verts[0][2] == 150.0
+    assert g.verts[1][2] == 159.0              # continuous at the boundary
+    assert g.verts[2][2] == pytest.approx(159.0 + (167.0 - 159.0) * 0.05)
+    # the fold is vertical only: the forward (y) offset is left to the collar
+    assert all(v[1] == 9.0 for v in g.verts)
+
+
+def test_trim_neck_ignores_garment_slices():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 0.0, 170.0)]
+    g.slices = [("jacket", 0, 0, 1, 1)]
+
+    assert bm.trim_neck(g) == 0
+    assert g.verts[0][2] == 170.0
+
+
+def test_restore_bust_scales_only_the_front_chest():
+    g = bm.Group(name="g")
+    # front bust peak, a back vertex, and a front vertex below the band
+    g.verts = [(0.0, 20.0, 138.0), (0.0, 0.0, 138.0), (0.0, 20.0, 110.0)]
+    g.slices = [("skin", 0, 0, 1, 3)]
+
+    touched = bm.restore_bust(g, spine_y=5.3, factor=1.32, z_lo=122.0, z_hi=154.0)
+
+    assert touched == 1                        # only the front, in-band vertex
+    # z=138 is mid-band (full falloff): protrusion 14.7 scaled by 1.32
+    assert g.verts[0][1] == pytest.approx(5.3 + (20.0 - 5.3) * 1.32)
+    assert g.verts[0][2] == 138.0              # height unchanged
+    assert g.verts[1][1] == 0.0                # back untouched
+    assert g.verts[2][1] == 20.0               # below the band untouched
+
+
+def test_restore_bust_falloff_is_zero_at_the_band_edges():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 20.0, 122.0), (0.0, 20.0, 154.0)]
+    g.slices = [("jacket", 0, 0, 1, 2)]
+
+    touched = bm.restore_bust(g, spine_y=5.3, factor=1.32, z_lo=122.0, z_hi=154.0)
+
+    assert touched == 2                        # both in-band, but falloff = 0
+    assert g.verts[0][1] == pytest.approx(20.0)
+    assert g.verts[1][1] == pytest.approx(20.0)
+
+
+def test_restore_bust_leaves_the_underarm_seam_in_place():
+    g = bm.Group(name="g")
+    # centre bust peak vs a vertex out at the underarm (|x| beyond x_zero=15)
+    g.verts = [(0.0, 20.0, 138.0), (16.0, 20.0, 138.0)]
+    g.slices = [("jacket", 0, 0, 1, 2)]
+
+    touched = bm.restore_bust(g, spine_y=5.3, factor=1.32, z_lo=122.0, z_hi=154.0)
+
+    assert touched == 1                        # only the centre vertex moves
+    assert g.verts[0][1] == pytest.approx(5.3 + (20.0 - 5.3) * 1.32)
+    assert g.verts[1][1] == pytest.approx(20.0)  # underarm seam untouched
+
+
+def test_tuck_underarm_skin_tucks_only_skin_touching_the_jacket():
+    g = bm.Group(name="g")
+    # skin right on the jacket, skin below the band, and the jacket vertex itself
+    g.verts = [(15.0, 5.0, 145.0), (15.0, 5.0, 110.0), (15.0, 5.0, 145.0)]
+    g.normals = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    g.slices = [("skin", 0, 0, 1, 2), ("jacket", 2, 0, 1, 1)]
+
+    touched = bm.tuck_underarm_skin(g, amount=0.7, near=1.6)
+
+    assert touched == 1                        # only the near-jacket skin vertex
+    # d=0 -> full falloff: pushed inward along its +x normal by amount
+    assert g.verts[0][0] == pytest.approx(15.0 - 0.7)
+    assert g.verts[0][1] == pytest.approx(5.0)
+    assert g.verts[1][0] == pytest.approx(15.0)  # below the band untouched
+    assert g.verts[2][0] == pytest.approx(15.0)  # the jacket is never moved
+
+
+def test_tuck_underarm_skin_leaves_far_skin_alone():
+    g = bm.Group(name="g")
+    # skin in the band but far from any jacket vertex (> near)
+    g.verts = [(15.0, 5.0, 145.0), (15.0, 40.0, 145.0)]
+    g.normals = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    g.slices = [("skin", 0, 0, 1, 1), ("jacket", 1, 0, 1, 1)]
+
+    touched = bm.tuck_underarm_skin(g, amount=0.7, near=1.6)
+
+    assert touched == 0
+    assert g.verts[0][0] == pytest.approx(15.0)
+
+
 def test_append_group_reindexes_both_palettes():
     template = bm.Template(
         mf=None, names={}, id_name={}, id_obj={}, worlds={}, name_id={},

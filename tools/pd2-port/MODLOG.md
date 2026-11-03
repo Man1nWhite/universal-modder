@@ -4,6 +4,57 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
+## 2026-11-03 — BusinessWoman neck + bust geometry fixes (NEW)
+
+- Follow-up to the adapter route: two shape loose ends on the ported 3BA body,
+  both measured against the source and the PD2 rig, both fixed as continuous
+  (tear-free) vertex edits in `build_models.py`, applied to body **and** shadow.
+- **Neck.** The capped 3BA neck opening landed at Head-bone height (z≈167) but
+  ~4–5 cm *forward* of PD2's Head bone (y=5.3), so it jutted out in front of the
+  heister's chin. No head is shipped (LAS keeps the heister's), so the stub above
+  the collar was a duplicate neck. New `trim_neck()` folds the skin above the
+  collar line (z0=159, k=0.05) down into the collar; the cap now sits at z≈159
+  and the heister's own neck shows above. 305 verts folded.
+- **Chest.** The retarget stretches the spine *axially* to PD2's longer torso but
+  the bust is *radial* and only gets the smaller global similarity scale, so it
+  came out ~24% flatter than the source (measured bust/torso **0.485 vs 0.640**).
+  New `restore_bust()` scales the front chest's forward protrusion back up
+  (factor 1.32, smooth height falloff, front only) to the source proportion —
+  now **0.641**. Displacement is proportional to existing forward offset, so the
+  bust peaks gain the most.
+- **Armpit follow-up.** The first bust pass pushed the *whole* front width and
+  pulled the chest panel away from the sleeve, opening a visible underarm gap.
+  Added a *lateral* smoothstep falloff (full |x|≤10, zero by |x|=15) so the push
+  is confined to the centre bust and leaves the underarm seam (|x|≈12–16) in
+  place; bust still measures 0.641, 18 023 verts touched.
+- **Underarm sliver — diagnosis + gentle fix.** A *thin* pre-existing underarm
+  sliver remains after the bust fix. A jacket-only render shows the blazer fully
+  covers the underarm (no hole), and a skin=red render plus a depth-buffer test
+  prove the sliver is **skin poking through the jacket surface** along the
+  overlap seam, plus a little genuine gap in the overlap — *not* an open
+  meet-seam. New `tuck_underarm_skin()` tucks the near-jacket skin inward along
+  its own normal (0.7 cm, smooth proximity falloff, |x|≥11, z 137–154), body
+  **and** shadow — 1 753 verts — removing the poke-through bulk so the sliver
+  drops from a thick band to a thin line. The jacket is never moved.
+- **Dead ends — do not retry:** (1) zipping the seam shut in source space
+  (`weld_armhole_seam`: pair the torso/sleeve boundary chains, average position +
+  weights) made the underarm *worse* — spikes and a wider gap — because the
+  blazer armhole is an **overlap** construction (sleeve edge ~3.7 source units
+  lateral to the torso edge), not a meet-seam. (2) A stronger tuck (1.2 cm) and
+  (3) tucking along the **jacket** normal instead of the skin normal both
+  distorted the skin and *increased* the poke-through (depth-test pixel counts
+  rose). The gentle 0.7 cm skin-normal tuck is the best gentle outcome; the thin
+  residue is the overlap gap, which only the spike-producing weld could close.
+  All three reverted; the thin line is left for the in-game check (likely hidden
+  at heister distance).
+- Order in the build: `restore_bust` → `tuck_underarm_skin` → `lower_collar` →
+  `trim_neck` → `cap_holes`. 7 new unit tests in `test_hands_graft.py`; full suite
+  **405 passed, 9 skipped, 1 failed** (the one failure is the pre-existing Miranda
+  retarget tolerance, unrelated). Pack rebuilt, sha256
+  `a4c32e8c54693e9e822028d9472fd9ae54ebea98e8ca936ee57a6c5ebab2be98`; previews
+  refreshed. `runtime_verified` still false — the neck/collar fit and the bust
+  silhouette need the in-game check.
+
 ## 2026-11-03 — glove_adapter implemented for BusinessWoman (adapter route + compat hook) (NEW)
 
 - Scope (confirmed): **BusinessWoman only** — Miranda_LAS and lawson_las keep
