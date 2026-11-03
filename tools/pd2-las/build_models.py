@@ -623,14 +623,16 @@ def _map_source_bone(model: ModelData, idx: int, skel_map: dict) -> str | None:
 
 
 def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
-                   template: Template, group_name: str) -> Group:
+                   template: Template, group_name: str,
+                   fits: dict | None = None) -> Group:
     import numpy as np
 
     g = Group(name=group_name)
     wanted = group_spec.get("materials")
 
-    # target-centric similarity retarget (see retarget_maps)
-    per_src_T = retarget_maps(model, skel_map, template)
+    # target-centric similarity retarget (see retarget_maps); callers with a
+    # source rig this module's heuristics do not cover can pass their own
+    per_src_T = retarget_maps(model, skel_map, template) if fits is None else fits
 
     target_for_src: dict[int, tuple[str, dm.Mat]] = {}
     t_mat_by_name: dict[str, dm.Mat] = {}
@@ -662,7 +664,9 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         slice_faces: list[tuple[int, int, int]] = []
         for k in range(0, len(tris), 3):
             tri = tris[k:k + 3]
-            # Source (CW) -> Diesel/GLTF (CCW): swap b/c
+            # COLLADA-style (CCW, right-handed) -> Diesel/GLTF: swap b/c.
+            # Loaders must hand us CCW like the COLLADA importer does; the
+            # Skyrim reader reverses its NIF winding to match.
             a, b, c = tri[0], tri[2], tri[1]
             for vi in (a, b, c):
                 if vi not in remap:
@@ -727,9 +731,11 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
         g.faces.extend((a + base_v, b + base_v, c + base_v) for a, b, c in slice_faces)
         g.slices.append((mesh.material, base_v, base_i, len(slice_faces),
                          len(slice_verts)))
-        slot = (HEAD_MAT_SLOT.get(mesh.material)
-                if group_spec.get("out_materials") != ["shadow_caster"]
-                else "shadow_caster")
+        slot = group_spec.get("mat_slots", {}).get(mesh.material)
+        if slot is None:
+            slot = (HEAD_MAT_SLOT.get(mesh.material)
+                    if group_spec.get("out_materials") != ["shadow_caster"]
+                    else "shadow_caster")
         if slot is None:
             slot = group_spec["out_materials"][0]
         g.mat_slots.append(slot)
@@ -756,8 +762,586 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
     if group_name == "head":
         repair_skin_boundary_normals(g)
     breaks = orientation_breaks(g)
-    print(f"[{group_name}] orientation breaks: {breaks}")
+    agree = winding_agreement(g.verts, g.faces, g.normals)
+    print(f"[{group_name}] orientation breaks: {breaks}, "
+          f"normals agree with winding: {agree:.1%}")
+    if agree < 0.9:
+        raise SystemExit(
+            f"[{group_name}] normals disagree with the winding ({agree:.1%} agree); "
+            "the model would light inside-out"
+        )
     return g
+
+
+def _palette_order(template: Template, used: set[str]) -> list[str]:
+    """Template 53-order first (root-first from Hips), then extras by name."""
+    order_ref: list[str] = []
+    preferred_skin = template.drawable_skin.get("g_body", {})
+    if preferred_skin.get("objects"):
+        order_ref = [template.id_name.get(o, "") for o in preferred_skin["objects"]]
+    else:
+        for skin in template.drawable_skin.values():
+            objs = skin.get("objects", [])
+            if len(objs) > len(order_ref) or (
+                len(objs) == len(order_ref) and objs and objs[0] == template.hips_id
+            ):
+                order_ref = [template.id_name.get(o, "") for o in objs]
+    ordered = [n for n in order_ref if n in used]
+    return ordered + [n for n in sorted(used) if n not in ordered]
+
+
+#: bones whose vertices make up a hand, for graft_pd2_hands
+HAND_BONES = ("Hand", "Thumb", "Index", "Middle", "Ring", "Pinky")
+
+
+def _is_hand_bone(name: str) -> bool:
+    return any(part in name for part in HAND_BONES)
+
+
+def graft_pd2_hands(src_path: Path, slot: str = "mtr_hands") -> Group:
+    """Copy hand geometry and skin weights out of a PD2 heister model.
+
+    Both this mod's model and the donor sit on the stock heister skeleton in
+    its bind pose, so the vertices already land where the destination rig
+    wants them — there is no retargeting to do, and a similarity fit would
+    only introduce error. UVs are taken verbatim from the donor so the donor's
+    own texture (taken with it) samples correctly.
+
+    The Melodic 3BA body stops at the wrist, so without this the outfit ends in
+    a sleeve cuff and the heister's hands are simply missing.
+    """
+    import numpy as np
+
+    mf = dm.ModelFile.read_path(src_path)
+    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
+    names = {dm.hash64(n): n for n in hl["names"]}
+    objs = {}
+    for s in mf.sections:
+        if s.type == dm.OBJECT3D:
+            objs[s.id] = dm.decode_object3d(s.payload)
+        elif s.type == dm.MODEL_DATA:
+            objs[s.id] = dm.decode_model_data(s.payload)
+    id_name = {sid: names.get(o["name_hash"], "") for sid, o in objs.items()}
+
+    g = Group(name="hands")
+    used: set[str] = set()
+    # A donor ships the hand three times (`s_body`, `g_body_lod1`, `g_body`).
+    # Grafting all of them stacks a coarse shell on top of the detailed one,
+    # and because the LOD is not *inside* the full mesh it shows as a spray of
+    # flat blades off the wrist. Only the highest-detail hand is grafted.
+    candidates = []
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        if not md.get("atoms"):
+            continue
+        gp0 = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        try:
+            dm.decode_geometry(mf.by_id(gp0["geometry"]).payload)
+            topo0 = dm.decode_topology(mf.by_id(gp0["topology"]).payload)
+        except ValueError:
+            continue
+        name = id_name.get(s.id, "")
+        if "lod" in name.lower():
+            continue                       # a decimated copy of a fuller mesh
+        candidates.append((len(topo0["indices"]) // 3, s))
+    best = max((c[0] for c in candidates), default=0)
+    keep = {s.id for tris, s in candidates if tris >= 0.25 * best}
+
+    for s in mf.by_type(dm.MODEL_DATA):
+        if s.id not in keep:
+            continue
+        md = dm.decode_model_data(s.payload)
+        gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        try:
+            geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+            topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+        except ValueError:
+            continue                       # collision node, not a mesh
+        if not geo["blendindices"] or len(geo["uv0"]) != len(geo["verts"]):
+            continue                       # no skinning or no UVs: not graftable
+        pal = [id_name.get(i, "") for i in
+               dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)["objects"]]
+        V = np.array(geo["verts"], dtype=np.float64)
+
+        # one dominant bone per vertex decides whether it is part of a hand
+        is_hand = np.zeros(len(V), bool)
+        for vi, (bi, bw) in enumerate(zip(geo["blendindices"], geo["blendweights"])):
+            k = int(np.argmax(bw))
+            if bi[k] < len(pal) and _is_hand_bone(pal[bi[k]]):
+                is_hand[vi] = True
+        if not is_hand.any():
+            continue
+
+        donor_normals = (list(geo["normals"])
+                         if len(geo["normals"]) == len(V) else None)
+        idx = topo["indices"]
+        tris = []
+        for t in range(0, len(idx) - 2, 3):
+            a, b, c = idx[t], idx[t + 1], idx[t + 2]
+            if is_hand[a] and is_hand[b] and is_hand[c]:
+                tris.append((a, c, b))     # Diesel winding: swap b/c
+        if not tris:
+            continue
+
+        remap: dict[int, int] = {}
+        order: list[int] = []
+        for tri in tris:
+            for vi in tri:
+                if vi not in remap:
+                    remap[vi] = len(order)
+                    order.append(vi)
+        base_v = len(g.verts)
+        base_i = len(g.faces) * 3        # captured *before* the tris are added
+        for vi in order:
+            x, y, z = V[vi]
+            g.verts.append((float(x), float(y), float(z)))
+            g.normals.append(donor_normals[vi] if donor_normals else (0.0, 0.0, 0.0))
+            u, v = geo["uv0"][vi]
+            # Group UVs are the *internal* (u, 1 - v) convention every other
+            # slice in this mesh uses. Storing the donor's raw v here flipped
+            # the hands into the wrong half of the atlas, where the donor's
+            # texture is black bodysuit: the grafted hands rendered as dark
+            # grey-brown mittens. One convention per geometry block.
+            g.uvs.append((float(u), float(1.0 - v)))
+            infl = []
+            for bi, w in zip(geo["blendindices"][vi], geo["blendweights"][vi]):
+                nm = pal[bi] if bi < len(pal) else ""
+                if w > 1e-6 and _is_hand_bone(nm):
+                    infl.append((nm, float(w)))
+            infl = [t for t in sorted(infl, key=lambda t: -t[1])[:3] if t[1] > 0]
+            total = sum(w for _, w in infl) or 1.0
+            g.weights.append([(nm, w / total) for nm, w in infl])
+            used.update(nm for nm, _ in infl)
+        g.faces.extend(tuple(remap[i] + base_v for i in tri) for tri in tris)
+        g.slices.append(("hands", base_v, base_i, len(tris), len(order)))
+        g.mat_slots.append(slot)
+
+    if not g.verts:
+        raise SystemExit(f"no hand geometry found in {src_path}")
+
+    # donors may ship no normals at all; accumulate from the winding instead
+    if not any(any(c != 0.0 for c in n) for n in g.normals):
+        acc = np.zeros((len(g.verts), 3), dtype=np.float64)
+        P = np.array(g.verts, dtype=np.float64)
+        for a, b, c in g.faces:
+            n = np.cross(P[b] - P[a], P[c] - P[a])
+            ln = float(np.linalg.norm(n))
+            if ln > 0:
+                acc[a] += n / ln
+                acc[b] += n / ln
+                acc[c] += n / ln
+        ln = np.maximum(np.linalg.norm(acc, axis=1, keepdims=True), 1e-9)
+        g.normals = [tuple(map(float, row)) for row in acc / ln]
+
+    g.palette = sorted(used)
+    pal_index = {n: i for i, n in enumerate(g.palette)}
+    g.weights = [[(pal_index[n], w) for n, w in infl] for infl in g.weights]
+    return g
+
+
+def append_group(base: Group, extra: Group, template: Template) -> None:
+    """Merge ``extra`` into ``base`` as further slices on one drawable."""
+    if not extra.verts:
+        return
+    # everything gets re-indexed against the union palette, in template order
+    names_old = list(base.palette)
+    named_weights = [[(names_old[i], w) for i, w in infl] for infl in base.weights]
+    extra_weights = [[(extra.palette[i], w) for i, w in infl] for infl in extra.weights]
+    used = {n for infl in named_weights for n, _ in infl}
+    used |= {n for infl in extra_weights for n, _ in infl}
+
+    offset = len(base.verts)
+    # a slice carries *both* offsets: where its vertices start (bv) and where
+    # its triangles start in the index stream (bi). Both have to be rebased, or
+    # the render atom points at someone else's triangles -- the geometry is
+    # silently not drawn and whatever lives at the stale offset is drawn with
+    # the wrong material instead. Missing the index offset here cost us the
+    # grafted hands: they sat in the model, unwatched by any atom.
+    toffset = len(base.faces) * 3
+    base.verts.extend(extra.verts)
+    base.normals.extend(extra.normals)
+    base.uvs.extend(extra.uvs)
+    base.faces.extend(tuple(i + offset for i in f) for f in extra.faces)
+    base.slices.extend((mat, bv + offset, bi + toffset, nt, nv)
+                       for mat, bv, bi, nt, nv in extra.slices)
+    base.mat_slots.extend(extra.mat_slots)
+
+    base.palette = _palette_order(template, used)
+    index = {n: i for i, n in enumerate(base.palette)}
+    base.weights = [[(index[n], w) for n, w in infl]
+                    for infl in named_weights + extra_weights]
+
+
+def _ring_angles(ring, centre, axis):
+    import numpy as np
+
+    """Angle of every ring vertex around `axis`, plus the ring's in-plane basis."""
+    axis = np.asarray(axis, dtype=np.float64)
+    axis = axis / (np.linalg.norm(axis) or 1.0)
+    helper = np.array([0.0, 0.0, 1.0])
+    if abs(float(np.dot(helper, axis))) > 0.9:
+        helper = np.array([0.0, 1.0, 0.0])
+    e1 = np.cross(axis, helper)
+    e1 /= np.linalg.norm(e1) or 1.0
+    e2 = np.cross(axis, e1)
+    rel = np.asarray(ring, dtype=np.float64) - centre
+    return np.arctan2(rel @ e2, rel @ e1), e1, e2
+
+
+def _ordered_ring(indices, g: Group, centre, axis):
+    """Ring vertices sorted by angle round ``axis``, plus their 0..1 fractions.
+
+    Both the stitch and the sleeve pull need the two rings in the *same*
+    angular order: `boundary_loops` walks a loop in whatever direction its
+    owner faces, so half the rings arrive reversed, and an unwrap of a
+    reversed ring runs 0 -> -2pi (normalising by its end turns the whole
+    mapping into noise).
+    """
+    import numpy as np
+
+    angles, _e1, _e2 = _ring_angles([g.verts[i] for i in indices], centre, axis)
+    order = np.argsort(angles)
+    angles = angles[order]
+    frac = (angles - angles[0]) / max(float(angles[-1] - angles[0]), 1e-9)
+    return [indices[i] for i in order], frac
+
+
+def _wrist_loops(faces, verts, side_sign, min_r=1.0, max_r=6.0, min_n=8,
+                 min_x=30.0):
+    """Boundary loops that look like a wrist opening on one side of the body."""
+    import numpy as np
+
+    out = []
+    for loop in boundary_loops(faces):
+        ring = loop[:-1] if len(loop) > 3 and loop[0] == loop[-1] else loop
+        if len(ring) < min_n:
+            continue
+        pts = np.asarray([verts[i] for i in ring], dtype=np.float64)
+        centre = pts.mean(axis=0)
+        if abs(centre[0]) < min_x or np.sign(centre[0]) != side_sign:
+            continue
+        radius = float(np.linalg.norm(pts - centre, axis=1).mean())
+        if not min_r <= radius <= max_r:
+            continue
+        out.append((ring, centre, radius))
+    return out
+
+
+def _face_slots(g: Group) -> list[str]:
+    """Out material of every face, in face order."""
+    out: list[str] = [""] * len(g.faces)
+    for (_mat, _bv, base_i, tris, _nv), slot in zip(g.slices, g.mat_slots):
+        for f in range(base_i // 3, min(base_i // 3 + tris, len(out))):
+            out[f] = slot
+    return out
+
+
+def weld_wrist(g: Group, vert_range, face_range, radius: float = 7.0,
+               slot: str = "mtr_body", hand_slot: str = "mtr_hands",
+               pull: float = 1.0) -> dict:
+    """Close the gap between a retargeted arm and a grafted PD2 hand.
+
+    A grafted hand sits where PD2's `Hand` bone is, and it has to: weapons are
+    parented to that bone, so moving the hand to suit the sleeve would move the
+    gun. PD2's bind pose, though, has the palm hanging well forward of the
+    forearm it belongs to, so the retargeted Skyrim sleeve ends a hand's width
+    away from the hand it should cover — and the offset is *rigid*: both ends
+    follow their own bones, so no animation ever closes it. The sleeve is what
+    has to move.
+
+    Two steps per opening: pull the sleeve's mouth onto the hand's (a taper up
+    the cuff, so the join is a cone and not a tear), then stitch the two
+    openings with a band of quads whose material is the mouth's own — a skin
+    wrist closes with skin, a blazer cuff closes with the blazer.
+
+    `vert_range`/`face_range` are the half-open ranges the graft occupies.
+    """
+    import numpy as np
+
+    v_lo, v_hi = vert_range
+    f_lo, f_hi = face_range
+    hand_verts = set(range(v_lo, v_hi))
+    hand_faces = g.faces[f_lo:f_hi]
+    body_faces = [f for i, f in enumerate(g.faces) if not f_lo <= i < f_hi]
+
+    report = {"pairs": [], "moved": 0, "triangles": 0}
+    new_faces: list[tuple[int, int, int]] = []
+    bands: list[tuple] = []                    # (slot, v0, i0, tris, nverts)
+
+    for sign in (1.0, -1.0):
+        body_rings = _wrist_loops(body_faces, g.verts, sign)
+        # outermost opening first: the blazer cuff has to reach the hand, the
+        # skin ring inside it then follows the same target
+        body_rings.sort(key=lambda t: -t[2])
+        hand_rings = []
+        for loop in boundary_loops(hand_faces):
+            ring = loop[:-1] if len(loop) > 3 and loop[0] == loop[-1] else loop
+            pts = np.asarray([g.verts[i] for i in ring])
+            c = pts.mean(axis=0)
+            if np.sign(c[0]) != sign:
+                continue
+            hand_rings.append((ring, c, float(np.linalg.norm(pts - c, axis=1).mean())))
+        if not body_rings or not hand_rings:
+            continue
+
+        # The shift is computed from the outermost opening and applied to the
+        # whole neighbourhood *once*: every layer there (blazer, lace top, skin)
+        # has to move by the same field, or the sleeve drags off the arm inside
+        # it and the skin pokes through as a flap.
+        mouth = body_rings[0]
+        bring, bcentre, bradius = mouth
+        hring, hcentre = _match_hand_ring(hand_rings, bcentre, bradius)
+        if hring is None:
+            continue
+        axis = hcentre - bcentre
+        if float(np.linalg.norm(axis)) < 1e-6:
+            axis = np.array([0.0, 1.0, 0.0])
+        core = np.asarray([g.verts[i] for i in bring]).mean(axis=0)
+
+        bring, t_b = _ordered_ring(bring, g, core, axis)
+        hring, t_h = _ordered_ring(hring, g, hcentre, axis)
+        hand_pts = np.asarray([g.verts[i] for i in hring])
+        target = np.stack([np.interp(t_b, t_h, hand_pts[:, k])
+                           for k in range(3)], axis=1)
+        ring_shift = (target - np.asarray([g.verts[i] for i in bring])) * pull
+        mean_shift = ring_shift.mean(axis=0)
+        to_hand = mean_shift / (np.linalg.norm(mean_shift) or 1.0)
+        # Only the rigid part of the shift is applied. Warping the mouth onto
+        # the hand's ring vertex-by-vertex needs a 76 -> 94 correspondence that
+        # does not exist: the interpolated target wobbles round the circle and
+        # turns a round cuff into a jagged star. The cuff keeps its own seam and
+        # simply travels to the hand; the two openings are capped separately.
+        for i, v in enumerate(g.verts):
+            if i in hand_verts:
+                continue
+            p = np.asarray(v, dtype=np.float64)
+            rel = p - core
+            along = float(np.dot(rel, to_hand))          # + is towards the hand
+            lateral = rel - along * to_hand
+            # stay inside the sleeve's own tube: the falloff must not reach
+            # round the arm into the torso or the other cuff
+            if float(np.linalg.norm(lateral)) > 2.5 * bradius:
+                continue
+            if along < -2.5 or along > radius:
+                continue
+            w = (1.0 - max(along, 0.0) / radius) ** 2
+            shift = w * mean_shift
+            g.verts[i] = (v[0] + shift[0], v[1] + shift[1], v[2] + shift[2])
+            report["moved"] += 1
+
+        # Close the cuff with *skin*, sampled from the hand it closes onto.
+        # Painting it with the mouth's own cloth is what a stitched seam would
+        # do, but PD2 does not stitch these: a heister carries `g_body`
+        # (clothes) and `g_arms` (a bare skin wrist) as separate models, and the
+        # sleeve simply overlaps the arm. A skin cap reproduces what that looks
+        # like from outside -- sleeve, a ring of wrist, then the hand -- and it
+        # cannot go wrong on a garment whose inner layer is white lace, which is
+        # what a cloth-coloured cap showed instead.
+        for ring in [r for r, _c, _r in body_rings]:
+
+            # `boundary_loops` returns loops in face order, which on a bent
+            # cuff zig-zags round the opening; fanning that order connects
+            # vertices that are not neighbours and throws a star of blades out
+            # of the sleeve. Sort by angle first.
+            rc = np.asarray([g.verts[i] for i in ring]).mean(axis=0)
+            ring, _f = _ordered_ring(list(ring), g, rc, axis)
+            v0 = len(g.verts)
+            i0 = len(g.faces) * 3 + len(new_faces) * 3
+            fan = _fan_cap(g, ring, body_faces, uv_ring=hring)
+            new_faces.extend(fan)
+            bands.append((hand_slot, v0, i0, len(fan), len(g.verts) - v0))
+        # The hand's own opening is *not* capped. Its boundary is a single
+        # loop only in the donor's topology: walked on the grafted hand it
+        # jumps by up to 10 cm between neighbours, so any fan across it throws
+        # long blades well outside the cuff. Nothing can see into it anyway —
+        # the sleeve's own cap sits between the viewer and the hole.
+
+        bcentre2 = np.asarray([g.verts[i] for i in bring]).mean(axis=0)
+        report["pairs"].append({
+            "side": "left" if sign > 0 else "right",
+            "sleeve": int(len(bring)), "hand": int(len(hring)),
+            "rings": len(body_rings),
+            "gap_cm": round(float(np.linalg.norm(hcentre - bcentre2)), 2),
+            "triangles": sum(b[3] for b in bands)})
+
+    if new_faces:
+        g.faces.extend(new_faces)
+        for band_slot, bv, bi, tris, nverts in bands:
+            g.slices.append(("skin", bv, bi, tris, nverts))
+            g.mat_slots.append(band_slot)
+        report["triangles"] = len(new_faces)
+    return report
+
+
+def _fan_cap(g: Group, ring, faces, depth: float = 1.0, uv_ring=None) -> list[tuple]:
+    """Close one opening with a shallow cone pointing back into the surface.
+
+    `cap_holes` fans to the centroid, which is fine for a flat hole but wrong
+    for a cuff mouth that has just been dragged onto a hand: the opening is
+    elliptical and sags, so a flat fan pokes out of the sleeve as a pale
+    flange. The apex is instead pushed *inside* along the surface's own inside
+    direction — measured from the faces that border the ring, not from the
+    vertex normals, which on a garment edge can point either way — so the cone
+    always ends up hidden behind the opening it closes.
+
+    The apex carries the ring's average skin weights, so the cap deforms with
+    the wrist instead of tearing off it.
+    """
+    import numpy as np
+
+    pts = np.asarray([g.verts[i] for i in ring], dtype=np.float64)
+    centre = pts.mean(axis=0)
+    normal = np.zeros(3)
+    for i in ring:
+        normal += np.asarray(g.normals[i], dtype=np.float64)
+    ln = float(np.linalg.norm(normal)) or 1.0
+    normal /= ln
+
+    # inside = towards the surface the ring belongs to
+    inside = np.zeros(3)
+    ring_set = set(ring)
+    for f in faces:
+        if len(ring_set.intersection(f)) >= 2:
+            inside += (np.asarray([g.verts[i] for i in f],
+                                  dtype=np.float64).mean(axis=0) - centre)
+    if float(np.linalg.norm(inside)) < 1e-6:
+        inside = -normal              # no bordering face: fall back on normals
+    else:
+        inside /= float(np.linalg.norm(inside))
+    radius = float(np.linalg.norm(pts - centre, axis=1).mean())
+
+    uv_ring = list(ring) if uv_ring is None else list(uv_ring)
+    uv = np.asarray([g.uvs[i] for i in uv_ring], dtype=np.float64).mean(axis=0)
+    weight_sum: dict[int, float] = {}
+    for i in ring:
+        for pal, w in g.weights[i]:
+            weight_sum[pal] = weight_sum.get(pal, 0.0) + w / len(ring)
+    total = sum(weight_sum.values()) or 1.0
+    infl = sorted(((k, w / total) for k, w in weight_sum.items()),
+                  key=lambda t: -t[1])[:3]
+    renorm = sum(w for _, w in infl) or 1.0
+    infl = [(k, w / renorm) for k, w in infl]
+
+    apex = centre + inside * (radius * depth)
+    new_index = len(g.verts)
+    g.verts.append(tuple(float(x) for x in apex))
+    g.normals.append(tuple(float(x) for x in normal))
+    g.uvs.append((float(uv[0]), float(uv[1])))
+    g.weights.append(infl)
+
+    # wind the fan so it faces the way the ring's own surface does
+    order = list(ring)
+    a, b, c = (np.asarray(g.verts[i], dtype=np.float64)
+               for i in (order[0], order[1], new_index))
+    n = np.cross(b - a, c - a)
+    want = sum(np.asarray(g.normals[i], dtype=np.float64) for i in order[:3])
+    flip = float(np.dot(n, want)) < 0
+    faces_out = []
+    for k in range(len(order)):
+        i, j = order[k], order[(k + 1) % len(order)]
+        faces_out.append((j, i, new_index) if flip else (i, j, new_index))
+    return faces_out
+
+
+def _tuck_ring(g: Group, ring, centre, toward) -> None:
+    """Shrink an inner opening and push it back, so it hides inside the cuff."""
+    import numpy as np
+
+    centre = np.asarray(centre, dtype=np.float64)
+    toward = np.asarray(toward, dtype=np.float64)
+    back = centre - toward
+    back = back / (np.linalg.norm(back) or 1.0)
+    for i in ring:
+        p = np.asarray(g.verts[i], dtype=np.float64)
+        g.verts[i] = tuple(float(x) for x in
+                           centre + (p - centre) * 0.35 + back * 3.5)
+
+
+def _match_hand_ring(hand_rings, bcentre, bradius):
+    """The hand opening that belongs to this sleeve opening, or (None, None)."""
+    import numpy as np
+
+    cand = [(ring, c) for ring, c, r in hand_rings
+            if len(ring) >= 8 and 0.35 * bradius <= r <= 2.5 * bradius]
+    if not cand:
+        return None, None
+    ring, c = min(cand, key=lambda t: float(np.linalg.norm(t[1] - bcentre)))
+    return ring, c
+
+
+def _band_faces(bring, bang, hring, hang, g: Group, axis) -> list[tuple]:
+    """Quads between two rings, matched by their angular fractions.
+
+    Walking the two rings together in angle gives a band with no twist even
+    when the counts differ (76 sleeve vertices against 94 hand ones here).
+    Winding is chosen against the vertex normals, so the band cannot come out
+    inside out.
+    """
+    import numpy as np
+
+    if len(hang) > 1 and _band_cost(bang, hang) > _band_cost(bang, 1.0 - hang[::-1]):
+        hring, hang = hring[::-1], 1.0 - hang[::-1]
+    faces = []
+    i = j = 0
+    nb, nh = len(bring), len(hring)
+    while i + 1 < nb or j + 1 < nh:
+        next_b = bang[i + 1] if i + 1 < nb else float("inf")
+        next_h = hang[j + 1] if j + 1 < nh else float("inf")
+        if next_b <= next_h:
+            faces.append((bring[i], bring[i + 1], hring[j % nh]))
+            i += 1
+        else:
+            faces.append((bring[i % nb], hring[(j + 1) % nh], hring[j % nh]))
+            j += 1
+    out = []
+    for a, b, c in faces:
+        p, q, r = (np.asarray(g.verts[k], dtype=np.float64) for k in (a, b, c))
+        n = np.cross(q - p, r - p)
+        ln = float(np.linalg.norm(n))
+        if ln < 1e-12:
+            continue
+        want = sum(np.asarray(g.normals[k], dtype=np.float64) for k in (a, b, c))
+        out.append((a, b, c) if float(np.dot(n / ln, want)) >= 0 else (a, c, b))
+    return out
+
+
+def _band_cost(bang, hang) -> float:
+    """How much a band would twist: the two seams resampled and compared.
+
+    The rings rarely have the same vertex count (76 sleeve vertices against 88
+    hand ones here), so the comparison happens on a common angular grid rather
+    than vertex to vertex.
+    """
+    import numpy as np
+
+    if len(hang) < 3 or bang[-1] < 1e-9 or hang[-1] < 1e-9:
+        return 0.0
+    grid = np.linspace(0.0, 1.0, 33)
+    a = np.interp(grid, bang / bang[-1], np.linspace(0.0, 1.0, len(bang)))
+    b = np.interp(grid, hang / hang[-1], np.linspace(0.0, 1.0, len(hang)))
+    return float(np.sum(np.abs(a - b)))
+
+
+def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
+                 z0: float = 158.0, k: float = 0.35) -> int:
+    """Compress the standing collar so it clears the jaw.
+
+    The 3BA blazer and the lace top both stand up to ~169 cm, while the heister
+    head hangs off a Head bone at 166.8 cm: the collar ends up around the chin
+    and swallows the jaw in profile. Squashing everything above ``z0`` toward
+    it is continuous at the boundary, so the garment cannot tear — it just
+    reads as a collar that is folded down rather than popped.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z > z0:
+                g.verts[i] = (x, y, z0 + (z - z0) * k)
+                touched += 1
+    return touched
 
 
 def repair_skin_boundary_normals(g: Group) -> None:
@@ -902,6 +1486,142 @@ def repair_skin_boundary_normals(g: Group) -> None:
                 )
 
 
+def boundary_loops(faces) -> list[list[int]]:
+    """Directed loops of edges used by exactly one face, largest first.
+
+    Direction matters: the cap that closes a loop has to traverse each edge the
+    opposite way its single owner does, or the cap is inside-out relative to the
+    surface around it. Each loop repeats its first index at the end.
+    """
+    counts: dict[tuple[int, int], int] = {}
+    directed: dict[tuple[int, int], int] = {}
+    for a, b, c in faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            key = (x, y) if x < y else (y, x)
+            counts[key] = counts.get(key, 0) + 1
+            directed[(x, y)] = directed.get((x, y), 0) + 1
+    boundary = [(x, y) for (x, y) in directed
+                if counts[(x, y) if x < y else (y, x)] == 1]
+    if not boundary:
+        return []
+    nxt: dict[int, list[int]] = {}
+    for x, y in boundary:
+        nxt.setdefault(x, []).append(y)
+    seen: set[tuple[int, int]] = set()
+    loops: list[list[int]] = []
+    for x, y in boundary:
+        if (x, y) in seen:
+            continue
+        loop = [x]
+        cur = (x, y)
+        while cur not in seen:
+            seen.add(cur)
+            loop.append(cur[1])
+            candidates = [v for v in nxt.get(cur[1], []) if (cur[1], v) not in seen]
+            if not candidates:
+                break
+            cur = (cur[1], candidates[0])
+        if len(loop) >= 4 and loop[0] == loop[-1]:
+            loops.append(loop)
+    loops.sort(key=len, reverse=True)
+    return loops
+
+
+def cap_holes(g: Group, min_z: float, slot: str,
+              source_material: str = "skin", allowed: set[int] | None = None,
+              max_span: float = 14.0) -> int:
+    """Close boundary loops of the group that lie entirely above `min_z`.
+
+    The 3BA body is authored to wear a *separate* Skyrim head, so it ends in an
+    open collar. Without a head the player sees the inside of her own torso
+    through it, and the shadow mesh is not closed either. Each loop above
+    `min_z` gets a fan to its centroid, with the centroid weighted like the loop
+    it closes so the cap deforms with the neck instead of tearing off.
+    Returns the number of triangles added, and registers them as their own
+    render atom so the engine actually draws the cap.
+    """
+    import numpy as np
+
+    if not g.faces:
+        return 0
+    p = np.asarray(g.verts, dtype=np.float64)
+    z = p[:, 2]
+    base_v = len(g.verts)
+    base_i = len(g.faces) * 3
+    added = 0
+    for loop in boundary_loops(g.faces):
+        idx = [i for i in loop if i < len(g.verts)]
+        if len(idx) < 3:
+            continue
+        if float(z[idx].min()) < min_z:
+            continue
+        if allowed is not None and any(i not in allowed for i in idx):
+            continue
+        # a seam between two UV shells is a boundary loop too; only the real
+        # opening is small and roundish
+        span = float(np.linalg.norm(p[idx].max(axis=0) - p[idx].min(axis=0)))
+        if span > max_span:
+            continue
+        ring = idx[:-1] if len(idx) > 3 and idx[0] == idx[-1] else idx
+        if len(ring) < 3:
+            continue
+        # centroid vertex, weighted and normalised like its neighbours
+        centre = np.array([g.verts[i] for i in ring], dtype=np.float64).mean(axis=0)
+        normal = np.zeros(3)
+        for i in ring:
+            normal += np.asarray(g.normals[i], dtype=np.float64)
+        length = float(np.linalg.norm(normal)) or 1.0
+        normal /= length
+        weight_sum: dict[int, float] = {}
+        for i in ring:
+            for pal, w in g.weights[i]:
+                weight_sum[pal] = weight_sum.get(pal, 0.0) + w / len(ring)
+        total = sum(weight_sum.values()) or 1.0
+        infl = sorted(((p, w / total) for p, w in weight_sum.items()),
+                      key=lambda t: -t[1])[:3]
+        renorm = sum(w for _, w in infl) or 1.0
+        infl = [(p, w / renorm) for p, w in infl]
+        uv = np.array([g.uvs[i] for i in ring], dtype=np.float64).mean(axis=0)
+        new_index = len(g.verts)
+        g.verts.append(tuple(float(x) for x in centre))
+        g.normals.append(tuple(float(x) for x in normal))
+        g.uvs.append((float(uv[0]), float(uv[1])))
+        g.weights.append(infl)
+        for k in range(len(ring)):
+            a, b = ring[k], ring[(k + 1) % len(ring)]
+            # reversed relative to the boundary walk so the fan faces outward,
+            # matching the winding of the surface it closes
+            g.faces.append((b, a, new_index))
+            added += 1
+    if added:
+        g.slices.append((source_material, base_v, base_i, added,
+                         len(g.verts) - base_v))
+        g.mat_slots.append(slot)
+    return added
+
+
+def winding_agreement(verts, faces, normals) -> float:
+    """Fraction of faces whose vertex normals agree with the winding.
+
+    The companion check to `orientation_breaks`: that one asks "are the faces
+    consistently wound", this one asks "do the normals point the same way the
+    winding says they do". A shipped reference model scores ~0.99; a model that
+    is uniformly inside-out scores ~0.01 and renders lit from behind.
+    """
+    import numpy as np
+
+    v = np.asarray(verts, dtype=np.float64)
+    f = np.asarray(faces, dtype=np.int64)
+    n = np.asarray(normals, dtype=np.float64)
+    if not len(f):
+        return 1.0
+    face = np.cross(v[f[:, 1]] - v[f[:, 0]], v[f[:, 2]] - v[f[:, 0]])
+    face /= np.maximum(np.linalg.norm(face, axis=1, keepdims=True), 1e-12)
+    vn = n[f[:, 0]] + n[f[:, 1]] + n[f[:, 2]]
+    vn /= np.maximum(np.linalg.norm(vn, axis=1, keepdims=True), 1e-12)
+    return float(((face * vn).sum(axis=1) > 0).mean())
+
+
 def orientation_breaks(g: Group) -> int:
     """Count shared edges whose two faces traverse it in the same direction.
 
@@ -1019,6 +1739,64 @@ def group_atom_plan(g: Group, out_mats_sorted: list[str]) -> list[dict]:
     return atoms
 
 
+def atom_problems(geo: dict, topo: dict, atoms: list[dict]) -> list[str]:
+    """Reasons the render atoms do not describe this geometry.
+
+    A Diesel render atom is a *range*: `base_vertex`/`slice_len` select a block
+    of vertices, `base_index`/`tri_count` a run of triangles in the index
+    stream (`base_index` is three times a triangle number). Indices are
+    absolute, so a triangle may reach vertices outside its own block (the
+    neck-cap fan does exactly that); what must hold is that the atoms *tile*
+    both the vertex array and the triangle stream, with nothing shared and
+    nothing left over.
+
+    Get the triangle offset wrong and the atom draws some other part of the
+    mesh with this material while the geometry it was meant for is never drawn
+    at all — a silent failure: the file stays structurally valid and previews
+    that read the mesh directly look perfect. That is exactly what happened to
+    the grafted hands.
+    """
+    problems: list[str] = []
+    want_v = 0
+    for k, a in sorted(enumerate(atoms), key=lambda kv: kv[1]["base_vertex"]):
+        if a["base_vertex"] != want_v:
+            problems.append(f"atom {k} ({a['base_vertex']}) does not follow the "
+                            f"vertex block ending at {want_v}")
+        want_v = a["base_vertex"] + a["slice_len"]
+    if want_v != len(geo["verts"]):
+        problems.append(f"vertex blocks cover {want_v} of {len(geo['verts'])}")
+
+    ntri = len(topo["indices"]) // 3
+    want_t = 0
+    for k, a in sorted(enumerate(atoms), key=lambda kv: kv[1]["base_index"]):
+        if a["base_index"] != want_t * 3:
+            problems.append(f"atom {k} draws from triangle {a['base_index'] // 3}"
+                            f", not {want_t} — it would draw another part of "
+                            f"the mesh")
+        want_t += a["tri_count"]
+    if want_t != ntri:
+        problems.append(f"atoms draw {want_t} of {ntri} triangles")
+    return problems
+
+
+def audit_model(src) -> list[str]:
+    """`atom_problems` over every mesh node of a built model."""
+    mf = dm.ModelFile.read_path(src) if isinstance(src, (str, Path)) else src
+    out: list[str] = []
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        if not md.get("atoms"):
+            continue
+        try:
+            gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+            topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+        except (ValueError, KeyError):
+            continue
+        out.extend(atom_problems(geo, topo, md["atoms"]))
+    return out
+
+
 def group_bounds(g: Group):
     xs = [v[0] for v in g.verts]; ys = [v[1] for v in g.verts]; zs = [v[2] for v in g.verts]
     bmin = (min(xs), min(ys), min(zs))
@@ -1029,14 +1807,115 @@ def group_bounds(g: Group):
 
 # ------------------------------------------------------------ assembly
 
+#: Parts of the rig that make up a first-person viewmodel. Anything shaded
+#: mostly by these belongs in the fps unit; everything else (torso, legs) is
+#: stripped.
+_FPS_PARTS = ("Shoulder", "Arm", "ForeArm", "Hand")
+
+
+def is_fps_arm_bone(name: str) -> bool:
+    """True for the arm chain *and every finger chain hanging off it*.
+
+    The viewmodel cut has to be a rule, not a fixed bone list: a hand whose
+    fingers carry their own weights is dominated by ``LeftHandPinky3``, not by
+    ``LeftHand``, so a list that stops at the wrist (or at the thumb) drops
+    ~500 finger vertices from the fps unit while the third-person unit keeps
+    them — the heister then holds her gun with two mitten stumps in first
+    person only.  This is item 16 of `knowledge/games/payday-2/
+    las-moog-outfit-porting.md`; keep the cut in step with the rig.
+    """
+    return (name.startswith(("Left", "Right"))
+            and any(part in name for part in _FPS_PARTS))
+
+
+#: Explicit name list for routes whose source binds no finger weights (the
+#: Miranda line). New code should cut with :func:`is_fps_arm_bone`.
+FPS_BONES = tuple(
+    f"{side}{part}" for side in ("Left", "Right") for part in _FPS_PARTS
+)
+
+
+def extract_bones(g: Group, bones, name: str, min_weight: float = 0.5) -> Group:
+    """A new group with only the geometry dominated by ``bones``.
+
+    ``bones`` is either a container of names or a predicate on the group's own
+    palette; pass :func:`is_fps_arm_bone` when the rig has finger chains.
+
+    The fps unit is arms-only — the guide is explicit that a viewmodel shows
+    nothing else. Rather than retarget a second time, this slices the already
+    posed third-person geometry: both templates share the same PD2 bind pose,
+    so the arm vertices land exactly where the viewmodel skeleton expects them.
+
+    Slices are rebuilt per source material, with one contiguous vertex block
+    each, because a Diesel render atom addresses a vertex range.
+    """
+    wanted = ({p for p in g.palette if bones(p)} if callable(bones)
+              else set(bones))
+    keep = [i for i, infl in enumerate(g.weights)
+            if sum(w for p, w in infl if g.palette[p] in wanted) >= min_weight]
+    keep_set = set(keep)
+    face_to_slice = {}
+    for si, (_mat, _bv, base_i, tris, _nv) in enumerate(g.slices):
+        for f in range(base_i // 3, base_i // 3 + tris):
+            face_to_slice[f] = si
+
+    # surviving faces grouped by the source material they came from, kept in
+    # source order (linear: the previous version rebuilt a set and searched the
+    # face list per triangle, which cost minutes on a 100k-triangle body)
+    by_slice: dict[int, list[tuple]] = {}
+    for f, tri in enumerate(g.faces):
+        a, b, c = tri
+        if a in keep_set and b in keep_set and c in keep_set:
+            by_slice.setdefault(face_to_slice.get(f, 0), []).append(tri)
+    if not by_slice:
+        raise SystemExit(f"{name}: no geometry dominated by {sorted(wanted)}")
+
+    out = Group(name=name)
+    out.palette = list(g.palette)
+    # vertices are emitted per slice, in first-use order, so each slice owns a
+    # contiguous block: skin arms first, then the sleeve that covers them
+    for si in sorted(by_slice):
+        tri_ids = by_slice[si]
+        used: list[int] = []
+        seen: dict[int, int] = {}
+        local_faces = []
+        for a, b, c in tri_ids:
+            row = []
+            for v in (a, b, c):
+                if v not in seen:
+                    seen[v] = len(used)
+                    used.append(v)
+                row.append(seen[v])
+            local_faces.append(tuple(row))
+        base_v = len(out.verts)
+        for v in used:
+            out.verts.append(g.verts[v])
+            out.normals.append(g.normals[v])
+            out.uvs.append(g.uvs[v])
+            out.weights.append(g.weights[v])
+        out.slices.append((g.slices[si][0], base_v, len(out.faces) * 3,
+                           len(local_faces), len(used)))
+        out.mat_slots.append(g.mat_slots[si])
+        out.faces.extend((a + base_v, b + base_v, c + base_v)
+                         for a, b, c in local_faces)
+    return out
+
+
 def assemble_model(template: Template, groups: dict[str, Group],
-                   share: dict[str, str]) -> dm.ModelFile:
+                   share: dict[str, str],
+                   drop_drawables: tuple[str, ...] = ()) -> dm.ModelFile:
     """Template sections with mesh blocks and materials replaced.
 
     ``share`` maps drawable name -> group name; drawables not in ``share``
     keep their template geometry blocks untouched (e.g. fps c_block). New
     group blocks are emitted where the template's mesh blocks were; material
     sections go where the template's material sections were.
+
+    ``drop_drawables`` removes named drawables entirely — geometry, topology,
+    skin palette, object-tree nodes and their children. Used to strip a
+    template's own head when the outfit does not ship one: a drawable that is
+    present but disabled would still carry someone else's character in the
+    pack.
     """
     old = template.mf
 
@@ -1054,6 +1933,35 @@ def assemble_model(template: Template, groups: dict[str, Group],
             if s.type == dm.TOPOLOGY_IP and s.id == md["topologyip"]:
                 ip = dm.decode_topologyip(s.payload)
                 block_ids.add(ip["topology"])
+
+    drop_ids: set[int] = set()
+    for dname in drop_drawables:
+        if dname not in template.drawables:
+            raise KeyError(f"template has no drawable {dname!r}")
+        md = template.drawables[dname]
+        drop_ids.add(template.name_id[dname])
+        drop_ids.add(md["skinbones"])
+        drop_ids.add(md["passthroughgp"])
+        drop_ids.add(md["topologyip"])
+        for s in old.sections:
+            if s.type == dm.PASSTHROUGH_GP and s.id == md["passthroughgp"]:
+                gp = dm.decode_passthroughgp(s.payload)
+                drop_ids |= {gp["geometry"], gp["topology"]}
+            if s.type == dm.TOPOLOGY_IP and s.id == md["topologyip"]:
+                ip = dm.decode_topologyip(s.payload)
+                drop_ids.add(ip["topology"])
+    # anything parented to a dropped node has to go with it, or the object tree
+    # keeps a dangling child id
+    changed = True
+    while changed:
+        changed = False
+        for s in old.sections:
+            if s.type in (dm.OBJECT3D, dm.MODEL_DATA) and s.id not in drop_ids:
+                obj = (dm.decode_object3d(s.payload) if s.type == dm.OBJECT3D
+                       else dm.decode_model_data(s.payload))
+                if obj.get("parent") in drop_ids:
+                    drop_ids.add(s.id)
+                    changed = True
 
     # template materials stay (fps c_block keeps referencing them); author
     # metadata is dropped. New materials are inserted before the object tree.
@@ -1112,7 +2020,7 @@ def assemble_model(template: Template, groups: dict[str, Group],
             out_sections.extend(group_secs[gname])
 
     for s in old.sections:
-        if s.type in drop_types:
+        if s.type in drop_types or s.id in drop_ids:
             continue
         if s.type == dm.OBJECT3D and not mats_inserted:
             out_sections.extend(new_mat_secs)

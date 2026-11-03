@@ -254,6 +254,14 @@ LAS flags to be switched **on**, not merely present).
     and check the two units against each other — the FPS unit must carry the
     same hand/finger bones as the third-person one, and its vertex count must
     not change silently between builds.
+    *Hit again, on our own pack.* The Business Woman build grafted PD2 hands
+    (532 finger-dominant vertices) onto a body whose viewmodel cut was still
+    the fixed list `Shoulder/Arm/ForeArm/Hand/HandThumb1`: the shipped
+    `fps_businesswoman.model` kept 12 of them, so first person held the gun
+    with stumps while third person was perfect. The cut is now the predicate
+    `build_models.is_fps_arm_bone` (side prefix + `Shoulder`/`Arm`/`Hand`, and
+    the finger bones all contain `Hand`), `extract_bones` accepts a predicate,
+    and `tests/test_fps_hands.py` compares the two units' finger bones.
 
 17. **Symptom.** A compliance auditor reports "all green" for a pack that
     breaks the guide in half the places. **Cause.** The auditor was only
@@ -311,6 +319,90 @@ LAS flags to be switched **on**, not merely present).
     PD2's Y+ wants them inverted. Keep the build switch either way: the
     in-game look is the final word.
 
+21. **Symptom.** The viewmodel's hands are simply *not there* in first person
+    (or render untextured), while the third-person model is correct and every
+    structural audit passes. **Cause.** The fist-person unit is its own model
+    with its own `fps_*.material_config`, and the two are checked separately:
+    a material that the fps model references but its config does not declare
+    cannot be resolved by the game, so those triangles do not draw. Ours
+    carried the grafted hands' `mtr_hands` but the config listed only
+    `mtr_body`/`mtr_jacket`/`mtr_jacket2`. **Fix.** Build the fps config from
+    the *fps model's own* material set, not from a hand-written list
+    (`FPS_MATERIALS` now includes `mtr_hands`), and assert the closure both
+    ways in a test: every material hash in the model appears in its config,
+    for the TPP and the FPS unit (`tests/test_fps_hands.py`). The rule is
+    general — a material is only resolvable by the config of the unit that
+    owns it.
+
+22. **Symptom.** A grafted part (hands, head, anything) is *in* the model — the
+    vertex count went up, the preview that reads the mesh shows it — but in game
+    it is invisible, and drawing a material-tagged view shows parts of the
+    *body* wearing that material instead. **Cause.** Two offset bugs, both in
+    the merge, both silent. (a) `append_group` rebased a slice's vertex offset
+    but not its *triangle* offset, so the appended slice's render atom pointed
+    at the first triangles of the host. (b) `graft_pd2_hands` recorded each
+    slice's `base_i` from `len(faces)` *after* extending the face list, so every
+    slice claimed to start one slice late. A Diesel render atom is a range —
+    `base_vertex`/`slice_len` for vertices, `base_index`/`tri_count` for
+    triangles — and a file whose atoms do not *tile* the index stream is still
+    structurally valid. **Fix.** `build_models.atom_problems` /`audit_model`
+    assert that the atoms' vertex blocks and triangle runs tile the geometry
+    exactly once; the build refuses to write a model that fails, and
+    `tests/test_fps_hands.py` re-checks the shipped pack.
+
+23. **Symptom.** The grafted hands sample near-black and render as dark grey
+    mittens, even though the donor's texture is shipped with them. **Cause.**
+    UV convention, not lighting. Every slice in the block is stored as the
+    *internal* `(u, 1 - v)`; the graft wrote the donor's raw `v`, which lands the
+    samples in the other half of the atlas — the half with the donor's black
+    bodysuit (median 0.03 vs 0.69 for skin). **Fix.** Convert once, on the way
+    in (`1 - v`), and assert it (`test_graft_uvs_use_the_internal_v_convention`).
+    Also: a donor's atlas is mostly clothing. Sampling "the donor's own texture"
+    is only correct if its hand islands are skin, which for 2B they are not —
+    the hands' albedo is authored at the *body bake's* measured tone instead
+    (`skin_texture.hand_tone_from_body`), with the normal map left flat.
+
+24. **Symptom.** The hands hover a hand's width below the cuff, and no
+    animation brings them together. **Cause.** Not an error: PD2's `Hand` bone
+    is where weapons are parented, and in the bind pose it hangs well forward of
+    the forearm axis, while a retargeted Skyrim sleeve ends along its own
+    forearm. The offset is rigid — both ends follow their own bones — so it
+    never closes. **Fix.** Move the *sleeve* (`weld_wrist`): translate the mouth
+    onto the hand's opening with a falloff that runs *along* the arm (a radial
+    falloff shears the cuff into a cone), then cap the cuff's opening with a fan
+    that takes the mouth's own material. Caps, not a band: the two rings have
+    different vertex counts and winding, and every band attempt produced a
+    visible twist across the wrist.
+
+    Three details, each of which was a visible defect on its own:
+
+    - **Rigid shift only.** Mapping the 76-vertex cuff ring onto the 94-vertex
+      hand ring vertex by vertex needs a correspondence that does not exist; the
+      interpolated target wobbles round the circle and turns a round cuff into a
+      jagged star of blades. Translation of the whole cuff neighbourhood is
+      enough — and the cuff keeps its own seam.
+    - **The cap's apex is sunk, not flat.** A fan to the centroid of a mouth
+      ring that has just been dragged onto a hand is not planar: it pokes out of
+      the sleeve as a pale flange. `_fan_cap` pushes the apex back along the
+      *bordering faces'* inside direction (vertex normals on a garment edge point
+      either way), so the cone hides inside the cuff.
+    - **The hand's opening is left open.** Walked on a grafted hand its boundary
+      is not one loop — neighbours are up to 10 cm apart — so a fan across it
+      throws long blades well outside the cuff. Nothing can see into it: the
+      cuff's own cap sits in front of the hole.
+
+25. **Symptom.** After the wrist work a spray of flat blades stuck out of both
+    cuffs, pale and clearly not part of either surface. **Cause.** A donor ships
+    its hand three times — `s_body`, `g_body_lod1`, `g_body` — and the graft took
+    every model whose vertices are weighted to hand bones, so the decimated LOD
+    was drawn on top of the full hand. It is not *inside* the full mesh, so it
+    reads as loose blades off the wrist. **Fix.** `graft_pd2_hands` skips nodes
+    whose name says `lod` and then keeps only nodes with at least a quarter of
+    the richest candidate's triangles (in case a donor's LODs are unnamed). The
+    grafted hand went from 602 + 5101 tris to 5101, and the blades went with the
+    LOD.
+
+
 ## Assets
 
 Reference-only in this repo: `2b.rar` (working LAS pack, user-supplied), the
@@ -336,3 +428,25 @@ exactly five locator objects — `aim`, `BackPack1`, `eyeAim`,
 `a_weapon_left_front`, `a_weapon_right_front` — the last two hanging off the
 hands (they are the weapon sockets, not thumb tips). Our model carries the
 same five, and the audit now checks them by name.
+
+26. **How LAS itself handles hands** (read off the mod, not guessed). A LAS
+    outfit keeps the hands *inside its own unit*: `units/.../pool_repair_suit`
+    declares `mtr_body`, `mtr_hands` and — first person only — `mtr_arms`
+    pointing at `units/payday2/characters/shared_textures/fps_wrist_female_1_*`,
+    i.e. a bare-wrist skin map between the sleeve and the glove. The cop
+    outfits go further and ship the whole body (`g_body`, `g_armor_*`,
+    `g_throat`, `g_neck`, `s_body`) with `replace_body = true`, so nothing of
+    the stock heister survives. Either way there is never a *seam*: the sleeve
+    overlaps a skin arm, and the skin material is what shows in the opening.
+
+    Two consequences for a ported outfit:
+
+    - Cap the sleeve mouth in **skin**, sampled from the hand's own UVs, not in
+      the mouth's garment material. `weld_wrist` did the latter (on the theory
+      that a stitched seam takes the cloth), and because the cap samples the
+      garment's *inner* layer it came out white lace at both wrists.
+    - Do **not** try to borrow the donor's forearm and let the sleeve overlap
+      it. A donor's skin arm is bound to PD2's `ForeArm` in PD2's bind pose,
+      which sits 20 cm off the hand and does not follow a retargeted Skyrim
+      sleeve; the seam just moves up to the elbow. Grafting hands and welding
+      the cuff is the only arrangement that holds on a ported body.
