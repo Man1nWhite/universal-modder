@@ -159,6 +159,44 @@ def build_normal(normal: np.ndarray, size: int, invert_y: bool = True) -> np.nda
 
 
 # ---------------------------------------------------------------------------
+# source-art cleanup
+# ---------------------------------------------------------------------------
+# The Melodic blazer paints a ceremonial medallion row onto its collar band:
+# three small + one large + three small medallions, each sitting over a beige
+# tab. It is intentional in the source outfit, but the band retargets onto the
+# back collar/yoke where the white V-lapel no longer hides it, so it reads as a
+# stray ornament on the upper back. The BusinessWoman port paints it out.
+# These are the band's bounds in the *source* atlas, v measured from the top.
+COLLAR_BAND_V = (0.64, 0.82)
+COLLAR_BAND_U = (0.26, 0.74)
+
+
+def remove_collar_decoration(
+        diffuse: np.ndarray,
+        normal: np.ndarray | None) -> tuple[np.ndarray, np.ndarray | None]:
+    """Paint the source collar's medallion band flat (colour + relief).
+
+    The ornament is brighter than the surrounding dark collar, so a luminance
+    gate isolates it without touching the plain fabric. The diffuse is filled
+    with the collar's own base colour and the normal is reset to tangent-flat,
+    removing both the painted medallions and their faint bump relief.
+    """
+    h, w = diffuse.shape[:2]
+    r0, r1 = int(COLLAR_BAND_V[0] * h), int(COLLAR_BAND_V[1] * h)
+    c0, c1 = int(COLLAR_BAND_U[0] * w), int(COLLAR_BAND_U[1] * w)
+    # Collar base colour sampled from the plain fabric just above the band.
+    collar = diffuse[int(0.59 * h):int(0.63 * h), c0:c1, :3]
+    base = np.clip(collar.reshape(-1, 3).mean(axis=0), 0, 255).astype(np.uint8)
+    gate = diffuse[r0:r1, c0:c1, :3].astype(np.float32).mean(axis=2) > 24.0
+    diffuse = diffuse.copy()
+    diffuse[r0:r1, c0:c1, :3][gate] = base
+    if normal is not None:
+        normal = normal.copy()
+        normal[r0:r1, c0:c1, :3][gate] = (128, 128, 255)
+    return diffuse, normal
+
+
+# ---------------------------------------------------------------------------
 # DDS writing (DXT5 + full mip chain)
 # ---------------------------------------------------------------------------
 def _encode_level(img: np.ndarray) -> bytes:
@@ -271,6 +309,10 @@ def build_textures(source: Path, specs: list[MaterialSpec], size: int,
         diffuse = load_source(source, spec.diffuse)
         normal = load_source(source, spec.normal) if spec.normal else None
         metal = load_source(source, spec.metal) if spec.metal else None
+        if spec.name == "mtr_jacket":
+            # The source collar's medallion row lands on the back yoke; paint
+            # it out (see remove_collar_decoration).
+            diffuse, normal = remove_collar_decoration(diffuse, normal)
         target = min(size, diffuse.shape[0])
 
         df_rgba = build_diffuse(diffuse, normal[..., 3] if normal is not None else None,

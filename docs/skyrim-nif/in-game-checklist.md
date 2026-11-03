@@ -50,6 +50,11 @@ Report failures with the item number and a screenshot.
     (a genuine gap in the source's overlap seam). Watch it with the arms raised
     and mid-animation — if a *wide* gap or a skin flap opens there, this is the
     item. No dent should be visible in the armpit itself.
+9c. **Back collar** — the upper back / collar yoke should read as plain black
+    blazer. The source outfit's painted medallion row (7 ornaments over beige
+    tabs) was painted out of the jacket texture (`remove_collar_decoration`), so
+    no medallions, tabs or bump relief should show on the back collar. If a row
+    of ornaments appears there, the texture fix did not take.
 10. **Necklace** — the chain follows the body, beads read as beads at heister
     distance (9:1 decimated) and do not shimmer or z-fight.
 11. Skirt does not intersect the jacket flaps when crouching (both are static

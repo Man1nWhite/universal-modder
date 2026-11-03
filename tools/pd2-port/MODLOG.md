@@ -4,6 +4,31 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
+## 2026-11-03 — BusinessWoman back-collar medallion painted out (NEW)
+
+- **What the back artifact was.** The ornament row on the upper back is the
+  source Melodic blazer's *intentional* collar decoration: a painted band of
+  seven medallions (3 small + 1 large + 3 small), each over a beige tab, in
+  `Jacket_diffA` at atlas v≈0.66–0.77 (u≈0.33–0.67). It is **not** a port bug —
+  the source NIF has the same 394 collar/yoke verts UV-ing into that band, a 1:1
+  port. In the source outfit the white V-lapel hides it from the front; after the
+  retarget it lands on the back collar/yoke where nothing covers it, so it reads
+  as a stray ornament. The normal map carries a faint matching relief.
+- **Fix.** New `skyrim_materials.remove_collar_decoration()` paints the band out
+  of the jacket diffuse — a luminance gate (>24) isolates the ornament from the
+  dark collar and fills it with the collar's own sampled base colour — and resets
+  the gated normal texels to tangent-flat (128,128,255), removing the bump relief
+  too. Wired into `build_textures` for `mtr_jacket` only; geometry is untouched.
+  The gate leaves the plain dark collar and every texel outside the band window
+  (v 0.64–0.82, u 0.26–0.74) alone.
+- Verified: band max brightness 177 → 24; back + upper-back renders show a plain
+  black collar. 2 new tests in `test_skyrim_materials.py`; full suite
+  **407 passed, 9 skipped, 1 failed** (the one failure is the pre-existing Miranda
+  retarget tolerance, unrelated). Pack rebuilt, sha256
+  `0a32adbefd4922be238f37e0369dfe8cafd26b3b78258446e93f62e52ec6a6e7`; textured
+  sheet + icon previews refreshed. KB **246 notes pass**; publish lint **0
+  failures**. `runtime_verified` still false — the collar needs the in-game check.
+
 ## 2026-11-03 — BusinessWoman neck + bust geometry fixes (NEW)
 
 - Follow-up to the adapter route: two shape loose ends on the ported 3BA body,

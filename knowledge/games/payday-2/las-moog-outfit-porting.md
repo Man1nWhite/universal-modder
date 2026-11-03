@@ -551,3 +551,23 @@ same five, and the audit now checks them by name.
       distorted the skin and *increased* the poke-through (depth-test pixel counts
       rose). The gentle skin-normal tuck is the best gentle outcome; closing the
       residue fully is a re-drape / re-authoring job, not a vertex nudge.
+
+29. **A "stray ornament" on the back may be the source outfit's own decoration**
+    (2026-11-03, Skyrim Melodic BusinessWoman blazer → PD2). The row of
+    medallions that appeared on the ported upper back was **not** a retarget or
+    UV bug: the source `Jacket_diffA` atlas paints a ceremonial collar band
+    (7 medallions over beige tabs, atlas v≈0.66–0.77), and the source NIF has the
+    same 394 collar/yoke verts UV-ing into it — a 1:1 port. In the source outfit
+    the white V-lapel hides the band from the front; after the retarget it lands
+    on the back yoke where nothing covers it, so it reads as an artifact.
+    **Before "fixing" an artifact, locate it in the source atlas and count the
+    source verts that sample it** — if the source carries the same decoration it
+    is intentional design, and the choice is to keep it (source fidelity) or
+    paint it out (a deliberate design change), not to hunt for a nonexistent
+    retarget bug. To paint it out: a luminance gate isolates the ornament from
+    the dark collar (fill with the collar's sampled base colour) and reset the
+    gated normal texels to tangent-flat to drop the matching bump relief
+    (`skyrim_materials.remove_collar_decoration`). Do it in the texture build,
+    not on the packed `.texture`, so it stays reproducible; geometry untouched.
+    Watch the UV convention when locating the band: NIF `v` is from the bottom,
+    the atlas image row is from the top (`v_top = 1 − v`).
