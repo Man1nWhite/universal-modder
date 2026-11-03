@@ -254,6 +254,14 @@ LAS flags to be switched **on**, not merely present).
     and check the two units against each other — the FPS unit must carry the
     same hand/finger bones as the third-person one, and its vertex count must
     not change silently between builds.
+    *Hit again, on our own pack.* The Business Woman build grafted PD2 hands
+    (532 finger-dominant vertices) onto a body whose viewmodel cut was still
+    the fixed list `Shoulder/Arm/ForeArm/Hand/HandThumb1`: the shipped
+    `fps_businesswoman.model` kept 12 of them, so first person held the gun
+    with stumps while third person was perfect. The cut is now the predicate
+    `build_models.is_fps_arm_bone` (side prefix + `Shoulder`/`Arm`/`Hand`, and
+    the finger bones all contain `Hand`), `extract_bones` accepts a predicate,
+    and `tests/test_fps_hands.py` compares the two units' finger bones.
 
 17. **Symptom.** A compliance auditor reports "all green" for a pack that
     breaks the guide in half the places. **Cause.** The auditor was only
@@ -310,6 +318,21 @@ LAS flags to be switched **on**, not merely present).
     the provenance — Mass Effect 2 is a DirectX 9 game, so its maps are Y- and
     PD2's Y+ wants them inverted. Keep the build switch either way: the
     in-game look is the final word.
+
+21. **Symptom.** The viewmodel's hands are simply *not there* in first person
+    (or render untextured), while the third-person model is correct and every
+    structural audit passes. **Cause.** The fist-person unit is its own model
+    with its own `fps_*.material_config`, and the two are checked separately:
+    a material that the fps model references but its config does not declare
+    cannot be resolved by the game, so those triangles do not draw. Ours
+    carried the grafted hands' `mtr_hands` but the config listed only
+    `mtr_body`/`mtr_jacket`/`mtr_jacket2`. **Fix.** Build the fps config from
+    the *fps model's own* material set, not from a hand-written list
+    (`FPS_MATERIALS` now includes `mtr_hands`), and assert the closure both
+    ways in a test: every material hash in the model appears in its config,
+    for the TPP and the FPS unit (`tests/test_fps_hands.py`). The rule is
+    general — a material is only resolvable by the config of the unit that
+    owns it.
 
 ## Assets
 

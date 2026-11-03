@@ -21,6 +21,7 @@ garments onto the PD2 rig without pinching — is verifiable offline.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 import zipfile
@@ -38,8 +39,12 @@ import skyrim_source as ss  # noqa: E402
 BONE_MAP = REPO / "tools" / "skyrim-nif" / "skeleton_map.json"
 #: Everything above this height belongs to the neck opening of the 3BA body.
 NECK_Z_CM = 155.0
-#: Materials the first-person arms keep (skin + the two sleeve layers).
-FPS_MATERIALS = ("mtr_body", "mtr_jacket", "mtr_jacket2")
+#: Materials the first-person arms keep: skin, the two sleeve layers, and the
+#: grafted hands. Every material the fps model references must be declared in
+#: `fps_businesswoman.material_config` or the game cannot resolve it and the
+#: viewmodel's hands render as nothing (they are only visible in first person,
+#: so the offline previews stay green while the game is broken).
+FPS_MATERIALS = ("mtr_body", "mtr_hands", "mtr_jacket", "mtr_jacket2")
 UNIT_BASE = "units/businesswoman/skins/businesswoman"
 
 
@@ -275,8 +280,9 @@ def main(argv=None) -> int:
     fps_path = args.out / "fps_business_woman.model"
     if args.fps:
         fps_tpl = bm.load_template(args.templates / "fps_2b.model")
-        fps_arms = bm.extract_bones(groups["body"], bm.FPS_BONES, "arms")
-        fps_shadow = bm.extract_bones(groups["shadow"], bm.FPS_BONES, "shadow")
+        fps_arms = bm.extract_bones(groups["body"], bm.is_fps_arm_bone, "arms")
+        fps_shadow = bm.extract_bones(groups["shadow"], bm.is_fps_arm_bone,
+                                      "shadow")
         print(f"fps arms: {len(fps_arms.verts)} verts / {len(fps_arms.faces)} tris "
               f"({len(fps_shadow.verts)} shadow)")
         fps = bm.assemble_model(fps_tpl, {"arms": fps_arms, "shadow": fps_shadow},
@@ -357,7 +363,15 @@ def main(argv=None) -> int:
             },
         )
         print(f"pack  -> {pack}")
-        print(f"zip   -> {bw_pack.zip_pack(pack)}")
+        zipped = bw_pack.zip_pack(pack)
+        print(f"zip   -> {zipped}")
+        # write the checksum here, not by hand: the tracked file went stale once
+        # and the published hash then described a build two commits old
+        zipped = Path(zipped)
+        digest = hashlib.sha256(zipped.read_bytes()).hexdigest()
+        (args.dist / f"{zipped.name}.sha256").write_text(
+            f"{digest}  dist/{zipped.name}\n")
+        print(f"sha256 -> {digest}")
     return 0
 
 

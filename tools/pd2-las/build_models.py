@@ -1364,17 +1364,39 @@ def group_bounds(g: Group):
 
 # ------------------------------------------------------------ assembly
 
-#: Bones that make up a first-person viewmodel. Anything shaded mostly by these
-#: belongs in the fps unit; everything else (torso, legs) is stripped.
+#: Parts of the rig that make up a first-person viewmodel. Anything shaded
+#: mostly by these belongs in the fps unit; everything else (torso, legs) is
+#: stripped.
+_FPS_PARTS = ("Shoulder", "Arm", "ForeArm", "Hand")
+
+
+def is_fps_arm_bone(name: str) -> bool:
+    """True for the arm chain *and every finger chain hanging off it*.
+
+    The viewmodel cut has to be a rule, not a fixed bone list: a hand whose
+    fingers carry their own weights is dominated by ``LeftHandPinky3``, not by
+    ``LeftHand``, so a list that stops at the wrist (or at the thumb) drops
+    ~500 finger vertices from the fps unit while the third-person unit keeps
+    them — the heister then holds her gun with two mitten stumps in first
+    person only.  This is item 16 of `knowledge/games/payday-2/
+    las-moog-outfit-porting.md`; keep the cut in step with the rig.
+    """
+    return (name.startswith(("Left", "Right"))
+            and any(part in name for part in _FPS_PARTS))
+
+
+#: Explicit name list for routes whose source binds no finger weights (the
+#: Miranda line). New code should cut with :func:`is_fps_arm_bone`.
 FPS_BONES = tuple(
-    f"{side}{part}"
-    for side in ("Left", "Right")
-    for part in ("Shoulder", "Arm", "ForeArm", "Hand", "HandThumb1")
+    f"{side}{part}" for side in ("Left", "Right") for part in _FPS_PARTS
 )
 
 
 def extract_bones(g: Group, bones, name: str, min_weight: float = 0.5) -> Group:
     """A new group with only the geometry dominated by ``bones``.
+
+    ``bones`` is either a container of names or a predicate on the group's own
+    palette; pass :func:`is_fps_arm_bone` when the rig has finger chains.
 
     The fps unit is arms-only — the guide is explicit that a viewmodel shows
     nothing else. Rather than retarget a second time, this slices the already
@@ -1384,27 +1406,26 @@ def extract_bones(g: Group, bones, name: str, min_weight: float = 0.5) -> Group:
     Slices are rebuilt per source material, with one contiguous vertex block
     each, because a Diesel render atom addresses a vertex range.
     """
-    wanted = set(bones)
+    wanted = ({p for p in g.palette if bones(p)} if callable(bones)
+              else set(bones))
     keep = [i for i, infl in enumerate(g.weights)
             if sum(w for p, w in infl if g.palette[p] in wanted) >= min_weight]
     keep_set = set(keep)
-    faces = [(a, b, c) for a, b, c in g.faces
-             if a in keep_set and b in keep_set and c in keep_set]
-    if not faces:
-        raise SystemExit(f"{name}: no geometry dominated by {sorted(wanted)}")
-
     face_to_slice = {}
     for si, (_mat, _bv, base_i, tris, _nv) in enumerate(g.slices):
         for f in range(base_i // 3, base_i // 3 + tris):
             face_to_slice[f] = si
 
-    # which surviving faces came from which source material
-    by_slice: dict[int, list[int]] = {}
+    # surviving faces grouped by the source material they came from, kept in
+    # source order (linear: the previous version rebuilt a set and searched the
+    # face list per triangle, which cost minutes on a 100k-triangle body)
+    by_slice: dict[int, list[tuple]] = {}
     for f, tri in enumerate(g.faces):
-        if tri in set(faces):
-            by_slice.setdefault(face_to_slice.get(f, 0), []).append(
-                faces.index(tri))
-    by_slice = {si: sorted(set(v)) for si, v in by_slice.items() if v}
+        a, b, c = tri
+        if a in keep_set and b in keep_set and c in keep_set:
+            by_slice.setdefault(face_to_slice.get(f, 0), []).append(tri)
+    if not by_slice:
+        raise SystemExit(f"{name}: no geometry dominated by {sorted(wanted)}")
 
     out = Group(name=name)
     out.palette = list(g.palette)
@@ -1415,8 +1436,7 @@ def extract_bones(g: Group, bones, name: str, min_weight: float = 0.5) -> Group:
         used: list[int] = []
         seen: dict[int, int] = {}
         local_faces = []
-        for t in tri_ids:
-            a, b, c = faces[t]
+        for a, b, c in tri_ids:
             row = []
             for v in (a, b, c):
                 if v not in seen:
