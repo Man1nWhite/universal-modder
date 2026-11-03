@@ -1,20 +1,26 @@
-"""The BusinessWoman outfit keeps the heister's gloves changeable.
+"""The BusinessWoman outfit keeps the heister's gloves changeable, with hands.
 
-The ``adapter`` hand route ships no hands and re-enables the vanilla glove
-adapter (``char_glove_adapter`` = ``hnd_forearms``) that LAS 4.1.9 forces off.
-These tests pin the registration contract that makes that work, because the
-failure modes are all invisible offline:
+The ``adapter`` hand route ships no hands and restores vanilla-suit glove
+behaviour that LAS 4.1.9 breaks. These tests pin the registration contract,
+because the failure modes are all invisible offline (the first shipped adapter
+pack rendered NO HANDS in-game until this contract was fixed):
 
-* LAS's loader reads ``output.glove_adapter`` (a fresh table) instead of
-  ``data.glove_adapter``, so the outfit's own ``glove_adapter = true`` is dropped
-  — a companion hook on ``blackmarkettweakdata`` must re-enable it;
+* LAS's loader reads ``output.default_glove_id`` (a fresh table) instead of
+  ``data.default_glove_id``, so every LAS outfit gets ``default_glove_id =
+  false``. BeardLib's ``get_glove_value`` then returns ``false`` for "Default"
+  gloves — no glove unit spawns while ``body_replacement.hands`` hides the
+  stock hands → no hands at all. Vanilla suits set a real default via
+  ``suit_default_gloves``; the companion hook must restore one;
+* the same fresh-table bug drops ``data.glove_adapter``, so the companion hook
+  on ``blackmarkettweakdata`` must re-enable the forearm adapter;
 * ``replace_body`` also lands the outfit on
   ``glove_adapter.player_style_exclude_list``, which must be cleared;
 * the adapter must be enabled with a *table*, never a boolean ``true``:
   BeardLib's ``table.merge`` calls ``pairs(new_table)`` and would raise
   ``pairs(true)`` when the character's visual state updates;
-* ``body_replacement.hands`` must be cleared so the heister's hands/gloves are
-  not hidden by an outfit that ships no hands of its own.
+* ``body_replacement.hands`` stays ``true`` (vanilla
+  ``body_replacement_standard``): the spawned gloves supply the hands, so the
+  stock hands must remain hidden to avoid doubles.
 """
 
 from __future__ import annotations
@@ -64,12 +70,27 @@ def test_compat_hook_targets_the_las_player_style():
     assert 'Hooks:PostHook(BlackMarketTweakData, "init"' in lua
 
 
-def test_compat_hook_clears_the_exclude_list_and_hands():
+def test_compat_hook_restores_a_real_default_glove():
+    """LAS's default_glove_id = false means "Default" gloves spawn no hands.
+
+    Vanilla changeable-glove suits resolve "Default" through
+    suit_default_gloves -> default_glove_id -> a real glove unit. The hook must
+    restore that, or the character has no hands (the in-game bug this pins).
+    """
+    lua = bw_pack.render_glove_adapter_lua()
+    assert 'ps.default_glove_id = "heist_default"' in lua
+    assert "ps.default_glove_id = false" not in lua
+
+
+def test_compat_hook_clears_the_exclude_list_and_keeps_hands_replaced():
     lua = bw_pack.render_glove_adapter_lua()
     assert "player_style_exclude_list" in lua
     assert f'== "{KEY}"' in lua
-    assert "ps.body_replacement.hands = false" in lua
-    assert "ps.third_body_replacement.hands = false" in lua
+    # gloves supply the hands; stock hands stay hidden (vanilla standard)
+    assert "ps.body_replacement.hands = true" in lua
+    assert "ps.third_body_replacement.hands = true" in lua
+    assert "ps.body_replacement.hands = false" not in lua
+    assert "ps.third_body_replacement.hands = false" not in lua
 
 
 def test_main_xml_registers_compat_hook_on_blackmarket_only_for_adapter():
@@ -111,6 +132,9 @@ def test_shipped_adapter_pack_ships_the_compat_hook():
         assert hook in names, "adapter pack must ship the glove-adapter compat hook"
         lua = z.read(hook).decode()
         assert "ps.glove_adapter = {}" in lua
+        assert 'ps.default_glove_id = "heist_default"' in lua, (
+            "shipped hook must restore a real default glove or the outfit "
+            "has no hands in-game")
         main = z.read(f"{PACK}/main.xml").decode()
         assert "businesswoman_glove_adapter.lua" in main
         reg = z.read(f"{PACK}/hooks/businesswoman_las.lua").decode()

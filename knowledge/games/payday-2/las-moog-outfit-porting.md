@@ -464,31 +464,56 @@ same five, and the audit now checks them by name.
     exactly the property the donor forearm lacked. This is how every DLC/Infamy
     suit keeps gloves changeable.
 
-    - **Vanilla semantics.** `playerstyletweakdata.lua` gives the suits
-      `body_replacement_standard` (`hands/arms = true`); no style sets
-      `glove_adapter`. `glovestweakdata.lua` defines the adapter
+    - **Vanilla semantics — hands come from a REAL default glove, not from
+      stock hands.** `playerstyletweakdata.lua` gives the suits
+      `body_replacement_standard` (`hands/arms = true` — stock hands HIDDEN);
+      `glovestweakdata.lua` sets `suit_default_gloves[style] = "heist_default"`
+      for most suits, and BeardLib's `BeardLibInitGloves` PostHook copies that
+      into `player_styles[style].default_glove_id`. So "Default" gloves resolve
+      through `default_glove_id` to a real glove unit
+      (`hnd_glv_heistwrinkled`) — `gloves.default` itself has NO unit. The same
+      file defines the adapter
       (`unit = units/pd2_dlc_hnd/characters/hnd_forearms/hnd_forearms`,
       per-heister `character_sequence`, `player_style_exclude_list =
-      {"none","slaughterhouse"}`). `criminalsmanager.lua` hides the stock hands
-      when a glove is equipped and spawns `char_gloves` (the hand mesh) +
-      `char_glove_adapter` (the bare forearm) unless the style is excluded. So
-      the adapter is **on by default**; "vanilla hands" = adapter + glove unit.
-    - **LAS 4.1.9 loader bug — the manifest flag is a no-op.**
+      {"none","slaughterhouse"}`). BeardLib's
+      `set_beardlib_character_visual_state` spawns `char_gloves` (the hand
+      mesh) iff a glove unit resolves, plus `char_glove_adapter` (the bare
+      forearm) unless glove/style adapter data is `false`. "Vanilla hands" =
+      real default glove unit + adapter, with stock hands hidden.
+    - **LAS 4.1.9 loader bugs — TWO fresh-table reads, both no-ops.**
       `hooks/outfits/loader.lua` does `output.glove_adapter = output.glove_adapter
-      or false` reading the *fresh* `output` table (not `data.*`), so it is always
+      or false` AND `output.default_glove_id = output.default_glove_id or false`
+      reading the *fresh* `output` table (not `data.*`), so both are always
       false, and it force-inserts every `replace_body`/`replace_all` outfit into
-      `glove_adapter.player_style_exclude_list`. A config-only
-      `glove_adapter = true` therefore does nothing.
-    - **The fix is a compat hook, and it must use a table, not a boolean.**
+      `glove_adapter.player_style_exclude_list`. Config-only flags therefore do
+      nothing. **`default_glove_id = false` is the killer:** BeardLib's
+      `get_glove_value` returns `false` for "Default" gloves when the style's
+      `default_glove_id` is `false` → no glove unit spawns, while
+      `body_replacement.hands = true` hides the stock hands → **NO HANDS AT
+      ALL** (shipped once on BusinessWoman; the adapter forearms alone do not
+      compensate — stock hands do not render on a replaced body).
+    - **The fix is a compat hook that restores the vanilla mechanism.**
       PostHook `BlackMarketTweakData:init` (runs after LAS's loader): set
-      `player_styles["las_<id>"].glove_adapter = {}`, reverse-loop `table.remove`
-      the style from `glove_adapter.player_style_exclude_list`, and set
-      `body_replacement.hands = false` + `third_body_replacement.hands = false`
-      (no double hands). **`{}` not `true`:** BeardLib's
+      `player_styles["las_<id>"].default_glove_id = "heist_default"` (custom
+      gloves stay selectable — the default only applies to "Default"), set
+      `glove_adapter = {}`, reverse-loop `table.remove` the style from
+      `glove_adapter.player_style_exclude_list`, and KEEP
+      `body_replacement.hands = true` + `third_body_replacement.hands = true`
+      (the spawned gloves supply the hands; unhiding stock hands risks doubles
+      and does nothing on a replaced body). **`{}` not `true`:** BeardLib's
       `set_beardlib_character_visual_state` does `table.merge(final,
       gloves_adapter_data or player_style_adapter_data or {})` and BeardLib's
       `table.merge` calls `pairs(new_table)` — a boolean raises `pairs(true)` and
       crashes. `{}`/nil keep the default `hnd_forearms` adapter; `false` disables.
+    - **Test the chain, not the strings.** The first adapter pack passed every
+      string-assertion test because the offline smoke test stubbed the host
+      with the wrong assumption ("default gloves returning false is fine").
+      The regression suite now EXECUTES the verbatim LAS loader
+      (`tests/fixtures/las_loader_4.1.9.lua`) plus the generated hooks inside
+      LuaJIT 2.1 (`lupa`), against faithful ports of BeardLib's resolution
+      code, and asserts a glove unit actually spawns for Default AND custom
+      gloves in FPS and TPP — plus a no-hook control that must reproduce the
+      no-hands bug (`tests/test_glove_behavior_lua.py`).
     - **FPS comes for free.** BeardLib moves to `unit:camera():camera_unit()`
       for the local peer and spawns `char_gloves`/`char_glove_adapter` there, so
       the gloves show in first person without shipping any FPS hand geometry.

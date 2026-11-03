@@ -4,7 +4,48 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-03 — BusinessWoman back-collar medallion painted out (NEW)
+## 2026-11-03 — BusinessWoman NO-HANDS bug fixed: restore a real default glove (NEW)
+
+- **Report:** with the shipped adapter pack installed, the outfit had **no
+  hands in-game** (user-confirmed). The forearm adapter alone does not draw
+  hands, and stock hands do not render on a replaced body.
+- **Root cause (read off the real sources, not assumptions).** LAS 4.1.9's
+  loader has a *second* fresh-table read next to the known `glove_adapter`
+  one: `output.default_glove_id = output.default_glove_id or false` → every
+  LAS outfit gets `default_glove_id = false`. BeardLib's `get_glove_value`
+  returns `false` for "Default" gloves when the style's `default_glove_id` is
+  `false` → **no glove unit spawns**, while `body_replacement.hands = true`
+  hides the stock hands → no hands at all. Vanilla changeable-glove suits
+  never hit this: `suit_default_gloves[style] = "heist_default"` (BeardLib's
+  `BeardLibInitGloves` copies it to `default_glove_id`), so "Default" always
+  resolves to the real `hnd_glv_heistwrinkled` unit.
+- **Fix (`bw_pack.render_glove_adapter_lua`).** The compat hook now also sets
+  `ps.default_glove_id = "heist_default"` (custom gloves stay selectable), and
+  `body_replacement.hands`/`third_body_replacement.hands` stay **true**
+  (vanilla `body_replacement_standard`) instead of the previous `false` — the
+  spawned gloves supply the hands. Adapter `{}` + exclude-list removal
+  unchanged. Geometry untouched: model byte-identical (`5dc4b807…`,
+  10 152 550 B); only the hook file changed in the zip.
+- **Why the old tests missed it:** they asserted strings, and the old smoke
+  test stubbed the host with the wrong assumption ("default gloves returning
+  false is fine; adapter + stock hands compensate"). New
+  `tests/test_glove_behavior_lua.py` **executes the verbatim LAS 4.1.9 loader**
+  (`tests/fixtures/las_loader_4.1.9.lua`, sha256 `21afb703…`) plus the
+  generated hooks in **LuaJIT 2.1** (`lupa`, PD2's runtime) against faithful
+  ports of BeardLib's `get_glove_value`/`get_glove_variation_value`/
+  `BeardLibInitGloves`/visual-state block and the vanilla style lookups:
+  8 tests — a no-hook control that must reproduce the no-hands bug, Default
+  gloves spawning `hnd_glv_heistwrinkled` in FPS+TPP, custom gloves
+  (`bonemittens`) still resolving, parity with a vanilla `hitman` suit, and
+  the `pairs(true)` trap. `bootstrap.sh` installs `lupa`.
+- **Build/gates:** zip sha256
+  `31b2f0a43fc442cd41b91b34c61bfdb1f213beb07423f2055895221353e0e5e2`, 26
+  entries (`BUILD_INFO.json` now records `default_glove_id: heist_default`). pytest 416 passed / 9 skipped / 1 pre-existing Miranda failure;
+  kb PASS 246; publish 26 files / 0 failures / 1 no-README warning.
+  Knowledge note 27 corrected (its "default gloves false is fine" assumption
+  was the bug).
+
+## 2026-11-03 — BusinessWoman back-collar medallion painted out
 
 - **What the back artifact was.** The ornament row on the upper back is the
   source Melodic blazer's *intentional* collar decoration: a painted band of

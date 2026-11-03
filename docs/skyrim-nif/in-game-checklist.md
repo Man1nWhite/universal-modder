@@ -59,14 +59,16 @@ Report failures with the item number and a screenshot.
     distance (9:1 decimated) and do not shimmer or z-fight.
 11. Skirt does not intersect the jacket flaps when crouching (both are static
     skins; the source's HDT sway is not ported).
-11a. **Gloves are changeable** — open the inventory and swap gloves, including
-    setting them to "none". The outfit ships **no hand geometry** (adapter
-    route); the hands you see are the vanilla glove unit plus the `hnd_forearms`
-    glove adapter, exactly like a DLC/Infamy suit. This is the point of the
-    change, so it is the first hand item to confirm.
-11b. **No double hands** — with a glove equipped there is one pair of hands (the
-    glove), not a glove drawn over a baked hand. With gloves set to "none" the
-    bare `hnd_forearms` adapter shows, not a second pair of hands.
+11a. **Hands are present** — with gloves left on "Default" the outfit shows the
+    vanilla heist gloves (`hnd_glv_heistwrinkled`), exactly like a DLC/Infamy
+    suit. The first adapter pack had **no hands at all** here (LAS forces
+    `default_glove_id = false`); the compat hook now restores a real default
+    glove. If the hands are missing again, this is the regression to report.
+11b. **Gloves are changeable, no doubles** — swap gloves in the inventory: the
+    equipped glove replaces the default pair (one pair of hands, never a glove
+    drawn over a baked hand). The outfit ships **no hand geometry** (adapter
+    route); every pair you see is the vanilla glove unit plus the
+    `hnd_forearms` glove adapter.
 11c. **Wrists / cuff** — the sleeve ends at the wrist (its mouth is *not* welded
     or capped on the adapter route) and the adapter forearm fills the opening,
     in front of her, at her sides, and mid-animation. If a gap or a skin seam
@@ -80,10 +82,10 @@ Report failures with the item number and a screenshot.
     peer's camera unit — not from the outfit itself.
 13. No torso or leg geometry in the viewmodel (the arms were sliced out of the
     full body, so this confirms the cut).
-13a. **First-person hands are present** — the equipped glove (or the bare
-    adapter with gloves set to "none") shows on the viewmodel. If the FPS hands
-    are missing, the fallback is an FPS-only graft; `--hands graft` rebuilds the
-    legacy welded-hand route. Report it and we will switch.
+13a. **First-person hands are present** — the equipped glove (or the default
+    heist gloves when left on "Default") shows on the viewmodel. If the FPS
+    hands are missing, the fallback is an FPS-only graft; `--hands graft`
+    rebuilds the legacy welded-hand route. Report it and we will switch.
 
 ## Materials
 

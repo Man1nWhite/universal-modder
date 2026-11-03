@@ -78,38 +78,57 @@ def render_hook_lua(with_fps: bool = False, hands: str = "adapter") -> str:
 
 
 def render_glove_adapter_lua() -> str:
-    """Compat hook that actually enables the vanilla glove adapter.
+    """Compat hook that gives the outfit vanilla-suit glove behaviour.
 
-    LAS 4.1.9's `hooks/outfits/loader.lua` has two behaviours that disable the
-    adapter for a full-body outfit:
+    LAS 4.1.9's `hooks/outfits/loader.lua` breaks changeable gloves for every
+    outfit it registers (verified against the mod's real source):
 
-    * it sets ``output.glove_adapter = output.glove_adapter or false`` reading
-      the fresh ``output`` table instead of the outfit's ``data``, so the field
-      is always ``false`` no matter what the outfit declares; and
+    * ``output.default_glove_id = output.default_glove_id or false`` reads the
+      fresh ``output`` table instead of the outfit's ``data``, so every LAS
+      outfit ends up with ``default_glove_id = false``. BeardLib's
+      ``GloveTweakData:get_glove_value`` returns ``false`` for "Default" gloves
+      when the style's ``default_glove_id`` is ``false`` — no glove unit spawns,
+      and with ``body_replacement.hands = true`` the stock hands are hidden, so
+      the character has NO HANDS AT ALL. Vanilla changeable-glove suits avoid
+      this via ``suit_default_gloves[style] = "heist_default"`` (BeardLib copies
+      it into ``default_glove_id``), so "Default" always resolves to a real
+      glove unit (``hnd_glv_heistwrinkled``).
+    * ``output.glove_adapter = output.glove_adapter or false`` has the same
+      fresh-table bug, disabling the bare-forearm adapter; and
     * any ``replace_body`` / ``replace_all`` outfit is inserted into
       ``tweak_data.blackmarket.glove_adapter.player_style_exclude_list``.
 
-    This PostHook runs after LAS (the pack loads after its dependency) and undoes
-    both, so the heister's own gloves (``char_gloves``) and the bare-forearm
-    adapter (``char_glove_adapter`` = ``hnd_forearms``) show through the sleeves
-    and stay changeable — the way vanilla/DLC/Infamy outfits work.
+    This PostHook runs after LAS (the pack loads after its dependency) and
+    restores the vanilla mechanism: a real ``default_glove_id``, the adapter
+    re-enabled, the exclude entry removed, and ``body_replacement.hands`` kept
+    ``true`` so the spawned gloves (not stock hands) supply the hands. Works in
+    both TPP and FPS — BeardLib retargets the same glove/adapter spawn to the
+    camera unit for the local peer.
 
-    Two traps it avoids:
+    Traps it avoids:
 
     * the adapter is enabled with an empty *table*, never a boolean ``true``:
       BeardLib does ``table.merge(final_adapter_data, ...adapter_data)`` and its
       ``table.merge`` calls ``pairs(new_table)``, so a boolean would raise
       ``pairs(true)``. An empty table keeps the default ``hnd_forearms`` adapter.
-    * ``body_replacement.hands`` is cleared so the heister's hands/gloves are not
-      hidden by the outfit (the outfit ships no hands of its own).
+    * ``default_glove_id`` cannot be set through the outfit's data.xml — LAS's
+      fresh-table read drops it — so a PostHook override is the only route.
     """
     key = f"las_{ITEM_ID}"
-    return f"""-- BusinessWoman LAS: keep the heister's own gloves changeable.
--- Re-enables the vanilla glove adapter that LAS forces off for {key}.
+    return f"""-- BusinessWoman LAS: vanilla-suit glove behaviour for {key}.
+-- Restores a real default glove (LAS forces default_glove_id = false, which
+-- leaves "Default" gloves with no hands) and re-enables the glove adapter.
 -- See bw_pack.render_glove_adapter_lua for the full rationale.
 Hooks:PostHook(BlackMarketTweakData, "init", "BusinessWoman_GloveAdapter", function(self)
 \tlocal ps = self.player_styles and self.player_styles["{key}"]
 \tif not ps then return end
+
+\t-- The base game keeps a suit's hands visible by giving the style a REAL
+\t-- default glove (suit_default_gloves -> default_glove_id), so "Default"
+\t-- gloves resolve to an actual hand mesh. LAS sets default_glove_id = false,
+\t-- so "Default" gloves spawn nothing and the suit has no hands. Restore a
+\t-- real default glove, exactly like the vanilla/DLC suits.
+\tps.default_glove_id = "heist_default"
 
 \t-- Enable the adapter with a table (NOT a boolean: BeardLib's table.merge
 \t-- would call pairs(true)). An empty table keeps the default hnd_forearms.
@@ -123,9 +142,11 @@ Hooks:PostHook(BlackMarketTweakData, "init", "BusinessWoman_GloveAdapter", funct
 \t\tend
 \tend
 
-\t-- The outfit ships no hands: let the heister's hands/gloves show.
-\tif ps.body_replacement then ps.body_replacement.hands = false end
-\tif ps.third_body_replacement then ps.third_body_replacement.hands = false end
+\t-- Keep stock hands hidden (vanilla body_replacement_standard.hands = true):
+\t-- the gloves spawned above supply the hands. Hiding nothing here would risk
+\t-- double hands; the gloves unit forces var_hands_replace = 1 regardless.
+\tif ps.body_replacement then ps.body_replacement.hands = true end
+\tif ps.third_body_replacement then ps.third_body_replacement.hands = true end
 end)
 """
 
@@ -402,6 +423,9 @@ def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
         },
         "hands": hands,
         "glove_adapter": hands == "adapter",
+        # the compat hook restores a real default glove so "Default" gloves
+        # spawn hands (LAS forces default_glove_id = false -> no hands)
+        "default_glove_id": "heist_default" if hands == "adapter" else None,
         "models_present": True,
         "fps_available": with_fps,
         "runtime_verified": False,
