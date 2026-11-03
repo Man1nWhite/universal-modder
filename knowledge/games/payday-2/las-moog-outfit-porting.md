@@ -334,6 +334,75 @@ LAS flags to be switched **on**, not merely present).
     general — a material is only resolvable by the config of the unit that
     owns it.
 
+22. **Symptom.** A grafted part (hands, head, anything) is *in* the model — the
+    vertex count went up, the preview that reads the mesh shows it — but in game
+    it is invisible, and drawing a material-tagged view shows parts of the
+    *body* wearing that material instead. **Cause.** Two offset bugs, both in
+    the merge, both silent. (a) `append_group` rebased a slice's vertex offset
+    but not its *triangle* offset, so the appended slice's render atom pointed
+    at the first triangles of the host. (b) `graft_pd2_hands` recorded each
+    slice's `base_i` from `len(faces)` *after* extending the face list, so every
+    slice claimed to start one slice late. A Diesel render atom is a range —
+    `base_vertex`/`slice_len` for vertices, `base_index`/`tri_count` for
+    triangles — and a file whose atoms do not *tile* the index stream is still
+    structurally valid. **Fix.** `build_models.atom_problems` /`audit_model`
+    assert that the atoms' vertex blocks and triangle runs tile the geometry
+    exactly once; the build refuses to write a model that fails, and
+    `tests/test_fps_hands.py` re-checks the shipped pack.
+
+23. **Symptom.** The grafted hands sample near-black and render as dark grey
+    mittens, even though the donor's texture is shipped with them. **Cause.**
+    UV convention, not lighting. Every slice in the block is stored as the
+    *internal* `(u, 1 - v)`; the graft wrote the donor's raw `v`, which lands the
+    samples in the other half of the atlas — the half with the donor's black
+    bodysuit (median 0.03 vs 0.69 for skin). **Fix.** Convert once, on the way
+    in (`1 - v`), and assert it (`test_graft_uvs_use_the_internal_v_convention`).
+    Also: a donor's atlas is mostly clothing. Sampling "the donor's own texture"
+    is only correct if its hand islands are skin, which for 2B they are not —
+    the hands' albedo is authored at the *body bake's* measured tone instead
+    (`skin_texture.hand_tone_from_body`), with the normal map left flat.
+
+24. **Symptom.** The hands hover a hand's width below the cuff, and no
+    animation brings them together. **Cause.** Not an error: PD2's `Hand` bone
+    is where weapons are parented, and in the bind pose it hangs well forward of
+    the forearm axis, while a retargeted Skyrim sleeve ends along its own
+    forearm. The offset is rigid — both ends follow their own bones — so it
+    never closes. **Fix.** Move the *sleeve* (`weld_wrist`): translate the mouth
+    onto the hand's opening with a falloff that runs *along* the arm (a radial
+    falloff shears the cuff into a cone), then cap the cuff's opening with a fan
+    that takes the mouth's own material. Caps, not a band: the two rings have
+    different vertex counts and winding, and every band attempt produced a
+    visible twist across the wrist.
+
+    Three details, each of which was a visible defect on its own:
+
+    - **Rigid shift only.** Mapping the 76-vertex cuff ring onto the 94-vertex
+      hand ring vertex by vertex needs a correspondence that does not exist; the
+      interpolated target wobbles round the circle and turns a round cuff into a
+      jagged star of blades. Translation of the whole cuff neighbourhood is
+      enough — and the cuff keeps its own seam.
+    - **The cap's apex is sunk, not flat.** A fan to the centroid of a mouth
+      ring that has just been dragged onto a hand is not planar: it pokes out of
+      the sleeve as a pale flange. `_fan_cap` pushes the apex back along the
+      *bordering faces'* inside direction (vertex normals on a garment edge point
+      either way), so the cone hides inside the cuff.
+    - **The hand's opening is left open.** Walked on a grafted hand its boundary
+      is not one loop — neighbours are up to 10 cm apart — so a fan across it
+      throws long blades well outside the cuff. Nothing can see into it: the
+      cuff's own cap sits in front of the hole.
+
+25. **Symptom.** After the wrist work a spray of flat blades stuck out of both
+    cuffs, pale and clearly not part of either surface. **Cause.** A donor ships
+    its hand three times — `s_body`, `g_body_lod1`, `g_body` — and the graft took
+    every model whose vertices are weighted to hand bones, so the decimated LOD
+    was drawn on top of the full hand. It is not *inside* the full mesh, so it
+    reads as loose blades off the wrist. **Fix.** `graft_pd2_hands` skips nodes
+    whose name says `lod` and then keeps only nodes with at least a quarter of
+    the richest candidate's triangles (in case a donor's LODs are unnamed). The
+    grafted hand went from 602 + 5101 tris to 5101, and the blades went with the
+    LOD.
+
+
 ## Assets
 
 Reference-only in this repo: `2b.rar` (working LAS pack, user-supplied), the

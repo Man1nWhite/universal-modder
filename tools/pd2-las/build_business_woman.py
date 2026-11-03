@@ -234,7 +234,18 @@ def main(argv=None) -> int:
     hands = bm.graft_pd2_hands(args.templates / "2b.model")
     print(f"hands: {len(hands.verts)} verts / {len(hands.faces)} tris "
           f"({len(hands.palette)} finger bones)")
+    body_v0, body_f0 = len(groups["body"].verts), len(groups["body"].faces)
     bm.append_group(groups["body"], hands, template)
+    # The graft lands on PD2's hand bone, which sits ~13 cm off the forearm
+    # axis: the sleeve has to be bent onto it and the two openings stitched,
+    # or the wrists are open in every pose (the offset is rigid).
+    weld = bm.weld_wrist(groups["body"], (body_v0, body_v0 + len(hands.verts)),
+                         (body_f0, body_f0 + len(hands.faces)))
+    for pair in weld["pairs"]:
+        print(f"[body] {pair['side']} wrist welded: sleeve {pair['sleeve']} -> "
+              f"hand {pair['hand']} verts, {pair['triangles']} tris "
+              f"(gap was {pair['gap_cm']} cm after the bend)")
+    print(f"[body] wrist weld moved {weld['moved']} sleeve vertices")
     print(f"body+hands: {len(groups['body'].verts)} verts, "
           f"slots {sorted(set(groups['body'].mat_slots))}")
     # the shadow caster is the same silhouette; hands missing from it would
@@ -242,7 +253,11 @@ def main(argv=None) -> int:
     import copy
     shadow_hands = copy.deepcopy(hands)
     shadow_hands.mat_slots = ["shadow_caster"] * len(shadow_hands.mat_slots)
+    shadow_v0, shadow_f0 = len(groups["shadow"].verts), len(groups["shadow"].faces)
     bm.append_group(groups["shadow"], shadow_hands, template)
+    bm.weld_wrist(groups["shadow"], (shadow_v0, shadow_v0 + len(hands.verts)),
+                  (shadow_f0, shadow_f0 + len(hands.faces)),
+                  slot="shadow_caster", hand_slot="shadow_caster")
 
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):
@@ -272,6 +287,10 @@ def main(argv=None) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(mf.write())
     print(f"wrote {out} ({out.stat().st_size} bytes)")
+    problems = bm.audit_model(out)
+    if problems:
+        raise SystemExit("render atoms do not tile the mesh:\n  "
+                         + "\n  ".join(problems))
 
     sheet_path = args.out / "previews" / "business_woman_pd2.png"
     if not args.no_previews:
@@ -291,6 +310,10 @@ def main(argv=None) -> int:
                                 drop_drawables=("g_head", "g_head_lod1"))
         fps_path.write_bytes(fps.write())
         print(f"wrote {fps_path} ({fps_path.stat().st_size} bytes)")
+        problems = bm.audit_model(fps_path)
+        if problems:
+            raise SystemExit("fps render atoms do not tile the mesh:\n  "
+                             + "\n  ".join(problems))
 
     if args.pack:
         import bw_pack
@@ -301,11 +324,11 @@ def main(argv=None) -> int:
         tex_dir.mkdir(parents=True, exist_ok=True)
         baked = [n for n in ("bw_body_df", "bw_body_nm")
                  if not (tex_dir / f"{n}.texture").exists()]
+        import skin_texture as st
+
         if baked and not args.no_bake:
             # the skin is authored, not sourced: bake it first so a clean
             # checkout goes from 1.zip..5.zip to a zip in one command
-            import skin_texture as st
-
             print(f"baking skin texture ({', '.join(baked)} missing)")
             st.main(["--meshes", str(args.out / "meshes"),
                      "--out", str(tex_dir),
@@ -319,8 +342,11 @@ def main(argv=None) -> int:
 
         hands_df = tex_dir / "bw_hands_df.texture"
         if not hands_df.exists():
-            print("building hand textures from the template's own skin maps")
-            st.build_hands_texture(args.templates, tex_dir, args.tex_res)
+            tone = st.hand_tone_from_body(tex_dir / "bw_body_df.texture",
+                                          model=out)
+            print(f"building hand textures at the body's skin tone "
+                  f"({tone.round(0).astype(int).tolist()})")
+            st.build_hands_texture(args.templates, tex_dir, args.tex_res, tone=tone)
 
         specs = list(sm.DEFAULT_MATERIALS)
         # a dropped layer must not leave a material pointing at nothing

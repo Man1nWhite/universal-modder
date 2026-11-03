@@ -470,39 +470,135 @@ def mip_pyramid(rgba: np.ndarray, levels: int | None = None) -> list[np.ndarray]
     return out
 
 
-def build_hands_texture(donor_dir: Path, out_dir: Path, res: int,
-                        tone: np.ndarray | None = None) -> tuple[np.ndarray, np.ndarray]:
-    """Hand maps taken straight out of a PD2 heister: no re-authoring.
+def hand_tone_from_body(body_df: Path, model: Path | None = None,
+                        material: str = "mtr_body") -> np.ndarray:
+    """The colour of the *shipped* body skin, as an RGB triple 0..255.
 
-    The grafted hand mesh keeps the donor's own UVs, so the donor's own
-    diffuse and normal are the only maps that can sample correctly on it. They
-    are copied at the shipped resolution and only *tinted* toward this outfit's
-    body tone — a donor's hands are usually several shades off the body they
-    end up on, and a mismatch is more obvious than any loss of detail.
+    Measured off the map, not off the mesh: sampling the body albedo at the UVs
+    the body geometry actually uses gives the tone a player sees on her legs,
+    whereas the atlas-wide median is biased bright by islands the body never
+    samples (garment gaps, dilation borders) — using it rendered the hands
+    twice as bright as the forearms they join.
     """
-    base = Path(donor_dir)
-    df = _load_texture(base / "base_df.texture")
-    nm = _load_texture(base / "base_nm.texture")
-    df = _resize_rgb(df, res)
-    nm = _resize_rgb(nm, res)
+    from PIL import Image
 
-    if tone is not None:
-        rgb = df[..., :3].astype(np.float32)
-        # only the skin pixels carry the donor's tone; black gaps would drag
-        # the median of a whole atlas down to nothing
-        skin = rgb.max(axis=2) > 40.0
-        if skin.any():
-            have = np.median(rgb[skin], axis=0)
-            want = np.asarray(tone, dtype=np.float32)
-            gain = np.clip(want / np.maximum(have, 1.0), 0.8, 1.25)
-            rgb = np.clip(rgb * gain, 0.0, 255.0)
-            df = np.dstack([rgb.astype(np.uint8), df[..., 3]])
+    big = np.asarray(Image.open(str(body_df)).convert("RGB"), dtype=np.float32)
+    fallback = np.array([150.0, 120.0, 112.0], dtype=np.float32)
 
-    rgba = np.ascontiguousarray(df.astype(np.uint8))
+    uv = None
+    if model is not None and Path(model).exists():
+        import diesel_model as dm
+
+        try:
+            mf = dm.ModelFile.read_path(model)
+            for s in mf.by_type(dm.MODEL_DATA):
+                md = dm.decode_model_data(s.payload)
+                if not md.get("atoms"):
+                    continue
+                mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
+                names = []
+                for i in mg["material_ids"]:
+                    h = dm.decode_material(mf.by_id(i).payload)["name_hash"]
+                    names.append(_material_name(h, mf))
+                if material not in names or len(names) < 2:
+                    continue
+                gp = dm.decode_passthroughgp(
+                    mf.by_id(md["passthroughgp"]).payload)
+                geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+                topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+                idx = np.asarray(topo["indices"], dtype=np.int64)
+                uvs = np.asarray(geo["uv0"], dtype=np.float64)
+                pick = set()
+                for atom in md["atoms"]:
+                    if names[atom["material_id"]] != material:
+                        continue
+                    t0 = atom["base_index"]
+                    pick.update(int(v) for v in idx[t0:t0 + atom["tri_count"] * 3])
+                if pick:
+                    uv = uvs[sorted(pick)]
+                    break
+        except (ValueError, KeyError):
+            uv = None
+
+    if uv is None or not len(uv):
+        flat = big.reshape(-1, 3)
+        warm = (flat[:, 0] > 90) & (flat[:, 0] > flat[:, 2] + 8)
+        return (np.percentile(flat[warm], 60, axis=0).astype(np.float32)
+                if warm.any() else fallback)
+
+    h, w = big.shape[:2]
+    x = np.mod(uv[:, 0], 1.0) * w
+    y = (1.0 - np.mod(uv[:, 1], 1.0)) * h
+    xs = np.clip(x.astype(np.int64), 0, w - 1)
+    ys = np.clip(y.astype(np.int64), 0, h - 1)
+    sampled = big[ys, xs]
+    keep = sampled.max(axis=1) > 40.0          # skip black gaps in the atlas
+    sampled = sampled[keep]
+    if not len(sampled):
+        return fallback
+    return np.median(sampled, axis=0).astype(np.float32)
+
+
+def _material_name(name_hash: int, mf) -> str:
+    """Material name from the model's own custom hashlist."""
+    import diesel_model as dm
+
+    try:
+        hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
+    except (ValueError, IndexError):
+        return ""
+    for n in hl["names"]:
+        if dm.hash64(n) == name_hash:
+            return n
+    return ""
+
+
+def build_hands_texture(donor_dir: Path, out_dir: Path, res: int,
+                        tone: np.ndarray | None = None
+                        ) -> tuple[np.ndarray, np.ndarray]:
+    """Hand maps for the grafted PD2 hands.
+
+    The graft keeps the donor's UVs, so in principle the donor's own maps are
+    the ones that sample correctly. In practice a heister's atlas is mostly
+    *clothing*, and the UV islands that survive the hand graft land on the
+    garment parts of it: 2B's `base_df` samples the hands at a median of
+    (0.03, 0.05, 0.03) — near black. Copying it faithfully gives black mittens
+    (it did, in every build until this one).
+
+    So the albedo is authored instead: this outfit's own skin tone, measured
+    off the body bake, with a little pore-scale variation so the hands do not
+    read as flat plastic. The normal map stays neutral — a garment normal would
+    emboss fabric weave onto skin.
+    """
+    tone = (np.asarray(tone, dtype=np.float32) if tone is not None
+            else np.array([198.0, 160.0, 136.0], dtype=np.float32))
+    rng = np.random.default_rng(20240503)
+    # broad mottling plus fine grain, both low amplitude: the defect this
+    # replaces was a leopard pattern, so stay well below visible banding
+    small = rng.normal(0.0, 1.0, (res // 64, res // 64))
+    grain = rng.normal(0.0, 1.0, (res, res))
+    from PIL import Image
+
+    small = np.array(Image.fromarray(small.astype(np.float32), mode="F").resize(
+        (res, res), Image.BICUBIC), dtype=np.float32)
+    small /= max(float(np.abs(small).max()), 1e-6)
+    grain /= max(float(np.abs(grain).max()), 1e-6)
+    shade = 1.0 + 0.045 * small + 0.02 * grain
+    rgb = np.clip(tone[None, None, :] * shade[..., None], 0.0, 255.0)
+    rgba = np.dstack([rgb.astype(np.uint8),
+                      np.full((res, res), 255, np.uint8)])
+
+    # neutral normal in Diesel's packed layout (X in alpha, Y in green, red
+    # white, blue black) — the same packing `build_normal` emits
+    nm = np.empty((res, res, 4), dtype=np.uint8)
+    nm[..., 0] = 255
+    nm[..., 1] = 128
+    nm[..., 2] = 0
+    nm[..., 3] = 128
+
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "bw_hands_df.texture").write_bytes(encode_bc3_mips(rgba))
-    (out_dir / "bw_hands_nm.texture").write_bytes(encode_bc3_mips(
-        np.ascontiguousarray(nm.astype(np.uint8))))
+    (out_dir / "bw_hands_nm.texture").write_bytes(encode_bc3_mips(nm))
     return rgba, nm
 
 

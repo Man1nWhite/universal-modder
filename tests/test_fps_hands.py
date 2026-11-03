@@ -27,6 +27,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 import build_models as bm  # noqa: E402
+template_name = bm.template_name
 import diesel_model as dm  # noqa: E402
 
 DIST = REPO / "dist" / "BusinessWoman_LAS.zip"
@@ -177,3 +178,50 @@ def test_shipped_fps_unit_keeps_the_fingers():
     lost = sum(tpp[b] - fps.get(b, 0) for b in tpp)
     total = sum(tpp.values())
     assert lost <= total * 0.02, f"fps unit lost {lost}/{total} finger verts"
+
+
+@pytest.mark.skipif(not DIST.exists(), reason="pack not built in this checkout")
+@pytest.mark.parametrize("name", ["businesswoman.model",
+                                  "fps_businesswoman.model"])
+def test_shipped_models_render_atoms_tile_the_mesh(name):
+    """Every triangle is drawn once, by the atom that owns it.
+
+    This is the check that would have caught the hands: their slice carried a
+    vertex offset but no triangle offset, so the model held 5 703 hand
+    triangles that no render atom referenced, and two torso patches were
+    drawn with the hand material instead.
+    """
+    with zipfile.ZipFile(DIST) as z:
+        mf = dm.ModelFile.read(z.read(f"{UNIT}/{name}"))
+    assert bm.audit_model(mf) == []
+
+
+@pytest.mark.skipif(not DIST.exists(), reason="pack not built in this checkout")
+def test_shipped_shadow_drawable_only_casts_shadow():
+    """The shadow caster must not gain lit materials.
+
+    The wrist caps take a material from the group they belong to, and the
+    shadow group's caps are easy to leave pointing at `mtr_hands` — which gives
+    the shadow drawable a lit texture and, because the preview sheet picks the
+    first multi-material drawable, silently renders *only the hands* in every
+    offline sheet while the pack still looks plausible.
+    """
+    with zipfile.ZipFile(DIST) as z:
+        mf = dm.ModelFile.read(z.read(f"{UNIT}/businesswoman.model"))
+    shadow_groups = []
+    for s in mf.by_type(dm.MATERIAL_GROUP):
+        ids = dm.decode_material_group(s.payload)["material_ids"]
+        names = {template_name(
+            dm.decode_material(mf.by_id(i).payload)["name_hash"], mf) for i in ids}
+        if names == {"shadow_caster"}:
+            shadow_groups.append(names)
+    assert shadow_groups, "no single-material shadow drawable in the pack"
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        if not md.get("atoms"):
+            continue
+        ids = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)["material_ids"]
+        names = {template_name(
+            dm.decode_material(mf.by_id(i).payload)["name_hash"], mf) for i in ids}
+        if "shadow_caster" in names:
+            assert names == {"shadow_caster"}, names

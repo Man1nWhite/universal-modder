@@ -155,3 +155,47 @@ def test_real_body_bakes(tmp_path):
     diffuse = st.build_diffuse(bake, np.random.default_rng(3))
     assert diffuse.shape == (128, 128, 4)
     assert int(diffuse[..., :3].max(axis=2).min()) > 40
+
+
+def test_hand_texture_is_skin_not_the_donors_garment_atlas(tmp_path):
+    """The grafted hands must sample *skin*, not whatever the donor atlas has.
+
+    The donor (2B) keeps its hand UVs on garment islands: sampling its own
+    `base_df` gave a median of (0.03, 0.05, 0.03) — black mittens. The albedo
+    is therefore authored at the body bake's tone instead, and this pins that.
+    """
+    import numpy as np
+
+    import skin_texture as st
+
+    body = np.zeros((64, 64, 3), np.uint8)
+    body[..., 0] = 189
+    body[..., 1] = 158
+    body[..., 2] = 148
+    from PIL import Image
+
+    body_path = tmp_path / "bw_body_df.png"
+    Image.fromarray(body).save(body_path)
+    tone = st.hand_tone_from_body(body_path)
+    assert 120 < tone[0] < 230 and tone[0] > tone[2], tone       # warm skin
+
+    rgba, nm = st.build_hands_texture(tmp_path, tmp_path, 64, tone=tone)
+    assert rgba.shape == (64, 64, 4)
+    mean = rgba[..., :3].reshape(-1, 3).mean(0)
+    assert mean.min() > 90, mean                    # not black
+    assert abs(float(mean[0]) - float(tone[0])) < 25
+    # the normal map stays flat: red white, green 128, blue black, alpha 128
+    assert nm[..., 0].min() == 255 and nm[..., 1].min() in (127, 128)
+    assert nm[..., 2].max() == 0
+
+
+def test_hand_texture_grain_is_low_amplitude(tmp_path):
+    """The last skin defect was a leopard pattern; keep the grain quiet."""
+    import numpy as np
+
+    import skin_texture as st
+
+    rgba, _nm = st.build_hands_texture(tmp_path, tmp_path, 128,
+                                       tone=np.array([190.0, 160.0, 140.0]))
+    lum = rgba[..., :3].astype(np.float32).mean(2)
+    assert lum.std() < 6.0, float(lum.std())

@@ -825,10 +825,32 @@ def graft_pd2_hands(src_path: Path, slot: str = "mtr_hands") -> Group:
 
     g = Group(name="hands")
     used: set[str] = set()
+    # A donor ships the hand three times (`s_body`, `g_body_lod1`, `g_body`).
+    # Grafting all of them stacks a coarse shell on top of the detailed one,
+    # and because the LOD is not *inside* the full mesh it shows as a spray of
+    # flat blades off the wrist. Only the highest-detail hand is grafted.
+    candidates = []
     for s in mf.by_type(dm.MODEL_DATA):
         md = dm.decode_model_data(s.payload)
         if not md.get("atoms"):
             continue
+        gp0 = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        try:
+            dm.decode_geometry(mf.by_id(gp0["geometry"]).payload)
+            topo0 = dm.decode_topology(mf.by_id(gp0["topology"]).payload)
+        except ValueError:
+            continue
+        name = id_name.get(s.id, "")
+        if "lod" in name.lower():
+            continue                       # a decimated copy of a fuller mesh
+        candidates.append((len(topo0["indices"]) // 3, s))
+    best = max((c[0] for c in candidates), default=0)
+    keep = {s.id for tris, s in candidates if tris >= 0.25 * best}
+
+    for s in mf.by_type(dm.MODEL_DATA):
+        if s.id not in keep:
+            continue
+        md = dm.decode_model_data(s.payload)
         gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
         try:
             geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
@@ -869,12 +891,18 @@ def graft_pd2_hands(src_path: Path, slot: str = "mtr_hands") -> Group:
                     remap[vi] = len(order)
                     order.append(vi)
         base_v = len(g.verts)
+        base_i = len(g.faces) * 3        # captured *before* the tris are added
         for vi in order:
             x, y, z = V[vi]
             g.verts.append((float(x), float(y), float(z)))
             g.normals.append(donor_normals[vi] if donor_normals else (0.0, 0.0, 0.0))
             u, v = geo["uv0"][vi]
-            g.uvs.append((float(u), float(-v)))   # back to the on-disk sign
+            # Group UVs are the *internal* (u, 1 - v) convention every other
+            # slice in this mesh uses. Storing the donor's raw v here flipped
+            # the hands into the wrong half of the atlas, where the donor's
+            # texture is black bodysuit: the grafted hands rendered as dark
+            # grey-brown mittens. One convention per geometry block.
+            g.uvs.append((float(u), float(1.0 - v)))
             infl = []
             for bi, w in zip(geo["blendindices"][vi], geo["blendweights"][vi]):
                 nm = pal[bi] if bi < len(pal) else ""
@@ -885,7 +913,7 @@ def graft_pd2_hands(src_path: Path, slot: str = "mtr_hands") -> Group:
             g.weights.append([(nm, w / total) for nm, w in infl])
             used.update(nm for nm, _ in infl)
         g.faces.extend(tuple(remap[i] + base_v for i in tri) for tri in tris)
-        g.slices.append(("hands", base_v, len(g.faces) * 3, len(tris), len(order)))
+        g.slices.append(("hands", base_v, base_i, len(tris), len(order)))
         g.mat_slots.append(slot)
 
     if not g.verts:
@@ -923,11 +951,18 @@ def append_group(base: Group, extra: Group, template: Template) -> None:
     used |= {n for infl in extra_weights for n, _ in infl}
 
     offset = len(base.verts)
+    # a slice carries *both* offsets: where its vertices start (bv) and where
+    # its triangles start in the index stream (bi). Both have to be rebased, or
+    # the render atom points at someone else's triangles -- the geometry is
+    # silently not drawn and whatever lives at the stale offset is drawn with
+    # the wrong material instead. Missing the index offset here cost us the
+    # grafted hands: they sat in the model, unwatched by any atom.
+    toffset = len(base.faces) * 3
     base.verts.extend(extra.verts)
     base.normals.extend(extra.normals)
     base.uvs.extend(extra.uvs)
     base.faces.extend(tuple(i + offset for i in f) for f in extra.faces)
-    base.slices.extend((mat, bv + offset, bi, nt, nv)
+    base.slices.extend((mat, bv + offset, bi + toffset, nt, nv)
                        for mat, bv, bi, nt, nv in extra.slices)
     base.mat_slots.extend(extra.mat_slots)
 
@@ -935,6 +970,359 @@ def append_group(base: Group, extra: Group, template: Template) -> None:
     index = {n: i for i, n in enumerate(base.palette)}
     base.weights = [[(index[n], w) for n, w in infl]
                     for infl in named_weights + extra_weights]
+
+
+def _ring_angles(ring, centre, axis):
+    import numpy as np
+
+    """Angle of every ring vertex around `axis`, plus the ring's in-plane basis."""
+    axis = np.asarray(axis, dtype=np.float64)
+    axis = axis / (np.linalg.norm(axis) or 1.0)
+    helper = np.array([0.0, 0.0, 1.0])
+    if abs(float(np.dot(helper, axis))) > 0.9:
+        helper = np.array([0.0, 1.0, 0.0])
+    e1 = np.cross(axis, helper)
+    e1 /= np.linalg.norm(e1) or 1.0
+    e2 = np.cross(axis, e1)
+    rel = np.asarray(ring, dtype=np.float64) - centre
+    return np.arctan2(rel @ e2, rel @ e1), e1, e2
+
+
+def _ordered_ring(indices, g: Group, centre, axis):
+    """Ring vertices sorted by angle round ``axis``, plus their 0..1 fractions.
+
+    Both the stitch and the sleeve pull need the two rings in the *same*
+    angular order: `boundary_loops` walks a loop in whatever direction its
+    owner faces, so half the rings arrive reversed, and an unwrap of a
+    reversed ring runs 0 -> -2pi (normalising by its end turns the whole
+    mapping into noise).
+    """
+    import numpy as np
+
+    angles, _e1, _e2 = _ring_angles([g.verts[i] for i in indices], centre, axis)
+    order = np.argsort(angles)
+    angles = angles[order]
+    frac = (angles - angles[0]) / max(float(angles[-1] - angles[0]), 1e-9)
+    return [indices[i] for i in order], frac
+
+
+def _wrist_loops(faces, verts, side_sign, min_r=1.0, max_r=6.0, min_n=8,
+                 min_x=30.0):
+    """Boundary loops that look like a wrist opening on one side of the body."""
+    import numpy as np
+
+    out = []
+    for loop in boundary_loops(faces):
+        ring = loop[:-1] if len(loop) > 3 and loop[0] == loop[-1] else loop
+        if len(ring) < min_n:
+            continue
+        pts = np.asarray([verts[i] for i in ring], dtype=np.float64)
+        centre = pts.mean(axis=0)
+        if abs(centre[0]) < min_x or np.sign(centre[0]) != side_sign:
+            continue
+        radius = float(np.linalg.norm(pts - centre, axis=1).mean())
+        if not min_r <= radius <= max_r:
+            continue
+        out.append((ring, centre, radius))
+    return out
+
+
+def _face_slots(g: Group) -> list[str]:
+    """Out material of every face, in face order."""
+    out: list[str] = [""] * len(g.faces)
+    for (_mat, _bv, base_i, tris, _nv), slot in zip(g.slices, g.mat_slots):
+        for f in range(base_i // 3, min(base_i // 3 + tris, len(out))):
+            out[f] = slot
+    return out
+
+
+def weld_wrist(g: Group, vert_range, face_range, radius: float = 7.0,
+               slot: str = "mtr_body", hand_slot: str = "mtr_hands",
+               pull: float = 1.0) -> dict:
+    """Close the gap between a retargeted arm and a grafted PD2 hand.
+
+    A grafted hand sits where PD2's `Hand` bone is, and it has to: weapons are
+    parented to that bone, so moving the hand to suit the sleeve would move the
+    gun. PD2's bind pose, though, has the palm hanging well forward of the
+    forearm it belongs to, so the retargeted Skyrim sleeve ends a hand's width
+    away from the hand it should cover — and the offset is *rigid*: both ends
+    follow their own bones, so no animation ever closes it. The sleeve is what
+    has to move.
+
+    Two steps per opening: pull the sleeve's mouth onto the hand's (a taper up
+    the cuff, so the join is a cone and not a tear), then stitch the two
+    openings with a band of quads whose material is the mouth's own — a skin
+    wrist closes with skin, a blazer cuff closes with the blazer.
+
+    `vert_range`/`face_range` are the half-open ranges the graft occupies.
+    """
+    import numpy as np
+
+    v_lo, v_hi = vert_range
+    f_lo, f_hi = face_range
+    hand_verts = set(range(v_lo, v_hi))
+    hand_faces = g.faces[f_lo:f_hi]
+    body_faces = [f for i, f in enumerate(g.faces) if not f_lo <= i < f_hi]
+    body_slot = [sl for i, sl in enumerate(_face_slots(g))
+                 if not f_lo <= i < f_hi]
+    face_slot = {}
+    for i, f in enumerate(body_faces):
+        face_slot[f] = body_slot[i]
+
+    report = {"pairs": [], "moved": 0, "triangles": 0}
+    new_faces: list[tuple[int, int, int]] = []
+    bands: list[tuple] = []                    # (slot, v0, i0, tris, nverts)
+
+    for sign in (1.0, -1.0):
+        body_rings = _wrist_loops(body_faces, g.verts, sign)
+        # outermost opening first: the blazer cuff has to reach the hand, the
+        # skin ring inside it then follows the same target
+        body_rings.sort(key=lambda t: -t[2])
+        hand_rings = []
+        for loop in boundary_loops(hand_faces):
+            ring = loop[:-1] if len(loop) > 3 and loop[0] == loop[-1] else loop
+            pts = np.asarray([g.verts[i] for i in ring])
+            c = pts.mean(axis=0)
+            if np.sign(c[0]) != sign:
+                continue
+            hand_rings.append((ring, c, float(np.linalg.norm(pts - c, axis=1).mean())))
+        if not body_rings or not hand_rings:
+            continue
+
+        # The shift is computed from the outermost opening and applied to the
+        # whole neighbourhood *once*: every layer there (blazer, lace top, skin)
+        # has to move by the same field, or the sleeve drags off the arm inside
+        # it and the skin pokes through as a flap.
+        mouth = body_rings[0]
+        bring, bcentre, bradius = mouth
+        hring, hcentre = _match_hand_ring(hand_rings, bcentre, bradius)
+        if hring is None:
+            continue
+        axis = hcentre - bcentre
+        if float(np.linalg.norm(axis)) < 1e-6:
+            axis = np.array([0.0, 1.0, 0.0])
+        core = np.asarray([g.verts[i] for i in bring]).mean(axis=0)
+
+        bring, t_b = _ordered_ring(bring, g, core, axis)
+        hring, t_h = _ordered_ring(hring, g, hcentre, axis)
+        hand_pts = np.asarray([g.verts[i] for i in hring])
+        target = np.stack([np.interp(t_b, t_h, hand_pts[:, k])
+                           for k in range(3)], axis=1)
+        ring_shift = (target - np.asarray([g.verts[i] for i in bring])) * pull
+        mean_shift = ring_shift.mean(axis=0)
+        to_hand = mean_shift / (np.linalg.norm(mean_shift) or 1.0)
+        # Only the rigid part of the shift is applied. Warping the mouth onto
+        # the hand's ring vertex-by-vertex needs a 76 -> 94 correspondence that
+        # does not exist: the interpolated target wobbles round the circle and
+        # turns a round cuff into a jagged star. The cuff keeps its own seam and
+        # simply travels to the hand; the two openings are capped separately.
+        for i, v in enumerate(g.verts):
+            if i in hand_verts:
+                continue
+            p = np.asarray(v, dtype=np.float64)
+            rel = p - core
+            along = float(np.dot(rel, to_hand))          # + is towards the hand
+            lateral = rel - along * to_hand
+            # stay inside the sleeve's own tube: the falloff must not reach
+            # round the arm into the torso or the other cuff
+            if float(np.linalg.norm(lateral)) > 2.5 * bradius:
+                continue
+            if along < -2.5 or along > radius:
+                continue
+            w = (1.0 - max(along, 0.0) / radius) ** 2
+            shift = w * mean_shift
+            g.verts[i] = (v[0] + shift[0], v[1] + shift[1], v[2] + shift[2])
+            report["moved"] += 1
+
+        # close every opening on this side, plus the hand's own
+        for ring in [r for r, _c, _r in body_rings]:
+            votes: dict[str, int] = {}
+            ring_set = set(ring)
+            for f in body_faces:
+                if len(ring_set.intersection(f)) >= 2:
+                    votes[face_slot.get(f, slot)] = votes.get(
+                        face_slot.get(f, slot), 0) + 1
+            cap_slot = max(votes, key=votes.get) if votes else slot
+            # `boundary_loops` returns loops in face order, which on a bent
+            # cuff zig-zags round the opening; fanning that order connects
+            # vertices that are not neighbours and throws a star of blades out
+            # of the sleeve. Sort by angle first.
+            rc = np.asarray([g.verts[i] for i in ring]).mean(axis=0)
+            ring, _f = _ordered_ring(list(ring), g, rc, axis)
+            v0 = len(g.verts)
+            i0 = len(g.faces) * 3 + len(new_faces) * 3
+            fan = _fan_cap(g, ring, body_faces)
+            new_faces.extend(fan)
+            bands.append((cap_slot, v0, i0, len(fan), len(g.verts) - v0))
+        # The hand's own opening is *not* capped. Its boundary is a single
+        # loop only in the donor's topology: walked on the grafted hand it
+        # jumps by up to 10 cm between neighbours, so any fan across it throws
+        # long blades well outside the cuff. Nothing can see into it anyway —
+        # the sleeve's own cap sits between the viewer and the hole.
+
+        bcentre2 = np.asarray([g.verts[i] for i in bring]).mean(axis=0)
+        report["pairs"].append({
+            "side": "left" if sign > 0 else "right",
+            "sleeve": int(len(bring)), "hand": int(len(hring)),
+            "rings": len(body_rings),
+            "gap_cm": round(float(np.linalg.norm(hcentre - bcentre2)), 2),
+            "triangles": sum(b[3] for b in bands)})
+
+    if new_faces:
+        g.faces.extend(new_faces)
+        for band_slot, bv, bi, tris, nverts in bands:
+            g.slices.append(("skin", bv, bi, tris, nverts))
+            g.mat_slots.append(band_slot)
+        report["triangles"] = len(new_faces)
+    return report
+
+
+def _fan_cap(g: Group, ring, faces, depth: float = 1.0) -> list[tuple]:
+    """Close one opening with a shallow cone pointing back into the surface.
+
+    `cap_holes` fans to the centroid, which is fine for a flat hole but wrong
+    for a cuff mouth that has just been dragged onto a hand: the opening is
+    elliptical and sags, so a flat fan pokes out of the sleeve as a pale
+    flange. The apex is instead pushed *inside* along the surface's own inside
+    direction — measured from the faces that border the ring, not from the
+    vertex normals, which on a garment edge can point either way — so the cone
+    always ends up hidden behind the opening it closes.
+
+    The apex carries the ring's average skin weights, so the cap deforms with
+    the wrist instead of tearing off it.
+    """
+    import numpy as np
+
+    pts = np.asarray([g.verts[i] for i in ring], dtype=np.float64)
+    centre = pts.mean(axis=0)
+    normal = np.zeros(3)
+    for i in ring:
+        normal += np.asarray(g.normals[i], dtype=np.float64)
+    ln = float(np.linalg.norm(normal)) or 1.0
+    normal /= ln
+
+    # inside = towards the surface the ring belongs to
+    inside = np.zeros(3)
+    ring_set = set(ring)
+    for f in faces:
+        if len(ring_set.intersection(f)) >= 2:
+            inside += (np.asarray([g.verts[i] for i in f],
+                                  dtype=np.float64).mean(axis=0) - centre)
+    if float(np.linalg.norm(inside)) < 1e-6:
+        inside = -normal              # no bordering face: fall back on normals
+    else:
+        inside /= float(np.linalg.norm(inside))
+    radius = float(np.linalg.norm(pts - centre, axis=1).mean())
+
+    uv = np.asarray([g.uvs[i] for i in ring], dtype=np.float64).mean(axis=0)
+    weight_sum: dict[int, float] = {}
+    for i in ring:
+        for pal, w in g.weights[i]:
+            weight_sum[pal] = weight_sum.get(pal, 0.0) + w / len(ring)
+    total = sum(weight_sum.values()) or 1.0
+    infl = sorted(((k, w / total) for k, w in weight_sum.items()),
+                  key=lambda t: -t[1])[:3]
+    renorm = sum(w for _, w in infl) or 1.0
+    infl = [(k, w / renorm) for k, w in infl]
+
+    apex = centre + inside * (radius * depth)
+    new_index = len(g.verts)
+    g.verts.append(tuple(float(x) for x in apex))
+    g.normals.append(tuple(float(x) for x in normal))
+    g.uvs.append((float(uv[0]), float(uv[1])))
+    g.weights.append(infl)
+
+    # wind the fan so it faces the way the ring's own surface does
+    order = list(ring)
+    a, b, c = (np.asarray(g.verts[i], dtype=np.float64)
+               for i in (order[0], order[1], new_index))
+    n = np.cross(b - a, c - a)
+    want = sum(np.asarray(g.normals[i], dtype=np.float64) for i in order[:3])
+    flip = float(np.dot(n, want)) < 0
+    faces_out = []
+    for k in range(len(order)):
+        i, j = order[k], order[(k + 1) % len(order)]
+        faces_out.append((j, i, new_index) if flip else (i, j, new_index))
+    return faces_out
+
+
+def _tuck_ring(g: Group, ring, centre, toward) -> None:
+    """Shrink an inner opening and push it back, so it hides inside the cuff."""
+    import numpy as np
+
+    centre = np.asarray(centre, dtype=np.float64)
+    toward = np.asarray(toward, dtype=np.float64)
+    back = centre - toward
+    back = back / (np.linalg.norm(back) or 1.0)
+    for i in ring:
+        p = np.asarray(g.verts[i], dtype=np.float64)
+        g.verts[i] = tuple(float(x) for x in
+                           centre + (p - centre) * 0.35 + back * 3.5)
+
+
+def _match_hand_ring(hand_rings, bcentre, bradius):
+    """The hand opening that belongs to this sleeve opening, or (None, None)."""
+    import numpy as np
+
+    cand = [(ring, c) for ring, c, r in hand_rings
+            if len(ring) >= 8 and 0.35 * bradius <= r <= 2.5 * bradius]
+    if not cand:
+        return None, None
+    ring, c = min(cand, key=lambda t: float(np.linalg.norm(t[1] - bcentre)))
+    return ring, c
+
+
+def _band_faces(bring, bang, hring, hang, g: Group, axis) -> list[tuple]:
+    """Quads between two rings, matched by their angular fractions.
+
+    Walking the two rings together in angle gives a band with no twist even
+    when the counts differ (76 sleeve vertices against 94 hand ones here).
+    Winding is chosen against the vertex normals, so the band cannot come out
+    inside out.
+    """
+    import numpy as np
+
+    if len(hang) > 1 and _band_cost(bang, hang) > _band_cost(bang, 1.0 - hang[::-1]):
+        hring, hang = hring[::-1], 1.0 - hang[::-1]
+    faces = []
+    i = j = 0
+    nb, nh = len(bring), len(hring)
+    while i + 1 < nb or j + 1 < nh:
+        next_b = bang[i + 1] if i + 1 < nb else float("inf")
+        next_h = hang[j + 1] if j + 1 < nh else float("inf")
+        if next_b <= next_h:
+            faces.append((bring[i], bring[i + 1], hring[j % nh]))
+            i += 1
+        else:
+            faces.append((bring[i % nb], hring[(j + 1) % nh], hring[j % nh]))
+            j += 1
+    out = []
+    for a, b, c in faces:
+        p, q, r = (np.asarray(g.verts[k], dtype=np.float64) for k in (a, b, c))
+        n = np.cross(q - p, r - p)
+        ln = float(np.linalg.norm(n))
+        if ln < 1e-12:
+            continue
+        want = sum(np.asarray(g.normals[k], dtype=np.float64) for k in (a, b, c))
+        out.append((a, b, c) if float(np.dot(n / ln, want)) >= 0 else (a, c, b))
+    return out
+
+
+def _band_cost(bang, hang) -> float:
+    """How much a band would twist: the two seams resampled and compared.
+
+    The rings rarely have the same vertex count (76 sleeve vertices against 88
+    hand ones here), so the comparison happens on a common angular grid rather
+    than vertex to vertex.
+    """
+    import numpy as np
+
+    if len(hang) < 3 or bang[-1] < 1e-9 or hang[-1] < 1e-9:
+        return 0.0
+    grid = np.linspace(0.0, 1.0, 33)
+    a = np.interp(grid, bang / bang[-1], np.linspace(0.0, 1.0, len(bang)))
+    b = np.interp(grid, hang / hang[-1], np.linspace(0.0, 1.0, len(hang)))
+    return float(np.sum(np.abs(a - b)))
 
 
 def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
@@ -1352,6 +1740,64 @@ def group_atom_plan(g: Group, out_mats_sorted: list[str]) -> list[dict]:
                       "base_index": base_i, "slice_len": nverts,
                       "material_id": out_mats_sorted.index(slot)})
     return atoms
+
+
+def atom_problems(geo: dict, topo: dict, atoms: list[dict]) -> list[str]:
+    """Reasons the render atoms do not describe this geometry.
+
+    A Diesel render atom is a *range*: `base_vertex`/`slice_len` select a block
+    of vertices, `base_index`/`tri_count` a run of triangles in the index
+    stream (`base_index` is three times a triangle number). Indices are
+    absolute, so a triangle may reach vertices outside its own block (the
+    neck-cap fan does exactly that); what must hold is that the atoms *tile*
+    both the vertex array and the triangle stream, with nothing shared and
+    nothing left over.
+
+    Get the triangle offset wrong and the atom draws some other part of the
+    mesh with this material while the geometry it was meant for is never drawn
+    at all — a silent failure: the file stays structurally valid and previews
+    that read the mesh directly look perfect. That is exactly what happened to
+    the grafted hands.
+    """
+    problems: list[str] = []
+    want_v = 0
+    for k, a in sorted(enumerate(atoms), key=lambda kv: kv[1]["base_vertex"]):
+        if a["base_vertex"] != want_v:
+            problems.append(f"atom {k} ({a['base_vertex']}) does not follow the "
+                            f"vertex block ending at {want_v}")
+        want_v = a["base_vertex"] + a["slice_len"]
+    if want_v != len(geo["verts"]):
+        problems.append(f"vertex blocks cover {want_v} of {len(geo['verts'])}")
+
+    ntri = len(topo["indices"]) // 3
+    want_t = 0
+    for k, a in sorted(enumerate(atoms), key=lambda kv: kv[1]["base_index"]):
+        if a["base_index"] != want_t * 3:
+            problems.append(f"atom {k} draws from triangle {a['base_index'] // 3}"
+                            f", not {want_t} — it would draw another part of "
+                            f"the mesh")
+        want_t += a["tri_count"]
+    if want_t != ntri:
+        problems.append(f"atoms draw {want_t} of {ntri} triangles")
+    return problems
+
+
+def audit_model(src) -> list[str]:
+    """`atom_problems` over every mesh node of a built model."""
+    mf = dm.ModelFile.read_path(src) if isinstance(src, (str, Path)) else src
+    out: list[str] = []
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        if not md.get("atoms"):
+            continue
+        try:
+            gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+            topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+        except (ValueError, KeyError):
+            continue
+        out.extend(atom_problems(geo, topo, md["atoms"]))
+    return out
 
 
 def group_bounds(g: Group):

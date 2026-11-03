@@ -40,6 +40,13 @@ Report failures with the item number and a screenshot.
     distance (9:1 decimated) and do not shimmer or z-fight.
 11. Skirt does not intersect the jacket flaps when crouching (both are static
     skins; the source's HDT sway is not ported).
+11a. **Wrists** — the sleeve meets the hand with no gap and no skin showing
+    through the cuff, in front of her, at her sides, and mid-animation. The
+    sleeve was translated onto PD2's hand bone (it hangs well forward in the
+    bind pose) and its mouth capped; if a wrist opens up in motion, this is the
+    item. Also look for stray flat blades at the cuff — that was the donor's
+    decimated LOD hand being drawn on top of the full one.
+11b. **Hands are skin, not grey** — same tone as the forearms, fingers separate.
 
 ## First person
 
@@ -47,6 +54,9 @@ Report failures with the item number and a screenshot.
     with `DEPTH_SCALING` keeping them in front of world geometry.
 13. No torso or leg geometry in the viewmodel (the arms were sliced out of the
     full body, so this confirms the cut).
+13a. **First-person hands are whole** — all five fingers, closed wrist. The
+    viewmodel is cut by bone *rule* (`is_fps_arm_bone`); a cut that misses the
+    finger chains leaves hollow finger shells that only show in first person.
 
 ## Materials
 
