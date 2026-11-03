@@ -307,6 +307,8 @@ def test_write_pack_is_self_consistent(tmp_path):
     assert set(info["payload_sha256"]) == {
         "main.xml",
         "hooks/businesswoman_las.lua", "localization/english.txt",
+        # the default hand route is `adapter`, which ships the compat hook
+        "hooks/businesswoman_glove_adapter.lua",
         f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.model",
         f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.unit",
         f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.object",

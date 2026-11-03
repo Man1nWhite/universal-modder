@@ -188,8 +188,16 @@ def main(argv=None) -> int:
     ap.add_argument("--no-fps", dest="fps", action="store_false")
     ap.add_argument("--no-previews", action="store_true")
     ap.add_argument("--wrist", choices=("weld",), default="weld",
-                    help="how the sleeve meets the hand (only `weld` is "
-                         "supported; see the notes on LAS's cop outfits)")
+                    help="how the sleeve meets the hand when --hands=graft "
+                         "(only `weld` is supported; see the notes on LAS's "
+                         "cop outfits)")
+    ap.add_argument("--hands", choices=("adapter", "graft"), default="adapter",
+                    help="`adapter` (default): ship no hands and let the "
+                         "heister's own gloves + the vanilla glove adapter "
+                         "(hnd_forearms) show through the sleeves, so gloves "
+                         "stay changeable (glove_adapter). `graft`: the legacy "
+                         "route that grafts PD2 hands and welds the cuff, "
+                         "baking one fixed pair of hands into the outfit.")
     ap.add_argument("--pack", action="store_true",
                     help="also write textures, material configs and the LAS folder")
     ap.add_argument("--tex-res", type=int, default=1024,
@@ -231,39 +239,47 @@ def main(argv=None) -> int:
         for drawable in spec["drawables"]:
             share[drawable] = gname
 
-    # The 3BA body stops at the wrist, so the sleeves would end in a stump.
-    # PD2 heisters share the stock skeleton and its bind pose, so hand
-    # geometry from one of them drops straight onto these wrists.
-    # PD2 heisters carry their hands *beside* the outfit, never welded into it:
-    # a cop/outfit unit is `g_body` (clothes) + `g_arms` (bare forearm skin) +
-    # `g_hands` (gloves), each its own model with its own material, and the
-    # sleeve simply overlaps the skin arm. Only the *hands* can be borrowed
-    # here: a donor's forearm does not follow a retargeted Skyrim sleeve (its
-    # skin sits 20 cm off the hand), so the sleeve is instead bent onto PD2's
-    # hand bone and its mouth capped in skin.
-    hands = bm.graft_pd2_hands(args.templates / "2b.model")
-    print(f"hands: {len(hands.verts)} verts / {len(hands.faces)} tris "
-          f"({len(hands.palette)} bone names, wrist={args.wrist})")
-    body_v0, body_f0 = len(groups["body"].verts), len(groups["body"].faces)
-    bm.append_group(groups["body"], hands, template)
-    weld = bm.weld_wrist(groups["body"],
-                         (body_v0, body_v0 + len(hands.verts)),
-                         (body_f0, body_f0 + len(hands.faces)))
-    for pair in weld["pairs"]:
-        print(f"[body] {pair['side']} wrist welded: sleeve "
-              f"{pair['sleeve']} -> hand {pair['hand']} verts, "
-              f"{pair['triangles']} tris (gap was {pair['gap_cm']} cm)")
-    print(f"[body] wrist weld moved {weld['moved']} sleeve vertices")
-    # the shadow caster is the same silhouette; hands missing from it would
-    # leave a handless shadow under a heister that clearly has hands
-    import copy
-    shadow_hands = copy.deepcopy(hands)
-    shadow_hands.mat_slots = ["shadow_caster"] * len(shadow_hands.mat_slots)
-    shadow_v0, shadow_f0 = len(groups["shadow"].verts), len(groups["shadow"].faces)
-    bm.append_group(groups["shadow"], shadow_hands, template)
-    bm.weld_wrist(groups["shadow"], (shadow_v0, shadow_v0 + len(hands.verts)),
-                  (shadow_f0, shadow_f0 + len(hands.faces)),
-                  slot="shadow_caster", hand_slot="shadow_caster")
+    # Hands: two routes.
+    #
+    # `adapter` (default) ships NO hands. The 3BA body stops at the wrist, and
+    # the heister's own gloves (`char_gloves`) plus the vanilla glove adapter
+    # (`char_glove_adapter` = hnd_forearms, a bare forearm) are spawned by the
+    # game on the same PD2 skeleton this outfit retargets onto — in third person
+    # AND on the camera unit in first person. That keeps gloves changeable, the
+    # way vanilla/DLC/Infamy outfits work. The pack's compat hook re-enables the
+    # adapter past LAS 4.1.9's loader bug (see bw_pack.render_glove_adapter_lua).
+    #
+    # `graft` is the legacy route: PD2 heisters share the stock skeleton and its
+    # bind pose, so hand geometry from one of them drops straight onto these
+    # wrists, and the sleeve is bent onto PD2's hand bone and welded. It bakes
+    # one fixed pair of hands into the outfit (gloves can no longer be changed).
+    if args.hands == "graft":
+        hands = bm.graft_pd2_hands(args.templates / "2b.model")
+        print(f"hands: {len(hands.verts)} verts / {len(hands.faces)} tris "
+              f"({len(hands.palette)} bone names, wrist={args.wrist})")
+        body_v0, body_f0 = len(groups["body"].verts), len(groups["body"].faces)
+        bm.append_group(groups["body"], hands, template)
+        weld = bm.weld_wrist(groups["body"],
+                             (body_v0, body_v0 + len(hands.verts)),
+                             (body_f0, body_f0 + len(hands.faces)))
+        for pair in weld["pairs"]:
+            print(f"[body] {pair['side']} wrist welded: sleeve "
+                  f"{pair['sleeve']} -> hand {pair['hand']} verts, "
+                  f"{pair['triangles']} tris (gap was {pair['gap_cm']} cm)")
+        print(f"[body] wrist weld moved {weld['moved']} sleeve vertices")
+        # the shadow caster is the same silhouette; hands missing from it would
+        # leave a handless shadow under a heister that clearly has hands
+        import copy
+        shadow_hands = copy.deepcopy(hands)
+        shadow_hands.mat_slots = ["shadow_caster"] * len(shadow_hands.mat_slots)
+        shadow_v0, shadow_f0 = len(groups["shadow"].verts), len(groups["shadow"].faces)
+        bm.append_group(groups["shadow"], shadow_hands, template)
+        bm.weld_wrist(groups["shadow"], (shadow_v0, shadow_v0 + len(hands.verts)),
+                      (shadow_f0, shadow_f0 + len(hands.faces)),
+                      slot="shadow_caster", hand_slot="shadow_caster")
+    else:
+        print("hands: adapter route — no hands shipped; the heister's gloves + "
+              "the vanilla hnd_forearms adapter show through the sleeves")
 
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):
@@ -346,18 +362,22 @@ def main(argv=None) -> int:
                 f"missing generated skin textures in {tex_dir} "
                 f"({', '.join(baked)}); drop --no-bake or run skin_texture.py")
 
-        hands_df = tex_dir / "bw_hands_df.texture"
-        if not hands_df.exists():
-            tone = st.hand_tone_from_body(tex_dir / "bw_body_df.texture",
-                                          model=out)
-            print(f"building hand textures at the body's skin tone "
-                  f"({tone.round(0).astype(int).tolist()})")
-            st.build_hands_texture(args.templates, tex_dir, args.tex_res, tone=tone)
+        if args.hands == "graft":
+            hands_df = tex_dir / "bw_hands_df.texture"
+            if not hands_df.exists():
+                tone = st.hand_tone_from_body(tex_dir / "bw_body_df.texture",
+                                              model=out)
+                print(f"building hand textures at the body's skin tone "
+                      f"({tone.round(0).astype(int).tolist()})")
+                st.build_hands_texture(args.templates, tex_dir, args.tex_res, tone=tone)
 
         specs = list(sm.DEFAULT_MATERIALS)
         # a dropped layer must not leave a material pointing at nothing
         keep = {MAT_SLOTS[v] for v in model_materials(report)}
-        keep.add("mtr_hands")          # grafted, no Skyrim source material
+        if args.hands == "graft":
+            keep.add("mtr_hands")      # grafted, no Skyrim source material
+        # adapter route: no mtr_hands — the heister's own gloves supply the
+        # hands, so a hand material here would only point at nothing.
         specs = [s for s in specs if s.name in keep]
         textures = sm.build_textures(
             args.root / "1.zip", specs, args.tex_res,
@@ -385,7 +405,7 @@ def main(argv=None) -> int:
             fps_bytes = fps_path.read_bytes()
         pack = bw_pack.write_pack(
             args.dist, out.read_bytes(), textures, icon, config, fps_config,
-            fps_model=fps_bytes,
+            fps_model=fps_bytes, hands=args.hands,
             extra={
                 "source": "Melodic Business Woman SE 3BA",
                 # Melodic's readme asks for permission before republishing

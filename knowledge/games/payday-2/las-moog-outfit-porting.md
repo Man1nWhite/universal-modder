@@ -450,3 +450,52 @@ same five, and the audit now checks them by name.
       which sits 20 cm off the hand and does not follow a retargeted Skyrim
       sleeve; the seam just moves up to the elbow. Grafting hands and welding
       the cuff is the only arrangement that holds on a ported body.
+
+27. **Changeable gloves via the vanilla glove adapter — supersedes note 26's
+    "graft is the only way" for a wrist-length body** (2026-11-03, read off
+    `Vladik268/P2` = LAS 4.1.9 + BeardLib, and the decompiled vanilla Lua in
+    `AzureeDev/payday-2-luajit`; shipped on BusinessWoman only).
+
+    Note 26 concluded the graft was the only arrangement that holds. That is
+    true for a *donor* forearm, but it missed the arrangement the base game
+    itself uses: **ship no hands at all and let the vanilla glove + the
+    `hnd_forearms` glove adapter supply them.** The adapter is bound to the
+    *same PD2 skeleton* the outfit retargets onto, so it follows the sleeve —
+    exactly the property the donor forearm lacked. This is how every DLC/Infamy
+    suit keeps gloves changeable.
+
+    - **Vanilla semantics.** `playerstyletweakdata.lua` gives the suits
+      `body_replacement_standard` (`hands/arms = true`); no style sets
+      `glove_adapter`. `glovestweakdata.lua` defines the adapter
+      (`unit = units/pd2_dlc_hnd/characters/hnd_forearms/hnd_forearms`,
+      per-heister `character_sequence`, `player_style_exclude_list =
+      {"none","slaughterhouse"}`). `criminalsmanager.lua` hides the stock hands
+      when a glove is equipped and spawns `char_gloves` (the hand mesh) +
+      `char_glove_adapter` (the bare forearm) unless the style is excluded. So
+      the adapter is **on by default**; "vanilla hands" = adapter + glove unit.
+    - **LAS 4.1.9 loader bug — the manifest flag is a no-op.**
+      `hooks/outfits/loader.lua` does `output.glove_adapter = output.glove_adapter
+      or false` reading the *fresh* `output` table (not `data.*`), so it is always
+      false, and it force-inserts every `replace_body`/`replace_all` outfit into
+      `glove_adapter.player_style_exclude_list`. A config-only
+      `glove_adapter = true` therefore does nothing.
+    - **The fix is a compat hook, and it must use a table, not a boolean.**
+      PostHook `BlackMarketTweakData:init` (runs after LAS's loader): set
+      `player_styles["las_<id>"].glove_adapter = {}`, reverse-loop `table.remove`
+      the style from `glove_adapter.player_style_exclude_list`, and set
+      `body_replacement.hands = false` + `third_body_replacement.hands = false`
+      (no double hands). **`{}` not `true`:** BeardLib's
+      `set_beardlib_character_visual_state` does `table.merge(final,
+      gloves_adapter_data or player_style_adapter_data or {})` and BeardLib's
+      `table.merge` calls `pairs(new_table)` — a boolean raises `pairs(true)` and
+      crashes. `{}`/nil keep the default `hnd_forearms` adapter; `false` disables.
+    - **FPS comes for free.** BeardLib moves to `unit:camera():camera_unit()`
+      for the local peer and spawns `char_gloves`/`char_glove_adapter` there, so
+      the gloves show in first person without shipping any FPS hand geometry.
+      Fallback if a heister's camera-unit gloves ever fail: an FPS-only graft.
+    - **When to prefer which.** Adapter route when the ported body already ends
+      at the wrist (BusinessWoman's 3BA does) and you want changeable gloves;
+      graft + weld (note 26) when the outfit must own the hands outright (cop
+      suits, full character replacements) or the sleeve/hand seam must be
+      skinned as one. The adapter trades a skinned cuff for an open sleeve mouth
+      the adapter forearm fills — verify the cuff in motion in game.

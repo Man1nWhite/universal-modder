@@ -4,6 +4,94 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
+## 2026-11-03 — glove_adapter implemented for BusinessWoman (adapter route + compat hook) (NEW)
+
+- Scope (confirmed): **BusinessWoman only** — Miranda_LAS and lawson_las keep
+  their baked/grafted hands for now.
+- **Shipped the adapter route.** `build_business_woman.py` gained
+  `--hands {adapter,graft}` (default `adapter`). On `adapter` the build ships
+  **no hand geometry at all** (TPP *and* FPS): the graft/weld/cuff-cap pipeline,
+  the hand diffuse texture and `mtr_hands` are all gated behind `--hands graft`.
+  The sleeves end at the wrist; the vanilla glove + `hnd_forearms` adapter supply
+  the hands, exactly like a DLC/Infamy suit.
+- **The manifest flag alone is a no-op, so a compat hook does the work.**
+  `la.businesswoman` now declares `glove_adapter = true` (intent), and a second
+  hook `hooks/businesswoman_glove_adapter.lua` (PostHook
+  `BlackMarketTweakData:init`, id `BusinessWoman_GloveAdapter`) runs after LAS's
+  loader and actually enables it:
+  - `ps.glove_adapter = {}` — a **table, not boolean `true`** (BeardLib's
+    `table.merge` calls `pairs(new_table)`; `pairs(true)` crashes). `{}` keeps
+    the default `hnd_forearms` adapter.
+  - reverse-loop `table.remove` of `las_businesswoman` from
+    `glove_adapter.player_style_exclude_list` (LAS force-adds every
+    `replace_body` outfit).
+  - `ps.body_replacement.hands = false` and
+    `ps.third_body_replacement.hands = false` so the stock hands are not
+    double-spawned under the gloves.
+- **Build:** 26 files; body slots `mtr_body, mtr_heels, mtr_jacket, mtr_jacket2,
+  mtr_necklace, mtr_skirt` (no `mtr_hands`); TPP 57,785 verts / 104,329 tris over
+  20 PD2 bones; FPS arms 12,682 verts / 23,026 tris. Zip sha256
+  `2874b8228f497d9e02d7fe83c1f1c6618669da8e4f929ed017a5ea1185be4b11`.
+  `BUILD_INFO.json` records `hands: adapter`, `glove_adapter: true`,
+  `runtime_verified: false`.
+- **Tests:** new `tests/test_glove_adapter.py` (9) pins the registration
+  contract; `test_fps_hands.py` now asserts **no** finger verts and no
+  `mtr_hands` in either view on the adapter route; `test_hands_graft.py`
+  unchanged (graft machinery retained). Hand suite **56 passed**. Full suite
+  **398 passed, 9 skipped, 1 failed** — the one failure
+  (`test_retarget_joint_errors_and_palettes`, Miranda route, RightArm 5.71 cm >
+  5.0 cm) is **pre-existing and unrelated**: its inputs are byte-identical to
+  base and CI skips it (`@needs_templates`, no 2B extraction in CI).
+  `check_all.py` (lawson) all 5 stages green; every tracked `dist/*.zip.sha256`
+  verifies.
+- **Still outstanding (needs the game):** gloves changeable, no double hands,
+  FPS hands present via the camera-unit gloves. Fallback if FPS hands are
+  missing = FPS-only graft. `runtime_verified` stays `false` until a PC run.
+
+## 2026-11-03 — glove_adapter research (repos read, not guessed) + branch cleanup (NEW)
+
+- Request: `glove_adapter = true`, vanilla hands (or a hand-fix mod) acceptable;
+  survey how DLC/Infamy/LAS-cop outfits treat hands. Also: clean stale branches.
+- **Branch cleanup:** deleted all 13 stale `arena/*` session branches on origin
+  (all merged or superseded: `a72d4579` duplicated merged PR#3; `ecdfa60b`'s nifly
+  route was replaced by `skyrim_source.py`). Remote now: `main` + `star-chart` only.
+- **Repos read:** `Vladik268/P2` (LAS 4.1.9 + BeardLib), `LebiFur/LASCreator`,
+  `references/2b.rar`, and the decompiled vanilla Lua (`AzureeDev/payday-2-luajit`).
+- **Vanilla/DLC/Infamy outfits keep gloves changeable.** `glovestweakdata.lua`
+  defines `glove_adapter = { unit = units/pd2_dlc_hnd/characters/hnd_forearms/...,
+  character_sequence = {female/male per heister}, player_style_exclude_list =
+  {"none","slaughterhouse"} }`. `criminalsmanager.lua` hides the stock hands
+  (`var_hands_replace`) when gloves are equipped, spawns `char_gloves` (the hand
+  mesh) and `char_glove_adapter` (the bare forearm) unless the style is excluded.
+  `playerstyletweakdata.lua` uses `body_replacement_standard` (hands/arms=true).
+- **LAS cop outfits / 2B / LASCreator / Jack Cooper bake hands in.** cop_outfits.lua
+  uses `replace_body=true` (whole body incl. hands); 2B + LASCreator use
+  `replace_all=true`; Jack Cooper/Ringed Knight use BeardLib `exclude_glove_adapter`.
+  Our 3 packs currently do the same (BusinessWoman grafts PD2 hands + welds cuff).
+- **BLOCKER — LAS 4.1.9 loader bug:** `hooks/outfits/loader.lua` does
+  `output.glove_adapter = output.glove_adapter or false` and
+  `output.default_glove_id = output.default_glove_id or false` — reading the fresh
+  `output` table, NOT `data.*`, so both are ALWAYS false. It also inserts any
+  `replace_body`/`replace_all` outfit into `glove_adapter.player_style_exclude_list`.
+  So `glove_adapter=true` cannot be enabled via the LAS config alone; a compat hook
+  must re-enable it (set `player_styles.las_<id>.glove_adapter=true` + drop the
+  exclude-list entry) after LAS loads. BeardLib's own path spawns the adapter by
+  default unless `glove_adapter=false`, so the hook only fights LAS's forced false.
+- **Plan:** drop baked/grafted hands, let vanilla glove + hnd_forearms adapter show
+  (the "hands beside the outfit" arrangement note 26 describes; cleaner than the
+  graft for BusinessWoman whose 3BA body already stops at the wrist). Unlike note
+  26's rejected *donor forearm* (foreign bind pose, 20 cm off), the vanilla adapter
+  is bound to the same PD2 skeleton the outfit retargets onto, so it follows.
+- Awaiting scope confirmation (which of the 3 LAS packs) before model surgery.
+- **Scope confirmed: BusinessWoman.** Also verified a second trap: BeardLib's
+  `set_beardlib_character_visual_state` does `table.merge(final_adapter_data,
+  gloves_adapter_data or player_style_adapter_data or {})`, and BeardLib's
+  `table.merge` calls `pairs(new_table)` — so a boolean `glove_adapter=true` on
+  the player_style would raise `pairs(true)`. The compat hook must enable the
+  adapter with a table (empty `{}` keeps the default `hnd_forearms`) or nil, NOT
+  a boolean. Gloves apply to FPS too: BeardLib moves to `unit:camera():camera_unit()`
+  for the local peer and spawns `char_gloves`/`char_glove_adapter` there.
+
 ## 2026-10-19 — fourth check: the geometry was broken, and the checks could not see it (NEW)
 
 - Asked for a fourth pass that attacks the *claims* instead of re-running the

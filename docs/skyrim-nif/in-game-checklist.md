@@ -40,23 +40,31 @@ Report failures with the item number and a screenshot.
     distance (9:1 decimated) and do not shimmer or z-fight.
 11. Skirt does not intersect the jacket flaps when crouching (both are static
     skins; the source's HDT sway is not ported).
-11a. **Wrists** — the sleeve meets the hand with no gap and no skin showing
-    through the cuff, in front of her, at her sides, and mid-animation. The
-    sleeve was translated onto PD2's hand bone (it hangs well forward in the
-    bind pose) and its mouth capped; if a wrist opens up in motion, this is the
-    item. Also look for stray flat blades at the cuff — that was the donor's
-    decimated LOD hand being drawn on top of the full one.
-11b. **Hands are skin, not grey** — same tone as the forearms, fingers separate.
+11a. **Gloves are changeable** — open the inventory and swap gloves, including
+    setting them to "none". The outfit ships **no hand geometry** (adapter
+    route); the hands you see are the vanilla glove unit plus the `hnd_forearms`
+    glove adapter, exactly like a DLC/Infamy suit. This is the point of the
+    change, so it is the first hand item to confirm.
+11b. **No double hands** — with a glove equipped there is one pair of hands (the
+    glove), not a glove drawn over a baked hand. With gloves set to "none" the
+    bare `hnd_forearms` adapter shows, not a second pair of hands.
+11c. **Wrists / cuff** — the sleeve ends at the wrist (its mouth is *not* welded
+    or capped on the adapter route) and the adapter forearm fills the opening,
+    in front of her, at her sides, and mid-animation. If a gap or a skin seam
+    opens at the cuff in motion, this is the item.
 
 ## First person
 
-12. Arms visible on weapon viewmodels; the sleeve and the hand are both there,
-    with `DEPTH_SCALING` keeping them in front of world geometry.
+12. Arms visible on weapon viewmodels; the sleeve is there, with `DEPTH_SCALING`
+    keeping it in front of world geometry. The hands come from the camera-unit
+    gloves — BeardLib spawns `char_gloves`/`char_glove_adapter` on the local
+    peer's camera unit — not from the outfit itself.
 13. No torso or leg geometry in the viewmodel (the arms were sliced out of the
     full body, so this confirms the cut).
-13a. **First-person hands are whole** — all five fingers, closed wrist. The
-    viewmodel is cut by bone *rule* (`is_fps_arm_bone`); a cut that misses the
-    finger chains leaves hollow finger shells that only show in first person.
+13a. **First-person hands are present** — the equipped glove (or the bare
+    adapter with gloves set to "none") shows on the viewmodel. If the FPS hands
+    are missing, the fallback is an FPS-only graft; `--hands graft` rebuilds the
+    legacy welded-hand route. Report it and we will switch.
 
 ## Materials
 
