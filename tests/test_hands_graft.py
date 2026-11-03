@@ -306,3 +306,22 @@ def test_graft_uvs_use_the_internal_v_convention():
     # the donor's hands sit in the lower half of its atlas; the internal
     # convention therefore puts them in the upper half
     assert sum(1 for x in v if 0.0 <= x <= 1.0) > 0.5 * len(v)
+
+
+def test_weld_wrist_caps_the_cuff_in_skin_not_cloth():
+    """The cap that closes a sleeve mouth is skin, like LAS's own outfits.
+
+    A Legendary Armour Skins outfit keeps its hands as a skin slice in the same
+    model as the clothes (`mtr_hands`, plus `mtr_arms` for a bare wrist in the
+    first-person units), and the sleeve simply overlaps the arm. Capping the
+    cuff with the mouth's own material instead painted the opening with the
+    garment's *inner* layer -- for this outfit the white lace of the bustier,
+    which showed up as a pale ring at each wrist.
+    """
+    g, _nfaces, n = _arm_with_hand()
+    bm.weld_wrist(g, (2 * n, 4 * n), (2 * n, 4 * n),
+                  slot="mtr_jacket", hand_slot="mtr_hands")
+    caps = [slot for slot in g.mat_slots if slot == "mtr_hands"]
+    assert caps, g.mat_slots
+    assert "mtr_jacket" not in g.mat_slots, (
+        "the cuff cap took the sleeve's material")

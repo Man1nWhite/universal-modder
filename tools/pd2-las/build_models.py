@@ -1063,11 +1063,6 @@ def weld_wrist(g: Group, vert_range, face_range, radius: float = 7.0,
     hand_verts = set(range(v_lo, v_hi))
     hand_faces = g.faces[f_lo:f_hi]
     body_faces = [f for i, f in enumerate(g.faces) if not f_lo <= i < f_hi]
-    body_slot = [sl for i, sl in enumerate(_face_slots(g))
-                 if not f_lo <= i < f_hi]
-    face_slot = {}
-    for i, f in enumerate(body_faces):
-        face_slot[f] = body_slot[i]
 
     report = {"pairs": [], "moved": 0, "triangles": 0}
     new_faces: list[tuple[int, int, int]] = []
@@ -1134,15 +1129,16 @@ def weld_wrist(g: Group, vert_range, face_range, radius: float = 7.0,
             g.verts[i] = (v[0] + shift[0], v[1] + shift[1], v[2] + shift[2])
             report["moved"] += 1
 
-        # close every opening on this side, plus the hand's own
+        # Close the cuff with *skin*, sampled from the hand it closes onto.
+        # Painting it with the mouth's own cloth is what a stitched seam would
+        # do, but PD2 does not stitch these: a heister carries `g_body`
+        # (clothes) and `g_arms` (a bare skin wrist) as separate models, and the
+        # sleeve simply overlaps the arm. A skin cap reproduces what that looks
+        # like from outside -- sleeve, a ring of wrist, then the hand -- and it
+        # cannot go wrong on a garment whose inner layer is white lace, which is
+        # what a cloth-coloured cap showed instead.
         for ring in [r for r, _c, _r in body_rings]:
-            votes: dict[str, int] = {}
-            ring_set = set(ring)
-            for f in body_faces:
-                if len(ring_set.intersection(f)) >= 2:
-                    votes[face_slot.get(f, slot)] = votes.get(
-                        face_slot.get(f, slot), 0) + 1
-            cap_slot = max(votes, key=votes.get) if votes else slot
+
             # `boundary_loops` returns loops in face order, which on a bent
             # cuff zig-zags round the opening; fanning that order connects
             # vertices that are not neighbours and throws a star of blades out
@@ -1151,9 +1147,9 @@ def weld_wrist(g: Group, vert_range, face_range, radius: float = 7.0,
             ring, _f = _ordered_ring(list(ring), g, rc, axis)
             v0 = len(g.verts)
             i0 = len(g.faces) * 3 + len(new_faces) * 3
-            fan = _fan_cap(g, ring, body_faces)
+            fan = _fan_cap(g, ring, body_faces, uv_ring=hring)
             new_faces.extend(fan)
-            bands.append((cap_slot, v0, i0, len(fan), len(g.verts) - v0))
+            bands.append((hand_slot, v0, i0, len(fan), len(g.verts) - v0))
         # The hand's own opening is *not* capped. Its boundary is a single
         # loop only in the donor's topology: walked on the grafted hand it
         # jumps by up to 10 cm between neighbours, so any fan across it throws
@@ -1177,7 +1173,7 @@ def weld_wrist(g: Group, vert_range, face_range, radius: float = 7.0,
     return report
 
 
-def _fan_cap(g: Group, ring, faces, depth: float = 1.0) -> list[tuple]:
+def _fan_cap(g: Group, ring, faces, depth: float = 1.0, uv_ring=None) -> list[tuple]:
     """Close one opening with a shallow cone pointing back into the surface.
 
     `cap_holes` fans to the centroid, which is fine for a flat hole but wrong
@@ -1214,7 +1210,8 @@ def _fan_cap(g: Group, ring, faces, depth: float = 1.0) -> list[tuple]:
         inside /= float(np.linalg.norm(inside))
     radius = float(np.linalg.norm(pts - centre, axis=1).mean())
 
-    uv = np.asarray([g.uvs[i] for i in ring], dtype=np.float64).mean(axis=0)
+    uv_ring = list(ring) if uv_ring is None else list(uv_ring)
+    uv = np.asarray([g.uvs[i] for i in uv_ring], dtype=np.float64).mean(axis=0)
     weight_sum: dict[int, float] = {}
     for i in ring:
         for pal, w in g.weights[i]:

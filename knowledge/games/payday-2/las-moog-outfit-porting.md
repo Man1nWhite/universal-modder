@@ -428,3 +428,25 @@ exactly five locator objects — `aim`, `BackPack1`, `eyeAim`,
 `a_weapon_left_front`, `a_weapon_right_front` — the last two hanging off the
 hands (they are the weapon sockets, not thumb tips). Our model carries the
 same five, and the audit now checks them by name.
+
+26. **How LAS itself handles hands** (read off the mod, not guessed). A LAS
+    outfit keeps the hands *inside its own unit*: `units/.../pool_repair_suit`
+    declares `mtr_body`, `mtr_hands` and — first person only — `mtr_arms`
+    pointing at `units/payday2/characters/shared_textures/fps_wrist_female_1_*`,
+    i.e. a bare-wrist skin map between the sleeve and the glove. The cop
+    outfits go further and ship the whole body (`g_body`, `g_armor_*`,
+    `g_throat`, `g_neck`, `s_body`) with `replace_body = true`, so nothing of
+    the stock heister survives. Either way there is never a *seam*: the sleeve
+    overlaps a skin arm, and the skin material is what shows in the opening.
+
+    Two consequences for a ported outfit:
+
+    - Cap the sleeve mouth in **skin**, sampled from the hand's own UVs, not in
+      the mouth's garment material. `weld_wrist` did the latter (on the theory
+      that a stitched seam takes the cloth), and because the cap samples the
+      garment's *inner* layer it came out white lace at both wrists.
+    - Do **not** try to borrow the donor's forearm and let the sleeve overlap
+      it. A donor's skin arm is bound to PD2's `ForeArm` in PD2's bind pose,
+      which sits 20 cm off the hand and does not follow a retargeted Skyrim
+      sleeve; the seam just moves up to the elbow. Grafting hands and welding
+      the cuff is the only arrangement that holds on a ported body.

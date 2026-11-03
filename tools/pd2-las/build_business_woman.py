@@ -187,6 +187,9 @@ def main(argv=None) -> int:
                     help="also build the first-person arms unit (default)")
     ap.add_argument("--no-fps", dest="fps", action="store_false")
     ap.add_argument("--no-previews", action="store_true")
+    ap.add_argument("--wrist", choices=("weld",), default="weld",
+                    help="how the sleeve meets the hand (only `weld` is "
+                         "supported; see the notes on LAS's cop outfits)")
     ap.add_argument("--pack", action="store_true",
                     help="also write textures, material configs and the LAS folder")
     ap.add_argument("--tex-res", type=int, default=1024,
@@ -231,23 +234,26 @@ def main(argv=None) -> int:
     # The 3BA body stops at the wrist, so the sleeves would end in a stump.
     # PD2 heisters share the stock skeleton and its bind pose, so hand
     # geometry from one of them drops straight onto these wrists.
+    # PD2 heisters carry their hands *beside* the outfit, never welded into it:
+    # a cop/outfit unit is `g_body` (clothes) + `g_arms` (bare forearm skin) +
+    # `g_hands` (gloves), each its own model with its own material, and the
+    # sleeve simply overlaps the skin arm. Only the *hands* can be borrowed
+    # here: a donor's forearm does not follow a retargeted Skyrim sleeve (its
+    # skin sits 20 cm off the hand), so the sleeve is instead bent onto PD2's
+    # hand bone and its mouth capped in skin.
     hands = bm.graft_pd2_hands(args.templates / "2b.model")
     print(f"hands: {len(hands.verts)} verts / {len(hands.faces)} tris "
-          f"({len(hands.palette)} finger bones)")
+          f"({len(hands.palette)} bone names, wrist={args.wrist})")
     body_v0, body_f0 = len(groups["body"].verts), len(groups["body"].faces)
     bm.append_group(groups["body"], hands, template)
-    # The graft lands on PD2's hand bone, which sits ~13 cm off the forearm
-    # axis: the sleeve has to be bent onto it and the two openings stitched,
-    # or the wrists are open in every pose (the offset is rigid).
-    weld = bm.weld_wrist(groups["body"], (body_v0, body_v0 + len(hands.verts)),
+    weld = bm.weld_wrist(groups["body"],
+                         (body_v0, body_v0 + len(hands.verts)),
                          (body_f0, body_f0 + len(hands.faces)))
     for pair in weld["pairs"]:
-        print(f"[body] {pair['side']} wrist welded: sleeve {pair['sleeve']} -> "
-              f"hand {pair['hand']} verts, {pair['triangles']} tris "
-              f"(gap was {pair['gap_cm']} cm after the bend)")
+        print(f"[body] {pair['side']} wrist welded: sleeve "
+              f"{pair['sleeve']} -> hand {pair['hand']} verts, "
+              f"{pair['triangles']} tris (gap was {pair['gap_cm']} cm)")
     print(f"[body] wrist weld moved {weld['moved']} sleeve vertices")
-    print(f"body+hands: {len(groups['body'].verts)} verts, "
-          f"slots {sorted(set(groups['body'].mat_slots))}")
     # the shadow caster is the same silhouette; hands missing from it would
     # leave a handless shadow under a heister that clearly has hands
     import copy
