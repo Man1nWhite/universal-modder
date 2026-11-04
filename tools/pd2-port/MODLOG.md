@@ -4,7 +4,37 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: uniform albedo (real blotch fix) + stop authoring hands (NEW)
+## 2026-11-04 — BusinessWoman: white upper-arm patches = shirt sleeves, tucked (NEW)
+
+- **Report:** user sent 4 in-game screenshots of the `0b049e9` pack — legs now
+  smooth and uniform (albedo fix confirmed in-game), game gloves now show (adapter
+  confirmed), but white patches persist on the upper arms and a white ring shows at
+  the wrist between the sleeve cuff and the glove.
+- **Root cause corrected.** The prior cycle probed `mtr_jacket2` only at z>140 and
+  found zero verts, concluding the white patches were skin. That band was too high:
+  the shirt sleeves actually sit at **z 124.6–130.6, |x| 30–50** (2016 verts, 100 %
+  arm-weighted). They are the white shirt under the black blazer, poking through /
+  z-fighting the blazer sleeve in-game. The offline rigid-arm sim never reproduced it
+  (even with an elbow bend) because the game's skinning brings the two nearly
+  coincident sleeves closer than the sim does.
+- **Fix: `tuck_shirt_sleeves`.** For jacket2 verts in the upper-arm band
+  (z 116–138, |x|≥20), push inward along the vertex normal by up to 1.6 cm with a
+  smoothstep proximity falloff to the nearest blazer vert. This raises the
+  shirt↔blazer separation (mean 1.09 → 1.75 cm, verified in the shipped model) so the
+  shirt stays hidden under the blazer. The visible collar/lapel (small |x|) and the
+  blazer itself are untouched; the amount is capped to avoid pushing the shirt
+  through the arm skin underneath. Applied to body + shadow.
+- **Verification limits.** The offline pose sim cannot reproduce the in-game
+  poke-through, so the fix is validated geometrically (separation increased, no skin
+  clipping in the tucked render) rather than by reproducing the defect. The wrist
+  white ring is the same shirt cuff and is partly tucked by the same band; a residual
+  gap is inherent to the adapter route (no authored hands to bridge cuff→glove).
+- **Build/gates:** zip sha256
+  `79e6b23fdbbd1fa3da6206e23a9e40845a6afc3708936fbc75f8745722aed390`, 26 entries.
+  pytest 423 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 26 / 0 / 1 no-README warning; pyflakes clean. Added 2 tuck regression tests.
+
+## 2026-11-04 — BusinessWoman: uniform albedo (real blotch fix) + stop authoring hands
 
 - **Report:** user sent 6 in-game screenshots — leg blotches STILL present, grafted
   hands look pale/claw-like, white patches at the shoulders — and said **"Don't try

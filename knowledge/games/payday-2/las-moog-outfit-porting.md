@@ -662,3 +662,27 @@ same five, and the audit now checks them by name.
     small residue that remains (armpit notch, shoulder-top spots near the collar)
     is the genuine overlap gap / skin poke-through that `tuck_underarm_skin`
     already documents as un-closable without distorting the sleeve.
+
+32. **White patches on a dark sleeve are usually the under-layer garment, not
+    skin — probe the material's FULL extent before concluding** (2026-11-04,
+    BusinessWoman blazer). After the uniform-albedo fix the legs were clean but
+    white upper-arm patches remained in-game. An earlier probe had checked
+    `mtr_jacket2` only at z>140, found zero verts, and wrongly concluded the
+    patches were skin. The band was too high: the white **shirt sleeves** sit at
+    z 124.6–130.6, |x| 30–50 (2016 verts, 100 % arm-weighted), *below* the
+    shoulder-stay band. They are the shirt under the blazer, poking through /
+    z-fighting the blazer sleeve once the game skins the arms. **Fix:
+    `tuck_shirt_sleeves`** — push jacket2 verts in the upper-arm band inward along
+    their normal (up to ~1.6 cm, smoothstep falloff to the nearest blazer vert),
+    raising the shirt↔blazer separation (mean 1.09 → 1.75 cm) so the shirt stays
+    hidden; leave the visible collar/lapel (small |x|) and the blazer untouched,
+    and cap the amount so the shirt is not pushed through the arm skin beneath
+    (that would just swap white patches for tan). Two lessons: (a) when a white
+    patch survives an albedo fix, look for a white *under-layer mesh* in the same
+    region and measure its real z/|x| extent — do not assume skin; (b) the offline
+    rigid-arm pose sim may NOT reproduce in-game poke-through/z-fighting even with
+    an elbow bend, because the game's skinning brings near-coincident layers closer
+    than the sim does — validate such a fix **geometrically** (layer separation
+    increased, no skin clipping) rather than by reproducing the defect offline.
+    The wrist white ring is the same shirt cuff; the tuck band covers it, but a
+    residual cuff→glove gap is inherent to the adapter route (no authored hands).

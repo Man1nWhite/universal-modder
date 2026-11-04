@@ -296,6 +296,13 @@ def main(argv=None) -> int:
         n = bm.tuck_underarm_skin(groups[gname])
         print(f"[{gname}] underarm skin verts tucked: {n}")
 
+    # The white shirt's sleeves (jacket2) are 100% arm-weighted and sit below the
+    # shoulder-stay band, so they poke through the blazer sleeve as white patches
+    # on the upper arm in-game. Tuck them behind the blazer (blazer untouched).
+    for gname in ("body", "shadow"):
+        n = bm.tuck_shirt_sleeves(groups[gname])
+        print(f"[{gname}] shirt sleeve verts tucked: {n}")
+
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):
         n = bm.lower_collar(groups[gname])

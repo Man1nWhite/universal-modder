@@ -1488,6 +1488,52 @@ def tuck_underarm_skin(g: Group, mats=("skin",), amount: float = 0.7,
     return touched
 
 
+def tuck_shirt_sleeves(g: Group, amount: float = 1.6, near: float = 3.5,
+                       z_lo: float = 116.0, z_hi: float = 138.0,
+                       x_min: float = 20.0) -> int:
+    """Tuck the white shirt's sleeves (``jacket2``) behind the blazer's sleeves.
+
+    The shirt sleeves are 100 % arm-weighted and sit *below* the shoulder-stay
+    band, so under the in-game arms-down / elbow-bent pose they poke through the
+    blazer sleeve as white patches on the upper arm (confirmed in-game; the rigid
+    offline arm rotation does not reproduce the elbow bend). Push them inward
+    along their own normal — toward the arm — where they lie within ``near`` cm of
+    the blazer, with a smooth proximity falloff. The blazer is untouched and the
+    shirt sleeve is hidden under it anyway, so this only removes the poke-through.
+    Confined to the upper-arm band (``x_min`` keeps the visible collar/lapel out).
+    """
+    import numpy as np
+    jverts = []
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z_lo <= z <= z_hi and abs(x) >= x_min:
+                jverts.append((x, y, z))
+    if not jverts:
+        return 0
+    jv = np.asarray(jverts, dtype=np.float64)
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket2":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if not (z_lo <= z <= z_hi and abs(x) >= x_min):
+                continue
+            d = float(np.linalg.norm(jv - np.array([x, y, z]), axis=1).min())
+            if d >= near:
+                continue
+            t = 1.0 - d / near
+            fall = t * t * (3.0 - 2.0 * t)
+            nx, ny, nz = g.normals[i]
+            push = amount * fall
+            g.verts[i] = (x - nx * push, y - ny * push, z - nz * push)
+            touched += 1
+    return touched
+
+
 def repair_skin_boundary_normals(g: Group) -> None:
     """Repair corrupted boundary normals along the face/neck seam and mouth corners,
     and recenter eyeball planar UVs on the visible eyelid opening (palpebral fissure).

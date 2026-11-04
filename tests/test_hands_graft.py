@@ -420,3 +420,34 @@ def test_weld_wrist_caps_the_cuff_in_skin_not_cloth():
     assert caps, g.mat_slots
     assert "mtr_jacket" not in g.mat_slots, (
         "the cuff cap took the sleeve's material")
+
+
+def test_tuck_shirt_sleeves_pushes_jacket2_inward():
+    """The white shirt sleeve (jacket2) near the blazer is pushed inward along
+    its normal so it stops poking through the blazer sleeve; blazer untouched."""
+    g = bm.Group(name="g")
+    g.verts = [(30.0, 0.0, 128.0), (30.0, 1.0, 128.0)]
+    g.normals = [(0.0, 1.0, 0.0), (0.0, 1.0, 0.0)]
+    g.slices = [("jacket", 0, 0, 1, 1), ("jacket2", 1, 0, 1, 1)]
+
+    touched = bm.tuck_shirt_sleeves(g)
+
+    assert touched == 1
+    assert g.verts[0] == (30.0, 0.0, 128.0)      # blazer reference untouched
+    assert g.verts[1][1] < 1.0                    # shirt moved inward (-normal)
+    assert g.verts[1][0] == 30.0 and g.verts[1][2] == 128.0
+
+
+def test_tuck_shirt_sleeves_leaves_collar_and_blazer():
+    """Only the upper-arm band is tucked: the visible collar/lapel (small |x|,
+    high z) and any non-jacket2 material are left alone."""
+    g = bm.Group(name="g")
+    g.verts = [(30.0, 0.0, 128.0), (5.0, 1.0, 150.0), (30.0, 1.0, 100.0)]
+    g.normals = [(0.0, 1.0, 0.0)] * 3
+    g.slices = [("jacket", 0, 0, 1, 1), ("jacket2", 1, 0, 1, 2)]
+
+    touched = bm.tuck_shirt_sleeves(g)
+
+    assert touched == 0
+    assert g.verts[1] == (5.0, 1.0, 150.0)       # collar: |x|<20 and z>138
+    assert g.verts[2] == (30.0, 1.0, 100.0)      # below the band (z<116)
