@@ -303,6 +303,13 @@ def main(argv=None) -> int:
         n = bm.tuck_shirt_sleeves(groups[gname])
         print(f"[{gname}] shirt sleeve verts tucked: {n}")
 
+    # The shirt's wrist cuff (jacket2) sits at the sleeve opening and shows as a
+    # white ring between the blazer cuff and the game glove. Retract it up the
+    # forearm into the sleeve (no hand geometry authored).
+    for gname in ("body", "shadow"):
+        n = bm.tuck_shirt_cuffs(groups[gname])
+        print(f"[{gname}] shirt cuff verts retracted: {n}")
+
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):
         n = bm.lower_collar(groups[gname])

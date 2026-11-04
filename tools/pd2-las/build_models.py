@@ -1534,6 +1534,63 @@ def tuck_shirt_sleeves(g: Group, amount: float = 1.6, near: float = 3.5,
     return touched
 
 
+def tuck_shirt_cuffs(g: Group, amount: float = 6.0, z_lo: float = 124.0,
+                     z_hi: float = 128.0, x_min: float = 30.0) -> int:
+    """Retract the white shirt's wrist cuffs (``jacket2``) up into the sleeve.
+
+    The radial ``tuck_shirt_sleeves`` pass hides the shirt along the upper arm but
+    not at the wrist: the cuff is a ring of 100 %-``ForeArm``-weighted verts sitting
+    right at the sleeve *opening* (z~125), so it still shows as a white ring between
+    the blazer cuff and the game glove (confirmed in-game). Pushing it inward does
+    not help because there is no blazer beyond the opening to hide behind — it has
+    to slide *up the forearm*, into the sleeve. Move the cuff verts along the
+    wrist->elbow axis (measured from the rig: [+-0.288, -0.874, 0.392]) with a
+    smooth height falloff (full at the cuff edge, zero by ``z_hi``). The blazer and
+    the visible collar/lapel are untouched; the retracted cuff hides under the
+    blazer sleeve. This removes the white ring without authoring any hand geometry.
+    """
+    import numpy as np
+    # Forearm axis (wrist -> elbow) measured from the rig, per side. Retracting
+    # along it slides the cuff up the sleeve; projecting onto it and pulling the
+    # vert toward the axis tucks it inside the blazer tube (otherwise it stays on
+    # the tube's edge and still peeks out of the opening).
+    axes = {
+        -1.0: (np.array([-45.99, 18.70, 124.47]), np.array([-39.50, -0.99, 133.29])),
+        1.0: (np.array([45.99, 18.70, 124.47]), np.array([39.50, -0.99, 133.29])),
+    }
+    inward = 1.6      # cm pulled toward the forearm axis
+    touched = 0
+    span = max(z_hi - z_lo, 1e-6)
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket2":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if abs(x) < x_min or not (z_lo <= z <= z_hi):
+                continue
+            t = (z_hi - z) / span
+            t = max(0.0, min(1.0, t))
+            fall = t * t * (3.0 - 2.0 * t)
+            sx = -1.0 if x < 0 else 1.0
+            W, E = axes[sx]
+            D = E - W
+            D = D / np.linalg.norm(D)
+            p = np.array([x, y, z])
+            # slide up the forearm (toward the elbow) ...
+            push = amount * fall
+            p = p + D * push
+            # ... then pull toward the forearm axis so it sits inside the sleeve
+            tt = float(np.dot(p - W, D))
+            closest = W + D * tt
+            radial = closest - p
+            rn = float(np.linalg.norm(radial))
+            if rn > 1e-6:
+                p = p + radial / rn * min(inward * fall, rn)
+            g.verts[i] = (float(p[0]), float(p[1]), float(p[2]))
+            touched += 1
+    return touched
+
+
 def repair_skin_boundary_normals(g: Group) -> None:
     """Repair corrupted boundary normals along the face/neck seam and mouth corners,
     and recenter eyeball planar UVs on the visible eyelid opening (palpebral fissure).

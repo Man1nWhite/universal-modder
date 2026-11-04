@@ -451,3 +451,32 @@ def test_tuck_shirt_sleeves_leaves_collar_and_blazer():
     assert touched == 0
     assert g.verts[1] == (5.0, 1.0, 150.0)       # collar: |x|<20 and z>138
     assert g.verts[2] == (30.0, 1.0, 100.0)      # below the band (z<116)
+
+
+def test_tuck_shirt_cuffs_retracts_jacket2_up_the_forearm():
+    """The wrist cuff slides up the forearm (z increases) and toward the arm axis,
+    into the blazer sleeve, instead of sitting at the opening as a white ring."""
+    g = bm.Group(name="g")
+    g.verts = [(-42.0, 14.0, 125.0)]
+    g.normals = [(0.0, 1.0, 0.0)]
+    g.slices = [("jacket2", 0, 0, 1, 1)]
+
+    touched = bm.tuck_shirt_cuffs(g)
+
+    assert touched == 1
+    x, y, z = g.verts[0]
+    assert z > 125.0                              # retracted toward the elbow
+    assert (x, y, z) != (-42.0, 14.0, 125.0)
+
+
+def test_tuck_shirt_cuffs_ignores_collar_and_blazer():
+    g = bm.Group(name="g")
+    g.verts = [(5.0, 10.0, 125.0), (-42.0, 14.0, 125.0)]
+    g.normals = [(0.0, 1.0, 0.0)] * 2
+    g.slices = [("jacket2", 0, 0, 1, 1), ("jacket", 1, 0, 1, 1)]
+
+    touched = bm.tuck_shirt_cuffs(g)
+
+    assert touched == 0
+    assert g.verts[0] == (5.0, 10.0, 125.0)      # collar: |x|<30
+    assert g.verts[1] == (-42.0, 14.0, 125.0)    # blazer is not jacket2

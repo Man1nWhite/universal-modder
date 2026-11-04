@@ -4,7 +4,32 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: white upper-arm patches = shirt sleeves, tucked (NEW)
+## 2026-11-04 — BusinessWoman: forearms — retract the white wrist cuff into the sleeve (NEW)
+
+- **Report:** user asked "What about forearms?" Zooming the in-game screenshots shows
+  the forearm sleeve itself is clean; the defect is at the **wrist** — a white shirt
+  cuff ring, then a dark gap, then the blue game glove.
+- **Root cause.** The shirt cuff (`mtr_jacket2`) is a ring of 100 %-`ForeArm`-weighted
+  verts sitting right at the sleeve *opening* (z~125). The earlier radial
+  `tuck_shirt_sleeves` hides the shirt along the arm but not here: there is no blazer
+  beyond the opening to hide behind, so the cuff shows as a white ring.
+- **Fix: `tuck_shirt_cuffs`.** Slide the cuff verts up the forearm along the measured
+  wrist->elbow axis AND pull them toward that axis (project onto the axis, pull
+  inward), so the cuff sits *inside* the blazer tube rather than on its edge.
+  Verified: shirt end moves z 124.9 -> 127.2 (3 cm above the blazer opening), radial
+  distance 2.89 cm = over the skin (2.58) and under the blazer (3.31) — no clipping.
+  A before/after wrist render shows the visible shirt area shrink. Body + shadow,
+  1828 verts each. No hand geometry authored (standing constraint).
+- **Limits.** The offline rigid pose still shows a little shirt up through the sleeve
+  opening at the exact arms-vertical angle; the retraction reduces but does not fully
+  eliminate it, and the residual cuff->glove gap is inherent to the adapter route.
+  The forearm itself renders clean in profile (no poke-through).
+- **Build/gates:** zip sha256
+  `0fce7aee2469a616d9185fa60d841c4db921121517966e5f7b56eb8861b35b4b`, 26 entries.
+  pytest 425 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 26 / 0 / 1; pyflakes clean. +2 cuff regression tests.
+
+## 2026-11-04 — BusinessWoman: white upper-arm patches = shirt sleeves, tucked
 
 - **Report:** user sent 4 in-game screenshots of the `0b049e9` pack — legs now
   smooth and uniform (albedo fix confirmed in-game), game gloves now show (adapter

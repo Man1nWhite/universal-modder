@@ -686,3 +686,21 @@ same five, and the audit now checks them by name.
     increased, no skin clipping) rather than by reproducing the defect offline.
     The wrist white ring is the same shirt cuff; the tuck band covers it, but a
     residual cuff→glove gap is inherent to the adapter route (no authored hands).
+
+33. **A cuff at a sleeve *opening* must retract ALONG the limb, not just inward**
+    (2026-11-04, BusinessWoman wrist). After the radial shirt-sleeve tuck (note 32)
+    the upper-arm patches were gone but a white ring remained at the wrist: the shirt
+    cuff is a ring of 100 %-`ForeArm`-weighted verts sitting exactly at the sleeve
+    opening, where there is no blazer beyond it to hide behind, so a radial (inward)
+    tuck cannot hide it. **Fix: `tuck_shirt_cuffs`** — slide the cuff verts up the
+    limb along the measured wrist->elbow axis *and* project them onto that axis and
+    pull them toward it. The axis projection matters: sliding along the axis alone
+    keeps the cuff at its original radial offset (on the blazer tube's edge, still
+    peeking out); pulling toward the axis seats it inside the tube. Verify the layer
+    order numerically — cuff radial distance must land BETWEEN the skin radius and
+    the blazer radius (here 2.58 < 2.89 < 3.31 cm) so it is over the skin and under
+    the blazer, not clipping either. Validate with a before/after render of the
+    opening (visible shirt area shrinks) and a profile render of the limb (no
+    poke-through). A little shirt may still show up through the opening at the exact
+    limb-vertical angle, and the cuff->glove gap remains inherent to the adapter
+    route — do not author hands to close it.
