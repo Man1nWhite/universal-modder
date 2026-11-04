@@ -1639,8 +1639,42 @@ def tuck_shirt_sleeves(g: Group, amount: float = 1.6, near: float = 3.5,
     return touched
 
 
-def tuck_shirt_cuffs(g: Group, amount: float = 6.0, z_lo: float = 124.0,
-                     z_hi: float = 128.0, x_min: float = 30.0) -> int:
+def extend_blazer_sleeves(g: Group, amount: float = 3.0, z_hi: float = 126.0,
+                          x_min: float = 30.0) -> int:
+    """Lengthen the blazer sleeve toward the wrist so it overlaps the game glove.
+
+    The blazer sleeve opening can stop short of the glove / forearm adapter,
+    leaving a gap (and exposing the shirt cuff) at the wrist in-game. Slide the
+    sleeve-end verts down the forearm axis (wrist direction) with a smooth falloff
+    (full at the opening, zero by ``z_hi``) so the sleeve overlaps the glove cuff
+    and closes the junction. Garment-only; no hand geometry authored.
+    """
+    import numpy as np
+    axes = {
+        -1.0: (np.array([-45.99, 18.70, 124.47]), np.array([-39.50, -0.99, 133.29])),
+        1.0: (np.array([45.99, 18.70, 124.47]), np.array([39.50, -0.99, 133.29])),
+    }
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if abs(x) < x_min or z > z_hi:
+                continue
+            t = max(0.0, min(1.0, (z_hi - z) / max(z_hi - 116.0, 1e-6)))
+            fall = t * t * (3.0 - 2.0 * t)
+            sx = -1.0 if x < 0 else 1.0
+            W, E = axes[sx]
+            D = (E - W) / np.linalg.norm(E - W)
+            p = np.array([x, y, z]) - D * (amount * fall)
+            g.verts[i] = (float(p[0]), float(p[1]), float(p[2]))
+            touched += 1
+    return touched
+
+
+def tuck_shirt_cuffs(g: Group, amount: float = 9.0, z_lo: float = 122.0,
+                     z_hi: float = 130.0, x_min: float = 30.0) -> int:
     """Retract the white shirt's wrist cuffs (``jacket2``) up into the sleeve.
 
     The radial ``tuck_shirt_sleeves`` pass hides the shirt along the upper arm but
@@ -1663,7 +1697,7 @@ def tuck_shirt_cuffs(g: Group, amount: float = 6.0, z_lo: float = 124.0,
         -1.0: (np.array([-45.99, 18.70, 124.47]), np.array([-39.50, -0.99, 133.29])),
         1.0: (np.array([45.99, 18.70, 124.47]), np.array([39.50, -0.99, 133.29])),
     }
-    inward = 1.6      # cm pulled toward the forearm axis
+    inward = 2.5      # cm pulled toward the forearm axis
     touched = 0
     span = max(z_hi - z_lo, 1e-6)
     for mat, base_v, _bi, _nt, nverts in g.slices:

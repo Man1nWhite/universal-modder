@@ -787,3 +787,17 @@ same five, and the audit now checks them by name.
     that head→neck→collar is continuous and the collar back shows no skin wings. Prefer
     rigid whole-body alignment over local neck surgery when the offset is a global
     placement error; reserve local tapers for genuine thickness mismatches.
+
+39. **A white wrist ring that survives hand-removal is the SHIRT CUFF poking radially out of
+    the sleeve mouth — retract it harder AND overlap the glove with the outer sleeve**
+    (2026-11-04, BusinessWoman forearms redo). After dropping shipped hands (note 36) the
+    white wrist ring + a sleeve→glove gap persisted in-game. A posed render with a stand-in
+    glove (template hand tinted blue) showed the white `jacket2` cuff protruding *radially*
+    at the blazer sleeve opening, and the blazer stopping short of the glove. Two-part fix:
+    (a) strengthen the cuff retraction (slide further up the forearm axis AND pull further
+    toward the axis so it clears the sleeve's inner radius, not just its edge); (b) lengthen
+    the OUTER (blazer) sleeve down the forearm axis with a smooth falloff so it overlaps the
+    game glove / forearm adapter and closes the junction. Diagnose wrist defects with a posed
+    render plus a stand-in glove, because the glove/adapter is a game asset absent from the
+    outfit model — without it the junction gap is invisible offline. Garment-only changes;
+    never author hand geometry to bridge a wrist gap.

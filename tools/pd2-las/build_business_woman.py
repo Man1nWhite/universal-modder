@@ -320,6 +320,12 @@ def main(argv=None) -> int:
         n = bm.tuck_shirt_cuffs(groups[gname])
         print(f"[{gname}] shirt cuff verts retracted: {n}")
 
+    # Lengthen the blazer sleeve to overlap the game glove / forearm adapter so the
+    # wrist junction closes (no gap, no exposed shirt cuff).
+    for gname in ("body", "shadow"):
+        n = bm.extend_blazer_sleeves(groups[gname])
+        print(f"[{gname}] blazer sleeve verts extended: {n}")
+
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):
         n = bm.lower_collar(groups[gname])

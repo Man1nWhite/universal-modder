@@ -4,7 +4,30 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: neck redo — TURN the whole body instead of tapering/hiding the neck (NEW)
+## 2026-11-04 — BusinessWoman: forearms redo — hide the shirt cuff + overlap the glove with the blazer sleeve (NEW)
+
+- **Report:** "Now fix forearms." Latest in-game shots STILL show a white ring at the
+  wrist and a gap between the blazer sleeve and the blue game glove, even after the
+  shipped-hands removal. So the ring was never (only) the hands.
+- **Root cause (posed render with a stand-in glove).** The white **shirt cuff
+  (`jacket2`) pokes radially out of the blazer sleeve mouth** at the glove junction, and
+  the blazer sleeve stops short of the glove leaving a gap. The old cuff tuck
+  (6 cm up + 1.6 inward) was insufficient.
+- **Fix.** (1) Strengthen `tuck_shirt_cuffs`: amount 6→**9**, inward 1.6→**2.5**, band
+  z 124–128→**122–130**, so the cuff fully retracts inside the sleeve. (2) New
+  `extend_blazer_sleeves`: slide the sleeve-opening verts down the forearm axis
+  (~3 cm, smooth falloff) so the blazer **overlaps the game glove / forearm adapter** and
+  closes the junction. Garment-only; no hand geometry authored. 2016 cuff verts + 971
+  sleeve verts per drawable.
+- **Verified:** posed wrist render with a blue stand-in glove shows the white cuff flap
+  gone and the sleeve overlapping the glove (no gap); orientation breaks 0.
+  +1 `extend_blazer_sleeves` regression test.
+- **Build/gates:** zip sha256
+  `1f1ee2e6fca56c8bfcaf7e06b851ce5319306f8ec53eb85aab06c06d2a0eb3cb`, 26 entries.
+  pytest 434 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 26 / 0 / 1; pyflakes clean.
+
+## 2026-11-04 — BusinessWoman: neck redo — TURN the whole body instead of tapering/hiding the neck
 
 - **Report:** in-game shots of the taper/hide neck fix were bad: a hard pale-head /
   tan-body seam at the collar in front, tan skin "wings" poking above the collar at the

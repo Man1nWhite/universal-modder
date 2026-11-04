@@ -561,6 +561,22 @@ def test_tuck_shirt_cuffs_retracts_jacket2_up_the_forearm():
     assert (x, y, z) != (-42.0, 14.0, 125.0)
 
 
+def test_extend_blazer_sleeves_lengthens_jacket_toward_wrist():
+    """The blazer sleeve opening slides down the forearm (z decreases) so it
+    overlaps the game glove and closes the wrist junction; shirt/collar untouched."""
+    g = bm.Group(name="g")
+    g.verts = [(-42.0, 14.0, 118.0), (-42.0, 14.0, 140.0), (5.0, 10.0, 118.0)]
+    g.normals = [(0.0, 1.0, 0.0)] * 3
+    g.slices = [("jacket", 0, 0, 1, 2), ("jacket2", 2, 0, 1, 1)]
+
+    touched = bm.extend_blazer_sleeves(g)
+
+    assert touched == 1                          # only the low blazer sleeve vert
+    assert g.verts[0][2] < 118.0                 # lengthened toward the wrist
+    assert g.verts[1] == (-42.0, 14.0, 140.0)    # above the falloff band
+    assert g.verts[2] == (5.0, 10.0, 118.0)      # shirt / collar not jacket
+
+
 def test_tuck_shirt_cuffs_ignores_collar_and_blazer():
     g = bm.Group(name="g")
     g.verts = [(5.0, 10.0, 125.0), (-42.0, 14.0, 125.0)]
