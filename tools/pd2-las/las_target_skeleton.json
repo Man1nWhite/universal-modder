@@ -1,0 +1,32 @@
+{
+  "comment": "Object/bone names embedded in the 2B reference model (2b.rar -> 2B - LAS/assets/units/2b/skins/2b/2b.model, custom_hashlist section). The first 60 are the deform skeleton a LAS outfit model must provide; 60-135 are Blender export artifacts (locator_end chains, safe to omit or renormalize); 136-150 are collision objects; 151-156 are the graphics/shadow drawables. Reference only - do not treat the 2B pack as a runtime oracle (its ss.model is unregistered and its cooked_physics files are empty).",
+  "skeleton": [
+    "root_point", "Hips", "Spine", "Spine1", "Spine2", "Neck", "Head", "eyeAim",
+    "LeftShoulder", "LeftArm", "LeftForeArm", "LeftForeArmRoll", "LeftHand",
+    "LeftHandThumb1", "LeftHandThumb2", "LeftHandThumb3",
+    "LeftHandIndex1", "LeftHandIndex2", "LeftHandIndex3",
+    "LeftHandMiddle1", "LeftHandMiddle2", "LeftHandMiddle3",
+    "LeftHandRing1", "LeftHandRing2", "LeftHandRing3",
+    "LeftHandPinky1", "LeftHandPinky2", "LeftHandPinky3",
+    "a_weapon_left_front",
+    "RightShoulder", "RightArm", "RightForeArm", "RightForeArmRoll", "RightHand",
+    "RightHandThumb1", "RightHandThumb2", "RightHandThumb3",
+    "RightHandIndex1", "RightHandIndex2", "RightHandIndex3",
+    "RightHandMiddle1", "RightHandMiddle2", "RightHandMiddle3",
+    "RightHandRing1", "RightHandRing2", "RightHandRing3",
+    "RightHandPinky1", "RightHandPinky2", "RightHandPinky3",
+    "a_weapon_right_front", "aim", "BackPack1",
+    "LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase",
+    "RightUpLeg", "RightLeg", "RightFoot", "RightToeBase"
+  ],
+  "collision_and_graphics": [
+    "c_sphere_head", "c_sphere_head_ragdoll",
+    "c_capsule_LeftForeArm", "c_capsule_LeftArm",
+    "c_capsule_RightForeArm", "c_capsule_RightArm",
+    "c_sphere_Spine2", "c_capsule_body", "c_sphere_Spine1", "c_sphere_Spine",
+    "c_capsule_LeftLeg", "c_capsule_LeftUpLeg",
+    "c_capsule_RightLeg", "c_capsule_RightUpLeg",
+    "c_sphere_Hips",
+    "s_body", "g_body_lod1", "g_head_lod1", "g_body", "g_head", "c_capsule_m"
+  ]
+}
