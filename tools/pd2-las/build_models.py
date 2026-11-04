@@ -1389,6 +1389,59 @@ def turn_body(g: Group, deg: float = 0.8, pivot=(0.0, 0.0, 0.0)) -> int:
     return n
 
 
+def turn_upper_body(g: Group, deg: float = 1.8,
+                    pivot=(0.0, 2.5, 98.0),
+                    z_start: float = 98.0, z_full: float = 118.0) -> int:
+    """Pitch the upper outfit toward the head while leaving the legs upright.
+
+    A whole-mesh pitch also tips the legs and changes the planted stance. Instead,
+    rotate the complete skinned outfit around the waist/pelvis: zero rotation at
+    ``z_start``, a smoothstep handover to the full correction at ``z_full``, then
+    a rigid pitch above it. The ramp spans the waist/skirt join so the transform
+    does not leave a hard crease; body, sleeves, collar and shadow all share it.
+
+    The current correction is 1.8 degrees: the retargeted neck axis is about 2 cm
+    forward of the head axis over roughly 62 cm from the waist, so atan(2/62) is
+    1.85 degrees. Positive angle pitches the upper mesh back (toward -Y), matching
+    the prior measured whole-body correction while avoiding a tilted leg line.
+    """
+    import math
+
+    if z_full <= z_start:
+        raise ValueError("z_full must be above z_start")
+
+    px, py, pz = pivot
+    full = math.radians(deg)
+    touched = 0
+    blend_by_vertex = [0.0] * len(g.verts)
+
+    def blend(z: float) -> float:
+        t = min(1.0, max(0.0, (z - z_start) / (z_full - z_start)))
+        return t * t * (3.0 - 2.0 * t)
+
+    for i, (x, y, z) in enumerate(g.verts):
+        w = blend(z)
+        if w <= 0.0:
+            continue
+        blend_by_vertex[i] = w
+        a = full * w
+        c, sn = math.cos(a), math.sin(a)
+        dy, dz = y - py, z - pz
+        g.verts[i] = (x + px, py + dy * c - dz * sn,
+                      pz + dy * sn + dz * c)
+        touched += 1
+
+    for i, (nx, ny, nz) in enumerate(g.normals):
+        # Normals use the same smooth local rotation as their vertices.
+        w = blend_by_vertex[i]
+        if w <= 0.0:
+            continue
+        a = full * w
+        c, sn = math.cos(a), math.sin(a)
+        g.normals[i] = (nx, ny * c - nz * sn, ny * sn + nz * c)
+    return touched
+
+
 def count_hand_verts(g: Group, threshold: float = 0.5) -> int:
     """Vertices whose dominant influence is a hand bone (hand / finger bones).
 
@@ -1635,6 +1688,605 @@ def tuck_shirt_sleeves(g: Group, amount: float = 1.6, near: float = 3.5,
             nx, ny, nz = g.normals[i]
             push = amount * fall
             g.verts[i] = (x - nx * push, y - ny * push, z - nz * push)
+            touched += 1
+    return touched
+
+
+def weld_open_seams(g: Group, tol: float = 0.02, max_pairs: int = 4000) -> dict:
+    """Fuse the duplicated vertices along a garment's open seams.
+
+    BodySlide (and the 3BA conversions in ``4.zip``) exports every garment as a
+    *sheet*: where a UV island ends, the edge vertices are duplicated exactly, so
+    the seam is two coincident rows of vertices that share no edge. In Skyrim
+    that is invisible because both rows are skinned to the same bone. After the
+    retarget each duplicate keeps its *own* influence list, so as soon as the arm
+    leaves the bind pose the two rows are driven by different bones and pull
+    apart -- the sleeve seam of the blazer opens a 1-3 cm slit on the upper arm
+    and the shoulder, which in game reads as torn fabric with the white shirt and
+    bare skin showing through (the "armhole holes" in the shipped pack).
+
+    This pass finds those coincident open-edge pairs *within one material* and
+    averages their influence lists, normals and positions. Nothing is deleted and
+    no UV is touched, so the texture split survives; the two rows simply deform
+    identically from now on and the seam cannot open at any pose. Pairs further
+    apart than ``tol`` cm are left alone (those are real openings: the front
+    placket, the collar, the sleeve mouth). The duplicated rows are exactly
+    coincident in the exported sheet, so the default 0.2 mm only ever pairs a
+    vertex with its own duplicate.
+
+    Returns a small report so the build log shows what was fused.
+    """
+    import numpy as np
+
+    slice_of = [-1] * len(g.verts)
+    for si, (_mat, base_v, _bi, _tris, nverts) in enumerate(g.slices):
+        for i in range(base_v, base_v + nverts):
+            slice_of[i] = si
+
+    edges: dict[tuple[int, int], int] = {}
+    for a, b, c in g.faces:
+        for u, v in ((a, b), (b, c), (c, a)):
+            k = (u, v) if u < v else (v, u)
+            edges[k] = edges.get(k, 0) + 1
+    border = [k for k, n in edges.items() if n == 1]
+    if not border:
+        return {"pairs": 0, "materials": {}, "tol": tol}
+
+    verts = np.asarray(border, dtype=np.int64).ravel()
+    border_set = np.unique(verts)
+    pts = np.array([g.verts[i] for i in border_set], dtype=np.float64)
+
+    # hash grid: cell 0.5 cm, look at the 27 neighbouring cells
+    cell = 0.5
+    grid: dict[tuple[int, int, int], list[int]] = {}
+    for k, p in enumerate(pts):
+        key = (int(np.floor(p[0] / cell)), int(np.floor(p[1] / cell)),
+               int(np.floor(p[2] / cell)))
+        grid.setdefault(key, []).append(k)
+
+    def neighbours(k: int) -> list[int]:
+        p = pts[k]
+        base = (int(np.floor(p[0] / cell)), int(np.floor(p[1] / cell)),
+                int(np.floor(p[2] / cell)))
+        out = []
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for dz in (-1, 0, 1):
+                    out.extend(grid.get((base[0] + dx, base[1] + dy, base[2] + dz), ()))
+        return out
+
+    used: set[int] = set()
+    pairs: list[tuple[int, int]] = []
+    for k in range(len(border_set)):
+        if k in used:
+            continue
+        i = int(border_set[k])
+        best = None
+        best_d = tol
+        for m in neighbours(k):
+            if m == k or m in used:
+                continue
+            j = int(border_set[m])
+            if slice_of[j] != slice_of[i]:
+                continue
+            d = float(np.linalg.norm(pts[m] - pts[k]))
+            if d <= best_d:
+                best, best_d = m, d
+        if best is None:
+            continue
+        used.add(k)
+        used.add(best)
+        pairs.append((i, int(border_set[best])))
+        if len(pairs) >= max_pairs:
+            break
+
+    per_mat: dict[str, int] = {}
+    for i, j in pairs:
+        wi = {p: w for p, w in g.weights[i]}
+        wj = {p: w for p, w in g.weights[j]}
+        merged = {}
+        for p in set(wi) | set(wj):
+            merged[p] = 0.5 * (wi.get(p, 0.0) + wj.get(p, 0.0))
+        total = sum(merged.values()) or 1.0
+        top = sorted(merged.items(), key=lambda t: -t[1])[:3]
+        total = sum(w for _, w in top) or 1.0
+        g.weights[i] = [(p, w / total) for p, w in top]
+        g.weights[j] = list(g.weights[i])
+        nx = 0.5 * (np.asarray(g.normals[i]) + np.asarray(g.normals[j]))
+        ln = float(np.linalg.norm(nx)) or 1.0
+        nx = nx / ln
+        g.normals[i] = tuple(float(v) for v in nx)
+        g.normals[j] = g.normals[i]
+        px = 0.5 * (np.asarray(g.verts[i]) + np.asarray(g.verts[j]))
+        g.verts[i] = tuple(float(v) for v in px)
+        g.verts[j] = g.verts[i]
+        mat = g.slices[slice_of[i]][0]
+        per_mat[mat] = per_mat.get(mat, 0) + 1
+    per_mat = dict(sorted(per_mat.items(), key=lambda t: -t[1]))
+    return {"pairs": len(pairs), "materials": per_mat, "tol": tol}
+
+
+# PD2 bind-pose arm joints (cm), taken from the 2B template: (wrist, elbow).
+ARM_JOINTS = {
+    -1: ((-45.99, 18.70, 124.47), (-39.50, -0.99, 133.29)),
+    1: ((45.99, 18.70, 124.47), (39.50, -0.99, 133.29)),
+}
+
+
+def extend_sleeves_to_wrist(g: Group, mats: dict | None = None,
+                            t_knee: float = 13.0, perp_max: float = 7.5) -> dict:
+    """Stretch the garment cuffs down the forearm until they overlap the glove.
+
+    The 3BA source is authored to be worn *with hands*: every layer on the arm
+    ends short of the wrist so the wearer's own hand mesh covers the junction.
+    Measured on the retargeted model, the blazer sleeve mouth stops 6.3 cm above
+    the PD2 hand joint, the shirt cuff 7.5 cm and the bare arm 8 cm. PD2 spawns
+    the heister's glove *at* the hand joint, so in game the sleeve, the arm and
+    the glove never meet: the glove floats with a 5-6 cm gap of empty space
+    between it and the sleeve (the shipped pack's most obvious defect).
+
+    This pass redistributes the last ``t_knee`` cm of the arm along the forearm
+    axis (a pure rank-1 stretch, so the cross-section -- and therefore the cuff
+    radius -- is untouched) until the shortest layer reaches ``target`` cm past
+    the hand joint. The sleeve mouth then sits *inside* the glove cuff and the
+    glove appears to come out of the sleeve. Weights, UVs and topology are
+    unchanged, so the pose, the seam weld and the texture all survive.
+
+    ``t`` is measured from the PD2 hand joint towards the elbow, so a negative
+    ``target`` ends the layer past the wrist. Each layer reaches a different
+    point on purpose: the blazer cuff 2.5 cm past the joint (deep inside the
+    glove), the bare arm 2.2 cm past it (so it fills the sleeve mouth instead of
+    leaving a dark ring, yet stays 3 mm behind the cuff), and the white shirt
+    cuff 1 cm *short* of the joint, so it stays hidden under the blazer instead
+    of ringing the glove.
+    """
+    targets = {"jacket": -2.5, "skin": -2.2, "jacket2": 1.0}
+    if mats is not None:
+        targets.update(mats)
+    import numpy as np
+
+    report = {"moved": 0, "materials": {}, "reaches": {}}
+    for side in (-1, 1):
+        wrist, elbow = (np.array(v, dtype=np.float64) for v in ARM_JOINTS[side])
+        d = elbow - wrist
+        d /= np.linalg.norm(d)
+        for mat, base_v, _bi, _tris, nverts in g.slices:
+            if mat not in targets:
+                continue
+            target = targets[mat]
+            idx = []
+            ts = []
+            for i in range(base_v, base_v + nverts):
+                p = np.asarray(g.verts[i], dtype=np.float64)
+                if side * p[0] <= 0.0:
+                    continue
+                rel = p - wrist
+                t = float(rel @ d)
+                if not (-8.0 <= t <= t_knee):
+                    continue
+                if float(np.linalg.norm(rel - t * d)) > perp_max:
+                    continue
+                idx.append(i)
+                ts.append(t)
+            if len(idx) < 8:
+                continue
+            t_min = min(ts)
+            if t_min <= target:
+                continue
+            k = (t_knee - target) / max(t_knee - t_min, 1e-6)
+            for i, t in zip(idx, ts):
+                p = np.asarray(g.verts[i], dtype=np.float64)
+                rel = p - wrist
+                radial = rel - float(rel @ d) * d
+                t2 = t_knee - (t_knee - t) * k
+                q = wrist + t2 * d + radial
+                g.verts[i] = (float(q[0]), float(q[1]), float(q[2]))
+                report["moved"] += 1
+            key = f"{mat}.{'L' if side < 0 else 'R'}"
+            report["materials"][key] = len(idx)
+            report["reaches"][key] = (round(t_min, 2), round(target, 2))
+    return report
+
+
+def tuck_shirt_collar(g: Group, mats=("jacket2",), z_lo: float = 150.0,
+                      x_factor: float = 0.93, z_factor: float = 0.88) -> int:
+    """Draw the white shirt's standing collar inside the blazer's collar.
+
+    The lace top has a wide, tall stand collar (x up to +-11 cm, top at 162 cm)
+    that the blazer's collar is supposed to cover. After the retarget the two
+    collars are the same height and the shirt's wing tips reach past the
+    blazer's neckline, so in game their tips flare out over the shoulder as
+    white "flames". Nipping the shirt collar inward (``x_factor``) and down
+    (``z_factor``, applied only above ``z_lo``) draws those tips back under the
+    blazer without touching the blazer itself; both maps are continuous at
+    ``z_lo`` so no tear can open. The factors are deliberately mild -- the white
+    V down the chest is the outfit's design and must stay as wide as it is.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z < z_lo:
+                continue
+            g.verts[i] = (x * x_factor, y, z_lo + (z - z_lo) * z_factor)
+            touched += 1
+    return touched
+
+
+def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
+                        axis=(0.0, 7.0), body_mat: str = "skin",
+                        slab: float = 0.5, r_cap: float = 9.0) -> int:
+    """Draw the necklace's chain loop inside the neck, where the collar hides it.
+
+    The chain is a closed loop that passes *around* the neck. On the PD2 head the
+    collar sits lower than the Skyrim one, so the loop rides over the collar's
+    top edge and reads as a gold hoop standing on the neck. Pulling the loop in
+    toward the neck axis sinks it inside the neck column, so only the pendant and
+    the chain in the open V stay visible -- which is what the outfit looks like
+    on the source body.
+
+    A flat ``scale`` is not enough on a tapered neck: the loop has vertices at
+    every height, and 0.8x still leaves the top of the loop outside the narrow
+    upper neck. So the radius is also clamped to ``0.75 * neck radius at that
+    height`` (measured off the body, ignoring vertices beyond ``r_cap`` so the
+    trapezius cannot inflate it).
+    """
+    import numpy as np
+
+    ax, ay = axis
+    prof: list[tuple[float, float]] = []
+    neck = []
+    for mat, base_v, _bi, _tris, nv in g.slices:
+        if mat != body_mat:
+            continue
+        v = np.array(g.verts[base_v:base_v + nv], np.float64)
+        neck.append(v[(v[:, 2] >= z_min) & (v[:, 2] <= 168.0)])
+    if neck:
+        B = np.concatenate(neck)
+        r = np.hypot(B[:, 0] - ax, B[:, 1] - ay)
+        keep = r <= r_cap
+        B, r = B[keep], r[keep]
+        if len(B):
+            zs = np.round(B[:, 2] / slab).astype(int)
+            for zz in np.unique(zs):
+                prof.append((float(B[zs == zz, 2].mean()), float(r[zs == zz].max())))
+            prof.sort()
+
+    def neck_r(z: float) -> float | None:
+        if not prof:
+            return None
+        if z < prof[0][0] or z > prof[-1][0]:
+            return None
+        return float(np.interp(z, [p[0] for p in prof], [p[1] for p in prof]))
+
+    z_top = prof[-1][0] if prof else None
+    touched = 0
+    for mat, base_v, _bi, _tris, nv in g.slices:
+        if mat != "necklace":
+            continue
+        for i in range(base_v, base_v + nv):
+            x, y, z = g.verts[i]
+            if z <= z_min:
+                continue
+            dd = np.hypot(x - ax, y - ay)
+            if dd < 1e-6:
+                continue
+            zz = z
+            if z_top is not None and zz > z_top - 0.3:
+                # the loop's top is past the neck's own top: fold it down inside
+                zz = z_top - 0.3
+            target = dd * scale
+            nr = neck_r(zz)
+            if nr is not None:
+                target = min(target, nr * 0.75)
+            k = target / dd
+            g.verts[i] = (ax + (x - ax) * k, ay + (y - ay) * k, zz)
+            touched += 1
+    return touched
+
+
+def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
+              z_lo: float = 157.0, z_full: float = 161.0,
+              r_full: float = 8.0, r_stop: float = 14.0,
+              sx: float = 0.55, sy: float = 0.70) -> dict:
+    """Slim the neck to the PD2 reference, above the trapezius.
+
+    The 3BA body is authored for Skyrim, where the *head* mesh supplied most of
+    the neck: the source body stops at 157 cm with a 12 cm half-width there. The
+    retarget stretches the spine axially to PD2's longer torso, which also lifts
+    and widens that neck stub, so the shipped body carries an 18.8 cm wide
+    column up to 167 cm -- in the previews it reads as a stovepipe rising out of
+    the collar, and no collar can close over it.
+
+    The PD2 reference body (2B) is the ground truth for this rig: 16 cm
+    half-width at 157 cm, then a real neck -- 4.7 cm at 160, 4.8 at 162, top at
+    163.2. This pass narrows *only* the column: a radial scale about the neck
+    axis (``axis``), full for ``r <= r_full`` and fading out by ``r_stop`` so the
+    trapezius and the shoulder line are untouched, ramping in with height
+    (``z_lo`` -> ``z_full``) so there is no step at the shoulder.
+
+    This is deliberately a radial-only correction: the neck must retain its
+    full height to meet the heister's head. The in-game reference showed that
+    shortening the body neck to fit the collar opened a visible gap under the
+    jaw. The torso is aligned to the head separately by a small upper-body pitch
+    about the waist (``turn_upper_body``), which keeps the legs upright.
+    """
+    import math
+
+    def smooth(t: float) -> float:
+        t = max(0.0, min(1.0, t))
+        return t * t * (3.0 - 2.0 * t)
+
+    ax, ay = axis
+    touched = 0
+    moved = 0.0
+    for mat, base_v, _bi, _tris, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z <= z_lo:
+                continue
+            r = math.hypot(x - ax, y - ay)
+            mask = smooth((r_stop - r) / max(r_stop - r_full, 1e-6))
+            t = smooth((z - z_lo) / max(z_full - z_lo, 1e-6)) * mask
+            if t <= 0.0:
+                continue
+            kx = 1.0 - (1.0 - sx) * t
+            ky = 1.0 - (1.0 - sy) * t
+            nx = ax + (x - ax) * kx
+            ny = ay + (y - ay) * ky
+            moved = max(moved, math.hypot(nx - x, ny - y))
+            g.verts[i] = (nx, ny, z)
+            touched += 1
+
+    return {"moved": touched, "peak": moved}
+
+
+
+def _slice_vertex_order(tris) -> list[int]:
+    """Vertex order ``transfer_group`` gives a source material slice."""
+    order: list[int] = []
+    seen: set[int] = set()
+    for k in range(0, len(tris), 3):
+        a, b, c = tris[k], tris[k + 2], tris[k + 1]
+        for vi in (a, b, c):
+            if vi not in seen:
+                seen.add(vi)
+                order.append(vi)
+    return order
+
+
+def _nearest(query, cloud, k: int, chunk: int = 256):
+    """Brute-force k nearest neighbours (the venv ships no scipy)."""
+    import numpy as np
+
+    idx = np.empty((len(query), k), np.int64)
+    dist = np.empty((len(query), k), np.float64)
+    for s in range(0, len(query), chunk):
+        q = query[s:s + chunk]
+        d = np.linalg.norm(q[:, None, :] - cloud[None, :, :], axis=2)
+        part = np.argpartition(d, k - 1, axis=1)[:, :k]
+        pd = np.take_along_axis(d, part, axis=1)
+        order = np.argsort(pd, axis=1)
+        idx[s:s + chunk] = np.take_along_axis(part, order, axis=1)
+        dist[s:s + chunk] = np.take_along_axis(pd, order, axis=1)
+    return idx, dist
+
+
+def _vertex_normals(verts, faces):
+    import numpy as np
+
+    a, b, c = verts[faces[:, 0]], verts[faces[:, 1]], verts[faces[:, 2]]
+    fn = np.cross(b - a, c - a)
+    vn = np.zeros_like(verts)
+    for i in range(3):
+        np.add.at(vn, faces[:, i], fn)
+    ln = np.linalg.norm(vn, axis=1, keepdims=True)
+    return vn / np.where(ln == 0, 1.0, ln)
+
+
+def _rotation_between(u, v):
+    """Minimal rotation taking unit vector ``u`` onto ``v``."""
+    import numpy as np
+
+    u = u / (np.linalg.norm(u) or 1.0)
+    v = v / (np.linalg.norm(v) or 1.0)
+    c = float(np.clip(u @ v, -1.0, 1.0))
+    if c > 0.999999:
+        return np.eye(3)
+    if c < -0.999999:                      # 180 degrees: any perpendicular axis
+        axis = np.array([1.0, 0.0, 0.0])
+        if abs(u[0]) > 0.9:
+            axis = np.array([0.0, 1.0, 0.0])
+        axis = axis - u * (axis @ u)
+        axis /= np.linalg.norm(axis)
+        return 2.0 * np.outer(axis, axis) - np.eye(3)
+    axis = np.cross(u, v)
+    s = np.linalg.norm(axis)
+    axis /= s
+    K = np.array([[0.0, -axis[2], axis[1]],
+                  [axis[2], 0.0, -axis[0]],
+                  [-axis[1], axis[0], 0.0]])
+    ang = np.arctan2(s, c)
+    return np.eye(3) + np.sin(ang) * K + (1.0 - np.cos(ang)) * (K @ K)
+
+
+def redress_from_source(g: Group, model, mats=("jacket", "jacket2"),
+                        body_mat: str = "skin", neighbours: int = 6,
+                        max_move: float = 12.0, z_fade=(108.0, 112.0),
+                        verbose: bool = True) -> dict:
+    """Re-dress the garment on the shipped body using the source's clearances.
+
+    The retarget gets the *body* right (spine, bust, shoulder height all land
+    within a centimetre of the 3BA source) but drags the garment's collar and
+    lapels out and down over the trapezius: in the source the blazer's neckline
+    meets the neck and the shoulders are fully covered, while in the port the
+    neck opening flares out to the sleeve and the body's shoulder blades show
+    through as a band of skin -- the bare shoulders of the in-game screenshots.
+    It is not a weight problem (the openings are identical in the bind pose) and
+    not a clearance problem (the garment is not inside the body; it is *away*
+    from it), so no tuck/inflate pass can close it.
+
+    What is preserved exactly is the *correspondence*: both models keep the
+    per-material vertex order (14 674 blazer / 10 385 shirt vertices, same
+    triangles), so the source vertex of every built vertex is known. Rebuild
+    each garment vertex as
+
+        built_body(j) + scale * (clearance * n_built + R * tangential)
+
+    where ``clearance`` is the signed distance from the source vertex to its
+    nearest source body vertex along that body normal, ``tangential`` is the
+    remaining offset inside the tangent plane, ``R`` the minimal rotation
+    taking the source body normal to the built body normal at the same body
+    vertex ``j``, and ``scale`` the measured body spacing ratio (thin garment
+    over a body that is a few percent larger). The authored garment-to-body
+    relationship -- the tight collar, the V, the shoulder pad, the sleeve
+    clearance -- is re-applied to the body we actually ship.
+
+    Runs before ``extend_sleeves_to_wrist`` (that pass then pulls the cuff to
+    the glove) and before ``turn_upper_body`` (smooth, preserves it).
+
+    ``z_fade`` (source units, full effect below the first, none above the
+    second) is essential: the Skyrim body **stops at 114.1 units** (157 cm) and
+    hands the neck over to the head mesh, so above that every collar vertex maps
+    to the same handful of top-ring vertices and the transferred "clearance"
+    carries no radial information. Re-dressing them anyway collapsed the shirt
+    collar into ragged, splayed flaps that cut straight through the neck
+    (measured; the pre-re-dress collar is a clean stand collar). So the collar
+    keeps the retargeted shape it had, and only the part of the garment that the
+    source body actually backs gets re-dressed.
+    """
+    import numpy as np
+
+    src_meshes = [m for m in model.meshes if m.material == body_mat]
+    src_orders = [_slice_vertex_order(m.triangle_indices) for m in src_meshes]
+    flat = [i for o in src_orders for i in o]
+    S = np.array([model.vertices[i].pos for i in flat], np.float64)
+    SN = np.array([model.vertices[i].normal for i in flat], np.float64)
+    ln = np.linalg.norm(SN, axis=1, keepdims=True)
+    SN = SN / np.where(ln == 0, 1.0, ln)
+
+    bld = [s for s in g.slices if s[0] == body_mat][:len(src_orders)]
+    have = sum(s[4] for s in bld)
+    if have != len(S):
+        raise SystemExit(f"redress: body mismatch built {have} src {len(S)}")
+    B, BN = [], []
+    for mat, base_v, base_i, tris, nv in bld:
+        v = np.array(g.verts[base_v:base_v + nv], np.float64)
+        f = np.asarray(g.faces[base_i // 3:base_i // 3 + tris], np.int64) - base_v
+        B.append(v)
+        BN.append(_vertex_normals(v, f))
+    B = np.concatenate(B)
+    BN = np.concatenate(BN)
+    if len(B) != len(S):        # pragma: no cover - guard for a broken slice
+        raise SystemExit(f"redress: body mismatch built {len(B)} src {len(S)}")
+
+    rng = np.random.default_rng(0)
+    probe = rng.choice(len(S), size=min(1500, len(S)), replace=False)
+    _, d1 = _nearest(S[probe], S, 2)
+    _, d2 = _nearest(B[probe], B, 2)
+    scale = float(np.median(d2[:, 1]) / np.median(d1[:, 1]))
+    if verbose:
+        print(f"  redress: body spacing scale {scale:.4f}")
+
+    moved, peak = 0, 0.0
+    for mat, base_v, base_i, tris, nv in g.slices:
+        if mat not in mats:
+            continue
+        mesh = next((m for m in model.meshes if m.material == mat), None)
+        if mesh is None:
+            continue
+        order = _slice_vertex_order(mesh.triangle_indices)
+        if len(order) != nv:
+            if verbose:
+                print(f"  redress: {mat} order {len(order)} != slice {nv}, skipped")
+            continue
+        P = np.array([model.vertices[i].pos for i in order], np.float64)
+        idx, dist = _nearest(P, S, neighbours)
+        w = 1.0 / (dist + 0.05)
+        w /= w.sum(axis=1, keepdims=True)
+        new = np.empty((nv, 3), np.float64)
+        for vi in range(nv):
+            nn, ww = idx[vi], w[vi]
+            b = ww @ S[nn]
+            n = ww @ SN[nn]
+            n /= np.linalg.norm(n) or 1.0
+            dd = float((P[vi] - b) @ n)
+            tang = P[vi] - b - dd * n
+            bb = ww @ B[nn]
+            nb = ww @ BN[nn]
+            nb /= np.linalg.norm(nb) or 1.0
+            new[vi] = bb + scale * (dd * nb + _rotation_between(n, nb) @ tang)
+        if z_fade is not None:
+            z0, z1 = z_fade
+            t = np.clip((P[:, 2] - z0) / max(z1 - z0, 1e-6), 0.0, 1.0)
+            t = t * t * (3.0 - 2.0 * t)          # 0 below z0, 1 above z1
+            keep_fade = t < 1.0
+            if not keep_fade.any():
+                continue
+        old = np.array(g.verts[base_v:base_v + nv], np.float64)
+        if z_fade is not None:
+            new = (1.0 - t)[:, None] * new + t[:, None] * old
+        delta = np.linalg.norm(new - old, axis=1)
+        keep = delta <= max_move
+        for vi, p in zip(np.nonzero(keep)[0], new[keep]):
+            g.verts[base_v + int(vi)] = (float(p[0]), float(p[1]), float(p[2]))
+        moved += int(keep.sum())
+        peak = max(peak, float(delta[keep].max()) if keep.any() else 0.0)
+        if verbose:
+            print(f"  redress {mat}: {int(keep.sum())}/{nv} verts re-dressed, "
+                  f"mean {delta[keep].mean():.2f} cm, max {peak:.1f} cm")
+    return {"moved": moved, "peak": peak, "scale": scale}
+
+
+def follow_layer_weights(g: Group, src_mat: str = "jacket",
+                         dst_mats=("jacket2",), z_lo: float = 136.0,
+                         z_hi: float = 158.0, max_dist: float = 9.0,
+                         x_min: float = 0.0, x_max: float = 30.0) -> int:
+    """Make an under-layer ride the outer layer over the shoulder.
+
+    The white shirt (``jacket2``) is 100 % arm-weighted all the way across the
+    shoulder, while the blazer keeps a *shoulder-stay band* whose weights blend
+    ``Spine2`` / ``Shoulder`` / ``Arm``. As soon as the arm adducts, the shirt's
+    shoulder swings out from under the blazer and stands up over it -- the white
+    "wings" that flare past the jacket's shoulder line in game (they are absent
+    in the bind-pose render, which is why they survived earlier reviews).
+
+    Copying the nearest blazer vertex's influence list onto the selected inner
+    material in the shoulder band makes both layers deform identically there.
+    ``x_min`` can limit this to the lateral shoulder skin underneath the shell,
+    keeping the exposed centre chest on its original body weights. Positions,
+    UVs and topology are untouched.
+    """
+    import numpy as np
+
+    src = []
+    for mat, base_v, _bi, _tris, nverts in g.slices:
+        if mat != src_mat:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z_lo <= z <= z_hi and x_min <= abs(x) <= x_max:
+                src.append((np.array([x, y, z]), list(g.weights[i])))
+    if not src:
+        return 0
+    pts = np.array([p for p, _ in src])
+    touched = 0
+    for mat, base_v, _bi, _tris, nverts in g.slices:
+        if mat not in dst_mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if not (z_lo <= z <= z_hi and x_min <= abs(x) <= x_max):
+                continue
+            p = np.array([x, y, z])
+            j = int(np.argmin(np.linalg.norm(pts - p, axis=1)))
+            if float(np.linalg.norm(pts[j] - p)) > max_dist:
+                continue
+            g.weights[i] = [(pi, w) for pi, w in src[j][1]]
             touched += 1
     return touched
 

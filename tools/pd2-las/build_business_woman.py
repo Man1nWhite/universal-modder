@@ -37,6 +37,10 @@ import skyrim_retarget  # noqa: E402
 import skyrim_source as ss  # noqa: E402
 
 BONE_MAP = REPO / "tools" / "skyrim-nif" / "skeleton_map.json"
+#: Upper outfit pitch about the waist to align the neck with the game head,
+#: without tilting the legs. atan(2 cm measured neck offset / 62 cm waist-neck
+#: rise) is about 1.8 degrees; see ``turn_upper_body``.
+UPPER_BODY_PITCH_DEG = 1.8
 #: Everything above this height belongs to the neck opening of the 3BA body.
 NECK_Z_CM = 155.0
 #: Materials the first-person arms keep: skin, the two sleeve layers, and the
@@ -46,6 +50,8 @@ NECK_Z_CM = 155.0
 #: so the offline previews stay green while the game is broken).
 FPS_MATERIALS = ("mtr_body", "mtr_hands", "mtr_jacket", "mtr_jacket2")
 UNIT_BASE = "units/businesswoman/skins/businesswoman"
+#: How much of the standing collar survives `lower_collar` (see there).
+COLLAR_K = 0.55
 
 
 def model_materials(report: dict) -> list[str]:
@@ -299,48 +305,97 @@ def main(argv=None) -> int:
         n = bm.restore_bust(groups[gname])
         print(f"[{gname}] bust verts restored: {n}")
 
-    # A thin line of underarm skin renders in front of the blazer's overlap
-    # armhole after the retarget. Tuck that skin behind the jacket (the jacket
-    # itself is left alone — welding its overlap edges distorts the sleeve).
+    # The retarget's axial spine stretch also lifts and widens the 3BA neck stub
+    # (18.8 cm wide at 160 cm; the PD2 reference body is 9.4 cm there), so the
+    # neck reads as a stovepipe rising out of the collar. Slim the column before
+    # the re-dress, which then brings the collar in onto it.
     for gname in ("body", "shadow"):
-        n = bm.tuck_underarm_skin(groups[gname])
-        print(f"[{gname}] underarm skin verts tucked: {n}")
+        rep = bm.slim_neck(groups[gname])
+        print(f"[{gname}] neck slimmed: {rep['moved']} verts, "
+              f"peak {rep['peak']:.1f} cm (full neck height preserved)")
 
-    # The white shirt's sleeves (jacket2) are 100% arm-weighted and sit below the
-    # shoulder-stay band, so they poke through the blazer sleeve as white patches
-    # on the upper arm in-game. Tuck them behind the blazer (blazer untouched).
+    # The retarget gets the body right but drags the garment's neckline out and
+    # down over the trapezius (the blazer's neck opening flares from the neck
+    # out to the sleeve), so the shoulders come out bare in game. Both models
+    # keep the per-material vertex order, so re-dress every garment vertex on
+    # the shipped body at the *source's* clearance -- the authored collar, V and
+    # shoulder pad come back without touching the body. Must run before the
+    # sleeve extension (which then reaches for the glove) and before turn_upper_body.
     for gname in ("body", "shadow"):
-        n = bm.tuck_shirt_sleeves(groups[gname])
-        print(f"[{gname}] shirt sleeve verts tucked: {n}")
+        rep = bm.redress_from_source(groups[gname], model,
+                                     mats=("jacket", "jacket2", "necklace"))
+        print(f"[{gname}] garment re-dressed from the source: {rep['moved']} verts "
+              f"(peak {rep['peak']:.1f} cm, body scale {rep['scale']:.3f})")
 
-    # The shirt's wrist cuff (jacket2) sits at the sleeve opening and shows as a
-    # white ring between the blazer cuff and the game glove. Retract it up the
-    # forearm into the sleeve (no hand geometry authored).
+    # Re-dressing changes the jacket/shirt/body clearances. Therefore finish the
+    # shoulder-layer operations AFTER re-dress; doing them before it lets the
+    # re-dress undo the tuck and recreate the very skin/white-shirt tears seen
+    # in the in-game screenshots. First make the open seam rows deform together.
     for gname in ("body", "shadow"):
-        n = bm.tuck_shirt_cuffs(groups[gname])
-        print(f"[{gname}] shirt cuff verts retracted: {n}")
+        rep = bm.weld_open_seams(groups[gname])
+        print(f"[{gname}] post-redress open seams fused: "
+              f"{rep['pairs']} pairs {rep['materials']}")
 
-    # Lengthen the blazer sleeve to overlap the game glove / forearm adapter so the
-    # wrist junction closes (no gap, no exposed shirt cuff).
+    # The shirt shoulder and the skin beneath the blazer must use the shell's
+    # shoulder-stay weights; otherwise they swing out from under it in idle.
     for gname in ("body", "shadow"):
-        n = bm.extend_blazer_sleeves(groups[gname])
-        print(f"[{gname}] blazer sleeve verts extended: {n}")
+        n = bm.follow_layer_weights(groups[gname], dst_mats=("jacket2",),
+                                    z_lo=136.0, z_hi=160.0,
+                                    max_dist=9.0, x_max=38.0)
+        print(f"[{gname}] shirt shoulder weights follow blazer: {n}")
+        n = bm.follow_layer_weights(groups[gname], dst_mats=("skin",),
+                                    z_lo=136.0, z_hi=160.0,
+                                    max_dist=6.0, x_min=12.0, x_max=38.0)
+        print(f"[{gname}] covered shoulder skin follows blazer weights: {n}")
 
-    # The collar stands up past the head bone and swallows the jaw in profile.
+    # Reapply the actual layer nesting after re-dress: tuck the inner shirt and
+    # body skin behind the blazer only where the outer shell covers them. Include
+    # the shoulder cap (not just the low underarm band) to remove exposed patches.
     for gname in ("body", "shadow"):
-        n = bm.lower_collar(groups[gname])
+        n = bm.tuck_shirt_collar(groups[gname])
+        print(f"[{gname}] shirt collar drawn inside blazer: {n}")
+        n = bm.tuck_shirt_sleeves(groups[gname], amount=2.0, near=4.5,
+                                  z_lo=116.0, z_hi=160.0, x_min=18.0)
+        print(f"[{gname}] shirt sleeve/shoulder tucked: {n}")
+        n = bm.tuck_underarm_skin(groups[gname], amount=1.6, near=3.0,
+                                  z_lo=125.0, z_hi=160.0, x_min=11.0)
+        print(f"[{gname}] covered shoulder skin tucked: {n}")
+
+    # Every arm layer stops short of the PD2 hand joint (blazer 6.3 cm, shirt
+    # cuff 7.5 cm, bare arm 8 cm) because in Skyrim the wearer's own hands used
+    # to cover the junction. PD2 spawns the heister's glove *at* the joint, so the
+    # glove floats with a gap of empty space in front of the sleeve. Stretch the
+    # last 13 cm of each layer down the forearm until the shortest reaches 2.5 cm
+    # past the joint, i.e. inside the glove's cuff.
+    for gname in ("body", "shadow"):
+        rep = bm.extend_sleeves_to_wrist(groups[gname])
+        print(f"[{gname}] sleeves reach the glove: {rep['moved']} verts "
+              f"{rep['materials']} (was -> target: {rep['reaches']})")
+
+    # The chain loop rides over the collar's top edge on the PD2 head (it sits
+    # lower than Skyrim's); sink it inside the neck so only the pendant shows.
+    for gname in ("body", "shadow"):
+        n = bm.tuck_necklace_chain(groups[gname])
+        print(f"[{gname}] necklace chain tucked inside the neck: {n} verts")
+
+    # The collar must clear the jaw but still stand on the neck: the source's
+    # stand collar tops out ~2 cm above the body's neck top, and the re-dress
+    # restores that, so keep most of the standing height (the earlier k=0.35
+    # flattened it onto the shoulders and left the neck bare).
+    for gname in ("body", "shadow"):
+        n = bm.lower_collar(groups[gname], mats=("jacket", "jacket2"),
+                            k=COLLAR_K)
         print(f"[{gname}] collar verts lowered: {n}")
 
-    # The 3BA neck column stands ~2 cm forward of the PD2 head-neck axis. The
-    # earlier taper/hide ("align_neck" + "trim_neck") left a hard seam at the
-    # collar and skin wings above the collar back in-game. Instead TURN the whole
-    # body mesh back about the ground pivot so the neck column lands under the
-    # head while the feet stay planted; the body's own neck then rises to meet the
-    # head and fills the collar opening (no taper, no fold). Rigid => seams/tucks
-    # preserved, cannot tear.
+    # The whole-body pitch tilted the legs and still left the upper silhouette
+    # misaligned in the user's in-game comparison. Pitch the upper outfit around
+    # the waist instead: the neck moves onto the heister's head axis, the shoulder
+    # line gets the small measured correction, and the legs stay vertical. Keep
+    # the full-length neck; do not cut it back to fit the collar.
     for gname in ("body", "shadow"):
-        n = bm.turn_body(groups[gname])
-        print(f"[{gname}] body verts turned: {n}")
+        n = bm.turn_upper_body(groups[gname], UPPER_BODY_PITCH_DEG)
+        print(f"[{gname}] upper-body verts pitched: {n} at "
+              f"{UPPER_BODY_PITCH_DEG:.1f} degrees")
 
     # The outfit has no head: Skyrim ships heads separately and Melodic's
     # archives carry none. Do two things about it: never keep the *template's*

@@ -174,6 +174,9 @@ def test_decimate_rejects_degenerate_triangles():
 def source_root():
     from build_business_woman import mesh_root
 
+    direct = ROOT / "meshes" / "Melodic" / "Business Woman"
+    if not direct.is_dir() and not (ROOT / "4.zip").exists():
+        pytest.skip("Melodic source archive was intentionally removed after cancellation")
     return mesh_root(ROOT)
 
 
