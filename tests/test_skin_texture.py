@@ -107,7 +107,10 @@ def test_diffuse_is_filled_and_skin_coloured():
     # alpha is gloss, not opacity: low sheen, never fully matte or mirrored
     assert st.SKIN_GLOSS_BASE <= int(rgba[..., 3].min())
     assert int(rgba[..., 3].max()) <= st.SKIN_GLOSS_BASE + st.SKIN_GLOSS_RANGE
-    assert int(rgba[..., 3].std()) > 0                  # the field actually varies
+    # gloss is UNIFORM: a varying sheen (with the old normal-map blobs) read as
+    # camo-like blotches on the legs under the game's specular lighting, so the
+    # field is intentionally constant now.
+    assert int(rgba[..., 3].std()) == 0
     # nothing is left black: the dilation must reach every texel
     assert int(rgba[..., :3].max(axis=2).min()) > 40
     r, g, b = rgba[32, 32, :3].astype(int)
@@ -199,3 +202,39 @@ def test_hand_texture_grain_is_low_amplitude(tmp_path):
                                        tone=np.array([190.0, 160.0, 140.0]))
     lum = rgba[..., :3].astype(np.float32).mean(2)
     assert lum.std() < 6.0, float(lum.std())
+
+
+def _miranda_head_skin_median():
+    import zipfile
+
+    import preview_textured as pt
+    zp = ROOT / "dist" / "Miranda_LAS.zip"
+    with zipfile.ZipFile(zp) as z:
+        name = [n for n in z.namelist() if n.endswith("miranda_head_df.texture")][0]
+        data = z.read(name)
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".texture", delete=False) as tf:
+        tf.write(data)
+        path = Path(tf.name)
+    try:
+        rgb = pt.load_texture(path)[..., :3] * 255.0
+    finally:
+        path.unlink()
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    mask = (r > g + 4) & (g > b + 2) & (r > 70) & (r < 250) \
+        & ((r - b) > 10) & ((r - b) < 120)
+    return np.median(rgb[mask], axis=0)
+
+
+@pytest.mark.skipif(not (ROOT / "dist" / "Miranda_LAS.zip").exists(),
+                    reason="Miranda head pack not present")
+def test_body_tone_matches_miranda_head_skin():
+    """The exposed body skin must read the same colour as the heister head.
+
+    Pins the bake base tone to the skin-masked median of Miranda's head diffuse
+    so a future tone tweak cannot silently drift the body away from the head at
+    the neck / chest seam.
+    """
+    head = _miranda_head_skin_median()
+    base = st.REFERENCE_TONE * st.BODY_TONE_GAIN
+    assert np.all(np.abs(base - head) <= 4.0), (base, head)

@@ -53,7 +53,7 @@ DISPLAY_NAME = "Business Woman"
 # ---------------------------------------------------------------------------
 # registration
 # ---------------------------------------------------------------------------
-def render_hook_lua(with_fps: bool = False) -> str:
+def render_hook_lua(with_fps: bool = False, hands: str = "adapter") -> str:
     flags = ",\n".join(f"\t{k} = true" for k in FLAG_KEYS)
     lines = [
         "LegendaryArmours = LegendaryArmours or {}",
@@ -66,8 +66,96 @@ def render_hook_lua(with_fps: bool = False) -> str:
     ]
     if with_fps:
         lines.append(f'\tfps_unit = "{FPS_UNIT}",')
-    lines += ["", flags, "}", ""]
+    lines += ["", flags]
+    if hands == "adapter":
+        # Intent flag. LAS 4.1.9's loader drops it (it reads a fresh `output`
+        # table, not this data), so the companion hook
+        # `<item>_glove_adapter.lua` is what actually re-enables the adapter.
+        lines[-1] += ","
+        lines += ["", "\tglove_adapter = true"]
+    lines += ["}", ""]
     return "\n".join(lines)
+
+
+def render_glove_adapter_lua() -> str:
+    """Compat hook that gives the outfit vanilla-suit glove behaviour.
+
+    LAS 4.1.9's `hooks/outfits/loader.lua` breaks changeable gloves for every
+    outfit it registers (verified against the mod's real source):
+
+    * ``output.default_glove_id = output.default_glove_id or false`` reads the
+      fresh ``output`` table instead of the outfit's ``data``, so every LAS
+      outfit ends up with ``default_glove_id = false``. BeardLib's
+      ``GloveTweakData:get_glove_value`` returns ``false`` for "Default" gloves
+      when the style's ``default_glove_id`` is ``false`` — no glove unit spawns,
+      and with ``body_replacement.hands = true`` the stock hands are hidden, so
+      the character has NO HANDS AT ALL. Vanilla changeable-glove suits avoid
+      this via ``suit_default_gloves[style] = "heist_default"`` (BeardLib copies
+      it into ``default_glove_id``), so "Default" always resolves to a real
+      glove unit (``hnd_glv_heistwrinkled``).
+    * ``output.glove_adapter = output.glove_adapter or false`` has the same
+      fresh-table bug, disabling the bare-forearm adapter; and
+    * any ``replace_body`` / ``replace_all`` outfit is inserted into
+      ``tweak_data.blackmarket.glove_adapter.player_style_exclude_list``.
+
+    This PostHook runs after LAS (the pack loads after its dependency) and
+    restores the vanilla mechanism: a real ``default_glove_id``, the adapter
+    re-enabled, the exclude entry removed, and ``body_replacement.hands`` set to
+    ``false`` so the heister's own stock hands remain visible as a guaranteed
+    fallback (the glove spawn is not reliable in-game); any glove unit that does
+    spawn sets ``var_hands_replace = 1`` and replaces the stock hands, so there
+    are no double hands. Works in both TPP and FPS — BeardLib retargets the same
+    glove/adapter spawn to the camera unit for the local peer.
+
+    Traps it avoids:
+
+    * the adapter is enabled with an empty *table*, never a boolean ``true``:
+      BeardLib does ``table.merge(final_adapter_data, ...adapter_data)`` and its
+      ``table.merge`` calls ``pairs(new_table)``, so a boolean would raise
+      ``pairs(true)``. An empty table keeps the default ``hnd_forearms`` adapter.
+    * ``default_glove_id`` cannot be set through the outfit's data.xml — LAS's
+      fresh-table read drops it — so a PostHook override is the only route.
+    """
+    key = f"las_{ITEM_ID}"
+    return f"""-- BusinessWoman LAS: vanilla-suit glove behaviour for {key}.
+-- Restores a real default glove (LAS forces default_glove_id = false, which
+-- leaves "Default" gloves with no hands) and re-enables the glove adapter.
+-- See bw_pack.render_glove_adapter_lua for the full rationale.
+Hooks:PostHook(BlackMarketTweakData, "init", "BusinessWoman_GloveAdapter", function(self)
+\tlocal ps = self.player_styles and self.player_styles["{key}"]
+\tif not ps then return end
+
+\t-- The base game keeps a suit's hands visible by giving the style a REAL
+\t-- default glove (suit_default_gloves -> default_glove_id), so "Default"
+\t-- gloves resolve to an actual hand mesh. LAS sets default_glove_id = false,
+\t-- so "Default" gloves spawn nothing and the suit has no hands. Restore a
+\t-- real default glove, exactly like the vanilla/DLC suits.
+\tps.default_glove_id = "heist_default"
+
+\t-- Enable the adapter with a table (NOT a boolean: BeardLib's table.merge
+\t-- would call pairs(true)). An empty table keeps the default hnd_forearms.
+\tps.glove_adapter = {{}}
+
+\t-- Drop the exclude-list entry LAS added for replace_body.
+\tlocal list = self.glove_adapter and self.glove_adapter.player_style_exclude_list
+\tif list then
+\t\tfor i = #list, 1, -1 do
+\t\t\tif list[i] == "{key}" then table.remove(list, i) end
+\t\tend
+\tend
+
+\t-- Do NOT hide the stock hands. LAS forces default_glove_id = false and the
+\t-- glove spawn above is not reliable in-game; the old approach hid the stock
+\t-- hands (body_replacement.hands = true) and relied solely on the glove unit,
+\t-- so when it failed to appear the suit had NO hands. Keeping hands = false
+\t-- lets the heister's own stock hands show through the sleeves as a guaranteed
+\t-- fallback (nothing is authored). When a glove unit DOES spawn (default or
+\t-- equipped) it sets var_hands_replace = 1 and replaces the stock hands, so
+\t-- there are no double hands.
+\tif ps.body_replacement then ps.body_replacement.hands = false end
+\tif ps.third_body_replacement then ps.third_body_replacement.hands = false end
+end)
+"""
 
 
 def render_localization() -> str:
@@ -83,7 +171,8 @@ def render_localization() -> str:
     )
 
 
-def render_main_xml(texture_stems: list[str], with_fps: bool = False) -> str:
+def render_main_xml(texture_stems: list[str], with_fps: bool = False,
+                    hands: str = "adapter") -> str:
     # <df_nm> names the pair by its stem; the engine appends _df/_nm itself.
     # Passing the full "bw_body_df" makes it look for bw_body_df_df.texture,
     # which silently leaves every material untextured (flat black in game).
@@ -94,13 +183,20 @@ def render_main_xml(texture_stems: list[str], with_fps: bool = False) -> str:
     )
     units = [TPP_UNIT] + ([FPS_UNIT] if with_fps else [])
     unit_lines = "\n".join(f'\t\t\t\t<unit_mat path="{u}"/>' for u in units)
+    hooks = [f'\t\t<hook file="{ITEM_ID}_las.lua" source_file="{HOOK_SOURCE}"/>']
+    if hands == "adapter":
+        # The compat hook runs on blackmarkettweakdata (after LAS's loader),
+        # not armorskinstweakdata where the outfit is declared.
+        hooks.append(f'\t\t<hook file="{ITEM_ID}_glove_adapter.lua" '
+                     f'source_file="lib/tweak_data/blackmarkettweakdata"/>')
+    hook_lines = "\n".join(hooks)
     return (
         f'<table name="{DISPLAY_NAME}" image="{GUI_BASE}/{ITEM_ID}">\n'
         "\n"
         '\t<Localization directory="localization" default="english.txt"/>\n'
         "\n"
         '\t<Hooks directory="hooks">\n'
-        f'\t\t<hook file="{ITEM_ID}_las.lua" source_file="{HOOK_SOURCE}"/>\n'
+        f"{hook_lines}\n"
         "\t</Hooks>\n"
         "\n"
         '\t<AddFiles directory="assets">\n'
@@ -261,12 +357,17 @@ def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
                icon: bytes, material_config: str, fps_config: str | None,
                fps_model: bytes | None = None, extra: dict | None = None,
                drawables: list[str] | None = None,
-               fps_drawables: list[str] | None = None) -> Path:
+               fps_drawables: list[str] | None = None,
+               hands: str = "adapter") -> Path:
     """Write the installable folder (no zip; see `zip_pack`).
 
     `drawables` / `fps_drawables` are read back out of the model files when not
     given; passing them explicitly keeps this callable with synthetic models in
     tests.
+
+    `hands` selects the hand route: ``"adapter"`` ships no hands and re-enables
+    the vanilla glove adapter via a compat hook (gloves stay changeable);
+    ``"graft"`` is the legacy baked-in-hands route.
     """
     pack = Path(out_root) / PACK_DIR_NAME
     if pack.exists():
@@ -302,8 +403,13 @@ def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
         (unit_dir / f"{stem}.texture").write_bytes(data)
     (gui_dir / f"{ITEM_ID}.texture").write_bytes(icon)
 
-    (pack / "main.xml").write_text(render_main_xml(sorted(textures), with_fps))
-    (pack / "hooks" / f"{ITEM_ID}_las.lua").write_text(render_hook_lua(with_fps))
+    (pack / "main.xml").write_text(
+        render_main_xml(sorted(textures), with_fps, hands))
+    (pack / "hooks" / f"{ITEM_ID}_las.lua").write_text(
+        render_hook_lua(with_fps, hands))
+    if hands == "adapter":
+        (pack / "hooks" / f"{ITEM_ID}_glove_adapter.lua").write_text(
+            render_glove_adapter_lua())
     (pack / "localization" / "english.txt").write_text(render_localization())
 
     payload = {}
@@ -318,10 +424,15 @@ def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
         "registration": {
             "hook_source": HOOK_SOURCE,
             "table": f"LegendaryArmours.{ITEM_ID}",
-            "flags": list(FLAG_KEYS),
+            "flags": list(FLAG_KEYS) + (["glove_adapter"] if hands == "adapter" else []),
             "unit": TPP_UNIT,
             "fps_unit": FPS_UNIT if with_fps else None,
         },
+        "hands": hands,
+        "glove_adapter": hands == "adapter",
+        # the compat hook restores a real default glove so "Default" gloves
+        # spawn hands (LAS forces default_glove_id = false -> no hands)
+        "default_glove_id": "heist_default" if hands == "adapter" else None,
         "models_present": True,
         "fps_available": with_fps,
         "runtime_verified": False,

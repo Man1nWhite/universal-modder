@@ -450,3 +450,354 @@ same five, and the audit now checks them by name.
       which sits 20 cm off the hand and does not follow a retargeted Skyrim
       sleeve; the seam just moves up to the elbow. Grafting hands and welding
       the cuff is the only arrangement that holds on a ported body.
+
+27. **Changeable gloves via the vanilla glove adapter — the mechanism is right,
+    but it did NOT render in-game; graft is the shipped default** (2026-11-03,
+    read off `Vladik268/P2` = LAS 4.1.9 + BeardLib, and the decompiled vanilla
+    Lua in `AzureeDev/payday-2-luajit`; BusinessWoman only).
+
+    **Empirical outcome (overrides the theory below):** the adapter route — even
+    with the corrected `default_glove_id = "heist_default"` compat hook, and even
+    though it passes a LuaJIT behavioural test that executes the *verbatim* LAS
+    loader — produced **neither the glove unit nor the `hnd_forearms` adapter
+    in-game** (main menu + blackmarket preview both showed bare, handless cuffs).
+    The in-game spawn path evidently differs from the modelled one (hook timing,
+    or the preview not invoking `set_beardlib_character_visual_state`'s glove
+    block), and it cannot be verified without launching the game. **So the
+    shipped default is `--hands graft`** (note 26): PD2 hands grafted into the
+    mesh + cuff welded, which always render. The adapter route is kept as an
+    option and the mechanism notes below are still the correct *theory* of how
+    vanilla suits do it — but do not ship it as the default until it is confirmed
+    in-game. The lesson: a faithful offline simulation of the *tweak-data* chain
+    is necessary but not sufficient; the *unit-spawn* chain must be confirmed in
+    the actual game.
+
+    Note 26 concluded the graft was the only arrangement that holds. That is
+    true for a *donor* forearm, but it missed the arrangement the base game
+    itself uses: **ship no hands at all and let the vanilla glove + the
+    `hnd_forearms` glove adapter supply them.** The adapter is bound to the
+    *same PD2 skeleton* the outfit retargets onto, so it follows the sleeve —
+    exactly the property the donor forearm lacked. This is how every DLC/Infamy
+    suit keeps gloves changeable.
+
+    - **Vanilla semantics — hands come from a REAL default glove, not from
+      stock hands.** `playerstyletweakdata.lua` gives the suits
+      `body_replacement_standard` (`hands/arms = true` — stock hands HIDDEN);
+      `glovestweakdata.lua` sets `suit_default_gloves[style] = "heist_default"`
+      for most suits, and BeardLib's `BeardLibInitGloves` PostHook copies that
+      into `player_styles[style].default_glove_id`. So "Default" gloves resolve
+      through `default_glove_id` to a real glove unit
+      (`hnd_glv_heistwrinkled`) — `gloves.default` itself has NO unit. The same
+      file defines the adapter
+      (`unit = units/pd2_dlc_hnd/characters/hnd_forearms/hnd_forearms`,
+      per-heister `character_sequence`, `player_style_exclude_list =
+      {"none","slaughterhouse"}`). BeardLib's
+      `set_beardlib_character_visual_state` spawns `char_gloves` (the hand
+      mesh) iff a glove unit resolves, plus `char_glove_adapter` (the bare
+      forearm) unless glove/style adapter data is `false`. "Vanilla hands" =
+      real default glove unit + adapter, with stock hands hidden.
+    - **LAS 4.1.9 loader bugs — TWO fresh-table reads, both no-ops.**
+      `hooks/outfits/loader.lua` does `output.glove_adapter = output.glove_adapter
+      or false` AND `output.default_glove_id = output.default_glove_id or false`
+      reading the *fresh* `output` table (not `data.*`), so both are always
+      false, and it force-inserts every `replace_body`/`replace_all` outfit into
+      `glove_adapter.player_style_exclude_list`. Config-only flags therefore do
+      nothing. **`default_glove_id = false` is the killer:** BeardLib's
+      `get_glove_value` returns `false` for "Default" gloves when the style's
+      `default_glove_id` is `false` → no glove unit spawns, while
+      `body_replacement.hands = true` hides the stock hands → **NO HANDS AT
+      ALL** (shipped once on BusinessWoman; the adapter forearms alone do not
+      compensate — stock hands do not render on a replaced body).
+    - **The fix is a compat hook that restores the vanilla mechanism.**
+      PostHook `BlackMarketTweakData:init` (runs after LAS's loader): set
+      `player_styles["las_<id>"].default_glove_id = "heist_default"` (custom
+      gloves stay selectable — the default only applies to "Default"), set
+      `glove_adapter = {}`, reverse-loop `table.remove` the style from
+      `glove_adapter.player_style_exclude_list`, and KEEP
+      `body_replacement.hands = true` + `third_body_replacement.hands = true`
+      (the spawned gloves supply the hands; unhiding stock hands risks doubles
+      and does nothing on a replaced body). **`{}` not `true`:** BeardLib's
+      `set_beardlib_character_visual_state` does `table.merge(final,
+      gloves_adapter_data or player_style_adapter_data or {})` and BeardLib's
+      `table.merge` calls `pairs(new_table)` — a boolean raises `pairs(true)` and
+      crashes. `{}`/nil keep the default `hnd_forearms` adapter; `false` disables.
+    - **Test the chain, not the strings.** The first adapter pack passed every
+      string-assertion test because the offline smoke test stubbed the host
+      with the wrong assumption ("default gloves returning false is fine").
+      The regression suite now EXECUTES the verbatim LAS loader
+      (`tests/fixtures/las_loader_4.1.9.lua`) plus the generated hooks inside
+      LuaJIT 2.1 (`lupa`), against faithful ports of BeardLib's resolution
+      code, and asserts a glove unit actually spawns for Default AND custom
+      gloves in FPS and TPP — plus a no-hook control that must reproduce the
+      no-hands bug (`tests/test_glove_behavior_lua.py`).
+    - **FPS comes for free.** BeardLib moves to `unit:camera():camera_unit()`
+      for the local peer and spawns `char_gloves`/`char_glove_adapter` there, so
+      the gloves show in first person without shipping any FPS hand geometry.
+      Fallback if a heister's camera-unit gloves ever fail: an FPS-only graft.
+    - **When to prefer which.** Adapter route when the ported body already ends
+      at the wrist (BusinessWoman's 3BA does) and you want changeable gloves;
+      graft + weld (note 26) when the outfit must own the hands outright (cop
+      suits, full character replacements) or the sleeve/hand seam must be
+      skinned as one. The adapter trades a skinned cuff for an open sleeve mouth
+      the adapter forearm fills — verify the cuff in motion in game.
+
+28. **Axial-vs-radial retarget scaling distorts a ported body's neck and bust**
+    (2026-11-03, measured on the Skyrim 3BA → PD2 BusinessWoman port). A
+    similarity/axial retarget that matches the target's bone lengths does *not*
+    preserve the source's soft-tissue proportions, in two predictable ways:
+
+    - **The bust flattens relative to the torso.** The spine chain is stretched
+      *axially* (rank-1 scale along each segment) to reach PD2's longer torso,
+      but the bust is *radial* — breast helper bones fold into `Spine2`, so the
+      bust only receives the smaller global similarity scale. Measured: source
+      bust protrusion / torso length = **0.640**, after retarget **0.485** (~24%
+      flatter). Fix: scale the front chest's forward protrusion back up by the
+      ratio (≈1.32), proportional to each vertex's existing forward offset and
+      with a smooth height falloff so it blends into waist and collar without
+      tearing (`build_models.restore_bust`). Apply to body **and** shadow.
+      **Also add a *lateral* falloff** (full near the centreline, fading to zero
+      before the underarm): pushing the whole front width pulls the chest panel
+      away from the sleeve and opens a visible armpit gap. Confine the push to
+      the centre bust (|x| ≲ 10–15 cm here) and leave the sleeve/torso seam put.
+    - **The neck lands forward of the target's head.** A body authored for a
+      *separate* head (Skyrim 3BA) keeps its neck opening positioned for that
+      head's bind pose; after retarget it can sit at Head-bone height but several
+      cm *forward* of the target's Head bone, jutting past the chin. If the outfit
+      ships no head (LAS keeps the heister's), that stub is a duplicate neck —
+      fold it down into the collar (`build_models.trim_neck`) and let the
+      heister's own neck show above.
+    - **General rule:** after any retarget, measure soft-tissue landmarks (bust
+      protrusion, neck opening) against *both* the source and the target rig —
+      "every joint lands on target (0.00 cm)" says nothing about the flesh
+      between the joints. Both fixes are continuous vertex edits (no re-topology),
+      so they cannot introduce holes; verify with the orientation-break count.
+    - **The underarm sliver is skin *through* the jacket, not an open seam.** A
+      jacket-only render shows the blazer fully covers the underarm (no hole); a
+      skin=red render plus a per-pixel depth test (skin depth vs jacket depth)
+      prove the thin pre-existing sliver is skin poking through the jacket surface
+      along the overlap seam, plus a little genuine gap in the overlap. Diagnose
+      gap vs poke-through with a depth test before choosing a fix — they need
+      opposite treatments.
+    - **Gentle fix — tuck the skin, not the jacket.**
+      `build_models.tuck_underarm_skin` pushes the near-jacket skin inward along
+      its own normal (≈0.7 cm, smooth proximity falloff, confined to the underarm
+      band), body + shadow. This removes the poke-through bulk without touching
+      the jacket; a thin overlap-gap residue remains for the in-game check.
+    - **Dead ends — do not retry:** (1) welding the panel *overlap* seam shut
+      (zipping the torso/sleeve boundary chains coincident, average position +
+      weights) **distorts the sleeve into spikes and widens the gap** — the sleeve
+      edge *overlaps* the torso edge (~3.7 source units lateral), it is not a
+      meet-seam, and the overlap is load-bearing. (2) A stronger skin tuck and
+      (3) tucking along the **jacket** normal instead of the skin normal both
+      distorted the skin and *increased* the poke-through (depth-test pixel counts
+      rose). The gentle skin-normal tuck is the best gentle outcome; closing the
+      residue fully is a re-drape / re-authoring job, not a vertex nudge.
+
+29. **A "stray ornament" on the back may be the source outfit's own decoration**
+    (2026-11-03, Skyrim Melodic BusinessWoman blazer → PD2). The row of
+    medallions that appeared on the ported upper back was **not** a retarget or
+    UV bug: the source `Jacket_diffA` atlas paints a ceremonial collar band
+    (7 medallions over beige tabs, atlas v≈0.66–0.77), and the source NIF has the
+    same 394 collar/yoke verts UV-ing into it — a 1:1 port. In the source outfit
+    the white V-lapel hides the band from the front; after the retarget it lands
+    on the back yoke where nothing covers it, so it reads as an artifact.
+    **Before "fixing" an artifact, locate it in the source atlas and count the
+    source verts that sample it** — if the source carries the same decoration it
+    is intentional design, and the choice is to keep it (source fidelity) or
+    paint it out (a deliberate design change), not to hunt for a nonexistent
+    retarget bug. To paint it out: a luminance gate isolates the ornament from
+    the dark collar (fill with the collar's sampled base colour) and reset the
+    gated normal texels to tangent-flat to drop the matching bump relief
+    (`skyrim_materials.remove_collar_decoration`). Do it in the texture build,
+    not on the packed `.texture`, so it stays reproducible; geometry untouched.
+    Watch the UV convention when locating the band: NIF `v` is from the bottom,
+    the atlas image row is from the top (`v_top = 1 − v`).
+
+30. **Skin blotches need ALL THREE of albedo, normal and gloss made uniform —
+    fixing only normal+gloss is not enough** (2026-11-03/04, BusinessWoman legs).
+    In-game the thighs/calves had large camo-like patches. The first fix flattened
+    the normal map and made the gloss uniform, but the blotches PERSISTED, because
+    a third source remained: the **albedo itself**. `build_diffuse` had been
+    layering large-scale structure into the diffuse RGB — a low-frequency fbm
+    mottle, a curvature/occlusion term, and an `_anatomy_shading` pass that painted
+    knee/shin/ankle bands. Each is only a few percent, but they concentrate into
+    broad leg patches that the game's lighting reads as blotches. The offline
+    diffuse preview looked smooth because it did not amplify the subtle variation.
+    **Definitive fix: ship a UNIFORM albedo (flat base tone), a flat normal map and
+    a uniform gloss** — skin at heister distance is a tone, and the geometry
+    normals + game lighting supply all the shading. Diagnose by decoding the actual
+    packed `.texture` and amplifying the deviation from the mean colour (×6): large
+    patches jump out even when per-channel std is only ~6/255. Do NOT trust the
+    un-amplified offline preview, and do not stop at normal/specular — check the
+    albedo too. (`skin_texture.build_diffuse` / `build_normal`.)
+
+31. **A ported garment's overlap armhole opens into a hole under the arms-down
+    idle; keep the sleeve shoulder weighted to the torso** (2026-11-03,
+    BusinessWoman blazer). The blazer armhole is an *overlap* (sleeve fabric
+    lapped over the torso), not a sewn seam — hundreds of boundary edges in the
+    shoulder band. In the bind pose (arms out) the overlap covers the armhole;
+    when the arms adduct in the idle, the Arm-weighted sleeve shoulder rotates
+    away from the torso-weighted armhole edge and the overlap opens into a hole
+    that backface culling exposes. Welding the overlap edges was tried and
+    rejected (it distorts the sleeve into spikes). The safe fix is a **weight
+    stay**: in `transfer_group`, for jacket verts in the shoulder band, blend up
+    to ~45 % of the upper-arm weight into the clavicle with a smooth height
+    falloff, so the sleeve top follows the torso and the overlap stays closed.
+    Verify with an offline **pose simulator** that re-skins the body with the arms
+    adducted (`tools/pd2-las/pose_preview.py`): the static bind-pose preview cannot
+    show a deformation-only hole. The simulator now **backface-culls** by default
+    (`preview_textured.render(..., cull=True)`; `--no-cull` to disable), so it
+    reproduces the in-game see-through hole instead of filling it with the far
+    side of the fabric. Culling sign is pinned by `tests/test_preview_cull.py`
+    (front face survives, back face dropped, view-relative) — an inverted sign
+    culls the whole outfit and reads as a blank gray figure.
+
+    **The stay has a balance, not a "more is better" knob.** ~45 % is the sweet
+    spot: the large overlap hole closes to a small armpit notch. Pushing it harder
+    (55 % with a plateau falloff across the whole band) was measured and is WORSE —
+    the sleeve shoulder then stays with the torso while the skin upper arm still
+    follows the arm bone, so the sleeve pulls away and a large patch of **skin**
+    shows at the armpit. Too little stay opens a see-through hole; too much exposes
+    the skin arm. Do not strengthen past the balance to chase the last notch. The
+    small residue that remains (armpit notch, shoulder-top spots near the collar)
+    is the genuine overlap gap / skin poke-through that `tuck_underarm_skin`
+    already documents as un-closable without distorting the sleeve.
+
+32. **White patches on a dark sleeve are usually the under-layer garment, not
+    skin — probe the material's FULL extent before concluding** (2026-11-04,
+    BusinessWoman blazer). After the uniform-albedo fix the legs were clean but
+    white upper-arm patches remained in-game. An earlier probe had checked
+    `mtr_jacket2` only at z>140, found zero verts, and wrongly concluded the
+    patches were skin. The band was too high: the white **shirt sleeves** sit at
+    z 124.6–130.6, |x| 30–50 (2016 verts, 100 % arm-weighted), *below* the
+    shoulder-stay band. They are the shirt under the blazer, poking through /
+    z-fighting the blazer sleeve once the game skins the arms. **Fix:
+    `tuck_shirt_sleeves`** — push jacket2 verts in the upper-arm band inward along
+    their normal (up to ~1.6 cm, smoothstep falloff to the nearest blazer vert),
+    raising the shirt↔blazer separation (mean 1.09 → 1.75 cm) so the shirt stays
+    hidden; leave the visible collar/lapel (small |x|) and the blazer untouched,
+    and cap the amount so the shirt is not pushed through the arm skin beneath
+    (that would just swap white patches for tan). Two lessons: (a) when a white
+    patch survives an albedo fix, look for a white *under-layer mesh* in the same
+    region and measure its real z/|x| extent — do not assume skin; (b) the offline
+    rigid-arm pose sim may NOT reproduce in-game poke-through/z-fighting even with
+    an elbow bend, because the game's skinning brings near-coincident layers closer
+    than the sim does — validate such a fix **geometrically** (layer separation
+    increased, no skin clipping) rather than by reproducing the defect offline.
+    The wrist white ring is the same shirt cuff; the tuck band covers it, but a
+    residual cuff→glove gap is inherent to the adapter route (no authored hands).
+
+33. **A cuff at a sleeve *opening* must retract ALONG the limb, not just inward**
+    (2026-11-04, BusinessWoman wrist). After the radial shirt-sleeve tuck (note 32)
+    the upper-arm patches were gone but a white ring remained at the wrist: the shirt
+    cuff is a ring of 100 %-`ForeArm`-weighted verts sitting exactly at the sleeve
+    opening, where there is no blazer beyond it to hide behind, so a radial (inward)
+    tuck cannot hide it. **Fix: `tuck_shirt_cuffs`** — slide the cuff verts up the
+    limb along the measured wrist->elbow axis *and* project them onto that axis and
+    pull them toward it. The axis projection matters: sliding along the axis alone
+    keeps the cuff at its original radial offset (on the blazer tube's edge, still
+    peeking out); pulling toward the axis seats it inside the tube. Verify the layer
+    order numerically — cuff radial distance must land BETWEEN the skin radius and
+    the blazer radius (here 2.58 < 2.89 < 3.31 cm) so it is over the skin and under
+    the blazer, not clipping either. Validate with a before/after render of the
+    opening (visible shirt area shrinks) and a profile render of the limb (no
+    poke-through). A little shirt may still show up through the opening at the exact
+    limb-vertical angle, and the cuff->glove gap remains inherent to the adapter
+    route — do not author hands to close it.
+
+34. **Identify a poke-through layer by highlighting EACH material in a POSED render
+    before fixing it — white patches under a dark garment can be skin, not the
+    under-layer shirt** (2026-11-04, BusinessWoman arm). White arm patches survived
+    two cycles of shirt (`jacket2`) tucks. A posed render with `mtr_body`=GREEN showed
+    green exactly at the patches while `mtr_jacket2`=RED showed only the collar: the
+    patches were **arm skin poking through the blazer**, not the shirt. Exposed skin
+    can read *white* in-game from lighting even with a uniform tan albedo — do not
+    assume "white = shirt". Diagnose by rendering the actual in-game-ish pose
+    (adduction + elbow bend) with one material overridden to a flat color at a time;
+    the rigid bind-pose preview hides deformation-only poke-through. Then check the
+    fix's COVERAGE: a nearest-jacket probe found the existing underarm skin tuck
+    (band z 137–154) missed 837 poke-through skin verts down the upper-arm sleeve at
+    z 125–137. Extending the band's `z_lo` to 125 (same gentle 0.7 cm skin-normal
+    amount — stronger tucks distort, see note 31) cut the posed skin=green area from
+    large patches to two thin slivers at the genuine overlap gap. Re-verify with the
+    same material-highlight render after the fix.
+
+35. **A ported neck must be RECENTERED and TAPERED onto the target head-neck axis, not
+    just squashed — and verified with the reference head attached offline**
+    (2026-11-04, BusinessWoman neck). The outfit showed a horizontal skin shelf across
+    the front of the neck base plus a notch behind it. Measuring cross-sections (plane
+    / triangle intersections, welded by rounded position) showed why: the source skin
+    neck is a *wide* tube (axis y≈9.5, diagonal opening rim centroid y≈13.6) while the
+    PD2 head's own neck is *thin* (axis y≈7.5, radius ~2.5 @z158 / ~3.1 @z159, starting
+    z≈157). A vertical-only squash (`trim_neck`) collapses the wide stub into a
+    forward-offset pancake at the collar line — it never moves the opening, so the cap
+    sticks out in front of the neck and leaves a gap behind. The fix (`align_neck`)
+    blends skin verts above the shoulder line from the source axis onto the target axis
+    while tapering the radius to *inside* the head-neck radius, so the column, the folded
+    stub and the cap all hide inside the heister's own neck and the visible seam is where
+    the surfaces cross. Gate the blend radially (smoothstep in z × smoothstep in radius)
+    so the outer shoulder / upper-arm skin is untouched and prior tucks are not silently
+    changed. Attach the template head as an offline fit reference (never ship it) and
+    render front / side / three-quarter close-ups to confirm the shelf and notch are gone
+    and the cap footprint lies inside the head-neck cross-section. Do not reweight the
+    neck to the Neck bone for a *position* fix: the visible neck base sits below the Neck
+    pivot, so torso weighting (like the collar) is correct and avoids collar gaps.
+
+36. **A white ring at the sleeve opening / wrist is usually SHIPPED hand geometry, not the
+    shirt cuff — enforce the adapter hand route with a build-time guard**
+    (2026-11-04, BusinessWoman forearms). The "forearm" defect (white wrist ring between
+    blazer sleeve and game glove, plus tan hands) was a regressed pack that carried a
+    `mtr_hands` slice: source/graft hands whose wrist stub reaches below the blazer sleeve
+    end (sleeve z117.7, hands z112) and protrudes as a white ring. Diagnose with a posed
+    per-material highlight render (the wrist ring lit up as its own material, distinct from
+    `mtr_body` forearm and `mtr_jacket2` cuff). The adapter route must ship NO hands: the
+    heister's stock hands / gloves + the vanilla `hnd_forearms` adapter are the only hands
+    visible. Verify the body forearm and shirt cuff both end *inside* the blazer sleeve so
+    the sleeve mouth is cleanly filled by the game adapter once the hands are gone. Guard
+    the route in the builder: count verts with >0.5 summed weight on any `LeftHand*` /
+    `RightHand*` palette bone (`count_hand_verts`) and abort the build if nonzero in adapter
+    mode — forearm verts that merely blend a little hand weight stay under the threshold.
+    Re-verify by decoding the SHIPPED zip (not just the build tree): a stale/graft zip can
+    differ from a clean rebuild, so always confirm the packed `.model` has no `mtr_hands`.
+
+37. **Match an outfit's authored body-skin tone to the HE head it pairs with, by sampling
+    that head's diffuse — not a generic reference swatch** (2026-11-04, BusinessWoman skin
+    colour). The exposed body skin (neck / chest / legs) read too light & pink against the
+    heister head at the seam because the flat body albedo base was sampled from a *different*
+    character's face swatch. Fix: decode the paired head's diffuse (e.g.
+    `miranda_head_df.texture`), skin-mask it (warm R>G>B, mid luminance, moderate R−B) and
+    take the per-channel median; set the body bake base tone to exactly that (unity gain) so
+    body and head match under the same game lighting. Verify by decoding the SHIPPED body
+    diffuse and comparing its skin-island median to the head median (should be within ~1/255),
+    and pin it with a regression test (base tone within ±4/255 of the head median) so future
+    tone tweaks cannot drift the seam. Remember the body skin is a *flat* albedo (geometry
+    normals + game lighting supply shading), so matching albedo medians is the correct target.
+
+38. **When a ported neck sits forward of the head, TURN the whole body mesh rather than
+    tapering/hiding the body neck — hiding it leaves the collar unsupported**
+    (2026-11-04, BusinessWoman neck redo; supersedes the taper half of note 35). The
+    recenter+taper+fold approach (note 35) looked fine offline but in-game left a hard
+    head/body seam at the collar, tan skin "wings" above the collar back, and an unsupported
+    standing collar: hiding the body neck inside the head removes the surface that should
+    fill the collar opening. The accepted fix is a RIGID whole-body pitch (`turn_body`,
+    ~0.8° about the ground pivot z=0) that swings the neck column back onto the head-neck
+    axis while keeping the feet planted, with the body's own neck left at full height to
+    rise and meet the head and fill the collar. A rigid rotation preserves all earlier
+    seams/tucks and cannot tear; verify with the reference head attached (front/side/back)
+    that head→neck→collar is continuous and the collar back shows no skin wings. Prefer
+    rigid whole-body alignment over local neck surgery when the offset is a global
+    placement error; reserve local tapers for genuine thickness mismatches.
+
+39. **A white wrist ring that survives hand-removal is the SHIRT CUFF poking radially out of
+    the sleeve mouth — retract it harder AND overlap the glove with the outer sleeve**
+    (2026-11-04, BusinessWoman forearms redo). After dropping shipped hands (note 36) the
+    white wrist ring + a sleeve→glove gap persisted in-game. A posed render with a stand-in
+    glove (template hand tinted blue) showed the white `jacket2` cuff protruding *radially*
+    at the blazer sleeve opening, and the blazer stopping short of the glove. Two-part fix:
+    (a) strengthen the cuff retraction (slide further up the forearm axis AND pull further
+    toward the axis so it clears the sleeve's inner radius, not just its edge); (b) lengthen
+    the OUTER (blazer) sleeve down the forearm axis with a smooth falloff so it overlaps the
+    game glove / forearm adapter and closes the junction. Diagnose wrist defects with a posed
+    render plus a stand-in glove, because the glove/adapter is a game asset absent from the
+    outfit model — without it the junction gap is invisible offline. Garment-only changes;
+    never author hand geometry to bridge a wrist gap.

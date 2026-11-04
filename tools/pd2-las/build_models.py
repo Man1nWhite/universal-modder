@@ -693,6 +693,26 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
                     else:
                         tname, _ = target_for_src[bi]
                         by_target[tname] = by_target.get(tname, 0.0) + w
+            # --- shoulder overlap stay (jacket only) ---
+            # The blazer armhole is an *overlap*, not a sewn seam. Under the
+            # arms-down idle the Arm-weighted sleeve shoulder rotates away from
+            # the torso-weighted armhole edge and the overlap opens into a hole
+            # (backface-culled in game). Blend part of the upper-arm weight into
+            # the clavicle at the shoulder so the sleeve top stays with the
+            # torso and the overlap remains closed. Jacket only: the skin below
+            # keeps its own weights. Smooth height falloff avoids a weight seam.
+            if mesh.material in ("jacket", "jacket2"):
+                sx, _sy, sz = sv.pos
+                if 93.0 <= sz <= 113.0 and abs(sx) >= 6.0:
+                    t = (sz - 93.0) / 20.0
+                    fall = t * t * (3.0 - 2.0 * t)      # smoothstep 0..1
+                    for arm, clav in (("LeftArm", "LeftShoulder"),
+                                      ("RightArm", "RightShoulder")):
+                        aw = by_target.get(arm, 0.0)
+                        if aw > 1e-4:
+                            move = aw * 0.45 * fall
+                            by_target[arm] = aw - move
+                            by_target[clav] = by_target.get(clav, 0.0) + move
             infl = [(tn, w) for tn, w in by_target.items() if w > 1e-6]
             infl.sort(key=lambda t: -t[1])
             infl = infl[:3]
@@ -1341,6 +1361,372 @@ def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
             if z > z0:
                 g.verts[i] = (x, y, z0 + (z - z0) * k)
                 touched += 1
+    return touched
+
+
+def turn_body(g: Group, deg: float = 0.8, pivot=(0.0, 0.0, 0.0)) -> int:
+    """Rigidly turn (pitch) the whole outfit body so its neck sits under the head.
+
+    The retargeted 3BA neck column stands ~2 cm *forward* of the PD2 head-neck
+    axis. Rather than tapering/hiding the body neck (which left a hard seam at the
+    collar and skin "wings" above the collar back), turn the entire body mesh back
+    about the ground pivot by ``deg`` so the neck column axis lands on the head
+    axis while the feet stay planted (pivot at z=0). A rigid rotation preserves
+    every seam / tuck computed earlier and cannot tear the mesh; the body's own
+    neck then rises to meet the head and fills the collar opening.
+    """
+    t = math.radians(deg)
+    c, s = math.cos(t), math.sin(t)
+    px, py, pz = pivot
+    n = 0
+    for i, (x, y, z) in enumerate(g.verts):
+        y -= py
+        z -= pz
+        g.verts[i] = (x + px, py + y * c - z * s, pz + y * s + z * c)
+        n += 1
+    for i, (nx, ny, nz) in enumerate(g.normals):
+        g.normals[i] = (nx, ny * c - nz * s, ny * s + nz * c)
+    return n
+
+
+def count_hand_verts(g: Group, threshold: float = 0.5) -> int:
+    """Vertices whose dominant influence is a hand bone (hand / finger bones).
+
+    The adapter hand route ships *no* hand geometry: the heister's own stock
+    hands / gloves plus the vanilla forearm adapter show through the sleeves.
+    A build that accidentally carries source or graft hands (whose wrist stub
+    reads as a white ring at the sleeve opening in-game) is caught by counting
+    verts weighted > ``threshold`` to any ``LeftHand*`` / ``RightHand*`` bone.
+    Forearm verts that merely blend a little hand weight stay below threshold.
+    """
+    hand_pal = {i for i, n in enumerate(g.palette)
+                if n.startswith(("LeftHand", "RightHand"))}
+    if not hand_pal:
+        return 0
+    n = 0
+    for infl in g.weights:
+        if sum(w for p, w in infl if p in hand_pal) > threshold:
+            n += 1
+    return n
+
+
+def align_neck(g: Group, mats=("skin",), z_lo: float = 154.0,
+               z_seam: float = 158.0, src_y: float = 9.5, dst_y: float = 7.6,
+               r_shoulder: float = 6.5, r_seam: float = 2.1,
+               r_neck: float = 9.0, r_fade: float = 3.0) -> int:
+    """Recenter and taper the outfit's neck column onto the PD2 head-neck axis.
+
+    Measured on the retargeted 3BA body, the skin neck is a wide tube whose axis
+    sits at y≈9.5 cm and whose diagonally-cut opening rim centroids at y≈13.6 cm.
+    The PD2 heister head (template ``g_head``) carries its own neck: a thin tube
+    centered at y≈7.5 cm with radius ~2.5 cm at z158 and ~3.1 cm at z159, starting
+    at z≈157. Folding the wide 3BA stub down without recentering it leaves a
+    forward-offset skin "shelf" in front of the neck and a notch behind it.
+
+    This pass blends every skin vertex above ``z_lo`` from its source neck axis
+    (``src_y``) onto the PD2 axis (``dst_y``) while tapering its radial extent
+    from the shoulder flare (``r_shoulder``) down to ``r_seam`` at ``z_seam`` and
+    above. ``r_seam`` is deliberately *inside* the head neck radius so the tapered
+    column, the folded stub and the neck cap all hide within the heister's own
+    neck; the visible seam is where the two surfaces cross (~z157.6). The blend is
+    a smoothstep that is exactly 0 at ``z_lo``, multiplied by a radial gate that
+    is 1 inside ``r_neck`` of the source neck axis and fades to 0 by
+    ``r_neck + r_fade``, so the outer shoulder / upper-arm skin stays exactly as
+    the sleeve and underarm tucks shipped it and the mesh cannot tear.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z <= z_lo:
+                continue
+            t = min(1.0, (z - z_lo) / max(z_seam - z_lo, 1e-6))
+            w = t * t * (3.0 - 2.0 * t)
+            r_src = math.hypot(x, y - src_y)
+            # radial gate: only the neck column and the trapezius that forms its
+            # base; the outer shoulder / upper-arm skin is left exactly as the
+            # sleeve / underarm tucks shipped it
+            gate = min(1.0, max(0.0, 1.0 - (r_src - r_neck) / max(r_fade, 1e-6)))
+            w *= gate * gate * (3.0 - 2.0 * gate)
+            if w <= 0.0:
+                continue
+            cy = src_y + (dst_y - src_y) * w
+            r_cap = r_shoulder + (r_seam - r_shoulder) * min(
+                1.0, max(0.0, (z - (z_seam - 2.0)) / 2.0))
+            r_new = r_src + (min(r_src, r_cap) - r_src) * w
+            if r_src > 1e-6:
+                nx = x * (r_new / r_src)
+                ny = cy + (y - src_y) * (r_new / r_src)
+            else:
+                nx, ny = x, cy
+            g.verts[i] = (nx, ny, z)
+            touched += 1
+    return touched
+
+
+def trim_neck(g: Group, mats=("skin",), z0: float = 159.0, k: float = 0.05) -> int:
+    """Fold the body's leftover neck stub down into the collar.
+
+    Run *after* :func:`align_neck`, which has already recentered the neck column
+    onto the PD2 head-neck axis and tapered it to inside the heister's own neck.
+    What remains above the collar line is a thin duplicate of the head neck; the
+    outfit ships no head (LAS keeps the heister's own), so squash it toward the
+    collar line ``z0`` — continuous at the boundary so it cannot tear. Because the
+    stub is now thinner than the head neck, the fold and the neck cap that
+    :func:`cap_holes` adds sit hidden inside the heister's neck instead of
+    jutting out in front of the chin.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z > z0:
+                g.verts[i] = (x, y, z0 + (z - z0) * k)
+                touched += 1
+    return touched
+
+
+def restore_bust(g: Group, mats=("skin", "jacket", "jacket2"),
+                 spine_y: float = 5.3, factor: float = 1.32,
+                 z_lo: float = 122.0, z_hi: float = 154.0,
+                 x_full: float = 10.0, x_zero: float = 15.0) -> int:
+    """Restore the source bust proportion lost to axial spine scaling.
+
+    The retarget stretches the spine *axially* to reach PD2's longer torso, but
+    the bust is *radial* and only receives the smaller global similarity scale,
+    so it lands ~24% flatter than the 3BA source (measured bust/torso 0.485 vs
+    0.640). Scale the front chest's forward protrusion back up by ``factor``,
+    with a smooth height falloff so it blends into the waist and collar without
+    tearing. Only the front (``y > spine_y``) moves; the back is kept, and the
+    displacement is proportional to how far forward a vertex already sits, so
+    the bust peaks gain the most.
+
+    A *lateral* falloff (full for ``|x| <= x_full``, fading to zero by
+    ``|x| = x_zero``) confines the push to the centre bust. Without it the whole
+    front width — including the chest panel beside the sleeve — is pulled
+    forward, which opens a visible gap at the underarm where the jacket's front
+    meets the sleeve (the bust sits at |x| < 12, the underarm seam at ~12–16).
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if y <= spine_y or not (z_lo <= z <= z_hi):
+                continue
+            t = (z - z_lo) / (z_hi - z_lo)
+            # smoothstep ramp over the first/last quarter, full in the middle
+            if t < 0.25:
+                u = t / 0.25
+            elif t > 0.75:
+                u = (1.0 - t) / 0.25
+            else:
+                u = 1.0
+            fall = u * u * (3.0 - 2.0 * u)
+            # lateral smoothstep: keep the underarm/sleeve seam in place
+            ux = (x_zero - abs(x)) / (x_zero - x_full)
+            if ux <= 0.0:
+                continue
+            ux = min(1.0, ux)
+            fall *= ux * ux * (3.0 - 2.0 * ux)
+            dy = (factor - 1.0) * (y - spine_y) * fall
+            g.verts[i] = (x, y + dy, z)
+            touched += 1
+    return touched
+
+
+def tuck_underarm_skin(g: Group, mats=("skin",), amount: float = 0.7,
+                       near: float = 1.6, z_lo: float = 125.0, z_hi: float = 154.0,
+                       x_min: float = 11.0) -> int:
+    """Tuck the arm/underarm skin behind the blazer so it stops poking through.
+
+    The blazer armhole is an *overlap* construction, not a sewn seam, and after
+    the retarget body skin renders in front of the jacket at the underarm AND down
+    the upper-arm sleeve (in-game white patches; a skin=green render confirms they
+    are ``mtr_body``, not the shirt). Welding the jacket's overlap edges shut
+    distorts the sleeve (see MODLOG dead end), so instead move only the *skin*: any
+    skin vertex in the band within ``near`` cm of the jacket is pushed inward along
+    its own normal by up to ``amount`` cm, with a smooth proximity falloff (full at
+    the jacket, zero at ``near``). The jacket is untouched and the tuck is confined
+    to the hidden arm under the sleeve. ``z_lo`` reaches down over the upper-arm
+    sleeve (the armpit-only band left the sleeve poke-through untouched).
+
+    This removes the bulk of the poke-through. A thin residue remains that is a
+    genuine *gap* in the jacket's overlap (skin behind it), which no skin tuck
+    can close; pushing harder or along the jacket normal instead distorts the
+    skin and worsens it (both measured, see MODLOG).
+    """
+    import numpy as np
+    jverts = []
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in ("jacket", "jacket2"):
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z_lo <= z <= z_hi and abs(x) >= x_min:
+                jverts.append((x, y, z))
+    if not jverts:
+        return 0
+    jv = np.asarray(jverts, dtype=np.float64)
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if not (z_lo <= z <= z_hi and abs(x) >= x_min):
+                continue
+            d = float(np.linalg.norm(jv - np.array([x, y, z]), axis=1).min())
+            if d >= near:
+                continue
+            t = 1.0 - d / near
+            fall = t * t * (3.0 - 2.0 * t)
+            nx, ny, nz = g.normals[i]
+            push = amount * fall
+            g.verts[i] = (x - nx * push, y - ny * push, z - nz * push)
+            touched += 1
+    return touched
+
+
+def tuck_shirt_sleeves(g: Group, amount: float = 1.6, near: float = 3.5,
+                       z_lo: float = 116.0, z_hi: float = 138.0,
+                       x_min: float = 20.0) -> int:
+    """Tuck the white shirt's sleeves (``jacket2``) behind the blazer's sleeves.
+
+    The shirt sleeves are 100 % arm-weighted and sit *below* the shoulder-stay
+    band, so under the in-game arms-down / elbow-bent pose they poke through the
+    blazer sleeve as white patches on the upper arm (confirmed in-game; the rigid
+    offline arm rotation does not reproduce the elbow bend). Push them inward
+    along their own normal — toward the arm — where they lie within ``near`` cm of
+    the blazer, with a smooth proximity falloff. The blazer is untouched and the
+    shirt sleeve is hidden under it anyway, so this only removes the poke-through.
+    Confined to the upper-arm band (``x_min`` keeps the visible collar/lapel out).
+    """
+    import numpy as np
+    jverts = []
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z_lo <= z <= z_hi and abs(x) >= x_min:
+                jverts.append((x, y, z))
+    if not jverts:
+        return 0
+    jv = np.asarray(jverts, dtype=np.float64)
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket2":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if not (z_lo <= z <= z_hi and abs(x) >= x_min):
+                continue
+            d = float(np.linalg.norm(jv - np.array([x, y, z]), axis=1).min())
+            if d >= near:
+                continue
+            t = 1.0 - d / near
+            fall = t * t * (3.0 - 2.0 * t)
+            nx, ny, nz = g.normals[i]
+            push = amount * fall
+            g.verts[i] = (x - nx * push, y - ny * push, z - nz * push)
+            touched += 1
+    return touched
+
+
+def extend_blazer_sleeves(g: Group, amount: float = 3.0, z_hi: float = 126.0,
+                          x_min: float = 30.0) -> int:
+    """Lengthen the blazer sleeve toward the wrist so it overlaps the game glove.
+
+    The blazer sleeve opening can stop short of the glove / forearm adapter,
+    leaving a gap (and exposing the shirt cuff) at the wrist in-game. Slide the
+    sleeve-end verts down the forearm axis (wrist direction) with a smooth falloff
+    (full at the opening, zero by ``z_hi``) so the sleeve overlaps the glove cuff
+    and closes the junction. Garment-only; no hand geometry authored.
+    """
+    import numpy as np
+    axes = {
+        -1.0: (np.array([-45.99, 18.70, 124.47]), np.array([-39.50, -0.99, 133.29])),
+        1.0: (np.array([45.99, 18.70, 124.47]), np.array([39.50, -0.99, 133.29])),
+    }
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if abs(x) < x_min or z > z_hi:
+                continue
+            t = max(0.0, min(1.0, (z_hi - z) / max(z_hi - 116.0, 1e-6)))
+            fall = t * t * (3.0 - 2.0 * t)
+            sx = -1.0 if x < 0 else 1.0
+            W, E = axes[sx]
+            D = (E - W) / np.linalg.norm(E - W)
+            p = np.array([x, y, z]) - D * (amount * fall)
+            g.verts[i] = (float(p[0]), float(p[1]), float(p[2]))
+            touched += 1
+    return touched
+
+
+def tuck_shirt_cuffs(g: Group, amount: float = 9.0, z_lo: float = 122.0,
+                     z_hi: float = 130.0, x_min: float = 30.0) -> int:
+    """Retract the white shirt's wrist cuffs (``jacket2``) up into the sleeve.
+
+    The radial ``tuck_shirt_sleeves`` pass hides the shirt along the upper arm but
+    not at the wrist: the cuff is a ring of 100 %-``ForeArm``-weighted verts sitting
+    right at the sleeve *opening* (z~125), so it still shows as a white ring between
+    the blazer cuff and the game glove (confirmed in-game). Pushing it inward does
+    not help because there is no blazer beyond the opening to hide behind — it has
+    to slide *up the forearm*, into the sleeve. Move the cuff verts along the
+    wrist->elbow axis (measured from the rig: [+-0.288, -0.874, 0.392]) with a
+    smooth height falloff (full at the cuff edge, zero by ``z_hi``). The blazer and
+    the visible collar/lapel are untouched; the retracted cuff hides under the
+    blazer sleeve. This removes the white ring without authoring any hand geometry.
+    """
+    import numpy as np
+    # Forearm axis (wrist -> elbow) measured from the rig, per side. Retracting
+    # along it slides the cuff up the sleeve; projecting onto it and pulling the
+    # vert toward the axis tucks it inside the blazer tube (otherwise it stays on
+    # the tube's edge and still peeks out of the opening).
+    axes = {
+        -1.0: (np.array([-45.99, 18.70, 124.47]), np.array([-39.50, -0.99, 133.29])),
+        1.0: (np.array([45.99, 18.70, 124.47]), np.array([39.50, -0.99, 133.29])),
+    }
+    inward = 2.5      # cm pulled toward the forearm axis
+    touched = 0
+    span = max(z_hi - z_lo, 1e-6)
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat != "jacket2":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if abs(x) < x_min or not (z_lo <= z <= z_hi):
+                continue
+            t = (z_hi - z) / span
+            t = max(0.0, min(1.0, t))
+            fall = t * t * (3.0 - 2.0 * t)
+            sx = -1.0 if x < 0 else 1.0
+            W, E = axes[sx]
+            D = E - W
+            D = D / np.linalg.norm(D)
+            p = np.array([x, y, z])
+            # slide up the forearm (toward the elbow) ...
+            push = amount * fall
+            p = p + D * push
+            # ... then pull toward the forearm axis so it sits inside the sleeve
+            tt = float(np.dot(p - W, D))
+            closest = W + D * tt
+            radial = closest - p
+            rn = float(np.linalg.norm(radial))
+            if rn > 1e-6:
+                p = p + radial / rn * min(inward * fall, rn)
+            g.verts[i] = (float(p[0]), float(p[1]), float(p[2]))
+            touched += 1
     return touched
 
 

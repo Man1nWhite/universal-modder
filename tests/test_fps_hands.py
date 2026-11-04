@@ -36,6 +36,19 @@ PACK_MATERIALS = ("mtr_body", "mtr_hands", "mtr_heels", "mtr_jacket",
                   "mtr_jacket2", "mtr_necklace", "mtr_skirt", "shadow_caster")
 
 
+def _pack_hands() -> str:
+    """The hand route the shipped pack was built with.
+
+    ``adapter`` ships no hands (the heister's gloves + the vanilla glove adapter
+    show through); ``graft`` bakes PD2 hands into the outfit. Older packs have no
+    ``hands`` field and were always graft.
+    """
+    import json
+    with zipfile.ZipFile(DIST) as z:
+        info = json.loads(z.read("BusinessWoman_LAS/BUILD_INFO.json"))
+    return info.get("hands", "graft")
+
+
 @pytest.mark.parametrize("name", [
     "LeftShoulder", "LeftArm", "LeftForeArm", "RightForeArm",
     "LeftHand", "RightHand",
@@ -168,10 +181,19 @@ def test_shipped_fps_unit_declares_every_material_it_references():
 
 @pytest.mark.skipif(not DIST.exists(), reason="pack not built in this checkout")
 def test_shipped_fps_unit_keeps_the_fingers():
-    """The viewmodel must carry the same finger chains as the body."""
+    """The viewmodel must carry the same finger chains as the body.
+
+    On the ``adapter`` route the outfit ships no hands at all, so there must be
+    NO finger-dominant vertices in either unit — the heister's own gloves supply
+    the hands. On the ``graft`` route the viewmodel must keep the grafted fingers.
+    """
     with zipfile.ZipFile(DIST) as z:
         _, tpp = _model_facts(z.read(f"{UNIT}/businesswoman.model"))
         _, fps = _model_facts(z.read(f"{UNIT}/fps_businesswoman.model"))
+    if _pack_hands() == "adapter":
+        assert not tpp, "adapter route must ship no hand geometry in the body"
+        assert not fps, "adapter route must ship no hand geometry in the viewmodel"
+        return
     assert tpp, "no finger-dominant vertices in the body — graft lost?"
     missing = {b for b in tpp if b not in fps}
     assert not missing, f"fps unit dropped {sorted(missing)}"

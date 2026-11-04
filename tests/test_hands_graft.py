@@ -47,6 +47,193 @@ def test_lower_collar_ignores_other_slices():
     assert g.verts[0][2] == 170.0
 
 
+def test_trim_neck_folds_only_the_skin_above_the_line():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 9.0, 150.0), (0.0, 9.0, 159.0), (0.0, 9.0, 167.0)]
+    g.slices = [("skin", 0, 0, 1, 3)]
+
+    touched = bm.trim_neck(g, z0=159.0, k=0.05)
+
+    assert touched == 1                        # only the vertex above the line
+    assert g.verts[0][2] == 150.0
+    assert g.verts[1][2] == 159.0              # continuous at the boundary
+    assert g.verts[2][2] == pytest.approx(159.0 + (167.0 - 159.0) * 0.05)
+    # the fold is vertical only: the forward (y) offset is left to the collar
+    assert all(v[1] == 9.0 for v in g.verts)
+
+
+def test_trim_neck_ignores_garment_slices():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 0.0, 170.0)]
+    g.slices = [("jacket", 0, 0, 1, 1)]
+
+    assert bm.trim_neck(g) == 0
+    assert g.verts[0][2] == 170.0
+
+
+def test_turn_body_is_rigid_and_plants_the_feet():
+    import math
+
+    g = bm.Group(name="g")
+    # a neck vertex high up, a foot vertex at the ground pivot
+    g.verts = [(0.0, 10.0, 160.0), (0.0, 5.0, 0.0)]
+    g.normals = [(0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
+    before = [tuple(v) for v in g.verts]
+
+    n = bm.turn_body(g, deg=0.8)
+
+    assert n == 2
+    # rigid: distance between the two verts unchanged
+    d0 = math.dist(before[0], before[1])
+    d1 = math.dist(g.verts[0], g.verts[1])
+    assert d1 == pytest.approx(d0, abs=1e-6)
+    # foot at the ground pivot barely moves; neck swings back (-y)
+    assert abs(g.verts[1][1] - before[1][1]) < 0.1
+    assert g.verts[0][1] < before[0][1]
+
+
+def test_count_hand_verts_flags_only_hand_dominated_verts():
+    g = bm.Group(name="g")
+    g.palette = ["LeftForeArm", "LeftHand", "LeftHandIndex1"]
+    # forearm vert blending a little hand weight (below threshold) -> not counted;
+    # two hand/finger-dominated verts -> counted
+    g.weights = [[(0, 0.8), (1, 0.2)], [(1, 0.9), (0, 0.1)], [(2, 1.0)]]
+
+    assert bm.count_hand_verts(g) == 2
+
+
+def test_count_hand_verts_zero_without_hand_bones():
+    g = bm.Group(name="g")
+    g.palette = ["LeftForeArm", "Spine2"]
+    g.weights = [[(0, 1.0)], [(1, 1.0)]]
+
+    assert bm.count_hand_verts(g) == 0
+
+
+def test_align_neck_recenters_and_tapers_the_neck_column():
+    g = bm.Group(name="g")
+    # a neck-column vertex (front wall), an outer-shoulder vertex, and one below
+    # the blend band
+    g.verts = [(0.0, 16.0, 160.0), (20.0, 5.0, 160.0), (0.0, 16.0, 150.0)]
+    g.slices = [("skin", 0, 0, 1, 3)]
+
+    touched = bm.align_neck(g)
+
+    assert touched == 1                        # only the in-band neck vertex
+    x, y, z = g.verts[0]
+    assert x == pytest.approx(0.0)
+    assert z == 160.0                          # height untouched
+    # tapered to r_seam about the PD2 axis: r_src=6.5 -> 2.1, cy=7.6
+    assert y == pytest.approx(7.6 + 6.5 * (2.1 / 6.5))
+    assert g.verts[1] == (20.0, 5.0, 160.0)    # radial gate: shoulder untouched
+    assert g.verts[2] == (0.0, 16.0, 150.0)    # below z_lo untouched
+
+
+def test_align_neck_is_continuous_at_the_band_edge():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 16.0, 154.0)]
+    g.slices = [("skin", 0, 0, 1, 1)]
+
+    assert bm.align_neck(g) == 0               # smoothstep is 0 at z_lo
+    assert g.verts[0] == (0.0, 16.0, 154.0)
+
+
+def test_align_neck_ignores_garment_slices():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 16.0, 165.0)]
+    g.slices = [("jacket", 0, 0, 1, 1)]
+
+    assert bm.align_neck(g) == 0
+    assert g.verts[0] == (0.0, 16.0, 165.0)
+
+
+def test_restore_bust_scales_only_the_front_chest():
+    g = bm.Group(name="g")
+    # front bust peak, a back vertex, and a front vertex below the band
+    g.verts = [(0.0, 20.0, 138.0), (0.0, 0.0, 138.0), (0.0, 20.0, 110.0)]
+    g.slices = [("skin", 0, 0, 1, 3)]
+
+    touched = bm.restore_bust(g, spine_y=5.3, factor=1.32, z_lo=122.0, z_hi=154.0)
+
+    assert touched == 1                        # only the front, in-band vertex
+    # z=138 is mid-band (full falloff): protrusion 14.7 scaled by 1.32
+    assert g.verts[0][1] == pytest.approx(5.3 + (20.0 - 5.3) * 1.32)
+    assert g.verts[0][2] == 138.0              # height unchanged
+    assert g.verts[1][1] == 0.0                # back untouched
+    assert g.verts[2][1] == 20.0               # below the band untouched
+
+
+def test_restore_bust_falloff_is_zero_at_the_band_edges():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 20.0, 122.0), (0.0, 20.0, 154.0)]
+    g.slices = [("jacket", 0, 0, 1, 2)]
+
+    touched = bm.restore_bust(g, spine_y=5.3, factor=1.32, z_lo=122.0, z_hi=154.0)
+
+    assert touched == 2                        # both in-band, but falloff = 0
+    assert g.verts[0][1] == pytest.approx(20.0)
+    assert g.verts[1][1] == pytest.approx(20.0)
+
+
+def test_restore_bust_leaves_the_underarm_seam_in_place():
+    g = bm.Group(name="g")
+    # centre bust peak vs a vertex out at the underarm (|x| beyond x_zero=15)
+    g.verts = [(0.0, 20.0, 138.0), (16.0, 20.0, 138.0)]
+    g.slices = [("jacket", 0, 0, 1, 2)]
+
+    touched = bm.restore_bust(g, spine_y=5.3, factor=1.32, z_lo=122.0, z_hi=154.0)
+
+    assert touched == 1                        # only the centre vertex moves
+    assert g.verts[0][1] == pytest.approx(5.3 + (20.0 - 5.3) * 1.32)
+    assert g.verts[1][1] == pytest.approx(20.0)  # underarm seam untouched
+
+
+def test_tuck_underarm_skin_tucks_only_skin_touching_the_jacket():
+    g = bm.Group(name="g")
+    # skin right on the jacket, skin below the band, and the jacket vertex itself
+    g.verts = [(15.0, 5.0, 145.0), (15.0, 5.0, 110.0), (15.0, 5.0, 145.0)]
+    g.normals = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    g.slices = [("skin", 0, 0, 1, 2), ("jacket", 2, 0, 1, 1)]
+
+    touched = bm.tuck_underarm_skin(g, amount=0.7, near=1.6)
+
+    assert touched == 1                        # only the near-jacket skin vertex
+    # d=0 -> full falloff: pushed inward along its +x normal by amount
+    assert g.verts[0][0] == pytest.approx(15.0 - 0.7)
+    assert g.verts[0][1] == pytest.approx(5.0)
+    assert g.verts[1][0] == pytest.approx(15.0)  # below the band untouched
+    assert g.verts[2][0] == pytest.approx(15.0)  # the jacket is never moved
+
+
+def test_tuck_underarm_skin_leaves_far_skin_alone():
+    g = bm.Group(name="g")
+    # skin in the band but far from any jacket vertex (> near)
+    g.verts = [(15.0, 5.0, 145.0), (15.0, 40.0, 145.0)]
+    g.normals = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    g.slices = [("skin", 0, 0, 1, 1), ("jacket", 1, 0, 1, 1)]
+
+    touched = bm.tuck_underarm_skin(g, amount=0.7, near=1.6)
+
+    assert touched == 0
+    assert g.verts[0][0] == pytest.approx(15.0)
+
+
+def test_tuck_underarm_skin_covers_upper_arm_sleeve():
+    """The band reaches down over the upper-arm sleeve (z~130), not just the
+    armpit: the in-game white patches are skin poking through the sleeve there,
+    below the old armpit-only band (z_lo=137)."""
+    g = bm.Group(name="g")
+    g.verts = [(25.0, 5.0, 130.0), (25.0, 5.0, 130.0)]
+    g.normals = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    g.slices = [("skin", 0, 0, 1, 1), ("jacket", 1, 0, 1, 1)]
+
+    touched = bm.tuck_underarm_skin(g, amount=0.7, near=1.6)
+
+    assert touched == 1
+    assert g.verts[0][0] == pytest.approx(25.0 - 0.7)   # skin tucked inward
+    assert g.verts[1][0] == pytest.approx(25.0)          # jacket untouched
+
+
 def test_append_group_reindexes_both_palettes():
     template = bm.Template(
         mf=None, names={}, id_name={}, id_obj={}, worlds={}, name_id={},
@@ -325,3 +512,79 @@ def test_weld_wrist_caps_the_cuff_in_skin_not_cloth():
     assert caps, g.mat_slots
     assert "mtr_jacket" not in g.mat_slots, (
         "the cuff cap took the sleeve's material")
+
+
+def test_tuck_shirt_sleeves_pushes_jacket2_inward():
+    """The white shirt sleeve (jacket2) near the blazer is pushed inward along
+    its normal so it stops poking through the blazer sleeve; blazer untouched."""
+    g = bm.Group(name="g")
+    g.verts = [(30.0, 0.0, 128.0), (30.0, 1.0, 128.0)]
+    g.normals = [(0.0, 1.0, 0.0), (0.0, 1.0, 0.0)]
+    g.slices = [("jacket", 0, 0, 1, 1), ("jacket2", 1, 0, 1, 1)]
+
+    touched = bm.tuck_shirt_sleeves(g)
+
+    assert touched == 1
+    assert g.verts[0] == (30.0, 0.0, 128.0)      # blazer reference untouched
+    assert g.verts[1][1] < 1.0                    # shirt moved inward (-normal)
+    assert g.verts[1][0] == 30.0 and g.verts[1][2] == 128.0
+
+
+def test_tuck_shirt_sleeves_leaves_collar_and_blazer():
+    """Only the upper-arm band is tucked: the visible collar/lapel (small |x|,
+    high z) and any non-jacket2 material are left alone."""
+    g = bm.Group(name="g")
+    g.verts = [(30.0, 0.0, 128.0), (5.0, 1.0, 150.0), (30.0, 1.0, 100.0)]
+    g.normals = [(0.0, 1.0, 0.0)] * 3
+    g.slices = [("jacket", 0, 0, 1, 1), ("jacket2", 1, 0, 1, 2)]
+
+    touched = bm.tuck_shirt_sleeves(g)
+
+    assert touched == 0
+    assert g.verts[1] == (5.0, 1.0, 150.0)       # collar: |x|<20 and z>138
+    assert g.verts[2] == (30.0, 1.0, 100.0)      # below the band (z<116)
+
+
+def test_tuck_shirt_cuffs_retracts_jacket2_up_the_forearm():
+    """The wrist cuff slides up the forearm (z increases) and toward the arm axis,
+    into the blazer sleeve, instead of sitting at the opening as a white ring."""
+    g = bm.Group(name="g")
+    g.verts = [(-42.0, 14.0, 125.0)]
+    g.normals = [(0.0, 1.0, 0.0)]
+    g.slices = [("jacket2", 0, 0, 1, 1)]
+
+    touched = bm.tuck_shirt_cuffs(g)
+
+    assert touched == 1
+    x, y, z = g.verts[0]
+    assert z > 125.0                              # retracted toward the elbow
+    assert (x, y, z) != (-42.0, 14.0, 125.0)
+
+
+def test_extend_blazer_sleeves_lengthens_jacket_toward_wrist():
+    """The blazer sleeve opening slides down the forearm (z decreases) so it
+    overlaps the game glove and closes the wrist junction; shirt/collar untouched."""
+    g = bm.Group(name="g")
+    g.verts = [(-42.0, 14.0, 118.0), (-42.0, 14.0, 140.0), (5.0, 10.0, 118.0)]
+    g.normals = [(0.0, 1.0, 0.0)] * 3
+    g.slices = [("jacket", 0, 0, 1, 2), ("jacket2", 2, 0, 1, 1)]
+
+    touched = bm.extend_blazer_sleeves(g)
+
+    assert touched == 1                          # only the low blazer sleeve vert
+    assert g.verts[0][2] < 118.0                 # lengthened toward the wrist
+    assert g.verts[1] == (-42.0, 14.0, 140.0)    # above the falloff band
+    assert g.verts[2] == (5.0, 10.0, 118.0)      # shirt / collar not jacket
+
+
+def test_tuck_shirt_cuffs_ignores_collar_and_blazer():
+    g = bm.Group(name="g")
+    g.verts = [(5.0, 10.0, 125.0), (-42.0, 14.0, 125.0)]
+    g.normals = [(0.0, 1.0, 0.0)] * 2
+    g.slices = [("jacket2", 0, 0, 1, 1), ("jacket", 1, 0, 1, 1)]
+
+    touched = bm.tuck_shirt_cuffs(g)
+
+    assert touched == 0
+    assert g.verts[0] == (5.0, 10.0, 125.0)      # collar: |x|<30
+    assert g.verts[1] == (-42.0, 14.0, 125.0)    # blazer is not jacket2

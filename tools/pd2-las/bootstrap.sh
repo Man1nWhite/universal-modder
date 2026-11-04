@@ -16,8 +16,8 @@ if [ ! -x .venv/bin/python ]; then
 fi
 # pillow/numpy are pinned: the tracked dist/*.zip bytes depend on
 # them (tools/pd2-port/STATUS.md §7) — all routes build in this venv.
-.venv/bin/pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr
-.venv/bin/python -c "import pytest, PIL, numpy, yaml, py7zr" && echo "venv ok"
+.venv/bin/pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr lupa
+.venv/bin/python -c "import pytest, PIL, numpy, yaml, py7zr, lupa" && echo "venv ok"
 
 echo "== 2/5 extract 2B reference pack (templates) =="
 mkdir -p /tmp/rarx /tmp/2bsrc

@@ -87,6 +87,37 @@ def test_normal_can_keep_y_when_the_source_is_opengl_like():
     assert int(out[0, 0, 1]) == 200
 
 
+def test_collar_decoration_is_painted_out():
+    """The source collar's medallion band is removed, colour and relief alike."""
+    diffuse = flat(100, (20, 21, 20))           # dark collar everywhere
+    normal = flat(100, (128, 128, 255))
+    r0, r1 = int(sm.COLLAR_BAND_V[0] * 100), int(sm.COLLAR_BAND_V[1] * 100)
+    c0, c1 = int(sm.COLLAR_BAND_U[0] * 100), int(sm.COLLAR_BAND_U[1] * 100)
+    # A bright medallion + its bump relief in the middle of the band window.
+    diffuse[r0 + 2:r1 - 2, c0 + 2:c1 - 2, :3] = (180, 160, 140)
+    normal[r0 + 2:r1 - 2, c0 + 2:c1 - 2, :3] = (200, 60, 200)
+
+    df2, nm2 = sm.remove_collar_decoration(diffuse, normal)
+
+    # The ornament is gone: the whole band now sits at the dark collar level.
+    assert np.all(df2[r0:r1, c0:c1, :3] <= 24)
+    # The relief is reset to tangent-flat.
+    assert np.array_equal(
+        nm2[r0 + 2:r1 - 2, c0 + 2:c1 - 2, :3],
+        np.full((r1 - r0 - 4, c1 - c0 - 4, 3), (128, 128, 255), np.uint8))
+    # Everything outside the band window is untouched.
+    assert np.array_equal(df2[:r0], diffuse[:r0])
+    assert np.array_equal(nm2[:r0], normal[:r0])
+
+
+def test_collar_decoration_leaves_plain_collar_alone():
+    """With no bright ornament the gate finds nothing and changes nothing."""
+    diffuse = flat(100, (20, 21, 20))
+    df2, nm2 = sm.remove_collar_decoration(diffuse, None)
+    assert np.array_equal(df2, diffuse)
+    assert nm2 is None
+
+
 def test_resize_handles_single_channel_masks():
     """The metal masks are 16x16 and must scale up to the diffuse size."""
     mask = np.full((16, 16, 1), 128, np.uint8)
@@ -307,6 +338,8 @@ def test_write_pack_is_self_consistent(tmp_path):
     assert set(info["payload_sha256"]) == {
         "main.xml",
         "hooks/businesswoman_las.lua", "localization/english.txt",
+        # the default hand route is `adapter`, which ships the compat hook
+        "hooks/businesswoman_glove_adapter.lua",
         f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.model",
         f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.unit",
         f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.object",
