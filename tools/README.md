@@ -1,9 +1,9 @@
 # tools/ — PAYDAY 2 character & head-replacement build pipelines
 
-Three PAYDAY 2 pipelines live in `tools/`, producing the eleven tracked deliverables in **`dist/`**:
+Three PAYDAY 2 pipelines live in `tools/`, producing the tracked deliverables in **`dist/`**:
 
 1. **`tools/pd2-port/`** — Full-body LAS outfit from the Mass Effect 2 *Romance* COLLADA archive → **`dist/lawson_las.zip`**. See `tools/pd2-port/STATUS.md`.
-2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`**. See `docs/pd2-las/HANDOFF.md`.
+2. **`tools/pd2-las/`** — Full-body LAS outfit from the L4D2 Source MDL/VVD/VTX archive → **`dist/Miranda_LAS.zip`**, plus its larger-chest variant **`dist/Miranda_Busty_LAS.zip`** (`build_busty_variant.py`, its own `LegendaryArmours.miranda_busty` entry). See `docs/pd2-las/HANDOFF.md` and `docs/pd2-las/CHEST-VARIANT.md`.
 3. **`tools/build_joy_head_mods.py`** — Nine vanilla-heister head-replacement `mod_overrides` packages (**Miranda L4D2** and **Miranda ME2 Romance** variants over **Joy**, **Clover**, **Bonnie**, and **Sydney**, plus **Witcher 3 Geralt of Rivia** from `models/Geralt.7z` over **Rust**), modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`:
    - **`dist/Miranda_L4D2_over_Joy.zip`** & **`dist/Miranda_Romance_over_Joy.zip`**
    - **`dist/Miranda_L4D2_over_Clover.zip`** & **`dist/Miranda_Romance_over_Clover.zip`**
