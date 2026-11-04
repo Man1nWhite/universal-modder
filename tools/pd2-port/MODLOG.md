@@ -4,7 +4,29 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: match body skin colour to Miranda's head texture (NEW)
+## 2026-11-04 — BusinessWoman: neck redo — TURN the whole body instead of tapering/hiding the neck (NEW)
+
+- **Report:** in-game shots of the taper/hide neck fix were bad: a hard pale-head /
+  tan-body seam at the collar in front, tan skin "wings" poking above the collar at the
+  back, and the white shirt collar standing around an unsupported neck. User: "This neck
+  solution is bad. You need to turn body." (clarified: rotate the whole body mesh).
+- **Reversal.** Removed `align_neck` (recenter+taper) and `trim_neck` (fold) from the
+  build. Hiding the body neck inside the head left the collar opening unsupported and
+  produced the seam/wings. The body's own neck is restored (full height, no taper).
+- **Fix: `turn_body`.** Rigidly pitch the ENTIRE outfit body back ~0.8° about the ground
+  pivot (z=0) so the neck column axis (was ~2 cm forward of the PD2 head-neck axis) lands
+  under the head while the feet stay planted. Rigid => every earlier seam/tuck is
+  preserved and the mesh cannot tear; the body's own neck then rises to meet the head and
+  fills the collar opening. `cap_holes` still closes the top rim (hidden inside the head).
+- **Verified offline with the Miranda head attached:** front head→neck→collar continuous
+  (no shelf), side connected, back hair-over-collar with no tan wings. Orientation breaks
+  0. +1 `turn_body` rigidity/feet-planted regression test.
+- **Build/gates:** zip sha256
+  `a72feabb8e51060719a494d7e439deed9e256e5d1e94a75a9f6b1b14995ef2d4`, 26 entries.
+  pytest 433 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 26 / 0 / 1; pyflakes clean.
+
+## 2026-11-04 — BusinessWoman: match body skin colour to Miranda's head texture
 
 - **Report:** user asked to make the skin textures' colour closer to Miranda's head
   texture colour. The exposed body skin (neck, chest, legs) read too light / pink

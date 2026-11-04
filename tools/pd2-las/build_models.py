@@ -1364,6 +1364,31 @@ def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
     return touched
 
 
+def turn_body(g: Group, deg: float = 0.8, pivot=(0.0, 0.0, 0.0)) -> int:
+    """Rigidly turn (pitch) the whole outfit body so its neck sits under the head.
+
+    The retargeted 3BA neck column stands ~2 cm *forward* of the PD2 head-neck
+    axis. Rather than tapering/hiding the body neck (which left a hard seam at the
+    collar and skin "wings" above the collar back), turn the entire body mesh back
+    about the ground pivot by ``deg`` so the neck column axis lands on the head
+    axis while the feet stay planted (pivot at z=0). A rigid rotation preserves
+    every seam / tuck computed earlier and cannot tear the mesh; the body's own
+    neck then rises to meet the head and fills the collar opening.
+    """
+    t = math.radians(deg)
+    c, s = math.cos(t), math.sin(t)
+    px, py, pz = pivot
+    n = 0
+    for i, (x, y, z) in enumerate(g.verts):
+        y -= py
+        z -= pz
+        g.verts[i] = (x + px, py + y * c - z * s, pz + y * s + z * c)
+        n += 1
+    for i, (nx, ny, nz) in enumerate(g.normals):
+        g.normals[i] = (nx, ny * c - nz * s, ny * s + nz * c)
+    return n
+
+
 def count_hand_verts(g: Group, threshold: float = 0.5) -> int:
     """Vertices whose dominant influence is a hand bone (hand / finger bones).
 

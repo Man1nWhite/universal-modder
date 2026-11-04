@@ -772,3 +772,18 @@ same five, and the audit now checks them by name.
     and pin it with a regression test (base tone within ±4/255 of the head median) so future
     tone tweaks cannot drift the seam. Remember the body skin is a *flat* albedo (geometry
     normals + game lighting supply shading), so matching albedo medians is the correct target.
+
+38. **When a ported neck sits forward of the head, TURN the whole body mesh rather than
+    tapering/hiding the body neck — hiding it leaves the collar unsupported**
+    (2026-11-04, BusinessWoman neck redo; supersedes the taper half of note 35). The
+    recenter+taper+fold approach (note 35) looked fine offline but in-game left a hard
+    head/body seam at the collar, tan skin "wings" above the collar back, and an unsupported
+    standing collar: hiding the body neck inside the head removes the surface that should
+    fill the collar opening. The accepted fix is a RIGID whole-body pitch (`turn_body`,
+    ~0.8° about the ground pivot z=0) that swings the neck column back onto the head-neck
+    axis while keeping the feet planted, with the body's own neck left at full height to
+    rise and meet the head and fill the collar. A rigid rotation preserves all earlier
+    seams/tucks and cannot tear; verify with the reference head attached (front/side/back)
+    that head→neck→collar is continuous and the collar back shows no skin wings. Prefer
+    rigid whole-body alignment over local neck surgery when the offset is a global
+    placement error; reserve local tapers for genuine thickness mismatches.

@@ -71,6 +71,27 @@ def test_trim_neck_ignores_garment_slices():
     assert g.verts[0][2] == 170.0
 
 
+def test_turn_body_is_rigid_and_plants_the_feet():
+    import math
+
+    g = bm.Group(name="g")
+    # a neck vertex high up, a foot vertex at the ground pivot
+    g.verts = [(0.0, 10.0, 160.0), (0.0, 5.0, 0.0)]
+    g.normals = [(0.0, 1.0, 0.0), (0.0, 0.0, 1.0)]
+    before = [tuple(v) for v in g.verts]
+
+    n = bm.turn_body(g, deg=0.8)
+
+    assert n == 2
+    # rigid: distance between the two verts unchanged
+    d0 = math.dist(before[0], before[1])
+    d1 = math.dist(g.verts[0], g.verts[1])
+    assert d1 == pytest.approx(d0, abs=1e-6)
+    # foot at the ground pivot barely moves; neck swings back (-y)
+    assert abs(g.verts[1][1] - before[1][1]) < 0.1
+    assert g.verts[0][1] < before[0][1]
+
+
 def test_count_hand_verts_flags_only_hand_dominated_verts():
     g = bm.Group(name="g")
     g.palette = ["LeftForeArm", "LeftHand", "LeftHandIndex1"]

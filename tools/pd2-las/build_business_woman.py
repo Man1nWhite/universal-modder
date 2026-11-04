@@ -325,19 +325,16 @@ def main(argv=None) -> int:
         n = bm.lower_collar(groups[gname])
         print(f"[{gname}] collar verts lowered: {n}")
 
-    # The 3BA neck column is wide and sits ~2 cm forward of the PD2 head-neck
-    # axis, and its diagonal opening rim centroids ~6 cm forward of it. Recenter
-    # and taper it onto the heister's own neck (measured from the template head)
-    # so the surfaces seam and the leftover stub/cap hide inside the head neck.
+    # The 3BA neck column stands ~2 cm forward of the PD2 head-neck axis. The
+    # earlier taper/hide ("align_neck" + "trim_neck") left a hard seam at the
+    # collar and skin wings above the collar back in-game. Instead TURN the whole
+    # body mesh back about the ground pivot so the neck column lands under the
+    # head while the feet stay planted; the body's own neck then rises to meet the
+    # head and fills the collar opening (no taper, no fold). Rigid => seams/tucks
+    # preserved, cannot tear.
     for gname in ("body", "shadow"):
-        n = bm.align_neck(groups[gname])
-        print(f"[{gname}] neck verts aligned: {n}")
-
-    # No head is shipped (LAS keeps the heister's), so fold the now-thin duplicate
-    # neck stub into the collar; the cap lands inside the heister's own neck.
-    for gname in ("body", "shadow"):
-        n = bm.trim_neck(groups[gname])
-        print(f"[{gname}] neck verts trimmed: {n}")
+        n = bm.turn_body(groups[gname])
+        print(f"[{gname}] body verts turned: {n}")
 
     # The outfit has no head: Skyrim ships heads separately and Melodic's
     # archives carry none. Do two things about it: never keep the *template's*
