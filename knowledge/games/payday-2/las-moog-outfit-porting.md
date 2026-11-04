@@ -759,3 +759,16 @@ same five, and the audit now checks them by name.
     mode — forearm verts that merely blend a little hand weight stay under the threshold.
     Re-verify by decoding the SHIPPED zip (not just the build tree): a stale/graft zip can
     differ from a clean rebuild, so always confirm the packed `.model` has no `mtr_hands`.
+
+37. **Match an outfit's authored body-skin tone to the HE head it pairs with, by sampling
+    that head's diffuse — not a generic reference swatch** (2026-11-04, BusinessWoman skin
+    colour). The exposed body skin (neck / chest / legs) read too light & pink against the
+    heister head at the seam because the flat body albedo base was sampled from a *different*
+    character's face swatch. Fix: decode the paired head's diffuse (e.g.
+    `miranda_head_df.texture`), skin-mask it (warm R>G>B, mid luminance, moderate R−B) and
+    take the per-channel median; set the body bake base tone to exactly that (unity gain) so
+    body and head match under the same game lighting. Verify by decoding the SHIPPED body
+    diffuse and comparing its skin-island median to the head median (should be within ~1/255),
+    and pin it with a regression test (base tone within ±4/255 of the head median) so future
+    tone tweaks cannot drift the seam. Remember the body skin is a *flat* albedo (geometry
+    normals + game lighting supply shading), so matching albedo medians is the correct target.

@@ -12,8 +12,9 @@ geometry plus a colour sample taken from the reference pack:
 * **cavity AO** from the mesh (edge-wise normal divergence, length-weighted):
   armpits, under the breasts, the crotch and the backs of the knees darken;
 * **large-scale mottling** (value noise, three octaves) for skin blotchiness;
-* **tone** sampled from the 2B pack's face swatch — a PD2-pipeline texture whose
-  skin renders correctly in game — reported as statistics, not pixels;
+* **tone** matched to the Miranda head diffuse's skin colour (the heister head this
+  outfit pairs with), reported as statistics, not pixels, so the exposed body skin
+  reads the same colour as the head at the seam;
 * **normal map** from a pore-scale height field, packed the way Diesel reads it
   (`pd2_normal_channels`: X into alpha, Y+ in green).
 
@@ -44,11 +45,16 @@ DEFAULT_RES = 2048
 BODY_SHAPE = "3BA"
 FEET_SHAPE = "feet"
 
-# skin tone statistics measured from the 2B reference pack's face swatch
-# (median 181,155,142 with p10..p90 148..189) — a PD2-pipeline skin that renders
-# correctly in game. Body skin runs a little darker and less saturated.
-REFERENCE_TONE = np.array([181.0, 155.0, 142.0])
-BODY_TONE_GAIN = 1.06
+# Skin tone matched to the heister head this outfit pairs with: the median skin
+# colour of Miranda's head diffuse (`miranda_head_df.texture`, skin-masked median
+# 172,134,106; the face swatch agrees at 172,133,106). Sampling the head the player
+# actually sees keeps the exposed body skin (neck, chest, legs) from reading a
+# different colour than the head at the seam. Earlier builds used the 2B face
+# swatch (181,155,142) which rendered too light / pink against Miranda's tan head.
+REFERENCE_TONE = np.array([172.0, 134.0, 106.0])
+# Unity gain: the body albedo base IS the head skin tone, so the two match under
+# the same game lighting instead of drifting lighter.
+BODY_TONE_GAIN = 1.0
 
 
 # ---------------------------------------------------------------------------

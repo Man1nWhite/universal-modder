@@ -4,7 +4,28 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: fix forearms — the white wrist ring was SHIPPED SOURCE HANDS; enforce the adapter route (NEW)
+## 2026-11-04 — BusinessWoman: match body skin colour to Miranda's head texture (NEW)
+
+- **Report:** user asked to make the skin textures' colour closer to Miranda's head
+  texture colour. The exposed body skin (neck, chest, legs) read too light / pink
+  against the tan heister head at the seam.
+- **Root cause.** The authored body albedo is a flat base = `REFERENCE_TONE *
+  BODY_TONE_GAIN`. It was sampled from the *2B* face swatch (181,155,142 ×1.06 ≈
+  192,164,150) — a different, lighter/pinker skin than the Miranda head the outfit
+  actually pairs with.
+- **Measured.** Skin-masked median of `miranda_head_df.texture` = **(172,134,106)**
+  (the face swatch agrees at 172,133,106). Set `REFERENCE_TONE=(172,134,106)` and
+  `BODY_TONE_GAIN=1.0` so the body albedo base IS the head skin tone.
+- **Verified.** Re-baked the body skin and decoded the SHIPPED zip: `bw_body_df`
+  skin median = (172,133,106) vs Miranda head (172,134,106) — a 1/255 match; a
+  side-by-side swatch is indistinguishable. +1 regression test pinning the bake base
+  tone to the Miranda head skin median (±4/255) so it cannot drift again.
+- **Build/gates:** zip sha256
+  `3b052a0d994711ad60c7d3a3aa860f554d931a52d1dcb425460745f9def4d77c`, 26 entries.
+  pytest 432 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 26 / 0 / 1; pyflakes clean.
+
+## 2026-11-04 — BusinessWoman: fix forearms — the white wrist ring was SHIPPED SOURCE HANDS; enforce the adapter route
 
 - **Report:** user asked "Fix foreams" (forearms). In-game shots show a **white ring at
   the wrist** between the blazer sleeve end and the blue game glove, plus tan hands.
