@@ -742,3 +742,20 @@ same five, and the audit now checks them by name.
     and the cap footprint lies inside the head-neck cross-section. Do not reweight the
     neck to the Neck bone for a *position* fix: the visible neck base sits below the Neck
     pivot, so torso weighting (like the collar) is correct and avoids collar gaps.
+
+36. **A white ring at the sleeve opening / wrist is usually SHIPPED hand geometry, not the
+    shirt cuff — enforce the adapter hand route with a build-time guard**
+    (2026-11-04, BusinessWoman forearms). The "forearm" defect (white wrist ring between
+    blazer sleeve and game glove, plus tan hands) was a regressed pack that carried a
+    `mtr_hands` slice: source/graft hands whose wrist stub reaches below the blazer sleeve
+    end (sleeve z117.7, hands z112) and protrudes as a white ring. Diagnose with a posed
+    per-material highlight render (the wrist ring lit up as its own material, distinct from
+    `mtr_body` forearm and `mtr_jacket2` cuff). The adapter route must ship NO hands: the
+    heister's stock hands / gloves + the vanilla `hnd_forearms` adapter are the only hands
+    visible. Verify the body forearm and shirt cuff both end *inside* the blazer sleeve so
+    the sleeve mouth is cleanly filled by the game adapter once the hands are gone. Guard
+    the route in the builder: count verts with >0.5 summed weight on any `LeftHand*` /
+    `RightHand*` palette bone (`count_hand_verts`) and abort the build if nonzero in adapter
+    mode — forearm verts that merely blend a little hand weight stay under the threshold.
+    Re-verify by decoding the SHIPPED zip (not just the build tree): a stale/graft zip can
+    differ from a clean rebuild, so always confirm the packed `.model` has no `mtr_hands`.

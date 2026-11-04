@@ -1364,6 +1364,27 @@ def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
     return touched
 
 
+def count_hand_verts(g: Group, threshold: float = 0.5) -> int:
+    """Vertices whose dominant influence is a hand bone (hand / finger bones).
+
+    The adapter hand route ships *no* hand geometry: the heister's own stock
+    hands / gloves plus the vanilla forearm adapter show through the sleeves.
+    A build that accidentally carries source or graft hands (whose wrist stub
+    reads as a white ring at the sleeve opening in-game) is caught by counting
+    verts weighted > ``threshold`` to any ``LeftHand*`` / ``RightHand*`` bone.
+    Forearm verts that merely blend a little hand weight stay below threshold.
+    """
+    hand_pal = {i for i, n in enumerate(g.palette)
+                if n.startswith(("LeftHand", "RightHand"))}
+    if not hand_pal:
+        return 0
+    n = 0
+    for infl in g.weights:
+        if sum(w for p, w in infl if p in hand_pal) > threshold:
+            n += 1
+    return n
+
+
 def align_neck(g: Group, mats=("skin",), z_lo: float = 154.0,
                z_seam: float = 158.0, src_y: float = 9.5, dst_y: float = 7.6,
                r_shoulder: float = 6.5, r_seam: float = 2.1,

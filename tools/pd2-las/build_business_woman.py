@@ -279,6 +279,16 @@ def main(argv=None) -> int:
                       (shadow_f0, shadow_f0 + len(hands.faces)),
                       slot="shadow_caster", hand_slot="shadow_caster")
     else:
+        # Guard against ever shipping source/graft hands in adapter mode: their
+        # wrist stub reads as a white ring at the sleeve opening in-game (the
+        # "forearm" defect). The heister's own gloves + forearm adapter must be
+        # the only hands visible.
+        for gname in ("body", "shadow"):
+            nh = bm.count_hand_verts(groups[gname])
+            if nh:
+                raise SystemExit(
+                    f"adapter route but [{gname}] carries {nh} hand-weighted "
+                    f"verts — source/graft hands would poke through the sleeves")
         print("hands: adapter route — no hands shipped; the heister's gloves + "
               "the vanilla hnd_forearms adapter show through the sleeves")
 

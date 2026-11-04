@@ -71,6 +71,24 @@ def test_trim_neck_ignores_garment_slices():
     assert g.verts[0][2] == 170.0
 
 
+def test_count_hand_verts_flags_only_hand_dominated_verts():
+    g = bm.Group(name="g")
+    g.palette = ["LeftForeArm", "LeftHand", "LeftHandIndex1"]
+    # forearm vert blending a little hand weight (below threshold) -> not counted;
+    # two hand/finger-dominated verts -> counted
+    g.weights = [[(0, 0.8), (1, 0.2)], [(1, 0.9), (0, 0.1)], [(2, 1.0)]]
+
+    assert bm.count_hand_verts(g) == 2
+
+
+def test_count_hand_verts_zero_without_hand_bones():
+    g = bm.Group(name="g")
+    g.palette = ["LeftForeArm", "Spine2"]
+    g.weights = [[(0, 1.0)], [(1, 1.0)]]
+
+    assert bm.count_hand_verts(g) == 0
+
+
 def test_align_neck_recenters_and_tapers_the_neck_column():
     g = bm.Group(name="g")
     # a neck-column vertex (front wall), an outer-shoulder vertex, and one below

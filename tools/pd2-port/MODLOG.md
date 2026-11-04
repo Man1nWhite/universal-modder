@@ -4,7 +4,32 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: fix the neck position — recenter + taper onto the PD2 head-neck axis (NEW)
+## 2026-11-04 — BusinessWoman: fix forearms — the white wrist ring was SHIPPED SOURCE HANDS; enforce the adapter route (NEW)
+
+- **Report:** user asked "Fix foreams" (forearms). In-game shots show a **white ring at
+  the wrist** between the blazer sleeve end and the blue game glove, plus tan hands.
+- **Root cause.** A posed per-material render showed the wrist ring / hands are a
+  separate `mtr_hands` slice: the shipped zip had regressed to a **hands-containing
+  model** (source/graft hands, 3278 hand verts, z112–126). Their wrist stub protrudes
+  below the blazer sleeve (sleeve ends z117.7; hands reach z112) and reads as the white
+  forearm/wrist ring. The adapter route is supposed to ship *no* hands so the heister's
+  gloves + the vanilla `hnd_forearms` adapter are the only hands visible.
+- **Fix.** Repack the true adapter route (no `mtr_hands`, no hand-weighted verts) and add
+  a build-time guard: `count_hand_verts` (>0.5 weight on any `LeftHand*`/`RightHand*`
+  bone) must be 0 for body + shadow in adapter mode, else the build aborts. This makes
+  the regression impossible to ship again. The body forearm ends at z119.1 and the shirt
+  cuff at z119.0, both *inside* the blazer sleeve (ends z117.7), so with the hands gone the
+  sleeve mouth is cleanly filled in-game by the forearm adapter + glove; no white ring.
+- **Verified:** posed wrist render now shows an open cuff (filled by the game adapter
+  in-game) with no tan hands and no protruding wrist stub; `mtr_hands` absent from every
+  TPP drawable in the shipped zip. No hand geometry authored (adapter route preserved).
+- **Build/gates:** zip sha256
+  `843d40695b960ac5d9f2807e24bbd121d5d49938a64707831e30eace09f6adb8`, 26 entries (same
+  clean adapter+neck build as the neck cycle). pytest 431 passed / 9 skipped / 1
+  pre-existing Miranda failure; kb PASS 246; publish 26 / 0 / 1; pyflakes clean.
+  +2 `count_hand_verts` regression tests.
+
+## 2026-11-04 — BusinessWoman: fix the neck position — recenter + taper onto the PD2 head-neck axis
 
 - **Report:** user asked "Fix the neck position." With the template head attached
   offline, the outfit showed a hard horizontal skin **shelf** across the front of the
