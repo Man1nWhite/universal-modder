@@ -100,10 +100,12 @@ def render_glove_adapter_lua() -> str:
 
     This PostHook runs after LAS (the pack loads after its dependency) and
     restores the vanilla mechanism: a real ``default_glove_id``, the adapter
-    re-enabled, the exclude entry removed, and ``body_replacement.hands`` kept
-    ``true`` so the spawned gloves (not stock hands) supply the hands. Works in
-    both TPP and FPS — BeardLib retargets the same glove/adapter spawn to the
-    camera unit for the local peer.
+    re-enabled, the exclude entry removed, and ``body_replacement.hands`` set to
+    ``false`` so the heister's own stock hands remain visible as a guaranteed
+    fallback (the glove spawn is not reliable in-game); any glove unit that does
+    spawn sets ``var_hands_replace = 1`` and replaces the stock hands, so there
+    are no double hands. Works in both TPP and FPS — BeardLib retargets the same
+    glove/adapter spawn to the camera unit for the local peer.
 
     Traps it avoids:
 
@@ -142,11 +144,16 @@ Hooks:PostHook(BlackMarketTweakData, "init", "BusinessWoman_GloveAdapter", funct
 \t\tend
 \tend
 
-\t-- Keep stock hands hidden (vanilla body_replacement_standard.hands = true):
-\t-- the gloves spawned above supply the hands. Hiding nothing here would risk
-\t-- double hands; the gloves unit forces var_hands_replace = 1 regardless.
-\tif ps.body_replacement then ps.body_replacement.hands = true end
-\tif ps.third_body_replacement then ps.third_body_replacement.hands = true end
+\t-- Do NOT hide the stock hands. LAS forces default_glove_id = false and the
+\t-- glove spawn above is not reliable in-game; the old approach hid the stock
+\t-- hands (body_replacement.hands = true) and relied solely on the glove unit,
+\t-- so when it failed to appear the suit had NO hands. Keeping hands = false
+\t-- lets the heister's own stock hands show through the sleeves as a guaranteed
+\t-- fallback (nothing is authored). When a glove unit DOES spawn (default or
+\t-- equipped) it sets var_hands_replace = 1 and replaces the stock hands, so
+\t-- there are no double hands.
+\tif ps.body_replacement then ps.body_replacement.hands = false end
+\tif ps.third_body_replacement then ps.third_body_replacement.hands = false end
 end)
 """
 

@@ -82,15 +82,18 @@ def test_compat_hook_restores_a_real_default_glove():
     assert "ps.default_glove_id = false" not in lua
 
 
-def test_compat_hook_clears_the_exclude_list_and_keeps_hands_replaced():
+def test_compat_hook_clears_the_exclude_list_and_keeps_stock_hands_fallback():
     lua = bw_pack.render_glove_adapter_lua()
     assert "player_style_exclude_list" in lua
     assert f'== "{KEY}"' in lua
-    # gloves supply the hands; stock hands stay hidden (vanilla standard)
-    assert "ps.body_replacement.hands = true" in lua
-    assert "ps.third_body_replacement.hands = true" in lua
-    assert "ps.body_replacement.hands = false" not in lua
-    assert "ps.third_body_replacement.hands = false" not in lua
+    # Stock hands stay visible as a guaranteed fallback (nothing is authored);
+    # a glove unit that does spawn replaces them via var_hands_replace = 1, so
+    # there are no double hands. Hiding them (the old approach) left the suit
+    # handless whenever the glove spawn failed in-game.
+    assert "ps.body_replacement.hands = false" in lua
+    assert "ps.third_body_replacement.hands = false" in lua
+    assert "ps.body_replacement.hands = true" not in lua
+    assert "ps.third_body_replacement.hands = true" not in lua
 
 
 def test_main_xml_registers_compat_hook_on_blackmarket_only_for_adapter():

@@ -613,18 +613,23 @@ same five, and the audit now checks them by name.
     Watch the UV convention when locating the band: NIF `v` is from the bottom,
     the atlas image row is from the top (`v_top = 1 − v`).
 
-30. **Skin blotches that only appear in-game are the normal map + gloss, not the
-    diffuse** (2026-11-03, BusinessWoman legs). The offline UV-preview render
-    showed smooth legs, but in-game the thighs/calves had large camo-like
-    patches. The diffuse was fine; the culprits were (a) the **low-frequency fbm
-    normal map** (large blobs that perturb the game's specular lighting) and
-    (b) a **mottle/curvature-driven gloss** (the diffuse alpha is Diesel's
-    specular strength, so varying it varies the shine patch-to-patch). Fix: ship
-    a **neutral/flat normal map** for skin and a **uniform gloss** (constant
-    alpha). Skin at heister distance is a tone, not a normal-mapped surface.
-    Diagnose by comparing the offline diffuse preview (smooth) against the
-    in-game render (blotchy): if they disagree, suspect the normal/specular, not
-    the albedo. (`skin_texture.build_normal` / `build_diffuse`.)
+30. **Skin blotches need ALL THREE of albedo, normal and gloss made uniform —
+    fixing only normal+gloss is not enough** (2026-11-03/04, BusinessWoman legs).
+    In-game the thighs/calves had large camo-like patches. The first fix flattened
+    the normal map and made the gloss uniform, but the blotches PERSISTED, because
+    a third source remained: the **albedo itself**. `build_diffuse` had been
+    layering large-scale structure into the diffuse RGB — a low-frequency fbm
+    mottle, a curvature/occlusion term, and an `_anatomy_shading` pass that painted
+    knee/shin/ankle bands. Each is only a few percent, but they concentrate into
+    broad leg patches that the game's lighting reads as blotches. The offline
+    diffuse preview looked smooth because it did not amplify the subtle variation.
+    **Definitive fix: ship a UNIFORM albedo (flat base tone), a flat normal map and
+    a uniform gloss** — skin at heister distance is a tone, and the geometry
+    normals + game lighting supply all the shading. Diagnose by decoding the actual
+    packed `.texture` and amplifying the deviation from the mean colour (×6): large
+    patches jump out even when per-channel std is only ~6/255. Do NOT trust the
+    un-amplified offline preview, and do not stop at normal/specular — check the
+    albedo too. (`skin_texture.build_diffuse` / `build_normal`.)
 
 31. **A ported garment's overlap armhole opens into a hole under the arms-down
     idle; keep the sleeve shoulder weighted to the torso** (2026-11-03,

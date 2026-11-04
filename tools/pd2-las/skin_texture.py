@@ -292,49 +292,17 @@ def build_diffuse(bake: dict, rng: np.random.Generator,
                   tone: np.ndarray = REFERENCE_TONE) -> np.ndarray:
     res = bake["coverage"].shape[0]
     cov = bake["coverage"]
-    cav = bake["cavity"]
-    nrm = bake["normal"]
-
-    # --- base tone with a gentle large-scale gradient (skin is never flat)
-    mottle = _fbm((res, res), rng, octaves=5, base_cells=10)[..., None]
-    blotch = _fbm((res, res), rng, octaves=4, base_cells=48)[..., None]
+    # --- UNIFORM albedo. Every variation layer that used to live here (large-scale
+    # mottle, curvature occlusion, joint/anatomy bands, floor gradient, palm pink)
+    # painted broad patches into the diffuse RGB. Under the game's lighting those
+    # patches read as camo-like blotches on the legs — and they survived the
+    # flat-normal + uniform-gloss fixes precisely because they are in the albedo,
+    # not the normal/specular. Skin at heister distance is a tone, not a texture:
+    # ship a flat base colour and let the geometry normals + game lighting supply
+    # all of the shading. (Measured: the old albedo had ~6/255 per-channel std
+    # concentrated in large leg patches; a flat map has std 0.)
     base = tone * BODY_TONE_GAIN
-    color = np.ones((res, res, 3), np.float32) * base
-    # subtle mottling: skin blotchiness reads at 2-3 %, not at 8 %
-    color *= (1.0 + 0.020 * (mottle - 0.5)) * (1.0 + 0.012 * (blotch - 0.5))
-    # warmth: red follows the mottling a little more than green/blue
-    color[..., 0] *= 1.0 + 0.03 * (mottle[..., 0] - 0.5)
-    color[..., 2] *= 1.0 - 0.02 * (mottle[..., 0] - 0.5)
-
-    # --- occlusion: concavity darkens, convex ridges pick up a touch of light
-    # only the *transient* part of the curvature field: a whole limb is gently
-    # concave and must not turn into one big smudge, so subtract a blur first
-    local = cav - _box_blur(cav, 24)
-    norm_cav = _robust_scale(local)
-    occlusion = np.clip(1.0 - 0.10 * np.maximum(norm_cav, 0.0), 0.80, 1.0)
-    color *= occlusion[..., None]
-
-    # --- anatomy: the exposed half of this body is legs, so shade the joints
-    anatomy = _anatomy_shading(bake["position"], nrm)
-    color *= anatomy[..., None] if anatomy.ndim == 2 else anatomy
-
-    # --- limbs facing the floor are naturally darker (cheap vertical gradient)
-    up = np.clip(nrm[..., 2] * 0.5 + 0.5, 0.0, 1.0)
-    color *= (0.94 + 0.08 * up)[..., None]
-
-    # --- palms/knuckles and soles are pinker; judged from the mesh itself
-    pink = np.clip(np.maximum(0.0, -nrm[..., 2]) * 0.9, 0.0, 1.0)
-    color[..., 0] *= 1.0 + 0.06 * pink
-    color[..., 1] *= 1.0 - 0.03 * pink
-
-    # Flatten what is left. Any structure in the albedo shows up as a band
-    # wherever two UV islands meet — at heister distance skin is a tone, not a
-    # texture — and blurring preserves the mean, so the tone survives intact.
-    radius = max(4, res // 96)
-    for _ in range(2):
-        color = _box_blur(color, radius)
-
-    color = np.clip(color, 0, 255)
+    color = np.clip(np.ones((res, res, 3), np.float32) * base, 0, 255)
 
     # --- gloss: Diesel reads the diffuse alpha as specular strength. Skin is a
     # soft, low-gloss surface and the gloss must be UNIFORM: the earlier

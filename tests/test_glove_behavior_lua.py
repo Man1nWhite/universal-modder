@@ -279,11 +279,13 @@ function simulate_visual_state(player_style, glove_id, is_local_peer, character_
 end
 
 -- What the player actually sees: hands exist iff a glove unit spawns, or the
--- stock hands survive (stock hands only render when the body isn't replaced
--- AND var_hands_replace is 0 — a replaced body takes its hands with it).
+-- stock hands survive. The body_replacement flags are INDEPENDENT: hands=false
+-- keeps the heister's stock hands visible even when the body mesh itself is
+-- replaced, so the stock hands are a guaranteed fallback when no glove unit
+-- spawns (nothing is authored). A glove unit that does spawn replaces them.
 function visible_hands(state)
     if state.char_gloves then return true end
-    return state.var_hands_replace == 0 and state.var_body_replace == 0
+    return state.var_hands_replace == 0
 end
 """
 
@@ -350,6 +352,26 @@ def test_default_gloves_spawn_real_hands(lua, is_local):
     assert state["char_gloves"] == HEIST_UNIT
     assert state["char_glove_adapter"] == ADAPTER_UNIT
     assert state["var_hands_replace"] == 1  # gloves replace stock hands
+    assert lua.eval(f"visible_hands(simulate_visual_state('{KEY}', 'default', {flag}, 'female_1'))") is True
+
+
+@pytest.mark.parametrize("is_local", [True, False], ids=["fps", "tpp"])
+def test_stock_hands_fallback_when_glove_spawn_fails(lua, is_local):
+    """If the glove unit fails to spawn in-game, the stock hands still show.
+
+    The compat hook keeps body_replacement.hands = false, so even when the
+    default glove resolves to nothing (the LAS fresh-table bug, or a glove spawn
+    that silently fails in-game — the twice-shipped failure) the heister's own
+    stock hands are not hidden and supply the hands. Nothing is authored.
+    """
+    _setup(lua, with_compat_hook=True)
+    flag = str(is_local).lower()
+    # Force the glove to resolve to nothing: exactly the in-game failure mode.
+    lua.execute(f"bm.player_styles['{KEY}'].default_glove_id = false")
+    state = lua.eval(f"simulate_visual_state('{KEY}', 'default', {flag}, 'female_1')")
+    assert state["gloves_unit_name"] is False
+    assert state["char_gloves"] is None
+    assert state["var_hands_replace"] == 0  # stock hands NOT hidden
     assert lua.eval(f"visible_hands(simulate_visual_state('{KEY}', 'default', {flag}, 'female_1'))") is True
 
 

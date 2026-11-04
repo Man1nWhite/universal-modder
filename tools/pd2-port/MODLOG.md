@@ -4,7 +4,40 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: rebuild fixes stale body textures + culled pose-sim verification (NEW)
+## 2026-11-04 — BusinessWoman: uniform albedo (real blotch fix) + stop authoring hands (NEW)
+
+- **Report:** user sent 6 in-game screenshots — leg blotches STILL present, grafted
+  hands look pale/claw-like, white patches at the shoulders — and said **"Don't try
+  to author hands."**
+- **Leg blotches → the albedo was the real source.** The prior flat-normal +
+  uniform-gloss fix was necessary but not sufficient: `build_diffuse` still layered
+  a low-frequency fbm mottle, a curvature/occlusion term and an `_anatomy_shading`
+  pass (knee/shin/ankle bands) into the diffuse RGB. Decoding the shipped
+  `bw_body_df.texture` and amplifying deviation ×6 showed broad leg patches (std
+  ~6/255). **Fix: uniform albedo** — removed every variation layer, ship a flat base
+  tone; geometry normals + game lighting do the shading. Verified: decoded shipped
+  texture now has max deviation 2.7/255 (DXT5 block noise only), gloss std 0. The
+  offline idle render shows smooth, even legs. Knowledge note 30 corrected.
+- **Hands → adapter route, nothing authored.** Switched `--hands` default from
+  `graft` to `adapter`: no PD2 hands are baked into the mesh. To avoid the old
+  adapter's no-hands failure, the compat hook now keeps `body_replacement.hands =
+  false` so the heister's **stock hands show as a guaranteed fallback**; any glove
+  that spawns sets `var_hands_replace = 1` and replaces them (no double hands).
+  Corrected the LuaJIT harness (stock hands survive a replaced body — the
+  `body_replacement` flags are independent) and added a glove-spawn-failure fallback
+  test. `test_glove_behavior_lua` 10/10, `test_glove_adapter` updated.
+- **White shoulder patches → skin through the armhole, not the bustier.** Verified
+  `mtr_jacket2` has ZERO vertices in the upper-arm band (z>140, |x|>20), so the white
+  patches are the arm/shoulder skin showing through the overlap armhole, rendered
+  pale by the old blotchy albedo. The uniform albedo makes that skin a consistent
+  tone matching the legs; the 45 % shoulder stay keeps the hole small.
+- **Build/gates:** adapter pack, zip sha256
+  `bd3622d884f31ddc4cda8f18c9ccaa70799c1af9241f3a4fa72f08b943a6b4a2`, 26 entries (no
+  hand texture; no `mtr_hands` referenced). pytest 421 passed / 9 skipped / 1
+  pre-existing Miranda failure; kb PASS 246; publish 26 files / 0 failures /
+  1 no-README warning.
+
+## 2026-11-04 — BusinessWoman: rebuild fixes stale body textures + culled pose-sim verification
 
 - **Headline — the shipped zip was STALE and still had the leg blotches.** The
   `342a3bb` commit updated `skin_texture.py` to a flat normal + uniform gloss, but
