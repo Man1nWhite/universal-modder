@@ -19,8 +19,6 @@ dist/*
 !dist/lawson_las.zip.sha256
 !dist/Miranda_LAS.zip
 !dist/Miranda_LAS.zip.sha256
-!dist/BusinessWoman_LAS.zip
-!dist/BusinessWoman_LAS.zip.sha256
 !dist/Miranda_L4D2_over_Joy.zip
 !dist/Miranda_L4D2_over_Joy.zip.sha256
 !dist/Miranda_Romance_over_Joy.zip
