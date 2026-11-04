@@ -348,7 +348,7 @@ def main(argv=None) -> int:
     for gname in ("body", "shadow"):
         rep = bm.slim_neck(groups[gname])
         print(f"[{gname}] neck slimmed: {rep['moved']} verts, "
-              f"peak {rep['peak']:.1f} cm")
+              f"peak {rep['peak']:.1f} cm, top lowered {rep['dropped']:.1f} cm")
 
     # The retarget gets the body right but drags the garment's neckline out and
     # down over the trapezius (the blazer's neck opening flares from the neck

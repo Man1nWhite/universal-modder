@@ -1908,6 +1908,7 @@ def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
             return None
         return float(np.interp(z, [p[0] for p in prof], [p[1] for p in prof]))
 
+    z_top = prof[-1][0] if prof else None
     touched = 0
     for mat, base_v, _bi, _tris, nv in g.slices:
         if mat != "necklace":
@@ -1919,12 +1920,16 @@ def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
             dd = np.hypot(x - ax, y - ay)
             if dd < 1e-6:
                 continue
+            zz = z
+            if z_top is not None and zz > z_top - 0.3:
+                # the loop's top is past the neck's own top: fold it down inside
+                zz = z_top - 0.3
             target = dd * scale
-            nr = neck_r(z)
+            nr = neck_r(zz)
             if nr is not None:
                 target = min(target, nr * 0.75)
             k = target / dd
-            g.verts[i] = (ax + (x - ax) * k, ay + (y - ay) * k, z)
+            g.verts[i] = (ax + (x - ax) * k, ay + (y - ay) * k, zz)
             touched += 1
     return touched
 
@@ -1932,7 +1937,8 @@ def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
 def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
               z_lo: float = 157.0, z_full: float = 161.0,
               r_full: float = 8.0, r_stop: float = 14.0,
-              sx: float = 0.55, sy: float = 0.70) -> dict:
+              sx: float = 0.55, sy: float = 0.70,
+              z_target: float | None = 160.8, z_ramp: float = 2.0) -> dict:
     """Slim the neck to the PD2 reference, above the trapezius.
 
     The 3BA body is authored for Skyrim, where the *head* mesh supplied most of
@@ -1949,10 +1955,19 @@ def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
     trapezius and the shoulder line are untouched, ramping in with height
     (``z_lo`` -> ``z_full``) so there is no step at the shoulder.
 
-    Heights are deliberately left alone: the body's neck has to keep reaching
-    the PD2 head joint, and a short neck would open a gap under the jaw. The
-    garment is re-dressed afterwards (``redress_from_source``), so the collar
-    and the lapels come in onto the slimmer neck with it.
+    The height is cut back as well (``z_target``): the collar's opening is *not*
+    sized for a neck. In the Skyrim source the body ends at 157 cm and the collar
+    carries on 2 cm higher, with the **head mesh** filling the opening above it --
+    so above ~158 cm the garments never had to fit around anything. Measured on
+    the port, the shirt's opening at z 161 sits at 1.4-3.8 cm from the neck axis
+    while the neck is at 3.1-4.3: the neck *cannot* fit, which is why it renders
+    through the collar however the collar is moved. Ending the neck where the
+    source does relative to the collar (just inside its opening, ~160.8) is the
+    faithful fix, and it matches the PD2 reference body, whose neck ends at
+    163.2 with the head covering from there.
+
+    The garment is re-dressed afterwards (``redress_from_source``), so the collar
+    and the lapels come in onto the slimmer, shorter neck with it.
     """
     import math
 
@@ -1982,7 +1997,30 @@ def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
             moved = max(moved, math.hypot(nx - x, ny - y))
             g.verts[i] = (nx, ny, z)
             touched += 1
-    return {"moved": touched, "peak": moved}
+
+    drop = 0.0
+    if z_target is not None:
+        tops = [g.verts[i][2] for mat, base_v, _bi, _t, nv in g.slices
+                if mat in mats for i in range(base_v, base_v + nv)]
+        top = max(tops) if tops else None
+        if top is not None and top > z_target:
+            z_ref = min(z_lo + z_ramp, z_target - 0.5)
+            kz = (z_target - z_ref) / (top - z_ref) if top > z_ref else 1.0
+            for mat, base_v, _bi, _t, nv in g.slices:
+                if mat not in mats:
+                    continue
+                for i in range(base_v, base_v + nv):
+                    x, y, z = g.verts[i]
+                    if z <= z_ref or math.hypot(x - ax, y - ay) > r_stop:
+                        continue
+                    # smooth handover over z_ramp so the shoulder line is a
+                    # continuous surface, then a straight compression above it
+                    t = smooth((z - z_ref) / max(z_ramp, 1e-6)) if z_ramp else 1.0
+                    z_new = z + (z_ref + (z - z_ref) * kz - z) * t
+                    drop = max(drop, z - z_new)
+                    g.verts[i] = (x, y, z_new)
+                    touched += 1
+    return {"moved": touched, "peak": moved, "dropped": drop}
 
 
 
