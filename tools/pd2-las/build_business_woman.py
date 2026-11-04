@@ -313,18 +313,37 @@ def main(argv=None) -> int:
         n = bm.tuck_shirt_sleeves(groups[gname])
         print(f"[{gname}] shirt sleeve verts tucked: {n}")
 
-    # The shirt's wrist cuff (jacket2) sits at the sleeve opening and shows as a
-    # white ring between the blazer cuff and the game glove. Retract it up the
-    # forearm into the sleeve (no hand geometry authored).
+    # The garment sheets carry *duplicated* seam rows: BodySlide exports the
+    # vertices on each UV island's edge twice, coincident, and the retarget gives
+    # each copy its own influence list. Where the two copies disagree (measured:
+    # one copy 100 % `LeftArm`, the other 41 % `Spine2` / 37 % `LeftShoulder` /
+    # 21 % `LeftArm`) the seam splits open the moment the arm leaves the bind
+    # pose, which is the torn shoulder / upper-arm hole in the shipped pack.
+    # Averaging the two copies' weights closes it at every pose.
     for gname in ("body", "shadow"):
-        n = bm.tuck_shirt_cuffs(groups[gname])
-        print(f"[{gname}] shirt cuff verts retracted: {n}")
+        rep = bm.weld_open_seams(groups[gname])
+        print(f"[{gname}] open seams fused: {rep['pairs']} pairs {rep['materials']}")
 
-    # Lengthen the blazer sleeve to overlap the game glove / forearm adapter so the
-    # wrist junction closes (no gap, no exposed shirt cuff).
+    # The shirt's shoulder is 100 % arm-weighted while the blazer keeps a mixed
+    # shoulder-stay band, so the shirt swings out from under the jacket and
+    # stands up over the shoulder line (the white "wings" in game). Ride the
+    # shirt on the blazer's weights across the shoulder band.
     for gname in ("body", "shadow"):
-        n = bm.extend_blazer_sleeves(groups[gname])
-        print(f"[{gname}] blazer sleeve verts extended: {n}")
+        n = bm.follow_layer_weights(groups[gname])
+        print(f"[{gname}] shirt shoulder verts follow the blazer: {n}")
+        n = bm.tuck_shirt_collar(groups[gname])
+        print(f"[{gname}] shirt collar verts drawn inside the blazer: {n}")
+
+    # Every arm layer stops short of the PD2 hand joint (blazer 6.3 cm, shirt
+    # cuff 7.5 cm, bare arm 8 cm) because in Skyrim the wearer's own hands used
+    # to cover the junction. PD2 spawns the heister's glove *at* the joint, so the
+    # glove floats with a gap of empty space in front of the sleeve. Stretch the
+    # last 13 cm of each layer down the forearm until the shortest reaches 2.5 cm
+    # past the joint, i.e. inside the glove's cuff.
+    for gname in ("body", "shadow"):
+        rep = bm.extend_sleeves_to_wrist(groups[gname])
+        print(f"[{gname}] sleeves reach the glove: {rep['moved']} verts "
+              f"{rep['materials']}")
 
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):

@@ -1639,6 +1639,276 @@ def tuck_shirt_sleeves(g: Group, amount: float = 1.6, near: float = 3.5,
     return touched
 
 
+def weld_open_seams(g: Group, tol: float = 0.02, max_pairs: int = 4000) -> dict:
+    """Fuse the duplicated vertices along a garment's open seams.
+
+    BodySlide (and the 3BA conversions in ``4.zip``) exports every garment as a
+    *sheet*: where a UV island ends, the edge vertices are duplicated exactly, so
+    the seam is two coincident rows of vertices that share no edge. In Skyrim
+    that is invisible because both rows are skinned to the same bone. After the
+    retarget each duplicate keeps its *own* influence list, so as soon as the arm
+    leaves the bind pose the two rows are driven by different bones and pull
+    apart -- the sleeve seam of the blazer opens a 1-3 cm slit on the upper arm
+    and the shoulder, which in game reads as torn fabric with the white shirt and
+    bare skin showing through (the "armhole holes" in the shipped pack).
+
+    This pass finds those coincident open-edge pairs *within one material* and
+    averages their influence lists, normals and positions. Nothing is deleted and
+    no UV is touched, so the texture split survives; the two rows simply deform
+    identically from now on and the seam cannot open at any pose. Pairs further
+    apart than ``tol`` cm are left alone (those are real openings: the front
+    placket, the collar, the sleeve mouth). The duplicated rows are exactly
+    coincident in the exported sheet, so the default 0.2 mm only ever pairs a
+    vertex with its own duplicate.
+
+    Returns a small report so the build log shows what was fused.
+    """
+    import numpy as np
+
+    slice_of = [-1] * len(g.verts)
+    for si, (_mat, base_v, _bi, _tris, nverts) in enumerate(g.slices):
+        for i in range(base_v, base_v + nverts):
+            slice_of[i] = si
+
+    edges: dict[tuple[int, int], int] = {}
+    for a, b, c in g.faces:
+        for u, v in ((a, b), (b, c), (c, a)):
+            k = (u, v) if u < v else (v, u)
+            edges[k] = edges.get(k, 0) + 1
+    border = [k for k, n in edges.items() if n == 1]
+    if not border:
+        return {"pairs": 0, "materials": {}, "tol": tol}
+
+    verts = np.asarray(border, dtype=np.int64).ravel()
+    border_set = np.unique(verts)
+    pts = np.array([g.verts[i] for i in border_set], dtype=np.float64)
+
+    # hash grid: cell 0.5 cm, look at the 27 neighbouring cells
+    cell = 0.5
+    grid: dict[tuple[int, int, int], list[int]] = {}
+    for k, p in enumerate(pts):
+        key = (int(np.floor(p[0] / cell)), int(np.floor(p[1] / cell)),
+               int(np.floor(p[2] / cell)))
+        grid.setdefault(key, []).append(k)
+
+    def neighbours(k: int) -> list[int]:
+        p = pts[k]
+        base = (int(np.floor(p[0] / cell)), int(np.floor(p[1] / cell)),
+                int(np.floor(p[2] / cell)))
+        out = []
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for dz in (-1, 0, 1):
+                    out.extend(grid.get((base[0] + dx, base[1] + dy, base[2] + dz), ()))
+        return out
+
+    used: set[int] = set()
+    pairs: list[tuple[int, int]] = []
+    for k in range(len(border_set)):
+        if k in used:
+            continue
+        i = int(border_set[k])
+        best = None
+        best_d = tol
+        for m in neighbours(k):
+            if m == k or m in used:
+                continue
+            j = int(border_set[m])
+            if slice_of[j] != slice_of[i]:
+                continue
+            d = float(np.linalg.norm(pts[m] - pts[k]))
+            if d <= best_d:
+                best, best_d = m, d
+        if best is None:
+            continue
+        used.add(k)
+        used.add(best)
+        pairs.append((i, int(border_set[best])))
+        if len(pairs) >= max_pairs:
+            break
+
+    per_mat: dict[str, int] = {}
+    for i, j in pairs:
+        wi = {p: w for p, w in g.weights[i]}
+        wj = {p: w for p, w in g.weights[j]}
+        merged = {}
+        for p in set(wi) | set(wj):
+            merged[p] = 0.5 * (wi.get(p, 0.0) + wj.get(p, 0.0))
+        total = sum(merged.values()) or 1.0
+        top = sorted(merged.items(), key=lambda t: -t[1])[:3]
+        total = sum(w for _, w in top) or 1.0
+        g.weights[i] = [(p, w / total) for p, w in top]
+        g.weights[j] = list(g.weights[i])
+        nx = 0.5 * (np.asarray(g.normals[i]) + np.asarray(g.normals[j]))
+        ln = float(np.linalg.norm(nx)) or 1.0
+        nx = nx / ln
+        g.normals[i] = tuple(float(v) for v in nx)
+        g.normals[j] = g.normals[i]
+        px = 0.5 * (np.asarray(g.verts[i]) + np.asarray(g.verts[j]))
+        g.verts[i] = tuple(float(v) for v in px)
+        g.verts[j] = g.verts[i]
+        mat = g.slices[slice_of[i]][0]
+        per_mat[mat] = per_mat.get(mat, 0) + 1
+    per_mat = dict(sorted(per_mat.items(), key=lambda t: -t[1]))
+    return {"pairs": len(pairs), "materials": per_mat, "tol": tol}
+
+
+# PD2 bind-pose arm joints (cm), taken from the 2B template: (wrist, elbow).
+ARM_JOINTS = {
+    -1: ((-45.99, 18.70, 124.47), (-39.50, -0.99, 133.29)),
+    1: ((45.99, 18.70, 124.47), (39.50, -0.99, 133.29)),
+}
+
+
+def extend_sleeves_to_wrist(g: Group, mats: dict | None = None,
+                            t_knee: float = 13.0, perp_max: float = 7.5) -> dict:
+    """Stretch the garment cuffs down the forearm until they overlap the glove.
+
+    The 3BA source is authored to be worn *with hands*: every layer on the arm
+    ends short of the wrist so the wearer's own hand mesh covers the junction.
+    Measured on the retargeted model, the blazer sleeve mouth stops 6.3 cm above
+    the PD2 hand joint, the shirt cuff 7.5 cm and the bare arm 8 cm. PD2 spawns
+    the heister's glove *at* the hand joint, so in game the sleeve, the arm and
+    the glove never meet: the glove floats with a 5-6 cm gap of empty space
+    between it and the sleeve (the shipped pack's most obvious defect).
+
+    This pass redistributes the last ``t_knee`` cm of the arm along the forearm
+    axis (a pure rank-1 stretch, so the cross-section -- and therefore the cuff
+    radius -- is untouched) until the shortest layer reaches ``target`` cm past
+    the hand joint. The sleeve mouth then sits *inside* the glove cuff and the
+    glove appears to come out of the sleeve. Weights, UVs and topology are
+    unchanged, so the pose, the seam weld and the texture all survive.
+
+    ``t`` is measured from the PD2 hand joint towards the elbow, so a negative
+    ``target`` ends the layer past the wrist. Each layer reaches a different
+    point on purpose: the blazer cuff 2.5 cm past the joint (deep inside the
+    glove), the bare arm 2.2 cm past it (so it fills the sleeve mouth instead of
+    leaving a dark ring, yet stays 3 mm behind the cuff), and the white shirt
+    cuff 1 cm *short* of the joint, so it stays hidden under the blazer instead
+    of ringing the glove.
+    """
+    targets = {"jacket": -2.5, "skin": -2.2, "jacket2": 1.0}
+    if mats is not None:
+        targets.update(mats)
+    import numpy as np
+
+    report = {"moved": 0, "materials": {}, "reaches": {}}
+    for side in (-1, 1):
+        wrist, elbow = (np.array(v, dtype=np.float64) for v in ARM_JOINTS[side])
+        d = elbow - wrist
+        d /= np.linalg.norm(d)
+        for mat, base_v, _bi, _tris, nverts in g.slices:
+            if mat not in targets:
+                continue
+            target = targets[mat]
+            idx = []
+            ts = []
+            for i in range(base_v, base_v + nverts):
+                p = np.asarray(g.verts[i], dtype=np.float64)
+                if side * p[0] <= 0.0:
+                    continue
+                rel = p - wrist
+                t = float(rel @ d)
+                if not (-8.0 <= t <= t_knee):
+                    continue
+                if float(np.linalg.norm(rel - t * d)) > perp_max:
+                    continue
+                idx.append(i)
+                ts.append(t)
+            if len(idx) < 8:
+                continue
+            t_min = min(ts)
+            if t_min <= target:
+                continue
+            k = (t_knee - target) / max(t_knee - t_min, 1e-6)
+            for i, t in zip(idx, ts):
+                p = np.asarray(g.verts[i], dtype=np.float64)
+                rel = p - wrist
+                radial = rel - float(rel @ d) * d
+                t2 = t_knee - (t_knee - t) * k
+                q = wrist + t2 * d + radial
+                g.verts[i] = (float(q[0]), float(q[1]), float(q[2]))
+                report["moved"] += 1
+            key = f"{mat}.{'L' if side < 0 else 'R'}"
+            report["materials"][key] = len(idx)
+            report["reaches"][key] = (round(t_min, 2), round(target, 2))
+    return report
+
+
+def tuck_shirt_collar(g: Group, mats=("jacket2",), z_lo: float = 150.0,
+                      x_factor: float = 0.93, z_factor: float = 0.88) -> int:
+    """Draw the white shirt's standing collar inside the blazer's collar.
+
+    The lace top has a wide, tall stand collar (x up to +-11 cm, top at 162 cm)
+    that the blazer's collar is supposed to cover. After the retarget the two
+    collars are the same height and the shirt's wing tips reach past the
+    blazer's neckline, so in game their tips flare out over the shoulder as
+    white "flames". Nipping the shirt collar inward (``x_factor``) and down
+    (``z_factor``, applied only above ``z_lo``) draws those tips back under the
+    blazer without touching the blazer itself; both maps are continuous at
+    ``z_lo`` so no tear can open. The factors are deliberately mild -- the white
+    V down the chest is the outfit's design and must stay as wide as it is.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z < z_lo:
+                continue
+            g.verts[i] = (x * x_factor, y, z_lo + (z - z_lo) * z_factor)
+            touched += 1
+    return touched
+
+
+def follow_layer_weights(g: Group, src_mat: str = "jacket",
+                         dst_mats=("jacket2",), z_lo: float = 136.0,
+                         z_hi: float = 158.0, max_dist: float = 9.0,
+                         x_max: float = 30.0) -> int:
+    """Make an under-layer ride the outer layer over the shoulder.
+
+    The white shirt (``jacket2``) is 100 % arm-weighted all the way across the
+    shoulder, while the blazer keeps a *shoulder-stay band* whose weights blend
+    ``Spine2`` / ``Shoulder`` / ``Arm``. As soon as the arm adducts, the shirt's
+    shoulder swings out from under the blazer and stands up over it -- the white
+    "wings" that flare past the jacket's shoulder line in game (they are absent
+    in the bind-pose render, which is why they survived earlier reviews).
+
+    Copying the nearest blazer vertex's influence list onto the shirt in the
+    shoulder band makes both layers deform identically there, so the shirt
+    cannot emerge at any pose. Positions, UVs and topology are untouched.
+    """
+    import numpy as np
+
+    src = []
+    for mat, base_v, _bi, _tris, nverts in g.slices:
+        if mat != src_mat:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z_lo <= z <= z_hi and abs(x) <= x_max:
+                src.append((np.array([x, y, z]), list(g.weights[i])))
+    if not src:
+        return 0
+    pts = np.array([p for p, _ in src])
+    touched = 0
+    for mat, base_v, _bi, _tris, nverts in g.slices:
+        if mat not in dst_mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if not (z_lo <= z <= z_hi and abs(x) <= x_max):
+                continue
+            p = np.array([x, y, z])
+            j = int(np.argmin(np.linalg.norm(pts - p, axis=1)))
+            if float(np.linalg.norm(pts[j] - p)) > max_dist:
+                continue
+            g.weights[i] = [(pi, w) for pi, w in src[j][1]]
+            touched += 1
+    return touched
+
+
 def extend_blazer_sleeves(g: Group, amount: float = 3.0, z_hi: float = 126.0,
                           x_min: float = 30.0) -> int:
     """Lengthen the blazer sleeve toward the wrist so it overlaps the game glove.

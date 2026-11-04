@@ -90,14 +90,20 @@ Build is ~35 s (model) / ~80 s (`--pack`). **Commit + push early and often; NO P
 
 `transfer_group` (retarget) → hands adapter guard → `restore_bust`(1.32) →
 `tuck_underarm_skin`(0.7, z125–154) → `tuck_shirt_sleeves`(1.6) →
-`tuck_shirt_cuffs`(9 up / 2.5 inward, z122–130) → `extend_blazer_sleeves`(~3) →
-`lower_collar`(z158, k0.35) → `turn_body`(0.8°) → `cap_holes`(min_z155, skin-only,
-max_span14) → `assemble_model(drop g_head/g_head_lod1)` → textures (`skin_texture`) →
-`bw_pack.write_pack` → zip. Body **and** shadow get every geometry pass.
+`weld_open_seams`(0.2 mm) → `follow_layer_weights`(z136–158) →
+`tuck_shirt_collar`(z150, x0.93, z0.88) → `extend_sleeves_to_wrist`(jacket −2.5 /
+skin −2.2 / shirt +1.0, t_knee 13) → `lower_collar`(z158, k0.35) → `turn_body`(0.8°) →
+`cap_holes`(min_z155, skin-only, max_span14) → `assemble_model(drop g_head/g_head_lod1)`
+→ textures (`skin_texture`) → `bw_pack.write_pack` → zip. Body **and** shadow get every
+geometry pass. `extend_blazer_sleeves` and `tuck_shirt_cuffs` are **no longer called**
+(superseded by `extend_sleeves_to_wrist`; see `FIXES-2026-11-04.md`).
 
 Key helpers live in `tools/pd2-las/build_models.py` (grep by name; line numbers shift):
-`turn_body`, `extend_blazer_sleeves`, `tuck_shirt_cuffs`, `tuck_shirt_sleeves`,
-`tuck_underarm_skin`, `lower_collar`, `cap_holes`, `count_hand_verts`, `restore_bust`.
+`turn_body`, `weld_open_seams`, `follow_layer_weights`, `tuck_shirt_collar`,
+`extend_sleeves_to_wrist`, `tuck_shirt_sleeves`, `tuck_underarm_skin`, `lower_collar`,
+`cap_holes`, `count_hand_verts`, `restore_bust`. Verification renders:
+`tools/pd2-las/pose_zoom.py` (posed shoulder close-up) and `tools/pd2-las/glove_check.py`
+(sleeve/glove junction with a glove proxy on the hand bone).
 **`align_neck` and `trim_neck` still exist but are UNUSED** (the taper/hide neck was
 rejected in-game; see note 38). Do not wire them back in.
 
@@ -119,11 +125,16 @@ Skin tone: `tools/pd2-las/skin_texture.py` `REFERENCE_TONE=(172,134,106)`,
 
 ## 5. Known open issues / accepted residue
 
-- **Armhole overlap slivers:** two thin skin slivers at the genuine blazer overlap gap on
-  the upper arm. Closing them needs the seam weld the user **rejected** (it spikes the
-  sleeve). Leave as-is.
-- **Wrist hairline sliver:** a hairline of shirt cuff can remain at the sleeve mouth after
-  the cuff tuck + sleeve extension; much reduced, acceptable.
+- **Armhole tears: FIXED (2026-11-04).** The beige patches were *not* an overlap gap — the
+  blazer's seam is two exactly coincident vertex rows with different weights, so it split
+  at any pose. `weld_open_seams` averages the rows (≠ the rejected overlap-edge weld, which
+  merged two different surfaces). See `FIXES-2026-11-04.md`.
+- **Sleeve/glove gap: FIXED (2026-11-04).** `extend_sleeves_to_wrist` stretches each arm
+  layer until it reaches the PD2 hand joint (blazer 2.5 cm past it). Target numbers are
+  `targets` inside that function if the in-game glove needs more/less.
+- **Shirt collar "wings": mitigated (2026-11-04)** — weights follow the blazer + a mild
+  collar nip. If they still flare in game, raise the *blazer's* collar, do not shrink the
+  shirt further.
 - **In-game head reads lighter than body albedo** under some scene lighting. The albedo
   match is correct offline; if the user complains, tune body tone to compensate for the
   *in-game* head appearance, not the offline median.
