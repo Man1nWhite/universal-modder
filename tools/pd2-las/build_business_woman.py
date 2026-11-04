@@ -51,6 +51,8 @@ NECK_Z_CM = 155.0
 #: so the offline previews stay green while the game is broken).
 FPS_MATERIALS = ("mtr_body", "mtr_hands", "mtr_jacket", "mtr_jacket2")
 UNIT_BASE = "units/businesswoman/skins/businesswoman"
+#: How much of the standing collar survives `lower_collar` (see there).
+COLLAR_K = 0.55
 
 
 def model_materials(report: dict) -> list[str]:
@@ -339,6 +341,15 @@ def main(argv=None) -> int:
         n = bm.tuck_shirt_collar(groups[gname])
         print(f"[{gname}] shirt collar verts drawn inside the blazer: {n}")
 
+    # The retarget's axial spine stretch also lifts and widens the 3BA neck stub
+    # (18.8 cm wide at 160 cm; the PD2 reference body is 9.4 cm there), so the
+    # neck reads as a stovepipe rising out of the collar. Slim the column before
+    # the re-dress, which then brings the collar in onto it.
+    for gname in ("body", "shadow"):
+        rep = bm.slim_neck(groups[gname])
+        print(f"[{gname}] neck slimmed: {rep['moved']} verts, "
+              f"peak {rep['peak']:.1f} cm")
+
     # The retarget gets the body right but drags the garment's neckline out and
     # down over the trapezius (the blazer's neck opening flares from the neck
     # out to the sleeve), so the shoulders come out bare in game. Both models
@@ -347,7 +358,8 @@ def main(argv=None) -> int:
     # shoulder pad come back without touching the body. Must run before the
     # sleeve extension (which then reaches for the glove) and before turn_body.
     for gname in ("body", "shadow"):
-        rep = bm.redress_from_source(groups[gname], model)
+        rep = bm.redress_from_source(groups[gname], model,
+                                     mats=("jacket", "jacket2", "necklace"))
         print(f"[{gname}] garment re-dressed from the source: {rep['moved']} verts "
               f"(peak {rep['peak']:.1f} cm, body scale {rep['scale']:.3f})")
 
@@ -362,9 +374,19 @@ def main(argv=None) -> int:
         print(f"[{gname}] sleeves reach the glove: {rep['moved']} verts "
               f"{rep['materials']} (was -> target: {rep['reaches']})")
 
-    # The collar stands up past the head bone and swallows the jaw in profile.
+    # The chain loop rides over the collar's top edge on the PD2 head (it sits
+    # lower than Skyrim's); sink it inside the neck so only the pendant shows.
     for gname in ("body", "shadow"):
-        n = bm.lower_collar(groups[gname])
+        n = bm.tuck_necklace_chain(groups[gname])
+        print(f"[{gname}] necklace chain tucked inside the neck: {n} verts")
+
+    # The collar must clear the jaw but still stand on the neck: the source's
+    # stand collar tops out ~2 cm above the body's neck top, and the re-dress
+    # restores that, so keep most of the standing height (the earlier k=0.35
+    # flattened it onto the shoulders and left the neck bare).
+    for gname in ("body", "shadow"):
+        n = bm.lower_collar(groups[gname], mats=("jacket", "jacket2"),
+                            k=COLLAR_K)
         print(f"[{gname}] collar verts lowered: {n}")
 
     # The 3BA neck column stands ~2 cm forward of the PD2 head-neck axis. The

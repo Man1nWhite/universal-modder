@@ -1862,25 +1862,57 @@ def tuck_shirt_collar(g: Group, mats=("jacket2",), z_lo: float = 150.0,
     return touched
 
 
-def give_shoulder_room(g: Group, mats=("jacket",), z_lo: float = 136.0,
-                       z_hi: float = 158.0, x_min: float = 10.0,
-                       x_full: float = 16.0, amount: float = 1.0,
-                       z_fade: float = 4.0) -> int:
-    """Push the blazer's shoulder band outwards, restoring the source clearance.
+def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
+                        axis=(0.0, 7.0)) -> int:
+    """Draw the necklace's chain loop inside the neck, where the collar hides it.
 
-    In the Skyrim source the blazer's shoulder line sits **1.2 cm above** the
-    3BA body's shoulder at every lateral band (measured: 110.41 vs 109.57,
-    103.44 vs 102.54, 92.26 vs 91.44 units). After the retarget only 0.2-0.5 cm
-    of that survives -- the body and the blazer are skinned to the same bones
-    but with different weights, so the axial spine stretch moved them by
-    slightly different amounts -- and the body's shoulder ends up *outside* the
-    jacket. Offline measurement (`build/poke_through.py`): 1724 skin vertices
-    outside the blazer, 687 of them in the z 140-150 shoulder band. In game
-    that is the bare shoulder plus the beige patches on the upper arm.
+    The chain is a closed loop that passes *around* the neck. On the PD2 head the
+    collar sits lower than the Skyrim one, so the loop rides over the collar's
+    top edge and reads as a gold hoop standing on the neck. Pulling the loop
+    inward (toward the neck axis, above ``z_min``) sinks it inside the neck
+    column, so only the pendant and the chain in the open V remain visible --
+    which is what the outfit looks like on the source body.
+    """
+    import math
 
-    Pushing the garment out along its own normals in the shoulder band gives the
-    blazer its clearance back (a tailor's shoulder pad, 1 cm thick) instead of
-    shaving the body down, which would flatten the deltoid.
+    ax, ay = axis
+    touched = 0
+    for mat, base_v, _bi, _tris, nverts in g.slices:
+        if mat != "necklace":
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z <= z_min:
+                continue
+            g.verts[i] = (ax + (x - ax) * scale, ay + (y - ay) * scale, z)
+            touched += 1
+    return touched
+
+
+def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
+              z_lo: float = 157.0, z_full: float = 161.0,
+              r_full: float = 8.0, r_stop: float = 14.0,
+              sx: float = 0.55, sy: float = 0.70) -> dict:
+    """Slim the neck to the PD2 reference, above the trapezius.
+
+    The 3BA body is authored for Skyrim, where the *head* mesh supplied most of
+    the neck: the source body stops at 157 cm with a 12 cm half-width there. The
+    retarget stretches the spine axially to PD2's longer torso, which also lifts
+    and widens that neck stub, so the shipped body carries an 18.8 cm wide
+    column up to 167 cm -- in the previews it reads as a stovepipe rising out of
+    the collar, and no collar can close over it.
+
+    The PD2 reference body (2B) is the ground truth for this rig: 16 cm
+    half-width at 157 cm, then a real neck -- 4.7 cm at 160, 4.8 at 162, top at
+    163.2. This pass narrows *only* the column: a radial scale about the neck
+    axis (``axis``), full for ``r <= r_full`` and fading out by ``r_stop`` so the
+    trapezius and the shoulder line are untouched, ramping in with height
+    (``z_lo`` -> ``z_full``) so there is no step at the shoulder.
+
+    Heights are deliberately left alone: the body's neck has to keep reaching
+    the PD2 head joint, and a short neck would open a gap under the jaw. The
+    garment is re-dressed afterwards (``redress_from_source``), so the collar
+    and the lapels come in onto the slimmer neck with it.
     """
     import math
 
@@ -1888,26 +1920,29 @@ def give_shoulder_room(g: Group, mats=("jacket",), z_lo: float = 136.0,
         t = max(0.0, min(1.0, t))
         return t * t * (3.0 - 2.0 * t)
 
+    ax, ay = axis
     touched = 0
-    for mat, base_v, _bi, _nt, nverts in g.slices:
+    moved = 0.0
+    for mat, base_v, _bi, _tris, nverts in g.slices:
         if mat not in mats:
             continue
         for i in range(base_v, base_v + nverts):
             x, y, z = g.verts[i]
-            if not (z_lo <= z <= z_hi) or abs(x) < x_min:
+            if z <= z_lo:
                 continue
-            fz = smooth((z - z_lo) / max(z_fade, 1e-6)) * \
-                smooth((z_hi - z) / max(z_fade, 1e-6))
-            fx = smooth((abs(x) - x_min) / max(x_full - x_min, 1e-6))
-            push = amount * fz * fx
-            if push <= 0.0:
+            r = math.hypot(x - ax, y - ay)
+            mask = smooth((r_stop - r) / max(r_stop - r_full, 1e-6))
+            t = smooth((z - z_lo) / max(z_full - z_lo, 1e-6)) * mask
+            if t <= 0.0:
                 continue
-            nx, ny, nz = g.normals[i]
-            ln = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
-            g.verts[i] = (x + nx / ln * push, y + ny / ln * push,
-                          z + nz / ln * push)
+            kx = 1.0 - (1.0 - sx) * t
+            ky = 1.0 - (1.0 - sy) * t
+            nx = ax + (x - ax) * kx
+            ny = ay + (y - ay) * ky
+            moved = max(moved, math.hypot(nx - x, ny - y))
+            g.verts[i] = (nx, ny, z)
             touched += 1
-    return touched
+    return {"moved": touched, "peak": moved}
 
 
 def _slice_vertex_order(tris) -> list[int]:

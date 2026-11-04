@@ -24,7 +24,7 @@ notes **28–39**. User-side game test: [`in-game-checklist.md`](in-game-checkli
 | | |
 |---|---|
 | Branch | `arena/68a9d94f-universal-modder` (active). **Remote head `f67f7de`.** |
-| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `18b5ac0306d3fc82b89b822125708fc1602a579d89849d2538c1f587352f9751` |
+| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `e129b1c2b3950ffebcde03468131364250810a93a6b71b108d50195069ad9909` |
 | Hands | **adapter route** — no hand geometry shipped; build aborts if any vert is >0.5 hand-bone weighted (`count_hand_verts`) |
 | Head | none shipped; template `g_head`/`g_head_lod1` dropped; neck closed with `cap_holes` |
 | Body skin tone | matched to Miranda head diffuse: base `(172,134,106)`, unity gain; shipped `bw_body_df` median `(172,133,106)` |
@@ -91,9 +91,11 @@ Build is ~35 s (model) / ~80 s (`--pack`). **Commit + push early and often; NO P
 `transfer_group` (retarget) → hands adapter guard → `restore_bust`(1.32) →
 `tuck_underarm_skin`(0.7, z125–154) → `tuck_shirt_sleeves`(1.6) →
 `weld_open_seams`(0.2 mm) → `follow_layer_weights`(z136–158) →
-`tuck_shirt_collar`(z150, x0.93, z0.88) → **`redress_from_source`**(blazer +
-shirt, k=6 clearances, body scale 1.2574) → `extend_sleeves_to_wrist`(jacket −2.5 /
-skin −2.2 / shirt +1.0, t_knee 13) → `lower_collar`(z158, k0.35) → `turn_body`(0.8°) →
+`tuck_shirt_collar`(z150, x0.93, z0.88) → **`slim_neck`**(z157–161, r≤8 cm,
+x·0.55 y·0.70) → **`redress_from_source`**(blazer + shirt + necklace, k=6
+clearances, body scale ≈1.25) → `extend_sleeves_to_wrist`(jacket −2.5 / skin
+−2.2 / shirt +1.0, t_knee 13) → **`tuck_necklace_chain`**(z156, ×0.80) →
+`lower_collar`(z158, k=`COLLAR_K`=0.55, blazer + shirt only) → `turn_body`(0.8°) →
 `cap_holes`(min_z155, skin-only, max_span14) → `assemble_model(drop g_head/g_head_lod1)`
 → textures (`skin_texture`) → `bw_pack.write_pack` → zip. Body **and** shadow get every
 geometry pass. `extend_blazer_sleeves` and `tuck_shirt_cuffs` are **no longer called**
@@ -103,8 +105,9 @@ geometry pass. `extend_blazer_sleeves` and `tuck_shirt_cuffs` are **no longer ca
 the body right but drags the blazer's neckline out over the trapezius, and since
 the per-material vertex order is preserved it rebuilds every garment vertex on
 the shipped body at the *source's* clearance (mean 0.6/1.1 cm, peak 7.6 cm at
-the collar). `give_shoulder_room` was the earlier attempt and is gone — the
-fabric was not there to push. See `FIXES-2026-11-04.md`, "Round 2".
+the collar). The 3BA neck stub also has to be slimmed (`slim_neck`, 2B pack
+is the reference) and the collar kept standing (`COLLAR_K`) — see Round 3 of
+`FIXES-2026-11-04.md`. See `FIXES-2026-11-04.md`, "Round 2".
 
 Key helpers live in `tools/pd2-las/build_models.py` (grep by name; line numbers shift):
 `turn_body`, `weld_open_seams`, `follow_layer_weights`, `tuck_shirt_collar`,
