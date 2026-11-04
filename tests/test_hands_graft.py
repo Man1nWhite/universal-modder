@@ -71,6 +71,43 @@ def test_trim_neck_ignores_garment_slices():
     assert g.verts[0][2] == 170.0
 
 
+def test_align_neck_recenters_and_tapers_the_neck_column():
+    g = bm.Group(name="g")
+    # a neck-column vertex (front wall), an outer-shoulder vertex, and one below
+    # the blend band
+    g.verts = [(0.0, 16.0, 160.0), (20.0, 5.0, 160.0), (0.0, 16.0, 150.0)]
+    g.slices = [("skin", 0, 0, 1, 3)]
+
+    touched = bm.align_neck(g)
+
+    assert touched == 1                        # only the in-band neck vertex
+    x, y, z = g.verts[0]
+    assert x == pytest.approx(0.0)
+    assert z == 160.0                          # height untouched
+    # tapered to r_seam about the PD2 axis: r_src=6.5 -> 2.1, cy=7.6
+    assert y == pytest.approx(7.6 + 6.5 * (2.1 / 6.5))
+    assert g.verts[1] == (20.0, 5.0, 160.0)    # radial gate: shoulder untouched
+    assert g.verts[2] == (0.0, 16.0, 150.0)    # below z_lo untouched
+
+
+def test_align_neck_is_continuous_at_the_band_edge():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 16.0, 154.0)]
+    g.slices = [("skin", 0, 0, 1, 1)]
+
+    assert bm.align_neck(g) == 0               # smoothstep is 0 at z_lo
+    assert g.verts[0] == (0.0, 16.0, 154.0)
+
+
+def test_align_neck_ignores_garment_slices():
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 16.0, 165.0)]
+    g.slices = [("jacket", 0, 0, 1, 1)]
+
+    assert bm.align_neck(g) == 0
+    assert g.verts[0] == (0.0, 16.0, 165.0)
+
+
 def test_restore_bust_scales_only_the_front_chest():
     g = bm.Group(name="g")
     # front bust peak, a back vertex, and a front vertex below the band

@@ -4,7 +4,39 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: white arm patches are SKIN, not shirt — extend the skin tuck (NEW)
+## 2026-11-04 — BusinessWoman: fix the neck position — recenter + taper onto the PD2 head-neck axis (NEW)
+
+- **Report:** user asked "Fix the neck position." With the template head attached
+  offline, the outfit showed a hard horizontal skin **shelf** across the front of the
+  neck base and a **notch** behind it where the collar met the head neck.
+- **Root cause (measured, not guessed).** The retargeted 3BA skin neck is a *wide*
+  tube whose axis sits at y≈9.5 cm and whose diagonally-cut opening rim centroids at
+  y≈13.6 cm. The PD2 heister head (`2b.model` `g_head`) carries its own *thin* neck:
+  centered y≈7.5 cm, radius ~2.5 cm at z158 and ~3.1 cm at z159, starting at z≈157.
+  `trim_neck` alone only *squashed* the wide stub down to the collar line, collapsing
+  it into a forward-offset pancake (cap centroid y≈13.6) — the shelf in front and the
+  gap behind. Squashing never repositioned the opening.
+- **Fix: `align_neck` (new, runs before `trim_neck`).** Blend every skin vertex above
+  z154 from the source neck axis (y9.5) onto the PD2 axis (y7.6) while tapering its
+  radial extent from the shoulder flare (6.5) down to 2.1 at z158 and above — i.e.
+  *inside* the heister's own neck radius, so the tapered column, the folded stub and
+  the `cap_holes` cap all hide within the head neck and the visible seam is where the
+  two surfaces cross (~z157.6). The blend is a smoothstep (0 at z154) times a radial
+  gate (1 inside 9 cm of the source axis, fading to 0 by 12 cm) so the outer shoulder /
+  upper-arm skin stays exactly as the sleeve / underarm tucks shipped it. 739 verts
+  aligned (body + shadow); `trim_neck` still folds 305; cap still 26 tris.
+- **Verified offline with the reference head attached** (head never shipped): front
+  shelf gone, back notch gone, neck seams smoothly into the head; cap centroid moved
+  from (0, 13.6, 159.2) to (0, 9.0, 159.3) with a 3.9×1.9 cm footprint that sits inside
+  the head neck cross-section. Outer shoulder silhouette unchanged (the accepted
+  armhole sliver residue is untouched). No head or hand geometry authored.
+- **Build/gates:** zip sha256
+  `843d40695b960ac5d9f2807e24bbd121d5d49938a64707831e30eace09f6adb8`, 26 entries,
+  11,537,339 bytes; decode-verified the shipped zip carries the recentered neck.
+  pytest 429 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 26 / 0 / 1; pyflakes clean. +3 `align_neck` regression tests.
+
+## 2026-11-04 — BusinessWoman: white arm patches are SKIN, not shirt — extend the skin tuck
 
 - **Report:** 6 new in-game screenshots of the `90df4d6` pack — the white upper-arm
   patches and wrist rings are STILL there. The shirt-sleeve / cuff tucks did not

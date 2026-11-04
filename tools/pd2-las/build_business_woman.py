@@ -315,10 +315,16 @@ def main(argv=None) -> int:
         n = bm.lower_collar(groups[gname])
         print(f"[{gname}] collar verts lowered: {n}")
 
-    # The 3BA neck opening lands at Head-bone height but ~4-5 cm forward of the
-    # heister's Head bone, so it juts out in front of the chin. No head is shipped
-    # (LAS keeps the heister's), so fold the duplicate neck stub into the collar
-    # and let the heister's own neck show above it.
+    # The 3BA neck column is wide and sits ~2 cm forward of the PD2 head-neck
+    # axis, and its diagonal opening rim centroids ~6 cm forward of it. Recenter
+    # and taper it onto the heister's own neck (measured from the template head)
+    # so the surfaces seam and the leftover stub/cap hide inside the head neck.
+    for gname in ("body", "shadow"):
+        n = bm.align_neck(groups[gname])
+        print(f"[{gname}] neck verts aligned: {n}")
+
+    # No head is shipped (LAS keeps the heister's), so fold the now-thin duplicate
+    # neck stub into the collar; the cap lands inside the heister's own neck.
     for gname in ("body", "shadow"):
         n = bm.trim_neck(groups[gname])
         print(f"[{gname}] neck verts trimmed: {n}")

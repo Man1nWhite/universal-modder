@@ -721,3 +721,24 @@ same five, and the audit now checks them by name.
     amount — stronger tucks distort, see note 31) cut the posed skin=green area from
     large patches to two thin slivers at the genuine overlap gap. Re-verify with the
     same material-highlight render after the fix.
+
+35. **A ported neck must be RECENTERED and TAPERED onto the target head-neck axis, not
+    just squashed — and verified with the reference head attached offline**
+    (2026-11-04, BusinessWoman neck). The outfit showed a horizontal skin shelf across
+    the front of the neck base plus a notch behind it. Measuring cross-sections (plane
+    / triangle intersections, welded by rounded position) showed why: the source skin
+    neck is a *wide* tube (axis y≈9.5, diagonal opening rim centroid y≈13.6) while the
+    PD2 head's own neck is *thin* (axis y≈7.5, radius ~2.5 @z158 / ~3.1 @z159, starting
+    z≈157). A vertical-only squash (`trim_neck`) collapses the wide stub into a
+    forward-offset pancake at the collar line — it never moves the opening, so the cap
+    sticks out in front of the neck and leaves a gap behind. The fix (`align_neck`)
+    blends skin verts above the shoulder line from the source axis onto the target axis
+    while tapering the radius to *inside* the head-neck radius, so the column, the folded
+    stub and the cap all hide inside the heister's own neck and the visible seam is where
+    the surfaces cross. Gate the blend radially (smoothstep in z × smoothstep in radius)
+    so the outer shoulder / upper-arm skin is untouched and prior tucks are not silently
+    changed. Attach the template head as an offline fit reference (never ship it) and
+    render front / side / three-quarter close-ups to confirm the shelf and notch are gone
+    and the cap footprint lies inside the head-neck cross-section. Do not reweight the
+    neck to the Neck bone for a *position* fix: the visible neck base sits below the Neck
+    pivot, so torso weighting (like the collar) is correct and avoids collar gaps.

@@ -1364,16 +1364,73 @@ def lower_collar(g: Group, mats=("jacket", "jacket2", "necklace"),
     return touched
 
 
-def trim_neck(g: Group, mats=("skin",), z0: float = 159.0, k: float = 0.05) -> int:
-    """Fold the body's neck stub down into the collar.
+def align_neck(g: Group, mats=("skin",), z_lo: float = 154.0,
+               z_seam: float = 158.0, src_y: float = 9.5, dst_y: float = 7.6,
+               r_shoulder: float = 6.5, r_seam: float = 2.1,
+               r_neck: float = 9.0, r_fade: float = 3.0) -> int:
+    """Recenter and taper the outfit's neck column onto the PD2 head-neck axis.
 
-    The 3BA neck is positioned for a *Skyrim* head: after retarget its capped
-    opening lands at Head-bone height (~167 cm) but ~4-5 cm *forward* of PD2's
-    Head bone (y=5.3), so it juts out in front of the heister's chin instead of
-    meeting the neck. The outfit ships no head (LAS keeps the heister's own), so
-    the skin above the collar is a duplicate neck. Squash it down toward the
-    collar line ``z0`` — continuous at the boundary so it cannot tear — and the
-    neck cap then sits at the collar with the heister's own neck showing above.
+    Measured on the retargeted 3BA body, the skin neck is a wide tube whose axis
+    sits at y≈9.5 cm and whose diagonally-cut opening rim centroids at y≈13.6 cm.
+    The PD2 heister head (template ``g_head``) carries its own neck: a thin tube
+    centered at y≈7.5 cm with radius ~2.5 cm at z158 and ~3.1 cm at z159, starting
+    at z≈157. Folding the wide 3BA stub down without recentering it leaves a
+    forward-offset skin "shelf" in front of the neck and a notch behind it.
+
+    This pass blends every skin vertex above ``z_lo`` from its source neck axis
+    (``src_y``) onto the PD2 axis (``dst_y``) while tapering its radial extent
+    from the shoulder flare (``r_shoulder``) down to ``r_seam`` at ``z_seam`` and
+    above. ``r_seam`` is deliberately *inside* the head neck radius so the tapered
+    column, the folded stub and the neck cap all hide within the heister's own
+    neck; the visible seam is where the two surfaces cross (~z157.6). The blend is
+    a smoothstep that is exactly 0 at ``z_lo``, multiplied by a radial gate that
+    is 1 inside ``r_neck`` of the source neck axis and fades to 0 by
+    ``r_neck + r_fade``, so the outer shoulder / upper-arm skin stays exactly as
+    the sleeve and underarm tucks shipped it and the mesh cannot tear.
+    """
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if z <= z_lo:
+                continue
+            t = min(1.0, (z - z_lo) / max(z_seam - z_lo, 1e-6))
+            w = t * t * (3.0 - 2.0 * t)
+            r_src = math.hypot(x, y - src_y)
+            # radial gate: only the neck column and the trapezius that forms its
+            # base; the outer shoulder / upper-arm skin is left exactly as the
+            # sleeve / underarm tucks shipped it
+            gate = min(1.0, max(0.0, 1.0 - (r_src - r_neck) / max(r_fade, 1e-6)))
+            w *= gate * gate * (3.0 - 2.0 * gate)
+            if w <= 0.0:
+                continue
+            cy = src_y + (dst_y - src_y) * w
+            r_cap = r_shoulder + (r_seam - r_shoulder) * min(
+                1.0, max(0.0, (z - (z_seam - 2.0)) / 2.0))
+            r_new = r_src + (min(r_src, r_cap) - r_src) * w
+            if r_src > 1e-6:
+                nx = x * (r_new / r_src)
+                ny = cy + (y - src_y) * (r_new / r_src)
+            else:
+                nx, ny = x, cy
+            g.verts[i] = (nx, ny, z)
+            touched += 1
+    return touched
+
+
+def trim_neck(g: Group, mats=("skin",), z0: float = 159.0, k: float = 0.05) -> int:
+    """Fold the body's leftover neck stub down into the collar.
+
+    Run *after* :func:`align_neck`, which has already recentered the neck column
+    onto the PD2 head-neck axis and tapered it to inside the heister's own neck.
+    What remains above the collar line is a thin duplicate of the head neck; the
+    outfit ships no head (LAS keeps the heister's own), so squash it toward the
+    collar line ``z0`` — continuous at the boundary so it cannot tear. Because the
+    stub is now thinner than the head neck, the fold and the neck cap that
+    :func:`cap_holes` adds sit hidden inside the heister's neck instead of
+    jutting out in front of the chin.
     """
     touched = 0
     for mat, base_v, _bi, _nt, nverts in g.slices:
