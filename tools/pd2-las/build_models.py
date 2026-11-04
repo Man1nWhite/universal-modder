@@ -1863,28 +1863,68 @@ def tuck_shirt_collar(g: Group, mats=("jacket2",), z_lo: float = 150.0,
 
 
 def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
-                        axis=(0.0, 7.0)) -> int:
+                        axis=(0.0, 7.0), body_mat: str = "skin",
+                        slab: float = 0.5, r_cap: float = 9.0) -> int:
     """Draw the necklace's chain loop inside the neck, where the collar hides it.
 
     The chain is a closed loop that passes *around* the neck. On the PD2 head the
     collar sits lower than the Skyrim one, so the loop rides over the collar's
-    top edge and reads as a gold hoop standing on the neck. Pulling the loop
-    inward (toward the neck axis, above ``z_min``) sinks it inside the neck
-    column, so only the pendant and the chain in the open V remain visible --
-    which is what the outfit looks like on the source body.
+    top edge and reads as a gold hoop standing on the neck. Pulling the loop in
+    toward the neck axis sinks it inside the neck column, so only the pendant and
+    the chain in the open V stay visible -- which is what the outfit looks like
+    on the source body.
+
+    A flat ``scale`` is not enough on a tapered neck: the loop has vertices at
+    every height, and 0.8x still leaves the top of the loop outside the narrow
+    upper neck. So the radius is also clamped to ``0.75 * neck radius at that
+    height`` (measured off the body, ignoring vertices beyond ``r_cap`` so the
+    trapezius cannot inflate it).
     """
-    import math
+    import numpy as np
 
     ax, ay = axis
+    prof: list[tuple[float, float]] = []
+    neck = []
+    for mat, base_v, _bi, _tris, nv in g.slices:
+        if mat != body_mat:
+            continue
+        v = np.array(g.verts[base_v:base_v + nv], np.float64)
+        neck.append(v[(v[:, 2] >= z_min) & (v[:, 2] <= 168.0)])
+    if neck:
+        B = np.concatenate(neck)
+        r = np.hypot(B[:, 0] - ax, B[:, 1] - ay)
+        keep = r <= r_cap
+        B, r = B[keep], r[keep]
+        if len(B):
+            zs = np.round(B[:, 2] / slab).astype(int)
+            for zz in np.unique(zs):
+                prof.append((float(B[zs == zz, 2].mean()), float(r[zs == zz].max())))
+            prof.sort()
+
+    def neck_r(z: float) -> float | None:
+        if not prof:
+            return None
+        if z < prof[0][0] or z > prof[-1][0]:
+            return None
+        return float(np.interp(z, [p[0] for p in prof], [p[1] for p in prof]))
+
     touched = 0
-    for mat, base_v, _bi, _tris, nverts in g.slices:
+    for mat, base_v, _bi, _tris, nv in g.slices:
         if mat != "necklace":
             continue
-        for i in range(base_v, base_v + nverts):
+        for i in range(base_v, base_v + nv):
             x, y, z = g.verts[i]
             if z <= z_min:
                 continue
-            g.verts[i] = (ax + (x - ax) * scale, ay + (y - ay) * scale, z)
+            dd = np.hypot(x - ax, y - ay)
+            if dd < 1e-6:
+                continue
+            target = dd * scale
+            nr = neck_r(z)
+            if nr is not None:
+                target = min(target, nr * 0.75)
+            k = target / dd
+            g.verts[i] = (ax + (x - ax) * k, ay + (y - ay) * k, z)
             touched += 1
     return touched
 
@@ -1943,6 +1983,7 @@ def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
             g.verts[i] = (nx, ny, z)
             touched += 1
     return {"moved": touched, "peak": moved}
+
 
 
 def _slice_vertex_order(tris) -> list[int]:
@@ -2015,7 +2056,8 @@ def _rotation_between(u, v):
 
 def redress_from_source(g: Group, model, mats=("jacket", "jacket2"),
                         body_mat: str = "skin", neighbours: int = 6,
-                        max_move: float = 12.0, verbose: bool = True) -> dict:
+                        max_move: float = 12.0, z_fade=(108.0, 112.0),
+                        verbose: bool = True) -> dict:
     """Re-dress the garment on the shipped body using the source's clearances.
 
     The retarget gets the *body* right (spine, bust, shoulder height all land
@@ -2046,6 +2088,16 @@ def redress_from_source(g: Group, model, mats=("jacket", "jacket2"),
 
     Runs before ``extend_sleeves_to_wrist`` (that pass then pulls the cuff to
     the glove) and before ``turn_body`` (rigid, preserves it).
+
+    ``z_fade`` (source units, full effect below the first, none above the
+    second) is essential: the Skyrim body **stops at 114.1 units** (157 cm) and
+    hands the neck over to the head mesh, so above that every collar vertex maps
+    to the same handful of top-ring vertices and the transferred "clearance"
+    carries no radial information. Re-dressing them anyway collapsed the shirt
+    collar into ragged, splayed flaps that cut straight through the neck
+    (measured; the pre-re-dress collar is a clean stand collar). So the collar
+    keeps the retargeted shape it had, and only the part of the garment that the
+    source body actually backs gets re-dressed.
     """
     import numpy as np
 
@@ -2108,7 +2160,16 @@ def redress_from_source(g: Group, model, mats=("jacket", "jacket2"),
             nb = ww @ BN[nn]
             nb /= np.linalg.norm(nb) or 1.0
             new[vi] = bb + scale * (dd * nb + _rotation_between(n, nb) @ tang)
+        if z_fade is not None:
+            z0, z1 = z_fade
+            t = np.clip((P[:, 2] - z0) / max(z1 - z0, 1e-6), 0.0, 1.0)
+            t = t * t * (3.0 - 2.0 * t)          # 0 below z0, 1 above z1
+            keep_fade = t < 1.0
+            if not keep_fade.any():
+                continue
         old = np.array(g.verts[base_v:base_v + nv], np.float64)
+        if z_fade is not None:
+            new = (1.0 - t)[:, None] * new + t[:, None] * old
         delta = np.linalg.norm(new - old, axis=1)
         keep = delta <= max_move
         for vi, p in zip(np.nonzero(keep)[0], new[keep]):

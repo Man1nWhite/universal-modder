@@ -24,7 +24,7 @@ notes **28–39**. User-side game test: [`in-game-checklist.md`](in-game-checkli
 | | |
 |---|---|
 | Branch | `arena/68a9d94f-universal-modder` (active). **Remote head `f67f7de`.** |
-| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `e129b1c2b3950ffebcde03468131364250810a93a6b71b108d50195069ad9909` |
+| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `33e5e0cb1e6c80840df416c092c446eb770193a60a860e838b96b7caf75bee46` |
 | Hands | **adapter route** — no hand geometry shipped; build aborts if any vert is >0.5 hand-bone weighted (`count_hand_verts`) |
 | Head | none shipped; template `g_head`/`g_head_lod1` dropped; neck closed with `cap_holes` |
 | Body skin tone | matched to Miranda head diffuse: base `(172,134,106)`, unity gain; shipped `bw_body_df` median `(172,133,106)` |
@@ -93,7 +93,8 @@ Build is ~35 s (model) / ~80 s (`--pack`). **Commit + push early and often; NO P
 `weld_open_seams`(0.2 mm) → `follow_layer_weights`(z136–158) →
 `tuck_shirt_collar`(z150, x0.93, z0.88) → **`slim_neck`**(z157–161, r≤8 cm,
 x·0.55 y·0.70) → **`redress_from_source`**(blazer + shirt + necklace, k=6
-clearances, body scale ≈1.25) → `extend_sleeves_to_wrist`(jacket −2.5 / skin
+clearances, body scale ≈1.25, **faded out above 108 source units** — the Skyrim
+body ends at 114.1, so the collar keeps its retargeted shape) → `extend_sleeves_to_wrist`(jacket −2.5 / skin
 −2.2 / shirt +1.0, t_knee 13) → **`tuck_necklace_chain`**(z156, ×0.80) →
 `lower_collar`(z158, k=`COLLAR_K`=0.55, blazer + shirt only) → `turn_body`(0.8°) →
 `cap_holes`(min_z155, skin-only, max_span14) → `assemble_model(drop g_head/g_head_lod1)`
