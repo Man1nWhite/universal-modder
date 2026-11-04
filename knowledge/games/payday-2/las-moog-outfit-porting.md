@@ -640,5 +640,20 @@ same five, and the audit now checks them by name.
     falloff, so the sleeve top follows the torso and the overlap stays closed.
     Verify with an offline **pose simulator** that re-skins the body with the arms
     adducted (`tools/pd2-las/pose_preview.py`): the static bind-pose preview cannot
-    show a deformation-only hole. Note the offline renderer draws both sides, so
-    it under-reproduces the in-game (backface-culled) hole — confirm in game.
+    show a deformation-only hole. The simulator now **backface-culls** by default
+    (`preview_textured.render(..., cull=True)`; `--no-cull` to disable), so it
+    reproduces the in-game see-through hole instead of filling it with the far
+    side of the fabric. Culling sign is pinned by `tests/test_preview_cull.py`
+    (front face survives, back face dropped, view-relative) — an inverted sign
+    culls the whole outfit and reads as a blank gray figure.
+
+    **The stay has a balance, not a "more is better" knob.** ~45 % is the sweet
+    spot: the large overlap hole closes to a small armpit notch. Pushing it harder
+    (55 % with a plateau falloff across the whole band) was measured and is WORSE —
+    the sleeve shoulder then stays with the torso while the skin upper arm still
+    follows the arm bone, so the sleeve pulls away and a large patch of **skin**
+    shows at the armpit. Too little stay opens a see-through hole; too much exposes
+    the skin arm. Do not strengthen past the balance to chase the last notch. The
+    small residue that remains (armpit notch, shoulder-top spots near the collar)
+    is the genuine overlap gap / skin poke-through that `tuck_underarm_skin`
+    already documents as un-closable without distorting the sleeve.

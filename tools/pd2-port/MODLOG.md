@@ -4,7 +4,51 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-03 — BusinessWoman in-game review: graft hands, smooth skin, shoulder stay (NEW)
+## 2026-11-04 — BusinessWoman: rebuild fixes stale body textures + culled pose-sim verification (NEW)
+
+- **Headline — the shipped zip was STALE and still had the leg blotches.** The
+  `342a3bb` commit updated `skin_texture.py` to a flat normal + uniform gloss, but
+  the `dist/BusinessWoman_LAS.zip` committed alongside it (`303fbc77…`) had been
+  packed *before* that texture fix and never rebuilt. Decoding the committed zip
+  proves it: body normal per-channel std `[0, 1.72, 0, 1.63]` and diffuse gloss
+  std `7.07` (mean 84) — i.e. the exact normal-blob + varied-gloss sources of the
+  in-game camo blotches were still in the artifact the user installed. The unit
+  test only exercises `build_diffuse`/`build_normal`, so it passed while the zip
+  stayed stale. **Rebuilding with `--pack` now ships the fix for real:** body
+  normal std `[0,0,0,0]` (flat `[255,128,0,128]`) and gloss std `0.0` (uniform 86).
+  New zip sha256 `2952c6e3c6022be92d572e2bcf49bf5d8012c4aba2c764f0b8b4f1693566c07c`.
+  Only `bw_body_df/nm.texture` (+ BUILD_INFO hashes) differ from the old zip; the
+  model is byte-identical (`da0dfb55…`). Lesson: after a texture-code change,
+  re-pack and decode the artifact, don't trust the function-level test alone.
+- **Shoulder stay verified with backface culling.** The prior entry's pose
+  simulator drew *both* sides of every triangle, so it could not actually show the
+  backface-culled hole the game renders. Added **backface culling** to the textured
+  renderer (`preview_textured.render(..., cull=True)`) and made `pose_preview.py`
+  cull by default (`--no-cull` for the old both-sides view). Culling keeps a
+  triangle when `face_normal · view_dir < 0` (front camera at +Y,
+  `view_dir=(0,-1,0)`); winding sanity-checked against vertex normals (97.9 %
+  agreement). With culling on, the shipped 45 % stay already closes the large
+  in-game hole to a **small armpit notch** across 60–75° adduction and
+  backward-extension stress poses — the big holes in the screenshots were from the
+  *pre-stay* adapter pack.
+- **Balance confirmed (do not over-strengthen):** tried 55 % with a plateau
+  falloff to close the last notch — it made things **worse**, exposing a large
+  skin patch at the armpit (sleeve shoulder stays with the torso while the skin
+  arm follows the arm bone, so the sleeve pulls away). Reverted to 45 %. Too
+  little stay = see-through hole; too much = skin shows. Recorded in knowledge
+  note 31.
+- **Static spots are a known limit:** the small shoulder-top / sleeve skin spots
+  visible in the bind pose are the genuine overlap gap / poke-through that
+  `tuck_underarm_skin` already documents as un-closable without distorting the
+  sleeve. Not a regression; left as-is.
+- **Regression test:** `tests/test_preview_cull.py` (3 tests) pins the culling
+  direction — front face survives, back face dropped only when culling, and the
+  sign is view-relative. Guards against an inverted sign culling the whole outfit.
+- **Build/gates:** zip 27 entries, byte-reproducible across two `--pack` builds.
+  pytest 417 passed / 11 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 27 files / 0 failures / 1 no-README warning.
+
+## 2026-11-03 — BusinessWoman in-game review: graft hands, smooth skin, shoulder stay
 
 - **Report:** user installed the default-glove pack and sent 7 in-game screenshots:
   still **no hands** (open cuff ring), large **holes at the shoulder/armhole**,

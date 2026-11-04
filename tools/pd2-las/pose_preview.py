@@ -144,13 +144,14 @@ def main():
     scale = size * 0.88 / max(span, float(hi[2] - lo[2]))
     out = REPO / "build/skyrim-nif/previews"
     views = ["front", "back", "side", "threequarter"]
-    imgs = [pt.render(meshes, textures, v, size, scale, center) for v in views]
+    cull = "--no-cull" not in sys.argv
+    imgs = [pt.render(meshes, textures, v, size, scale, center, cull=cull) for v in views]
     sheet = Image.new("RGB", (size * len(views), size), (10, 10, 12))
     for i, im in enumerate(imgs):
         sheet.paste(im, (i * size, 0))
-    p = out / "business_woman_posed.png"
+    p = out / ("business_woman_posed.png" if cull else "business_woman_posed_nocull.png")
     sheet.save(p)
-    print("posed preview ->", p)
+    print("posed preview ->", p, "(cull=%s)" % cull)
 
 
 if __name__ == "__main__":

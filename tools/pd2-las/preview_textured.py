@@ -131,9 +131,21 @@ def _sample(tex: np.ndarray, uv: np.ndarray, flip_v: bool) -> np.ndarray:
 
 def render(meshes: list[dict], textures: dict[str, Image.Image], view: str,
            size: int, scale: float, center: np.ndarray,
-           flip_v: bool = True, gloss: float = 0.55) -> Image.Image:
-    """Z-buffered render with per-pixel UV sampling and a soft key light."""
+           flip_v: bool = True, gloss: float = 0.55, cull: bool = False) -> Image.Image:
+    """Z-buffered render with per-pixel UV sampling and a soft key light.
+
+    ``cull=True`` drops back-facing triangles the way the game does, so a
+    garment overlap that folds open reads as a real hole instead of being
+    filled by the far side of the fabric (the default offline render draws both
+    sides and therefore hides such holes).
+    """
     pv = _load_preview()
+    _a = np.deg2rad(35.0)
+    view_dir = {"front": np.array([0.0, -1.0, 0.0]),
+                "back": np.array([0.0, 1.0, 0.0]),
+                "side": np.array([-1.0, 0.0, 0.0]),
+                "threequarter": np.array([-np.sin(_a), -np.cos(_a), 0.0]),
+                }.get(view, np.array([0.0, -1.0, 0.0]))
     light = np.array([0.35, -0.55, 0.75])
     light /= np.linalg.norm(light)
     fill = np.array([-0.6, -0.3, 0.1])
@@ -163,8 +175,11 @@ def render(meshes: list[dict], textures: dict[str, Image.Image], view: str,
         face = np.cross(v1 - v0, v2 - v0)
         ln = np.linalg.norm(face, axis=1, keepdims=True)
         face = face / np.where(ln == 0, 1, ln)
+        facing = (face @ view_dir) < 0.0
 
         for t in range(len(tris)):
+            if cull and not facing[t]:
+                continue
             p = tri2[t]
             x0 = max(int(np.floor(p[:, 0].min())), 0)
             x1 = min(int(np.ceil(p[:, 0].max())) + 1, size)
