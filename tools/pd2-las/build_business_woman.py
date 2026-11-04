@@ -37,6 +37,11 @@ import skyrim_retarget  # noqa: E402
 import skyrim_source as ss  # noqa: E402
 
 BONE_MAP = REPO / "tools" / "skyrim-nif" / "skeleton_map.json"
+#: The whole outfit is pitched back by this many degrees (``turn_body``) so the
+#: neck column lands under the PD2 head. Pure mesh rotation: it preserves every
+#: distance, so passes that run before it (the sleeve extension) can measure in
+#: the unrotated template frame.
+TURN_BODY_DEG = 0.8
 #: Everything above this height belongs to the neck opening of the 3BA body.
 NECK_Z_CM = 155.0
 #: Materials the first-person arms keep: skin, the two sleeve layers, and the
@@ -343,7 +348,7 @@ def main(argv=None) -> int:
     for gname in ("body", "shadow"):
         rep = bm.extend_sleeves_to_wrist(groups[gname])
         print(f"[{gname}] sleeves reach the glove: {rep['moved']} verts "
-              f"{rep['materials']}")
+              f"{rep['materials']} (was -> target: {rep['reaches']})")
 
     # The collar stands up past the head bone and swallows the jaw in profile.
     for gname in ("body", "shadow"):
@@ -358,7 +363,7 @@ def main(argv=None) -> int:
     # head and fills the collar opening (no taper, no fold). Rigid => seams/tucks
     # preserved, cannot tear.
     for gname in ("body", "shadow"):
-        n = bm.turn_body(groups[gname])
+        n = bm.turn_body(groups[gname], TURN_BODY_DEG)
         print(f"[{gname}] body verts turned: {n}")
 
     # The outfit has no head: Skyrim ships heads separately and Melodic's
