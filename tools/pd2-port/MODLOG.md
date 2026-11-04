@@ -4,7 +4,31 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: forearms — retract the white wrist cuff into the sleeve (NEW)
+## 2026-11-04 — BusinessWoman: white arm patches are SKIN, not shirt — extend the skin tuck (NEW)
+
+- **Report:** 6 new in-game screenshots of the `90df4d6` pack — the white upper-arm
+  patches and wrist rings are STILL there. The shirt-sleeve / cuff tucks did not
+  remove them.
+- **Root cause corrected (again).** A posed render with `mtr_body` highlighted GREEN
+  shows green exactly where the white patches are, while `mtr_jacket2`=RED shows only
+  the collar. So the patches are the **arm skin poking through the blazer**, not the
+  shirt. The earlier shirt tucks targeted the wrong layer. (The skin reads *white*
+  in-game because of the lighting on the exposed poke-through, not because of albedo.)
+- **Why the old tuck missed it.** `tuck_underarm_skin` only covered the armpit band
+  z 137–154. A nearest-blazer probe found **837 poke-through skin verts at z 125–137**
+  (down the upper-arm sleeve) that the band never touched.
+- **Fix:** extend `tuck_underarm_skin` `z_lo` 137 -> **125** (same gentle 0.7 cm
+  skin-normal tuck; amount unchanged, per the documented dead-end that stronger tucks
+  distort). Tucked verts 1753 -> **2569** (body + shadow). The posed skin=green render
+  drops from large patches to **two thin slivers** at the genuine armhole overlap gap
+  (the residue the MODLOG already notes cannot be closed without the spike-producing
+  weld). Normal renders stay clean.
+- **Build/gates:** zip sha256
+  `7cb7702957913e44dcf87220082feb0a68f839e4aa5c971ccab1d9de9e627de8`, 26 entries.
+  pytest 426 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
+  publish 26 / 0 / 1; pyflakes clean. +1 upper-arm-band regression test.
+
+## 2026-11-04 — BusinessWoman: forearms — retract the white wrist cuff into the sleeve
 
 - **Report:** user asked "What about forearms?" Zooming the in-game screenshots shows
   the forearm sleeve itself is clean; the defect is at the **wrist** — a white shirt

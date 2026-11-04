@@ -1438,18 +1438,20 @@ def restore_bust(g: Group, mats=("skin", "jacket", "jacket2"),
 
 
 def tuck_underarm_skin(g: Group, mats=("skin",), amount: float = 0.7,
-                       near: float = 1.6, z_lo: float = 137.0, z_hi: float = 154.0,
+                       near: float = 1.6, z_lo: float = 125.0, z_hi: float = 154.0,
                        x_min: float = 11.0) -> int:
-    """Tuck the underarm skin behind the blazer so it stops poking through.
+    """Tuck the arm/underarm skin behind the blazer so it stops poking through.
 
     The blazer armhole is an *overlap* construction, not a sewn seam, and after
-    the retarget a thin line of body skin renders in front of the jacket at the
-    underarm. Welding the jacket's overlap edges shut distorts the sleeve (see
-    MODLOG dead end), so instead move only the *skin*: any skin vertex in the
-    underarm band within ``near`` cm of the jacket is pushed inward along its own
-    normal by up to ``amount`` cm, with a smooth proximity falloff (full at the
-    jacket, zero at ``near``). The jacket is untouched and the tuck is confined
-    to the hidden armpit.
+    the retarget body skin renders in front of the jacket at the underarm AND down
+    the upper-arm sleeve (in-game white patches; a skin=green render confirms they
+    are ``mtr_body``, not the shirt). Welding the jacket's overlap edges shut
+    distorts the sleeve (see MODLOG dead end), so instead move only the *skin*: any
+    skin vertex in the band within ``near`` cm of the jacket is pushed inward along
+    its own normal by up to ``amount`` cm, with a smooth proximity falloff (full at
+    the jacket, zero at ``near``). The jacket is untouched and the tuck is confined
+    to the hidden arm under the sleeve. ``z_lo`` reaches down over the upper-arm
+    sleeve (the armpit-only band left the sleeve poke-through untouched).
 
     This removes the bulk of the poke-through. A thin residue remains that is a
     genuine *gap* in the jacket's overlap (skin behind it), which no skin tuck

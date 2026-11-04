@@ -142,6 +142,22 @@ def test_tuck_underarm_skin_leaves_far_skin_alone():
     assert g.verts[0][0] == pytest.approx(15.0)
 
 
+def test_tuck_underarm_skin_covers_upper_arm_sleeve():
+    """The band reaches down over the upper-arm sleeve (z~130), not just the
+    armpit: the in-game white patches are skin poking through the sleeve there,
+    below the old armpit-only band (z_lo=137)."""
+    g = bm.Group(name="g")
+    g.verts = [(25.0, 5.0, 130.0), (25.0, 5.0, 130.0)]
+    g.normals = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    g.slices = [("skin", 0, 0, 1, 1), ("jacket", 1, 0, 1, 1)]
+
+    touched = bm.tuck_underarm_skin(g, amount=0.7, near=1.6)
+
+    assert touched == 1
+    assert g.verts[0][0] == pytest.approx(25.0 - 0.7)   # skin tucked inward
+    assert g.verts[1][0] == pytest.approx(25.0)          # jacket untouched
+
+
 def test_append_group_reindexes_both_palettes():
     template = bm.Template(
         mf=None, names={}, id_name={}, id_obj={}, worlds={}, name_id={},

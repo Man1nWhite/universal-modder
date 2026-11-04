@@ -704,3 +704,20 @@ same five, and the audit now checks them by name.
     poke-through). A little shirt may still show up through the opening at the exact
     limb-vertical angle, and the cuff->glove gap remains inherent to the adapter
     route — do not author hands to close it.
+
+34. **Identify a poke-through layer by highlighting EACH material in a POSED render
+    before fixing it — white patches under a dark garment can be skin, not the
+    under-layer shirt** (2026-11-04, BusinessWoman arm). White arm patches survived
+    two cycles of shirt (`jacket2`) tucks. A posed render with `mtr_body`=GREEN showed
+    green exactly at the patches while `mtr_jacket2`=RED showed only the collar: the
+    patches were **arm skin poking through the blazer**, not the shirt. Exposed skin
+    can read *white* in-game from lighting even with a uniform tan albedo — do not
+    assume "white = shirt". Diagnose by rendering the actual in-game-ish pose
+    (adduction + elbow bend) with one material overridden to a flat color at a time;
+    the rigid bind-pose preview hides deformation-only poke-through. Then check the
+    fix's COVERAGE: a nearest-jacket probe found the existing underarm skin tuck
+    (band z 137–154) missed 837 poke-through skin verts down the upper-arm sleeve at
+    z 125–137. Extending the band's `z_lo` to 125 (same gentle 0.7 cm skin-normal
+    amount — stronger tucks distort, see note 31) cut the posed skin=green area from
+    large patches to two thin slivers at the genuine overlap gap. Re-verify with the
+    same material-highlight render after the fix.
