@@ -305,41 +305,6 @@ def main(argv=None) -> int:
         n = bm.restore_bust(groups[gname])
         print(f"[{gname}] bust verts restored: {n}")
 
-    # A thin line of underarm skin renders in front of the blazer's overlap
-    # armhole after the retarget. Tuck that skin behind the jacket (the jacket
-    # itself is left alone — welding its overlap edges distorts the sleeve).
-    for gname in ("body", "shadow"):
-        n = bm.tuck_underarm_skin(groups[gname], amount=1.2)
-        print(f"[{gname}] underarm skin verts tucked: {n}")
-
-    # The white shirt's sleeves (jacket2) are 100% arm-weighted and sit below the
-    # shoulder-stay band, so they poke through the blazer sleeve as white patches
-    # on the upper arm in-game. Tuck them behind the blazer (blazer untouched).
-    for gname in ("body", "shadow"):
-        n = bm.tuck_shirt_sleeves(groups[gname])
-        print(f"[{gname}] shirt sleeve verts tucked: {n}")
-
-    # The garment sheets carry *duplicated* seam rows: BodySlide exports the
-    # vertices on each UV island's edge twice, coincident, and the retarget gives
-    # each copy its own influence list. Where the two copies disagree (measured:
-    # one copy 100 % `LeftArm`, the other 41 % `Spine2` / 37 % `LeftShoulder` /
-    # 21 % `LeftArm`) the seam splits open the moment the arm leaves the bind
-    # pose, which is the torn shoulder / upper-arm hole in the shipped pack.
-    # Averaging the two copies' weights closes it at every pose.
-    for gname in ("body", "shadow"):
-        rep = bm.weld_open_seams(groups[gname])
-        print(f"[{gname}] open seams fused: {rep['pairs']} pairs {rep['materials']}")
-
-    # The shirt's shoulder is 100 % arm-weighted while the blazer keeps a mixed
-    # shoulder-stay band, so the shirt swings out from under the jacket and
-    # stands up over the shoulder line (the white "wings" in game). Ride the
-    # shirt on the blazer's weights across the shoulder band.
-    for gname in ("body", "shadow"):
-        n = bm.follow_layer_weights(groups[gname])
-        print(f"[{gname}] shirt shoulder verts follow the blazer: {n}")
-        n = bm.tuck_shirt_collar(groups[gname])
-        print(f"[{gname}] shirt collar verts drawn inside the blazer: {n}")
-
     # The retarget's axial spine stretch also lifts and widens the 3BA neck stub
     # (18.8 cm wide at 160 cm; the PD2 reference body is 9.4 cm there), so the
     # neck reads as a stovepipe rising out of the collar. Slim the column before
@@ -361,6 +326,40 @@ def main(argv=None) -> int:
                                      mats=("jacket", "jacket2", "necklace"))
         print(f"[{gname}] garment re-dressed from the source: {rep['moved']} verts "
               f"(peak {rep['peak']:.1f} cm, body scale {rep['scale']:.3f})")
+
+    # Re-dressing changes the jacket/shirt/body clearances. Therefore finish the
+    # shoulder-layer operations AFTER re-dress; doing them before it lets the
+    # re-dress undo the tuck and recreate the very skin/white-shirt tears seen
+    # in the in-game screenshots. First make the open seam rows deform together.
+    for gname in ("body", "shadow"):
+        rep = bm.weld_open_seams(groups[gname])
+        print(f"[{gname}] post-redress open seams fused: "
+              f"{rep['pairs']} pairs {rep['materials']}")
+
+    # The shirt shoulder and the skin beneath the blazer must use the shell's
+    # shoulder-stay weights; otherwise they swing out from under it in idle.
+    for gname in ("body", "shadow"):
+        n = bm.follow_layer_weights(groups[gname], dst_mats=("jacket2",),
+                                    z_lo=136.0, z_hi=160.0,
+                                    max_dist=9.0, x_max=38.0)
+        print(f"[{gname}] shirt shoulder weights follow blazer: {n}")
+        n = bm.follow_layer_weights(groups[gname], dst_mats=("skin",),
+                                    z_lo=136.0, z_hi=160.0,
+                                    max_dist=6.0, x_min=12.0, x_max=38.0)
+        print(f"[{gname}] covered shoulder skin follows blazer weights: {n}")
+
+    # Reapply the actual layer nesting after re-dress: tuck the inner shirt and
+    # body skin behind the blazer only where the outer shell covers them. Include
+    # the shoulder cap (not just the low underarm band) to remove exposed patches.
+    for gname in ("body", "shadow"):
+        n = bm.tuck_shirt_collar(groups[gname])
+        print(f"[{gname}] shirt collar drawn inside blazer: {n}")
+        n = bm.tuck_shirt_sleeves(groups[gname], amount=2.0, near=4.5,
+                                  z_lo=116.0, z_hi=160.0, x_min=18.0)
+        print(f"[{gname}] shirt sleeve/shoulder tucked: {n}")
+        n = bm.tuck_underarm_skin(groups[gname], amount=1.6, near=3.0,
+                                  z_lo=125.0, z_hi=160.0, x_min=11.0)
+        print(f"[{gname}] covered shoulder skin tucked: {n}")
 
     # Every arm layer stops short of the PD2 hand joint (blazer 6.3 cm, shirt
     # cuff 7.5 cm, bare arm 8 cm) because in Skyrim the wearer's own hands used

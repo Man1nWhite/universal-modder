@@ -2245,7 +2245,7 @@ def redress_from_source(g: Group, model, mats=("jacket", "jacket2"),
 def follow_layer_weights(g: Group, src_mat: str = "jacket",
                          dst_mats=("jacket2",), z_lo: float = 136.0,
                          z_hi: float = 158.0, max_dist: float = 9.0,
-                         x_max: float = 30.0) -> int:
+                         x_min: float = 0.0, x_max: float = 30.0) -> int:
     """Make an under-layer ride the outer layer over the shoulder.
 
     The white shirt (``jacket2``) is 100 % arm-weighted all the way across the
@@ -2255,9 +2255,11 @@ def follow_layer_weights(g: Group, src_mat: str = "jacket",
     "wings" that flare past the jacket's shoulder line in game (they are absent
     in the bind-pose render, which is why they survived earlier reviews).
 
-    Copying the nearest blazer vertex's influence list onto the shirt in the
-    shoulder band makes both layers deform identically there, so the shirt
-    cannot emerge at any pose. Positions, UVs and topology are untouched.
+    Copying the nearest blazer vertex's influence list onto the selected inner
+    material in the shoulder band makes both layers deform identically there.
+    ``x_min`` can limit this to the lateral shoulder skin underneath the shell,
+    keeping the exposed centre chest on its original body weights. Positions,
+    UVs and topology are untouched.
     """
     import numpy as np
 
@@ -2267,7 +2269,7 @@ def follow_layer_weights(g: Group, src_mat: str = "jacket",
             continue
         for i in range(base_v, base_v + nverts):
             x, y, z = g.verts[i]
-            if z_lo <= z <= z_hi and abs(x) <= x_max:
+            if z_lo <= z <= z_hi and x_min <= abs(x) <= x_max:
                 src.append((np.array([x, y, z]), list(g.weights[i])))
     if not src:
         return 0
@@ -2278,7 +2280,7 @@ def follow_layer_weights(g: Group, src_mat: str = "jacket",
             continue
         for i in range(base_v, base_v + nverts):
             x, y, z = g.verts[i]
-            if not (z_lo <= z <= z_hi and abs(x) <= x_max):
+            if not (z_lo <= z <= z_hi and x_min <= abs(x) <= x_max):
                 continue
             p = np.array([x, y, z])
             j = int(np.argmin(np.linalg.norm(pts - p, axis=1)))

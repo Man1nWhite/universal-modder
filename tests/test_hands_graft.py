@@ -92,6 +92,22 @@ def test_turn_body_is_rigid_and_plants_the_feet():
     assert g.verts[0][1] < before[0][1]
 
 
+def test_follow_layer_weights_can_match_only_lateral_shoulder_skin():
+    """Skin hidden under the shell follows its shoulder weights; chest does not."""
+    g = bm.Group(name="g")
+    g.verts = [(20.0, 0.0, 145.0), (20.0, 0.0, 145.0), (5.0, 0.0, 145.0)]
+    g.weights = [[(0, 1.0)], [(1, 1.0)], [(1, 1.0)]]
+    g.slices = [("jacket", 0, 0, 0, 1), ("skin", 1, 0, 0, 2)]
+
+    touched = bm.follow_layer_weights(g, dst_mats=("skin",), z_lo=136,
+                                      z_hi=160, max_dist=6,
+                                      x_min=12, x_max=38)
+
+    assert touched == 1
+    assert g.weights[1] == [(0, 1.0)]   # covered shoulder skin follows shell
+    assert g.weights[2] == [(1, 1.0)]   # exposed centre chest is unchanged
+
+
 def test_count_hand_verts_flags_only_hand_dominated_verts():
     g = bm.Group(name="g")
     g.palette = ["LeftForeArm", "LeftHand", "LeftHandIndex1"]

@@ -24,14 +24,14 @@ notes **28–39**. User-side game test: [`in-game-checklist.md`](in-game-checkli
 | | |
 |---|---|
 | Branch | `arena/97ae3b36-universal-modder` (active). |
-| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `c89edf9edd3f08289e8d701509048d1477f95083b125d90d449e7d4ff97b3bc8` |
+| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `9e8801524c8cc9e79366866b9a2bf5a2b5e0c0e1dce28ae132dd0e5059b35f77` |
 | Hands | **adapter route** — no hand geometry shipped; build aborts if any vert is >0.5 hand-bone weighted (`count_hand_verts`) |
 | Head | none shipped; template `g_head`/`g_head_lod1` dropped; neck closed with `cap_holes` |
 | Body skin tone | matched to Miranda head diffuse: base `(172,134,106)`, unity gain; shipped `bw_body_df` median `(172,133,106)` |
 | Neck | full-height neck kept; upper outfit pitched back 1.8° about waist (`turn_upper_body`) to align to the heister head without tilting legs |
 | Forearms | shirt cuff retracted (9 up / 2.5 inward) + blazer sleeve extended ~3 cm to overlap glove |
 | Bust | source-faithful **1.32×** (`restore_bust`) — do NOT dial back |
-| Gates | pytest **451 passed / 9 skipped / 1 pre-existing fail**; kb **PASS 246**; publish **26 / 0 / 1**; pyflakes clean |
+| Gates | pytest **442 passed / 10 skipped / 1 pre-existing fail**; kb **PASS 246**; publish **26 / 0 / 1**; pyflakes clean |
 
 The single pytest failure, `tests/test_build_models.py::test_retarget_joint_errors_and_palettes`
 (Miranda tpp RightArm ~5.7 cm), is **pre-existing and unrelated** to BusinessWoman. Do not
@@ -150,11 +150,11 @@ Skin tone: `tools/pd2-las/skin_texture.py` `REFERENCE_TONE=(172,134,106)`,
   collar nip. If they still flare in game, raise the *blazer's* collar, do not shrink the
   shirt further.
 - **Neck/head/shoulder alignment: current focus.** The user supplied in-game front and
-  side screenshots plus a Clover body and the Melodic source outfit for comparison. The
-  neck must reach the head opening; do not shorten it to make the collar appear to fit.
-  Use a small waist-pivoted upper-body pitch so legs stay vertical and the shoulder line
-  is not dragged by a whole-body tilt. Keep those reference images' intent in mind for
-  future iterations; the upload itself is transient and is not checked into Git.
+  side screenshots plus a Clover body and the Melodic source outfit for comparison; all
+  are saved under `reference-images/neck-alignment/`. The first waist-pivot pitch did not
+  fix the shoulder tears. Current correction re-nests shirt and skin layers AFTER
+  `redress_from_source`, because redressing had undone the earlier tucks. The neck remains
+  full height.
 - **In-game head reads lighter than body albedo** under some scene lighting. The albedo
   match is correct offline; if the user complains, tune body tone to compensate for the
   *in-game* head appearance, not the offline median.
