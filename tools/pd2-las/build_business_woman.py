@@ -37,11 +37,10 @@ import skyrim_retarget  # noqa: E402
 import skyrim_source as ss  # noqa: E402
 
 BONE_MAP = REPO / "tools" / "skyrim-nif" / "skeleton_map.json"
-#: The whole outfit is pitched back by this many degrees (``turn_body``) so the
-#: neck column lands under the PD2 head. Pure mesh rotation: it preserves every
-#: distance, so passes that run before it (the sleeve extension) can measure in
-#: the unrotated template frame.
-TURN_BODY_DEG = 0.8
+#: Upper outfit pitch about the waist to align the neck with the game head,
+#: without tilting the legs. atan(2 cm measured neck offset / 62 cm waist-neck
+#: rise) is about 1.8 degrees; see ``turn_upper_body``.
+UPPER_BODY_PITCH_DEG = 1.8
 #: Everything above this height belongs to the neck opening of the 3BA body.
 NECK_Z_CM = 155.0
 #: Materials the first-person arms keep: skin, the two sleeve layers, and the
@@ -348,7 +347,7 @@ def main(argv=None) -> int:
     for gname in ("body", "shadow"):
         rep = bm.slim_neck(groups[gname])
         print(f"[{gname}] neck slimmed: {rep['moved']} verts, "
-              f"peak {rep['peak']:.1f} cm, top lowered {rep['dropped']:.1f} cm")
+              f"peak {rep['peak']:.1f} cm (full neck height preserved)")
 
     # The retarget gets the body right but drags the garment's neckline out and
     # down over the trapezius (the blazer's neck opening flares from the neck
@@ -356,7 +355,7 @@ def main(argv=None) -> int:
     # keep the per-material vertex order, so re-dress every garment vertex on
     # the shipped body at the *source's* clearance -- the authored collar, V and
     # shoulder pad come back without touching the body. Must run before the
-    # sleeve extension (which then reaches for the glove) and before turn_body.
+    # sleeve extension (which then reaches for the glove) and before turn_upper_body.
     for gname in ("body", "shadow"):
         rep = bm.redress_from_source(groups[gname], model,
                                      mats=("jacket", "jacket2", "necklace"))
@@ -389,16 +388,15 @@ def main(argv=None) -> int:
                             k=COLLAR_K)
         print(f"[{gname}] collar verts lowered: {n}")
 
-    # The 3BA neck column stands ~2 cm forward of the PD2 head-neck axis. The
-    # earlier taper/hide ("align_neck" + "trim_neck") left a hard seam at the
-    # collar and skin wings above the collar back in-game. Instead TURN the whole
-    # body mesh back about the ground pivot so the neck column lands under the
-    # head while the feet stay planted; the body's own neck then rises to meet the
-    # head and fills the collar opening (no taper, no fold). Rigid => seams/tucks
-    # preserved, cannot tear.
+    # The whole-body pitch tilted the legs and still left the upper silhouette
+    # misaligned in the user's in-game comparison. Pitch the upper outfit around
+    # the waist instead: the neck moves onto the heister's head axis, the shoulder
+    # line gets the small measured correction, and the legs stay vertical. Keep
+    # the full-length neck; do not cut it back to fit the collar.
     for gname in ("body", "shadow"):
-        n = bm.turn_body(groups[gname], TURN_BODY_DEG)
-        print(f"[{gname}] body verts turned: {n}")
+        n = bm.turn_upper_body(groups[gname], UPPER_BODY_PITCH_DEG)
+        print(f"[{gname}] upper-body verts pitched: {n} at "
+              f"{UPPER_BODY_PITCH_DEG:.1f} degrees")
 
     # The outfit has no head: Skyrim ships heads separately and Melodic's
     # archives carry none. Do two things about it: never keep the *template's*

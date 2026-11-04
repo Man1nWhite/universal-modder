@@ -1389,6 +1389,59 @@ def turn_body(g: Group, deg: float = 0.8, pivot=(0.0, 0.0, 0.0)) -> int:
     return n
 
 
+def turn_upper_body(g: Group, deg: float = 1.8,
+                    pivot=(0.0, 2.5, 98.0),
+                    z_start: float = 98.0, z_full: float = 118.0) -> int:
+    """Pitch the upper outfit toward the head while leaving the legs upright.
+
+    A whole-mesh pitch also tips the legs and changes the planted stance. Instead,
+    rotate the complete skinned outfit around the waist/pelvis: zero rotation at
+    ``z_start``, a smoothstep handover to the full correction at ``z_full``, then
+    a rigid pitch above it. The ramp spans the waist/skirt join so the transform
+    does not leave a hard crease; body, sleeves, collar and shadow all share it.
+
+    The current correction is 1.8 degrees: the retargeted neck axis is about 2 cm
+    forward of the head axis over roughly 62 cm from the waist, so atan(2/62) is
+    1.85 degrees. Positive angle pitches the upper mesh back (toward -Y), matching
+    the prior measured whole-body correction while avoiding a tilted leg line.
+    """
+    import math
+
+    if z_full <= z_start:
+        raise ValueError("z_full must be above z_start")
+
+    px, py, pz = pivot
+    full = math.radians(deg)
+    touched = 0
+    blend_by_vertex = [0.0] * len(g.verts)
+
+    def blend(z: float) -> float:
+        t = min(1.0, max(0.0, (z - z_start) / (z_full - z_start)))
+        return t * t * (3.0 - 2.0 * t)
+
+    for i, (x, y, z) in enumerate(g.verts):
+        w = blend(z)
+        if w <= 0.0:
+            continue
+        blend_by_vertex[i] = w
+        a = full * w
+        c, sn = math.cos(a), math.sin(a)
+        dy, dz = y - py, z - pz
+        g.verts[i] = (x + px, py + dy * c - dz * sn,
+                      pz + dy * sn + dz * c)
+        touched += 1
+
+    for i, (nx, ny, nz) in enumerate(g.normals):
+        # Normals use the same smooth local rotation as their vertices.
+        w = blend_by_vertex[i]
+        if w <= 0.0:
+            continue
+        a = full * w
+        c, sn = math.cos(a), math.sin(a)
+        g.normals[i] = (nx, ny * c - nz * sn, ny * sn + nz * c)
+    return touched
+
+
 def count_hand_verts(g: Group, threshold: float = 0.5) -> int:
     """Vertices whose dominant influence is a hand bone (hand / finger bones).
 
@@ -1937,8 +1990,7 @@ def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
 def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
               z_lo: float = 157.0, z_full: float = 161.0,
               r_full: float = 8.0, r_stop: float = 14.0,
-              sx: float = 0.55, sy: float = 0.70,
-              z_target: float | None = 160.8, z_ramp: float = 2.0) -> dict:
+              sx: float = 0.55, sy: float = 0.70) -> dict:
     """Slim the neck to the PD2 reference, above the trapezius.
 
     The 3BA body is authored for Skyrim, where the *head* mesh supplied most of
@@ -1955,19 +2007,11 @@ def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
     trapezius and the shoulder line are untouched, ramping in with height
     (``z_lo`` -> ``z_full``) so there is no step at the shoulder.
 
-    The height is cut back as well (``z_target``): the collar's opening is *not*
-    sized for a neck. In the Skyrim source the body ends at 157 cm and the collar
-    carries on 2 cm higher, with the **head mesh** filling the opening above it --
-    so above ~158 cm the garments never had to fit around anything. Measured on
-    the port, the shirt's opening at z 161 sits at 1.4-3.8 cm from the neck axis
-    while the neck is at 3.1-4.3: the neck *cannot* fit, which is why it renders
-    through the collar however the collar is moved. Ending the neck where the
-    source does relative to the collar (just inside its opening, ~160.8) is the
-    faithful fix, and it matches the PD2 reference body, whose neck ends at
-    163.2 with the head covering from there.
-
-    The garment is re-dressed afterwards (``redress_from_source``), so the collar
-    and the lapels come in onto the slimmer, shorter neck with it.
+    This is deliberately a radial-only correction: the neck must retain its
+    full height to meet the heister's head. The in-game reference showed that
+    shortening the body neck to fit the collar opened a visible gap under the
+    jaw. The torso is aligned to the head separately by a small upper-body pitch
+    about the waist (``turn_upper_body``), which keeps the legs upright.
     """
     import math
 
@@ -1998,29 +2042,7 @@ def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
             g.verts[i] = (nx, ny, z)
             touched += 1
 
-    drop = 0.0
-    if z_target is not None:
-        tops = [g.verts[i][2] for mat, base_v, _bi, _t, nv in g.slices
-                if mat in mats for i in range(base_v, base_v + nv)]
-        top = max(tops) if tops else None
-        if top is not None and top > z_target:
-            z_ref = min(z_lo + z_ramp, z_target - 0.5)
-            kz = (z_target - z_ref) / (top - z_ref) if top > z_ref else 1.0
-            for mat, base_v, _bi, _t, nv in g.slices:
-                if mat not in mats:
-                    continue
-                for i in range(base_v, base_v + nv):
-                    x, y, z = g.verts[i]
-                    if z <= z_ref or math.hypot(x - ax, y - ay) > r_stop:
-                        continue
-                    # smooth handover over z_ramp so the shoulder line is a
-                    # continuous surface, then a straight compression above it
-                    t = smooth((z - z_ref) / max(z_ramp, 1e-6)) if z_ramp else 1.0
-                    z_new = z + (z_ref + (z - z_ref) * kz - z) * t
-                    drop = max(drop, z - z_new)
-                    g.verts[i] = (x, y, z_new)
-                    touched += 1
-    return {"moved": touched, "peak": moved, "dropped": drop}
+    return {"moved": touched, "peak": moved}
 
 
 
@@ -2125,7 +2147,7 @@ def redress_from_source(g: Group, model, mats=("jacket", "jacket2"),
     clearance -- is re-applied to the body we actually ship.
 
     Runs before ``extend_sleeves_to_wrist`` (that pass then pulls the cuff to
-    the glove) and before ``turn_body`` (rigid, preserves it).
+    the glove) and before ``turn_upper_body`` (smooth, preserves it).
 
     ``z_fade`` (source units, full effect below the first, none above the
     second) is essential: the Skyrim body **stops at 114.1 units** (157 cm) and

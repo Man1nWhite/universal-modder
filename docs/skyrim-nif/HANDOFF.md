@@ -1,6 +1,6 @@
 # HANDOFF — BusinessWoman (Skyrim 3BA → PAYDAY 2 LAS) — read this first
 
-*Last updated: 2026-11-04, after the forearms redo (`f67f7de`).*
+*Last updated: 2026-11-04, after the waist-pivoted upper-body alignment pass.*
 *Everything here was measured in-session; nothing is inherited from memory alone.*
 
 **Mission:** an equipable full-body "Business Woman" outfit (Skyrim SE 3BA body +
@@ -23,15 +23,15 @@ notes **28–39**. User-side game test: [`in-game-checklist.md`](in-game-checkli
 
 | | |
 |---|---|
-| Branch | `arena/68a9d94f-universal-modder` (active). **Remote head `f67f7de`.** |
-| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `33e5e0cb1e6c80840df416c092c446eb770193a60a860e838b96b7caf75bee46` |
+| Branch | `arena/97ae3b36-universal-modder` (active). |
+| Deliverable | `dist/BusinessWoman_LAS.zip` — 26 entries, sha256 `c89edf9edd3f08289e8d701509048d1477f95083b125d90d449e7d4ff97b3bc8` |
 | Hands | **adapter route** — no hand geometry shipped; build aborts if any vert is >0.5 hand-bone weighted (`count_hand_verts`) |
 | Head | none shipped; template `g_head`/`g_head_lod1` dropped; neck closed with `cap_holes` |
 | Body skin tone | matched to Miranda head diffuse: base `(172,134,106)`, unity gain; shipped `bw_body_df` median `(172,133,106)` |
-| Neck | whole body rigidly turned ~0.8° (`turn_body`); body's own neck fills collar and meets head |
+| Neck | full-height neck kept; upper outfit pitched back 1.8° about waist (`turn_upper_body`) to align to the heister head without tilting legs |
 | Forearms | shirt cuff retracted (9 up / 2.5 inward) + blazer sleeve extended ~3 cm to overlap glove |
 | Bust | source-faithful **1.32×** (`restore_bust`) — do NOT dial back |
-| Gates | pytest **434 passed / 9 skipped / 1 pre-existing fail**; kb **PASS 246**; publish **26 / 0 / 1**; pyflakes clean |
+| Gates | pytest **451 passed / 9 skipped / 1 pre-existing fail**; kb **PASS 246**; publish **26 / 0 / 1**; pyflakes clean |
 
 The single pytest failure, `tests/test_build_models.py::test_retarget_joint_errors_and_palettes`
 (Miranda tpp RightArm ~5.7 cm), is **pre-existing and unrelated** to BusinessWoman. Do not
@@ -96,7 +96,7 @@ x·0.55 y·0.70) → **`redress_from_source`**(blazer + shirt + necklace, k=6
 clearances, body scale ≈1.25, **faded out above 108 source units** — the Skyrim
 body ends at 114.1, so the collar keeps its retargeted shape) → `extend_sleeves_to_wrist`(jacket −2.5 / skin
 −2.2 / shirt +1.0, t_knee 13) → **`tuck_necklace_chain`**(z156, ×0.80) →
-`lower_collar`(z158, k=`COLLAR_K`=0.55, blazer + shirt only) → `turn_body`(0.8°) →
+`lower_collar`(z158, k=`COLLAR_K`=0.55, blazer + shirt only) → `turn_upper_body`(1.8°, smooth waist hinge) →
 `cap_holes`(min_z155, skin-only, max_span14) → `assemble_model(drop g_head/g_head_lod1)`
 → textures (`skin_texture`) → `bw_pack.write_pack` → zip. Body **and** shadow get every
 geometry pass. `extend_blazer_sleeves` and `tuck_shirt_cuffs` are **no longer called**
@@ -111,13 +111,15 @@ is the reference) and the collar kept standing (`COLLAR_K`) — see Round 3 of
 `FIXES-2026-11-04.md`. See `FIXES-2026-11-04.md`, "Round 2".
 
 Key helpers live in `tools/pd2-las/build_models.py` (grep by name; line numbers shift):
-`turn_body`, `weld_open_seams`, `follow_layer_weights`, `tuck_shirt_collar`,
+`turn_upper_body`, `turn_body` (legacy primitive), `weld_open_seams`, `follow_layer_weights`, `tuck_shirt_collar`,
 `extend_sleeves_to_wrist`, `tuck_shirt_sleeves`, `tuck_underarm_skin`, `lower_collar`,
 `cap_holes`, `count_hand_verts`, `restore_bust`. Verification renders:
 `tools/pd2-las/pose_zoom.py` (posed shoulder close-up) and `tools/pd2-las/glove_check.py`
 (sleeve/glove junction with a glove proxy on the hand bone).
 **`align_neck` and `trim_neck` still exist but are UNUSED** (the taper/hide neck was
-rejected in-game; see note 38). Do not wire them back in.
+rejected in-game; see note 38). `turn_body` remains a low-level whole-body helper;
+the current pipeline uses `turn_upper_body` instead. Do not wire `align_neck` or
+`trim_neck` back in.
 
 Skin tone: `tools/pd2-las/skin_texture.py` `REFERENCE_TONE=(172,134,106)`,
 `BODY_TONE_GAIN=1.0`; albedo is **flat** (geometry normals + game lighting supply shading).
@@ -130,7 +132,7 @@ Skin tone: `tools/pd2-las/skin_texture.py` `REFERENCE_TONE=(172,134,106)`,
   the game's gloves + `hnd_forearms` adapter show. Forearm/sleeve/cuff tweaks are garment-only.
 - **Bust stays source-accurate at 1.32×.**
 - **Commit + push, NO PR.** Present the zip when done.
-- Neck: user rejected the taper/hide; the accepted fix is **turn the whole body** (note 38).
+- Neck: the neck must remain full-height to meet the head. The accepted correction from the user's in-game references is **pitch the upper outfit about the waist** (1.8° measured from the ~2 cm neck-axis offset), rather than trimming the neck or tilting the legs. See the latest note in `FIXES-2026-11-04.md`.
 - Skin colour: match **Miranda's head** diffuse, not a generic swatch (note 37).
 
 ---
@@ -147,6 +149,12 @@ Skin tone: `tools/pd2-las/skin_texture.py` `REFERENCE_TONE=(172,134,106)`,
 - **Shirt collar "wings": mitigated (2026-11-04)** — weights follow the blazer + a mild
   collar nip. If they still flare in game, raise the *blazer's* collar, do not shrink the
   shirt further.
+- **Neck/head/shoulder alignment: current focus.** The user supplied in-game front and
+  side screenshots plus a Clover body and the Melodic source outfit for comparison. The
+  neck must reach the head opening; do not shorten it to make the collar appear to fit.
+  Use a small waist-pivoted upper-body pitch so legs stay vertical and the shoulder line
+  is not dragged by a whole-body tilt. Keep those reference images' intent in mind for
+  future iterations; the upload itself is transient and is not checked into Git.
 - **In-game head reads lighter than body albedo** under some scene lighting. The albedo
   match is correct offline; if the user complains, tune body tone to compensate for the
   *in-game* head appearance, not the offline median.
