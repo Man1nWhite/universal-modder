@@ -308,7 +308,7 @@ def main(argv=None) -> int:
     # armhole after the retarget. Tuck that skin behind the jacket (the jacket
     # itself is left alone — welding its overlap edges distorts the sleeve).
     for gname in ("body", "shadow"):
-        n = bm.tuck_underarm_skin(groups[gname])
+        n = bm.tuck_underarm_skin(groups[gname], amount=1.2)
         print(f"[{gname}] underarm skin verts tucked: {n}")
 
     # The white shirt's sleeves (jacket2) are 100% arm-weighted and sit below the
@@ -338,6 +338,18 @@ def main(argv=None) -> int:
         print(f"[{gname}] shirt shoulder verts follow the blazer: {n}")
         n = bm.tuck_shirt_collar(groups[gname])
         print(f"[{gname}] shirt collar verts drawn inside the blazer: {n}")
+
+    # The retarget gets the body right but drags the garment's neckline out and
+    # down over the trapezius (the blazer's neck opening flares from the neck
+    # out to the sleeve), so the shoulders come out bare in game. Both models
+    # keep the per-material vertex order, so re-dress every garment vertex on
+    # the shipped body at the *source's* clearance -- the authored collar, V and
+    # shoulder pad come back without touching the body. Must run before the
+    # sleeve extension (which then reaches for the glove) and before turn_body.
+    for gname in ("body", "shadow"):
+        rep = bm.redress_from_source(groups[gname], model)
+        print(f"[{gname}] garment re-dressed from the source: {rep['moved']} verts "
+              f"(peak {rep['peak']:.1f} cm, body scale {rep['scale']:.3f})")
 
     # Every arm layer stops short of the PD2 hand joint (blazer 6.3 cm, shirt
     # cuff 7.5 cm, bare arm 8 cm) because in Skyrim the wearer's own hands used

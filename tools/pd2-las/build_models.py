@@ -1862,6 +1862,230 @@ def tuck_shirt_collar(g: Group, mats=("jacket2",), z_lo: float = 150.0,
     return touched
 
 
+def give_shoulder_room(g: Group, mats=("jacket",), z_lo: float = 136.0,
+                       z_hi: float = 158.0, x_min: float = 10.0,
+                       x_full: float = 16.0, amount: float = 1.0,
+                       z_fade: float = 4.0) -> int:
+    """Push the blazer's shoulder band outwards, restoring the source clearance.
+
+    In the Skyrim source the blazer's shoulder line sits **1.2 cm above** the
+    3BA body's shoulder at every lateral band (measured: 110.41 vs 109.57,
+    103.44 vs 102.54, 92.26 vs 91.44 units). After the retarget only 0.2-0.5 cm
+    of that survives -- the body and the blazer are skinned to the same bones
+    but with different weights, so the axial spine stretch moved them by
+    slightly different amounts -- and the body's shoulder ends up *outside* the
+    jacket. Offline measurement (`build/poke_through.py`): 1724 skin vertices
+    outside the blazer, 687 of them in the z 140-150 shoulder band. In game
+    that is the bare shoulder plus the beige patches on the upper arm.
+
+    Pushing the garment out along its own normals in the shoulder band gives the
+    blazer its clearance back (a tailor's shoulder pad, 1 cm thick) instead of
+    shaving the body down, which would flatten the deltoid.
+    """
+    import math
+
+    def smooth(t: float) -> float:
+        t = max(0.0, min(1.0, t))
+        return t * t * (3.0 - 2.0 * t)
+
+    touched = 0
+    for mat, base_v, _bi, _nt, nverts in g.slices:
+        if mat not in mats:
+            continue
+        for i in range(base_v, base_v + nverts):
+            x, y, z = g.verts[i]
+            if not (z_lo <= z <= z_hi) or abs(x) < x_min:
+                continue
+            fz = smooth((z - z_lo) / max(z_fade, 1e-6)) * \
+                smooth((z_hi - z) / max(z_fade, 1e-6))
+            fx = smooth((abs(x) - x_min) / max(x_full - x_min, 1e-6))
+            push = amount * fz * fx
+            if push <= 0.0:
+                continue
+            nx, ny, nz = g.normals[i]
+            ln = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
+            g.verts[i] = (x + nx / ln * push, y + ny / ln * push,
+                          z + nz / ln * push)
+            touched += 1
+    return touched
+
+
+def _slice_vertex_order(tris) -> list[int]:
+    """Vertex order ``transfer_group`` gives a source material slice."""
+    order: list[int] = []
+    seen: set[int] = set()
+    for k in range(0, len(tris), 3):
+        a, b, c = tris[k], tris[k + 2], tris[k + 1]
+        for vi in (a, b, c):
+            if vi not in seen:
+                seen.add(vi)
+                order.append(vi)
+    return order
+
+
+def _nearest(query, cloud, k: int, chunk: int = 256):
+    """Brute-force k nearest neighbours (the venv ships no scipy)."""
+    import numpy as np
+
+    idx = np.empty((len(query), k), np.int64)
+    dist = np.empty((len(query), k), np.float64)
+    for s in range(0, len(query), chunk):
+        q = query[s:s + chunk]
+        d = np.linalg.norm(q[:, None, :] - cloud[None, :, :], axis=2)
+        part = np.argpartition(d, k - 1, axis=1)[:, :k]
+        pd = np.take_along_axis(d, part, axis=1)
+        order = np.argsort(pd, axis=1)
+        idx[s:s + chunk] = np.take_along_axis(part, order, axis=1)
+        dist[s:s + chunk] = np.take_along_axis(pd, order, axis=1)
+    return idx, dist
+
+
+def _vertex_normals(verts, faces):
+    import numpy as np
+
+    a, b, c = verts[faces[:, 0]], verts[faces[:, 1]], verts[faces[:, 2]]
+    fn = np.cross(b - a, c - a)
+    vn = np.zeros_like(verts)
+    for i in range(3):
+        np.add.at(vn, faces[:, i], fn)
+    ln = np.linalg.norm(vn, axis=1, keepdims=True)
+    return vn / np.where(ln == 0, 1.0, ln)
+
+
+def _rotation_between(u, v):
+    """Minimal rotation taking unit vector ``u`` onto ``v``."""
+    import numpy as np
+
+    u = u / (np.linalg.norm(u) or 1.0)
+    v = v / (np.linalg.norm(v) or 1.0)
+    c = float(np.clip(u @ v, -1.0, 1.0))
+    if c > 0.999999:
+        return np.eye(3)
+    if c < -0.999999:                      # 180 degrees: any perpendicular axis
+        axis = np.array([1.0, 0.0, 0.0])
+        if abs(u[0]) > 0.9:
+            axis = np.array([0.0, 1.0, 0.0])
+        axis = axis - u * (axis @ u)
+        axis /= np.linalg.norm(axis)
+        return 2.0 * np.outer(axis, axis) - np.eye(3)
+    axis = np.cross(u, v)
+    s = np.linalg.norm(axis)
+    axis /= s
+    K = np.array([[0.0, -axis[2], axis[1]],
+                  [axis[2], 0.0, -axis[0]],
+                  [-axis[1], axis[0], 0.0]])
+    ang = np.arctan2(s, c)
+    return np.eye(3) + np.sin(ang) * K + (1.0 - np.cos(ang)) * (K @ K)
+
+
+def redress_from_source(g: Group, model, mats=("jacket", "jacket2"),
+                        body_mat: str = "skin", neighbours: int = 6,
+                        max_move: float = 12.0, verbose: bool = True) -> dict:
+    """Re-dress the garment on the shipped body using the source's clearances.
+
+    The retarget gets the *body* right (spine, bust, shoulder height all land
+    within a centimetre of the 3BA source) but drags the garment's collar and
+    lapels out and down over the trapezius: in the source the blazer's neckline
+    meets the neck and the shoulders are fully covered, while in the port the
+    neck opening flares out to the sleeve and the body's shoulder blades show
+    through as a band of skin -- the bare shoulders of the in-game screenshots.
+    It is not a weight problem (the openings are identical in the bind pose) and
+    not a clearance problem (the garment is not inside the body; it is *away*
+    from it), so no tuck/inflate pass can close it.
+
+    What is preserved exactly is the *correspondence*: both models keep the
+    per-material vertex order (14 674 blazer / 10 385 shirt vertices, same
+    triangles), so the source vertex of every built vertex is known. Rebuild
+    each garment vertex as
+
+        built_body(j) + scale * (clearance * n_built + R * tangential)
+
+    where ``clearance`` is the signed distance from the source vertex to its
+    nearest source body vertex along that body normal, ``tangential`` is the
+    remaining offset inside the tangent plane, ``R`` the minimal rotation
+    taking the source body normal to the built body normal at the same body
+    vertex ``j``, and ``scale`` the measured body spacing ratio (thin garment
+    over a body that is a few percent larger). The authored garment-to-body
+    relationship -- the tight collar, the V, the shoulder pad, the sleeve
+    clearance -- is re-applied to the body we actually ship.
+
+    Runs before ``extend_sleeves_to_wrist`` (that pass then pulls the cuff to
+    the glove) and before ``turn_body`` (rigid, preserves it).
+    """
+    import numpy as np
+
+    src_meshes = [m for m in model.meshes if m.material == body_mat]
+    src_orders = [_slice_vertex_order(m.triangle_indices) for m in src_meshes]
+    flat = [i for o in src_orders for i in o]
+    S = np.array([model.vertices[i].pos for i in flat], np.float64)
+    SN = np.array([model.vertices[i].normal for i in flat], np.float64)
+    ln = np.linalg.norm(SN, axis=1, keepdims=True)
+    SN = SN / np.where(ln == 0, 1.0, ln)
+
+    bld = [s for s in g.slices if s[0] == body_mat][:len(src_orders)]
+    have = sum(s[4] for s in bld)
+    if have != len(S):
+        raise SystemExit(f"redress: body mismatch built {have} src {len(S)}")
+    B, BN = [], []
+    for mat, base_v, base_i, tris, nv in bld:
+        v = np.array(g.verts[base_v:base_v + nv], np.float64)
+        f = np.asarray(g.faces[base_i // 3:base_i // 3 + tris], np.int64) - base_v
+        B.append(v)
+        BN.append(_vertex_normals(v, f))
+    B = np.concatenate(B)
+    BN = np.concatenate(BN)
+    if len(B) != len(S):        # pragma: no cover - guard for a broken slice
+        raise SystemExit(f"redress: body mismatch built {len(B)} src {len(S)}")
+
+    rng = np.random.default_rng(0)
+    probe = rng.choice(len(S), size=min(1500, len(S)), replace=False)
+    _, d1 = _nearest(S[probe], S, 2)
+    _, d2 = _nearest(B[probe], B, 2)
+    scale = float(np.median(d2[:, 1]) / np.median(d1[:, 1]))
+    if verbose:
+        print(f"  redress: body spacing scale {scale:.4f}")
+
+    moved, peak = 0, 0.0
+    for mat, base_v, base_i, tris, nv in g.slices:
+        if mat not in mats:
+            continue
+        mesh = next((m for m in model.meshes if m.material == mat), None)
+        if mesh is None:
+            continue
+        order = _slice_vertex_order(mesh.triangle_indices)
+        if len(order) != nv:
+            if verbose:
+                print(f"  redress: {mat} order {len(order)} != slice {nv}, skipped")
+            continue
+        P = np.array([model.vertices[i].pos for i in order], np.float64)
+        idx, dist = _nearest(P, S, neighbours)
+        w = 1.0 / (dist + 0.05)
+        w /= w.sum(axis=1, keepdims=True)
+        new = np.empty((nv, 3), np.float64)
+        for vi in range(nv):
+            nn, ww = idx[vi], w[vi]
+            b = ww @ S[nn]
+            n = ww @ SN[nn]
+            n /= np.linalg.norm(n) or 1.0
+            dd = float((P[vi] - b) @ n)
+            tang = P[vi] - b - dd * n
+            bb = ww @ B[nn]
+            nb = ww @ BN[nn]
+            nb /= np.linalg.norm(nb) or 1.0
+            new[vi] = bb + scale * (dd * nb + _rotation_between(n, nb) @ tang)
+        old = np.array(g.verts[base_v:base_v + nv], np.float64)
+        delta = np.linalg.norm(new - old, axis=1)
+        keep = delta <= max_move
+        for vi, p in zip(np.nonzero(keep)[0], new[keep]):
+            g.verts[base_v + int(vi)] = (float(p[0]), float(p[1]), float(p[2]))
+        moved += int(keep.sum())
+        peak = max(peak, float(delta[keep].max()) if keep.any() else 0.0)
+        if verbose:
+            print(f"  redress {mat}: {int(keep.sum())}/{nv} verts re-dressed, "
+                  f"mean {delta[keep].mean():.2f} cm, max {peak:.1f} cm")
+    return {"moved": moved, "peak": peak, "scale": scale}
+
+
 def follow_layer_weights(g: Group, src_mat: str = "jacket",
                          dst_mats=("jacket2",), z_lo: float = 136.0,
                          z_hi: float = 158.0, max_dist: float = 9.0,
