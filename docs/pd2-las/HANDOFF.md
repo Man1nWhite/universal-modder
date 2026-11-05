@@ -6,18 +6,18 @@ built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
 **State:** the pack is built, game-tested, tracked in git, and offline-verified.
 Deliverables in **`dist/`**:
-- `dist/Miranda_LAS.zip` (`5,895,573` bytes, sha256 `1057de877bbfb0da701dd5f96782d9b0852ef52e120e8cb270ff022662c5924e`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
-- `dist/lawson_las.zip` (`9,125,016` bytes, sha256 `4500aa64b3dc107089538e22c6c83002edf0e0767e7b1d24d4ef6d7a1624e4ea`) — Full-body LAS outfit from ME2 Romance.
-- `dist/Miranda_Busty_LAS.zip` (`5,413,602` B) — the same full-body LAS outfit with a
+- `dist/Miranda_LAS.zip` (5,414,012` bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
+- `dist/lawson_las.zip` (9,123,392` bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
+- `dist/Miranda_Busty_LAS.zip` (5,815,039` B) — the same full-body LAS outfit with a
   **larger chest**; its own `LegendaryArmours.miranda_busty` entry, so it installs
   beside `Miranda_LAS.zip` instead of replacing it. Builder
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,
   audit `docs/pd2-las/CHEST-VARIANT.md`, tests `tests/test_bust_variant.py`.
 - Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
-  - `dist/Miranda_L4D2_over_Joy.zip` (`10,667,372` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,240,529` B)
-  - `dist/Miranda_L4D2_over_Clover.zip` (`7,718,388` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,299,496` B)
-  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,223,196` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,793,345` B)
-  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,222,643` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,807,892` B)
+  - `dist/Miranda_L4D2_over_Joy.zip` (10,681,277` B) & `dist/Miranda_Romance_over_Joy.zip` (10,238,712` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (7,732,069` B) & `dist/Miranda_Romance_over_Clover.zip` (7,297,599` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (8,237,483` B) & `dist/Miranda_Romance_over_Bonnie.zip` (7,791,810` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (7,235,982` B) & `dist/Miranda_Romance_over_Sydney.zip` (6,805,595` B)
 
 ## Quickstart
 

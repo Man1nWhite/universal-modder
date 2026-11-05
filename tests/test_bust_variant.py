@@ -517,6 +517,26 @@ def test_subdivision_keeps_the_chest_watertight():
         assert not bv._open_edges(g), f"the morph opened the surface ({seam_x})"
 
 
+def test_subdivision_renormalises_the_midpoint_normals():
+    """A midpoint normal is the *average* of two unit normals, so it is shorter than one.
+
+    `rebuild_normals` only renormalises inside the morph's weight region, so a split vertex outside
+    it (the top of the chest band, z ≈ 150.8) used to ship at |n| = 0.9867: every other normal in the
+    pack is unit length, and shading assumptions in the engine assume they are.
+    """
+    import math
+
+    verts, faces, _ = _closed_chest_fixture(None)
+    # alternate the source normals so every average is visibly short of unit length
+    normals = [(0.0, 0.0, 1.0) if i % 2 else (0.6, 0.8, 0.0) for i in range(len(verts))]
+    g = _fixture_group(verts, faces, normals)
+    added = bv.subdivide_region(g, bv.ChestMorph(), levels=1)
+    assert added > 0, "the fixture has to split, or this proves nothing"
+    lengths = [math.dist((0.0, 0.0, 0.0), n) for n in g.normals]
+    assert min(lengths) > 1.0 - 1e-9, f"non-unit normal {min(lengths):.4f}"
+    assert max(lengths) < 1.0 + 1e-9
+
+
 def test_smooth_region_never_leaks_into_unselected_slices():
     """Fairing must not move vertices in non-body slices (e.g. shadow head/neck)."""
     verts, faces, normals = _closed_chest_fixture(None)

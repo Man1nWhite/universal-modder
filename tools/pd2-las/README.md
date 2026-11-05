@@ -62,7 +62,7 @@ python tools/pd2-las/build_las.py              # extract → inventory → textu
 python tools/pd2-las/build_las.py --stage inventory   # JSON summary on stdout
 python tools/pd2-las/build_models.py --templates /tmp/2bsrc/2B\ -\ LAS/assets/units/2b/skins/2b
                                                    # author miranda.model + fps_miranda.model
-python -m pytest -q tests/                      # 190 tests, run offline
+python -m pytest -q tests/                      # the whole suite, run offline
 ```
 
 The installable test pack is `build/pd2-las/Miranda_LAS/` (tracked zip copies
@@ -87,20 +87,28 @@ and applies `bust_variant.ChestMorph` to the authored third-person groups
 between `transfer_group` and `assemble_model`. The first-person arms are built
 exactly as the base pack builds them — the morph never touches the viewmodel.
 
-**What the morph does.** Two radial domes (one per breast, apex z≈141.5) whose
-falloff `(1 - r2)**2` is zero-slope at the rim, gated forward (nothing behind
-the chest wall or on the flat upper chest) and laterally (nothing past |x|=12.2,
-so the arms cannot be caught). The forward push scales the *existing* protrusion
-measured from the chest wall, so the mass grows instead of the ribcage; a
-midline valley term keeps the two breasts separate, which matters because the
-source chest is a single convex shell with a ~0.6 cm sternum dip.
+**What the morph does.** Two variable-exponent hemispheres (one per breast,
+apex z≈140.95) `(1 - rho)^(q_lo + dq*rho)` — blunt at the apex (q≈0.78), easing
+to q≈1.25–1.40 at the rim — blended 86/14 with a proportional depth push and a
+lateral/posterior breast-root bell. Everything is gated forward (nothing behind
+the chest wall) and laterally (nothing past |x|=13.4, so the arms cannot be
+caught), and a soft sternum contour keeps the two cups separate, which matters
+because the source chest is a single convex shell. The chest is locally
+subdivided first (welded, seam-safe, edges >0.25 cm inside the dome), then the
+moved vertices are faired with 13 normal-projected Laplacian steps so the coarse
+L4D2 facets read as a smooth cup. `docs/pd2-las/CHEST-VARIANT.md` derives every
+constant; `bust_variant.py`'s module docstring is the short version.
 
-Measured with the shipped preset (`cup_gain 0.50`, `round_gain 0.12`,
-`lift 0.7`, `spread 1.2`, `valley 0.85`): front reach 19.98 → 28.84 cm
-(**+8.85 cm** of depth at the apex), breast-to-sternum valley depth
-0.41 → 9.19 cm, 195 of 5,645 body vertices moved, and **zero** vertices moved on
-the back, arms, legs or head. `build/pd2-las/busty_variant_report.json` records
-the same numbers plus every parameter.
+Measured on the shipped preset (`cup_gain 0.382`, `round_gain 0.046`,
+`lift 0.18`, `spread 0.34`, `root_gain 0.70`, `root_spread 0.42`,
+`valley 0.145`, 2 subdivision levels, 13 fairing steps @ 0.32): front reach
+19.98 → **23.21 cm** (+3.23 cm), `g_body` 5,645 → **8,937** vertices,
+`s_body` 9,874 → **13,166**, left/right cup skew 0.63 → 0.21 cm, abdominal
+movement below z=134 cm < 0.01 cm, max edge/UV stretch 1.76x. The full table,
+including the numbers that were *not* met by earlier presets, is in
+`docs/pd2-las/CHEST-VARIANT.md`; `build/pd2-las/busty_variant_report.json`
+records the same measurements plus every parameter of the run that produced the
+tracked zip.
 
 **Safety rails.** The same position-driven pass runs on `g_body`,
 `g_body_lod1` and the body block of `s_body` — those blocks hold bit-identical
@@ -114,8 +122,9 @@ shading the base build shipped.
 .venv/bin/python tools/pd2-las/build_busty_variant.py --valley 0.95     # deeper cleavage
 ```
 
-Previews land in `build/pd2-las/previews/busty_compare_{full,chest}.png`
-(base vs variant, same camera). Like the base pack this is offline-verified
+Previews land in `build/pd2-las/previews/` (`busty_compare_{full,chest}.png`,
+`busty_compare_top_bottom.png` and the two clay sheets; base vs variant, same
+camera). Like the base pack this is offline-verified
 only: it still needs `docs/pd2-las/in-game-checklist.md`, and the ME2 asset
 rights gate applies to it exactly as it does to `Miranda_LAS.zip`.
 

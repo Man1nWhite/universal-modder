@@ -254,7 +254,7 @@ def _pivot_parts(parts, y_piv: float, z_piv: float,
     return out
 
 
-def _render_sheets(before_verts, model_path: Path, unit_dir: Path,
+def _render_sheets(model_path: Path, unit_dir: Path,
                    preview_dir: Path, base_model_path: Path | None = None) -> list[str]:
     """Render before/after comparison sheets (full, chest, top/bottom, clay)."""
     from PIL import Image, ImageDraw
@@ -463,7 +463,7 @@ def build(args) -> int:
     # --- previews + report -------------------------------------------------
     if not args.no_previews:
         report["previews"] = _render_sheets(
-            before["body"], tpp_path, unit_dir, out_root / "previews",
+            tpp_path, unit_dir, out_root / "previews",
             base_model_path=out_root / "miranda.model")
     (out_root / "busty_variant_report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n")

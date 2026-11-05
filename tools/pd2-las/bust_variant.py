@@ -262,7 +262,7 @@ class ChestMorph:
                 best = max(best, (1.0 - (u ** CUP_P_X)) ** 1.5)
         return best
 
-    def _root_bells(self, x: float, y: float, z: float) -> tuple[float, float]:
+    def _root_bells(self, x: float, y: float, z: float) -> float:
         """Posterior/lateral breast-root bell for parts closer to the spine.
 
         Targets the lateral & posterior breast root (``y ≈ 5.3..18.5``,
@@ -274,13 +274,12 @@ class ChestMorph:
         rz = RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN
         wz = abs(z - APEX_Z) / rz
         if wz >= 1.0:
-            return (0.0, 0.0)
+            return 0.0
         z_bell = (1.0 - (wz ** 2.4)) ** 1.85
 
         y_side = smootherstep((y - 5.3) / 3.5) * (1.0 - smootherstep((y - 14.5) / 4.2))
         x_side = smootherstep((abs(x) - 5.8) / 3.6) * smootherstep((13.4 - abs(x)) / 1.4)
-        side_root = y_side * x_side * z_bell
-        return (side_root, 0.0)
+        return y_side * x_side * z_bell
 
     def displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
         """Bind-pose displacement ``(dx, dy, dz)`` for a vertex at ``(x, y, z)`` (cm)."""
@@ -301,8 +300,8 @@ class ChestMorph:
         w_pos = self.weight(x, z, +1)
         w_neg = self.weight(x, z, -1)
         hx = self._horizontal_cup(x)
-        side_root, upper_pec = self._root_bells(x, y, z)
-        if w_pos == 0.0 and w_neg == 0.0 and hx == 0.0 and side_root == 0.0 and upper_pec == 0.0:
+        side_root = self._root_bells(x, y, z)
+        if w_pos == 0.0 and w_neg == 0.0 and hx == 0.0 and side_root == 0.0:
             return (0.0, 0.0, 0.0)
 
         env = gate * ceil
@@ -383,7 +382,7 @@ class ChestMorph:
         if c == 0.0:
             return 0.0
         dome = self._combined_dome(self.weight(x, z, +1), self.weight(x, z, -1))
-        side_root, upper_pec = self._root_bells(x, y, z)
+        side_root = self._root_bells(x, y, z)
         z_rad_wt = 0.0
         if RADIAL_Z_LO < z < RADIAL_Z_HI:
             if z < RADIAL_Z:
@@ -391,7 +390,7 @@ class ChestMorph:
             else:
                 u = (z - RADIAL_Z) / (RADIAL_Z_HI - RADIAL_Z)
             z_rad_wt = 0.35 * (6.5 * u * ((1.0 - u) ** 2.3)) * self._horizontal_cup(x)
-        root_wt = 0.65 * max(side_root, upper_pec)
+        root_wt = 0.65 * side_root
         return min(1.0, max(dome, z_rad_wt, root_wt) * self.front_gate(y) * self.lateral_gate(x) * c)
 
     def in_region(self, x: float, y: float, z: float) -> bool:
@@ -594,9 +593,16 @@ def subdivide_region(group, morph: ChestMorph, levels: int = 1,
                                 0.5 * (p0[1] + p1[1]),
                                 0.5 * (p0[2] + p1[2])))
             n0, n1 = group.normals[lo], group.normals[hi]
-            group.normals.append((0.5 * (n0[0] + n1[0]),
-                                  0.5 * (n0[1] + n1[1]),
-                                  0.5 * (n0[2] + n1[2])))
+            # the average of two unit normals is shorter than 1, and midpoints outside the morph's
+            # weight region never reach rebuild_normals(): normalise here or the mesh ships
+            # non-unit normals (12 of them did, down to 0.9867)
+            nlen = math.sqrt((n0[0] + n1[0]) ** 2 + (n0[1] + n1[1]) ** 2 + (n0[2] + n1[2]) ** 2)
+            if nlen > 1e-9:
+                group.normals.append(((n0[0] + n1[0]) / nlen,
+                                      (n0[1] + n1[1]) / nlen,
+                                      (n0[2] + n1[2]) / nlen))
+            else:
+                group.normals.append((0.0, 1.0, 0.0))
             if has_uvs:
                 group.uvs.append((0.5 * (ulo[0] + uhi[0]),
                                   0.5 * (ulo[1] + uhi[1])))

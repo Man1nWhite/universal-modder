@@ -111,11 +111,19 @@ Default preset (`cup_gain = 0.382`, `round_gain = 0.046`, `lift = 0.18`,
 | `s_body` vertex count | `9,874` | **`13,166` (`+3,292` chest vertices)** |
 | Max linear edge / UV stretch (`g_body`) | `1.00x` | **`1.76x`** (down from `2.47x`) |
 | Left vs right cup peak symmetry (`z ≈ 140.7`) | `0.63 cm` skew | **`0.21 cm`** |
-| Two-cup sternum separation (`y_cup - y(0)`) | `0.40 cm` | **`0.62–0.83 cm` smooth U-saddle** |
+| Two-cup sternum separation (`y_cup - y(0)`) | `−0.23 cm` (single shell: the sternum is *in front* of the cups) | **`0.62–0.83 cm` smooth U-saddle** |
 | Orientation breaks (`g_body`, `s_body`) | `0` | **`0`** |
 | Abdominal `|dy|` below `z = 134 cm` | `0.00 cm` | **`< 0.01 cm`** (was `+5.10 cm`) |
 | Unselected shadow-slice vertex drift | `0.00 cm` | **`0.00 cm`** (was `1.084 cm`) |
 | Outfit-grid icon (`miranda_busty.texture`) | 2D face UV crop | **Distinct `256×256` 3/4 upper-body portrait (`DXT5`)** |
+
+The base column is measured on the tracked `dist/Miranda_LAS.zip`, not on a fresh retarget, so it
+describes the pack the variant actually sits beside.
+
+**Runtime status: never loaded in game.** `BUILD_INFO.json` carries
+`"runtime_verified": false`, exactly like the base pack — every number here is offline evidence
+(measured geometry, rendered sheets, the tests below). `docs/pd2-las/in-game-checklist.md` is the
+gate, and the ME2 asset-rights note applies to this pack as it does to `Miranda_LAS.zip`.
 
 ## Previews
 
@@ -136,7 +144,9 @@ emits all five sheets by name:
 
 ## Verification
 
-* `tests/test_bust_variant.py` — **22 passed**: morph contract, continuity across
+* `tests/test_bust_variant.py` — 22 test functions, **21 passing on a clean checkout** plus the
+  end-to-end geometry one, which skips without the extracted 2B templates at `/tmp/2bsrc`:
+  morph contract, continuity across
   the edit rim, taut-catsuit cleavage contour, slice containment, open-boundary
   collar-lip pinning during fairing, watertight welded subdivision across seams,
   out-of-repo `_display_path`, and end-to-end regression checks on
@@ -145,6 +155,17 @@ emits all five sheets by name:
   stretch, spine-side root expansion, and exact `BUILD_INFO.json` `front_y_max_cm`
   agreement across all vertices).
 * `um publish check` & `um kb check --index` — clean pass.
+
+## Rebuilding the tracked zip
+
+The tracked `dist/Miranda_Busty_LAS.zip` was built before the subdivision midpoints were
+renormalised (`bust_variant.subdivide_region` averaged two unit normals into one 0.9867 long, and 12
+vertices at the top of the chest band shipped that way — see the normalisation test). A rebuild
+therefore produces *different bytes*: every `payload_sha256` in `BUILD_INFO.json`, both `.sha256`
+sidecars, the sizes in `docs/pd2-las/HANDOFF.md` and the `AGENTS.md` table all change.
+`tests/test_las_pack.py::test_handoff_and_agents_quote_the_tracked_pack_bytes` fails until they are
+updated, which is the point. Rebuild with `bash tools/pd2-las/bootstrap.sh` on a machine that has
+node (it unpacks `references/2b.rar` for the templates).
 
 ## Key lessons (do not repeat)
 
