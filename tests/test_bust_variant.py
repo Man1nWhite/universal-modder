@@ -737,3 +737,53 @@ def test_smooth_region_pins_open_boundary_edges():
     assert g.verts[3] == origin[3]
     assert g.verts[2] != origin[2]
 
+
+
+def test_shipped_pack_drawable_normals_are_unit_length():
+    """Every drawable normal in the shipped LAS packs must be unit length.
+
+    A Diesel vertex normal is a unit vector; the engine only normalises what it decodes for
+    lighting, so a short normal dims and bends the shading of every facet that shares the
+    vertex. `bust_variant.subdivide_region` averaged two unit normals into a shorter one and
+    `rebuild_normals` only renormalised inside the morph weight region, so 12 vertices at the
+    top of the chest band (z ≈ 150.8–151.0 cm) shipped at |n| = 0.9867 … 0.9985 — in `g_body`,
+    `g_body_lod1` and `s_body` at once, 36 bad normals in `dist/Miranda_Busty_LAS.zip`. The
+    code was fixed first and the artifact kept the old bytes for a release, because rebuilding
+    needs the 2B templates; this test is what stops that from happening again.
+    """
+    import numpy as np
+
+    import diesel_model as dm
+
+    cases = [
+        (BASE_ZIP, "Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model"),
+        (BASE_ZIP, "Miranda_LAS/assets/units/miranda/skins/miranda/fps_miranda.model"),
+        (VARIANT_ZIP, "Miranda_Busty_LAS/assets/units/miranda_busty/skins/miranda_busty/"
+                      "miranda_busty.model"),
+        (VARIANT_ZIP, "Miranda_Busty_LAS/assets/units/miranda_busty/skins/miranda_busty/"
+                      "fps_miranda_busty.model"),
+    ]
+    if not all(pack.is_file() for pack, _ in cases):
+        pytest.skip("dist packs not built")
+
+    checked = 0
+    for pack, entry in cases:
+        with zipfile.ZipFile(pack) as z:
+            mf = dm.ModelFile.read(z.read(entry))
+        for s in mf.by_type(dm.MODEL_DATA):
+            md = dm.decode_model_data(s.payload)
+            if md.get("version") != 3 or not md.get("atoms"):
+                continue
+            gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+            normals = np.asarray(geo["normals"], dtype=np.float64)
+            if not len(normals):
+                continue
+            lengths = np.linalg.norm(normals, axis=1)
+            bad = int((np.abs(lengths - 1.0) > 1e-5).sum())
+            assert not bad, (
+                f"{entry}: {bad} of {len(lengths)} normals are not unit length "
+                f"(|n| = {lengths.min():.4f} … {lengths.max():.4f}); the shipped pack predates "
+                f"the normalisation fix — rebuild it (docs/pd2-las/CHEST-VARIANT.md)")
+            checked += 1
+    assert checked >= 6, f"only {checked} drawables inspected; the pack layout changed"

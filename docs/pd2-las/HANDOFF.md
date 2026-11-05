@@ -6,9 +6,9 @@ built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
 **State:** the pack is built, game-tested, tracked in git, and offline-verified.
 Deliverables in **`dist/`**:
-- `dist/Miranda_LAS.zip` (5,414,012` bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
-- `dist/lawson_las.zip` (9,123,392` bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
-- `dist/Miranda_Busty_LAS.zip` (5,815,039` B) — the same full-body LAS outfit with a
+- `dist/Miranda_LAS.zip` (5,414,012 bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
+- `dist/lawson_las.zip` (9,123,392 bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
+- `dist/Miranda_Busty_LAS.zip` (5,815,197 bytes, sha256 `91dbd3271de478b2cbc76c170de8d81385e0188b59fbece9d79f941758d21a00`) — the same full-body LAS outfit with a
   **larger chest**; its own `LegendaryArmours.miranda_busty` entry, so it installs
   beside `Miranda_LAS.zip` instead of replacing it. Builder
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,
@@ -76,6 +76,13 @@ las_pack.write_pack + zip → Miranda_LAS.zip`. Textures: VTF→DDS via
 
 - Models byte-round-trip through `ModelFile.read → write`; builds are
   byte-reproducible (zip uses fixed 2020-01-01 timestamps).
+  Caveat (2026-11-05): a clean `bootstrap.sh` still yields a *different*
+  base pack, sha `02053dc7…` where the tracked one is `99b9ecc7…`, because
+  `flush_groups` emits the authored MATERIAL / MATERIAL_GROUP sections a second
+  time — the tracked base pack even carries a legacy extra set (18 redundant
+  sections, ~1 KB, geometry byte-identical). Fix and numbers in
+  `docs/audits/2026-11-05-las-pack-audit.md`; apply it on the next full
+  rebuild — it re-ships both LAS packs and the four L4D2 head packs.
 - ≤3 weights/vertex, weights sum to 1; UVs stored as `1 − v_src` (p2mt
   convention) — source V is intentionally tiled, out-of-[0,1] is normal.
 - Winding `(a,b,c)→(a,c,b)`, unit scale exactly 2.54; shadow signed

@@ -144,7 +144,7 @@ emits all five sheets by name:
 
 ## Verification
 
-* `tests/test_bust_variant.py` — 22 test functions, **21 passing on a clean checkout** plus the
+* `tests/test_bust_variant.py` — 24 test functions, **23 passing on a clean checkout** plus the
   end-to-end geometry one, which skips without the extracted 2B templates at `/tmp/2bsrc`:
   morph contract, continuity across
   the edit rim, taut-catsuit cleavage contour, slice containment, open-boundary
@@ -152,20 +152,31 @@ emits all five sheets by name:
   out-of-repo `_display_path`, and end-to-end regression checks on
   `dist/Miranda_Busty_LAS.zip` (distinct DDS icon, vertex count, `< 0.05 cm`
   abdominal neutrality, `< 2.0 cm` chest triangle edges, `< 1.80x` global UV/edge
-  stretch, spine-side root expansion, and exact `BUILD_INFO.json` `front_y_max_cm`
-  agreement across all vertices).
+  stretch, spine-side root expansion, exact `BUILD_INFO.json` `front_y_max_cm`
+  agreement across all vertices, and unit-length normals in every shipped drawable —
+  the check that would have caught the pre-2026-11-05 artifact).
 * `um publish check` & `um kb check --index` — clean pass.
 
-## Rebuilding the tracked zip
+## The tracked zip is rebuilt (2026-11-05)
 
-The tracked `dist/Miranda_Busty_LAS.zip` was built before the subdivision midpoints were
-renormalised (`bust_variant.subdivide_region` averaged two unit normals into one 0.9867 long, and 12
-vertices at the top of the chest band shipped that way — see the normalisation test). A rebuild
-therefore produces *different bytes*: every `payload_sha256` in `BUILD_INFO.json`, both `.sha256`
-sidecars, the sizes in `docs/pd2-las/HANDOFF.md` and the `AGENTS.md` table all change.
-`tests/test_las_pack.py::test_handoff_and_agents_quote_the_tracked_pack_bytes` fails until they are
-updated, which is the point. Rebuild with `bash tools/pd2-las/bootstrap.sh` on a machine that has
-node (it unpacks `references/2b.rar` for the templates).
+The previously tracked `dist/Miranda_Busty_LAS.zip` predated the subdivision-midpoint
+renormalisation: `bust_variant.subdivide_region` averaged two unit normals into one 0.9867 long, and
+12 vertices at the top of the chest band (`z ≈ 150.8–151.0`, |n| = 0.9867 … 0.9985) shipped that way
+in `g_body`, `g_body_lod1` and `s_body` — 36 non-unit normals per pack. The code was fixed earlier;
+the artifact was not, because the 2B templates were unavailable. It is now rebuilt:
+
+| | before | after |
+|---|---|---|
+| `dist/Miranda_Busty_LAS.zip` | 5,815,039 B, `3043fcba…` | **5,815,197 B, `91dbd3271de478b2cbc76c170de8d81385e0188b59fbece9d79f941758d21a00`** |
+| non-unit drawable normals | 36 (max \|1−\|n\|| = 1.33 %) | **0** (max \|1−\|n\|| = 2e-8) |
+| `g_body` vertex normals | — | 2,775 changed (morphed band only), plus 2,776 / 2,770 `uvdir_u` / `uvdir_v` |
+| geometry, topology, weights, atoms, UVs | — | byte-identical |
+| armor-skin icon | — | 336 of 65,536 px differ by ≤ 66/255 (chest shading) |
+
+Two consecutive rebuilds produce identical bytes (deterministic). `tests/test_bust_variant.py::
+test_shipped_busty_drawable_normals_are_unit_length` now pins the artifact, so a stale zip fails the
+suite instead of shipping. Rebuild with `bash tools/pd2-las/bootstrap.sh` on a machine with node (it
+unpacks `references/2b.rar` for the templates).
 
 ## Key lessons (do not repeat)
 
