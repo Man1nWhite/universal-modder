@@ -66,16 +66,22 @@ APEX_Z = 139.0
 #: fades out slowly toward the collarbone. Equal radii produced the horizontal
 #: "shelf" seen in the first previews.
 RADIUS_X = 7.0
-RADIUS_Z_UP = 5.0
-RADIUS_Z_DOWN = 8.5
+#: The lateral falloff is asymmetric: the medial flank is wider, so each breast
+#: fills toward the sternum and the pair reads as two separate round masses
+#: instead of one wide ledge. Measured on the cross-section, the inner pole used
+#: to gain only half of what the apex did.
+RADIUS_X_IN = 9.2
+RADIUS_X_OUT = 4.2
+RADIUS_Z_UP = 11.0
+RADIUS_Z_DOWN = 8.0
 #: The breast alone has to stop somewhere, and a single dome that ends at the
 #: rim leaves a visible *shoulder* on the upper chest — the side view showed the
 #: upper pole as a flat shelf ending in a crease at the collarbone. A second,
 #: much wider and much shallower dome underneath it (the fullness of the chest
 #: above and between the breasts) carries the surface down to the base mesh
 #: gradually, so the upper pole fades out instead of ending.
-SOFT_SCALE = 2.0
-SOFT_WEIGHT = 0.25
+SOFT_SCALE = 1.35
+SOFT_WEIGHT = 0.30
 SOFT_POWER = 1.8
 #: Top of the apex plateau on the source mesh — the reference depth that
 #: normalises ``rel`` (how close a vertex is to the tip of the mass).
@@ -91,22 +97,24 @@ GATE_LO = 6.5
 GATE_HI = 13.0
 #: Lateral gate: the underarm seam and the outer torso edge stay exactly where
 #: the base build put them, so the arms cannot be caught by the swell.
-X_FULL = 11.0
-X_ZERO = 13.0
+X_FULL = 9.5
+X_ZERO = 12.0
 #: Cleavage: fraction of the *added* forward push removed on the midline.
-VALLEY = 0.70
-VALLEY_W = 2.1
+VALLEY = 0.78
+VALLEY_W = 2.4
 #: Dome profile exponent. ``(1 - r2)**p`` with p > 1 keeps a broad, full centre
 #: and a fast fade at the rim; p = 2 ramps too gently and reads as a plateau.
 DOME_POWER = 1.6
 #: Safety ceiling: no other body part lives between the cap rim and the head, so
 #: this only ever guards the shared shadow-caster vertex block. The field fades
 #: out over ``CEILING_FADE`` centimetres below it — a hard cut-off leaves a ridge.
-Z_CEILING = 154.0
-CEILING_FADE = 5.0
+Z_CEILING = 152.5
+CEILING_FADE = 6.0
+#: Nothing at or above this height may move: the collar seam lives at ~152.2.
+HEAD_Z = 152.0
 
 #: Cup-size preset (see the module docstring for what each term does).
-DEFAULT_CUP_GAIN = 0.62
+DEFAULT_CUP_GAIN = 0.58
 DEFAULT_ROUND_GAIN = 0.14
 DEFAULT_LIFT = 0.5
 DEFAULT_SPREAD = 0.7
@@ -166,9 +174,13 @@ class ChestMorph:
         self.smooth_strength = float(smooth_strength)
 
     # ---------------------------------------------------------------- profile
+    def _radial_x(self, x: float, side: int) -> float:
+        """Lateral radius: wider toward the midline than toward the armpit."""
+        return RADIUS_X_IN if (x - side * APEX_X) * side < 0 else RADIUS_X_OUT
+
     def _falloff(self, x: float, z: float, side: int, scale: float,
                  power: float) -> float:
-        u = (x - side * APEX_X) / (RADIUS_X * scale)
+        u = (x - side * APEX_X) / (self._radial_x(x, side) * scale)
         rz = (RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN) * scale
         w = (z - APEX_Z) / rz
         r2 = u * u + w * w
@@ -204,6 +216,13 @@ class ChestMorph:
 
     def displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
         """Bind-pose displacement for a vertex at ``(x, y, z)`` (cm)."""
+        if z >= HEAD_Z:
+            # Hard stop at the collar: the soft ceiling alone still handed the
+            # topmost collar vertices ~50 um of motion. The field is already
+            # ~0.006 there, so the cut is a 60 um step across one edge - far
+            # below anything a renderer can resolve - and it keeps the head and
+            # neck strictly untouched.
+            return (0.0, 0.0, 0.0)
         ceil = self.ceiling(x, z)
         if ceil == 0.0:
             return (0.0, 0.0, 0.0)
@@ -262,7 +281,7 @@ class ChestMorph:
         if abs(x) > X_ZERO or self.front_gate(y) < 0.75:
             return False
         for side in (+1, -1):
-            u = (x - side * APEX_X) / (RADIUS_X * SUBDIVIDE_MARGIN)
+            u = (x - side * APEX_X) / (self._radial_x(x, side) * SUBDIVIDE_MARGIN)
             rz = (RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN) * SUBDIVIDE_MARGIN
             w = (z - APEX_Z) / rz
             if u * u + w * w < 1.0:
@@ -393,7 +412,10 @@ def _patch_faces(group, morph: ChestMorph) -> tuple[set[int], int, int]:
         tri = group.faces[fi]
         if any(v in shared for v in tri):
             continue
-        if not any(morph.in_region(*group.verts[v]) for v in tri):
+        # a face is split only when *every* corner is inside the region: taking
+        # any corner lets a chain of faces march out of the chest, and the edges
+        # of those faces put new vertices on the waist (z ~122)
+        if not all(morph.in_region(*group.verts[v]) for v in tri):
             continue
         if _crosses_uv_seam(group.uvs, tri):
             continue

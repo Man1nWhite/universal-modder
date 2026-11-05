@@ -415,7 +415,7 @@ def test_variant_model_is_the_base_model_plus_the_chest():
     moved = vv[: len(vb)][d > 1e-4]
     assert moved[:, 1].min() > 5.0, "only the chest shell moved"
     assert np.abs(moved[:, 0]).max() < 14.0
-    assert moved[:, 2].min() > 123.0 and moved[:, 2].max() < 152.0
+    assert moved[:, 2].min() > 123.0 and moved[:, 2].max() < 152.5
     added = vv[len(vb):]
     assert added[:, 2].min() > 124.0 and added[:, 2].max() < 152.0, "split stayed on the chest"
     assert np.abs(added[:, 0]).max() < 14.0

@@ -142,6 +142,15 @@ def _model_parts(model_path: Path, texture, positions=None):
     raise SystemExit(f"g_body drawable not found in {model_path}")
 
 
+def _shift_y(part, dy: float):
+    """Shift a part's positions along y (drawn space: use -dy to move the bust
+    toward the middle of the frame at 90°)."""
+    pos = part[0]
+    moved = pos.copy()
+    moved[:, 1] -= dy
+    return moved
+
+
 def _render_sheets(before_verts, model_path: Path, unit_dir: Path,
                    preview_dir: Path, base_model_path: Path | None = None) -> list[str]:
     """Before/after sheets: full body and close-up chest, same camera both sides."""
@@ -157,16 +166,25 @@ def _render_sheets(before_verts, model_path: Path, unit_dir: Path,
 
     title_font = rmp.FONT_REG_12
     sheets = (
-        # (name, width, height, z_center, scale, angles, z_min_clip)
-        ("busty_compare_full", 360, 560, 92.0, 2.6, (0.0, 34.0), -1e9),
-        ("busty_compare_chest", 430, 470, 138.0, 13.5, (0.0, 30.0, 90.0), 124.0),
+        # (name, width, height, z_center, scale, angles, z_min_clip, views)
+        # `views` overrides (scale, y_shift) per angle. The 90° cell is pulled
+        # back and shifted because the bust sits a long way in front of the body
+        # centre: at the front view's zoom the chest ran off the left edge, which
+        # is why the side cell used to show the shoulder instead of the profile.
+        ("busty_compare_full", 360, 560, 92.0, 2.6, (0.0, 34.0), -1e9, None),
+        ("busty_compare_chest", 430, 470, 138.0, 13.5, (0.0, 30.0, 90.0), 124.0,
+         {90.0: (8.5, 14.0)}),
     )
-    for name, w, h, zc, scale, angles, clip in sheets:
+    for name, w, h, zc, scale, angles, clip, views in sheets:
         cells = []
         for label, parts in (("base Miranda_LAS", before_parts),
                              ("Miranda_Busty_LAS", after_parts)):
             for deg in angles:
-                img = rmp.rasterize_parts(parts, w, h, deg, zc, scale, z_min_clip=clip)
+                s_deg, shift = (views or {}).get(deg, (scale, 0.0))
+                shifted = [(_shift_y(p, shift),) + p[1:] if shift else p
+                           for p in parts]
+                img = rmp.rasterize_parts(shifted, w, h, deg, zc, s_deg,
+                                          z_min_clip=clip)
                 cells.append((label, deg, img))
         canvas = Image.new("RGB", (w * len(angles), (h + 20) * 2), (16, 19, 26))
         draw = ImageDraw.Draw(canvas)

@@ -60,30 +60,36 @@ invisible; only the morph makes it matter.
 ### 2. Two-scale falloff
 
 ```
-main  = (1 - r2)^1.6,   r2 = ((x ∓ 6.0)/7.0)² + ((z - 139.0)/r_z)²
-r_z   = 5.0 above the apex, 8.5 below it                       per breast
-soft  = same shape at 2.0× the size, weight 0.25, power 1.8      chest fullness
-w±    = (main + 0.25·soft) / 1.25                               normalised: apex = 1
-gate  = smoothstep((y - 6.5)/6.5) · smoothstep((13.0 - |x|)/2.0)
-ceil  = smoothstep((154 - z)/5)                                 soft upper bound
+r_x   = 9.2 toward the midline, 4.2 toward the armpit           asymmetric in x
+u     = (x ∓ 6.0) / (r_x · side) · s                            s = dome scale
+r2    = u² + ((z - 139.0)/r_z)²
+main  = (1 - r2)^1.6
+r_z   = 11.0 above the apex, 8.0 below it                       per breast
+soft  = same shape at 1.35× the size, weight 0.30, power 1.8     chest fullness
+w±    = (main + 0.30·soft) / 1.30                               normalised: apex = 1
+gate  = smoothstep((y - 6.5)/6.5) · smoothstep((12.0 - |x|)/2.5)
+ceil  = smoothstep((152.5 - z)/6)                               soft upper bound
+head  = 0 for z ≥ 152.0                                         hard collar stop
 depth = max(0, y - 5.0)                                         existing protrusion
-gain  = 0.62 + 0.14 · min(1, depth/15)                          cup + fullness
-valley= 1 - 0.70 · exp(-(x/2.1)²)                               sternum damping
+gain  = 0.58 + 0.14 · min(1, depth/15)                          cup + fullness
+valley= 1 - 0.78 · exp(-(x/2.4)²)                               sternum damping
 
-dy = (w+ + w-) · gate · ceil · gain · depth · valley
-dz = 0.5 · ((w+ + w-) · gate · ceil)²                           bounded lift
-dx = 0.7 · (w+ - w-) · gate · ceil                              zero on the midline
+dy = (w+ + w-) · gate · ceil · head · gain · depth · valley
+dz = 0.5 · ((w+ + w-) · gate · ceil · head)²                    bounded lift
+dx = 0.7 · (w+ - w-) · gate · ceil · head                       zero on the midline
 ```
 
 Why each term exists:
 
 | Term | Reason |
 | --- | --- |
-| asymmetric `r_z` (5.0 up / 8.5 down) | a breast's fullness sits **below** the nipple and its upper pole fades toward the collarbone. The mirrored version put the mass above the apex and the tangent into the neckline |
+| asymmetric `r_x` (9.2 medial / 4.2 lateral) | a circular footprint leaked mass into the armpit: at 90° the side read as a long pointed wedge, and the bust width grew by only +0.68 cm because the swell was going *sideways* instead of *forward*. Narrowing the lateral radius and keeping the medial one wide puts the volume in front and lets the two forms meet near the sternum |
+| asymmetric `r_z` (11.0 up / 8.0 down) | a breast's fullness sits **below** the nipple, but a tight `r_z_up` makes the top release abruptly (measured −2.4 to −3.9 cm/cm of reach against the base's own −0.1 to −1.2), which reads as "pushed up". Widening the upper radius flattens the upper flank to ≈−1.2 cm/cm, matching the base |
 | `soft` dome | a single dome has to end somewhere; at this cup size the rim landed near the neckline as a ridge. The wide shallow dome carries the upper chest down to the base mesh |
 | normalising by `1.25` | `cup_gain` keeps meaning "fraction of the existing depth" whatever the soft weight is |
 | `dz ∝ fall²` | the first version used `dz = lift · fall`, which raised the whole upper pole by as much as the apex and flattened the top of the breast into a shelf |
 | `ceil` smoothstep | `Z_CEILING` used to clip the field to zero in one step, leaving a horizontal ridge across the upper chest |
+| `head` hard stop | the soft ceiling alone still handed the topmost collar vertices (~z 152.2) about 50 µm of motion. The field is already ~0.006 there, so cutting it at `HEAD_Z = 152.0` is a 60 µm step across one edge — unresolvable, and it keeps the neck strictly untouched |
 | forward gate | the back, flanks and the flat upper chest at the neckline never move |
 | lateral gate → 0 at `\|x\| = 13` | the underarm seam and sleeve are 2–3 cm from the chest; an ungated swell caught them and read as a boxy armpit |
 | `gain · depth` (not a uniform push) | scales the *existing* bust, so the ribcage and waist do not inflate |
@@ -102,16 +108,17 @@ the base build shipped it.
 
 ## Preset and measured result
 
-`cup_gain 0.62`, `round_gain 0.14`, `lift 0.5`, `spread 0.7`, `valley 0.70`,
+`cup_gain 0.58`, `round_gain 0.14`, `lift 0.5`, `spread 0.7`, `valley 0.78`,
 subdivision level 1 (red/green), 3 relaxation steps @ 0.32:
 
 | Metric | Base | Variant |
 | --- | --- | --- |
-| front reach at the apex (y) | 19.98 cm | **30.46 cm** (+10.5) |
-| apex position | x 5.59, z 140.0 | x 6.12, z 139.7 |
-| chest width at the apex height | 23.59 cm | 24.27 cm |
-| body vertices | 5,645 | **6,168** (+523 from the split) |
-| chest silhouette | 18.6 → 20.0 → 17.9 | 18.6 → 23.7 → 28.4 → 26.2 → 23.4 → 18.1 → 14.2 (z = 136…148) |
+| front reach at the apex (y) | 19.98 cm | **29.95 cm** (+9.97) |
+| apex position | x 5.59, z 140.0 | x 6.01, z 140.7 |
+| chest width at the apex height | 23.59 cm | 23.59 cm (unchanged: the lateral gate now holds the ribcage) |
+| body vertices | 5,645 | **6,010** (+365 from the split) |
+| chest silhouette (side) | 19.98 → 17.80 → 12.54 (z = 140…150) | 29.95 → 24.04 → 12.60 |
+| cross-section gain at z 137, by \|x\| band | — | 0–1 +3.36, 2–3 +6.23, 5–6 +10.57, 9–10 +6.46, 10–11 +3.18, 11–12 +0.03 |
 
 The silhouette is monotone into the apex and back out again, with no step: the
 upper pole reaches the neckline at 13.4 cm against a base 14.2 cm at the same
@@ -120,7 +127,18 @@ height, i.e. the swell has decayed to nothing before it touches the collar.
 Containment checks (all zero vertices moved): back of the torso, both arms
 (`|x| > 14`), legs (`z < 115`), head and neck (`z > 152`). The chest band has
 **no open edges** after the split (asserted in `tests/test_bust_variant.py`), and
-the added vertices all lie inside `|x| < 14`, `124 < z < 152`.
+the added vertices all lie inside `|x| < 14`, `124 < z < 152` — measured span
+after the current build: `z 129.97 … 147.05`, `|x| ≤ 10.88`.
+
+The 90° preview cell uses its own `(scale 8.5, y_shift 14.0)` override
+(`_render_sheets(..., views={90.0: (...)})`). Without it the bust runs out of
+frame and the cell shows the shoulder instead of the profile.
+
+Note on the side view: the base mesh's own profile is a stiff, padded prow
+(catsuit over a low-poly torso) — reach drops 19.98 → 12.54 cm between z 140 and
+150 in the *unmodified* model. The variant scales that shape, so the upper
+shoulder slope is inherited from the base rather than introduced by the morph;
+flattening it further would mean rebuilding the shoulder, not the chest.
 
 Preview sheets (tracked, base vs variant on one camera):
 [`previews/busty_compare_chest.png`](previews/busty_compare_chest.png) (front, 30°,
@@ -183,6 +201,22 @@ base's shorter vertex array collapses the subdivided panels onto the origin.
    *same displacement* (matched on their pre-morph position), not merely similar
    ones, or the chest seam opens into a hairline tear when the swell stretches
    it.
+
+10. **`_patch_faces` must split only when *every* corner is in the region.**
+    With `any(...)` the patch marched one ring at a time down the torso: the
+    widened soft dome put vertices at z≈122 (below the 124 guard) and the waist
+    started to budge. `all(...)` confines the split to the chest band. Both the
+    face test and the vertex test use the same asymmetric `in_region`.
+11. **Do not measure cleavage depth with a band `max(y)`.** Taking the maximum
+    `y` over a ±2 cm strip around the midline sweeps the inner *slopes* too, so
+    the number tracks the whole contour and saturates — it reported a bogus
+    1.1 cm valley and sent one iteration chasing a defect that did not exist.
+    Use a per-`|x|` cross-section instead (see the table above).
+12. **The side "wedge" was the lateral footprint, not the depth.** A circular
+    `r_x = 7.0` put as much displacement into the armpit as into the sternum.
+    At 90° that reads as a long pointed prow and the bust grows in width
+    instead of reach (+0.68 cm before, +0.0 cm after the gate holds, with all
+    the extra going forward).
 
 ## Still open
 
