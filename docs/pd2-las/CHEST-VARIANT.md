@@ -63,20 +63,21 @@ invisible; only the morph makes it matter.
 r_x   = 9.2 toward the midline, 4.2 toward the armpit           asymmetric in x
 u     = (x ∓ 6.0) / (r_x · side) · s                            s = dome scale
 r2    = u² + ((z - 139.0)/r_z)²
-main  = (1 - r2)^1.6
-r_z   = 11.0 above the apex, 8.0 below it                       per breast
-soft  = same shape at 1.35× the size, weight 0.30, power 1.8     chest fullness
-w±    = (main + 0.30·soft) / 1.30                               normalised: apex = 1
-gate  = smoothstep((y - 6.5)/6.5) · smoothstep((12.0 - |x|)/2.5)
+main  = (1 - r2)^0.5
+r_z   = 14.0 above the apex, 8.0 below it                       per breast
+soft  = same shape at 2.8× the size, weight 0.62, power 1.8      chest fullness
+w±    = (main + 0.62·soft) / 1.62                               normalised: apex = 1
+gate  = smoothstep((y - 6.5)/6.5) · smoothstep((13.0 - |x|)/2.5)
 ceil  = smoothstep((152.5 - z)/6)                               soft upper bound
 head  = 0 for z ≥ 152.0                                         hard collar stop
 depth = max(0, y - 5.0)                                         existing protrusion
-gain  = 0.58 + 0.14 · min(1, depth/15)                          cup + fullness
+gain  = 0.50 + 0.14 · min(1, depth/15)                          cup + fullness
 valley= 1 - 0.78 · exp(-(x/2.4)²)                               sternum damping
 
-dy = (w+ + w-) · gate · ceil · head · gain · depth · valley
-dz = 0.5 · ((w+ + w-) · gate · ceil · head)²                    bounded lift
-dx = 0.7 · (w+ - w-) · gate · ceil · head                       zero on the midline
+band  = smoothstep((z-126)/2) · smoothstep((152-z)/3)          edit volume
+dy = (w+ + w-) · gate · ceil · head · band · gain · depth · valley
+dz = 0.5 · ((w+ + w-) · gate · ceil · head · band)²             bounded lift
+dx = 0.7 · (w+ - w-) · gate · ceil · head · band                zero on the midline
 ```
 
 Why each term exists:
@@ -108,15 +109,15 @@ the base build shipped it.
 
 ## Preset and measured result
 
-`cup_gain 0.58`, `round_gain 0.14`, `lift 0.5`, `spread 0.7`, `valley 0.78`, relaxation 3 @ 0.12,
+`cup_gain 0.50`, `round_gain 0.14`, `lift 0.5`, `spread 0.7`, `valley 0.78`, relaxation 3 @ 0.12,
 subdivision level 1 (red/green), 3 relaxation steps @ 0.32:
 
 | Metric | Base | Variant |
 | --- | --- | --- |
-| front reach at the apex (y) | 19.98 cm | **30.37 cm** (+10.39) |
+| front reach at the apex (y) | 19.98 cm | **31.78 cm** (+11.79) |
 | apex position | x 5.59, z 140.0 | x 6.01, z 140.7 |
 | chest width at the apex height | 23.59 cm | 23.59 cm (unchanged: the lateral gate now holds the ribcage) |
-| body vertices | 5,645 | **6,060** (+415 from the split) |
+| body vertices | 5,645 | **6,064** (+419 from the split) |
 | chest silhouette (side) | 19.98 → 17.80 → 12.54 (z = 140…150) | 30.37 → 22.59 → 12.26 |
 | cross-section gain at z 137, by \|x\| band | — | 0–1 +3.36, 2–3 +6.23, 5–6 +10.57, 9–10 +6.46, 10–11 +3.18, 11–12 +0.03 |
 
@@ -240,6 +241,29 @@ base's shorter vertex array collapses the subdivided panels onto the origin.
     sample (320 matched -> 286) and the score improved without the render
     changing. Measure texel density in **spatial bins** instead — that compares
     subdivided and coarse geometry at the same place.
+
+16. **The 90-degree view was a chamfer, and only the side view showed it.**
+    Measured as a silhouette fill fraction (quarter-ellipse = 0.785, straight
+    chamfer = 0.500): the upper pole scored **0.420**. The falloff was a narrow
+    dome plus a weak soft term, which reads fine head-on but produces one
+    continuous diagonal from apex to shoulder in profile — a shelf, not a breast.
+    Widen the soft dome instead of raising the gain: `soft_scale 2.8`,
+    `soft_weight 0.62`, `r_z_up 14.0`, `dome_power 0.5` scores **0.569** *and*
+    reaches further (+11.79 cm vs +10.39). Volume and roundness are not a
+    trade-off here; the narrow dome was costing both.
+17. **A wider dome needs an explicit edit band.** At 2.8x the skirt reached
+    z~117 (below the waist seam) and the collar. `smooth_region` pins on *weight
+    alone*, so a collar vertex at weight 0.006 was still dragged 10 um by a
+    neighbour inside the chest. `BAND_LO/BAND_HI` (126/152) is now applied to the
+    field **and** the relaxation, with 2 cm / 3 cm easing so no step lands on the
+    chest (the field is under 1.5 cm at the hem edge and already zero at the
+    collar).
+18. **The lateral gate produced 3.3x texel stretch at |x| = 10.** Measured
+    across the armpit the field fell 2.47 cm per half-centimetre — a cliff, and
+    the coarse armpit triangles stretched to cover it. `X_FULL/X_ZERO`
+    9.5/12.0 -> 10.5/13.0 halves the worst local slope to 1.89. Keep `X_ZERO` at
+    or below 13.0: at 13.2 six arm vertices leave the containment box (by
+    1-140 um, but the test is a hard zero).
 
 ## Still open
 

@@ -72,7 +72,7 @@ RADIUS_X = 7.0
 #: to gain only half of what the apex did.
 RADIUS_X_IN = 9.2
 RADIUS_X_OUT = 4.2
-RADIUS_Z_UP = 11.0
+RADIUS_Z_UP = 14.0
 RADIUS_Z_DOWN = 8.0
 #: The breast alone has to stop somewhere, and a single dome that ends at the
 #: rim leaves a visible *shoulder* on the upper chest — the side view showed the
@@ -80,8 +80,8 @@ RADIUS_Z_DOWN = 8.0
 #: much wider and much shallower dome underneath it (the fullness of the chest
 #: above and between the breasts) carries the surface down to the base mesh
 #: gradually, so the upper pole fades out instead of ending.
-SOFT_SCALE = 1.35
-SOFT_WEIGHT = 0.30
+SOFT_SCALE = 2.8
+SOFT_WEIGHT = 0.62
 SOFT_POWER = 1.8
 #: Top of the apex plateau on the source mesh — the reference depth that
 #: normalises ``rel`` (how close a vertex is to the tip of the mass).
@@ -97,14 +97,14 @@ GATE_LO = 6.5
 GATE_HI = 13.0
 #: Lateral gate: the underarm seam and the outer torso edge stay exactly where
 #: the base build put them, so the arms cannot be caught by the swell.
-X_FULL = 9.5
-X_ZERO = 12.0
+X_FULL = 10.5
+X_ZERO = 13.0
 #: Cleavage: fraction of the *added* forward push removed on the midline.
 VALLEY = 0.78
 VALLEY_W = 2.4
 #: Dome profile exponent. ``(1 - r2)**p`` with p > 1 keeps a broad, full centre
 #: and a fast fade at the rim; p = 2 ramps too gently and reads as a plateau.
-DOME_POWER = 1.6
+DOME_POWER = 0.5
 #: Safety ceiling: no other body part lives between the cap rim and the head, so
 #: this only ever guards the shared shadow-caster vertex block. The field fades
 #: out over ``CEILING_FADE`` centimetres below it — a hard cut-off leaves a ridge.
@@ -112,9 +112,21 @@ Z_CEILING = 152.5
 CEILING_FADE = 6.0
 #: Nothing at or above this height may move: the collar seam lives at ~152.2.
 HEAD_Z = 152.0
+#: Edit band actually allowed to move, in z (cm).
+#
+# The front gate and the soft dome were sized for the narrow version; once the
+# dome widened to 2.8x its skirt reached z~117 (below the waist seam) and the
+# collar, and the *relaxation* dragged 5.75,10.67,152.11 by 10 um even though the
+# field left it alone. The band is a hard clamp applied to the field and to the
+# relaxation both, and its edges ease in from 149/128 so no step lands on the
+# chest: the field is under 1.5 cm at the hem edge and already zero at the collar.
+BAND_LO = 126.0
+BAND_HI = 152.0
+BAND_FADE_LO = 2.0
+BAND_FADE_HI = 3.0
 
 #: Cup-size preset (see the module docstring for what each term does).
-DEFAULT_CUP_GAIN = 0.58
+DEFAULT_CUP_GAIN = 0.50
 DEFAULT_ROUND_GAIN = 0.14
 DEFAULT_LIFT = 0.5
 DEFAULT_SPREAD = 0.7
@@ -223,7 +235,10 @@ class ChestMorph:
             # below anything a renderer can resolve - and it keeps the head and
             # neck strictly untouched.
             return (0.0, 0.0, 0.0)
-        ceil = self.ceiling(x, z)
+        band = self.band(z)
+        if band == 0.0:
+            return (0.0, 0.0, 0.0)
+        ceil = self.ceiling(x, z) * band
         if ceil == 0.0:
             return (0.0, 0.0, 0.0)
         w_pos = self.weight(x, z, +1)
@@ -245,6 +260,16 @@ class ChestMorph:
         dz = self.lift * fall * fall
         dx = self.spread * (w_pos - w_neg) * gate
         return (dx, dy, dz)
+
+    def band(self, z: float) -> float:
+        """1 inside the editable chest band, easing to 0 at its edges.
+
+        See ``BAND_LO``/``BAND_HI``: the dome's own skirt is wider than the band,
+        and the relaxation can move anything it is allowed to touch.
+        """
+        lo = smoothstep((z - BAND_LO) / BAND_FADE_LO)
+        hi = smoothstep((BAND_HI - z) / BAND_FADE_HI)
+        return lo * hi
 
     def ceiling(self, x: float, z: float) -> float:
         """Soft upper bound, 1 on the bust and 0 at ``Z_CEILING``.
@@ -635,7 +660,11 @@ def smooth_region(group, morph: ChestMorph, iterations: int, strength: float,
         for x, y in ((wa, wb), (wa, wc), (wb, wa), (wb, wc), (wc, wa), (wc, wb)):
             adj.setdefault(x, set()).add(y)
 
-    weight = {w: morph.weight_at(*verts[idx[0]]) for w, idx in members.items()}
+    # The relaxation may only touch what the *band* allows. Weight alone is not
+    # enough: with the wide soft dome a collar vertex could sit at weight 0.006
+    # and still be pulled by a neighbour well inside the chest.
+    weight = {w: morph.weight_at(*verts[idx[0]]) * morph.band(verts[idx[0]][2])
+              for w, idx in members.items()}
     movable = {w: wt > pin_below for w, wt in weight.items()}
     if not any(movable.values()):
         return 0
