@@ -913,3 +913,52 @@ def test_shipped_pack_drawable_normals_are_unit_length():
                 f"the normalisation fix — rebuild it (docs/pd2-las/CHEST-VARIANT.md)")
             checked += 1
     assert checked >= 6, f"only {checked} drawables inspected; the pack layout changed"
+
+
+def test_hem_blend_pulls_the_outer_step_back_without_touching_the_cup():
+    """The reported "step on the right of the chest" is the *outer end of the placket hem*.
+
+    The hem is a folded garment edge at `z ≈ 146.2`; the field pushes its upper face and its
+    outer end (|x| ≈ 7 … 10, where the placket meets the side seam) further forward than the
+    fold behind it, so the fold's round bevel turns into a flat facet that lights as a shelf —
+    clearest in clay at 20 px/cm, front and 25° yaw, on the +x cup. A 0.9 cm lateral average
+    cannot reach across that end, so the hem blend also carries a wider tap pair there plus a
+    vertical tap across the fold.
+
+    This pins the two things that make it a fix rather than a nudge: the push at the hem's
+    upper face and outer end comes *back* (0.05 … 0.26 cm), and nothing else moves — the apex
+    still sees the analytic field to the bit, so the chest mass is untouched.
+    """
+    morph = bv.ChestMorph()
+
+    # the outer end of the hem is pulled back, most of all where the facet showed (|x| ~ 7.5)
+    for x, least in ((2.0, 0.05), (3.5, 0.05), (7.5, 0.15)):
+        for z in (145.8, 146.0, 146.2):
+            raw = morph._raw_displacement(x, 18.0, z)[1]
+            blended = morph.displacement(x, 18.0, z)[1]
+            assert raw - blended > least, (x, z, raw, blended)
+
+    # and the lateral spread across the seam band is what stretched the bevel, so it shrinks
+    step = 0.05
+    xs = [7.5 + i * step for i in range(41)]  # |x| 7.5 … 9.5, straight across the seam
+    for z in (145.6, 146.0, 146.4):
+        raw = [morph._raw_displacement(x, 18.0, z)[1] for x in xs]
+        blended = [morph.displacement(x, 18.0, z)[1] for x in xs]
+        raw_span = max(raw) - min(raw)
+        assert raw_span > 1.2, f"the raw field really does shear the seam at z={z}"
+        assert max(blended) - min(blended) < 0.9 * raw_span, (z, raw_span)
+
+    # smooth in x: an average cannot add a cliff of its own
+    blended = [morph.displacement(x, 18.0, 146.0)[1] for x in xs]
+    raw = [morph._raw_displacement(x, 18.0, 146.0)[1] for x in xs]
+    max_step_blended = max(abs(b - a) for a, b in zip(blended, blended[1:])) / step
+    max_step_raw = max(abs(b - a) for a, b in zip(raw, raw[1:])) / step
+    assert max_step_blended <= max_step_raw * 1.02
+
+    # local: the envelope ends above and below the hem, and the apex is exactly the raw field
+    for z in (145.0, 148.0, 149.5):
+        for x in (-4.0, 0.0, 2.0, 7.5):
+            assert morph.displacement(x, 18.0, z) == morph._raw_displacement(x, 18.0, z), (x, z)
+    for x in (-5.05, -3.0, 0.0, 3.0, 5.05):
+        for z in (138.0, 140.95, 143.0):
+            assert morph.displacement(x, 19.0, z) == morph._raw_displacement(x, 19.0, z), (x, z)

@@ -271,8 +271,68 @@ p99 188 → 205), and the zipper emblem at the placket reads taller. That is wha
 under a fixed texture does; attenuating the sculpt over the emblem to protect it would flatten the
 cup, which is the larger artefact.
 
+## The step on the right of the chest (2026-11-05, third pass)
+
+Reported from the shipped previews as *"there is a step on a chest, it should be smooth"*, on the
+viewer-right (i.e. **+x**) cup. Localising it took three tries, because the obvious suspects were
+not guilty:
+
+* **per-vertex normal deviation** in the chest box is *lower* in the variant than in stock
+  (mean 1.2° vs 8.1°; only three vertices > 40° either way) — a dead end;
+* **edge dihedral** around the keyhole hem (`|x − 2| < 1.6, y > 15.5, 145.5 < z < 147.8`) does
+  show the hem's piping bevel sharpened (`8` edges > 120°, max 179.3°, against the stock's `2`,
+  max 156.7°), but fixing those numbers alone did not move what the eye sees;
+* **two shells poking through each other** was ruled out properly: after welding by position the
+  body is three shells, and a Möller–Trumbore edge/triangle sweep finds **0** intersections between
+  non-adjacent ones in either pack.
+
+What the defect actually is: the field pushes the hem's **upper face and outer end** (|x| ≈ 7 … 10,
+where the placket edge meets the side seam) further forward than the fold behind it, so the hem's
+2.1 cm of forward relief lands as a *flat facet* with a hard top and side edge — a shelf that lights
+up in clay at 20 px/cm from the front and at 25° yaw. The lateral blend from the second pass
+(`HEM_BLEND_X = 0.9`) cannot reach across that end, and it does nothing at all for the shear across
+the fold itself.
+
+**Fix (field only, no fairing):** `ChestMorph.displacement` now also carries
+
+* `HEM_BLEND_Z = 1.2 cm` — three vertical taps across the fold, so the hem's upper face does not
+  outrun the fold behind it (that is where the shelf's top edge came from);
+* `HEM_WIDE_X = 2.1 cm` — a second, wider lateral tap pair, faded in only over
+  `|x| ∈ 6.8 … 10.4`, i.e. exactly the hem's outer end.
+
+Both average the *correction* and stay inside the hem's existing z envelope, so the apex still sees
+the analytic field **bit for bit** (asserted in
+`test_hem_blend_pulls_the_outer_step_back_without_touching_the_cup`): `depth_gain_cm` 3.23,
+`front_y_max_cm` [19.98, 23.21] and `width_cm` [25.47, 25.48] are unchanged from the second pass.
+Lateral spread across the seam at the hem falls 7.5 … 12 % (|x| 7.5–9.5: ratios 0.89 / 0.76 / 0.70
+at z = 145.6 / 146.0 / 146.4), and the push at the hem's outer end comes back 0.05 … 0.26 cm.
+
+**Three repairs were measured and rejected — do not retry them.** A Laplacian `relax_creases` over
+newly sharpened edges does converge (`faired 31 vertices that creased the placket hem`) but stretches
+the short fold edges to **2.43x**, breaking the pack's own 1.80x UV/edge budget that keeps the
+honeycomb hexes clean (the shipped build sits at 1.756x), and repeated rounds cascade
+(10 → 0 → 4 → 2 → 0 edges per round) without moving the dihedral count. A y-only version of the same
+pass (equalise the forward push across each sharpened edge, never touch x/z) is worse still — 2.33x
+stretch and 20 chest edges > 120° — because the equalised vertex now shears against the neighbours it
+was not paired with. Pushing the vertical blend to `HEM_BLEND_Z = 2.0` flattens the hem a little
+further but puts the same edge at 1.96x, i.e. the same budget breach by a different route. And a
+lateral band-limit across the *vertical* side seam (|x| ≈ 8.3, z 131 … 150) sounds right but is inert
+below z ≈ 145 where the field is linear in x (curvature < 1e-3 cm): it is folded into the wide hem tap
+instead of shipped as a separate pass that does nothing.
+
+Rendered evidence: `docs/previews/13_…_chest.png` (0°/30°/45°/60°/90°) and
+`14_…_top_below.png` (58° above/below); the clay A/B used for the call (committed vs this build,
+front and 25° yaw, 20 px/cm, `center=(5, 18.5, 141.5)`) is reproducible with
+`render_mod_previews.rasterize_parts(..., pitch_deg=0.0)`.
+
 ## Key lessons (do not repeat)
 
+0. **"Make it smooth" is a stretch-budget problem, not a dihedral problem.** Every pass that
+   *faired* the crease the user pointed at — Laplacian or y-only, 1 round or 14 — fixed or ignored
+   the angle while pushing short fold edges to 2.33–2.43x, i.e. breaking the 1.80x UV/edge budget
+   that keeps the honeycomb hexes clean, and the shipped build is at 1.756x with only 0.044x of
+   headroom. Band-limit the *field* (smooth by construction, no edge lengthened) or leave it alone;
+   and check `max_stretch` after every such experiment, because the archive test will.
 1. **Do not re-run the base `Miranda_LAS` build.** `dist/Miranda_LAS.zip` is
    treated as immutable; `build_busty_variant.py` falls back directly to reading
    `miranda.model` from `dist/Miranda_LAS.zip` when building into a clean `--out`

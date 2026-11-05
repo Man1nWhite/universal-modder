@@ -107,8 +107,10 @@ Both packs: 20 entries, every entry timestamp `2020-01-01 00:00:00`, sidecars co
    across the hem (three taps 0.9 cm apart inside a smooth z envelope, correction gated by
    `lateral_gate` so it cannot leak into the sleeve — `test_built_variant_model…` caught that when the
    gate was missing). Hem-band dihedral mean/p90 9.6°/19.9° → 9.2°/18.4°, `depth_gain_cm` and
-   `front_y_max_cm` unchanged. Final artifact: **5,815,250 B,
-   `abfeafbb46548c5689fb97f821146434484de0096fa0ce82b74ca1876d819efc`**.
+   `front_y_max_cm` unchanged. A follow-up pass then removed the hard step down the outside of the
+   +x cup (see `CHEST-VARIANT.md`): the field is band-limited vertically across the hem and
+   laterally across the vertical side seam, and no fairing pass is used. Final artifact:
+   **5,815,174 B, `52f4c461a35e06320a3da6ec4af73774ccf8400c9994c80c97da0723658cd24a`**.
 
 ## Found, deliberately left
 

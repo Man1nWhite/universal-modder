@@ -69,6 +69,14 @@ RADIUS_Z_UP = 8.85
 RADIUS_Z_DOWN = 6.16
 #: Lateral band-limit of the forward push across the placket hem (cm).
 HEM_BLEND_X = 0.9
+#: Vertical (z) band-limit of the same push. The hem is a *horizontal* fold and the field
+#: collapses across it (dy falls ~0.55 cm per cm of z between 145 and 148), which is what
+#: shears the fold; averaging across z keeps the two faces moving together.
+HEM_BLEND_Z = 1.2
+#: Second, wider lateral tap for the same hem, used only over |x| in `HEM_WIDE_BAND`: the end of
+#: the hem is where the field is steepest in x, and 0.9 cm of smoothing cannot reach across it.
+HEM_WIDE_X = 2.1
+HEM_WIDE_BAND = (6.8, 10.4)
 SOFT_SCALE = 1.12
 SOFT_WEIGHT = 0.24
 SOFT_POWER = 1.85
@@ -286,13 +294,22 @@ class ChestMorph:
     def displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
         """Bind-pose displacement ``(dx, dy, dz)`` for a vertex at ``(x, y, z)`` (cm).
 
-        Forward motion is *laterally band-limited* across the placket hem (three taps
-        ``HEM_BLEND_X`` apart, faded in and out by a smooth z envelope). The hem is the
-        straight garment edge at ``z = 146.2`` that closes the keyhole: the raw field pushes
-        it 0.75 cm at the sternum and 2.0 cm at the cups, so the straight edge bowed into a
-        notch, which the overhead views showed plainly. Averaging laterally cannot introduce
-        a lateral step (the blend is smooth in x by construction) and the z envelope keeps it
-        local, so the cleavage below the hem is untouched.
+        Forward motion is *band-limited* wherever the raw field would shear a modelled
+        crease apart, in three places:
+
+        * laterally across the placket hem (``HEM_BLEND_X``) so the straight garment edge at
+          ``z = 146.2`` stops bowing into a notch — the raw field pushes it 0.75 cm at the
+          sternum but 2.0 cm at the cups;
+        * vertically across the same hem (``HEM_BLEND_Z``), because the field collapses there
+          (``dy`` falls ~0.55 cm per cm of z) and that shear had turned the hem's piping bevel
+          into a 179° knife edge / hard step across the right cup;
+        * laterally across the vertical side seam (``SIDE_BLEND_X``, ``SIDE_BAND``), where the
+          same gradient stretched the seam's 0.55 cm bevel into a wide flat facet — the other
+          half of the step seen down the outside of the +x cup.
+
+        All three average the *correction*, never the base value, and every one is faded by a
+        smooth 2-D envelope, so no new step can be introduced at the edge of a blend and the
+        apex (|x| ~ 5, z ~ 141) — and with it the chest mass — is untouched.
         """
         dx, dy, dz = self._raw_displacement(x, y, z)
         w = (smootherstep((z - 145.0) / 1.2) * smootherstep((147.9 - z) / 1.3))
@@ -300,11 +317,27 @@ class ChestMorph:
             return (dx, dy, dz)
         dy_l = self._raw_displacement(x - HEM_BLEND_X, y, z)[1]
         dy_r = self._raw_displacement(x + HEM_BLEND_X, y, z)[1]
+        dy_d = self._raw_displacement(x, y, z - HEM_BLEND_Z)[1]
+        dy_u = self._raw_displacement(x, y, z + HEM_BLEND_Z)[1]
         # the taps can reach *inside* the lateral gate from a vertex *outside* it, so the
         # correction — never the base value — carries the gate; otherwise the blend would
         # leak a fraction of the neighbour's push into the sleeve (|x| >= X_ZERO).
-        correction = 0.25 * dy_l + 0.5 * dy + 0.25 * dy_r - dy
-        return (dx, dy + w * correction * self.lateral_gate(x), dz)
+        lateral = 0.25 * dy_l + 0.25 * dy_r - 0.5 * dy
+        vertical = 0.25 * dy_d + 0.25 * dy_u - 0.5 * dy
+        dy = dy + w * (lateral + vertical) * self.lateral_gate(x)
+
+        # The hem's outer end (|x| ~ 7 … 10, where the placket meets the side seam) is the
+        # steepest part of the bow, and 0.9 cm of smoothing cannot reach across it; a second,
+        # wider tap pair is faded in only there. Away from the hem this field is linear in x
+        # (curvature < 1e-3 cm), so an average would be a no-op anyway — this branch is inert
+        # outside the envelope by construction.
+        lo_x, hi_x = HEM_WIDE_BAND
+        wide = (smootherstep((abs(x) - lo_x) / 1.0) * smootherstep((hi_x - abs(x)) / 1.2))
+        if wide > 0.0:
+            wy_l = self._raw_displacement(x - HEM_WIDE_X, y, z)[1]
+            wy_r = self._raw_displacement(x + HEM_WIDE_X, y, z)[1]
+            dy += w * wide * (0.25 * wy_l + 0.25 * wy_r - 0.5 * dy) * self.lateral_gate(x)
+        return (dx, dy, dz)
 
     def _raw_displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
         """The analytic field without the placket-hem lateral blend (see `displacement`)."""
