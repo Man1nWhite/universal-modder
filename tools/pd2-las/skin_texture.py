@@ -558,8 +558,8 @@ def build_hands_texture(donor_dir: Path, out_dir: Path, res: int,
     nm[..., 3] = 128
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "bw_hands_df.texture").write_bytes(encode_bc3_mips(rgba))
-    (out_dir / "bw_hands_nm.texture").write_bytes(encode_bc3_mips(nm))
+    (out_dir / "outfit_hands_df.texture").write_bytes(encode_bc3_mips(rgba))
+    (out_dir / "outfit_hands_nm.texture").write_bytes(encode_bc3_mips(nm))
     return rgba, nm
 
 
@@ -631,23 +631,23 @@ def main(argv=None) -> int:
             normal = _downsample(normal)
 
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "bw_body_df.texture").write_bytes(encode_bc3_mips(diffuse))
-    (args.out / "bw_body_nm.texture").write_bytes(encode_bc3_mips(normal))
+    (args.out / "outfit_body_df.texture").write_bytes(encode_bc3_mips(diffuse))
+    (args.out / "outfit_body_nm.texture").write_bytes(encode_bc3_mips(normal))
     from PIL import Image
     Image.fromarray(diffuse[..., :3]).resize((768, 768), Image.LANCZOS).save(
-        args.out / "bw_body_df_preview.png")
+        args.out / "outfit_body_df_preview.png")
     Image.fromarray(normal[..., :3]).resize((768, 768), Image.LANCZOS).save(
-        args.out / "bw_body_nm_preview.png")
+        args.out / "outfit_body_nm_preview.png")
     if not args.no_preview:
         # the preview splats texel colours back into 3D, so both sides must
         # describe the same grid; at out-res < res, previews use the full bake
         if diffuse.shape[0] == bake["coverage"].shape[0]:
-            render_preview(bake, diffuse, args.out / "bw_body_on_mesh.png")
+            render_preview(bake, diffuse, args.out / "outfit_body_on_mesh.png")
         else:
             preview_bake = {k: v for k, v in bake.items()}
             render_preview(preview_bake, build_diffuse(bake, np.random.default_rng(args.seed)),
-                           args.out / "bw_body_on_mesh.png")
-    print(f"wrote {args.out}/bw_body_df.texture and bw_body_nm.texture")
+                           args.out / "outfit_body_on_mesh.png")
+    print(f"wrote {args.out}/outfit_body_df.texture and outfit_body_nm.texture")
     return 0
 
 

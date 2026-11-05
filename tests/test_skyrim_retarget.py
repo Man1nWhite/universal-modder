@@ -1,4 +1,4 @@
-"""Tests for the Skyrim-outfit -> PAYDAY 2 LAS authoring path.
+"""Tests for the Skyrim clothing -> PAYDAY 2 LAS authoring path.
 
 Two things are worth pinning down offline, and both use the real files:
 
@@ -40,7 +40,7 @@ needs_templates = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 def meshes(tmp_path_factory) -> Path:
-    out = tmp_path_factory.mktemp("melodic")
+    out = tmp_path_factory.mktemp("source")
     with zipfile.ZipFile(MESH_ZIP) as zf:
         for name in zf.namelist():
             if name.lower().endswith(".nif"):

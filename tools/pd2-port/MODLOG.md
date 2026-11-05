@@ -4,7 +4,7 @@
 > the measured check results, the open problem and the workflow traps. This
 > journal is the history behind it.
 
-## 2026-11-04 — BusinessWoman: forearms redo — hide the shirt cuff + overlap the glove with the blazer sleeve (NEW)
+## 2026-11-04 — SkyrimOutfit: forearms redo — hide the shirt cuff + overlap the glove with the blazer sleeve (NEW)
 
 - **Report:** "Now fix forearms." Latest in-game shots STILL show a white ring at the
   wrist and a gap between the blazer sleeve and the blue game glove, even after the
@@ -27,7 +27,7 @@
   pytest 434 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 26 / 0 / 1; pyflakes clean.
 
-## 2026-11-04 — BusinessWoman: neck redo — TURN the whole body instead of tapering/hiding the neck
+## 2026-11-04 — SkyrimOutfit: neck redo — TURN the whole body instead of tapering/hiding the neck
 
 - **Report:** in-game shots of the taper/hide neck fix were bad: a hard pale-head /
   tan-body seam at the collar in front, tan skin "wings" poking above the collar at the
@@ -49,7 +49,7 @@
   pytest 433 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 26 / 0 / 1; pyflakes clean.
 
-## 2026-11-04 — BusinessWoman: match body skin colour to Miranda's head texture
+## 2026-11-04 — SkyrimOutfit: match body skin colour to Miranda's head texture
 
 - **Report:** user asked to make the skin textures' colour closer to Miranda's head
   texture colour. The exposed body skin (neck, chest, legs) read too light / pink
@@ -61,7 +61,7 @@
 - **Measured.** Skin-masked median of `miranda_head_df.texture` = **(172,134,106)**
   (the face swatch agrees at 172,133,106). Set `REFERENCE_TONE=(172,134,106)` and
   `BODY_TONE_GAIN=1.0` so the body albedo base IS the head skin tone.
-- **Verified.** Re-baked the body skin and decoded the SHIPPED zip: `bw_body_df`
+- **Verified.** Re-baked the body skin and decoded the SHIPPED zip: `outfit_body_df`
   skin median = (172,133,106) vs Miranda head (172,134,106) — a 1/255 match; a
   side-by-side swatch is indistinguishable. +1 regression test pinning the bake base
   tone to the Miranda head skin median (±4/255) so it cannot drift again.
@@ -70,7 +70,7 @@
   pytest 432 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 26 / 0 / 1; pyflakes clean.
 
-## 2026-11-04 — BusinessWoman: fix forearms — the white wrist ring was SHIPPED SOURCE HANDS; enforce the adapter route
+## 2026-11-04 — SkyrimOutfit: fix forearms — the white wrist ring was SHIPPED SOURCE HANDS; enforce the adapter route
 
 - **Report:** user asked "Fix foreams" (forearms). In-game shots show a **white ring at
   the wrist** between the blazer sleeve end and the blue game glove, plus tan hands.
@@ -95,7 +95,7 @@
   pre-existing Miranda failure; kb PASS 246; publish 26 / 0 / 1; pyflakes clean.
   +2 `count_hand_verts` regression tests.
 
-## 2026-11-04 — BusinessWoman: fix the neck position — recenter + taper onto the PD2 head-neck axis
+## 2026-11-04 — SkyrimOutfit: fix the neck position — recenter + taper onto the PD2 head-neck axis
 
 - **Report:** user asked "Fix the neck position." With the template head attached
   offline, the outfit showed a hard horizontal skin **shelf** across the front of the
@@ -127,7 +127,7 @@
   pytest 429 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 26 / 0 / 1; pyflakes clean. +3 `align_neck` regression tests.
 
-## 2026-11-04 — BusinessWoman: white arm patches are SKIN, not shirt — extend the skin tuck
+## 2026-11-04 — SkyrimOutfit: white arm patches are SKIN, not shirt — extend the skin tuck
 
 - **Report:** 6 new in-game screenshots of the `90df4d6` pack — the white upper-arm
   patches and wrist rings are STILL there. The shirt-sleeve / cuff tucks did not
@@ -151,7 +151,7 @@
   pytest 426 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 26 / 0 / 1; pyflakes clean. +1 upper-arm-band regression test.
 
-## 2026-11-04 — BusinessWoman: forearms — retract the white wrist cuff into the sleeve
+## 2026-11-04 — SkyrimOutfit: forearms — retract the white wrist cuff into the sleeve
 
 - **Report:** user asked "What about forearms?" Zooming the in-game screenshots shows
   the forearm sleeve itself is clean; the defect is at the **wrist** — a white shirt
@@ -176,7 +176,7 @@
   pytest 425 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 26 / 0 / 1; pyflakes clean. +2 cuff regression tests.
 
-## 2026-11-04 — BusinessWoman: white upper-arm patches = shirt sleeves, tucked
+## 2026-11-04 — SkyrimOutfit: white upper-arm patches = shirt sleeves, tucked
 
 - **Report:** user sent 4 in-game screenshots of the `0b049e9` pack — legs now
   smooth and uniform (albedo fix confirmed in-game), game gloves now show (adapter
@@ -206,7 +206,7 @@
   pytest 423 passed / 9 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 26 / 0 / 1 no-README warning; pyflakes clean. Added 2 tuck regression tests.
 
-## 2026-11-04 — BusinessWoman: uniform albedo (real blotch fix) + stop authoring hands
+## 2026-11-04 — SkyrimOutfit: uniform albedo (real blotch fix) + stop authoring hands
 
 - **Report:** user sent 6 in-game screenshots — leg blotches STILL present, grafted
   hands look pale/claw-like, white patches at the shoulders — and said **"Don't try
@@ -215,7 +215,7 @@
   uniform-gloss fix was necessary but not sufficient: `build_diffuse` still layered
   a low-frequency fbm mottle, a curvature/occlusion term and an `_anatomy_shading`
   pass (knee/shin/ankle bands) into the diffuse RGB. Decoding the shipped
-  `bw_body_df.texture` and amplifying deviation ×6 showed broad leg patches (std
+  `outfit_body_df.texture` and amplifying deviation ×6 showed broad leg patches (std
   ~6/255). **Fix: uniform albedo** — removed every variation layer, ship a flat base
   tone; geometry normals + game lighting do the shading. Verified: decoded shipped
   texture now has max deviation 2.7/255 (DXT5 block noise only), gloss std 0. The
@@ -239,11 +239,11 @@
   pre-existing Miranda failure; kb PASS 246; publish 26 files / 0 failures /
   1 no-README warning.
 
-## 2026-11-04 — BusinessWoman: rebuild fixes stale body textures + culled pose-sim verification
+## 2026-11-04 — SkyrimOutfit: rebuild fixes stale body textures + culled pose-sim verification
 
 - **Headline — the shipped zip was STALE and still had the leg blotches.** The
   `342a3bb` commit updated `skin_texture.py` to a flat normal + uniform gloss, but
-  the `dist/BusinessWoman_LAS.zip` committed alongside it (`303fbc77…`) had been
+  the `dist/SkyrimOutfit_LAS.zip` committed alongside it (`303fbc77…`) had been
   packed *before* that texture fix and never rebuilt. Decoding the committed zip
   proves it: body normal per-channel std `[0, 1.72, 0, 1.63]` and diffuse gloss
   std `7.07` (mean 84) — i.e. the exact normal-blob + varied-gloss sources of the
@@ -252,7 +252,7 @@
   stayed stale. **Rebuilding with `--pack` now ships the fix for real:** body
   normal std `[0,0,0,0]` (flat `[255,128,0,128]`) and gloss std `0.0` (uniform 86).
   New zip sha256 `2952c6e3c6022be92d572e2bcf49bf5d8012c4aba2c764f0b8b4f1693566c07c`.
-  Only `bw_body_df/nm.texture` (+ BUILD_INFO hashes) differ from the old zip; the
+  Only `outfit_body_df/nm.texture` (+ BUILD_INFO hashes) differ from the old zip; the
   model is byte-identical (`da0dfb55…`). Lesson: after a texture-code change,
   re-pack and decode the artifact, don't trust the function-level test alone.
 - **Shoulder stay verified with backface culling.** The prior entry's pose
@@ -283,7 +283,7 @@
   pytest 417 passed / 11 skipped / 1 pre-existing Miranda failure; kb PASS 246;
   publish 27 files / 0 failures / 1 no-README warning.
 
-## 2026-11-03 — BusinessWoman in-game review: graft hands, smooth skin, shoulder stay
+## 2026-11-03 — SkyrimOutfit in-game review: graft hands, smooth skin, shoulder stay
 
 - **Report:** user installed the default-glove pack and sent 7 in-game screenshots:
   still **no hands** (open cuff ring), large **holes at the shoulder/armhole**,
@@ -318,7 +318,7 @@
   (adds the hand texture). pytest 414 passed / 11 skipped / 1 pre-existing Miranda
   failure; kb PASS 246; publish 27 files / 0 failures / 1 no-README warning.
 
-## 2026-11-03 — BusinessWoman NO-HANDS bug fixed: restore a real default glove
+## 2026-11-03 — SkyrimOutfit NO-HANDS bug fixed: restore a real default glove
 
 - **Report:** with the shipped adapter pack installed, the outfit had **no
   hands in-game** (user-confirmed). The forearm adapter alone does not draw
@@ -333,7 +333,7 @@
   never hit this: `suit_default_gloves[style] = "heist_default"` (BeardLib's
   `BeardLibInitGloves` copies it to `default_glove_id`), so "Default" always
   resolves to the real `hnd_glv_heistwrinkled` unit.
-- **Fix (`bw_pack.render_glove_adapter_lua`).** The compat hook now also sets
+- **Fix (`las_outfit_pack.render_glove_adapter_lua`).** The compat hook now also sets
   `ps.default_glove_id = "heist_default"` (custom gloves stay selectable), and
   `body_replacement.hands`/`third_body_replacement.hands` stay **true**
   (vanilla `body_replacement_standard`) instead of the previous `false` — the
@@ -359,10 +359,10 @@
   Knowledge note 27 corrected (its "default gloves false is fine" assumption
   was the bug).
 
-## 2026-11-03 — BusinessWoman back-collar medallion painted out
+## 2026-11-03 — SkyrimOutfit back-collar medallion painted out
 
 - **What the back artifact was.** The ornament row on the upper back is the
-  source Melodic blazer's *intentional* collar decoration: a painted band of
+  source blazer's *intentional* collar decoration: a painted band of
   seven medallions (3 small + 1 large + 3 small), each over a beige tab, in
   `Jacket_diffA` at atlas v≈0.66–0.77 (u≈0.33–0.67). It is **not** a port bug —
   the source NIF has the same 394 collar/yoke verts UV-ing into that band, a 1:1
@@ -384,7 +384,7 @@
   sheet + icon previews refreshed. KB **246 notes pass**; publish lint **0
   failures**. `runtime_verified` still false — the collar needs the in-game check.
 
-## 2026-11-03 — BusinessWoman neck + bust geometry fixes (NEW)
+## 2026-11-03 — SkyrimOutfit neck + bust geometry fixes (NEW)
 
 - Follow-up to the adapter route: two shape loose ends on the ported 3BA body,
   both measured against the source and the PD2 rig, both fixed as continuous
@@ -435,25 +435,25 @@
   refreshed. `runtime_verified` still false — the neck/collar fit and the bust
   silhouette need the in-game check.
 
-## 2026-11-03 — glove_adapter implemented for BusinessWoman (adapter route + compat hook) (NEW)
+## 2026-11-03 — glove_adapter implemented for SkyrimOutfit (adapter route + compat hook) (NEW)
 
-- Scope (confirmed): **BusinessWoman only** — Miranda_LAS and lawson_las keep
+- Scope (confirmed): **SkyrimOutfit only** — Miranda_LAS and lawson_las keep
   their baked/grafted hands for now.
-- **Shipped the adapter route.** `build_business_woman.py` gained
+- **Shipped the adapter route.** `build_skyrim_outfit.py` gained
   `--hands {adapter,graft}` (default `adapter`). On `adapter` the build ships
   **no hand geometry at all** (TPP *and* FPS): the graft/weld/cuff-cap pipeline,
   the hand diffuse texture and `mtr_hands` are all gated behind `--hands graft`.
   The sleeves end at the wrist; the vanilla glove + `hnd_forearms` adapter supply
   the hands, exactly like a DLC/Infamy suit.
 - **The manifest flag alone is a no-op, so a compat hook does the work.**
-  `la.businesswoman` now declares `glove_adapter = true` (intent), and a second
-  hook `hooks/businesswoman_glove_adapter.lua` (PostHook
-  `BlackMarketTweakData:init`, id `BusinessWoman_GloveAdapter`) runs after LAS's
+  `la.skyrim_outfit` now declares `glove_adapter = true` (intent), and a second
+  hook `hooks/skyrim_outfit_glove_adapter.lua` (PostHook
+  `BlackMarketTweakData:init`, id `SkyrimOutfit_GloveAdapter`) runs after LAS's
   loader and actually enables it:
   - `ps.glove_adapter = {}` — a **table, not boolean `true`** (BeardLib's
     `table.merge` calls `pairs(new_table)`; `pairs(true)` crashes). `{}` keeps
     the default `hnd_forearms` adapter.
-  - reverse-loop `table.remove` of `las_businesswoman` from
+  - reverse-loop `table.remove` of `las_skyrim_outfit` from
     `glove_adapter.player_style_exclude_list` (LAS force-adds every
     `replace_body` outfit).
   - `ps.body_replacement.hands = false` and
@@ -498,7 +498,7 @@
 - **LAS cop outfits / 2B / LASCreator / Jack Cooper bake hands in.** cop_outfits.lua
   uses `replace_body=true` (whole body incl. hands); 2B + LASCreator use
   `replace_all=true`; Jack Cooper/Ringed Knight use BeardLib `exclude_glove_adapter`.
-  Our 3 packs currently do the same (BusinessWoman grafts PD2 hands + welds cuff).
+  Our 3 packs currently do the same (SkyrimOutfit grafts PD2 hands + welds cuff).
 - **BLOCKER — LAS 4.1.9 loader bug:** `hooks/outfits/loader.lua` does
   `output.glove_adapter = output.glove_adapter or false` and
   `output.default_glove_id = output.default_glove_id or false` — reading the fresh
@@ -510,11 +510,11 @@
   default unless `glove_adapter=false`, so the hook only fights LAS's forced false.
 - **Plan:** drop baked/grafted hands, let vanilla glove + hnd_forearms adapter show
   (the "hands beside the outfit" arrangement note 26 describes; cleaner than the
-  graft for BusinessWoman whose 3BA body already stops at the wrist). Unlike note
+  graft for SkyrimOutfit whose 3BA body already stops at the wrist). Unlike note
   26's rejected *donor forearm* (foreign bind pose, 20 cm off), the vanilla adapter
   is bound to the same PD2 skeleton the outfit retargets onto, so it follows.
 - Awaiting scope confirmation (which of the 3 LAS packs) before model surgery.
-- **Scope confirmed: BusinessWoman.** Also verified a second trap: BeardLib's
+- **Scope confirmed: SkyrimOutfit.** Also verified a second trap: BeardLib's
   `set_beardlib_character_visual_state` does `table.merge(final_adapter_data,
   gloves_adapter_data or player_style_adapter_data or {})`, and BeardLib's
   `table.merge` calls `pairs(new_table)` — so a boolean `glove_adapter=true` on

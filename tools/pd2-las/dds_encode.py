@@ -176,10 +176,10 @@ def attenuate_dxt5_alpha_from_normal(
     if len(df_blocks) == len(nm_blocks):
         df_blocks[:, :8] = nm_blocks[:, :8]
     elif w_df == 2 * w_nm:
-        bw_nm = w_nm // 4
-        n0_nm = bw_nm * bw_nm
-        n0_df = (2 * bw_nm) * (2 * bw_nm)
-        mip0_nm = nm_blocks[:n0_nm, :8].reshape(bw_nm, bw_nm, 8)
+        outfit_nm = w_nm // 4
+        n0_nm = outfit_nm * outfit_nm
+        n0_df = (2 * outfit_nm) * (2 * outfit_nm)
+        mip0_nm = nm_blocks[:n0_nm, :8].reshape(outfit_nm, outfit_nm, 8)
         mip0_df = np.repeat(np.repeat(mip0_nm, 2, axis=0), 2, axis=1).reshape(n0_df, 8)
         df_blocks[:n0_df, :8] = mip0_df
         rem = len(df_blocks) - n0_df

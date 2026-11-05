@@ -10,4 +10,4 @@ This directory contains the reference PAYDAY 2 mod archives used as binary/skele
 | `Geralt.7z` | Reference Witcher 3 Geralt of Rivia L4D2 port archive used for the Geralt-over-Rust head/hair pack | `tools/build_joy_head_mods.py` |
 
 
-**Removed source inputs:** the original Skyrim source archives `1.zip` through `5.zip` were deleted from the repository on 2026-11-04 after the Business Woman port was cancelled. The retained `tools/pd2-las/` scripts require those user-supplied inputs to rebuild; do not fetch or republish them unless the user explicitly reopens the work.
+**Removed source inputs:** the original Skyrim source archives `1.zip` through `5.zip` were deleted from the repository on 2026-11-04 after the skyrim outfit port was cancelled. The retained `tools/pd2-las/` scripts require those user-supplied inputs to rebuild; do not fetch or republish them unless the user explicitly reopens the work.

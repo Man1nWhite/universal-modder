@@ -1,14 +1,14 @@
-"""Assemble the Business Woman outfit as a PAYDAY 2 LAS pack folder.
+"""Assemble a Skyrim-derived outfit as a PAYDAY 2 LAS pack folder.
 
 Same registration contract as `las_pack.py` (the 2B reference, studied as a
 spec), with fresh IDs so both packs can be installed side by side:
 
-    LegendaryArmours.businesswoman
-      units/businesswoman/skins/businesswoman/{businesswoman,fps_businesswoman}
+    LegendaryArmours.skyrim_outfit
+      units/skyrim_outfit/skins/skyrim_outfit/{skyrim_outfit,fps_skyrim_outfit}
 
 What this module owns is the *layout*: manifest, hook, locales, unit/object
 XMLs, material configs, textures, icon and `BUILD_INFO.json` with a hash per
-file. Model authoring lives in `build_business_woman.py`.
+file. Model authoring lives in `build_skyrim_outfit.py`.
 
 The first-person unit is optional: `fps_available` in `BUILD_INFO.json` records
 whether it was built, because an LAS entry whose `fps_unit` points at a missing
@@ -23,9 +23,9 @@ import shutil
 import zipfile
 from pathlib import Path
 
-ITEM_ID = "businesswoman"
-CATEGORY = "businesswoman"
-PACK_DIR_NAME = "BusinessWoman_LAS"
+ITEM_ID = "skyrim_outfit"
+CATEGORY = "skyrim_outfit"
+PACK_DIR_NAME = "SkyrimOutfit_LAS"
 UNIT_BASE = f"units/{ITEM_ID}/skins/{ITEM_ID}"
 GUI_BASE = f"guis/dlcs/{ITEM_ID}/armor_skins"
 # the unit path ends in the file stem, exactly like units/2b/skins/2b/2b:
@@ -36,7 +36,7 @@ HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
 
 # LAS maps each flag onto the character parts it replaces (see the mod's
 # hooks/outfits/loader.lua): replace_all sets head=true as well, replace_body
-# only body/hands/arms. This outfit ships no head — Melodic's archives carry
+# only body/hands/arms. This outfit ships no head — the source archives carry
 # none and the template's is someone else's character — so it must not claim
 # replace_all, or LAS drops the heister's head and the unit is decapitated.
 FLAG_KEYS = (
@@ -47,7 +47,7 @@ FLAG_KEYS = (
     "fps_replace_body",
 )
 
-DISPLAY_NAME = "Business Woman"
+DISPLAY_NAME = "Skyrim Outfit"
 
 
 # ---------------------------------------------------------------------------
@@ -117,11 +117,11 @@ def render_glove_adapter_lua() -> str:
       fresh-table read drops it — so a PostHook override is the only route.
     """
     key = f"las_{ITEM_ID}"
-    return f"""-- BusinessWoman LAS: vanilla-suit glove behaviour for {key}.
+    return f"""-- SkyrimOutfit LAS: vanilla-suit glove behaviour for {key}.
 -- Restores a real default glove (LAS forces default_glove_id = false, which
 -- leaves "Default" gloves with no hands) and re-enables the glove adapter.
--- See bw_pack.render_glove_adapter_lua for the full rationale.
-Hooks:PostHook(BlackMarketTweakData, "init", "BusinessWoman_GloveAdapter", function(self)
+-- See las_outfit_pack.render_glove_adapter_lua for the full rationale.
+Hooks:PostHook(BlackMarketTweakData, "init", "SkyrimOutfit_GloveAdapter", function(self)
 \tlocal ps = self.player_styles and self.player_styles["{key}"]
 \tif not ps then return end
 
@@ -164,7 +164,7 @@ def render_localization() -> str:
             f"bm_menu_{ITEM_ID}_armor_skins": DISPLAY_NAME,
             f"bm_askn_{ITEM_ID}": DISPLAY_NAME,
             f"bm_askn_{ITEM_ID}_desc": (
-                "Melodic's Business Woman (3BA) as a Legendary Armour Skins outfit."
+                "a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit."
             ),
         },
         indent=2,
@@ -174,7 +174,7 @@ def render_localization() -> str:
 def render_main_xml(texture_stems: list[str], with_fps: bool = False,
                     hands: str = "adapter") -> str:
     # <df_nm> names the pair by its stem; the engine appends _df/_nm itself.
-    # Passing the full "bw_body_df" makes it look for bw_body_df_df.texture,
+    # Passing the full "outfit_body_df" makes it look for outfit_body_df_df.texture,
     # which silently leaves every material untextured (flat black in game).
     pairs = "\n".join(
         f'\t\t\t\t<df_nm path="{UNIT_BASE}/{stem[:-3]}"/>'

@@ -1,4 +1,4 @@
-"""Offline previews for the Skyrim outfit source: material contact sheets and
+"""Offline previews for a Skyrim clothing source: material contact sheets and
 flat-lit orthographic mesh renders.
 
 Both are PNGs written with Pillow; no GPU or Blender required, so the port can

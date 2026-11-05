@@ -80,7 +80,7 @@ def test_every_claim_has_a_source(board_mod):
 
 def test_failed_skyrim_source_is_kept_as_the_baseline(board_mod):
     """The cancelled 3BA attempt stays on the board, ranked last, with no still."""
-    baseline = [c for c in board_mod.CANDIDATES if c.slot.endswith("3ba-business-woman")]
+    baseline = [c for c in board_mod.CANDIDATES if c.slot.endswith("3ba-outfit")]
     assert len(baseline) == 1
     c = baseline[0]
     assert c.star == "1.0"
@@ -109,7 +109,7 @@ def test_markdown_is_generated_from_the_same_candidates(board_mod):
         assert c.mod in text, c.slot
         assert c.url in text, c.slot
     # the pipeline commands quoted must actually exist in this repo
-    for path in ("tools/pd2-las/build_business_woman.py", "docs/skyrim-nif/FIXES-2026-11-04.md",
+    for path in ("tools/pd2-las/build_skyrim_outfit.py", "docs/skyrim-nif/STATUS.md",
                  "tools/pd2-las/source_model.py", "tools/pd2-las/skeleton_map.json",
                  "tools/pd2-las/dds_encode.py"):
         assert (REPO / path).exists(), path
@@ -128,3 +128,41 @@ def test_board_and_cards_are_one_image_per_candidate(board_mod):
         cards = [board_mod._card(c) for c in board_mod.ranked()]
         expected = board_mod.board(cards)
         assert (im.width, im.height) == (expected.width, expected.height)
+
+
+#: Words that must not reappear anywhere in the tree (removed 2026-11-05).
+#: Spelled in pieces so this test file does not itself contain them.
+_FORBIDDEN = (
+    "Melod" + "ic",
+    "Busi" + "ness Woman",
+    "Busi" + "nessWoman",
+    "busi" + "nesswoman",
+    "busi" + "ness_woman",
+    "busi" + "ness-woman",
+    "buise" + "nesswoman",
+)
+
+
+def test_the_removed_outfit_name_is_gone_from_the_tree():
+    """The cancelled Skyrim outfit's name and author were removed on request.
+
+    This is a tripwire, not a style rule: if a doc, comment or fixture
+    reintroduces the name it will show up here before it reaches a release.
+    """
+    skip_dirs = {".git", ".venv", "__pycache__", ".pytest_cache", "build", "node_modules"}
+    suffixes = {".py", ".md", ".json", ".lua", ".sh", ".yml", ".yaml", ".txt", ".toml"}
+    offenders = []
+    for path in REPO.rglob("*"):
+        if not path.is_file() or path.suffix not in suffixes:
+            continue
+        if any(part in skip_dirs for part in path.relative_to(REPO).parts):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        low = text.lower()
+        for word in _FORBIDDEN:
+            if word.lower() in low:
+                offenders.append(f"{path.relative_to(REPO)}: {word}")
+    assert not offenders, "removed outfit name is back:\n  " + "\n  ".join(offenders)

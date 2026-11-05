@@ -2,7 +2,7 @@
 """Inventory the source archives for the Skyrim (3BA) outfit port.
 
 Reads the user-supplied ``1.zip`` .. ``5.zip`` at the repo root, which together
-are the Melodic "Business Woman SE 3BA" outfit: textures, meshes, BodySlide
+are one Skyrim SE 3BA outfit: textures, meshes, BodySlide
 slider data and the plugin. Prints (and optionally writes) a report that answers
 the questions a port has to answer before any geometry is authored:
 
@@ -14,7 +14,7 @@ the questions a port has to answer before any geometry is authored:
 * which skeleton bones it is weighted to, and how much of the mesh each bone
   drives (this is the retarget contract);
 * which textures the NIFs reference, and whether they exist in the archives
-  (the NIFs point at `textures\\melodic\\buisenesswoman\\...`, the archives
+  (the NIFs point at `textures\\<author>\\<outfit>\\...`, the archives
   store them flat or in numbered variant folders);
 * the variant map: which numbered folder in `2.zip`/`3.zip` is which colourway.
 
@@ -263,7 +263,7 @@ def build_report(zips: list[Path]) -> dict:
 
 def rights_note() -> dict:
     return {
-        "author": "Melodic (LoversLab / Patreon / Boosty)",
+        "author": "not recorded",
         "source_readme": "5.zip: Please Read.txt - 'do not publish this mod outside "
                          "Loverslab without permission'",
         "requirements": ["XP32 Maximum Skeleton Extended (XPMSE)",
@@ -342,7 +342,7 @@ def write_previews(report: dict, zips: list[Path], out_dir: Path) -> list[Path]:
         for name in zf.namelist():
             if name.lower().endswith(".dds"):
                 shipped.append((name, zf.read(name)))
-    target = out_dir / "business_woman_textures.png"
+    target = out_dir / "skyrim_outfit_textures.png"
     preview.texture_contact_sheet(sorted(shipped), target, cell=256, cols=5)
     written.append(target)
     # 2. four-view render of the assembled outfit (garments only, no body)
@@ -368,7 +368,7 @@ def write_previews(report: dict, zips: list[Path], out_dir: Path) -> list[Path]:
         sheet = Image.new("RGB", (size * 4, size), (18, 18, 22))
         for v, view in enumerate(["front", "side", "back", "three_quarter"]):
             sheet.paste(preview.render(meshes, view, size, scale, center), (v * size, 0))
-        target = out_dir / "business_woman_outfit.png"
+        target = out_dir / "skyrim_outfit_outfit.png"
         sheet.save(target)
         written.append(target)
     return written

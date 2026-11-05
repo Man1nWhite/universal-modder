@@ -9,7 +9,7 @@ branch `main`). SHA-256:
 `21afb703889e172e51244ff675c27a510eacbae00bdd81996c9761eae92965ad`.
 
 It is executed unmodified by `tests/test_glove_behavior_lua.py` inside a
-LuaJIT 2.1 runtime (PD2's Lua dialect) so the BusinessWoman compat hook is
+LuaJIT 2.1 runtime (PD2's Lua dialect) so the Skyrim outfit compat hook is
 tested against the mod's *real* registration behaviour — notably the
 fresh-table reads `output.default_glove_id = output.default_glove_id or false`
 and `output.glove_adapter = output.glove_adapter or false`, which silently

@@ -13,7 +13,7 @@ Full-resolution sheet: [`suit-sources/board.png`](suit-sources/board.png).
 
 Everything here is ranked against the brief *blazer required, skirt
 optional*, and against what this repo can already read. The cancelled
-Skyrim 3BA attempt (`STATUS.md`, `FIXES-2026-11-04.md`) failed on three
+Skyrim 3BA attempt (`docs/skyrim-nif/HANDOFF.md`) failed on three
 things that are *source-artist* decisions, not retarget bugs: layered
 BodySlide sheets that poke through each other, sleeves that stop 6–8 cm short
 of the wrist, and an HDT-SMP skirt chain that Diesel cannot drive. A good
@@ -36,7 +36,7 @@ source therefore has to have those three decided correctly *before* the port:
 | 3 | Dead or Alive 6 | Ayane Office Suit HD (DOA5LR / DOA6) | **B** (3.5) | rigid and thigh-weighted; designed for kicks | studio-painted, 4 carried | check the costume's rip source; figure mods are grey-area |
 | 4 | Dead or Alive 6 | Christie “Business Suit” | **B** (3.0) | rigid | studio-painted, 4 carried | vanilla Koei Tecmo asset — reuse is not licensed (see note) |
 | 5 | Skyrim SE | Ashtoreth “Office Suit” 3BA | **C** (2.0) | HDT-SMP chain — but it is a separate armour piece | needs the 4-weight clamp | “may not be reuploaded or transmitted in any form” |
-| 6 | Skyrim SE | Melodic “Business Woman” (1.zip–5.zip) | **D** (1.0) | ✗ 13 physics bones + a cloth chain Diesel cannot drive | needs a clamp | “do not publish outside LoversLab without permission” |
+| 6 | Skyrim SE | a Skyrim SE 3BA outfit (five source archives, removed) | **D** (1.0) | ✗ 13 physics bones + a cloth chain Diesel cannot drive | needs a clamp | permission never obtained; sources deleted |
 
 ## Notes per candidate
 
@@ -113,22 +113,22 @@ the only *literally* office-suit costume on the list: tailored blazer, open shir
 - **Route:** .nif -> nifly -> smd (tools/skyrim-nif), already written
 - **Where:** <https://schaken-mods.com/files/file/1649-ashtoreth-officesuit-3ba-hdt-smp/>
 
-the honest answer to “can Skyrim still work?”: yes, if you ship the blazer alone and skip the skirt. The two failures that were never about the skirt remain — the sleeve/hand gap and the sheet-split seam weights — and both already have passes in build_business_woman.py (extend_sleeves_to_wrist, weld_open_seams)
+the honest answer to “can Skyrim still work?”: yes, if you ship the blazer alone and skip the skirt. The two failures that were never about the skirt remain — the sleeve/hand gap and the sheet-split seam weights — and both already have passes in build_skyrim_outfit.py (extend_sleeves_to_wrist, weld_open_seams)
 
-### 6. Melodic “Business Woman” (1.zip–5.zip) — Skyrim SE  ·  CBBE 3BA  —  this repo's own failed attempt
+### 6. a Skyrim SE 3BA outfit (five source archives, removed) — Skyrim SE  ·  CBBE 3BA  —  this repo's own failed attempt
 
 - **Outfit:** 3BA body + blazer + bustier + pencil skirt + heels + necklace
-- **Author:** Melodic (LoversLab) — port cancelled 2026-11-04
+- **Author:** not recorded — port cancelled 2026-11-04, sources deleted
 - **Bones:** ~115, but HDT-SMP chains for the skirt and necklace
 - **Weights:** needs a clamp; sheet-split UV islands carry mismatched weights
 - **Hands/wrists:** ✗ sleeves stop 6.3 cm short of the PD2 RightHand joint
 - **Skirt:** ✗ 13 physics bones + a cloth chain Diesel cannot drive
 - **Textures:** 2048² albedo/normal/metal, plus a hand-authored skin set
-- **Licence:** “do not publish outside LoversLab without permission”
+- **Licence:** permission never obtained; sources deleted, nothing ships
 - **Route:** .nif -> nifly -> smd (tools/skyrim-nif), already written
 - **Where:** <docs/skyrim-nif/STATUS.md>
 
-the control case, and the reason everything above is ranked the way they are: layered BodySlide sheets poke through each other, the sleeve/hand gap exposed floating gloves, the shirt collar flared over the blazer, and the skirt is physics-driven. Keep it here as the baseline every other candidate has to beat
+the control case, and the reason everything above is ranked the way it is: layered BodySlide sheets poke through each other, the sleeve/hand gap exposed floating gloves, the shirt collar flared over the blazer, and the skirt is physics-driven. Once the source-audit notes were deleted this card is the only record left of it, and it stays as the baseline every candidate has to beat
 
 ## How hard is the Christie “Business Suit” port?
 
@@ -169,12 +169,12 @@ If you want Christie's *cut* rather than Christie's *asset*, take the Ayane “O
    `g1m` importers for DOA, FModel + an import add-on for the TK8 pak).
    Export a rigged `.smd`/`.fbx`.
 3. Feed it through the pipeline this repo already has for exactly this shape:
-   `tools/pd2-las/build_business_woman.py` (Skyrim clothing → LAS body) —
+   `tools/pd2-las/build_skyrim_outfit.py` (Skyrim clothing → LAS body) —
    `weld_open_seams`, `extend_sleeves_to_wrist` and `follow_layer_weights`
    are the passes a suit body needs, and `skin_texture` bakes the skin set.
    `build_models.py` builds the L4D2 body instead and takes no `--source`.
 4. Then the usual `bust_variant` / preview / publish path.
-5. Re-read `docs/skyrim-nif/FIXES-2026-11-04.md` before touching shoulders,
-   sleeves or the skirt — that is where the last attempt lost the game.
+5. Re-read `docs/skyrim-nif/HANDOFF.md` before touching shoulders, sleeves
+   or the skirt — it lists the constraints the last attempt died on.
 
 Licences are recorded as found; nothing here grants redistribution.

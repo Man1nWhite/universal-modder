@@ -827,7 +827,7 @@ def graft_pd2_hands(src_path: Path, slot: str = "mtr_hands") -> Group:
     only introduce error. UVs are taken verbatim from the donor so the donor's
     own texture (taken with it) samples correctly.
 
-    The Melodic 3BA body stops at the wrist, so without this the outfit ends in
+    A 3BA body stops at the wrist, so without this the outfit ends in
     a sleeve cuff and the heister's hands are simply missing.
     """
     import numpy as np

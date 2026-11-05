@@ -179,11 +179,11 @@ CANDIDATES: tuple[Candidate, ...] = (
              "*open* with a deep V, so the chest is bare skin, not a blouse",
     ),
     Candidate(
-        slot="05-skyrim-3ba-business-woman",
+        slot="05-skyrim-3ba-outfit",
         game="Skyrim SE  ·  CBBE 3BA  —  this repo's own failed attempt",
-        mod="Melodic “Business Woman” (1.zip–5.zip)",
+        mod="a Skyrim SE 3BA outfit (five source archives, removed)",
         outfit="3BA body + blazer + bustier + pencil skirt + heels + necklace",
-        author="Melodic (LoversLab) — port cancelled 2026-11-04",
+        author="not recorded — port cancelled 2026-11-04, sources deleted",
         star="1.0",
         stills=(),
         bones="~115, but HDT-SMP chains for the skirt and necklace",
@@ -191,14 +191,15 @@ CANDIDATES: tuple[Candidate, ...] = (
         hands="✗ sleeves stop 6.3 cm short of the PD2 RightHand joint",
         skirt="✗ 13 physics bones + a cloth chain Diesel cannot drive",
         texture="2048² albedo/normal/metal, plus a hand-authored skin set",
-        licence="“do not publish outside LoversLab without permission”",
+        licence="permission never obtained; sources deleted, nothing ships",
         route=".nif -> nifly -> smd (tools/skyrim-nif), already written",
         url="docs/skyrim-nif/STATUS.md",
         note="the control case, and the reason everything above is ranked the "
-             "way they are: layered BodySlide sheets poke through each other, "
-             "the sleeve/hand gap exposed floating gloves, the shirt collar "
-             "flared over the blazer, and the skirt is physics-driven. Keep it "
-             "here as the baseline every other candidate has to beat",
+             "way it is: layered BodySlide sheets poke through each other, the "
+             "sleeve/hand gap exposed floating gloves, the shirt collar flared "
+             "over the blazer, and the skirt is physics-driven. Once the "
+             "source-audit notes were deleted this card is the only record left "
+             "of it, and it stays as the baseline every candidate has to beat",
     ),
     Candidate(
         slot="06-skyrim-ashtoreth-office-suit",
@@ -223,7 +224,7 @@ CANDIDATES: tuple[Candidate, ...] = (
              "blazer alone and skip the skirt. The two failures that were never "
              "about the skirt remain — the sleeve/hand gap and the sheet-split "
              "seam weights — and both already have passes in "
-             "build_business_woman.py (extend_sleeves_to_wrist, weld_open_seams)",
+             "build_skyrim_outfit.py (extend_sleeves_to_wrist, weld_open_seams)",
     ),
 )
 
@@ -400,7 +401,7 @@ def write_markdown(order: list[Candidate]) -> None:
         "",
         "Everything here is ranked against the brief *blazer required, skirt",
         "optional*, and against what this repo can already read. The cancelled",
-        "Skyrim 3BA attempt (`STATUS.md`, `FIXES-2026-11-04.md`) failed on three",
+        "Skyrim 3BA attempt (`docs/skyrim-nif/HANDOFF.md`) failed on three",
         "things that are *source-artist* decisions, not retarget bugs: layered",
         "BodySlide sheets that poke through each other, sleeves that stop 6–8 cm short",
         "of the wrist, and an HDT-SMP skirt chain that Diesel cannot drive. A good",
@@ -524,13 +525,13 @@ def write_markdown(order: list[Candidate]) -> None:
         "   `g1m` importers for DOA, FModel + an import add-on for the TK8 pak).",
         "   Export a rigged `.smd`/`.fbx`.",
         "3. Feed it through the pipeline this repo already has for exactly this shape:",
-        "   `tools/pd2-las/build_business_woman.py` (Skyrim clothing → LAS body) —",
+        "   `tools/pd2-las/build_skyrim_outfit.py` (Skyrim clothing → LAS body) —",
         "   `weld_open_seams`, `extend_sleeves_to_wrist` and `follow_layer_weights`",
         "   are the passes a suit body needs, and `skin_texture` bakes the skin set.",
         "   `build_models.py` builds the L4D2 body instead and takes no `--source`.",
         "4. Then the usual `bust_variant` / preview / publish path.",
-        "5. Re-read `docs/skyrim-nif/FIXES-2026-11-04.md` before touching shoulders,",
-        "   sleeves or the skirt — that is where the last attempt lost the game.",
+        "5. Re-read `docs/skyrim-nif/HANDOFF.md` before touching shoulders, sleeves",
+        "   or the skirt — it lists the constraints the last attempt died on.",
         "",
         "Licences are recorded as found; nothing here grants redistribution.",
         "",

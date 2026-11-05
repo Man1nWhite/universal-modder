@@ -177,7 +177,7 @@ def test_hand_texture_is_skin_not_the_donors_garment_atlas(tmp_path):
     body[..., 2] = 148
     from PIL import Image
 
-    body_path = tmp_path / "bw_body_df.png"
+    body_path = tmp_path / "outfit_body_df.png"
     Image.fromarray(body).save(body_path)
     tone = st.hand_tone_from_body(body_path)
     assert 120 < tone[0] < 230 and tone[0] > tone[2], tone       # warm skin

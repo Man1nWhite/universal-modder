@@ -53,7 +53,7 @@ class MaterialSpec:
 
     @property
     def pack_name(self) -> str:
-        return self.name.replace("mtr_", "bw_")
+        return self.name.replace("mtr_", "outfit_")
 
 
 # Attested render templates only: Diesel renders a material black when a
@@ -161,11 +161,11 @@ def build_normal(normal: np.ndarray, size: int, invert_y: bool = True) -> np.nda
 # ---------------------------------------------------------------------------
 # source-art cleanup
 # ---------------------------------------------------------------------------
-# The Melodic blazer paints a ceremonial medallion row onto its collar band:
+# A common Skyrim blazer paints a ceremonial medallion row onto its collar band:
 # three small + one large + three small medallions, each sitting over a beige
 # tab. It is intentional in the source outfit, but the band retargets onto the
 # back collar/yoke where the white V-lapel no longer hides it, so it reads as a
-# stray ornament on the upper back. The BusinessWoman port paints it out.
+# stray ornament on the upper back. The SkyrimOutfit port paints it out.
 # These are the band's bounds in the *source* atlas, v measured from the top.
 COLLAR_BAND_V = (0.64, 0.82)
 COLLAR_BAND_U = (0.26, 0.74)

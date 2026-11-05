@@ -1,6 +1,6 @@
 """Minimal, dependency-free reader for Skyrim SE / AE NIF files (20.2.0.7).
 
-Why this exists: the outfit we want to port (Melodic "Business Woman", 3BA) is a
+Why this exists: the outfit we want to port (a Skyrim SE 3BA outfit) is a
 set of ``.nif`` meshes authored for Skyrim. Nothing in the repo could read that
 format, so this module implements just the parts needed to *inspect* a mesh:
 block table, node hierarchy, ``BSTriShape`` vertex/triangle payloads, skinning
