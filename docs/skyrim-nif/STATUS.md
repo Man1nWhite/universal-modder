@@ -7,8 +7,8 @@
 - Removed the five original source archives (`1.zip`–`5.zip`, including Melodic's original mesh archive) from the current branch.
 - Removed `dist/BusinessWoman_LAS.zip`, its checksum, and the extracted package folder.
 - Removed generated `build/skyrim-nif/` model, texture, and preview build artifacts.
-- Retained the conversion, inspection, and preview tools under `tools/pd2-las/` and `tools/skyrim-nif/` at the user's direction.
-- Retained historical measurements, failed-fix notes, documentation, and the user-provided visual references so the work can be understood if explicitly resumed.
+- Removed tracked Business Woman preview renders (`docs/previews/business_woman_*.png`), user-supplied reference screenshots (`docs/skyrim-nif/reference-images/`), and the `secretary/` placeholder directory.
+- Retained the conversion, inspection, and preview tools under `tools/pd2-las/` and `tools/skyrim-nif/` at the user's direction, along with historical markdown notes.
 
 The retained tools are not currently buildable from this checkout: the source archives are gone. Rebuilding would require the user to re-provide the inputs and explicitly restart the project. Do not recreate or publish the outfit unless asked.
 

@@ -59,7 +59,7 @@ def test_morph_is_zero_far_from_the_chest():
 def test_morph_grows_the_bust_forward_and_never_pulls_back():
     morph = bv.ChestMorph()
     dx, dy, dz = morph.displacement(bv.APEX_X, 20.0, bv.APEX_Z)
-    assert dy > 5.0, "the preset has to be a visible cup-size increase"
+    assert dy > 3.2, "the preset has to be a visible cup-size increase (>2x base prominence)"
     # every edited vertex on the front moves forward and/or up, never backward
     for y in (8.0, 12.0, 16.0, 20.0):
         dx, dy, dz = morph.displacement(bv.APEX_X, y, bv.APEX_Z)
@@ -94,7 +94,7 @@ def test_morph_is_continuous_across_the_edit_boundary():
     samples = [morph.displacement(bv.APEX_X, 20.0, lo + 0.25 * i)[1]
                for i in range(int((hi - lo) / 0.25) + 3)]
     peak = max(samples)
-    assert peak > 5.0
+    assert peak > 3.2
     steps = [abs(b - a) for a, b in zip(samples, samples[1:])]
     assert max(steps) < 0.10 * peak, max(steps)
     # the ends fade out rather than stepping to zero
@@ -105,11 +105,11 @@ def test_morph_is_continuous_across_the_edit_boundary():
 
 
 def test_morph_deepens_the_cleavage():
-    """The added push is damped on the midline, so the valley survives."""
+    """The added push separates the two cups while keeping a taut catsuit bridge."""
     morph = bv.ChestMorph()
     sternum = morph.displacement(0.0, 20.0, bv.APEX_Z)[1]
     breast = morph.displacement(bv.APEX_X, 20.0, bv.APEX_Z)[1]
-    assert sternum < 0.35 * breast
+    assert 0.50 * breast < sternum < 0.75 * breast
     assert morph.valley_factor(0.0) < morph.valley_factor(bv.APEX_X)
 
 
@@ -255,7 +255,7 @@ def test_built_variant_model_matches_the_morph_and_leaves_the_rest_alone():
     d = np.linalg.norm(v1[:len(v0)] - v0, axis=1)
     added = v1[len(v0):]
     assert int((d > 1e-9).sum()) > 100, "the morph must actually edit the chest"
-    assert d.max() > 5.0
+    assert d.max() > 3.2
     # containment: nothing behind the chest wall, in the arms, legs or head
     for mask, label in ((v0[:, 1] < 0.0, "back"),
                         (np.abs(v0[:, 0]) > 14.0, "arms"),
@@ -306,7 +306,7 @@ def test_variant_dist_pack_is_tracked_and_self_consistent():
         variant = info["variant"]
         assert variant["kind"] == "chest_mass_morph"
         assert variant["base_item_id"] == "miranda"
-        assert variant["measured"]["depth_gain_cm"] > 5.0
+        assert 3.2 < variant["measured"]["depth_gain_cm"] < 4.5
         for rel, expected in info["payload_sha256"].items():
             assert hashlib.sha256(z.read(f"Miranda_Busty_LAS/{rel}")).hexdigest() == expected, rel
 
@@ -510,7 +510,206 @@ def test_subdivision_keeps_the_chest_watertight():
         bv.subdivide_region(g, morph, levels=1)
         assert len(g.verts) > len(origin), f"split has to reach the panel ({seam_x})"
         assert not bv._open_edges(g), f"subdivision opened the surface ({seam_x})"
+        subdivided_origin = list(g.verts)
         morph.displace(g)
-        bv.smooth_region(g, morph, 3, 0.32)
-        bv.keep_copies_together(g, origin)
+        bv.smooth_region(g, morph, 3, 0.32, origin=subdivided_origin)
+        bv.keep_copies_together(g, subdivided_origin)
         assert not bv._open_edges(g), f"the morph opened the surface ({seam_x})"
+
+
+def test_smooth_region_never_leaks_into_unselected_slices():
+    """Fairing must not move vertices in non-body slices (e.g. shadow head/neck)."""
+    verts, faces, normals = _closed_chest_fixture(None)
+    g = _fixture_group(verts, faces, normals)
+    head_idx = len(g.verts)
+    # Co-located head/collar vertex right inside the chest band.
+    g.verts.append((bv.APEX_X, 18.0, 148.5))
+    g.normals.append((0.0, 1.0, 0.0))
+    g.uvs.append((0.5, 0.5))
+    g.weights.append([(0, 1.0)])
+    g.faces.append((head_idx, head_idx, head_idx))
+    g.slices = [
+        ("miranda_body", 0, 0, len(faces), head_idx),
+        ("miranda_head", len(faces), head_idx, 1, 1),
+    ]
+    before_head = g.verts[head_idx]
+    bv.ChestMorph().apply(g)
+    assert g.verts[head_idx] == before_head, "unselected slice drifted during apply()"
+
+
+def test_display_path_accepts_paths_outside_repo():
+    import build_busty_variant as bbv
+
+    ext = Path("/tmp/outside_repo_test/Miranda_Busty_LAS.zip")
+    assert bbv._display_path(ext) == str(ext.resolve())
+
+
+def test_shipped_busty_archive_regressions():
+    """Verify the shipped Miranda_Busty_LAS.zip fixes every audited defect."""
+    import hashlib
+    import json
+    import zipfile
+
+    import build_models as bm
+    import diesel_model as dm
+    import numpy as np
+
+    busty_zip = Path(__file__).resolve().parents[1] / "dist" / "Miranda_Busty_LAS.zip"
+    base_zip = Path(__file__).resolve().parents[1] / "dist" / "Miranda_LAS.zip"
+    if not busty_zip.is_file() or not base_zip.is_file():
+        pytest.skip("dist archives not present")
+
+    with zipfile.ZipFile(base_zip) as zb:
+        base_icon = zb.read("Miranda_LAS/assets/guis/dlcs/miranda/armor_skins/miranda.texture")
+        mf_base = dm.ModelFile.read(
+            zb.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
+        )
+    with zipfile.ZipFile(busty_zip) as zv:
+        busty_icon = zv.read(
+            "Miranda_Busty_LAS/assets/guis/dlcs/miranda_busty/armor_skins/miranda_busty.texture"
+        )
+        build_info = json.loads(zv.read("Miranda_Busty_LAS/BUILD_INFO.json"))
+        mf_var = dm.ModelFile.read(
+            zv.read("Miranda_Busty_LAS/assets/units/miranda_busty/skins/miranda_busty/miranda_busty.model")
+        )
+
+    # 1. Distinct valid DDS outfit-grid icon (not byte-identical to Miranda_LAS).
+    assert busty_icon[:4] == b"DDS "
+    assert hashlib.sha256(busty_icon).hexdigest() != hashlib.sha256(base_icon).hexdigest()
+
+    def _drawable(mf, target):
+        for s in mf.by_type(dm.MODEL_DATA):
+            md = dm.decode_model_data(s.payload)
+            if md.get("version") == 3 and md.get("atoms") and bm.template_name(md["name_hash"], mf) == target:
+                gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+                geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+                topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+                return (
+                    np.asarray(geo["verts"], dtype=np.float64),
+                    np.asarray(topo["indices"], dtype=np.int32).reshape(-1, 3),
+                )
+        raise AssertionError(f"missing drawable {target}")
+
+    vb, _ = _drawable(mf_base, "g_body")
+    vv, tv = _drawable(mf_var, "g_body")
+
+    # 2. Local chest subdivision actually added vertices while staying well within uint16.
+    assert len(vb) < len(vv) < 65535
+
+    # 3. No abdominal forward bulge below z = 134.0 cm (previously +5.10 cm).
+    n_orig = len(vb)
+    belly = (vb[:, 2] < 134.0) & (vb[:, 1] > 8.0)
+    assert np.max(np.abs(vv[:n_orig][belly, 1] - vb[belly, 1])) < 0.05
+
+    # 4. No coarse >2.0 cm triangle edges left across the sculpted chest cups.
+    p0, p1, p2 = vv[tv[:, 0]], vv[tv[:, 1]], vv[tv[:, 2]]
+    ctr = (p0 + p1 + p2) / 3.0
+    cup_tris = (np.abs(ctr[:, 0]) < 8.5) & (ctr[:, 2] >= 136.0) & (ctr[:, 2] <= 146.0) & (ctr[:, 1] > 16.0)
+    max_edge = np.maximum(
+        np.linalg.norm(p0[cup_tris] - p1[cup_tris], axis=1),
+        np.maximum(
+            np.linalg.norm(p1[cup_tris] - p2[cup_tris], axis=1),
+            np.linalg.norm(p2[cup_tris] - p0[cup_tris], axis=1),
+        ),
+    )
+    assert float(max_edge.max()) < 2.0
+
+    # 5. BUILD_INFO measurement matches true g_body max(y) across ALL vertices (including subdivided).
+    reported_max_y = build_info["variant"]["measured"]["front_y_max_cm"][1]
+    true_max_y = float(vv[(vv[:, 2] >= 131.0) & (vv[:, 2] <= 152.0), 1].max())
+    assert abs(reported_max_y - true_max_y) <= 0.02
+
+    # 6. Posterior/lateral breast-root vertices closer to the spine (y in [8.0, 16.5],
+    #    |x| in [9.0, 12.4], z in [138.5, 142.5]) expand smoothly both forward (+dy)
+    #    and outward (+|dx|) without inflating the outer ribcage into boxy blocks.
+    root_mask = (
+        (vb[:, 2] >= 138.5)
+        & (vb[:, 2] <= 142.5)
+        & (vb[:, 1] >= 8.0)
+        & (vb[:, 1] <= 16.5)
+        & (np.abs(vb[:, 0]) >= 9.0)
+        & (np.abs(vb[:, 0]) <= 12.4)
+    )
+    assert root_mask.any()
+    root_dy = vv[:n_orig][root_mask, 1] - vb[root_mask, 1]
+    root_dx = np.abs(vv[:n_orig][root_mask, 0]) - np.abs(vb[root_mask, 0])
+    assert 0.25 < float(root_dy.mean()) < 1.2, "spine-side breast root must expand smoothly"
+    assert 0.08 < float(root_dx.mean()) < 0.6, "spine-side breast root must widen proportionally"
+
+    # 7. Bounded UV/edge stretch across all original body edges (<1.80x vs old 2.47x)
+    #    so honeycomb hexagons stay clean in top and bottom views.
+    _, tb = _drawable(mf_base, "g_body")
+    max_stretch = 0.0
+    for a, b, c in tb:
+        for i, j in ((a, b), (b, c), (c, a)):
+            l0 = float(np.linalg.norm(vb[i] - vb[j]))
+            if l0 > 0.05:
+                r = float(np.linalg.norm(vv[i] - vv[j])) / l0
+                if r > max_stretch:
+                    max_stretch = r
+    assert max_stretch < 1.80, f"excessive edge/UV stretch {max_stretch:.3f}x"
+
+    # 8. Smooth, cone-free twin-hemisphere geometry in horizontal AND vertical slices:
+    #    - Distinct two-cup separation over taut catsuit (0.55 cm < y_ap - y_sternum < 1.50 cm:
+    #      prevents both a central monoboob and an over-carved W-canyon).
+    #    - Blunt horizontal roundness on both cups and melted x≈+8.0->+8.5 bib step.
+    #    - Blunt 60°/90° vertical side-profile hemisphere (no `>` torpedo cone).
+    h_slice = vv[(np.abs(vv[:, 2] - 140.7) < 0.75) & (vv[:, 1] > 15.0)]
+    y_sternum = float(h_slice[np.abs(h_slice[:, 0]) < 0.65, 1].max())
+    peaks = []
+    for side in (-1, +1):
+        y_ap = float(h_slice[np.abs(h_slice[:, 0] - side * 5.0) < 1.2, 1].max())
+        y_in = float(h_slice[np.abs(h_slice[:, 0] - side * 2.5) < 1.0, 1].max())
+        y_out = float(h_slice[np.abs(h_slice[:, 0] - side * 7.0) < 1.0, 1].max())
+        assert 0.55 < (y_ap - y_sternum) < 1.50, (
+            f"expected clean two-cup separation on side {side}, got {y_ap - y_sternum:.2f} cm"
+        )
+        assert y_ap - y_in < 0.65, f"pointy medial cone on side {side}"
+        assert y_ap - y_out < 0.65, f"pointy lateral cone on side {side}"
+        peaks.append(y_ap)
+    assert abs(peaks[0] - peaks[1]) < 0.28, "excessive left/right cup asymmetry"
+
+    y_bib_in = float(h_slice[np.abs(h_slice[:, 0] - 8.0) < 0.45, 1].max())
+    y_bib_out = float(h_slice[np.abs(h_slice[:, 0] - 8.5) < 0.45, 1].max())
+    assert abs(y_bib_in - y_bib_out) < 0.35, "unsmoothed x=+8.0..+8.5 bib cliff"
+
+    v_slice = vv[(np.abs(np.abs(vv[:, 0]) - 5.0) < 1.1) & (vv[:, 1] > 15.0)]
+    y_z_ap = float(v_slice[np.abs(v_slice[:, 2] - 140.7) < 0.8, 1].max())
+    y_z_lo = float(v_slice[np.abs(v_slice[:, 2] - 138.2) < 0.8, 1].max())
+    y_z_hi = float(v_slice[np.abs(v_slice[:, 2] - 143.2) < 0.8, 1].max())
+    assert y_z_ap - y_z_lo < 0.85, "pointy lower 60°/90° cone"
+    assert y_z_ap - y_z_hi < 0.85, "pointy upper 60°/90° cone"
+
+    # 9. Tracked top/bottom and clay preview sheets exist alongside chest & full sheets.
+    previews_dir = Path(__file__).resolve().parents[1] / "docs" / "pd2-las" / "previews"
+    for sheet in (
+        "busty_compare_chest.png",
+        "busty_compare_full.png",
+        "busty_sculpt_clay.png",
+        "busty_compare_top_bottom.png",
+        "busty_sculpt_top_bottom_clay.png",
+    ):
+        assert (previews_dir / sheet).is_file(), f"missing preview sheet {sheet}"
+
+
+def test_smooth_region_pins_open_boundary_edges():
+    """Open mesh boundary lips (such as the keyhole flap overhang) must stay pinned."""
+    g = _fixture_group(
+        [
+            (0.0, 18.0, 145.5),
+            (2.0, 18.0, 145.5),
+            (1.0, 19.0, 144.0),
+            (1.0, 18.2, 142.5),
+        ],
+        [(0, 1, 2), (1, 3, 2), (3, 0, 2)],
+        [(0.0, 1.0, 0.0)] * 4,
+    )
+    # Outer triangle edges (0,1), (1,3), (3,0) have use count 1 -> vertices 0,1,3 are boundary;
+    # interior vertex 2 has all incident edges used twice -> movable.
+    origin = list(g.verts)
+    bv.smooth_region(g, bv.ChestMorph(), iterations=4, strength=0.35, origin=origin)
+    assert g.verts[0] == origin[0]
+    assert g.verts[1] == origin[1]
+    assert g.verts[3] == origin[3]
+    assert g.verts[2] != origin[2]
+
