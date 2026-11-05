@@ -1,5 +1,5 @@
 {
-  "comment": "Skyrim (XPMSE / 3BA) -> PAYDAY 2 LAS deform skeleton, for the Melodic 'Business Woman' outfit in 1.zip..5.zip. Joint positions were measured from the decoded NIF (`tools/skyrim-nif/nif.py`) and from the 2B LAS template (`references/2b.rar` -> 2b.model, decoded with `tools/pd2-las/diesel_model.py`). Status: plan only - nothing consumes this file yet. Only one finger bone per hand ('... Finger00 [LF00]') is actually weighted in these meshes: the garments were skinned with rigid hands.",
+  "comment": "Skyrim (XPMSE / 3BA) -> PAYDAY 2 LAS deform skeleton, for the Skyrim clothing in 1.zip..5.zip. Joint positions were measured from the decoded NIF (`tools/skyrim-nif/nif.py`) and from the 2B LAS template (`references/2b.rar` -> 2b.model, decoded with `tools/pd2-las/diesel_model.py`). Status: plan only - nothing consumes this file yet. Only one finger bone per hand ('... Finger00 [LF00]') is actually weighted in these meshes: the garments were skinned with rigid hands.",
   "measured": {
     "source_skeleton": "XPMSE 3BA, joints baked in world space under 'Scene Root' (BodySlide export)",
     "source_unit_cm": 1.428,

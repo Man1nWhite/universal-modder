@@ -1,6 +1,6 @@
 """Offline posed preview: adduct the arms to approximate the in-game idle.
 
-The BusinessWoman armhole holes only appear when the arms rotate down from the
+The SkyrimOutfit armhole holes only appear when the arms rotate down from the
 bind pose (the blazer shoulder fabric follows the arm bone and pulls away from
 the torso). The static bind-pose preview cannot show them. This script re-skins
 the body drawable with the arms adducted ~60 deg and renders front/back/side so
@@ -123,7 +123,7 @@ def meshes_from(body, vp):
 
 
 def main():
-    model = REPO / "build/skyrim-nif/business_woman.model"
+    model = REPO / "build/skyrim-nif/outfit.model"
     texdir = REPO / "build/skyrim-nif/textures"
     body = load_body(model)
     deg = float(sys.argv[1]) if len(sys.argv) > 1 else 60.0
@@ -131,7 +131,7 @@ def main():
     meshes = meshes_from(body, vp)
     textures = {}
     for m in {m["material"] for m in meshes}:
-        df = texdir / f"bw_{m.replace('mtr_', '')}_df.texture"
+        df = texdir / f"outfit_{m.replace('mtr_', '')}_df.texture"
         if df.exists():
             textures[m] = pt.load_texture(df)
     allv = np.concatenate([m["vertices"] for m in meshes])
@@ -149,7 +149,7 @@ def main():
     sheet = Image.new("RGB", (size * len(views), size), (10, 10, 12))
     for i, im in enumerate(imgs):
         sheet.paste(im, (i * size, 0))
-    p = out / ("business_woman_posed.png" if cull else "business_woman_posed_nocull.png")
+    p = out / ("skyrim_outfit_posed.png" if cull else "skyrim_outfit_posed_nocull.png")
     sheet.save(p)
     print("posed preview ->", p, "(cull=%s)" % cull)
 

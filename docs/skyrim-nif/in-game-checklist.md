@@ -1,8 +1,8 @@
-# Business Woman LAS — in-game verification checklist
+# Skyrim outfit LAS — in-game verification checklist (archived)
 
 > **ARCHIVED — DO NOT INSTALL.** The user cancelled this port on 2026-11-04
 > because the in-game appearance remained unacceptable. The source archives and
-> `dist/BusinessWoman_LAS.zip` have been removed from the current branch. This
+> `dist/SkyrimOutfit_LAS.zip` have been removed from the current branch. This
 > checklist is retained only as historical acceptance context; see
 > [`STATUS.md`](STATUS.md).
 
@@ -12,7 +12,7 @@ Report failures with the item number and a screenshot.
 ## Install sanity
 
 1. Game reaches the menu with no script errors (BeardLib console clean).
-2. The outfit appears under armour skins as **Business Woman** with the
+2. The outfit would appear under armour skins as its own entry, with the
    three-quarter icon.
 
 ## Third person
@@ -20,7 +20,7 @@ Report failures with the item number and a screenshot.
 3. Full outfit visible in the lobby preview and in game: body, both jacket
    layers, skirt, heels, necklace. No missing or black drawable.
 4. **Wall outline** draws around the heister (needs `CONTOUR` + `unique` +
-   the contour variables; all three are in `businesswoman.material_config`).
+   the contour variables; all three are in `skyrim_outfit.material_config`).
 5. **Ground contact** — the soles sit on the floor, not through it and not
    floating. The source shoe was re-fitted from a 12 cm heel pose; this is the
    first item to check and the most likely to need a nudge.

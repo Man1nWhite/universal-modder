@@ -188,6 +188,68 @@ Modules (all tested against the real source zip):
 | `dds_encode.py` | RGBA → DXT5 (naive endpoints, c0 > c1 always) and BGRA8888 DDS writers for icons/previews |
 | `las_pack.py` | the 2B-contract scaffold: hook, manifest, locales, unit/object/material_config XMLs, `BUILD_INFO.json` |
 | `build_las.py` | CLI: zip → VPK → models/textures → scaffold |
+| `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; CRC-checked, traversal-safe) |
+| `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers |
+| `smd.py` | **SMD read/write** (`parse_smd`, `write_smd`, `ModelData` ↔ SMD with exact quaternion↔Tait-Bryan conversion) + stub `.qc`; CLI exports `.gma`/`.vpk`/`.zip` → per-model `.smd` for Blender |
+| `inspect_textures.py` | follow every material a model names to its `.vmt` → `.vtf` inside a `.gma`/`.vpk`/`.zip`, report present/missing with real size + mip count, and prove each texture actually **decodes** (optional second opinion from `sourcepp`) |
+
+### Reading a subscribed GMod / SFM addon
+
+A workshop addon is a `.gma`, and a `.gma` is a thin wrapper around Source
+assets this repo already reads — so an addon can be *measured* rather than
+guessed at from its description:
+
+```sh
+# after subscribing, the archive is in
+#   steamapps/workshop/content/4000/<item id>/*.gma
+python tools/pd2-las/inspect_gma.py path/to/<item id>.gma --json /tmp/report.json
+```
+
+The report gives the file tree grouped by extension, then per model: vertex and
+triangle counts, material names, and the skeleton split into *already mapped* /
+*Source-only* / *unknown* against `skeleton_map.json`. That is what decides
+whether an outside port is a cheap reference (a `ValveBiped` rig half-covered by
+the existing map) or new work. Nothing is extracted or rendered: the addon is
+someone else's licensed content, so private inspection only.
+
+### The rest of the tool landscape
+
+Surveyed 2026-11-05 for "what else deals with GMod mods", with the verdict that
+matters here — can it run in this repo, and does it add something the existing
+readers do not:
+
+| tool | what it covers | licence / platform | verdict for this repo |
+| --- | --- | --- | --- |
+| [`sourcepp`](https://pypi.org/project/sourcepp/) (`vpkpp`, `vtfpp`, `mdlpp`, `bsppp`) | **GMA v1-3, VPK v0/v1/v2/v54, BSP, VTF 7.0-7.6, MDL 44-49**; read *and* write for the pack formats | MIT, C++20 + nanobind wheels | **the one worth having.** Installed and verified: opened the fixture `.gma` (25 entries, checksums verified), decoded a real DXT5 VTF from the tracked L4D2 pack, and agreed with `vtf.py` on all 1,048,576 pixels (max abs diff 1 = DXT rounding). Used by `inspect_textures.py` as an optional second opinion — not a project dependency, since it is a native wheel for a dev-only cross-check |
+| [Crowbar](https://github.com/ZeqMacaw/Crowbar) | MDL → SMD/QC/QCI/VTA/VRD and back via `studiomdl`; unpacks VPK/GMA | free, closed source, **Windows only** | **not needed for measurement**, and it cannot run here. Still the standard answer if a human wants SMD/QC in Blender |
+| [Blender Source Tools](https://github.com/Artfunkel/BlenderSourceTools) | SMD/DMX/QC import + export | open source, Blender 4.x | no MDL/VTF support by design, and it needs Blender, which this sandbox lacks |
+| [SourceIO](https://github.com/REDxEYE/SourceIO) | **`.mdl` + `.vmt` + `.vtf` + `.bsp` direct import**, "Garry's Mod: full support" | MIT, Blender 4.0+ | the tool that skips Crowbar entirely — *if* a Blender existed here. Worth naming in a hand-off |
+| GMad (`gmad.exe`) | create/extract GMA, publish | Valve, bundled with GMod | `gma.py` replaces the extract half on Linux; `vpkpp` can also **write** GMA if a repack is ever needed |
+| [VPKEdit](https://github.com/craftablescience/VPKEdit) | GUI/CLI over `vpkpp`: VPK, GMA, BSP, VTF, ZIP | MIT | fine for humans, redundant with the readers above |
+| [`srctools`](https://github.com/TeamSpen210/srctools) | VPK/VTF/BSP/VMF/DMX read+write, MDL partial, mount chains, `packlist` dependency resolution | **GPL-3.0** | reference only — **do not vendor** into this MIT repo. Its `packlist` idea (walk a map's or model's dependencies) is the one thing worth re-implementing |
+| [MareTF](https://github.com/craftablescience/MareTF) / `vtex2` / `vtf2png` | VTF ↔ image converters, every VTF variant | MIT / libpng | redundant: `vtf.py` converts, and is bytes-checked against `vtfpp` |
+
+### Round two: the rest of the field (same day)
+
+| tool | what it is | verdict |
+| --- | --- | --- |
+| **SMD, written here** | `smd.py` — SMD is plain text, so the hand-off to Blender needs no tool at all | **closed the gap.** `python tools/pd2-las/smd.py addon.gma --out dir --qc` writes one `.smd` per model plus a stub QC. Verified against the tracked pack: 104 bones, 16,433 triangles, 6 materials, and every bind-pose rotation survives the text round trip to 1e-7 |
+| [`bpy`](https://pypi.org/project/bpy/) | Blender 4.x/5.x as a `pip` wheel (`import bpy`, headless) | **tried, does not run here.** Installs, then dies on `libXrender.so.1` / `libXi` / `libGL`; `apt` can only reach a blocked mirror, so the libs cannot be added. It *would* give a real headless Blender on a normal Linux box |
+| [gmpublisher](https://github.com/WilliamVenner/gmpublisher) | Rust+Tauri GUI **and CLI**: extract/publish GMA, bulk download, addon size treemap, no `gmad.exe` needed | the publishing half (nothing here publishes to GMod); its Linux build is Linux-only-Windows-CLI and history is mixed. `gma.py` covers reading |
+| [Noesis](https://www.richwhitehouse.com/noesis/) | Windows GUI/CLI converter with **Source `.mdl` + VPK import** and a Python plugin API | Windows-only, so it belongs to the same bucket as Crowbar: a human-side tool, not something this repo can call |
+| Linux `studiomdl` | Valve's compiler is Windows-only; Crowbar/`studiomdl` under Wine is the usual workaround | not worth it: the compile step is only needed to make a *Source* model, and nothing here builds one |
+
+Two conclusions. **Acquiring** an addon needs nothing new: `steamcmd +login
+anonymous +workshop_download_item 4000 <id> +quit` lands the `.gma` in
+`steamapps/workshop/content/4000/<id>/` for a free app like GMod, and that is the
+only reliable route for an item whose workshop page has been delisted. **The
+writing gap is closed** by `smd.py` (pure Python, no Blender needed): rigged
+geometry leaves this repo as SMD, which Crowbar, Blender Source Tools and SourceIO
+all import, and which the Windows side can turn into an FBX/GLB for the existing
+GLB retarget if a `.model` route is preferred later. What is still missing is only
+*compiling* back to Source (studiosmdl, Windows) — irrelevant here, because the
+target engine is Diesel, not Source. The retarget path is unchanged: Source mesh →
+`ModelData` → `transfer_group` → Diesel.
 
 ## Roadmap
 

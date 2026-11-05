@@ -18,6 +18,13 @@ fi
 # them (tools/pd2-port/STATUS.md §7) — all routes build in this venv.
 .venv/bin/pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr lupa
 .venv/bin/python -c "import pytest, PIL, numpy, yaml, py7zr, lupa" && echo "venv ok"
+# Optional: an independent Source-format decoder (GMA/VPK/VTF/MDL). Only used by
+# inspect_textures.py's cross-check and by the test that pins it, so a failure
+# here is a note, never a broken bootstrap.
+.venv/bin/pip install -q sourcepp 2>/dev/null \
+    && .venv/bin/python -c "from sourcepp import vpkpp, vtfpp" \
+    && echo "sourcepp ok (optional cross-check enabled)" \
+    || echo "sourcepp unavailable — inspect_textures.py runs without the cross-check"
 
 echo "== 2/5 extract 2B reference pack (templates) =="
 mkdir -p /tmp/rarx /tmp/2bsrc

@@ -231,9 +231,9 @@ QUAD = dict(
 @pytest.fixture
 def static_nif() -> bytes:
     b = NifBuilder()
-    tex = b.texture_set(["textures\\melodic\\buisenesswoman\\skirt_diffa.dds",
-                         "textures\\melodic\\buisenesswoman\\skirt_norm.dds",
-                         "", "", "textures\\melodic\\buisenesswoman\\bloodfree_e.dds"])
+    tex = b.texture_set(["textures\\exampleauthor\\outfit\\skirt_diffa.dds",
+                         "textures\\exampleauthor\\outfit\\skirt_norm.dds",
+                         "", "", "textures\\exampleauthor\\outfit\\bloodfree_e.dds"])
     shader = b.shader("mtr_skirt", tex, shader_type=1)
     alpha = b.alpha(4844, 128)
     mesh = b.shape("0_Skirt", QUAD["verts"], QUAD["uvs"], QUAD["normals"], QUAD["tris"],
@@ -253,7 +253,7 @@ def skinned_nif() -> bytes:
     part = b.partition(QUAD["verts"], QUAD["uvs"], QUAD["normals"], weights, bone_ids,
                        QUAD["tris"], [0, 1])
     skin = b.skin([pelvis, thigh], [(0, 52)], data_ref=0xFFFFFFFF, partition_ref=part)
-    tex = b.texture_set(["textures\\melodic\\buisenesswoman\\jacket_diffa.dds"])
+    tex = b.texture_set(["textures\\exampleauthor\\outfit\\jacket_diffa.dds"])
     shader = b.shader("mtr_jacket", tex, shader_type=1)
     b.shape("0_Jacket", QUAD["verts"], QUAD["uvs"], QUAD["normals"], QUAD["tris"],
             skin_ref=skin, shader_ref=shader, data_size=0, skinned=True,

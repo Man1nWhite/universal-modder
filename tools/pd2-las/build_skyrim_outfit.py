@@ -1,15 +1,15 @@
-"""Author the Melodic \"Business Woman\" outfit as a PAYDAY 2 LAS model.
+"""Author a Skyrim SE 3BA outfit as a PAYDAY 2 LAS model.
 
 Input:  `4.zip` (Skyrim SE meshes) + `1.zip`/`2.zip`/`3.zip` (textures) at the
         repo root, and the 2B LAS reference pack for templates
         (`references/2b.rar` -> `/tmp/2bsrc`, see bootstrap.sh).
-Output: `build/skyrim-nif/business_woman.model` (+ previews).
+Output: `build/skyrim-nif/outfit.model` (+ previews).
 
 The geometry path is `build_models.py`'s: per-bone similarity retarget onto the
 PD2 player skeleton with harmonic weight blending, then Diesel authoring against
 the 2B template. Only the source side differs — see `skyrim_source.py`.
 
-    .venv/bin/python tools/pd2-las/build_business_woman.py \\
+    .venv/bin/python tools/pd2-las/build_skyrim_outfit.py \\
         --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
 
 Nothing here is installable yet: the pack also needs a head (the Skyrim archives
@@ -45,11 +45,11 @@ UPPER_BODY_PITCH_DEG = 1.8
 NECK_Z_CM = 155.0
 #: Materials the first-person arms keep: skin, the two sleeve layers, and the
 #: grafted hands. Every material the fps model references must be declared in
-#: `fps_businesswoman.material_config` or the game cannot resolve it and the
+#: `fps_skyrim_outfit.material_config` or the game cannot resolve it and the
 #: viewmodel's hands render as nothing (they are only visible in first person,
 #: so the offline previews stay green while the game is broken).
 FPS_MATERIALS = ("mtr_body", "mtr_hands", "mtr_jacket", "mtr_jacket2")
-UNIT_BASE = "units/businesswoman/skins/businesswoman"
+UNIT_BASE = "units/skyrim_outfit/skins/skyrim_outfit"
 #: How much of the standing collar survives `lower_collar` (see there).
 COLLAR_K = 0.55
 
@@ -164,7 +164,7 @@ def render_sheet(model_path: Path, out_png: Path) -> None:
 
 def mesh_root(root: Path) -> Path:
     """Where the 12 garment NIFs live (4.zip layout, or an extracted tree)."""
-    direct = root / "meshes" / "Melodic" / "Business Woman"
+    direct = root / "meshes" / "exampleauthor" / "outfit"
     if direct.is_dir():
         return direct
     if (root / "4.zip").exists():
@@ -254,7 +254,7 @@ def main(argv=None) -> int:
     # game on the same PD2 skeleton this outfit retargets onto — in third person
     # AND on the camera unit in first person. That keeps gloves changeable, the
     # way vanilla/DLC/Infamy outfits work. The pack's compat hook re-enables the
-    # adapter past LAS 4.1.9's loader bug (see bw_pack.render_glove_adapter_lua).
+    # adapter past LAS 4.1.9's loader bug (see las_outfit_pack.render_glove_adapter_lua).
     #
     # `graft` is the legacy route: PD2 heisters share the stock skeleton and its
     # bind pose, so hand geometry from one of them drops straight onto these
@@ -397,7 +397,7 @@ def main(argv=None) -> int:
         print(f"[{gname}] upper-body verts pitched: {n} at "
               f"{UPPER_BODY_PITCH_DEG:.1f} degrees")
 
-    # The outfit has no head: Skyrim ships heads separately and Melodic's
+    # The outfit has no head: Skyrim ships heads separately and the source
     # archives carry none. Do two things about it: never keep the *template's*
     # head (it is someone else's character, and shipping her face in this pack
     # would be both wrong and unlicensed), and close the collar hole it would
@@ -416,7 +416,7 @@ def main(argv=None) -> int:
 
     mf = bm.assemble_model(template, groups, share,
                            drop_drawables=("g_head", "g_head_lod1"))
-    out = args.out / "business_woman.model"
+    out = args.out / "outfit.model"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_bytes(mf.write())
     print(f"wrote {out} ({out.stat().st_size} bytes)")
@@ -425,11 +425,11 @@ def main(argv=None) -> int:
         raise SystemExit("render atoms do not tile the mesh:\n  "
                          + "\n  ".join(problems))
 
-    sheet_path = args.out / "previews" / "business_woman_pd2.png"
+    sheet_path = args.out / "previews" / "skyrim_outfit_pd2.png"
     if not args.no_previews:
         render_sheet(out, sheet_path)
 
-    fps_path = args.out / "fps_business_woman.model"
+    fps_path = args.out / "fps_outfit.model"
     if args.fps:
         fps_tpl = bm.load_template(args.templates / "fps_2b.model")
         fps_arms = bm.extract_bones(groups["body"], bm.is_fps_arm_bone, "arms")
@@ -449,13 +449,13 @@ def main(argv=None) -> int:
                              + "\n  ".join(problems))
 
     if args.pack:
-        import bw_pack
+        import las_outfit_pack
         import skin_texture  # baked below when the textures are missing
         import skyrim_materials as sm
 
         tex_dir = args.out / "textures"
         tex_dir.mkdir(parents=True, exist_ok=True)
-        baked = [n for n in ("bw_body_df", "bw_body_nm")
+        baked = [n for n in ("outfit_body_df", "outfit_body_nm")
                  if not (tex_dir / f"{n}.texture").exists()]
         import skin_texture as st
 
@@ -474,9 +474,9 @@ def main(argv=None) -> int:
                 f"({', '.join(baked)}); drop --no-bake or run skin_texture.py")
 
         if args.hands == "graft":
-            hands_df = tex_dir / "bw_hands_df.texture"
+            hands_df = tex_dir / "outfit_hands_df.texture"
             if not hands_df.exists():
-                tone = st.hand_tone_from_body(tex_dir / "bw_body_df.texture",
+                tone = st.hand_tone_from_body(tex_dir / "outfit_body_df.texture",
                                               model=out)
                 print(f"building hand textures at the body's skin tone "
                       f"({tone.round(0).astype(int).tolist()})")
@@ -498,15 +498,15 @@ def main(argv=None) -> int:
         for stem, data in textures.items():
             (tex_dir / f"{stem}.texture").write_bytes(data)
         config = sm.render_material_config(UNIT_BASE, specs)
-        (args.out / "business_woman.material_config").write_text(config)
+        (args.out / "skyrim_outfit.material_config").write_text(config)
 
         # the menu icon is cut from our own textured render, not from the
         # flat-coloured sheet, so the tile shows the real materials
         import preview_textured as pt
 
-        textured_sheet = args.out / "previews" / "business_woman_textured.png"
+        textured_sheet = args.out / "previews" / "skyrim_outfit_textured.png"
         pt.main([str(out), str(tex_dir), "--out", str(textured_sheet)])
-        icon = bw_pack.build_icon(textured_sheet.read_bytes())
+        icon = las_outfit_pack.build_icon(textured_sheet.read_bytes())
         fps_config = None
         fps_bytes = None
         if args.fps and fps_path.exists():
@@ -514,19 +514,19 @@ def main(argv=None) -> int:
             fps_specs = [s for s in specs if s.name in FPS_MATERIALS]
             fps_config = sm.render_fps_material_config(UNIT_BASE, fps_specs)
             fps_bytes = fps_path.read_bytes()
-        pack = bw_pack.write_pack(
+        pack = las_outfit_pack.write_pack(
             args.dist, out.read_bytes(), textures, icon, config, fps_config,
             fps_model=fps_bytes, hands=args.hands,
             extra={
-                "source": "Melodic Business Woman SE 3BA",
-                # Melodic's readme asks for permission before republishing
+                "source": "a Skyrim SE 3BA outfit",
+                # the source readme asks for permission before republishing
                 # outside LoversLab; shipped here at the pack owner's direction.
                 "private": False,
                 "redistribution": "published at the pack owner's direction",
             },
         )
         print(f"pack  -> {pack}")
-        zipped = bw_pack.zip_pack(pack)
+        zipped = las_outfit_pack.zip_pack(pack)
         print(f"zip   -> {zipped}")
         # write the checksum here, not by hand: the tracked file went stale once
         # and the published hash then described a build two commits old

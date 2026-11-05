@@ -1,17 +1,17 @@
 """Textured, lit preview of an authored PD2 model.
 
-`build_business_woman.py` renders flat per-material colours, which answers
+`build_skyrim_outfit.py` renders flat per-material colours, which answers
 "is the silhouette right?" but not "do the textures land on the right
 surfaces?". This rasteriser interpolates UVs per pixel and samples the packed
 `.texture` files, so a swapped or flipped map is obvious immediately.
 
     .venv/bin/python tools/pd2-las/preview_textured.py \\
-        build/skyrim-nif/business_woman.model \\
-        dist/BusinessWoman_LAS/assets/units/businesswoman/skins/businesswoman \\
-        --out build/skyrim-nif/previews/business_woman_textured.png
+        build/skyrim-nif/outfit.model \\
+        dist/SkyrimOutfit_LAS/assets/units/skyrim_outfit/skins/skyrim_outfit \\
+        --out build/skyrim-nif/previews/skyrim_outfit_textured.png
 
-Material name -> file stem: `mtr_jacket` reads `bw_jacket_df.texture`, i.e. the
-`mtr_` -> `bw_` rename the pack uses. Pass `--flip-v` if the result looks
+Material name -> file stem: `mtr_jacket` reads `outfit_jacket_df.texture`, i.e. the
+`mtr_` -> `outfit_` rename the pack uses. Pass `--flip-v` if the result looks
 mirrored top-to-bottom; the default matches what the game samples.
 """
 
@@ -247,7 +247,7 @@ def texture_sheet(texture_dir: Path, out: Path, names: list[str],
     """
     rows = []
     for name in names:
-        stem = name.replace("mtr_", "bw_")
+        stem = name.replace("mtr_", "outfit_")
         df_path = texture_dir / f"{stem}_df.texture"
         nm_path = texture_dir / f"{stem}_nm.texture"
         df = load_texture(df_path)
@@ -278,7 +278,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("model", type=Path)
     ap.add_argument("texture_dir", type=Path,
-                    help="folder holding bw_*_df.texture")
+                    help="folder holding outfit_*_df.texture")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--size", type=int, default=520)
     ap.add_argument("--views", default=",".join(VIEWS))
@@ -290,7 +290,7 @@ def main(argv: list[str] | None = None) -> int:
     names = sorted({m["material"] for m in meshes})
     textures = {}
     for name in names:
-        stem = name.replace("mtr_", "bw_")
+        stem = name.replace("mtr_", "outfit_")
         path = args.texture_dir / f"{stem}_df.texture"
         if path.exists():
             textures[name] = load_texture(path)

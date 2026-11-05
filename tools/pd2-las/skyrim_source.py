@@ -69,12 +69,12 @@ class MeshSpec:
 
 
 def default_outfit(root: Path, jacket: str = "both") -> list[MeshSpec]:
-    """The Business Woman outfit: 3BA body + feet + jacket layers + skirt + heels.
+    """The supported Skyrim outfit shape: 3BA body + feet + jacket layers + skirt + heels.
 
     `Jacket_0.nif` holds **two garments worn together**, not two alternatives:
     `0_Jacket` is the blazer (hips to collar, 101.8-163 cm, sleeves included)
     and `0_Jacket2` is the buttoned bustier underneath it (waist to collar,
-    116.6-165.1 cm). The plugin's "Business Woman Jacket Xtra" armour record
+    116.6-165.1 cm). The plugin's "Jacket Xtra" armour record
     points at the same NIF, so both shapes always render; `jacket="blazer"` or
     `"bustier"` drops one for experiments.
     """
@@ -416,7 +416,7 @@ def load_outfit(specs: list[MeshSpec], bone_map: dict,
     report["unresolved_bones"] = sorted(unresolved)
     report["vertices"] = len(vertices)
     report["triangles"] = sum(len(m.triangle_indices) // 3 for m in meshes)
-    model = ModelData(name="business_woman", bones=bones, materials=sorted(report["materials"]),
+    model = ModelData(name="skyrim_outfit", bones=bones, materials=sorted(report["materials"]),
                       vertices=vertices, meshes=meshes)
     return model, report
 

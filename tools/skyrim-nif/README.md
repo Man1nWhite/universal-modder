@@ -1,8 +1,9 @@
 # skyrim-nif — read a Skyrim SE outfit, and see what a port would cost
 
-Dependency-free (numpy + Pillow) readers for the Skyrim Special Edition `.nif`
-meshes in `1.zip` … `5.zip` (Melodic "Business Woman", 3BA), plus the inventory
-and preview tooling used by [`docs/skyrim-nif/PORT-PLAN.md`](../../docs/skyrim-nif/PORT-PLAN.md).
+Dependency-free (numpy + Pillow) readers for Skyrim Special Edition `.nif`
+meshes, plus the inventory and preview tooling that measures what a port would
+cost. The outfit this was written against was cancelled and its sources removed;
+see [`docs/skyrim-nif/STATUS.md`](../../docs/skyrim-nif/STATUS.md).
 
 Nothing here *ports* anything yet: it decodes the source, proves it is readable,
 and measures the facts a port decision needs (geometry, skinning, materials,

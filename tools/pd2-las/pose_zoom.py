@@ -29,7 +29,7 @@ def main():
     meshes = pp.meshes_from(body, vp)
     tex = {}
     for name in {m["material"] for m in meshes}:
-        df = REPO / "build" / "skyrim-nif" / "textures" / f"bw_{name.replace('mtr_', '')}_df.texture"
+        df = REPO / "build" / "skyrim-nif" / "textures" / f"outfit_{name.replace('mtr_', '')}_df.texture"
         if df.exists():
             tex[name] = pt.load_texture(df)
     views = ("front", "threequarter", "back", "side")

@@ -1,6 +1,6 @@
 """Tests for the Skyrim -> PAYDAY 2 material pipeline.
 
-`skyrim_materials.py` and `bw_pack.py` are the two places where a mistake is
+`skyrim_materials.py` and `las_outfit_pack.py` are the two places where a mistake is
 invisible offline but fatal on a Windows machine: a swapped normal channel, a
 missing mip level, a material name that no model references, or a Lua hook that
 registers under the wrong table. Everything here is synthetic so the suite runs
@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 sys.path.insert(0, str(ROOT / "tools" / "pd2-port"))
 
-import bw_pack  # noqa: E402
+import las_outfit_pack  # noqa: E402
 import skyrim_materials as sm  # noqa: E402
 
 
@@ -172,8 +172,8 @@ def test_material_config_paths_point_at_the_pack_rename():
     specs = [sm.MaterialSpec("mtr_jacket2", "Jacket2_diffA", "Jacket2_norm")]
     root = ET.fromstring(sm.render_material_config("units/x/skins/x", specs))
     mat = root.find("material")
-    assert mat.find("diffuse_texture").get("file") == "units/x/skins/x/bw_jacket2_df"
-    assert mat.find("bump_normal_texture").get("file") == "units/x/skins/x/bw_jacket2_nm"
+    assert mat.find("diffuse_texture").get("file") == "units/x/skins/x/outfit_jacket2_df"
+    assert mat.find("bump_normal_texture").get("file") == "units/x/skins/x/outfit_jacket2_nm"
 
 
 def test_every_material_uses_a_known_render_template():
@@ -224,14 +224,14 @@ def test_fps_template_scales_depth_and_drops_contour():
 
 # ------------------------------------------------------------------ pack
 def test_hook_registers_the_table_las_reads():
-    lua = bw_pack.render_hook_lua()
+    lua = las_outfit_pack.render_hook_lua()
     assert "LegendaryArmours = LegendaryArmours or {}" in lua
-    assert f"la.{bw_pack.ITEM_ID} = {{" in lua
-    assert f'unit = "{bw_pack.TPP_UNIT}"' in lua
+    assert f"la.{las_outfit_pack.ITEM_ID} = {{" in lua
+    assert f'unit = "{las_outfit_pack.TPP_UNIT}"' in lua
     # the hook is what LAS actually looks the unit up by, so pin the literal
-    assert 'unit = "units/businesswoman/skins/businesswoman/businesswoman"' in lua
+    assert 'unit = "units/skyrim_outfit/skins/skyrim_outfit/skyrim_outfit"' in lua
     assert "fps_unit" not in lua                 # no FPS arms yet
-    for flag in bw_pack.FLAG_KEYS:
+    for flag in las_outfit_pack.FLAG_KEYS:
         assert f"{flag} = true" in lua
     # replace_all sets third_body_replacement.head, and this unit has no head
     assert "replace_all" not in lua
@@ -239,62 +239,62 @@ def test_hook_registers_the_table_las_reads():
 
 
 def test_hook_declares_fps_unit_only_when_one_is_built():
-    with_fps = bw_pack.render_hook_lua(with_fps=True)
-    assert f'fps_unit = "{bw_pack.FPS_UNIT}"' in with_fps
+    with_fps = las_outfit_pack.render_hook_lua(with_fps=True)
+    assert f'fps_unit = "{las_outfit_pack.FPS_UNIT}"' in with_fps
 
 
 def test_main_xml_lists_textures_and_unit_materials():
-    root = ET.fromstring(bw_pack.render_main_xml(
-        ["bw_body_df", "bw_body_nm", "bw_jacket_df", "bw_jacket_nm"]))
+    root = ET.fromstring(las_outfit_pack.render_main_xml(
+        ["outfit_body_df", "outfit_body_nm", "outfit_jacket_df", "outfit_jacket_nm"]))
     df_nm = [e.get("path") for e in root.iter("df_nm")]
     # the stem, not the _df file: the engine appends the suffix itself
-    assert df_nm == [f"{bw_pack.UNIT_BASE}/bw_body",
-                     f"{bw_pack.UNIT_BASE}/bw_jacket"]
+    assert df_nm == [f"{las_outfit_pack.UNIT_BASE}/outfit_body",
+                     f"{las_outfit_pack.UNIT_BASE}/outfit_jacket"]
     assert not any(p.endswith("_df") for p in df_nm)
     unit_mat = [e.get("path") for e in root.iter("unit_mat")]
-    assert unit_mat == [bw_pack.TPP_UNIT]
+    assert unit_mat == [las_outfit_pack.TPP_UNIT]
     # pinned as a literal: asserting the constant against itself let a
-    # truncated path (units/businesswoman/skins/businesswoman, no file stem)
+    # truncated path (units/skyrim_outfit/skins/skyrim_outfit, no file stem)
     # pass the suite while loading nothing in game
-    assert unit_mat == ["units/businesswoman/skins/businesswoman/businesswoman"]
-    assert not unit_mat[0].endswith("skins/businesswoman")
+    assert unit_mat == ["units/skyrim_outfit/skins/skyrim_outfit/skyrim_outfit"]
+    assert not unit_mat[0].endswith("skins/skyrim_outfit")
     hook = root.find("Hooks/hook")
-    assert hook.get("file") == f"{bw_pack.ITEM_ID}_las.lua"
-    assert hook.get("source_file") == bw_pack.HOOK_SOURCE
+    assert hook.get("file") == f"{las_outfit_pack.ITEM_ID}_las.lua"
+    assert hook.get("source_file") == las_outfit_pack.HOOK_SOURCE
 
 
 def test_object_xml_points_diesel_at_the_material_config():
-    root = ET.fromstring(bw_pack.render_object_xml(
-        bw_pack.TPP_UNIT, ["s_body", "g_body_lod1", "g_body"]))
+    root = ET.fromstring(las_outfit_pack.render_object_xml(
+        las_outfit_pack.TPP_UNIT, ["s_body", "g_body_lod1", "g_body"]))
     diesel = root.find("diesel")
-    assert diesel.get("materials") == bw_pack.TPP_UNIT
-    assert diesel.get("materials") == "units/businesswoman/skins/businesswoman/businesswoman"
+    assert diesel.get("materials") == las_outfit_pack.TPP_UNIT
+    assert diesel.get("materials") == "units/skyrim_outfit/skins/skyrim_outfit/skyrim_outfit"
     objects = {o.get("name"): o.get("enabled") for o in root.iter("object")}
     assert objects == {"g_body": "true", "g_body_lod1": "false"}
 
 
 def test_object_xml_only_lists_drawables_that_exist():
     """A name with no drawable behind it is a log error at best."""
-    root = ET.fromstring(bw_pack.render_object_xml(
-        bw_pack.TPP_UNIT, ["s_body", "g_body"]))
+    root = ET.fromstring(las_outfit_pack.render_object_xml(
+        las_outfit_pack.TPP_UNIT, ["s_body", "g_body"]))
     names = [o.get("name") for o in root.iter("object")]
     assert "g_head" not in names and "g_head_lod1" not in names
     assert "s_body" not in names                  # engine-owned shadow mesh
 
 
 def test_unit_xml_declares_the_extensions_las_needs():
-    root = ET.fromstring(bw_pack.render_unit_xml(bw_pack.TPP_UNIT))
+    root = ET.fromstring(las_outfit_pack.render_unit_xml(las_outfit_pack.TPP_UNIT))
     assert root.get("type") == "dah"
     assert [e.get("class") for e in root.iter("extension")] == [
         "ScriptUnitData", "ContourExt"]
 
 
 def test_localization_covers_all_three_strings():
-    strings = json.loads(bw_pack.render_localization())
+    strings = json.loads(las_outfit_pack.render_localization())
     assert set(strings) == {
-        f"bm_menu_{bw_pack.ITEM_ID}_armor_skins",
-        f"bm_askn_{bw_pack.ITEM_ID}",
-        f"bm_askn_{bw_pack.ITEM_ID}_desc",
+        f"bm_menu_{las_outfit_pack.ITEM_ID}_armor_skins",
+        f"bm_askn_{las_outfit_pack.ITEM_ID}",
+        f"bm_askn_{las_outfit_pack.ITEM_ID}_desc",
     }
 
 
@@ -314,17 +314,17 @@ def _dummy_icon() -> bytes:
 
 def test_write_pack_is_self_consistent(tmp_path):
     specs = [sm.MaterialSpec("mtr_body", "", "", generated=True)]
-    textures = {"bw_body_df": b"\0" * 16, "bw_body_nm": b"\0" * 16}
-    pack = bw_pack.write_pack(
+    textures = {"outfit_body_df": b"\0" * 16, "outfit_body_nm": b"\0" * 16}
+    pack = las_outfit_pack.write_pack(
         tmp_path, b"MODEL", textures, _dummy_icon(),
-        sm.render_material_config(bw_pack.TPP_UNIT, specs), None,
+        sm.render_material_config(las_outfit_pack.TPP_UNIT, specs), None,
         extra={"private": True}, drawables=["s_body", "g_body"],
     )
-    unit = pack / "assets" / bw_pack.UNIT_BASE
+    unit = pack / "assets" / las_outfit_pack.UNIT_BASE
 
-    assert (unit / f"{bw_pack.ITEM_ID}.model").read_bytes() == b"MODEL"
-    assert (unit / "bw_body_df.texture").exists()
-    assert not (unit / f"fps_{bw_pack.ITEM_ID}.model").exists()
+    assert (unit / f"{las_outfit_pack.ITEM_ID}.model").read_bytes() == b"MODEL"
+    assert (unit / "outfit_body_df.texture").exists()
+    assert not (unit / f"fps_{las_outfit_pack.ITEM_ID}.model").exists()
 
     info = json.loads((pack / "BUILD_INFO.json").read_text())
     assert info["fps_available"] is False
@@ -337,46 +337,46 @@ def test_write_pack_is_self_consistent(tmp_path):
         assert hashlib.sha256((pack / rel).read_bytes()).hexdigest() == want, rel
     assert set(info["payload_sha256"]) == {
         "main.xml",
-        "hooks/businesswoman_las.lua", "localization/english.txt",
+        "hooks/skyrim_outfit_las.lua", "localization/english.txt",
         # the default hand route is `adapter`, which ships the compat hook
-        "hooks/businesswoman_glove_adapter.lua",
-        f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.model",
-        f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.unit",
-        f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.object",
-        f"assets/{bw_pack.UNIT_BASE}/{bw_pack.ITEM_ID}.material_config",
-        f"assets/{bw_pack.UNIT_BASE}/bw_body_df.texture",
-        f"assets/{bw_pack.UNIT_BASE}/bw_body_nm.texture",
-        f"assets/{bw_pack.GUI_BASE}/{bw_pack.ITEM_ID}.texture",
+        "hooks/skyrim_outfit_glove_adapter.lua",
+        f"assets/{las_outfit_pack.UNIT_BASE}/{las_outfit_pack.ITEM_ID}.model",
+        f"assets/{las_outfit_pack.UNIT_BASE}/{las_outfit_pack.ITEM_ID}.unit",
+        f"assets/{las_outfit_pack.UNIT_BASE}/{las_outfit_pack.ITEM_ID}.object",
+        f"assets/{las_outfit_pack.UNIT_BASE}/{las_outfit_pack.ITEM_ID}.material_config",
+        f"assets/{las_outfit_pack.UNIT_BASE}/outfit_body_df.texture",
+        f"assets/{las_outfit_pack.UNIT_BASE}/outfit_body_nm.texture",
+        f"assets/{las_outfit_pack.GUI_BASE}/{las_outfit_pack.ITEM_ID}.texture",
     }
 
 
 def test_rebuild_drops_files_from_the_previous_build(tmp_path):
     """A pack that shrank must not keep the old build's textures in the zip."""
     specs = [sm.MaterialSpec("mtr_body", "", "", generated=True)]
-    config = sm.render_material_config(bw_pack.TPP_UNIT, specs)
-    textures = {"bw_body_df": b"\0" * 16, "bw_body_nm": b"\0" * 16,
-                "bw_jacket_df": b"\0" * 16}
-    pack = bw_pack.write_pack(tmp_path, b"MODEL", textures, _dummy_icon(),
+    config = sm.render_material_config(las_outfit_pack.TPP_UNIT, specs)
+    textures = {"outfit_body_df": b"\0" * 16, "outfit_body_nm": b"\0" * 16,
+                "outfit_jacket_df": b"\0" * 16}
+    pack = las_outfit_pack.write_pack(tmp_path, b"MODEL", textures, _dummy_icon(),
                               config, None, drawables=["g_body"])
-    assert (pack / "assets" / bw_pack.UNIT_BASE / "bw_jacket_df.texture").exists()
+    assert (pack / "assets" / las_outfit_pack.UNIT_BASE / "outfit_jacket_df.texture").exists()
 
     # drop the jacket and rebuild into the same folder
-    pack = bw_pack.write_pack(tmp_path, b"MODEL",
-                              {"bw_body_df": b"\0" * 16, "bw_body_nm": b"\0" * 16},
+    pack = las_outfit_pack.write_pack(tmp_path, b"MODEL",
+                              {"outfit_body_df": b"\0" * 16, "outfit_body_nm": b"\0" * 16},
                               _dummy_icon(), config, None, drawables=["g_body"])
-    assert not (pack / "assets" / bw_pack.UNIT_BASE / "bw_jacket_df.texture").exists()
+    assert not (pack / "assets" / las_outfit_pack.UNIT_BASE / "outfit_jacket_df.texture").exists()
 
 
 def test_zip_is_reproducible(tmp_path):
-    pack_a = tmp_path / "a" / bw_pack.PACK_DIR_NAME
+    pack_a = tmp_path / "a" / las_outfit_pack.PACK_DIR_NAME
     pack_a.mkdir(parents=True)
     (pack_a / "main.xml").write_text("<table/>")
-    zip_a = bw_pack.zip_pack(pack_a)
+    zip_a = las_outfit_pack.zip_pack(pack_a)
 
-    pack_b = tmp_path / "b" / bw_pack.PACK_DIR_NAME
+    pack_b = tmp_path / "b" / las_outfit_pack.PACK_DIR_NAME
     pack_b.mkdir(parents=True)
     (pack_b / "main.xml").write_text("<table/>")
-    zip_b = bw_pack.zip_pack(pack_b)
+    zip_b = las_outfit_pack.zip_pack(pack_b)
 
     assert zip_a.read_bytes() == zip_b.read_bytes()
 
@@ -393,7 +393,7 @@ def test_icon_crop_stays_inside_the_preview_sheet():
             for y in range(40, 380):
                 sheet.putpixel((x, y), (200, 170, 150))
     sheet.save(buf, format="PNG")
-    data = bw_pack.build_icon(buf.getvalue(), size=64)
+    data = las_outfit_pack.build_icon(buf.getvalue(), size=64)
     assert data[:4] == b"DDS "
     assert struct.unpack_from("<II", data, 12) == (64, 64)
 
@@ -402,10 +402,10 @@ def test_every_path_the_pack_references_exists(tmp_path):
     """A truncated path is invisible offline and renders nothing in game.
 
     The suite passed while main.xml, the hook and the object file all pointed
-    at `units/businesswoman/skins/businesswoman` — a directory, not a unit.
+    at `units/skyrim_outfit/skins/skyrim_outfit` — a directory, not a unit.
     """
-    pack = bw_pack.write_pack(
-        tmp_path, b"MODEL", {"bw_body_df": b"df", "bw_body_nm": b"nm"},
+    pack = las_outfit_pack.write_pack(
+        tmp_path, b"MODEL", {"outfit_body_df": b"df", "outfit_body_nm": b"nm"},
         b"ICON", "config", "fpsconfig", fps_model=b"FPS", extra={},
         drawables=["g_body"], fps_drawables=["g_body"])
     assets = pack / "assets"
@@ -418,7 +418,7 @@ def test_every_path_the_pack_references_exists(tmp_path):
     for e in ET.parse(pack / "main.xml").getroot().iter("unit_mat"):
         need(e.get("path"), ".unit")
     for e in ET.parse(pack / "main.xml").getroot().iter("df_nm"):
-        # <df_nm path=".../bw_body"/> names the pair: bw_body_df + bw_body_nm
+        # <df_nm path=".../outfit_body"/> names the pair: outfit_body_df + outfit_body_nm
         stem = e.get("path")
         assert not stem.endswith(("_df", "_nm")), stem
         need(stem + "_df", ".texture")
@@ -426,7 +426,7 @@ def test_every_path_the_pack_references_exists(tmp_path):
     for e in ET.parse(pack / "main.xml").getroot().iter("texture"):
         need(e.get("path"), ".texture")
 
-    lua = (pack / "hooks" / f"{bw_pack.ITEM_ID}_las.lua").read_text()
+    lua = (pack / "hooks" / f"{las_outfit_pack.ITEM_ID}_las.lua").read_text()
     for key in ("unit", "fps_unit"):
         m = re.search(rf'\b{key} = "([^"]+)"', lua)
         if m:
@@ -437,7 +437,7 @@ def test_every_path_the_pack_references_exists(tmp_path):
         need(root.find("diesel").get("materials"), ".material_config")
         unit = obj.with_suffix(".unit")
         ref = ET.parse(unit).getroot().find("object").get("file")
-        if f"{ref}.object" != f"{bw_pack.TPP_UNIT if obj.stem == bw_pack.ITEM_ID else bw_pack.FPS_UNIT}.object":
+        if f"{ref}.object" != f"{las_outfit_pack.TPP_UNIT if obj.stem == las_outfit_pack.ITEM_ID else las_outfit_pack.FPS_UNIT}.object":
             missing.append(f"{obj.name}: object file mismatch ({ref})")
         need(ref, ".object")
 

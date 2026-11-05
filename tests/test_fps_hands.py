@@ -30,8 +30,8 @@ import build_models as bm  # noqa: E402
 template_name = bm.template_name
 import diesel_model as dm  # noqa: E402
 
-DIST = REPO / "dist" / "BusinessWoman_LAS.zip"
-UNIT = "BusinessWoman_LAS/assets/units/businesswoman/skins/businesswoman"
+DIST = REPO / "dist" / "SkyrimOutfit_LAS.zip"
+UNIT = "SkyrimOutfit_LAS/assets/units/skyrim_outfit/skins/skyrim_outfit"
 PACK_MATERIALS = ("mtr_body", "mtr_hands", "mtr_heels", "mtr_jacket",
                   "mtr_jacket2", "mtr_necklace", "mtr_skirt", "shadow_caster")
 
@@ -45,7 +45,7 @@ def _pack_hands() -> str:
     """
     import json
     with zipfile.ZipFile(DIST) as z:
-        info = json.loads(z.read("BusinessWoman_LAS/BUILD_INFO.json"))
+        info = json.loads(z.read("SkyrimOutfit_LAS/BUILD_INFO.json"))
     return info.get("hands", "graft")
 
 
@@ -169,8 +169,8 @@ def test_shipped_fps_unit_declares_every_material_it_references():
     by_hash = {dm.hash64(n): n for n in PACK_MATERIALS}
     with zipfile.ZipFile(DIST) as z:
         for model, config in (
-                ("businesswoman.model", "businesswoman.material_config"),
-                ("fps_businesswoman.model", "fps_businesswoman.material_config")):
+                ("skyrim_outfit.model", "skyrim_outfit.material_config"),
+                ("fps_skyrim_outfit.model", "fps_skyrim_outfit.material_config")):
             hashes, _ = _model_facts(z.read(f"{UNIT}/{model}"))
             defined = {dm.hash64(n) for n in _config_names(z.read(f"{UNIT}/{config}"))}
             used = {by_hash[h] for h in hashes if h in by_hash}
@@ -188,8 +188,8 @@ def test_shipped_fps_unit_keeps_the_fingers():
     the hands. On the ``graft`` route the viewmodel must keep the grafted fingers.
     """
     with zipfile.ZipFile(DIST) as z:
-        _, tpp = _model_facts(z.read(f"{UNIT}/businesswoman.model"))
-        _, fps = _model_facts(z.read(f"{UNIT}/fps_businesswoman.model"))
+        _, tpp = _model_facts(z.read(f"{UNIT}/skyrim_outfit.model"))
+        _, fps = _model_facts(z.read(f"{UNIT}/fps_skyrim_outfit.model"))
     if _pack_hands() == "adapter":
         assert not tpp, "adapter route must ship no hand geometry in the body"
         assert not fps, "adapter route must ship no hand geometry in the viewmodel"
@@ -203,8 +203,8 @@ def test_shipped_fps_unit_keeps_the_fingers():
 
 
 @pytest.mark.skipif(not DIST.exists(), reason="pack not built in this checkout")
-@pytest.mark.parametrize("name", ["businesswoman.model",
-                                  "fps_businesswoman.model"])
+@pytest.mark.parametrize("name", ["skyrim_outfit.model",
+                                  "fps_skyrim_outfit.model"])
 def test_shipped_models_render_atoms_tile_the_mesh(name):
     """Every triangle is drawn once, by the atom that owns it.
 
@@ -229,7 +229,7 @@ def test_shipped_shadow_drawable_only_casts_shadow():
     offline sheet while the pack still looks plausible.
     """
     with zipfile.ZipFile(DIST) as z:
-        mf = dm.ModelFile.read(z.read(f"{UNIT}/businesswoman.model"))
+        mf = dm.ModelFile.read(z.read(f"{UNIT}/skyrim_outfit.model"))
     shadow_groups = []
     for s in mf.by_type(dm.MATERIAL_GROUP):
         ids = dm.decode_material_group(s.payload)["material_ids"]

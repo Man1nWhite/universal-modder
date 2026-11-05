@@ -254,10 +254,10 @@ LAS flags to be switched **on**, not merely present).
     and check the two units against each other — the FPS unit must carry the
     same hand/finger bones as the third-person one, and its vertex count must
     not change silently between builds.
-    *Hit again, on our own pack.* The Business Woman build grafted PD2 hands
+    *Hit again, on our own pack.* The cancelled Skyrim clothing build grafted PD2 hands
     (532 finger-dominant vertices) onto a body whose viewmodel cut was still
     the fixed list `Shoulder/Arm/ForeArm/Hand/HandThumb1`: the shipped
-    `fps_businesswoman.model` kept 12 of them, so first person held the gun
+    `fps_skyrim_outfit.model` kept 12 of them, so first person held the gun
     with stumps while third person was perfect. The cut is now the predicate
     `build_models.is_fps_arm_bone` (side prefix + `Shoulder`/`Arm`/`Hand`, and
     the finger bones all contain `Hand`), `extract_bones` accepts a predicate,
@@ -454,7 +454,7 @@ same five, and the audit now checks them by name.
 27. **Changeable gloves via the vanilla glove adapter — the mechanism is right,
     but it did NOT render in-game; graft is the shipped default** (2026-11-03,
     read off `Vladik268/P2` = LAS 4.1.9 + BeardLib, and the decompiled vanilla
-    Lua in `AzureeDev/payday-2-luajit`; BusinessWoman only).
+    Lua in `AzureeDev/payday-2-luajit`; the Skyrim build only).
 
     **Empirical outcome (overrides the theory below):** the adapter route — even
     with the corrected `default_glove_id = "heist_default"` compat hook, and even
@@ -506,7 +506,7 @@ same five, and the audit now checks them by name.
       `get_glove_value` returns `false` for "Default" gloves when the style's
       `default_glove_id` is `false` → no glove unit spawns, while
       `body_replacement.hands = true` hides the stock hands → **NO HANDS AT
-      ALL** (shipped once on BusinessWoman; the adapter forearms alone do not
+      ALL** (shipped once on the Skyrim build; the adapter forearms alone do not
       compensate — stock hands do not render on a replaced body).
     - **The fix is a compat hook that restores the vanilla mechanism.**
       PostHook `BlackMarketTweakData:init` (runs after LAS's loader): set
@@ -535,14 +535,14 @@ same five, and the audit now checks them by name.
       the gloves show in first person without shipping any FPS hand geometry.
       Fallback if a heister's camera-unit gloves ever fail: an FPS-only graft.
     - **When to prefer which.** Adapter route when the ported body already ends
-      at the wrist (BusinessWoman's 3BA does) and you want changeable gloves;
+      at the wrist (the Skyrim 3BA does) and you want changeable gloves;
       graft + weld (note 26) when the outfit must own the hands outright (cop
       suits, full character replacements) or the sleeve/hand seam must be
       skinned as one. The adapter trades a skinned cuff for an open sleeve mouth
       the adapter forearm fills — verify the cuff in motion in game.
 
 28. **Axial-vs-radial retarget scaling distorts a ported body's neck and bust**
-    (2026-11-03, measured on the Skyrim 3BA → PD2 BusinessWoman port). A
+    (2026-11-03, measured on the Skyrim 3BA → PD2 clothing port). A
     similarity/axial retarget that matches the target's bone lengths does *not*
     preserve the source's soft-tissue proportions, in two predictable ways:
 
@@ -594,7 +594,7 @@ same five, and the audit now checks them by name.
       residue fully is a re-drape / re-authoring job, not a vertex nudge.
 
 29. **A "stray ornament" on the back may be the source outfit's own decoration**
-    (2026-11-03, Skyrim Melodic BusinessWoman blazer → PD2). The row of
+    (2026-11-03, a cancelled Skyrim SE 3BA blazer → PD2). The row of
     medallions that appeared on the ported upper back was **not** a retarget or
     UV bug: the source `Jacket_diffA` atlas paints a ceremonial collar band
     (7 medallions over beige tabs, atlas v≈0.66–0.77), and the source NIF has the
@@ -614,7 +614,7 @@ same five, and the audit now checks them by name.
     the atlas image row is from the top (`v_top = 1 − v`).
 
 30. **Skin blotches need ALL THREE of albedo, normal and gloss made uniform —
-    fixing only normal+gloss is not enough** (2026-11-03/04, BusinessWoman legs).
+    fixing only normal+gloss is not enough** (2026-11-03/04, Skyrim clothing legs).
     In-game the thighs/calves had large camo-like patches. The first fix flattened
     the normal map and made the gloss uniform, but the blotches PERSISTED, because
     a third source remained: the **albedo itself**. `build_diffuse` had been
@@ -633,7 +633,7 @@ same five, and the audit now checks them by name.
 
 31. **A ported garment's overlap armhole opens into a hole under the arms-down
     idle; keep the sleeve shoulder weighted to the torso** (2026-11-03,
-    BusinessWoman blazer). The blazer armhole is an *overlap* (sleeve fabric
+    Skyrim clothing blazer). The blazer armhole is an *overlap* (sleeve fabric
     lapped over the torso), not a sewn seam — hundreds of boundary edges in the
     shoulder band. In the bind pose (arms out) the overlap covers the armhole;
     when the arms adduct in the idle, the Arm-weighted sleeve shoulder rotates
@@ -665,7 +665,7 @@ same five, and the audit now checks them by name.
 
 32. **White patches on a dark sleeve are usually the under-layer garment, not
     skin — probe the material's FULL extent before concluding** (2026-11-04,
-    BusinessWoman blazer). After the uniform-albedo fix the legs were clean but
+    Skyrim clothing blazer). After the uniform-albedo fix the legs were clean but
     white upper-arm patches remained in-game. An earlier probe had checked
     `mtr_jacket2` only at z>140, found zero verts, and wrongly concluded the
     patches were skin. The band was too high: the white **shirt sleeves** sit at
@@ -688,7 +688,7 @@ same five, and the audit now checks them by name.
     residual cuff→glove gap is inherent to the adapter route (no authored hands).
 
 33. **A cuff at a sleeve *opening* must retract ALONG the limb, not just inward**
-    (2026-11-04, BusinessWoman wrist). After the radial shirt-sleeve tuck (note 32)
+    (2026-11-04, Skyrim clothing wrist). After the radial shirt-sleeve tuck (note 32)
     the upper-arm patches were gone but a white ring remained at the wrist: the shirt
     cuff is a ring of 100 %-`ForeArm`-weighted verts sitting exactly at the sleeve
     opening, where there is no blazer beyond it to hide behind, so a radial (inward)
@@ -707,7 +707,7 @@ same five, and the audit now checks them by name.
 
 34. **Identify a poke-through layer by highlighting EACH material in a POSED render
     before fixing it — white patches under a dark garment can be skin, not the
-    under-layer shirt** (2026-11-04, BusinessWoman arm). White arm patches survived
+    under-layer shirt** (2026-11-04, Skyrim clothing arm). White arm patches survived
     two cycles of shirt (`jacket2`) tucks. A posed render with `mtr_body`=GREEN showed
     green exactly at the patches while `mtr_jacket2`=RED showed only the collar: the
     patches were **arm skin poking through the blazer**, not the shirt. Exposed skin
@@ -724,7 +724,7 @@ same five, and the audit now checks them by name.
 
 35. **A ported neck must be RECENTERED and TAPERED onto the target head-neck axis, not
     just squashed — and verified with the reference head attached offline**
-    (2026-11-04, BusinessWoman neck). The outfit showed a horizontal skin shelf across
+    (2026-11-04, Skyrim clothing neck). The outfit showed a horizontal skin shelf across
     the front of the neck base plus a notch behind it. Measuring cross-sections (plane
     / triangle intersections, welded by rounded position) showed why: the source skin
     neck is a *wide* tube (axis y≈9.5, diagonal opening rim centroid y≈13.6) while the
@@ -745,7 +745,7 @@ same five, and the audit now checks them by name.
 
 36. **A white ring at the sleeve opening / wrist is usually SHIPPED hand geometry, not the
     shirt cuff — enforce the adapter hand route with a build-time guard**
-    (2026-11-04, BusinessWoman forearms). The "forearm" defect (white wrist ring between
+    (2026-11-04, Skyrim clothing forearms). The "forearm" defect (white wrist ring between
     blazer sleeve and game glove, plus tan hands) was a regressed pack that carried a
     `mtr_hands` slice: source/graft hands whose wrist stub reaches below the blazer sleeve
     end (sleeve z117.7, hands z112) and protrudes as a white ring. Diagnose with a posed
@@ -761,7 +761,7 @@ same five, and the audit now checks them by name.
     differ from a clean rebuild, so always confirm the packed `.model` has no `mtr_hands`.
 
 37. **Match an outfit's authored body-skin tone to the HE head it pairs with, by sampling
-    that head's diffuse — not a generic reference swatch** (2026-11-04, BusinessWoman skin
+    that head's diffuse — not a generic reference swatch** (2026-11-04, Skyrim clothing skin
     colour). The exposed body skin (neck / chest / legs) read too light & pink against the
     heister head at the seam because the flat body albedo base was sampled from a *different*
     character's face swatch. Fix: decode the paired head's diffuse (e.g.
@@ -775,7 +775,7 @@ same five, and the audit now checks them by name.
 
 38. **When a ported neck sits forward of the head, TURN the whole body mesh rather than
     tapering/hiding the body neck — hiding it leaves the collar unsupported**
-    (2026-11-04, BusinessWoman neck redo; supersedes the taper half of note 35). The
+    (2026-11-04, Skyrim clothing neck redo; supersedes the taper half of note 35). The
     recenter+taper+fold approach (note 35) looked fine offline but in-game left a hard
     head/body seam at the collar, tan skin "wings" above the collar back, and an unsupported
     standing collar: hiding the body neck inside the head removes the surface that should
@@ -790,7 +790,7 @@ same five, and the audit now checks them by name.
 
 39. **A white wrist ring that survives hand-removal is the SHIRT CUFF poking radially out of
     the sleeve mouth — retract it harder AND overlap the glove with the outer sleeve**
-    (2026-11-04, BusinessWoman forearms redo). After dropping shipped hands (note 36) the
+    (2026-11-04, Skyrim clothing forearms redo). After dropping shipped hands (note 36) the
     white wrist ring + a sleeve→glove gap persisted in-game. A posed render with a stand-in
     glove (template hand tinted blue) showed the white `jacket2` cuff protruding *radially*
     at the blazer sleeve opening, and the blazer stopping short of the glove. Two-part fix:
