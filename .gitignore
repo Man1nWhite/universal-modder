@@ -22,8 +22,6 @@ dist/*
 !dist/lawson_las.zip.sha256
 !dist/Christie_LAS.zip
 !dist/Christie_LAS.zip.sha256
-!dist/Christie_LAS_No_hands.zip
-!dist/Christie_LAS_No_hands.zip.sha256
 !dist/Christie_LAS_Slim.zip
 !dist/Christie_LAS_Slim.zip.sha256
 !dist/Geralt_over_Rust.zip

@@ -6,12 +6,10 @@ Source: `references/Christie.zip` (Dead or Alive 5 Christie, costume c2:
 Outputs (in `dist/`):
 
 - `Christie_LAS.zip`           — full body incl. Christie's own hands
-- `Christie_LAS_No_hands.zip`  — same outfit with the hands cut at the wrist,
-  so the heister's in-game gloves (changeable, via the glove adapter compat
-  hook) show through the sleeves; `--variant nohands`
-- `Christie_LAS_Slim.zip`      — 10% thinner in width/depth, height unchanged,
-  hands cut at the wrist (glove adapter) — overrides the earlier 20% slim build;
-  `--variant slim`
+- `Christie_LAS_Slim.zip`      — 10% thinner in width/depth (arms an extra 25%),
+  height unchanged, hands cut at the wrist so the in-game gloves (changeable,
+  via the glove adapter compat hook) show through the sleeves; `--variant slim`
+  (the separate no-hands pack was removed — slim supersedes it)
 
 Both are installable to `PAYDAY 2\\assets\\mod_overrides\\` with SuperBLT +
 BeardLib + LAS/Wardrobe.
@@ -34,8 +32,8 @@ out look) via `dds_encode.attenuate_dxt5_alpha_from_normal`.
 Usage (from the repo root):
   .venv/bin/python tools/pd2-las/build_christie_las.py \
       --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"            # base
-  .venv/bin/python tools/pd2-las/build_christie_las.py --variant nohands \
-      --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"            # no hands
+  .venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
+      --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"            # slim
 """
 
 from __future__ import annotations
@@ -123,16 +121,6 @@ IDENTITIES = {
                      "heister keeps their own), built from the DOA5 christie_c2 "
                      "model."),
         glove_adapter=False,
-    ),
-    "nohands": Identity(
-        item_id="christie_no_hands",
-        pack_dir_name="Christie_LAS_No_hands",
-        display_name="Christie (DOA5, no hands)",
-        description=("Christie from Dead or Alive 5, body-only LAS outfit with "
-                     "the hands cut at the wrist so the in-game gloves show "
-                     "through the sleeves. No head — the heister keeps their "
-                     "own."),
-        glove_adapter=True,
     ),
     "slim": Identity(
         item_id="christie_slim",
@@ -499,7 +487,17 @@ def fix_arm_fits(model: sm.ModelData, skel_map: dict, template: bm.Template,
         fits[i_fore] = tuple(t[k] + (float(delta[k - 12]) if 12 <= k <= 14 else 0.0)
                              for k in range(16))
         fixed += 1
-    print(f"arm chain re-fit: {fixed} fits translated onto the PD2 elbow/wrist pivots")
+        # wrist too: the glove spawns at the PD2 Hand joint, so the Hand fit
+        # must land there as well or the spawned glove sits off the sleeve end
+        if i_hand is not None:
+            ps_h = np.array(src_worlds[i_hand][12:15], dtype=np.float64)
+            pt_h = tgt_pos(f"{side}Hand")
+            t = fits[i_hand]
+            delta = pt_h - np.array(dm.mat_apply_point(t, tuple(ps_h)), dtype=np.float64)
+            fits[i_hand] = tuple(t[k] + (float(delta[k - 12]) if 12 <= k <= 14 else 0.0)
+                                 for k in range(16))
+            fixed += 1
+    print(f"arm chain re-fit: {fixed} fits translated onto the PD2 arm pivots")
     return fits
 
 
@@ -847,10 +845,10 @@ def main(argv=None) -> int:
     ap.add_argument("--templates", type=Path, required=True,
                     help="directory with 2b.model / fps_2b.model (from 2b.rar)")
     ap.add_argument("--variant", choices=sorted(IDENTITIES), default="base",
-                    help="base = full body with hands; nohands = hands cut at the "
-                         "wrist for in-game gloves (glove adapter hook shipped); "
-                         f"slim = {(1 - SLIM_SCALE):.0%} thinner in x/y, height "
-                         "unchanged, hands cut (glove adapter)")
+                    help="base = full body with hands; "
+                         f"slim = {(1 - SLIM_SCALE):.0%} thinner in x/y (arms an "
+                         "extra 25%), height unchanged, hands cut at the wrist "
+                         "for in-game gloves (glove adapter hook shipped)")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
     ap.add_argument("--no-fps", dest="fps", action="store_false", default=True,
@@ -911,8 +909,8 @@ def main(argv=None) -> int:
             groups[gname] = cut_hands(groups[gname])
             rep = bm.extend_sleeves_to_wrist(
                 groups[gname],
-                mats={"cri_body_base": -2.2, "cri_02_01_base": -2.5,
-                      "cri_02_02_base": -2.0})
+                mats={"cri_body_base": -3.5, "cri_02_01_base": -4.5,
+                      "cri_02_02_base": -3.0})
             print(f"[{gname}] sleeves reach the glove: {rep['moved']} verts "
                   f"{rep['materials']} (was -> target: {rep['reaches']})")
             breaks = bm.orientation_breaks(groups[gname])

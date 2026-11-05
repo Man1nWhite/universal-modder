@@ -1,19 +1,18 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
 - `dist/Christie_LAS.zip` (+ `.sha256`) — full body incl. Christie's hands.
-- `dist/Christie_LAS_No_hands.zip` (+ `.sha256`) — hands cut at the wrist
-  (`--variant nohands`), sleeves stretched over the wrist gap, plus a
-  `*_glove_adapter.lua` compat hook (default glove restored, adapter
-  re-enabled) so the heister's changeable in-game gloves show through the
-  sleeves.
 - `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 10% thinner in width and depth
-  **and no hands** (`--variant slim`, overrides the earlier 20% slim build):
-  the retargeted body is scaled ×0.9 in X/Y about its own vertical axis
-  (normals inverse-transpose corrected), **Z/height untouched**; arm-chain
-  verts (bone palette names containing "Arm"/"Hand") get an extra ×0.75 in
-  X/Y so the arms are 25% thinner than the base pack, then the hands
-  are cut at the wrist with the glove-adapter hook, applied before the fps
-  extraction so the viewmodel arms match.
+  **and no hands** (`--variant slim`; the separate no-hands pack was removed —
+  slim supersedes it): the retargeted body is scaled ×0.9 in X/Y about its own
+  vertical axis (normals inverse-transpose corrected), **Z/height untouched**;
+  arm-chain verts (bone palette names containing "Arm"/"Hand") get an extra
+  ×0.75 in X/Y so the arms are 25% thinner than the base pack, then the hands
+  are cut at the wrist, the sleeves are stretched deep past the wrist joint
+  (blazer −4.5 cm, skin −3.5 cm, shirt −3.0 cm) so the spawned glove sits well
+  inside the cuff in every pose, plus a `*_glove_adapter.lua` compat hook
+  (default glove restored, adapter re-enabled) so the heister's changeable
+  in-game gloves show through the sleeves. Applied before the fps extraction
+  so the viewmodel arms match.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
@@ -42,8 +41,6 @@ fit spikes shoulder-top verts to z ≈191–199.
 ```sh
 .venv/bin/python tools/pd2-las/build_christie_las.py \
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # base pack
-.venv/bin/python tools/pd2-las/build_christie_las.py --variant nohands \
-    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # no-hands pack
 .venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # slim pack
 ```

@@ -34,8 +34,6 @@ pytestmark = pytest.mark.skipif(
 
 PACKS = {
     "base": ("dist/Christie_LAS.zip", "Christie_LAS", "christie", False),
-    "nohands": ("dist/Christie_LAS_No_hands.zip", "Christie_LAS_No_hands",
-                "christie_no_hands", True),
     "slim": ("dist/Christie_LAS_Slim.zip", "Christie_LAS_Slim",
              "christie_slim", True),   # slim also cuts the hands (glove adapter)
 }
@@ -185,28 +183,6 @@ class TestPack:
         assert info["runtime_verified"] is True   # in-game check 2026-11-05
 
 
-def test_nohands_pack_has_fewer_verts():
-    """The no-hands variant must actually drop hand-dominated geometry."""
-    import diesel_model as dm
-
-    counts = {}
-    for which in ("base", "nohands"):
-        _, pack_dir, item_id, _g = PACKS[which]
-        mf = dm.ModelFile.read(
-            _zf(which).read(f"{pack_dir}/assets/units/{item_id}/skins/"
-                            f"{item_id}/{item_id}.model"))
-        hl = dm.decode_custom_hashlist(
-            mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
-        for s in mf.by_type(dm.MODEL_DATA):
-            md = dm.decode_model_data(s.payload)
-            name = next((n for n in hl if dm.hash64(n) == md["name_hash"]), "")
-            if name == "g_body" and md.get("version") == 3:
-                gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
-                geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
-                counts[which] = len(geo["verts"])
-    assert counts["nohands"] < counts["base"]
-
-
 def _g_body_bounds(which: str):
     import numpy as np
     import diesel_model as dm
@@ -229,24 +205,24 @@ def _g_body_bounds(which: str):
 
 
 def test_slim_pack_is_thinner_but_same_height():
-    """The slim variant scales x/y by ~0.9 about the body axis, thins the arm
-    chain by an extra 25% (x/y factor 0.75 on arm/hand verts), and leaves z.
-    Compared against the no-hands pack, which shares the same wrist cut (the
-    hands reach forward in +y and would otherwise dominate the y extent)."""
-    bx, by, bz = _g_body_bounds("nohands")
+    """The slim variant scales x/y by ~0.9 about the body axis and thins the
+    arm chain by an extra 25% (x/y factor 0.75 on arm/hand verts), leaving z.
+    Compared against the base pack: arms dominate the x extent of both, and
+    slim's wrist cut removes the forward-reaching hands from the y extent."""
+    bx, by, bz = _g_body_bounds("base")
     sx, sy, sz = _g_body_bounds("slim")
     # arms dominate the x extent and are scaled 0.75 -> overall x ratio ~0.75
     assert 0.70 < sx / bx < 0.80, f"slim x ratio {sx / bx:.3f}"
-    assert 0.85 < sy / by < 0.95, f"slim y ratio {sy / by:.3f}"
+    assert sy < by, "slim y extent must shrink (hands cut + x/y scale)"
     assert abs(sz - bz) < 0.01, "height must be unchanged"
     # slim also cuts the hands, so its vertex count drops vs the base pack
     assert _g_body_verts("slim") < _g_body_verts("base")
 
 
 def test_arm_fit_translation_causes_no_vertex_spikes():
-    """fix_arm_fits only translates the Arm/ForeArm bone fits, so blended
+    """fix_arm_fits only translates the Arm/ForeArm/Hand bone fits, so blended
     shoulder verts must not spike: z extent stays near the base pack's."""
-    for which in ("base", "nohands", "slim"):
+    for which in ("base", "slim"):
         _, _, bz = _g_body_bounds(which)
         assert bz < 175.0, f"{which} g_body z extent {bz:.1f} cm looks spiked"
 
