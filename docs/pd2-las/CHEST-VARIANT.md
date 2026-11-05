@@ -2,12 +2,14 @@
 
 Deliverable: **`dist/Miranda_Busty_LAS.zip`** (+ `.sha256`), a second PAYDAY 2
 Legendary Armour Skins outfit built from the same L4D2 Miranda source as
-`dist/Miranda_LAS.zip`, with a larger chest. It registers its own
-`LegendaryArmours.miranda_busty` entry, so **both packs can be installed at
-once** and the stock outfit is not modified.
+`dist/Miranda_LAS.zip`, with a sculpted D-cup chest. It registers its own
+`LegendaryArmours.miranda_busty` entry and ships a distinct 3/4 upper-body
+portrait icon (`miranda_busty.texture`), so **both packs can be installed at
+once** and the stock outfit is never modified.
 
 Builder: `tools/pd2-las/build_busty_variant.py` · morph: `tools/pd2-las/bust_variant.py`
-· tests: `tests/test_bust_variant.py` · report: `build/pd2-las/busty_variant_report.json`.
+· tests: `tests/test_bust_variant.py` · audit: `docs/pd2-las/AUDIT-2026-11-05.md`
+· report: `build/pd2-las/busty_variant_report.json`.
 
 ```sh
 bash tools/pd2-las/bootstrap.sh          # venv, 2B templates, textures
@@ -17,277 +19,164 @@ bash tools/pd2-las/bootstrap.sh          # venv, 2B templates, textures
 
 ## Model space (measured, not assumed)
 
-The authored mesh is z-up, centimetres, feet at z=0, **+y is the front**
-(settled from the face and hair geometry of `g_head`, not from the eye-orbit
-vertices — those sit toward the back of the head and read as a false negative).
-The chest is a broad shell: front surface reaches y≈20 cm over a plateau at
-| x | 2…11 cm, z 132…148, apex at (x≈5.6, z≈140), with only a **0.4–0.6 cm**
-sternum dip. Breast-apex-to-back depth is ≈20 cm, chest wall (front of the
-ribcage, estimated from the back surface at y≈-5) at y≈5 cm.
+The authored mesh is z-up, centimetres, feet at `z = 0`, **`+y` is the front**
+(verified from `g_head` face/hair geometry). On the base `miranda.model`
+(`g_body`), explicit `~0.3–0.6 cm` 3D suit piping bevels frame the hexagonal
+chest panel at `z ≈ 135.0..136.2` (inframammary crease, `y ≈ 16.58 cm`),
+`|x| ≈ 8.0..8.7` (diagonal stitched seam), and `z ≈ 146.2..147.1` (upper panel
+edge). The base breast spans laterally out to `|x| ≈ 10.8 cm` and peaks at
+`y = 19.98 cm` (`x = 5.59, z = 140.01`), with only a `0.4–0.6 cm` sternum dip
+under the zipped white catsuit.
 
-That shape drives the design: there is no separable "two-breast" volume to
-scale, so the morph must **add** mass in two domes and carve the cleavage back
-in, rather than inflate the existing form.
+## The 3D radial-spherical catsuit sculpt
 
-## The morph
+The sculpted variant (`bust_variant.py`) combines three geometric stages so the
+chest reads as a round, proportional, anatomically clean bust inside Miranda's
+high-tension hex-weave catsuit from every angle — **top** (`Top 68°`, `Top 48°`),
+**bottom** (`Bottom 48°`, `Bottom 68°`), **front** (`0°`), **oblique** (`30°`,
+`60°`), and **side** (`90°`):
 
-The first attempt pushed the existing chest plate forward with a single radial
-falloff. It read as a faceted balloon with a hard shelf, and close up the shelf
-was exactly where the swell's rim met the outfit's raised sleeve-panel seam.
-Two structural changes fixed that: the chest is **locally subdivided** before it
-moves, and the displacement is a **two-scale** height field rather than one dome.
+### 1. Welded 2-level 1-to-4 local chest subdivision (`+3,292` chest vertices)
 
-### 1. Local subdivision of the chest panel
+* `subdivide_region` refines the chest & breast-root patch (`SUBDIVIDE_Z = (132.5, 151.0)`,
+  `DEFAULT_SUBDIVISIONS = 2`, `MAX_CHEST_EDGE_CM = 0.25`) using **3D-welded edge
+  keys**.
+* Co-located stitched-seam vertex pairs (e.g. `|x| ≈ 8.0–8.7` where UV distance
+  across the seam is `< 0.05`) split **in lockstep** at identical 3D midpoints,
+  preventing T-junctions and sawtooth steps while still skipping wide UV-island
+  jumps (`MAX_EDGE_UV_DISTANCE = 0.20`).
+* Using uniform 1-to-4 (`k = 3`) refinement across the chest quads avoids
+  bisecting only quad hypotenuses (`k = 1` green fans), which otherwise create
+  alternating valence-8 / valence-4 diamond shading stars on specular clay.
 
-The source chest is one flat plate with roughly one vertex every 2.5 cm — there
-is nowhere for a new volume to live. `subdivide_region` splits the chest
-triangles one-to-four (red/green refined, so a face on the patch border is
-re-triangulated through the same edge midpoint instead of being left with a
-T-junction) and appends the new vertices after the block each group already
-owns, so the Diesel render atoms keep describing the mesh exactly.
+### 2. Variable-exponent twin-hemisphere dome + spine-root radial expansion (`ChestMorph`)
 
-Two guards, both learned from broken previews:
+* **Anisotropic twin-hemisphere projection (`+dy`) & asymmetry equalization**:
+  * Uses a separable variable-exponent hemisphere `(1 - rho)^(0.78 + 0.47 * rho + 0.15 * up_t)`
+    where `rho = |u|^2.45 + |w|^pz` (`pz = 1.98 -> 1.88`) centred at
+    `(APEX_X = 5.05, APEX_Z = 140.95)` (`RADIUS_X_IN = 7.30`, `RADIUS_X_OUT = 7.00`,
+    `RADIUS_Z_DOWN = 6.16`, `RADIUS_Z_UP = 8.85`, `SOFT_SCALE = 1.12`,
+    `SOFT_WEIGHT = 0.24`, `MEDIAL_OVERLAP = 0.11`, `VALLEY = 0.145, VALLEY_W = 2.25`):
+    * Near `rho = 0` (the cup apex), `q ≈ 0.78` produces a wide, blunt circular
+      hemisphere `(   )(   )` with zero parabolic cone tip in both horizontal
+      (`Top 68°`, `Bottom 68°`, `Bottom 48°`) and vertical (`60°`, `90°`) slices.
+    * Near `rho = 1` (collar & inframammary rim), `q ≈ 1.25–1.40` eases smoothly
+      to zero with `< 7.5%` peak step per `0.25 cm` and `< 1.78x` linear UV stretch.
+    * Balanced `RADIUS_X_IN = 7.30`, `MEDIAL_OVERLAP = 0.11`, and `VALLEY = 0.145`
+      preserve two clearly separated hemispheres (`~0.6–0.85 cm` smooth U-saddle
+      over Miranda's taut catsuit) without fusing into a central monoboob or
+      carving an artificial sharp W-groove.
+  * Blends `86%` symmetric twin-sphere target lift (`sph_pull`, damping `excess_y`
+    above `18.50 cm` to equalize the base mesh's `+0.63 cm` overlapping right-bib
+    asymmetry down to `0.21 cm` and melt the `x ≈ +8.0..+8.5` vertical bib step)
+    with `14%` proportional depth push for subtle suit relief, plus a smooth
+    lateral/posterior root bell (`DEFAULT_ROOT_GAIN = 0.70`,
+    `DEFAULT_ROOT_SPREAD = 0.42`) for breast-root vertices closer to the spine
+    (`y ≈ 5.3..18.5 cm`, `|x| ≈ 5.8..13.4 cm`).
+  * Lower-pole support ends strictly at `140.95 - 6.16 * 1.12 = 134.05 cm`
+    (above the ribcage/abdomen, eliminating abdominal bulge); upper-pole support
+    ends strictly at `140.95 + 8.85 * 1.12 = 150.86 cm` (below `HEAD_Z = 152.0`).
+* **3D vertical & lateral radial fullness (`dz`, `dx`)** around internal pivot
+  `(RADIAL_X = 5.05, RADIAL_Z = 140.95)`:
+  * Gentle vertical underbust support (`v_lat = 0.92 + 0.08 * v_fac`, `lift = 0.18`)
+    keeps honeycomb hexagons unstretched (`1.76x` max) and prevents twin hanging
+    underbust spikes in `Bottom 48°` views, while outward-only lateral rounding
+    (`spread = 0.34`) avoids pinching medial vertices inward into `/\ /\` cones.
 
-* faces whose edges span a **UV seam** are never split (the midpoint's averaged
-  UV lands on the sheet's black border), and
-* faces touching a **duplicated (seam-copy) vertex** are left whole, because the
-  two copies store the seam as unrelated edges and splitting one side alone
-  opens a hairline crack.
+### 3. Slice-scoped 3-ring Gaussian normal-projected fairing (`smooth_region`)
 
-New positions/UVs/skin weights are edge midpoints, so the split itself is
-invisible; only the morph makes it matter.
-
-### 2. Two-scale falloff
-
-```
-r_x   = 9.2 toward the midline, 4.2 toward the armpit           blended, not switched
-u     = (x ∓ 6.0) / (r_x · side) · s                            s = dome scale
-r2    = u² + ((z - 139.0)/r_z)²
-main  = (1 - r2)^1.6
-r_z   = 14.0 above the apex, 8.0 below it                       per breast
-soft  = same shape at 2.0× the size, weight 0.62, power 1.8      chest fullness
-w±    = (main + 0.62·soft) / 1.62                               normalised: apex = 1
-gate  = smoothstep((y - 6.5)/6.5) · smoothstep((13.0 - |x|)/2.5)
-ceil  = smoothstep((152.5 - z)/6)                               soft upper bound
-head  = 0 for z ≥ 152.0                                         hard collar stop
-depth = max(0, y - 5.0)                                         existing protrusion
-gain  = 0.50 + 0.14 · min(1, depth/15)                          cup + fullness
-valley= 1 - 0.78 · exp(-(x/2.4)²)                               sternum damping
-
-band  = smoothstep((z-126)/2) · smoothstep((152-z)/3)          edit volume
-dy = (w+ + w-) · gate · ceil · head · band · gain · depth · valley
-dz = 0.5 · ((w+ + w-) · gate · ceil · head · band)²             bounded lift
-dx = 0.7 · (w+ - w-) · gate · ceil · head · band                zero on the midline
-```
-
-Why each term exists:
-
-| Term | Reason |
-| --- | --- |
-| asymmetric `r_x` (9.2 medial / 4.2 lateral) | a circular footprint leaked mass into the armpit: at 90° the side read as a long pointed wedge, and the bust width grew by only +0.68 cm because the swell was going *sideways* instead of *forward*. Narrowing the lateral radius and keeping the medial one wide puts the volume in front and lets the two forms meet near the sternum |
-| asymmetric `r_z` (11.0 up / 8.0 down) | a breast's fullness sits **below** the nipple, but a tight `r_z_up` makes the top release abruptly (measured −2.4 to −3.9 cm/cm of reach against the base's own −0.1 to −1.2), which reads as "pushed up". Widening the upper radius flattens the upper flank to ≈−1.2 cm/cm, matching the base |
-| `soft` dome | a single dome has to end somewhere; at this cup size the rim landed near the neckline as a ridge. The wide shallow dome carries the upper chest down to the base mesh |
-| normalising by `1.25` | `cup_gain` keeps meaning "fraction of the existing depth" whatever the soft weight is |
-| `dz ∝ fall²` | the first version used `dz = lift · fall`, which raised the whole upper pole by as much as the apex and flattened the top of the breast into a shelf |
-| `ceil` smoothstep | `Z_CEILING` used to clip the field to zero in one step, leaving a horizontal ridge across the upper chest |
-| `head` hard stop | the soft ceiling alone still handed the topmost collar vertices (~z 152.2) about 50 µm of motion. The field is already ~0.006 there, so cutting it at `HEAD_Z = 152.0` is a 60 µm step across one edge — unresolvable, and it keeps the neck strictly untouched |
-| forward gate | the back, flanks and the flat upper chest at the neckline never move |
-| lateral gate → 0 at `\|x\| = 13` | the underarm seam and sleeve are 2–3 cm from the chest; an ungated swell caught them and read as a boxy armpit |
-| `gain · depth` (not a uniform push) | scales the *existing* bust, so the ribcage and waist do not inflate |
-| valley term | without damping the added mass bridges the 0.4 cm sternum dip and the result reads as one barrel |
-| `dx` from `w+ - w-` | algebraically zero on x=0 → the midline stays put and the mesh cannot split |
-
-After the displacement a short Laplacian relaxation (3 steps, strength 0.32)
-runs on **position-welded** nodes and every duplicate copy is written back to
-the same point (`keep_copies_together`); smoothing the copies independently was
-what tore the chest seam open.
-
-Normals: rebuilt area-weighted over position-welded vertices (so a UV seam
-inside the edit does not become a shading crease) and blended into the source
-normals by `smoothstep(1.6 × morph weight)`, leaving the rim shaded exactly as
-the base build shipped it.
+* Precomputes a **3-ring geodesic stencil** (`~2.2 cm` diameter across subdivided
+  chest triangles, weights `1.0 / 0.65 / 0.35`) projected `93%` onto the welded
+  surface normal over `13` monotone passes (`strength = 0.32`) with a gradual
+  dome-wide ramp (`wt / 0.56`) instead of a sharp rim cliff.
+* Full fairing across `|x| <= 9.8 cm` melts Miranda's coarse `~2.8 cm` L4D2
+  facets and the `x ≈ +8.0..+8.5` rectangular bib cliff into smooth spherical
+  arcs, while gentle mid-sternum damping preserves two-cup separation and outer
+  flank tapering (`|x| > 9.8 cm`) preserves spine-side breast-root fullness.
+* Strictly scoped to selected material slices (`miranda_body`, `0.0 cm` leak into
+  head/collar shadow slices) and faded smoothly near open welded mesh borders so
+  the `z ≈ 146.2` keyhole lip remains completely seamless in overhead clay views.
 
 ## Preset and measured result
 
-`cup_gain 0.50`, `round_gain 0.14`, `lift 0.5`, `spread 0.7`, `valley 0.78`, relaxation 3 @ 0.12,
-subdivision level 1 (red/green), 3 relaxation steps @ 0.32:
+Default preset (`cup_gain = 0.382`, `round_gain = 0.046`, `lift = 0.18`,
+`spread = 0.34`, `root_gain = 0.70`, `root_spread = 0.42`, `valley = 0.145`,
+2-level welded subdivision, 13 3-ring normal-projected fairing steps @ `0.32`):
 
-| Metric | Base | Variant |
+| Metric | Base (`Miranda_LAS`) | Variant (`Miranda_Busty_LAS`) |
 | --- | --- | --- |
-| front reach at the apex (y) | 19.98 cm | **30.71 cm** (+10.73) |
-| apex position | x 5.59, z 140.0 | x 6.01, z 140.7 |
-| chest width at the apex height | 23.59 cm | 23.59 cm (unchanged: the lateral gate now holds the ribcage) |
-| body vertices | 5,645 | **5,943** (+298 from the split) |
-| chest silhouette (side) | 19.98 → 17.80 → 12.54 (z = 140…150) | 30.37 → 22.59 → 12.26 |
-| cross-section gain at z 137, by \|x\| band | — | 0–1 +3.36, 2–3 +6.23, 5–6 +10.57, 9–10 +6.46, 10–11 +3.18, 11–12 +0.03 |
+| Front reach `max(y)` in chest band | `19.98 cm` | **`23.21 cm` (`+3.23 cm` gain)** |
+| Depth over `WALL_Y = 2.6 cm` | `17.38 cm` | **`20.61 cm`** |
+| `g_body` vertex count | `5,645` | **`8,937` (`+3,292` chest vertices)** |
+| `s_body` vertex count | `9,874` | **`13,166` (`+3,292` chest vertices)** |
+| Max linear edge / UV stretch (`g_body`) | `1.00x` | **`1.76x`** (down from `2.47x`) |
+| Left vs right cup peak symmetry (`z ≈ 140.7`) | `0.63 cm` skew | **`0.21 cm`** |
+| Two-cup sternum separation (`y_cup - y(0)`) | `0.40 cm` | **`0.62–0.83 cm` smooth U-saddle** |
+| Orientation breaks (`g_body`, `s_body`) | `0` | **`0`** |
+| Abdominal `|dy|` below `z = 134 cm` | `0.00 cm` | **`< 0.01 cm`** (was `+5.10 cm`) |
+| Unselected shadow-slice vertex drift | `0.00 cm` | **`0.00 cm`** (was `1.084 cm`) |
+| Outfit-grid icon (`miranda_busty.texture`) | 2D face UV crop | **Distinct `256×256` 3/4 upper-body portrait (`DXT5`)** |
 
-The silhouette is monotone into the apex and back out again, with no step: the
-upper pole reaches the neckline at 13.4 cm against a base 14.2 cm at the same
-height, i.e. the swell has decayed to nothing before it touches the collar.
+## Previews
 
-Containment checks (all zero vertices moved): back of the torso, both arms
-(`|x| > 14`), legs (`z < 115`), head and neck (`z > 152`). The chest band has
-**no open edges** after the split (asserted in `tests/test_bust_variant.py`), and
-the added vertices all lie inside `|x| < 14`, `124 < z < 152` — measured span
-after the current build: `z 129.97 … 147.05`, `|x| ≤ 10.88`.
+Generated on every build into `build/pd2-las/previews/` and tracked under
+`docs/pd2-las/previews/`:
 
-The 90° preview cell uses its own `(scale 8.5, y_shift 14.0)` override
-(`_render_sheets(..., views={90.0: (...)})`). Without it the bust runs out of
-frame and the cell shows the shoulder instead of the profile.
-
-Note on the side view: the base mesh's own profile is a stiff, padded prow
-(catsuit over a low-poly torso) — reach drops 19.98 → 12.54 cm between z 140 and
-150 in the *unmodified* model. The variant scales that shape, so the upper
-shoulder slope is inherited from the base rather than introduced by the morph;
-flattening it further would mean rebuilding the shoulder, not the chest.
-
-Preview sheets (tracked, base vs variant on one camera):
-[`previews/busty_compare_chest.png`](previews/busty_compare_chest.png) (front, 30°,
-90°) and [`previews/busty_compare_full.png`](previews/busty_compare_full.png)
-(full body, front and 34°). The builder regenerates both under
-`build/pd2-las/previews/` on every run, and the "before" row is rendered from the
-base pack's own `miranda.model` — reusing the variant's triangle list with the
-base's shorter vertex array collapses the subdivided panels onto the origin.
+* [`previews/busty_compare_top_bottom.png`](previews/busty_compare_top_bottom.png) —
+  4-angle whole-character top & bottom comparison (`Top 68° · 0° above front`,
+  `Top 48° · 26° 3/4 above`, `Bottom 48° · 26° 3/4 below`, `Bottom 68° · 0° below front`,
+  rendered intact with `g_head` and full torso) showing clean horizontal `(x, y)`
+  arch curvature, spine-root transition, and neat honeycomb hexagons.
+* [`previews/busty_sculpt_top_bottom_clay.png`](previews/busty_sculpt_top_bottom_clay.png) —
+  untextured clay diagnostic from the same 4 whole-character top & bottom angles.
+* [`previews/busty_sculpt_clay.png`](previews/busty_sculpt_clay.png) — untextured
+  matte-clay diagnostic (`0°`, `30°`, `60°`, `90°`) rendered with actual `.model`
+  vertex normals so surface curvature, seams, and piping can be inspected
+  without hex-texture masking.
+* [`previews/busty_compare_chest.png`](previews/busty_compare_chest.png) —
+  4-angle (`0°`, `30°`, `60°`, `90°`) close-up chest comparison (`Miranda_LAS`
+  vs `Miranda_Busty_LAS`).
+* [`previews/busty_compare_full.png`](previews/busty_compare_full.png) — full-body
+  comparison (`0°`, `34°`, `90°`) including `g_head` (face, hair, eyes).
 
 ## Verification
 
-* `tests/test_bust_variant.py` — 17 tests: morph contract (zero off the chest,
-  monotonic in `cup_gain`, midline preserved, continuity across the rim,
-  cleavage deepening, parameter validation, material-slice scoping, normal
-  rebuild), pack identity (distinct id/units/textures, `df_nm` base-name
-  registration, base rendering unchanged), and integration against the tracked
-  zips (checksums, `BUILD_INFO`, self-consistent payload hashes, viewmodel
-  drawables identical to the base pack, `g_body` topology unchanged and only
-  chest vertices moved).
-* Full suite: `471 passed, 8 skipped`; the one failure
-  (`test_build_models.test_retarget_joint_errors_and_palettes`, RightArm 5.71 cm
-  vs a 5.0 cm bound) is **pre-existing** — it fails on a clean checkout of the
-  branch base with none of this work applied.
-* `tools/pd2-las/preview_textured.py` and the high-quality rasterizer in
-  `tools/render_mod_previews.py` were used for visual checks; the builder writes
-  `build/pd2-las/previews/busty_compare_{full,chest}.png` (base vs variant, one
-  camera, textured).
+* `tests/test_bust_variant.py` — **22 passed**: morph contract, continuity across
+  the edit rim, taut-catsuit cleavage contour, slice containment, open-boundary
+  collar-lip pinning during fairing, watertight welded subdivision across seams,
+  out-of-repo `_display_path`, and end-to-end regression checks on
+  `dist/Miranda_Busty_LAS.zip` (distinct DDS icon, vertex count, `< 0.05 cm`
+  abdominal neutrality, `< 2.0 cm` chest triangle edges, `< 1.80x` global UV/edge
+  stretch, spine-side root expansion, and exact `BUILD_INFO.json` `front_y_max_cm`
+  agreement across all vertices).
+* `um publish check` & `um kb check --index` — clean pass.
 
-## Traps hit while building this (do not repeat)
+## Key lessons (do not repeat)
 
-1. **The base route must not be re-run.** `dist/Miranda_LAS.zip` in git does not
-   reproduce byte-exactly from the current `build_models.py`: the tracked zip
-   carries 18 extra `OBJECT3D`/geometry sections and an older section-id layout
-   (338 vs 320 sections), while its `.sha256` sidecar matches the *builder's*
-   output. The variant therefore never writes the base pack, and
-   `build_models.py` was left byte-for-byte untouched (a mid-way edit that
-   looked equivalent changed the base zip and was reverted; a regression test
-   now pins `las_pack`'s base rendering).
-2. **`df_nm` registers the pair's base name**, not the `_df` stem: BeardLib
-   appends `_df`/`_nm` itself, so `miranda_body_df` makes it look for
-   `miranda_body_df_df`.
-3. **Two packs in one `mod_overrides/` share paths.** Hence the `miranda_busty_`
-   texture stem prefix, the separate unit directory, icon path and hook name —
-   the pack identity (`las_pack.PackIdentity`) exists for exactly this.
-4. **`s_body` shares the head block.** The shadow-caster drawable holds the head
-   *and* the body, so the morph is scoped by material slice (`miranda_body`) as
-   well as by position.
-5. **Eye-orbit vertices are not a front-axis oracle** (see model space above).
-6. **A bare grid is not a watertightness fixture.** Checking "no open edges" on
-   a patch of quads fails immediately — a grid has a genuinely open border. The
-   test uses a closed box with an optional duplicated seam column instead.
-7. **`_weld_keys` must map every vertex.** It originally only returned ids for
-   the indices it was handed, and `smooth_region` then iterated the returned
-   *dict* instead of the vertex range — which wired unrelated parts of the body
-   together and flung single vertices dozens of centimetres.
-8. **`enumerate(dict)` yields keys, not indices.** The relaxation's `members`
-   map was built that way, so it pointed at the wrong vertices while still
-   looking plausible; the vertex-count assertion caught it, the previews did not.
-9. **A duplicated seam vertex has to move as one.** Both copies must get the
-   *same displacement* (matched on their pre-morph position), not merely similar
-   ones, or the chest seam opens into a hairline tear when the swell stretches
-   it.
-
-10. **`_patch_faces` must split only when *every* corner is in the region.**
-    With `any(...)` the patch marched one ring at a time down the torso: the
-    widened soft dome put vertices at z≈122 (below the 124 guard) and the waist
-    started to budge. `all(...)` confines the split to the chest band. Both the
-    face test and the vertex test use the same asymmetric `in_region`.
-11. **Do not measure cleavage depth with a band `max(y)`.** Taking the maximum
-    `y` over a ±2 cm strip around the midline sweeps the inner *slopes* too, so
-    the number tracks the whole contour and saturates — it reported a bogus
-    1.1 cm valley and sent one iteration chasing a defect that did not exist.
-    Use a per-`|x|` cross-section instead (see the table above).
-12. **The side "wedge" was the lateral footprint, not the depth.** A circular
-    `r_x = 7.0` put as much displacement into the armpit as into the sternum.
-    At 90° that reads as a long pointed prow and the bust grows in width
-    instead of reach (+0.68 cm before, +0.0 cm after the gate holds, with all
-    the extra going forward).
-
-13. **Unbounded Laplacian relaxation smears the texture at the rim.** The
-    relaxation step was `cur + strength*(mean(neighbours) - cur)` for every
-    vertex above weight 0.004. A neckline vertex sits at weight ~0.006 while the
-    breast half a centimetre below it had moved 10 cm, so the step yanked it
-    toward that mass. Its triangles are the *coarse* unsubdivided ones, so the
-    hex pattern stretched until two of them covered 6.3x their original area —
-    texel density down to 16%, which renders as a dark diagonal smear. Fix:
-    scale each step by the vertex's own morph weight (`k = strength *
-    min(1, weight)`). Max density inflation went 6.34x -> 2.13x.
-14. **`SUBDIVIDE_Z` must reach past the displacement, not just the dome.** The
-    subdivision stopped at z = 147 while the field still delivered 2 cm of reach
-    at 147.5 and 1.5 cm at 148, so a band of coarse triangles sat right where
-    the surface was still moving — a visible ledge under the collar. Raising the
-    limit to 149 (the collar seam is at 152.2, so the split still cannot
-    interpolate UVs across it) took the max inflation to **1.21x with zero
-    triangles above 1.5x**.
-15. **Matching base triangles by index hides the damage after a split.** The
-    first smear metric compared only triangles present in both meshes; the split
-    *replaces* the originals, so the worst offenders silently dropped out of the
-    sample (320 matched -> 286) and the score improved without the render
-    changing. Measure texel density in **spatial bins** instead — that compares
-    subdivided and coarse geometry at the same place.
-
-16. **The 90-degree view was a chamfer, and only the side view showed it.**
-    Measured as a silhouette fill fraction (quarter-ellipse = 0.785, straight
-    chamfer = 0.500): the upper pole scored **0.420**. The falloff was a narrow
-    dome plus a weak soft term, which reads fine head-on but produces one
-    continuous diagonal from apex to shoulder in profile — a shelf, not a breast.
-    Widen the soft dome instead of raising the gain: `soft_scale 2.8`,
-    `soft_weight 0.62`, `r_z_up 14.0`, `dome_power 0.5` scores **0.569** *and*
-    reaches further (+11.79 cm vs +10.39). Volume and roundness are not a
-    trade-off here; the narrow dome was costing both.
-17. **A wider dome needs an explicit edit band.** At 2.8x the skirt reached
-    z~117 (below the waist seam) and the collar. `smooth_region` pins on *weight
-    alone*, so a collar vertex at weight 0.006 was still dragged 10 um by a
-    neighbour inside the chest. `BAND_LO/BAND_HI` (126/152) is now applied to the
-    field **and** the relaxation, with 2 cm / 3 cm easing so no step lands on the
-    chest (the field is under 1.5 cm at the hem edge and already zero at the
-    collar).
-18. **The lateral gate produced 3.3x texel stretch at |x| = 10.** Measured
-    across the armpit the field fell 2.47 cm per half-centimetre — a cliff, and
-    the coarse armpit triangles stretched to cover it. `X_FULL/X_ZERO`
-    9.5/12.0 -> 10.5/13.0 halves the worst local slope to 1.89. Keep `X_ZERO` at
-    or below 13.0: at 13.2 six arm vertices leave the containment box (by
-    1-140 um, but the test is a hard zero).
-
-19. **`DOME_POWER` below 1 has infinite slope at the rim.** `(1-r2)^p` with
-    p = 0.5 plunges from 0.032 to 0 over the last 0.001 of radius. The main dome
-    is 2/3 of the composite weight, so the surface got a genuine step wherever
-    `r2` crossed 1 inside the mesh — measured as a **1.37 cm jump in the field
-    across 0.1 cm** (p = 1.6 gives 0.30 cm). This was the real source of both
-    the upper-chest crease and the 119 degree normal flip. Keep p >= 1; p = 2
-    meets the rim with zero slope if a smoother hand-off is ever needed.
-20. **`_radial_x` must interpolate, not select.** `RADIUS_X_IN if ... else
-    RADIUS_X_OUT` is a step function at the apex, which puts a kink in the field
-    wherever the apex column is crossed. Now a `smoothstep` crossfade over
-    `RADIUS_BLEND = 2.5` cm.
-21. **Long thin triangles must not be subdivided.** Base triangle
-    `[372,373,374]` is 3.18 x 3.17 x 0.75 cm. Splitting it puts two midpoints
-    ~0.3 cm apart; v372 then moved 3.83 cm while its partners moved 1.15 cm,
-    shearing the new inner triangle into a fold (122 degree normal flip on the
-    upper chest, 6 bad edges). `_is_sliver` skips faces thinner than
-    `SLIVER_RATIO = 0.45`. Max flip afterwards: **63.7 deg, below the base
-    model's own 76.4 deg**.
-
-## Still open
-
-* In-game check: `docs/pd2-las/in-game-checklist.md`, plus the two variant
-  specifics — the outfit appears as **Miranda Lawson (Busty)** and both LAS
-  entries can be worn without a restart.
-* The ME2 asset redistribution-rights gate applies to this pack exactly as it
-  does to `Miranda_LAS.zip`. Private experimental use only.
+1. **Do not re-run the base `Miranda_LAS` build.** `dist/Miranda_LAS.zip` is
+   treated as immutable; `build_busty_variant.py` falls back directly to reading
+   `miranda.model` from `dist/Miranda_LAS.zip` when building into a clean `--out`
+   directory, and only updates `dist/Miranda_Busty_LAS.zip` on canonical builds
+   (or `--update-dist`).
+2. **Never slice `g_body` into a hollow torso ring for overhead/underbust previews.**
+   Clipping `z ∈ [122, 152.2]` without `g_head` or lower body exposes the black
+   interior of the neck/abdomen cavity and floating severed collar triangles at
+   steep pitches (`±68°..82°`). Always render whole-character Top & Bottom views
+   (`use_head = True`, `z ∈ [60, 190]`).
+3. **Avoid both boob-sock trenches (`VALLEY >= 0.40`) and monoboob overlap
+   (`MEDIAL_OVERLAP >= 0.40` / wide `smootherstep` rim crushing).** Deep sternum
+   trenches turn Top & Bottom views into narrow `/\ /\` cones and stretch
+   honeycomb hexagons up to `2.47x`, whereas excessive medial overlap fuses the
+   chest into a single central prow and multiplying `sqrt(1 - r²)` by a wide
+   `smootherstep` crushes dome shoulders into a `>` side-profile cone. Use a
+   variable-exponent hemisphere (`q ≈ 0.78` at apex easing to `1.25–1.40` at the
+   rim) with balanced radii (`RADIUS_X_IN = 7.30`, `MEDIAL_OVERLAP = 0.11`,
+   `VALLEY = 0.145`) and bounded edge stretch (`< 1.80x`).
+4. **Pin open welded boundary edges (`edge_uses == 1`) in `smooth_region` and
+   saturate `eff_depth` below overlapping collar lips.** Unwelded garment
+   overhangs (such as Miranda's `z ≈ 146.2` keyhole flap) have one-sided 1-rings
+   and will pull open into a visible seam slit under overhead views unless
+   boundary vertices are pinned and share the underlying skin's depth factor.
+5. **Scope `smooth_region` by material slice and measure `after_verts` across
+   *all* vertices.** Slicing `after_verts[:len(before_verts)]` drops every
+   subdivided chest vertex right where the true apex lives.

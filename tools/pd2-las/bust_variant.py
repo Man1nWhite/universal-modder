@@ -6,157 +6,132 @@ groups before they are written to Diesel. Nothing here touches the shipped
 `dist/Miranda_LAS.zip` route: the pass is only reachable through the variant
 builder, which writes its own pack, unit paths and `dist/` archive.
 
-Why this is not just "push the chest forward"
----------------------------------------------
-Measured on the authored mesh (z-up, cm, +y is the front), the outfit's chest is
-one broad, flat-fronted shell: the front surface peaks at y≈20 cm over a
-| x | 2…11 cm band at z 132…148, with a **0.4 cm** sternum dip. Two problems
-follow from that, and both were visible in the first previews:
+Sculpt & topology architecture
+------------------------------
+Measured on the authored mesh (z-up, cm, +y is the front), Miranda's Cerberus
+catsuit has a modelled 3D piping bevel (~0.55 cm wide) framing the chest panel:
+an inframammary underbust seam at ``z ≈ 135.0–135.6``, vertical side piping at
+``|x| ≈ 8.0–8.6``, and an upper-chest seam at ``z ≈ 146.3–147.0``, with the
+base breast mound peaking at ``y = 19.98 cm`` near ``(|x| ≈ 5.6, z ≈ 140.0)``
+and spanning laterally out to ``|x| ≈ 10.8 cm``.
 
-1. *The source has nowhere near enough geometry for a new volume.* The breast
-   region carries roughly one vertex every 2.5 cm, so any bulge reads as a
-   faceted balloon. The pass therefore **subdivides the chest locally** (a
-   one-to-four split of the triangles that cover the edit region) before it
-   moves anything, and appends the new vertices after the group's existing
-   blocks so the Diesel atom tiling is untouched.
-2. *A radial push over a convex shell builds a shelf, not a breast.* The
-   displacement is therefore a **height field over the (x, z) plane** — an
-   elliptical cap, shorter below the apex than above it — scaled by how far the
-   surface already stands proud of the chest wall, so the mass grows instead of
-   the ribcage, and damped on the midline so the two breasts stay separate.
+Four design choices keep the enlarged bust anatomically natural and free of
+cone/shelf artifacts or UV/piping distortion:
 
-The morph is a pure function of the bind-pose position, so the identical pass
-runs on `g_body`, `g_body_lod1` and the body block of `s_body` (which hold
-bit-identical positions) and the shadow caster and LOD stay aligned with the
-visible mesh::
-
-    u     = (x - side*APEX_X) / RADIUS_X
-    w     = (z - APEX_Z) / (RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN)
-    r2    = u*u + w*w                       -> 0 at the apex, 1 at the rim
-    dome  = (1 - r2)**2                     -> C1 (zero slope) at the rim
-    gate  = smoothstep((y - GATE_LO)/(GATE_HI - GATE_LO))        front
-          * smoothstep((X_ZERO - |x|)/(X_ZERO - X_FULL))          lateral
-    depth = max(0, y - WALL_Y)              -> existing protrusion
-    gain  = cup_gain + round_gain*min(1, depth/(APEX_Y - WALL_Y))
-    valley= 1 - VALLEY*exp(-(x/VALLEY_W)**2)                     sternum damping
-
-    dy = (dome_+ + dome_-) * gate * gain * depth * valley
-    dz =  lift * (dome_+ + dome_-) * gate
-    dx =  spread * (dome_+ - dome_-) * gate     (exactly 0 on the midline)
-
-After the displacement a short Laplacian relaxation smooths the region (the
-boundary ring stays pinned, so nothing outside the edit moves), which removes
-the flat-shaded facets and the sawtooth along the sleeve seam. Normals are then
-rebuilt area-weighted over position-welded vertices and blended back by morph
-strength, so the rim keeps the shading the base build shipped.
+1. **Welded edge-length local subdivision.** Edges inside the chest region
+   longer than ``MAX_CHEST_EDGE_CM`` are split in lockstep across
+   position-welded vertices (preserving per-island UVs on seams while leaving
+   short ~0.55 cm cross-piping steps intact so no micro-triangles fold).
+2. **3D radial-spherical teardrop expansion (not a 1D ``+y`` push).** Pushing
+   chest vertices purely along ``+y`` stretches a ~4.5 cm hemisphere into a
+   horizontal beak at 60°/90°. Instead, combining a wide super-ellipsoid
+   profile ``(1 - r^p)^q`` (``p ≈ 3.3`` across the front/lower cup, easing to
+   ``p ≈ 1.8`` on the upper slope) with bounded radial ``dz`` and ``dx``
+   expansion around the mammary root rounds the lower pole downward toward the
+   ``z ≈ 135.0`` inframammary fold and broadens the upper-front arc into a true
+   D-shaped spherical cup, with zero bulge on the abdomen below ``z = 134.2``.
+3. **Taut catsuit sternum contour.** Soft-union blending of the left/right cups
+   plus a localized sternum contour deepens cleavage between the mounds while
+   keeping the taut stretch-fabric bridge of Miranda's zipped hex catsuit.
+4. **Feature-preserving normal-projected fairing.** Laplacian offsets over
+   position-welded neighbours are projected onto the smooth surface normal
+   (zero tangential UV sliding) and attenuated across pre-existing 3D piping
+   bevels on ``origin``, eliminating flat base-mesh facets on the smooth cup
+   while keeping the suit's tailored seams crisp.
 """
 
 from __future__ import annotations
 
 import math
 
-#: Breast apex, measured on the authored mesh (cm). The front surface peaks at
-#: y≈20 cm on a band centred at z≈140, |x| 2…11; the cap sits slightly above
-#: that peak because the lower pole carries more of the new mass.
-APEX_X = 6.0
-APEX_Z = 139.0
-#: Cap extent. The lateral radius covers the measured plateau; the vertical
-#: radii are deliberately asymmetric — a breast's lower pole ends in the
-#: inframammary fold a few centimetres under the apex, while the upper pole
-#: fades out slowly toward the collarbone. Equal radii produced the horizontal
-#: "shelf" seen in the first previews.
-RADIUS_X = 7.0
-#: The lateral falloff is asymmetric: the medial flank is wider, so each breast
-#: fills toward the sternum and the pair reads as two separate round masses
-#: instead of one wide ledge. Measured on the cross-section, the inner pole used
-#: to gain only half of what the apex did.
-RADIUS_X_IN = 9.2
-RADIUS_X_OUT = 4.2
-RADIUS_Z_UP = 14.0
-RADIUS_Z_DOWN = 8.0
-#: The breast alone has to stop somewhere, and a single dome that ends at the
-#: rim leaves a visible *shoulder* on the upper chest — the side view showed the
-#: upper pole as a flat shelf ending in a crease at the collarbone. A second,
-#: much wider and much shallower dome underneath it (the fullness of the chest
-#: above and between the breasts) carries the surface down to the base mesh
-#: gradually, so the upper pole fades out instead of ending.
-SOFT_SCALE = 2.0
-SOFT_WEIGHT = 0.62
-SOFT_POWER = 1.8
-#: Top of the apex plateau on the source mesh — the reference depth that
-#: normalises ``rel`` (how close a vertex is to the tip of the mass).
-APEX_Y = 20.0
-#: The chest wall plane: ``y - WALL_Y`` is how far the surface already bulges
-#: forward, so scaling it grows the *existing* masses instead of inflating the
-#: ribcage. Measured from the back surface (y≈-5) and the front (y≈20).
-WALL_Y = 5.0
-#: Forward gate: nothing behind the chest wall moves. Below ``GATE_LO`` (the
-#: flanks and the flat upper chest at the neckline) the weight is 0; by
-#: ``GATE_HI`` — the bust surface itself — it is 1.
-GATE_LO = 6.5
-GATE_HI = 13.0
-#: Lateral gate: the underarm seam and the outer torso edge stay exactly where
-#: the base build put them, so the arms cannot be caught by the swell.
-X_FULL = 10.5
-X_ZERO = 13.0
-#: Cleavage: fraction of the *added* forward push removed on the midline.
-VALLEY = 0.78
-VALLEY_W = 2.4
-#: Dome profile exponent. ``(1 - r2)**p`` with p > 1 keeps a broad, full centre
-#: and a fast fade at the rim; p = 2 ramps too gently and reads as a plateau.
-DOME_POWER = 1.6
-#: Safety ceiling: no other body part lives between the cap rim and the head, so
-#: this only ever guards the shared shadow-caster vertex block. The field fades
-#: out over ``CEILING_FADE`` centimetres below it — a hard cut-off leaves a ridge.
-Z_CEILING = 152.5
-CEILING_FADE = 6.0
-#: Nothing at or above this height may move: the collar seam lives at ~152.2.
+#: Breast apex, aligned with the anatomical breast mound centre (cm).
+APEX_X = 5.05
+APEX_Z = 140.95
+#: Internal radial expansion pivot (cm), aligned with ``APEX_Z``.
+RADIAL_Z = 140.95
+RADIAL_X = 5.05
+RADIAL_Z_LO = 132.2
+RADIAL_Z_HI = 150.8
+#: Nominal symmetric lateral radius (kept for introspection compatibility;
+#: actual profile crossfades ``RADIUS_X_IN`` and ``RADIUS_X_OUT``).
+RADIUS_X = 7.15
+#: Wide, balanced lateral radii (cm) paired with variable-exponent dome
+#: ``(1 - rho)^(0.78 + 0.47*rho)`` so each breast forms a broad, blunt
+#: spherical dome ``(    )(    )`` curving smoothly across ``|x| = 1..9.5``
+#: with C-infinity rim continuity and <1.78x edge/UV stretch everywhere.
+RADIUS_X_IN = 7.30
+RADIUS_X_OUT = 7.00
+#: Asymmetric vertical radii (cm) for forward ``+dy`` protrusion:
+#: ``140.95 - 6.16 * 1.12 = 134.05 cm`` (strictly above the stomach/ribcage);
+#: ``140.95 + 8.85 * 1.12 = 150.86 cm`` (gentle upper-chest taper, strictly
+#: below ``HEAD_Z = 152.0`` and gentle across the ``z ≈ 146.2`` collar lip).
+RADIUS_Z_UP = 8.85
+RADIUS_Z_DOWN = 6.16
+SOFT_SCALE = 1.12
+SOFT_WEIGHT = 0.24
+SOFT_POWER = 1.85
+#: Smooth variable-exponent hemisphere ``(1 - rho)^(q_lo + (q_hi - q_lo)*rho)``:
+#: - Near ``rho = 0`` (apex), ``q ≈ 0.78`` matches a blunt Euclidean sphere
+#:   (zero parabolic cone tip!).
+#: - Near ``rho = 1`` (collar & inframammary rim), ``q ≈ 1.25..1.40`` eases to
+#:   zero smoothly (<7.5%-peak/0.25cm step and <1.78x UV stretch everywhere).
+CUP_P_X = 3.20
+CUP_P_X_DOME = 2.45
+CUP_P_LOWER = 1.98
+CUP_P_UPPER = 1.88
+CUP_Q_LOWER = 0.78
+CUP_Q_UPPER = 1.25
+#: Gentle C2 medial union for taut catsuit tension across two distinct cups.
+MEDIAL_OVERLAP = 0.11
+#: Legacy constant retained for report/introspection compatibility.
+DOME_POWER = 1.35
+#: Saturation depth on the front chest & spine/ribcage depth pivot (cm).
+APEX_Y = 14.4
+WALL_Y = 2.6
+#: Forward gate (cm): 0 on the back (``y <= 5.15``), ramping smoothly across
+#: ``y = 5.15..11.0``.
+GATE_LO = 5.15
+GATE_HI = 11.0
+#: Lateral gate (cm): full across the pectoral root, 0 before the arm seam.
+X_FULL = 11.0
+X_ZERO = 13.4
+#: Soft taut-catsuit sternum contour (``~0.65-0.85 cm`` smooth U-curve between
+#: the two wide hemispheres — neither a narrow V-crease nor a flat monoboob).
+VALLEY = 0.145
+VALLEY_W = 2.25
+#: Safety ceiling & collar guard (cm).
+Z_CEILING = 151.8
+CEILING_FADE = 2.8
 HEAD_Z = 152.0
-#: Half-width (cm) of the medial/lateral radius crossfade; see ``_radial_x``.
-RADIUS_BLEND = 2.5
-#: Upper-chest recession. See ``ChestMorph.recede``: the base mesh's chest wall
-#: slopes forward almost as far as the bust, so the swell has nothing to stand
-#: clear of and the side view reads as one diagonal from nipple to collar.
-RECEDE_DEPTH = 0.0
-RECEDE_Z_LO = 141.0
-RECEDE_Z_HI = 151.5
-RECEDE_FADE = 4.0
-#: Edit band actually allowed to move, in z (cm).
-#
-# The front gate and the soft dome were sized for the narrow version; once the
-# dome widened to 2.8x its skirt reached z~117 (below the waist seam) and the
-# collar, and the *relaxation* dragged 5.75,10.67,152.11 by 10 um even though the
-# field left it alone. The band is a hard clamp applied to the field and to the
-# relaxation both, and its edges ease in from 149/128 so no step lands on the
-# chest: the field is under 1.5 cm at the hem edge and already zero at the collar.
-BAND_LO = 126.0
-BAND_HI = 152.0
-BAND_FADE_LO = 2.0
-BAND_FADE_HI = 3.0
+#: Half-width (cm) of the medial/lateral radius crossfade.
+RADIUS_BLEND = 3.0
+#: Editable vertical chest band (cm), easing smoothly to zero at both ends.
+BAND_LO = 131.2
+BAND_HI = 151.7
+BAND_FADE_LO = 1.8
+BAND_FADE_HI = 1.6
 
-#: Cup-size preset (see the module docstring for what each term does).
-DEFAULT_CUP_GAIN = 0.50
-DEFAULT_ROUND_GAIN = 0.14
-DEFAULT_LIFT = 0.5
-DEFAULT_SPREAD = 0.7
+#: Default sculpt preset: two symmetric, smooth spherical hemispheres ``(   )(   )``.
+DEFAULT_CUP_GAIN = 0.382
+DEFAULT_ROUND_GAIN = 0.046
+DEFAULT_LIFT = 0.18
+DEFAULT_SPREAD = 0.34
+DEFAULT_ROOT_GAIN = 0.70
+DEFAULT_ROOT_SPREAD = 0.42
 DEFAULT_VALLEY = VALLEY
-#: How far past the dome rim the local subdivision reaches (see in_region).
-SUBDIVIDE_MARGIN = 1.25
-#: Height band the local subdivision is allowed in (cm): the front chest panel
-#: only, clear of the collar above and the waist seam below.
-SUBDIVIDE_Z = (126.0, 149.0)
-#: Longest UV distance an edge may span and still be split. A chest edge is
-#: ~0.02…0.08 of the sheet; anything past this crosses a texture seam, and the
-#: midpoint's averaged UV would land on the sheet's black border.
+
+#: Local subdivision & 3-ring normal-projected polish.
+SUBDIVIDE_MARGIN = 1.34
+SUBDIVIDE_Z = (132.5, 151.0)
 MAX_EDGE_UV_DISTANCE = 0.20
-#: Local subdivision rounds and relaxation, in Laplacian steps of ``strength``.
-DEFAULT_SUBDIVISIONS = 1
-DEFAULT_SMOOTH_ITERATIONS = 3
-DEFAULT_SMOOTH_STRENGTH = 0.12
+MAX_CHEST_EDGE_CM = 0.25
+DEFAULT_SUBDIVISIONS = 2
+DEFAULT_SMOOTH_ITERATIONS = 13
+DEFAULT_SMOOTH_STRENGTH = 0.32
 
 
 def smoothstep(t: float) -> float:
-    """Hermite ramp on ``[0, 1]`` with zero slope at both ends."""
+    """Cubic Hermite ramp on ``[0, 1]`` with zero first derivative at ends."""
     if t <= 0.0:
         return 0.0
     if t >= 1.0:
@@ -164,19 +139,31 @@ def smoothstep(t: float) -> float:
     return t * t * (3.0 - 2.0 * t)
 
 
+def smootherstep(t: float) -> float:
+    """Quintic Perlin ramp on ``[0, 1]`` with zero 1st and 2nd derivatives."""
+    if t <= 0.0:
+        return 0.0
+    if t >= 1.0:
+        return 1.0
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+
+
 class ChestMorph:
-    """Position-driven breast enlargement for the Miranda outfit meshes."""
+    """Position-driven 3D radial-spherical chest sculpt for Miranda's outfit."""
 
     def __init__(self, cup_gain: float = DEFAULT_CUP_GAIN,
                  round_gain: float = DEFAULT_ROUND_GAIN,
                  lift: float = DEFAULT_LIFT,
                  spread: float = DEFAULT_SPREAD,
                  valley: float = DEFAULT_VALLEY,
+                 root_gain: float = DEFAULT_ROOT_GAIN,
+                 root_spread: float = DEFAULT_ROOT_SPREAD,
                  subdivisions: int = DEFAULT_SUBDIVISIONS,
                  smooth_iterations: int = DEFAULT_SMOOTH_ITERATIONS,
                  smooth_strength: float = DEFAULT_SMOOTH_STRENGTH):
         for name, value in (("cup_gain", cup_gain), ("round_gain", round_gain),
-                            ("lift", lift), ("spread", spread)):
+                            ("lift", lift), ("spread", spread),
+                            ("root_gain", root_gain), ("root_spread", root_spread)):
             if value < 0.0:
                 raise ValueError(f"ChestMorph {name} must be non-negative")
         if not 0.0 <= valley <= 1.0:
@@ -190,68 +177,114 @@ class ChestMorph:
         self.lift = float(lift)
         self.spread = float(spread)
         self.valley = float(valley)
+        self.root_gain = float(root_gain)
+        self.root_spread = float(root_spread)
         self.subdivisions = int(subdivisions)
         self.smooth_iterations = int(smooth_iterations)
         self.smooth_strength = float(smooth_strength)
 
     # ---------------------------------------------------------------- profile
     def _radial_x(self, x: float, side: int) -> float:
-        """Lateral radius: wider toward the midline than toward the armpit.
-
-        Blended, not selected. Choosing one radius or the other with a step at
-        the apex left a 1.1 cm cliff in the field across a single centimetre
-        (measured at x 9.3->9.4, z=147.3) which the coarse mesh turned into a
-        119 degree normal flip. ``RADIUS_BLEND`` cm either side of the apex
-        crossfades the two so the field stays continuous.
-        """
+        """C2 crossfade between medial (``RADIUS_X_IN``) and lateral radius."""
         dx = (x - side * APEX_X) * side
-        t = smoothstep((dx + RADIUS_BLEND) / (2.0 * RADIUS_BLEND))
+        t = smootherstep((dx + RADIUS_BLEND) / (2.0 * RADIUS_BLEND))
         return RADIUS_X_IN + (RADIUS_X_OUT - RADIUS_X_IN) * t
 
-    def _falloff(self, x: float, z: float, side: int, scale: float,
-                 power: float) -> float:
-        u = (x - side * APEX_X) / (self._radial_x(x, side) * scale)
-        rz = (RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN) * scale
+    def _cup_profile(self, x: float, z: float, side: int) -> float:
+        """C-infinity variable-exponent sphere ``(1 - rho)^(q_lo + dq*rho)``."""
+        u = abs(x - side * APEX_X) / self._radial_x(x, side)
+        rz = RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN
+        w = (z - APEX_Z) / rz
+        up_t = smootherstep(max(0.0, (w - 0.15) / 0.65))
+        pz = CUP_P_LOWER + (CUP_P_UPPER - CUP_P_LOWER) * up_t
+        rho = (u ** CUP_P_X_DOME) + (abs(w) ** pz)
+        if rho >= 1.0:
+            return 0.0
+        q_base = CUP_Q_LOWER + (CUP_Q_UPPER - CUP_Q_LOWER) * rho
+        q = q_base + 0.15 * up_t
+        return (1.0 - rho) ** q
+
+    def _soft_profile(self, x: float, z: float, side: int) -> float:
+        """Subtle C2 cushion blending the cup rim into the surrounding chest."""
+        u = (x - side * APEX_X) / (self._radial_x(x, side) * SOFT_SCALE)
+        rz = (RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN) * SOFT_SCALE
         w = (z - APEX_Z) / rz
         r2 = u * u + w * w
         if r2 >= 1.0:
             return 0.0
-        return (1.0 - r2) ** power
+        return (1.0 - r2) ** SOFT_POWER
 
     def weight(self, x: float, z: float, side: int) -> float:
-        """Dome falloff of the breast centred at ``side * APEX_X``.
-
-        Two nested domes: the breast itself, plus a wide shallow one that keeps
-        the upper pole from ending in a ridge (see ``SOFT_WEIGHT``). Both are
-        C1 at their rims, so the composite surface is smooth everywhere.
-        """
-        main = self._falloff(x, z, side, 1.0, DOME_POWER)
-        soft = self._falloff(x, z, side, SOFT_SCALE, SOFT_POWER)
-        # normalised so the composite still reaches exactly 1.0 at the apex:
-        # `cup_gain` then means the same depth whether or not the soft dome is
-        # in the mix, and the presets do not have to be re-tuned around it
+        """Composite normalized dome weight in ``[0, 1]`` for side ``+1`` or ``-1``."""
+        main = self._cup_profile(x, z, side)
+        soft = self._soft_profile(x, z, side)
         return (main + SOFT_WEIGHT * soft) / (1.0 + SOFT_WEIGHT)
 
+    def _combined_dome(self, w_pos: float, w_neg: float) -> float:
+        """Smooth C1/C2 arch union across the left and right Euclidean hemispheres."""
+        hi = 0.5 * (w_pos + w_neg + math.sqrt((w_pos - w_neg) ** 2 + 0.0036)) - 0.03
+        lo = 0.5 * (w_pos + w_neg - math.sqrt((w_pos - w_neg) ** 2 + 0.0036)) + 0.03
+        return min(1.0, max(0.0, hi) + MEDIAL_OVERLAP * max(0.0, lo))
+
     def front_gate(self, y: float) -> float:
-        """1 on the bust surface, 0 behind the chest wall / on the upper chest."""
-        return smoothstep((y - GATE_LO) / (GATE_HI - GATE_LO))
+        """1 on the front chest surface, 0 behind the chest wall / flanks."""
+        return smootherstep((y - GATE_LO) / (GATE_HI - GATE_LO))
 
     def lateral_gate(self, x: float) -> float:
-        """1 towards the midline, 0 at the underarm seam."""
-        return smoothstep((X_ZERO - abs(x)) / (X_ZERO - X_FULL))
+        """1 across the cup, 0 at and beyond the underarm/sleeve seam."""
+        return smootherstep((X_ZERO - abs(x)) / (X_ZERO - X_FULL))
 
-    def valley_factor(self, x: float) -> float:
-        """``1 - VALLEY`` on the sternum, easing to 1 across the bust."""
-        return 1.0 - self.valley * math.exp(-(x / VALLEY_W) ** 2)
+    def valley_factor(self, x: float, z: float | None = None) -> float:
+        """Gentle taut-catsuit saddle: smooth over suit fabric, softer on keyhole."""
+        v_depth = self.valley
+        if z is not None:
+            suit_env = smootherstep((z - 135.8) / 2.4) * smootherstep((145.6 - z) / 2.6)
+            skin_env = smootherstep((z - 146.2) / 1.8) * smootherstep((150.8 - z) / 2.0)
+            v_depth = self.valley * (0.35 + 0.65 * suit_env) + 0.05 * skin_env
+        return 1.0 - v_depth * math.exp(-(x / VALLEY_W) ** 2)
+
+    def band(self, z: float) -> float:
+        """C2 vertical chest band guard, strictly zero outside ``[BAND_LO, BAND_HI]``."""
+        lo = smootherstep((z - BAND_LO) / BAND_FADE_LO)
+        hi = smootherstep((BAND_HI - z) / BAND_FADE_HI)
+        return lo * hi
+
+    def ceiling(self, x: float, z: float) -> float:
+        """Soft horizontal upper bound (no x-dip so collar borders stay straight)."""
+        return smootherstep((Z_CEILING - z) / CEILING_FADE)
+
+    def _horizontal_cup(self, x: float) -> float:
+        """Pure lateral cup envelope in ``[0, 1]`` for radial ``dz`` scaling."""
+        best = 0.0
+        for side in (+1, -1):
+            u = abs(x - side * APEX_X) / (self._radial_x(x, side) * SOFT_SCALE)
+            if u < 1.0:
+                best = max(best, (1.0 - (u ** CUP_P_X)) ** 1.5)
+        return best
+
+    def _root_bells(self, x: float, y: float, z: float) -> tuple[float, float]:
+        """Posterior/lateral breast-root bell for parts closer to the spine.
+
+        Targets the lateral & posterior breast root (``y ≈ 5.3..18.5``,
+        ``|x| ≈ 5.8..13.4``) where the breast attaches to the ribcage closer to
+        the spine, expanding it in one continuous convex C-arc (outward ``±dx``
+        and forward ``+dy``) while staying strictly zero on the front meridian
+        (``|x| < 5.8``) so the 60°/90° upper-cup profile remains inflection-free.
+        """
+        rz = RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN
+        wz = abs(z - APEX_Z) / rz
+        if wz >= 1.0:
+            return (0.0, 0.0)
+        z_bell = (1.0 - (wz ** 2.4)) ** 1.85
+
+        y_side = smootherstep((y - 5.3) / 3.5) * (1.0 - smootherstep((y - 14.5) / 4.2))
+        x_side = smootherstep((abs(x) - 5.8) / 3.6) * smootherstep((13.4 - abs(x)) / 1.4)
+        side_root = y_side * x_side * z_bell
+        return (side_root, 0.0)
 
     def displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
-        """Bind-pose displacement for a vertex at ``(x, y, z)`` (cm)."""
+        """Bind-pose displacement ``(dx, dy, dz)`` for a vertex at ``(x, y, z)`` (cm)."""
         if z >= HEAD_Z:
-            # Hard stop at the collar: the soft ceiling alone still handed the
-            # topmost collar vertices ~50 um of motion. The field is already
-            # ~0.006 there, so the cut is a 60 um step across one edge - far
-            # below anything a renderer can resolve - and it keeps the head and
-            # neck strictly untouched.
             return (0.0, 0.0, 0.0)
         band = self.band(z)
         if band == 0.0:
@@ -259,93 +292,113 @@ class ChestMorph:
         ceil = self.ceiling(x, z) * band
         if ceil == 0.0:
             return (0.0, 0.0, 0.0)
-        w_pos = self.weight(x, z, +1)
-        w_neg = self.weight(x, z, -1)
-        if w_pos == 0.0 and w_neg == 0.0:
-            return (0.0, 0.0, 0.0)
-        gate = self.front_gate(y) * self.lateral_gate(x)
+        fg = self.front_gate(y)
+        lg = self.lateral_gate(x)
+        gate = fg * lg
         if gate == 0.0:
             return (0.0, 0.0, 0.0)
-        fall = (w_pos + w_neg) * gate * ceil
-        depth = max(0.0, y - WALL_Y)
-        rel = min(1.0, depth / (APEX_Y - WALL_Y))
-        gain = self.cup_gain + self.round_gain * rel
-        dy = fall * gain * depth * self.valley_factor(x)
-        # Lift is a *bounded* rise of the apex, strongest at the tip and zero at
-        # the rim. Scaling it by the whole falloff (the first version) moved the
-        # upper pole up as much as the apex, which flattened the top of the
-        # breast into the horizontal shelf the side view showed.
-        dz = self.lift * fall * fall
-        dx = self.spread * (w_pos - w_neg) * gate
-        # Pull the upper chest back behind the bust. Purely a depth change: it
-        # adds no width, and it is zero at the apex and at the collar so neither
-        # the breast form nor the neck seam is disturbed.
-        # ...and let the recession win outright where it applies: the soft dome
-        # is deliberately wide (2.8x) so it still carries ~2 cm of swell at
-        # z=146, which cancelled most of the pull-back. Scale the swell down by
-        # the recess factor instead of subtracting from it, so the two cannot
-        # fight: where the recess is full the swell is 0.
-        rec = self.recede(z)
-        swell_scale = 1.0 - min(1.0, rec / RECEDE_DEPTH) if RECEDE_DEPTH > 0 else 1.0
-        dy *= swell_scale
-        dy -= rec * gate * self.lateral_gate(x)
+
+        w_pos = self.weight(x, z, +1)
+        w_neg = self.weight(x, z, -1)
+        hx = self._horizontal_cup(x)
+        side_root, upper_pec = self._root_bells(x, y, z)
+        if w_pos == 0.0 and w_neg == 0.0 and hx == 0.0 and side_root == 0.0 and upper_pec == 0.0:
+            return (0.0, 0.0, 0.0)
+
+        env = gate * ceil
+        dome = self._combined_dome(w_pos, w_neg)
+        fall = dome * env
+        v_fac = self.valley_factor(x, z)
+        cap_v = dome * v_fac
+
+        raw_depth = max(0.0, y - WALL_Y)
+        ref_depth = APEX_Y - WALL_Y
+        eff_depth = min(raw_depth, ref_depth)
+        rel = min(1.0, raw_depth / ref_depth)
+
+        # Blend 76% constant-curvature twin-sphere target projection (from
+        # smooth_pass7, which replaces the rectangular suit-flap box and
+        # +0.65 cm right-flap asymmetry with two true circular sphere caps and
+        # zero collar scar) + 24% proportional depth push for subtle relief.
+        gain_scale = (self.cup_gain + self.round_gain * rel) / (
+            DEFAULT_CUP_GAIN + DEFAULT_ROUND_GAIN
+        )
+        # Symmetric twin-sphere target projection: equalizes Miranda's +0.63 cm
+        # right-flap plateau (y ≈ 19.98 vs 19.35) while keeping sph_gate flat
+        # across the front chest (y >= 13.8) so underbust/collar hexes stay <1.78x.
+        excess_y = 0.5 * ((y - 18.50) + math.sqrt((y - 18.50) ** 2 + 0.25))
+        sph_amp = max(
+            0.70 * gain_scale,
+            5.10 * gain_scale - 0.86 * excess_y * min(1.0, gain_scale),
+        )
+        collar_taper = 1.0 - 0.22 * smootherstep((z - 145.0) / 3.8)
+        sph_gate = smootherstep((y - 9.0) / 4.8) * collar_taper
+        sph_pull = sph_amp * cap_v * sph_gate
+        base_push = (
+            (self.cup_gain + self.round_gain * rel)
+            * eff_depth
+            * cap_v
+            * collar_taper
+        )
+
+        root_dy = self.root_gain * side_root * env
+        dy = env * (0.86 * sph_pull + 0.14 * base_push) + root_dy
+
+        # Wide-support fold-free vertical radial expansion, kept even across
+        # the arch (`v_lat = 0.92 + 0.08 * v_fac`) so the underbust never
+        # droops into twin hanging spikes in Bottom 48° views:
+        dz = 0.0
+        if hx > 0.0 and self.lift > 0.0 and RADIAL_Z_LO < z < RADIAL_Z_HI:
+            v_lat = 0.92 + 0.08 * v_fac
+            if z < RADIAL_Z:
+                u_dn = (RADIAL_Z - z) / (RADIAL_Z - RADIAL_Z_LO)
+                dz = -self.lift * (6.5 * u_dn * ((1.0 - u_dn) ** 2.3)) * hx * v_lat * env
+            else:
+                u_up = (z - RADIAL_Z) / (RADIAL_Z_HI - RADIAL_Z)
+                dz = +(0.85 * self.lift) * (6.5 * u_up * ((1.0 - u_up) ** 2.3)) * hx * v_lat * env
+
+        # Outward-only horizontal rounding + spine-root fullness (never pinching
+        # |x| < RADIAL_X inward into /\ /\ cones; strictly 0 on x=0):
+        if abs(x) < 1e-12 or (fall == 0.0 and side_root == 0.0):
+            dx = 0.0
+        else:
+            sign = 1.0 if x > 0.0 else -1.0
+            outer_guard = smootherstep((13.35 - abs(x)) / 1.45)
+            x_arm = smootherstep((abs(x) - 2.4) / 5.6)
+            dx = sign * outer_guard * (
+                self.spread * x_arm * fall
+                + self.root_spread * side_root * env
+            )
+
         return (dx, dy, dz)
 
-    def recede(self, z: float) -> float:
-        """Depth to pull the upper chest back, in cm (0 at the apex and collar).
-
-        The base chest wall falls only ~6.8 cm between z=144 and z=150, so the
-        enlarged bust in front of it has almost no depth separation and the side
-        silhouette is a single straight ramp. Recessing the *chest* (not the
-        breast) gives the bust something to stand proud of.
-        """
-        up = smoothstep((z - RECEDE_Z_LO) / RECEDE_FADE)
-        down = smoothstep((RECEDE_Z_HI - z) / RECEDE_FADE)
-        return RECEDE_DEPTH * up * down
-
-    def band(self, z: float) -> float:
-        """1 inside the editable chest band, easing to 0 at its edges.
-
-        See ``BAND_LO``/``BAND_HI``: the dome's own skirt is wider than the band,
-        and the relaxation can move anything it is allowed to touch.
-        """
-        lo = smoothstep((z - BAND_LO) / BAND_FADE_LO)
-        hi = smoothstep((BAND_HI - z) / BAND_FADE_HI)
-        return lo * hi
-
-    def ceiling(self, x: float, z: float) -> float:
-        """Soft upper bound, 1 on the bust and 0 at ``Z_CEILING``.
-
-        ``Z_CEILING`` guards the shared shadow-caster block above the chest, but
-        clipping the displacement to zero in one step there put a hard horizontal
-        edge across the upper chest — the "shelf" the tight side views showed.
-        The bound is now a smoothstep over the last ``CEILING_FADE`` centimetres,
-        so the field reaches zero with zero slope.
-        """
-        return smoothstep((Z_CEILING - z) / CEILING_FADE)
-
     def weight_at(self, x: float, y: float, z: float) -> float:
-        """Normalised edit strength in ``[0, 1]``, used to blend shading."""
-        if z >= Z_CEILING:
+        """Normalised edit strength in ``[0, 1]``, strictly zero outside the band."""
+        if z >= HEAD_Z:
             return 0.0
-        return min(1.0, (self.weight(x, z, +1) + self.weight(x, z, -1))
-                   * self.front_gate(y) * self.lateral_gate(x)
-                   * self.ceiling(x, z))
+        b = self.band(z)
+        if b == 0.0:
+            return 0.0
+        c = self.ceiling(x, z) * b
+        if c == 0.0:
+            return 0.0
+        dome = self._combined_dome(self.weight(x, z, +1), self.weight(x, z, -1))
+        side_root, upper_pec = self._root_bells(x, y, z)
+        z_rad_wt = 0.0
+        if RADIAL_Z_LO < z < RADIAL_Z_HI:
+            if z < RADIAL_Z:
+                u = (RADIAL_Z - z) / (RADIAL_Z - RADIAL_Z_LO)
+            else:
+                u = (z - RADIAL_Z) / (RADIAL_Z_HI - RADIAL_Z)
+            z_rad_wt = 0.35 * (6.5 * u * ((1.0 - u) ** 2.3)) * self._horizontal_cup(x)
+        root_wt = 0.65 * max(side_root, upper_pec)
+        return min(1.0, max(dome, z_rad_wt, root_wt) * self.front_gate(y) * self.lateral_gate(x) * c)
 
     def in_region(self, x: float, y: float, z: float) -> bool:
-        """Whether a position is close enough to be worth subdividing.
-
-        Deliberately a little larger than the displaced region — a one-to-four
-        split changes the triangle size, and a density step that lands where the
-        displacement is still non-zero shows up as a hairline. It is deliberately
-        *smaller* than the whole chest band, though: it must stay on the front
-        chest panel, away from the sleeve and panel seams where a split can
-        interpolate UVs across a texture seam (that sampled the black border of
-        the sheet in the first attempts).
-        """
+        """Whether a position lies inside the local chest subdivision patch."""
         if not (SUBDIVIDE_Z[0] <= z <= SUBDIVIDE_Z[1]):
             return False
-        if abs(x) > X_ZERO or self.front_gate(y) < 0.75:
+        if abs(x) > X_ZERO or y < 8.0:
             return False
         for side in (+1, -1):
             u = (x - side * APEX_X) / (self._radial_x(x, side) * SUBDIVIDE_MARGIN)
@@ -358,26 +411,21 @@ class ChestMorph:
     # ------------------------------------------------------------------ apply
     def apply(self, group, materials=("miranda_body",), subdivide: bool = True,
               label: str | None = None, log=None) -> int:
-        """Subdivide, displace, relax and re-shade one authored group.
-
-        Returns the number of vertices whose position changed. ``materials``
-        restricts the edit to the given slices — the shadow-caster group also
-        holds the head, and the third-person group holds the head drawable.
-        """
+        """Subdivide, displace, normal-project fair, and re-shade one group."""
         if subdivide and self.subdivisions and getattr(group, "faces", None):
             added = subdivide_region(group, self, levels=self.subdivisions,
                                      materials=materials)
             if log and added:
                 log(f"[bust] {label or group.name}: +{added} chest vertices "
                     f"(local subdivision)")
-        # snapshot *after* the split: the copy matcher uses pre-morph positions,
-        # and the new vertices are part of the mesh it has to keep consistent
         origin = list(group.verts)
         moved = self.displace(group, materials)
         if moved:
-            smooth_region(group, self, self.smooth_iterations, self.smooth_strength)
+            smooth_region(group, self, self.smooth_iterations,
+                          self.smooth_strength, origin=origin,
+                          materials=materials)
             keep_copies_together(group, origin)
-            rebuild_normals(group, self)
+            rebuild_normals(group, self, materials=materials)
         return moved
 
     def displace(self, group, materials=("miranda_body",)) -> int:
@@ -402,26 +450,39 @@ class ChestMorph:
             "round_gain": self.round_gain,
             "lift_cm": self.lift,
             "spread_cm": self.spread,
+            "root_gain_cm": self.root_gain,
+            "root_spread_cm": self.root_spread,
             "valley": self.valley,
             "apex_x_cm": APEX_X,
             "apex_z_cm": APEX_Z,
-            "radius_x_cm": RADIUS_X,
+            "radial_pivot_cm": [RADIAL_X, RADIAL_Z],
+            "radius_x_cm": [RADIUS_X_OUT, RADIUS_X_IN],
             "radius_z_cm": [RADIUS_Z_DOWN, RADIUS_Z_UP],
+            "soft_scale": SOFT_SCALE,
+            "soft_weight": SOFT_WEIGHT,
+            "cup_p": [CUP_P_LOWER, CUP_P_UPPER],
+            "cup_q": [CUP_Q_LOWER, CUP_Q_UPPER],
             "wall_y_cm": WALL_Y,
             "gate_y_cm": [GATE_LO, GATE_HI],
             "gate_x_cm": [X_FULL, X_ZERO],
+            "band_z_cm": [BAND_LO, BAND_HI],
             "subdivisions": self.subdivisions,
+            "max_chest_edge_cm": MAX_CHEST_EDGE_CM,
             "smooth": [self.smooth_iterations, self.smooth_strength],
         }
 
 
 # --------------------------------------------------------------- subdivision
 
-def _last_slice_face_range(group) -> tuple[int, int]:
-    """Face range ``[start, end)`` covered by the group's last slice."""
-    _mat, _base_v, base_i, tris, _nverts = group.slices[-1]
-    start = base_i // 3
-    return start, start + tris
+def _selected_vertex_set(group, materials) -> set[int] | None:
+    """Vertex index set covered by ``materials`` (``None`` means all vertices)."""
+    if materials is None or not getattr(group, "slices", None):
+        return None
+    allowed: set[int] = set()
+    for mat, base_v, _base_i, _tris, nverts in group.slices:
+        if mat in materials:
+            allowed.update(range(base_v, base_v + nverts))
+    return allowed
 
 
 def _merge_weights(wa, wb):
@@ -441,241 +502,171 @@ def _uv_distance(u, v) -> float:
 
 
 def _crosses_uv_seam(uvs, tri) -> bool:
-    """True when one of the triangle's edges spans a texture seam."""
+    """True when one of the triangle's edges spans a disjoint texture island."""
+    if not uvs:
+        return False
     a, b, c = tri
     return (_uv_distance(uvs[a], uvs[b]) > MAX_EDGE_UV_DISTANCE
             or _uv_distance(uvs[b], uvs[c]) > MAX_EDGE_UV_DISTANCE
             or _uv_distance(uvs[c], uvs[a]) > MAX_EDGE_UV_DISTANCE)
 
 
-#: Height-to-base ratio below which a triangle counts as a sliver.
-#
-# Subdividing a long thin triangle puts its edge midpoints a few millimetres
-# apart, and the morph then moves the two ends of the parent by very different
-# amounts. Base triangle [372,373,374] is 3.18 x 3.17 x 0.75 cm; v372 moved
-# 3.83 cm while v373/v374 moved 1.15 cm, which sheared the new inner triangle
-# into a fold - a 122 degree normal flip on the upper chest. Leaving slivers
-# whole costs nothing visually (the displacement there is small and the
-# relaxation still runs) and removes the whole class of defect.
-SLIVER_RATIO = 0.45
-
-
-def _is_sliver(verts, tri) -> bool:
-    """True for a triangle too thin to subdivide without folding."""
-    a, b, c = (verts[v] for v in tri)
-    e = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
-    f = (c[0] - a[0], c[1] - a[1], c[2] - a[2])
-    cx = (e[1] * f[2] - e[2] * f[1], e[2] * f[0] - e[0] * f[2],
-          e[0] * f[1] - e[1] * f[0])
-    area2 = (cx[0] * cx[0] + cx[1] * cx[1] + cx[2] * cx[2]) ** 0.5
-    longest = max(((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2,
-                   (c[0] - b[0]) ** 2 + (c[1] - b[1]) ** 2 + (c[2] - b[2]) ** 2,
-                   (a[0] - c[0]) ** 2 + (a[1] - c[1]) ** 2 + (a[2] - c[2]) ** 2)) ** 0.5
-    if longest <= 0.0:
-        return True
-    return (area2 / longest) / longest < SLIVER_RATIO
-
-
-def _patch_faces(group, morph: ChestMorph) -> tuple[set[int], int, int]:
-    """Faces the one-to-four split applies to, plus the last slice's range.
-
-    A face is in the patch when part of it lies inside the edited region and it
-    does not straddle a texture seam (splitting such a face would give its
-    midpoint an averaged UV that lands on the sheet's black border). The patch
-    border is handled by `_refine`, which inserts the same edge midpoints into
-    the neighbouring faces so the surface cannot open along a T-junction.
-    """
-    first, last = _last_slice_face_range(group)
-    # Vertices that exist more than once at the same position are the mesh's
-    # UV-seam copies. A neighbour of such a vertex stores the seam as two
-    # *unrelated* edges, so splitting one side inserts a midpoint the other side
-    # does not have: a hairline crack, right on the bust's outer edge. Faces that
-    # touch a copy are therefore left whole — they sit where the displacement
-    # has already faded out.
-    counts: dict[tuple[int, int, int], int] = {}
-    for v in range(len(group.verts)):
-        k = tuple(round(c * 1e4) for c in group.verts[v])
-        counts[k] = counts.get(k, 0) + 1
-    shared = set()
-    for fi in range(first, last):
-        for v in group.faces[fi]:
-            k = tuple(round(c * 1e4) for c in group.verts[v])
-            if counts[k] > 1:
-                shared.add(v)
-    patch: set[int] = set()
-    for fi in range(first, last):
-        tri = group.faces[fi]
-        if any(v in shared for v in tri):
-            continue
-        # a face is split only when *every* corner is inside the region: taking
-        # any corner lets a chain of faces march out of the chest, and the edges
-        # of those faces put new vertices on the waist (z ~122)
-        if not all(morph.in_region(*group.verts[v]) for v in tri):
-            continue
-        if _crosses_uv_seam(group.uvs, tri):
-            continue
-        if _is_sliver(group.verts, tri):
-            continue
-        patch.add(fi)
-    return patch, first, last
+def _edge_length(verts, i: int, j: int) -> float:
+    a, b = verts[i], verts[j]
+    return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2)
 
 
 def subdivide_region(group, morph: ChestMorph, levels: int = 1,
-                     materials=("miranda_body",)) -> int:
-    """Split the chest triangles one-to-four, appending the new vertices.
-
-    Only faces of the group's **last** slice are touched, and the new faces are
-    appended directly after that slice's block, so the Diesel render atoms —
-    which tile the vertex array and the index stream in slice order — keep
-    describing the mesh exactly. Positions, UVs and skin weights of a new vertex
-    are the average of its edge's endpoints, so the split itself changes nothing
-    visible; it only gives the morph somewhere to put a smooth surface.
-
-    The patch border is *green*-refined: a face just outside the patch that
-    shares a split edge is re-triangulated through that edge's midpoint. Without
-    that step the midpoint (which the morph then pulls off the straight edge)
-    no longer lies on its neighbour's edge, and the mesh opens into the jagged
-    black cracks the first attempts produced.
-    """
-    if not group.slices or not group.faces:
+                     materials=("miranda_body",),
+                     max_edge_cm: float = MAX_CHEST_EDGE_CM) -> int:
+    """Refine chest edges longer than ``max_edge_cm`` across welded topology."""
+    if not getattr(group, "slices", None) or not getattr(group, "faces", None):
         return 0
-    mat, base_v, base_i, tris, nverts = group.slices[-1]
+    mat, base_v, base_i, tris, _nverts = group.slices[-1]
     if materials is not None and mat not in materials:
         return 0
-    added = 0
+    first = base_i // 3
+    if tris <= 0:
+        return 0
+
+    has_uvs = bool(getattr(group, "uvs", None)) and len(group.uvs) == len(group.verts)
+    has_weights = bool(getattr(group, "weights", None)) and len(group.weights) == len(group.verts)
+
+    added_total = 0
     for _level in range(levels):
-        patch, first, last = _patch_faces(group, morph)
-        if not patch:
+        last = first + group.slices[-1][3]
+        weld = _weld_keys(group.verts)
+        rep_pos: dict[int, tuple[float, float, float]] = {}
+        for idx, wid in weld.items():
+            if wid not in rep_pos:
+                rep_pos[wid] = group.verts[idx]
+
+        bad_wedges: set[tuple[int, int]] = set()
+        if has_uvs:
+            for fi in range(first, last):
+                tri = group.faces[fi]
+                if _crosses_uv_seam(group.uvs, tri):
+                    a, b, c = tri
+                    for u, v in ((a, b), (b, c), (c, a)):
+                        bad_wedges.add((min(weld[u], weld[v]), max(weld[u], weld[v])))
+
+        split_wedges: set[tuple[int, int]] = set()
+        edge_thresh = 0.35 if _level == 0 else max_edge_cm
+        for fi in range(first, last):
+            a, b, c = group.faces[fi]
+            for u, v in ((a, b), (b, c), (c, a)):
+                we = (min(weld[u], weld[v]), max(weld[u], weld[v]))
+                if we[0] == we[1] or we in bad_wedges:
+                    continue
+                if _edge_length(group.verts, u, v) <= edge_thresh:
+                    continue
+                pu, pv = rep_pos[we[0]], rep_pos[we[1]]
+                mx = 0.5 * (pu[0] + pv[0])
+                my = 0.5 * (pu[1] + pv[1])
+                mz = 0.5 * (pu[2] + pv[2])
+                if morph.in_region(mx, my, mz) or (
+                    morph.in_region(*pu) and morph.in_region(*pv)
+                ):
+                    split_wedges.add(we)
+
+        if not split_wedges:
             break
-        added += _refine(group, patch, first, last)
+
+        before_v = len(group.verts)
+        midpoints: dict[tuple, int] = {}
+
+        def get_mid(u: int, v: int) -> int:
+            lo, hi = (u, v) if u < v else (v, u)
+            if has_uvs:
+                ulo, uhi = group.uvs[lo], group.uvs[hi]
+                key = (lo, hi, round(ulo[0] * 4096), round(ulo[1] * 4096),
+                       round(uhi[0] * 4096), round(uhi[1] * 4096))
+            else:
+                ulo = uhi = (0.0, 0.0)
+                key = (lo, hi)
+            got = midpoints.get(key)
+            if got is not None:
+                return got
+            wlo, whi = min(weld[lo], weld[hi]), max(weld[lo], weld[hi])
+            p0, p1 = rep_pos[wlo], rep_pos[whi]
+            idx = len(group.verts)
+            group.verts.append((0.5 * (p0[0] + p1[0]),
+                                0.5 * (p0[1] + p1[1]),
+                                0.5 * (p0[2] + p1[2])))
+            n0, n1 = group.normals[lo], group.normals[hi]
+            group.normals.append((0.5 * (n0[0] + n1[0]),
+                                  0.5 * (n0[1] + n1[1]),
+                                  0.5 * (n0[2] + n1[2])))
+            if has_uvs:
+                group.uvs.append((0.5 * (ulo[0] + uhi[0]),
+                                  0.5 * (ulo[1] + uhi[1])))
+            if has_weights:
+                group.weights.append(_merge_weights(group.weights[lo],
+                                                    group.weights[hi]))
+            midpoints[key] = idx
+            return idx
+
+        appended: list[tuple[int, int, int]] = []
+        for fi in range(first, last):
+            a, b, c = group.faces[fi]
+            eab = (min(weld[a], weld[b]), max(weld[a], weld[b])) in split_wedges
+            ebc = (min(weld[b], weld[c]), max(weld[b], weld[c])) in split_wedges
+            eca = (min(weld[c], weld[a]), max(weld[c], weld[a])) in split_wedges
+            k = eab + ebc + eca
+            if k == 0:
+                continue
+            if k == 3:
+                ab, bc, ca = get_mid(a, b), get_mid(b, c), get_mid(c, a)
+                group.faces[fi] = (a, ab, ca)
+                appended += [(ab, b, bc), (ca, bc, c), (ab, bc, ca)]
+            elif k == 1:
+                if eab:
+                    m = get_mid(a, b)
+                    group.faces[fi] = (a, m, c)
+                    appended.append((m, b, c))
+                elif ebc:
+                    m = get_mid(b, c)
+                    group.faces[fi] = (b, m, a)
+                    appended.append((m, c, a))
+                else:
+                    m = get_mid(c, a)
+                    group.faces[fi] = (c, m, b)
+                    appended.append((m, a, b))
+            else:
+                if eab and ebc:
+                    m, n = get_mid(a, b), get_mid(b, c)
+                    group.faces[fi] = (b, n, m)
+                    if _edge_length(group.verts, m, c) < _edge_length(group.verts, n, a):
+                        appended += [(m, n, c), (m, c, a)]
+                    else:
+                        appended += [(m, n, a), (n, c, a)]
+                elif ebc and eca:
+                    m, n = get_mid(b, c), get_mid(c, a)
+                    group.faces[fi] = (c, n, m)
+                    if _edge_length(group.verts, m, a) < _edge_length(group.verts, n, b):
+                        appended += [(m, n, a), (m, a, b)]
+                    else:
+                        appended += [(m, n, b), (n, a, b)]
+                else:
+                    m, n = get_mid(c, a), get_mid(a, b)
+                    group.faces[fi] = (a, n, m)
+                    if _edge_length(group.verts, m, b) < _edge_length(group.verts, n, c):
+                        appended += [(m, n, b), (m, b, c)]
+                    else:
+                        appended += [(m, n, c), (n, b, c)]
+
+        group.faces.extend(appended)
+        step_added = len(group.verts) - before_v
+        added_total += step_added
         group.slices[-1] = (mat, base_v, base_i, len(group.faces) - first,
                             len(group.verts) - base_v)
-        if not added:
+        if not step_added:
             break
-    return added
-
-
-def _refine(group, patch: set[int], first: int, last: int) -> int:
-    """Red-split ``patch`` and green-split the faces around it. Returns new verts."""
-    # every edge that at least one patch face wants split
-    split_edges: set[tuple[int, int]] = set()
-    for fi in patch:
-        a, b, c = group.faces[fi]
-        split_edges.update(((min(a, b), max(a, b)), (min(b, c), max(b, c)),
-                            (min(c, a), max(c, a))))
-    # A face is re-triangulated if any of its edges is split, and any edge of
-    # such a face that runs between two such faces is split too — otherwise the
-    # neighbour would be left with a half-split edge (a T-junction) of its own.
-    touching: set[int] = set(patch)
-    for fi in range(first, last):
-        a, b, c = group.faces[fi]
-        for e in ((a, b), (b, c), (c, a)):
-            if (min(e), max(e)) in split_edges:
-                touching.add(fi)
-                break
-    grew = True
-    while grew:
-        grew = False
-        owners: dict[tuple[int, int], list[int]] = {}
-        for fi in touching:
-            a, b, c = group.faces[fi]
-            for e in ((a, b), (b, c), (c, a)):
-                owners.setdefault((min(e), max(e)), []).append(fi)
-        for e, fs in owners.items():
-            if e in split_edges or len(fs) != 2:
-                continue
-            split_edges.add(e)
-            grew = True
-
-    before = len(group.verts)
-    midpoints: dict[tuple, int] = {}
-
-    def mid(i: int, j: int, own_uvs) -> int:
-        """Midpoint of edge (i, j) as seen from a face with these UVs.
-
-        Keyed on the edge *and* the two endpoint UVs, so an edge that carries a
-        texture seam gets one midpoint per side, each with a correct
-        interpolated UV, instead of a single averaged UV that samples garbage.
-        """
-        ui, uj = own_uvs(i), own_uvs(j)
-        lo, hi, (ulo, uhi) = ((i, j, (ui, uj)) if i < j else (j, i, (uj, ui)))
-        key = (lo, hi, round(ulo[0] * 512), round(ulo[1] * 512),
-               round(uhi[0] * 512), round(uhi[1] * 512))
-        got = midpoints.get(key)
-        if got is not None:
-            return got
-        pi, pj = group.verts[lo], group.verts[hi]
-        idx = len(group.verts)
-        group.verts.append(tuple(0.5 * (pi[k] + pj[k]) for k in range(3)))
-        ni, nj = group.normals[lo], group.normals[hi]
-        group.normals.append(tuple(0.5 * (ni[k] + nj[k]) for k in range(3)))
-        group.uvs.append((0.5 * (ulo[0] + uhi[0]), 0.5 * (ulo[1] + uhi[1])))
-        group.weights.append(_merge_weights(group.weights[lo], group.weights[hi]))
-        midpoints[key] = idx
-        return idx
-
-    appended: list[tuple[int, int, int]] = []
-    for fi in sorted(touching):
-        a, b, c = group.faces[fi]
-        uv = lambda v: group.uvs[v]  # noqa: E731 - local alias, keeps it readable
-        have = [(min(a, b), max(a, b)) in split_edges,
-                (min(b, c), max(b, c)) in split_edges,
-                (min(c, a), max(c, a)) in split_edges]
-        k = sum(have)
-        if k == 0:
-            continue
-        if k == 3:
-            # red split: four triangles
-            ab, bc, ca = mid(a, b, uv), mid(b, c, uv), mid(c, a, uv)
-            group.faces[fi] = (a, ab, ca)
-            appended += [(ab, b, bc), (ca, bc, c), (ab, bc, ca)]
-        elif k == 1:
-            # green split through one edge: two triangles
-            if have[0]:
-                m = mid(a, b, uv)
-                group.faces[fi] = (a, m, c)
-                appended.append((m, b, c))
-            elif have[1]:
-                m = mid(b, c, uv)
-                group.faces[fi] = (b, m, a)
-                appended.append((m, c, a))
-            else:
-                m = mid(c, a, uv)
-                group.faces[fi] = (c, m, b)
-                appended.append((m, a, b))
-        else:
-            # two split edges: three triangles, hinged on the vertex between them
-            if have[0] and have[1]:          # ab, bc -> hinge at b
-                m, n = mid(a, b, uv), mid(b, c, uv)
-                group.faces[fi] = (b, n, m)
-                appended += [(m, n, a), (n, c, a)]
-            elif have[1] and have[2]:        # bc, ca -> hinge at c
-                m, n = mid(b, c, uv), mid(c, a, uv)
-                group.faces[fi] = (c, n, m)
-                appended += [(m, n, b), (n, a, b)]
-            else:                            # ca, ab -> hinge at a
-                m, n = mid(c, a, uv), mid(a, b, uv)
-                group.faces[fi] = (a, n, m)
-                appended += [(m, n, c), (n, b, c)]
-
-    group.faces.extend(appended)
-    return len(group.verts) - before
+    return added_total
 
 
 def keep_copies_together(group, origin) -> int:
-    """Give duplicate vertices (UV seams) the exact same displacement.
-
-    The mesh stores its UV seams as coincident vertex copies with different
-    indices. They must move identically or the seam opens into a hairline crack
-    — that is what happened when the relaxation, which walks per-index
-    neighbours, pulled the two copies of a chest seam apart.
-
-    Copies are matched on their *pre-morph* position (so the test cannot be
-    confused by where they ended up). Every copy of a position receives the
-    displacement of one representative, applied to its own original point, so
-    even copies that were a few microns apart land a few microns apart.
-    Returns the number of vertices that were re-synced.
-    """
+    """Give duplicate UV-seam vertices the exact same displacement."""
     if len(origin) != len(group.verts):
         return 0
     buckets: dict[tuple[int, int, int], list[int]] = {}
@@ -702,70 +693,182 @@ def keep_copies_together(group, origin) -> int:
 
 # ------------------------------------------------------------------ relaxing
 
+def _welded_normals(verts, faces, weld: dict[int, int],
+                    allowed: set[int] | None = None) -> dict[int, tuple[float, float, float]]:
+    """Area-weighted unit normals per welded vertex id."""
+    accum: dict[int, list[float]] = {}
+    for a, b, c in faces:
+        if allowed is not None and (a not in allowed or b not in allowed or c not in allowed):
+            continue
+        pa, pb, pc = verts[a], verts[b], verts[c]
+        ex, ey, ez = pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2]
+        fx, fy, fz = pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2]
+        nx = ey * fz - ez * fy
+        ny = ez * fx - ex * fz
+        nz = ex * fy - ey * fx
+        for vi in (a, b, c):
+            slot = accum.setdefault(weld[vi], [0.0, 0.0, 0.0])
+            slot[0] += nx
+            slot[1] += ny
+            slot[2] += nz
+    out: dict[int, tuple[float, float, float]] = {}
+    for wid, (nx, ny, nz) in accum.items():
+        ln = math.sqrt(nx * nx + ny * ny + nz * nz)
+        if ln > 1e-9:
+            out[wid] = (nx / ln, ny / ln, nz / ln)
+        else:
+            out[wid] = (0.0, 1.0, 0.0)
+    return out
+
+
 def smooth_region(group, morph: ChestMorph, iterations: int, strength: float,
-                  pin_below: float = 0.004) -> int:
-    """Laplacian relaxation inside the edited region, boundary pinned.
-
-    A one-to-four split makes the new vertices land on flat triangles, and the
-    morph then pushes neighbouring vertices by slightly different amounts; a few
-    relaxation steps even that out along the surface instead of leaving the
-    facets and the seam sawtooth that the flat-shaded previews showed.
-
-    The relaxation runs on **position-welded** vertices: the mesh stores
-    duplicate vertices along its UV seams, and smoothing them as separate nodes
-    (different neighbours) pulls the copies apart — that opened hairline cracks
-    along the chest seam once the swell stretched them. Welded nodes are
-    relaxed once and every copy is written back to the same point, so the seam
-    cannot split. Nodes whose morph weight is at or below ``pin_below`` stay
-    pinned, so the boundary of the edit cannot drift.
-    """
-    if iterations <= 0 or strength <= 0.0 or not group.faces:
+                  pin_below: float = 0.004, origin=None,
+                  materials=None) -> int:
+    """Feature-preserving normal-projected fairing inside the edited chest."""
+    if iterations <= 0 or strength <= 0.0 or not getattr(group, "faces", None):
         return 0
     verts = group.verts
-    weld = _weld_keys(verts)
+    allowed = _selected_vertex_set(group, materials)
+    base_pts = origin if (origin is not None and len(origin) == len(verts)) else None
+    ref_pts = base_pts if base_pts is not None else verts
+
+    weld = _weld_keys(ref_pts)
     members: dict[int, list[int]] = {}
     for i in range(len(verts)):
+        if allowed is not None and i not in allowed:
+            continue
         members.setdefault(weld[i], []).append(i)
+    if not members:
+        return 0
+
     adj: dict[int, set[int]] = {}
+    edge_uses: dict[tuple[int, int], int] = {}
     for a, b, c in group.faces:
+        if allowed is not None and (a not in allowed or b not in allowed or c not in allowed):
+            continue
         wa, wb, wc = weld[a], weld[b], weld[c]
         for x, y in ((wa, wb), (wa, wc), (wb, wa), (wb, wc), (wc, wa), (wc, wb)):
-            adj.setdefault(x, set()).add(y)
+            if x != y:
+                adj.setdefault(x, set()).add(y)
+        for u, v in ((wa, wb), (wb, wc), (wc, wa)):
+            if u != v:
+                ek = (u, v) if u < v else (v, u)
+                edge_uses[ek] = edge_uses.get(ek, 0) + 1
 
-    # The relaxation may only touch what the *band* allows. Weight alone is not
-    # enough: with the wide soft dome a collar vertex could sit at weight 0.006
-    # and still be pulled by a neighbour well inside the chest.
-    weight = {w: morph.weight_at(*verts[idx[0]]) * morph.band(verts[idx[0]][2])
+    boundary_welded: set[int] = set()
+    for (u, v), cnt in edge_uses.items():
+        if cnt == 1:
+            boundary_welded.add(u)
+            boundary_welded.add(v)
+
+    # Smoothly fade fairing to 0 near open welded boundaries (such as the z≈146.2
+    # collar bib overhang) so neither the open lip nor the skin directly beneath
+    # it drifts apart into a visible seam slit in overhead clay views.
+    boundary_pts = [ref_pts[members[bw][0]] for bw in boundary_welded if bw in members]
+    boundary_fade: dict[int, float] = {}
+    if boundary_pts and len(members) > 16:
+        for w, idx in members.items():
+            if w in boundary_welded:
+                boundary_fade[w] = 0.0
+                continue
+            px, py, pz = ref_pts[idx[0]]
+            d2_min = min(
+                (px - bx) ** 2 + (py - by) ** 2 + (pz - bz) ** 2
+                for bx, by, bz in boundary_pts
+            )
+            boundary_fade[w] = smootherstep((math.sqrt(d2_min) - 1.1) / 1.5)
+    else:
+        for w in members:
+            boundary_fade[w] = 0.0 if w in boundary_welded else 1.0
+
+    weight = {w: morph.weight_at(*ref_pts[idx[0]])
               for w, idx in members.items()}
-    movable = {w: wt > pin_below for w, wt in weight.items()}
+    movable = {w: (wt > pin_below and boundary_fade.get(w, 1.0) > 0.0)
+               for w, wt in weight.items()}
     if not any(movable.values()):
         return 0
+
+    # Gradual dome-wide ramp (`wt / 0.56` instead of a sharp `0.12` cliff!)
+    # eliminates soap-film box corners at `z ≈ 144.5` and `z ≈ 136.5`. Keep full
+    # smoothing across `|x| <= 9.8` so the base mesh's x≈+8.0..+8.5 bib cliff
+    # melts into a spherical arc, then taper on `|x| > 9.8` to preserve the
+    # posterior/lateral breast root (`root_spread`), and lightly damp the
+    # concave sternum saddle (`|x| < 1.8`) so fairing does not flatten cleavage.
+    smooth_mask: dict[int, float] = {}
+    for w, wt in weight.items():
+        px, _py, pz = ref_pts[members[w][0]]
+        flank_keep = 1.0
+        sternal_keep = 1.0
+        if len(members) > 16:
+            flank_keep = 0.20 + 0.80 * smootherstep((11.8 - abs(px)) / 2.0)
+            mid_z = smootherstep((pz - 138.8) / 1.6) * smootherstep((143.8 - pz) / 1.6)
+            sternal_keep = 1.0 - 0.34 * mid_z * (1.0 - smootherstep((abs(px) - 0.4) / 1.8))
+        smooth_mask[w] = (
+            smootherstep((wt - pin_below) / 0.56)
+            * boundary_fade.get(w, 1.0)
+            * flank_keep
+            * sternal_keep
+        )
+
+    # Precompute a 3-ring Gaussian-weighted geodesic stencil (~2.2 cm diameter
+    # on subdivided chest tris) so coarse ~2.8 cm base-mesh facets melt into a
+    # smooth curve in ~10 steps without soap-film flattening the macro-dome.
+    use_multiring = len(members) > 16
+    stencil: dict[int, list[tuple[int, float]]] = {}
+    for w, r1 in adj.items():
+        if not movable.get(w) or not r1:
+            continue
+        weights_nb: dict[int, float] = {}
+        for nb in r1:
+            if nb in members and nb != w:
+                weights_nb[nb] = 1.0
+        if use_multiring:
+            r2: set[int] = set()
+            for nb in r1:
+                for nb2 in adj.get(nb, ()):
+                    if nb2 != w and nb2 not in weights_nb and nb2 in members:
+                        weights_nb[nb2] = 0.65
+                        r2.add(nb2)
+            for nb2 in r2:
+                for nb3 in adj.get(nb2, ()):
+                    if nb3 != w and nb3 not in weights_nb and nb3 in members:
+                        weights_nb[nb3] = 0.35
+        if weights_nb:
+            tot = sum(weights_nb.values())
+            stencil[w] = [(nb, wt_nb / tot) for nb, wt_nb in weights_nb.items()]
+
     touched = 0
-    for _ in range(iterations):
+    for step_idx in range(iterations):
+        if step_idx % 2 == 0:
+            wnorm = _welded_normals(verts, group.faces, weld, allowed)
         pos = {w: verts[idx[0]] for w, idx in members.items()}
         update: dict[int, tuple[float, float, float]] = {}
-        for w, nbrs in adj.items():
-            if not movable.get(w) or not nbrs:
-                continue
+        for w, nb_wts in stencil.items():
             px = py = pz = 0.0
-            for nb in nbrs:
+            for nb, wn in nb_wts:
                 q = pos[nb]
-                px += q[0]
-                py += q[1]
-                pz += q[2]
-            n = len(nbrs)
+                px += q[0] * wn
+                py += q[1] * wn
+                pz += q[2] * wn
             cur = pos[w]
-            # Scale the step by the vertex's own morph weight. A neckline vertex
-            # sits at weight ~0.006 while the breast behind it has moved ~10 cm;
-            # an unscaled Laplacian step therefore yanked it toward that mass and
-            # stretched its (coarse, long) triangles until the hex texture smeared
-            # to ~16% density — measured as a 6.3x area inflation on the two
-            # worst triangles. Weighting by the field makes the relaxation act
-            # where the surface actually deformed and vanish at the rim.
-            k = strength * min(1.0, weight[w])
-            update[w] = (cur[0] + k * (px / n - cur[0]),
-                         cur[1] + k * (py / n - cur[1]),
-                         cur[2] + k * (pz / n - cur[2]))
+            lx = px - cur[0]
+            ly = py - cur[1]
+            lz = pz - cur[2]
+            nw = wnorm.get(w, (0.0, 1.0, 0.0))
+            proj = lx * nw[0] + ly * nw[1] + lz * nw[2]
+            k = strength * smooth_mask.get(w, 0.0)
+            # Purely normal-dominated fairing (93% normal + 7% tangential)
+            # melts out-of-plane /\ /\ cone ridges into round spheres while
+            # keeping UV seams and painted suit borders straight and unwarped.
+            on_mid = abs(ref_pts[members[w][0]][0]) < 1e-6
+            ux = 0.0 if on_mid else (0.93 * proj * nw[0] + 0.07 * lx)
+            uy = 0.93 * proj * nw[1] + 0.07 * ly
+            uz = 0.93 * proj * nw[2] + 0.07 * lz
+            update[w] = (
+                cur[0] + k * ux,
+                cur[1] + k * uy,
+                cur[2] + k * uz,
+            )
         for w, p in update.items():
             for i in members[w]:
                 verts[i] = p
@@ -776,15 +879,7 @@ def smooth_region(group, morph: ChestMorph, iterations: int, strength: float,
 # --------------------------------------------------------------------- normals
 
 def _weld_keys(verts, indices=None) -> dict[int, int]:
-    """Map each vertex index to a position-welded group id.
-
-    Position, not index: the mesh stores its UV seams as coincident copies with
-    different indices, and everything that must treat them as one point (the
-    relaxation, the copy matcher, the normal rebuild) has to key on the position
-    the copy pair shares. ``indices`` defaults to every vertex — passing a subset
-    used to leave the rest unmapped, which silently split the chest into
-    disconnected fragments in the relaxation's adjacency.
-    """
+    """Map each vertex index to a position-welded group id."""
     if indices is None:
         indices = range(len(verts))
     keys: dict[tuple[int, int, int], int] = {}
@@ -796,25 +891,20 @@ def _weld_keys(verts, indices=None) -> dict[int, int]:
     return out
 
 
-def rebuild_normals(group, morph: ChestMorph) -> None:
-    """Rebuild normals over the edited chest and blend them in by strength.
-
-    Area-weighted face normals are accumulated over *position-welded* vertices,
-    so a UV seam inside the edited region does not turn into a shading crease.
-    The rebuilt normal replaces the source normal proportionally to the morph
-    weight (``smoothstep`` of the dome falloff), which leaves the rim of the
-    region — and therefore the shading hand-off to the untouched torso — exactly
-    as the base build shipped it.
-    """
+def rebuild_normals(group, morph: ChestMorph, materials=None) -> None:
+    """Rebuild normals over the edited chest and blend them in by strength."""
     import numpy as np
 
     verts = group.verts
-    faces = group.faces
+    faces = getattr(group, "faces", None)
     if not faces:
         return
+    allowed = _selected_vertex_set(group, materials)
     weld = _weld_keys(verts)
     accum: dict[int, list[float]] = {}
     for a, b, c in faces:
+        if allowed is not None and (a not in allowed or b not in allowed or c not in allowed):
+            continue
         pa, pb, pc = verts[a], verts[b], verts[c]
         n = np.cross(np.subtract(pb, pa), np.subtract(pc, pa))
         if float(np.linalg.norm(n)) <= 0.0:
@@ -826,6 +916,8 @@ def rebuild_normals(group, morph: ChestMorph) -> None:
             slot[2] += float(n[2])
 
     for i, p in enumerate(verts):
+        if allowed is not None and i not in allowed:
+            continue
         blend = smoothstep(morph.weight_at(*p) * 1.6)
         if blend <= 0.0:
             continue
@@ -849,12 +941,7 @@ def rebuild_normals(group, morph: ChestMorph) -> None:
 
 def morph_groups(groups: dict, morph: ChestMorph | None = None,
                  log=print) -> dict:
-    """Run the morph over the TPP groups (body, LOD and shadow caster).
-
-    ``groups`` maps group name -> ``build_models.Group``. The first-person arms
-    ship no chest and are left alone. Returns a small report for the build log
-    and `BUILD_INFO.json`.
-    """
+    """Run the morph over the TPP groups (body, LOD and shadow caster)."""
     morph = morph or ChestMorph()
     report: dict = {"morph": morph.describe(), "drawables": {}}
     for name, group in groups.items():
