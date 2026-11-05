@@ -800,35 +800,40 @@ def unfold_region(group, origin, rounds: int = 8, strength: float = 0.5) -> int:
                 wid = weld[vi]
                 zone.add(wid)
                 zone |= neighbours.get(wid, set())
-        moved: dict[int, tuple[float, float, float]] = {}
-        for wid in zone:
-            nb = neighbours.get(wid)
-            if not nb:
-                continue
-            ax = ay = az = 0.0
-            count = 0
-            for other in nb:
-                j = members[other][0]
-                ox, oy, oz = verts[j]
-                ax += ox
-                ay += oy
-                az += oz
-                count += 1
-            if not count:
-                continue
-            ax /= count
-            ay /= count
-            az /= count
-            i0 = members[wid][0]
-            px, py, pz = verts[i0]
-            moved[wid] = (px + (ax - px) * strength,
-                          py + (ay - py) * strength,
-                          pz + (az - pz) * strength)
-        for wid, point in moved.items():
-            for i in members[wid]:
-                verts[i] = point
-            touched.add(wid)
+        fair_zone(verts, members, neighbours, zone, strength)
+        touched |= zone
     return len(touched)
+
+
+def fair_zone(verts, members, neighbours, zone, strength) -> None:
+    """Move every welded group in ``zone`` a fraction of the way to its neighbours' mean."""
+    moved: dict[int, tuple[float, float, float]] = {}
+    for wid in zone:
+        nb = neighbours.get(wid)
+        if not nb:
+            continue
+        ax = ay = az = 0.0
+        count = 0
+        for other in nb:
+            j = members[other][0]
+            ox, oy, oz = verts[j]
+            ax += ox
+            ay += oy
+            az += oz
+            count += 1
+        if not count:
+            continue
+        ax /= count
+        ay /= count
+        az /= count
+        i0 = members[wid][0]
+        px, py, pz = verts[i0]
+        moved[wid] = (px + (ax - px) * strength,
+                      py + (ay - py) * strength,
+                      pz + (az - pz) * strength)
+    for wid, point in moved.items():
+        for i in members[wid]:
+            verts[i] = point
 
 # ------------------------------------------------------------------ relaxing
 

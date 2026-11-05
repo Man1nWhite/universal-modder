@@ -223,6 +223,9 @@ plateau ends, and `smooth_region` then relaxes 51 vertices), **vetoing subdivisi
 (`in_keyhole_lip`; keeps the coarse plate, which stops following the grown chest, and leaves a
 blocky notch), and **widening the keyhole box** to `x ±4.2, z 145.0–148.6` (8 flips but an obvious
 silhouette step at 60–90°). All three are C0 discontinuities in a smooth field; fairing is not.
+Fairing the repaired zone any further than the first valid state does not help either: two extra
+gentle rounds (strength 0.2) re-invert a face and the guard reverts them, so the repair stops as soon
+as the winding is legal and leaves the residual 15 normal quirks above.
 
 Rendered evidence, regenerated from this build: `docs/previews/12_Miranda_Busty_LAS.png` (full-body
 four-angle + portrait + FPS arms) and `docs/previews/13_Miranda_Busty_vs_LAS_chest.png` (0°/30°/60°/90°
