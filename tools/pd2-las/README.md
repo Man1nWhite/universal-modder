@@ -190,6 +190,7 @@ Modules (all tested against the real source zip):
 | `build_las.py` | CLI: zip → VPK → models/textures → scaffold |
 | `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; CRC-checked, traversal-safe) |
 | `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers |
+| `inspect_textures.py` | follow every material a model names to its `.vmt` → `.vtf` inside a `.gma`/`.vpk`/`.zip`, report present/missing with real size + mip count, and prove each texture actually **decodes** (optional second opinion from `sourcepp`) |
 
 ### Reading a subscribed GMod / SFM addon
 
@@ -209,6 +210,33 @@ triangle counts, material names, and the skeleton split into *already mapped* /
 whether an outside port is a cheap reference (a `ValveBiped` rig half-covered by
 the existing map) or new work. Nothing is extracted or rendered: the addon is
 someone else's licensed content, so private inspection only.
+
+### The rest of the tool landscape
+
+Surveyed 2026-11-05 for "what else deals with GMod mods", with the verdict that
+matters here — can it run in this repo, and does it add something the existing
+readers do not:
+
+| tool | what it covers | licence / platform | verdict for this repo |
+| --- | --- | --- | --- |
+| [`sourcepp`](https://pypi.org/project/sourcepp/) (`vpkpp`, `vtfpp`, `mdlpp`, `bsppp`) | **GMA v1-3, VPK v0/v1/v2/v54, BSP, VTF 7.0-7.6, MDL 44-49**; read *and* write for the pack formats | MIT, C++20 + nanobind wheels | **the one worth having.** Installed and verified: opened the fixture `.gma` (25 entries, checksums verified), decoded a real DXT5 VTF from the tracked L4D2 pack, and agreed with `vtf.py` on all 1,048,576 pixels (max abs diff 1 = DXT rounding). Used by `inspect_textures.py` as an optional second opinion — not a project dependency, since it is a native wheel for a dev-only cross-check |
+| [Crowbar](https://github.com/ZeqMacaw/Crowbar) | MDL → SMD/QC/QCI/VTA/VRD and back via `studiomdl`; unpacks VPK/GMA | free, closed source, **Windows only** | **not needed for measurement**, and it cannot run here. Still the standard answer if a human wants SMD/QC in Blender |
+| [Blender Source Tools](https://github.com/Artfunkel/BlenderSourceTools) | SMD/DMX/QC import + export | open source, Blender 4.x | no MDL/VTF support by design, and it needs Blender, which this sandbox lacks |
+| [SourceIO](https://github.com/REDxEYE/SourceIO) | **`.mdl` + `.vmt` + `.vtf` + `.bsp` direct import**, "Garry's Mod: full support" | MIT, Blender 4.0+ | the tool that skips Crowbar entirely — *if* a Blender existed here. Worth naming in a hand-off |
+| GMad (`gmad.exe`) | create/extract GMA, publish | Valve, bundled with GMod | `gma.py` replaces the extract half on Linux; `vpkpp` can also **write** GMA if a repack is ever needed |
+| [VPKEdit](https://github.com/craftablescience/VPKEdit) | GUI/CLI over `vpkpp`: VPK, GMA, BSP, VTF, ZIP | MIT | fine for humans, redundant with the readers above |
+| [`srctools`](https://github.com/TeamSpen210/srctools) | VPK/VTF/BSP/VMF/DMX read+write, MDL partial, mount chains, `packlist` dependency resolution | **GPL-3.0** | reference only — **do not vendor** into this MIT repo. Its `packlist` idea (walk a map's or model's dependencies) is the one thing worth re-implementing |
+| [MareTF](https://github.com/craftablescience/MareTF) / `vtex2` / `vtf2png` | VTF ↔ image converters, every VTF variant | MIT / libpng | redundant: `vtf.py` converts, and is bytes-checked against `vtfpp` |
+
+Two conclusions. **Acquiring** an addon needs nothing new: `steamcmd +login
+anonymous +workshop_download_item 4000 <id> +quit` lands the `.gma` in
+`steamapps/workshop/content/4000/<id>/` for a free app like GMod, and that is the
+only reliable route for an item whose workshop page has been delisted. **The one
+real gap** in this repo's Source support is *writing* SMD/QC: we read
+MDL/VVD/VTX/VTF/VPK/GMA in Python and never write them, so handing a rigged model
+to Blender still needs Crowbar or SourceIO on a machine with Windows or Blender.
+Nothing in the survey changes the retarget path — Source mesh → `ModelData` →
+`build_models.transfer_group` → Diesel.
 
 ## Roadmap
 
