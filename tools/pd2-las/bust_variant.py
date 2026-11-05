@@ -123,7 +123,7 @@ DEFAULT_VALLEY = VALLEY
 SUBDIVIDE_MARGIN = 1.25
 #: Height band the local subdivision is allowed in (cm): the front chest panel
 #: only, clear of the collar above and the waist seam below.
-SUBDIVIDE_Z = (126.0, 147.0)
+SUBDIVIDE_Z = (126.0, 149.0)
 #: Longest UV distance an edge may span and still be split. A chest edge is
 #: ~0.02…0.08 of the sheet; anything past this crosses a texture seam, and the
 #: midpoint's averaged UV would land on the sheet's black border.
@@ -131,7 +131,7 @@ MAX_EDGE_UV_DISTANCE = 0.20
 #: Local subdivision rounds and relaxation, in Laplacian steps of ``strength``.
 DEFAULT_SUBDIVISIONS = 1
 DEFAULT_SMOOTH_ITERATIONS = 3
-DEFAULT_SMOOTH_STRENGTH = 0.32
+DEFAULT_SMOOTH_STRENGTH = 0.12
 
 
 def smoothstep(t: float) -> float:
@@ -635,8 +635,8 @@ def smooth_region(group, morph: ChestMorph, iterations: int, strength: float,
         for x, y in ((wa, wb), (wa, wc), (wb, wa), (wb, wc), (wc, wa), (wc, wb)):
             adj.setdefault(x, set()).add(y)
 
-    movable = {w: morph.weight_at(*verts[idx[0]]) > pin_below
-               for w, idx in members.items()}
+    weight = {w: morph.weight_at(*verts[idx[0]]) for w, idx in members.items()}
+    movable = {w: wt > pin_below for w, wt in weight.items()}
     if not any(movable.values()):
         return 0
     touched = 0
@@ -654,9 +654,17 @@ def smooth_region(group, morph: ChestMorph, iterations: int, strength: float,
                 pz += q[2]
             n = len(nbrs)
             cur = pos[w]
-            update[w] = (cur[0] + strength * (px / n - cur[0]),
-                         cur[1] + strength * (py / n - cur[1]),
-                         cur[2] + strength * (pz / n - cur[2]))
+            # Scale the step by the vertex's own morph weight. A neckline vertex
+            # sits at weight ~0.006 while the breast behind it has moved ~10 cm;
+            # an unscaled Laplacian step therefore yanked it toward that mass and
+            # stretched its (coarse, long) triangles until the hex texture smeared
+            # to ~16% density — measured as a 6.3x area inflation on the two
+            # worst triangles. Weighting by the field makes the relaxation act
+            # where the surface actually deformed and vanish at the rim.
+            k = strength * min(1.0, weight[w])
+            update[w] = (cur[0] + k * (px / n - cur[0]),
+                         cur[1] + k * (py / n - cur[1]),
+                         cur[2] + k * (pz / n - cur[2]))
         for w, p in update.items():
             for i in members[w]:
                 verts[i] = p

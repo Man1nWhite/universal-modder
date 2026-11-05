@@ -108,16 +108,16 @@ the base build shipped it.
 
 ## Preset and measured result
 
-`cup_gain 0.58`, `round_gain 0.14`, `lift 0.5`, `spread 0.7`, `valley 0.78`,
+`cup_gain 0.58`, `round_gain 0.14`, `lift 0.5`, `spread 0.7`, `valley 0.78`, relaxation 3 @ 0.12,
 subdivision level 1 (red/green), 3 relaxation steps @ 0.32:
 
 | Metric | Base | Variant |
 | --- | --- | --- |
-| front reach at the apex (y) | 19.98 cm | **29.95 cm** (+9.97) |
+| front reach at the apex (y) | 19.98 cm | **30.37 cm** (+10.39) |
 | apex position | x 5.59, z 140.0 | x 6.01, z 140.7 |
 | chest width at the apex height | 23.59 cm | 23.59 cm (unchanged: the lateral gate now holds the ribcage) |
-| body vertices | 5,645 | **6,010** (+365 from the split) |
-| chest silhouette (side) | 19.98 → 17.80 → 12.54 (z = 140…150) | 29.95 → 24.04 → 12.60 |
+| body vertices | 5,645 | **6,060** (+415 from the split) |
+| chest silhouette (side) | 19.98 → 17.80 → 12.54 (z = 140…150) | 30.37 → 22.59 → 12.26 |
 | cross-section gain at z 137, by \|x\| band | — | 0–1 +3.36, 2–3 +6.23, 5–6 +10.57, 9–10 +6.46, 10–11 +3.18, 11–12 +0.03 |
 
 The silhouette is monotone into the apex and back out again, with no step: the
@@ -217,6 +217,29 @@ base's shorter vertex array collapses the subdivided panels onto the origin.
     At 90° that reads as a long pointed prow and the bust grows in width
     instead of reach (+0.68 cm before, +0.0 cm after the gate holds, with all
     the extra going forward).
+
+13. **Unbounded Laplacian relaxation smears the texture at the rim.** The
+    relaxation step was `cur + strength*(mean(neighbours) - cur)` for every
+    vertex above weight 0.004. A neckline vertex sits at weight ~0.006 while the
+    breast half a centimetre below it had moved 10 cm, so the step yanked it
+    toward that mass. Its triangles are the *coarse* unsubdivided ones, so the
+    hex pattern stretched until two of them covered 6.3x their original area —
+    texel density down to 16%, which renders as a dark diagonal smear. Fix:
+    scale each step by the vertex's own morph weight (`k = strength *
+    min(1, weight)`). Max density inflation went 6.34x -> 2.13x.
+14. **`SUBDIVIDE_Z` must reach past the displacement, not just the dome.** The
+    subdivision stopped at z = 147 while the field still delivered 2 cm of reach
+    at 147.5 and 1.5 cm at 148, so a band of coarse triangles sat right where
+    the surface was still moving — a visible ledge under the collar. Raising the
+    limit to 149 (the collar seam is at 152.2, so the split still cannot
+    interpolate UVs across it) took the max inflation to **1.21x with zero
+    triangles above 1.5x**.
+15. **Matching base triangles by index hides the damage after a split.** The
+    first smear metric compared only triangles present in both meshes; the split
+    *replaces* the originals, so the worst offenders silently dropped out of the
+    sample (320 matched -> 286) and the score improved without the render
+    changing. Measure texel density in **spatial bins** instead — that compares
+    subdivided and coarse geometry at the same place.
 
 ## Still open
 
