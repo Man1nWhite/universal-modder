@@ -4,14 +4,18 @@ Answers the recurring question — "is this the business suit, and is it cheaper
 than a `TMC` import?" — from the addon file itself instead of its description:
 
 1. the file list, grouped by extension (so `models/…christie…` names and any
-   per-outfit subfolders are visible);
+   per-outfit subfolders are visible), plus the required-content mounts and
+   whether the archive CRC that `gmad` appends still matches;
 2. every readable model in it, with its vertex/triangle counts, material names
    and **bone names**;
 3. whether that skeleton is a `ValveBiped` rig the existing
    `tools/pd2-las/skeleton_map.json` already covers — which is what decides
-   whether the GLB→LAS retarget path can be reused unchanged;
-4. material/texture presence, so a bodygroup whose textures are missing cannot
-   be mistaken for a usable outfit.
+   whether the GLB→LAS retarget path can be reused unchanged.
+
+Textures are **not** resolved here: a model's `materials` list only says which
+`.vmt` the mesh indexes, not whether the `.vmt`/`.vtf` chain is present or
+decodes. `tools/pd2-las/inspect_textures.py` answers that from the same file,
+and its answer is what turns "the rig fits" into "the outfit is usable".
 
 Read-only. Nothing is extracted to disk and nothing is rendered: this prints a
 report, because the addon itself is licensed content that must never enter the
@@ -82,6 +86,8 @@ def inspect(path: Path, skel_map: dict | None = None, max_models: int = 0) -> di
         "description": arc.description,
         "type": arc.addon_type,
         "tags": list(arc.tags),
+        "required_content": list(arc.required_content),
+        "archive_crc_ok": arc.archive_crc_ok,
         "timestamp": arc.timestamp,
         "bytes": sum(e.size for e in arc.entries),
         "file_count": len(arc.entries),
@@ -115,6 +121,7 @@ def inspect(path: Path, skel_map: dict | None = None, max_models: int = 0) -> di
                 "triangles": model.triangle_count,
                 "materials": model.materials,
                 "material_count": len(model.materials),
+                "bodygroups_skipped": model.skipped_bodygroup_models,
                 "bones": rig,
             }
         )
@@ -137,10 +144,23 @@ def render(report: dict) -> str:
         f"{report['bytes']:,} B",
         f"type    : {report['type'] or 'unset'}  tags: {report['tags'] or 'none'}",
         f"desc    : {report['description'].strip()[:400]}",
+        f"requires: {', '.join(report['required_content']) or 'nothing'}",
         "",
         "contents: " + ", ".join(f"{k} x{v}" for k, v in report["by_extension"].items()),
         "",
     ]
+    if report["archive_crc_ok"] is False:
+        lines.insert(
+            4,
+            "WARNING : the archive CRC does not match — this .gma was damaged or "
+            "edited after packing; read its files with that in mind.",
+        )
+    lines.append(
+        "textures: not checked here — "
+        "`python tools/pd2-las/inspect_textures.py <same file>` resolves every "
+        ".vmt/.vtf a model names"
+    )
+    lines.append("")
     if not report["models"]:
         lines.append("no readable model triples (.mdl + .vvd + .vtx) in this addon")
     for i, m in enumerate(report["models"], 1):
@@ -154,6 +174,11 @@ def render(report: dict) -> str:
             f"{m['material_count']} materials"
         )
         lines.append(f"    materials: {_fmt_paths(m['materials'])}")
+        if m.get("bodygroups_skipped"):
+            lines.append(
+                f"    bodygroups: default state read, "
+                f"{m['bodygroups_skipped']} alternate model(s) not parsed"
+            )
         lines.append(
             f"    rig: {bones['dialect']}, {bones['bone_count']} bones, "
             f"{len(bones['mapped'])} already in skeleton_map.json "
@@ -184,7 +209,9 @@ def _verdict(report: dict) -> str:
             f"ValveBiped rig, {share:.0%} of bones already mapped — the "
             "GLB/ValveBiped → LAS retarget path applies as-is. That makes it a "
             "reading aid and a posing reference, not a licence to ship: the mesh "
-            "is still a port of someone else's asset, so private build only."
+            "is still a port of someone else's asset, so private build only. The "
+            "rig is not the whole answer either — `inspect_textures.py` has to "
+            "find every material's texture before the outfit is usable."
         )
     return (
         f"rig set {sorted(rigs)} — not the ValveBiped dialect skeleton_map.json "
@@ -201,6 +228,15 @@ def main(argv=None) -> int:
     )
     args = ap.parse_args(argv)
 
+    if args.gma.is_dir():
+        print(
+            f"error: {args.gma} is a folder, not a .gma. An unpacked addon has no "
+            "GMAD header; read it with\n"
+            f"  python tools/pd2-las/inspect_textures.py {args.gma}",
+            file=sys.stderr,
+        )
+        return 1
+
     try:
         report = inspect(args.gma, max_models=args.max_models)
     except (GmaError, OSError) as exc:
@@ -208,6 +244,7 @@ def main(argv=None) -> int:
         return 1
     print(render(report))
     if args.json:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
         args.json.write_text(json.dumps(report, indent=2))
         print(f"\nwrote {args.json}")
     return 0

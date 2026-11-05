@@ -12,6 +12,24 @@
     I/O;
   - Garry's Mod: Lua addons (`lua/autorun/...`);
   - SourceMod + Metamod:Source for **servers you run** (plugins in SourcePawn).
+- **Garry's Mod specifically.** It is Source 2013 plus a Lua layer, and its addons are not VPKs:
+  - `addons/<name>/` is an unpacked addon: `addoninfo.txt` in the old KeyValues form, or
+    `addon.json` for anything packed by `gmad`. Loose files override the game's by path.
+  - `steamapps/workshop/content/4000/<id>/<id>.gma` is a subscribed workshop item. `.gma` (GMAD
+    v1-3) is a thin container around ordinary Source files, and it ends with a CRC32 of itself;
+    some workshop downloads are LZMA-wrapped and have to be decompressed before parsing.
+  - `lua/autorun/` (plus `lua/autorun/client/` and `lua/autorun/server/`) runs on load; anything
+    else under `lua/` needs `require`. Realm matters: a client hook that touches `LocalPlayer()`
+    crashes the server realm, and vice versa.
+  - `addon.json` can list `ignore` globs, which is how server-only files are kept out of what
+    clients download. A `.gma` can also declare **required content** (`"half-life 2"`): without
+    that game mounted in GMod's Games menu the addon renders broken while every file is present.
+  - Native code arrives as a module Lua `require`s (a `.dll` in the addon), which is how
+    in-process C++ like libsm64 reaches the game. GMod has no VAC on servers you host, but a
+    workshop addon shipping a DLL is still a trust decision.
+  - Measuring an addon without extracting or rendering it: `python tools/pd2-las/inspect_gma.py
+    <id>.gma` for rig/geometry, `inspect_textures.py <folder|zip|vpk|gma>` for whether every
+    material's `.vmt`→`.vtf` chain actually exists and decodes. Never commit the assets.
 - **Code:** Source SDK 2013 (github.com/ValveSoftware/source-sdk-2013) builds your own mod (a new game
   folder under `sourcemods/`). It's the official, fully legal route for new mechanics in HL2-era games.
 - **Browse:** GCFScape / VPKEdit to open VPKs; Crowbar for models; BSPSource to decompile maps.

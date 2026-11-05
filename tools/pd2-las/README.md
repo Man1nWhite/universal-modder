@@ -183,15 +183,15 @@ Modules (all tested against the real source zip):
 | File | What it does |
 | --- | --- |
 | `vpk.py` | VPK v1/v2 reader; `entry_offset` is tree-relative; CRC-checked reads; traversal-safe extraction |
-| `source_model.py` | MDL 48/49 + VVD v4 + VTX v7 reader (source-sdk-2013 struct layouts) → bones, weighted vertices, material triangles |
+| `source_model.py` | MDL **44-49** + VVD v4 + VTX v7 reader (source-sdk-2013 struct layouts; the 44-49 range is documented in `SUPPORTED_MDL_VERSIONS`) → bones, weighted vertices, material triangles |
 | `vtf.py` | VTF 7.2–7.4 reader → DDS (`.texture`, mip chain reordered: VTF stores smallest first) and PNG previews |
 | `dds_encode.py` | RGBA → DXT5 (naive endpoints, c0 > c1 always) and BGRA8888 DDS writers for icons/previews |
 | `las_pack.py` | the 2B-contract scaffold: hook, manifest, locales, unit/object/material_config XMLs, `BUILD_INFO.json` |
 | `build_las.py` | CLI: zip → VPK → models/textures → scaffold |
-| `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; CRC-checked, traversal-safe) |
-| `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers |
+| `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; required-content list kept; per-file **and** trailing archive CRC32 checked; `dx90`/`vtx`/`dx80`/`sw` VTX variants; traversal-safe) |
+| `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, declared required content, a damaged-archive warning, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers. Textures are explicitly *not* its job — it says so and points at `inspect_textures.py` |
 | `smd.py` | **SMD read/write** (`parse_smd`, `write_smd`, `ModelData` ↔ SMD with exact quaternion↔Tait-Bryan conversion) + stub `.qc`; CLI exports `.gma`/`.vpk`/`.zip` → per-model `.smd` for Blender |
-| `inspect_textures.py` | follow every material a model names to its `.vmt` → `.vtf` inside a `.gma`/`.vpk`/`.zip`, report present/missing with real size + mip count, and prove each texture actually **decodes** (optional second opinion from `sourcepp`) |
+| `inspect_textures.py` | follow every material a model names to its `.vmt` → `.vtf` inside a `.gma`/`.vpk`/`.zip`/**unpacked addon folder**, report present/missing with real size + mip count, and prove each texture actually **decodes** (optional second opinion from `sourcepp`; no Pillow reports `?` rather than a false ✗). Reads `addoninfo.txt` (GMod and L4D2 spellings) and `addon.json` |
 
 ### Reading a subscribed GMod / SFM addon
 
@@ -203,14 +203,28 @@ guessed at from its description:
 # after subscribing, the archive is in
 #   steamapps/workshop/content/4000/<item id>/*.gma
 python tools/pd2-las/inspect_gma.py path/to/<item id>.gma --json /tmp/report.json
+
+# the same questions for an unpacked addon folder (addons/<name>/), a legacy
+# zip, or a VPK — including whether every material's texture is really there
+python tools/pd2-las/inspect_textures.py path/to/<addon folder>
 ```
 
-The report gives the file tree grouped by extension, then per model: vertex and
-triangle counts, material names, and the skeleton split into *already mapped* /
+The report gives the file tree grouped by extension, the required-content mounts
+the addon declares, a warning if the trailing archive CRC no longer matches
+(truncated or hex-edited after packing), then per model: vertex and triangle
+counts, material names, and the skeleton split into *already mapped* /
 *Source-only* / *unknown* against `skeleton_map.json`. That is what decides
 whether an outside port is a cheap reference (a `ValveBiped` rig half-covered by
 the existing map) or new work. Nothing is extracted or rendered: the addon is
 someone else's licensed content, so private inspection only.
+
+Three GMod shapes have to be told apart, and the readers now cover all three:
+
+| on disk | what it is | reader |
+| --- | --- | --- |
+| `addons/<name>/…` | an **unpacked** addon (workshop items someone extracted, and the layout `gmad` packs from) | `inspect_textures.py <folder>` |
+| `<id>.gma` in `steamapps/workshop/content/4000/<id>/` | the packed addon; LZMA-wrapped when Steam compressed the download | `inspect_gma.py`, and `inspect_textures.py` too |
+| `addons/*.zip` / `.vpk` | the pre-2013 download format, usually one wrapper folder deep | `inspect_textures.py` |
 
 ### The rest of the tool landscape
 
@@ -220,13 +234,14 @@ readers do not:
 
 | tool | what it covers | licence / platform | verdict for this repo |
 | --- | --- | --- | --- |
-| [`sourcepp`](https://pypi.org/project/sourcepp/) (`vpkpp`, `vtfpp`, `mdlpp`, `bsppp`) | **GMA v1-3, VPK v0/v1/v2/v54, BSP, VTF 7.0-7.6, MDL 44-49**; read *and* write for the pack formats | MIT, C++20 + nanobind wheels | **the one worth having.** Installed and verified: opened the fixture `.gma` (25 entries, checksums verified), decoded a real DXT5 VTF from the tracked L4D2 pack, and agreed with `vtf.py` on all 1,048,576 pixels (max abs diff 1 = DXT rounding). Used by `inspect_textures.py` as an optional second opinion — not a project dependency, since it is a native wheel for a dev-only cross-check |
+| [`sourcepp`](https://pypi.org/project/sourcepp/) (`vpkpp`, `vtfpp`, `bsppp`, `kvpp`) | **GMA v1-3, VPK v0/v1/v2/v54, BSP, VTF 7.0-7.6**; read *and* write for the pack formats. **No `mdlpp` in the Python wheel** — `mdlpp` exists as a C++ header (`include/mdlpp/`), the wheel binds only `bsppp gamepp kvpp sourcepp steampp toolpp vcryptpp vpkpp vtfpp`, so MDL parsing is not reachable from Python | MIT, C++20 + nanobind wheels | **the one worth having.** Installed and verified (2026-11-05): decodes a real DXT5 VTF from the tracked L4D2 pack and agrees with `vtf.py` pixel-for-pixel (max abs diff 1 = DXT rounding), and its GMA reader agrees with `gma.py` on the file list and CRCs — **except on required content**: `GMA::open` reads that list as one string, so any addon that actually declares a mount ("half-life 2") comes back with an empty name and a mangled entry path (`ame`), while `gma.py` loops to the empty terminator. Use it as a second opinion, not as the oracle. Optional dev-only cross-check; not a project dependency |
+| [`gma`](https://github.com/diogo464/gma) (Rust crate) | read **and write** `.gma`, **including the LZMA-compressed workshop form** the Rust author documents as "Garry's Mod can't read compressed gma files but some, downloaded directly from the Steam workshop, are lzma compressed" | MIT | the only other implementation found that handles the compressed download; not usable from Python here, and `gma.py` covers the read half |
 | [Crowbar](https://github.com/ZeqMacaw/Crowbar) | MDL → SMD/QC/QCI/VTA/VRD and back via `studiomdl`; unpacks VPK/GMA | free, closed source, **Windows only** | **not needed for measurement**, and it cannot run here. Still the standard answer if a human wants SMD/QC in Blender |
 | [Blender Source Tools](https://github.com/Artfunkel/BlenderSourceTools) | SMD/DMX/QC import + export | open source, Blender 4.x | no MDL/VTF support by design, and it needs Blender, which this sandbox lacks |
 | [SourceIO](https://github.com/REDxEYE/SourceIO) | **`.mdl` + `.vmt` + `.vtf` + `.bsp` direct import**, "Garry's Mod: full support" | MIT, Blender 4.0+ | the tool that skips Crowbar entirely — *if* a Blender existed here. Worth naming in a hand-off |
 | GMad (`gmad.exe`) | create/extract GMA, publish | Valve, bundled with GMod | `gma.py` replaces the extract half on Linux; `vpkpp` can also **write** GMA if a repack is ever needed |
 | [VPKEdit](https://github.com/craftablescience/VPKEdit) | GUI/CLI over `vpkpp`: VPK, GMA, BSP, VTF, ZIP | MIT | fine for humans, redundant with the readers above |
-| [`srctools`](https://github.com/TeamSpen210/srctools) | VPK/VTF/BSP/VMF/DMX read+write, MDL partial, mount chains, `packlist` dependency resolution | **GPL-3.0** | reference only — **do not vendor** into this MIT repo. Its `packlist` idea (walk a map's or model's dependencies) is the one thing worth re-implementing |
+| [`srctools`](https://github.com/TeamSpen210/srctools) | VPK/VTF/BSP/VMF/DMX read+write, MDL partial, mount chains, `packlist` dependency resolution | **MIT** (the repo `LICENSE` excludes only libsquish; PyPI classifier says `License :: OSI Approved :: MIT License`) — an earlier revision of this table said GPL-3.0 and drew the wrong conclusion from it | usable, not vendored: nothing here needs `packlist` yet. Its idea (walk a map's or model's dependencies before declaring an addon complete) is the one thing worth re-implementing |
 | [MareTF](https://github.com/craftablescience/MareTF) / `vtex2` / `vtf2png` | VTF ↔ image converters, every VTF variant | MIT / libpng | redundant: `vtf.py` converts, and is bytes-checked against `vtfpp` |
 
 ### Round two: the rest of the field (same day)

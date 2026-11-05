@@ -87,7 +87,12 @@ class VpkArchive:
     def _parse_tree(self, data: bytes, pos: int) -> None:
         def cstr() -> str:
             nonlocal pos
-            end = data.index(b"\x00", pos)
+            # A tree that runs off the end of the file is a truncated archive,
+            # not a programming error: report it as a VpkError so every caller
+            # (including the CLIs' `except VpkError`) handles it the same way.
+            end = data.find(b"\x00", pos)
+            if end < 0:
+                raise VpkError(f"{self.name}: unterminated string in the VPK tree")
             out = data[pos:end].decode("latin1")
             pos = end + 1
             return out
