@@ -32,6 +32,11 @@ Deliverables in **`dist/`**:
   verified in game yet — there is no checklist for it (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (+ `.sha256`) — built by
+`tools/pd2-las/build_christie_las.py` from `references/Christie.zip`, headless
+LAS (`replace_body`, no `g_head`; see `docs/pd2-las/CHRISTIE.md`). Tests:
+`tests/test_christie_las.py`.
+
 ## Quickstart
 
 ```bash
