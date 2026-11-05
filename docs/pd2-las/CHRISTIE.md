@@ -47,7 +47,10 @@ fps arms via `extract_bones(is_fps_arm_bone)` on the fps_2b template → VTF→D
 textures (bumpmap resolved from each VMT's `$bumpmap`, normals swizzled
 `invert_y=True`, **diffuse alpha attenuated from the normal map's alpha** —
 Source leaves diffuse alpha at 255, which PD2 reads as full mirror gloss; that
-was the washed-out look in the first in-game test) → pack + reproducible zip
+was the washed-out look in the first in-game test — and **every map expanded to
+a full mipmap pyramid** in vanilla PD2's header shape (flags 0x000A1007,
+caps 0x00401008; the source VTFs ship mip 0 only, and mip-0-only .texture files
+render wrong in game — see tools/pd2-port/dds.py) → pack + reproducible zip
 (fixed 2020-01-01 timestamps, so the `.sha256` sidecar is a true build hash).
 
 Verified offline: 0 orientation breaks, 98% winding agreement, models

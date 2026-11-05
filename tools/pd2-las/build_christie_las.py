@@ -64,6 +64,9 @@ from dds_encode import (  # noqa: E402
 )
 from vtf import parse_vtf, to_dds  # noqa: E402
 
+sys.path.insert(0, str(HERE.parent / "pd2-port"))
+import dds as pd2_dds  # noqa: E402  (vanilla-shaped DXT5 DDS writer with full mip chain)
+
 SOURCE_ZIP = REPO / "references" / "Christie.zip"
 SKEL_MAP = HERE / "christie_skeleton_map.json"
 
@@ -335,12 +338,37 @@ def _vmt_texture_path(vmt_text: str, key: str) -> str:
     return "materials/" + m.group(1).replace("\\", "/").lower() + ".vtf"
 
 
+def _with_full_mip_chain(dds_mip0: bytes) -> bytes:
+    """Expand a 1-mip DXT5 .texture to vanilla PD2's full mipmap pyramid.
+
+    The Christie VTFs ship a single mip, so `vtf.to_dds` emits a 1-mip DDS.
+    Vanilla PAYDAY 2 DXT5 textures carry log2(size)+1 levels (see
+    tools/pd2-port/dds.py: a mip-0-only file was a known defect that renders
+    wrong in game). Mip 0 is decoded with Pillow (independent, correct DXT5
+    decoder — pd2-port's decode_dxt5 mis-handles some blocks), the chain is
+    box-filtered down to 1x1, and `pack_dds` writes the vanilla header shape
+    (flags 0x000A1007, caps 0x00401008, c0 > c1 endpoints).
+    """
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    size, _mips, mip0 = pd2_dds.dds_mip0_slice(dds_mip0)
+    im = Image.open(io.BytesIO(dds_mip0))
+    im.load()
+    rgba = np.asarray(im.convert("RGBA"), dtype=np.uint8)
+    payloads = pd2_dds.mip_payloads_from_image(rgba)
+    return pd2_dds.pack_dds(payloads, size)
+
+
 def convert_textures(zf: zipfile.ZipFile, identity: Identity) -> dict[str, bytes]:
     """VTF -> Diesel .texture payloads, keyed by pack stem (<id>_<role>_df.texture).
 
     Diffuse alpha is attenuated from the normal map's alpha (Source phong mask)
     so PD2 doesn't read full mirror gloss; the normal map itself is swizzled
-    for Diesel (Y flipped).
+    for Diesel (Y flipped). Every map gets a full mipmap pyramid (vanilla PD2
+    shape) — the source VTFs carry only mip 0.
     """
     textures: dict[str, bytes] = {}
     for src_mat, (_slot, role) in KEEP_MATERIALS.items():
@@ -352,8 +380,8 @@ def convert_textures(zf: zipfile.ZipFile, identity: Identity) -> dict[str, bytes
         scale, max_a = DF_SPECULAR_FROM_NORMAL[src_mat]
         df_dds = attenuate_dxt5_alpha_from_normal(raw_df, raw_nm, scale, max_a)
         nm_dds = swizzle_source_normal_dxt5_to_pd2(raw_nm, invert_y=True)
-        textures[f"{identity.texture_prefix}_{role}_df.texture"] = df_dds
-        textures[f"{identity.texture_prefix}_{role}_nm.texture"] = nm_dds
+        textures[f"{identity.texture_prefix}_{role}_df.texture"] = _with_full_mip_chain(df_dds)
+        textures[f"{identity.texture_prefix}_{role}_nm.texture"] = _with_full_mip_chain(nm_dds)
     return textures
 
 

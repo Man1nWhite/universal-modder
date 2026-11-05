@@ -131,6 +131,26 @@ class TestPack:
         assert f'<unit_mat path="units/{item_id}/skins/{item_id}/fps_{item_id}"/>' in main
         assert f'<texture path="guis/dlcs/{item_id}/armor_skins/{item_id}"/>' in main
 
+    def test_textures_have_full_vanilla_mip_chains(self, which):
+        """Vanilla PD2 DXT5 .texture files carry the full mip pyramid
+        (flags 0x000A1007, caps 0x00401008, mips = log2(size)+1); the source
+        VTFs ship mip 0 only, so the build must expand them."""
+        import struct
+
+        _, pack_dir, item_id, _g = PACKS[which]
+        zf = _zf(which)
+        unit = f"{pack_dir}/assets/units/{item_id}/skins/{item_id}"
+        for role in ("body", "c02_01", "c02_02", "c02_05"):
+            for kind in ("df", "nm"):
+                d = zf.read(f"{unit}/{item_id}_{role}_{kind}.texture")
+                flags = struct.unpack_from("<I", d, 8)[0]
+                caps = struct.unpack_from("<I", d, 108)[0]
+                mips = struct.unpack_from("<I", d, 28)[0]
+                size = struct.unpack_from("<I", d, 16)[0]
+                assert flags == 0x000A1007, f"{role}_{kind}: flags {flags:#x}"
+                assert caps == 0x00401008, f"{role}_{kind}: caps {caps:#x}"
+                assert mips == size.bit_length(), f"{role}_{kind}: {mips} mips"
+
     def test_diffuse_alpha_is_specular_not_full_gloss(self, which):
         """PD2 reads diffuse alpha as gloss; Source leaves it 255. The build
         attenuates it from the normal map's alpha, so endpoints must be well
