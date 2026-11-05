@@ -498,6 +498,54 @@ def _fixture_group(verts, faces, normals):
     return g
 
 
+def test_placket_hem_keeps_its_shape_across_the_sternum():
+    """The hem at `z = 146.2` closes the keyhole with a straight garment edge.
+
+    Growing the cups pushes that edge 0.75 cm at the sternum and 2.0 cm at the cups, which
+    bowed the straight hem into a notch (plain as day in the overhead sheet). The field is
+    therefore band-limited laterally across the hem; this pins the reduction and — more
+    importantly — that the blend never introduces a step of its own.
+    """
+    morph = bv.ChestMorph()
+    hem_z = 146.2
+    step = 0.05
+    xs = [i * step - 5.0 for i in range(201)]
+    blended = [morph.displacement(x, 18.0, hem_z)[1] for x in xs]
+    raw = [morph._raw_displacement(x, 18.0, hem_z)[1] for x in xs]
+
+    def max_step(values):
+        return max(abs(b - a) for a, b in zip(values, values[1:]))
+
+    def peak_to_peak(values):
+        return max(values) - min(values)
+
+    assert peak_to_peak(raw) > 1.0, "the raw field really does bow this edge"
+    # ~14 % off the bow at HEM_BLEND_X = 0.9 cm; the point is direction and locality, not a
+    # bigger number — more blending trades the bow for a fold at the hem's end taper
+    assert peak_to_peak(blended) < 0.9 * peak_to_peak(raw)
+    # no cliff: the blend is smooth in x (it is an average, not a mask), so the local slope
+    # has to stay comparable to the analytic field's own
+    assert max_step(blended) / step < 0.8, max_step(blended) / step
+    assert max_step(blended) <= max_step(raw) * 1.02
+
+    # and it is local in z: the cups below the hem are exactly the analytic field
+    for z in (140.0, 143.5, 150.5):
+        for x in (-4.0, 0.0, 3.0):
+            assert morph.displacement(x, 18.0, z) == morph._raw_displacement(x, 18.0, z), (x, z)
+
+
+def test_placket_hem_blend_never_reaches_into_the_sleeve():
+    """The taps read x ± 0.9 cm, so a vertex *outside* the lateral gate must not inherit a push.
+
+    Without gating the correction, the blend leaked a fraction of the cup's forward motion
+    into the upper arm (`|x| > 14 cm`) and `test_built_variant_model...` caught it.
+    """
+    morph = bv.ChestMorph()
+    for x in (14.0, 15.5, 18.0, -16.0):
+        for z in (145.0, 146.2, 147.0):
+            assert morph.displacement(x, 18.0, z)[1] == 0.0, (x, z)
+
+
 def _lip_grid(n=7, step=0.25):
     """A flat n x n patch standing in for the keyhole lip (faces point at -y).
 

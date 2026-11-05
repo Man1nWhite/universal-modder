@@ -228,10 +228,48 @@ gentle rounds (strength 0.2) re-invert a face and the guard reverts them, so the
 as the winding is legal and leaves the residual 15 normal quirks above.
 
 Rendered evidence, regenerated from this build: `docs/previews/12_Miranda_Busty_LAS.png` (full-body
-four-angle + portrait + FPS arms) and `docs/previews/13_Miranda_Busty_vs_LAS_chest.png` (0°/30°/60°/90°
-chest close-ups, stock above, variant below). The builder's own sheets stay in
+four-angle + portrait + FPS arms), `13_Miranda_Busty_vs_LAS_chest.png` (0°/30°/**45°**/60°/**90°**
+close-ups with the framing pulled back as the yaw widens, stock above, variant below) and
+`14_Miranda_Busty_vs_LAS_top_below.png` (58° above and 58° below, at 0° and 30° yaw). The builder's own sheets stay in
 `build/pd2-las/previews/` (`busty_compare_chest.png`, `busty_compare_top_bottom.png`,
 `busty_sculpt_clay.png`).
+
+## The placket hem was bowing (2026-11-05, second pass)
+
+The first pass above fixed the folds. Reviewing the chest from **58° above and 58° below** —
+angles no front sheet can reach, now shipped as `docs/previews/14_Miranda_Busty_vs_LAS_top_below.png`
+— showed a second, smaller defect: the keyhole hem at `z = 146.2`, a straight garment edge in the
+stock mesh, came out **bowed**. The raw field pushes that edge 0.75 cm at the sternum and 2.0 cm at
+the cups, so a 5 cm wide straight edge tilted by 1.25 cm and read as a notch in the overhead view and
+as a kinked crease in clay close-ups.
+
+**Fix:** `ChestMorph.displacement` now band-limits the forward push *laterally* across the hem — a
+three-tap average `HEM_BLEND_X = 0.9 cm` apart, faded in and out by a smooth z envelope
+(`z ≈ 145.0 … 147.9`), with the correction gated by `lateral_gate` so the taps cannot leak a
+fraction of the cup's push into the sleeve. An average is smooth in x by construction, so unlike
+every masking attempt in the previous section this one cannot leave a step; it just makes the hem
+translate instead of tilt.
+
+| | before this pass (`d26b93e1…`) | after (`abfeafbb…`) |
+|---|---|---|
+| hem-band dihedral (mean / p90) | 9.6° / 19.9° | **9.2° / 18.4°** |
+| faces whose normals disagree with their winding | 22 | 28 (still ≤ 0.09 cm² each, all in the hem crease) |
+| dihedral edges > 170° / > 175° | 4 / 3 | 4 / 3 |
+| `depth_gain_cm` / `front_y_max_cm` / `width_cm` | 3.23 / [19.98, 23.21] / [25.47, 25.48] | unchanged |
+| lip fold repair | 38 vertices faired, 0 inverted | 38 vertices faired, 0 inverted |
+
+Two alternatives were measured and rejected. **Band-limiting the field in z** (`Z_BLEND = 0.6` and
+`0.9 cm`) softened every vertical gradient in the chest, but it costs the apex: `depth_gain_cm` fell
+3.23 → 3.20 → 3.17 and the flipped-face count rose to 25, i.e. it pays for a hem fix with the bust
+itself. **Widening `collar_taper`** (0.22 over 3.8 cm → 0.34 over 4.4 cm) softened the upper rim
+visibly but changed nothing about the hem. More lateral blending than 0.9 cm buys another 1° of hem
+smoothness and introduces a 179.5° edge at the hem's end taper — a pinch, not a fix.
+
+What the overhead views *also* show, and what is deliberately left alone: the hexagon texture and
+the modelled piping bevels are stretched over the enlarged cups (chest texel scale +10 % on average,
+p99 188 → 205), and the zipper emblem at the placket reads taller. That is what growing geometry
+under a fixed texture does; attenuating the sculpt over the emblem to protect it would flatten the
+cup, which is the larger artefact.
 
 ## Key lessons (do not repeat)
 

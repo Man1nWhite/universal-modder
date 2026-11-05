@@ -52,8 +52,17 @@ def rasterize_parts(
     bg: tuple[int, int, int] = (24, 28, 36),
     z_min_clip: float = -1e9,
     pitch_deg: float = 0.0,
+    pan_x: float = 0.0,
+    pan_y: float = 0.0,
+    center: tuple[float, float, float] | None = None,
 ) -> Image.Image:
-    """Vectorized NumPy Z-buffer rasterizer with 2x SSAA anti-aliasing."""
+    """Vectorized NumPy Z-buffer rasterizer with 2x SSAA anti-aliasing.
+
+    ``center`` is the model-space point that should land in the middle of the frame; it is
+    resolved *after* the rotation, which is what a pitched view needs (pitching about x
+    sweeps the region of interest out of the frame in both axes, so a z-only `z_center`
+    cannot hold it). ``pan_x`` / ``pan_y`` stay available as raw post-rotation nudges in cm.
+    """
     W2, H2 = W * 2, H * 2
     scale2 = scale * 2.0
 
@@ -68,6 +77,11 @@ def rasterize_parts(
         R = Rx @ Rz
     else:
         R = Rz
+
+    if center is not None:
+        cvec = np.asarray(center, dtype=np.float32) @ R.T
+        pan_x += float(cvec[0])
+        z_center = float(cvec[2])
 
     light1 = np.array([0.28, 0.85, 0.44], dtype=np.float32)
     light1 /= np.linalg.norm(light1)
@@ -87,8 +101,8 @@ def rasterize_parts(
 
         pr = pos @ R.T
         nr = nrm @ R.T
-        sx = (W2 * 0.5 + pr[:, 0] * scale2).astype(np.float32)
-        sy = (H2 * 0.5 - (pr[:, 2] - z_center) * scale2).astype(np.float32)
+        sx = (W2 * 0.5 + (pr[:, 0] - pan_x) * scale2).astype(np.float32)
+        sy = (H2 * 0.5 - (pr[:, 2] - z_center - pan_y) * scale2).astype(np.float32)
         depth = pr[:, 1]
 
         ndotl1 = np.maximum(0.0, nr[:, 0] * light1[0] + nr[:, 1] * light1[1] + nr[:, 2] * light1[2])
@@ -429,6 +443,27 @@ def render_las_sheet(
     return rasterize_parts(tpp_parts, 360, 480, 24, 147.0, 5.8, z_min_clip=105.0)
 
 
+#: Chest close-up views for the busty sheets: (caption, yaw, pitch, scale, centre).
+#: The wider the yaw, the further the camera has to sit back — at 90° the silhouette is
+#: edge-on, so the 13 px/cm that frames the 0° view crops the cup to a sliver.
+CHEST_VIEWS = (
+    ("0°", 0.0, 0.0, 13.0, (0.0, 20.0, 141.0)),
+    ("30°", 30.0, 0.0, 12.4, (0.0, 16.0, 141.0)),
+    ("45°", 45.0, 0.0, 11.3, (0.0, 12.0, 141.0)),
+    ("60°", 60.0, 0.0, 10.2, (0.0, 8.0, 141.0)),
+    ("90°", 90.0, 0.0, 8.8, (0.0, 5.0, 141.0)),
+)
+
+#: Overhead / underside views: the angles no front sheet can show, and the ones that expose
+#: a sculpt's worst habits (a hem that bows, a cup that does not hang, a sternum pinch).
+CHEST_POLAR_VIEWS = (
+    ("above 58°", 0.0, -58.0),
+    ("above 58°, 30° yaw", 30.0, -58.0),
+    ("below 58°", 0.0, 58.0),
+    ("below 58°, 30° yaw", 30.0, 58.0),
+)
+
+
 def render_busty_compare_sheet(
     tpp_base: list,
     tpp_variant: list,
@@ -437,27 +472,66 @@ def render_busty_compare_sheet(
 ) -> Image.Image:
     """Before/after chest close-up sheet for the `Miranda_Busty_LAS` morph."""
     W, H = 380, 470
-    angles = (0.0, 30.0, 60.0, 90.0)
-    canvas = Image.new("RGB", (W * len(angles), (H + 22) * 2 + 58), (18, 22, 30))
+    canvas = Image.new("RGB", (W * len(CHEST_VIEWS), (H + 22) * 2 + 58), (18, 22, 30))
     for row, (label, parts) in enumerate((("Miranda_LAS (stock)", tpp_base),
                                           ("Miranda_Busty_LAS", tpp_variant))):
-        for col, deg in enumerate(angles):
-            img = rasterize_parts(parts, W, H, deg, 141.0, 13.0)
+        for col, (caption, yaw, pitch, scale, center) in enumerate(CHEST_VIEWS):
+            img = rasterize_parts(parts, W, H, yaw, 141.0, scale,
+                                  pitch_deg=pitch, center=center)
             d = ImageDraw.Draw(img)
             d.rectangle([8, H - 30, 250, H - 8], fill=(14, 17, 24))
-            d.text((14, H - 26), f"{label} · {int(deg)}°", fill=(230, 235, 245),
+            d.text((14, H - 26), f"{label} · {caption}", fill=(230, 235, 245),
                    font=FONT_REG_12)
             canvas.paste(img, (col * W, 58 + row * (H + 22)))
     add_header_and_badges(
         canvas,
         "dist/Miranda_Busty_LAS.zip — Chest Morph (Before / After)",
-        "Same outfit, rig and textures; the bust pass grows the chest mass | chest close-up 0°, 30°, 60°, 90°",
+        "Same outfit, rig and textures; the bust pass grows the chest mass"
+        " | chest close-up 0°, 30°, 45°, 60°, 90° (framing widens with the yaw)",
         icon_im,
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(out_path)
     print(f"Saved {out_path}")
     return rasterize_parts(tpp_variant, 360, 480, 24, 147.0, 5.8, z_min_clip=105.0)
+
+
+def render_busty_polar_sheet(
+    tpp_base: list,
+    tpp_variant: list,
+    icon_im: Image.Image,
+    out_path: Path,
+) -> Image.Image:
+    """Overhead and underside chest sheet: the two angles the front views cannot reach.
+
+    Above shows whether the placket hem and the cup rims stay clean from the neck down;
+    below shows whether the cups still hang off the ribcage instead of merging into one
+    cushion, which is where a `+y`-only chest push always gives itself away.
+    """
+    W, H = 620, 560
+    canvas = Image.new("RGB", (W * len(CHEST_POLAR_VIEWS), (H + 22) * 2 + 58),
+                       (18, 22, 30))
+    for row, (label, parts) in enumerate((("Miranda_LAS (stock)", tpp_base),
+                                          ("Miranda_Busty_LAS", tpp_variant))):
+        for col, (caption, yaw, pitch) in enumerate(CHEST_POLAR_VIEWS):
+            center = (0.0, 18.0, 146.5) if pitch < 0.0 else (0.0, 20.0, 134.0)
+            img = rasterize_parts(parts, W, H, yaw, 0.0, 12.6,
+                                  pitch_deg=pitch, center=center)
+            d = ImageDraw.Draw(img)
+            d.rectangle([8, H - 32, 250, H - 8], fill=(14, 17, 24))
+            d.text((14, H - 28), f"{label} · {caption}", fill=(230, 235, 245),
+                   font=FONT_REG_12)
+            canvas.paste(img, (col * W, 58 + row * (H + 22)))
+    add_header_and_badges(
+        canvas,
+        "dist/Miranda_Busty_LAS.zip — Chest Morph, Overhead & Underside",
+        "The same chest read from 58° above and from 58° below — stock above, variant below",
+        icon_im,
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out_path)
+    print(f"Saved {out_path}")
+    return canvas
 
 
 def render_heister_head_sheet(
@@ -603,6 +677,8 @@ def main() -> None:
     )
     render_busty_compare_sheet(tpp_mir, tpp_bus, icon_bus,
                                out_dir / "13_Miranda_Busty_vs_LAS_chest.png")
+    render_busty_polar_sheet(tpp_mir, tpp_bus, icon_bus,
+                             out_dir / "14_Miranda_Busty_vs_LAS_top_below.png")
 
     heister_specs = [
         (

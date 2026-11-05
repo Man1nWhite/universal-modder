@@ -67,6 +67,8 @@ RADIUS_X_OUT = 7.00
 #: below ``HEAD_Z = 152.0`` and gentle across the ``z ≈ 146.2`` collar lip).
 RADIUS_Z_UP = 8.85
 RADIUS_Z_DOWN = 6.16
+#: Lateral band-limit of the forward push across the placket hem (cm).
+HEM_BLEND_X = 0.9
 SOFT_SCALE = 1.12
 SOFT_WEIGHT = 0.24
 SOFT_POWER = 1.85
@@ -282,7 +284,30 @@ class ChestMorph:
         return y_side * x_side * z_bell
 
     def displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
-        """Bind-pose displacement ``(dx, dy, dz)`` for a vertex at ``(x, y, z)`` (cm)."""
+        """Bind-pose displacement ``(dx, dy, dz)`` for a vertex at ``(x, y, z)`` (cm).
+
+        Forward motion is *laterally band-limited* across the placket hem (three taps
+        ``HEM_BLEND_X`` apart, faded in and out by a smooth z envelope). The hem is the
+        straight garment edge at ``z = 146.2`` that closes the keyhole: the raw field pushes
+        it 0.75 cm at the sternum and 2.0 cm at the cups, so the straight edge bowed into a
+        notch, which the overhead views showed plainly. Averaging laterally cannot introduce
+        a lateral step (the blend is smooth in x by construction) and the z envelope keeps it
+        local, so the cleavage below the hem is untouched.
+        """
+        dx, dy, dz = self._raw_displacement(x, y, z)
+        w = (smootherstep((z - 145.0) / 1.2) * smootherstep((147.9 - z) / 1.3))
+        if w <= 0.0:
+            return (dx, dy, dz)
+        dy_l = self._raw_displacement(x - HEM_BLEND_X, y, z)[1]
+        dy_r = self._raw_displacement(x + HEM_BLEND_X, y, z)[1]
+        # the taps can reach *inside* the lateral gate from a vertex *outside* it, so the
+        # correction — never the base value — carries the gate; otherwise the blend would
+        # leak a fraction of the neighbour's push into the sleeve (|x| >= X_ZERO).
+        correction = 0.25 * dy_l + 0.5 * dy + 0.25 * dy_r - dy
+        return (dx, dy + w * correction * self.lateral_gate(x), dz)
+
+    def _raw_displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
+        """The analytic field without the placket-hem lateral blend (see `displacement`)."""
         if z >= HEAD_Z:
             return (0.0, 0.0, 0.0)
         band = self.band(z)

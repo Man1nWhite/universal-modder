@@ -98,7 +98,17 @@ Both packs: 20 entries, every entry timestamp `2020-01-01 00:00:00`, sidecars co
    reasoning are in `docs/pd2-las/CHEST-VARIANT.md`. Rebuilds are deterministic (the same bytes come
    back every run), and `tests/test_bust_variant.py` pins `faces_inverted == 0` on the geometry path
    plus a unit test per half of the repair, so the fold cannot come back unnoticed. New preview sheets:
-   `docs/previews/12_Miranda_Busty_LAS.png` and `13_Miranda_Busty_vs_LAS_chest.png`.
+   `docs/previews/12_Miranda_Busty_LAS.png`, `13_Miranda_Busty_vs_LAS_chest.png` (0–90°, framing pulled
+   back as the yaw widens) and `14_Miranda_Busty_vs_LAS_top_below.png` (58° above / 58° below).
+
+   The overhead and underside views then showed the keyhole hem at `z = 146.2` coming out **bowed**: a
+   straight garment edge in the stock mesh tilted 1.25 cm across 5 cm, because the field pushes it
+   0.75 cm at the sternum and 2.0 cm at the cups. Fixed by band-limiting the forward push laterally
+   across the hem (three taps 0.9 cm apart inside a smooth z envelope, correction gated by
+   `lateral_gate` so it cannot leak into the sleeve — `test_built_variant_model…` caught that when the
+   gate was missing). Hem-band dihedral mean/p90 9.6°/19.9° → 9.2°/18.4°, `depth_gain_cm` and
+   `front_y_max_cm` unchanged. Final artifact: **5,815,250 B,
+   `abfeafbb46548c5689fb97f821146434484de0096fa0ce82b74ca1876d819efc`**.
 
 ## Found, deliberately left
 
