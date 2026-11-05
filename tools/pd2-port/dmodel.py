@@ -5,7 +5,7 @@ Reads legacy and Diesel 3 ("DODB") containers. Used by the Clover->Lawson port.
 Writer helpers live in build_model.py. Formats per Research Notes/format_documentation.md
 in that repo and the C# sources (ModelReader.cs, Sections/*.cs, Hash64.cs).
 """
-import struct, sys, json, math
+import struct, sys
 from pathlib import Path
 
 # ---------- idstring hash (port of Hash64.cs, Jenkins lookup3 variant) ----------
@@ -211,7 +211,6 @@ class DieselGeometry:
         self.headers = [(br.u32(), br.u32()) for _ in range(hc)]  # (item_size, item_type)
         fmt, sizes = 'payday', self.PAYDAY_SIZES
         if any(h[0] == 9 for h in self.headers):
-            pay = sum(self.PAYDAY_SIZES[h[0]] for h in self.headers) * self.vert_count + 8
             raid = sum(self.RAID_SIZES[h[0]] for h in self.headers) * self.vert_count + 8
             if (sec.end - br.p) == raid:
                 fmt, sizes = 'raid', self.RAID_SIZES
@@ -344,7 +343,6 @@ def mmul(a, b):
 
 def minv(m):
     """4x4 inverse (row-major)."""
-    import copy
     n = [row[:] + [1.0 if i == j else 0.0 for j in range(4)] for i, row in enumerate(m)]
     for col in range(4):
         piv = max(range(col, 4), key=lambda r: abs(n[r][col]))

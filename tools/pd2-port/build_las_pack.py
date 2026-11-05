@@ -600,7 +600,6 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
             if path in out:
                 continue
             if png == "__flat__":
-                from PIL import Image
                 img = Image.new("RGBA", (256, 256), (128, 128, 255, 255))
             else:
                 img = Image.open(io.BytesIO(source[png])).convert("RGBA")
@@ -892,7 +891,6 @@ def validate(files: dict[str, bytes], log=print) -> None:
         finally:
             os.unlink(tmp)
         from dmodel import hash_str
-        model_mats = {s.obj.name for s in m.sections if s.tag == "material"}
         # names decode via hashes; compare hash sets instead
         cfg_hashes = {hash_str(n) for n in cfg_mats}
         model_hashes = {int.from_bytes(m.data[s.start:s.start + 8], "little")

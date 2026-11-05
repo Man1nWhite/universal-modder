@@ -5,7 +5,6 @@ Synthetic fixtures only, except the integration test which uses the tracked
 source zip (skipped when absent).
 """
 import importlib.util
-import io
 import json
 import struct
 import sys
@@ -151,7 +150,6 @@ def tiny_scene():
 
 def _tmp_rig():
     """Minimal TargetRig: Hips + BoneB at +X, root_point."""
-    import math
     ident = [[1.0 if r == c else 0.0 for c in range(4)] for r in range(4)]
 
     def trans(x, y, z):
@@ -807,7 +805,6 @@ def test_the_status_page_matches_the_shipped_pack():
     worse than none: the next agent trusts it.
     """
     import hashlib
-    import re
 
     status = (PD2 / "STATUS.md").read_text()
     pack = ROOT / "dist" / "lawson_las.zip"

@@ -8,7 +8,6 @@ stands knee-deep in the floor. Neither needs the outfit archives.
 from __future__ import annotations
 
 import importlib.util
-import json
 import sys
 from pathlib import Path
 
@@ -237,8 +236,6 @@ def test_boundary_loops_finds_the_open_ring_of_a_tube():
     import build_models as bm
 
     # a square tube: 4 side quads, open at both ends
-    verts = [(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0),
-             (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)]
     faces = [(0, 1, 5), (0, 5, 4), (1, 2, 6), (1, 6, 5),
              (2, 3, 7), (2, 7, 6), (3, 0, 4), (3, 4, 7)]
     loops = bm.boundary_loops(faces)

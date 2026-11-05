@@ -862,7 +862,7 @@ def main() -> None:
     if args.json:
         print(json.dumps(rep.checks, indent=1))
     else:
-        print(f"LAS pack compliance vs the ModWorkshop LAS/MOOG guide")
+        print("LAS pack compliance vs the ModWorkshop LAS/MOOG guide")
         print(f"pack: {args.pack}\n")
         for c in rep.checks:
             print(f"{c['status']:<4} {c['id']:<3} {c['rule']}")

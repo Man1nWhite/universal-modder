@@ -35,7 +35,6 @@ def stage(name: str, args: list[str], cwd: Path = ROOT) -> tuple[str, bool, str]
 
 def check_tracked_pack(pack: Path) -> tuple[str, bool, str]:
     """The tracked checksum must match the tracked zip (CI checks the same)."""
-    t0 = time.time()
     if not pack.exists():
         return "tracked pack", False, f"{pack} is missing - build it first"
     digest = hashlib.sha256(pack.read_bytes()).hexdigest()

@@ -21,7 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from dmodel import DieselModel, hash_str, mmul, minv  # noqa: E402
+from dmodel import DieselModel, hash_str  # noqa: E402
 
 # Names verified against the reference by hash64 brute force (2026-10-18).
 KNOWN_NAMES = [

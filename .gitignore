@@ -15,10 +15,13 @@ build/pd2-las/*
 !build/pd2-las/Miranda_Busty_LAS.zip.sha256
 # generated distributions (built packs are outputs, not sources)
 dist/*
-# ...except the published LAS and Joy head-replacement packs: they are tracked
-# so the repository always carries the exact bytes of the built deliverables.
+# ...except the packs that were actually published (LAS, the L4D2/ME2 heister head
+# replacements and Geralt over Rust): they are tracked so the repository always
+# carries the exact bytes of the built deliverables.
 !dist/lawson_las.zip
 !dist/lawson_las.zip.sha256
+!dist/Geralt_over_Rust.zip
+!dist/Geralt_over_Rust.zip.sha256
 !dist/Miranda_LAS.zip
 !dist/Miranda_LAS.zip.sha256
 !dist/Miranda_Busty_LAS.zip

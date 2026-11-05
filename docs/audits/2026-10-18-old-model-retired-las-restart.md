@@ -14,9 +14,9 @@
 4. Start anew from `PC _ Computer - Mass Effect 2 - Non-Playable Characters -
    Miranda Lawson (Romance).zip`.
 
-This supersedes the product direction in the two earlier audits
-([repository audit](2026-10-18-repository-audit.md),
-[current-checkout audit](2026-10-18-current-checkout-audit.md)). Their technical
+This supersedes the product direction in the two earlier audits from the same day
+(the repository audit and the current-checkout audit); neither of those files is
+tracked in this repository, so they are named rather than linked. Their technical
 findings about the toolkit remain accurate; their Lawson-pack recommendations are
 moot because those packs are being deleted. No game runtime was available; every
 conclusion below is offline evidence or user runtime report.

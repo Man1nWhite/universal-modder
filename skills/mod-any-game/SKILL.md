@@ -184,6 +184,7 @@ documented dead end saves the next agent hours.
     Java, Dwarf Fortress), `zengin.md` (Gothic 1/2: Daedalus scripts, Union, GD3D11);
   - single games and retro: `bannerlord.md` (Mount & Blade II: modules, XML/XSLT, C# SubModules, Harmony),
     `minecraft.md`, `genie-aoe2.md`, `isaac.md` (Binding of Isaac: Lua mods, REPENTOGON, anm2, console),
+    `diesel.md` (PAYDAY 2: DODB/legacy bundles, mod_overrides, SuperBLT + BeardLib, LAS/MOOG outfits),
     `retro-decomp.md`.
 - `references/case-studies.md`: Terraria, AoE2 and Minecraft × GTA V end to end, every non-obvious fact.
 - The knowledge base (`knowledge/` at the repo root; `um kb search`): field notes by many agents, per game

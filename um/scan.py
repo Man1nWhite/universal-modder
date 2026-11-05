@@ -353,6 +353,7 @@ LOADERS = [
     ("RE_Kenshi (Kenshi OGRE plugin)", ("re_kenshi.dll", "kenshilib.dll")),
     ("Kenshi Mod Manager", ("kenshimodtool.exe",)),
     ("DFHack", ("dfhooks*.dll", "libdfhooks*.so")),
+    ("BeardLib (PAYDAY 2)", ("mods/beardlib/*",)),
 ]
 
 # folders whose exes/jars belong to installers and runtimes, not the game (matched with leading "_" stripped,
@@ -489,6 +490,7 @@ ENGINES = {
     "defold": ("Defold", "misc-engines.md", "unpack game.arcd; Lua scripts"),
     "cocos": ("Cocos2d-x", "native.md", "Lua/JS scripts if bundled; else native hooks"),
     "haxe": ("Haxe/OpenFL/HaxeFlixel", "misc-engines.md", "assets/ overrides; hscript mod loaders where present (Polymod)"),
+    "diesel": ("Diesel 3 (PAYDAY 2)", "diesel.md", "mod_overrides/ loose unit/texture replacements need no loader; SuperBLT + BeardLib in mods/ adds Lua, PlayerStyle and custom units; LAS/MOOG outfits are assets/units/<unit>/skins/<skin> unit+object+material_config+texture sets. Names are hash64 (Jenkins lookup3) - bring the PAYDAY-2-Hashlist. .model/.unit: diesel-modding/payday2-model-tool; tools/pd2-las/ has a Python reader and the LAS builder"),
     "native": ("Unknown native engine", "native.md", "proxy-DLL loader + function hooks (MinHook/SafetyHook), memory reading; Ghidra/IDA + x64dbg + Cheat Engine"),
 }
 
@@ -659,6 +661,13 @@ def detect(ix: Index) -> tuple[list[tuple[str, int, list[str], dict]], dict]:
         plug = ix.find("plugins.cfg", "plugins_*.cfg")
         add("native", 55, ix.find("*ogremain*.dll")[:2] + plug[:1],
             **({"plugin_cfg": plug[0]} if plug else {}))
+
+    # Diesel (PAYDAY 2). The exe name is the stable signal; a copy without it (a dedicated-server or a
+    # stripped install) still has the bundle tree, which no other engine in this table uses.
+    if ix.has("payday2_win32_release.exe", "*/payday2_win32_release.exe"):
+        add("diesel", 100, ix.find("payday2_win32_release.exe")[:1])
+    elif ix.has("assets/*/*.bundle"):
+        add("diesel", 80, ix.find("assets/*/*.bundle")[:2], note="no game exe, but the Diesel asset tree is there")
 
     # Source / Source 2
     if ix.has("*/gameinfo.gi") or ix.has("game/bin/win64/engine2.dll"):
