@@ -49,7 +49,5 @@ Start from the reusable half, which is source-agnostic and still in the tree:
   unit/object XMLs, material configs, icon and `BUILD_INFO.json`.
 - `build_models.py`'s `weld_open_seams`, `extend_sleeves_to_wrist` and
   `follow_layer_weights` — the three passes a layered clothing port needs.
-- `docs/pd2-las/SUIT-SOURCES.md` — why other source games are cheaper to port.
-
 Read [`HANDOFF.md`](HANDOFF.md) for the constraints that were learned the
-expensive way, then pick a source with a rigid skirt and wrist-length sleeves.
+expensive way before picking any clothing source.

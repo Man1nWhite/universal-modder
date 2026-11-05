@@ -8,7 +8,7 @@ portrait icon (`miranda_busty.texture`), so **both packs can be installed at
 once** and the stock outfit is never modified.
 
 Builder: `tools/pd2-las/build_busty_variant.py` · morph: `tools/pd2-las/bust_variant.py`
-· tests: `tests/test_bust_variant.py` · audit: `docs/pd2-las/AUDIT-2026-11-05.md`
+· tests: `tests/test_bust_variant.py`
 · report: `build/pd2-las/busty_variant_report.json`.
 
 ```sh
@@ -119,25 +119,20 @@ Default preset (`cup_gain = 0.382`, `round_gain = 0.046`, `lift = 0.18`,
 
 ## Previews
 
-Generated on every build into `build/pd2-las/previews/` and tracked under
-`docs/pd2-las/previews/`:
+Generated on **every build** into `build/pd2-las/previews/` (gitignored). The
+copies that used to be tracked under `docs/pd2-las/previews/` were deleted to
+keep the tree small; `tests/test_bust_variant.py` still pins that the builder
+emits all five sheets by name:
 
-* [`previews/busty_compare_top_bottom.png`](previews/busty_compare_top_bottom.png) —
-  4-angle whole-character top & bottom comparison (`Top 68° · 0° above front`,
-  `Top 48° · 26° 3/4 above`, `Bottom 48° · 26° 3/4 below`, `Bottom 68° · 0° below front`,
-  rendered intact with `g_head` and full torso) showing clean horizontal `(x, y)`
-  arch curvature, spine-root transition, and neat honeycomb hexagons.
-* [`previews/busty_sculpt_top_bottom_clay.png`](previews/busty_sculpt_top_bottom_clay.png) —
-  untextured clay diagnostic from the same 4 whole-character top & bottom angles.
-* [`previews/busty_sculpt_clay.png`](previews/busty_sculpt_clay.png) — untextured
-  matte-clay diagnostic (`0°`, `30°`, `60°`, `90°`) rendered with actual `.model`
-  vertex normals so surface curvature, seams, and piping can be inspected
-  without hex-texture masking.
-* [`previews/busty_compare_chest.png`](previews/busty_compare_chest.png) —
-  4-angle (`0°`, `30°`, `60°`, `90°`) close-up chest comparison (`Miranda_LAS`
-  vs `Miranda_Busty_LAS`).
-* [`previews/busty_compare_full.png`](previews/busty_compare_full.png) — full-body
-  comparison (`0°`, `34°`, `90°`) including `g_head` (face, hair, eyes).
+* `busty_compare_top_bottom.png` — 4-angle whole-character top & bottom
+  comparison (`Top 68° · 0° above front`, `Top 48° · 26° 3/4 above`,
+  `Bottom 48° · 26° 3/4 below`, `Bottom 68° · 0° below front`), showing arch
+  curvature, the spine-root transition and the hexagon layout intact.
+* `busty_sculpt_top_bottom_clay.png` — untextured clay diagnostic, same angles.
+* `busty_sculpt_clay.png` — matte-clay diagnostic (`0°`, `30°`, `60°`, `90°`)
+  from actual `.model` vertex normals.
+* `busty_compare_chest.png` — close-up chest comparison (`0°`, `30°`, `60°`, `90°`).
+* `busty_compare_full.png` — full-body comparison (`0°`, `34°`, `90°`) incl. `g_head`.
 
 ## Verification
 

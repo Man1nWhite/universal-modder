@@ -200,7 +200,7 @@ guessed at from its description:
 ```sh
 # after subscribing, the archive is in
 #   steamapps/workshop/content/4000/<item id>/*.gma
-python tools/pd2-las/inspect_gma.py path/to/870161699.gma --json /tmp/report.json
+python tools/pd2-las/inspect_gma.py path/to/<item id>.gma --json /tmp/report.json
 ```
 
 The report gives the file tree grouped by extension, then per model: vertex and

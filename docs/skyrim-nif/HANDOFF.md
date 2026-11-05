@@ -36,9 +36,6 @@ the outfit that produced them — they apply to *any* layered clothing source:
 - **Skin needs uniform albedo, normal and gloss.** Blotches survived two of the
   three fixes; the third was the diffuse itself.
 
-Read [`SUIT-SOURCES.md`](../pd2-las/SUIT-SOURCES.md) before choosing a source —
-it ranks the games whose clothing ports cheaply by exactly these criteria.
-
 Do not restore the old package or resume the port unless explicitly asked.
 Earlier Git commits still contain the removed files; this cleanup removes them
 from the current branch tip, not from history.
