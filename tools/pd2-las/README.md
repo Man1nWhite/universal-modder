@@ -190,6 +190,7 @@ Modules (all tested against the real source zip):
 | `build_las.py` | CLI: zip → VPK → models/textures → scaffold |
 | `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; CRC-checked, traversal-safe) |
 | `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers |
+| `smd.py` | **SMD read/write** (`parse_smd`, `write_smd`, `ModelData` ↔ SMD with exact quaternion↔Tait-Bryan conversion) + stub `.qc`; CLI exports `.gma`/`.vpk`/`.zip` → per-model `.smd` for Blender |
 | `inspect_textures.py` | follow every material a model names to its `.vmt` → `.vtf` inside a `.gma`/`.vpk`/`.zip`, report present/missing with real size + mip count, and prove each texture actually **decodes** (optional second opinion from `sourcepp`) |
 
 ### Reading a subscribed GMod / SFM addon
@@ -228,15 +229,27 @@ readers do not:
 | [`srctools`](https://github.com/TeamSpen210/srctools) | VPK/VTF/BSP/VMF/DMX read+write, MDL partial, mount chains, `packlist` dependency resolution | **GPL-3.0** | reference only — **do not vendor** into this MIT repo. Its `packlist` idea (walk a map's or model's dependencies) is the one thing worth re-implementing |
 | [MareTF](https://github.com/craftablescience/MareTF) / `vtex2` / `vtf2png` | VTF ↔ image converters, every VTF variant | MIT / libpng | redundant: `vtf.py` converts, and is bytes-checked against `vtfpp` |
 
+### Round two: the rest of the field (same day)
+
+| tool | what it is | verdict |
+| --- | --- | --- |
+| **SMD, written here** | `smd.py` — SMD is plain text, so the hand-off to Blender needs no tool at all | **closed the gap.** `python tools/pd2-las/smd.py addon.gma --out dir --qc` writes one `.smd` per model plus a stub QC. Verified against the tracked pack: 104 bones, 16,433 triangles, 6 materials, and every bind-pose rotation survives the text round trip to 1e-7 |
+| [`bpy`](https://pypi.org/project/bpy/) | Blender 4.x/5.x as a `pip` wheel (`import bpy`, headless) | **tried, does not run here.** Installs, then dies on `libXrender.so.1` / `libXi` / `libGL`; `apt` can only reach a blocked mirror, so the libs cannot be added. It *would* give a real headless Blender on a normal Linux box |
+| [gmpublisher](https://github.com/WilliamVenner/gmpublisher) | Rust+Tauri GUI **and CLI**: extract/publish GMA, bulk download, addon size treemap, no `gmad.exe` needed | the publishing half (nothing here publishes to GMod); its Linux build is Linux-only-Windows-CLI and history is mixed. `gma.py` covers reading |
+| [Noesis](https://www.richwhitehouse.com/noesis/) | Windows GUI/CLI converter with **Source `.mdl` + VPK import** and a Python plugin API | Windows-only, so it belongs to the same bucket as Crowbar: a human-side tool, not something this repo can call |
+| Linux `studiomdl` | Valve's compiler is Windows-only; Crowbar/`studiomdl` under Wine is the usual workaround | not worth it: the compile step is only needed to make a *Source* model, and nothing here builds one |
+
 Two conclusions. **Acquiring** an addon needs nothing new: `steamcmd +login
 anonymous +workshop_download_item 4000 <id> +quit` lands the `.gma` in
 `steamapps/workshop/content/4000/<id>/` for a free app like GMod, and that is the
-only reliable route for an item whose workshop page has been delisted. **The one
-real gap** in this repo's Source support is *writing* SMD/QC: we read
-MDL/VVD/VTX/VTF/VPK/GMA in Python and never write them, so handing a rigged model
-to Blender still needs Crowbar or SourceIO on a machine with Windows or Blender.
-Nothing in the survey changes the retarget path — Source mesh → `ModelData` →
-`build_models.transfer_group` → Diesel.
+only reliable route for an item whose workshop page has been delisted. **The
+writing gap is closed** by `smd.py` (pure Python, no Blender needed): rigged
+geometry leaves this repo as SMD, which Crowbar, Blender Source Tools and SourceIO
+all import, and which the Windows side can turn into an FBX/GLB for the existing
+GLB retarget if a `.model` route is preferred later. What is still missing is only
+*compiling* back to Source (studiosmdl, Windows) — irrelevant here, because the
+target engine is Diesel, not Source. The retarget path is unchanged: Source mesh →
+`ModelData` → `transfer_group` → Diesel.
 
 ## Roadmap
 
