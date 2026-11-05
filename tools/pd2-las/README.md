@@ -188,6 +188,27 @@ Modules (all tested against the real source zip):
 | `dds_encode.py` | RGBA → DXT5 (naive endpoints, c0 > c1 always) and BGRA8888 DDS writers for icons/previews |
 | `las_pack.py` | the 2B-contract scaffold: hook, manifest, locales, unit/object/material_config XMLs, `BUILD_INFO.json` |
 | `build_las.py` | CLI: zip → VPK → models/textures → scaffold |
+| `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; CRC-checked, traversal-safe) |
+| `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers |
+
+### Reading a subscribed GMod / SFM addon
+
+A workshop addon is a `.gma`, and a `.gma` is a thin wrapper around Source
+assets this repo already reads — so an addon can be *measured* rather than
+guessed at from its description:
+
+```sh
+# after subscribing, the archive is in
+#   steamapps/workshop/content/4000/<item id>/*.gma
+python tools/pd2-las/inspect_gma.py path/to/870161699.gma --json /tmp/report.json
+```
+
+The report gives the file tree grouped by extension, then per model: vertex and
+triangle counts, material names, and the skeleton split into *already mapped* /
+*Source-only* / *unknown* against `skeleton_map.json`. That is what decides
+whether an outside port is a cheap reference (a `ValveBiped` rig half-covered by
+the existing map) or new work. Nothing is extracted or rendered: the addon is
+someone else's licensed content, so private inspection only.
 
 ## Roadmap
 

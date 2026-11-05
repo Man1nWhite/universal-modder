@@ -157,6 +157,19 @@ def test_the_christie_availability_answer_is_recorded(board_mod):
     assert "870161699" in text           # the GMod workshop id
     # the licence conclusion must not soften into "usable"
     assert "never be shipped" in text or "private build" in text
+    # ...and the addon being subscribable must not be written up as "unavailable"
+    assert "subscribable" in text
+    assert "carries more than one outfit" in text or "more than one outfit" in text
+    # the answer has to name the measurement tool, not just the conclusion
+    assert "inspect_gma.py" in text
+
+
+def test_the_gma_reader_the_notes_point_at_exists():
+    """The doc tells the reader to run a tool; the tool has to be there."""
+    tool = REPO / "tools" / "pd2-las" / "inspect_gma.py"
+    assert tool.exists()
+    assert (REPO / "tools" / "pd2-las" / "gma.py").exists()
+    assert "gma" in tool.read_text(encoding="utf-8").lower()
 
 
 def test_unverified_garments_say_so(board_mod):
