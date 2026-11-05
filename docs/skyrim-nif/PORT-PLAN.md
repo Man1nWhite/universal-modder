@@ -1,11 +1,11 @@
 # Skyrim 3BA outfit (`1.zip` … `5.zip`) — source audit and port plan
 
-Status: **feature-complete offline** — the outfit (3BA body + both jacket layers
-+ skirt + heels + decimated necklace) exists as a PAYDAY 2 Diesel model with
-every joint on the LAS skeleton, its own textures, `material_config`s, a
-first-person arms unit and a pack folder. It stands on the floor, its neck is
-closed, and the template's head (someone else's character) is stripped out.
-What is left is the in-game check on Windows.
+> **ARCHIVED / CANCELLED (2026-11-04).** The user judged the in-game result
+> unacceptable after repeated attempts. The original `1.zip`–`5.zip` source
+> archives, generated build output, and `dist/BusinessWoman_LAS.zip` have been
+> removed from the current branch. The rest of this file is a historical source
+> audit and port plan only; it does not describe a current or installable build.
+> See [`STATUS.md`](STATUS.md).
 
 Target decided (2026-11-02): a **PAYDAY 2 LAS outfit, keeping the 3BA body** as
 the outfit's body; **black** palette, **both jacket layers**, **no glasses** (the
@@ -27,8 +27,8 @@ bash tools/skyrim-nif/build_nifly.sh     # optional: cross-check binary
 ```
 
 Machine-readable inventory: `build/skyrim-nif/source_inventory.json` (gitignored,
-rebuild it). Tracked previews: `docs/previews/business_woman_outfit.png`,
-`docs/previews/business_woman_textures.png`.
+rebuild it). Tracked previews: `the (now removed) build preview`,
+`the (now removed) build preview`.
 
 ---
 
@@ -129,10 +129,10 @@ pack  -> dist/BusinessWoman_LAS
 zip   -> dist/BusinessWoman_LAS.zip
 ```
 
-`docs/previews/business_woman_pd2.png` is the four-view flat sheet of that model;
-`docs/previews/business_woman_textured.png` is the same mesh with the packed
+`the (now removed) build preview` is the four-view flat sheet of that model;
+`the (now removed) build preview` is the same mesh with the packed
 textures sampled through its own UVs, which is what proves the mapping, and
-`docs/previews/business_woman_materials.png` shows every shipped map next to the
+`the (now removed) build preview` shows every shipped map next to the
 channels PD2 actually reads.
 
 Why the bone list is 20 and not 53: BodySlide exports only the bones the merged
@@ -203,8 +203,8 @@ Three independent proofs, all reproducible:
 2. **Invariants** — weights sum to 1.0 per vertex, triangle indices in range,
    the 3BA body comes out 163 cm tall, the skirt sits at 86.6–117.7 cm, UVs land
    inside 0…1 on the 2048² atlases.
-3. **By eye** — `docs/previews/business_woman_outfit.png` (four views of the
-   source meshes) and `docs/previews/business_woman_textures.png` (the black
+3. **By eye** — `the (now removed) build preview` (four views of the
+   source meshes) and `the (now removed) build preview` (the black
    default palette, including the 0-byte `Glasses_norm` placeholder).
 
 ## 4. Feasibility, measured rather than assumed
@@ -271,12 +271,12 @@ full-body replacement: body + buttoned jacket + skirt + heels.
 | 9 | **Head and hair** — Skyrim ships neither; the LAS unit needs a `g_head` (reuse the 2B/PD2 head and its materials, or port a Skyrim head) | ✅ **ship without one, and let LAS keep the heister's.** The template's `g_head`/`g_head_lod1` are *deleted* from the pack (they are the 2B character; shipping her face here would be both wrong and unlicensed) and the 3BA collar is closed with a 26-triangle fan weighted like the neck it caps. The heister's own head is what LAS supplies when the outfit sets `hide_mask`. **This only works if the hook omits `replace_all`**: the mod's `hooks/outfits/loader.lua` expands `replace_all` to `third_body_replacement = {head=true, armor=true, body=true, hands=true, arms=true, vest=true}`, so claiming it replaces the head with one we do not ship. `replace_body` covers body/hands/arms and leaves the head alone — that is what `hook/businesswoman_las.lua` sets. |
 | 10 | **First-person arms** — derive from the jacket sleeves + body arms, or ship TPP first | ✅ `extract_bones` slices the already-posed TPP geometry down to the arm chain, and both templates share an identical PD2 bind pose (verified: 0.00 cm delta on every arm joint), so no second retarget is needed. The cut is the predicate `is_fps_arm_bone`. **Graft route (default):** the cut includes the finger chains and the grafted PD2 hands and the config declares `mtr_hands`; a fixed list ending at `HandThumb1` silently dropped 1 572 finger-dominant vertices, which is why the cut is by bone *rule*. **Adapter route (`--hands adapter`, option):** the cut ships sleeves + skin only — **no hands**; the hands were meant to come from the camera-unit gloves (row 13), but that produced nothing in-game, so graft is the default. `fps_businesswoman.material_config` uses `DEPTH_SCALING`. `tests/test_fps_hands.py` pins the active route. |
 | 11 | **Pack scaffold** — `bw_pack.py` with new IDs, locales, icon, `BUILD_INFO.json` | ✅ `dist/BusinessWoman_LAS/` (11 MB with textures); FPS unit deliberately absent until the arms exist |
-| 12 | **In-game check**, then (only with Melodic's permission) a tracked `dist/*.zip` + sha256 + previews | ⬜ **the only thing left** — see `docs/skyrim-nif/in-game-checklist.md` |
+| 12 | **In-game check** | ❌ **Not accepted; project cancelled by user.** The built pack was removed. |
 | 13 | **Hands** — graft PD2 hands into the mesh (default) vs. the changeable-glove adapter (decided 2026-11-03, revised after in-game review) | ✅ **graft is the default.** The adapter route (no hand geometry; rely on the heister's gloves + `hnd_forearms`) passed the LuaJIT behavioural test against the real LAS loader but produced **neither gloves nor the adapter in-game** (menu + preview) — the spawn path differs from the modelled one and can't be verified without the game. So the default is now `--hands graft`: PD2 hands grafted onto the wrists + cuff welded (2.37 / 2.14 cm gaps closed), hands **in the mesh** so they always render; `mtr_hands` + hand texture ship; gloves are fixed (not changeable). The adapter route (`--hands adapter`) is kept as an option with its compat hook (`default_glove_id = "heist_default"`, `glove_adapter = {}`, exclude-list removal) and is pinned by `tests/test_glove_adapter.py` + `tests/test_glove_behavior_lua.py` (verbatim LAS loader in LuaJIT 2.1), but is **unverified in-game**. |
 | 14 | **Neck + bust shaping** — two retarget side effects on the ported body (2026-11-03) | ✅ both measured, then fixed as continuous vertex edits (body + shadow). **Neck:** the capped 3BA opening sat at Head-bone height but ~4–5 cm *forward* of PD2's Head bone, jutting past the chin; `trim_neck()` folds the stub above the collar into the collar so the heister's own neck shows (no head shipped). **Bust:** the retarget scales the spine *axially* but the bust only *radially*, flattening it ~24% vs the source (bust/torso 0.485 vs 0.640); `restore_bust()` scales the front chest back to the source proportion (now 0.641) with a height **and lateral** falloff — the lateral one keeps the push off the underarm, which a full-width push had pulled open into a gap. Order: `restore_bust` → `tuck_underarm_skin` → `lower_collar` → `trim_neck` → `cap_holes`. 7 unit tests in `test_hands_graft.py`. **Underarm sliver:** a thin pre-existing sliver is skin poking through the blazer's *overlap* armhole (jacket-only render shows no hole); `tuck_underarm_skin()` tucks the near-jacket skin inward 0.7 cm (body + shadow) and removes the poke-through bulk, leaving only a thin overlap-gap residue. Welding the seam, a stronger tuck, and tucking along the jacket normal all made it worse and were reverted (see MODLOG dead ends). |
 | 15 | **Back-collar medallion** — the source blazer's painted collar ornament lands on the back yoke (2026-11-03) | ✅ identified as the source Melodic outfit's *intentional* collar decoration — 7 medallions (3+1+3) over beige tabs in `Jacket_diffA` at atlas v≈0.66–0.77 — **not** a port bug: the source NIF has the same 394 collar/yoke verts UV-ing into that band (1:1). The source's white V-lapel hides it from the front; after the retarget nothing covers it on the back. `skyrim_materials.remove_collar_decoration()` paints it out of the jacket diffuse (luminance gate >24, filled with the collar's sampled base colour) and resets the gated normal texels to tangent-flat, removing the faint relief too. `mtr_jacket` only; geometry untouched. 2 tests in `test_skyrim_materials.py`; back renders verified clean. |
 
-Deliverable shape: `BusinessWoman_LAS.zip` with a BeardLib manifest, locales,
+Historical (removed) deliverable shape: `BusinessWoman_LAS.zip` with a BeardLib manifest, locales,
 2 models, 2 material configs, 11 textures and 2 hooks — ~12 MB, comparable to
 `dist/Miranda_LAS.zip` (5.4 MB) but with a full-body outfit rather than a
 character replacement. On the adapter route the hand diffuse texture and
@@ -359,7 +359,7 @@ tests/test_skyrim_retarget.py         7 offline tests for the two modules above
 tests/test_skin_texture.py            10 offline tests for the baker (incl. real meshes)
 tests/test_skyrim_materials.py        25 offline tests for materials + pack assembly
 tests/test_skyrim_fit.py              24 offline tests for the heel, necklace, cap and fps slicers
-docs/previews/business_woman_*.png    tracked previews (source, PD2 model, textured, materials, skin)
+the (now removed) build preview    tracked previews (source, PD2 model, textured, materials, skin)
 build/skyrim-nif/                     generated report, inventory, crosscheck, .model (gitignored)
 tools/pd2-las/                        the rest of the LAS pipeline
 ```

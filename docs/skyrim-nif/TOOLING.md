@@ -1,5 +1,8 @@
 # Reading Skyrim SE `.nif` files: which library actually works
 
+> **HISTORICAL NOTE:** Measurements below used the original `4.zip`, now removed from the current branch as part of project cancellation. The reader/tools remain, but these measurements are not reproducible until the inputs are re-provided. See [`STATUS.md`](STATUS.md).
+
+
 Question: should the port use **nifly / PyNifly**, **PyFFI**, or **SkyMeshGLTF**
 instead of a hand-written reader? Measured on this machine (Linux, Python 3.11,
 g++ 12.2), against the real files in `4.zip`.

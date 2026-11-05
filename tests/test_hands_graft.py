@@ -92,6 +92,22 @@ def test_turn_body_is_rigid_and_plants_the_feet():
     assert g.verts[0][1] < before[0][1]
 
 
+def test_follow_layer_weights_can_match_only_lateral_shoulder_skin():
+    """Skin hidden under the shell follows its shoulder weights; chest does not."""
+    g = bm.Group(name="g")
+    g.verts = [(20.0, 0.0, 145.0), (20.0, 0.0, 145.0), (5.0, 0.0, 145.0)]
+    g.weights = [[(0, 1.0)], [(1, 1.0)], [(1, 1.0)]]
+    g.slices = [("jacket", 0, 0, 0, 1), ("skin", 1, 0, 0, 2)]
+
+    touched = bm.follow_layer_weights(g, dst_mats=("skin",), z_lo=136,
+                                      z_hi=160, max_dist=6,
+                                      x_min=12, x_max=38)
+
+    assert touched == 1
+    assert g.weights[1] == [(0, 1.0)]   # covered shoulder skin follows shell
+    assert g.weights[2] == [(1, 1.0)]   # exposed centre chest is unchanged
+
+
 def test_count_hand_verts_flags_only_hand_dominated_verts():
     g = bm.Group(name="g")
     g.palette = ["LeftForeArm", "LeftHand", "LeftHandIndex1"]
@@ -588,3 +604,117 @@ def test_tuck_shirt_cuffs_ignores_collar_and_blazer():
     assert touched == 0
     assert g.verts[0] == (5.0, 10.0, 125.0)      # collar: |x|<30
     assert g.verts[1] == (-42.0, 14.0, 125.0)    # blazer is not jacket2
+
+
+# ------------------------------------------------- seams and sleeve reach
+#
+# Two defects the in-game screenshots pinned down: the blazer's sleeve seam is a
+# pair of coincident vertex rows whose influence lists disagree (so the seam
+# tears open at the shoulder as soon as the arm moves), and every arm layer stops
+# short of the PD2 hand joint (so the heister's glove floats in front of the
+# sleeve). These pin the two passes that fix them.
+
+
+def _two_row_seam(wa, wb):
+    """Two coincident vertex rows, each row owning its own quad.
+
+    Vertex 0/1 are row A, 2/3 row B, at the same positions; the quads are
+    deliberately *not* stitched, exactly like a BodySlide UV seam.
+    """
+    g = bm.Group(name="g")
+    g.verts = [(0.0, 0.0, 0.0), (0.0, 20.0, 0.0),
+               (0.0, 0.0, 0.0), (0.0, 20.0, 0.0),
+               (4.0, 0.0, 0.0), (4.0, 20.0, 0.0),
+               (-4.0, 0.0, 0.0), (-4.0, 20.0, 0.0)]
+    g.normals = [(1.0, 0.0, 0.0)] * len(g.verts)
+    g.faces = [(0, 1, 5), (0, 5, 4), (2, 6, 7), (2, 7, 3)]
+    g.slices = [("jacket", 0, 0, 4, len(g.verts))]
+    g.weights = [wa, wa, wb, wb, wa, wa, wb, wb]
+    return g
+
+
+def test_weld_open_seams_averages_the_two_rows_of_a_gap_seam():
+    g = _two_row_seam([(0, 1.0)], [(1, 1.0)])       # 100 % arm vs 100 % torso
+
+    report = bm.weld_open_seams(g)
+
+    assert report["pairs"] >= 1
+    assert dict(g.weights[0]) == dict(g.weights[2]) == {0: 0.5, 1: 0.5}
+    assert sum(w for _, w in g.weights[0]) == pytest.approx(1.0)
+
+
+def test_weld_open_seams_keeps_three_influences_and_drops_the_rest():
+    g = _two_row_seam([(0, 1.0)], [(1, 0.6), (2, 0.4)])
+
+    bm.weld_open_seams(g)
+
+    merged = dict(g.weights[0])
+    assert len(g.weights[0]) <= 3
+    assert sum(w for _, w in g.weights[0]) == pytest.approx(1.0)
+    assert merged[0] == pytest.approx(0.5)
+
+
+def test_weld_open_seams_ignores_a_real_opening():
+    g = _two_row_seam([(0, 1.0)], [(1, 1.0)])
+    for i in (0, 1):
+        g.verts[i] = (0.0, g.verts[i][1], 3.0)      # 3 cm apart: a placket, not a seam
+
+    report = bm.weld_open_seams(g)
+
+    assert report["pairs"] == 0
+    assert dict(g.weights[0]) == {0: 1.0}
+
+
+def _arm_ring(wrist, d, t, radius, n=8):
+    """``n`` vertices on a circle of ``radius`` around the arm axis at ``t``."""
+    import math
+
+    # any pair of unit vectors perpendicular to d
+    a = (0.0, 0.0, 1.0) if abs(d[2]) < 0.9 else (1.0, 0.0, 0.0)
+    u = [a[1] * d[2] - a[2] * d[1], a[2] * d[0] - a[0] * d[2], a[0] * d[1] - a[1] * d[0]]
+    ln = sum(c * c for c in u) ** 0.5
+    u = [c / ln for c in u]
+    v = [d[1] * u[2] - d[2] * u[1], d[2] * u[0] - d[0] * u[2], d[0] * u[1] - d[1] * u[0]]
+    out = []
+    for i in range(n):
+        th = 2.0 * math.pi * i / n
+        c, s_ = math.cos(th), math.sin(th)
+        out.append(tuple(wrist[j] + t * d[j] + radius * (c * u[j] + s_ * v[j])
+                         for j in range(3)))
+    return out
+
+
+def test_extend_sleeves_to_wrist_reaches_past_the_hand_joint():
+    wrist, elbow = bm.ARM_JOINTS[-1]
+    raw = [e - w for w, e in zip(wrist, elbow)]
+    ln = sum(c * c for c in raw) ** 0.5
+    d = [c / ln for c in raw]                      # wrist -> elbow, unit
+    g = bm.Group(name="g")
+    g.verts = _arm_ring(wrist, d, 9.0, 3.5) + _arm_ring(wrist, d, 20.0, 3.5)
+    g.slices = [("jacket", 0, 0, 1, len(g.verts))]
+    before_elbow = list(g.verts[8:])
+
+    report = bm.extend_sleeves_to_wrist(g, mats={"jacket": -2.5}, t_knee=13.0)
+
+    assert report["moved"] == 8
+    # the mouth ring (t=9) lands 2.5 cm past the hand joint, along the axis
+    for p, q in zip(g.verts[:8], _arm_ring(wrist, d, -2.5, 3.5)):
+        for a, b in zip(p, q):
+            assert a == pytest.approx(b, abs=1e-6)
+    # the ring near the elbow is untouched (past the blend)
+    assert g.verts[8:] == before_elbow
+
+
+def test_extend_sleeves_leaves_a_sleeve_that_already_reaches_alone():
+    g = bm.Group(name="g")
+    wrist, elbow = bm.ARM_JOINTS[-1]
+    for ux, uy in ((1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0),
+                   (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
+        g.verts.append((wrist[0] + 3.0 * ux, wrist[1] + 3.0 * uy, wrist[2]))
+    g.slices = [("jacket", 0, 0, 1, len(g.verts))]
+    before = list(g.verts)
+
+    report = bm.extend_sleeves_to_wrist(g, mats={"jacket": -2.5})
+
+    assert report["moved"] == 0
+    assert g.verts == before

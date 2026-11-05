@@ -70,6 +70,55 @@ at `dist/Miranda_LAS.zip` and `build/pd2-las/Miranda_LAS.zip`);
 verify it in game with `docs/pd2-las/in-game-checklist.md` before any public
 release.
 
+## Chest variant (`build_busty_variant.py`)
+
+A second, *separate* LAS pack built from the same source with a larger chest:
+`Miranda_Busty_LAS.zip` registers `LegendaryArmours.miranda_busty` (its own
+unit paths, texture stems and `mod_overrides` folder), so it installs **beside**
+`Miranda_LAS.zip` and the stock outfit stays untouched.
+
+```sh
+.venv/bin/python tools/pd2-las/build_busty_variant.py \
+    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+```
+
+The build repeats `build_models.py`'s retarget and Diesel authoring verbatim
+and applies `bust_variant.ChestMorph` to the authored third-person groups
+between `transfer_group` and `assemble_model`. The first-person arms are built
+exactly as the base pack builds them — the morph never touches the viewmodel.
+
+**What the morph does.** Two radial domes (one per breast, apex z≈141.5) whose
+falloff `(1 - r2)**2` is zero-slope at the rim, gated forward (nothing behind
+the chest wall or on the flat upper chest) and laterally (nothing past |x|=12.2,
+so the arms cannot be caught). The forward push scales the *existing* protrusion
+measured from the chest wall, so the mass grows instead of the ribcage; a
+midline valley term keeps the two breasts separate, which matters because the
+source chest is a single convex shell with a ~0.6 cm sternum dip.
+
+Measured with the shipped preset (`cup_gain 0.50`, `round_gain 0.12`,
+`lift 0.7`, `spread 1.2`, `valley 0.85`): front reach 19.98 → 28.84 cm
+(**+8.85 cm** of depth at the apex), breast-to-sternum valley depth
+0.41 → 9.19 cm, 195 of 5,645 body vertices moved, and **zero** vertices moved on
+the back, arms, legs or head. `build/pd2-las/busty_variant_report.json` records
+the same numbers plus every parameter.
+
+**Safety rails.** The same position-driven pass runs on `g_body`,
+`g_body_lod1` and the body block of `s_body` — those blocks hold bit-identical
+positions, so the shadow caster and the LOD stay aligned with the visible mesh
+(a test asserts it). Normals are rebuilt area-weighted over position-welded
+vertices and blended in by morph strength, so the rim of the edit keeps the
+shading the base build shipped.
+
+```sh
+.venv/bin/python tools/pd2-las/build_busty_variant.py --cup-gain 0.75   # bigger
+.venv/bin/python tools/pd2-las/build_busty_variant.py --valley 0.95     # deeper cleavage
+```
+
+Previews land in `build/pd2-las/previews/busty_compare_{full,chest}.png`
+(base vs variant, same camera). Like the base pack this is offline-verified
+only: it still needs `docs/pd2-las/in-game-checklist.md`, and the ME2 asset
+rights gate applies to it exactly as it does to `Miranda_LAS.zip`.
+
 ## Geometry authoring (build_models.py)
 
 Meshes from the L4D source (`l4d2_miranda_lawson_1.zip`, `VpkArchive.from_zip`)

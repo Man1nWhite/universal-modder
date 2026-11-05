@@ -1,12 +1,10 @@
 # Business Woman LAS — in-game verification checklist
 
-Pack to install: `dist/BusinessWoman_LAS/` (or `dist/BusinessWoman_LAS.zip`) →
-drop the folder into `PAYDAY 2\assets\mod_overrides\`. Needs BeardLib + the
-LegendaryArmours framework, exactly like the 2B reference pack.
-
-**Private build.** `5.zip/Please Read.txt` (Melodic) says the mod is not to be
-published outside LoversLab without permission. It ships in `dist/` at the repo
-owner's direction; that is a decision, not a permission.
+> **ARCHIVED — DO NOT INSTALL.** The user cancelled this port on 2026-11-04
+> because the in-game appearance remained unacceptable. The source archives and
+> `dist/BusinessWoman_LAS.zip` have been removed from the current branch. This
+> checklist is retained only as historical acceptance context; see
+> [`STATUS.md`](STATUS.md).
 
 Nothing below can be verified offline; every item needs the running game.
 Report failures with the item number and a screenshot.
