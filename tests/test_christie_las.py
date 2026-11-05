@@ -229,16 +229,26 @@ def _g_body_bounds(which: str):
 
 
 def test_slim_pack_is_thinner_but_same_height():
-    """The slim variant scales x/y by ~0.9 about the body axis and leaves z.
+    """The slim variant scales x/y by ~0.9 about the body axis, thins the arm
+    chain by an extra 25% (x/y factor 0.75 on arm/hand verts), and leaves z.
     Compared against the no-hands pack, which shares the same wrist cut (the
     hands reach forward in +y and would otherwise dominate the y extent)."""
     bx, by, bz = _g_body_bounds("nohands")
     sx, sy, sz = _g_body_bounds("slim")
-    assert 0.85 < sx / bx < 0.95, f"slim x ratio {sx / bx:.3f}"
+    # arms dominate the x extent and are scaled 0.75 -> overall x ratio ~0.75
+    assert 0.70 < sx / bx < 0.80, f"slim x ratio {sx / bx:.3f}"
     assert 0.85 < sy / by < 0.95, f"slim y ratio {sy / by:.3f}"
     assert abs(sz - bz) < 0.01, "height must be unchanged"
     # slim also cuts the hands, so its vertex count drops vs the base pack
     assert _g_body_verts("slim") < _g_body_verts("base")
+
+
+def test_arm_fit_translation_causes_no_vertex_spikes():
+    """fix_arm_fits only translates the Arm/ForeArm bone fits, so blended
+    shoulder verts must not spike: z extent stays near the base pack's."""
+    for which in ("base", "nohands", "slim"):
+        _, _, bz = _g_body_bounds(which)
+        assert bz < 175.0, f"{which} g_body z extent {bz:.1f} cm looks spiked"
 
 
 def _g_body_verts(which: str) -> int:

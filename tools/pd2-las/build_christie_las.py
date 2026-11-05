@@ -443,31 +443,105 @@ def cut_hands(g: bm.Group, min_weight: float = 0.5) -> bm.Group:
 
 
 # ---------------------------------------------------------------------------
-# slim variant: 20% thinner in X/Y, height (Z) untouched
+# arm-chain fit fix: align Arm/ForeArm/Shoulder segments directly onto the
+# PD2 bind-pose pivots instead of build_models' Miranda-tuned menu pose
 # ---------------------------------------------------------------------------
-def slim_group(g: bm.Group, scale: float = SLIM_SCALE) -> bm.Group:
+def fix_arm_fits(model: sm.ModelData, skel_map: dict, template: bm.Template,
+                 fits: dict) -> dict:
+    """Nudge the Arm/ForeArm fits so the elbow/wrist land on the PD2 pivots.
+
+    `retarget_maps` builds the Arm/ForeArm bind operators through a
+    standing-menu pose tuned for the L4D2 Miranda mesh (+1.2 cm shoulder
+    width, elbow shifted 2.8 cm along the hinge axis). On the DOA5 rig that
+    leaves the elbows ~5 cm inboard of PD2's Arm joints (measured x ±15.7 vs
+    ±20.9), so the arms angle wrong in game.
+
+    The fix is a pure *translation* of the existing fits (rotation untouched):
+    delta = target pivot - current mapped source joint, added to the matrix
+    translation row. Re-fitting with a fresh rotation instead makes the
+    shoulder-top verts (blended Spine1+Shoulder+Arm) overshoot to z≈190 —
+    the harmonic blend of two very different rotations spikes. A translation
+    cannot spike, and the joint deviation drops to 0.
+    """
+    import numpy as np
+
+    src_worlds = bm.source_bone_worlds(model)
+
+    def src_index_for_target(tname: str) -> int | None:
+        for i, b in enumerate(model.bones):
+            if skel_map["map"].get(b.name) == tname:
+                return i
+        return None
+
+    def tgt_pos(tname: str) -> np.ndarray:
+        w = template.worlds[template.name_id[tname]]
+        return np.array(w[12:15], dtype=np.float64)
+
+    fixed = 0
+    for side in ("Left", "Right"):
+        i_arm, i_fore, i_hand = (src_index_for_target(t) for t in
+                                 (f"{side}Arm", f"{side}ForeArm", f"{side}Hand"))
+        if i_arm is None or i_fore is None:
+            continue
+        # each source bone joint maps onto its same-named PD2 pivot:
+        # Arm joint -> LeftArm pivot, ForeArm joint -> ForeArm pivot
+        ps_a = np.array(src_worlds[i_arm][12:15], dtype=np.float64)
+        pt_a = tgt_pos(f"{side}Arm")
+        t = fits[i_arm]
+        delta = pt_a - np.array(dm.mat_apply_point(t, tuple(ps_a)), dtype=np.float64)
+        fits[i_arm] = tuple(t[k] + (float(delta[k - 12]) if 12 <= k <= 14 else 0.0)
+                            for k in range(16))
+        fixed += 1
+        ps_f = np.array(src_worlds[i_fore][12:15], dtype=np.float64)
+        pt_f = tgt_pos(f"{side}ForeArm")
+        t = fits[i_fore]
+        delta = pt_f - np.array(dm.mat_apply_point(t, tuple(ps_f)), dtype=np.float64)
+        fits[i_fore] = tuple(t[k] + (float(delta[k - 12]) if 12 <= k <= 14 else 0.0)
+                             for k in range(16))
+        fixed += 1
+    print(f"arm chain re-fit: {fixed} fits translated onto the PD2 elbow/wrist pivots")
+    return fits
+
+
+# ---------------------------------------------------------------------------
+# slim variant: thinner in X/Y, height (Z) untouched; arms thinner still
+# ---------------------------------------------------------------------------
+ARM_BONE_MARK = ("Arm", "Hand")   # palette names containing these are arm chain
+
+
+def _is_arm_vert(g: bm.Group, i: int) -> bool:
+    return any(mark in g.palette[p] for p, _w in g.weights[i] for mark in ARM_BONE_MARK)
+
+
+def slim_group(g: bm.Group, scale: float = SLIM_SCALE,
+               arm_scale: float = 0.75) -> bm.Group:
     """Scale the group horizontally about its own vertical axis.
 
-    x/y shrink by `scale` around the mesh's XY centroid (so the outfit stays
-    centered on the skeleton axis), z is untouched — height preserved. Normals
-    are transformed by the inverse-transpose of diag(s, s, 1) and renormalized,
-    so shading follows the thinner silhouette instead of staying spherical.
+    Body verts shrink by `scale` in x/y around the mesh's XY centroid (the
+    outfit stays centered on the skeleton axis); arm-chain verts (Arm/ForeArm/
+    Hand/fingers) shrink by `arm_scale` instead — 25% thinner than the
+    original arms per the in-game review. z is untouched — height preserved.
+    Normals are transformed per-vertex by the inverse-transpose of
+    diag(s, s, 1) and renormalized.
     """
     import numpy as np
 
     v = np.array(g.verts, dtype=np.float64)
     c = v.mean(axis=0)
-    v[:, 0] = c[0] + (v[:, 0] - c[0]) * scale
-    v[:, 1] = c[1] + (v[:, 1] - c[1]) * scale
+    factors = np.array([arm_scale if _is_arm_vert(g, i) else scale
+                        for i in range(len(v))], dtype=np.float64)
+    v[:, 0] = c[0] + (v[:, 0] - c[0]) * factors
+    v[:, 1] = c[1] + (v[:, 1] - c[1]) * factors
     n = np.array(g.normals, dtype=np.float64)
-    n[:, 0] /= scale
-    n[:, 1] /= scale
+    n[:, 0] /= factors
+    n[:, 1] /= factors
     n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
     g.verts = [tuple(row) for row in v]
     g.normals = [tuple(row) for row in n]
-    print(f"[{g.name}] slim x{scale}: x {np.ptp(v[:, 0]):.1f} cm, "
-          f"y {np.ptp(v[:, 1]):.1f} cm, z {np.ptp(v[:, 2]):.1f} cm "
-          f"(z unchanged: {np.allclose(v[:, 2], np.array([p[2] for p in g.verts]))})")
+    n_arm = int((factors == arm_scale).sum())
+    print(f"[{g.name}] slim x{scale} (arms x{arm_scale}, {n_arm} arm verts): "
+          f"x {np.ptp(v[:, 0]):.1f} cm, y {np.ptp(v[:, 1]):.1f} cm, "
+          f"z {np.ptp(v[:, 2]):.1f} cm (z unchanged)")
     return g
 
 
@@ -801,6 +875,7 @@ def main(argv=None) -> int:
     skel_map = json.loads(SKEL_MAP.read_text())
     template = bm.load_template(args.templates / "2b.model")
     fits = bm.retarget_maps(model, skel_map, template)
+    fits = fix_arm_fits(model, skel_map, template, fits)
     print(f"retarget: {len(fits)} bone transforms")
 
     groups: dict[str, bm.Group] = {}

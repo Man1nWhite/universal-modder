@@ -9,7 +9,9 @@
 - `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 10% thinner in width and depth
   **and no hands** (`--variant slim`, overrides the earlier 20% slim build):
   the retargeted body is scaled ×0.9 in X/Y about its own vertical axis
-  (normals inverse-transpose corrected), **Z/height untouched**, then the hands
+  (normals inverse-transpose corrected), **Z/height untouched**; arm-chain
+  verts (bone palette names containing "Arm"/"Hand") get an extra ×0.75 in
+  X/Y so the arms are 25% thinner than the base pack, then the hands
   are cut at the wrist with the glove-adapter hook, applied before the fps
   extraction so the viewmodel arms match.
 
@@ -25,6 +27,15 @@ head geometry and registers `replace_body`, not `replace_all` (LAS's
 has no head). Face/lashes/eyes/glasses/hair/helmet meshes are all dropped; the
 heister keeps their own head. See the `las_outfit_pack.py` FLAG_KEYS comment for
 the loader semantics.
+
+**Arm bone mapping:** the menu-pose retarget leaves the elbows ~5.3 cm inboard
+of the PD2 `Arm` pivots, so after `retarget_maps` the build runs
+`fix_arm_fits()`, which **pure-translates** the existing `Arm`/`ForeArm` fits
+(rotation untouched, delta added to matrix rows 12–14) so each source Arm
+joint lands exactly on its same-named PD2 pivot — elbow/wrist deviation 0.00 cm,
+no vertex spikes (z extent stays ≈164 cm, 0 orientation breaks). Do NOT
+re-fit those bones with a fresh rotation: the harmonic blend with the Spine1
+fit spikes shoulder-top verts to z ≈191–199.
 
 ## Build
 
