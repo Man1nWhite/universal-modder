@@ -32,7 +32,9 @@
     material's `.vmt`→`.vtf` chain actually exists and decodes. Never commit the assets.
 - **Code:** Source SDK 2013 (github.com/ValveSoftware/source-sdk-2013) builds your own mod (a new game
   folder under `sourcemods/`). It's the official, fully legal route for new mechanics in HL2-era games.
-- **Browse:** GCFScape / VPKEdit to open VPKs; Crowbar for models; BSPSource to decompile maps.
+- **Browse:** VPKEdit (cross-platform) or GCFScape (Windows/.NET, the GUI over HLLib) to open VPKs,
+  including multi-chunk `*_dir.vpk` + `*_000.vpk` sets; for models, Crowbar; for maps, BSPSource.
+  Neither browse tool opens Garry's Mod's `.gma` — that needs `gmad`/`gmpublisher` (see above).
 
 ## Source 2 (CS2, Dota 2, Half-Life: Alyx, Deadlock)
 **Identify.** `game/bin/win64/engine2.dll` and `game/<mod>/gameinfo.gi`.
