@@ -9,9 +9,11 @@ Recon only — nothing here is ported, and no game asset ships in this repo.
 
 Full-resolution sheet: [`suit-sources/board.png`](suit-sources/board.png).
 
-## Why these four, and not Skyrim again
+## What makes a suit body portable
 
-The Skyrim 3BA attempt (`STATUS.md`, `FIXES-2026-11-04.md`) failed on three
+Everything here is ranked against the brief *blazer required, skirt
+optional*, and against what this repo can already read. The cancelled
+Skyrim 3BA attempt (`STATUS.md`, `FIXES-2026-11-04.md`) failed on three
 things that are *source-artist* decisions, not retarget bugs: layered
 BodySlide sheets that poke through each other, sleeves that stop 6–8 cm short
 of the wrist, and an HDT-SMP skirt chain that Diesel cannot drive. A good
@@ -29,15 +31,31 @@ source therefore has to have those three decided correctly *before* the port:
 
 | # | game | mod / costume | verdict | skirt | weights | licence |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Resident Evil 4 (2023) | Ada Wong Agent Officewear | **A** (4.5) | rigid | 4 carried | conversion + asset use allowed |
-| 2 | Dead or Alive 6 | Ayane Office Suit HD (DOA5LR / DOA6) | **B** (3.5) | rigid and thigh-weighted; designed for kicks | studio-painted, 4 carried | check the costume's rip source; figure mods are grey-area |
-| 3 | Dead or Alive 6 / DOAXVV | Yom · Office Wear (SSR) + Tekken 8 “Office Wear” port by TheRessen | **B** (3.5) | rigid leather pencil skirt | 4 carried | TheRessen's TK8 mod permits asset reuse and modification |
+| 1 | Left 4 Dead 2 | Rochelle — “Dressed For Success” (Redux) | **S** (5.0) | — none: trousers are rigged to the thigh/shin chain | ≤3 per vertex (Source clamps) | workshop item by Sharon; ask before redistributing |
+| 2 | Resident Evil 4 (2023) | Ada Wong Agent Officewear | **A** (4.5) | rigid | 4 carried | conversion + asset use allowed |
+| 3 | Dead or Alive 6 | Ayane Office Suit HD (DOA5LR / DOA6) | **B** (3.5) | rigid and thigh-weighted; designed for kicks | studio-painted, 4 carried | check the costume's rip source; figure mods are grey-area |
 | 4 | Dead or Alive 6 | Christie “Business Suit” | **B** (3.0) | rigid | studio-painted, 4 carried | vanilla Koei Tecmo asset — reuse is not licensed (see note) |
-| 5 | Skyrim SE | Melodic “Business Woman” (1.zip–5.zip) | **D** (1.0) | ✗ 13 physics bones + a cloth chain Diesel cannot drive | needs a clamp | “do not publish outside LoversLab without permission” |
+| 5 | Skyrim SE | Ashtoreth “Office Suit” 3BA | **C** (2.0) | HDT-SMP chain — but it is a separate armour piece | needs the 4-weight clamp | “may not be reuploaded or transmitted in any form” |
+| 6 | Skyrim SE | Melodic “Business Woman” (1.zip–5.zip) | **D** (1.0) | ✗ 13 physics bones + a cloth chain Diesel cannot drive | needs a clamp | “do not publish outside LoversLab without permission” |
 
 ## Notes per candidate
 
-### 1. Ada Wong Agent Officewear — Resident Evil 4 (2023)  ·  RE Engine
+### 1. Rochelle — “Dressed For Success” (Redux) — Left 4 Dead 2  ·  Source  —  the rig this repo already parses
+
+- **Outfit:** pinstripe blazer + white shirt + matching trousers + pumps (no skirt needed)
+- **Author:** Sharon / Redux (DerangedTaco, GameMaps 6979)
+- **Bones:** ValveBiped, ~60 — already the LAS deform-bone layout
+- **Weights:** ≤3 per vertex (Source clamps); 4-weight budget is free
+- **Hands/wrists:** ✓ full ValveBiped hands, sleeve + glove meet at the wrist
+- **Skirt:** — none: trousers are rigged to the thigh/shin chain
+- **Textures:** .vtf → .dds, diffuse + normal per material, no PBR
+- **Licence:** workshop item by Sharon; ask before redistributing
+- **Route:** .vpk -> source_model -> transfer_group, i.e. the Miranda path
+- **Where:** <https://www.gamemaps.com/details/6979>
+
+the one candidate that needs *no new importer*: tools/pd2-las/source_model.py already reads MDL/VVD/VTX, skeleton_map.json already maps ValveBiped, and build_models.py already does the retarget. Blazer + trousers means the whole skirt/physics class of problems disappears. Nearest thing to a drop-in this list has
+
+### 2. Ada Wong Agent Officewear — Resident Evil 4 (2023)  ·  RE Engine
 
 - **Outfit:** grey blazer + white blouse + knee-length pencil skirt + pumps
 - **Author:** MrGreenEyes (Nexus 5310)
@@ -52,7 +70,7 @@ source therefore has to have those three decided correctly *before* the port:
 
 closest match to the 3BA brief; sleeves reach the wrist, so PD2's changeable gloves work and no sleeve extension is needed
 
-### 2. Ayane Office Suit HD (DOA5LR / DOA6) — Dead or Alive 6  ·  (DOA6LR, Team NINJA)
+### 3. Ayane Office Suit HD (DOA5LR / DOA6) — Dead or Alive 6  ·  (DOA6LR, Team NINJA)
 
 - **Outfit:** black blazer + white shirt + short pencil skirt + fishnet + heels
 - **Author:** DOA6 mod (AutoLink / REDELBE)
@@ -66,21 +84,6 @@ closest match to the 3BA brief; sleeves reach the wrist, so PD2's changeable glo
 - **Where:** <https://ayakamods.com/games/dead-or-alive-5-last-round.92/>
 
 best skirt/shoulder weighting of the four; DOA5LR/6 share the same costume library, and DOA6's High Society set is a corset, not office wear, so use the Office Suit mods instead
-
-### 3. Yom · Office Wear (SSR) + Tekken 8 “Office Wear” port by TheRessen — Dead or Alive 6 / DOAXVV  ·  Yom tie-up
-
-- **Outfit:** black turtleneck + leather pencil skirt + tights + heels
-- **Author:** Team NINJA × Yom  ·  TK8 port by TheRessen
-- **Bones:** ~90 — 20 used by a LAS outfit
-- **Weights:** 4 carried; already re-rigged once by TheRessen for TK8
-- **Hands/wrists:** kept; TK8 mod ships full hands
-- **Skirt:** rigid leather pencil skirt, thigh-weighted, hem at the knee
-- **Textures:** diffuse/normal/gloss; tights are separate geometry with 5 deniers
-- **Licence:** TheRessen's TK8 mod permits asset reuse and modification
-- **Route:** TK8 .pak -> .uasset -> fbx -> LAS retarget
-- **Where:** <https://tekkenmods.com/mod/3737/office-wear-mod-for-all-female-characters-tk8>
-
-the cleanest office *silhouette* of the set (turtleneck, pencil skirt, tights); TK8's port is the practical way in, and its licence is the permissive one
 
 ### 4. Christie “Business Suit” — Dead or Alive 6  ·  (Team NINJA)  — same asset as DOA5LR Costume 2
 
@@ -97,7 +100,22 @@ the cleanest office *silhouette* of the set (turtleneck, pencil skirt, tights); 
 
 the only *literally* office-suit costume on the list: tailored blazer, open shirt, pencil skirt, three recolours. It is a vanilla Koei Tecmo asset, so a port can only ever be a private build — never a release. Design caveat: the blazer is buttoned *open* with a deep V, so the chest is bare skin, not a blouse
 
-### 5. Melodic “Business Woman” (1.zip–5.zip) — Skyrim SE  ·  CBBE 3BA  —  this repo's own failed attempt
+### 5. Ashtoreth “Office Suit” 3BA — Skyrim SE  ·  CBBE 3BA  —  the cancelled route, blazer only
+
+- **Outfit:** tailored blazer over a blouse; the skirt and glasses are separate pieces and can simply not be shipped
+- **Author:** Ashtoreth (Schaken-Mods / Patreon)
+- **Bones:** ~115, plus HDT-SMP on the skirt — drop the skirt and the chain goes
+- **Weights:** needs the 4-weight clamp; BodySlide sheets split at UV seams
+- **Hands/wrists:** ✗ sleeves stop short of the wrist, as all BodySlide arms do
+- **Skirt:** HDT-SMP chain — but it is a separate armour piece, so blazer-only avoids it entirely
+- **Textures:** 2048² albedo/normal, uniform fabric
+- **Licence:** “may not be reuploaded or transmitted in any form”
+- **Route:** .nif -> nifly -> smd (tools/skyrim-nif), already written
+- **Where:** <https://schaken-mods.com/files/file/1649-ashtoreth-officesuit-3ba-hdt-smp/>
+
+the honest answer to “can Skyrim still work?”: yes, if you ship the blazer alone and skip the skirt. The two failures that were never about the skirt remain — the sleeve/hand gap and the sheet-split seam weights — and both already have passes in build_business_woman.py (extend_sleeves_to_wrist, weld_open_seams)
+
+### 6. Melodic “Business Woman” (1.zip–5.zip) — Skyrim SE  ·  CBBE 3BA  —  this repo's own failed attempt
 
 - **Outfit:** 3BA body + blazer + bustier + pencil skirt + heels + necklace
 - **Author:** Melodic (LoversLab) — port cancelled 2026-11-04
@@ -110,16 +128,38 @@ the only *literally* office-suit costume on the list: tailored blazer, open shir
 - **Route:** .nif -> nifly -> smd (tools/skyrim-nif), already written
 - **Where:** <docs/skyrim-nif/STATUS.md>
 
-the control case, and the reason the four above are ranked the way they are: layered BodySlide sheets poke through each other, the sleeve/hand gap exposed floating gloves, the shirt collar flared over the blazer, and the skirt is physics-driven. Keep it here as the baseline that “A” candidates must beat
+the control case, and the reason everything above is ranked the way they are: layered BodySlide sheets poke through each other, the sleeve/hand gap exposed floating gloves, the shirt collar flared over the blazer, and the skirt is physics-driven. Keep it here as the baseline every other candidate has to beat
+
+## How hard is the Christie “Business Suit” port?
+
+Short answer: **the hardest of the six, and mostly for non-mesh reasons.**
+Ranked by the work each stage costs, worst first:
+
+| stage | cost | why |
+| --- | --- | --- |
+| import the mesh | **4/5** | it is a DOA5LR `TMC`/`TMCL` pair, a format this repo does not read. Needs the TMC toolchain (`TMC Object Tool`, `TMC Polygon Insert`, a Blender TMC importer) or an XPS round-trip, then an `.smd`/`.fbx` export. The other candidates have either an importer already in `tools/` (L4D2) or one maintained add-on (RE Engine, TK8) |
+| map the skeleton | **4/5** | Team NINJA bone names with breast (`j_mune`), skirt (`j_sk`) and face chains. None of the ~60 names in `las_target_skeleton.json` match by string, so `skeleton_map.json` needs a second dialect written by hand and checked bone by bone |
+| the blazer is *open* | **5/5** | the jacket is buttoned open over bare skin with a deep V. On a heister it reads as an unfastened jacket, and closing it means modelling a new front panel — a re-drape, not a nudge |
+| licence | **5/5** | it is a **vanilla Koei Tecmo asset**: no permission to convert or redistribute, so the result can only be a private build. Every other candidate is a mod with stated terms |
+| retarget + weights | **2/5** | studio-painted, four or fewer influences, rigid pencil skirt on hips/thighs — the two things that broke the Skyrim port (spring chains, split sheet seams) are simply not there |
+| textures | **2/5** | diffuse/normal/specular in `.tpf`; a plain `DXT1`/`DXT5` repack through `tools/pd2-las/dds_encode.py` |
+
+**Where the effort lands:** about a day for import + skeleton dialect + retarget, and then the open blazer, which is the one item that may not be worth solving at all. For comparison the L4D2 suit needs no new importer and no new skeleton dialect, and the RE4R suit needs one add-on.
+
+If you want Christie's *cut* rather than Christie's *asset*, take the Ayane “Office Suit HD” mod (candidate 02) — same game family, same rig shape, and it is a mod with its own terms rather than a vanilla asset — and treat vanilla Christie as private study only.
 
 ## Also considered, and why not
 
 | source | outfit | why it is not on the board |
 | --- | --- | --- |
+| DOAXVV/TK8 — “Yom · Office Wear” | black turtleneck + leather pencil skirt + tights | **no blazer**, so it fails the brief; kept in the notes as the best office *silhouette* if a turtleneck top is ever wanted |
 | RE3R — “Jill Wild Secretary” (Lemi21) | white blouse, grey pencil skirt, glasses, stockings | right silhouette, but the mesh is watermarked, the re-upload is not the author's, and Lemi21's mods are not licensed for reuse |
 | RE4R — “Ada Office Lady” (Aerosmith) | office blazer + skirt set | a 2.8 GB NSFW pack with the garment split across many add-ons; wrong tone, and heavy to audit before a single vertex moves |
 | RE4R — “Ashley Wild Secretary” (Lemi21) | white shirt + mini skirt | the still that surfaced for it is half-undressed; off-brief for a heister outfit and unlicensed for reuse |
 | DOA6 — “[Revival] High Society” | white blouse, corset, long skirt | verified from the official set art: it is a corset-and-long-skirt costume, not office wear, so it does not meet the brief |
+| L4D2 — “Executive Producer Rochelle” | purple business dress | the blazer-equivalent is a dress, not a jacket; the derivative “Dressed For Success” reskin (already on the board) is the blazer + trousers version |
+| L4D2 — “Executive Rochelle” / “Sexy Executive” | white suit, black shirt | reskins of the same PappasKurtz base; the base itself is a dress, so they add a suit *recolour*, not a blazer mesh |
+| FF7R — Scarlet / “Turk suit” Tifa | tailored suit | needs the UE4 `uasset` route plus a mostly-custom skeleton; strictly worse than the TK8 entry, which is already re-rigged |
 | Tekken 8 — “TFD Business Suit” | tailored business suit | a TK8 customisation pak, and its office-wear sibling is itself a DOAXVV port — so it is a downstream copy of candidate 3, with an extra conversion step |
 
 ## What to do next

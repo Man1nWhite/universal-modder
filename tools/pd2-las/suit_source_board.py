@@ -82,12 +82,37 @@ class Candidate:
 
     def verdict(self) -> str:
         return {
-            "4.5": "A", "4.0": "A", "3.5": "B", "3.0": "B",
+            "5.0": "S", "4.5": "A", "4.0": "A", "3.5": "B", "3.0": "B",
             "2.5": "C", "2.0": "C", "1.5": "D", "1.0": "D",
         }.get(self.star, "-")
 
 
 CANDIDATES: tuple[Candidate, ...] = (
+    Candidate(
+        slot="00-l4d2-rochelle-dressed-for-success",
+        game="Left 4 Dead 2  ·  Source  —  the rig this repo already parses",
+        mod="Rochelle — “Dressed For Success” (Redux)",
+        outfit="pinstripe blazer + white shirt + matching trousers + pumps "
+               "(no skirt needed)",
+        author="Sharon / Redux (DerangedTaco, GameMaps 6979)",
+        star="5.0",
+        stills=("rochelle-dressed-for-success-l4d2-busine-2.jpg",),
+        bones="ValveBiped, ~60 — already the LAS deform-bone layout",
+        weights="≤3 per vertex (Source clamps); 4-weight budget is free",
+        hands="✓ full ValveBiped hands, sleeve + glove meet at the wrist",
+        skirt="— none: trousers are rigged to the thigh/shin chain",
+        texture=".vtf → .dds, diffuse + normal per material, no PBR",
+        licence="workshop item by Sharon; ask before redistributing",
+        route=".vpk -> source_model -> transfer_group, i.e. the Miranda path",
+        url="https://www.gamemaps.com/details/6979",
+        note="the one candidate that needs *no new importer*: "
+             "tools/pd2-las/source_model.py already reads MDL/VVD/VTX, "
+             "skeleton_map.json already maps ValveBiped, and build_models.py "
+             "already does the retarget. Blazer + trousers means the whole "
+             "skirt/physics class of problems disappears. Nearest thing to a "
+             "drop-in this list has",
+        hero="rochelle-dressed-for-success-l4d2-busine-2.jpg",
+    ),
     Candidate(
         slot="01-re4r-ada-agent-officewear",
         game="Resident Evil 4 (2023)  ·  RE Engine",
@@ -154,31 +179,6 @@ CANDIDATES: tuple[Candidate, ...] = (
              "*open* with a deep V, so the chest is bare skin, not a blouse",
     ),
     Candidate(
-        slot="04-doa6-doaxvv-yom-office-wear",
-        game="Dead or Alive 6 / DOAXVV  ·  Yom tie-up",
-        mod="Yom · Office Wear (SSR) + Tekken 8 “Office Wear” port by TheRessen",
-        outfit="black turtleneck + leather pencil skirt + tights + heels",
-        author="Team NINJA × Yom  ·  TK8 port by TheRessen",
-        star="3.5",
-        stills=(
-            "tekken-8-office-wear-mod-theressen-doaxv-1.jpg",
-            "tekken-8-office-wear-mod-theressen-doaxv-2.jpg",
-            "doaxvv-yom-office-wear-ssr-nagisa-nanami-1.jpg",
-        ),
-        hero="tekken-8-office-wear-mod-theressen-doaxv-1.jpg",
-        bones="~90 — 20 used by a LAS outfit",
-        weights="4 carried; already re-rigged once by TheRessen for TK8",
-        hands="kept; TK8 mod ships full hands",
-        skirt="rigid leather pencil skirt, thigh-weighted, hem at the knee",
-        texture="diffuse/normal/gloss; tights are separate geometry with 5 deniers",
-        licence="TheRessen's TK8 mod permits asset reuse and modification",
-        route="TK8 .pak -> .uasset -> fbx -> LAS retarget",
-        url="https://tekkenmods.com/mod/3737/office-wear-mod-for-all-female-characters-tk8",
-        note="the cleanest office *silhouette* of the set (turtleneck, pencil "
-             "skirt, tights); TK8's port is the practical way in, and its "
-             "licence is the permissive one",
-    ),
-    Candidate(
         slot="05-skyrim-3ba-business-woman",
         game="Skyrim SE  ·  CBBE 3BA  —  this repo's own failed attempt",
         mod="Melodic “Business Woman” (1.zip–5.zip)",
@@ -194,14 +194,44 @@ CANDIDATES: tuple[Candidate, ...] = (
         licence="“do not publish outside LoversLab without permission”",
         route=".nif -> nifly -> smd (tools/skyrim-nif), already written",
         url="docs/skyrim-nif/STATUS.md",
-        note="the control case, and the reason the four above are ranked the "
+        note="the control case, and the reason everything above is ranked the "
              "way they are: layered BodySlide sheets poke through each other, "
              "the sleeve/hand gap exposed floating gloves, the shirt collar "
              "flared over the blazer, and the skirt is physics-driven. Keep it "
-             "here as the baseline that “A” candidates must beat",
+             "here as the baseline every other candidate has to beat",
+    ),
+    Candidate(
+        slot="06-skyrim-ashtoreth-office-suit",
+        game="Skyrim SE  ·  CBBE 3BA  —  the cancelled route, blazer only",
+        mod="Ashtoreth “Office Suit” 3BA",
+        outfit="tailored blazer over a blouse; the skirt and glasses are separate "
+               "pieces and can simply not be shipped",
+        author="Ashtoreth (Schaken-Mods / Patreon)",
+        star="2.0",
+        stills=("ashtoreth-office-suit-3ba-skyrim-blazer--3.jpg",),
+        hero="ashtoreth-office-suit-3ba-skyrim-blazer--3.jpg",
+        bones="~115, plus HDT-SMP on the skirt — drop the skirt and the chain goes",
+        weights="needs the 4-weight clamp; BodySlide sheets split at UV seams",
+        hands="✗ sleeves stop short of the wrist, as all BodySlide arms do",
+        skirt="HDT-SMP chain — but it is a separate armour piece, so "
+              "blazer-only avoids it entirely",
+        texture="2048² albedo/normal, uniform fabric",
+        licence="“may not be reuploaded or transmitted in any form”",
+        route=".nif -> nifly -> smd (tools/skyrim-nif), already written",
+        url="https://schaken-mods.com/files/file/1649-ashtoreth-officesuit-3ba-hdt-smp/",
+        note="the honest answer to “can Skyrim still work?”: yes, if you ship the "
+             "blazer alone and skip the skirt. The two failures that were never "
+             "about the skirt remain — the sleeve/hand gap and the sheet-split "
+             "seam weights — and both already have passes in "
+             "build_business_woman.py (extend_sleeves_to_wrist, weld_open_seams)",
     ),
 )
 
+
+
+def ranked() -> list[Candidate]:
+    """Best-first order used by the board, the notes and the tests."""
+    return sorted(CANDIDATES, key=lambda c: (-float(c.star), c.slot))
 
 
 def _find_still(name: str) -> Path:
@@ -337,8 +367,8 @@ def board(cards: list[Image.Image], width: int = WIDTH) -> Image.Image:
                       "fitted to the Diesel skeleton", font=F_REG_15, fill=MUTED)
     d.text((48, 140), "target: ≤4 bone weights · rigid thigh-weighted skirt · sleeves reach "
                       "the wrist · one diffuse+normal set", font=F_MONO_13, fill=(70, 74, 84))
-    d.text((48, 176), "ranked by portability, not by looks — A ships clean, D needs "
-                      "a re-drape; 05 is this repo's own cancelled attempt",
+    d.text((48, 176), "ranked by portability, not by looks — S needs no new importer, "
+                      "A one add-on, D a re-drape; 05 is this repo's cancelled attempt",
            font=F_REG_13, fill=(70, 74, 84))
     _rule(d, (48, head - 18, width - 48, head - 18), INK, 3)
     y = head
@@ -366,9 +396,11 @@ def write_markdown(order: list[Candidate]) -> None:
         "",
         "Full-resolution sheet: [`suit-sources/board.png`](suit-sources/board.png).",
         "",
-        "## Why these four, and not Skyrim again",
+        "## What makes a suit body portable",
         "",
-        "The Skyrim 3BA attempt (`STATUS.md`, `FIXES-2026-11-04.md`) failed on three",
+        "Everything here is ranked against the brief *blazer required, skirt",
+        "optional*, and against what this repo can already read. The cancelled",
+        "Skyrim 3BA attempt (`STATUS.md`, `FIXES-2026-11-04.md`) failed on three",
         "things that are *source-artist* decisions, not retarget bugs: layered",
         "BodySlide sheets that poke through each other, sleeves that stop 6–8 cm short",
         "of the wrist, and an HDT-SMP skirt chain that Diesel cannot drive. A good",
@@ -411,11 +443,55 @@ def write_markdown(order: list[Candidate]) -> None:
             c.note,
             "",
         ]
+    # each markdown table row must be ONE string — a table cannot be wrapped
+    lines += [
+        "## How hard is the Christie “Business Suit” port?",
+        "",
+        "Short answer: **the hardest of the six, and mostly for non-mesh reasons.**",
+        "Ranked by the work each stage costs, worst first:",
+        "",
+        "| stage | cost | why |",
+        "| --- | --- | --- |",
+        "| import the mesh | **4/5** | it is a DOA5LR `TMC`/`TMCL` pair, a format "
+        "this repo does not read. Needs the TMC toolchain (`TMC Object Tool`, "
+        "`TMC Polygon Insert`, a Blender TMC importer) or an XPS round-trip, then "
+        "an `.smd`/`.fbx` export. The other candidates have either an importer "
+        "already in `tools/` (L4D2) or one maintained add-on (RE Engine, TK8) |",
+        "| map the skeleton | **4/5** | Team NINJA bone names with breast (`j_mune`), "
+        "skirt (`j_sk`) and face chains. None of the ~60 names in "
+        "`las_target_skeleton.json` match by string, so `skeleton_map.json` needs a "
+        "second dialect written by hand and checked bone by bone |",
+        "| the blazer is *open* | **5/5** | the jacket is buttoned open over bare "
+        "skin with a deep V. On a heister it reads as an unfastened jacket, and "
+        "closing it means modelling a new front panel — a re-drape, not a nudge |",
+        "| licence | **5/5** | it is a **vanilla Koei Tecmo asset**: no permission "
+        "to convert or redistribute, so the result can only be a private build. "
+        "Every other candidate is a mod with stated terms |",
+        "| retarget + weights | **2/5** | studio-painted, four or fewer influences, "
+        "rigid pencil skirt on hips/thighs — the two things that broke the Skyrim "
+        "port (spring chains, split sheet seams) are simply not there |",
+        "| textures | **2/5** | diffuse/normal/specular in `.tpf`; a plain "
+        "`DXT1`/`DXT5` repack through `tools/pd2-las/dds_encode.py` |",
+        "",
+        "**Where the effort lands:** about a day for import + skeleton dialect + "
+        "retarget, and then the open blazer, which is the one item that may not be "
+        "worth solving at all. For comparison the L4D2 suit needs no new importer "
+        "and no new skeleton dialect, and the RE4R suit needs one add-on.",
+        "",
+        "If you want Christie's *cut* rather than Christie's *asset*, take the "
+        "Ayane “Office Suit HD” mod (candidate 02) — same game family, same rig "
+        "shape, and it is a mod with its own terms rather than a vanilla asset — "
+        "and treat vanilla Christie as private study only.",
+        "",
+    ]
     lines += [
         "## Also considered, and why not",
         "",
         "| source | outfit | why it is not on the board |",
         "| --- | --- | --- |",
+        "| DOAXVV/TK8 — “Yom · Office Wear” | black turtleneck + leather pencil "
+        "skirt + tights | **no blazer**, so it fails the brief; kept in the notes "
+        "as the best office *silhouette* if a turtleneck top is ever wanted |",
         "| RE3R — “Jill Wild Secretary” (Lemi21) | white blouse, grey pencil skirt, "
         "glasses, stockings | right silhouette, but the mesh is watermarked, the "
         "re-upload is not the author's, and Lemi21's mods are not licensed for reuse |",
@@ -428,6 +504,15 @@ def write_markdown(order: list[Candidate]) -> None:
         "| DOA6 — “[Revival] High Society” | white blouse, corset, long skirt | "
         "verified from the official set art: it is a corset-and-long-skirt costume, "
         "not office wear, so it does not meet the brief |",
+        "| L4D2 — “Executive Producer Rochelle” | purple business dress | the "
+        "blazer-equivalent is a dress, not a jacket; the derivative “Dressed For "
+        "Success” reskin (already on the board) is the blazer + trousers version |",
+        "| L4D2 — “Executive Rochelle” / “Sexy Executive” | white suit, black shirt | "
+        "reskins of the same PappasKurtz base; the base itself is a dress, so they "
+        "add a suit *recolour*, not a blazer mesh |",
+        "| FF7R — Scarlet / “Turk suit” Tifa | tailored suit | needs the UE4 "
+        "`uasset` route plus a mostly-custom skeleton; strictly worse than the "
+        "TK8 entry, which is already re-rigged |",
         "| Tekken 8 — “TFD Business Suit” | tailored business suit | a TK8 "
         "customisation pak, and its office-wear sibling is itself a DOAXVV port — "
         "so it is a downstream copy of candidate 3, with an extra conversion step |",
@@ -462,9 +547,10 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     # only the board ships: the per-card PNGs are the same pixels laid out
     # differently, and 5 extra 1600-px sheets is 6 MB of duplication in git
-    cards = [_card(c) for c in CANDIDATES]
+    order = ranked()
+    cards = [_card(c) for c in order]
     board(cards).save(OUT / "board.png")
-    order = sorted(CANDIDATES, key=lambda c: (-float(c.star), c.slot))
+    order = ranked()
     write_markdown(order)
 
     print(f"wrote {OUT / 'board.png'} ({board(cards).width}x{board(cards).height})")
@@ -473,8 +559,7 @@ def main() -> int:
 
     if not args.no_verify:
         before = {p.name: _sha(p) for p in OUT.glob("*.png")}
-        cards2 = [_card(c) for c in CANDIDATES]
-        board(cards2).save(OUT / "board.png")
+        board([_card(c) for c in order]).save(OUT / "board.png")
         after = {p.name: _sha(p) for p in OUT.glob("*.png")}
         same = before == after
         print("re-render is byte-identical:", "yes" if same else "NO")

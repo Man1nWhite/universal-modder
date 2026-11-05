@@ -39,11 +39,33 @@ def board_mod():
     return _load()
 
 
-def test_branded_suit_is_the_top_candidate(board_mod):
-    """The ranked order must put the full suit (blazer + skirt) first."""
-    ranked = sorted(board_mod.CANDIDATES, key=lambda c: (-float(c.star), c.slot))
-    assert ranked[0].slot == "01-re4r-ada-agent-officewear"
-    assert "blazer" in ranked[0].outfit and "skirt" in ranked[0].outfit
+def test_the_cheapest_blazer_wins(board_mod):
+    """Ranked first must be the blazer with the least new machinery to build.
+
+    The user's brief is "blazer required, skirt optional", so the top of the
+    board is the one whose importer, skeleton and weights already exist here.
+    """
+    top = board_mod.ranked()[0]
+    assert top.slot == "00-l4d2-rochelle-dressed-for-success"
+    assert "blazer" in top.outfit
+    # it is the ValveBiped/`.vpk` entry: no new importer, no new skeleton dialect
+    assert top.route.startswith(".vpk")
+    assert "source_model" in top.route
+
+
+def test_every_candidate_has_a_blazer(board_mod):
+    """A skirt is optional on this board; a blazer is not."""
+    for c in board_mod.CANDIDATES:
+        assert "blazer" in f"{c.mod} {c.outfit}".lower(), c.slot
+
+
+def test_skirt_physics_is_reported_honestly(board_mod):
+    """Candidates whose skirt needs a spring chain must say so, or ship without."""
+    for c in board_mod.CANDIDATES:
+        if "HDT" in c.skirt or "physics" in c.skirt:
+            assert "separate" in c.skirt or "✗" in c.skirt or "drop" in c.skirt.lower() or (
+                "avoid" in c.skirt.lower()
+            ), f"{c.slot}: skirt physics mentioned without an escape route"
 
 
 def test_every_claim_has_a_source(board_mod):
@@ -69,7 +91,7 @@ def test_failed_skyrim_source_is_kept_as_the_baseline(board_mod):
 def test_tracked_board_matches_a_fresh_render(board_mod, tmp_path):
     """The checked-in board must be exactly what the script draws today."""
     fresh = tmp_path / "board.png"
-    board_mod.board([board_mod._card(c) for c in board_mod.CANDIDATES]).save(fresh)
+    board_mod.board([board_mod._card(c) for c in board_mod.ranked()]).save(fresh)
     tracked = DOCS / "board.png"
     assert tracked.exists(), "missing docs/pd2-las/suit-sources/board.png"
     assert fresh.read_bytes() == tracked.read_bytes(), (
@@ -87,8 +109,14 @@ def test_markdown_is_generated_from_the_same_candidates(board_mod):
         assert c.mod in text, c.slot
         assert c.url in text, c.slot
     # the pipeline commands quoted must actually exist in this repo
-    for path in ("tools/pd2-las/build_business_woman.py", "docs/skyrim-nif/FIXES-2026-11-04.md"):
+    for path in ("tools/pd2-las/build_business_woman.py", "docs/skyrim-nif/FIXES-2026-11-04.md",
+                 "tools/pd2-las/source_model.py", "tools/pd2-las/skeleton_map.json",
+                 "tools/pd2-las/dds_encode.py"):
         assert (REPO / path).exists(), path
+    # the Christie difficulty section answers the question it claims to
+    assert "How hard is the Christie" in text
+    for stage in ("import the mesh", "map the skeleton", "licence"):
+        assert stage in text, stage
 
 
 def test_board_and_cards_are_one_image_per_candidate(board_mod):
@@ -97,6 +125,6 @@ def test_board_and_cards_are_one_image_per_candidate(board_mod):
 
     with Image.open(DOCS / "board.png") as im:
         assert im.width == board_mod.WIDTH
-        cards = [board_mod._card(c) for c in board_mod.CANDIDATES]
+        cards = [board_mod._card(c) for c in board_mod.ranked()]
         expected = board_mod.board(cards)
         assert (im.width, im.height) == (expected.width, expected.height)
