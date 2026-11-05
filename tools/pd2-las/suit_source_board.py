@@ -160,23 +160,30 @@ CANDIDATES: tuple[Candidate, ...] = (
         slot="03-doa5lr-christie-business-suit",
         game="Dead or Alive 6  ·  (Team NINJA)  — same asset as DOA5LR Costume 2",
         mod="Christie “Business Suit”",
-        outfit="tailored blazer + open shirt + pencil skirt; 3 colourways (black / white / beige)",
+        outfit="tailored blazer, worn open, over a white blouse; 3 colourways "
+               "(black / white / beige) in the still — bottom garment unverified",
         author="Team NINJA (vanilla asset, 3 recolours)",
         star="3.0",
         stills=("doa5lr-christie-hidden-costume-business--3.png",),
         bones="~85 — 20 used by a LAS outfit",
         weights="studio-painted, 4 carried; 4-weight clamp",
         hands="kept, thin fighter hands (finger bones exist)",
-        skirt="rigid, thigh-weighted, hem above the knee",
+        skirt="**unverified** — no still shows the lower half and the wiki never "
+              "names it; either way it is a single rigid hip/thigh garment, and "
+              "trousers would be the cheaper of the two",
         texture="diffuse/normal/specular, all in the game's .tpf archives",
         licence="vanilla Koei Tecmo asset — reuse is not licensed (see note)",
         route=".tpf + .g1m -> Blender -> LAS retarget",
         url="https://deadoralive.fandom.com/wiki/Christie/Dead_or_Alive_5_costumes",
         note="the only *literally* office-suit costume on the list: tailored "
-             "blazer, open shirt, pencil skirt, three recolours. It is a "
-             "vanilla Koei Tecmo asset, so a port can only ever be a private "
-             "build — never a release. Design caveat: the blazer is buttoned "
-             "*open* with a deep V, so the chest is bare skin, not a blouse",
+             "blazer, open shirt, three recolours — white, black and beige. "
+             "It is a vanilla Koei Tecmo asset, so a port can only ever be a "
+             "private build — never a release. Two things are *not* verified: "
+             "the still crops at the waist, so the bottom garment (skirt vs "
+             "trousers) is unknown and no second source settles it, and the "
+             "game's own gallery describes it as a suit \"with a blouse worn "
+             "under\" while the still reads as bare skin under the open blazer — "
+             "settle that from the mesh, not from a screenshot",
     ),
     Candidate(
         slot="05-skyrim-3ba-outfit",
@@ -462,22 +469,64 @@ def write_markdown(order: list[Candidate]) -> None:
         "skirt (`j_sk`) and face chains. None of the ~60 names in "
         "`las_target_skeleton.json` match by string, so `skeleton_map.json` needs a "
         "second dialect written by hand and checked bone by bone |",
-        "| the blazer is *open* | **5/5** | the jacket is buttoned open over bare "
-        "skin with a deep V. On a heister it reads as an unfastened jacket, and "
-        "closing it means modelling a new front panel — a re-drape, not a nudge |",
+        "| the blazer is *open* | **1/5** | the jacket is worn unbuttoned. "
+        "Accepted as-is by the brief — an open blazer reads as a heister with "
+        "her jacket off, so this is *not* a gate. Closing it would mean a new "
+        "front panel, which is now optional polish, not a prerequisite |",
         "| licence | **5/5** | it is a **vanilla Koei Tecmo asset**: no permission "
         "to convert or redistribute, so the result can only be a private build. "
         "Every other candidate is a mod with stated terms |",
         "| retarget + weights | **2/5** | studio-painted, four or fewer influences, "
-        "rigid pencil skirt on hips/thighs — the two things that broke the Skyrim "
-        "port (spring chains, split sheet seams) are simply not there |",
+        "one rigid garment below the waist on hips/thighs — the two things that "
+        "broke the Skyrim port (spring chains, split sheet seams) are simply not "
+        "there |",
         "| textures | **2/5** | diffuse/normal/specular in `.tpf`; a plain "
         "`DXT1`/`DXT5` repack through `tools/pd2-las/dds_encode.py` |",
         "",
         "**Where the effort lands:** about a day for import + skeleton dialect + "
-        "retarget, and then the open blazer, which is the one item that may not be "
-        "worth solving at all. For comparison the L4D2 suit needs no new importer "
-        "and no new skeleton dialect, and the RE4R suit needs one add-on.",
+        "retarget. The open blazer is *accepted*, so it costs nothing; closing "
+        "it is optional polish. For comparison the L4D2 suit needs no new "
+        "importer and no new skeleton dialect, and the RE4R suit needs one "
+        "add-on.",
+        "",
+        "### Does this outfit already exist converted?",
+        "",
+        "Asked twice, so recorded: a **Sims 4** version of this costume does "
+        "**not** exist as far as this recon can see, and a **Garry's Mod** "
+        "version does. Neither changes the plan.",
+        "",
+        "| platform | what exists | useful as a source? |",
+        "| --- | --- | --- |",
+        "| The Sims 4 | **no Christie business-suit CC found.** Sims 4 *Dead or "
+        "Alive* CC is real and popular, but every set on the listicles is a "
+        "dress, swimsuit, lingerie or Kasumi/Nyotengu pack — no office suit. "
+        "Christie exists as a *character* only on Sims 2 (MTS #40256, "
+        "`christie.rar`, 2005, swimsuit) and Sims 3 (TSR #1136563, a sim, not "
+        "a garment) | no. A `.package` is mesh + recolour data for a different "
+        "body and skeleton; even if one existed it would be a *worse* starting "
+        "point than the DOA mesh itself |",
+        "| Garry's Mod | **yes** — `DOA5 Christie (NEEDS MORE WORK)` by "
+        "**Fruitcake**, workshop `870161699`, 22.9 MB, Feb 2017, 175 ratings. "
+        "The description says \"you get her suit and dress\", and the author "
+        "credits originals to **Urbanator** on SFMLab; Fruitcake only added "
+        "collision models. Steam now flags it *removed from the community* "
+        "(content-guideline violation) — the page and its description are "
+        "still readable | **not yet — and probably not the business suit at "
+        "all.** \"Suit\" in that listing most likely means the white catsuit, "
+        "not the blazer. The underlying Urbanator SFM packs (releases #1–#6) "
+        "*are* the same vanilla DOA5 assets, so they add no new geometry a "
+        "`TMC` import would not already give |",
+        "",
+        "Two things follow. First: **do not plan around a pre-converted "
+        "Christie suit** — it does not exist on either platform, and the GMod "
+        "entry is itself an unlicensed SFMLab port of the same Koei Tecmo "
+        "asset, so it inherits the vanilla licence and can never be shipped "
+        "either. Second: the GMod/`SFM` route is *not* cheaper than `TMC`. It "
+        "is Source `.mdl`, which `tools/pd2-las/source_model.py` can read, but "
+        "it arrives with a `ValveBiped` skeleton and a re-posed mesh — so the "
+        "Team NINJA → LAS skeleton problem would be traded for a ValveBiped → "
+        "LAS one plus whatever the porter changed. For the *same* asset, take "
+        "the `TMC`.",
         "",
         "If you want Christie's *cut* rather than Christie's *asset*, take the "
         "Ayane “Office Suit HD” mod (candidate 02) — same game family, same rig "

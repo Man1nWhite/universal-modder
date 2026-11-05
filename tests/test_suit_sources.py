@@ -143,6 +143,40 @@ _FORBIDDEN = (
 )
 
 
+def test_the_christie_availability_answer_is_recorded(board_mod):
+    """Both questions the user asked twice must stay answered in the notes.
+
+    *Does it exist as a Sims 4 mod, and what about in Garry's Mod?* — the answer
+    is recorded next to the Christie cost table so a future round does not
+    re-run the same search. It also has to stay honest: the GMod addon is an
+    unlicensed port of a vanilla asset, so it can never be a release source.
+    """
+    text = MARKDOWN.read_text(encoding="utf-8")
+    assert "Does this outfit already exist converted?" in text
+    assert "no Christie business-suit CC found" in text
+    assert "870161699" in text           # the GMod workshop id
+    # the licence conclusion must not soften into "usable"
+    assert "never be shipped" in text or "private build" in text
+
+
+def test_unverified_garments_say_so(board_mod):
+    """Christie's lower half was never seen in any still we hold.
+
+    The card used to assert a pencil skirt on no evidence. Anything the stills
+    cannot show has to be marked unverified rather than described.
+    """
+    christie = [c for c in board_mod.CANDIDATES if c.slot.endswith("christie-business-suit")]
+    assert len(christie) == 1
+    c = christie[0]
+    assert "unverified" in c.skirt.lower()
+    assert "pencil" not in c.skirt.lower()
+    # the note has to keep the same caveat, not just the spec row
+    assert "not* verified" in c.note or "not verified" in c.note
+    # ...and the accepted-open-blazer decision is reflected, not re-litigated
+    text = MARKDOWN.read_text(encoding="utf-8")
+    assert "not* a gate" in text
+
+
 def test_the_removed_outfit_name_is_gone_from_the_tree():
     """The cancelled Skyrim outfit's name and author were removed on request.
 
