@@ -13,6 +13,10 @@ Key format facts encoded here (see docs/audits/2026-10-18-route-change-audit.md)
   (p2mt: `if (legacy && itemType > TEXCOORD7) itemType += 2` on read).
 - BLENDINDICES0 (enum 17, disk 15) = 4x u16 palette indices per vertex.
   BLENDWEIGHT0 (enum 19, disk 17) = 3x f32 weights (ItemSize 3).
+- TEXCOORD1/TEXCOORD2 (enum 8/9) = a second and third float2 UV set per vertex.
+  Vanilla heister bag meshes (`g_armorbag`, `g_medicbag`, `g_sentrybag`,
+  `g_bodybagsbag`) carry them; they are decoded as `uv1`/`uv2` and re-encoded
+  verbatim so those sections round-trip.
 - SkinBones.Rotations[i] = inverse(bone.WorldTransform) at bind pose;
   Global_skin_transform = Hips world; drawables parented to Hips with
   Transform = inverse(Hips world) -> drawable world = identity, geometry
@@ -145,6 +149,8 @@ POSITION0 = 1
 NORMAL0 = 2
 COLOR0 = 5
 TEXCOORD0 = 7
+TEXCOORD1 = 8  # second UV set (float2 per vertex); vanilla bag meshes carry it
+TEXCOORD2 = 9  # third UV set (float2 per vertex)
 BLENDINDICES0 = 17
 BLENDWEIGHT0 = 19
 UV_DIRECTION_V0 = 22
@@ -425,8 +431,8 @@ def decode_geometry(payload: bytes) -> dict:
         item_size, disk_type = struct.unpack_from("<II", payload, off)
         off += 8
         headers.append({"item_size": item_size, "enum_type": to_enum_type(disk_type)})
-    chan = {"verts": [], "normals": [], "uv0": [], "blendindices": [],
-            "blendweights": [], "uvdir_v": [], "uvdir_u": []}
+    chan = {"verts": [], "normals": [], "uv0": [], "uv1": [], "uv2": [],
+            "blendindices": [], "blendweights": [], "uvdir_v": [], "uvdir_u": []}
     for head in headers:
         et = head["enum_type"]
         isz = head["item_size"]
@@ -440,6 +446,12 @@ def decode_geometry(payload: bytes) -> dict:
             for _ in range(vert_count):
                 u, v = struct.unpack_from("<ff", payload, off); off += 8
                 chan["uv0"].append((u, -v))  # internal V = -disk V (p2mt)
+        elif et in (TEXCOORD1, TEXCOORD2):
+            # Extra UV sets are not used by this pipeline; keep the raw disk
+            # values so the section still round-trips byte for byte.
+            key = "uv1" if et == TEXCOORD1 else "uv2"
+            for _ in range(vert_count):
+                chan[key].append(struct.unpack_from("<ff", payload, off)); off += 8
         elif et == UV_DIRECTION_V0:
             for _ in range(vert_count):
                 chan["uvdir_v"].append(struct.unpack_from("<fff", payload, off)); off += 12
@@ -482,6 +494,9 @@ def encode_geometry(g: dict) -> bytes:
         elif et == TEXCOORD0:
             for u, v in g["uv0"]:
                 out += struct.pack("<ff", u, -v)
+        elif et in (TEXCOORD1, TEXCOORD2):
+            for u, v in g["uv1" if et == TEXCOORD1 else "uv2"]:
+                out += struct.pack("<ff", u, v)
         elif et == UV_DIRECTION_V0:
             for v in g["uvdir_v"]:
                 out += struct.pack("<fff", *v)

@@ -14,10 +14,23 @@ Deliverables in **`dist/`**:
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,
   audit `docs/pd2-las/CHEST-VARIANT.md`, tests `tests/test_bust_variant.py`.
 - Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
-  - `dist/Miranda_L4D2_over_Joy.zip` (10,681,277` B) & `dist/Miranda_Romance_over_Joy.zip` (10,238,712` B)
-  - `dist/Miranda_L4D2_over_Clover.zip` (7,732,069` B) & `dist/Miranda_Romance_over_Clover.zip` (7,297,599` B)
-  - `dist/Miranda_L4D2_over_Bonnie.zip` (8,237,483` B) & `dist/Miranda_Romance_over_Bonnie.zip` (7,791,810` B)
-  - `dist/Miranda_L4D2_over_Sydney.zip` (7,235,982` B) & `dist/Miranda_Romance_over_Sydney.zip` (6,805,595` B)
+  - `dist/Miranda_L4D2_over_Joy.zip` (`10,585,799` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,238,712` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (`7,636,591` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,297,599` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,142,005` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,810` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,140,504` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,805,595` B)
+
+  All eight rebuild byte-identically (`tools/build_joy_head_mods.py` writes fixed
+  `2020-01-01` zip timestamps, so `dist/*.zip.sha256` is a true build hash). The
+  four **L4D2** packs in this tree were rebuilt on 2026-11-05: the previously
+  tracked ones had been built against an older `dist/Miranda_LAS.zip` and carried
+  a scrambled diffuse-alpha plane in their `*_head_df.texture` (specular noise —
+  RGB bit-identical, previews byte-identical; see
+  [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md)).
+  **Coverage:** Clover and Bonnie replace the heist, menu *and* Safe House
+  (`*_chill`) models; Joy and Sydney replace the heist + menu models only, so
+  their Safe House units keep the vanilla head. Nothing in this set has been
+  verified in game yet — there is no checklist for it (the LAS one is
+  `docs/pd2-las/in-game-checklist.md`).
 
 ## Quickstart
 

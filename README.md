@@ -61,6 +61,14 @@ verified invariants, dead ends).
   `dist/Geralt_over_Rust.zip` (2-atom `mtr_head` + `ALPHA_MASKED` `mtr_hair` setup with `2048x2048` face/eyes/teeth and hair/beard/eyelashes atlases, heist + menu `.model`, 3 `.material_config` files, and B&W HUD/Menu icon).
 All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`).
 
+What each Miranda pack replaces: Clover and Bonnie cover the heist model, the
+menu model, *and* the Safe House (`*_chill`) model; Joy and Sydney cover the
+heist and menu models only, so their Safe House unit keeps the vanilla head.
+None of the nine head-replacement packs has been verified in game yet — the
+only in-game checklist in the repo is the LAS one,
+[`docs/pd2-las/in-game-checklist.md`](docs/pd2-las/in-game-checklist.md).
+Audit of this set: [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md).
+
 Both LAS lines follow the ModWorkshop Wiki
 [LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide).
 The tool trees stay separate by design; [`tools/README.md`](tools/README.md)
