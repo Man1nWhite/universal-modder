@@ -429,7 +429,6 @@ def _closed_chest_fixture(seam_x: float):
     ``seam_x`` duplicates the front-face vertices in that column so the split has
     to cope with coincident copies exactly as it does on the real mesh.
     """
-    import numpy as np
 
     verts: list[tuple[float, float, float]] = []
     for zi in range(6):

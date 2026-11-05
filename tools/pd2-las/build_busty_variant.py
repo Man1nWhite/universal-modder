@@ -106,16 +106,21 @@ def _rasterizer():
     return mod
 
 
-def _parts_from_group(verts, texture):
-    """A rasterizer part tuple for the body drawable from raw positions.
+def _model_parts(model_path: Path, texture, positions=None):
+    """A rasterizer part tuple for the g_body drawable of one .model.
 
-    Normals are rebuilt from the topology (the preview only needs a plausible
-    light response) and the triangle list is taken from the authored model, so
-    the before/after sheets share one camera and one topology.
+    Topology, UVs and (by default) positions come from the model file itself.
+    ``positions`` overrides the positions — used for the "before" side, where the
+    base pack's *own* model supplies the topology and no subdivision exists.
+
+    Passing the variant's triangle list with the base's shorter vertex array
+    does not work: the subdivided panels reference vertices the base does not
+    have, and drawing them against a padded array collapses them onto the
+    origin (the previews came out as barcodes).
     """
     import build_models as bm
 
-    mf = bm.dm.ModelFile.read_path(_LAST_MODEL)
+    mf = bm.dm.ModelFile.read_path(Path(model_path))
     for s in mf.by_type(bm.dm.MODEL_DATA):
         md = bm.dm.decode_model_data(s.payload)
         if md.get("version") != 3 or not md.get("atoms"):
@@ -125,13 +130,8 @@ def _parts_from_group(verts, texture):
         gp = bm.dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
         topo = bm.dm.decode_topology(mf.by_id(gp["topology"]).payload)
         geo = bm.dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
-        v = np.asarray(verts, np.float32)
+        v = np.asarray(positions if positions is not None else geo["verts"], np.float32)
         tris = np.asarray(topo["indices"], np.int32).reshape(-1, 3)
-        # the morph subdivides the chest, so the "before" group is shorter than
-        # the model's triangle list: its vertices are a prefix of the after
-        # positions, and the panels are identical away from the edit
-        if len(v) < int(tris.max()) + 1:
-            v = np.vstack([v, np.zeros((int(tris.max()) + 1 - len(v), 3), np.float32)])
         n = np.zeros_like(v)
         fn = np.cross(v[tris[:, 1]] - v[tris[:, 0]], v[tris[:, 2]] - v[tris[:, 0]])
         for k in range(3):
@@ -139,24 +139,19 @@ def _parts_from_group(verts, texture):
         ln = np.linalg.norm(n, axis=1, keepdims=True)
         n = n / np.maximum(ln, 1e-9)
         return [(v, n, tris, np.asarray(geo["uv0"], np.float32), texture, False, True)]
-    raise SystemExit("g_body drawable not found for the preview")
-
-
-_LAST_MODEL: Path | None = None
+    raise SystemExit(f"g_body drawable not found in {model_path}")
 
 
 def _render_sheets(before_verts, model_path: Path, unit_dir: Path,
-                   preview_dir: Path) -> list[str]:
+                   preview_dir: Path, base_model_path: Path | None = None) -> list[str]:
     """Before/after sheets: full body and close-up chest, same camera both sides."""
     from PIL import Image, ImageDraw
 
     rmp = _rasterizer()
     texture = np.asarray(
         Image.open(unit_dir / f"{IDENTITY.item_id}_body_df.texture").convert("RGBA"))
-    global _LAST_MODEL
-    _LAST_MODEL = model_path
-    after_parts = _body_parts(model_path, texture)
-    before_parts = _parts_from_group(before_verts, texture)
+    after_parts = _model_parts(model_path, texture)
+    before_parts = _model_parts(base_model_path, texture, positions=before_verts)
     written: list[str] = []
     preview_dir.mkdir(parents=True, exist_ok=True)
 
@@ -325,8 +320,9 @@ def build(args) -> int:
 
     # --- previews + report -------------------------------------------------
     if not args.no_previews:
-        report["previews"] = _render_sheets(before["body"], tpp_path, unit_dir,
-                                           out_root / "previews")
+        report["previews"] = _render_sheets(
+            before["body"], tpp_path, unit_dir, out_root / "previews",
+            base_model_path=out_root / "miranda.model")
     (out_root / "busty_variant_report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n")
 
