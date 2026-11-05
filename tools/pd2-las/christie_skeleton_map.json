@@ -1,9 +1,9 @@
 {
-  "comment": "Deform-bone mapping plan for the DOA5 Christie rig (MOT*/OPT_* names, models/plasmid/doa5/christie_c2.* in references/Christie.zip) -> PD2 LAS player skeleton (names as embedded in the 2B reference model). Unmapped source bones (OPT_AS_* pose helpers, WGT_* weights, OPT_Breast_*, Jacket_* skirt bones, hand roots/metacarpals) fold into the nearest mapped ancestor via _map_source_bone's parent walk. The head chain is mapped (Head/Neck) so the core fit stays upright, but no head geometry is transferred: the pack ships body-only and registers replace_body, not replace_all, so LAS keeps the heister's own head (the police-uniform style LAS contract).",
+  "comment": "Deform-bone mapping plan for the DOA5 Christie rig (MOT*/OPT_* names, models/plasmid/doa5/christie_c2.* in references/Christie.zip) -> PD2 LAS player skeleton (names as embedded in the 2B reference model). Unmapped source bones (OPT_AS_* pose helpers, WGT_* weights, OPT_Breast_*, Jacket_* skirt bones, hand roots/metacarpals) fold into the nearest mapped ancestor via _map_source_bone's parent walk. The head chain is mapped (Head/Neck) so the core fit stays upright, but no head geometry is transferred: the pack ships body-only and registers replace_body, not replace_all, so LAS keeps the heister's own head (the police-uniform style LAS contract). Chest maps to Spine1, not Spine2: measured joint deviation after retarget drops from 9.6 cm to 3.5 cm (and the arm chain improves 6.2 -> 5.3 cm), because DOA5's single chest bone sits at PD2's mid-spine height.",
   "map": {
     "MOT00_Hips": "Hips",
     "MOT16_Waist": "Spine",
-    "MOT02_Chest": "Spine2",
+    "MOT02_Chest": "Spine1",
     "MOT15_Neck": "Neck",
     "MOT01_Head": "Head",
     "MOT17_LeftShoulder": "LeftShoulder",

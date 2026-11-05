@@ -9,7 +9,8 @@ Outputs (in `dist/`):
 - `Christie_LAS_No_hands.zip`  — same outfit with the hands cut at the wrist,
   so the heister's in-game gloves (changeable, via the glove adapter compat
   hook) show through the sleeves; `--variant nohands`
-- `Christie_LAS_Slim.zip`      — 20% thinner in width/depth, height unchanged;
+- `Christie_LAS_Slim.zip`      — 10% thinner in width/depth, height unchanged,
+  hands cut at the wrist (glove adapter) — overrides the earlier 20% slim build;
   `--variant slim`
 
 Both are installable to `PAYDAY 2\\assets\\mod_overrides\\` with SuperBLT +
@@ -79,7 +80,7 @@ HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
 GLOVE_HOOK_SOURCE = "lib/tweak_data/blackmarkettweakdata"
 
 #: Horizontal (X/Y) scale for the slim variant; Z (height) is left untouched.
-SLIM_SCALE = 0.8
+SLIM_SCALE = 0.9
 
 
 @dataclass(frozen=True)
@@ -136,11 +137,12 @@ IDENTITIES = {
     "slim": Identity(
         item_id="christie_slim",
         pack_dir_name="Christie_LAS_Slim",
-        display_name="Christie (DOA5, slim)",
+        display_name="Christie (DOA5, slim, no hands)",
         description=("Christie from Dead or Alive 5, body-only LAS outfit scaled "
-                     f"{SLIM_SCALE:.0%} thinner in width and depth (height "
-                     "unchanged). No head — the heister keeps their own."),
-        glove_adapter=False,
+                     f"{(1 - SLIM_SCALE):.0%} thinner in width and depth (height "
+                     "unchanged), hands cut at the wrist so the in-game gloves "
+                     "show. No head — the heister keeps their own."),
+        glove_adapter=True,
     ),
 }
 
@@ -773,7 +775,8 @@ def main(argv=None) -> int:
     ap.add_argument("--variant", choices=sorted(IDENTITIES), default="base",
                     help="base = full body with hands; nohands = hands cut at the "
                          "wrist for in-game gloves (glove adapter hook shipped); "
-                         f"slim = {SLIM_SCALE:.0%} thinner in x/y, height unchanged")
+                         f"slim = {(1 - SLIM_SCALE):.0%} thinner in x/y, height "
+                         "unchanged, hands cut (glove adapter)")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
     ap.add_argument("--no-fps", dest="fps", action="store_false", default=True,

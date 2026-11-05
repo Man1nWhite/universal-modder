@@ -6,10 +6,12 @@
   `*_glove_adapter.lua` compat hook (default glove restored, adapter
   re-enabled) so the heister's changeable in-game gloves show through the
   sleeves.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 20% thinner in width and depth
-  (`--variant slim`): the retargeted body is scaled ×0.8 in X/Y about its own
-  vertical axis (normals inverse-transpose corrected), **Z/height untouched**;
-  applied before the fps extraction so the viewmodel arms match.
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 10% thinner in width and depth
+  **and no hands** (`--variant slim`, overrides the earlier 20% slim build):
+  the retargeted body is scaled ×0.9 in X/Y about its own vertical axis
+  (normals inverse-transpose corrected), **Z/height untouched**, then the hands
+  are cut at the wrist with the glove-adapter hook, applied before the fps
+  extraction so the viewmodel arms match.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
@@ -41,7 +43,9 @@ variants; `source_model.load_model` only reads each bodypart's first model and
 its VVD LOD0 count check then fails — 21,979 vs 18,359) → kept-material filter
 (`cri_body_base`, `cri_02_01/02/05_base`; everything head-carried dropped) →
 `build_models.retarget_maps` with `tools/pd2-las/christie_skeleton_map.json`
-(DOA `MOT*`/`OPT_Hand_*` bones → PD2 skeleton) → `transfer_group` (body +
+(DOA `MOT*`/`OPT_Hand_*` bones → PD2 skeleton; `MOT02_Chest` maps to **Spine1**,
+not Spine2 — measured joint deviation after retarget drops 9.6 → 3.5 cm and the
+arm chain improves 6.2 → 5.3 cm) → `transfer_group` (body +
 shadow) → `assemble_model(..., drop_drawables=("g_head", "g_head_lod1"))` →
 fps arms via `extract_bones(is_fps_arm_bone)` on the fps_2b template → VTF→DDS
 textures (bumpmap resolved from each VMT's `$bumpmap`, normals swizzled
