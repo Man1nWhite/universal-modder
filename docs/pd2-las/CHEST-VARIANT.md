@@ -178,6 +178,58 @@ test_shipped_busty_drawable_normals_are_unit_length` now pins the artifact, so a
 suite instead of shipping. Rebuild with `bash tools/pd2-las/bootstrap.sh` on a machine with node (it
 unpacks `references/2b.rar` for the templates).
 
+## The keyhole lip was folded inside out (2026-11-05)
+
+The neckline overhang at the sternum — the "keyhole lip", an open ~1 cm flap between the two cup
+rims — sits exactly in the gradient that weights the dome: 0.19 at `z = 146.0` falling to 0.008 by
+`z = 147.6`. Those 1.6 cm cut *through the flap's own thickness*, so the flap is sheared instead of
+translated. The stock mesh's coarse triangles survive that shear; the local subdivision does not.
+In the previously shipped `91dbd327…` bytes the lip carried 992 faces where the base carries 64,
+slivers down to 0.0019 cm² / 0.064 cm (base: 0.22 cm² / 0.50 cm), and **10 of them were inside
+out** — winding reversed against the bind pose, i.e. the surface had turned through itself. The
+30°/40°/45° chest views showed it as a crumpled, dark notch in the lip; the 0° view showed a hard
+edge where the fold ended.
+
+It survived the earlier normals rebuild because it is *geometric*, not shading: 25 faces disagreed
+with their winding, but only the 10 whose triangles had literally folded were the defect.
+
+**Fix:** `bust_variant.unfold_region()`, called from `ChestMorph.apply` after `keep_copies_together`
+and before `rebuild_normals`. It tests each face's winding against the bind pose (`inverted_faces`,
+a signed-area comparison — deliberately not a normal test, so the seven normal-only quirks the stock
+pack ships and the twelve coincident-shell faces are left alone), then **fairs** the offending
+welded vertices toward the mean of their neighbours, iterating until no face is inverted. Fairing
+slides the slivers along the surface instead of damping the displacement, so the sculpt stays where
+it was put.
+
+| | base `Miranda_LAS` | busty before (`91dbd327…`) | busty now (`d26b93e1…`) |
+|---|---|---|---|
+| `g_body` vertices / faces | 5,645 / 9,548 | 8,937 / 16,072 | 8,937 / 16,072 |
+| faces inverted against the bind pose | 0 | **10** | **0** |
+| faces whose normals disagree with their winding | 7 | 25 (18 in the lip) | 22 (15 in the lip) |
+| dihedral edges > 170° / > 175° | 2 / 2 | 7 / 4 | 4 / 3 |
+| lip-band faces / min area / min edge | 64 / 0.22 cm² / 0.50 cm | 992 / 0.0019 cm² / 0.064 cm | 992 / 0.0026 cm² / 0.073 cm |
+| vertices moved by the repair | — | — | 38 welded groups, max 2.23 mm, all within 6 cm of the midline |
+| `depth_gain_cm` / `front_y_max_cm` / `depth_over_wall_cm` | — | 3.23 / [19.98, 23.21] / [17.38, 20.61] | unchanged |
+| `width_cm` / `volume_proxy` | — | [25.47, 25.48] / 2,917.7 | [25.47, 25.48] / 2,917.8 |
+
+The 15 residual "normals disagree" faces inside the lip crease are sub-millimetre slivers
+(0.0026–0.108 cm², 0.83 cm² in total) whose *geometry* is valid — a 90° crease in a 1 cm flap cannot
+avoid some of them; the base pack's own seven are larger (up to 1.71 cm²). `s_body` tracks `g_body`
+exactly, the FPS arms are untouched, and two consecutive rebuilds are byte-identical.
+
+Three cheaper repairs were tried on this mesh and rejected on the rendered result — do not retry
+them: **damping the displacement** in the lip box (leaves a plateau and a 0.6 cm step where the
+plateau ends, and `smooth_region` then relaxes 51 vertices), **vetoing subdivision** in the lip
+(`in_keyhole_lip`; keeps the coarse plate, which stops following the grown chest, and leaves a
+blocky notch), and **widening the keyhole box** to `x ±4.2, z 145.0–148.6` (8 flips but an obvious
+silhouette step at 60–90°). All three are C0 discontinuities in a smooth field; fairing is not.
+
+Rendered evidence, regenerated from this build: `docs/previews/12_Miranda_Busty_LAS.png` (full-body
+four-angle + portrait + FPS arms) and `docs/previews/13_Miranda_Busty_vs_LAS_chest.png` (0°/30°/60°/90°
+chest close-ups, stock above, variant below). The builder's own sheets stay in
+`build/pd2-las/previews/` (`busty_compare_chest.png`, `busty_compare_top_bottom.png`,
+`busty_sculpt_clay.png`).
+
 ## Key lessons (do not repeat)
 
 1. **Do not re-run the base `Miranda_LAS` build.** `dist/Miranda_LAS.zip` is

@@ -8,7 +8,7 @@ built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 Deliverables in **`dist/`**:
 - `dist/Miranda_LAS.zip` (5,414,012 bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
 - `dist/lawson_las.zip` (9,123,392 bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
-- `dist/Miranda_Busty_LAS.zip` (5,815,197 bytes, sha256 `91dbd3271de478b2cbc76c170de8d81385e0188b59fbece9d79f941758d21a00`) — the same full-body LAS outfit with a
+- `dist/Miranda_Busty_LAS.zip` (5,815,206 bytes, sha256 `d26b93e1f223d93d17b80a6375e006e7144d45e935999f1a5769318ab315eab5`) — the same full-body LAS outfit with a
   **larger chest**; its own `LegendaryArmours.miranda_busty` entry, so it installs
   beside `Miranda_LAS.zip` instead of replacing it. Builder
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,

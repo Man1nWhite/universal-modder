@@ -243,7 +243,12 @@ def test_built_variant_model_matches_the_morph_and_leaves_the_rest_alone():
               for name, spec in bm.TPP_GROUPS.items()}
     before = {name: list(g.verts) for name, g in groups.items()}
     morph = bv.ChestMorph()
-    bv.morph_groups(groups, morph, log=lambda *a: None)
+    report = bv.morph_groups(groups, morph, log=lambda *a: None)
+    # the lip repair runs on every drawable and must finish the job: the shipped
+    # mesh's only geometric defect was the folded keyhole lip, not a lighting quirk
+    for drawable in ("body", "shadow"):
+        assert report["drawables"][drawable]["faces_inverted"] == 0, drawable
+    assert report["drawables"]["body"]["vertices_faired"] > 0
 
     import numpy as np
 
@@ -491,6 +496,79 @@ def _fixture_group(verts, faces, normals):
     g.mat_slots = ["miranda_body"]
     g.palette = ["ValveBiped.Bip01_Spine2"]
     return g
+
+
+def _lip_grid(n=7, step=0.25):
+    """A flat n x n patch standing in for the keyhole lip (faces point at -y).
+
+    Returns the vertices, the triangle list and the centre vertex — the one to fold.
+    """
+    verts = [(-2.0 + i * step, 17.0, 146.0 + j * step)
+             for j in range(n) for i in range(n)]
+    faces: list[tuple[int, int, int]] = []
+    for j in range(n - 1):
+        for i in range(n - 1):
+            a = j * n + i
+            faces.append((a, a + 1, a + 1 + n))
+            faces.append((a, a + 1 + n, a + n))
+    return verts, faces, (n // 2) * n + n // 2
+
+
+def test_inverted_faces_reports_winding_not_shading():
+    """The fold test has to look at geometry: the stock pack ships normal-only quirks.
+
+    `dist/Miranda_LAS.zip` already has seven faces whose stored normals disagree with
+    their winding and twelve "normal opposes all three neighbours" faces on coincident
+    shells. Neither is a fold — the surface never turns through itself — so the repair
+    must not fire on them, or it would drag clean topology around for nothing.
+    """
+    verts, faces, c = _lip_grid()
+    origin = [tuple(v) for v in verts]
+    # disagreeing stored normals alone are not a fold
+    g = _fixture_group(verts, faces, [(0.0, 1.0, 0.0)] * len(verts))
+    assert bv.inverted_faces(g.verts, g.faces, origin) == []
+    # sliding a vertex across its neighbour's edge folds the faces around it inside out;
+    # that is the shape the subdivided lip produced (0.002-0.1 cm2 slivers, 20 of them)
+    g.verts[c] = (g.verts[c][0], g.verts[c][1], g.verts[c][2] - 0.3)
+    bad = bv.inverted_faces(g.verts, g.faces, origin)
+    assert bad, "a 0.3 cm fold across a 0.25 cm patch has to be caught"
+    assert all(c in face for face in bad)
+
+
+def test_unfold_region_repairs_a_folded_patch_and_stays_local():
+    """The repair fair-instead-of-damping: the patch comes back flat, nothing else moves."""
+    verts, faces, c = _lip_grid()
+    g = _fixture_group(verts, faces, [(0.0, -1.0, 0.0)] * len(verts))
+    origin = list(g.verts)
+    g.verts[c] = (g.verts[c][0], g.verts[c][1], g.verts[c][2] - 0.3)
+    assert bv.inverted_faces(g.verts, g.faces, origin)
+
+    assert bv.unfold_region(g, origin) > 0
+    assert bv.inverted_faces(g.verts, g.faces, origin) == []
+    # the loop stops as soon as the winding is valid again, so the vertex lands back on the
+    # right side of its neighbour's edge rather than exactly where it started
+    assert g.verts[c][2] > 146.25, "the folded vertex has to come back across the edge"
+    assert abs(g.verts[c][2] - 146.5) < 0.3
+    # three rings out the patch is untouched, so the sculpt is preserved away from the fold
+    n = int(len(verts) ** 0.5)
+    for corner in (0, n - 1, len(verts) - n, len(verts) - 1):
+        assert g.verts[corner] == origin[corner]
+
+
+def test_unfold_region_is_deterministic_and_leaves_a_clean_patch_alone():
+    verts, faces, c = _lip_grid()
+    origin = [tuple(v) for v in verts]
+    clean = _fixture_group(verts, faces, [(0.0, -1.0, 0.0)] * len(verts))
+    assert bv.unfold_region(clean, origin) == 0
+    assert clean.verts == origin
+
+    results = []
+    for _ in range(2):
+        g = _fixture_group(verts, faces, [(0.0, -1.0, 0.0)] * len(verts))
+        g.verts[c] = (g.verts[c][0], g.verts[c][1], g.verts[c][2] - 0.3)
+        bv.unfold_region(g, origin)
+        results.append(list(g.verts))
+    assert results[0] == results[1], "the repair has to be byte-stable across runs"
 
 
 def test_subdivision_keeps_the_chest_watertight():

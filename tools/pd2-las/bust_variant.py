@@ -409,8 +409,15 @@ class ChestMorph:
 
     # ------------------------------------------------------------------ apply
     def apply(self, group, materials=("miranda_body",), subdivide: bool = True,
-              label: str | None = None, log=None) -> int:
-        """Subdivide, displace, normal-project fair, and re-shade one group."""
+              label: str | None = None, log=None, stats: dict | None = None) -> int:
+        """Subdivide, displace, normal-project fair, unfold, and re-shade one group.
+
+        ``stats``, when given, receives the repair counters (``vertices_faired`` and
+        ``faces_inverted``) so callers can report or assert on them.
+        """
+        if stats is not None:
+            stats.setdefault("vertices_faired", 0)
+            stats.setdefault("faces_inverted", 0)
         if subdivide and self.subdivisions and getattr(group, "faces", None):
             added = subdivide_region(group, self, levels=self.subdivisions,
                                      materials=materials)
@@ -424,6 +431,16 @@ class ChestMorph:
                           self.smooth_strength, origin=origin,
                           materials=materials)
             keep_copies_together(group, origin)
+            folds = unfold_region(group, origin)
+            if stats is not None or log:
+                left = len(inverted_faces(group.verts, group.faces, origin))
+                if stats is not None:
+                    stats["vertices_faired"] = folds
+                    stats["faces_inverted"] = left
+                if log and folds:
+                    log(f"[bust] {label or group.name}: faired {folds} vertices "
+                        f"that folded the keyhole lip"
+                        + (f" ({left} faces still inverted)" if left else ""))
             rebuild_normals(group, self, materials=materials)
         return moved
 
@@ -699,6 +716,122 @@ def keep_copies_together(group, origin) -> int:
 
 # ------------------------------------------------------------------ relaxing
 
+def _tri_normal(verts, tri) -> tuple[float, float, float]:
+    """Un-normalised face normal (its length is twice the triangle area)."""
+    ax, ay, az = verts[tri[0]]
+    bx, by, bz = verts[tri[1]]
+    cx, cy, cz = verts[tri[2]]
+    e1x, e1y, e1z = bx - ax, by - ay, bz - az
+    e2x, e2y, e2z = cx - ax, cy - ay, cz - az
+    return (e1y * e2z - e1z * e2y,
+            e1z * e2x - e1x * e2z,
+            e1x * e2y - e1y * e2x)
+
+
+def _dot(a, b) -> float:
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _length(a) -> float:
+    return math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+
+
+def inverted_faces(verts, faces, origin) -> list[tuple[int, int, int]]:
+    """Faces whose winding the morph reversed relative to ``origin``.
+
+    A geometric sign test, not a shading one: a face whose vertex normals disagree with its
+    winding is only a lighting artefact (the stock base mesh ships seven of those), but a
+    face whose *orientation* flipped is a fold — the surface turned through itself.
+    """
+    bad = []
+    for tri in faces:
+        n0 = _tri_normal(origin, tri)
+        n1 = _tri_normal(verts, tri)
+        if _length(n0) <= 1e-12 or _length(n1) <= 1e-12:
+            continue
+        if _dot(n0, n1) < 0.0:
+            bad.append(tri)
+    return bad
+
+
+def unfold_region(group, origin, rounds: int = 8, strength: float = 0.5) -> int:
+    """Fair away the micro-triangles the morph folded through themselves.
+
+    The keyhole flap over the sternum is a thin (~1 cm) open overhang that sits exactly on
+    the cup's upper rim, where the dome weight falls from 0.19 to 0.008 between ``z = 146.0``
+    and ``z = 147.6`` — a gradient that runs *inside the flap's own thickness*. The base
+    mesh's coarse triangles survive that shear, but the local subdivision cuts the lip into
+    0.002–0.1 cm² slivers and 20 of them came out inside out (signed area negative against
+    the bind pose), which reads as a crumpled, dark lip in the 30°/40° views.
+
+    Two cheaper repairs were tried and rejected on the rendered result: damping the
+    displacement (leaves a plateau and a 0.5 cm step where the plateau ends) and keeping the
+    lip's coarse triangles (leaves a low-poly plate that does not follow the grown chest).
+    Fairing instead keeps the surface where the sculpt put it and only slides the offending
+    welded vertices toward the mean of their neighbours — the same operation the main fairing
+    uses — so the fold is ironed out without a dent or a step. Iterates until no face has
+    reversed; returns the number of welded vertex groups touched.
+    """
+    faces = getattr(group, "faces", None)
+    verts = group.verts
+    if not faces or not origin or len(origin) != len(verts):
+        return 0
+    weld = _weld_keys(verts)
+    members: dict[int, list[int]] = {}
+    for i, wid in weld.items():
+        members.setdefault(wid, []).append(i)
+    neighbours: dict[int, set[int]] = {}
+    for tri in faces:
+        for vi in tri:
+            slot = neighbours.setdefault(weld[vi], set())
+            for other in tri:
+                nw = weld[other]
+                if nw != weld[vi]:
+                    slot.add(nw)
+
+    touched: set[int] = set()
+    for _ in range(rounds):
+        bad = inverted_faces(verts, faces, origin)
+        if not bad:
+            break
+        zone: set[int] = set()
+        for tri in bad:
+            for vi in tri:
+                wid = weld[vi]
+                zone.add(wid)
+                zone |= neighbours.get(wid, set())
+        moved: dict[int, tuple[float, float, float]] = {}
+        for wid in zone:
+            nb = neighbours.get(wid)
+            if not nb:
+                continue
+            ax = ay = az = 0.0
+            count = 0
+            for other in nb:
+                j = members[other][0]
+                ox, oy, oz = verts[j]
+                ax += ox
+                ay += oy
+                az += oz
+                count += 1
+            if not count:
+                continue
+            ax /= count
+            ay /= count
+            az /= count
+            i0 = members[wid][0]
+            px, py, pz = verts[i0]
+            moved[wid] = (px + (ax - px) * strength,
+                          py + (ay - py) * strength,
+                          pz + (az - pz) * strength)
+        for wid, point in moved.items():
+            for i in members[wid]:
+                verts[i] = point
+            touched.add(wid)
+    return len(touched)
+
+# ------------------------------------------------------------------ relaxing
+
 def _welded_normals(verts, faces, weld: dict[int, int],
                     allowed: set[int] | None = None) -> dict[int, tuple[float, float, float]]:
     """Area-weighted unit normals per welded vertex id."""
@@ -954,11 +1087,13 @@ def morph_groups(groups: dict, morph: ChestMorph | None = None,
         if name not in ("body", "shadow"):
             continue
         before = len(group.verts)
-        moved = morph.apply(group, label=name, log=log)
+        stats: dict = {}
+        moved = morph.apply(group, label=name, log=log, stats=stats)
         report["drawables"][name] = {
             "vertices_moved": moved,
             "vertices_total": len(group.verts),
             "vertices_added": len(group.verts) - before,
+            **stats,
         }
         log(f"[bust] group {name}: {moved} of {len(group.verts)} vertices moved")
     return report

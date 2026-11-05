@@ -59,7 +59,7 @@ verified invariants, dead ends).
   `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (8 packages).
 - **Geralt of Rivia** (built from `models/Geralt.7z`, Witcher 3 L4D2 port) over **Rust (`npc_criminal_wild_1`)**:
   `dist/Geralt_over_Rust.zip` (2-atom `mtr_head` + `ALPHA_MASKED` `mtr_hair` setup with `2048x2048` face/eyes/teeth and hair/beard/eyelashes atlases, heist + menu `.model`, 3 `.material_config` files, and B&W HUD/Menu icon).
-All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`).
+All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`, plus `12_Miranda_Busty_LAS.png` and its `13_Miranda_Busty_vs_LAS_chest.png` before/after close-up).
 
 What each Miranda pack replaces: Clover and Bonnie cover the heist model, the
 menu model, *and* the Safe House (`*_chill`) model; Joy and Sydney cover the

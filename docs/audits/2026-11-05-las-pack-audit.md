@@ -74,9 +74,35 @@ Both packs: 20 entries, every entry timestamp `2020-01-01 00:00:00`, sidecars co
    27 skipped** (before this sweep it was 525 passed + 1 failed, 27 skipped); without them 508 passed,
    45 skipped.
 
+3. **`dist/Miranda_Busty_LAS.zip`: the keyhole lip was folded inside out.** The neckline flap over the
+   sternum sits in the 0.19 → 0.008 dome-weight gradient (`z = 146.0 … 147.6`), so the morph shears it
+   through its own 1 cm thickness. The local subdivision cut it into 992 faces (the stock mesh has 64
+   there) with slivers down to 0.0019 cm² / 0.064 cm, and **10 of them had their winding reversed
+   against the bind pose** — real folds, visible as a crumpled notch in the 30–45° chest views and a
+   hard edge at 0°. The earlier normals rebuild missed it because it is geometric: 25 faces disagreed
+   with their winding, but only the 10 whose triangles had turned through themselves were the defect.
+
+   Fixed in `bust_variant.unfold_region()` (fairing of the folded vertices toward their neighbours'
+   mean, iterated until no face is inverted) and rebuilt:
+
+   | | before (`91dbd327…`, 5,815,197 B) | after (`d26b93e1…`, 5,815,206 B) |
+   | --- | --- | --- |
+   | `g_body` faces inverted against the bind pose | **10** | **0** |
+   | faces whose normals disagree with their winding | 25 (18 in the lip) | 22 (15 in the lip) |
+   | dihedral edges > 170° / > 175° | 7 / 4 | 4 / 3 |
+   | vertices moved by the repair | — | 38, max 2.23 mm |
+   | `volume_proxy` / `depth_gain_cm` / `width_cm` | 2,917.7 / 3.23 / [25.47, 25.48] | 2,917.8 / 3.23 / [25.47, 25.48] |
+
+   Damping the displacement, vetoing the lip's subdivision and widening the keyhole box were all tried
+   and rejected on the rendered result (each leaves a C0 step in a smooth surface); the numbers and the
+   reasoning are in `docs/pd2-las/CHEST-VARIANT.md`. Rebuilds are deterministic (the same bytes come
+   back every run), and `tests/test_bust_variant.py` pins `faces_inverted == 0` on the geometry path
+   plus a unit test per half of the repair, so the fold cannot come back unnoticed. New preview sheets:
+   `docs/previews/12_Miranda_Busty_LAS.png` and `13_Miranda_Busty_vs_LAS_chest.png`.
+
 ## Found, deliberately left
 
-3. **Every authored `.model` carries its MATERIAL / MATERIAL_GROUP sections twice.** In
+4. **Every authored `.model` carries its MATERIAL / MATERIAL_GROUP sections twice.** In
    `build_models.py` the authored material sections are collected into `new_mat_secs` and inserted before
    the object tree, but `flush_groups()` then emits `group_secs[gname]` *in full*, and each of those lists
    already starts with the same MATERIAL / MATERIAL_GROUP sections. The result is pairs of sections with
