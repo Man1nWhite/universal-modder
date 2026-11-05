@@ -35,6 +35,26 @@ DECOMP_PATTERNS = [
     ("IDA auto-name", re.compile(r"\b(?:sub|loc|unk|off|dword|qword)_[0-9A-F]{5,}\b")),
     ("decompiler header", re.compile(r"^\s*(?://|#|--|;)\s*(?:Decompiled with|Decompiler:|ILSpy|dnSpy|JetBrains decompiler)|^#region Assembly ", re.I | re.M)),
 ]
+# A home directory that names a real user, as opposed to the placeholders every "where the game keeps
+# its saves" README carries. `C:\Users\<you>`, `%USERPROFILE%` and `$HOME` are not leaks, and flagging
+# them teaches people to ignore the check; `kb check` already skipped `<...>` while this did not. The
+# Unix prefixes are assembled from parts so that this file does not match its own rule.
+_USER_ROOTS = ("/home/", "/Users/")
+USER_PATH_RE = re.compile(
+    r"[A-Za-z]:\\Users\\([^\\\s\"'`]+)" + "".join(rf"|{re.escape(p)}([^/\s\"'`]+)/" for p in _USER_ROOTS)
+)
+PLACEHOLDER_RE = re.compile(r"^(?:<[^>]*>|%[^%]+%|\$\{?\w+\}?|\{[^}]*\})$")
+
+
+def user_path(text: str) -> str | None:
+    """The first home-directory path in `text` that names an actual user, or None (placeholders skipped)."""
+    for m in USER_PATH_RE.finditer(text):
+        name = next(g for g in m.groups() if g)
+        if not PLACEHOLDER_RE.match(name):
+            return m.group(0)
+    return None
+
+
 CODE_EXT = {".cs", ".c", ".cpp", ".h", ".hpp", ".py", ".lua", ".js", ".ts", ".rs", ".java", ".kt", ".gd", ".rpy", ".psc", ".gml",
             ".hlsl", ".glsl", ".as", ".vb", ".il"}
 SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache", "obj", ".vs", ".idea"}
@@ -99,8 +119,8 @@ def check(mod: str, game: str | None = None) -> int:
                 m = rx.findall(txt)
                 if m:
                     warns.append(f"{label} x{len(m)} in {rel} (e.g. {m[0].strip()!r})")
-            if re.search(r"[A-Z]:\\Users\\[^\\\s\"']+|/home/[a-z_][a-z0-9_-]*/|/Users/[A-Za-z]+/", txt):
-                warns.append(f"absolute user path in {rel}")
+            if found := user_path(txt):
+                warns.append(f"absolute user path in {rel} (e.g. {found!r})")
     names = {f.name.lower() for f in files}
     if not any(n.startswith("readme") for n in names):
         warns.append("no README (install steps, requirements, credits)")

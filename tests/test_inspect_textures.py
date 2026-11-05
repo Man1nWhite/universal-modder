@@ -9,6 +9,7 @@ MDL always names a `phy` "material" that is not drawable.
 """
 from __future__ import annotations
 
+import json
 import struct
 import sys
 import zipfile
@@ -26,7 +27,11 @@ from test_gma import build_gma  # noqa: E402
 
 # --------------------------------------------------------------------- VTF
 
-def _vtf(width=8, height=8, mips=4) -> bytes:
+#: bytes per pixel for the uncompressed VTF formats the fixture can build.
+_BPP_BYTES = {0: 4, 12: 4, 16: 4, 2: 3, 3: 3, 6: 2, 5: 1, 8: 1}
+
+
+def _vtf(width=8, height=8, mips=4, fmt=12, depth=1) -> bytes:
     """A minimal VTF 7.4 holding one uncompressed BGRA8888 mip chain.
 
     DXT would be more realistic but needs a block encoder; the header layout and
@@ -42,20 +47,21 @@ def _vtf(width=8, height=8, mips=4) -> bytes:
     struct.pack_into("<I", data, 20, 0x0004)        # flags: 8-bit alpha
     struct.pack_into("<HH", data, 24, 1, 0)         # frames, first frame
     struct.pack_into("<f", data, 48, 1.0)           # bumpmap scale
-    struct.pack_into("<I", data, 52, 12)            # RGBA8888... see note below
+    struct.pack_into("<I", data, 52, fmt)           # 12 = BGRA8888 by default
     data[56] = mips
     struct.pack_into("<I", data, 57, 0xFFFFFFFF)    # low-res format: none
     data[61] = data[62] = 0                          # low-res size: none
-    struct.pack_into("<H", data, 63, 1)              # depth
+    struct.pack_into("<H", data, 63, depth)          # depth (7.3+)
     # resource dictionary: one IMAGE entry (tag 0x30) pointing past the header
     data[80:83] = (0x30).to_bytes(3, "little")
     data[83] = 0
     struct.pack_into("<I", data, 84, header_size)
+    bpp = _BPP_BYTES[fmt]
     for _ in range(mips):
-        for y in range(height):
+        for _y in range(height):
             for x in range(width):
                 # B, G, R, A - a recognisable ramp in R so a decode is provable
-                data += bytes((0, 0, (x * 31) % 256, 255))
+                data += bytes((0, 0, (x * 31) % 256, 255))[:bpp]
         width, height = max(1, width // 2), max(1, height // 2)
     return bytes(data)
 
@@ -75,6 +81,46 @@ def test_a_truncated_vtf_is_reported_not_crashed():
     broken = _vtf()[:-16]
     report = itx._decodes(broken)
     assert report is False
+
+
+def test_dds_pitch_is_a_scanline_not_the_whole_image():
+    """A DDS reader steps rows by dwPitchOrLinearSize; the image size is wrong."""
+    import vtf as vtfmod
+
+    dds = vtfmod.to_dds(vtfmod.parse_vtf(_vtf(16, 4, mips=3)))
+    (pitch,) = struct.unpack_from("<I", dds, 20)
+    assert pitch == 16 * 4  # 16 px x 4 B (BGRA8888)
+
+
+def test_alpha_and_luminance_formats_get_their_own_pixel_format_flags():
+    import vtf as vtfmod
+
+    for fmt, expected in ((8, vtfmod.DDPF_ALPHA), (5, vtfmod.DDPF_LUMINANCE)):
+        dds = vtfmod.to_dds(vtfmod.parse_vtf(_vtf(fmt=fmt)))
+        (pf_flags,) = struct.unpack_from("<I", dds, 80)  # DDS_PIXELFORMAT.dwFlags
+        assert pf_flags == expected, fmt
+
+
+def test_bgrx_is_not_labelled_as_having_alpha():
+    import vtf as vtfmod
+
+    dds = vtfmod.to_dds(vtfmod.parse_vtf(_vtf(fmt=16)))
+    (pf_flags,) = struct.unpack_from("<I", dds, 80)
+    assert pf_flags & vtfmod.DDPF_ALPHAPIXELS == 0
+
+
+def test_a_volumetric_vtf_is_refused_rather_than_half_converted():
+    import vtf as vtfmod
+
+    with pytest.raises(vtfmod.VtfError, match="volumetric"):
+        vtfmod.parse_vtf(_vtf(depth=4))
+
+
+def test_a_header_too_short_to_hold_depth_is_a_clean_error():
+    import vtf as vtfmod
+
+    with pytest.raises(vtfmod.VtfError, match="truncated VTF header"):
+        vtfmod.parse_vtf(b"VTF\x00" + b"\x07\x00\x00\x00" + b"\x00" * 8)
 
 
 # ------------------------------------------------------------------ VMT text
@@ -153,6 +199,84 @@ def test_zip_with_one_gma_inside_is_opened_without_unpacking(tmp_path):
     assert c.has("materials/models/x/body.vmt")
     assert c.read("materials/models/x/body.vmt") == VMT_BODY
     assert c.name.endswith("addon.gma")
+
+
+# ------------------------------------------------- folder and wrapper layouts
+
+def test_an_unpacked_addon_folder_is_a_container(tmp_path):
+    """A GMod addon on disk is a folder, not only a `.gma`."""
+    root = tmp_path / "addons" / "myaddon"
+    (root / "materials/models/x").mkdir(parents=True)
+    (root / "materials/models/x/body.vmt").write_bytes(VMT_BODY)
+    (root / "materials/models/x/body_color.vtf").write_bytes(_vtf())
+    container = itx.open_container(root)
+    rep = itx.resolve_texture(container, "materials/models/x/body.vmt")
+    assert rep.present and rep.decodes
+    assert rep.vtf_path == "materials/models/x/body_color.vtf"
+
+
+def test_a_content_root_is_not_mistaken_for_a_wrapper_folder(tmp_path):
+    """`materials/` is where an addon lives, so it must not be stripped away."""
+    (tmp_path / "materials/models").mkdir(parents=True)
+    (tmp_path / "materials/models/body.vmt").write_bytes(VMT_BODY)
+    container = itx.open_container(tmp_path)
+    assert container.has("materials/models/body.vmt")
+
+
+def test_a_zip_wrapping_the_addon_in_one_folder_still_resolves(tmp_path):
+    """Zips of a folder addon nest every path one level too deep."""
+    zpath = tmp_path / "addon.zip"
+    with zipfile.ZipFile(zpath, "w") as zf:
+        zf.writestr("MyAddon/materials/models/x/body.vmt", VMT_BODY)
+        zf.writestr("MyAddon/materials/models/x/body_color.vtf", _vtf())
+    container = itx.open_container(zpath)
+    assert container.has("materials/models/x/body.vmt")
+    assert itx.resolve_texture(container, "materials/models/x/body.vmt").present is True
+
+
+def test_addoninfo_names_what_the_addon_claims_to_be(tmp_path):
+    (tmp_path / "addoninfo.txt").write_bytes(
+        b'"AddonInfo"\n{\n\t"name"\t\t"Geralt"\n\t"type"\t\t"model"\n'
+        b'\t"tags"\t\t"fun"\n\t"tags"\t\t"scenic"\n}\n'
+    )
+    assert itx.open_container(tmp_path).meta == {
+        "name": "Geralt",
+        "type": "model",
+        "tags": ["fun", "scenic"],
+    }
+
+
+def test_the_legacy_valve_addoninfo_spelling_is_understood(tmp_path):
+    """L4D2-era addons say AddonTitle/AddonDescription, not name/description."""
+    (tmp_path / "addoninfo.txt").write_bytes(
+        b'"AddonInfo"\n{\n\tAddonTitle "Geralt"\n\tAddonDescription "A model."\n'
+        b'\tAddonAuthor "Frances"\n}\n'
+    )
+    meta = itx.open_container(tmp_path).meta
+    assert (meta["name"], meta["description"]) == ("Geralt", "A model.")
+    assert meta["author"] == "Frances"
+
+
+def test_addon_json_is_read_when_there_is_no_addoninfo(tmp_path):
+    (tmp_path / "addon.json").write_text(
+        json.dumps({"title": "X", "type": "model", "tags": ["fun"]})
+    )
+    assert itx.open_container(tmp_path).meta == {
+        "name": "X",
+        "type": "model",
+        "tags": ["fun"],
+    }
+
+
+def test_a_missing_png_decoder_is_not_reported_as_a_broken_texture(monkeypatch):
+    """No Pillow means "not checked", never "this texture is bad"."""
+    import vtf as vtfmod
+
+    def no_pillow(_img):
+        raise ImportError("No module named 'PIL'")
+
+    monkeypatch.setattr(vtfmod, "to_png", no_pillow)
+    assert itx._decodes(_vtf()) is None
 
 
 SOURCE_PACK = (

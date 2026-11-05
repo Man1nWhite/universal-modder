@@ -99,10 +99,8 @@ def m_no_depth_scaling(files):
 def m_mip0_only_texture(files):
     """T1: a texture with only mip 0 (the old mip-0-only bug)."""
     data = files[NM_TEXTURE]
-    size = int.from_bytes(data[12:16], "little")
     mip0 = data[dds.DDS_HEADER_SIZE:]
     truncated = bytearray(data[:dds.DDS_HEADER_SIZE]) + mip0
-    struct_pack = truncated[4:8]
     truncated[4:8] = (len(truncated) - 4).to_bytes(4, "little")
     truncated[28:32] = (0).to_bytes(4, "little")          # dwMipMapCount = 0
     truncated[80:84] = (0x00081007).to_bytes(4, "little")  # vanilla-ish flags

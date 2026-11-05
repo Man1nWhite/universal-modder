@@ -34,6 +34,30 @@ def engine_of(tmp_path, files):
     return hits[0][0], hits[0][3]
 
 
+def test_every_engine_playbook_exists():
+    # `um scan` prints "read <x>.md" from ENGINES; a renamed or deleted playbook would send the agent
+    # to a file that is not there, and nothing else notices (kb check only validates note front matter).
+    import pathlib
+    engdir = pathlib.Path(__file__).resolve().parents[1] / "skills" / "mod-any-game" / "references" / "engines"
+    missing = sorted({pb for _, pb, _ in scan.ENGINES.values() if not (engdir / pb).exists()})
+    assert not missing, f"um scan points at playbooks that do not exist: {missing}"
+
+
+def test_diesel_payday2(tmp_path):
+    key, _ = engine_of(tmp_path, {
+        "payday2_win32_release.exe": b"MZ",
+        "assets/dlc/pd2_dlc1/pd2_dlc1.bundle": b"DODB",
+    })
+    assert key == "diesel"
+
+
+def test_diesel_matches_the_asset_tree_without_the_exe(tmp_path):
+    # a dedicated-server or stripped copy has no game exe; the bundle tree is still unmistakable
+    make(tmp_path, {"assets/dlc/pd2_dlc1/pd2_dlc1.bundle": b"DODB"})
+    hits, _ = scan.detect(scan.Index(tmp_path))
+    assert hits[0][0] == "diesel" and hits[0][1] == 80 and "note" in hits[0][3]
+
+
 def test_unity_mono_and_version(tmp_path):
     key, det = engine_of(tmp_path, {
         "UnityPlayer.dll": b"MZ", "Game_Data/Managed/Assembly-CSharp.dll": b"MZ",
@@ -734,6 +758,21 @@ def test_publish_check(tmp_path, capsys):
     assert "decompiler header x1 in src/Mod.cs" in normalized and "README.md" not in normalized.split("decompiler header")[-1].split("\n")[0]
 
 
+def test_publish_check_ignores_path_placeholders(tmp_path, capsys):
+    # "where the game keeps saves" text is not a leaked home directory: placeholders and bare grep
+    # fragments were warned about, which taught everyone to ignore the one warning that matters.
+    make(tmp_path / "mod", {"README.md": "Saves live in `C:\\Users\\<user>\\Zomboid`, or `%USERPROFILE%`.\n"
+                                         "On Linux: `/home/<you>/.local/share`. Grep for `C:\\Users\\`.\n"})
+    assert publish.check(str(tmp_path / "mod")) == 0
+    assert "absolute user path" not in capsys.readouterr().out
+
+    leak = "/home/" + "alice/"                       # assembled so this file passes `um publish check`
+    (tmp_path / "mod" / "notes.txt").write_text(f"built in {leak}payday2\n")
+    assert publish.check(str(tmp_path / "mod")) == 0            # a warning, not a failure
+    out = capsys.readouterr().out
+    assert f"absolute user path in notes.txt (e.g. {leak!r})" in out
+
+
 def test_publish_check_mod_inside_game(tmp_path, capsys):
     # a Dwarf Fortress mod in <install>/mods/<name> matched itself: every file "game file copied verbatim"
     game, mod = tmp_path / "game", tmp_path / "game" / "mods" / "mine"
@@ -780,7 +819,7 @@ def test_video_theme_font_override(tmp_path):
 @pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
 def test_compile_small_edl(tmp_path):
     for i, color in enumerate(["red", "blue"]):
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", f"testsrc2=s=640x360:d=3:r=30", "-f", "lavfi", "-i", "sine=f=440:d=3",
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=s=640x360:d=3:r=30", "-f", "lavfi", "-i", "sine=f=440:d=3",
                         "-shortest", str(tmp_path / f"c{i}.mp4")], check=True)
     edl = {"size": [640, 360], "fps": 30, "bpm": 120, "beat_lock": True, "transition": {"type": "cut"},
            "segments": [{"clip": "c0.mp4", "in": 0, "beats": 4, "hook": "Hello"},

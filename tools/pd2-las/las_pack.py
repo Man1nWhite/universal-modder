@@ -70,17 +70,6 @@ BASE_IDENTITY = PackIdentity(ITEM_ID, DISPLAY_NAME, DESCRIPTION,
                              pack_dir_name=PACK_DIR_NAME, category=CATEGORY,
                              unit_base=UNIT_BASE, gui_base=GUI_BASE)
 
-# Source material -> pack texture bases (df/nm pairs, BeardLib `df_nm` naming).
-# The L4D2 `miranda_hair` material reuses the head textures; eyeballs use the
-# iris map `miranda_eyes` (EyeRefract in Source; plain DIFFUSE here).
-TEXTURE_PAIRS = {
-    "body": ("miranda_body_df", "miranda_body_nm"),
-    "face": ("miranda_face_df", "miranda_face_nm"),
-    "head": ("miranda_head_df", "miranda_head_nm"),
-}
-SINGLE_TEXTURES = {
-    "eyes": "miranda_eyes",
-}
 
 FLAG_KEYS = (
     "hide_mask",

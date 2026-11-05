@@ -67,6 +67,16 @@ RADIUS_X_OUT = 7.00
 #: below ``HEAD_Z = 152.0`` and gentle across the ``z ≈ 146.2`` collar lip).
 RADIUS_Z_UP = 8.85
 RADIUS_Z_DOWN = 6.16
+#: Lateral band-limit of the forward push across the placket hem (cm).
+HEM_BLEND_X = 0.9
+#: Vertical (z) band-limit of the same push. The hem is a *horizontal* fold and the field
+#: collapses across it (dy falls ~0.55 cm per cm of z between 145 and 148), which is what
+#: shears the fold; averaging across z keeps the two faces moving together.
+HEM_BLEND_Z = 1.2
+#: Second, wider lateral tap for the same hem, used only over |x| in `HEM_WIDE_BAND`: the end of
+#: the hem is where the field is steepest in x, and 0.9 cm of smoothing cannot reach across it.
+HEM_WIDE_X = 2.1
+HEM_WIDE_BAND = (6.8, 10.4)
 SOFT_SCALE = 1.12
 SOFT_WEIGHT = 0.24
 SOFT_POWER = 1.85
@@ -262,7 +272,7 @@ class ChestMorph:
                 best = max(best, (1.0 - (u ** CUP_P_X)) ** 1.5)
         return best
 
-    def _root_bells(self, x: float, y: float, z: float) -> tuple[float, float]:
+    def _root_bells(self, x: float, y: float, z: float) -> float:
         """Posterior/lateral breast-root bell for parts closer to the spine.
 
         Targets the lateral & posterior breast root (``y ≈ 5.3..18.5``,
@@ -274,16 +284,63 @@ class ChestMorph:
         rz = RADIUS_Z_UP if z > APEX_Z else RADIUS_Z_DOWN
         wz = abs(z - APEX_Z) / rz
         if wz >= 1.0:
-            return (0.0, 0.0)
+            return 0.0
         z_bell = (1.0 - (wz ** 2.4)) ** 1.85
 
         y_side = smootherstep((y - 5.3) / 3.5) * (1.0 - smootherstep((y - 14.5) / 4.2))
         x_side = smootherstep((abs(x) - 5.8) / 3.6) * smootherstep((13.4 - abs(x)) / 1.4)
-        side_root = y_side * x_side * z_bell
-        return (side_root, 0.0)
+        return y_side * x_side * z_bell
 
     def displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
-        """Bind-pose displacement ``(dx, dy, dz)`` for a vertex at ``(x, y, z)`` (cm)."""
+        """Bind-pose displacement ``(dx, dy, dz)`` for a vertex at ``(x, y, z)`` (cm).
+
+        Forward motion is *band-limited* wherever the raw field would shear a modelled
+        crease apart, in three places:
+
+        * laterally across the placket hem (``HEM_BLEND_X``) so the straight garment edge at
+          ``z = 146.2`` stops bowing into a notch — the raw field pushes it 0.75 cm at the
+          sternum but 2.0 cm at the cups;
+        * vertically across the same hem (``HEM_BLEND_Z``), because the field collapses there
+          (``dy`` falls ~0.55 cm per cm of z) and that shear had turned the hem's piping bevel
+          into a 179° knife edge / hard step across the right cup;
+        * laterally across the vertical side seam (``SIDE_BLEND_X``, ``SIDE_BAND``), where the
+          same gradient stretched the seam's 0.55 cm bevel into a wide flat facet — the other
+          half of the step seen down the outside of the +x cup.
+
+        All three average the *correction*, never the base value, and every one is faded by a
+        smooth 2-D envelope, so no new step can be introduced at the edge of a blend and the
+        apex (|x| ~ 5, z ~ 141) — and with it the chest mass — is untouched.
+        """
+        dx, dy, dz = self._raw_displacement(x, y, z)
+        w = (smootherstep((z - 145.0) / 1.2) * smootherstep((147.9 - z) / 1.3))
+        if w <= 0.0:
+            return (dx, dy, dz)
+        dy_l = self._raw_displacement(x - HEM_BLEND_X, y, z)[1]
+        dy_r = self._raw_displacement(x + HEM_BLEND_X, y, z)[1]
+        dy_d = self._raw_displacement(x, y, z - HEM_BLEND_Z)[1]
+        dy_u = self._raw_displacement(x, y, z + HEM_BLEND_Z)[1]
+        # the taps can reach *inside* the lateral gate from a vertex *outside* it, so the
+        # correction — never the base value — carries the gate; otherwise the blend would
+        # leak a fraction of the neighbour's push into the sleeve (|x| >= X_ZERO).
+        lateral = 0.25 * dy_l + 0.25 * dy_r - 0.5 * dy
+        vertical = 0.25 * dy_d + 0.25 * dy_u - 0.5 * dy
+        dy = dy + w * (lateral + vertical) * self.lateral_gate(x)
+
+        # The hem's outer end (|x| ~ 7 … 10, where the placket meets the side seam) is the
+        # steepest part of the bow, and 0.9 cm of smoothing cannot reach across it; a second,
+        # wider tap pair is faded in only there. Away from the hem this field is linear in x
+        # (curvature < 1e-3 cm), so an average would be a no-op anyway — this branch is inert
+        # outside the envelope by construction.
+        lo_x, hi_x = HEM_WIDE_BAND
+        wide = (smootherstep((abs(x) - lo_x) / 1.0) * smootherstep((hi_x - abs(x)) / 1.2))
+        if wide > 0.0:
+            wy_l = self._raw_displacement(x - HEM_WIDE_X, y, z)[1]
+            wy_r = self._raw_displacement(x + HEM_WIDE_X, y, z)[1]
+            dy += w * wide * (0.25 * wy_l + 0.25 * wy_r - 0.5 * dy) * self.lateral_gate(x)
+        return (dx, dy, dz)
+
+    def _raw_displacement(self, x: float, y: float, z: float) -> tuple[float, float, float]:
+        """The analytic field without the placket-hem lateral blend (see `displacement`)."""
         if z >= HEAD_Z:
             return (0.0, 0.0, 0.0)
         band = self.band(z)
@@ -301,8 +358,8 @@ class ChestMorph:
         w_pos = self.weight(x, z, +1)
         w_neg = self.weight(x, z, -1)
         hx = self._horizontal_cup(x)
-        side_root, upper_pec = self._root_bells(x, y, z)
-        if w_pos == 0.0 and w_neg == 0.0 and hx == 0.0 and side_root == 0.0 and upper_pec == 0.0:
+        side_root = self._root_bells(x, y, z)
+        if w_pos == 0.0 and w_neg == 0.0 and hx == 0.0 and side_root == 0.0:
             return (0.0, 0.0, 0.0)
 
         env = gate * ceil
@@ -383,7 +440,7 @@ class ChestMorph:
         if c == 0.0:
             return 0.0
         dome = self._combined_dome(self.weight(x, z, +1), self.weight(x, z, -1))
-        side_root, upper_pec = self._root_bells(x, y, z)
+        side_root = self._root_bells(x, y, z)
         z_rad_wt = 0.0
         if RADIAL_Z_LO < z < RADIAL_Z_HI:
             if z < RADIAL_Z:
@@ -391,7 +448,7 @@ class ChestMorph:
             else:
                 u = (z - RADIAL_Z) / (RADIAL_Z_HI - RADIAL_Z)
             z_rad_wt = 0.35 * (6.5 * u * ((1.0 - u) ** 2.3)) * self._horizontal_cup(x)
-        root_wt = 0.65 * max(side_root, upper_pec)
+        root_wt = 0.65 * side_root
         return min(1.0, max(dome, z_rad_wt, root_wt) * self.front_gate(y) * self.lateral_gate(x) * c)
 
     def in_region(self, x: float, y: float, z: float) -> bool:
@@ -410,8 +467,15 @@ class ChestMorph:
 
     # ------------------------------------------------------------------ apply
     def apply(self, group, materials=("miranda_body",), subdivide: bool = True,
-              label: str | None = None, log=None) -> int:
-        """Subdivide, displace, normal-project fair, and re-shade one group."""
+              label: str | None = None, log=None, stats: dict | None = None) -> int:
+        """Subdivide, displace, normal-project fair, unfold, and re-shade one group.
+
+        ``stats``, when given, receives the repair counters (``vertices_faired`` and
+        ``faces_inverted``) so callers can report or assert on them.
+        """
+        if stats is not None:
+            stats.setdefault("vertices_faired", 0)
+            stats.setdefault("faces_inverted", 0)
         if subdivide and self.subdivisions and getattr(group, "faces", None):
             added = subdivide_region(group, self, levels=self.subdivisions,
                                      materials=materials)
@@ -425,6 +489,16 @@ class ChestMorph:
                           self.smooth_strength, origin=origin,
                           materials=materials)
             keep_copies_together(group, origin)
+            folds = unfold_region(group, origin)
+            if stats is not None or log:
+                left = len(inverted_faces(group.verts, group.faces, origin))
+                if stats is not None:
+                    stats["vertices_faired"] = folds
+                    stats["faces_inverted"] = left
+                if log and folds:
+                    log(f"[bust] {label or group.name}: faired {folds} vertices "
+                        f"that folded the keyhole lip"
+                        + (f" ({left} faces still inverted)" if left else ""))
             rebuild_normals(group, self, materials=materials)
         return moved
 
@@ -594,9 +668,16 @@ def subdivide_region(group, morph: ChestMorph, levels: int = 1,
                                 0.5 * (p0[1] + p1[1]),
                                 0.5 * (p0[2] + p1[2])))
             n0, n1 = group.normals[lo], group.normals[hi]
-            group.normals.append((0.5 * (n0[0] + n1[0]),
-                                  0.5 * (n0[1] + n1[1]),
-                                  0.5 * (n0[2] + n1[2])))
+            # the average of two unit normals is shorter than 1, and midpoints outside the morph's
+            # weight region never reach rebuild_normals(): normalise here or the mesh ships
+            # non-unit normals (12 of them did, down to 0.9867)
+            nlen = math.sqrt((n0[0] + n1[0]) ** 2 + (n0[1] + n1[1]) ** 2 + (n0[2] + n1[2]) ** 2)
+            if nlen > 1e-9:
+                group.normals.append(((n0[0] + n1[0]) / nlen,
+                                      (n0[1] + n1[1]) / nlen,
+                                      (n0[2] + n1[2]) / nlen))
+            else:
+                group.normals.append((0.0, 1.0, 0.0))
             if has_uvs:
                 group.uvs.append((0.5 * (ulo[0] + uhi[0]),
                                   0.5 * (ulo[1] + uhi[1])))
@@ -690,6 +771,127 @@ def keep_copies_together(group, origin) -> int:
             resynced += 1
     return resynced
 
+
+# ------------------------------------------------------------------ relaxing
+
+def _tri_normal(verts, tri) -> tuple[float, float, float]:
+    """Un-normalised face normal (its length is twice the triangle area)."""
+    ax, ay, az = verts[tri[0]]
+    bx, by, bz = verts[tri[1]]
+    cx, cy, cz = verts[tri[2]]
+    e1x, e1y, e1z = bx - ax, by - ay, bz - az
+    e2x, e2y, e2z = cx - ax, cy - ay, cz - az
+    return (e1y * e2z - e1z * e2y,
+            e1z * e2x - e1x * e2z,
+            e1x * e2y - e1y * e2x)
+
+
+def _dot(a, b) -> float:
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _length(a) -> float:
+    return math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+
+
+def inverted_faces(verts, faces, origin) -> list[tuple[int, int, int]]:
+    """Faces whose winding the morph reversed relative to ``origin``.
+
+    A geometric sign test, not a shading one: a face whose vertex normals disagree with its
+    winding is only a lighting artefact (the stock base mesh ships seven of those), but a
+    face whose *orientation* flipped is a fold — the surface turned through itself.
+    """
+    bad = []
+    for tri in faces:
+        n0 = _tri_normal(origin, tri)
+        n1 = _tri_normal(verts, tri)
+        if _length(n0) <= 1e-12 or _length(n1) <= 1e-12:
+            continue
+        if _dot(n0, n1) < 0.0:
+            bad.append(tri)
+    return bad
+
+
+def unfold_region(group, origin, rounds: int = 8, strength: float = 0.5) -> int:
+    """Fair away the micro-triangles the morph folded through themselves.
+
+    The keyhole flap over the sternum is a thin (~1 cm) open overhang that sits exactly on
+    the cup's upper rim, where the dome weight falls from 0.19 to 0.008 between ``z = 146.0``
+    and ``z = 147.6`` — a gradient that runs *inside the flap's own thickness*. The base
+    mesh's coarse triangles survive that shear, but the local subdivision cuts the lip into
+    0.002–0.1 cm² slivers and 20 of them came out inside out (signed area negative against
+    the bind pose), which reads as a crumpled, dark lip in the 30°/40° views.
+
+    Two cheaper repairs were tried and rejected on the rendered result: damping the
+    displacement (leaves a plateau and a 0.5 cm step where the plateau ends) and keeping the
+    lip's coarse triangles (leaves a low-poly plate that does not follow the grown chest).
+    Fairing instead keeps the surface where the sculpt put it and only slides the offending
+    welded vertices toward the mean of their neighbours — the same operation the main fairing
+    uses — so the fold is ironed out without a dent or a step. Iterates until no face has
+    reversed; returns the number of welded vertex groups touched.
+    """
+    faces = getattr(group, "faces", None)
+    verts = group.verts
+    if not faces or not origin or len(origin) != len(verts):
+        return 0
+    weld = _weld_keys(verts)
+    members: dict[int, list[int]] = {}
+    for i, wid in weld.items():
+        members.setdefault(wid, []).append(i)
+    neighbours: dict[int, set[int]] = {}
+    for tri in faces:
+        for vi in tri:
+            slot = neighbours.setdefault(weld[vi], set())
+            for other in tri:
+                nw = weld[other]
+                if nw != weld[vi]:
+                    slot.add(nw)
+
+    touched: set[int] = set()
+    for _ in range(rounds):
+        bad = inverted_faces(verts, faces, origin)
+        if not bad:
+            break
+        zone: set[int] = set()
+        for tri in bad:
+            for vi in tri:
+                wid = weld[vi]
+                zone.add(wid)
+                zone |= neighbours.get(wid, set())
+        fair_zone(verts, members, neighbours, zone, strength)
+        touched |= zone
+    return len(touched)
+
+
+def fair_zone(verts, members, neighbours, zone, strength) -> None:
+    """Move every welded group in ``zone`` a fraction of the way to its neighbours' mean."""
+    moved: dict[int, tuple[float, float, float]] = {}
+    for wid in zone:
+        nb = neighbours.get(wid)
+        if not nb:
+            continue
+        ax = ay = az = 0.0
+        count = 0
+        for other in nb:
+            j = members[other][0]
+            ox, oy, oz = verts[j]
+            ax += ox
+            ay += oy
+            az += oz
+            count += 1
+        if not count:
+            continue
+        ax /= count
+        ay /= count
+        az /= count
+        i0 = members[wid][0]
+        px, py, pz = verts[i0]
+        moved[wid] = (px + (ax - px) * strength,
+                      py + (ay - py) * strength,
+                      pz + (az - pz) * strength)
+    for wid, point in moved.items():
+        for i in members[wid]:
+            verts[i] = point
 
 # ------------------------------------------------------------------ relaxing
 
@@ -948,11 +1150,13 @@ def morph_groups(groups: dict, morph: ChestMorph | None = None,
         if name not in ("body", "shadow"):
             continue
         before = len(group.verts)
-        moved = morph.apply(group, label=name, log=log)
+        stats: dict = {}
+        moved = morph.apply(group, label=name, log=log, stats=stats)
         report["drawables"][name] = {
             "vertices_moved": moved,
             "vertices_total": len(group.verts),
             "vertices_added": len(group.verts) - before,
+            **stats,
         }
         log(f"[bust] group {name}: {moved} of {len(group.verts)} vertices moved")
     return report

@@ -62,7 +62,7 @@ python tools/pd2-las/build_las.py              # extract → inventory → textu
 python tools/pd2-las/build_las.py --stage inventory   # JSON summary on stdout
 python tools/pd2-las/build_models.py --templates /tmp/2bsrc/2B\ -\ LAS/assets/units/2b/skins/2b
                                                    # author miranda.model + fps_miranda.model
-python -m pytest -q tests/                      # 190 tests, run offline
+python -m pytest -q tests/                      # the whole suite, run offline
 ```
 
 The installable test pack is `build/pd2-las/Miranda_LAS/` (tracked zip copies
@@ -87,20 +87,28 @@ and applies `bust_variant.ChestMorph` to the authored third-person groups
 between `transfer_group` and `assemble_model`. The first-person arms are built
 exactly as the base pack builds them — the morph never touches the viewmodel.
 
-**What the morph does.** Two radial domes (one per breast, apex z≈141.5) whose
-falloff `(1 - r2)**2` is zero-slope at the rim, gated forward (nothing behind
-the chest wall or on the flat upper chest) and laterally (nothing past |x|=12.2,
-so the arms cannot be caught). The forward push scales the *existing* protrusion
-measured from the chest wall, so the mass grows instead of the ribcage; a
-midline valley term keeps the two breasts separate, which matters because the
-source chest is a single convex shell with a ~0.6 cm sternum dip.
+**What the morph does.** Two variable-exponent hemispheres (one per breast,
+apex z≈140.95) `(1 - rho)^(q_lo + dq*rho)` — blunt at the apex (q≈0.78), easing
+to q≈1.25–1.40 at the rim — blended 86/14 with a proportional depth push and a
+lateral/posterior breast-root bell. Everything is gated forward (nothing behind
+the chest wall) and laterally (nothing past |x|=13.4, so the arms cannot be
+caught), and a soft sternum contour keeps the two cups separate, which matters
+because the source chest is a single convex shell. The chest is locally
+subdivided first (welded, seam-safe, edges >0.25 cm inside the dome), then the
+moved vertices are faired with 13 normal-projected Laplacian steps so the coarse
+L4D2 facets read as a smooth cup. `docs/pd2-las/CHEST-VARIANT.md` derives every
+constant; `bust_variant.py`'s module docstring is the short version.
 
-Measured with the shipped preset (`cup_gain 0.50`, `round_gain 0.12`,
-`lift 0.7`, `spread 1.2`, `valley 0.85`): front reach 19.98 → 28.84 cm
-(**+8.85 cm** of depth at the apex), breast-to-sternum valley depth
-0.41 → 9.19 cm, 195 of 5,645 body vertices moved, and **zero** vertices moved on
-the back, arms, legs or head. `build/pd2-las/busty_variant_report.json` records
-the same numbers plus every parameter.
+Measured on the shipped preset (`cup_gain 0.382`, `round_gain 0.046`,
+`lift 0.18`, `spread 0.34`, `root_gain 0.70`, `root_spread 0.42`,
+`valley 0.145`, 2 subdivision levels, 13 fairing steps @ 0.32): front reach
+19.98 → **23.21 cm** (+3.23 cm), `g_body` 5,645 → **8,937** vertices,
+`s_body` 9,874 → **13,166**, left/right cup skew 0.63 → 0.21 cm, abdominal
+movement below z=134 cm < 0.01 cm, max edge/UV stretch 1.76x. The full table,
+including the numbers that were *not* met by earlier presets, is in
+`docs/pd2-las/CHEST-VARIANT.md`; `build/pd2-las/busty_variant_report.json`
+records the same measurements plus every parameter of the run that produced the
+tracked zip.
 
 **Safety rails.** The same position-driven pass runs on `g_body`,
 `g_body_lod1` and the body block of `s_body` — those blocks hold bit-identical
@@ -114,8 +122,9 @@ shading the base build shipped.
 .venv/bin/python tools/pd2-las/build_busty_variant.py --valley 0.95     # deeper cleavage
 ```
 
-Previews land in `build/pd2-las/previews/busty_compare_{full,chest}.png`
-(base vs variant, same camera). Like the base pack this is offline-verified
+Previews land in `build/pd2-las/previews/` (`busty_compare_{full,chest}.png`,
+`busty_compare_top_bottom.png` and the two clay sheets; base vs variant, same
+camera). Like the base pack this is offline-verified
 only: it still needs `docs/pd2-las/in-game-checklist.md`, and the ME2 asset
 rights gate applies to it exactly as it does to `Miranda_LAS.zip`.
 
@@ -183,15 +192,15 @@ Modules (all tested against the real source zip):
 | File | What it does |
 | --- | --- |
 | `vpk.py` | VPK v1/v2 reader; `entry_offset` is tree-relative; CRC-checked reads; traversal-safe extraction |
-| `source_model.py` | MDL 48/49 + VVD v4 + VTX v7 reader (source-sdk-2013 struct layouts) → bones, weighted vertices, material triangles |
+| `source_model.py` | MDL **44-49** + VVD v4 + VTX v7 reader (source-sdk-2013 struct layouts; the 44-49 range is documented in `SUPPORTED_MDL_VERSIONS`) → bones, weighted vertices, material triangles |
 | `vtf.py` | VTF 7.2–7.4 reader → DDS (`.texture`, mip chain reordered: VTF stores smallest first) and PNG previews |
 | `dds_encode.py` | RGBA → DXT5 (naive endpoints, c0 > c1 always) and BGRA8888 DDS writers for icons/previews |
 | `las_pack.py` | the 2B-contract scaffold: hook, manifest, locales, unit/object/material_config XMLs, `BUILD_INFO.json` |
 | `build_las.py` | CLI: zip → VPK → models/textures → scaffold |
-| `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; CRC-checked, traversal-safe) |
-| `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers |
+| `gma.py` | Garry's Mod `.gma` reader (GMAD v1–v3; unwraps the LZMA payload Steam sometimes serves; JSON description unpacked; required-content list kept; per-file **and** trailing archive CRC32 checked; `dx90`/`vtx`/`dx80`/`sw` VTX variants; traversal-safe) |
+| `inspect_gma.py` | report a subscribed workshop addon: file tree by extension, declared required content, a damaged-archive warning, every model's verts/tris/materials, **bone names** and how much of the rig `skeleton_map.json` already covers. Textures are explicitly *not* its job — it says so and points at `inspect_textures.py` |
 | `smd.py` | **SMD read/write** (`parse_smd`, `write_smd`, `ModelData` ↔ SMD with exact quaternion↔Tait-Bryan conversion) + stub `.qc`; CLI exports `.gma`/`.vpk`/`.zip` → per-model `.smd` for Blender |
-| `inspect_textures.py` | follow every material a model names to its `.vmt` → `.vtf` inside a `.gma`/`.vpk`/`.zip`, report present/missing with real size + mip count, and prove each texture actually **decodes** (optional second opinion from `sourcepp`) |
+| `inspect_textures.py` | follow every material a model names to its `.vmt` → `.vtf` inside a `.gma`/`.vpk`/`.zip`/**unpacked addon folder**, report present/missing with real size + mip count, and prove each texture actually **decodes** (optional second opinion from `sourcepp`; no Pillow reports `?` rather than a false ✗). Reads `addoninfo.txt` (GMod and L4D2 spellings) and `addon.json` |
 
 ### Reading a subscribed GMod / SFM addon
 
@@ -203,14 +212,28 @@ guessed at from its description:
 # after subscribing, the archive is in
 #   steamapps/workshop/content/4000/<item id>/*.gma
 python tools/pd2-las/inspect_gma.py path/to/<item id>.gma --json /tmp/report.json
+
+# the same questions for an unpacked addon folder (addons/<name>/), a legacy
+# zip, or a VPK — including whether every material's texture is really there
+python tools/pd2-las/inspect_textures.py path/to/<addon folder>
 ```
 
-The report gives the file tree grouped by extension, then per model: vertex and
-triangle counts, material names, and the skeleton split into *already mapped* /
+The report gives the file tree grouped by extension, the required-content mounts
+the addon declares, a warning if the trailing archive CRC no longer matches
+(truncated or hex-edited after packing), then per model: vertex and triangle
+counts, material names, and the skeleton split into *already mapped* /
 *Source-only* / *unknown* against `skeleton_map.json`. That is what decides
 whether an outside port is a cheap reference (a `ValveBiped` rig half-covered by
 the existing map) or new work. Nothing is extracted or rendered: the addon is
 someone else's licensed content, so private inspection only.
+
+Three GMod shapes have to be told apart, and the readers now cover all three:
+
+| on disk | what it is | reader |
+| --- | --- | --- |
+| `addons/<name>/…` | an **unpacked** addon (workshop items someone extracted, and the layout `gmad` packs from) | `inspect_textures.py <folder>` |
+| `<id>.gma` in `steamapps/workshop/content/4000/<id>/` | the packed addon; LZMA-wrapped when Steam compressed the download | `inspect_gma.py`, and `inspect_textures.py` too |
+| `addons/*.zip` / `.vpk` | the pre-2013 download format, usually one wrapper folder deep | `inspect_textures.py` |
 
 ### The rest of the tool landscape
 
@@ -220,14 +243,26 @@ readers do not:
 
 | tool | what it covers | licence / platform | verdict for this repo |
 | --- | --- | --- | --- |
-| [`sourcepp`](https://pypi.org/project/sourcepp/) (`vpkpp`, `vtfpp`, `mdlpp`, `bsppp`) | **GMA v1-3, VPK v0/v1/v2/v54, BSP, VTF 7.0-7.6, MDL 44-49**; read *and* write for the pack formats | MIT, C++20 + nanobind wheels | **the one worth having.** Installed and verified: opened the fixture `.gma` (25 entries, checksums verified), decoded a real DXT5 VTF from the tracked L4D2 pack, and agreed with `vtf.py` on all 1,048,576 pixels (max abs diff 1 = DXT rounding). Used by `inspect_textures.py` as an optional second opinion — not a project dependency, since it is a native wheel for a dev-only cross-check |
+| [`sourcepp`](https://pypi.org/project/sourcepp/) (`vpkpp`, `vtfpp`, `bsppp`, `kvpp`) | **GMA v1-3, VPK v0/v1/v2/v54, BSP, VTF 7.0-7.6**; read *and* write for the pack formats. **No `mdlpp` in the Python wheel** — `mdlpp` exists as a C++ header (`include/mdlpp/`), the wheel binds only `bsppp gamepp kvpp sourcepp steampp toolpp vcryptpp vpkpp vtfpp`, so MDL parsing is not reachable from Python | MIT, C++20 + nanobind wheels | **the one worth having.** Installed and verified (2026-11-05): decodes a real DXT5 VTF from the tracked L4D2 pack and agrees with `vtf.py` pixel-for-pixel (max abs diff 1 = DXT rounding), and its GMA reader agrees with `gma.py` on the file list and CRCs — **except on required content**: `GMA::open` reads that list as one string, so any addon that actually declares a mount ("half-life 2") comes back with an empty name and a mangled entry path (`ame`), while `gma.py` loops to the empty terminator. Use it as a second opinion, not as the oracle. Optional dev-only cross-check; not a project dependency |
+| [`gma`](https://github.com/diogo464/gma) (Rust crate) | read **and write** `.gma`, **including the LZMA-compressed workshop form** the Rust author documents as "Garry's Mod can't read compressed gma files but some, downloaded directly from the Steam workshop, are lzma compressed" | MIT | the only other implementation found that handles the compressed download; not usable from Python here, and `gma.py` covers the read half |
 | [Crowbar](https://github.com/ZeqMacaw/Crowbar) | MDL → SMD/QC/QCI/VTA/VRD and back via `studiomdl`; unpacks VPK/GMA | free, closed source, **Windows only** | **not needed for measurement**, and it cannot run here. Still the standard answer if a human wants SMD/QC in Blender |
 | [Blender Source Tools](https://github.com/Artfunkel/BlenderSourceTools) | SMD/DMX/QC import + export | open source, Blender 4.x | no MDL/VTF support by design, and it needs Blender, which this sandbox lacks |
 | [SourceIO](https://github.com/REDxEYE/SourceIO) | **`.mdl` + `.vmt` + `.vtf` + `.bsp` direct import**, "Garry's Mod: full support" | MIT, Blender 4.0+ | the tool that skips Crowbar entirely — *if* a Blender existed here. Worth naming in a hand-off |
 | GMad (`gmad.exe`) | create/extract GMA, publish | Valve, bundled with GMod | `gma.py` replaces the extract half on Linux; `vpkpp` can also **write** GMA if a repack is ever needed |
 | [VPKEdit](https://github.com/craftablescience/VPKEdit) | GUI/CLI over `vpkpp`: VPK, GMA, BSP, VTF, ZIP | MIT | fine for humans, redundant with the readers above |
-| [`srctools`](https://github.com/TeamSpen210/srctools) | VPK/VTF/BSP/VMF/DMX read+write, MDL partial, mount chains, `packlist` dependency resolution | **GPL-3.0** | reference only — **do not vendor** into this MIT repo. Its `packlist` idea (walk a map's or model's dependencies) is the one thing worth re-implementing |
+| [`srctools`](https://github.com/TeamSpen210/srctools) | VPK/VTF/BSP/VMF/DMX read+write, MDL partial, mount chains, `packlist` dependency resolution | **MIT** (the repo `LICENSE` excludes only libsquish; PyPI classifier says `License :: OSI Approved :: MIT License`) — an earlier revision of this table said GPL-3.0 and drew the wrong conclusion from it | usable, not vendored: nothing here needs `packlist` yet. Its idea (walk a map's or model's dependencies before declaring an addon complete) is the one thing worth re-implementing |
+| [GCFScape](https://nemstools.github.io/pages/GCFScape.html) (Nem's Tools) | explorer-style browser for `.bsp .gcf .ncf .pak .sga .vpk .wad .xzp` — **not `.gma`**, not `.mdl` | freeware, **Windows/.NET** GUI on top of HLLib | **the wrong door for GMod**, right door for stock content: it reads multi-chunk `*_dir.vpk` + `*_000.vpk`, which `vpk.py` refuses by design and which is how L4D2 ships everything not in the addon. A human tool: no CLI, no scripting, absent from this sandbox. Its blind spot is the same one the community works around with `gmad`/7-Zip first |
+| [HLLib](https://nemstools.github.io/pages/Miscellaneous-HLLib.html) 2.4.6 (Nem's Tools) | the library under GCFScape: BSP, GCF, NCF, PAK, **VPK v1/v2 incl. dir VPKs**, SGA, WAD, XZP, ZIP | **LGPL-2.1**, C and C++ API, **builds on Linux** | the only scriptable piece of Nem's Tools, and still not worth adopting: `vpkpp` (MIT, maintained, already our optional cross-check) reads the same VPKs *and* BSP *and* writes, while HLLib has had no release since 2017 and no MDL/VTF/GMA. Would earn its place only if a repo dependency on a C library were cheaper than a Python wheel — it is not |
+| [VTFLib](https://nemstools.github.io/pages/VTFLib.html) + VTFEdit / [`VTFEdit Reloaded`](https://github.com/Sky-rym/VTFEdit-Reloaded) | VTF/VMT **read and write**: library (LGPL-2.1) plus a GPL GUI/CLI front-end; the Reloaded fork is the maintained one (v2.1.x, 2025 releases), original 1.3.3 is abandoned | LGPL-2.1 (lib) / GPL (apps), Windows/.NET front-end | the human-side answer to the gap in `vtf.py`, which is **read-only on purpose**: making a `.vtf` for an addon needs a writer — `vtfpp`/MareTF (MIT) inside the pipeline, or this by hand. Unchanged verdict for reading: `vtf.py` + `vtfpp` cross-check are enough |
+| [Crafty](https://nemstools.github.io/pages/Crafty.html) / [VMEX](https://www.tophattwaffle.com/downloads/vmex/) (Nem's Tools, map side) | Crafty: HL1/HL2 `.bsp .mdl .vmf .map .rmf .gl` viewer + exporter; VMEX: Java BSP→VMF decompiler (up to L4D) | Windows/.NET (Crafty), Java (VMEX); VMEX superseded by [BSPSource](https://github.com/ata4/bspsrc) (open source, VMEX-based) | out of scope here — this is the **map** route, not the model/texture route. Crafty's own author says its `.vmf` export is brush-only and points at VMEX for decompiling; for maps `BSPSource` is the maintained choice, and it is already the one `source.md` names |
 | [MareTF](https://github.com/craftablescience/MareTF) / `vtex2` / `vtf2png` | VTF ↔ image converters, every VTF variant | MIT / libpng | redundant: `vtf.py` converts, and is bytes-checked against `vtfpp` |
+
+| [`steamctl`](https://github.com/ValvePython/steamctl) (ValvePython) | `workshop search / info / download / subscribe`, depots, WebAPI — pure Python `pip install steamctl` | **MIT**, Python 3 | the acquisition tool this repo should reach for before `steamcmd` (streamed 0.9.5): same anonymous access, no 32-bit binary and `lib32gcc`, and `workshop info` answers "what is this item, how big is it" *before* spending the bandwidth. `steamcmd +workshop_download_item 4000 <id>` stays the documented route for a real server; [DepotDownloader](https://github.com/SteamRE/DepotDownloader) `-pubfile` is the self-contained .NET alternative |
+| [GLuaFixer](https://github.com/FPtje/GLuaFixer) (`glualint`) | linter **and** pretty printer for GMod's Lua dialect — one Haskell binary, CI-friendly | **LGPL-2.1**, Windows/Linux binaries | the gap nothing else in this repo fills: GMod mods are half Lua and `um publish check` does not read Lua at all. Run it over `lua/` before `gmad` packs an addon; it also catches the realm mix-ups (`SERVER`/`CLIENT`) that cost a game launch to find |
+| [LuaLS](https://github.com/LuaLS/lua-language-server) + [glua-api-snippets](https://github.com/luttje/glua-api-snippets) / [gmod-glua-ls](https://github.com/Pollux12/gmod-glua-ls) | type checking and IntelliSense for GLua from the scraped wiki API; the fork adds realm and net-message diagnostics | MIT-ish, editor-side | editor-side only, so nothing here can use it — but it is the answer when the work is *writing* a GMod addon rather than measuring one, and `gmod-glua-ls`'s realm analysis overlaps `glualint`'s |
+| [`bsp_tool`](https://github.com/snake-biscuits/bsp_tool) (same author as VPKEdit/vpkpp) | Python `.bsp` library: Valve/Source branches, ENTITIES, PAKFILE (embedded materials/models), BSPX, plus a CLI | **MIT**, `pip install bsp_tool` | the map-side counterpart to `sourcepp`: nothing in this repo reads a `.bsp`, and when a GMod addon's content is *inside the map* (very common) this is how a Python agent gets at it. `bsppp` in the `sourcepp` wheel covers the same ground if a wheel is already installed |
+| [HLMV++](https://developer.valvesoftware.com/wiki/HLMV%2B%2B) (ficool2) | the real engine's model viewer: renders a compiled `.mdl` with its `.vmt`/`.vtf` chain | freeware, **Windows**, bundled with Hammer++ | the **visual oracle** the Python readers cannot be: it shows a missing or wrong material as the pink checkerboard the game shows, where `inspect_textures.py` can only prove the file exists and decodes. Human-side, one launch |
+| [Hammer++](https://ficool2.github.io/HammerPlusPlus-Website/) (ficool2) | Source 1 Hammer replacement, fixes the 2007 editor's crashes; GMod/L4D2 configs | freeware, **Windows** | only relevant if the route is **maps** — the same author ships HLMV++, so one download covers both. Not a model/texture tool |
 
 ### Round two: the rest of the field (same day)
 
@@ -235,14 +270,17 @@ readers do not:
 | --- | --- | --- |
 | **SMD, written here** | `smd.py` — SMD is plain text, so the hand-off to Blender needs no tool at all | **closed the gap.** `python tools/pd2-las/smd.py addon.gma --out dir --qc` writes one `.smd` per model plus a stub QC. Verified against the tracked pack: 104 bones, 16,433 triangles, 6 materials, and every bind-pose rotation survives the text round trip to 1e-7 |
 | [`bpy`](https://pypi.org/project/bpy/) | Blender 4.x/5.x as a `pip` wheel (`import bpy`, headless) | **tried, does not run here.** Installs, then dies on `libXrender.so.1` / `libXi` / `libGL`; `apt` can only reach a blocked mirror, so the libs cannot be added. It *would* give a real headless Blender on a normal Linux box |
-| [gmpublisher](https://github.com/WilliamVenner/gmpublisher) | Rust+Tauri GUI **and CLI**: extract/publish GMA, bulk download, addon size treemap, no `gmad.exe` needed | the publishing half (nothing here publishes to GMod); its Linux build is Linux-only-Windows-CLI and history is mixed. `gma.py` covers reading |
+| [gmpublisher](https://github.com/WilliamVenner/gmpublisher) | Rust+Tauri GUI **and CLI**: extract/publish GMA, bulk download, addon size treemap, no `gmad.exe` needed | the publishing half, and worth knowing *why* nothing here publishes: the sanctioned route is GMod's own `bin/gmpublish.exe` (Windows, `create`/`update`/`list`, icon must be a 512×512 JPG under 1 MB) which talks to a **running Steam client** — so it can never run in this sandbox or in CI. `gmosh` (FPtje) does the same from Python but its author states support has been dropped (last update 2023). `gma.py` covers reading |
 | [Noesis](https://www.richwhitehouse.com/noesis/) | Windows GUI/CLI converter with **Source `.mdl` + VPK import** and a Python plugin API | Windows-only, so it belongs to the same bucket as Crowbar: a human-side tool, not something this repo can call |
 | Linux `studiomdl` | Valve's compiler is Windows-only; Crowbar/`studiomdl` under Wine is the usual workaround | not worth it: the compile step is only needed to make a *Source* model, and nothing here builds one |
 
 Two conclusions. **Acquiring** an addon needs nothing new: `steamcmd +login
 anonymous +workshop_download_item 4000 <id> +quit` lands the `.gma` in
 `steamapps/workshop/content/4000/<id>/` for a free app like GMod, and that is the
-only reliable route for an item whose workshop page has been delisted. **The
+only reliable route for an item whose workshop page has been delisted.
+`steamctl` (below) does the same from `pip`, and can read the item's metadata
+first — cheaper when the question is "is this the business suit, and is it worth
+downloading at all?". **The
 writing gap is closed** by `smd.py` (pure Python, no Blender needed): rigged
 geometry leaves this repo as SMD, which Crowbar, Blender Source Tools and SourceIO
 all import, and which the Windows side can turn into an FBX/GLB for the existing

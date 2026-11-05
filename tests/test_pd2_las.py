@@ -7,6 +7,7 @@ registration contract. They are not an engine test.
 from __future__ import annotations
 
 import hashlib
+import struct
 import json
 import sys
 import zipfile
@@ -83,6 +84,14 @@ class TestVpk:
         with pytest.raises(VpkError):
             _safe_rel_path("C:/windows/path")
 
+    def test_a_truncated_tree_is_a_vpk_error_not_a_valueerror(self):
+        """Corrupt input must land in the same handler as every other failure."""
+        from vpk import VPK_SIGNATURE, VpkArchive, VpkError
+
+        blob = struct.pack("<III", VPK_SIGNATURE, 1, 8) + b"vmt\x00mode"
+        with pytest.raises(VpkError, match="unterminated string"):
+            VpkArchive(blob)
+
     def test_extract_layout(self, arc, tmp_path):
         written = arc.extract(tmp_path / "out")
         assert len(written) == 25
@@ -102,6 +111,7 @@ class TestSourceModel:
             {"ValveBiped.Bip01_Spine", "ValveBiped.Bip01_Head"} <= names
         assert len(tpp.vertices) == 9874
         assert tpp.triangle_count > 15000
+        assert tpp.skipped_bodygroup_models == 0  # this model has no alternates
         assert tpp.materials == [
             "miranda_hair",
             "eyeball_r",
@@ -111,6 +121,32 @@ class TestSourceModel:
             "miranda_body",
             "phy",
         ]
+
+    def test_a_v44_header_is_not_rejected(self, arc, tpp):
+        """HL2-era ragdolls are MDL 44; the offsets this reader uses are shared.
+
+        The bytes are the same model with its version field rewritten, so this
+        pins the *gate* (and documents the assumption), not a real v44 file.
+        """
+        from source_model import load_model
+
+        mdl = bytearray(arc.read("models/survivors/survivor_producer.mdl"))
+        struct.pack_into("<i", mdl, 4, 44)
+        model = load_model(
+            bytes(mdl),
+            arc.read("models/survivors/survivor_producer.vvd"),
+            arc.read("models/survivors/survivor_producer.dx90.vtx"),
+        )
+        assert (len(model.vertices), model.triangle_count) == (
+            len(tpp.vertices),
+            tpp.triangle_count,
+        )
+
+    def test_an_unsupported_mdl_version_names_the_readable_range(self, tpp):
+        from source_model import load_model, SourceModelError
+
+        with pytest.raises(SourceModelError, match="44-49"):
+            load_model(b"IDST" + struct.pack("<i", 2531) + b"\x00" * 200, b"", b"")
 
     def test_mesh_material_coverage(self, tpp):
         by_mat = {m.material: len(m.triangle_indices) // 3 for m in tpp.meshes}
@@ -563,6 +599,41 @@ class TestLasScaffold:
                 assert np.all((c0 & 31) == 0), f"{stem} blue channel not 0"
                 assert np.all(c0 >= c1), f"{stem} has c0 < c1"
                 assert int(blocks[:, 0].max()) - int(blocks[:, 1].min()) > 16, f"{stem} alpha flat"
+
+    def test_l4d2_head_diffuse_alpha_follows_the_las_face(self):
+        """The four L4D2 head packs build `*_head_df.texture` from dist/Miranda_LAS.zip's face diffuse:
+        face-quadrant alpha = min(source alpha, 18), i.e. an attenuated specular mask (PD2 reads diffuse
+        alpha as specular). The packs once shipped a *scrambled* alpha plane (a face quadrant whose values
+        had the right distribution but no spatial relation to the source: correlation +0.03), because they
+        had been built against an older LAS zip and never rebuilt. Guard the correlation, not the bytes."""
+        import io
+
+        import numpy as np
+        from PIL import Image
+
+        with zipfile.ZipFile(REPO / "dist" / "Miranda_LAS.zip") as z:
+            face = np.asarray(
+                Image.open(
+                    io.BytesIO(
+                        z.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda_face_df.texture")
+                    )
+                ).convert("RGBA")
+            )
+        expected = np.minimum(face[..., 3].astype(np.float32), 18.0)
+
+        specs = [
+            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture"),
+            ("Miranda_L4D2_over_Clover.zip", "Miranda L4D2 over Clover", "units/payday2/characters/shared_textures/clover_head_df.texture"),
+            ("Miranda_L4D2_over_Bonnie.zip", "Miranda L4D2 over Bonnie", "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_head_df.texture"),
+            ("Miranda_L4D2_over_Sydney.zip", "Miranda L4D2 over Sydney", "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_head_df.texture"),
+        ]
+        for zip_name, prefix, df_rel in specs:
+            with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
+                head = np.asarray(Image.open(io.BytesIO(z.read(f"{prefix}/{df_rel}"))).convert("RGBA"))
+            got = head[0:1024, 0:1024, 3].astype(np.float32)
+            corr = float(np.corrcoef(got.ravel(), expected.ravel())[0, 1])
+            assert corr > 0.99, f"{zip_name}: face-quadrant alpha is not the LAS face gloss (corr {corr:+.3f})"
+            assert got.max() <= 18.0, f"{zip_name}: face-quadrant alpha not attenuated (max {got.max():.0f})"
 
     def test_ingame_visual_artifact_regressions(self):
         """Guard against the 5 in-game visual artifacts:

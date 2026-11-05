@@ -26,9 +26,11 @@ tags: [payday-2, las, moog, outfit, porting, rigging, materials, render-template
 > What the ModWorkshop "Legendary Armor Skins/LAS/MOOG/Outfit Module Guide" (by
 > Columbus; also a PAYDAY 2 character-porting guide) actually prescribes, and
 > which of those prescriptions we folded into the automated Lawson LAS build.
-> Read against [las-outfit-unit-resources](las-outfit-unit-resources.md) (unit
-> resources) and [beardlib-player-style-outfits](beardlib-player-style-outfits.md)
-> (the no-LAS alternative). The guide is explicitly a work in progress.
+> Read alongside [LAS armor-skin outfits in PAYDAY 2](las-armor-skin-outfit.md),
+> which is the automated build this note's manual route was folded into. Two
+> companions were planned and never written: a unit-resources inventory and the
+> BeardLib `PlayerStyle` no-LAS alternative (the route sketch below is all there
+> is). The guide is explicitly a work in progress.
 
 ## Setup
 

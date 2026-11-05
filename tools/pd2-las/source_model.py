@@ -1,12 +1,15 @@
-"""Source-engine studio model reader (.mdl + .vvd + .dx90.vtx), L4D2-era.
+"""Source-engine studio model reader (.mdl + .vvd + .dx90.vtx), MDL 44-49.
 
 Struct layouts follow Valve's `src/public/studio.h` and `src/public/optimize.h`
 (source-sdk-2013): the VTX namespace is `#pragma pack(1)`, and every
 `sznameindex` is a **struct-relative** byte offset, not a file offset.
 
-Verified against `l4d2_miranda_lawson_1.zip` (MDL version 48, VVD version 4,
-VTX version 7). This is a clean-room reader written from the SDK headers; it
-parses only what the conversion needs: bones, materials, and skinned triangles.
+Verified against two archives of different origin: `l4d2_miranda_lawson_1.zip`
+(MDL 48, VVD 4, VTX 7) and the Geralt GMod workshop addon (MDL 49, ValveBiped,
+55,793 verts / 49,760 tris). `SUPPORTED_MDL_VERSIONS` explains why the gate is
+44-49 and not 48-49. This is a clean-room reader written from the SDK headers;
+it parses only what the conversion needs: bones, materials, and skinned
+triangles.
 """
 from __future__ import annotations
 
@@ -14,6 +17,13 @@ import struct
 from dataclasses import dataclass, field
 
 MDL_MAGIC = b"IDST"
+#: MDL versions this reader understands. Everything it touches is identical
+#: across 44-49: `studiohdr_t`'s count/offset pairs, the 216-byte
+#: `mstudiobone_t`, and `mstudiomodel_t` addressed with `vertexindex / 48`.
+#: Source-faithful parsers branch only at 36, 44, 53 and 2531 (SourceIO's
+#: `ModelV36Plus` / `Bone.from_buffer`), so 44 is the real floor — which matters
+#: because a Garry's Mod ragdoll is as likely to be HL2-era v44 as L4D2-era v49.
+SUPPORTED_MDL_VERSIONS = (44, 45, 46, 47, 48, 49)
 VVD_MAGIC = b"IDSV"
 VTX_VERSION = 7
 MAX_NUM_BONES_PER_VERT = 3
@@ -73,6 +83,10 @@ class ModelData:
     materials: list[str] = field(default_factory=list)
     vertices: list[SkinVertex] = field(default_factory=list)
     meshes: list[SubMesh] = field(default_factory=list)
+    #: Bodygroup models beyond the first of their bodypart. They are alternate
+    #: states (hat/hair/variant) of geometry that is already represented by the
+    #: default state this reader returns, so they are counted, not parsed.
+    skipped_bodygroup_models: int = 0
 
     @property
     def triangle_count(self) -> int:
@@ -175,7 +189,11 @@ def _read_vtx_meshes(
     for bi in range(num_bodyparts):
         bp = bodypart_off + bi * 8
         num_models, model_off = struct.unpack_from("<ii", vtx, bp)
-        for mi in range(num_models):
+        # Only model 0 of a bodypart: that is the state the MDL's own mesh table
+        # describes, and the default choice in game. Walking the alternates too
+        # is what made a playermodel with a single hat fail with
+        # "VTX has N meshes, MDL has M" — the mesh counts could never agree.
+        for mi in range(min(1, num_models)):
             mo = bp + model_off + mi * 8
             num_lods_m, lod_off = struct.unpack_from("<ii", vtx, mo)
             for li in range(min(1, num_lods_m)):
@@ -241,8 +259,11 @@ def load_model(mdl: bytes, vvd: bytes, vtx: bytes) -> ModelData:
     if mdl[:4] != MDL_MAGIC:
         raise SourceModelError(f"bad MDL magic: {mdl[:4]!r}")
     version, checksum = struct.unpack_from("<ii", mdl, 4)
-    if version not in (48, 49):
-        raise SourceModelError(f"unsupported MDL version {version}")
+    if version not in SUPPORTED_MDL_VERSIONS:
+        raise SourceModelError(
+            f"unsupported MDL version {version} "
+            f"(readable: {SUPPORTED_MDL_VERSIONS[0]}-{SUPPORTED_MDL_VERSIONS[-1]})"
+        )
     name = _cstr(mdl, 12)
 
     # studiohdr_t count/offset pairs (source-sdk-2013 studio.h layout).
@@ -274,11 +295,13 @@ def load_model(mdl: bytes, vvd: bytes, vtx: bytes) -> ModelData:
     model_numverts = 0
     mesh_specs: list[tuple[int, int]] = []  # (material_index, vertexoffset)
     model_name = name
+    skipped_bodygroups = 0
     for bi in range(bodypart_count):
         bp = bodypart_off + bi * BODYPART_STRIDE
         _bp_name_off, num_models, _b, model_index = struct.unpack_from("<iiii", mdl, bp)
         if num_models < 1:
             raise SourceModelError("bodypart without models")
+        skipped_bodygroups += num_models - 1
         mo = bp + model_index
         if bi == 0:
             model_name = _cstr(mdl, mo)
@@ -303,7 +326,13 @@ def load_model(mdl: bytes, vvd: bytes, vtx: bytes) -> ModelData:
             f"VTX has {len(vtx_meshes)} meshes, MDL has {len(mesh_specs)}"
         )
 
-    out = ModelData(name=model_name, bones=bones, materials=materials, vertices=vertices)
+    out = ModelData(
+        name=model_name,
+        bones=bones,
+        materials=materials,
+        vertices=vertices,
+        skipped_bodygroup_models=skipped_bodygroups,
+    )
     nverts = len(vertices)
     for (material_index, voff), (_mi, triangles) in zip(mesh_specs, vtx_meshes):
         flat: list[int] = []

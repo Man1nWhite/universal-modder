@@ -24,7 +24,7 @@ from __future__ import annotations
 from collections import deque
 from pathlib import Path
 
-from um.common import die, need, parse_size
+from um.common import need, parse_size
 
 
 def _pil():
@@ -33,7 +33,8 @@ def _pil():
     return Image
 
 
-def load(path) -> "Image.Image":
+def load(path):
+    """Open `path` as RGBA (a Pillow `Image`; the import is lazy so `um --help` needs no Pillow)."""
     Image = _pil()
     return Image.open(path).convert("RGBA")
 
@@ -155,7 +156,6 @@ def pixelate(im, w: int, h: int, colors: int | None = 16, outline: tuple | None 
 
 def add_outline(im, color=(20, 16, 24, 255)):
     """1px outline around opaque pixels (inside the canvas; crops if the sprite touches the edge)."""
-    Image = _pil()
     w, h = im.size
     src = im.load()
     out = im.copy()

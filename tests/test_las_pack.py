@@ -5,7 +5,6 @@ Synthetic fixtures only, except the integration test which uses the tracked
 source zip (skipped when absent).
 """
 import importlib.util
-import io
 import json
 import struct
 import sys
@@ -151,7 +150,6 @@ def tiny_scene():
 
 def _tmp_rig():
     """Minimal TargetRig: Hips + BoneB at +X, root_point."""
-    import math
     ident = [[1.0 if r == c else 0.0 for c in range(4)] for r in range(4)]
 
     def trans(x, y, z):
@@ -800,6 +798,39 @@ def test_the_built_pack_has_no_inverted_faces():
             assert inverted == 0, f"{name}: {inverted} of {total} triangles are inverted"
 
 
+def test_handoff_and_agents_quote_the_tracked_pack_bytes():
+    """`HANDOFF.md` and the AGENTS/CLAUDE/GEMINI table quote exact sizes; they drifted for weeks.
+
+    The busty pack was documented as `5,413,602` B while the tracked zip is `5,815,039` B — a stale
+    *base*-pack size, so the doc claimed the variant was smaller than the pack it extends. Sizes and
+    checksums in prose rot silently; this pins them to the bytes that are actually in `dist/`.
+    """
+    import hashlib
+    import re
+
+    zips = sorted((ROOT / "dist").glob("*.zip"))
+    sizes = {p.name: p.stat().st_size for p in zips}
+    digests = {hashlib.sha256(p.read_bytes()).hexdigest() for p in zips}
+    assert len(sizes) >= 10, "the dist packs have to be present for this to mean anything"
+
+    docs = [ROOT / "docs" / "pd2-las" / "HANDOFF.md",
+            ROOT / "AGENTS.md", ROOT / "CLAUDE.md", ROOT / "GEMINI.md"]
+    claim = re.compile(r"`dist/([\w.\-]+\.zip)` \(`?([\d,]+)`? ?B?\)?")
+    checked = 0
+    for doc in docs:
+        for m in claim.finditer(doc.read_text()):
+            name, quoted = m.group(1), int(m.group(2).replace(",", ""))
+            if name not in sizes:
+                continue
+            assert sizes[name] == quoted, (
+                f"{doc.name} quotes {quoted:,} B for {name}, tracked is {sizes[name]:,} B")
+            checked += 1
+    assert checked >= 10, f"only {checked} size claims found; the tables were reworded"
+
+    for sha in re.findall(r"\b[0-9a-f]{64}\b", (ROOT / "docs" / "pd2-las" / "HANDOFF.md").read_text()):
+        assert sha in digests, f"HANDOFF.md quotes a sha256 that belongs to no tracked pack: {sha[:16]}…"
+
+
 def test_the_status_page_matches_the_shipped_pack():
     """`tools/pd2-port/STATUS.md` is the handoff page - it must not drift.
 
@@ -807,7 +838,6 @@ def test_the_status_page_matches_the_shipped_pack():
     worse than none: the next agent trusts it.
     """
     import hashlib
-    import re
 
     status = (PD2 / "STATUS.md").read_text()
     pack = ROOT / "dist" / "lawson_las.zip"

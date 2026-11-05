@@ -260,7 +260,15 @@ def test_face_region_upright_near_head(authored):
 
 @needs_templates
 def test_retarget_joint_errors_and_palettes(authored):
-    """Every mapped source joint must land near its target joint in 2b/fps_2b."""
+    """Every mapped source joint must land near its target joint in 2b/fps_2b.
+
+    The upper-arm budget is 6 cm, not 5: ``build_models.retarget_maps`` widens the shoulder
+    on purpose (+1.2 cm outward from L4D2's UpperArm head, so Spine2/Shoulder/Arm agree at a
+    feminine shoulder width) and steps the elbow 2.8 cm inward onto the hinge axis, which
+    leaves the measured upper-arm offset at **5.713 cm on both sides** in the TPP skeleton.
+    This test only ever ran with the 2B templates extracted, and the 5 cm bound was written
+    before that widening; it failed on every machine that had them.
+    """
     skel_map = json.loads((REPO / "tools/pd2-las/skeleton_map.json").read_text())
     for label in ("tpp", "fps"):
         model = authored[label]["model"]
@@ -278,7 +286,7 @@ def test_retarget_joint_errors_and_palettes(authored):
             if tname in ("LeftForeArm", "RightForeArm"):
                 assert err < 3.0, f"{label} {tname}: err={err:.3f}cm"
             if tname in ("LeftArm", "RightArm"):
-                assert err < 5.0, f"{label} {tname}: err={err:.3f}cm"
+                assert err < 6.0, f"{label} {tname}: err={err:.3f}cm"
             if tname in ("LeftHand", "RightHand"):
                 assert err < 3.0, f"{label} {tname}: err={err:.2f}cm"
             if tname.startswith(("LeftHand", "RightHand")) and tname not in ("LeftHand", "RightHand"):

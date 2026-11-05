@@ -63,6 +63,59 @@ def _reencode_object3d(p):
     return dm.encode_object3d(obj) + p[obj["tail_off"]:]
 
 
+DIST = REPO / "dist"
+SHIPPED_MODELS = [
+    (
+        "Miranda_L4D2_over_Bonnie.zip",
+        "Miranda L4D2 over Bonnie",
+        "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
+    ),
+    (
+        "Miranda_Romance_over_Clover.zip",
+        "Miranda Romance over Clover",
+        "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
+    ),
+]
+
+
+class TestShippedHeisterModels:
+    """Geometry sections in the shipped heister packs must decode, including the
+    vanilla bag meshes that carry a second and third UV set (TEXCOORD1/2,
+    channels 8/9). Before those channels were supported, decoding `g_armorbag`,
+    `g_medicbag`, `g_sentrybag` or `g_bodybagsbag` raised
+    `ValueError: unsupported geometry channel 8`, so no shipped pack could be
+    verified end to end."""
+
+    @pytest.mark.skipif(not (DIST / SHIPPED_MODELS[0][0]).exists(), reason="dist packs not built")
+    @pytest.mark.parametrize("zip_name,prefix,model_rel", SHIPPED_MODELS, ids=["bonnie", "clover"])
+    def test_every_geometry_section_round_trips(self, zip_name, prefix, model_rel):
+        import zipfile
+
+        with zipfile.ZipFile(DIST / zip_name) as z:
+            mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
+        geoms = mf.by_type(dm.GEOMETRY)
+        assert geoms, "no geometry sections"
+        for s in geoms:
+            g = dm.decode_geometry(s.payload)
+            assert dm.encode_geometry(g) == s.payload, f"geometry section {s.id} does not round-trip"
+
+    @pytest.mark.skipif(not (DIST / SHIPPED_MODELS[0][0]).exists(), reason="dist packs not built")
+    def test_second_and_third_uv_sets_decode(self):
+        import zipfile
+
+        zip_name, prefix, model_rel = SHIPPED_MODELS[0]
+        with zipfile.ZipFile(DIST / zip_name) as z:
+            mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
+        md_by_hash = {dm.decode_model_data(s.payload)["name_hash"]: s for s in mf.by_type(dm.MODEL_DATA)}
+        md = dm.decode_model_data(md_by_hash[dm.hash64("g_armorbag")].payload)
+        pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        g = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+        enum_types = [h["enum_type"] for h in g["headers"]]
+        assert dm.TEXCOORD1 in enum_types and dm.TEXCOORD2 in enum_types
+        assert len(g["uv1"]) == g["vert_count"] == len(g["uv2"]) > 0
+        assert g["remaining"] == b"", "geometry payload not fully consumed"
+
+
 @needs_ref
 class TestHash64:
     def test_names_cover_object_hashes(self):

@@ -29,7 +29,6 @@ sys.path.insert(0, str(HERE))
 
 import build_las_pack as build          # noqa: E402
 import dmodel                           # noqa: E402
-import las_model                         # noqa: E402
 import me2_dae                           # noqa: E402
 import rig_target                        # noqa: E402
 
@@ -460,8 +459,6 @@ def gather_render(scene, rig, rebound, out_dir: Path):
     from PIL import Image
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    allp = np.concatenate([np.asarray(m.positions) for m in rebound], axis=0)
-    bounds = (allp.min(axis=0), allp.max(axis=0))
 
     palette = [
         (0.86, 0.62, 0.62), (0.62, 0.72, 0.86), (0.86, 0.82, 0.62),

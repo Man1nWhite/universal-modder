@@ -59,7 +59,15 @@ verified invariants, dead ends).
   `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (8 packages).
 - **Geralt of Rivia** (built from `models/Geralt.7z`, Witcher 3 L4D2 port) over **Rust (`npc_criminal_wild_1`)**:
   `dist/Geralt_over_Rust.zip` (2-atom `mtr_head` + `ALPHA_MASKED` `mtr_hair` setup with `2048x2048` face/eyes/teeth and hair/beard/eyelashes atlases, heist + menu `.model`, 3 `.material_config` files, and B&W HUD/Menu icon).
-All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`).
+All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`, plus `12_Miranda_Busty_LAS.png` with its `13_Miranda_Busty_vs_LAS_chest.png` before/after close-ups (0–90°) and `14_Miranda_Busty_vs_LAS_top_below.png` overhead/underside pair).
+
+What each Miranda pack replaces: Clover and Bonnie cover the heist model, the
+menu model, *and* the Safe House (`*_chill`) model; Joy and Sydney cover the
+heist and menu models only, so their Safe House unit keeps the vanilla head.
+None of the nine head-replacement packs has been verified in game yet — the
+only in-game checklist in the repo is the LAS one,
+[`docs/pd2-las/in-game-checklist.md`](docs/pd2-las/in-game-checklist.md).
+Audit of this set: [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md).
 
 Both LAS lines follow the ModWorkshop Wiki
 [LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide).

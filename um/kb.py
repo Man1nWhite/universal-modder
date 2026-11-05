@@ -205,7 +205,7 @@ def search(root: Path, terms: list[str], game=None, engine=None, route=None, lim
 # --------------------------------------------------------------------------- check
 
 def check_note(path: Path, root: Path | None = None) -> tuple[list[str], list[str]]:
-    from um.publish import DECOMP_PATTERNS, SECRET_PATTERNS
+    from um.publish import DECOMP_PATTERNS, SECRET_PATTERNS, user_path
     fails, warns = [], []
     text = path.read_text(encoding="utf-8", errors="replace")
     meta, body = parse(path)
@@ -267,8 +267,8 @@ def check_note(path: Path, root: Path | None = None) -> tuple[list[str], list[st
         for label, rx in DECOMP_PATTERNS:
             if rx.search(b):
                 warns.append(f"{label} in a code block: describe decompiled logic, don't paste it")
-    if re.search(r"[A-Z]:\\Users\\(?!<)[^\\\s`\"']+|/home/(?!<)[a-z_][a-z0-9_-]*/|/Users/(?!<)[A-Za-z]+/", text):
-        warns.append("absolute user path (use <you>, %USERPROFILE% or ~ instead)")
+    if found := user_path(text):
+        warns.append(f"absolute user path {found!r} (use <you>, %USERPROFILE% or ~ instead)")
     if len(text.encode()) > MAX_NOTE_KB * 1024:
         warns.append(f"note is {len(text.encode()) // 1024} KB; split it or trim (limit {MAX_NOTE_KB} KB)")
     # links to other notes: any relative Markdown link to a .md file (an #anchor is fine), and a `games/...md` /

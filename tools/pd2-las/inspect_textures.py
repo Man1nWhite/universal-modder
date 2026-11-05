@@ -43,7 +43,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import vtf as vtfmod  # noqa: E402
-from gma import GmaArchive, GmaError  # noqa: E402
+from gma import VTX_SUFFIXES, GmaArchive, GmaError  # noqa: E402
 from source_model import SourceModelError, load_model  # noqa: E402
 from vpk import VpkArchive, VpkError  # noqa: E402
 
@@ -59,12 +59,13 @@ _ENGINE_ONLY = {"phy", "__vphys", "breakable_surf", "player_shared", "nodraw"}
 
 
 class _Container:
-    """Uniform read interface over `.gma`, `.vpk` and `.zip` addons."""
+    """Uniform read interface over `.gma`, `.vpk`, `.zip` and folder addons."""
 
-    def __init__(self, paths: list[str], read, name: str):
+    def __init__(self, paths: list[str], read, name: str, meta: dict | None = None):
         self._paths = paths
         self._read = read
         self.name = name
+        self.meta = meta or {}
         self._lower = {p.lower(): p for p in paths}
 
     @property
@@ -86,7 +87,16 @@ class _Container:
 
 
 def open_container(path: Path) -> _Container:
-    """Open a `.gma`, a single-file `.vpk`, or a `.zip` of either."""
+    """Open a `.gma`, a single-file `.vpk`, a `.zip` of either, or a folder.
+
+    The folder case is not a convenience: a Garry's Mod addon on disk *is* a
+    folder (`addons/<name>/…`, or a workshop item someone has unpacked), and
+    the legacy download format for the same content is a zip with one top
+    folder inside it. Both are stripped of that wrapper so `materials/…` paths
+    resolve the same way they do inside a `.gma`.
+    """
+    if path.is_dir():
+        return open_folder(path)
     kind = _EXT.get(path.suffix.lower())
     if kind == "gma":
         arc = GmaArchive(path.read_bytes(), name=str(path))
@@ -100,8 +110,137 @@ def open_container(path: Path) -> _Container:
             inner = [n for n in names if n.lower().endswith((".gma", ".vpk"))]
             if len(inner) == 1:
                 return open_nested(path, inner[0])
-            return _Container(names, zf.read, str(path))
-    raise ValueError(f"{path}: expected a .gma, .vpk or .zip")
+            # Read through the zip while it is open: handing its `read` out
+            # would fail later with "attempt to read ZIP archive that was
+            # already closed". Whole-archive reads are the norm here anyway.
+            strip = _strip_wrapper_folder(names)
+            members = strip or {n: n for n in names}
+            bodies = {name: zf.read(member) for name, member in members.items()}
+            read = bodies.__getitem__
+            return _Container(list(bodies), read, str(path), _read_meta(read, list(bodies)))
+    raise ValueError(f"{path}: expected a .gma, .vpk, .zip, or an addon folder")
+
+
+#: A wrapper folder around an addon is named after the addon; these are the
+#: names that are content roots instead, so a "folder" called `materials` is
+#: the addon itself and must not be stripped.
+_CONTENT_ROOTS = {
+    "addons", "bin", "cfg", "data", "lua", "maps", "materials", "models",
+    "particles", "resource", "scenes", "scripts", "sound",
+}
+
+
+def _top_folder(names: list[str]) -> str | None:
+    """The single folder every path sits under, when that is a wrapper."""
+    firsts = {n.split("/", 1)[0] for n in names}
+    if len(firsts) != 1:
+        return None
+    top = firsts.pop()
+    if any("/" not in n for n in names):  # a file at the root: not a wrapper
+        return None
+    return None if top.lower() in _CONTENT_ROOTS else top
+
+
+def _strip_wrapper_folder(names: list[str]) -> dict[str, str]:
+    """Map each zip member to the addon-relative path inside a wrapper folder."""
+    top = _top_folder(names)
+    if top is None:
+        return {}
+    return {n[len(top) + 1:]: n for n in names}
+
+
+def open_folder(root: Path) -> _Container:
+    """An unpacked addon folder: `addons/<name>/` or an extracted workshop item."""
+    files = [p for p in sorted(root.rglob("*")) if p.is_file()]
+    rel = {str(p.relative_to(root)).replace("\\", "/"): p for p in files}
+    top = _top_folder(list(rel))
+    if top is not None:
+        rel = {name[len(top) + 1:]: path for name, path in rel.items()}
+
+    def read(name: str) -> bytes:
+        return rel[name].read_bytes()
+
+    meta = _read_meta(read, list(rel))
+    return _Container(list(rel), read, str(root), meta)
+
+
+#: `addoninfo.txt` has two spellings in the wild: Garry's Mod's KeyValues form
+#: (`"name" "…"`, `"tags" "fun"`) and the older Valve addon form L4D2 addons
+#: still ship (`AddonTitle "…"`, `AddonDescription "…"`). Both are `key "value"`
+#: pairs with an optional quote on the key, so one regex covers them.
+_ADDONINFO_KEY = re.compile(r'(?:"([A-Za-z0-9_]+)"|([A-Za-z0-9_]+))\s+"([^"]*)"')
+
+_ADDONINFO_FIELDS = {
+    "name": "name",
+    "addontitle": "name",
+    "type": "type",
+    "description": "description",
+    "addondescription": "description",
+    "author": "author",
+    "addonauthor": "author",
+}
+
+
+def parse_addoninfo(text: str) -> dict:
+    """The `addoninfo.txt` keys worth reporting (legacy, pre-gmad folder addons)."""
+    meta: dict = {}
+    for quoted, bare, value in _ADDONINFO_KEY.findall(text):
+        key = (quoted or bare).lower()
+        value = value.strip()
+        if not value:
+            continue
+        if key in _ADDONINFO_FIELDS:
+            meta.setdefault(_ADDONINFO_FIELDS[key], value)
+        elif key == "tags":
+            meta.setdefault("tags", []).append(value)
+    return meta
+
+
+def parse_addon_json(text: str) -> dict:
+    """The `addon.json` keys `gmad` reads: title, type, tags, description."""
+    try:
+        blob = json.loads(text)
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(blob, dict):
+        return {}
+    meta: dict = {}
+    for source, target in (("title", "name"), ("name", "name")):
+        if blob.get(source) and target not in meta:
+            meta[target] = str(blob[source])
+    for key in ("type", "description"):
+        if blob.get(key):
+            meta[key] = str(blob[key])
+    tags = blob.get("tags")
+    if isinstance(tags, str):
+        tags = [tags]
+    if isinstance(tags, list) and tags:
+        meta["tags"] = [str(t) for t in tags]
+    return meta
+
+
+def _read_meta(read, names: list[str]) -> dict:
+    """Title/type/tags from `addoninfo.txt` or `addon.json`, when present.
+
+    A `.gma` carries this in its header; a folder addon carries it in one of
+    those two files, and knowing what the addon claims to be is the cheapest
+    cross-check against what its files say.
+    """
+    lower = {n.lower(): n for n in names}
+    for wanted, parser in (
+        ("addoninfo.txt", parse_addoninfo),
+        ("addon.json", parse_addon_json),
+    ):
+        real = lower.get(wanted)
+        if real is None:
+            continue
+        try:
+            meta = parser(read(real).decode("utf-8", "replace"))
+        except (OSError, KeyError, UnicodeDecodeError):
+            continue  # metadata is a nicety; a bad one must not stop the report
+        if meta:
+            return meta
+    return {}
 
 
 def open_nested(zip_path: Path, inner: str) -> _Container:
@@ -169,7 +308,7 @@ class TextureReport:
     height: int = 0
     mips: int = 0
     fmt: str = ""
-    decodes: bool = False
+    decodes: bool | None = None  # None = no PNG decoder installed to ask
     error: str = ""
     sourcepp_agrees: bool | None = None
 
@@ -218,16 +357,23 @@ def resolve_texture(container: _Container, vmt_path: str) -> TextureReport:
     rep.mips = img.mipmap_count
     rep.fmt = vtfmod.FORMAT_NAMES.get(img.highres_format, str(img.highres_format))
     rep.decodes = _decodes(container.read(rep.vtf_path))
-    if not rep.decodes:
+    if rep.decodes is False:
         rep.error = rep.error or "decoder refused the image data"
     rep.sourcepp_agrees = _sourcepp_check(container.read(rep.vtf_path), img)
     return rep
 
 
-def _decodes(raw: bytes) -> bool:
-    """Does `vtf.py` get pixels out of it (not just a header)?"""
+def _decodes(raw: bytes) -> bool | None:
+    """Does `vtf.py` get pixels out of it (not just a header)?
+
+    `None` when the PNG step cannot run because Pillow is absent: a missing
+    optional dependency must not be reported as a broken texture, which is the
+    one wrong answer that sends someone hunting through their VMTs.
+    """
     try:
         png = vtfmod.to_png(vtfmod.parse_vtf(raw))
+    except ImportError:
+        return None
     except Exception:  # noqa: BLE001 - any decoder failure means "no"
         return False
     return png[:8] == b"\x89PNG\r\n\x1a\n"
@@ -255,6 +401,7 @@ def inspect(path: Path) -> dict:
     report: dict = {
         "file": str(path),
         "container": container.name,
+        "addon": container.meta,
         "file_count": len(container.paths),
         "by_extension": dict(
             Counter(
@@ -277,6 +424,7 @@ def inspect(path: Path) -> dict:
             entry["error"] = f"{type(exc).__name__}: {exc}"
             report["models"].append(entry)
             continue
+        entry["bodygroups_skipped"] = model.skipped_bodygroup_models
         here = triple[0].rsplit("/", 1)[0] if "/" in triple[0] else ""
         for material in model.materials:
             stem = material.replace("\\", "/").rsplit("/", 1)[-1]
@@ -315,7 +463,7 @@ def inspect(path: Path) -> dict:
                     "sourcepp_agrees": tex.sourcepp_agrees,
                 }
             )
-            if not tex.present or not tex.decodes:
+            if not tex.present or tex.decodes is False:
                 entry["missing"].append(material)
             report["textures"].append(tex.__dict__)
         report["models"].append(entry)
@@ -337,7 +485,7 @@ def _model_triples(container: _Container) -> list[tuple[str, str, str]]:
         vvd = stem + ".vvd"
         if not container.has(vvd):
             continue
-        for vtx in (stem + ".dx90.vtx", stem + ".vtx"):
+        for vtx in (stem + suffix for suffix in VTX_SUFFIXES):
             if container.has(vtx):
                 out.append((mdl, vvd, vtx))
                 break
@@ -358,8 +506,14 @@ def _find_vmt(container: _Container, stem: str, model_dir: str) -> str | None:
 
 
 def render(report: dict) -> str:
-    lines = [
-        f"container: {report['container']}",
+    meta = report.get("addon") or {}
+    lines = [f"container: {report['container']}"]
+    if meta:
+        claimed = ", ".join(
+            f"{key} {value!r}" for key, value in meta.items() if key != "description"
+        )
+        lines.append(f"addon    : {claimed}")
+    lines += [
         f"files    : {report['file_count']} — "
         + ", ".join(f"{k} x{v}" for k, v in report["by_extension"].items()),
         "",
@@ -384,7 +538,10 @@ def render(report: dict) -> str:
                 )
                 continue
             size = "×".join(str(v) for v in mat["size"])
-            mark = "✓" if mat["decodes"] else "✗"
+            if mat["decodes"] is None:
+                mark, note = "?", "  [decoded: not checked — Pillow is not installed]"
+            else:
+                mark, note = ("✓" if mat["decodes"] else "✗"), ""
             agree = ""
             if mat["sourcepp_agrees"] is True:
                 agree = " [sourcepp agrees]"
@@ -392,7 +549,7 @@ def render(report: dict) -> str:
                 agree = " [SOURCEPP DISAGREES]"
             lines.append(
                 f"    {mark} {mat['material']}: {mat['vmt']} -> {mat['texture']} "
-                f"({size}, {mat['mips']} mips, {mat['format']}){agree}"
+                f"({size}, {mat['mips']} mips, {mat['format']}){agree}{note}"
             )
             if mat["error"]:
                 lines.append(f"        {mat['error']}")

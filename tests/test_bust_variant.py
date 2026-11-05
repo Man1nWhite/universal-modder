@@ -243,7 +243,12 @@ def test_built_variant_model_matches_the_morph_and_leaves_the_rest_alone():
               for name, spec in bm.TPP_GROUPS.items()}
     before = {name: list(g.verts) for name, g in groups.items()}
     morph = bv.ChestMorph()
-    bv.morph_groups(groups, morph, log=lambda *a: None)
+    report = bv.morph_groups(groups, morph, log=lambda *a: None)
+    # the lip repair runs on every drawable and must finish the job: the shipped
+    # mesh's only geometric defect was the folded keyhole lip, not a lighting quirk
+    for drawable in ("body", "shadow"):
+        assert report["drawables"][drawable]["faces_inverted"] == 0, drawable
+    assert report["drawables"]["body"]["vertices_faired"] > 0
 
     import numpy as np
 
@@ -493,6 +498,127 @@ def _fixture_group(verts, faces, normals):
     return g
 
 
+def test_placket_hem_keeps_its_shape_across_the_sternum():
+    """The hem at `z = 146.2` closes the keyhole with a straight garment edge.
+
+    Growing the cups pushes that edge 0.75 cm at the sternum and 2.0 cm at the cups, which
+    bowed the straight hem into a notch (plain as day in the overhead sheet). The field is
+    therefore band-limited laterally across the hem; this pins the reduction and — more
+    importantly — that the blend never introduces a step of its own.
+    """
+    morph = bv.ChestMorph()
+    hem_z = 146.2
+    step = 0.05
+    xs = [i * step - 5.0 for i in range(201)]
+    blended = [morph.displacement(x, 18.0, hem_z)[1] for x in xs]
+    raw = [morph._raw_displacement(x, 18.0, hem_z)[1] for x in xs]
+
+    def max_step(values):
+        return max(abs(b - a) for a, b in zip(values, values[1:]))
+
+    def peak_to_peak(values):
+        return max(values) - min(values)
+
+    assert peak_to_peak(raw) > 1.0, "the raw field really does bow this edge"
+    # ~14 % off the bow at HEM_BLEND_X = 0.9 cm; the point is direction and locality, not a
+    # bigger number — more blending trades the bow for a fold at the hem's end taper
+    assert peak_to_peak(blended) < 0.9 * peak_to_peak(raw)
+    # no cliff: the blend is smooth in x (it is an average, not a mask), so the local slope
+    # has to stay comparable to the analytic field's own
+    assert max_step(blended) / step < 0.8, max_step(blended) / step
+    assert max_step(blended) <= max_step(raw) * 1.02
+
+    # and it is local in z: the cups below the hem are exactly the analytic field
+    for z in (140.0, 143.5, 150.5):
+        for x in (-4.0, 0.0, 3.0):
+            assert morph.displacement(x, 18.0, z) == morph._raw_displacement(x, 18.0, z), (x, z)
+
+
+def test_placket_hem_blend_never_reaches_into_the_sleeve():
+    """The taps read x ± 0.9 cm, so a vertex *outside* the lateral gate must not inherit a push.
+
+    Without gating the correction, the blend leaked a fraction of the cup's forward motion
+    into the upper arm (`|x| > 14 cm`) and `test_built_variant_model...` caught it.
+    """
+    morph = bv.ChestMorph()
+    for x in (14.0, 15.5, 18.0, -16.0):
+        for z in (145.0, 146.2, 147.0):
+            assert morph.displacement(x, 18.0, z)[1] == 0.0, (x, z)
+
+
+def _lip_grid(n=7, step=0.25):
+    """A flat n x n patch standing in for the keyhole lip (faces point at -y).
+
+    Returns the vertices, the triangle list and the centre vertex — the one to fold.
+    """
+    verts = [(-2.0 + i * step, 17.0, 146.0 + j * step)
+             for j in range(n) for i in range(n)]
+    faces: list[tuple[int, int, int]] = []
+    for j in range(n - 1):
+        for i in range(n - 1):
+            a = j * n + i
+            faces.append((a, a + 1, a + 1 + n))
+            faces.append((a, a + 1 + n, a + n))
+    return verts, faces, (n // 2) * n + n // 2
+
+
+def test_inverted_faces_reports_winding_not_shading():
+    """The fold test has to look at geometry: the stock pack ships normal-only quirks.
+
+    `dist/Miranda_LAS.zip` already has seven faces whose stored normals disagree with
+    their winding and twelve "normal opposes all three neighbours" faces on coincident
+    shells. Neither is a fold — the surface never turns through itself — so the repair
+    must not fire on them, or it would drag clean topology around for nothing.
+    """
+    verts, faces, c = _lip_grid()
+    origin = [tuple(v) for v in verts]
+    # disagreeing stored normals alone are not a fold
+    g = _fixture_group(verts, faces, [(0.0, 1.0, 0.0)] * len(verts))
+    assert bv.inverted_faces(g.verts, g.faces, origin) == []
+    # sliding a vertex across its neighbour's edge folds the faces around it inside out;
+    # that is the shape the subdivided lip produced (0.002-0.1 cm2 slivers, 20 of them)
+    g.verts[c] = (g.verts[c][0], g.verts[c][1], g.verts[c][2] - 0.3)
+    bad = bv.inverted_faces(g.verts, g.faces, origin)
+    assert bad, "a 0.3 cm fold across a 0.25 cm patch has to be caught"
+    assert all(c in face for face in bad)
+
+
+def test_unfold_region_repairs_a_folded_patch_and_stays_local():
+    """The repair fair-instead-of-damping: the patch comes back flat, nothing else moves."""
+    verts, faces, c = _lip_grid()
+    g = _fixture_group(verts, faces, [(0.0, -1.0, 0.0)] * len(verts))
+    origin = list(g.verts)
+    g.verts[c] = (g.verts[c][0], g.verts[c][1], g.verts[c][2] - 0.3)
+    assert bv.inverted_faces(g.verts, g.faces, origin)
+
+    assert bv.unfold_region(g, origin) > 0
+    assert bv.inverted_faces(g.verts, g.faces, origin) == []
+    # the loop stops as soon as the winding is valid again, so the vertex lands back on the
+    # right side of its neighbour's edge rather than exactly where it started
+    assert g.verts[c][2] > 146.25, "the folded vertex has to come back across the edge"
+    assert abs(g.verts[c][2] - 146.5) < 0.3
+    # three rings out the patch is untouched, so the sculpt is preserved away from the fold
+    n = int(len(verts) ** 0.5)
+    for corner in (0, n - 1, len(verts) - n, len(verts) - 1):
+        assert g.verts[corner] == origin[corner]
+
+
+def test_unfold_region_is_deterministic_and_leaves_a_clean_patch_alone():
+    verts, faces, c = _lip_grid()
+    origin = [tuple(v) for v in verts]
+    clean = _fixture_group(verts, faces, [(0.0, -1.0, 0.0)] * len(verts))
+    assert bv.unfold_region(clean, origin) == 0
+    assert clean.verts == origin
+
+    results = []
+    for _ in range(2):
+        g = _fixture_group(verts, faces, [(0.0, -1.0, 0.0)] * len(verts))
+        g.verts[c] = (g.verts[c][0], g.verts[c][1], g.verts[c][2] - 0.3)
+        bv.unfold_region(g, origin)
+        results.append(list(g.verts))
+    assert results[0] == results[1], "the repair has to be byte-stable across runs"
+
+
 def test_subdivision_keeps_the_chest_watertight():
     """The local split must not leave a single open edge in the chest band.
 
@@ -515,6 +641,26 @@ def test_subdivision_keeps_the_chest_watertight():
         bv.smooth_region(g, morph, 3, 0.32, origin=subdivided_origin)
         bv.keep_copies_together(g, subdivided_origin)
         assert not bv._open_edges(g), f"the morph opened the surface ({seam_x})"
+
+
+def test_subdivision_renormalises_the_midpoint_normals():
+    """A midpoint normal is the *average* of two unit normals, so it is shorter than one.
+
+    `rebuild_normals` only renormalises inside the morph's weight region, so a split vertex outside
+    it (the top of the chest band, z ≈ 150.8) used to ship at |n| = 0.9867: every other normal in the
+    pack is unit length, and shading assumptions in the engine assume they are.
+    """
+    import math
+
+    verts, faces, _ = _closed_chest_fixture(None)
+    # alternate the source normals so every average is visibly short of unit length
+    normals = [(0.0, 0.0, 1.0) if i % 2 else (0.6, 0.8, 0.0) for i in range(len(verts))]
+    g = _fixture_group(verts, faces, normals)
+    added = bv.subdivide_region(g, bv.ChestMorph(), levels=1)
+    assert added > 0, "the fixture has to split, or this proves nothing"
+    lengths = [math.dist((0.0, 0.0, 0.0), n) for n in g.normals]
+    assert min(lengths) > 1.0 - 1e-9, f"non-unit normal {min(lengths):.4f}"
+    assert max(lengths) < 1.0 + 1e-9
 
 
 def test_smooth_region_never_leaks_into_unselected_slices():
@@ -717,3 +863,102 @@ def test_smooth_region_pins_open_boundary_edges():
     assert g.verts[3] == origin[3]
     assert g.verts[2] != origin[2]
 
+
+
+def test_shipped_pack_drawable_normals_are_unit_length():
+    """Every drawable normal in the shipped LAS packs must be unit length.
+
+    A Diesel vertex normal is a unit vector; the engine only normalises what it decodes for
+    lighting, so a short normal dims and bends the shading of every facet that shares the
+    vertex. `bust_variant.subdivide_region` averaged two unit normals into a shorter one and
+    `rebuild_normals` only renormalised inside the morph weight region, so 12 vertices at the
+    top of the chest band (z ≈ 150.8–151.0 cm) shipped at |n| = 0.9867 … 0.9985 — in `g_body`,
+    `g_body_lod1` and `s_body` at once, 36 bad normals in `dist/Miranda_Busty_LAS.zip`. The
+    code was fixed first and the artifact kept the old bytes for a release, because rebuilding
+    needs the 2B templates; this test is what stops that from happening again.
+    """
+    import numpy as np
+
+    import diesel_model as dm
+
+    cases = [
+        (BASE_ZIP, "Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model"),
+        (BASE_ZIP, "Miranda_LAS/assets/units/miranda/skins/miranda/fps_miranda.model"),
+        (VARIANT_ZIP, "Miranda_Busty_LAS/assets/units/miranda_busty/skins/miranda_busty/"
+                      "miranda_busty.model"),
+        (VARIANT_ZIP, "Miranda_Busty_LAS/assets/units/miranda_busty/skins/miranda_busty/"
+                      "fps_miranda_busty.model"),
+    ]
+    if not all(pack.is_file() for pack, _ in cases):
+        pytest.skip("dist packs not built")
+
+    checked = 0
+    for pack, entry in cases:
+        with zipfile.ZipFile(pack) as z:
+            mf = dm.ModelFile.read(z.read(entry))
+        for s in mf.by_type(dm.MODEL_DATA):
+            md = dm.decode_model_data(s.payload)
+            if md.get("version") != 3 or not md.get("atoms"):
+                continue
+            gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+            geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+            normals = np.asarray(geo["normals"], dtype=np.float64)
+            if not len(normals):
+                continue
+            lengths = np.linalg.norm(normals, axis=1)
+            bad = int((np.abs(lengths - 1.0) > 1e-5).sum())
+            assert not bad, (
+                f"{entry}: {bad} of {len(lengths)} normals are not unit length "
+                f"(|n| = {lengths.min():.4f} … {lengths.max():.4f}); the shipped pack predates "
+                f"the normalisation fix — rebuild it (docs/pd2-las/CHEST-VARIANT.md)")
+            checked += 1
+    assert checked >= 6, f"only {checked} drawables inspected; the pack layout changed"
+
+
+def test_hem_blend_pulls_the_outer_step_back_without_touching_the_cup():
+    """The reported "step on the right of the chest" is the *outer end of the placket hem*.
+
+    The hem is a folded garment edge at `z ≈ 146.2`; the field pushes its upper face and its
+    outer end (|x| ≈ 7 … 10, where the placket meets the side seam) further forward than the
+    fold behind it, so the fold's round bevel turns into a flat facet that lights as a shelf —
+    clearest in clay at 20 px/cm, front and 25° yaw, on the +x cup. A 0.9 cm lateral average
+    cannot reach across that end, so the hem blend also carries a wider tap pair there plus a
+    vertical tap across the fold.
+
+    This pins the two things that make it a fix rather than a nudge: the push at the hem's
+    upper face and outer end comes *back* (0.05 … 0.26 cm), and nothing else moves — the apex
+    still sees the analytic field to the bit, so the chest mass is untouched.
+    """
+    morph = bv.ChestMorph()
+
+    # the outer end of the hem is pulled back, most of all where the facet showed (|x| ~ 7.5)
+    for x, least in ((2.0, 0.05), (3.5, 0.05), (7.5, 0.15)):
+        for z in (145.8, 146.0, 146.2):
+            raw = morph._raw_displacement(x, 18.0, z)[1]
+            blended = morph.displacement(x, 18.0, z)[1]
+            assert raw - blended > least, (x, z, raw, blended)
+
+    # and the lateral spread across the seam band is what stretched the bevel, so it shrinks
+    step = 0.05
+    xs = [7.5 + i * step for i in range(41)]  # |x| 7.5 … 9.5, straight across the seam
+    for z in (145.6, 146.0, 146.4):
+        raw = [morph._raw_displacement(x, 18.0, z)[1] for x in xs]
+        blended = [morph.displacement(x, 18.0, z)[1] for x in xs]
+        raw_span = max(raw) - min(raw)
+        assert raw_span > 1.2, f"the raw field really does shear the seam at z={z}"
+        assert max(blended) - min(blended) < 0.9 * raw_span, (z, raw_span)
+
+    # smooth in x: an average cannot add a cliff of its own
+    blended = [morph.displacement(x, 18.0, 146.0)[1] for x in xs]
+    raw = [morph._raw_displacement(x, 18.0, 146.0)[1] for x in xs]
+    max_step_blended = max(abs(b - a) for a, b in zip(blended, blended[1:])) / step
+    max_step_raw = max(abs(b - a) for a, b in zip(raw, raw[1:])) / step
+    assert max_step_blended <= max_step_raw * 1.02
+
+    # local: the envelope ends above and below the hem, and the apex is exactly the raw field
+    for z in (145.0, 148.0, 149.5):
+        for x in (-4.0, 0.0, 2.0, 7.5):
+            assert morph.displacement(x, 18.0, z) == morph._raw_displacement(x, 18.0, z), (x, z)
+    for x in (-5.05, -3.0, 0.0, 3.0, 5.05):
+        for z in (138.0, 140.95, 143.0):
+            assert morph.displacement(x, 19.0, z) == morph._raw_displacement(x, 19.0, z), (x, z)
