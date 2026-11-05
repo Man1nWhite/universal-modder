@@ -19,4 +19,4 @@ The retained tools are not currently buildable from this checkout: the source ar
 - [`HANDOFF.md`](HANDOFF.md) — archived summary and constraints.
 - [`PORT-PLAN.md`](PORT-PLAN.md) — original source audit/plan, retained as historical notes.
 - [`AUDIT-2026-11-04.md`](AUDIT-2026-11-04.md) and [`FIXES-2026-11-04.md`](FIXES-2026-11-04.md) — measurements and unsuccessful iterations.
-- [`reference-images/neck-alignment/`](reference-images/neck-alignment/) — user-supplied in-game and comparison references.
+- Reference screenshots were removed on request.

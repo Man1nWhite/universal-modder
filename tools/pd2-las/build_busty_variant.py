@@ -127,6 +127,11 @@ def _parts_from_group(verts, texture):
         geo = bm.dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
         v = np.asarray(verts, np.float32)
         tris = np.asarray(topo["indices"], np.int32).reshape(-1, 3)
+        # the morph subdivides the chest, so the "before" group is shorter than
+        # the model's triangle list: its vertices are a prefix of the after
+        # positions, and the panels are identical away from the edit
+        if len(v) < int(tris.max()) + 1:
+            v = np.vstack([v, np.zeros((int(tris.max()) + 1 - len(v), 3), np.float32)])
         n = np.zeros_like(v)
         fn = np.cross(v[tris[:, 1]] - v[tris[:, 0]], v[tris[:, 2]] - v[tris[:, 0]])
         for k in range(3):

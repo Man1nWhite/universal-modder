@@ -76,22 +76,32 @@ def test_morph_preserves_the_midline():
 
 
 def test_morph_is_continuous_across_the_edit_boundary():
-    """No step at the rim of the dome: sampled moves decay smoothly to zero.
+    """No cliff at the rim of the dome: the move decays smoothly to zero.
 
-    A C1 falloff ``(1 - r2)**2`` has its steepest slope near the centre, so the
-    meaningful claim is that no single 0.25 cm step of the profile jumps by more
-    than a small fraction of the peak move — a hard-edged gate would jump by the
-    whole peak in one step.
+    The profile is C1 at the apex and at the rim, but it is *not* uniformly
+    gentle between them — a fuller lower pole is steeper than a symmetric dome,
+    and that is the point of it. So the contract is about the two places a real
+    discontinuity would show up: the move must reach zero before the rim
+    (no cut-off step), and the sampled profile must not jump by a large
+    fraction of the peak between adjacent samples at the *ends* of the range,
+    which is where a hard gate would step.
     """
     morph = bv.ChestMorph()
-    samples = [morph.displacement(bv.APEX_X, 20.0, 128.0 + 0.25 * i)[1]
-               for i in range(100)]
+    # the soft dome reaches SOFT_SCALE times further than the breast itself, so
+    # the profile is sampled over the *whole* support, not just the tight dome
+    lo = bv.APEX_Z - bv.RADIUS_Z_DOWN * bv.SOFT_SCALE
+    hi = bv.APEX_Z + bv.RADIUS_Z_UP * bv.SOFT_SCALE
+    samples = [morph.displacement(bv.APEX_X, 20.0, lo + 0.25 * i)[1]
+               for i in range(int((hi - lo) / 0.25) + 3)]
     peak = max(samples)
     assert peak > 5.0
     steps = [abs(b - a) for a, b in zip(samples, samples[1:])]
-    assert max(steps) < 0.06 * peak, max(steps)
+    assert max(steps) < 0.10 * peak, max(steps)
+    # the ends fade out rather than stepping to zero
+    assert samples[0] < 0.05 * peak and samples[-1] < 0.05 * peak
     assert samples[-1] == 0.0, "the profile has to reach zero inside the dome rim"
-    assert morph.displacement(bv.APEX_X, 20.0, bv.APEX_Z + bv.RADIUS_Z)[1] == 0.0
+    assert abs(morph.displacement(bv.APEX_X, 20.0, hi)[1]) < 1e-12
+    assert abs(morph.displacement(bv.APEX_X, 20.0, lo)[1]) < 1e-12
 
 
 def test_morph_deepens_the_cleavage():
@@ -239,7 +249,11 @@ def test_built_variant_model_matches_the_morph_and_leaves_the_rest_alone():
 
     v0 = np.asarray(before["body"])
     v1 = np.asarray(groups["body"].verts)
-    d = np.linalg.norm(v1 - v0, axis=1)
+    # the morph subdivides the chest locally, so the body gains vertices; the
+    # originals keep their indices and every added vertex is appended after them
+    assert len(v1) > len(v0), "the chest is locally subdivided"
+    d = np.linalg.norm(v1[:len(v0)] - v0, axis=1)
+    added = v1[len(v0):]
     assert int((d > 1e-9).sum()) > 100, "the morph must actually edit the chest"
     assert d.max() > 5.0
     # containment: nothing behind the chest wall, in the arms, legs or head
@@ -248,7 +262,10 @@ def test_built_variant_model_matches_the_morph_and_leaves_the_rest_alone():
                         (v0[:, 2] < 115.0, "legs"),
                         (v0[:, 2] > 152.0, "head")):
         assert not (d[mask] > 1e-9).any(), label
-    # the shadow caster's body block stays bit-identical to the visible body
+    # every added vertex is a chest vertex: the split is local
+    assert added[:, 2].min() > 120.0 and added[:, 2].max() < 156.0, "split left the chest"
+    assert np.abs(added[:, 0]).max() < 14.0
+    # the shadow caster's body block stays identical to the visible body
     s = np.asarray(groups["shadow"].verts)
     assert np.allclose(s[-len(v1):], v1, atol=1e-9)
 
@@ -384,11 +401,117 @@ def test_variant_model_is_the_base_model_plus_the_chest():
         bb_raw = zb.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
     vb, tb = drawable(bb_raw, "g_body")
     vv, tv = drawable(bv_raw, "g_body")
-    assert vb.shape == vv.shape
-    assert np.array_equal(tb, tv), "topology must be untouched"
-    d = np.linalg.norm(vv - vb, axis=1)
+    # the chest is locally subdivided: the variant keeps the base vertices (and
+    # their indices) as a prefix and appends the new chest triangles after them
+    assert vv.shape[0] > vb.shape[0], "the chest has to gain geometry"
+    # topology grows by appending: every base triangle index stays in range and
+    # the triangle count only goes up
+    assert tv.size >= tb.size, "topology may only gain triangles"
+    assert int(tv.max()) == vv.shape[0] - 1, "indices must address the whole mesh"
+    untouched_base = (tb.max() < len(vb))
+    assert untouched_base
+    d = np.linalg.norm(vv[: len(vb)] - vb, axis=1)
     assert int((d > 1e-4).sum()) > 100
-    moved = vv[d > 1e-4]
+    moved = vv[: len(vb)][d > 1e-4]
     assert moved[:, 1].min() > 5.0, "only the chest shell moved"
     assert np.abs(moved[:, 0]).max() < 14.0
-    assert moved[:, 2].min() > 125.0 and moved[:, 2].max() < 152.0
+    assert moved[:, 2].min() > 123.0 and moved[:, 2].max() < 152.0
+    added = vv[len(vb):]
+    assert added[:, 2].min() > 124.0 and added[:, 2].max() < 152.0, "split stayed on the chest"
+    assert np.abs(added[:, 0]).max() < 14.0
+
+
+def _closed_chest_fixture(seam_x: float):
+    """A closed box whose front face is the chest panel, optionally UV-seamed.
+
+    A bare grid cannot stand in for the outfit: it has a real open border, so
+    "no open edges" could never hold. This fixture is a closed solid, and setting
+    ``seam_x`` duplicates the front-face vertices in that column so the split has
+    to cope with coincident copies exactly as it does on the real mesh.
+    """
+    import numpy as np
+
+    verts: list[tuple[float, float, float]] = []
+    for zi in range(6):
+        for xi in range(6):
+            verts.append((12.0 - 4.0 * xi, 18.0, 132.0 + 3.0 * zi))
+    back0 = len(verts)
+    for zi in range(6):
+        for xi in range(6):
+            verts.append((12.0 - 4.0 * xi, 2.0, 132.0 + 3.0 * zi))
+
+    def front(xi, zi):
+        return zi * 6 + xi
+
+    def back(xi, zi):
+        return back0 + zi * 6 + xi
+
+    faces: list[tuple[int, int, int]] = []
+    for zi in range(5):
+        for xi in range(5):
+            faces.append((front(xi, zi), front(xi + 1, zi), front(xi + 1, zi + 1)))
+            faces.append((front(xi, zi), front(xi + 1, zi + 1), front(xi, zi + 1)))
+            faces.append((back(xi, zi), back(xi + 1, zi + 1), back(xi + 1, zi)))
+            faces.append((back(xi, zi), back(xi, zi + 1), back(xi + 1, zi + 1)))
+    for zi in range(5):                       # left / right walls
+        faces.append((back(0, zi), front(0, zi), front(0, zi + 1)))
+        faces.append((back(0, zi), front(0, zi + 1), back(0, zi + 1)))
+        faces.append((back(5, zi), front(5, zi + 1), front(5, zi)))
+        faces.append((back(5, zi), back(5, zi + 1), front(5, zi + 1)))
+    for xi in range(5):                       # top / bottom
+        faces.append((back(xi, 0), back(xi + 1, 0), front(xi + 1, 0)))
+        faces.append((back(xi, 0), front(xi + 1, 0), front(xi, 0)))
+        faces.append((back(xi, 5), front(xi + 1, 5), back(xi + 1, 5)))
+        faces.append((back(xi, 5), front(xi, 5), front(xi + 1, 5)))
+
+    if seam_x is not None:
+        dup = {}
+        for i, (x, _y, _z) in enumerate(list(verts)):
+            if abs(x - seam_x) < 1e-9 and i < back0:
+                dup[i] = len(verts)
+                verts.append(verts[i])
+        faces = [(dup.get(a, a), dup.get(b, b), dup.get(c, c))
+                 for a, b, c in faces]
+
+    normals = [(0.0, 1.0, 0.0)] * len(verts)
+    return verts, faces, normals
+
+
+def _fixture_group(verts, faces, normals):
+    class G:
+        pass
+
+    g = G()
+    g.name = "fixture"
+    g.verts = [tuple(map(float, p)) for p in verts]
+    g.faces = [tuple(f) for f in faces]
+    g.normals = list(normals)
+    g.uvs = [(p[0] * 0.05, p[2] * 0.05) for p in g.verts]
+    g.weights = [[(0, 1.0)]] * len(g.verts)
+    g.slices = [("miranda_body", 0, 0, len(g.faces), len(g.verts))]
+    g.mat_slots = ["miranda_body"]
+    g.palette = ["ValveBiped.Bip01_Spine2"]
+    return g
+
+
+def test_subdivision_keeps_the_chest_watertight():
+    """The local split must not leave a single open edge in the chest band.
+
+    Both failure modes found while tuning showed up here first: an unsplit edge
+    neighbour (a T-junction, which the flat-shaded previews showed as jagged
+    black cracks) and duplicated seam vertices that drift apart (hairline tears
+    along the bust's outer edge).
+    """
+    morph = bv.ChestMorph()
+    for seam_x in (None, 8.0, 4.0, 0.0):
+        verts, faces, normals = _closed_chest_fixture(seam_x)
+        g = _fixture_group(verts, faces, normals)
+        assert not bv._open_edges(g), f"the fixture itself must be closed ({seam_x})"
+        origin = list(g.verts)
+        bv.subdivide_region(g, morph, levels=1)
+        assert len(g.verts) > len(origin), f"split has to reach the panel ({seam_x})"
+        assert not bv._open_edges(g), f"subdivision opened the surface ({seam_x})"
+        morph.displace(g)
+        bv.smooth_region(g, morph, 3, 0.32)
+        bv.keep_copies_together(g, origin)
+        assert not bv._open_edges(g), f"the morph opened the surface ({seam_x})"

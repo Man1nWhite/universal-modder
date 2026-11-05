@@ -27,8 +27,8 @@ bash tools/skyrim-nif/build_nifly.sh     # optional: cross-check binary
 ```
 
 Machine-readable inventory: `build/skyrim-nif/source_inventory.json` (gitignored,
-rebuild it). Tracked previews: `docs/previews/business_woman_outfit.png`,
-`docs/previews/business_woman_textures.png`.
+rebuild it). Tracked previews: `the (now removed) build preview`,
+`the (now removed) build preview`.
 
 ---
 
@@ -129,10 +129,10 @@ pack  -> dist/BusinessWoman_LAS
 zip   -> dist/BusinessWoman_LAS.zip
 ```
 
-`docs/previews/business_woman_pd2.png` is the four-view flat sheet of that model;
-`docs/previews/business_woman_textured.png` is the same mesh with the packed
+`the (now removed) build preview` is the four-view flat sheet of that model;
+`the (now removed) build preview` is the same mesh with the packed
 textures sampled through its own UVs, which is what proves the mapping, and
-`docs/previews/business_woman_materials.png` shows every shipped map next to the
+`the (now removed) build preview` shows every shipped map next to the
 channels PD2 actually reads.
 
 Why the bone list is 20 and not 53: BodySlide exports only the bones the merged
@@ -203,8 +203,8 @@ Three independent proofs, all reproducible:
 2. **Invariants** — weights sum to 1.0 per vertex, triangle indices in range,
    the 3BA body comes out 163 cm tall, the skirt sits at 86.6–117.7 cm, UVs land
    inside 0…1 on the 2048² atlases.
-3. **By eye** — `docs/previews/business_woman_outfit.png` (four views of the
-   source meshes) and `docs/previews/business_woman_textures.png` (the black
+3. **By eye** — `the (now removed) build preview` (four views of the
+   source meshes) and `the (now removed) build preview` (the black
    default palette, including the 0-byte `Glasses_norm` placeholder).
 
 ## 4. Feasibility, measured rather than assumed
@@ -359,7 +359,7 @@ tests/test_skyrim_retarget.py         7 offline tests for the two modules above
 tests/test_skin_texture.py            10 offline tests for the baker (incl. real meshes)
 tests/test_skyrim_materials.py        25 offline tests for materials + pack assembly
 tests/test_skyrim_fit.py              24 offline tests for the heel, necklace, cap and fps slicers
-docs/previews/business_woman_*.png    tracked previews (source, PD2 model, textured, materials, skin)
+the (now removed) build preview    tracked previews (source, PD2 model, textured, materials, skin)
 build/skyrim-nif/                     generated report, inventory, crosscheck, .model (gitignored)
 tools/pd2-las/                        the rest of the LAS pipeline
 ```

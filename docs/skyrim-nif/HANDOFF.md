@@ -8,6 +8,7 @@ The user asked to delete the original Melodic inputs and the built ZIP, update d
 
 - [`FIXES-2026-11-04.md`](FIXES-2026-11-04.md) records the attempted geometry fixes and why the in-game result still failed.
 - [`PORT-PLAN.md`](PORT-PLAN.md) and [`AUDIT-2026-11-04.md`](AUDIT-2026-11-04.md) are historical measurements, not current build instructions.
-- [`reference-images/neck-alignment/`](reference-images/neck-alignment/) contains the visual references supplied by the user, including the follow-up screenshots showing the unsuccessful result.
+- The user-supplied visual references (in-game and comparison screenshots)
+  were removed on request; ask the user to re-supply them if the port is resumed.
 
 Do not restore the old package or resume the port unless the user explicitly asks. Earlier Git commits still contain the removed archives and pack; this cleanup removes them from the current branch tip, not from history.

@@ -79,7 +79,7 @@ All 12 meshes in `4.zip` parse with a single warning class (the skipped
 | skinned body height | ~163 cm | `3BA` shape 16 → 163 cm |
 | garment placement | skirt around the hips | `0_Skirt` 86.6 → 117.7 cm |
 | UV range | inside 0…1 | 0.01…0.99 on the 2048² atlases |
-| four-view render | an actual outfit | `docs/previews/business_woman_outfit.png` |
+| four-view render | an actual outfit | a four-view render of the source meshes |
 | **nifly, shape by shape** | identical shapes, verts, tris, bones, textures | **91/91 checks, deltas `0.0`** |
 
 Units: one NIF unit = 1.428 cm; an adult NPC is ~128 units tall.
