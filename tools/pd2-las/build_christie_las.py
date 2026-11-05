@@ -9,6 +9,8 @@ Outputs (in `dist/`):
 - `Christie_LAS_No_hands.zip`  — same outfit with the hands cut at the wrist,
   so the heister's in-game gloves (changeable, via the glove adapter compat
   hook) show through the sleeves; `--variant nohands`
+- `Christie_LAS_Slim.zip`      — 20% thinner in width/depth, height unchanged;
+  `--variant slim`
 
 Both are installable to `PAYDAY 2\\assets\\mod_overrides\\` with SuperBLT +
 BeardLib + LAS/Wardrobe.
@@ -73,6 +75,9 @@ MAT_DIR = "materials/models/plasmid/doa5/christie/c2/"
 HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
 GLOVE_HOOK_SOURCE = "lib/tweak_data/blackmarkettweakdata"
 
+#: Horizontal (X/Y) scale for the slim variant; Z (height) is left untouched.
+SLIM_SCALE = 0.8
+
 
 @dataclass(frozen=True)
 class Identity:
@@ -124,6 +129,15 @@ IDENTITIES = {
                      "through the sleeves. No head — the heister keeps their "
                      "own."),
         glove_adapter=True,
+    ),
+    "slim": Identity(
+        item_id="christie_slim",
+        pack_dir_name="Christie_LAS_Slim",
+        display_name="Christie (DOA5, slim)",
+        description=("Christie from Dead or Alive 5, body-only LAS outfit scaled "
+                     f"{SLIM_SCALE:.0%} thinner in width and depth (height "
+                     "unchanged). No head — the heister keeps their own."),
+        glove_adapter=False,
     ),
 }
 
@@ -396,6 +410,35 @@ def cut_hands(g: bm.Group, min_weight: float = 0.5) -> bm.Group:
     print(f"[{g.name}] hands cut: {removed} verts removed, "
           f"{len(out.verts)} verts / {len(out.faces)} tris remain")
     return out
+
+
+# ---------------------------------------------------------------------------
+# slim variant: 20% thinner in X/Y, height (Z) untouched
+# ---------------------------------------------------------------------------
+def slim_group(g: bm.Group, scale: float = SLIM_SCALE) -> bm.Group:
+    """Scale the group horizontally about its own vertical axis.
+
+    x/y shrink by `scale` around the mesh's XY centroid (so the outfit stays
+    centered on the skeleton axis), z is untouched — height preserved. Normals
+    are transformed by the inverse-transpose of diag(s, s, 1) and renormalized,
+    so shading follows the thinner silhouette instead of staying spherical.
+    """
+    import numpy as np
+
+    v = np.array(g.verts, dtype=np.float64)
+    c = v.mean(axis=0)
+    v[:, 0] = c[0] + (v[:, 0] - c[0]) * scale
+    v[:, 1] = c[1] + (v[:, 1] - c[1]) * scale
+    n = np.array(g.normals, dtype=np.float64)
+    n[:, 0] /= scale
+    n[:, 1] /= scale
+    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
+    g.verts = [tuple(row) for row in v]
+    g.normals = [tuple(row) for row in n]
+    print(f"[{g.name}] slim x{scale}: x {np.ptp(v[:, 0]):.1f} cm, "
+          f"y {np.ptp(v[:, 1]):.1f} cm, z {np.ptp(v[:, 2]):.1f} cm "
+          f"(z unchanged: {np.allclose(v[:, 2], np.array([p[2] for p in g.verts]))})")
+    return g
 
 
 # ---------------------------------------------------------------------------
@@ -701,7 +744,8 @@ def main(argv=None) -> int:
                     help="directory with 2b.model / fps_2b.model (from 2b.rar)")
     ap.add_argument("--variant", choices=sorted(IDENTITIES), default="base",
                     help="base = full body with hands; nohands = hands cut at the "
-                         "wrist for in-game gloves (glove adapter hook shipped)")
+                         "wrist for in-game gloves (glove adapter hook shipped); "
+                         f"slim = {SLIM_SCALE:.0%} thinner in x/y, height unchanged")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
     ap.add_argument("--no-fps", dest="fps", action="store_false", default=True,
@@ -739,6 +783,19 @@ def main(argv=None) -> int:
         groups[gname] = g
         for drawable in spec["drawables"]:
             share[drawable] = gname
+
+    if args.variant == "slim":
+        # Thinner in width/depth only; height (z) and the skeleton untouched.
+        # Applied before the fps extraction so the viewmodel arms match.
+        for gname in ("body", "shadow"):
+            slim_group(groups[gname])
+            breaks = bm.orientation_breaks(groups[gname])
+            agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
+                                         groups[gname].normals)
+            print(f"[{gname}] after slim: orientation breaks {breaks}, "
+                  f"winding agreement {agree:.1%}")
+            if breaks or agree < 0.9:
+                raise SystemExit(f"[{gname}] slim scale broke the mesh")
 
     if identity.glove_adapter:
         # Cut the hands at the wrist (both the visible mesh and the shadow),

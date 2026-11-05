@@ -34,9 +34,11 @@ Deliverables in **`dist/`**:
   remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` and
-`dist/Christie_LAS_No_hands.zip` (+ `.sha256`) — built by
-`tools/pd2-las/build_christie_las.py` (`--variant base|nohands`) from
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip`,
+`dist/Christie_LAS_No_hands.zip` and `dist/Christie_LAS_Slim.zip`
+(+ `.sha256`) — built by
+`tools/pd2-las/build_christie_las.py` (`--variant base|nohands|slim`; slim =
+×0.8 thinner in x/y, height unchanged) from
 `references/Christie.zip`, headless LAS (`replace_body`, no `g_head`; the
 no-hands variant cuts the wrists and ships the glove-adapter hook so in-game
 gloves work). Base pack **tested in game 2026-11-05** (headless LAS confirmed;

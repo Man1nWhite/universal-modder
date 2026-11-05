@@ -6,6 +6,10 @@
   `*_glove_adapter.lua` compat hook (default glove restored, adapter
   re-enabled) so the heister's changeable in-game gloves show through the
   sleeves.
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 20% thinner in width and depth
+  (`--variant slim`): the retargeted body is scaled ×0.8 in X/Y about its own
+  vertical axis (normals inverse-transpose corrected), **Z/height untouched**;
+  applied before the fps extraction so the viewmodel arms match.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
@@ -27,6 +31,8 @@ the loader semantics.
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # base pack
 .venv/bin/python tools/pd2-las/build_christie_las.py --variant nohands \
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # no-hands pack
+.venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
+    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # slim pack
 ```
 
 Pipeline: `build_christie_las.load_christie` parses the MDL with **every
@@ -52,7 +58,8 @@ gloss fixed). The icon sheet
 (`build/pd2-las/previews/christie_icon_sheet.png`) shows a coherent clothed
 body with an open neck (headless by design).
 
-Registration: `LegendaryArmours.christie` and `LegendaryArmours.christie_no_hands`,
+Registration: `LegendaryArmours.christie`, `...christie_no_hands`,
+`...christie_slim`,
 `units/<id>/skins/<id>/<id>[_fps]`, textures
 `<id>_{body,c02_01,c02_02,c02_05}_{df,nm}`, icon
 `guis/dlcs/<id>/armor_skins/<id>`.
