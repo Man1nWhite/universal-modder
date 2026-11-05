@@ -60,12 +60,12 @@ invisible; only the morph makes it matter.
 ### 2. Two-scale falloff
 
 ```
-r_x   = 9.2 toward the midline, 4.2 toward the armpit           asymmetric in x
+r_x   = 9.2 toward the midline, 4.2 toward the armpit           blended, not switched
 u     = (x ∓ 6.0) / (r_x · side) · s                            s = dome scale
 r2    = u² + ((z - 139.0)/r_z)²
-main  = (1 - r2)^0.5
+main  = (1 - r2)^1.6
 r_z   = 14.0 above the apex, 8.0 below it                       per breast
-soft  = same shape at 2.8× the size, weight 0.62, power 1.8      chest fullness
+soft  = same shape at 2.0× the size, weight 0.62, power 1.8      chest fullness
 w±    = (main + 0.62·soft) / 1.62                               normalised: apex = 1
 gate  = smoothstep((y - 6.5)/6.5) · smoothstep((13.0 - |x|)/2.5)
 ceil  = smoothstep((152.5 - z)/6)                               soft upper bound
@@ -114,10 +114,10 @@ subdivision level 1 (red/green), 3 relaxation steps @ 0.32:
 
 | Metric | Base | Variant |
 | --- | --- | --- |
-| front reach at the apex (y) | 19.98 cm | **31.78 cm** (+11.79) |
+| front reach at the apex (y) | 19.98 cm | **30.71 cm** (+10.73) |
 | apex position | x 5.59, z 140.0 | x 6.01, z 140.7 |
 | chest width at the apex height | 23.59 cm | 23.59 cm (unchanged: the lateral gate now holds the ribcage) |
-| body vertices | 5,645 | **6,064** (+419 from the split) |
+| body vertices | 5,645 | **5,943** (+298 from the split) |
 | chest silhouette (side) | 19.98 → 17.80 → 12.54 (z = 140…150) | 30.37 → 22.59 → 12.26 |
 | cross-section gain at z 137, by \|x\| band | — | 0–1 +3.36, 2–3 +6.23, 5–6 +10.57, 9–10 +6.46, 10–11 +3.18, 11–12 +0.03 |
 
@@ -264,6 +264,25 @@ base's shorter vertex array collapses the subdivided panels onto the origin.
     9.5/12.0 -> 10.5/13.0 halves the worst local slope to 1.89. Keep `X_ZERO` at
     or below 13.0: at 13.2 six arm vertices leave the containment box (by
     1-140 um, but the test is a hard zero).
+
+19. **`DOME_POWER` below 1 has infinite slope at the rim.** `(1-r2)^p` with
+    p = 0.5 plunges from 0.032 to 0 over the last 0.001 of radius. The main dome
+    is 2/3 of the composite weight, so the surface got a genuine step wherever
+    `r2` crossed 1 inside the mesh — measured as a **1.37 cm jump in the field
+    across 0.1 cm** (p = 1.6 gives 0.30 cm). This was the real source of both
+    the upper-chest crease and the 119 degree normal flip. Keep p >= 1; p = 2
+    meets the rim with zero slope if a smoother hand-off is ever needed.
+20. **`_radial_x` must interpolate, not select.** `RADIUS_X_IN if ... else
+    RADIUS_X_OUT` is a step function at the apex, which puts a kink in the field
+    wherever the apex column is crossed. Now a `smoothstep` crossfade over
+    `RADIUS_BLEND = 2.5` cm.
+21. **Long thin triangles must not be subdivided.** Base triangle
+    `[372,373,374]` is 3.18 x 3.17 x 0.75 cm. Splitting it puts two midpoints
+    ~0.3 cm apart; v372 then moved 3.83 cm while its partners moved 1.15 cm,
+    shearing the new inner triangle into a fold (122 degree normal flip on the
+    upper chest, 6 bad edges). `_is_sliver` skips faces thinner than
+    `SLIVER_RATIO = 0.45`. Max flip afterwards: **63.7 deg, below the base
+    model's own 76.4 deg**.
 
 ## Still open
 

@@ -80,7 +80,7 @@ RADIUS_Z_DOWN = 8.0
 #: much wider and much shallower dome underneath it (the fullness of the chest
 #: above and between the breasts) carries the surface down to the base mesh
 #: gradually, so the upper pole fades out instead of ending.
-SOFT_SCALE = 2.8
+SOFT_SCALE = 2.0
 SOFT_WEIGHT = 0.62
 SOFT_POWER = 1.8
 #: Top of the apex plateau on the source mesh — the reference depth that
@@ -104,7 +104,7 @@ VALLEY = 0.78
 VALLEY_W = 2.4
 #: Dome profile exponent. ``(1 - r2)**p`` with p > 1 keeps a broad, full centre
 #: and a fast fade at the rim; p = 2 ramps too gently and reads as a plateau.
-DOME_POWER = 0.5
+DOME_POWER = 1.6
 #: Safety ceiling: no other body part lives between the cap rim and the head, so
 #: this only ever guards the shared shadow-caster vertex block. The field fades
 #: out over ``CEILING_FADE`` centimetres below it — a hard cut-off leaves a ridge.
@@ -112,6 +112,15 @@ Z_CEILING = 152.5
 CEILING_FADE = 6.0
 #: Nothing at or above this height may move: the collar seam lives at ~152.2.
 HEAD_Z = 152.0
+#: Half-width (cm) of the medial/lateral radius crossfade; see ``_radial_x``.
+RADIUS_BLEND = 2.5
+#: Upper-chest recession. See ``ChestMorph.recede``: the base mesh's chest wall
+#: slopes forward almost as far as the bust, so the swell has nothing to stand
+#: clear of and the side view reads as one diagonal from nipple to collar.
+RECEDE_DEPTH = 0.0
+RECEDE_Z_LO = 141.0
+RECEDE_Z_HI = 151.5
+RECEDE_FADE = 4.0
 #: Edit band actually allowed to move, in z (cm).
 #
 # The front gate and the soft dome were sized for the narrow version; once the
@@ -187,8 +196,17 @@ class ChestMorph:
 
     # ---------------------------------------------------------------- profile
     def _radial_x(self, x: float, side: int) -> float:
-        """Lateral radius: wider toward the midline than toward the armpit."""
-        return RADIUS_X_IN if (x - side * APEX_X) * side < 0 else RADIUS_X_OUT
+        """Lateral radius: wider toward the midline than toward the armpit.
+
+        Blended, not selected. Choosing one radius or the other with a step at
+        the apex left a 1.1 cm cliff in the field across a single centimetre
+        (measured at x 9.3->9.4, z=147.3) which the coarse mesh turned into a
+        119 degree normal flip. ``RADIUS_BLEND`` cm either side of the apex
+        crossfades the two so the field stays continuous.
+        """
+        dx = (x - side * APEX_X) * side
+        t = smoothstep((dx + RADIUS_BLEND) / (2.0 * RADIUS_BLEND))
+        return RADIUS_X_IN + (RADIUS_X_OUT - RADIUS_X_IN) * t
 
     def _falloff(self, x: float, z: float, side: int, scale: float,
                  power: float) -> float:
@@ -259,7 +277,31 @@ class ChestMorph:
         # breast into the horizontal shelf the side view showed.
         dz = self.lift * fall * fall
         dx = self.spread * (w_pos - w_neg) * gate
+        # Pull the upper chest back behind the bust. Purely a depth change: it
+        # adds no width, and it is zero at the apex and at the collar so neither
+        # the breast form nor the neck seam is disturbed.
+        # ...and let the recession win outright where it applies: the soft dome
+        # is deliberately wide (2.8x) so it still carries ~2 cm of swell at
+        # z=146, which cancelled most of the pull-back. Scale the swell down by
+        # the recess factor instead of subtracting from it, so the two cannot
+        # fight: where the recess is full the swell is 0.
+        rec = self.recede(z)
+        swell_scale = 1.0 - min(1.0, rec / RECEDE_DEPTH) if RECEDE_DEPTH > 0 else 1.0
+        dy *= swell_scale
+        dy -= rec * gate * self.lateral_gate(x)
         return (dx, dy, dz)
+
+    def recede(self, z: float) -> float:
+        """Depth to pull the upper chest back, in cm (0 at the apex and collar).
+
+        The base chest wall falls only ~6.8 cm between z=144 and z=150, so the
+        enlarged bust in front of it has almost no depth separation and the side
+        silhouette is a single straight ramp. Recessing the *chest* (not the
+        breast) gives the bust something to stand proud of.
+        """
+        up = smoothstep((z - RECEDE_Z_LO) / RECEDE_FADE)
+        down = smoothstep((RECEDE_Z_HI - z) / RECEDE_FADE)
+        return RECEDE_DEPTH * up * down
 
     def band(self, z: float) -> float:
         """1 inside the editable chest band, easing to 0 at its edges.
@@ -406,6 +448,34 @@ def _crosses_uv_seam(uvs, tri) -> bool:
             or _uv_distance(uvs[c], uvs[a]) > MAX_EDGE_UV_DISTANCE)
 
 
+#: Height-to-base ratio below which a triangle counts as a sliver.
+#
+# Subdividing a long thin triangle puts its edge midpoints a few millimetres
+# apart, and the morph then moves the two ends of the parent by very different
+# amounts. Base triangle [372,373,374] is 3.18 x 3.17 x 0.75 cm; v372 moved
+# 3.83 cm while v373/v374 moved 1.15 cm, which sheared the new inner triangle
+# into a fold - a 122 degree normal flip on the upper chest. Leaving slivers
+# whole costs nothing visually (the displacement there is small and the
+# relaxation still runs) and removes the whole class of defect.
+SLIVER_RATIO = 0.45
+
+
+def _is_sliver(verts, tri) -> bool:
+    """True for a triangle too thin to subdivide without folding."""
+    a, b, c = (verts[v] for v in tri)
+    e = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
+    f = (c[0] - a[0], c[1] - a[1], c[2] - a[2])
+    cx = (e[1] * f[2] - e[2] * f[1], e[2] * f[0] - e[0] * f[2],
+          e[0] * f[1] - e[1] * f[0])
+    area2 = (cx[0] * cx[0] + cx[1] * cx[1] + cx[2] * cx[2]) ** 0.5
+    longest = max(((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2,
+                   (c[0] - b[0]) ** 2 + (c[1] - b[1]) ** 2 + (c[2] - b[2]) ** 2,
+                   (a[0] - c[0]) ** 2 + (a[1] - c[1]) ** 2 + (a[2] - c[2]) ** 2)) ** 0.5
+    if longest <= 0.0:
+        return True
+    return (area2 / longest) / longest < SLIVER_RATIO
+
+
 def _patch_faces(group, morph: ChestMorph) -> tuple[set[int], int, int]:
     """Faces the one-to-four split applies to, plus the last slice's range.
 
@@ -443,6 +513,8 @@ def _patch_faces(group, morph: ChestMorph) -> tuple[set[int], int, int]:
         if not all(morph.in_region(*group.verts[v]) for v in tri):
             continue
         if _crosses_uv_seam(group.uvs, tri):
+            continue
+        if _is_sliver(group.verts, tri):
             continue
         patch.add(fi)
     return patch, first, last
