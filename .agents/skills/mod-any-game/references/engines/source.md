@@ -30,6 +30,13 @@
   - Measuring an addon without extracting or rendering it: `python tools/pd2-las/inspect_gma.py
     <id>.gma` for rig/geometry, `inspect_textures.py <folder|zip|vpk|gma>` for whether every
     material's `.vmt`→`.vtf` chain actually exists and decodes. Never commit the assets.
+  - Writing one: `gmad.exe` packs (`addon.json` + its `ignore` globs, and a whitelist that rejects
+    stray file types), `gmpublish.exe` uploads — but publishing needs Windows and a signed-in Steam
+    client, so an agent can prepare an addon and never upload it. Lint the Lua first with `glualint`
+    (GLuaFixer): GMod's dialect rejects ordinary Lua in ways the game only tells you at load, and
+    `SERVER`/`CLIENT` realm mistakes are invisible until something runs in the wrong realm.
+  - Fetching one on a headless box: `steamcmd +workshop_download_item 4000 <id>` or `pip install
+    steamctl` (pure Python, and `steamctl workshop info` describes the item before you download it).
 - **Code:** Source SDK 2013 (github.com/ValveSoftware/source-sdk-2013) builds your own mod (a new game
   folder under `sourcemods/`). It's the official, fully legal route for new mechanics in HL2-era games.
 - **Browse:** VPKEdit (cross-platform) or GCFScape (Windows/.NET, the GUI over HLLib) to open VPKs,
