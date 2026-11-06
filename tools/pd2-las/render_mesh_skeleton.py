@@ -554,6 +554,11 @@ def main(argv=None) -> int:
     ap.add_argument("--pose", action="store_true",
                     help="also render a menu-like flexed pose (Arm/ForeArm/Hand "
                          "bent) with the mesh re-skinned onto the posed skeleton")
+    ap.add_argument("--hang", action="store_true",
+                    help="also render the in-game hang (Arm +6 deg, ForeArm "
+                         "-80 deg: the elbow near straight while the bind pose "
+                         "bakes a ~72 deg bend) - the pose where a narrow "
+                         "elbow weight blend folds into X-pleats")
     args = ap.parse_args(argv)
     if args.source is not None:
         render_source(args.source, args.out)
@@ -625,6 +630,31 @@ def main(argv=None) -> int:
             for view in ("front", "side"):
                 render(hand, near_bones, view,
                        args.out / f"{stem}_skel_pose_wrist_{view}.png")
+    if args.hang:
+        # the in-game idle: elbow nearly straight. The bind pose bakes ~72 deg
+        # here, so the sleeve must unfold through the weld ring - the pose
+        # where a narrow Arm/ForeArm blend folds into pleats (2026-11-06).
+        pose = {f"{s}Arm": (0, 6) for s in ("Left", "Right")}
+        pose.update({f"{s}ForeArm": (0, -80) for s in ("Left", "Right")})
+        pw = posed_worlds(template, pose)
+        posed_bones = [(template.id_name[sid], np.array(pw[sid][12:15], float),
+                        template.id_name.get(template.id_obj[sid]["parent"])
+                        if template.id_obj[sid]["parent"] else None)
+                       for sid in pw]
+        pv = skin_verts(geo, skel, pw)
+        for view in ("front", "side"):
+            render(geo, posed_bones, view, args.out / f"{stem}_hang_{view}.png",
+                   verts=pv)
+        chain_p = [np.array(pw[sid][12:15], float) for sid in pw
+                   if template.id_name.get(sid) in
+                   ("LeftArm", "LeftForeArm", "LeftHand")]
+        if len(chain_p) == 3:
+            tube = _largest_blobs(_subset_near_polyline(
+                {"verts": pv, "faces": geo["faces"]}, chain_p, radius=8.0))
+            near_bones = _bones_near(chain_p, posed_bones, radius=16.0)
+            for view in ("front", "side"):
+                render(tube, near_bones, view,
+                       args.out / f"{stem}_hang_elbow_{view}.png")
     return 0
 
 

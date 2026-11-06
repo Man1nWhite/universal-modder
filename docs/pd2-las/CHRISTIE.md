@@ -1,27 +1,41 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `bc482523…208a38`) — full body
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `046e4000…0fdced`) — full body
   incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `aacc31a9…ef67`) — 10% thinner torso/legs, 25%
-  thinner arms in cross-section, **and no hands** (`--variant slim`; the
-  separate no-hands pack was removed — slim supersedes it). The v4 slim pass
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `85cf9688…72fd080`) — 10% thinner torso/legs, 20%
+  thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
+  lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
+  hands** (`--variant slim`; the separate no-hands pack was removed — slim
+  supersedes it). The v4 slim pass
   (`slim_group`) works on the bind-pose mesh only — skeleton, bone lengths
   and skin weights untouched — applying per-segment radial cross-section
   scaling `p' = p + Σ α_j (s_j − 1) r_j` with separate joint-anchored axes for
-  each upper arm / forearm / thigh / calf (s = 0.75 arms, 0.90 legs), a
-  Z-monotonic torso centerline for the pelvis/spine (s = 0.90, neck fade),
+  each upper arm / forearm / thigh / calf (s = 0.80 arms, 0.90 legs, and the
+  forearm alpha now fades out over the last 8 cm before the bitwise-unchanged
+  cuff ring — the old full-strength-into-the-ring pass pinched the mid-arm
+  against an untouched mouth and flared 2.27x; it is 1.17x now, base 1.04x),
+  a Z-monotonic torso centerline for the pelvis/spine (s = 0.90, neck fade),
   shoulder and crotch weight routing, an explicit identity field for
   protected head/hands/feet, smoothstep fades to 1.0 at the wrist/ankle with
   the surviving cuff ring enforced bitwise unchanged, and normals recomputed
   from the final triangles. Height is preserved (final min/max z match the
-  base pack); verified principal cross-section radii: arms 0.747–0.764,
-  legs 0.900 vs base. Then the hands
+  base pack); verified principal cross-section radii: upper arm 0.736, forearm
+  0.800, legs 0.900 vs base. Both packs' diffuse alpha (PD2's specular mask)
+  is additionally attenuated by ~55% inside the sleeve UV regions — in game
+  the sleeves read glossier than the torso (see "Sleeve gloss" below). Then
+  the hands
   are cut at the wrist, the sleeves are stretched deep past the wrist joint
   (blazer −4.5 cm, skin −3.5 cm, shirt −3.0 cm) so the spawned glove sits well
   inside the cuff in every pose, plus a `*_glove_adapter.lua` compat hook
   (default glove restored, adapter re-enabled) so the heister's changeable
   in-game gloves show through the sleeves. Applied before the fps extraction
   so the viewmodel arms match.
+
+**2026-11-06 in-game fix round** (user screenshots of the slim pack): the
+elbow X-fold, the wrist seam and the sleeve gloss are addressed by
+`widen_elbow_blend` (both packs, weights only), the forearm wrist fade
+(slim), and the diffuse-alpha sleeve retouch (both packs) — see the sections
+below. The 25%-arm slim scale was rebalanced to 20% + tuck at the same time.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
@@ -76,6 +90,37 @@ move, so the slim pass cannot flip them), weights untouched, flip-checked.
 Upper-arm segments are skipped (too few clean verts). The elbow bend itself
 is the PD2 template bind pose and is intentionally left alone — only
 straightness *within* each segment is enforced.
+
+**Elbow blend widening (`widen_elbow_blend`, 2026-11-06, both packs):** the
+weld ring above is narrow *in target space*: 4+3 cm in source coordinates
+spans 9.4 cm of the 23.3 cm target arm with 64 mixed-weight verts (2B: 16.2
+cm / 331). The bind pose bakes a ~72° elbow bend and the in-game idle hangs
+near straight, so at rest the sleeve must unfold ~50° **through that weight
+step** — and a narrow, steep step folds the snug sleeve into a braid of
+pleats: the X-fold on the outer elbow in the 2026-11-06 screenshots, worst
+when the arm hangs, invisible in the bind pose (where every fit metric was
+already at reference). The pass runs right after `transfer_group` (before
+straighten/slim/fps consume the weights) and re-splits each affected vertex's
+(Arm + ForeArm) mass by `s = smoothstep((x + a)/(a + b))`, a = 7 cm proximal,
+b = 9 cm distal of the pivot, where **x is a monotone material coordinate**:
+signed cm from the elbow along the vertex's own dominant-side bone axis
+(proximal verts on the Arm axis, distal on the ForeArm axis). Do NOT use a
+single arc-length coordinate about the bent chain: the two axes meet at ~72°,
+so arc position is discontinuous across the crease, and an arc-length re-split
+(prototyped and measured) makes the fold *worse* — opposed-normal pairs at
+the hang go 5 → 12, while the monotone split flattens the braid (edge
+compression at 22° straightening: min ratio 0.70 → 0.86; at 45°: 0.53 → 0.71
+with 0% of edges under 0.70). A vertex carrying only one of the two bones
+gets the other added in a free blendindices slot (4 wide). Weight sums are
+preserved exactly; positions/UVs/palette untouched, so every bind-pose fit
+number is unchanged by construction. Pinned by
+`test_elbow_blend_is_wide` (≥ 10.8 cm span, ≥ 72 mixed verts; measured 12.1/83)
+and `test_elbow_does_not_fold_at_the_hang_angle` (posed-LBS compression +
+opposed-normal pair bounds at 22/45/80° of straightening), which measure the
+shipped bytes through the same `posed_worlds`/`skin_verts` LBS the diagnostic
+renderer uses. New `--hang` renders (`christie{,_slim}_hang{,_elbow}_{front,side}.png`
+in `docs/pd2-las/renders/`) show the near-straight in-game pose; the slim
+elbow at −80° is a smooth tube, no braid.
 
 ## Build
 
@@ -140,7 +185,7 @@ command, so the whole set is reproducible in one run per pack:
 .venv/bin/python tools/pd2-las/render_mesh_skeleton.py \
     --zip dist/Christie_LAS.zip --pack Christie_LAS --item christie \
     --templates "<2B>/assets/units/2b/skins/2b" \
-    --out docs/pd2-las/renders --pose          # add --Slim for the slim pack
+    --out docs/pd2-las/renders --pose --hang   # add --Slim for the slim pack
 ```
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
@@ -184,6 +229,11 @@ command, so the whole set is reproducible in one run per pack:
 - `christie_skel_pose_{front,side}.png`, `christie_skel_pose_wrist_*.png` (and
   the `slim` pair) — the mesh re-skinned into a relaxed pose with the posed
   skeleton drawn on top; regenerate with `--pose`
+- `christie{,_slim}_hang_{front,side}.png` and
+  `christie{,_slim}_hang_elbow_{front,side}.png` — the **in-game hang**
+  (Arm +6°, ForeArm −80°: the elbow near straight while the bind pose bakes
+  ~72°), the pose where the X-fold lived; regenerate with `--hang`. The
+  close-ups are selected on the *posed* positions.
 
 Until 2026-11-06 this list named files that never existed (`*_skel_wrist_side`
 with no base-pack prefix, `christie_base_skel_top`) and the renderer never wrote
@@ -300,6 +350,48 @@ Inherited, not introduced: the DOA source's own sleeve ends in a ruffled blazer
 cuff. Both cuff rings are still centred on the bone (rim centre 0.30 cm base /
 0.39 cm slim off the axis), so this is a mouth-shape note, not a fit regression.
 
+### Sleeve gloss (2026-11-06)
+
+PD2's `DIFFUSE_TEXTURE:NORMALMAP` shader reads the specular mask from the
+**diffuse texture's alpha**, and the sleeve UV islands carry a stronger Source
+phong mask than the torso region of the same atlas — in game the arms read
+glossier than the body (2026-11-06 screenshots, slim pack). `sleeve_uv_masks`
+marks a vertex as sleeve when > 40% of its skin weight sits on the arm chain
+(Arm/ForeArm/Hand/fingers), splats a 24-texel disc at its UV (1024² working
+res, feathered with a box blur, row convention = `preview_textured._sample`
+with `flip_v=True` on the stored internal `(u, −v)` pairs), and
+`retouch_sleeve_gloss` attenuates diffuse alpha by 55% inside the mask **at
+every mip** (each level's mask is the previous level's 2×2 block mean; the
+payload is a full pyramid with mip 0 first). Only DXT5 alpha blocks are
+rewritten — RGB colour blocks are untouched. Verified: outside the mask the
+max alpha delta vs the pre-change pack is the feather (15/255 on boundary
+blocks) and the sleeve-region mean alpha drops 23.5 → 11.6; the mask was
+confirmed to land on the sleeves by rendering the built model with the mask
+tint-baked into the diffuse (red arms, grey torso).
+`c02_05` (heels) gets an empty mask — no arm-chain verts — and is left alone.
+
+### The elbow at the in-game hang (why the first build looked fine offline)
+
+Every bind-pose metric in the table below was already at-or-better than the 2B
+reference when the X-fold shipped, and the offline `--pose` preview (elbow
+bent 22° from bind) was clean. The fold only exists between bind and rest:
+the PD2 template bakes ~72° into the elbow, the menu/idle hangs near
+straight, and the deformation in between is driven by the *weights*, which
+the fit never exercises. Two traps were re-confirmed here:
+
+- A weighted-metric proxy (edge compression) **contradicts the render**: the
+  shipped 2B reference compresses *harder* than Christie at −80° (min ratio
+  0.31 vs 0.43) yet stays smooth, because its 331-vert blend spreads the
+  stretch. Judge fold fixes on renders + opposed-normal pairs, not on
+  compression alone.
+- The widened weights shift which verts count as "unblended" downstream
+  (`_principal_radius` w > 0.99 populations moved), so the slim acceptance
+  test needed re-baselining with the widen in place, not before it. And the
+  bicep tuck must AMPLIFY the slim displacement (`α × (1 + s·tuck/(1−s))`),
+  not dim it — the displacement is what's left of the radius, so dimming the
+  move fattens the belly (first attempt measured 0.812 where 0.736 was
+  intended).
+
 ## Mesh-vs-skeleton fit
 
 Two questions decide whether an outfit looks attached to its heister:
@@ -332,11 +424,11 @@ Reference numbers (same code, PD2's own fitted 2B body):
 
 | quantity | 2B reference | Christie base, before | Christie base, **now** |
 |---|---|---|---|
-| forearm slab centre off the axis (slice max) | 0.4 – 1.2 cm | 1.61 / 1.43 cm, drift 1.48 / 1.88 | **1.12 / 0.86 cm, drift 0.33 / 0.86** |
-| forearm slab centre (slim) | 0.4 – 1.2 cm | 0.98 / 0.88 cm, drift 0.83 / 0.90 | **0.94 / 0.97 cm, drift 0.42 / 1.01** |
+| forearm slab centre off the axis (slice max) | 0.4 – 1.2 cm | 1.61 / 1.43 cm, drift 1.48 / 1.88 | **1.03 / 0.82 cm, drift 0.30 / 0.83** |
+| forearm slab centre (slim) | 0.4 – 1.2 cm | 0.98 / 0.88 cm, drift 0.83 / 0.90 | **1.10 / 1.15 cm, drift 0.47 / 1.21** |
 | upper arm | 1.8 – 3.1 cm | 0.5 – 0.9 cm | unchanged |
 | thigh / calf | 0.7 – 2.6 cm | 0.3 – 1.6 cm | unchanged |
-| crease → elbow pivot | 4.9 cm | 2.6 cm | **2.17 / 2.37 cm** |
+| crease → elbow pivot | 4.9 cm | 2.6 cm | **2.85 / 2.99 cm** (the widened ring's weight centroid is wider; the geometric crease is untouched — limit 3.5) |
 | cuff → wrist pivot | 1.5 cm | 2.0 cm (slim 2.2) | **1.18 / 1.13 cm (slim 1.87 / 2.02)** |
 
 The forearm is now closer to its bone than PD2's own 2B body, and the cuff ring

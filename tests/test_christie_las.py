@@ -274,13 +274,19 @@ def _principal_radius(which: str, bone: str, side: str,
 
 
 def test_slim_cross_section_ratios():
-    """v4 acceptance: in unblended mid-segment slices the principal radius
-    ratio slim/base must be 0.75 +/- 0.02 for arms and 0.90 +/- 0.02 for legs
-    (25%/10% smaller cross-sectional dimensions, both perpendicular axes)."""
-    # slices avoid fade zones: forearm elbow fade ends at 6/22.5 = 0.27L
+    """Slim acceptance (2026-11-06 rebalance): in unblended mid-segment slices
+    the principal radius ratio slim/base must be 0.90 +/- 0.02 for legs, 0.80
+    +/- 0.02 for the forearm, and ~0.736 for the upper arm -- the 0.80 segment
+    scale with the bicep tuck active across the whole slice (SEGMENT_SPECS /
+    BICEP_TUCK in build_christie_las; 25% arms was rebalanced to 20% + a
+    10% belly tuck after the in-game check: at 25% the sleeves read
+    stick-thin next to the 0.90 torso/legs, and the biceps sat off-axis)."""
+    # slices avoid fade zones: forearm elbow fade ends at 6/22.5 = 0.27L,
+    # the wrist fade starts at ~(22.5-8)/22.5 = 0.64L, and the widened
+    # elbow blend reaches 9 cm past the joint = 0.60L
     slices = {"Arm": (0.35, 0.65), "ForeArm": (0.30, 0.55),
               "UpLeg": (0.30, 0.60), "Leg": (0.30, 0.60)}
-    for bone, target in (("Arm", 0.75), ("ForeArm", 0.75),
+    for bone, target in (("Arm", 0.736), ("ForeArm", 0.80),
                          ("UpLeg", 0.90), ("Leg", 0.90)):
         lo, hi = slices[bone]
         for side in ("Left", "Right"):
@@ -682,3 +688,159 @@ def test_fit_numbers_match_the_build_report():
         measured = _fit_report(which)
         assert abs(built["worst_segment_offset"]
                    - measured["worst_segment_offset"]) < 1e-6
+
+
+# ---------------------------------------------------------------------------
+# the elbow at the in-game hang: the bind pose bakes a ~72 deg bend, the idle
+# hangs near straight, and a narrow weld ring folds into X-pleats (seen in
+# game 2026-11-06). widen_elbow_blend re-splits the weights; these tests pin
+# the posed result on the shipped bytes through the same LBS the diagnostic
+# renderer uses (posed_worlds / skin_verts, row-vector convention).
+# ---------------------------------------------------------------------------
+_HANG_ARM_DEG = 6       # shoulder swing in the probe poses
+_HANG_FOREARM = (22, 45, 80)   # deg of bind-bend straightening
+
+
+def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
+    """Edge compression + opposed-normal pairs inside the weld ring when the
+    elbow is straightened from the bind bend toward the hang."""
+    import numpy as np
+
+    import diesel_model as dm
+    import build_models as bm
+    import render_mesh_skeleton as rms
+
+    pack_dir, item_id = PACKS[which][1], PACKS[which][2]
+    with _zf(which) as zf:
+        geo = rms.g_body_geo(zf, pack_dir, item_id)
+        mf = dm.ModelFile.read(
+            zf.read(f"{pack_dir}/assets/units/{item_id}/skins/"
+                    f"{item_id}/{item_id}.model"))
+    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
+    skel = None
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        name = next((n for n in hl if dm.hash64(n) == md["name_hash"]), "")
+        if name == "g_body" and md.get("version") == 3:
+            skel = dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)
+            break
+    template = bm.load_template(_templates() / "2b.model")
+
+    v = np.array(geo["verts"], float)
+    faces = np.array(geo["faces"], int)
+    bw = np.array(geo["blendweights"], float)
+    bi = np.array(geo["blendindices"], int)
+    pal = skel["objects"]
+    name_of = {sid: template.id_name[sid] for sid in template.id_name}
+    w_arm = np.zeros(len(v))
+    w_fa = np.zeros(len(v))
+    for i in range(len(v)):
+        for k, w in enumerate(bw[i]):
+            if w <= 0.0:
+                continue
+            pi = int(bi[i][k])
+            if pi >= len(pal):
+                continue
+            n = name_of.get(pal[pi])
+            if n == "LeftArm":
+                w_arm[i] += w
+            elif n == "LeftForeArm":
+                w_fa[i] += w
+    ring = np.where((w_arm > 0.02) & (w_fa > 0.02) & (w_arm + w_fa > 0.5))[0]
+    ringset = set(ring.tolist())
+
+    # blend width along the Shoulder->Arm->ForeArm->Hand chain, bind pose
+    bones = dict((n, p) for n, p, _ in rms.skeleton(template))
+    pts = [bones[f"Left{n}"] for n in ("Shoulder", "Arm", "ForeArm", "Hand")]
+    cum = np.concatenate([[0.0], np.cumsum([float(np.linalg.norm(b - a))
+                                            for a, b in zip(pts[:-1], pts[1:])])])
+    arc = np.full(len(v), -1.0)
+    dmin = np.full(len(v), 1e9)
+    for si, (a, b) in enumerate(zip(pts[:-1], pts[1:])):
+        ab = b - a
+        t = np.clip((v - a) @ ab / (ab @ ab), 0, 1)
+        d = np.linalg.norm(v - (a + t[:, None] * ab), axis=1)
+        upd = d < dmin
+        dmin[upd] = d[upd]
+        arc[upd] = cum[si] + t[upd] * float(np.sqrt(ab @ ab))
+    span = float(arc[ring].max() - arc[ring].min())
+
+    pose = {f"{s}Arm": (0, _HANG_ARM_DEG) for s in ("Left", "Right")}
+    pose.update({f"{s}ForeArm": (0, -straighten_deg) for s in ("Left", "Right")})
+    pw = rms.posed_worlds(template, pose)
+    pv = rms.skin_verts(geo, skel, pw)
+
+    edges = set()
+    for tri in faces:
+        for a, b in ((0, 1), (1, 2), (2, 0)):
+            ia, ib = int(tri[a]), int(tri[b])
+            if ia in ringset or ib in ringset:
+                edges.add((min(ia, ib), max(ia, ib)))
+    e = np.array(sorted(edges), int)
+    lb = np.linalg.norm(v[e[:, 0]] - v[e[:, 1]], axis=1)
+    lp = np.linalg.norm(pv[e[:, 0]] - pv[e[:, 1]], axis=1)
+    ok = lb > 1e-9
+    ratio = lp[ok] / lb[ok]
+
+    n = np.cross(pv[faces[:, 1]] - pv[faces[:, 0]], pv[faces[:, 2]] - pv[faces[:, 0]])
+    nl = np.linalg.norm(n, axis=1)
+    good = nl > 1e-12
+    n = n[good] / nl[good][:, None]
+    fg = faces[good]
+    em = {}
+    for t in range(len(fg)):
+        for a, b in ((0, 1), (1, 2), (2, 0)):
+            k = (min(int(fg[t][a]), int(fg[t][b])), max(int(fg[t][a]), int(fg[t][b])))
+            em.setdefault(k, []).append(t)
+    flips = 0
+    for k, ts in em.items():
+        if len(ts) == 2 and (ringset & {int(fg[ts[0]][0]), int(fg[ts[0]][1]),
+                                        int(fg[ts[1]][0]), int(fg[ts[1]][1])}):
+            if float(np.dot(n[ts[0]], n[ts[1]])) < -0.5:
+                flips += 1
+    return dict(blend_span_cm=span, ring=len(ring),
+                min_ratio=float(ratio.min()),
+                frac_lt_070=float((ratio < 0.70).mean()),
+                crease_pairs=flips)
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_elbow_blend_is_wide(which):
+    """The weld ring must span >= 10.8 cm of arm chain with >= 72 mixed verts.
+
+    Shipped 2026-11-05 state: 9.4 cm / 64 verts on both packs - a narrow,
+    steep weight step that buckled the sleeve when the baked 72 deg crease
+    unfolded to the in-game hang. The 2B reference body: 16.2 cm / 331.
+    widen_elbow_blend re-splits 7 cm proximal + 9 cm distal of the pivot;
+    the measured ring is 12.1 cm / 83 verts (verts near the window edges get
+    cross-weights under the 0.02 mix threshold, so the span is shorter than
+    the nominal 16 cm window).
+    """
+    m = _hang_pose_metrics(which, 0)
+    assert m["blend_span_cm"] >= 10.8, (
+        f"{which}: elbow blend spans {m['blend_span_cm']:.1f} cm "
+        f"(needs >= 10.8, was 9.4 before widen_elbow_blend)")
+    assert m["ring"] >= 72, f"{which}: only {m['ring']} mixed-weight verts"
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_elbow_does_not_fold_at_the_hang_angle(which):
+    """Posed LBS probe: straightening the elbow toward the in-game hang must
+    not buckle the sleeve. Shipped 2026-11-05 state, measured with the same
+    code: at 45 deg of straightening the ring's worst edge compressed to 0.53
+    of its bind length and 2.8% of edges sat under 0.70 - the crease braid of
+    the X-fold. The widened blend holds 0.71 / 0% at 45 deg and keeps the
+    opposed-normal pair count at its bind-pose baseline even at 80 deg."""
+    at0 = _hang_pose_metrics(which, 0)
+    at22 = _hang_pose_metrics(which, 22)
+    at45 = _hang_pose_metrics(which, 45)
+    at80 = _hang_pose_metrics(which, 80)
+    assert at22["min_ratio"] >= 0.78, (
+        f"{which}: at 22 deg the worst ring edge compresses to "
+        f"{at22['min_ratio']:.2f} (was 0.70 before the widen)")
+    assert at45["min_ratio"] >= 0.65 and at45["frac_lt_070"] == 0.0, (
+        f"{which}: at 45 deg min ratio {at45['min_ratio']:.2f}, "
+        f"{at45['frac_lt_070']:.1%} of edges under 0.70")
+    assert at80["crease_pairs"] <= at0["crease_pairs"] + 2, (
+        f"{which}: opposed-normal pairs {at0['crease_pairs']} -> "
+        f"{at80['crease_pairs']} at the hang (creasing, not bending)")

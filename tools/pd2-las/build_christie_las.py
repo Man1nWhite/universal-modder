@@ -54,6 +54,7 @@ sys.path.insert(0, str(HERE))
 
 import build_models as bm  # noqa: E402
 import diesel_model as dm  # noqa: E402
+import dds_encode as dds  # noqa: E402
 import segment_fit as sf  # noqa: E402
 import las_outfit_pack as lop  # noqa: E402
 import preview as pv  # noqa: E402
@@ -376,6 +377,104 @@ def convert_textures(zf: zipfile.ZipFile, identity: Identity) -> dict[str, bytes
     return textures
 
 
+# --- sleeve gloss attenuation ------------------------------------------------
+# The diffuse alpha IS the specular mask for PD2's DIFFUSE_TEXTURE:NORMALMAP
+# shader. The sleeves' UV islands carry a stronger phong mask than the torso,
+# which read as plastic sheen on the arms in game (2026-11-06 screenshots).
+# Extra alpha attenuation inside the sleeve UV regions only:
+SLEEVE_GLOSS_ATTEN = 0.55
+SLEEVE_BONE_SHARE = 0.40    # vert counts as sleeve above this arm-chain share
+SLEEVE_SPLAT_TEXELS = 24    # splat radius around each sleeve vert's UV (mip0 texels)
+
+
+def sleeve_uv_masks(group: bm.Group) -> dict:
+    """Per-material-role texel masks (1024x1024 working res) of sleeve UV regions.
+
+    A vertex counts as sleeve when more than ``SLEEVE_BONE_SHARE`` of its skin
+    weight sits on the arm chain (Arm/ForeArm/Hand/fingers). Each sleeve
+    vertex's UV is splatted with a disc; the mask is box-blurred for
+    feathering. Row convention matches ``preview_textured._sample`` with
+    ``flip_v=True``: row 0 is internal v = 1.
+    """
+    import numpy as np
+    from PIL import Image, ImageDraw, ImageFilter
+
+    armish = {n for n in group.palette
+              if n.endswith("Arm") or n.endswith("ForeArm")
+              or n.endswith("Hand") or "Finger" in n}
+    roles = {KEEP_MATERIALS[src_mat][1]
+             for src_mat, *_ in group.slices}
+    WORK = 1024
+    canvases = {role: Image.new("L", (WORK, WORK), 0) for role in roles}
+    r = max(2, SLEEVE_SPLAT_TEXELS * WORK // 1024)
+    for src_mat, base_v, _base_i, _tris, nverts in group.slices:
+        role = KEEP_MATERIALS[src_mat][1]
+        d = ImageDraw.Draw(canvases[role])
+        for i in range(base_v, base_v + nverts):
+            share = sum(w for pi, w in group.weights[i]
+                        if group.palette[pi] in armish)
+            if share <= SLEEVE_BONE_SHARE:
+                continue
+            u, v = group.uvs[i]
+            # stored UVs are internal (u, -v_source): row 0 of the texture is
+            # sampled at internal v = -1, so y = (1 + v) * size — this is the
+            # same mapping preview_textured._sample(flip_v=True) applies.
+            x, y = u * WORK, (1.0 + v) * WORK
+            d.ellipse([x - r, y - r, x + r, y + r], fill=255)
+    out = {}
+    for role, im in canvases.items():
+        im = im.filter(ImageFilter.BoxBlur(max(1, r // 2)))
+        out[role] = np.asarray(im, dtype=np.float64) / 255.0
+    return out
+
+
+def retouch_sleeve_gloss(textures: dict[str, bytes], group: bm.Group,
+                         texture_prefix: str, texel_masks: dict) -> int:
+    """Darken diffuse alpha (gloss) inside the sleeve UV regions, every mip.
+
+    The .texture payloads carry a full mipmap pyramid with mip 0 first, so the
+    per-level block grids all start at the payload front; each level's mask is
+    the previous level's 2x2-block mean. Returns the number of blocks touched
+    at mip 0.
+    """
+    import numpy as np
+
+    total = 0
+    for src_mat, (_slot, role) in KEEP_MATERIALS.items():
+        key = f"{texture_prefix}_{role}_df.texture"
+        if key not in textures:
+            continue
+        payload = bytearray(textures[key])
+        h = int.from_bytes(payload[12:16], "little")
+        w = int.from_bytes(payload[16:20], "little")
+        # mip0 texel mask -> block grid, then halve per level
+        from PIL import Image
+
+        im = Image.fromarray((np.clip(texel_masks[role], 0, 1) * 255).astype(np.uint8))
+        im = im.resize((w, h), Image.BILINEAR)
+        block_mask = (np.asarray(im, dtype=np.float64) / 255.0)[:h // 4 * 4, :w // 4 * 4] \
+            .reshape(h // 4, 4, w // 4, 4).mean(axis=(1, 3))
+        off = 128
+        level_mask = block_mask          # (h//4, w//4) for the current level
+        while off < len(payload):
+            bh, bw = level_mask.shape
+            flat = level_mask.reshape(-1)
+            for bi in np.where(flat > 0.004)[0]:
+                fac = 1.0 - SLEEVE_GLOSS_ATTEN * float(flat[bi])
+                blk = np.frombuffer(bytes(payload[off + 16 * bi:off + 16 * bi + 8]),
+                                    dtype=np.uint8)
+                alpha = dds._dxt5_alpha_decode(blk) * fac
+                payload[off + 16 * bi: off + 16 * bi + 8] = dds._dxt5_alpha_encode(alpha)
+            total += int((flat > 0.004).sum())
+            off += 16 * bh * bw
+            if h % 8 or w % 8 or bh < 2 or bw < 2:
+                break                    # can't halve further cleanly
+            h, w = h // 2, w // 2
+            level_mask = level_mask.reshape(bh // 2, 2, bw // 2, 2).mean(axis=(1, 3))
+        textures[key] = bytes(payload)
+    return total
+
+
 # ---------------------------------------------------------------------------
 # no-hands cut: drop vertices dominated by hand/finger bones, then stretch the
 # sleeves over the wrist gap so the glove spawn has no hole to float in
@@ -579,10 +678,12 @@ def weld_elbows(model: sm.ModelData, skel_map: dict,
 # Segment bone -> (child joint bone, cross-section scale). Each segment axis
 # starts at its OWN joint and runs to the child joint (never the parent's).
 SEGMENT_SPECS = {
-    "LeftArm": ("LeftForeArm", 0.75),
-    "LeftForeArm": ("LeftHand", 0.75),
-    "RightArm": ("RightForeArm", 0.75),
-    "RightForeArm": ("RightHand", 0.75),
+    # 0.75 -> 0.80 (2026-11-06): at 25% the sleeves read stick-thin in game
+    # next to the 0.90 torso/legs; 20% keeps the slim identity.
+    "LeftArm": ("LeftForeArm", 0.80),
+    "LeftForeArm": ("LeftHand", 0.80),
+    "RightArm": ("RightForeArm", 0.80),
+    "RightForeArm": ("RightHand", 0.80),
     "LeftUpLeg": ("LeftLeg", 0.90),
     "LeftLeg": ("LeftFoot", 0.90),
     "RightUpLeg": ("RightLeg", 0.90),
@@ -597,10 +698,115 @@ ANKLE_RING_CM = 3.0
 NECK_FADE_CM = 4.0     # ~one neck radius below the Neck joint
 ELBOW_CREASE_CM = 8.0  # verts within this euclidean distance of the elbow joint are protected from slim    # slim alpha fades to 0 this close to the Arm/ForeArm joint
 
+# widen_elbow_blend: reach of the widened Arm/ForeArm weight window, in cm
+# either side of the elbow pivot on the TARGET arm (23.3 cm). Calibrated on
+# the hang-pose probe 2026-11-06: the shipped 4+3 cm weld left a braid of
+# pleats at the in-game hang; 7+9 cm with a monotone material coordinate
+# removes it (edge compression at 22 deg straightening: min ratio 0.70 ->
+# 0.86) without touching the crease's bind-pose geometry.
+ELBOW_WIDEN_A_CM = 7.0   # proximal (upper-arm) reach
+ELBOW_WIDEN_B_CM = 9.0   # distal (forearm) reach
+
+# slim bicep tuck: extra radial reduction of the upper-arm belly, on top of
+# the segment scale (0.80). A smooth bump over the middle 45% of the Arm
+# segment; the shoulder and the protected elbow crease are untouched.
+BICEP_TUCK = 0.10
+BICEP_BAND = (0.28, 0.72)   # normalized t/L where the bump rises and falls
+
 
 def _smoothstep(x: float) -> float:
     x = min(max(x, 0.0), 1.0)
     return x * x * (3.0 - 2.0 * x)
+
+
+def widen_elbow_blend(g: bm.Group, template: bm.Template,
+                      a_cm: float = ELBOW_WIDEN_A_CM,
+                      b_cm: float = ELBOW_WIDEN_B_CM) -> int:
+    """Re-split Arm/ForeArm skin weights over a wider, monotone window.
+
+    ``weld_elbows`` blends across a 4+3 cm window in *source* coordinates;
+    on the 23.3 cm target arm that is a narrow, steep weight step. At the
+    in-game idle the elbow hangs near straight while the bind pose bakes a
+    ~72 deg bend, so the crease must unfold ~50 deg through that step — and
+    the snug sleeve buckles into a braid of pleats (the X-fold seen in game
+    2026-11-06, outer elbow, worst when the arm hangs). The 2B reference body
+    blends over 16.2 cm with 331 mixed verts; Christie shipped 9.4 cm / 64.
+
+    The fix re-splits each affected vertex's (Arm + ForeArm) mass by
+    ``s = smoothstep((x + a) / (a + b))`` where ``x`` is a MONOTONE material
+    coordinate: signed cm from the elbow measured along the vertex's own
+    dominant-side bone axis (proximal verts on the Arm axis, distal verts on
+    the ForeArm axis). The two axes meet at ~72 deg, so a single axial
+    coordinate is discontinuous across the crease — exactly the mistake that
+    makes a naive arc-length re-split fold *harder* (measured: opposed-normal
+    pairs at the hang go 5 -> 12; the monotone split brings the braid down).
+
+    A vertex carrying only one of the two bones gets the other bone ADDED in
+    a free slot (blendindices is 4 wide; the encoder zero-pads). Weight sums
+    are preserved exactly; positions, normals, UVs, palette and skeleton are
+    untouched. Runs on the transferred groups (target space, both body and
+    shadow, every variant) straight after ``transfer_group``, so the shipped
+    weights are the measured ones.
+    """
+    import numpy as np
+
+    if not g.verts:
+        return 0
+    moved = 0
+    for side in ("Left", "Right"):
+        A = _joint(template, f"{side}Arm")
+        E = _joint(template, f"{side}ForeArm")
+        H = _joint(template, f"{side}Hand")
+        u_arm = E - A
+        u_arm /= np.linalg.norm(u_arm)
+        u_fa = H - E
+        u_fa /= np.linalg.norm(u_fa)
+        L_arm = float(np.linalg.norm(E - A))
+        t_arm = (np.array(g.verts) - A) @ u_arm
+        t_fa = (np.array(g.verts) - E) @ u_fa
+        try:
+            arm_i = g.palette.index(f"{side}Arm")
+            fa_i = g.palette.index(f"{side}ForeArm")
+        except ValueError:
+            continue
+        for i in range(len(g.weights)):
+            infl = g.weights[i]
+            w_arm = sum(w for pi, w in infl if pi == arm_i)
+            w_fa = sum(w for pi, w in infl if pi == fa_i)
+            tot = w_arm + w_fa
+            if tot <= 0.02:
+                continue
+            if w_fa > w_arm:
+                x = float(t_fa[i])
+                if x > b_cm:
+                    continue
+            else:
+                x = float(t_arm[i]) - L_arm
+                if x < -a_cm:
+                    continue
+            s = _smoothstep((x + a_cm) / (a_cm + b_cm))
+            new_fa, new_arm = tot * s, tot * (1.0 - s)
+            if abs(new_fa - w_fa) < 1e-9 and abs(new_arm - w_arm) < 1e-9:
+                continue
+            out = [(pi, w) for pi, w in infl
+                   if pi not in (arm_i, fa_i) and w > 1e-12]
+            free = 4 - len(out)
+            if w_arm <= 1e-12 and new_arm > 1e-9:
+                if free <= 0:
+                    continue
+                free -= 1
+            if w_fa <= 1e-12 and new_fa > 1e-9:
+                if free <= 0:
+                    continue
+                free -= 1
+            if new_arm > 1e-9:
+                out.append((arm_i, new_arm))
+            if new_fa > 1e-9:
+                out.append((fa_i, new_fa))
+            total = sum(w for _pi, w in out)
+            g.weights[i] = [(pi, w / total) for pi, w in out]
+            moved += 1
+    return moved
 
 
 def _joint(template: bm.Template, name: str):
@@ -1308,6 +1514,13 @@ def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
         ring, t1, R = ring_of(f"{side}ForeArm", WRIST_RING_CM)
         f, t0, _ = _ring_fade(geom[f"{side}ForeArm"], t1, R)
         protected |= ring
+        # Forearm wrist fade (2026-11-06): the slim scale used to run at full
+        # strength up to the bitwise-protected 3 cm cuff ring, pinching the
+        # mid-forearm against an untouched mouth (flare 2.27x vs the 2B
+        # reference's 1.63x — the "trumpet" step at the wrist in game). Ease
+        # the slim alpha out over the last ~8 cm so the sleeve opens
+        # gradually; the mouth itself keeps base volume for the spawned glove.
+        fades[f"{side}ForeArm"] = f
         # elbow crease ring: the Arm/ForeArm axes meet at ~100 deg and the
         # welded crease weights vary across it, so ANY per-vertex blend of the
         # two segment deforms folds thin crease triangles (hard flip fail).
@@ -1356,6 +1569,19 @@ def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
                 r = r - (coef[0] + coef[1] * t)
             f = fades.get(bone)
             alpha = w * (f(t) if f is not None else 1.0)
+            if bone in ("LeftArm", "RightArm"):
+                # bicep tuck: extra radial reduction of the upper-arm belly
+                # (exact match: "LeftForeArm" also endswith("Arm")!)
+                # The segment scale moves verts (1-s) of the way to the axis;
+                # to land the FINAL belly radius at s*(1 - TUCK*bump) the
+                # displacement must be amplified by 1 + s*TUCK*bump/(1-s),
+                # not dimmed (dimming moves verts LESS, i.e. a fatter belly).
+                xn = t / L
+                lo, hi = BICEP_BAND
+                half = 0.5 * (hi - lo)
+                bump = (_smoothstep((xn - lo) / half)
+                        * _smoothstep((hi - xn) / half)) if lo < xn < hi else 0.0
+                alpha *= 1.0 + s * BICEP_TUCK * bump / (1.0 - s)
             disp += alpha * (s - 1.0) * r
         new_v[i] = p + disp
     # enforced identity on protected verts and cuff/ankle rings (bitwise)
@@ -1688,7 +1914,7 @@ def main(argv=None) -> int:
     ap.add_argument("--variant", choices=sorted(IDENTITIES), default="base",
                     help="base = full body with hands; "
                          f"slim = {(1 - SLIM_SCALE):.0%} thinner in x/y (arms an "
-                         "extra 25%), height unchanged, hands cut at the wrist "
+                         "extra 20%), height unchanged, hands cut at the wrist "
                          "for in-game gloves (glove adapter hook shipped)")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
@@ -1723,8 +1949,14 @@ def main(argv=None) -> int:
     share: dict[str, str] = {}
     for gname, spec in TPP_GROUPS.items():
         g = bm.transfer_group(model, spec, skel_map, template, gname, fits=fits)
+        # Widen the welded elbow blend BEFORE anything else consumes the
+        # weights (straighten's medians, slim's routing, the fps extraction
+        # all read g.weights). See widen_elbow_blend: without this the
+        # in-game hang folds the crease into pleats.
+        widened = widen_elbow_blend(g, template)
         print(f"group {gname}: {len(g.verts)} verts, {len(g.faces)} tris, "
-              f"palette {len(g.palette)}, slots {sorted(set(g.mat_slots))}")
+              f"palette {len(g.palette)}, slots {sorted(set(g.mat_slots))}, "
+              f"elbow blend widened on {widened} verts")
         if not g.verts:
             raise SystemExit(f"group {gname} is empty")
         groups[gname] = g
@@ -1788,6 +2020,15 @@ def main(argv=None) -> int:
                   f"winding agreement {agree:.1%}")
             if breaks or agree < 0.9:
                 raise SystemExit(f"[{gname}] hand cut broke the mesh")
+
+    # Sleeve gloss: darken diffuse alpha (the specular mask) in the sleeve UV
+    # regions only, every mip. In game the sleeves read glossier than the
+    # torso because their normal-map phong mask is stronger there.
+    texel_masks = sleeve_uv_masks(groups["body"])
+    touched = retouch_sleeve_gloss(textures, groups["body"],
+                                   identity.texture_prefix, texel_masks)
+    print(f"sleeve gloss: attenuated alpha in {touched} blocks "
+          f"(atten {SLEEVE_GLOSS_ATTEN:.2f})")
 
     tpp = bm.assemble_model(template, groups, share, drop_drawables=DROP_DRAWABLES)
     tpp_path = args.out / f"{identity.item_id}.model"
