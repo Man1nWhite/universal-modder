@@ -189,6 +189,28 @@ with no base-pack prefix, `christie_base_skel_top`) and the renderer never wrote
 hand-renamed one-offs and could not be rebuilt. The CLI now writes the whole
 set, and `tests/test_render_mesh_skeleton.py` keeps the naming honest.
 
+### The far end: what the cuff mouth looks like
+
+`christie_{,slim_}skel_cuff.png` looks straight down the forearm, because a cuff
+opening is a ring seen edge-on in every body view. Sleeve-mouth free boundary
+within 1-6 cm of the `Hand` pivot, radius about the bone axis:
+
+| | base | slim |
+|---|---|---|
+| mouth angular coverage | **2 / 36 sectors** | 20 / 36 sectors |
+| mouth radius, median | 4.62 cm | 3.01 cm |
+| axial raggedness | 4.8 cm | 3.2 cm |
+
+Slim's mouth is a real ring; base's is not. Only two of thirty-six angular
+sectors carry free-boundary geometry while the mouth spans 4.8 cm along the
+bone, so it is neither a clean cut nor a torn hole - it is a short flap of cloth
+hanging off the cuff, most likely the coat tail of the blazer layer, which the
+slim pass flattens toward the bone (that flattening is what closes the ring).
+
+Inherited, not introduced: the DOA source's own sleeve ends in a ruffled blazer
+cuff. Both cuff rings are still centred on the bone (rim centre 0.30 cm base /
+0.39 cm slim off the axis), so this is a mouth-shape note, not a fit regression.
+
 ## Mesh-vs-skeleton fit
 
 Two questions decide whether an outfit looks attached to its heister:

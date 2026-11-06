@@ -410,3 +410,43 @@ def test_close_up_bones_are_only_the_limb_subtree():
     leaked = keep & ancestors
     assert not leaked, (
         f"context bones above the limb leaked into the close-up: {sorted(leaked)}")
+
+
+def test_cuff_mouth_view_looks_down_the_forearm():
+    """The cuff close-up must show the opening, not the arm edge-on.
+
+    A sleeve mouth is a ring, and every body view sees it edge-on - which is why
+    a torn mouth or an off-centre wrist survived several rounds of review. The
+    cuff render rotates the forearm axis onto the view axis; assert that, because
+    a regression here silently turns the one diagnostic image back into another
+    side view.
+    """
+    import render_mesh_skeleton as rms
+
+    _rms, tpl, geo, _sk = _fixtures()
+    bones = {n: np.array(h, float) for n, h, _p in rms.skeleton(tpl)}
+    elbow, wrist = bones["LeftForeArm"], bones["LeftHand"]
+    axis = wrist - elbow
+    axis /= np.linalg.norm(axis)
+    # the forearm runs mostly forward and down in the bind pose; what matters is
+    # that it is not already pointing at the front camera (+y)
+    assert abs(float(axis @ np.array([0.0, 1.0, 0.0]))) < 0.995, (
+        "a forearm already aimed at the camera would make this test vacuous")
+
+    import tempfile
+
+    from PIL import Image
+
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td) / "cuff.png"
+        rms.render_cuff_mouth(geo, rms.skeleton(tpl), [elbow, wrist], out,
+                              radius=7.0)
+        assert out.is_file()
+        a = np.array(Image.open(out).convert("RGB")).astype(int)
+    drawn = (np.abs(a - np.array([24, 24, 28])).sum(2) > 10)
+    drawn[0:70, 0:340] = False
+    frac = drawn.sum() / drawn.size
+    # looking down the tube fills a good part of the frame; edge-on it is a sliver
+    assert frac > 0.05, (
+        f"the cuff view only covers {frac:.1%} of the frame - it is not looking "
+        f"into the opening")

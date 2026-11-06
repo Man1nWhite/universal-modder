@@ -80,6 +80,57 @@ def _subset_near_polyline(geo, chain, radius: float, pad: float = 6.0):
             "faces": [tuple(remap[i] for i in f) for f in faces[keep]]}
 
 
+def _axis_to_camera(verts, pivot, view: str):
+    """Rotate the model so a bone axis points at the camera, then re-centre.
+
+    A cuff mouth is a ring seen edge-on in every orthographic view of the body,
+    which is why the interesting failure at the end of a sleeve - a torn ring, an
+    off-centre wrist, a cut that is not square to the arm - is invisible in
+    `front`/`side`. Turning the limb to face the lens shows the opening itself.
+    """
+    return np.asarray(verts, float) - np.asarray(pivot, float)
+
+
+def render_cuff_mouth(geo, bones, chain, out_path: Path, radius: float = 7.0):
+    """Draw the cuff opening face-on, looking straight down the forearm.
+
+    `chain` is [elbow, wrist]; the view axis is the bone direction, so the ring
+    appears as a ring rather than a line.
+    """
+    elbow = np.asarray(chain[0], float)
+    wrist = np.asarray(chain[1], float)
+    axis = wrist - elbow
+    axis /= max(float(np.linalg.norm(axis)), 1e-9)
+
+    # rotation taking `axis` onto +y, the direction `front` looks along
+    target = np.array([0.0, 1.0, 0.0])
+    v = np.cross(axis, target)
+    s = float(np.linalg.norm(v))
+    c = float(axis @ target)
+    if s < 1e-8:
+        rot = np.eye(3) if c > 0 else -np.eye(3)
+    else:
+        vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+        rot = np.eye(3) + vx + vx @ vx * ((1.0 - c) / s ** 2)
+
+    v = np.array(geo["verts"], float)
+    faces = np.array(geo["faces"], int)
+    keep = np.linalg.norm(v - wrist, axis=1) <= radius
+    keep_f = keep[faces].all(axis=1)
+    if not keep_f.any():
+        return
+    used = np.unique(faces[keep_f])
+    remap = {int(old): int(new) for new, old in enumerate(used)}
+    local = {"verts": (v[used] - wrist) @ rot.T,
+             "faces": [tuple(remap[int(i)] for i in f) for f in faces[keep_f]]}
+    # only the limb's own bones: the rest of the rig would define the frame and
+    # shrink the cuff to a speck in the corner
+    near = _bones_near([elbow, wrist], bones, radius=3.0)
+    turned = [(n, (np.asarray(h, float) - wrist) @ rot.T, par)
+              for n, h, par in near]
+    render(local, turned, "front", out_path)
+
+
 def _bones_near(chain, bones, radius: float):
     """The bones that belong in a limb close-up - the limb's own subtree.
 
@@ -535,6 +586,9 @@ def main(argv=None) -> int:
         for view in ("front", "side"):
             render(hand, near_bones, view,
                    args.out / f"{stem}_skel_wrist_{view}.png")
+        # the opening itself, looking straight down the forearm
+        render_cuff_mouth(geo, bones, chain,
+                          args.out / f"{stem}_skel_cuff.png", radius=7.0)
     # forearm close-up framed on the LeftForeArm pivot, the same rule --source
     # uses, so a pack render and a source render line up for comparison
     arm = [p for n, p, _ in bones if n in ("LeftArm", "LeftForeArm", "LeftHand")]
