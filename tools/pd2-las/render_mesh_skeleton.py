@@ -46,6 +46,77 @@ def g_body_geo(zf: zipfile.ZipFile, pack_dir: str, item: str):
     raise SystemExit("no g_body drawable in pack")
 
 
+def _subset_near_polyline(geo, chain, radius: float, pad: float = 6.0):
+    """The part of `geo` that wraps a bone chain - a limb tube, on its own.
+
+    Close-ups are cut with this instead of a crop window. A window is a slab
+    through an orthographic scene, so it always drags in whatever sits behind
+    the limb; picking triangles by their 3D distance to the bones selects the
+    sleeve itself and nothing else, from any viewpoint. Distances are in cm.
+    """
+    v = np.array(geo["verts"], float)
+    faces = np.array(geo["faces"], int)
+    best = np.full(len(v), np.inf)
+    for a, b in zip(chain[:-1], chain[1:]):
+        a = np.asarray(a, float)
+        b = np.asarray(b, float)
+        ab = b - a
+        t = np.clip((v - a) @ ab / max(float(ab @ ab), 1e-12), 0.0, 1.0)
+        d = np.linalg.norm(v - (a + np.outer(t, ab)), axis=1)
+        best = np.minimum(best, d)
+    near = best <= radius + pad
+
+    keep = near[faces].any(axis=1)
+    # a face may only survive if all of its verts are close enough
+    keep &= near[faces].all(axis=1)
+    if not keep.any():
+        return geo
+    # collect every vertex of a kept face (so the boundary closes), then drop
+    # anything that only got in that way - without this a face spanning from
+    # the sleeve to the torso drags distant geometry into a close-up
+    used = np.unique(faces[keep])
+    remap = {old: new for new, old in enumerate(used)}
+    return {"verts": [v[i] for i in used],
+            "faces": [tuple(remap[i] for i in f) for f in faces[keep]]}
+
+
+def _bones_near(chain, bones, radius: float):
+    """The bones that belong in a limb close-up.
+
+    Framing uses every bone it is handed, so drawing the full skeleton around a
+    cropped sleeve shrinks the arm into a corner of the picture with the rest of
+    the rig hanging below it. Keep the bones near the traced chain, plus their
+    immediate parents so the joint above the limb still reads.
+    """
+    keep = set()
+    for i, (name, head, parent) in enumerate(bones):
+        d = min(np.linalg.norm(np.asarray(head, float) - np.asarray(c, float))
+                for c in chain)
+        if d <= radius:
+            keep.add(i)
+    parent_of = {i: parent for i, (_n, _h, parent) in enumerate(bones)}
+    names = {name: i for i, (name, _h, _p) in enumerate(bones)}
+    for i in list(keep):
+        p = parent_of[i]
+        if p in names:
+            keep.add(names[p])
+    return [b for i, b in enumerate(bones) if i in keep]
+
+
+def _window_around(pts, view: str, half_w: float, half_h: float) -> tuple:
+    """Screen-space crop window around the projection of some 3D points."""
+    p2 = project(np.array(pts, float), view)
+    u0, v0 = p2.min(axis=0) - np.array([half_w, half_h])
+    u1, v1 = p2.max(axis=0) + np.array([half_w, half_h])
+    return (float(u0), float(u1), float(v0), float(v1))
+
+
+def _depth_band(pts, view: str, half: float = 9.0) -> tuple:
+    """Camera-axis band around some 3D points - the near shell of a close-up."""
+    d = depth_towards_camera(view, np.array(pts, float))
+    return (float(d.min() - half), float(d.max() + half))
+
+
 def skeleton(template: bm.Template):
     """[(name, world_pos, parent_name_or_None)] for every bone."""
     bones = []
@@ -179,13 +250,24 @@ def skin_verts(geo, skinbones: dict, pose_worlds: dict) -> np.ndarray:
 
 
 # where each camera sits, as a unit vector from the model towards the viewer
+# The character faces +y with up +z, so its right is +x and its left is -x -
+# which is why every `Left*` bone in the rig sits at negative x. A camera at -x
+# therefore looks at the character's LEFT side, and `side` is already the
+# correct viewpoint for a left-limb close-up (the left arm is the near limb).
 CAMERA_DIR = {
     "front": (0.0, 1.0, 0.0),     # +y
-    "side": (-1.0, 0.0, 0.0),     # -x
+    "side": (-1.0, 0.0, 0.0),     # -x: the character's left side
     "top": (0.0, 0.0, 1.0),       # +z
     "bottom": (0.0, 0.0, -1.0),   # -z
     "iso": (0.7, 0.7, 0.0),
 }
+
+
+def _in_window(pt, view: str, window: tuple, pad: float = 0.0) -> bool:
+    """Is a model-space point inside a screen-space crop window?"""
+    u, vv = project(np.atleast_2d(pt), view)[0]
+    u0, u1, v0, v1 = window
+    return u0 - pad <= u <= u1 + pad and v0 - pad <= vv <= v1 + pad
 
 
 def depth_towards_camera(view: str, v: np.ndarray) -> np.ndarray:
@@ -220,23 +302,54 @@ def project(pts: np.ndarray, view: str) -> np.ndarray:
 
 
 def render(geo, bones, view: str, out_path: Path, zoom: tuple | None = None,
-           verts: np.ndarray | None = None):
+           verts: np.ndarray | None = None, depth: tuple | None = None):
+    """Draw `geo` from `view` with the skeleton on top.
+
+    `zoom` is a window in *screen* coordinates - the same pair `project()`
+    returns - and `depth` is a band on the camera axis, which selects the near
+    shell. Both are needed for a close-up: an orthographic view projects along
+    an infinite slab, so a screen window on its own still catches the far side
+    of the body (a "left forearm" crop framed from the character's left found
+    the far shoulder inside the same window). When `zoom` is given, the frame is
+    exactly the window, so the same window size looks the same on every view.
+    """
     v = verts if verts is not None else np.array(geo["verts"], float)
     faces = np.array(geo["faces"], int)
     bone_pts = [b[1] for b in bones]
     all_pts = np.vstack([v, bone_pts]) if bone_pts else v
+    drawn = faces
+    fixed_frame = None
     if zoom is not None:
-        (x0, x1, z0, z1) = zoom
-        m = ((v[:, 0] >= x0) & (v[:, 0] <= x1) & (v[:, 2] >= z0) & (v[:, 2] <= z1))
-        near = [p for p in bone_pts
-                if x0 - 5 <= p[0] <= x1 + 5 and z0 - 5 <= p[2] <= z1 + 5]
-        all_pts = np.vstack([v[m], near]) if near else v[m]
+        u0, u1, v0, v1 = zoom
+        cen = v[faces].mean(axis=1)
+        cuv = project(cen, view)
+        keep = ((cuv[:, 0] >= u0 - 2) & (cuv[:, 0] <= u1 + 2)
+                & (cuv[:, 1] >= v0 - 2) & (cuv[:, 1] <= v1 + 2))
+        if depth is not None:
+            dmin, dmax = depth
+            dc = depth_towards_camera(view, cen)
+            keep &= (dc >= dmin) & (dc <= dmax)
+        if keep.any():
+            # keep every vertex of a kept face, so the boundary closes instead
+            # of leaving a ring of holes
+            used = np.unique(faces[keep])
+            near = [p for p in bone_pts if _in_window(p, view, zoom, pad=6)]
+            all_pts = np.vstack([v[used], near]) if near else v[used]
+            drawn = faces[keep]
+            fixed_frame = (u0, u1, v0, v1)
     p2 = project(all_pts, view)
     W = H = 1000
     margin = 30
-    s = min((W - 2 * margin) / max(np.ptp(p2[:, 0]), 1e-6),
-            (H - 2 * margin) / max(np.ptp(p2[:, 1]), 1e-6))
-    o = np.array([margin - p2[:, 0].min() * s, margin + p2[:, 1].max() * s])
+    if fixed_frame is not None:
+        # the window is the frame: same crop, same scale, any viewpoint
+        u0, u1, v0, v1 = fixed_frame
+        s = min((W - 2 * margin) / max(u1 - u0, 1e-6),
+                (H - 2 * margin) / max(v1 - v0, 1e-6))
+        o = np.array([margin - u0 * s, margin + v1 * s])
+    else:
+        s = min((W - 2 * margin) / max(np.ptp(p2[:, 0]), 1e-6),
+                (H - 2 * margin) / max(np.ptp(p2[:, 1]), 1e-6))
+        o = np.array([margin - p2[:, 0].min() * s, margin + p2[:, 1].max() * s])
 
     def scr(pt3):
         q = project(np.atleast_2d(pt3), view)[0]
@@ -247,9 +360,9 @@ def render(geo, bones, view: str, out_path: Path, zoom: tuple | None = None,
     # mesh faces, painter's algorithm: `depth` grows towards the camera, so the
     # last face drawn is the nearest one
     depth = depth_towards_camera(view, v)
-    order = np.argsort([depth[f].mean() for f in faces])
+    order = np.argsort([depth[f].mean() for f in drawn])
     for fi in order:
-        a, b, c = faces[fi]
+        a, b, c = drawn[fi]
         n = np.cross(v[b] - v[a], v[c] - v[a])
         nl = np.linalg.norm(n)
         if nl < 1e-9:
@@ -309,12 +422,20 @@ def render_source(source_zip: Path, out: Path, stem: str = "christie_source"):
     for view in ("front", "side", "iso"):
         render(geo, bones, view, out / f"{stem}_{view}.png")
     # left forearm close-up: find source LeftForeArm joint and zoom around it
-    fw = next((b for b in bones if "ForeArm" in b[0] and "Left" in b[0]), None)
-    if fw is not None:
-        c = fw[1]
-        zoom = (c[0] - 14, c[0] + 14, c[2] - 22, c[2] + 10)
+    src_arm = [p for n, p, _ in bones
+               if n in ("MOT08_LeftArm", "MOT04_LeftForeArm", "MOT05_LeftHand")]
+    if len(src_arm) == 3:
+        # The DOA model is ~3.5x smaller in cm, so the tube radius scales off
+        # the arm span - then the source crop shows the same *anatomy* as the
+        # pack crop and the two can be compared directly.
+        span = float(np.linalg.norm(np.array(src_arm[2], float)
+                                    - np.array(src_arm[0], float)))
+        # the arm hangs close to the torso in the source pose, so a loose
+        # radius swallows the chest - ~2 cm keeps the sleeve only
+        tube = _subset_near_polyline(geo, src_arm, radius=0.1 * span)
+        near_bones = _bones_near(src_arm, bones, radius=0.8 * span)
         for view in ("front", "side"):
-            render(geo, bones, view, out / f"{stem}_forearm_{view}.png", zoom=zoom)
+            render(tube, near_bones, view, out / f"{stem}_forearm_{view}.png")
     return out
 
 
@@ -354,19 +475,25 @@ def main(argv=None) -> int:
     # this CLI - docs/pd2-las/CHRISTIE.md names these files explicitly
     for view in ("front", "side", "iso", "top", "bottom"):
         render(geo, bones, view, args.out / f"{stem}_skel_{view}.png")
-    # wrist close-ups (left arm, x negative)
-    for view in ("front", "side"):
-        render(geo, bones, view, args.out / f"{stem}_skel_wrist_{view}.png",
-               zoom=(-56, -30, 108, 142))
+    # wrist close-ups (left arm); `side` is the character's left side
+    chain = [p for n, p, _ in bones if n in ("LeftForeArm", "LeftHand")]
+    if len(chain) == 2:
+        hand = _subset_near_polyline(geo, chain, radius=7.0)
+        near_bones = _bones_near(chain, bones, radius=14.0)
+        for view in ("front", "side"):
+            render(hand, near_bones, view,
+                   args.out / f"{stem}_skel_wrist_{view}.png")
     # forearm close-up framed on the LeftForeArm pivot, the same rule --source
     # uses, so a pack render and a source render line up for comparison
-    fw = next((b for b in bones if b[0] == "LeftForeArm"), None)
-    if fw is not None:
-        c = fw[1]
-        zoom = (c[0] - 14, c[0] + 14, c[2] - 22, c[2] + 10)
+    arm = [p for n, p, _ in bones if n in ("LeftArm", "LeftForeArm", "LeftHand")]
+    if len(arm) == 3:
+        # the sleeve around those bones, plus a margin so the shoulder and the
+        # cuff stay in shot
+        tube = _subset_near_polyline(geo, arm, radius=8.0)
+        near_bones = _bones_near(arm, bones, radius=16.0)
         for view in ("front", "side"):
-            render(geo, bones, view, args.out / f"{stem}_forearm_{view}.png",
-                   zoom=zoom)
+            render(tube, near_bones, view,
+                   args.out / f"{stem}_forearm_{view}.png")
     if args.pose:
         pose = {}
         for side in ("Left", "Right"):
@@ -382,9 +509,16 @@ def main(argv=None) -> int:
         for view in ("front", "side"):
             render(geo, posed_bones, view, args.out / f"{stem}_skel_pose_{view}.png",
                    verts=pv)
-        for view in ("front", "side"):
-            render(geo, posed_bones, view, args.out / f"{stem}_skel_pose_wrist_{view}.png",
-                   zoom=(-60, -25, 100, 145), verts=pv)
+        # the posed sleeve: select on the *posed* positions, then draw it
+        pose_chain = [np.array(pw[sid][12:15], float) for sid in pw
+                      if template.id_name.get(sid) in ("LeftForeArm", "LeftHand")]
+        if len(pose_chain) == 2:
+            hand = _subset_near_polyline(
+                {"verts": pv, "faces": geo["faces"]}, pose_chain, radius=7.0)
+            near_bones = _bones_near(pose_chain, posed_bones, radius=14.0)
+            for view in ("front", "side"):
+                render(hand, near_bones, view,
+                       args.out / f"{stem}_skel_pose_wrist_{view}.png")
     return 0
 
 

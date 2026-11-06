@@ -223,9 +223,15 @@ def test_render_cli_writes_every_file_the_docs_name():
     emitted = set()
     for m in re.finditer(r'f"\{stem\}_([a-z_{}]+)\.png"', main_body):
         pat = "{stem}_" + m.group(1) + ".png"
-        viewers = ["front", "side", "iso", "top", "bottom"] if "{view}" in pat else [None]
+        if "{tag}" in pat:
+            viewers = ["front", "side"]
+        elif "{view}" in pat or "{stem}" in pat and pat.count("{") == 1 and "{view}" not in pat:
+            viewers = ["front", "side", "iso", "top", "bottom"]
+        else:
+            viewers = [None]
         for v in viewers:
-            emitted.add(pat if v is None else pat.replace("{view}", v))
+            emitted.add(pat if v is None else pat.replace("{view}", v)
+                        .replace("{tag}", "front" if v == "front" else "side"))
     assert emitted, "main() emits no per-stem renders at all"
 
     missing = []
@@ -303,3 +309,66 @@ def test_depth_key_points_towards_the_camera():
     # front: camera at +y
     d = rms.depth_towards_camera("front", v)
     assert d[1] > d[0]
+
+
+def test_close_up_subset_is_only_the_limb():
+    """A close-up may contain the limb and nothing else.
+
+    The close-ups used to be crop windows on (x, z). A window is a slab through
+    an orthographic scene, so the "left forearm" crop also caught the torso, the
+    far shoulder and the hip, and the bone read as buried in cloth. Selecting by
+    3D distance to the bone chain removes that by construction - so assert the
+    construction.
+    """
+    import render_mesh_skeleton as rms
+
+    _rms, tpl, geo, _sk = _fixtures()
+    bones = rms.skeleton(tpl)
+    arm = [p for n, p, _ in bones if n in ("LeftArm", "LeftForeArm", "LeftHand")]
+    assert len(arm) == 3
+
+    radius = 8.0
+    sub = rms._subset_near_polyline(geo, arm, radius=radius)
+
+    # every kept vertex is within the radius (plus the closing pad) of the chain
+    v = np.array(sub["verts"], float)
+    chain = np.array(arm, float)
+    d = np.full(len(v), np.inf)
+    for a, b in zip(chain[:-1], chain[1:]):
+        ab = b - a
+        t = np.clip((v - a) @ ab / float(ab @ ab), 0.0, 1.0)
+        d = np.minimum(d, np.linalg.norm(v - (a + np.outer(t, ab)), axis=1))
+    assert d.max() <= radius + 6.0 + 1e-6, (
+        f"a close-up vertex sits {d.max():.1f} cm from the arm bones - the "
+        f"crop is picking up the body")
+
+    # and it is a small part of the model, not the whole thing
+    assert len(sub["faces"]) < 0.6 * len(geo["faces"])
+
+
+def test_side_camera_is_on_the_left_of_the_character():
+    """`side` must look at the character's left - the side its arm chain is on.
+
+    The character faces +y with up +z, so left is -x, and every `Left*` bone in
+    the rig sits at negative x. A camera at -x therefore films the left side and
+    the left arm is the *near* limb; a camera at +x would shoot it through the
+    torso, and a correctly-fitted bone would look buried inside the body. This
+    pins the handedness so the mistake cannot come back in either direction.
+    """
+    import render_mesh_skeleton as rms
+
+    cam = np.array(rms.CAMERA_DIR["side"], float)
+    assert cam[0] < 0, "`side` must look along -x to face the character's left"
+
+    _rms, tpl, _geo, _sk = _fixtures()
+    arm = {n: np.array(p, float) for n, p, _ in rms.skeleton(tpl)}
+    lf = arm["LeftForeArm"]
+    assert lf[0] < 0, "left limbs are expected at negative x in this rig"
+
+    # nearer camera <=> larger depth key, and the left arm must be the near one
+    d_left = rms.depth_towards_camera("side", np.array([lf]))[0]
+    d_far = rms.depth_towards_camera("side", np.array([lf * np.array([-1, 1, 1])]))[0]
+    assert d_left > d_far, (
+        "from `side` the left arm must be nearer than the mirrored point on the "
+        "character's right")
+

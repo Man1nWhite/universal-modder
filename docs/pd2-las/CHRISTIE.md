@@ -160,9 +160,17 @@ command, so the whole set is reproducible in one run per pack:
   pins both the projection axes and the depth sign.
 - `christie_skel_wrist_{front,side}.png` — left-wrist close-ups (the sleeve cuff
   surrounds the `Hand` pivot where the in-game glove spawns)
-- `christie_forearm_{front,side}.png` — left forearm on the `LeftForeArm` pivot,
-  framed with the same rule as the `--source` renders so a pack and a source
-  image line up side by side
+- `christie_forearm_{front,side}.png` — left arm from shoulder to hand, the view
+  that answers "is the bone in the middle of the sleeve"
+
+  The close-ups are *isolated limbs*, not zoomed crops: the renderer keeps the
+  triangles within 8 cm of the arm bones and the bones near that chain, then
+  frames what is left. That matters because a crop window is a slab through an
+  orthographic scene - it always drags in the torso and the far shoulder, which
+  is how these images spent two revisions showing a correctly-fitted bone
+  buried in a wall of cloth. `side` is the character's **left** side (the model
+  faces +y with up +z, so left is -x, which is where every `Left*` bone sits);
+  a camera at +x would film the left arm through the body.
 - `christie_source_{front,side,iso,forearm_front,forearm_side}.png` — the
   ORIGINAL DOA5 model from `references/Christie.zip` with its own skeleton
   (`--source` mode of the renderer), as the reference for comparisons
