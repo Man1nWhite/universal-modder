@@ -277,7 +277,8 @@ def test_slim_cross_section_ratios():
     """v4 acceptance: in unblended mid-segment slices the principal radius
     ratio slim/base must be 0.75 +/- 0.02 for arms and 0.90 +/- 0.02 for legs
     (25%/10% smaller cross-sectional dimensions, both perpendicular axes)."""
-    slices = {"Arm": (0.35, 0.65), "ForeArm": (0.20, 0.40),
+    # slices avoid fade zones: forearm elbow fade ends at 6/22.5 = 0.27L
+    slices = {"Arm": (0.35, 0.65), "ForeArm": (0.30, 0.55),
               "UpLeg": (0.30, 0.60), "Leg": (0.30, 0.60)}
     for bone, target in (("Arm", 0.75), ("ForeArm", 0.75),
                          ("UpLeg", 0.90), ("Leg", 0.90)):

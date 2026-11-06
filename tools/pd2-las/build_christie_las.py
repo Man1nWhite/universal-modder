@@ -508,6 +508,67 @@ def fix_arm_fits(model: sm.ModelData, skel_map: dict, template: bm.Template,
     return fits
 
 
+def weld_elbows(model: sm.ModelData, skel_map: dict,
+                lo_cm: float = 4.0, hi_cm: float = 3.0) -> int:
+    """Weld the inner elbow: split Arm/ForeArm skin weights across the joint.
+
+    Near the elbow the source mesh has PURE Arm (w=1.0) and PURE ForeArm
+    verts interleaved right at the crease. After the retarget the two bones'
+    fits differ by the full elbow bend angle, so pure-weight neighbours get
+    discontinuous transforms and the crease folds into a visible spike
+    ("doesn't weld to a bone"). Fix: for every vertex whose axial position
+    along the source Arm axis falls in [L - zone, L + zone], replace its
+    Arm/ForeArm weights by a smoothstep split of their total:
+    w_fa' = total * s, w_arm' = total * (1 - s),
+    s = smoothstep((t - (L - lo_cm)) / (lo_cm + hi_cm)).
+    The zone is asymmetric (lo_cm on the arm side, hi_cm past the joint)
+    because the source arm is short (10.5 cm) while the target arm is
+    23.3 cm — a symmetric 6 cm zone would spill ~13 cm into the target
+    forearm and destroy the unblended acceptance slices.
+    Weight sum is preserved (the split is of the total), so downstream
+    consumers (harmonic transfer, slim _route_weights) are unaffected
+    structurally; the packed blendweights carry the weld into the game.
+    Returns the number of re-weighted vertices.
+    """
+    import numpy as np
+
+    src_worlds = bm.source_bone_worlds(model)
+    rev = {}
+    for i, b in enumerate(model.bones):
+        t = skel_map["map"].get(b.name)
+        if t:
+            rev[t] = i
+    n_fixed = 0
+    for side in ("Left", "Right"):
+        i_arm, i_fore = rev.get(f"{side}Arm"), rev.get(f"{side}ForeArm")
+        if i_arm is None or i_fore is None:
+            continue
+        a = np.array(src_worlds[i_arm][12:15], dtype=np.float64)
+        b = np.array(src_worlds[i_fore][12:15], dtype=np.float64)
+        d = b - a
+        L = float(np.linalg.norm(d))
+        u = d / L
+        for vi, sv in enumerate(model.vertices):
+            t = float(u @ (np.array(sv.pos, dtype=np.float64) - a))
+            if not (L - lo_cm < t < L + hi_cm):
+                continue
+            w_arm = sum(w for bi, w in sv.weights if bi == i_arm)
+            w_fa = sum(w for bi, w in sv.weights if bi == i_fore)
+            total = w_arm + w_fa
+            if total < 1e-6:
+                continue
+            s = _smoothstep((t - (L - lo_cm)) / (lo_cm + hi_cm))
+            new = [(bi, w) for bi, w in sv.weights if bi not in (i_arm, i_fore)]
+            new.append((i_arm, total * (1.0 - s)))
+            new.append((i_fore, total * s))
+            model.vertices[vi] = sm.SkinVertex(
+                pos=sv.pos, normal=sv.normal, uv=sv.uv, weights=tuple(new))
+            n_fixed += 1
+    print(f"weld_elbows: {n_fixed} vertices re-weighted across the elbow crease "
+          f"(zone {lo_cm}+{hi_cm} cm)")
+    return n_fixed
+
+
 # ---------------------------------------------------------------------------
 # slim variant: cross-sectional thinning about each limb segment (v4)
 # ---------------------------------------------------------------------------
@@ -533,6 +594,7 @@ SHOULDER_BONES = ("LeftShoulder", "RightShoulder")  # routed chest<->upper-arm
 WRIST_RING_CM = 3.0    # surviving cuff ring = forearm verts within this of wrist
 ANKLE_RING_CM = 3.0
 NECK_FADE_CM = 4.0     # ~one neck radius below the Neck joint
+ELBOW_CREASE_CM = 8.0  # verts within this euclidean distance of the elbow joint are protected from slim    # slim alpha fades to 0 this close to the Arm/ForeArm joint
 
 
 def _smoothstep(x: float) -> float:
@@ -884,8 +946,21 @@ def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
     for side in ("Left", "Right"):
         ring, t1, R = ring_of(f"{side}ForeArm", WRIST_RING_CM)
         f, t0, _ = _ring_fade(geom[f"{side}ForeArm"], t1, R)
-        fades[f"{side}ForeArm"] = f
         protected |= ring
+        # elbow crease ring: the Arm/ForeArm axes meet at ~100 deg and the
+        # welded crease weights vary across it, so ANY per-vertex blend of the
+        # two segment deforms folds thin crease triangles (hard flip fail).
+        # Verts within ELBOW_CREASE_CM of the elbow JOINT (euclidean, either
+        # side) are protected (p' = p, bitwise) — the crease keeps base
+        # thickness. NB: test distance to the joint, not axial t per segment
+        # (every upper-arm vert has t_fa < 0 and vice versa).
+        elbow = geom[f"{side}ForeArm"][0]
+        for i in range(nv):
+            rw = routed[i]
+            if rw.get(f"{side}Arm", 0.0) + rw.get(f"{side}ForeArm", 0.0) < 0.05:
+                continue
+            if float(np.linalg.norm(v[i] - elbow)) < ELBOW_CREASE_CM:
+                protected.add(i)
         ring, t1, R = ring_of(f"{side}Leg", ANKLE_RING_CM)
         f, t0, _ = _ring_fade(geom[f"{side}Leg"], t1, R)
         fades[f"{side}Leg"] = f
@@ -1267,6 +1342,9 @@ def main(argv=None) -> int:
         model = load_christie(zf)
         textures = convert_textures(zf, identity)
 
+    skel_map = json.loads(SKEL_MAP.read_text())
+    weld_elbows(model, skel_map)
+
     kept = {m.material for m in model.meshes if m.material in KEEP_MATERIALS}
     dropped = sorted({m.material for m in model.meshes} - kept)
     print(f"[{identity.pack_dir_name}] source: {model.name}: {len(model.bones)} bones, "
@@ -1275,7 +1353,6 @@ def main(argv=None) -> int:
     print(f"  kept materials: {sorted(kept)}")
     print(f"  dropped (head) materials: {dropped}")
 
-    skel_map = json.loads(SKEL_MAP.read_text())
     template = bm.load_template(args.templates / "2b.model")
     fits = bm.retarget_maps(model, skel_map, template)
     fits = fix_arm_fits(model, skel_map, template, fits)

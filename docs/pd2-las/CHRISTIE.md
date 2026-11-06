@@ -49,6 +49,18 @@ wrist deviation 0.00 cm, no vertex spikes (z extent stays ≈164 cm, 0
 orientation breaks). Do NOT re-fit those bones with a fresh rotation: the
 harmonic blend with the Spine1 fit spikes shoulder-top verts to z ≈191–199.
 
+**Elbow weld:** near the elbow the source mesh has PURE Arm and PURE ForeArm
+verts interleaved at the crease; after the retarget (the two bones' fits differ
+by the full ~100 deg elbow bend) pure-weight neighbours tear into a visible
+spike. `weld_elbows()` runs before transfer and splits Arm/ForeArm weights by
+a smoothstep of axial position across the joint (zone 4 cm arm-side + 3 cm
+past the joint in source coords — the source arm is only 10.5 cm vs the
+target 23.3 cm, so a symmetric zone would spill into the acceptance slices).
+The packed blendweights carry the weld into the game. In slim, verts within
+8 cm (euclidean) of the elbow joint are protected (p' = p): the two segment
+axes meet at ~100 deg, so any per-vertex blend of both segment deforms folds
+thin crease triangles (hard flip failure).
+
 **Bind-pose straightening:** the menu-pose retarget can leave a small
 mid-forearm centerline kink, so after transfer every variant runs
 `straighten_segments()` on the forearm segments before slim. v3: per-slice
