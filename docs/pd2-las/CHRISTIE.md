@@ -78,3 +78,14 @@ Registration: `LegendaryArmours.christie`, `...christie_no_hands`,
 `units/<id>/skins/<id>/<id>[_fps]`, textures
 `<id>_{body,c02_01,c02_02,c02_05}_{df,nm}`, icon
 `guis/dlcs/<id>/armor_skins/<id>`.
+
+## Mesh + skeleton renders
+
+`docs/pd2-las/renders/` — orthographic renders of the built packs' `g_body`
+mesh with the PD2 skeleton overlaid (arm chain in red), produced by
+`tools/pd2-las/render_mesh_skeleton.py`:
+
+- `christie_slim_skel_{front,side,iso}.png` — slim pack, full body
+- `christie_slim_skel_wrist_{front,side}.png` — left-wrist close-ups (the
+  sleeve cuff surrounds the Hand pivot where the in-game glove spawns)
+- `christie_skel_front.png`, `christie_skel_wrist_side.png` — base pack
