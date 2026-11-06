@@ -222,9 +222,24 @@ the crease test asserts an absolute bound rather than "better than 2B".
 Renders (`docs/pd2-las/renders/`): `*_skel_{front,side,iso,top}.png`, plus
 `*_skel_pose_{front,side}.png` and `*_skel_pose_wrist_{front,side}.png` — the
 mesh re-skinned into a relaxed pose. Those posed renders were wrong until
-2026-11-06: `render_mesh_skeleton.skin_verts` built a numpy 4×4 and applied it
-as `M @ p`, but Diesel matrices are row-vector (`mat_apply_point`), so every
-blended matrix was silently transposed and the mesh flew off the skeleton (a
-spike through the floor). `posed_worlds` had the same class of bug — it
-pre-multiplied a local rotation, which rotates the joint *offset* instead of
-pivoting the bone about its own head.
+2026-11-06, from three separate bugs, each of which stayed *invisible* in the
+bind pose — the only pose anyone checked at first:
+
+1. `render_mesh_skeleton.skin_verts` built a numpy 4×4 and applied it as
+   `M @ p`, but Diesel matrices are row-vector (`mat_apply_point`), so every
+   blended matrix was silently transposed and the mesh flew off the skeleton.
+2. `posed_worlds` pre-multiplied a local rotation, which rotates the joint
+   *offset* instead of pivoting the bone about its own head.
+3. `skin_verts` composed the skin matrix as `pose_world @ inv_bind`. The
+   bind matrices are inverse-bind worlds, so the correct order is
+   `inv_bind @ pose_world` (bind → model → posed). The swapped order applies
+   each bone's pose rotation about the *model origin*, which is exactly the
+   identity while every joint is at rest but flings the arm 45 cm at mid-forearm
+   as soon as an elbow bends — the long blade-like spikes that used to appear
+   through the hands in the `--pose` previews.
+
+Bugs 1 and 3 are both exactly the identity at rest, so an at-rest overlay proves
+nothing about them. `tests/test_render_mesh_skeleton.py` now bends an elbow and
+asserts the joints stay put, no edge grows more than a few cm, and every vertex
+stays near its bone. The shipped packs were never affected: this code only
+draws the diagnostic previews, it does not bake the mesh.

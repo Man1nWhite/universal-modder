@@ -120,17 +120,28 @@ def skin_verts(geo, skinbones: dict, pose_worlds: dict) -> np.ndarray:
     """Re-skin bind-pose verts into a posed skeleton (linear blend skinning).
 
     Diesel matrices are System.Numerics style and *row-vector*: a point is
-    transformed with ``mat_apply_point(M, p)``, and composition is
-    ``mat_mul(a, b)``. The skin-bones block stores the inverse bind world per
-    palette entry, so the deforming matrix of a palette entry is
+    transformed with ``mat_apply_point(M, p)`` and composition is
+    ``mat_mul(a, b)`` meaning "apply a, then b". Vertices are stored in model
+    space and ``skinbones['rotations']`` holds each palette entry's inverse
+    bind world ``R_i = W_i^-1`` (verified: ``W_i @ R_i == I``), so the
+    deforming matrix is
 
-        M = pose_world @ inv_bind_world
+        M = inv_bind_world @ pose_world        # bind -> model -> posed
 
-    and must be applied with the same convention. Building it as a numpy 4x4
-    and post-multiplying the column vector ``M @ p`` silently transposes every
-    matrix; the identity pose still round-trips (a transposed identity is an
-    identity) but any real pose throws verts metres away, which is what the
-    ``--pose`` previews used to show as a spike through the floor.
+    and the bind pose round-trips exactly because ``W @ W^-1 == I``.
+
+    Two ways this went wrong here, both of which the identity pose hides
+    completely:
+      * building a numpy 4x4 and applying ``M @ p`` (column convention)
+        transposes every matrix - a transposed identity is still an identity,
+        so only real poses broke;
+      * swapping the multiplication order to ``pose @ inv_bind``. That is
+        *also* an identity in the bind pose, and it looks superficially right
+        because ``pose`` is first, but it applies the pose about the model
+        origin: every vertex is flung radially (a hand ended up 45 cm from
+        where it belongs) and the mesh turns into long spikes. Keep the order,
+        and keep ``tests/test_render_mesh_skeleton.py`` green - it bends an
+        elbow and fails if any triangle edge stretches.
     """
     v = np.array(geo["verts"], float)
     bi = geo["blendindices"]
@@ -155,7 +166,8 @@ def skin_verts(geo, skinbones: dict, pose_worlds: dict) -> np.ndarray:
                 continue
             m = mats.get(pi)
             if m is None:
-                m = dm.mat_mul(pose_worlds[bid], inv_bind[pi])
+                # bind -> model (inv bind), then model -> posed: this order
+                m = dm.mat_mul(inv_bind[pi], pose_worlds[bid])
                 mats[pi] = m
             q = dm.mat_apply_point(m, p)
             acc[0] += w * q[0]
