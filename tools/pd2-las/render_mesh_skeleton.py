@@ -332,12 +332,23 @@ def main(argv=None) -> int:
     bones = skeleton(template)
     args.out.mkdir(parents=True, exist_ok=True)
     stem = args.item
-    for view in ("front", "side", "iso", "top"):
+    # every view is rendered so the committed set is fully reproducible from
+    # this CLI - docs/pd2-las/CHRISTIE.md names these files explicitly
+    for view in ("front", "side", "iso", "top", "bottom"):
         render(geo, bones, view, args.out / f"{stem}_skel_{view}.png")
     # wrist close-ups (left arm, x negative)
     for view in ("front", "side"):
         render(geo, bones, view, args.out / f"{stem}_skel_wrist_{view}.png",
                zoom=(-56, -30, 108, 142))
+    # forearm close-up framed on the LeftForeArm pivot, the same rule --source
+    # uses, so a pack render and a source render line up for comparison
+    fw = next((b for b in bones if b[0] == "LeftForeArm"), None)
+    if fw is not None:
+        c = fw[1]
+        zoom = (c[0] - 14, c[0] + 14, c[2] - 22, c[2] + 10)
+        for view in ("front", "side"):
+            render(geo, bones, view, args.out / f"{stem}_forearm_{view}.png",
+                   zoom=zoom)
     if args.pose:
         pose = {}
         for side in ("Left", "Right"):

@@ -152,3 +152,87 @@ def test_bind_matrices_are_inverse_bind_worlds():
         assert np.abs(w @ r - ident).max() < 1e-3, (
             f"{tpl.id_name[bid]}: rotations[{k}] is not the inverse bind world")
         assert dm.mat_mul(tuple(r.flatten()), tuple(w.flatten())) is not None
+
+
+def _documented_render_names(item: str) -> set[str]:
+    """The render filenames CHRISTIE.md tells a reader to look at.
+
+    The doc is the only place a reader learns which images exist, so it is also
+    the list the renderer has to be able to produce. Reading it here keeps the
+    two from drifting: before 2026-11-06 the doc named
+    `christie_base_skel_top.png`, the renderer wrote `christie_skel_top.png`,
+    and half the committed set could not be rebuilt at all.
+    """
+    import re
+
+    doc = (REPO / "docs" / "pd2-las" / "CHRISTIE.md").read_text(encoding="utf-8")
+    section = doc.split("## Mesh + skeleton renders", 1)[1].split("\n## ", 1)[0]
+    names: set[str] = set()
+    for m in re.finditer(r"`([a-z0-9_{},*]+\.png)`", section):
+        pat = m.group(1)
+        # expand the {a,b} shorthand the doc uses
+        parts = [pat]
+        while any("{" in p for p in parts):
+            nxt = []
+            for p in parts:
+                b = re.search(r"\{([^}]*)\}", p)
+                if not b:
+                    nxt.append(p)
+                    continue
+                nxt.extend(p[:b.start()] + opt + p[b.end():]
+                           for opt in b.group(1).split(","))
+            parts = nxt
+        names.update(n.replace("*", "slim" if "slim" in n else "base")
+                     for n in parts)
+    return names
+
+
+def test_render_cli_writes_every_file_the_docs_name():
+    """A doc that names images the tool cannot produce is a dead end."""
+    import re
+
+    doc = (REPO / "docs" / "pd2-las" / "CHRISTIE.md").read_text(encoding="utf-8")
+    section = doc.split("## Mesh + skeleton renders", 1)[1].split("\n## ", 1)[0]
+    # the two composites are made outside the renderer and are called out as such
+    documented = set()
+    for m in re.finditer(r"`(christie[a-z_{},]*\.png)`", section):
+        pat = m.group(1)
+        if "fit_before_after" in pat:
+            continue
+        parts = [pat]
+        while any("{" in q for q in parts):
+            nxt = []
+            for q in parts:
+                b = re.search(r"\{([^}]*)\}", q)
+                if b is None:
+                    nxt.append(q)
+                    continue
+                nxt.extend(q[:b.start()] + opt + q[b.end():]
+                           for opt in b.group(1).split(","))
+            parts = nxt
+        documented.update(parts)
+    assert len(documented) >= 14, f"the render list shrank: {sorted(documented)}"
+
+    src = (REPO / "tools" / "pd2-las" / "render_mesh_skeleton.py").read_text(encoding="utf-8")
+    # `--source` renders the reference model under its own stem; fold those
+    # patterns in too so the doc can list both kinds in one section
+    src_body = src[src.index("def render_source("):src.index("def main(")]
+    main_body = src[src.index("def main("):]
+    for m in re.finditer(r'f"\{stem\}_([a-z_{}]+)\.png"', src_body):
+        main_body += "\n" + f'f"{{stem}}_source_{m.group(1)}.png"' 
+    emitted = set()
+    for m in re.finditer(r'f"\{stem\}_([a-z_{}]+)\.png"', main_body):
+        pat = "{stem}_" + m.group(1) + ".png"
+        viewers = ["front", "side", "iso", "top", "bottom"] if "{view}" in pat else [None]
+        for v in viewers:
+            emitted.add(pat if v is None else pat.replace("{view}", v))
+    assert emitted, "main() emits no per-stem renders at all"
+
+    missing = []
+    for name in sorted(documented):
+        body = name.replace("christie_slim", "{stem}").replace("christie", "{stem}")
+        if body not in emitted:
+            missing.append(name)
+    assert not missing, (
+        "documented in CHRISTIE.md but never written by the renderer: "
+        f"{missing} (main() emits {sorted(emitted)})")
