@@ -189,6 +189,55 @@ with no base-pack prefix, `christie_base_skel_top`) and the renderer never wrote
 hand-renamed one-offs and could not be rebuilt. The CLI now writes the whole
 set, and `tests/test_render_mesh_skeleton.py` keeps the naming honest.
 
+### Why the forearm sleeve curls, and whether it should
+
+Short answer: it should **not** be parallel to the bone, and most of what reads
+as a curl is not a curl. Over the forearm interior (5-18 cm of a 22.5 cm bone),
+fitting a Kasa circle to each cross section in the plane perpendicular to the
+bone:
+
+| mesh | lean vs bone | deviation from straight | tube radius | flare | mean centre offset |
+|---|---|---|---|---|---|
+| Christie base | 4.4° | 1.45 cm | 3.7 → 5.6 cm | 1.52x | 0.63 cm |
+| Christie slim | 1.1° | 1.49 cm | 2.3 → 5.1 cm | 2.27x | 0.59 cm |
+| PD2 2B reference | 1.9° | 0.48 cm | 2.7 → 4.3 cm | 1.63x | 0.94 cm |
+
+Every ring plane is perpendicular to the bone to 0.0° on all three meshes (SVD
+least-variance normal), so there is no kink at the ring level and nothing is
+"twisting" along the sleeve. Three separate things make up the look:
+
+1. **Lean — shared with the reference, and anatomically correct.** A forearm is
+   not a cylinder centred on its bone: the ulna runs down the outside, so the
+   mass sits off-axis. The 2B reference leans 1.9° and sits 0.94 cm off its own
+   bone, i.e. further off than either Christie pack. Being parallel to the bone
+   is a property of a bare limb, not of a sleeve.
+2. **Flare — shared with the reference.** The sleeve opens from 3.7 to 5.6 cm
+   (1.52x) toward the cuff; 2B flares 1.63x over the same span. Base is
+   therefore *less* flared than the reference. A sleeve is a flared tube, and a
+   flare seen edge-on in a side view is exactly what the eye reads as a curl.
+   Slim is the outlier (2.27x): its slim pass narrows the mid-forearm to
+   2.3-3.0 cm and then the outer layer flares back out to the cuff, so the
+   silhouette pinches and reopens.
+3. **Drift at the wrist end — Christie-specific, small.** From 5-17 cm the
+   section centre stays within 1 cm of the bone (its *direction* jitters, which
+   is noise on a multi-layer ring; its magnitude does not wander). Past 17 cm it
+   moves smoothly and monotonically out to 2.4 cm as the mouth flares. Total
+   deviation from a straight line is 1.45 cm against 2B's 0.48 cm — the one
+   line in the table where Christie is clearly worse, and the only part worth
+   calling a bend.
+
+The source is not the cause. The DOA source's own forearm holds its section
+centre within 0.11 cm of the bone for the whole of its 10.6 cm interior — it is
+straight, so the residual bend comes from the menu-pose retarget, not from the
+model. `straighten_segments()` targets exactly this: it fits a deg-2 centreline
+over interior slices and refuses the build (3.5 cm assert) rather than clip if
+the correction is large. Its 6 cm end fades mean the last ~6 cm of the bone —
+where the traffic above 17 cm lives — is deliberately left alone; that fade is
+why ~1.5 cm of bend survives instead of the several-cm kink the first build had.
+
+`christie_forearm_side.png` and `christie_slim_forearm_side.png` show all of
+this at once: a straight mount, a widening sleeve, an off-axis mouth.
+
 ### The far end: what the cuff mouth looks like
 
 `christie_{,slim_}skel_cuff.png` looks straight down the forearm, because a cuff
