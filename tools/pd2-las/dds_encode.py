@@ -201,6 +201,60 @@ def set_dxt5_constant_alpha(df_dds: bytes, alpha_val: int) -> bytes:
     return hdr + blocks.tobytes()
 
 
+def _dxt5_alpha_decode(b8: np.ndarray) -> np.ndarray:
+    """Decode one DXT5 alpha block (8 bytes) to a 4x4 float array."""
+    a0, a1 = int(b8[0]), int(b8[1])
+    if a0 > a1:
+        pal = np.array([(a0 * (7 - i) + a1 * i) / 7 for i in range(8)])
+    else:
+        pal = np.array([(a0 * (5 - i) + a1 * i) / 5 for i in range(6)] + [0, 255])
+    bits = int.from_bytes(bytes(b8[2:8]), "little")
+    idx = np.array([(bits >> (3 * i)) & 7 for i in range(16)], dtype=np.int64)
+    return pal[idx].reshape(4, 4)
+
+
+def _dxt5_alpha_encode(a44: np.ndarray) -> bytes:
+    """Encode a 4x4 alpha array as one DXT5 alpha block (8-value mode)."""
+    a = np.clip(np.rint(a44), 0, 255).astype(np.int32).reshape(16)
+    a0, a1 = int(a.max()), int(a.min())
+    if a0 == a1:
+        bits = 0
+    else:
+        pal = np.array([a0 + (a1 - a0) * i / 7 for i in range(8)])
+        idx = np.abs(pal[None, :] - a[:, None].astype(np.float64)).argmin(axis=1)
+        bits = 0
+        for i in range(16):
+            bits |= int(idx[i]) << (3 * i)
+    return bytes([a0, a1]) + bits.to_bytes(6, "little")
+
+
+def attenuate_dxt5_alpha_by_block_mask(
+        df_dds: bytes, mask: np.ndarray, atten: float) -> bytes:
+    """Scale DXT5 alpha by ``1 - atten * mask`` per 4x4 block, RGB untouched.
+
+    ``mask`` is a (h//4, w//4) float array in 0..1 — one value per BC block.
+    PD2's ``DIFFUSE_TEXTURE:NORMALMAP`` shader reads gloss from diffuse alpha,
+    so this darkens the specular sheen in the masked regions (sleeves) without
+    touching colour blocks or alpha elsewhere.
+    """
+    hdr = df_dds[:128]
+    h = int.from_bytes(df_dds[12:16], "little")
+    w = int.from_bytes(df_dds[16:20], "little")
+    bh, bw = h // 4, w // 4
+    if mask.shape != (bh, bw):
+        raise SystemExit(f"alpha mask shape {mask.shape} != block grid {(bh, bw)}")
+    blocks = np.frombuffer(df_dds[128:], dtype=np.uint8).reshape(-1, 16).copy()
+    flat = mask.reshape(-1)
+    touched = 0
+    for bi in np.where(flat > 0.004)[0]:
+        fac = 1.0 - atten * float(flat[bi])
+        alpha = _dxt5_alpha_decode(blocks[bi][:8]) * fac
+        blocks[bi][:8] = np.frombuffer(
+            _dxt5_alpha_encode(alpha), dtype=np.uint8)
+        touched += 1
+    return hdr + blocks.tobytes()
+
+
 def swizzle_source_normal_dxt5_to_pd2(nm_dds: bytes, invert_y: bool = True) -> bytes:
     """Swizzle UE3/ME2-derived Source DXT5 normal map (R=ny_down, G=nx_right, B=nz) to PD2 DXT5nm (R=255, G=255-ny_down, B=0, A=nx_right)."""
     hdr = nm_dds[:128]
