@@ -35,24 +35,34 @@ has no head). Face/lashes/eyes/glasses/hair/helmet meshes are all dropped; the
 heister keeps their own head. See the `las_outfit_pack.py` FLAG_KEYS comment for
 the loader semantics.
 
-**Arm bone mapping:** the menu-pose retarget leaves the elbows ~5.3 cm inboard
-of the PD2 `Arm` pivots, so after `retarget_maps` the build runs
-`fix_arm_fits()`, which **pure-translates** the existing `Arm`/`ForeArm` fits
-(rotation untouched, delta added to matrix rows 12–14) so each source Arm
-joint lands exactly on its same-named PD2 pivot — elbow/wrist deviation 0.00 cm,
-no vertex spikes (z extent stays ≈164 cm, 0 orientation breaks). Do NOT
-re-fit those bones with a fresh rotation: the harmonic blend with the Spine1
-fit spikes shoulder-top verts to z ≈191–199.
+**Arm bone mapping:** the Arm/ForeArm bind operators from `retarget_maps`
+are built in PD2's standing menu pose and are **affine with a rank-1 axial
+stretch** (singular values {λ axial, s_core radial}), not similarities — the
+elbow blend of two different stretch axes is a small, accepted candy-wrapper
+loss. The menu-pose composition (`M_menu^-1` after the standing-frame pin)
+moves the elbow pivot, leaving the elbows ~5.3 cm inboard of the PD2 `Arm`
+pivots, so after `retarget_maps` the build runs `fix_arm_fits()`, which is
+the actual joint pin: it **pure-translates** the existing `Arm`/`ForeArm`
+fits (rotation kept, translation replaced, delta added to matrix rows 12–14)
+so each source Arm joint lands exactly on its same-named PD2 pivot — elbow/
+wrist deviation 0.00 cm, no vertex spikes (z extent stays ≈164 cm, 0
+orientation breaks). Do NOT re-fit those bones with a fresh rotation: the
+harmonic blend with the Spine1 fit spikes shoulder-top verts to z ≈191–199.
 
 **Bind-pose straightening:** the menu-pose retarget can leave a small
 mid-forearm centerline kink, so after transfer every variant runs
-`straighten_segments()` on the forearm segments before slim: per-slice
-perpendicular **median** offsets of pure high-weight verts (w > 0.85,
-perp < 4.5 cm) from the segment interior only, deg-2 fit in axial t,
-correction capped at 2.5 cm with 4 cm end fades, weights untouched,
-flip-checked. Upper-arm segments are skipped (too few clean verts). The
-elbow bend itself is the PD2 template bind pose and is intentionally left
-alone — only straightness *within* each segment is enforced.
+`straighten_segments()` on the forearm segments before slim. v3: per-slice
+**2D medians** of pure high-weight verts (w > 0.85, perp < 4.5 cm) from the
+segment interior only, fitted in an orthonormal basis (e1, e2) ⟂ the segment
+axis so the correction is exactly perpendicular (axial coordinate preserved
+exactly, t' = t; a component-wise 3D median does not preserve uᵀc = 0).
+Deg-2 polynomial in the normalized variable xn = (t − L/2)/(L/2) ∈ [−1, 1]
+(raw t made the Vandermonde ill-conditioned). The cap (3.5 cm over the fitted interior) is a loud build
+assert, not a silent clip. 6 cm end fades (elbow/wrist blend verts barely
+move, so the slim pass cannot flip them), weights untouched, flip-checked.
+Upper-arm segments are skipped (too few clean verts). The elbow bend itself
+is the PD2 template bind pose and is intentionally left alone — only
+straightness *within* each segment is enforced.
 
 ## Build
 

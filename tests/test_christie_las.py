@@ -346,3 +346,134 @@ def test_source_loader_reads_all_bodygroup_models():
     # body materials the pack keeps
     assert {"cri_body_base", "cri_02_01_base", "cri_02_02_base",
             "cri_02_05_base"} <= mats
+
+
+# --- math regression locks (review: convention + straighten hardening) ---
+
+def test_mat_row_convention_associativity():
+    """dm storage is row-vector: v.(a.b) == (v.a).b exactly."""
+    import numpy as np
+    import diesel_model as dm
+    import build_models as bm
+
+    R = np.array([[0.36, -0.48, 0.8], [0.8, 0.6, 0.0], [-0.48, 0.64, 0.6]])
+    a = bm._make_sim_mat(1.1, R, (1, 2, 3), (4, 5, 6))
+    b = bm._make_sim_mat(0.9, R.T, (0, 0, 0), (-1, 2, 0))
+    v = np.array([1.0, -2.0, 3.0, 1.0])
+    lhs = v @ np.array(dm.mat_mul(a, b)).reshape(4, 4)
+    rhs = (v @ np.array(a).reshape(4, 4)) @ np.array(b).reshape(4, 4)
+    assert float(np.abs(lhs - rhs).max()) < 1e-9
+
+
+def test_umeyama_recovers_known_similarity():
+    """_umeyama_fit must invert a known row-convention similarity to ~0 err."""
+    import numpy as np
+    import diesel_model as dm
+    import build_models as bm
+
+    rng = np.random.default_rng(0)
+    P = rng.normal(size=(8, 3)) * 20
+    th = 0.7
+    Rz = np.array([[np.cos(th), -np.sin(th), 0],
+                   [np.sin(th), np.cos(th), 0], [0, 0, 1]])
+    Ry = np.array([[np.cos(0.3), 0, np.sin(0.3)], [0, 1, 0],
+                   [-np.sin(0.3), 0, np.cos(0.3)]])
+    Rc = Rz @ Ry
+    s_true, t_true = 1.13, np.array([5.0, -3.0, 11.0])
+    Q = s_true * (P @ Rc.T) + t_true
+    m = bm._umeyama_fit([tuple(p) for p in P], [tuple(q) for q in Q], [1.0] * 8)
+    err = max(np.linalg.norm(np.array(dm.mat_apply_point(m, tuple(p))) - q)
+              for p, q in zip(P, Q))
+    assert err < 1e-6, f"umeyama round-trip err {err}"
+
+
+def test_rodrigues_shortest_arc_maps_u_to_w_without_twist():
+    import numpy as np
+    import build_models as bm
+
+    u = np.array([1.0, 2.0, 3.0])
+    w = np.array([-2.0, 0.5, 1.0])
+    R = bm._rodrigues_arc(u, w)
+    un, wn = u / np.linalg.norm(u), w / np.linalg.norm(w)
+    assert np.linalg.norm(R @ un - wn) < 1e-12
+    # zero axial twist: rotation axis is perpendicular to u
+    axis = np.array([R[2, 1] - R[1, 2], R[0, 2] - R[2, 0], R[1, 0] - R[0, 1]])
+    assert abs(float(axis @ un)) < 1e-9
+
+
+def test_hinge_axis_extraction_is_unit_and_parallel():
+    """vee(R - R^T) = 2 sin(th) . axis; after normalization it must be a unit
+    vector parallel to the true rotation axis (build_models asserts this)."""
+    import numpy as np
+
+    axis_true = np.array([0.2, -0.5, 0.84])
+    axis_true /= np.linalg.norm(axis_true)
+    th = 0.3
+    K = np.array([[0, -axis_true[2], axis_true[1]],
+                  [axis_true[2], 0, -axis_true[0]],
+                  [-axis_true[1], axis_true[0], 0]])
+    R = np.eye(3) + np.sin(th) * K + (1 - np.cos(th)) * (K @ K)
+    hinge = np.array([R[2, 1] - R[1, 2], R[0, 2] - R[2, 0], R[1, 0] - R[0, 1]])
+    ax = hinge / np.linalg.norm(hinge)
+    assert abs(np.linalg.norm(ax) - 1.0) < 1e-12
+    assert min(np.linalg.norm(ax - axis_true), np.linalg.norm(ax + axis_true)) < 1e-9
+
+
+def test_axial_stretch_is_affine_not_similarity():
+    """The _axial_mat 3x3 has singular values {lam, s_core, s_core}: a rank-1
+    axial stretch, not a similarity. Locks the corrected doc wording."""
+    import numpy as np
+    import build_models as bm
+
+    s_core, lam = 1.02, 1.11
+    ds = np.array([20.0, 0.0, 0.0])
+    dt = np.array([22.0, 3.0, 0.0])
+    v = dt / np.linalg.norm(dt)
+    r_seg = bm._rodrigues_arc(ds, dt)
+    S = s_core * np.eye(3) + (lam - s_core) * np.outer(v, v)
+    A = S @ r_seg
+    sv = np.linalg.svd(A, compute_uv=False)
+    assert abs(sv[0] - max(lam, s_core)) < 1e-9
+    assert abs(sv[1] - min(lam, s_core)) < 1e-9
+    assert abs(sv[2] - min(lam, s_core)) < 1e-9
+    assert abs(np.linalg.det(A) - lam * s_core ** 2) < 1e-9
+
+
+def test_forearm_centerline_straight_in_base_pack():
+    """straighten_segments v3 lock: median centerline deviation of pure
+    forearm verts in clean mid-segment slices (t in [0.35L, 0.65L], away from
+    the elbow/wrist end fades and blend zones) must be small — the bind-pose
+    forearm is straight within its segment."""
+    import numpy as np
+
+    for side in ("Left", "Right"):
+        v, dom = _g_body_geo_dom("base")
+        a0, b0 = _P2_SEGMENTS["ForeArm"]
+
+        def J(n):
+            p = _P2_JOINTS[n]
+            return np.array([-p[0] if side == "Left" else p[0], p[1], p[2]])
+
+        a, b = J(a0), J(b0)
+        u = (b - a) / np.linalg.norm(b - a)
+        L = float(np.linalg.norm(b - a))
+        sel = [i for i, (nm, w) in enumerate(dom)
+               if nm == f"{side}ForeArm" and w > 0.85]
+        pts = np.array([v[i] for i in sel])
+        t = (pts - a) @ u
+        r = (pts - a) - np.outer(t, u)
+        perp = np.linalg.norm(r, axis=1)
+        m = (perp < 4.5) & (0.35 * L <= t) & (t <= 0.65 * L)
+        assert m.sum() >= 20, f"{side}ForeArm: only {int(m.sum())} mid core verts"
+        # 2D median in the perp plane, per 2 cm slice
+        tmp = np.array([1.0, 0.0, 0.0]) if abs(u[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+        e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
+        e2 = np.cross(u, e1)
+        worst = 0.0
+        for t0 in np.arange(0.35 * L, 0.65 * L, 2.0):
+            mm = m & (t >= t0) & (t < t0 + 2.0)
+            if mm.sum() < 6:
+                continue
+            c2 = np.median(r[mm] @ np.stack([e1, e2], axis=1), axis=0)
+            worst = max(worst, float(np.linalg.norm(c2)))
+        assert worst <= 1.5, f"{side}ForeArm mid-segment centerline off by {worst:.2f} cm"

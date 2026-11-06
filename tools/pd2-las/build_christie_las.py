@@ -444,12 +444,19 @@ def fix_arm_fits(model: sm.ModelData, skel_map: dict, template: bm.Template,
     leaves the elbows ~5 cm inboard of PD2's Arm joints (measured x ±15.7 vs
     ±20.9), so the arms angle wrong in game.
 
-    The fix is a pure *translation* of the existing fits (rotation untouched):
-    delta = target pivot - current mapped source joint, added to the matrix
-    translation row. Re-fitting with a fresh rotation instead makes the
-    shoulder-top verts (blended Spine1+Shoulder+Arm) overshoot to z≈190 —
-    the harmonic blend of two very different rotations spikes. A translation
-    cannot spike, and the joint deviation drops to 0.
+    Why the pin from the menu-pose construction doesn't survive: _axial_mat
+    pins the joint in the STANDING frame, but the TPP operator then composes
+    M_menu^-1 (posed -> bind, target side) after it, which moves the pivot —
+    hence the ~5.3 cm inboard elbows. This pass is the actual pin for the
+    forearm: it KEEPS the rotation content of the composed operator and
+    REPLACES only the translation, delta = target pivot - current mapped
+    source joint, added to the matrix translation row.
+
+    Re-fitting with a fresh rotation instead makes the shoulder-top verts
+    (blended Spine1+Shoulder+Arm) overshoot to z≈190 — the harmonic blend of
+    two very different rotations spikes. A translation cannot spike (blended
+    translation error is bounded by max||delta||, a convex combination), and
+    the joint deviation drops to 0 by construction.
     """
     import numpy as np
 
@@ -700,23 +707,37 @@ def _check_flips(g: bm.Group, v_old, tag: str) -> None:
 def straighten_segments(g: bm.Group, template: bm.Template,
                         bones=("LeftArm", "RightArm", "LeftForeArm", "RightForeArm"),
                         bin_cm: float = 2.0, perp_max: float = 4.5,
-                        w_min: float = 0.85, edge_fade_cm: float = 4.0,
-                        cap_cm: float = 2.5, min_slice: int = 6) -> bm.Group:
+                        w_min: float = 0.85, edge_fade_cm: float = 6.0,
+                        cap_cm: float = 3.5, min_slice: int = 6) -> bm.Group:
     """Straighten limb segments in bind pose (mesh-only, weights untouched).
 
     The source rig is straight but the menu-pose retarget leaves a mid-segment
     kink (visible as a second "bend" past the elbow in the forearm renders).
-    For each segment, fit a deg-2-in-t centerline offset c_hat(t) to the
-    per-slice perpendicular MEDIANS of its pure high-weight verts, then
-    displace p' = p - sum_j w_j * g_j(t) * c_hat_j(t) (capped at cap_cm).
+    For each segment, fit a deg-2 centerline offset c_hat(t) to the per-slice
+    perpendicular MEDIANS of its pure high-weight verts, then displace
+    p' = p - sum_j w_j * g_j(t) * c_hat_j(t).
 
-    Robustness notes (v2 of this pass): slice medians instead of centroids,
-    a tight radius mask (only verts actually inside the limb), slices from
-    the segment interior only (the elbow/wrist blend zones at the ends are
-    contaminated by neighbouring geometry and previously poisoned the global
-    deg-2 fit, warping the whole segment), a hard cap on the correction, and
-    end fades. Axial coordinate is preserved; per-slice translation is
-    injective so no folds by construction; flip check still runs.
+    Robustness notes (v3 of this pass):
+      * slice medians instead of centroids, tight radius mask (only verts
+        actually inside the limb), slices from the segment interior only —
+        the elbow/wrist blend zones at the ends are contaminated and
+        previously poisoned the global deg-2 fit, warping the whole segment;
+      * the centerline is fitted in a 2D orthonormal basis (e1, e2) perp to
+        the segment axis u. A component-wise median of the 3D offsets r does
+        NOT preserve u^T c = 0 (u is not axis-aligned), which leaked a small
+        axial component and made t' = t only approximate. In the (e1, e2)
+        basis the correction is exactly perpendicular, so the axial
+        coordinate is preserved exactly (t' = t) and each slice translates
+        rigidly — injectivity within a slice is then guaranteed;
+      * the polynomial is fitted in the normalized variable
+        xn = (t - L/2) / (L/2) in [-1, 1] — raw t up to ~22 makes the
+        Vandermonde matrix (1, t, t^2) ill-conditioned;
+      * cap_cm is a LOUD ASSERT, not a silent clip: if the fitted correction
+        exceeds it the build fails, instead of introducing a shading kink at
+        the clip boundary. 3.5 cm is still well under the 4.5 cm limb radius
+        mask, so a fit that large is a real kink, not noise;
+      * 6 cm end fades (the elbow/wrist blend verts then barely move, so
+        the later slim pass cannot flip them); flip check still runs.
     """
     import numpy as np
 
@@ -729,6 +750,12 @@ def straighten_segments(g: bm.Group, template: bm.Template,
         if bone not in geom:
             continue
         a, u, L, s, child = geom[bone]
+        u = u / np.linalg.norm(u)
+        # orthonormal basis (e1, e2) perpendicular to the segment axis
+        tmp = np.array([1.0, 0.0, 0.0]) if abs(u[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+        e1 = np.cross(u, tmp)
+        e1 /= np.linalg.norm(e1)
+        e2 = np.cross(u, e1)
         ts = (v - a) @ u
         r = (v - a) - np.outer(ts, u)
         perp = np.linalg.norm(r, axis=1)
@@ -736,35 +763,53 @@ def straighten_segments(g: bm.Group, template: bm.Template,
         core = (wgt > w_min) & (perp < perp_max) & (ts >= 0.0) & (ts <= L)
         if core.sum() < 40:
             continue
-        # per-slice median offsets from the segment interior, then deg-2 fit
+        # per-slice median of the 2D (perp-plane) offsets, interior slices only
         tks, cks, nks = [], [], []
         for t0 in np.arange(edge_fade_cm, L - edge_fade_cm, bin_cm):
             m = core & (ts >= t0) & (ts < t0 + bin_cm)
             if m.sum() < min_slice:
                 continue
+            r2 = r[m] @ np.stack([e1, e2], axis=1)          # (n, 2), exactly perp u
+            c2 = np.median(r2, axis=0)
             tks.append(float(ts[m].mean()))
-            cks.append(np.median(r[m], axis=0))
+            cks.append(c2)
             nks.append(int(m.sum()))
         if len(tks) < 4:
             continue
         tks = np.array(tks)
-        cks = np.array(cks)
+        cks = np.array(cks)                                  # (k, 2)
         nks = np.array(nks, dtype=np.float64)
-        A = np.stack([np.ones_like(tks), tks, tks * tks], axis=1)
+        xn = (tks - L / 2.0) / (L / 2.0)                      # in [-1, 1]
+        A = np.stack([np.ones_like(xn), xn, xn * xn], axis=1)
         coef, *_ = np.linalg.lstsq(A * nks[:, None], cks * nks[:, None], rcond=None)
 
-        def chat(t):
-            c = coef[0] + coef[1] * t + coef[2] * t * t
-            n = float(np.linalg.norm(c))
-            return c * min(1.0, cap_cm / n) if n > cap_cm else c
+        def chat2(x):                                        # -> 2D perp offset
+            return coef[0] + coef[1] * x + coef[2] * x * x
+
+        # loud cap over the FITTED interior range only (the polynomial may
+        # extrapolate larger values into the faded ends, where it is never
+        # applied with full weight): the correction that actually gets applied
+        # must stay under cap_cm, else fail instead of silently clipping.
+        xs = np.linspace(float(xn.min()), float(xn.max()), 200)
+        cmax = float(np.linalg.norm(np.array([chat2(x) for x in xs]), axis=1).max())
+        if cmax > cap_cm:
+            raise SystemExit(
+                f"straighten {bone}: fitted correction {cmax:.2f} cm exceeds "
+                f"cap {cap_cm} cm — refusing to silently clip (shading kink)")
+
+        def chat(t):                                         # -> 3D, perp u exactly
+            c2 = chat2((t - L / 2.0) / (L / 2.0))
+            return c2[0] * e1 + c2[1] * e2
 
         gfade = np.array([_smoothstep(t / edge_fade_cm)
                           * _smoothstep((L - t) / edge_fade_cm) for t in ts])
         disp = -(wgt * gfade)[:, None] * np.array([chat(t) for t in ts])
+        # axial leak must be exactly zero by construction; verify numerically
+        leak = float(np.abs((np.array([chat(t) for t in ts]) @ u)).max())
         new = new + disp
         print(f"  straighten {bone}: {int(core.sum())} core verts, "
-              f"{len(tks)} slices, max correction "
-              f"{float(np.linalg.norm(np.array([chat(t) for t in tks]), axis=1).max()):.2f} cm")
+              f"{len(tks)} slices, max correction {cmax:.2f} cm, "
+              f"axial leak {leak:.2e} cm")
     g.verts = [tuple(row) for row in new]
     _check_flips(g, v, f"straighten {g.name}")
     _recompute_normals(g, n_old)

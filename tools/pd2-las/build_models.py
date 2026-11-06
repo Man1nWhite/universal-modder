@@ -20,6 +20,21 @@ in-game LAS outfit):
   (u, 1 - v_smd); the codec writes disk (u, -internal_v).
 - triangle winding reversed from the Source (DirectX CW) to Diesel/GLTF CCW.
 
+Matrix conventions (read before touching retarget_maps / transfer_group):
+
+- dm.Mat STORAGE is row-vector convention: p' = p . M + t, and
+  dm.mat_mul(a, b) satisfies v.(a.b) == (v.a).b (diesel_model.py).
+- The numpy blocks inside retarget_maps (_umeyama_fit, _axial_mat, the menu
+  pose construction) compute in COLUMN convention (p' = A.p + t) and convert
+  at the boundary via `.T.reshape(16)` when storing into a dm.Mat;
+  transfer_group converts back with `reshape(4, 4).T` before applying
+  `M @ p4`. Both directions are covered by round-trip tests.
+- `_axial_mat` is NOT a similarity: its 3x3 is S @ R with
+  S = s_core.I + (lam - s_core) v v^T, i.e. singular values {lam, s_core,
+  s_core} — an affine with a rank-1 axial stretch along the segment axis v.
+  Radial thickness is scaled by s_core, axial length by lam. Do not call it
+  a similarity in comments or docs.
+
 Usage (from the repo root):
   .venv/bin/python tools/pd2-las/build_models.py \
       --templates /path/to/dir/with/2b.model \
@@ -261,9 +276,9 @@ def _decompose_sim_mat(m: dm.Mat):
 
 
 def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[int, dm.Mat]:
-    """Per source bone: similarity map source-world -> target-world.
+    """Per source bone: map source-world -> target-world.
 
-    Anatomically partitioned similarity retargeting that avoids the three
+    Anatomically partitioned retargeting that avoids the three
     failure modes of unconstrained per-subtree Procrustes fits:
     1. Core torso + neck + head (`Hips`, `Spine`, `Spine1`, `Spine2`, `Neck`,
        `Head`) share one upright Umeyama fit over the torso/shoulder/hip core
@@ -275,6 +290,10 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
        uses chained shortest-arc (Rodrigues) segment alignment from the core
        frame with zero axial twist, and all 15 finger bones share their parent
        `Hand` similarity transform at forearm scale.
+
+    NOTE: torso/leg/hand fits are true similarities; the Arm/ForeArm operators
+    built via _axial_mat are affine with a rank-1 axial stretch (singular
+    values {lam, s_core, s_core}), NOT similarities — see the module header.
     """
     import numpy as np
 
@@ -397,16 +416,25 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
             len_dt = max(1e-9, float(np.linalg.norm(dt)))
             lam = len_dt / max(1e-9, float(np.linalg.norm(ds)))
             v = dt / len_dt
+            # Anisotropic affine, NOT a similarity: singular values of the
+            # 3x3 are {lam along v, s_core radial}. Radial thickness scales by
+            # s_core, axial length by lam.
             s_seg = _s_core * np.eye(3, dtype=np.float64) + (lam - _s_core) * np.outer(v, v)
             m_seg = np.eye(4, dtype=np.float64)
             m_seg[:3, :3] = s_seg @ r_seg
+            # column-convention pin: s_start -> t_start exactly (s_end ->
+            # t_end follows from r_seg/lam). In the TPP arm path this pin
+            # does NOT survive composing M_menu^-1 afterwards; fix_arm_fits
+            # re-pins the joint by translation.
             m_seg[:3, 3] = t_start - (m_seg[:3, :3] @ s_start)
             return m_seg, r_seg
 
         if "Hips" in direct_src:
             # Full-body third-person character: construct Shoulder, Arm, and
-            # ForeArm bind operators via PD2's standing menu pose
-            # M_menu = W_posed @ inv(W_bind):
+            # ForeArm bind operators via PD2's standing menu pose.
+            # (numpy blocks here are column convention; stored row via .T —
+            #  see module header. Column reading: M_menu = W_posed @ inv(W_bind),
+            #  row reading: W_bind^-1 . W_posed maps bind -> posed.)
             # 1. In the standing pose, Shoulder and Arm meet at a natural
             #    feminine shoulder width (+1.2 cm outward from L4D2's UpperArm
             #    head) so Spine2, Shoulder, and Arm agree at the shoulder
@@ -415,6 +443,10 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
             #    invariant hinge axis of inv(M_menu[Arm]) @ M_menu[ForeArm], so
             #    Arm and ForeArm meet with 0.000 cm gap in BOTH bind pose and
             #    standing pose while eliminating the outward elbow bow.
+            #    The axis is extracted from vee(R - R^T) = 2 sin(th) . axis and
+            #    NORMALIZED below (ax_p), so the shift is exactly 2.8 cm.
+            #    Trade-off: the shift lengthens the posed upper arm by
+            #    sqrt(L^2 + 2.8^2) - L ~= 0.17 cm — deliberate, not a bug.
             # 3. Rank-1 axial scaling along each segment preserves 100% of the
             #    native radial arm thickness.
             sgn = -1.0 if side == "Left" else 1.0
@@ -440,6 +472,7 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
                 r_w_fa_rel[1, 0] - r_w_fa_rel[0, 1],
             ], dtype=np.float64)
             ax_p = hinge_raw / max(1e-9, float(np.linalg.norm(hinge_raw)))
+            assert abs(float(np.linalg.norm(ax_p)) - 1.0) < 1e-9, "hinge axis not unit"
             if float(ax_p[0]) * (-sgn) < 0.0:
                 ax_p = -ax_p
 
