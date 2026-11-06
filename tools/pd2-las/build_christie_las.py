@@ -1125,6 +1125,120 @@ def centre_segments(g: bm.Group, template: bm.Template,
     return records
 
 
+# ---------------------------------------------------------------------------
+# elbow trim: the arm is thickest exactly at the joint
+# ---------------------------------------------------------------------------
+#: Thickness (p90 radius over a 2 cm band about the Arm->ForeArm->Hand polyline)
+#: along the arm, arc length from the shoulder:
+#:
+#:     arc (cm)   18     22     26
+#:     Christie  7.34   8.16   6.83
+#:     2B ref    6.72   7.03   6.02
+#:
+#: Both meshes thicken at the elbow, but Christie bulges 0.8 cm *more* than the
+#: reference does relative to its own arm, and that is what reads as a puffy
+#: elbow. Two measurement traps worth remembering, both of which produced
+#: nonsense here first:
+#:
+#:   * the segments meet at 72 degrees, so a window that selects by *axial*
+#:     coordinate about one axis catches the other segment's cross-section -
+#:     the profile only means anything along the chain (arc length);
+#:   * the outer surface of the elbow is ~8 cm from the joint, i.e. further
+#:     away than chunks of the arm that are 8 cm up the bone, so "distance to
+#:     the joint" is not a usable locality either. Arc length along the chain
+#:     is the only unambiguous one.
+ELBOW_TRIM = 0.88            # radial scale at the joint
+ELBOW_TRIM_FLAT_CM = 2.0     # full strength this close (arc) to the joint
+ELBOW_TRIM_FADE_CM = 6.0     # ... zero by this far, for a C1 blend
+ELBOW_TRIM_W_MIN = 0.5       # sleeve verts only (Arm+ForeArm weight)
+
+
+def _chain_param(v, chain):
+    """Arc length along `chain` of each point's nearest point, plus the offset."""
+    import numpy as np
+
+    best = np.full(len(v), np.inf)
+    off = np.zeros_like(v)
+    arc = np.zeros(len(v))
+    acc = 0.0
+    for a, b in zip(chain[:-1], chain[1:]):
+        ab = b - a
+        L = float(np.linalg.norm(ab))
+        u = ab / L
+        t = np.clip((v - a) @ u, 0.0, L)
+        p = a + np.outer(t, u)
+        d = np.linalg.norm(v - p, axis=1)
+        better = d < best
+        best = np.where(better, d, best)
+        off = np.where(better[:, None], v - p, off)
+        arc = np.where(better, t + acc, arc)
+        acc += L
+    return arc, off
+
+
+def trim_elbows(g: bm.Group, template: bm.Template,
+                bones=(("LeftArm", "LeftForeArm", "LeftHand"),
+                       ("RightArm", "RightForeArm", "RightHand")),
+                scale: float = ELBOW_TRIM) -> list[dict]:
+    """Squeeze the elbow bulge radially about the arm chain, mesh-only.
+
+    ``p' = p + a(p) * (scale - 1) * r(p)`` where ``r`` is the offset from the
+    nearest point on ``Shoulder->Elbow->Wrist`` (so each vertex moves toward the
+    arm's own centreline, not toward a bone axis that only describes one of the
+    two segments) and ``a`` is 1 within ``ELBOW_TRIM_FLAT_CM`` of the joint in
+    *arc length*, fading to 0 at ``ELBOW_TRIM_FADE_CM``.
+
+    Locality has to be arc length. The two segments meet at 72 degrees and the
+    outer surface of the elbow is about 8 cm from the joint, so both "axial
+    coordinate about a segment" and "distance to the joint" select the wrong
+    set: measured, an axial blend moved the bulge by 0.01 cm out of the 0.66 cm
+    it should move, and a spherical one moved 20 vertices by 0.06 cm.
+
+    Vertices need at least ``ELBOW_TRIM_W_MIN`` on ``Arm+ForeArm`` and are
+    additionally scaled by ``1 - w(hand)``, so the hand and its cuff are not
+    moved out from under it. Skeleton, bind matrices, bone lengths and skin
+    weights are untouched; ``_check_flips`` gates the build and the crease
+    metric in the fit report catches a crease that followed the shrink.
+    """
+    import numpy as np
+
+    routed = _route_weights(g, template)
+    v = np.array(g.verts, dtype=np.float64)
+    n_old = np.array(g.normals, dtype=np.float64)
+    new = v.copy()
+    records: list[dict] = []
+    for parent, child, hand in bones:
+        if parent not in template.name_id or child not in template.name_id:
+            continue
+        chain = [_joint(template, parent), _joint(template, child),
+                 _joint(template, hand)]
+        s_joint = float(np.linalg.norm(chain[1] - chain[0]))
+        arc, off = _chain_param(v, chain)
+        d_arc = np.abs(arc - s_joint)
+        blend = np.array([_smoothstep((ELBOW_TRIM_FADE_CM - d) /
+                                      (ELBOW_TRIM_FADE_CM - ELBOW_TRIM_FLAT_CM))
+                          for d in d_arc])
+        w_pair = np.array([rw.get(parent, 0.0) + rw.get(child, 0.0) for rw in routed])
+        w_hand = np.array([rw.get(hand, 0.0) for rw in routed])
+        alpha = blend * np.array([_smoothstep(w / ELBOW_TRIM_W_MIN) for w in w_pair]) \
+            * (1.0 - np.clip(w_hand, 0.0, 1.0))
+        disp = (alpha * (scale - 1.0))[:, None] * off
+        mov = np.linalg.norm(disp, axis=1) > 1e-6
+        if not mov.any():
+            continue
+        new = new + disp
+        records.append({"joint": child, "scale": scale,
+                        "verts": int(mov.sum()),
+                        "max_shift_cm": round(float(np.linalg.norm(disp, axis=1).max()), 2)})
+        print(f"  trim {child}: {records[-1]['verts']} verts, radial scale "
+              f"{scale} about the arm chain, largest shift "
+              f"{records[-1]['max_shift_cm']} cm")
+    g.verts = [tuple(row) for row in new]
+    _check_flips(g, v, f"elbow trim {g.name}")
+    _recompute_normals(g, n_old)
+    return records
+
+
 def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
                arm_scale: float = 0.75) -> bm.Group:
     """v4 cross-sectional slimming, bind pose, mesh-only (skeleton, bone
@@ -1622,11 +1736,18 @@ def main(argv=None) -> int:
     # retarget). Straighten arm segments in bind pose for EVERY variant
     # before any slim pass, so the base pack is clean too.
     centring: list[dict] = []
+    elbow_report: list[dict] = []
     for gname in ("body", "shadow"):
         straighten_segments(groups[gname], template)
         # straighten only fixes the kink it can see (its 4.5 cm radial mask
         # excludes the far-offset verts); put the tubes on the bones after it.
         centring = centre_segments(groups[gname], template) or centring
+        # the arm is thickest exactly at the elbow (8.16 cm p90 over the joint
+        # band against the 2B reference's 7.03); squeeze the cross-section
+        # about the joint bisector so the crease does not move
+        elbows = trim_elbows(groups[gname], template)
+        if gname == "body":
+            elbow_report = elbows
         breaks = bm.orientation_breaks(groups[gname])
         agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
                                      groups[gname].normals)
@@ -1735,6 +1856,7 @@ def main(argv=None) -> int:
         # mesh-vs-skeleton numbers (tools/pd2-las/segment_fit.py); the CI test
         # asserts on the same fields, so a regression shows up there too
         "centring": centring,
+        "elbow_trim": elbow_report,
         "fit_tpp": fit,
         "fit_fps": fps_fit if fps_bytes is not None else None,
     }
@@ -1750,7 +1872,8 @@ def main(argv=None) -> int:
                              # build's own measurement with the shipped bytes
                              "fit_tpp": fit,
                              "fit_fps": fps_fit,
-                             "centring": centring},
+                             "centring": centring,
+                             "elbow_trim": elbow_report},
                       fps_model_slots=fps_slots)
     print(f"pack  -> {pack}")
     zipped = lop.zip_pack(pack)

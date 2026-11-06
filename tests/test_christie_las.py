@@ -513,6 +513,11 @@ _CUFF_MAX = 1.5               # cm, sleeve ring centroid to the Hand pivot -
 _CUT_CUFF_MAX = 2.4           # same, for the hand-cut pack (cuff stretched past
                               # the joint, so it is legitimately a little looser)
 _CREASE_MAX = 3.5             # cm, elbow crease centroid to the ForeArm pivot
+#: p90 arm thickness in the 2 cm band around the elbow, against the 2B
+#: reference's 7.03 cm. The source arm simply is thicker at the joint than 2B's
+#: (8.16 cm before ``trim_elbows``, 6.8 cm either side of it), so the pack is
+#: held to "no worse than the reference, plus a little" rather than to parity.
+_ELBOW_MAX_THICKNESS = 7.4    # cm
 
 
 def _templates() -> Path:
@@ -566,6 +571,56 @@ def test_limb_tubes_sit_on_their_bones(which, fps):
         assert r["drift"] <= _FOREARM_MAX_DRIFT, (
             f"{which}/{'fps' if fps else 'tpp'} {bone}: centre drifts "
             f"{r['drift']:.2f} cm along the segment (limit {_FOREARM_MAX_DRIFT})")
+
+
+def _arm_thickness_at_elbow(which: str) -> float:
+    """p90 distance from the Arm->ForeArm->Hand polyline, 2 cm band at the joint.
+
+    Measured along the *chain*: the two segments meet at 72 degrees, so any
+    window picked by one segment's axial coordinate catches the other one's
+    cross-section (see ``trim_elbows``)."""
+    import numpy as np
+    import build_models as bm
+    import segment_fit as sf
+
+    tpl = bm.load_template(_templates() / "2b.model")
+    chain = [sf.joint_pos(tpl, n) for n in ("LeftArm", "LeftForeArm", "LeftHand")]
+    s_joint = float(np.linalg.norm(chain[1] - chain[0]))
+    v, dom = _g_body_geo_dom(which)
+    m = np.array([nm in ("LeftArm", "LeftForeArm") and w > 0.2 for nm, w in dom])
+    pts = v[m]
+    best = np.full(len(pts), np.inf)
+    arc = np.zeros(len(pts))
+    acc = 0.0
+    for a, b in zip(chain[:-1], chain[1:]):
+        ab = b - a
+        L = float(np.linalg.norm(ab))
+        u = ab / L
+        t = np.clip((pts - a) @ u, 0.0, L)
+        d = np.linalg.norm(pts - (a + np.outer(t, u)), axis=1)
+        better = d < best
+        best = np.where(better, d, best)
+        arc = np.where(better, t + acc, arc)
+        acc += L
+    band = (np.abs(arc - s_joint) < 2.0) & (best < 12)
+    assert band.sum() >= 8, f"{which}: only {int(band.sum())} verts at the elbow"
+    return float(np.percentile(best[band], 90))
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_elbow_is_not_puffier_than_the_reference(which):
+    """The elbow must not be the widest part of the arm.
+
+    The DOA source thickens at the joint: 8.16 cm (p90) in the 2 cm band around
+    the elbow against 6.8-7.3 cm either side of it, where PD2's own 2B body has
+    7.03 cm there and 6.0-6.7 cm either side. ``trim_elbows`` squeezes the
+    cross-section about the arm chain, which brings it to 7.18 cm without
+    moving the crease (the crease test above still passes).
+    """
+    got = _arm_thickness_at_elbow(which)
+    assert got <= _ELBOW_MAX_THICKNESS, (
+        f"{which}: arm is {got:.2f} cm thick at the elbow (limit "
+        f"{_ELBOW_MAX_THICKNESS}; 2B reference 7.03, was 8.16 before the trim)")
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))

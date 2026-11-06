@@ -1,8 +1,8 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `ce032d44…4c6952`) — full body
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `bc482523…208a38`) — full body
   incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `3f0df61a…15fac41`) — 10% thinner torso/legs, 25%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `aacc31a9…ef67`) — 10% thinner torso/legs, 25%
   thinner arms in cross-section, **and no hands** (`--variant slim`; the
   separate no-hands pack was removed — slim supersedes it). The v4 slim pass
   (`slim_group`) works on the bind-pose mesh only — skeleton, bone lengths
@@ -86,10 +86,11 @@ straightness *within* each segment is enforced.
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # slim pack
 ```
 
-After `straighten_segments` the build runs **`centre_segments`** — the pass
-that puts a limb tube back on the bone that drives it (see
-[Mesh-vs-skeleton fit](#mesh-vs-skeleton-fit)). Then the slim/hand-cut steps and
-`assemble_model` follow.
+After `straighten_segments` the build runs **`centre_segments`** (puts a limb
+tube back on the bone that drives it — see [Mesh-vs-skeleton
+fit](#mesh-vs-skeleton-fit)) and then **`trim_elbows`** (squeezes the joint
+bulge about the arm chain — see [The elbows](#the-elbows-why-they-were-puffy-and-what-was-done)).
+Then the slim/hand-cut steps and `assemble_model` follow.
 
 Pipeline: `build_christie_las.load_christie` parses the MDL with **every
 bodygroup model** walked (DOA5 ships body/glasses/bra/head as bodypart model
@@ -242,6 +243,41 @@ why ~1.5 cm of bend survives instead of the several-cm kink the first build had.
 `christie_forearm_side.png` and `christie_slim_forearm_side.png` show all of
 this at once: a straight mount, a widening sleeve, an off-axis mouth.
 
+### The elbows: why they were puffy, and what was done
+
+The DOA source's arm is thickest exactly at the joint. p90 thickness over a 2 cm
+band about the `Arm -> ForeArm -> Hand` polyline, by arc length from the shoulder:
+
+| arc (cm) | 18 | **22 (elbow)** | 26 |
+|---|---|---|---|
+| Christie, before | 7.34 | **8.16** | 6.83 |
+| Christie, now | 6.96 | **7.18** | 6.33 |
+| PD2 2B reference | 6.72 | **7.03** | 6.02 |
+
+2B thickens at the elbow too (6.7 -> 7.0 -> 6.0), so a slight swell is correct —
+Christie's was just 0.8 cm deeper relative to its own arm, and that is what reads
+as a padded elbow. `trim_elbows` squashes the cross-section about the arm chain:
+`p' = p + a * (0.88 - 1) * r`, where `r` is the offset from the nearest point on
+`Shoulder -> Elbow -> Wrist` and `a` is 1 within 2 cm (arc) of the joint, fading
+to 0 at 6 cm. 74 vertices move, 1.0 cm at most; the hand and its cuff are held
+still (`1 - w(hand)`), and the skeleton, weights and bone lengths are untouched.
+
+Two locality mistakes are worth recording, because both look right and neither
+works:
+
+- **axial coordinate about a segment.** The segments meet at 72 degrees, so a
+  vertex on the *outside* of the elbow is ~6.5 cm "along" both axes: an axial
+  blend gave 0.01 cm of the 0.66 cm it should have applied, i.e. it trimmed the
+  far side of the joint and left the bulge;
+- **distance to the joint.** The outer surface of the elbow is ~8 cm from the
+  pivot, further than parts of the arm 8 cm up the bone. A spherical fade moved
+  20 vertices by 0.06 cm.
+
+Arc length along the chain is the only unambiguous locality here. The crease
+metric moved 2.57 -> 2.17 cm (slim 2.33 -> 2.17) rather than away, and
+`tests/test_christie_las.py::test_elbow_is_not_puffier_than_the_reference` holds
+the thickness at the joint under 7.4 cm.
+
 ### The far end: what the cuff mouth looks like
 
 `christie_{,slim_}skel_cuff.png` looks straight down the forearm, because a cuff
@@ -300,7 +336,7 @@ Reference numbers (same code, PD2's own fitted 2B body):
 | forearm slab centre (slim) | 0.4 – 1.2 cm | 0.98 / 0.88 cm, drift 0.83 / 0.90 | **0.94 / 0.97 cm, drift 0.42 / 1.01** |
 | upper arm | 1.8 – 3.1 cm | 0.5 – 0.9 cm | unchanged |
 | thigh / calf | 0.7 – 2.6 cm | 0.3 – 1.6 cm | unchanged |
-| crease → elbow pivot | 4.9 cm | 2.6 cm | 2.6 cm |
+| crease → elbow pivot | 4.9 cm | 2.6 cm | **2.17 / 2.37 cm** |
 | cuff → wrist pivot | 1.5 cm | 2.0 cm (slim 2.2) | **1.18 / 1.13 cm (slim 1.87 / 2.02)** |
 
 The forearm is now closer to its bone than PD2's own 2B body, and the cuff ring
