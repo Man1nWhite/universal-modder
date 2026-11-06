@@ -204,21 +204,19 @@ def _g_body_bounds(which: str):
     raise AssertionError("no g_body drawable")
 
 
-# PD2 2B arm pivots (model space, cm) — x mirrored per side
-_P2_ARM = {
-    "Arm": (20.9, 3.0, 146.7),
-    "ForeArm": (39.5, -1.0, 133.3),
-    "Hand": (46.0, 18.7, 124.5),
+# PD2 2B bind-space joints (cm) — x mirrored per side. Segment = own joint ->
+# child joint; the slim pack thins the full cross-section about these axes.
+_P2_JOINTS = {
+    "Arm": (20.863, 2.967, 146.699), "ForeArm": (39.502, -0.995, 133.292),
+    "Hand": (45.985, 18.701, 124.472), "UpLeg": (10.689, 8.412, 99.487),
+    "Leg": (10.689, 2.912, 52.717), "Foot": (10.689, 0.925, 9.889),
 }
+_P2_SEGMENTS = {"Arm": ("Arm", "ForeArm"), "ForeArm": ("ForeArm", "Hand"),
+                "UpLeg": ("UpLeg", "Leg"), "Leg": ("Leg", "Foot")}
 
 
-def _arm_bone_dist(which: str) -> float:
-    """Mean distance of arm-dominant verts to their arm-bone segment.
-
-    The slim pack must keep the sleeves centered on the arm bones (radial
-    thinning about the bone, not about the body axis) while making them
-    thinner than the base pack.
-    """
+def _g_body_geo_dom(which: str):
+    """(verts, dominant-bone name + weight per vertex) of the pack's g_body."""
     import numpy as np
     import diesel_model as dm
 
@@ -242,45 +240,71 @@ def _arm_bone_dist(which: str) -> float:
         id_name[s.id] = next((n for n in hl if dm.hash64(n) == o["name_hash"]), "")
     pal = [id_name.get(i, "") for i in skel["objects"]]
     v = np.array(geo["verts"], float)
-    dists = []
-    for i, (bi, bw) in enumerate(zip(geo["blendindices"], geo["blendweights"])):
+    dom = []
+    for bi, bw in zip(geo["blendindices"], geo["blendweights"]):
         k = int(np.argmax(bw))
-        pname = pal[bi[k]]
-        for bone, child in (("Arm", "ForeArm"), ("ForeArm", "Hand")):
-            for side in ("Left", "Right"):
-                if pname != f"{side}{bone}":
-                    continue
-                ax, ay, az = _P2_ARM[bone]
-                bx, by, bz = _P2_ARM[child]
-                if side == "Left":
-                    ax, bx = -ax, -bx
-                a = np.array([ax, ay, az]); b = np.array([bx, by, bz])
-                d = (b - a) / np.linalg.norm(b - a)
-                rel = v[i] - a
-                t = min(max(float(rel @ d), 0.0), float(np.linalg.norm(b - a)))
-                dists.append(float(np.linalg.norm(rel - t * d)))
-    assert dists, "no arm-dominant verts found"
-    return float(np.mean(dists))
+        dom.append((pal[bi[k]], float(bw[k])))
+    return v, dom
 
 
-def test_slim_pack_is_thinner_but_same_height():
-    """The slim variant scales the body x/y by ~0.9 about its own axis and
-    thins the arm chain radially by ~25% about the arm bones, leaving z.
-    Compared against the base pack: slim's wrist cut removes the
-    forward-reaching hands from the y extent."""
-    bx, by, bz = _g_body_bounds("base")
-    sx, sy, sz = _g_body_bounds("slim")
-    assert sy < by, "slim y extent must shrink (hands cut + x/y scale)"
-    assert abs(sz - bz) < 0.01, "height must be unchanged"
+def _principal_radius(which: str, bone: str, side: str,
+                      lo: float = 0.20, hi: float = 0.40) -> float:
+    """Principal cross-section radius (sqrt of largest PCA eigenvalue of the
+    perpendicular offsets) of unblended mid-segment verts (weight > 0.99)."""
+    import numpy as np
+
+    v, dom = _g_body_geo_dom(which)
+    a0, b0 = _P2_SEGMENTS[bone]
+
+    def J(n):
+        p = _P2_JOINTS[n]
+        return np.array([-p[0] if side == "Left" else p[0], p[1], p[2]])
+
+    a, b = J(a0), J(b0)
+    u = (b - a) / np.linalg.norm(b - a)
+    L = float(np.linalg.norm(b - a))
+    sel = [i for i, (nm, w) in enumerate(dom)
+           if nm == f"{side}{bone}" and w > 0.99 and lo * L <= float(u @ (v[i] - a)) <= hi * L]
+    assert len(sel) >= 15, f"{side}{bone}: only {len(sel)} unblended mid-segment verts"
+    pts = np.array([v[i] for i in sel])
+    t = (pts - a) @ u
+    r = (pts - a) - np.outer(t, u)
+    lam = np.linalg.eigvalsh(np.cov(r.T))
+    return float(np.sqrt(lam[-1]))
+
+
+def test_slim_cross_section_ratios():
+    """v4 acceptance: in unblended mid-segment slices the principal radius
+    ratio slim/base must be 0.75 +/- 0.02 for arms and 0.90 +/- 0.02 for legs
+    (25%/10% smaller cross-sectional dimensions, both perpendicular axes)."""
+    slices = {"Arm": (0.35, 0.65), "ForeArm": (0.20, 0.40),
+              "UpLeg": (0.30, 0.60), "Leg": (0.30, 0.60)}
+    for bone, target in (("Arm", 0.75), ("ForeArm", 0.75),
+                         ("UpLeg", 0.90), ("Leg", 0.90)):
+        lo, hi = slices[bone]
+        for side in ("Left", "Right"):
+            rb = _principal_radius("base", bone, side, lo, hi)
+            rs = _principal_radius("slim", bone, side, lo, hi)
+            assert abs(rs / rb - target) <= 0.02, (
+                f"{side}{bone}: radius ratio {rs / rb:.3f}, expected {target} +/- 0.02")
+
+
+def test_slim_pack_same_height_and_ground():
+    """v4 acceptance: final min z, max z and total height of the slim pack
+    must match the base pack (height preserved, ground position unchanged)."""
+    for which in ("base", "slim"):
+        v, _dom = _g_body_geo_dom(which)
+        zmin, zmax = float(v[:, 2].min()), float(v[:, 2].max())
+        if which == "base":
+            bz = (zmin, zmax)
+        else:
+            assert abs(zmin - bz[0]) < 0.01, f"slim min z {zmin:.3f} != base {bz[0]:.3f}"
+            assert abs(zmax - bz[1]) < 0.01, f"slim max z {zmax:.3f} != base {bz[1]:.3f}"
     # slim also cuts the hands, so its vertex count drops vs the base pack
     assert _g_body_verts("slim") < _g_body_verts("base")
-    # arms: thinner than base (radial x0.75) but still centered on the bones
-    # (scaling about the body axis instead would offset them off the bones)
-    d_base = _arm_bone_dist("base")
-    d_slim = _arm_bone_dist("slim")
-    assert d_slim < d_base, f"slim arms must be thinner: {d_slim:.2f} !< {d_base:.2f}"
-    assert d_slim > 0.6 * d_base, f"slim arms over-thinned: {d_slim:.2f} vs {d_base:.2f}"
-    assert d_slim < 6.0, f"slim sleeve offset from arm bone too large: {d_slim:.2f} cm"
+    bx, by, _bz = _g_body_bounds("base")
+    _sx, sy, _sz = _g_body_bounds("slim")
+    assert sy < by, "slim y extent must shrink (hands cut + torso scale)"
 
 
 def test_arm_fit_translation_causes_no_vertex_spikes():

@@ -1,15 +1,20 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
 - `dist/Christie_LAS.zip` (+ `.sha256`) — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 10% thinner in width and depth
-  **and no hands** (`--variant slim`; the separate no-hands pack was removed —
-  slim supersedes it): the retargeted body is scaled ×0.9 in X/Y about its own
-  vertical axis (normals inverse-transpose corrected), **Z/height untouched**;
-  arm-chain verts (bone palette names containing "Arm"/"Hand") get an extra
-  ×0.75 applied **radially about their own arm-bone segment** so the arms are
-  25% thinner than the base pack while staying centered on the skeleton
-  (scaling them about the body axis dragged the sleeves off the bones — see
-  `docs/pd2-las/renders/`), then the hands
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 10% thinner torso/legs, 25%
+  thinner arms in cross-section, **and no hands** (`--variant slim`; the
+  separate no-hands pack was removed — slim supersedes it). The v4 slim pass
+  (`slim_group`) works on the bind-pose mesh only — skeleton, bone lengths
+  and skin weights untouched — applying per-segment radial cross-section
+  scaling `p' = p + Σ α_j (s_j − 1) r_j` with separate joint-anchored axes for
+  each upper arm / forearm / thigh / calf (s = 0.75 arms, 0.90 legs), a
+  Z-monotonic torso centerline for the pelvis/spine (s = 0.90, neck fade),
+  shoulder and crotch weight routing, an explicit identity field for
+  protected head/hands/feet, smoothstep fades to 1.0 at the wrist/ankle with
+  the surviving cuff ring enforced bitwise unchanged, and normals recomputed
+  from the final triangles. Height is preserved (final min/max z match the
+  base pack); verified principal cross-section radii: arms 0.747–0.764,
+  legs 0.900 vs base. Then the hands
   are cut at the wrist, the sleeves are stretched deep past the wrist joint
   (blazer −4.5 cm, skin −3.5 cm, shirt −3.0 cm) so the spawned glove sits well
   inside the cuff in every pose, plus a `*_glove_adapter.lua` compat hook

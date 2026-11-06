@@ -502,92 +502,313 @@ def fix_arm_fits(model: sm.ModelData, skel_map: dict, template: bm.Template,
 
 
 # ---------------------------------------------------------------------------
-# slim variant: thinner in X/Y, height (Z) untouched; arms thinner still
+# slim variant: cross-sectional thinning about each limb segment (v4)
 # ---------------------------------------------------------------------------
-ARM_BONE_MARK = ("Arm", "Hand")   # palette names containing these are arm chain
+# ---------------------------------------------------------------------------
+# slim variant: cross-sectional thinning about each limb segment (v4 spec)
+# ---------------------------------------------------------------------------
+# Segment bone -> (child joint bone, cross-section scale). Each segment axis
+# starts at its OWN joint and runs to the child joint (never the parent's).
+SEGMENT_SPECS = {
+    "LeftArm": ("LeftForeArm", 0.75),
+    "LeftForeArm": ("LeftHand", 0.75),
+    "RightArm": ("RightForeArm", 0.75),
+    "RightForeArm": ("RightHand", 0.75),
+    "LeftUpLeg": ("LeftLeg", 0.90),
+    "LeftLeg": ("LeftFoot", 0.90),
+    "RightUpLeg": ("RightLeg", 0.90),
+    "RightLeg": ("RightFoot", 0.90),
+}
+TORSO_BONES = ("Hips", "Spine", "Spine1")     # allowlist — nothing else is torso
+SHOULDER_BONES = ("LeftShoulder", "RightShoulder")  # routed chest<->upper-arm
+# everything else (Head, Neck, Hand*, fingers, Foot, ToeBase, ...) is protected
+
+WRIST_RING_CM = 3.0    # surviving cuff ring = forearm verts within this of wrist
+ANKLE_RING_CM = 3.0
+NECK_FADE_CM = 4.0     # ~one neck radius below the Neck joint
 
 
-def _is_arm_vert(g: bm.Group, i: int) -> bool:
-    return any(mark in g.palette[p] for p, _w in g.weights[i] for mark in ARM_BONE_MARK)
+def _smoothstep(x: float) -> float:
+    x = min(max(x, 0.0), 1.0)
+    return x * x * (3.0 - 2.0 * x)
 
 
-def _dominant_arm_bone(g: bm.Group, i: int) -> str | None:
-    best, best_w = None, -1.0
-    for p, w in g.weights[i]:
-        if w > best_w and any(mark in g.palette[p] for mark in ARM_BONE_MARK):
-            best, best_w = g.palette[p], w
-    return best
+def _joint(template: bm.Template, name: str):
+    import numpy as np
+    w = template.worlds[template.name_id[name]]
+    return np.array(w[12:15], dtype=np.float64)
 
 
-def arm_segments(template: bm.Template) -> dict[str, tuple]:
-    """PD2 arm bone name -> (joint_a, joint_b) segment in model space."""
+def _classify_palette(palette: list[str]) -> dict[str, str]:
+    """Every palette bone must land in exactly one class; abort otherwise."""
+    cls: dict[str, str] = {}
+    for name in palette:
+        if name in SEGMENT_SPECS:
+            cls[name] = "segment"
+        elif name in TORSO_BONES:
+            cls[name] = "torso"
+        elif name in SHOULDER_BONES:
+            cls[name] = "shoulder"
+        else:
+            cls[name] = "protected"
+    return cls
+
+
+def _route_weights(g: bm.Group, template: bm.Template) -> list[dict[str, float]]:
+    """Routed weights w~ per vertex over {segment bones..., 'torso'}.
+
+    Only two weight edits (v4 §2):
+      * Shoulder/clavicle splits along Shoulder->Arm: g = smoothstep of the
+        axial fraction; (1-g) goes to torso, g to the upper arm.
+      * Crotch: rho = min(wL,wR)/max(wL,wR) of the two UpLeg weights,
+        m = smoothstep(rho); m*(wL+wR) goes to torso, (1-m) stays on the legs.
+    Protected influences are NOT removed here — they simply never receive a
+    deforming weight, so the identity remainder alpha_0 = 1 - sum(alpha_j)
+    carries them (v4 §1).
+    """
     import numpy as np
 
-    def pos(name: str) -> np.ndarray:
-        w = template.worlds[template.name_id[name]]
-        return np.array(w[12:15], dtype=np.float64)
+    sh = {s: (_joint(template, s), _joint(template, s.replace("Shoulder", "Arm")))
+          for s in SHOULDER_BONES}
+    routed: list[dict[str, float]] = []
+    for i, weights in enumerate(g.weights):
+        wsum = sum(w for _p, w in weights)
+        if not (1.0 - 1e-4 <= wsum <= 1.0 + 1e-4):
+            raise SystemExit(f"slim: vertex {i} skin weights sum to {wsum}, not 1")
+        p = np.array(g.verts[i], dtype=np.float64)
+        out: dict[str, float] = {}
+        w_up = {"LeftUpLeg": 0.0, "RightUpLeg": 0.0}
+        for pi, w in weights:
+            name = g.palette[pi]
+            if name in TORSO_BONES:
+                out["torso"] = out.get("torso", 0.0) + w
+            elif name in SEGMENT_SPECS:
+                out[name] = out.get(name, 0.0) + w
+            elif name in SHOULDER_BONES:
+                a, b = sh[name]
+                u = (b - a) / np.linalg.norm(b - a)
+                L = float(np.linalg.norm(b - a))
+                gfrac = _smoothstep(float(u @ (p - a)) / L)
+                arm = name.replace("Shoulder", "Arm")
+                out["torso"] = out.get("torso", 0.0) + (1.0 - gfrac) * w
+                out[arm] = out.get(arm, 0.0) + gfrac * w
+            elif name in ("LeftUpLeg", "RightUpLeg"):
+                w_up[name] = w
+            # protected: contributes alpha = 0 (identity), no bookkeeping
+        # crotch rule on the thigh pair
+        wl, wr = w_up["LeftUpLeg"], w_up["RightUpLeg"]
+        if wl > 0.0 or wr > 0.0:
+            hi = max(wl, wr)
+            rho = min(wl, wr) / hi if hi > 0 else 0.0
+            m = _smoothstep(rho)
+            out["torso"] = out.get("torso", 0.0) + m * (wl + wr)
+            if wl > 0:
+                out["LeftUpLeg"] = out.get("LeftUpLeg", 0.0) + (1.0 - m) * wl
+            if wr > 0:
+                out["RightUpLeg"] = out.get("RightUpLeg", 0.0) + (1.0 - m) * wr
+        routed.append(out)
+    return routed
 
-    segs: dict[str, tuple] = {}
-    for side in ("Left", "Right"):
-        sh, arm, fore, hand = (pos(f"{side}{k}") for k in
-                               ("Shoulder", "Arm", "ForeArm", "Hand"))
-        segs[f"{side}Shoulder"] = (sh, arm)
-        segs[f"{side}Arm"] = (arm, fore)
-        segs[f"{side}ForeArm"] = (fore, hand)
-        segs[f"{side}Hand"] = (fore, hand)
-    return segs
+
+def _segment_geom(template: bm.Template) -> dict[str, tuple]:
+    """segment bone -> (a, u, L, s, child) with a = own joint, u toward child."""
+    import numpy as np
+
+    geom = {}
+    for bone, (child, s) in SEGMENT_SPECS.items():
+        a = _joint(template, bone)
+        b = _joint(template, child)
+        d = b - a
+        L = float(np.linalg.norm(d))
+        geom[bone] = (a, d / L, L, s, child)
+    return geom
+
+
+def _torso_centerline(template: bm.Template) -> tuple:
+    """Z-monotonic polyline c(z) through Hips/Spine/Spine1/Neck (+ vertical
+    extension below Hips and above Neck). Aborts if not Z-monotonic."""
+    import numpy as np
+
+    pts = [_joint(template, n) for n in ("Hips", "Spine", "Spine1", "Neck")]
+    zs = [p[2] for p in pts]
+    if any(zs[i + 1] <= zs[i] for i in range(len(zs) - 1)):
+        raise SystemExit(f"slim: torso polyline not Z-monotonic: {zs}")
+    z = np.array(zs)
+    cx = np.array([p[0] for p in pts])
+    cy = np.array([p[1] for p in pts])
+
+    def c(zz: float):
+        zz = min(max(zz, z[0]), z[-1])   # vertical extension holds ends constant
+        return float(np.interp(zz, z, cx)), float(np.interp(zz, z, cy))
+
+    return c, z[-1]
+
+
+def _ring_fade(geom_seg, ring_min_t: float, ring_radius: float, min_len_cm: float = 5.0):
+    """Axial fade f(t): 1 below t0, smoothstep to 0 at t1=ring_min_t, with
+    t1-t0 >= max(2R, min_len). Returns f(t) and t0."""
+    t1 = ring_min_t
+    fade_len = max(2.0 * ring_radius, min_len_cm)
+    t0 = t1 - fade_len
+
+    def f(t: float) -> float:
+        if t <= t0:
+            return 1.0
+        if t >= t1:
+            return 0.0
+        return 1.0 - _smoothstep((t - t0) / (t1 - t0))
+
+    return f, t0, t1
 
 
 def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
                arm_scale: float = 0.75) -> bm.Group:
-    """Slim the group in X/Y, leaving z (height) untouched.
+    """v4 cross-sectional slimming, bind pose, mesh-only (skeleton, bone
+    lengths, bind matrices and skin weights untouched).
 
-    Body verts shrink by `scale` around the mesh's XY centroid (the outfit
-    stays centered on the skeleton axis). Arm-chain verts (Arm/ForeArm/Hand)
-    shrink by `arm_scale` *radially about their own bone segment* — scaling
-    them about the body axis instead would drag the sleeves off the arm
-    bones (the "bad rigging" visible in the mesh+skeleton renders: forearm
-    verts sat up to 15 cm from the ForeArm bone). Normals get the matching
-    inverse-transpose per vertex and are renormalized.
+    p' = p + sum_j alpha_j * D_j(p), all D_j from the original p,
+    alpha_j = w~_j * f_j(t) >= 0, alpha_0 = 1 - sum(alpha_j) (identity).
+    Protected verts (head/neck/hands/fingers/feet/toes dominant) and the
+    surviving wrist/ankle cuff rings are enforced p' = p bitwise.
+    Normals are recomputed from the final triangles (hard edges kept).
     """
     import numpy as np
 
-    segs = arm_segments(template)
-    v = np.array(g.verts, dtype=np.float64)
-    n = np.array(g.normals, dtype=np.float64)
-    c = v.mean(axis=0)
-    n_arm = 0
-    for i in range(len(v)):
-        bone = _dominant_arm_bone(g, i)
-        if bone is not None and bone in segs:
-            a, b = segs[bone]
-            d = b - a
-            L = np.linalg.norm(d)
-            if L < 1e-9:
-                continue
-            d = d / L
-            rel = v[i] - a
-            t = float(rel @ d)
-            radial = rel - t * d
-            v[i] = a + t * d + radial * arm_scale
-            # inverse-transpose for a radial scale: stretch the normal's
-            # radial component by 1/arm_scale, keep the along-axis part
-            nr = n[i] - float(n[i] @ d) * d
-            n[i] = float(n[i] @ d) * d + nr / arm_scale
-            n_arm += 1
-        else:
-            v[i, 0] = c[0] + (v[i, 0] - c[0]) * scale
-            v[i, 1] = c[1] + (v[i, 1] - c[1]) * scale
-            n[i, 0] /= scale
-            n[i, 1] /= scale
-    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
-    g.verts = [tuple(row) for row in v]
-    g.normals = [tuple(row) for row in n]
-    print(f"[{g.name}] slim x{scale} (arms radial x{arm_scale} about their bones, "
-          f"{n_arm} arm verts): x {np.ptp(v[:, 0]):.1f} cm, y {np.ptp(v[:, 1]):.1f} cm, "
-          f"z {np.ptp(v[:, 2]):.1f} cm (z unchanged)")
-    return g
+    cls = _classify_palette(g.palette)
+    unclassified = [n for n in g.palette if n not in cls]
+    if unclassified:
+        raise SystemExit(f"slim: unclassified palette bones: {sorted(set(unclassified))}")
+    routed = _route_weights(g, template)
+    geom = _segment_geom(template)
+    center, z_neck = _torso_centerline(template)
 
+    v = np.array(g.verts, dtype=np.float64)
+    n_old = np.array(g.normals, dtype=np.float64)
+    nv = len(v)
+
+    # -- per-segment centroid check (signed offsets; bone axis trusted only
+    #    if the mid-segment centroid sits within 10% of the radius) --------
+    seg_axis = {}
+    for bone, (a, u, L, s, child) in geom.items():
+        idx = [i for i in range(nv)
+               if routed[i].get(bone, 0.0) > 0.9
+               and 0.3 * L <= float(u @ (v[i] - a)) <= 0.7 * L]
+        if len(idx) < 8:
+            seg_axis[bone] = ("bone", None)
+            continue
+        ts = np.array([float(u @ (v[i] - a)) for i in idx])
+        rs = np.array([(v[i] - a) - float(u @ (v[i] - a)) * u for i in idx])
+        mean_r = rs.mean(axis=0)
+        radius = float(np.linalg.norm(rs, axis=1).mean())
+        if radius > 1e-6 and np.linalg.norm(mean_r) > 0.10 * radius:
+            # centroid mode: smoothed (linear-in-t) fit of the slice centroids
+            A = np.stack([np.ones_like(ts), ts], axis=1)
+            coef, *_ = np.linalg.lstsq(A, rs, rcond=None)
+            seg_axis[bone] = ("centroid", (coef, a, u))
+            print(f"  [{bone}] bone off-center "
+                  f"({np.linalg.norm(mean_r):.2f} cm > 10% of {radius:.2f}); "
+                  f"centroid mode")
+        else:
+            seg_axis[bone] = ("bone", None)
+
+    # -- cuff / ankle rings and fades ---------------------------------------
+    # surviving ring: segment verts within RING_CM proximal of the wrist/ankle
+    def ring_of(bone: str, ring_cm: float) -> tuple[set[int], float, float]:
+        a, u, L, s, child = geom[bone]
+        t_end = L  # child joint axial coordinate
+        idx = {i for i in range(nv)
+               if routed[i].get(bone, 0.0) > 0.0 and float(u @ (v[i] - a)) >= t_end - ring_cm}
+        if not idx:
+            return set(), t_end, 0.0
+        rad = float(np.mean([np.linalg.norm((v[i] - a) - float(u @ (v[i] - a)) * u)
+                             for i in idx]))
+        return idx, t_end - ring_cm, rad
+
+    fades = {}
+    protected = set()
+    for side in ("Left", "Right"):
+        ring, t1, R = ring_of(f"{side}ForeArm", WRIST_RING_CM)
+        f, t0, _ = _ring_fade(geom[f"{side}ForeArm"], t1, R)
+        fades[f"{side}ForeArm"] = f
+        protected |= ring
+        ring, t1, R = ring_of(f"{side}Leg", ANKLE_RING_CM)
+        f, t0, _ = _ring_fade(geom[f"{side}Leg"], t1, R)
+        fades[f"{side}Leg"] = f
+        protected |= ring
+    # protected-dominant verts (hand/finger/foot/toe/head/neck) enforced p'=p
+    for i, weights in enumerate(g.weights):
+        pi, _w = max(weights, key=lambda t: t[1])
+        if cls[g.palette[pi]] == "protected":
+            protected.add(i)
+
+    # -- apply ---------------------------------------------------------------
+    new_v = v.copy()
+    for i in range(nv):
+        p = v[i]
+        disp = np.zeros(3)
+        rw = routed[i]
+        for bone, w in rw.items():
+            if w <= 0.0:
+                continue
+            if bone == "torso":
+                cx, cy = center(p[2])
+                s_eff = scale + (1.0 - scale) * _smoothstep(
+                    (p[2] - (z_neck - NECK_FADE_CM)) / NECK_FADE_CM)
+                disp += w * (s_eff - 1.0) * np.array([p[0] - cx, p[1] - cy, 0.0])
+                continue
+            a, u, L, s, child = geom[bone]
+            t = float(u @ (p - a))
+            r = (p - a) - t * u
+            mode, fit = seg_axis[bone]
+            if mode == "centroid":
+                coef, _a, _u = fit
+                r = r - (coef[0] + coef[1] * t)
+            f = fades.get(bone)
+            alpha = w * (f(t) if f is not None else 1.0)
+            disp += alpha * (s - 1.0) * r
+        new_v[i] = p + disp
+    # enforced identity on protected verts and cuff/ankle rings (bitwise)
+    for i in protected:
+        new_v[i] = v[i]
+
+    # -- integrity: flips are hard failures; area/edge shrinkage is flagged --
+    faces = np.array(g.faces, dtype=np.int64)
+    tri_old = v[faces]
+    tri_new = new_v[faces]
+    nrm_old = np.cross(tri_old[:, 1] - tri_old[:, 0], tri_old[:, 2] - tri_old[:, 0])
+    nrm_new = np.cross(tri_new[:, 1] - tri_new[:, 0], tri_new[:, 2] - tri_new[:, 0])
+    ao = np.linalg.norm(nrm_old, axis=1)
+    an = np.linalg.norm(nrm_new, axis=1)
+    dot = np.sum(nrm_old * nrm_new, axis=1) / np.maximum(ao * an, 1e-18)
+    flips = int((dot <= 0.0).sum())
+    if flips:
+        raise SystemExit(f"slim: {flips} triangles flipped (n'.n <= 0)")
+    area_ratio = an / np.maximum(ao, 1e-18)
+    flagged = int(((area_ratio < 0.45) | (area_ratio > 1.1)).sum())
+    print(f"[{g.name}] slim v4: flips {flips}, area-flagged {flagged} tris, "
+          f"protected verts {len(protected)}")
+
+    # -- normals from the final triangles (area-weighted; keep authored
+    #    normal at hard edges where the recompute disagrees strongly) --------
+    acc = np.zeros_like(new_v)
+    for f in faces:
+        a, b, c = f
+        fn = np.cross(new_v[b] - new_v[a], new_v[c] - new_v[a])
+        acc[a] += fn
+        acc[b] += fn
+        acc[c] += fn
+    nl = np.linalg.norm(acc, axis=1, keepdims=True)
+    n_new = acc / np.maximum(nl, 1e-12)
+    hard = np.sum(n_new * n_old, axis=1) < 0.5
+    n_new[hard] = n_old[hard]
+    n_new /= np.maximum(np.linalg.norm(n_new, axis=1, keepdims=True), 1e-12)
+
+    g.verts = [tuple(row) for row in new_v]
+    g.normals = [tuple(row) for row in n_new]
+    print(f"[{g.name}] slim v4 done: x {np.ptp(new_v[:, 0]):.1f} cm, "
+          f"y {np.ptp(new_v[:, 1]):.1f} cm, z {np.ptp(new_v[:, 2]):.1f} cm "
+          f"(z [{new_v[:, 2].min():.2f}, {new_v[:, 2].max():.2f}])")
+    return g
 
 # ---------------------------------------------------------------------------
 # pack XML renderers (same contract as las_pack.py / las_outfit_pack.py)
