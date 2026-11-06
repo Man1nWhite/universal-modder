@@ -511,34 +511,80 @@ def _is_arm_vert(g: bm.Group, i: int) -> bool:
     return any(mark in g.palette[p] for p, _w in g.weights[i] for mark in ARM_BONE_MARK)
 
 
-def slim_group(g: bm.Group, scale: float = SLIM_SCALE,
-               arm_scale: float = 0.75) -> bm.Group:
-    """Scale the group horizontally about its own vertical axis.
+def _dominant_arm_bone(g: bm.Group, i: int) -> str | None:
+    best, best_w = None, -1.0
+    for p, w in g.weights[i]:
+        if w > best_w and any(mark in g.palette[p] for mark in ARM_BONE_MARK):
+            best, best_w = g.palette[p], w
+    return best
 
-    Body verts shrink by `scale` in x/y around the mesh's XY centroid (the
-    outfit stays centered on the skeleton axis); arm-chain verts (Arm/ForeArm/
-    Hand/fingers) shrink by `arm_scale` instead — 25% thinner than the
-    original arms per the in-game review. z is untouched — height preserved.
-    Normals are transformed per-vertex by the inverse-transpose of
-    diag(s, s, 1) and renormalized.
+
+def arm_segments(template: bm.Template) -> dict[str, tuple]:
+    """PD2 arm bone name -> (joint_a, joint_b) segment in model space."""
+    import numpy as np
+
+    def pos(name: str) -> np.ndarray:
+        w = template.worlds[template.name_id[name]]
+        return np.array(w[12:15], dtype=np.float64)
+
+    segs: dict[str, tuple] = {}
+    for side in ("Left", "Right"):
+        sh, arm, fore, hand = (pos(f"{side}{k}") for k in
+                               ("Shoulder", "Arm", "ForeArm", "Hand"))
+        segs[f"{side}Shoulder"] = (sh, arm)
+        segs[f"{side}Arm"] = (arm, fore)
+        segs[f"{side}ForeArm"] = (fore, hand)
+        segs[f"{side}Hand"] = (fore, hand)
+    return segs
+
+
+def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
+               arm_scale: float = 0.75) -> bm.Group:
+    """Slim the group in X/Y, leaving z (height) untouched.
+
+    Body verts shrink by `scale` around the mesh's XY centroid (the outfit
+    stays centered on the skeleton axis). Arm-chain verts (Arm/ForeArm/Hand)
+    shrink by `arm_scale` *radially about their own bone segment* — scaling
+    them about the body axis instead would drag the sleeves off the arm
+    bones (the "bad rigging" visible in the mesh+skeleton renders: forearm
+    verts sat up to 15 cm from the ForeArm bone). Normals get the matching
+    inverse-transpose per vertex and are renormalized.
     """
     import numpy as np
 
+    segs = arm_segments(template)
     v = np.array(g.verts, dtype=np.float64)
-    c = v.mean(axis=0)
-    factors = np.array([arm_scale if _is_arm_vert(g, i) else scale
-                        for i in range(len(v))], dtype=np.float64)
-    v[:, 0] = c[0] + (v[:, 0] - c[0]) * factors
-    v[:, 1] = c[1] + (v[:, 1] - c[1]) * factors
     n = np.array(g.normals, dtype=np.float64)
-    n[:, 0] /= factors
-    n[:, 1] /= factors
+    c = v.mean(axis=0)
+    n_arm = 0
+    for i in range(len(v)):
+        bone = _dominant_arm_bone(g, i)
+        if bone is not None and bone in segs:
+            a, b = segs[bone]
+            d = b - a
+            L = np.linalg.norm(d)
+            if L < 1e-9:
+                continue
+            d = d / L
+            rel = v[i] - a
+            t = float(rel @ d)
+            radial = rel - t * d
+            v[i] = a + t * d + radial * arm_scale
+            # inverse-transpose for a radial scale: stretch the normal's
+            # radial component by 1/arm_scale, keep the along-axis part
+            nr = n[i] - float(n[i] @ d) * d
+            n[i] = float(n[i] @ d) * d + nr / arm_scale
+            n_arm += 1
+        else:
+            v[i, 0] = c[0] + (v[i, 0] - c[0]) * scale
+            v[i, 1] = c[1] + (v[i, 1] - c[1]) * scale
+            n[i, 0] /= scale
+            n[i, 1] /= scale
     n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
     g.verts = [tuple(row) for row in v]
     g.normals = [tuple(row) for row in n]
-    n_arm = int((factors == arm_scale).sum())
-    print(f"[{g.name}] slim x{scale} (arms x{arm_scale}, {n_arm} arm verts): "
-          f"x {np.ptp(v[:, 0]):.1f} cm, y {np.ptp(v[:, 1]):.1f} cm, "
+    print(f"[{g.name}] slim x{scale} (arms radial x{arm_scale} about their bones, "
+          f"{n_arm} arm verts): x {np.ptp(v[:, 0]):.1f} cm, y {np.ptp(v[:, 1]):.1f} cm, "
           f"z {np.ptp(v[:, 2]):.1f} cm (z unchanged)")
     return g
 
@@ -892,7 +938,7 @@ def main(argv=None) -> int:
         # Thinner in width/depth only; height (z) and the skeleton untouched.
         # Applied before the fps extraction so the viewmodel arms match.
         for gname in ("body", "shadow"):
-            slim_group(groups[gname])
+            slim_group(groups[gname], template)
             breaks = bm.orientation_breaks(groups[gname])
             agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
                                          groups[gname].normals)
