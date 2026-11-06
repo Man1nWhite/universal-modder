@@ -215,8 +215,42 @@ def render(geo, bones, view: str, out_path: Path, zoom: tuple | None = None,
     print(f"wrote {out_path} ({view})")
 
 
+def render_source(source_zip: Path, out: Path, stem: str = "christie_source"):
+    """Render the ORIGINAL DOA5 model (kept body materials) + its own skeleton."""
+    import numpy as np
+    import build_christie_las as bc
+
+    with zipfile.ZipFile(source_zip) as zf:
+        model = bc.load_christie(zf)
+    worlds = bm.source_bone_worlds(model)
+    bones = [(b.name, np.array(worlds[i][12:15], float),
+              model.bones[b.parent].name if b.parent >= 0 else None)
+             for i, b in enumerate(model.bones)]
+    verts = [v.pos for v in model.vertices]
+    faces = []
+    for m in model.meshes:
+        if m.material not in bc.KEEP_MATERIALS:
+            continue
+        idx = m.triangle_indices
+        faces.extend(zip(idx[0::3], idx[1::3], idx[2::3]))
+    geo = {"verts": verts, "faces": faces}
+    out.mkdir(parents=True, exist_ok=True)
+    for view in ("front", "side", "iso"):
+        render(geo, bones, view, out / f"{stem}_{view}.png")
+    # left forearm close-up: find source LeftForeArm joint and zoom around it
+    fw = next((b for b in bones if "ForeArm" in b[0] and "Left" in b[0]), None)
+    if fw is not None:
+        c = fw[1]
+        zoom = (c[0] - 14, c[0] + 14, c[2] - 22, c[2] + 10)
+        for view in ("front", "side"):
+            render(geo, bones, view, out / f"{stem}_forearm_{view}.png", zoom=zoom)
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--source", type=Path, default=None,
+                    help="render the original model from this zip instead of a pack")
     ap.add_argument("--zip", type=Path, required=True)
     ap.add_argument("--pack", required=True)
     ap.add_argument("--item", required=True)
@@ -226,6 +260,9 @@ def main(argv=None) -> int:
                     help="also render a menu-like flexed pose (Arm/ForeArm/Hand "
                          "bent) with the mesh re-skinned onto the posed skeleton")
     args = ap.parse_args(argv)
+    if args.source is not None:
+        render_source(args.source, args.out)
+        return 0
     with zipfile.ZipFile(args.zip) as zf:
         geo = g_body_geo(zf, args.pack, args.item)
         mf = dm.ModelFile.read(

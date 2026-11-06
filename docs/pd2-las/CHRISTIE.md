@@ -92,3 +92,8 @@ mesh with the PD2 skeleton overlaid (arm chain in red), produced by
 - `christie_slim_skel_wrist_{front,side}.png` — left-wrist close-ups (the
   sleeve cuff surrounds the Hand pivot where the in-game glove spawns)
 - `christie_skel_front.png`, `christie_skel_wrist_side.png` — base pack
+- `christie_source_{front,side,iso,forearm_front,forearm_side}.png` — the
+  ORIGINAL DOA5 model from `references/Christie.zip` with its own skeleton
+  (`--source` mode of the renderer), as the reference for comparisons
+- `christie_{base,slim}_forearm_{front,side}.png` — forearm close-ups of both
+  packs in PD2 space, directly comparable to the source forearm renders
