@@ -764,7 +764,15 @@ def _check_flips(g: bm.Group, v_old, tag: str) -> None:
         np.linalg.norm(no, axis=1) * np.linalg.norm(nn, axis=1), 1e-18)
     flips = int((dot <= 0.0).sum())
     if flips:
-        raise SystemExit(f"{tag}: {flips} triangles flipped (n'.n <= 0)")
+        bad = np.where(dot <= 0.0)[0]
+        worst = bad[int(np.argmin(dot[bad]))]
+        cen = tn[worst].mean(axis=0)
+        area = 0.5 * float(np.linalg.norm(no[worst]))
+        raise SystemExit(
+            f"{tag}: {flips} triangles flipped (n'.n <= 0); worst at "
+            f"({cen[0]:.1f}, {cen[1]:.1f}, {cen[2]:.1f}) cm, "
+            f"{area:.3f} cm^2 before, edge stretch "
+            f"{np.linalg.norm(tn[worst] - to[worst], axis=1).max():.2f} cm")
 
 
 def straighten_segments(g: bm.Group, template: bm.Template,
@@ -897,9 +905,21 @@ def straighten_segments(g: bm.Group, template: bm.Template,
 #: Centring those would fold the coat into the leg and nudge a shoulder that is
 #: not measurably wrong, so this pass stays on the one segment with evidence.
 CENTRE_SEGMENTS = ("LeftForeArm", "RightForeArm")
-CENTRE_SLICES = 10        # axial slabs per segment
-CENTRE_W_MIN = 0.5        # vert must carry at least half this bone's weight
-CENTRE_EDGE_FADE = 6.0    # cm of axial fade at each end
+CENTRE_SLICES = 14        # axial slabs per segment
+CENTRE_W_MIN = 0.05       # vert must carry *any* real weight on this bone
+#: weight at which a vertex moves with its slab at full strength. Below it the
+#: displacement ramps to zero so the correction can never step across a seam
+#: (the mouth ring is 0.8 ForeArm / 0.2 Hand; the layers of one cross-section
+#: agree to within ~0.1, so they move together), and a vertex that carries no
+#: ForeArm weight at all - the other arm, the legs, the hand beyond the mouth -
+#: does not move at all.
+CENTRE_W_SAT = 0.85
+#: cm of axial taper at the wrist end of the correction (0 = none: the mouth
+#: ring moves with the sleeve). Sized to the seam it has to absorb: the mouth
+#: ring and the glove ring behind it are a couple of cm apart, and a 3 cm
+#: translation spread over no distance folds the seam's triangles flat.
+CENTRE_TAIL_FADE = 2.5
+CENTRE_EDGE_FADE = 6.0    # cm of axial fade at the elbow end
 #: 3D fade radius around each end of the segment, (r0, r1): 0 inside r0, 1
 #: outside r1. Asymmetric on purpose.
 #:
@@ -979,20 +999,48 @@ def centre_segments(g: bm.Group, template: bm.Template,
     wrong are exactly the ones it excludes - it re-centres what is already
     close and ignores the offenders.
 
-    This pass displaces each vertex by ``- w~(bone) * fade(t) * chat(t)``, where
-    ``chat`` is the segment's measured mesh-centreline (``_centre_line``),
-    ``w~`` is the slim pass's routed weight (so a vert shared with the torso or
-    the neighbouring bone moves proportionally) and ``fade`` is an axial
-    smoothstep plus a 3D radius fade around each end joint. The axial
-    coordinate ``t`` is preserved exactly (the correction is perpendicular by
-    construction) and skin weights are untouched, so the skeleton, bind
-    matrices and bone lengths all stay as they are. ``_check_flips`` still
-    runs.
+    A vertex moves by ``ramp(w) * fade(t) * chat(t)``, with
+    ``ramp(w) = smoothstep(w / CENTRE_W_SAT)`` **saturated**: within one
+    cross-section the sleeve's layers (weights 0.8-1.0) all move by the same
+    vector, so the section keeps its shape and only translates; the hand beyond
+    the mouth (weight 0) does not move at all, and neither does anything else
+    in the body. Two neighbouring ways of doing this were both tried on the
+    shipped pack and both are wrong:
 
-    Slabs come from ``segment_fit.slice_offsets``: a Kasa circle fit per
-    cross-section, so the slab centre is the ring's centre rather than the
-    average vertex position, and slabs whose verts do not ring the bone are
-    dropped.
+      * ``w * fade * chat`` - what this pass used to do. A cross-section is a
+        *stack* (outer sleeve, mid layer, bare arm, plus the blazer's cuff
+        flap), so scaling each layer by its own weight slides the layers
+        through each other and leaves the flap behind: measured, the section
+        then *spreads* until its fitted radius is 3.9 cm instead of 2.2;
+      * ``fade * chat`` with no weight factor at all - translates every vertex
+        on that side of the body, including the hand and the leg. The leg
+        crease number is what catches it (5.91 -> 4.56 cm).
+
+    ``chat`` is the segment's measured mesh-centreline (``_centre_line``: a
+    vertex-weighted line through the slab centres). Measured profile on the
+    shipped base pack, slab centre off the bone axis:
+
+        t (cm)      5.6   8.0  13.6  16.4  18.9  20.5  21.8
+        offset      1.24   2.2  0.27  0.41  1.23  1.95  2.15
+
+    i.e. a bow: about a cm at the elbow, small mid-segment, and 2 cm at the
+    mouth. Two consequences encoded below:
+
+      * the fade is **elbow-only**. The old tail fade ``smoothstep((L-t)/6)``
+        is 0.36 at t=20 and 0.12 at the mouth - it deleted the correction
+        exactly where the sleeve is furthest off the bone, which is why the
+        shipped cuff ring sat 2.2 cm off the ``Hand`` pivot;
+      * the weight threshold is 0.05, not 0.5. The mouth ring is 0.8
+        ForeArm / 0.2 Hand, and the verts that hold the cuff's shape are the
+        partial-weight ones.
+
+    The elbow keeps a wide 3D fade (``CENTRE_JOINT_FADE_HEAD``): its crease has
+    PURE ``ForeArm`` verts next to 20 %-ones a couple of cm away, and a
+    translation that is smooth in ``t`` is still a step across that seam. The
+    axial coordinate ``t`` is preserved exactly (the correction is perpendicular
+    by construction) and skin weights are untouched, so the skeleton, bind
+    matrices and bone lengths all stay as they are. ``_check_flips`` is the
+    gate.
 
     Returns one record per re-centred segment for the build report.
     """
@@ -1009,12 +1057,12 @@ def centre_segments(g: bm.Group, template: bm.Template,
     for bone in bones:
         if bone not in geom:
             continue
-        a, u, L, _s, _child = geom[bone]
+        a, u, L, _s, child = geom[bone]
         wgt = np.array([rw.get(bone, 0.0) for rw in routed])
-        slices = [sl for sl in sf.slice_offsets(v, wgt, (a, u, L, None),
-                                                slices=CENTRE_SLICES,
-                                                min_w=CENTRE_W_MIN)
-                  if CENTRE_EDGE_FADE <= sl[0] <= L - CENTRE_EDGE_FADE]
+        slices = [sl for sl in sf.slice_offsets(v, wgt, (a, u, L, child),
+                                               slices=CENTRE_SLICES,
+                                               min_w=CENTRE_W_MIN)
+                  if CENTRE_EDGE_FADE <= sl[0] <= L]
         if len(slices) < 3:
             print(f"  centre {bone}: only {len(slices)} usable slabs, skipped")
             continue
@@ -1022,7 +1070,7 @@ def centre_segments(g: bm.Group, template: bm.Template,
         if fit is None:
             print(f"  centre {bone}: too few usable slabs, skipped")
             continue
-        chat, c0, c1, residual, _rng = fit
+        chat, c0, c1, residual, (t_lo, t_hi) = fit
 
         # loud cap over the range the field is actually applied to (the line is
         # held flat outside the slab range, so the endpoints bound it)
@@ -1033,9 +1081,7 @@ def centre_segments(g: bm.Group, template: bm.Template,
                 f"centre {bone}: centreline reaches {cmax:.2f} cm off the bone "
                 f"(cap {CENTRE_CAP_CM} cm) - refusing to silently clip")
         ts = (v - a) @ u
-        b = _joint(template, geom[bone][4])
         d_head = np.linalg.norm(v - a, axis=1)
-        d_tail = np.linalg.norm(v - b, axis=1)
 
         def _jfade(d, band):
             r0, r1 = band
@@ -1044,26 +1090,35 @@ def centre_segments(g: bm.Group, template: bm.Template,
             return _smoothstep((d - r0) / (r1 - r0))
 
         fade = np.array([_smoothstep(t / CENTRE_EDGE_FADE)
-                         * _smoothstep((L - t) / CENTRE_EDGE_FADE)
-                         * _jfade(dh, CENTRE_JOINT_FADE_HEAD)
-                         * _jfade(dt, CENTRE_JOINT_FADE_TAIL)
-                         for t, dh, dt in zip(ts, d_head, d_tail)])
+                         * _smoothstep((L - t) / CENTRE_TAIL_FADE)
+                         if CENTRE_TAIL_FADE > 0 else
+                         _smoothstep(t / CENTRE_EDGE_FADE)
+                         for t in ts]) * np.array(
+            [_jfade(dh, CENTRE_JOINT_FADE_HEAD) for dh in d_head])
         corr = np.array([chat(t) for t in ts])
         leak = float(np.abs(corr @ u).max())
         if leak > 1e-9:
             raise SystemExit(f"centre {bone}: axial leak {leak:.2e} cm")
-        new = new - (wgt * fade)[:, None] * corr
+        # saturated-weight ramp: ~1 everywhere the sleeve lives, 0 off the bone
+        ramp = np.array([_smoothstep(w / CENTRE_W_SAT) for w in wgt])
+        new = new - (ramp * fade)[:, None] * corr
         records.append({"bone": bone,
                         "joint_offset_cm": round(float(np.linalg.norm(chat(0.0))), 2),
                         "wrist_offset_cm": round(float(np.linalg.norm(chat(L))), 2),
                         "residual_cm": round(residual, 2),
                         "slabs": len(slices),
-                        "verts": int((wgt >= CENTRE_W_MIN).sum())})
-        print(f"  centre {bone}: {records[-1]['verts']} weighted verts, "
-              f"{len(slices)} slabs, centreline {np.linalg.norm(chat(0.0)):.2f} cm at the "
-              f"joint -> {np.linalg.norm(chat(L)):.2f} cm at the wrist, residual wobble "
+                        "slab_span_cm": [round(t_lo, 1), round(t_hi, 1)],
+                        "moved_verts": int((wgt > 0.0).sum()),
+                        "verts": int((wgt >= 0.5).sum())})
+        print(f"  centre {bone}: {int((wgt > 0.0).sum())} weighted verts, "
+              f"{len(slices)} slabs over t={t_lo:.1f}-{t_hi:.1f} cm of "
+              f"L={L:.1f}, centreline "
+              f"{np.linalg.norm(chat(0.0)):.2f} cm at the elbow -> "
+              f"{np.linalg.norm(chat(L)):.2f} cm at the mouth, residual wobble "
               f"{residual:.2f} cm, axial leak {leak:.2e} cm")
-    print(f"centre_segments: {len(records)} segments re-centred onto their bones")
+    moved = float(np.linalg.norm(new - v, axis=1).max()) if len(new) else 0.0
+    print(f"centre_segments: {len(records)} segments re-centred onto their bones "
+          f"(largest displacement {moved:.2f} cm)")
     g.verts = [tuple(row) for row in new]
     _check_flips(g, v, f"centre {g.name}")
     _recompute_normals(g, n_old)

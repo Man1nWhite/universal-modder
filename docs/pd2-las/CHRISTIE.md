@@ -1,7 +1,8 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`) — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 10% thinner torso/legs, 25%
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `ce032d44…4c6952`) — full body
+  incl. Christie's hands.
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `3f0df61a…15fac41`) — 10% thinner torso/legs, 25%
   thinner arms in cross-section, **and no hands** (`--variant slim`; the
   separate no-hands pack was removed — slim supersedes it). The v4 slim pass
   (`slim_group`) works on the bind-pose mesh only — skeleton, bone lengths
@@ -218,13 +219,16 @@ least-variance normal), so there is no kink at the ring level and nothing is
    Slim is the outlier (2.27x): its slim pass narrows the mid-forearm to
    2.3-3.0 cm and then the outer layer flares back out to the cuff, so the
    silhouette pinches and reopens.
-3. **Drift at the wrist end — Christie-specific, small.** From 5-17 cm the
-   section centre stays within 1 cm of the bone (its *direction* jitters, which
-   is noise on a multi-layer ring; its magnitude does not wander). Past 17 cm it
-   moves smoothly and monotonically out to 2.4 cm as the mouth flares. Total
-   deviation from a straight line is 1.45 cm against 2B's 0.48 cm — the one
-   line in the table where Christie is clearly worse, and the only part worth
-   calling a bend.
+3. **Drift at the wrist end — Christie-specific, and now fixed.** From 5-17 cm
+   the section centre stays within 1 cm of the bone (its *direction* jitters,
+   which is noise on a multi-layer ring; its magnitude does not wander). Past
+   17 cm it moved smoothly and monotonically out to 2.4 cm as the mouth flared.
+   Total deviation from a straight line was 1.45 cm against 2B's 0.48 cm — the
+   one line in the table where Christie was clearly worse, and the only part
+   worth calling a bend. It is 0.47 cm now (slim 0.45) after `centre_segments`
+   was made to correct the mouth (see [Mesh-vs-skeleton
+   fit](#mesh-vs-skeleton-fit)); the lean and the flare in the table above are
+   unchanged, because they are the arm and the garment, not a fit error.
 
 The source is not the cause. The DOA source's own forearm holds its section
 centre within 0.11 cm of the bone for the whole of its 10.6 cm interior — it is
@@ -290,14 +294,18 @@ of showing up in a preview image months later:
 
 Reference numbers (same code, PD2's own fitted 2B body):
 
-| quantity | 2B reference | Christie base, before | Christie base, after |
+| quantity | 2B reference | Christie base, before | Christie base, **now** |
 |---|---|---|---|
-| forearm slab centre off the axis | 0.4 – 1.2 cm | 1.6 → 3.3 cm (drift) | ≤ 1.5 cm, drift ~1 |
-| forearm slab centre (slim) | 0.4 – 1.2 cm | 3.8 – 4.0 cm | ≤ 2.1 cm |
+| forearm slab centre off the axis (slice max) | 0.4 – 1.2 cm | 1.61 / 1.43 cm, drift 1.48 / 1.88 | **1.12 / 0.86 cm, drift 0.33 / 0.86** |
+| forearm slab centre (slim) | 0.4 – 1.2 cm | 0.98 / 0.88 cm, drift 0.83 / 0.90 | **0.94 / 0.97 cm, drift 0.42 / 1.01** |
 | upper arm | 1.8 – 3.1 cm | 0.5 – 0.9 cm | unchanged |
 | thigh / calf | 0.7 – 2.6 cm | 0.3 – 1.6 cm | unchanged |
 | crease → elbow pivot | 4.9 cm | 2.6 cm | 2.6 cm |
-| cuff → wrist pivot | 1.5 cm | 2.0 cm (slim 2.5) | 1.8 cm (slim 2.2) |
+| cuff → wrist pivot | 1.5 cm | 2.0 cm (slim 2.2) | **1.18 / 1.13 cm (slim 1.87 / 2.02)** |
+
+The forearm is now closer to its bone than PD2's own 2B body, and the cuff ring
+is inside the reference's own 1.5 cm. "Before" is the pack as it shipped up to
+`eb4f77d`; the change that got there is described below.
 
 Two of those numbers look alarming and are **not** defects, which is why the
 build does not "fix" them:
@@ -313,19 +321,44 @@ build does not "fix" them:
   (`perp_max = 4.5 cm`) is an *absolute* distance from the bone axis, so the
   verts that are wrong are exactly the ones it excludes.
 
-`centre_segments` therefore displaces each vertex by
-`- w~(bone) · fade(t) · chat(t)`: `chat` is the segment's measured
-mesh-centreline (a vertex-weighted line through the slab centres, held constant
-outside the measured range — extrapolating turns a 0.7 cm intercept error into a
-4 cm correction at the wrist), `w~` is the slim pass's routed weight and `fade`
-is an axial smoothstep plus a 3D radius fade around each end joint. The end
-fades are asymmetric: wide at the elbow (the crease has pure-`ForeArm` verts
-next to 20 %-ones, and an axial-only fade folded two 3 cm² crease triangles
-there) and tight at the wrist (the drift peaks there, and there is no crease to
-fold). The correction is perpendicular by construction, so `t` is preserved
-exactly (asserted: axial leak ~1e-16 cm), and only positions move — skeleton,
-bind matrices, bone lengths and skin weights are untouched. `_check_flips` and
-the 0-orientation-breaks gate still run.
+`centre_segments` right after `straighten_segments`; this is the pass that was
+rewritten on 2026-11-06 to make the sleeve *coaxial* with the bone.
+
+The measured per-slab profile is a **bow**: 1.2 cm off at the elbow, under 0.5 cm
+mid-segment, 2.2 cm at the mouth. Two things about the old pass therefore had to
+change, and one thing had to *not*:
+
+- **Fade.** The old correction was multiplied by `smoothstep((L−t)/6)` at the
+  wrist end, which is 0.36 at t = 20 cm and 0.12 at the mouth — it deleted the
+  correction exactly where the sleeve is furthest off the bone, and that is why
+  the cuff ring sat 2.2 cm from the `Hand` pivot. It is now elbow-only; the
+  wrist end gets a 2.5 cm **taper** instead of a 6 cm fade, which absorbs the
+  seam between the mouth ring and the glove ring. Taper and no taper were both
+  built: none folds 55 triangles flat at the mouth, 1.5 cm folds 12, 2.5 cm
+  folds none, and beyond 3 cm the cuff starts drifting out again (1.31 cm).
+  The elbow keeps its wide 3D fade, because its crease has pure-`ForeArm` verts
+  next to 20 %-ones and an axial-only fade folded two crease triangles there.
+- **Weight.** The old displacement was `w · fade · chat` — each vertex moved in
+  proportion to its own skin weight. A cross-section is a *stack* (outer sleeve,
+  mid layer, bare arm, blazer cuff flap) with weights 0.8–1.0, so that slides
+  the layers through each other and leaves the flap behind: the section then
+  *spreads*, and the fit reports 3.9 cm of radius against 2.2 before. The ramp
+  is now **saturated** — `smoothstep(w / 0.85)` — so the layers of one section
+  translate together, while the hand (weight 0) and the rest of the body do not
+  move. Dropping the weight factor altogether is also wrong, and measurably so:
+  it translates everything on that side of the body, and the leg crease goes
+  5.91 → 4.56 cm.
+- **Sampling.** Slabs now run from 6 cm past the elbow to the end of the bone
+  (`t ≤ L`, 14 slabs, `min_w` 0.05 so the 0.8/0.2 mouth ring counts); the
+  weight-weighted line through them is held flat outside that range, because
+  extrapolating turns a 0.7 cm intercept error into a 4 cm correction at the
+  wrist.
+
+The correction is perpendicular by construction, so `t` is preserved exactly
+(asserted: axial leak ~1e-16 cm), and only positions move — skeleton, bind
+matrices, bone lengths and skin weights are untouched. `_check_flips` still
+gates the build, and it now reports the worst triangle's position, area and edge
+stretch instead of only a count.
 
 The 2B reference cannot be shipped as the threshold proxy in every respect: its
 own crease sits 4.9 cm from the elbow pivot, further than Christie's 2.6 cm, so

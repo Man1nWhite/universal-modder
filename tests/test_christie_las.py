@@ -508,8 +508,9 @@ def test_forearm_centerline_straight_in_base_pack():
 # forearm (a drift toward the wrist) and the slim pack 3.8 - 4.0 cm.
 _FOREARM_MAX_SLICE = 2.5      # cm, worst slab centre off the ForeArm axis
 _FOREARM_MAX_DRIFT = 2.0      # cm, change in that offset along the segment
-_CUFF_MAX = 2.5               # cm, sleeve ring centroid to the Hand pivot
-_CUT_CUFF_MAX = 2.9           # same, for the hand-cut pack (cuff stretched past
+_CUFF_MAX = 1.5               # cm, sleeve ring centroid to the Hand pivot -
+                              # the 2B reference's own cuff is 1.5 cm out
+_CUT_CUFF_MAX = 2.4           # same, for the hand-cut pack (cuff stretched past
                               # the joint, so it is legitimately a little looser)
 _CREASE_MAX = 3.5             # cm, elbow crease centroid to the ForeArm pivot
 
@@ -575,6 +576,28 @@ def test_elbow_creases_bend_at_the_pivot(which):
         assert rep["joints"][joint] <= _CREASE_MAX, (
             f"{which} {joint}: crease is {rep['joints'][joint]:.2f} cm from the "
             f"pivot (limit {_CREASE_MAX})")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_forearm_tube_is_coaxial_with_the_bone(which):
+    """The sleeve axis, not just the sleeve middle, has to be on the bone.
+
+    Locks the 2026-11-06 rewrite of ``centre_segments``: the old pass faded the
+    correction out toward the wrist (``smoothstep((L-t)/6)`` is 0.12 at the
+    mouth) and moved each vertex by its own skin weight, so the *stacked*
+    layers of a cross-section slid through each other. Both left the sleeve
+    leaning: the slab centre walked from 1.6 cm at the elbow to 3.3 cm at the
+    wrist and the cuff ring sat 2.2 cm off the ``Hand`` pivot. The pass is now
+    weight-saturated and corrects to the mouth, which puts the drift under
+    1.1 cm and the cuff under 1.5 cm on both packs.
+    """
+    for key in sorted(PACKS):
+        rep = _fit_report(key)
+        drifts = [rep["segments"][f"{s}ForeArm"]["drift"] for s in ("Left", "Right")]
+        assert max(drifts) <= _FOREARM_MAX_DRIFT, (
+            f"{key}: forearm centreline still drifts {max(drifts):.2f} cm along "
+            f"the segment (limit {_FOREARM_MAX_DRIFT}) - the mouth is not being "
+            f"corrected")
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
