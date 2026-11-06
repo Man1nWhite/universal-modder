@@ -54,6 +54,7 @@ sys.path.insert(0, str(HERE))
 
 import build_models as bm  # noqa: E402
 import diesel_model as dm  # noqa: E402
+import segment_fit as sf  # noqa: E402
 import las_outfit_pack as lop  # noqa: E402
 import preview as pv  # noqa: E402
 import source_model as sm  # noqa: E402
@@ -878,6 +879,197 @@ def straighten_segments(g: bm.Group, template: bm.Template,
     return g
 
 
+# ---------------------------------------------------------------------------
+# centring: put the limb tubes back on the bones that drive them
+# ---------------------------------------------------------------------------
+#: Which limbs to centre - forearms only, and deliberately so.
+#:
+#: Measured on the shipped pack against PD2's own fitted 2B body (see
+#: segment_fit.py, cross-section circle centres): the forearm is the only
+#: segment whose tube really leaves its bone - its centre walks from 1.6 cm off
+#: the ForeArm axis at the elbow to 3.3 cm at the wrist (slim: 3.8-4.0),
+#: against a flat 0.4-1.2 cm for 2B. Everything else that looks like a big
+#: number is not a defect:
+#:   * thigh 10 cm at the hip  - that is the blazer hem flaring out, and it is
+#:     weighted to UpLeg on purpose (a coat has to swing with the leg);
+#:   * upper arm 5-7 cm        - 6-14 verts per slab around the deltoid mass,
+#:     so the slab medians scatter by several cm (2B: 3.7 cm). Sampling noise.
+#: Centring those would fold the coat into the leg and nudge a shoulder that is
+#: not measurably wrong, so this pass stays on the one segment with evidence.
+CENTRE_SEGMENTS = ("LeftForeArm", "RightForeArm")
+CENTRE_SLICES = 10        # axial slabs per segment
+CENTRE_W_MIN = 0.5        # vert must carry at least half this bone's weight
+CENTRE_EDGE_FADE = 6.0    # cm of axial fade at each end
+#: 3D fade radius around each end of the segment, (r0, r1): 0 inside r0, 1
+#: outside r1. Asymmetric on purpose.
+#:
+#: Head (elbow/knee/hip): wide. The elbow crease has PURE ForeArm verts next to
+#: 20%-ForeArm ones a couple of cm away; an axial-only fade moved those
+#: neighbours by 1.3 cm vs 0.3 cm and folded two 3 cm^2 crease triangles. The
+#: joint-radius zone (the same idea as slim's ELBOW_CREASE_CM protection) cannot
+#: fold anything, because nothing inside it moves at all.
+#:
+#: Tail (wrist): tight. The drift being corrected is *largest* at the wrist, so
+#: a wide fade would leave the sleeve end - the ring the in-game glove spawns
+#: inside - uncorrected. There is no crease there to fold (the weights go
+#: smoothly ForeArm -> Hand, and the Hand fit is aligned with the forearm), and
+#: the flip check is the arbiter.
+CENTRE_JOINT_FADE_HEAD = (6.0, 10.0)
+CENTRE_JOINT_FADE_TAIL = (0.0, 3.0)
+CENTRE_CAP_CM = 4.0       # loud assert, not a silent clip (measured 2.1-3.1)
+
+
+def _centre_line(slices, L: float):  # noqa: ARG001  (L documents the segment)
+    """Linear mesh-centreline of one limb segment: c(t) = c0 + c1 * t.
+
+
+    The low-frequency shape that can be corrected without inventing geometry.
+    The forearm is the motivating case: its cross-section centres walk from
+    1.6 cm off the ``ForeArm`` axis at the elbow to 3.3 cm at the wrist (2B
+    reference: flat, <= 1.2 cm), i.e. a *drift*, so a rigid shift fixes the
+    middle of the sleeve and leaves both ends wrong. Higher-order terms are
+    deliberately not fitted: the circle-centre residuals are ~0.3-0.9 cm and a
+    quadratic through them passes exactly that noise variance straight into the
+    mesh.
+    """
+    import numpy as np
+
+    if len(slices) < 3:
+        return None
+    ts = np.array([sl[0] for sl in slices])
+    cs = np.array([sl[1] for sl in slices])
+    wts = np.array([sl[2] for sl in slices], float)
+    # vertex-count weighting, not sqrt: the proximal slabs are thin (11 verts
+    # against 70 two cm lower) and would otherwise set the intercept, which is
+    # then extrapolated 7 cm up the arm.
+    A = np.stack([np.ones_like(ts), ts], axis=1) * wts[:, None]
+    coef, *_ = np.linalg.lstsq(A, cs * wts[:, None], rcond=None)
+    c0, c1 = coef[0], coef[1]
+    resid = float(np.average(np.linalg.norm(cs - (c0 + np.outer(ts, c1)), axis=1),
+                             weights=wts))
+    t_lo, t_hi = float(ts.min()), float(ts.max())
+
+    def chat(t: float):
+        """Line inside the measured slab range, held constant outside it.
+
+        Extrapolating is what turns a 0.7 cm intercept error into a 4 cm
+        correction at the wrist; outside the slabs the tube is measured
+        nowhere, so the end value is carried flat (same idiom as
+        ``_torso_centerline``'s vertical extension).
+        """
+        return c0 + c1 * min(max(t, t_lo), t_hi)
+
+    return chat, c0, c1, resid, (t_lo, t_hi)
+
+
+def centre_segments(g: bm.Group, template: bm.Template,
+                    bones=CENTRE_SEGMENTS) -> list[dict]:
+    """Slide each limb tube sideways so its axis lies on its bone's axis.
+
+    The retarget is a similarity/affine fit, so limb geometry that sits a
+    couple of cm off its *source* bone keeps that offset in PD2 space - and the
+    offsets do not cancel: in the shipped Christie pack the thigh is 10.3 cm
+    off the ``UpLeg`` axis at the hip (2B reference: 4.7 cm) and the upper arm
+    5-7 cm off the ``Arm`` axis near the shoulder (2B: 3.7 cm). Visually the
+    bone runs along the edge of the sleeve and the elbow dot sits on the
+    silhouette.
+
+    ``straighten_segments`` cannot fix this: its radial mask (``perp_max``
+    4.5 cm) is an *absolute* distance from the bone axis, so the verts that are
+    wrong are exactly the ones it excludes - it re-centres what is already
+    close and ignores the offenders.
+
+    This pass displaces each vertex by ``- w~(bone) * fade(t) * chat(t)``, where
+    ``chat`` is the segment's measured mesh-centreline (``_centre_line``),
+    ``w~`` is the slim pass's routed weight (so a vert shared with the torso or
+    the neighbouring bone moves proportionally) and ``fade`` is an axial
+    smoothstep plus a 3D radius fade around each end joint. The axial
+    coordinate ``t`` is preserved exactly (the correction is perpendicular by
+    construction) and skin weights are untouched, so the skeleton, bind
+    matrices and bone lengths all stay as they are. ``_check_flips`` still
+    runs.
+
+    Slabs come from ``segment_fit.slice_offsets``: a Kasa circle fit per
+    cross-section, so the slab centre is the ring's centre rather than the
+    average vertex position, and slabs whose verts do not ring the bone are
+    dropped.
+
+    Returns one record per re-centred segment for the build report.
+    """
+    import numpy as np
+
+    import segment_fit as sf
+
+    routed = _route_weights(g, template)
+    geom = _segment_geom(template)
+    v = np.array(g.verts, dtype=np.float64)
+    n_old = np.array(g.normals, dtype=np.float64)
+    new = v.copy()
+    records: list[dict] = []
+    for bone in bones:
+        if bone not in geom:
+            continue
+        a, u, L, _s, _child = geom[bone]
+        wgt = np.array([rw.get(bone, 0.0) for rw in routed])
+        slices = [sl for sl in sf.slice_offsets(v, wgt, (a, u, L, None),
+                                                slices=CENTRE_SLICES,
+                                                min_w=CENTRE_W_MIN)
+                  if CENTRE_EDGE_FADE <= sl[0] <= L - CENTRE_EDGE_FADE]
+        if len(slices) < 3:
+            print(f"  centre {bone}: only {len(slices)} usable slabs, skipped")
+            continue
+        fit = _centre_line(slices, L)
+        if fit is None:
+            print(f"  centre {bone}: too few usable slabs, skipped")
+            continue
+        chat, c0, c1, residual, _rng = fit
+
+        # loud cap over the range the field is actually applied to (the line is
+        # held flat outside the slab range, so the endpoints bound it)
+        xs = np.array([0.0, L])
+        cmax = float(np.linalg.norm(np.array([chat(x) for x in xs]), axis=1).max())
+        if cmax > CENTRE_CAP_CM:
+            raise SystemExit(
+                f"centre {bone}: centreline reaches {cmax:.2f} cm off the bone "
+                f"(cap {CENTRE_CAP_CM} cm) - refusing to silently clip")
+        ts = (v - a) @ u
+        b = _joint(template, geom[bone][4])
+        d_head = np.linalg.norm(v - a, axis=1)
+        d_tail = np.linalg.norm(v - b, axis=1)
+
+        def _jfade(d, band):
+            r0, r1 = band
+            if r1 <= r0:
+                return 0.0 if d <= r0 else 1.0
+            return _smoothstep((d - r0) / (r1 - r0))
+
+        fade = np.array([_smoothstep(t / CENTRE_EDGE_FADE)
+                         * _smoothstep((L - t) / CENTRE_EDGE_FADE)
+                         * _jfade(dh, CENTRE_JOINT_FADE_HEAD)
+                         * _jfade(dt, CENTRE_JOINT_FADE_TAIL)
+                         for t, dh, dt in zip(ts, d_head, d_tail)])
+        corr = np.array([chat(t) for t in ts])
+        leak = float(np.abs(corr @ u).max())
+        if leak > 1e-9:
+            raise SystemExit(f"centre {bone}: axial leak {leak:.2e} cm")
+        new = new - (wgt * fade)[:, None] * corr
+        records.append({"bone": bone,
+                        "joint_offset_cm": round(float(np.linalg.norm(chat(0.0))), 2),
+                        "wrist_offset_cm": round(float(np.linalg.norm(chat(L))), 2),
+                        "residual_cm": round(residual, 2),
+                        "slabs": len(slices),
+                        "verts": int((wgt >= CENTRE_W_MIN).sum())})
+        print(f"  centre {bone}: {records[-1]['verts']} weighted verts, "
+              f"{len(slices)} slabs, centreline {np.linalg.norm(chat(0.0)):.2f} cm at the "
+              f"joint -> {np.linalg.norm(chat(L)):.2f} cm at the wrist, residual wobble "
+              f"{residual:.2f} cm, axial leak {leak:.2e} cm")
+    print(f"centre_segments: {len(records)} segments re-centred onto their bones")
+    g.verts = [tuple(row) for row in new]
+    _check_flips(g, v, f"centre {g.name}")
+    _recompute_normals(g, n_old)
+    return records
+
+
 def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
                arm_scale: float = 0.75) -> bm.Group:
     """v4 cross-sectional slimming, bind pose, mesh-only (skeleton, bone
@@ -1374,8 +1566,12 @@ def main(argv=None) -> int:
     # straight, the PD2 forearm axis is straight — the warp comes from the
     # retarget). Straighten arm segments in bind pose for EVERY variant
     # before any slim pass, so the base pack is clean too.
+    centring: list[dict] = []
     for gname in ("body", "shadow"):
         straighten_segments(groups[gname], template)
+        # straighten only fixes the kink it can see (its 4.5 cm radial mask
+        # excludes the far-offset verts); put the tubes on the bones after it.
+        centring = centre_segments(groups[gname], template) or centring
         breaks = bm.orientation_breaks(groups[gname])
         agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
                                      groups[gname].normals)
@@ -1427,8 +1623,12 @@ def main(argv=None) -> int:
         raise SystemExit("tpp render atoms do not tile the mesh:\n  "
                          + "\n  ".join(problems))
 
+    fit = bm.segment_fit_report(tpp_path, template)
+    print(sf.format_report(f"{identity.item_id} tpp", fit, fit.get("cuffs")))
+
     fps_bytes = None
     fps_slots: list[str] | None = None
+    fps_fit: dict | None = None
     if args.fps:
         fps_tpl = bm.load_template(args.templates / "fps_2b.model")
         fps_arms = bm.extract_bones(groups["body"], bm.is_fps_arm_bone, "arms")
@@ -1451,6 +1651,8 @@ def main(argv=None) -> int:
                              + "\n  ".join(problems))
         fps_bytes = fps_path.read_bytes()
         fps_slots = sorted(set(fps_arms.mat_slots))
+        fps_fit = bm.segment_fit_report(fps_path, fps_tpl)
+        print(sf.format_report(f"{identity.item_id} fps", fps_fit))
 
     if not args.no_previews:
         bm.preview_from_model(tpp_path, args.out / "previews", identity.item_id)
@@ -1475,6 +1677,11 @@ def main(argv=None) -> int:
         "headless": True,
         "glove_adapter": identity.glove_adapter,
         "drop_drawables": list(DROP_DRAWABLES),
+        # mesh-vs-skeleton numbers (tools/pd2-las/segment_fit.py); the CI test
+        # asserts on the same fields, so a regression shows up there too
+        "centring": centring,
+        "fit_tpp": fit,
+        "fit_fps": fps_fit if fps_bytes is not None else None,
     }
     (args.out / f"{identity.item_id}_report.json").write_text(
         json.dumps(report, indent=2) + "\n")
@@ -1482,7 +1689,13 @@ def main(argv=None) -> int:
     args.dist.mkdir(parents=True, exist_ok=True)
     pack = write_pack(args.dist, identity, tpp_path.read_bytes(), fps_bytes,
                       textures, icon, source_sha,
-                      extra={"build_report": f"build/pd2-las/{identity.item_id}_report.json"},
+                      extra={"build_report": f"build/pd2-las/{identity.item_id}_report.json",
+                             # the mesh-vs-skeleton numbers travel inside the
+                             # pack so tests/test_christie_las.py can compare the
+                             # build's own measurement with the shipped bytes
+                             "fit_tpp": fit,
+                             "fit_fps": fps_fit,
+                             "centring": centring},
                       fps_model_slots=fps_slots)
     print(f"pack  -> {pack}")
     zipped = lop.zip_pack(pack)

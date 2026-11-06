@@ -85,6 +85,11 @@ straightness *within* each segment is enforced.
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # slim pack
 ```
 
+After `straighten_segments` the build runs **`centre_segments`** — the pass
+that puts a limb tube back on the bone that drives it (see
+[Mesh-vs-skeleton fit](#mesh-vs-skeleton-fit)). Then the slim/hand-cut steps and
+`assemble_model` follow.
+
 Pipeline: `build_christie_las.load_christie` parses the MDL with **every
 bodygroup model** walked (DOA5 ships body/glasses/bra/head as bodypart model
 variants; `source_model.load_model` only reads each bodypart's first model and
@@ -134,3 +139,92 @@ mesh with the PD2 skeleton overlaid (arm chain in red), produced by
   (`--source` mode of the renderer), as the reference for comparisons
 - `christie_{base,slim}_forearm_{front,side}.png` — forearm close-ups of both
   packs in PD2 space, directly comparable to the source forearm renders
+- `christie_{base,slim}_fit_before_after.png` — left forearm/wrist, the pack as
+  shipped before 2026-11-06 (bone along the top edge of the sleeve, cuff off the
+  `Hand` pivot) next to the re-centred build
+- `christie_skel_top.png` — the overhead view that makes a limb tube's offset
+  from its bone obvious at a glance (the arm chain is drawn in red)
+- `christie_skel_pose_{front,side}.png`, `christie_skel_pose_wrist_*.png` (and
+  the `slim` pair) — the mesh re-skinned into a relaxed pose with the posed
+  skeleton drawn on top; regenerate with `--pose`
+
+## Mesh-vs-skeleton fit
+
+Two questions decide whether an outfit looks attached to its heister:
+
+1. **Does the limb tube wrap its bone?** If the tube sits off the bone axis the
+   `Arm`/`ForeArm` bone runs along the edge of the sleeve instead of down the
+   middle, and it looks worse toward the wrist because the offset grows.
+2. **Does the mesh bend where PD2 pivots?** PD2 rotates about the `ForeArm`
+   joint, not about the mesh's elbow crease.
+
+`tools/pd2-las/segment_fit.py` measures both on any built pack, and
+`tests/test_christie_las.py` asserts on them, so a regression fails CI instead
+of showing up in a preview image months later:
+
+- **tube offset** — per axial slab, a *Kasa circle fit* of the cross-section.
+  The circle centre is the ring's centre; a median or centroid of the slab's
+  perpendicular offsets answers "where is the average vertex" instead, and that
+  swings by several cm when a lace seam or the elbow crease lands in the slab
+  (it reports 3.4 cm on the reference 2B body, whose forearm is visibly
+  straight). Slabs only count if they have ≥ 8 verts, cover ≥ 4 of 6 angular
+  sectors, and actually fit a circle (residual ≤ 0.5 r).
+- **drift** — the change of that offset along the segment, i.e. "the bone
+  slides off the sleeve toward the wrist".
+- **crease → pivot** — distance from the `ForeArm`/`Leg` pivot to the centroid
+  of the verts blended between the two bones meeting there.
+- **cuff → wrist** — distance from the `Hand` pivot to the surviving ring of
+  sleeve verts, i.e. where the in-game glove spawns.
+
+Reference numbers (same code, PD2's own fitted 2B body):
+
+| quantity | 2B reference | Christie base, before | Christie base, after |
+|---|---|---|---|
+| forearm slab centre off the axis | 0.4 – 1.2 cm | 1.6 → 3.3 cm (drift) | ≤ 1.5 cm, drift ~1 |
+| forearm slab centre (slim) | 0.4 – 1.2 cm | 3.8 – 4.0 cm | ≤ 2.1 cm |
+| upper arm | 1.8 – 3.1 cm | 0.5 – 0.9 cm | unchanged |
+| thigh / calf | 0.7 – 2.6 cm | 0.3 – 1.6 cm | unchanged |
+| crease → elbow pivot | 4.9 cm | 2.6 cm | 2.6 cm |
+| cuff → wrist pivot | 1.5 cm | 2.0 cm (slim 2.5) | 1.8 cm (slim 2.2) |
+
+Two of those numbers look alarming and are **not** defects, which is why the
+build does not "fix" them:
+
+- **thigh 10 cm at the hip, upper arm 5–7 cm** — the thigh number is the blazer
+  hem flaring out, weighted to `UpLeg` on purpose (a coat has to swing with the
+  leg), and the upper-arm slabs hold 6–14 verts around the deltoid mass, so
+  their centres scatter by several cm (2B: 3.7 cm). Auto-centring them folds the
+  coat into the leg and nudges a shoulder that is not measurably wrong. The
+  centring pass is scoped to the forearms for that reason, and the thresholds
+  in the test are per-segment.
+- `straighten_segments` could not fix the forearm either: its radial mask
+  (`perp_max = 4.5 cm`) is an *absolute* distance from the bone axis, so the
+  verts that are wrong are exactly the ones it excludes.
+
+`centre_segments` therefore displaces each vertex by
+`- w~(bone) · fade(t) · chat(t)`: `chat` is the segment's measured
+mesh-centreline (a vertex-weighted line through the slab centres, held constant
+outside the measured range — extrapolating turns a 0.7 cm intercept error into a
+4 cm correction at the wrist), `w~` is the slim pass's routed weight and `fade`
+is an axial smoothstep plus a 3D radius fade around each end joint. The end
+fades are asymmetric: wide at the elbow (the crease has pure-`ForeArm` verts
+next to 20 %-ones, and an axial-only fade folded two 3 cm² crease triangles
+there) and tight at the wrist (the drift peaks there, and there is no crease to
+fold). The correction is perpendicular by construction, so `t` is preserved
+exactly (asserted: axial leak ~1e-16 cm), and only positions move — skeleton,
+bind matrices, bone lengths and skin weights are untouched. `_check_flips` and
+the 0-orientation-breaks gate still run.
+
+The 2B reference cannot be shipped as the threshold proxy in every respect: its
+own crease sits 4.9 cm from the elbow pivot, further than Christie's 2.6 cm, so
+the crease test asserts an absolute bound rather than "better than 2B".
+
+Renders (`docs/pd2-las/renders/`): `*_skel_{front,side,iso,top}.png`, plus
+`*_skel_pose_{front,side}.png` and `*_skel_pose_wrist_{front,side}.png` — the
+mesh re-skinned into a relaxed pose. Those posed renders were wrong until
+2026-11-06: `render_mesh_skeleton.skin_verts` built a numpy 4×4 and applied it
+as `M @ p`, but Diesel matrices are row-vector (`mat_apply_point`), so every
+blended matrix was silently transposed and the mesh flew off the skeleton (a
+spike through the floor). `posed_worlds` had the same class of bug — it
+pre-multiplied a local rotation, which rotates the joint *offset* instead of
+pivoting the bone about its own head.

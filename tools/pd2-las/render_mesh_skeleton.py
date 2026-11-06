@@ -87,8 +87,22 @@ def posed_worlds(template: bm.Template, pose: dict) -> dict[int, tuple]:
             loc = tuple(loc)
             name = template.id_name[sid]
             if name in pose:
+                # Rotate the bone about ITS OWN HEAD, in its parent's frame.
+                # The pose must not move the joint itself: PD2 pivots the child
+                # about this point. Pre-multiplying the local matrix instead
+                # (``mat_mul(rot, loc)``) rotates the joint offset, i.e. it
+                # swings the whole bone through an arc around its parent's
+                # origin - the elbow dot then lands somewhere the skeleton can
+                # never put it, and the re-skinned mesh grows a spike.
                 axis, deg = pose[name]
-                loc = dm.mat_mul(rot_mat(axis, deg), loc)
+                rot = rot_mat(axis, deg)
+                head = (loc[12], loc[13], loc[14])
+                moved = dm.mat_apply_point(rot, head)
+                rot = list(rot)
+                rot[12] = head[0] - moved[0]
+                rot[13] = head[1] - moved[1]
+                rot[14] = head[2] - moved[2]
+                loc = dm.mat_mul(loc, tuple(rot))
             if obj["parent"] == 0:
                 worlds[sid] = loc
             elif obj["parent"] in worlds:
@@ -103,33 +117,52 @@ def posed_worlds(template: bm.Template, pose: dict) -> dict[int, tuple]:
 
 
 def skin_verts(geo, skinbones: dict, pose_worlds: dict) -> np.ndarray:
-    """Re-skin bind-pose verts into a posed skeleton.
+    """Re-skin bind-pose verts into a posed skeleton (linear blend skinning).
 
-    `skinbones['objects']` is the bone-id palette; blendindices index into it
-    and skinbones['rotations'] holds the inverse bind world per palette entry.
+    Diesel matrices are System.Numerics style and *row-vector*: a point is
+    transformed with ``mat_apply_point(M, p)``, and composition is
+    ``mat_mul(a, b)``. The skin-bones block stores the inverse bind world per
+    palette entry, so the deforming matrix of a palette entry is
+
+        M = pose_world @ inv_bind_world
+
+    and must be applied with the same convention. Building it as a numpy 4x4
+    and post-multiplying the column vector ``M @ p`` silently transposes every
+    matrix; the identity pose still round-trips (a transposed identity is an
+    identity) but any real pose throws verts metres away, which is what the
+    ``--pose`` previews used to show as a spike through the floor.
     """
     v = np.array(geo["verts"], float)
     bi = geo["blendindices"]
     bw = geo["blendweights"]
     pal = skinbones["objects"]
-    inv_bind = [np.array(r, float).reshape(4, 4) for r in skinbones["rotations"]]
+    inv_bind = [tuple(np.array(r, float).reshape(16)) for r in skinbones["rotations"]]
     out = np.zeros_like(v)
+    mats: dict[int, tuple] = {}
     for i in range(len(v)):
-        p = np.append(v[i], 1.0)
-        acc = np.zeros(4)
+        p = (float(v[i, 0]), float(v[i, 1]), float(v[i, 2]))
+        acc = np.zeros(3)
+        wsum = 0.0
         for k in range(len(bw[i])):
-            w = bw[i][k]
-            if w <= 0:
+            w = float(bw[i][k])
+            if w <= 0.0:
                 continue
-            pi = bi[i][k]
+            pi = int(bi[i][k])
             if pi >= len(pal):
                 continue
             bid = pal[pi]
             if bid not in pose_worlds:
                 continue
-            m = np.array(pose_worlds[bid], float).reshape(4, 4) @ inv_bind[pi]
-            acc += w * (m @ p)
-        out[i] = acc[:3] / (acc[3] if abs(acc[3]) > 1e-9 else 1.0)
+            m = mats.get(pi)
+            if m is None:
+                m = dm.mat_mul(pose_worlds[bid], inv_bind[pi])
+                mats[pi] = m
+            q = dm.mat_apply_point(m, p)
+            acc[0] += w * q[0]
+            acc[1] += w * q[1]
+            acc[2] += w * q[2]
+            wsum += w
+        out[i] = acc / (wsum if wsum > 1e-9 else 1.0)
     return out
 
 
@@ -142,6 +175,10 @@ def project(pts: np.ndarray, view: str) -> np.ndarray:
         a = np.deg2rad(35.0)
         u = pts[:, 0] * np.cos(a) - pts[:, 1] * np.sin(a)
         return np.stack([u, pts[:, 2]], axis=1)
+    if view == "top":        # looking down -z: screen = (x, y)
+        return pts[:, [0, 1]]
+    if view == "bottom":     # looking up +z: screen = (-x, -y)
+        return -pts[:, [0, 1]]
     raise ValueError(view)
 
 
@@ -174,6 +211,10 @@ def render(geo, bones, view: str, out_path: Path, zoom: tuple | None = None,
         depth = v[:, 1]
     elif view == "side":
         depth = -v[:, 0]
+    elif view == "top":
+        depth = -v[:, 2]
+    elif view == "bottom":
+        depth = v[:, 2]
     else:
         depth = v[:, 0] * 0.7 + v[:, 1] * 0.7
     order = np.argsort([depth[f].mean() for f in faces])
@@ -279,7 +320,7 @@ def main(argv=None) -> int:
     bones = skeleton(template)
     args.out.mkdir(parents=True, exist_ok=True)
     stem = args.item
-    for view in ("front", "side", "iso"):
+    for view in ("front", "side", "iso", "top"):
         render(geo, bones, view, args.out / f"{stem}_skel_{view}.png")
     # wrist close-ups (left arm, x negative)
     for view in ("front", "side"):
