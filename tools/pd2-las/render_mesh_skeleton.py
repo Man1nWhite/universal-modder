@@ -178,6 +178,27 @@ def skin_verts(geo, skinbones: dict, pose_worlds: dict) -> np.ndarray:
     return out
 
 
+# where each camera sits, as a unit vector from the model towards the viewer
+CAMERA_DIR = {
+    "front": (0.0, 1.0, 0.0),     # +y
+    "side": (-1.0, 0.0, 0.0),     # -x
+    "top": (0.0, 0.0, 1.0),       # +z
+    "bottom": (0.0, 0.0, -1.0),   # -z
+    "iso": (0.7, 0.7, 0.0),
+}
+
+
+def depth_towards_camera(view: str, v: np.ndarray) -> np.ndarray:
+    """Per-face depth key that increases as a face gets nearer the camera.
+
+    Getting this backwards does not look broken - it silently draws the far
+    side over the near side. That is what made the `bottom` view a copy of the
+    `top`: a camera below the model needs ``-z`` here, not ``+z``.
+    """
+    c = np.array(CAMERA_DIR[view], float)
+    return v[:, 0] * c[0] + v[:, 1] * c[1] + v[:, 2] * c[2]
+
+
 def project(pts: np.ndarray, view: str) -> np.ndarray:
     if view == "front":      # looking along -y: screen = (x, z)
         return pts[:, [0, 2]]
@@ -189,8 +210,12 @@ def project(pts: np.ndarray, view: str) -> np.ndarray:
         return np.stack([u, pts[:, 2]], axis=1)
     if view == "top":        # looking down -z: screen = (x, y)
         return pts[:, [0, 1]]
-    if view == "bottom":     # looking up +z: screen = (-x, -y)
-        return -pts[:, [0, 1]]
+    if view == "bottom":     # looking up +z, keeping model +x on the right
+        # only y flips: negating both axes would be a 180 deg rotation, which
+        # is a *valid view of the top* and tells you nothing about the
+        # underside (it produced a bottom image that was pixel-identical to the
+        # top apart from the bones).
+        return np.stack([pts[:, 0], -pts[:, 1]], axis=1)
     raise ValueError(view)
 
 
@@ -198,13 +223,14 @@ def render(geo, bones, view: str, out_path: Path, zoom: tuple | None = None,
            verts: np.ndarray | None = None):
     v = verts if verts is not None else np.array(geo["verts"], float)
     faces = np.array(geo["faces"], int)
-    all_pts = np.vstack([v, [b[1] for b in bones]])
+    bone_pts = [b[1] for b in bones]
+    all_pts = np.vstack([v, bone_pts]) if bone_pts else v
     if zoom is not None:
         (x0, x1, z0, z1) = zoom
         m = ((v[:, 0] >= x0) & (v[:, 0] <= x1) & (v[:, 2] >= z0) & (v[:, 2] <= z1))
-        all_pts = np.vstack([v[m], [b[1] for b in bones
-                                    if x0 - 5 <= b[1][0] <= x1 + 5
-                                    and z0 - 5 <= b[1][2] <= z1 + 5]])
+        near = [p for p in bone_pts
+                if x0 - 5 <= p[0] <= x1 + 5 and z0 - 5 <= p[2] <= z1 + 5]
+        all_pts = np.vstack([v[m], near]) if near else v[m]
     p2 = project(all_pts, view)
     W = H = 1000
     margin = 30
@@ -218,17 +244,9 @@ def render(geo, bones, view: str, out_path: Path, zoom: tuple | None = None,
 
     img = Image.new("RGB", (W, H), (24, 24, 28))
     dr = ImageDraw.Draw(img)
-    # mesh faces, painter's algorithm by depth
-    if view == "front":
-        depth = v[:, 1]
-    elif view == "side":
-        depth = -v[:, 0]
-    elif view == "top":
-        depth = -v[:, 2]
-    elif view == "bottom":
-        depth = v[:, 2]
-    else:
-        depth = v[:, 0] * 0.7 + v[:, 1] * 0.7
+    # mesh faces, painter's algorithm: `depth` grows towards the camera, so the
+    # last face drawn is the nearest one
+    depth = depth_towards_camera(view, v)
     order = np.argsort([depth[f].mean() for f in faces])
     for fi in order:
         a, b, c = faces[fi]

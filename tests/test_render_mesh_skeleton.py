@@ -236,3 +236,70 @@ def test_render_cli_writes_every_file_the_docs_name():
     assert not missing, (
         "documented in CHRISTIE.md but never written by the renderer: "
         f"{missing} (main() emits {sorted(emitted)})")
+
+
+def test_projection_never_negates_both_screen_axes():
+    """`bottom` came from `(-x, -y)` - a 180 degree spin, not a new viewpoint.
+
+    Negating both axes maps every point to the point diametrically opposite the
+    model origin, which projects the model from *above* and then rotates the
+    picture. On a body that is roughly left/right and front/back symmetric the
+    outline is unaffected, so the mistake is invisible in the finished image -
+    which is exactly why it needs asserting on the maths rather than the
+    pixels. A camera below keeps model +x on the right and flips only y.
+    """
+    import render_mesh_skeleton as rms
+
+    p = np.array([[3.0, 5.0, 7.0]])
+    assert rms.project(p, "front")[0].tolist() == [3.0, 7.0]    # (x, z)
+    assert rms.project(p, "side")[0].tolist() == [5.0, 7.0]     # (y, z)
+    assert rms.project(p, "top")[0].tolist() == [3.0, 5.0]      # (x, y)
+    assert rms.project(p, "bottom")[0].tolist() == [3.0, -5.0]  # (x, -y)
+    # no view may be another view point-mirrored: that is a rotation of the
+    # same camera, and it silently passes every "does it look right" review
+    for view in ("front", "side", "top", "bottom"):
+        for other in ("front", "side", "top", "bottom"):
+            if other == view:
+                continue
+            a = rms.project(p, view)[0]
+            b = -rms.project(p, other)[0]
+            assert not np.allclose(a, b), f"{view} is {other} rotated 180 degrees"
+
+
+def test_views_are_not_duplicates():
+    """Cheap sanity net: two different view names must not draw one picture."""
+    import tempfile
+
+    from PIL import Image
+
+    rms, tpl, geo, _sk = _fixtures()
+    bones = rms.skeleton(tpl)
+    with tempfile.TemporaryDirectory() as td:
+        sil = {}
+        for view in ("front", "side", "iso", "top", "bottom"):
+            p = Path(td) / f"{view}.png"
+            rms.render(geo, bones, view, p)
+            a = np.array(Image.open(p).convert("RGB")).astype(int)
+            m = np.abs(a - np.array([24, 24, 28])).sum(2) > 10
+            m[0:70, 0:340] = False
+            sil[view] = m
+    for view, m in sil.items():
+        assert m.sum() > 20000, f"{view} drew almost nothing ({m.sum()} px)"
+    for a, b in (("front", "side"), ("front", "top"), ("side", "top")):
+        iou = (sil[a] & sil[b]).sum() / max((sil[a] | sil[b]).sum(), 1)
+        assert iou < 0.95, f"{a} and {b} draw the same silhouette (IoU {iou:.2f})"
+
+
+def test_depth_key_points_towards_the_camera():
+    """Painter's algorithm needs the far side drawn first."""
+    import render_mesh_skeleton as rms
+    v = np.array([[1.0, 1.0, 1.0], [2.0, 2.0, 2.0]])
+    # top: camera at +z, so z=2 is nearer than z=1
+    d = rms.depth_towards_camera("top", v)
+    assert d[1] > d[0]
+    # bottom: camera at -z, so z=1 is nearer
+    d = rms.depth_towards_camera("bottom", v)
+    assert d[0] > d[1]
+    # front: camera at +y
+    d = rms.depth_towards_camera("front", v)
+    assert d[1] > d[0]

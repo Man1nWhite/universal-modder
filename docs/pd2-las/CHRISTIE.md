@@ -142,11 +142,22 @@ command, so the whole set is reproducible in one run per pack:
 ```
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
-  directions. `top` and `bottom` are where a limb tube's offset from its bone
-  is obvious at a glance: `top` looks down the body axis (hands end up by the
-  ears in screen space), `bottom` looks up the axis and reads like the front
-  view with the depth order reversed. Use `top`/`bottom` to see the *radial*
-  offset of a limb in cross-section, not to judge left/right.
+  directions. `top` looks down the body axis from above and `bottom` looks up
+  it from below; in both, the arms swing out to the sides so the hands land by
+  the "ears". These two are for the *radial* offset of a limb tube (is the bone
+  in the middle of the sleeve, seen along its length), not for left/right - the
+  arms are near the body axis, so screen x is a weak left/right signal here.
+  Check left/right on `front`.
+
+  Both were wrong before 2026-11-06, in different ways, and neither error is
+  visible as "impossible geometry" - the shading uses `abs(normal)` and the body
+  is close to symmetric, so a bad depth order still produces a believable
+  picture. `bottom` projected as `(-x, -y)`, i.e. the `top` view rotated 180
+  degrees, so it never showed the underside at all; `top` sorted faces by `-z`
+  with the camera above, so it painted the far side last and showed the jacket's
+  *lining* over the shoulders. `depth_towards_camera()` now derives the sort key
+  from a per-view camera direction, and `tests/test_render_mesh_skeleton.py`
+  pins both the projection axes and the depth sign.
 - `christie_skel_wrist_{front,side}.png` — left-wrist close-ups (the sleeve cuff
   surrounds the `Hand` pivot where the in-game glove spawns)
 - `christie_forearm_{front,side}.png` — left forearm on the `LeftForeArm` pivot,
