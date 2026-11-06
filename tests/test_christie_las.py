@@ -441,40 +441,244 @@ def test_axial_stretch_is_affine_not_similarity():
 
 
 def test_forearm_centerline_straight_in_base_pack():
-    """straighten_segments v3 lock: median centerline deviation of pure
-    forearm verts in clean mid-segment slices (t in [0.35L, 0.65L], away from
-    the elbow/wrist end fades and blend zones) must be small — the bind-pose
-    forearm is straight within its segment."""
+    """straighten_segments v3 lock: the bind-pose forearm is straight *within*
+    its segment - the cross-section centres must lie on one line.
+
+    Measured with the Kasa circle fit of ``segment_fit`` rather than a median of
+    the raw perp offsets: a median of a ring's vertex offsets answers "where is
+    the average vertex", which swings by several cm when a lace seam or the
+    elbow crease lands in the slab (it reports 3.4 cm on the reference 2B body,
+    whose forearm is visibly straight). Slabs sit inside [0.3L, 0.7L], away
+    from the elbow/wrist fades and blend zones. What this locks is *shape*:
+    the centring pass translates slabs, so it cannot bend the segment, and the
+    line fit is invariant to the overall offset.
+    """
     import numpy as np
+    import build_models as bm
+    import segment_fit as sf
 
+    tpl = bm.load_template(_templates() / "2b.model")
+    geom = sf.limb_geom(tpl)
+    v, dom = _g_body_geo_dom("base")
     for side in ("Left", "Right"):
-        v, dom = _g_body_geo_dom("base")
-        a0, b0 = _P2_SEGMENTS["ForeArm"]
-
-        def J(n):
-            p = _P2_JOINTS[n]
-            return np.array([-p[0] if side == "Left" else p[0], p[1], p[2]])
-
-        a, b = J(a0), J(b0)
-        u = (b - a) / np.linalg.norm(b - a)
-        L = float(np.linalg.norm(b - a))
-        sel = [i for i, (nm, w) in enumerate(dom)
-               if nm == f"{side}ForeArm" and w > 0.85]
-        pts = np.array([v[i] for i in sel])
-        t = (pts - a) @ u
-        r = (pts - a) - np.outer(t, u)
-        perp = np.linalg.norm(r, axis=1)
-        m = (perp < 4.5) & (0.35 * L <= t) & (t <= 0.65 * L)
-        assert m.sum() >= 20, f"{side}ForeArm: only {int(m.sum())} mid core verts"
-        # 2D median in the perp plane, per 2 cm slice
+        bone = f"{side}ForeArm"
+        a, u, L, _child = geom[bone]
+        m = np.array([nm == bone and w > 0.5 for nm, w in dom])
+        ts = (v[m] - a) @ u
+        perp = (v[m] - a) - np.outer(ts, u)
+        keep = (ts >= 0.30 * L) & (ts <= 0.70 * L)
+        if keep.sum() < 30:
+            pytest.skip(f"{bone}: only {int(keep.sum())} mid-segment verts")
+        pts, tt = perp[keep], ts[keep]
         tmp = np.array([1.0, 0.0, 0.0]) if abs(u[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
         e1 = np.cross(u, tmp); e1 /= np.linalg.norm(e1)
         e2 = np.cross(u, e1)
-        worst = 0.0
-        for t0 in np.arange(0.35 * L, 0.65 * L, 2.0):
-            mm = m & (t >= t0) & (t < t0 + 2.0)
-            if mm.sum() < 6:
+        centres, cts = [], []
+        for t0 in np.arange(0.30 * L, 0.70 * L, 2.0):
+            mm = (tt >= t0) & (tt < t0 + 2.0)
+            if mm.sum() < 8:
                 continue
-            c2 = np.median(r[mm] @ np.stack([e1, e2], axis=1), axis=0)
-            worst = max(worst, float(np.linalg.norm(c2)))
-        assert worst <= 1.5, f"{side}ForeArm mid-segment centerline off by {worst:.2f} cm"
+            c2, _r, _res = sf._kasa_circle(pts[mm] @ np.stack([e1, e2], axis=1))
+            centres.append(c2)
+            cts.append(float(tt[mm].mean()))
+        assert len(centres) >= 4, f"{bone}: only {len(centres)} usable slabs"
+        cs, cts = np.array(centres), np.array(cts)
+        A = np.stack([np.ones_like(cts), cts], axis=1)
+        coef, *_ = np.linalg.lstsq(A, cs, rcond=None)
+        resid = np.linalg.norm(cs - (coef[0] + np.outer(cts, coef[1])), axis=1)
+        assert resid.max() <= 1.2, (
+            f"{bone}: centreline kinks {resid.max():.2f} cm off a straight line "
+            f"(reference 2B: 0.4 cm)")
+        # and the drift itself must be small: a straight but slanted forearm
+        # would still point the bone at the sleeve edge
+        drift = float(np.linalg.norm(coef[1]) * (cts.max() - cts.min()))
+        assert drift <= 1.5, f"{bone}: centreline drifts {drift:.2f} cm over the sampled span"
+
+
+# ---------------------------------------------------------------------------
+# mesh-vs-skeleton fit: the limb tube has to sit ON the bone that drives it
+# ---------------------------------------------------------------------------
+# Reference numbers come from PD2's own fitted 2B body (the pack template),
+# measured through the same code path (tools/pd2-las/segment_fit.py):
+#   forearm cross-section circle centres: 0.4 - 1.2 cm off the ForeArm axis
+#   upper arm / thigh:                    ~2 - 5 cm (deltoid mass; the blazer
+#                                         hem flares 10 cm and is weighted to
+#                                         UpLeg on purpose)
+# Before the centring pass the shipped pack measured 1.6 -> 3.3 cm along the
+# forearm (a drift toward the wrist) and the slim pack 3.8 - 4.0 cm.
+_FOREARM_MAX_SLICE = 2.5      # cm, worst slab centre off the ForeArm axis
+_FOREARM_MAX_DRIFT = 2.0      # cm, change in that offset along the segment
+_CUFF_MAX = 1.5               # cm, sleeve ring centroid to the Hand pivot -
+                              # the 2B reference's own cuff is 1.5 cm out
+_CUT_CUFF_MAX = 2.4           # same, for the hand-cut pack (cuff stretched past
+                              # the joint, so it is legitimately a little looser)
+_CREASE_MAX = 3.5             # cm, elbow crease centroid to the ForeArm pivot
+#: p90 arm thickness in the 2 cm band around the elbow, against the 2B
+#: reference's 7.03 cm. The source arm simply is thicker at the joint than 2B's
+#: (8.16 cm before ``trim_elbows``, 6.8 cm either side of it), so the pack is
+#: held to "no worse than the reference, plus a little" rather than to parity.
+_ELBOW_MAX_THICKNESS = 7.4    # cm
+
+
+def _templates() -> Path:
+    """The 2B reference pack (references/2b.rar), extracted by bootstrap.sh."""
+    import os
+
+    for cand in (Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"),
+                 Path("/home/user/tmpsrc/2B - LAS/assets/units/2b/skins/2b")):
+        if (cand / "2b.model").is_file():
+            return cand
+    env = os.environ.get("PD2_2B_TEMPLATES")
+    if env and (Path(env) / "2b.model").is_file():
+        return Path(env)
+    pytest.skip("2B templates not extracted (run tools/pd2-las/bootstrap.sh)")
+
+
+def _fit_report(which: str, fps: bool = False) -> dict:
+    """segment_fit report for a built pack, against the PD2 bind skeleton."""
+    import build_models as bm
+
+    tpl = bm.load_template(_templates() / "2b.model")
+    _, pack_dir, item_id, _g = PACKS[which]
+    unit = f"{pack_dir}/assets/units/{item_id}/skins/{item_id}"
+    stem = f"fps_{item_id}" if fps else item_id
+    with _zf(which) as zf:
+        data = zf.read(f"{unit}/{stem}.model")
+    tmpdir = Path("/tmp/christie_fit")
+    tmpdir.mkdir(parents=True, exist_ok=True)
+    tmp = tmpdir / f"{which}_{stem}.model"
+    tmp.write_bytes(data)
+    return bm.segment_fit_report(tmp, tpl)
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+@pytest.mark.parametrize("fps", [False, True], ids=["tpp", "fps"])
+def test_limb_tubes_sit_on_their_bones(which, fps):
+    """Both units: the forearm tube must wrap its bone axis.
+
+    This is the diagnostic the preview overlays were showing by eye: with the
+    tube off-axis the ``Arm``/``ForeArm`` bone runs along the edge of the
+    sleeve instead of down the middle, and the offset grows toward the wrist.
+    """
+    rep = _fit_report(which, fps)
+    segs = rep["segments"]
+    for bone in ("LeftForeArm", "RightForeArm"):
+        r = segs[bone]
+        assert r["max"] <= _FOREARM_MAX_SLICE, (
+            f"{which}/{'fps' if fps else 'tpp'} {bone}: worst cross-section "
+            f"centre is {r['max']:.2f} cm off the bone axis "
+            f"(limit {_FOREARM_MAX_SLICE})")
+        assert r["drift"] <= _FOREARM_MAX_DRIFT, (
+            f"{which}/{'fps' if fps else 'tpp'} {bone}: centre drifts "
+            f"{r['drift']:.2f} cm along the segment (limit {_FOREARM_MAX_DRIFT})")
+
+
+def _arm_thickness_at_elbow(which: str) -> float:
+    """p90 distance from the Arm->ForeArm->Hand polyline, 2 cm band at the joint.
+
+    Measured along the *chain*: the two segments meet at 72 degrees, so any
+    window picked by one segment's axial coordinate catches the other one's
+    cross-section (see ``trim_elbows``)."""
+    import numpy as np
+    import build_models as bm
+    import segment_fit as sf
+
+    tpl = bm.load_template(_templates() / "2b.model")
+    chain = [sf.joint_pos(tpl, n) for n in ("LeftArm", "LeftForeArm", "LeftHand")]
+    s_joint = float(np.linalg.norm(chain[1] - chain[0]))
+    v, dom = _g_body_geo_dom(which)
+    m = np.array([nm in ("LeftArm", "LeftForeArm") and w > 0.2 for nm, w in dom])
+    pts = v[m]
+    best = np.full(len(pts), np.inf)
+    arc = np.zeros(len(pts))
+    acc = 0.0
+    for a, b in zip(chain[:-1], chain[1:]):
+        ab = b - a
+        L = float(np.linalg.norm(ab))
+        u = ab / L
+        t = np.clip((pts - a) @ u, 0.0, L)
+        d = np.linalg.norm(pts - (a + np.outer(t, u)), axis=1)
+        better = d < best
+        best = np.where(better, d, best)
+        arc = np.where(better, t + acc, arc)
+        acc += L
+    band = (np.abs(arc - s_joint) < 2.0) & (best < 12)
+    assert band.sum() >= 8, f"{which}: only {int(band.sum())} verts at the elbow"
+    return float(np.percentile(best[band], 90))
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_elbow_is_not_puffier_than_the_reference(which):
+    """The elbow must not be the widest part of the arm.
+
+    The DOA source thickens at the joint: 8.16 cm (p90) in the 2 cm band around
+    the elbow against 6.8-7.3 cm either side of it, where PD2's own 2B body has
+    7.03 cm there and 6.0-6.7 cm either side. ``trim_elbows`` squeezes the
+    cross-section about the arm chain, which brings it to 7.18 cm without
+    moving the crease (the crease test above still passes).
+    """
+    got = _arm_thickness_at_elbow(which)
+    assert got <= _ELBOW_MAX_THICKNESS, (
+        f"{which}: arm is {got:.2f} cm thick at the elbow (limit "
+        f"{_ELBOW_MAX_THICKNESS}; 2B reference 7.03, was 8.16 before the trim)")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_elbow_creases_bend_at_the_pivot(which):
+    """PD2 rotates about the ForeArm pivot; the mesh's crease has to be there."""
+    rep = _fit_report(which)
+    for joint in ("LeftForeArm", "RightForeArm"):
+        assert rep["joints"][joint] <= _CREASE_MAX, (
+            f"{which} {joint}: crease is {rep['joints'][joint]:.2f} cm from the "
+            f"pivot (limit {_CREASE_MAX})")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_forearm_tube_is_coaxial_with_the_bone(which):
+    """The sleeve axis, not just the sleeve middle, has to be on the bone.
+
+    Locks the 2026-11-06 rewrite of ``centre_segments``: the old pass faded the
+    correction out toward the wrist (``smoothstep((L-t)/6)`` is 0.12 at the
+    mouth) and moved each vertex by its own skin weight, so the *stacked*
+    layers of a cross-section slid through each other. Both left the sleeve
+    leaning: the slab centre walked from 1.6 cm at the elbow to 3.3 cm at the
+    wrist and the cuff ring sat 2.2 cm off the ``Hand`` pivot. The pass is now
+    weight-saturated and corrects to the mouth, which puts the drift under
+    1.1 cm and the cuff under 1.5 cm on both packs.
+    """
+    for key in sorted(PACKS):
+        rep = _fit_report(key)
+        drifts = [rep["segments"][f"{s}ForeArm"]["drift"] for s in ("Left", "Right")]
+        assert max(drifts) <= _FOREARM_MAX_DRIFT, (
+            f"{key}: forearm centreline still drifts {max(drifts):.2f} cm along "
+            f"the segment (limit {_FOREARM_MAX_DRIFT}) - the mouth is not being "
+            f"corrected")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_sleeve_end_surrounds_the_glove_spawn(which):
+    """Where the in-game glove spawns: the sleeve opening must sit on it.
+
+    The slim pack cuts the hands at the wrist and stretches the sleeve past the
+    joint, so its cuff has to enclose the ``Hand`` pivot rather than float away
+    from it.
+    """
+    rep = _fit_report(which)
+    limit = _CUT_CUFF_MAX if PACKS[which][3] else _CUFF_MAX
+    for key, d in rep["cuffs"].items():
+        assert d is not None, f"{which}: no cuff ring found for {key}"
+        assert d <= limit, f"{which} {key}: cuff is {d:.2f} cm from the pivot"
+
+
+def test_fit_numbers_match_the_build_report():
+    """The numbers BUILD_INFO records from the build and the ones measured here
+    on the shipped .model must agree — catches a stale dist/ artefact."""
+    for which in sorted(PACKS):
+        _, pack_dir, _item, _g = PACKS[which]
+        with _zf(which) as zf:
+            info = json.loads(zf.read(f"{pack_dir}/BUILD_INFO.json"))
+        built = info.get("fit_tpp")
+        assert built, f"{which}: BUILD_INFO has no fit_tpp (rebuild the pack)"
+        measured = _fit_report(which)
+        assert abs(built["worst_segment_offset"]
+                   - measured["worst_segment_offset"]) < 1e-6

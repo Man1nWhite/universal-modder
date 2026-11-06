@@ -2850,6 +2850,54 @@ def atom_problems(geo: dict, topo: dict, atoms: list[dict]) -> list[str]:
     return problems
 
 
+
+def read_drawable(path, drawable: str = "g_body") -> dict | None:
+    """Geometry + skin weights of one drawable from a built `.model`.
+
+    Returns ``{"verts", "faces", "blendindices", "blendweights", "palette"}``
+    with ``palette`` resolved to bone *names* (the section ids in the file are
+    not stable between packs), or ``None`` if the drawable is absent.
+    """
+    mf = dm.ModelFile.read_path(path) if isinstance(path, (str, Path)) else dm.ModelFile.read(path)
+    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
+    hash_name = {dm.hash64(n): n for n in hl}
+    objs, _worlds = _resolve_worlds(mf)
+    name_of = {sid: hash_name.get(o.get("name_hash"), "") for sid, o in objs.items()}
+    for sec in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(sec.payload)
+        if name_of.get(sec.id) != drawable or md.get("version") != 3:
+            continue
+        gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+        topo = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+        sk = dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)
+        return {
+            "verts": geo["verts"],
+            "faces": list(zip(topo["indices"][0::3], topo["indices"][1::3],
+                              topo["indices"][2::3])),
+            "blendindices": geo["blendindices"],
+            "blendweights": geo["blendweights"],
+            "palette": [name_of.get(b, str(b)) for b in sk["objects"]],
+        }
+    return None
+
+
+def segment_fit_report(path, template: "Template", drawable: str = "g_body") -> dict:
+    """Mesh-vs-skeleton fit numbers for a built model (see segment_fit.py)."""
+    import segment_fit as sf
+
+    drawn = read_drawable(path, drawable)
+    if drawn is None:
+        raise ValueError(f"{path}: no {drawable} drawable")
+    weights = [[(pi, w) for pi, w in zip(bi, bw) if w > 0.0]
+               for bi, bw in zip(drawn["blendindices"], drawn["blendweights"])]
+    rep = sf.measure(drawn["verts"], weights, drawn["palette"], template)
+    rep["cuffs"] = {b: sf.cuff_distance(drawn["verts"], weights, drawn["palette"],
+                                        template, b)
+                    for b in ("LeftHand", "RightHand")}
+    return rep
+
+
 def audit_model(src) -> list[str]:
     """`atom_problems` over every mesh node of a built model."""
     mf = dm.ModelFile.read_path(src) if isinstance(src, (str, Path)) else src

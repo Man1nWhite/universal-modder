@@ -112,7 +112,12 @@ bash tools/pd2-las/bootstrap.sh
    - Diesel normal maps use swizzled **DXT5nm** (`R = G = B = ny`, `A = nx`, DirectX Y− green channel inverted to Y+ via `dds.pd2_normal_channels(arr, invert_y=True)`).
 5. **Standing-Pose Shoulder/Arm Alignment & Elbow Hinge Axis (Full-Body LAS)**:
    - PAYDAY 2's in-game standing pose swings `RightShoulder`/`LeftShoulder` ~19° downward from bind pose (`z: 147→142 cm`). Retargeting must align clavicle/upper-arm/forearm directions in the **animated standing pose** and align the source elbow hinge axis (`local +Z`) with PD2's `RightForeArm`/`LeftForeArm` local `+Z` axis so elbows never shear when bending.
-6. **Joy Head-Replacement (`mod_overrides`) Collar & Skinning Contract**:
+6. **Mesh-vs-Skeleton Fit Is Measured, Not Eyeballed**:
+   - `tools/pd2-las/segment_fit.py` measures, per limb segment, how far a limb tube sits from its bone axis (Kasa circle fit per axial slab — *not* a median of vertex offsets, which answers "where is the average vertex") and how far each crease is from the joint PD2 pivots about. `tests/test_christie_las.py` asserts on it.
+   - Reference: PD2's own fitted 2B body keeps the forearm within 0.4–1.2 cm of the `ForeArm` axis. The Christie forearm ran 1.6 → 3.3 cm (a drift toward the wrist), which is what made the bone look like it ran along the sleeve edge; `build_christie_las.centre_segments` fixes it by translating vertices *only* (skeleton, bind matrices and skin weights untouched, `t` preserved exactly).
+   - A big slab offset is not automatically a defect: the blazer hem flares ~10 cm off `UpLeg` on purpose, and the deltoid holds 6–14 verts per slab so its centre scatters by several cm. New segments need their own evidence before they are added to `CENTRE_SEGMENTS`.
+
+7. **Joy Head-Replacement (`mod_overrides`) Collar & Skinning Contract**:
    - `npc_criminal_joy_1.model` (`and identical npc_criminal_joy_1_menu.model`) uses `g_head_mask_off` (`id=120`, `geo=228`, `topo=229`) and `g_head` (`id=121`, `geo=233`, `topo=234`), both bound to `SkinBones 44` (`['Spine2', 'Neck', 'Head']`).
    - Joy's `g_body` hoodie collar (`z ∈ [151, 160]`) is weighted `95.5%` to `Spine2` (`0% Neck`), with an inner collar cone at `y ≈ 7.2–8.5 cm` and outer V-neck lapel at `y ∈ [12.9, 15.5] cm`. Keep lower-throat vertices in the collar channel `y ∈ [9.0, 10.6] cm` and weight `z <= 156 cm` `100%` to `Spine2` so the neck never separates from the collar when `Neck`/`Head` rotate.
 

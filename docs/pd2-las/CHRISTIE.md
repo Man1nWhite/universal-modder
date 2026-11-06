@@ -1,7 +1,8 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`) — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`) — 10% thinner torso/legs, 25%
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `bc482523…208a38`) — full body
+  incl. Christie's hands.
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `aacc31a9…ef67`) — 10% thinner torso/legs, 25%
   thinner arms in cross-section, **and no hands** (`--variant slim`; the
   separate no-hands pack was removed — slim supersedes it). The v4 slim pass
   (`slim_group`) works on the bind-pose mesh only — skeleton, bone lengths
@@ -85,6 +86,12 @@ straightness *within* each segment is enforced.
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # slim pack
 ```
 
+After `straighten_segments` the build runs **`centre_segments`** (puts a limb
+tube back on the bone that drives it — see [Mesh-vs-skeleton
+fit](#mesh-vs-skeleton-fit)) and then **`trim_elbows`** (squeezes the joint
+bulge about the arm chain — see [The elbows](#the-elbows-why-they-were-puffy-and-what-was-done)).
+Then the slim/hand-cut steps and `assemble_model` follow.
+
 Pipeline: `build_christie_las.load_christie` parses the MDL with **every
 bodygroup model** walked (DOA5 ships body/glasses/bra/head as bodypart model
 variants; `source_model.load_model` only reads each bodypart's first model and
@@ -125,12 +132,295 @@ Registration: `LegendaryArmours.christie`, `...christie_no_hands`,
 mesh with the PD2 skeleton overlaid (arm chain in red), produced by
 `tools/pd2-las/render_mesh_skeleton.py`:
 
-- `christie_slim_skel_{front,side,iso}.png` — slim pack, full body
-- `christie_slim_skel_wrist_{front,side}.png` — left-wrist close-ups (the
-  sleeve cuff surrounds the Hand pivot where the in-game glove spawns)
-- `christie_skel_front.png`, `christie_skel_wrist_side.png` — base pack
+Both packs are named after the pack: `christie_*` is the base pack, and
+`christie_slim_*` is the slim one. Every file below comes out of the same
+command, so the whole set is reproducible in one run per pack:
+
+```bash
+.venv/bin/python tools/pd2-las/render_mesh_skeleton.py \
+    --zip dist/Christie_LAS.zip --pack Christie_LAS --item christie \
+    --templates "<2B>/assets/units/2b/skins/2b" \
+    --out docs/pd2-las/renders --pose          # add --Slim for the slim pack
+```
+
+- `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
+  directions. `top` looks down the body axis from above and `bottom` looks up
+  it from below; in both, the arms swing out to the sides so the hands land by
+  the "ears". These two are for the *radial* offset of a limb tube (is the bone
+  in the middle of the sleeve, seen along its length), not for left/right - the
+  arms are near the body axis, so screen x is a weak left/right signal here.
+  Check left/right on `front`.
+
+  Both were wrong before 2026-11-06, in different ways, and neither error is
+  visible as "impossible geometry" - the shading uses `abs(normal)` and the body
+  is close to symmetric, so a bad depth order still produces a believable
+  picture. `bottom` projected as `(-x, -y)`, i.e. the `top` view rotated 180
+  degrees, so it never showed the underside at all; `top` sorted faces by `-z`
+  with the camera above, so it painted the far side last and showed the jacket's
+  *lining* over the shoulders. `depth_towards_camera()` now derives the sort key
+  from a per-view camera direction, and `tests/test_render_mesh_skeleton.py`
+  pins both the projection axes and the depth sign.
+- `christie_skel_wrist_{front,side}.png` — left-wrist close-ups (the sleeve cuff
+  surrounds the `Hand` pivot where the in-game glove spawns)
+- `christie_forearm_{front,side}.png` — left arm from shoulder to hand, the view
+  that answers "is the bone in the middle of the sleeve"
+
+  The close-ups are *isolated limbs*, not zoomed crops: the renderer keeps the
+  triangles within 8 cm of the arm bones and the bones near that chain, then
+  frames what is left. That matters because a crop window is a slab through an
+  orthographic scene - it always drags in the torso and the far shoulder, which
+  is how these images spent two revisions showing a correctly-fitted bone
+  buried in a wall of cloth. `side` is the character's **left** side (the model
+  faces +y with up +z, so left is -x, which is where every `Left*` bone sits);
+  a camera at +x would film the left arm through the body.
 - `christie_source_{front,side,iso,forearm_front,forearm_side}.png` — the
   ORIGINAL DOA5 model from `references/Christie.zip` with its own skeleton
   (`--source` mode of the renderer), as the reference for comparisons
-- `christie_{base,slim}_forearm_{front,side}.png` — forearm close-ups of both
-  packs in PD2 space, directly comparable to the source forearm renders
+- `christie_{base,slim}_fit_before_after.png` — left forearm/wrist, the pack as
+  shipped before 2026-11-06 (bone along the top edge of the sleeve, cuff off the
+  `Hand` pivot) next to the re-centred build. Generated by
+  `/home/user/work/before_after.py`-style two-crop composites, not by the
+  renderer, so it is the only pair here the command above does not refresh.
+- `christie_skel_pose_{front,side}.png`, `christie_skel_pose_wrist_*.png` (and
+  the `slim` pair) — the mesh re-skinned into a relaxed pose with the posed
+  skeleton drawn on top; regenerate with `--pose`
+
+Until 2026-11-06 this list named files that never existed (`*_skel_wrist_side`
+with no base-pack prefix, `christie_base_skel_top`) and the renderer never wrote
+`bottom` or the pack `forearm` views at all, so the committed images were
+hand-renamed one-offs and could not be rebuilt. The CLI now writes the whole
+set, and `tests/test_render_mesh_skeleton.py` keeps the naming honest.
+
+### Why the forearm sleeve curls, and whether it should
+
+Short answer: it should **not** be parallel to the bone, and most of what reads
+as a curl is not a curl. Over the forearm interior (5-18 cm of a 22.5 cm bone),
+fitting a Kasa circle to each cross section in the plane perpendicular to the
+bone:
+
+| mesh | lean vs bone | deviation from straight | tube radius | flare | mean centre offset |
+|---|---|---|---|---|---|
+| Christie base | 4.4° | 1.45 cm | 3.7 → 5.6 cm | 1.52x | 0.63 cm |
+| Christie slim | 1.1° | 1.49 cm | 2.3 → 5.1 cm | 2.27x | 0.59 cm |
+| PD2 2B reference | 1.9° | 0.48 cm | 2.7 → 4.3 cm | 1.63x | 0.94 cm |
+
+Every ring plane is perpendicular to the bone to 0.0° on all three meshes (SVD
+least-variance normal), so there is no kink at the ring level and nothing is
+"twisting" along the sleeve. Three separate things make up the look:
+
+1. **Lean — shared with the reference, and anatomically correct.** A forearm is
+   not a cylinder centred on its bone: the ulna runs down the outside, so the
+   mass sits off-axis. The 2B reference leans 1.9° and sits 0.94 cm off its own
+   bone, i.e. further off than either Christie pack. Being parallel to the bone
+   is a property of a bare limb, not of a sleeve.
+2. **Flare — shared with the reference.** The sleeve opens from 3.7 to 5.6 cm
+   (1.52x) toward the cuff; 2B flares 1.63x over the same span. Base is
+   therefore *less* flared than the reference. A sleeve is a flared tube, and a
+   flare seen edge-on in a side view is exactly what the eye reads as a curl.
+   Slim is the outlier (2.27x): its slim pass narrows the mid-forearm to
+   2.3-3.0 cm and then the outer layer flares back out to the cuff, so the
+   silhouette pinches and reopens.
+3. **Drift at the wrist end — Christie-specific, and now fixed.** From 5-17 cm
+   the section centre stays within 1 cm of the bone (its *direction* jitters,
+   which is noise on a multi-layer ring; its magnitude does not wander). Past
+   17 cm it moved smoothly and monotonically out to 2.4 cm as the mouth flared.
+   Total deviation from a straight line was 1.45 cm against 2B's 0.48 cm — the
+   one line in the table where Christie was clearly worse, and the only part
+   worth calling a bend. It is 0.47 cm now (slim 0.45) after `centre_segments`
+   was made to correct the mouth (see [Mesh-vs-skeleton
+   fit](#mesh-vs-skeleton-fit)); the lean and the flare in the table above are
+   unchanged, because they are the arm and the garment, not a fit error.
+
+The source is not the cause. The DOA source's own forearm holds its section
+centre within 0.11 cm of the bone for the whole of its 10.6 cm interior — it is
+straight, so the residual bend comes from the menu-pose retarget, not from the
+model. `straighten_segments()` targets exactly this: it fits a deg-2 centreline
+over interior slices and refuses the build (3.5 cm assert) rather than clip if
+the correction is large. Its 6 cm end fades mean the last ~6 cm of the bone —
+where the traffic above 17 cm lives — is deliberately left alone; that fade is
+why ~1.5 cm of bend survives instead of the several-cm kink the first build had.
+
+`christie_forearm_side.png` and `christie_slim_forearm_side.png` show all of
+this at once: a straight mount, a widening sleeve, an off-axis mouth.
+
+### The elbows: why they were puffy, and what was done
+
+The DOA source's arm is thickest exactly at the joint. p90 thickness over a 2 cm
+band about the `Arm -> ForeArm -> Hand` polyline, by arc length from the shoulder:
+
+| arc (cm) | 18 | **22 (elbow)** | 26 |
+|---|---|---|---|
+| Christie, before | 7.34 | **8.16** | 6.83 |
+| Christie, now | 6.96 | **7.18** | 6.33 |
+| PD2 2B reference | 6.72 | **7.03** | 6.02 |
+
+2B thickens at the elbow too (6.7 -> 7.0 -> 6.0), so a slight swell is correct —
+Christie's was just 0.8 cm deeper relative to its own arm, and that is what reads
+as a padded elbow. `trim_elbows` squashes the cross-section about the arm chain:
+`p' = p + a * (0.88 - 1) * r`, where `r` is the offset from the nearest point on
+`Shoulder -> Elbow -> Wrist` and `a` is 1 within 2 cm (arc) of the joint, fading
+to 0 at 6 cm. 74 vertices move, 1.0 cm at most; the hand and its cuff are held
+still (`1 - w(hand)`), and the skeleton, weights and bone lengths are untouched.
+
+Two locality mistakes are worth recording, because both look right and neither
+works:
+
+- **axial coordinate about a segment.** The segments meet at 72 degrees, so a
+  vertex on the *outside* of the elbow is ~6.5 cm "along" both axes: an axial
+  blend gave 0.01 cm of the 0.66 cm it should have applied, i.e. it trimmed the
+  far side of the joint and left the bulge;
+- **distance to the joint.** The outer surface of the elbow is ~8 cm from the
+  pivot, further than parts of the arm 8 cm up the bone. A spherical fade moved
+  20 vertices by 0.06 cm.
+
+Arc length along the chain is the only unambiguous locality here. The crease
+metric moved 2.57 -> 2.17 cm (slim 2.33 -> 2.17) rather than away, and
+`tests/test_christie_las.py::test_elbow_is_not_puffier_than_the_reference` holds
+the thickness at the joint under 7.4 cm.
+
+### The far end: what the cuff mouth looks like
+
+`christie_{,slim_}skel_cuff.png` looks straight down the forearm, because a cuff
+opening is a ring seen edge-on in every body view. Sleeve-mouth free boundary
+within 1-6 cm of the `Hand` pivot, radius about the bone axis:
+
+| | base | slim |
+|---|---|---|
+| mouth angular coverage | **2 / 36 sectors** | 20 / 36 sectors |
+| mouth radius, median | 4.62 cm | 3.01 cm |
+| axial raggedness | 4.8 cm | 3.2 cm |
+
+Slim's mouth is a real ring; base's is not. Only two of thirty-six angular
+sectors carry free-boundary geometry while the mouth spans 4.8 cm along the
+bone, so it is neither a clean cut nor a torn hole - it is a short flap of cloth
+hanging off the cuff, most likely the coat tail of the blazer layer, which the
+slim pass flattens toward the bone (that flattening is what closes the ring).
+
+Inherited, not introduced: the DOA source's own sleeve ends in a ruffled blazer
+cuff. Both cuff rings are still centred on the bone (rim centre 0.30 cm base /
+0.39 cm slim off the axis), so this is a mouth-shape note, not a fit regression.
+
+## Mesh-vs-skeleton fit
+
+Two questions decide whether an outfit looks attached to its heister:
+
+1. **Does the limb tube wrap its bone?** If the tube sits off the bone axis the
+   `Arm`/`ForeArm` bone runs along the edge of the sleeve instead of down the
+   middle, and it looks worse toward the wrist because the offset grows.
+2. **Does the mesh bend where PD2 pivots?** PD2 rotates about the `ForeArm`
+   joint, not about the mesh's elbow crease.
+
+`tools/pd2-las/segment_fit.py` measures both on any built pack, and
+`tests/test_christie_las.py` asserts on them, so a regression fails CI instead
+of showing up in a preview image months later:
+
+- **tube offset** — per axial slab, a *Kasa circle fit* of the cross-section.
+  The circle centre is the ring's centre; a median or centroid of the slab's
+  perpendicular offsets answers "where is the average vertex" instead, and that
+  swings by several cm when a lace seam or the elbow crease lands in the slab
+  (it reports 3.4 cm on the reference 2B body, whose forearm is visibly
+  straight). Slabs only count if they have ≥ 8 verts, cover ≥ 4 of 6 angular
+  sectors, and actually fit a circle (residual ≤ 0.5 r).
+- **drift** — the change of that offset along the segment, i.e. "the bone
+  slides off the sleeve toward the wrist".
+- **crease → pivot** — distance from the `ForeArm`/`Leg` pivot to the centroid
+  of the verts blended between the two bones meeting there.
+- **cuff → wrist** — distance from the `Hand` pivot to the surviving ring of
+  sleeve verts, i.e. where the in-game glove spawns.
+
+Reference numbers (same code, PD2's own fitted 2B body):
+
+| quantity | 2B reference | Christie base, before | Christie base, **now** |
+|---|---|---|---|
+| forearm slab centre off the axis (slice max) | 0.4 – 1.2 cm | 1.61 / 1.43 cm, drift 1.48 / 1.88 | **1.12 / 0.86 cm, drift 0.33 / 0.86** |
+| forearm slab centre (slim) | 0.4 – 1.2 cm | 0.98 / 0.88 cm, drift 0.83 / 0.90 | **0.94 / 0.97 cm, drift 0.42 / 1.01** |
+| upper arm | 1.8 – 3.1 cm | 0.5 – 0.9 cm | unchanged |
+| thigh / calf | 0.7 – 2.6 cm | 0.3 – 1.6 cm | unchanged |
+| crease → elbow pivot | 4.9 cm | 2.6 cm | **2.17 / 2.37 cm** |
+| cuff → wrist pivot | 1.5 cm | 2.0 cm (slim 2.2) | **1.18 / 1.13 cm (slim 1.87 / 2.02)** |
+
+The forearm is now closer to its bone than PD2's own 2B body, and the cuff ring
+is inside the reference's own 1.5 cm. "Before" is the pack as it shipped up to
+`eb4f77d`; the change that got there is described below.
+
+Two of those numbers look alarming and are **not** defects, which is why the
+build does not "fix" them:
+
+- **thigh 10 cm at the hip, upper arm 5–7 cm** — the thigh number is the blazer
+  hem flaring out, weighted to `UpLeg` on purpose (a coat has to swing with the
+  leg), and the upper-arm slabs hold 6–14 verts around the deltoid mass, so
+  their centres scatter by several cm (2B: 3.7 cm). Auto-centring them folds the
+  coat into the leg and nudges a shoulder that is not measurably wrong. The
+  centring pass is scoped to the forearms for that reason, and the thresholds
+  in the test are per-segment.
+- `straighten_segments` could not fix the forearm either: its radial mask
+  (`perp_max = 4.5 cm`) is an *absolute* distance from the bone axis, so the
+  verts that are wrong are exactly the ones it excludes.
+
+`centre_segments` right after `straighten_segments`; this is the pass that was
+rewritten on 2026-11-06 to make the sleeve *coaxial* with the bone.
+
+The measured per-slab profile is a **bow**: 1.2 cm off at the elbow, under 0.5 cm
+mid-segment, 2.2 cm at the mouth. Two things about the old pass therefore had to
+change, and one thing had to *not*:
+
+- **Fade.** The old correction was multiplied by `smoothstep((L−t)/6)` at the
+  wrist end, which is 0.36 at t = 20 cm and 0.12 at the mouth — it deleted the
+  correction exactly where the sleeve is furthest off the bone, and that is why
+  the cuff ring sat 2.2 cm from the `Hand` pivot. It is now elbow-only; the
+  wrist end gets a 2.5 cm **taper** instead of a 6 cm fade, which absorbs the
+  seam between the mouth ring and the glove ring. Taper and no taper were both
+  built: none folds 55 triangles flat at the mouth, 1.5 cm folds 12, 2.5 cm
+  folds none, and beyond 3 cm the cuff starts drifting out again (1.31 cm).
+  The elbow keeps its wide 3D fade, because its crease has pure-`ForeArm` verts
+  next to 20 %-ones and an axial-only fade folded two crease triangles there.
+- **Weight.** The old displacement was `w · fade · chat` — each vertex moved in
+  proportion to its own skin weight. A cross-section is a *stack* (outer sleeve,
+  mid layer, bare arm, blazer cuff flap) with weights 0.8–1.0, so that slides
+  the layers through each other and leaves the flap behind: the section then
+  *spreads*, and the fit reports 3.9 cm of radius against 2.2 before. The ramp
+  is now **saturated** — `smoothstep(w / 0.85)` — so the layers of one section
+  translate together, while the hand (weight 0) and the rest of the body do not
+  move. Dropping the weight factor altogether is also wrong, and measurably so:
+  it translates everything on that side of the body, and the leg crease goes
+  5.91 → 4.56 cm.
+- **Sampling.** Slabs now run from 6 cm past the elbow to the end of the bone
+  (`t ≤ L`, 14 slabs, `min_w` 0.05 so the 0.8/0.2 mouth ring counts); the
+  weight-weighted line through them is held flat outside that range, because
+  extrapolating turns a 0.7 cm intercept error into a 4 cm correction at the
+  wrist.
+
+The correction is perpendicular by construction, so `t` is preserved exactly
+(asserted: axial leak ~1e-16 cm), and only positions move — skeleton, bind
+matrices, bone lengths and skin weights are untouched. `_check_flips` still
+gates the build, and it now reports the worst triangle's position, area and edge
+stretch instead of only a count.
+
+The 2B reference cannot be shipped as the threshold proxy in every respect: its
+own crease sits 4.9 cm from the elbow pivot, further than Christie's 2.6 cm, so
+the crease test asserts an absolute bound rather than "better than 2B".
+
+Renders (`docs/pd2-las/renders/`): `*_skel_{front,side,iso,top}.png`, plus
+`*_skel_pose_{front,side}.png` and `*_skel_pose_wrist_{front,side}.png` — the
+mesh re-skinned into a relaxed pose. Those posed renders were wrong until
+2026-11-06, from three separate bugs, each of which stayed *invisible* in the
+bind pose — the only pose anyone checked at first:
+
+1. `render_mesh_skeleton.skin_verts` built a numpy 4×4 and applied it as
+   `M @ p`, but Diesel matrices are row-vector (`mat_apply_point`), so every
+   blended matrix was silently transposed and the mesh flew off the skeleton.
+2. `posed_worlds` pre-multiplied a local rotation, which rotates the joint
+   *offset* instead of pivoting the bone about its own head.
+3. `skin_verts` composed the skin matrix as `pose_world @ inv_bind`. The
+   bind matrices are inverse-bind worlds, so the correct order is
+   `inv_bind @ pose_world` (bind → model → posed). The swapped order applies
+   each bone's pose rotation about the *model origin*, which is exactly the
+   identity while every joint is at rest but flings the arm 45 cm at mid-forearm
+   as soon as an elbow bends — the long blade-like spikes that used to appear
+   through the hands in the `--pose` previews.
+
+Bugs 1 and 3 are both exactly the identity at rest, so an at-rest overlay proves
+nothing about them. `tests/test_render_mesh_skeleton.py` now bends an elbow and
+asserts the joints stay put, no edge grows more than a few cm, and every vertex
+stays near its bone. The shipped packs were never affected: this code only
+draws the diagnostic previews, it does not bake the mesh.
