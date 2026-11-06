@@ -699,17 +699,24 @@ def _check_flips(g: bm.Group, v_old, tag: str) -> None:
 
 def straighten_segments(g: bm.Group, template: bm.Template,
                         bones=("LeftArm", "RightArm", "LeftForeArm", "RightForeArm"),
-                        bin_cm: float = 2.0, perp_max: float = 10.0,
-                        w_min: float = 0.5, edge_fade_cm: float = 3.0) -> bm.Group:
+                        bin_cm: float = 2.0, perp_max: float = 4.5,
+                        w_min: float = 0.85, edge_fade_cm: float = 4.0,
+                        cap_cm: float = 2.5, min_slice: int = 6) -> bm.Group:
     """Straighten limb segments in bind pose (mesh-only, weights untouched).
 
     The source rig is straight but the menu-pose retarget leaves a mid-segment
     kink (visible as a second "bend" past the elbow in the forearm renders).
-    For each segment, fit a smooth (deg-2 in t) centerline offset c_hat(t) to
-    the per-slice perpendicular centroids of its high-weight verts, then
-    displace p' = p - sum_j w_j * g_j(t) * c_hat_j(t)  (all from original p,
-    axial coordinate preserved, end-faded). Per-slice translation is injective
-    so no folds by construction; flip check still runs.
+    For each segment, fit a deg-2-in-t centerline offset c_hat(t) to the
+    per-slice perpendicular MEDIANS of its pure high-weight verts, then
+    displace p' = p - sum_j w_j * g_j(t) * c_hat_j(t) (capped at cap_cm).
+
+    Robustness notes (v2 of this pass): slice medians instead of centroids,
+    a tight radius mask (only verts actually inside the limb), slices from
+    the segment interior only (the elbow/wrist blend zones at the ends are
+    contaminated by neighbouring geometry and previously poisoned the global
+    deg-2 fit, warping the whole segment), a hard cap on the correction, and
+    end fades. Axial coordinate is preserved; per-slice translation is
+    injective so no folds by construction; flip check still runs.
     """
     import numpy as np
 
@@ -727,17 +734,19 @@ def straighten_segments(g: bm.Group, template: bm.Template,
         perp = np.linalg.norm(r, axis=1)
         wgt = np.array([rw.get(bone, 0.0) for rw in routed])
         core = (wgt > w_min) & (perp < perp_max) & (ts >= 0.0) & (ts <= L)
-        if core.sum() < 20:
+        if core.sum() < 40:
             continue
-        # per-slice centroid offsets, then deg-2 polynomial fit in t
+        # per-slice median offsets from the segment interior, then deg-2 fit
         tks, cks, nks = [], [], []
-        for t0 in np.arange(0.0, L, bin_cm):
+        for t0 in np.arange(edge_fade_cm, L - edge_fade_cm, bin_cm):
             m = core & (ts >= t0) & (ts < t0 + bin_cm)
-            if m.sum() < 4:
+            if m.sum() < min_slice:
                 continue
             tks.append(float(ts[m].mean()))
-            cks.append(r[m].mean(axis=0))
+            cks.append(np.median(r[m], axis=0))
             nks.append(int(m.sum()))
+        if len(tks) < 4:
+            continue
         tks = np.array(tks)
         cks = np.array(cks)
         nks = np.array(nks, dtype=np.float64)
@@ -745,14 +754,17 @@ def straighten_segments(g: bm.Group, template: bm.Template,
         coef, *_ = np.linalg.lstsq(A * nks[:, None], cks * nks[:, None], rcond=None)
 
         def chat(t):
-            return coef[0] + coef[1] * t + coef[2] * t * t
+            c = coef[0] + coef[1] * t + coef[2] * t * t
+            n = float(np.linalg.norm(c))
+            return c * min(1.0, cap_cm / n) if n > cap_cm else c
 
         gfade = np.array([_smoothstep(t / edge_fade_cm)
                           * _smoothstep((L - t) / edge_fade_cm) for t in ts])
         disp = -(wgt * gfade)[:, None] * np.array([chat(t) for t in ts])
         new = new + disp
         print(f"  straighten {bone}: {int(core.sum())} core verts, "
-              f"max slice offset removed {float(np.linalg.norm(cks, axis=1).max()):.2f} cm")
+              f"{len(tks)} slices, max correction "
+              f"{float(np.linalg.norm(np.array([chat(t) for t in tks]), axis=1).max()):.2f} cm")
     g.verts = [tuple(row) for row in new]
     _check_flips(g, v, f"straighten {g.name}")
     _recompute_normals(g, n_old)

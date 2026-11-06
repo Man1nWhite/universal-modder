@@ -44,6 +44,16 @@ no vertex spikes (z extent stays ≈164 cm, 0 orientation breaks). Do NOT
 re-fit those bones with a fresh rotation: the harmonic blend with the Spine1
 fit spikes shoulder-top verts to z ≈191–199.
 
+**Bind-pose straightening:** the menu-pose retarget can leave a small
+mid-forearm centerline kink, so after transfer every variant runs
+`straighten_segments()` on the forearm segments before slim: per-slice
+perpendicular **median** offsets of pure high-weight verts (w > 0.85,
+perp < 4.5 cm) from the segment interior only, deg-2 fit in axial t,
+correction capped at 2.5 cm with 4 cm end fades, weights untouched,
+flip-checked. Upper-arm segments are skipped (too few clean verts). The
+elbow bend itself is the PD2 template bind pose and is intentionally left
+alone — only straightness *within* each segment is enforced.
+
 ## Build
 
 ```sh
