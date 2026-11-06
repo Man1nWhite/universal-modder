@@ -661,6 +661,104 @@ def _ring_fade(geom_seg, ring_min_t: float, ring_radius: float, min_len_cm: floa
     return f, t0, t1
 
 
+def _recompute_normals(g: bm.Group, n_old) -> None:
+    """Area-weighted vertex normals from the final triangles; authored normal
+    kept at hard edges (where recompute disagrees strongly)."""
+    import numpy as np
+
+    v = np.array(g.verts, dtype=np.float64)
+    faces = np.array(g.faces, dtype=np.int64)
+    acc = np.zeros_like(v)
+    for f in faces:
+        a, b, c = f
+        fn = np.cross(v[b] - v[a], v[c] - v[a])
+        acc[a] += fn
+        acc[b] += fn
+        acc[c] += fn
+    n_new = acc / np.maximum(np.linalg.norm(acc, axis=1, keepdims=True), 1e-12)
+    hard = np.sum(n_new * n_old, axis=1) < 0.5
+    n_new[hard] = n_old[hard]
+    n_new /= np.maximum(np.linalg.norm(n_new, axis=1, keepdims=True), 1e-12)
+    g.normals = [tuple(row) for row in n_new]
+
+
+def _check_flips(g: bm.Group, v_old, tag: str) -> None:
+    import numpy as np
+
+    v = np.array(g.verts, dtype=np.float64)
+    faces = np.array(g.faces, dtype=np.int64)
+    to, tn = v_old[faces], v[faces]
+    no = np.cross(to[:, 1] - to[:, 0], to[:, 2] - to[:, 0])
+    nn = np.cross(tn[:, 1] - tn[:, 0], tn[:, 2] - tn[:, 0])
+    dot = np.sum(no * nn, axis=1) / np.maximum(
+        np.linalg.norm(no, axis=1) * np.linalg.norm(nn, axis=1), 1e-18)
+    flips = int((dot <= 0.0).sum())
+    if flips:
+        raise SystemExit(f"{tag}: {flips} triangles flipped (n'.n <= 0)")
+
+
+def straighten_segments(g: bm.Group, template: bm.Template,
+                        bones=("LeftArm", "RightArm", "LeftForeArm", "RightForeArm"),
+                        bin_cm: float = 2.0, perp_max: float = 10.0,
+                        w_min: float = 0.5, edge_fade_cm: float = 3.0) -> bm.Group:
+    """Straighten limb segments in bind pose (mesh-only, weights untouched).
+
+    The source rig is straight but the menu-pose retarget leaves a mid-segment
+    kink (visible as a second "bend" past the elbow in the forearm renders).
+    For each segment, fit a smooth (deg-2 in t) centerline offset c_hat(t) to
+    the per-slice perpendicular centroids of its high-weight verts, then
+    displace p' = p - sum_j w_j * g_j(t) * c_hat_j(t)  (all from original p,
+    axial coordinate preserved, end-faded). Per-slice translation is injective
+    so no folds by construction; flip check still runs.
+    """
+    import numpy as np
+
+    routed = _route_weights(g, template)
+    geom = _segment_geom(template)
+    v = np.array(g.verts, dtype=np.float64)
+    n_old = np.array(g.normals, dtype=np.float64)
+    new = v.copy()
+    for bone in bones:
+        if bone not in geom:
+            continue
+        a, u, L, s, child = geom[bone]
+        ts = (v - a) @ u
+        r = (v - a) - np.outer(ts, u)
+        perp = np.linalg.norm(r, axis=1)
+        wgt = np.array([rw.get(bone, 0.0) for rw in routed])
+        core = (wgt > w_min) & (perp < perp_max) & (ts >= 0.0) & (ts <= L)
+        if core.sum() < 20:
+            continue
+        # per-slice centroid offsets, then deg-2 polynomial fit in t
+        tks, cks, nks = [], [], []
+        for t0 in np.arange(0.0, L, bin_cm):
+            m = core & (ts >= t0) & (ts < t0 + bin_cm)
+            if m.sum() < 4:
+                continue
+            tks.append(float(ts[m].mean()))
+            cks.append(r[m].mean(axis=0))
+            nks.append(int(m.sum()))
+        tks = np.array(tks)
+        cks = np.array(cks)
+        nks = np.array(nks, dtype=np.float64)
+        A = np.stack([np.ones_like(tks), tks, tks * tks], axis=1)
+        coef, *_ = np.linalg.lstsq(A * nks[:, None], cks * nks[:, None], rcond=None)
+
+        def chat(t):
+            return coef[0] + coef[1] * t + coef[2] * t * t
+
+        gfade = np.array([_smoothstep(t / edge_fade_cm)
+                          * _smoothstep((L - t) / edge_fade_cm) for t in ts])
+        disp = -(wgt * gfade)[:, None] * np.array([chat(t) for t in ts])
+        new = new + disp
+        print(f"  straighten {bone}: {int(core.sum())} core verts, "
+              f"max slice offset removed {float(np.linalg.norm(cks, axis=1).max()):.2f} cm")
+    g.verts = [tuple(row) for row in new]
+    _check_flips(g, v, f"straighten {g.name}")
+    _recompute_normals(g, n_old)
+    return g
+
+
 def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
                arm_scale: float = 0.75) -> bm.Group:
     """v4 cross-sectional slimming, bind pose, mesh-only (skeleton, bone
@@ -772,39 +870,22 @@ def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
         new_v[i] = v[i]
 
     # -- integrity: flips are hard failures; area/edge shrinkage is flagged --
+    g.verts = [tuple(row) for row in new_v]
+    _check_flips(g, v, f"slim {g.name}")
     faces = np.array(g.faces, dtype=np.int64)
     tri_old = v[faces]
     tri_new = new_v[faces]
-    nrm_old = np.cross(tri_old[:, 1] - tri_old[:, 0], tri_old[:, 2] - tri_old[:, 0])
-    nrm_new = np.cross(tri_new[:, 1] - tri_new[:, 0], tri_new[:, 2] - tri_new[:, 0])
-    ao = np.linalg.norm(nrm_old, axis=1)
-    an = np.linalg.norm(nrm_new, axis=1)
-    dot = np.sum(nrm_old * nrm_new, axis=1) / np.maximum(ao * an, 1e-18)
-    flips = int((dot <= 0.0).sum())
-    if flips:
-        raise SystemExit(f"slim: {flips} triangles flipped (n'.n <= 0)")
+    ao = np.linalg.norm(np.cross(tri_old[:, 1] - tri_old[:, 0],
+                                 tri_old[:, 2] - tri_old[:, 0]), axis=1)
+    an = np.linalg.norm(np.cross(tri_new[:, 1] - tri_new[:, 0],
+                                 tri_new[:, 2] - tri_new[:, 0]), axis=1)
     area_ratio = an / np.maximum(ao, 1e-18)
     flagged = int(((area_ratio < 0.45) | (area_ratio > 1.1)).sum())
-    print(f"[{g.name}] slim v4: flips {flips}, area-flagged {flagged} tris, "
+    print(f"[{g.name}] slim v4: flips 0, area-flagged {flagged} tris, "
           f"protected verts {len(protected)}")
 
-    # -- normals from the final triangles (area-weighted; keep authored
-    #    normal at hard edges where the recompute disagrees strongly) --------
-    acc = np.zeros_like(new_v)
-    for f in faces:
-        a, b, c = f
-        fn = np.cross(new_v[b] - new_v[a], new_v[c] - new_v[a])
-        acc[a] += fn
-        acc[b] += fn
-        acc[c] += fn
-    nl = np.linalg.norm(acc, axis=1, keepdims=True)
-    n_new = acc / np.maximum(nl, 1e-12)
-    hard = np.sum(n_new * n_old, axis=1) < 0.5
-    n_new[hard] = n_old[hard]
-    n_new /= np.maximum(np.linalg.norm(n_new, axis=1, keepdims=True), 1e-12)
-
-    g.verts = [tuple(row) for row in new_v]
-    g.normals = [tuple(row) for row in n_new]
+    # -- normals from the final triangles (hard edges keep authored normal) --
+    _recompute_normals(g, n_old)
     print(f"[{g.name}] slim v4 done: x {np.ptp(new_v[:, 0]):.1f} cm, "
           f"y {np.ptp(new_v[:, 1]):.1f} cm, z {np.ptp(new_v[:, 2]):.1f} cm "
           f"(z [{new_v[:, 2].min():.2f}, {new_v[:, 2].max():.2f}])")
@@ -1154,6 +1235,20 @@ def main(argv=None) -> int:
         groups[gname] = g
         for drawable in spec["drawables"]:
             share[drawable] = gname
+
+    # The menu-pose retarget leaves a mid-forearm kink (the source rig is
+    # straight, the PD2 forearm axis is straight — the warp comes from the
+    # retarget). Straighten arm segments in bind pose for EVERY variant
+    # before any slim pass, so the base pack is clean too.
+    for gname in ("body", "shadow"):
+        straighten_segments(groups[gname], template)
+        breaks = bm.orientation_breaks(groups[gname])
+        agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
+                                     groups[gname].normals)
+        print(f"[{gname}] after straighten: orientation breaks {breaks}, "
+              f"winding agreement {agree:.1%}")
+        if breaks or agree < 0.9:
+            raise SystemExit(f"[{gname}] straighten broke the mesh")
 
     if args.variant == "slim":
         # Thinner in width/depth only; height (z) and the skeleton untouched.
