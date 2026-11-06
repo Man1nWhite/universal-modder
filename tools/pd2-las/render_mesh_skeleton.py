@@ -81,40 +81,88 @@ def _subset_near_polyline(geo, chain, radius: float, pad: float = 6.0):
 
 
 def _bones_near(chain, bones, radius: float):
-    """The bones that belong in a limb close-up.
+    """The bones that belong in a limb close-up - the limb's own subtree.
 
-    Framing uses every bone it is handed, so drawing the full skeleton around a
-    cropped sleeve shrinks the arm into a corner of the picture with the rest of
-    the rig hanging below it. Keep the bones near the traced chain, plus their
-    immediate parents so the joint above the limb still reads.
+    A bone is kept when the traced chain is among its ancestors (so the hand and
+    fingers come along), plus the chain's immediate parents for context. Two
+    things this avoids, both of which showed up in the images:
+
+      * framing uses every bone it is handed, and the full rig shrank the arm
+        into a corner with the rest of the skeleton hanging below it;
+      * proximity alone is too loose - 50 bones fall within 16 cm of the arm,
+        including `LeftShoulder` and a weapon attachment, and their parent lines
+        are drawn to joints that are not in the picture, which reads as stray
+        bones floating off into the torso.
     """
+    names = [n for n, _h, _p in bones]
+    parent_of = {n: p for n, _h, p in bones}
+    chain_names = {n for n, h, _p in bones
+                   if any(np.linalg.norm(np.asarray(h, float)
+                                         - np.asarray(c, float)) <= radius
+                          for c in chain)}
     keep = set()
-    for i, (name, head, parent) in enumerate(bones):
-        d = min(np.linalg.norm(np.asarray(head, float) - np.asarray(c, float))
-                for c in chain)
-        if d <= radius:
-            keep.add(i)
-    parent_of = {i: parent for i, (_n, _h, parent) in enumerate(bones)}
-    names = {name: i for i, (name, _h, _p) in enumerate(bones)}
-    for i in list(keep):
-        p = parent_of[i]
-        if p in names:
-            keep.add(names[p])
-    return [b for i, b in enumerate(bones) if i in keep]
+    for name in names:
+        node = name
+        for _ in range(12):                    # walk up to the root
+            if node in chain_names:
+                keep.add(name)
+                break
+            node = parent_of.get(node)
+            if node is None:
+                break
+    # No "one level of context above": `render()` already skips the line for a
+    # bone whose parent is not drawn, so the limb just ends. Adding the parent
+    # instead drew a shoulder-to-chest line running off the sleeve, which reads
+    # as a stray bone crossing the crop.
+    # attachments, collision capsules and the duplicated `*_locator_end` bones
+    # all sit on the limb but are not anatomy - they draw as dots in the middle
+    # of the sleeve and as lines to a joint that does not exist
+    drop = ("locator", "capsule", "weapon", "_att", "_end")
+    keep = {n for n in keep if not any(d in n for d in drop)}
+    # No extra ancestor: `render()` skips a bone's line when its parent is not
+    # in the list, so the top of the limb simply ends. Adding the context bone
+    # instead drew a 40 cm line from the shoulder to a spine joint that is
+    # outside the crop, which reads as a bone escaping the arm.
+    return [b for b in bones if b[0] in keep]
 
 
-def _window_around(pts, view: str, half_w: float, half_h: float) -> tuple:
-    """Screen-space crop window around the projection of some 3D points."""
-    p2 = project(np.array(pts, float), view)
-    u0, v0 = p2.min(axis=0) - np.array([half_w, half_h])
-    u1, v1 = p2.max(axis=0) + np.array([half_w, half_h])
-    return (float(u0), float(u1), float(v0), float(v1))
+def _largest_blobs(sub: dict, count: int = 3) -> dict:
+    """Drop the little scrap islands a radius cut leaves behind.
 
+    Selecting triangles by proximity to a bone chain always picks up a few
+    isolated fragments where a nearby surface (a cuff edge, the far side of a
+    sleeve seam) happens to pass within the radius. They read as random chunks
+    floating beside the arm, so keep only the biggest connected pieces.
+    """
+    faces = np.array(sub["faces"], int)
+    if len(faces) == 0:
+        return sub
+    parent = list(range(int(faces.max()) + 1))
 
-def _depth_band(pts, view: str, half: float = 9.0) -> tuple:
-    """Camera-axis band around some 3D points - the near shell of a close-up."""
-    d = depth_towards_camera(view, np.array(pts, float))
-    return (float(d.min() - half), float(d.max() + half))
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for f in faces:
+        union(f[0], f[1])
+        union(f[1], f[2])
+    roots = np.array([find(f[0]) for f in faces])
+    order = np.argsort(-np.bincount(roots)[np.bincount(roots) > 0])[:count]
+    keep_roots = {int(np.unique(roots)[i]) for i in order}
+    keep = np.array([find(f[0]) in keep_roots for f in faces])
+    if keep.all() or not keep.any():
+        return sub
+    used = np.unique(faces[keep])
+    remap = {int(old): int(new) for new, old in enumerate(used)}
+    return {"verts": [sub["verts"][i] for i in used],
+            "faces": [tuple(remap[int(i)] for i in f) for f in faces[keep]]}
 
 
 def skeleton(template: bm.Template):
@@ -430,10 +478,14 @@ def render_source(source_zip: Path, out: Path, stem: str = "christie_source"):
         # pack crop and the two can be compared directly.
         span = float(np.linalg.norm(np.array(src_arm[2], float)
                                     - np.array(src_arm[0], float)))
-        # the arm hangs close to the torso in the source pose, so a loose
-        # radius swallows the chest - ~2 cm keeps the sleeve only
-        tube = _subset_near_polyline(geo, src_arm, radius=0.1 * span)
-        near_bones = _bones_near(src_arm, bones, radius=0.8 * span)
+        # The arm hangs close to the torso in the source pose, so the radius has
+        # to be tight: 631 verts sit within 2 cm of the chain, 4105 within 8 cm
+        # (that one swallows the chest and the whole leg, because the source
+        # skeleton's leg bones hang underneath). 2 cm, scaled off the arm span,
+        # keeps the sleeve and drops the body.
+        tube = _largest_blobs(_subset_near_polyline(geo, src_arm,
+                                                    radius=0.095 * span))
+        near_bones = _bones_near(src_arm, bones, radius=0.15 * span)
         for view in ("front", "side"):
             render(tube, near_bones, view, out / f"{stem}_forearm_{view}.png")
     return out
@@ -478,7 +530,7 @@ def main(argv=None) -> int:
     # wrist close-ups (left arm); `side` is the character's left side
     chain = [p for n, p, _ in bones if n in ("LeftForeArm", "LeftHand")]
     if len(chain) == 2:
-        hand = _subset_near_polyline(geo, chain, radius=7.0)
+        hand = _largest_blobs(_subset_near_polyline(geo, chain, radius=7.0))
         near_bones = _bones_near(chain, bones, radius=14.0)
         for view in ("front", "side"):
             render(hand, near_bones, view,
@@ -489,7 +541,7 @@ def main(argv=None) -> int:
     if len(arm) == 3:
         # the sleeve around those bones, plus a margin so the shoulder and the
         # cuff stay in shot
-        tube = _subset_near_polyline(geo, arm, radius=8.0)
+        tube = _largest_blobs(_subset_near_polyline(geo, arm, radius=8.0))
         near_bones = _bones_near(arm, bones, radius=16.0)
         for view in ("front", "side"):
             render(tube, near_bones, view,
@@ -513,8 +565,8 @@ def main(argv=None) -> int:
         pose_chain = [np.array(pw[sid][12:15], float) for sid in pw
                       if template.id_name.get(sid) in ("LeftForeArm", "LeftHand")]
         if len(pose_chain) == 2:
-            hand = _subset_near_polyline(
-                {"verts": pv, "faces": geo["faces"]}, pose_chain, radius=7.0)
+            hand = _largest_blobs(_subset_near_polyline(
+                {"verts": pv, "faces": geo["faces"]}, pose_chain, radius=7.0))
             near_bones = _bones_near(pose_chain, posed_bones, radius=14.0)
             for view in ("front", "side"):
                 render(hand, near_bones, view,

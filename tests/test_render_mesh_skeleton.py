@@ -372,3 +372,41 @@ def test_side_camera_is_on_the_left_of_the_character():
         "from `side` the left arm must be nearer than the mirrored point on the "
         "character's right")
 
+
+
+def test_close_up_bones_are_only_the_limb_subtree():
+    """No attachment nodes, capsules or context bones in a limb close-up.
+
+    Two failure modes this guards, both seen in the images: proximity alone
+    pulled in a weapon attachment and `LeftShoulder` (50 bones within 16 cm of
+    the arm), whose parent lines are drawn to joints that are not in the
+    picture and read as stray bones crossing the crop; and adding a context
+    parent for the shoulder drew a line from the shoulder in to the chest, which
+    looked like a bone escaping the sleeve.
+    """
+    import render_mesh_skeleton as rms
+
+    _rms, tpl, _geo, _sk = _fixtures()
+    bones = rms.skeleton(tpl)
+    arm = [p for n, p, _ in bones if n in ("LeftArm", "LeftForeArm", "LeftHand")]
+    keep = {n for n, _p, _par in rms._bones_near(arm, bones, radius=3.0)}
+
+    assert {"LeftArm", "LeftForeArm", "LeftHand"} <= keep
+    assert any(n.startswith("LeftHandIndex") for n in keep), "fingers dropped"
+    junk = [n for n in keep
+            if any(t in n for t in ("locator", "capsule", "weapon", "_end"))]
+    assert not junk, f"non-anatomy bones in a limb close-up: {junk}"
+
+    # no ancestor of the limb may sneak in: `render()` draws a line to the
+    # parent whenever it is in the list, so one context bone above the shoulder
+    # is enough to draw a line across the crop, and reading it looks like a bone
+    # escaping the arm rather than a camera choice
+    parent = {n: p for n, _h, p in bones}
+    node = "LeftArm"
+    ancestors = set()
+    while parent.get(node):
+        node = parent[node]
+        ancestors.add(node)
+    leaked = keep & ancestors
+    assert not leaked, (
+        f"context bones above the limb leaked into the close-up: {sorted(leaked)}")
