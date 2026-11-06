@@ -64,8 +64,10 @@ All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview 
 What each Miranda pack replaces: Clover and Bonnie cover the heist model, the
 menu model, *and* the Safe House (`*_chill`) model; Joy and Sydney cover the
 heist and menu models only, so their Safe House unit keeps the vanilla head.
-None of the nine head-replacement packs has been verified in game yet — the
-only in-game checklist in the repo is the LAS one,
+The four **L4D2** packs (`Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}.zip`)
+were **tested in game on 2026-11-05** (user-side check). The Romance variants
+and `Geralt_over_Rust.zip` are still unverified in game — the only in-game
+checklist in the repo is the LAS one,
 [`docs/pd2-las/in-game-checklist.md`](docs/pd2-las/in-game-checklist.md).
 Audit of this set: [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md).
 

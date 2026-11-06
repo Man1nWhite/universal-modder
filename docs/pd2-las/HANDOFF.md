@@ -28,9 +28,25 @@ Deliverables in **`dist/`**:
   [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md)).
   **Coverage:** Clover and Bonnie replace the heist, menu *and* Safe House
   (`*_chill`) models; Joy and Sydney replace the heist + menu models only, so
-  their Safe House units keep the vanilla head. Nothing in this set has been
-  verified in game yet — there is no checklist for it (the LAS one is
+  their Safe House units keep the vanilla head. **In-game status 2026-11-05:**
+  the four **L4D2** packs (`Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}.zip`)
+  are tested in game by the user; the Romance variants and Geralt over Rust
+  remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
+
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` and
+`dist/Christie_LAS_Slim.zip` (+ `.sha256`) — built by
+`tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
+×0.9 thinner in x/y, arm verts an extra ×0.75 (arms 25% thinner), height
+unchanged, hands cut for in-game gloves with sleeves stretched deep past the
+wrist; `fix_arm_fits()` translates the Arm/ForeArm/Hand fits so
+elbow/wrist/hand land exactly on the PD2 pivots) from
+`references/Christie.zip`, headless LAS (`replace_body`, no `g_head`; the
+slim variant cuts the wrists and ships the glove-adapter hook so in-game
+gloves work). The separate no-hands pack was removed (slim supersedes it).
+Base pack **tested in game 2026-11-05** (headless LAS confirmed;
+texture gloss fixed via specular-alpha attenuation). See
+`docs/pd2-las/CHRISTIE.md`. Tests: `tests/test_christie_las.py`.
 
 ## Quickstart
 
