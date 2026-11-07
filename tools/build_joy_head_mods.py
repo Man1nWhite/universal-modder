@@ -325,6 +325,103 @@ def shape_neck_and_hair_for_suit_collar(
     return p
 
 
+NECK_SKIRT_MAX_Z = 156.0   # rim edges below this are the neck sheet's open bottom
+NECK_SKIRT_DROP_CM = 6.5   # how far the new ring dives below that rim
+NECK_SKIRT_TUCK = 0.88     # radial scale of the new ring about the neck axis
+NECK_SKIRT_FORWARD_CM = 0.5  # and this far towards +y, the character's front
+
+
+def extend_neck_skirt(
+    p: np.ndarray,
+    n: np.ndarray,
+    uv: np.ndarray,
+    tris: np.ndarray,
+    *,
+    max_z: float = NECK_SKIRT_MAX_Z,
+    drop: float = NECK_SKIRT_DROP_CM,
+    tuck: float = NECK_SKIRT_TUCK,
+    forward: float = NECK_SKIRT_FORWARD_CM,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Give the neck sheet a skirt so its open rim ends *inside* the body.
+
+    The head models are cut off at the neck: the neck sheet's outer boundary ends
+    across the throat, at z 149.5 on the heister rig. Over the bodies measured so
+    far that rim is already hidden - on `dist/Christie_LAS.zip` **0 of its 98-120
+    edges** are the front-most surface, from the front or from behind
+    (docs/audits/2026-11-07-christie-slim-diagnosis.md §10.2) - but a rim that
+    stops exactly where a collar ends is one wider neckline away from being the
+    front-most surface, and a sheet's open edge seen edge-on is a hard line no
+    texture can hide. That is what this pass is for: insurance, not a fix for an
+    observed line. On Christie it changes no pixel.
+
+    It extrudes one ring below the rim - dropped, pulled in towards the neck axis
+    and nudged 0.5 cm towards the front (+y is the character's side of this model
+    space) - and stitches it to the rim with two triangles per rim edge. The ring
+    keeps the rim's UV, so the neck island's last rows stretch over it, and the
+    rim's normal; it lands under the body's own surface, so the junction becomes
+    the intersection curve the two meshes define instead of a floating edge.
+
+    Only rim edges that sit near the neck axis and below ``max_z`` are used, so
+    the scalp's cut (which is part of the same loop) and the hair sheets are
+    untouched. Returns the extended ``(p, n, uv, tris)``; indices of the existing
+    vertices do not change.
+    """
+    if len(tris) == 0:
+        return p, n, uv, tris
+    counts: dict[tuple[int, int], int] = {}
+    for a, b, c in tris:
+        for u, v in ((int(a), int(b)), (int(b), int(c)), (int(c), int(a))):
+            if u == v:
+                continue
+            e = (u, v) if u < v else (v, u)
+            counts[e] = counts.get(e, 0) + 1
+
+    rim_edges = []
+    for (a, b), cnt in counts.items():
+        if cnt != 1:
+            continue
+        pa, pb = p[a], p[b]
+        if pa[2] > max_z or pb[2] > max_z:
+            continue
+        if max(np.hypot(pa[0], pa[1] - 2.0), np.hypot(pb[0], pb[1] - 2.0)) > 8.5:
+            continue
+        rim_edges.append((a, b))
+    if not rim_edges:
+        return p, n, uv, tris
+
+    rim_verts = sorted({v for e in rim_edges for v in e})
+    rim_p = np.asarray([p[v] for v in rim_verts], dtype=np.float64)
+    cx, cy = float(rim_p[:, 0].mean()), float(rim_p[:, 1].mean())
+
+    new_p = np.empty((len(rim_verts), p.shape[1]), dtype=p.dtype)
+    new_n = np.empty((len(rim_verts), n.shape[1]), dtype=n.dtype)
+    new_uv = np.empty((len(rim_verts), uv.shape[1]), dtype=uv.dtype)
+    new_index: dict[int, int] = {}
+    for row, v in enumerate(rim_verts):
+        x, y, z = (float(c) for c in p[v])
+        new_p[row] = (cx + (x - cx) * tuck, cy + (y - cy) * tuck + forward, z - drop)
+        new_n[row] = n[v]
+        new_uv[row] = uv[v]
+        new_index[v] = len(p) + row
+
+    new_tris = []
+    for a, b in rim_edges:
+        a2, b2 = new_index[a], new_index[b]
+        quad = [(a, b, b2), (a, b2, a2)]
+        # keep the sheet's facing: wind the strip the way the rim's own faces run
+        tip = np.cross(p[b] - p[a], new_p[a2 - len(p)] - p[a])
+        ref = n[a].astype(np.float64) + n[b].astype(np.float64)
+        if float(np.dot(tip, ref)) < 0.0:
+            quad = [(a, b2, b), (a, a2, b2)]
+        new_tris.extend(quad)
+
+    p_out = np.vstack([p, new_p])
+    n_out = np.vstack([n, new_n])
+    uv_out = np.vstack([uv, new_uv])
+    tris_out = np.vstack([tris, np.asarray(new_tris, dtype=tris.dtype)])
+    return p_out, n_out, uv_out, tris_out
+
+
 def repair_skin_and_neck_normals(
     face_p: np.ndarray,
     face_n: np.ndarray,
@@ -1393,6 +1490,7 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
                 else:
                     p_s = extend_scalp_neck_skin_into_collar(p_s, uv_s, z_drop=3.2, y_push=2.0, tris=t_s)
                     p_s = tuck_hair_for_joy_hood(p_s, uv_s, tris=t_s)
+                p_s, n_s, uv_s, t_s = extend_neck_skirt(p_s, n_s, uv_s, t_s)
             elif mid == 0:
                 uv_s = project_me2_eye_uv_img(p_s)
                 n_s = soften_eyeball_normals(n_s)
@@ -1627,6 +1725,8 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
                 else:
                     p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2, tris=tris)
                     p = tuck_hair_for_joy_hood(p, uv_img, tris=tris)
+                p, n, uv_img, tris = extend_neck_skirt(p, n, uv_img, tris)
+                uv_dae = np.column_stack([uv_img[:, 0], 1.0 - uv_img[:, 1]])
                 if best_comp and len(best_comp) < len(tris):
                     keep_v = set(np.unique(tris[sorted(best_comp)]).tolist())
                     wire_mask = np.array([vi not in keep_v for vi in range(len(p))], dtype=bool)

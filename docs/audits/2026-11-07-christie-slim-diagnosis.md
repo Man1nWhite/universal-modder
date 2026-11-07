@@ -405,59 +405,122 @@ alone, a 130°-plus pair is skipped);
 packs to 0 interior pairs and to > 300 border pairs (so the fix cannot "pass" by
 smoothing the garment edges), and re-derives the reference's 0-of-22,486.
 
-## 10. Item 7 (throat): the head model's neck skirt, measured with the head in the repo
+## 10. Item 7 (throat): the head's neck skirt, measured — and a correction
 
 The review called this "almost certainly the heister head mod's UV seam, not
 this pack", and left it alone because the head was not in the repository. It is:
-`tools/build_joy_head_mods.py` builds the nine head-replacement packs from
-`models/… Miranda Lawson (Romance).zip` and `references/Ada Wong over Joy.7z`,
-and four of them mount a Miranda head over a heister body — the combination a
-Christie LAS player actually sees, because LAS keeps the heister's head.
+`tools/build_joy_head_mods.py` builds the nine head-replacement packs, and four
+of them mount a Miranda head over a heister body — the combination a Christie LAS
+player actually sees, because LAS keeps the heister's head.
+`tools/pd2-las/neck_junction.py` puts the body and a head in one space and
+ray-casts the throat on a 0.25 cm grid (x ±6 cm, z 149–161 cm).
 
-To measure it without a game, `tools/pd2-las/neck_junction.py` puts the body and
-a head in one space, ray-casts the front of the throat on a 0.25 cm grid
-(x ±6 cm, z 149–161 cm) and reports which mesh owns each cell. Output for the
-four `Miranda_L4D2_over_*` packs over `dist/Christie_LAS.zip`:
+### 10.1 The first version of this section was read backwards
 
-| head pack | head neck border | body in front | head in front | see-through |
-|---| --- | --- | --- | --- |
-| over Joy | 176 verts, z 149.5–188.0, r 5.98 | 30.7 % | 69.3 % | 0.0 % |
-| over Clover | same | 29.7 % | 70.3 % | 0.0 % |
-| over Bonnie | same | 29.7 % | 70.3 % | 0.0 % |
-| over Sydney | same | 29.7 % | 70.3 % | 0.0 % |
+The first pass published two numbers here: "~70 % of the throat is the head's
+skin" and "110 of 110 of the head's neck border edges are the front-most
+surface", and concluded that the head's rim at z 149.5 was the visible hard line.
+Both are wrong, for three separate reasons, all in the measuring tool:
 
-Three things follow, and they replace the review's guess:
+1. **`+y` is the character's front, so the front-most surface has the largest
+   y.** `front_depth` returns the largest y of any hit — correct. The test in
+   `border_exposure` then demanded `depth > y - 0.05` to call an edge *exposed*
+   when that is precisely the condition for a body surface standing in front of
+   it. The count was inverted: 110/110 "front-most" meant 110/110 **covered**.
+2. **`junction`'s winner test had the same inversion.** `body_wins` used
+   `db <= dh + 0.02`, which picks the mesh *behind* the body's surface. The
+   published "head in front 69.3 %" was the body's share.
+3. **The border set was wrong, and the render was taken from behind.**
+   `diagnose_mesh.boundary` returns the head's **53** boundary loops — hair
+   sheets and lashes included — and one of them, the hair outline, spans the
+   whole 38.6 cm of the model; the neck sheet's rim is a 98–106 edge loop inside
+   that soup. And `_render` placed the camera at y −40, i.e. behind the
+   character, so the committed PNG showed the **nape and the hair** hanging over
+   the blazer's back, not the throat.
 
-1. **There is no hole.** 0.0 % of the throat window misses geometry, so the pale
-   patch is a surface, not background seen through a gap.
-2. **The throat is mostly the head's skin** (~70 %), and where the body wins it
-   wins by a median **10.3 cm** — those cells are the blazer's collar and lapel
-   standing in front of the neck, not the body's neck. The pale side of the
-   review's boundary is the white blazer, the tan side is the head's neck skin.
-3. **The head's neck ends inside the window.** Its skirt border is the 176-vertex
-   loop whose lowest point is z 149.5 — mid-throat for a blazer this open. The
-   junction is therefore a *hard edge* (a border loop seen edge-on, with the
-   body's own chest skin behind it inside the V), which is the horizontal
-   banding in the screenshot, and it is why the two skins meet with no blend.
+The direction is now pinned by two tests, so it cannot silently invert again:
+`test_the_front_camera_sees_the_largest_y` (front = +y, `preview_textured`'s
+"Portrait Front" looks straight at the face, which is the head's narrow
+y-maximum) and `test_border_exposure_reads_both_sides_the_right_way_round`
+(a slab in front of the rim covers it; the same slab behind does not).
+`border_exposure` now measures the neck rim exactly as `extend_neck_skirt` picks
+it (`neck_rim_edges`: edges used once, both ends z ≤ 156, within 8.5 cm of the
+neck axis), from the front **and** from behind, and `junction` reports
+coincident surfaces (≤ 2 mm) as body rather than as see-through.
 
-Christie's own body is not the cause: its skin neck is a single closed tube
-(one boundary loop, 20 verts, z 160.9–163.2, radius 5.83 cm around (0, 4.1)),
-its throat samples one uniform tan on both sides (203, 156, 123 left / 205, 157,
-127 right at the median), and its normals and diffuse alpha are symmetric
-(22.3° vs 20.9° face-normal deviation, alpha 37 vs 38). Nothing in the body
-splits the throat in half.
+### 10.2 What the corrected measurement says
 
-**The fix belongs in the head packs, and it is a skirt extension.**
-`build_joy_head_mods.py` would extrude the head's neck border downward and
-slightly inward (2–3 rings, ~6 cm, keeping the rim's UVs and Neck weights), so
-the border ends *inside* the torso instead of at z 149.5 in the middle of the
-opening. The hard edge then becomes an intersection curve the geometry itself
-defines, and the "banding" disappears. The same check that found this can score
-it: rerun `neck_junction.py` and require that no head-owned cell lies within
-~0.5 cm of a head border edge.
+`dist/Christie_LAS.zip` with the four `Miranda_L4D2_over_*` heads, before and
+after the skirt of §10.3:
 
-This is not applied yet: it changes all eight Miranda head packs, and the
-junction can only be signed off in game.
+| | before (z 149.5 rim) | after (z 143.0 rim) |
+| --- | --- | --- |
+| head neck rim, over Joy | 106 edges, z 149.5, r 5.98 | 120 edges, z 143.0, r 5.78 |
+| head neck rim, over Clover/Bonnie/Sydney | 98 edges, z 149.5, r 5.90 | 114 edges, z 143.0, r 5.70 |
+| rim edges exposed from the front | **0** | **0** |
+| rim edges exposed from behind | **0** | **0** |
+| body in front of the throat window, Joy | 99.5 % | 99.5 % |
+| head in front, Joy | 0.5 % | 0.5 % |
+| body in front, Clover/Bonnie/Sydney | 84.3 % | 84.3 % |
+| head in front, Clover/Bonnie/Sydney | 15.7 % | 15.7 % |
+| see-through | 0.0 % | 0.0 % |
+
+So: **the head's neck is almost never the visible surface of the Christie
+throat.** The body's own collar, blazer and chest skin own 84–99.5 % of the
+window, nothing leaves a gap, and the head's rim is buried in the torso behind
+it from both sides. The tan of the review's boundary is the body's own skin
+(`mtr_body`), not the head's neck; the pale side is the white blazer. And the
+body does not split *itself* either: its throat samples one uniform tan on both
+sides (205,157,128 on the front band, and the darker samples at x ±3.5–5.0 are
+the same value mirrored), which the earlier pass already found.
+
+The textured front and back renders of the junction
+(`preview_textured.render` over both packs, z 156 ± 11 cm) are **byte-identical**
+before and after the skirt, and the winner grid is identical cell for cell, which
+is the same statement made twice.
+
+The tinted render that ships with this section
+(`docs/pd2-las/renders/neck_junction_christie_joy.png`, head orange, body grey)
+is now taken from the **front** and says the same thing: the throat is body-grey
+edge to edge, with two orange slivers at the shoulders where the head's sheets
+are the nearest surface.
+
+### 10.3 The skirt shipped anyway, as insurance
+
+`build_joy_head_mods.py` now runs `extend_neck_skirt()` on the neck sheet in both
+head paths (`build_l4d2_meshes` for the four heister heads,
+`build_romance_meshes` for the same heads from the Romance rig): it finds the
+rim edges of §10.1 item 3 and extrudes one ring, dropped 6.5 cm, tucked to 88 %
+of the radius, 0.5 cm towards the front, carrying the rim's normals and UVs and
+stitched with two triangles per rim edge, winding chosen from the rim's own
+faces. Existing indices do not move; `compute_joy_head_weights` then puts the new
+ring on Neck/Spine2 by z. The head drawable goes **4,402 verts / 7,109 tris →
+4,515 / 7,321**, its lowest point **z 149.48 → 142.98**, the rim radius
+5.98 → 5.78 cm (Joy) and 5.90 → 5.70 (the other three).
+
+Why ship something that changes no pixel on this body: it is 12,934 bytes in the
+L4D2 packs, it is entirely inside the torso (both renders prove it), and it makes
+the head's open end independent of how deep the body's neckline is. The neckline
+that hides it here is Christie's; Clover's suit collar, the Safe House
+dressing-gown necklines and the `Miranda_LAS`/`Miranda_Busty_LAS` bodies are not
+measured, and a rim that ends 6.5 cm lower cannot surface on any of them.
+
+### 10.4 Item 7 is therefore open, with a bisect instead of a theory
+
+Nothing measured offline on this body splits the throat, so the next step is a
+two-minute in-game bisect rather than another hypothesis:
+
+1. Uninstall the head pack, keep `Christie_LAS_Slim` — LAS keeps the vanilla
+   heister head, so this is the body alone.
+2. If the pale/tan boundary is still there, it is the body (the blazer's neckline
+   against `mtr_body`, or the in-game lighting across it) and it belongs in this
+   audit, not in the head packs.
+3. If it is gone, it is the head pack, and the next measurement is the hair
+   sheets, which are the only part of that head that is still in front of the
+   blazer — from behind, not on the throat.
+
+Two cheaper things are already ruled out: the head's neck rim (§10.2) and the
+body's own UVs (§10.2).
 
 ## What this changes in the audit
 
@@ -484,10 +547,10 @@ junction can only be signed off in game.
 4. ~~**Mask scope**~~ — **done**, see §7: the mask is rasterised from the sleeve
    UV faces and clipped to that footprint, mip 0 is attenuated and the pyramid
    regenerated from it.
-5. ~~**Neck split**~~ — **measured**, see §10: `tools/pd2-las/neck_junction.py`
-   shows the head's neck skirt ends mid-throat (70 % of the throat window is
-   head skin, 0 % see-through) while the body's neck is uniform on both sides.
-   The fix is a skirt extension in `build_joy_head_mods.py`, not applied yet.
+5. **Neck split** — measured twice, corrected once (§10): the head's neck rim is
+   **not** the visible line (0 of 98–120 rim edges exposed, front or back; the
+   body owns 84–99.5 % of the throat window), and the skirt extension shipped as
+   insurance, not as the cure. **Open**, with the in-game bisect of §10.4 next.
 6. Leave the gloves, the red speck and the cream band alone until the glove
    model is part of the comparison — they are not in this mesh.
 

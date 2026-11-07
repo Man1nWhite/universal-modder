@@ -4,28 +4,37 @@ The LAS packs are *headless*: they replace the heister's body and keep whatever
 head the heister has, including the nine head-replacement packs in
 `tools/build_joy_head_mods.py`. Nothing in either pack knows about the other, so
 the throat is where the two meshes have to agree on their own. This tool puts
-the body and the head in one space, ray-casts the throat from the front and
-reports which mesh the visible surface belongs to.
+the body and the head in one space, ray-casts the throat from the front and from
+behind, and reports which mesh the visible surface belongs to.
 
-Why that matters: the 2026-11-07 Christie review (item 7) saw a hard tonal
-boundary on the throat, pale on one side and tan on the other. Pale-against-tan
-is what two *skins* look like when the head's neck skirt and the body's neck
-surface interpenetrate, and the boundary is ragged because the winner changes
-from triangle to triangle.
+**Model space:** ``+y`` is the character's front. The face is the head's narrow
+y-maximum and the back of the hair its wide y-minimum, and that is the side
+`preview_textured` frames as "Portrait Front". Both ray casters work in that
+convention, so the front-most surface is the **largest** y: a body surface
+covers a head border edge when its y is larger, not smaller. Getting that
+backwards is what the first version of this tool did - it reported covered edge
+as exposed and the trailing mesh as winning; see
+``docs/audits/2026-11-07-christie-slim-diagnosis.md`` §10.1. Do not "fix" a
+comparison here without reading that section.
 
-    .venv/bin/python tools/pd2-las/neck_junction.py \
-        --body dist/Christie_LAS.zip \
+    .venv/bin/python tools/pd2-las/neck_junction.py \\
+        --body dist/Christie_LAS.zip \\
         --head dist/Miranda_L4D2_over_Joy.zip
 
 Reported per head:
 
-* the head's neck border -- the lowest boundary loop near the neck axis. That
-  border is the edge the head model *ends* on, i.e. the line the body has to
-  hide;
+* the head's neck rim -- the edges the head sheet *ends* on: used by one
+  triangle, below z 156 and within 8.5 cm of the neck axis, which is also the
+  set `build_joy_head_mods.extend_neck_skirt` extends. Not the lowest boundary
+  loop: the head has 53 of them (hair sheets, lashes) and one spans the whole
+  model;
+* how many of those rim edges are the front-most surface (exposed) from the
+  front and from behind -- an exposed rim is the hard line item 7 is about, so
+  the number the skirt has to drive to zero;
 * the throat window (front of the neck): share of cells where the head is in
-  front, where the body is in front, and where a ray misses everything;
-* ``--render`` writes a tinted composite (head orange, body grey) so the
-  raggedness is visible without guessing from a compressed screenshot.
+  front, where the body is in front, and where neither is hit;
+* ``--render`` writes a tinted composite (head orange, body grey) of the whole
+  junction from the front.
 """
 
 from __future__ import annotations
@@ -147,6 +156,84 @@ def neck_border(verts, faces, *, min_z: float = 145.0) -> dict:
     return best or {}
 
 
+def back_depth(verts, faces, xs, zs) -> np.ndarray:
+    """Rear-most y of any hit per (x, z) cell; NaN where a ray misses.
+
+    Mirroring y turns "seen from behind" into "seen from the front", so the
+    rear-most surface is ``-front_depth`` of the mirrored mesh and the two
+    views share one ray caster.
+    """
+    v = np.array(verts, float).copy()
+    v[:, 1] *= -1.0
+    return -front_depth(v, faces, xs, zs)
+
+
+def neck_rim_edges(verts, faces, *, max_z: float = 156.0,
+                   radius: float = 8.5, centre=(0.0, 2.0)) -> np.ndarray:
+    """The head sheet's open bottom: edges used once, low and near the neck axis.
+
+    ``diagnose_mesh.boundary`` is the wrong tool for this: the head has 53
+    boundary loops (hair sheets, lashes, the scalp cut) and one of them, the
+    hair outline, spans the whole 38.6 cm of the model. The neck sheet's rim is
+    the set of edges that is used by exactly one triangle, sits at or below
+    ``max_z``, and stays within ``radius`` of the neck axis - the same rule
+    ``build_joy_head_mods.extend_neck_skirt`` uses to pick the rim it extends,
+    kept in step by ``tests/test_neck_skirt.py``.
+    """
+    counts: dict[tuple[int, int], int] = {}
+    for a, b, c in np.asarray(faces, int):
+        for u, v in ((a, b), (b, c), (c, a)):
+            if u == v:
+                continue
+            e = (u, v) if u < v else (v, u)
+            counts[e] = counts.get(e, 0) + 1
+    cx, cy = centre
+    out = []
+    for (a, b), n in counts.items():
+        if n != 1:
+            continue
+        pa, pb = verts[a], verts[b]
+        if pa[2] > max_z or pb[2] > max_z:
+            continue
+        if max(np.hypot(pa[0] - cx, pa[1] - cy),
+               np.hypot(pb[0] - cx, pb[1] - cy)) > radius:
+            continue
+        out.append((a, b))
+    return np.asarray(out, int).reshape(-1, 2)
+
+
+def border_exposure(head_verts, head_faces, body_verts, body_faces,
+                    *, max_z: float = 156.0) -> dict:
+    """How much of the head's neck rim is visible, front and back.
+
+    A rim edge is the edge of a sheet. If no body surface is in front of it, the
+    game draws the head's neck ends across the throat, and that edge is a hard
+    line no texture can hide. The same question has to be asked from behind,
+    over the nape.
+
+    Each rim edge is sampled at its midpoint and counted as *covered* from a
+    side when a body triangle sits more than 0.05 cm nearer that side's camera.
+    ``+y`` is the character's front in this model space - the face is the narrow
+    y-maximum of the head and the back of the hair the wide y-minimum, which is
+    also the way ``preview_textured`` frames its "Portrait Front" - so the front
+    camera sits at large ``+y`` and the front-most surface is the largest y
+    (``front_depth``). The earlier version of this function compared the two
+    the wrong way round and counted covered edges as exposed; see
+    ``docs/audits/2026-11-07-christie-slim-diagnosis.md`` §10.
+    """
+    edges = neck_rim_edges(head_verts, head_faces, max_z=max_z)
+    if not len(edges):
+        return {"edges": 0, "front": 0, "back": 0}
+    mids = 0.5 * (head_verts[edges[:, 0]] + head_verts[edges[:, 1]])
+    df = front_depth(body_verts, body_faces, mids[:, 0], mids[:, 2])[0]
+    db = back_depth(body_verts, body_faces, mids[:, 0], mids[:, 2])[0]
+    covered_front = np.isfinite(df) & (df > mids[:, 1] + 0.05)
+    covered_back = np.isfinite(db) & (db < mids[:, 1] - 0.05)
+    return {"edges": len(mids),
+            "front": int((~covered_front).sum()),
+            "back": int((~covered_back).sum())}
+
+
 def junction(body: Path, head: Path, tmp: Path) -> dict:
     bv, bf = _body_mesh(body)
     hv, hf = _head_mesh(head, tmp)
@@ -154,10 +241,15 @@ def junction(body: Path, head: Path, tmp: Path) -> dict:
     zs = np.arange(THROAT["z"][0], THROAT["z"][1] + 1e-9, THROAT["step"])
     db = front_depth(bv, bf, xs, zs)
     dh = front_depth(hv, hf, xs, zs)
-    body_wins = np.isfinite(db) & (~np.isfinite(dh) | (db <= dh + 0.02))
-    head_wins = np.isfinite(dh) & (~np.isfinite(db) | (dh < db - 0.02))
-    seen = body_wins | head_wins
+    # both depths are y: +y is the front, so the *larger* y is nearer the camera.
+    # Coincident surfaces (within 2 mm) go to the body, and a cell only counts as
+    # see-through when neither mesh is hit at all - a tie is not a hole.
+    has_b, has_h = np.isfinite(db), np.isfinite(dh)
+    body_wins = has_b & (~has_h | (db >= dh - 0.02))
+    head_wins = has_h & ~body_wins
+    seen = has_b | has_h
     return {
+        "exposure": border_exposure(hv, hf, bv, bf),
         "labels": (np.round(xs, 2), np.round(zs, 2)),
         "grid": {"body": body_wins, "head": head_wins, "miss": ~seen},
         "depth": (db, dh),
@@ -196,6 +288,11 @@ def main(argv=None) -> int:
                   f"radius {h['radius']:.2f} cm")
         else:
             print("   head neck border: none found near the axis")
+        ex = rep["exposure"]
+        if ex["edges"]:
+            print(f"   head neck border: {ex['front']} of {ex['edges']} edges "
+                  f"({ex['front'] / ex['edges'] * 100:.1f} %) exposed from the "
+                  f"front, {ex['back']} from behind ({(ex['back'] / ex['edges']) * 100:.1f} %)")
         for key, label in (("body", "body in front"), ("head", "head in front"),
                            ("miss", "see-through")):
             share = rep["grid"][key].sum() / total * 100
@@ -218,7 +315,7 @@ def _render(body: Path, head: Path, out: Path, tmp: Path) -> None:
     colours = np.vstack([np.tile([0.62, 0.66, 0.72], (len(bf), 1)),
                          np.tile([0.95, 0.45, 0.15], (len(hf), 1))])
     img = shellview.render(verts, faces, colours,
-                     np.array([0.0, -40.0, 154.0]), np.array([0.0, 0.0, 154.0]),
+                     np.array([0.0, 40.0, 154.0]), np.array([0.0, 0.0, 154.0]),
                      np.array([0.0, 0.0, 1.0]), width=520, height=520, fov=26.0)
     out.parent.mkdir(parents=True, exist_ok=True)
     Image.fromarray(img).save(out)

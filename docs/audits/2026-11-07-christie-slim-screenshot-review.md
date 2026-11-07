@@ -237,7 +237,7 @@ centroids), so those texels are sampled by both the sleeve and the boot and no
 mask can separate them. Removing that residue needs the boots re-UV'd, which is
 a texture-authoring change, not a build pass.
 
-### 7. Neck tonal split (measured 2026-11-07 — it is the head model, and it is ours)
+### 7. Neck tonal split (measured twice — the first measurement was read backwards)
 
 A hard vertical boundary on the throat, pale RGB(121,120,127) left vs tan
 RGB(147,129,117) right, with horizontal banding.
@@ -246,24 +246,37 @@ The first pass guessed a heister-head UV seam and left it alone because the head
 was not in the repository. It is: `tools/build_joy_head_mods.py` builds the nine
 head-replacement packs, and four of them put a Miranda head over a heister — the
 combination a Christie LAS player actually sees, because LAS keeps the heister's
-head. `tools/pd2-las/neck_junction.py` now measures the junction:
+head. `tools/pd2-las/neck_junction.py` was written to measure the junction, and
+its first answer ("~70 % of the throat is the head's skin, the head's neck border
+is 110/110 front-most, so the rim at z 149.5 is the hard line") was **wrong**:
+the front-most surface is the largest y (+y is the character's front), the
+exposure test and the winner test both compared the other way round, the border
+set was all 53 of the head's boundary loops instead of the neck rim, and the
+committed render had the camera behind the character. §10 of the diagnosis has
+the details and the fixes, now pinned by tests.
 
-- **0.0 % of the throat window is see-through**, so the pale half is a surface,
-  not background through a gap;
-- **~70 % of the throat is the head's skin**; where the body wins it wins by a
-  median of 10.3 cm, i.e. those cells are the blazer's collar and lapel standing
-  in front of the neck — so *pale = the white blazer, tan = the head's neck*;
-- the head's neck skirt **ends at z 149.5 cm**, mid-throat for a neckline this
-  open, so the junction is a border loop seen edge-on with the body's own chest
-  skin behind it — that edge is the horizontal banding;
-- the body is not splitting anything: its neck is one closed tube (20-vertex
-  border, z 160.9–163.2, r 5.83), uniform tan left/right (203,156,123 /
-  205,157,127), symmetric normals (22.3° vs 20.9°) and alpha (37 / 38).
+Corrected, over `dist/Christie_LAS.zip` with the four `Miranda_L4D2_over_*`
+heads:
 
-Fix: extrude the head's neck border downward and inward inside the torso in
-`build_joy_head_mods.py`, so the border stops ending mid-throat. Not applied —
-it changes all eight Miranda packs and needs the in-game check. Diagnosis §10
-has the numbers and the render (`docs/pd2-las/renders/neck_junction_christie_joy.png`).
+- **0.0 % of the throat window is see-through** — the pale half is a surface;
+- the **body owns 84.3–99.5 %** of the window (Joy 99.5 %, the other three
+  84.3 %), the head 0.5–15.7 %: the tan is the body's own `mtr_body` skin, the
+  pale is the white blazer, and the head's neck is buried behind both;
+- **0 of 98–120 head neck-rim edges are exposed**, from the front or from
+  behind, so the rim is not the line either — and it never was;
+- the body does not split itself: its throat samples one uniform tan on both
+  sides (205,157,128 in the front band, the darker samples at x ±3.5–5.0
+  mirrored exactly).
+
+The skirt extension that the first pass proposed shipped anyway, for the reason
+in §10.3: it puts the head's open end 6.5 cm deeper inside the torso for the
+bodies and collars this audit has not measured. On this body it changes no pixel
+— the textured front and back renders are byte-identical before and after.
+
+**Item 7 stays open**, with a bisect instead of a theory (diagnosis §10.4):
+uninstall the head pack, keep the slim body, and look at the throat again. If the
+boundary survives, it is the body; if it vanishes, it is the head pack's hair
+sheets, which are the only part of that head still in front of the blazer.
 
 ## Suggested order of work
 
@@ -277,5 +290,6 @@ has the numbers and the render (`docs/pd2-las/renders/neck_junction_christie_joy
 4. ~~**Trouser blotches** (6)~~ — **done**: face-raster mask scoped to the
    sleeve islands, mip 0 attenuated and the pyramid regenerated (0.8 % of the
    leg UV area left, and that residue is atlas sharing with the boots).
-5. ~~**Neck split**~~ (7) — **measured**: it is the head packs' neck skirt, not
-   this body; see the section above and diagnosis §10.
+5. **Neck split** (7) — measured twice, corrected once; **open**: neither the
+   head's neck rim nor the body's UVs split the throat offline, so the next step
+   is the in-game bisect above (diagnosis §10).

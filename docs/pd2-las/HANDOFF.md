@@ -14,18 +14,39 @@ Deliverables in **`dist/`**:
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,
   audit `docs/pd2-las/CHEST-VARIANT.md`, tests `tests/test_bust_variant.py`.
 - Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
-  - `dist/Miranda_L4D2_over_Joy.zip` (`10,585,799` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,238,712` B)
-  - `dist/Miranda_L4D2_over_Clover.zip` (`7,636,591` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,297,599` B)
-  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,142,005` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,810` B)
-  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,140,504` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,805,595` B)
+  - `dist/Miranda_L4D2_over_Joy.zip` (`10,600,653` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,307,642` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (`7,648,225` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,349,388` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,160,274` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,877,915` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,147,084` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,840,385` B)
 
-  All eight rebuild byte-identically (`tools/build_joy_head_mods.py` writes fixed
-  `2020-01-01` zip timestamps, so `dist/*.zip.sha256` is a true build hash). The
-  four **L4D2** packs in this tree were rebuilt on 2026-11-05: the previously
+
+  All eight Miranda packs rebuild byte-identically (`tools/build_joy_head_mods.py`
+  writes fixed `2020-01-01` zip timestamps, so `dist/*.zip.sha256` is a true
+  build hash); `Geralt_over_Rust.zip` is unchanged by the rebuild. Current shas
+  (2026-11-07, neck skirt — see the last paragraph of this item):
+
+  - `Miranda_L4D2_over_Joy.zip` — 10,600,653 B, sha256 `2b19542b7e20770536091e750eb23cc460e7a28ddce572bde10055dbdbb7bc95`
+  - `Miranda_L4D2_over_Clover.zip` — 7,648,225 B, sha256 `baa9b5cf5ea3575a5a08a368d7144b044ce434d63c30020fc1fd241de3519d0a`
+  - `Miranda_L4D2_over_Bonnie.zip` — 8,160,274 B, sha256 `9cdb80c1fec899437ea1ef48ba6b832f85898121d0c0fa0ecbd3fee6d7164977`
+  - `Miranda_L4D2_over_Sydney.zip` — 7,147,084 B, sha256 `d0c88d7ce45ed6b9ea5dbd39e975341b46203ded5e66aa5746fcbf533eb0f2ef`
+  - `Miranda_Romance_over_Joy.zip` — 10,307,642 B, sha256 `73a76496a344fffde7f174a0f2d267dc77d1531d9af1596fdf5e8e55ed85a686`
+  - `Miranda_Romance_over_Clover.zip` — 7,349,388 B, sha256 `9f0488fd4aeeba4da10ccd021740b829cad6f16c1cb21e95e73489dad3c51a74`
+  - `Miranda_Romance_over_Bonnie.zip` — 7,877,915 B, sha256 `b4bea22043bc674313697433dcc1c20c46fdb8dde000f519a1576283dd2e76fd`
+  - `Miranda_Romance_over_Sydney.zip` — 6,840,385 B, sha256 `9e87a2255aa8d6f070452b7aea3a6e3c02917da4c8bf4188bbcef55accf56d3c`
+  - `Geralt_over_Rust.zip` — 8,121,550 B, sha256 `0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d`
+
+  The four **L4D2** packs were rebuilt on 2026-11-05 as well: the previously
   tracked ones had been built against an older `dist/Miranda_LAS.zip` and carried
   a scrambled diffuse-alpha plane in their `*_head_df.texture` (specular noise —
   RGB bit-identical, previews byte-identical; see
   [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md)).
+  The 2026-11-07 rebuild adds `extend_neck_skirt()` to every Miranda head's neck
+  sheet — one extra ring 6.5 cm below the rim, tucked to 88 % and shifted 0.5 cm
+  forward, inside the torso: 4,402 → 4,515 verts, 7,109 → 7,321 tris, lowest
+  point z 149.48 → 142.98. It changes no pixel on the Christie body (the junction
+  renders are byte-identical before and after) and is there so the head's open
+  end cannot surface on a body whose neckline is wider than Christie's. Item 7
+  itself is still open — `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.
   **Coverage:** Clover and Bonnie replace the heist, menu *and* Safe House
   (`*_chill`) models; Joy and Sydney replace the heist + menu models only, so
   their Safe House units keep the vanilla head. **In-game status 2026-11-05:**
