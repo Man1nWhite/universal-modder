@@ -505,7 +505,10 @@ with the hair cap and the 1.5 mm flyaway wire strips, so the same rim filter cau
 component to 20 % about `(0, 6, 175)`) then treated the new ring as a flyaway and
 dragged it into the head: **+340 verts at z 168-170 and +2,318 triangles** instead
 of +145 / +290 at z 143, and the rendered previews showed a pale lump under the
-chin on all four Romance packs. Re-rendering `docs/previews/` was what surfaced it;
+chin on all four Romance packs
+(`docs/pd2-las/renders/neck_skirt_romance_regression.png`: the neck of
+`Miranda_Romance_over_Clover`, 2026-11-05 build above, skirted build below, 4x).
+Re-rendering `docs/previews/` was what surfaced it;
 `neck_junction.py` could not, because the squashed ring is hidden and the throat
 window is unaffected. The four Romance packs were rebuilt back to their
 2026-11-05 bytes, and `tests/test_pd2_las.py` now pins head vert/tri counts and the
