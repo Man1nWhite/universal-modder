@@ -1,8 +1,21 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-Validation at this commit: **67 Christie tests**, `tests/` overall **650 passed,
-26 skipped**, `pyflakes` clean. The two packs below are the ones in `dist/`; the
-dated log further down keeps the earlier hashes it was written with.
+**Latest visual evidence (2026-11-07):** the user replaced the 11 archived
+screenshots with [15 byte-identical captures](screenshots/README.md), 8 lobby
+and 7 menu/rifle views. The [replacement review](../audits/2026-11-07-christie-slim-screenshot-review.md)
+keeps five appearance findings open: dark rear-forearm patches, hard neck
+bands, coarse suit tonal patches, angular elbow folds and the cuff/glove join.
+The installed build hash was not supplied, so this is not hash-matched visual
+clearance for the ZIPs below. Offline checks rerun for this review:
+**78 passed** across `test_christie_las.py` and `test_seam_normals.py`; both Slim
+sleeve mid-band probes report **0.00 cm²** leakage. Those checks do not settle
+the in-game shading findings. No models/textures were rebuilt for the review.
+
+Previously recorded full-suite validation: **67 Christie tests**, `tests/`
+overall **650 passed, 26 skipped**, `pyflakes` clean. The screenshot-only update
+reran the targeted tests listed above, not the full suite/lint. The two packs
+below are the ones in `dist/`; the dated log further down keeps the earlier
+hashes it was written with.
 
 - `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `c57edbba…1f765`, 4,794,618 B)
   — full body incl. Christie's hands.

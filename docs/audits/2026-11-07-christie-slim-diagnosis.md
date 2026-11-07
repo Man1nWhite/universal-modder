@@ -1,6 +1,16 @@
 # Christie_LAS_Slim — structural diagnosis (2026-11-07)
 
-The screenshot review (`2026-11-07-christie-slim-screenshot-review.md`) explains
+> **Historical scope:** this diagnosis investigates the earlier 11-frame review
+> and records subsequent offline mesh changes. The user has since replaced the
+> screenshot archive with 15 PNGs. The [current screenshot review](2026-11-07-christie-slim-screenshot-review.md)
+> uses the new filenames/coordinates and separates visible dark forearm patches,
+> neck bands and coarse suit shading from these structural checks. Old screenshot
+> coordinates below refer to the former batch in Git history. Its installed
+> hash and the new batch's installed hash must not be conflated. A closed sleeve
+> probe is not visual clearance for those appearances.
+
+The earlier 11-frame screenshot review (the previous version of
+`2026-11-07-christie-slim-screenshot-review.md`) explained
 its findings with three mechanisms: `rebind_arms_at_idle` opening a stitched
 seam (armpit), a displaced vertex in the slim fold solution (elbow sliver), and
 normal recomputation leaving stale authored normals (seams). This document tests
@@ -545,7 +555,7 @@ body's own UVs (§10.2).
 | audit item | status after diagnosis |
 | --- | --- |
 | 1 normal seams | real; the 49 interior groups are unified (**§9**), the 431 free-edge folds stay by design |
-| 2 elbow sliver | real; the hole and the seam predate the 11-07 round (identical in base); fix topology, not displacement — **fixed in §8** |
+| 2 elbow sliver | the inherited hole and sleeve seam were **closed structurally in §8**; that does not establish that the old outer-silhouette sliver is gone in game. The replacement review keeps visual clearance open and separately records dark rear-forearm patches |
 | 3 armpit hole | **not a hole**: the ray cast passes through empty space between the arm and the torso, the armhole's upper arc is sewn (0.00 cm) and the reference carries the same kind of gap; inherited, slim smaller than base. No build change made (§3) |
 | 4 wrist band / red speck | band = open cuff interior + 0.5 cm of skin, not a bare wrist; red not reproducible from the pack |
 | 5 spiky fingertips | the pack has no hands; only the cuff ring is ours |

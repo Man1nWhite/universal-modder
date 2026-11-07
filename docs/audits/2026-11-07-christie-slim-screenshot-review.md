@@ -1,298 +1,236 @@
-# Christie_LAS_Slim — in-game screenshot review (2026-11-07)
+# Christie_LAS_Slim — replacement screenshot review (2026-11-07)
 
-Source: 11 user screenshots of the **slim pack** in game (lobby/idle + two
-action poses with a sniper rifle). Pack under review is the tracked
-`dist/Christie_LAS_Slim.zip`, sha256 `33832eaf…aca7` (4,206,230 B) — the
-2026-11-07 rebuild with the elbow round, the cuff taper and the glove adapter.
+## Evidence and scope
 
-**Update, later on 2026-11-07:** this review describes the pack as it was
-shipped that morning. The sleeve has since been rebuilt with
-`stitch_sleeve_seams` (sha256 `14f75d66…`): the lengthwise slit and the
-4-vertex hole at the back of each elbow are closed, so the tube is watertight
-along its length — see §8 of `2026-11-07-christie-slim-diagnosis.md`. That does
-not settle item 2 below: the diagnosis attributes the *outer-silhouette* sliver
-to pose coverage, not to the hole, which is always backed by the opposite wall
-of the sleeve.
+This review **replaces the earlier 11-frame screenshot review**. The user
+supplied 15 replacement PNGs, archived byte-for-byte in
+[`docs/pd2-las/screenshots/`](../pd2-las/screenshots/README.md): **8 lobby/idle
+views and 7 menu views holding a rifle**. The filenames follow upload order;
+[`manifest.json`](../pd2-las/screenshots/manifest.json) records each upload
+name, archived name, dimensions, byte count and full SHA-256. Old filenames and
+crop coordinates in the historical recheck/diagnosis do not identify these new
+frames; the former images remain in Git history, not in the current archive.
 
-The user confirmed a **heister head mod is in play**, so the Christie face/hair
-visible in the shots is not from this pack (which is `headless: true`). Head
-appearance is out of scope below.
+**The installed pack's hash was not supplied.** The repository ZIP is
+`dist/Christie_LAS_Slim.zip`, SHA-256
+`5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d`
+(4,222,761 B), but that does not establish which bytes are installed in the
+screenshots. Do not label these frames with that hash or use them to certify
+that rebuild. The date above is the date the batch was supplied, not a claim
+about the files' capture timestamps.
 
-The screenshots are archived byte-identical in
-[`docs/pd2-las/screenshots/`](../pd2-las/screenshots/) so the crops referenced
-below stay reproducible:
+Appearance was judged at **native 1:1 resolution**. Unfiltered crops were used
+to locate evidence; nearest-neighbour enlargement was used only to trace edges,
+not to diagnose faceting. No screenshot was resized, recompressed or annotated
+in the archive. PNG storage is lossless; the upstream capture/resampling
+history is unknown. Mouse cursors and UI overlays are not model defects.
 
-| shot | file | view |
-| --- | --- | --- |
-| 1 | `christie_slim_01_lobby_front-three-quarter.png` | lobby, front 3/4 |
-| 2 | `christie_slim_02_lobby_front.png` | lobby, front |
-| 3 | `christie_slim_03_lobby_front-three-quarter-wrist.png` | lobby, front 3/4, wrist |
-| 4 | `christie_slim_04_lobby_right-profile.png` | lobby, right profile |
-| 5 | `christie_slim_05_lobby_back.png` | lobby, back |
-| 6 | `christie_slim_06_lobby_back-three-quarter.png` | lobby, back 3/4 |
-| 7 | `christie_slim_07_lobby_left-profile.png` | lobby, left profile |
-| 8 | `christie_slim_08_menu_back-rifle.png` | menu, back, rifle |
-| 9 | `christie_slim_09_menu_left-profile-rifle.png` | menu, left profile, rifle |
-| 10 | `christie_slim_10_menu_front-rifle.png` | menu, front, rifle |
-| 11 | `christie_slim_11_menu_right-three-quarter-rifle.png` | menu, right 3/4, rifle |
+### Frame index
 
-Pixel coordinates below are in **each file's own pixel space**, not a shared
-canvas — the source crops are all slightly different sizes (491–563 px wide).
+Left/right in these filenames describe the direction the face points **in the
+image**, not an anatomical left/right assignment to a limb. Each file has its
+own pixel space. All crop boxes below use `(left, top, right, bottom)`, origin
+at the upper-left, with right/bottom exclusive.
 
-## Correction (read this first)
+| Shot | Archived file | View | Pixels |
+|---|---|---|---|
+| 01 | [`christie_slim_01_lobby_front.png`](../pd2-las/screenshots/christie_slim_01_lobby_front.png) | lobby, front | 506 × 980 |
+| 02 | [`christie_slim_02_lobby_right-three-quarter.png`](../pd2-las/screenshots/christie_slim_02_lobby_right-three-quarter.png) | lobby, front 3/4, facing image-right | 495 × 1000 |
+| 03 | [`christie_slim_03_lobby_right-profile.png`](../pd2-las/screenshots/christie_slim_03_lobby_right-profile.png) | lobby, profile, facing image-right | 528 × 1012 |
+| 04 | [`christie_slim_04_lobby_back-three-quarter-right.png`](../pd2-las/screenshots/christie_slim_04_lobby_back-three-quarter-right.png) | lobby, back 3/4 | 540 × 1020 |
+| 05 | [`christie_slim_05_lobby_back.png`](../pd2-las/screenshots/christie_slim_05_lobby_back.png) | lobby, back | 594 × 1010 |
+| 06 | [`christie_slim_06_lobby_back-three-quarter-left.png`](../pd2-las/screenshots/christie_slim_06_lobby_back-three-quarter-left.png) | lobby, opposite back 3/4 | 560 × 1055 |
+| 07 | [`christie_slim_07_lobby_left-profile.png`](../pd2-las/screenshots/christie_slim_07_lobby_left-profile.png) | lobby, profile, facing image-left | 502 × 1018 |
+| 08 | [`christie_slim_08_lobby_left-three-quarter.png`](../pd2-las/screenshots/christie_slim_08_lobby_left-three-quarter.png) | lobby, front 3/4, facing image-left | 519 × 1017 |
+| 09 | [`christie_slim_09_menu_front-three-quarter-right-rifle.png`](../pd2-las/screenshots/christie_slim_09_menu_front-three-quarter-right-rifle.png) | menu, front 3/4, rifle | 585 × 911 |
+| 10 | [`christie_slim_10_menu_right-profile-rifle.png`](../pd2-las/screenshots/christie_slim_10_menu_right-profile-rifle.png) | menu, profile, rifle | 557 × 916 |
+| 11 | [`christie_slim_11_menu_back-three-quarter-right-rifle.png`](../pd2-las/screenshots/christie_slim_11_menu_back-three-quarter-right-rifle.png) | menu, back 3/4, rifle | 541 × 890 |
+| 12 | [`christie_slim_12_menu_back-rifle.png`](../pd2-las/screenshots/christie_slim_12_menu_back-rifle.png) | menu, back, rifle | 574 × 910 |
+| 13 | [`christie_slim_13_menu_left-profile-rifle.png`](../pd2-las/screenshots/christie_slim_13_menu_left-profile-rifle.png) | menu, opposite profile, rifle | 536 × 881 |
+| 14 | [`christie_slim_14_menu_front-three-quarter-left-rifle.png`](../pd2-las/screenshots/christie_slim_14_menu_front-three-quarter-left-rifle.png) | menu, opposite front 3/4, rifle | 531 × 902 |
+| 15 | [`christie_slim_15_menu_front-rifle.png`](../pd2-las/screenshots/christie_slim_15_menu_front-rifle.png) | menu, front, rifle | 536 × 899 |
 
-A first pass of this review blamed a **"blocky / faceted shading"** problem on
-`_recompute_normals()` keeping stale authored normals. **That diagnosis was
-wrong and is withdrawn.** It was an artifact of magnifying the screenshots 6–20×
-with interpolation before judging them.
+## Findings — observed appearance, not assumed root causes
 
-The table that replaced it was wrong too, in both columns. The cell labelled
-"2B reference (PD2)" held the **Christie base** pack (10,361 vertices is
-`christie.model` `g_body`), "695" is not the reference's triangle density, the
-texel-density row contradicts itself (it gives 5.58 to a pack that measures 5.52
-and 9.02 to one that measures 5.51), and two of its metrics — "faceted score"
-and "diffuse low-freq / high-freq ratio" — were never defined anywhere in the
-tooling. Re-measured with `tools/pd2-las/audit_metrics.py` on the shipped packs:
+### 1. Large dark patches on the rear forearms — high visual impact
 
-| metric | 2B reference (PD2) | Christie base | Christie slim |
-| --- | --- | --- | --- |
-| vertices / triangles | 27,741 / 35,260 | 10,361 / 17,351 | 7,695 / 12,996 |
-| vertices with an incident face >90° off their own vertex normal | 65 = **0.23 %** | 788 = 7.6 % | 522 = 6.8 % |
-| same, per 1,000 triangles | **1.8** | 45.4 | 40.2 |
-| tris per 1,000 cm² of surface | **1,024** | 448 | 376 |
-| texels per cm (1024² atlas) | **5.52** | 5.20 | 5.51 |
+**Evidence:** shots 04–06, clearest in **05**, crops `(55, 435, 125, 590)`
+and `(435, 435, 505, 590)`.
 
-**Read the normalized row, not the percentage.** Percentage-of-vertices falls as
-a mesh gets denser, and the reference has 2.7× our triangles and 3.6× our vertex
-count, so the raw column is density-confounded; per 1,000 triangles says the
-same thing, so the conclusion holds either way. It is narrower than the old
-one: slim's normal/face agreement (6.8 %) is in the same band as this project's
-own **base** pack (7.6 %) and roughly 20–25× the reference's rate. The claim
-that the slim pack's shading data is *better than the PD2-authored reference*
-does not survive — it rested on the mislabelled column.
+Both sleeves have a conspicuous dark green/black, angular patch immediately
+below the elbow. These are not just a thin seam or an isolated antialiased
+pixel. They interrupt the white sleeve over a substantial area, and the two
+arms show a similar failure. The smooth/dark interior contrasts with both the
+surrounding cloth and the textured wall.
 
-Also cleared, with evidence:
+Do **not** turn this into a confirmed see-through hole from colour similarity
+alone. In shot 05, the image-left patch core `(83, 479, 93, 495)` has RGB mean
+about `(43, 50, 38)` and channel standard deviations around 2, whereas the
+adjacent wall `(38, 479, 48, 495)` has mean `(44, 48, 42)` and standard
+deviations around 10. The dark region does not visibly reproduce the wall's
+weave. This supports investigating a shaded/overlapping surface as well as
+culling; it does not identify the cause.
 
-- **Normal map format is correct.** `c02_01_nm` is R=255, G=varying, B=0 —
-  tangent-space DXT5nm. The user-tested `Miranda_LAS` `miranda_body_nm` has the
-  byte-identical structure (R=255, G varying, B=0), so this is not a build bug.
-- **Specular (diffuse alpha) is in range.** `audit_metrics.py --alpha` over the
-  **whole 1024×1024 texture** — all texels, unused padding included, which is
-  the region these numbers describe — gives Christie garment `c02_01_df`
-  mean alpha **10.13 / 85 distinct levels** (p10 4, p50 9, p90 16, max 255 on
-  0.07 % of texels), against Miranda's shipped `body_df` **21.63 / 64** and
-  lawson's `body1_df` **17.23 / 40**. The 2026-11-06 sleeve retouch landed; the
-  garment is the *least* transparent of the three.
-- **At native 1:1 pixel scale the blazer shades smoothly.** The apparent
-  "polygon plates" are the fabric weave in the diffuse plus the matcap, and they
-  only read as faceting when upscaled with smoothing.
+**Next isolation:** after matching the installed pack hash, compare this exact
+rear pose with the sleeve alone under unlit diffuse, flat-normal lighting and
+ordinary normal-mapped lighting. Check local normals/tangent frames, inner
+layers and self-overlap; do not add more seam faces just because a patch is
+dark. The old closed-tube test does not test this appearance.
 
-Lesson for future screenshot reviews: **judge shading at native pixel scale**;
-magnification invents structure that is not in the mesh.
+### 2. Hard neck colour bands and planar-looking throat — high visual impact
 
-## Confirmed issues
+**Evidence:** lobby shots 01–02 and 08; stronger in menu shots **09** and
+**15**, especially 15 crop `(150, 265, 330, 420)`.
 
-### 1. Hard normal seams at duplicated UV-seam vertices — fixed
+There is a sharp light band running across the neck below the jaw, a much
+darker central throat region, and another abrupt transition toward the chest.
+The boundary is circumferential/angular, not merely a gentle light-to-shadow
+gradient. The stepped tonal regions are visible at native scale and remain an
+open appearance problem.
 
-This survived every test, and it is the item the withdrawn diagnosis was
-groping for. Around duplicated (coincident) vertices, adjacent copies did not
-agree on their normal:
+The pack is body-only and the head is separate, but **that does not prove the
+whole visible neck artifact belongs to the head mod**. The prior offline
+junction diagnosis ruled out its original neck-rim theory on the measured
+combination; it did not explain these rendered bands. Nor does the screenshot
+prove a skin gap, a particular skirt fault, or a specific wrong material.
 
-| pack | duplicate vertex pairs | pairs with normals >30° apart | interior (before the fix) | on a border edge |
-| --- | --- | --- | --- | --- |
-| 2B reference (PD2-authored) | 22,486 | **0 (0.0 %)** | 0 | 0 |
-| Christie base | 1,440 | 806 (56.0 %) | 0 (**was 50**) | 806 |
-| **Christie slim** | 953 | 431 (45.2 %) | 0 (**was 49**) | 431 |
+**Next isolation:** same heister, pose, camera and lighting, first without the
+head replacement, then with it; retain the same LAS body. If necessary repeat
+with the ordinary body as the other half of the comparison. Establish which
+surface owns each band before changing neck geometry or textures.
 
-In the reference, duplicated seam vertices carry *identical* normals, so seams
-are invisible. In ours, half of them diverged by more than 30°, which shades as
-a hard crease/step exactly along the seam. Distribution by height, in uniform
-20 cm bins (`audit_metrics.py --z-hist`), summing to the *diverged* column:
+### 3. Coarse, hard-edged tonal patches across the suit — high visual impact
 
-| z band (cm) | slim, shipped | slim, before the fix | base, shipped |
-| --- | --- | --- | --- |
-| below 0 (boot soles / shoe lining) | 87 | 87 | 87 |
-| 0–20 (boot tops) | 99 | 99 | 100 |
-| 80–100 | 19 | 19 | 359 |
-| 100–120 (waist / hips) | 43 | 68 | 76 |
-| 120–140 (sleeve) | 56 | 66 | 56 |
-| 140–160 (chest / collar) | 121 | 132 | 122 |
-| 160–180 | 6 | 9 | 6 |
-| **sum** | **431** | **480** | **806** |
+**Evidence:** shot **12**, back crop `(100, 300, 520, 850)`; shots **10–11**
+and **14–15**, shoulders/upper arms and coat panels; shot **01**, trouser crop
+`(85, 640, 355, 950)`.
 
-The earlier version of this list gave four ad-hoc bins that summed to **384 of
-480** — it omitted the crown of the head and, more importantly, everything below
-z 0, where a fifth of the divergent pairs live (the shoe's inner and outer
-surfaces share positions).
+The coat has large, stair-stepped and irregular light/dark patches across the
+back, shoulders, sleeves and lower panels. The trousers also look strongly
+mottled. In the rifle views, some boundaries cut across otherwise broad smooth
+panels. These patches are visible at native resolution, not solely after
+smoothed enlargement. The result is inconsistent material/lighting response,
+not a clean, uniformly shaded white suit.
 
-**Fixed 2026-11-07** (`unify_coincident_normals` in
-`tools/pd2-las/build_christie_las.py`): every *interior* coincident group gets
-one shared normal, the group mean; shadow. Borders keep both normals — a copy
-that sits on a border edge is the edge of a garment panel (cuff rim, sleeve
-mouth, lining edge), and those are genuine folds, not UV splits. Slim unifies
-98 copies over 49 groups, base 100 over 50; the worst interior pair is 101
-(slim) / 103 (base) degrees, so the mean stands within ~50° of both sides —
-pairs beyond 120° are skipped rather than averaged into a sideways normal.
-Measured after the change: **0 interior divergent pairs in both packs**, 431 /
-806 border pairs untouched, winding agreement 97.1 / 97.2 %, 0 orientation
-breaks. Rendered with a Gouraud shader that interpolates the *stored* normals
-(the repo renderers shade per face and cannot show this), the change is
-invisible from the front and softens the back/collar and lapel seams; median
-normal change 22.6°, maximum 50.6°. Guarded by
-`test_interior_coincident_normals_agree` (shipped packs *and* the 2B reference,
-which must stay at 0 of 22,486) and `tests/test_seam_normals.py` (the pass
-itself, on hand-built meshes).
+This is an **appearance finding**, not a claim that the triangles themselves
+are faceted or that all authored fabric folds/stains are wrong. The screenshots
+alone cannot distinguish diffuse detail, normal/tangent response, specular
+quantisation, overlapping surfaces, or engine lighting/shadow artefacts.
 
-### 2. Elbow: detached sliver on the outer silhouette
+The earlier statement that the broad blotching was "fixed" was too sweeping.
+The face-raster gloss mask and filtered mip rebuild fixed a specific build
+operation; their scope tests do not establish that all visible suit blotching
+is gone. In particular, the known residual **boot** UV overlap cannot explain
+patches on the back or upper arms. The old normal-map format check likewise
+does not certify the final engine shading.
 
-Confirmed at native scale — `christie_slim_05_lobby_back.png`, crop
-(60, 400)–(130, 490), nearest-neighbour ×5: at x ≈ 86–90, y ≈ 420–470 on the
-left arm (and a matching one on the right) a thin near-white **spike stands
-clear of the arm** with background pixels between it and the sleeve. Not a highlight — there is a
-real gap. Consistent with `_elbow_coverage_correction` / the bounded slim fold
-solution displacing a vertex whose neighbours did not follow. Bound each moved
-vertex's displacement relative to its 1-ring, not only against face inversion.
+**Next isolation:** on a matched installed build, compare the same panels with
+unlit diffuse, specular disabled, then a flat normal map, changing one thing at
+a time. A change in appearance under one of those controls identifies the
+channel to investigate; it is not a reason to smooth or reweight the whole
+mesh speculatively.
 
-### 3. Armpit: hole in the sleeve–torso seam
+### 4. Elbow folds remain pinched and angular — medium/high visual impact
 
-Confirmed at native scale — `christie_slim_01_lobby_front-three-quarter.png`,
-crop (325, 390)–(365, 430), nearest-neighbour ×12: at x ≈ 330–355 / y ≈ 395–425
-a **hard-edged triangular notch** where the background is visible through the underside of the
-arm where sleeve meets blazer, with straight edges too regular to be shading.
-Likely the bind-pose-stitched seam opening when `rebind_arms_at_idle` takes the
-elbow from PD2's 72° to the idle 12°.
+**Evidence:** shot **10**, crop `(155, 480, 310, 640)`; shot **15**, crop
+`(390, 515, 510, 640)`; idle profiles 03 and 07 provide comparison views.
 
-### 4. Wrist line: bare skin band, red UV speck, ragged cuff lip
+The bent inner elbow has a sharply compressed multi-ridge crease and a
+triangular, flap-like boundary at the upper-arm/forearm transition. The idle
+profiles also show an abrupt elbow bulge/step. Some sleeve folding is expected;
+these views do not provide a frame-by-frame animation comparison or prove an
+inverted face. They do show why a passing topology/coverage metric is not
+sufficient visual clearance.
 
-All three are visible in one crop: `christie_slim_03_lobby_front-three-quarter-wrist.png`,
-crop (300, 540)–(410, 630), nearest-neighbour ×5. Re-measured in that crop
-(the first pass quoted a "cream band" without saying where it sampled):
+**Next isolation:** inspect both arms over the actual idle-to-rifle movement
+in game, with a flat-shaded wireframe/normal diagnostic offline on the matching
+mesh. Separate self-intersection, baked source folds and shading discontinuity
+before adjusting skin weights or corrective positions. The known extra fold
+at maximum flexion after stitching is a watch item, not by itself proof that
+it caused these screenshots.
 
-- The **pale band just under the cuff lip** (box x 318–336, y 578–584, right at
-  the sawtooth) averages RGB **(188, 175, 177)**, R−B = **+11**, against the
-  sleeve above it at (206, 201, 201), R−B = +5. So the band is barely warmer
-  than the garment: it is not obviously bare skin. A much warmer patch does
-  exist in every shot (the statistic reaches R−B = +108 on the hand itself),
-  which is probably where the earlier "208,182,171 / +37" figure came from — it
-  measured skin, not the band. The diagnosis reaches the same conclusion from
-  the mesh: the band is the **open cuff interior** plus ~0.5 cm of skin, and
-  the pack contributes only the open ring.
-- The **red texture patch** — the one hard fact here: peak RGB **(187, 44, 21)**
-  at about (343, 583), 128 pixels with R−B > 40 and R > 120 inside the 40×40
-  box (325, 565)–(365, 605). It sits exactly on the wrist seam.
-- The cuff lip is a **sawtooth** of alternating light/dark rather than a ring
-  (the top of the same crop).
+### 5. Cuff/glove junction remains rough — medium visual impact
 
-### 5. Fingertips render spiky
+**Evidence:** shot **08**, crop `(275, 535, 365, 655)`; shots 01–03 and 07;
+the glove over the rifle in shot 09 gives another pose.
 
-The glove fingers end in thin pointed blades with hard black slots
-(`christie_slim_08_menu_back-rifle.png`, `…_09_…`, `…_10_…`; in shot 8 the hand
-sits at x 300–430, y 640–760). Partly the vanilla PD2 glove, but the slivers match this pack's own cut:
-`cut_hands()` keeps a face only when all three verts are non-hand, leaving a
-ragged open border exactly where the glove spawns and where the sleeve was
-stretched past the wrist.
+Visible symptoms include a thin pale cuff-interior band, an uneven cuff edge,
+small red/orange marks at the junction, and long black, tapered streaks across
+the back of the gloves. The join does not read as a consistently clean sleeve
+over a glove.
 
-### 6. Soft axis-aligned blotches on the trousers
+Do not call every black streak a hole or a broken fingertip. They may be glove
+texture detail, overlapping stock/glove/adapter surfaces, or another rendering
+interaction. The body pack does not author the finger mesh, so sculpting
+Christie's deleted hands cannot repair this. Conversely, that ownership fact
+is **not** evidence that the combined outfit/glove result is visually correct.
+The earlier cuff UV sampling did not reproduce the red speck from the body
+texture; it did not locate the speck's actual owner.
 
-Confirmed at native scale — `christie_slim_08_menu_back-rifle.png`, crop
-(150, 680)–(360, 760): low-contrast patches with **stair-stepped axis-aligned
-edges**, i.e. a texture/mip artifact, not geometry.
+**Next isolation:** compare the same selected gloves on the vanilla outfit,
+then on Slim, in the same pose. Inspect glove/adapter/stock-hand visibility and
+the cuff separately before cutting more geometry or changing the glove hook.
 
-The mechanism is **per-block specular attenuation, not the splat edge**. The
-diagnosis measures it: `sleeve_uv_masks` builds a 24-texel disc mask from
-arm-weighted vertices and `retouch_sleeve_gloss` attenuates **diffuse alpha
-only** (the specular mask), **per 4×4 DXT block, at every mip**. So it cannot
-change albedo at all, and its edge is quantised to the block grid: ~0.7 cm per
-block at mip 0 on the suit, ~5 cm axis-aligned patches at mip 3 — which is
-exactly the stair-stepped look. There is no "UI island" bleed to chase: the pass
-writes to one atlas, `c02_01_df` (the suit), and the pack ships nine textures —
-the icon, the skin df/nm pair, and a df/nm pair per garment material. None of
-them is a UI sheet.
+## What is not established by this batch
 
-Two corrections to the first pass: the mask is far narrower than "the trousers"
-— of the 151 leg-only faces it touched, 123 are at z 0–20 cm, i.e. the **shoes**
-(3.2 % of the leg faces' UV area) — and the artifact is a *gloss* difference, so
-it reads as a slightly different sheen, not as a stain.
+- **A new armpit tear:** the visible background gap between hanging arm and
+  torso is not enough to overturn the prior diagnosis that this is silhouette
+  clearance, not a torn surface. No new hole is asserted here.
+- **The old detached elbow sliver is fixed in game:** no directly matched
+  before/after or installed-hash evidence establishes that. The new dark rear
+  forearm patches and angular bend need their own investigation.
+- **Hard normal seams everywhere:** the repository model has no divergent
+  *interior* coincident-normal pairs. Its retained border/lining folds are not
+  automatically defects, and this count does not explain every tonal patch.
+- **Correct boot appearance, FPS arms, or walking/reload deformation:** the
+  feet and first-person view are not shown, and these are static lobby/menu
+  captures, not a gameplay animation test.
+- **A confirmed inner-top UV fault:** the `c02_05` mapping observation in the
+  structural diagnosis remains unverified; these screenshots do not isolate it.
+- **A shader-format regression:** visible shading problems do not establish
+  that DXT5nm encoding or the global diffuse-alpha convention is wrong.
 
-**Fixed in the 2026-11-07 follow-up build.** The mask no longer comes from
-vertex discs: each sleeve
-face's UV triangle is rasterised into the atlas (`sleeve_uv_mask`, 3-texel
-feather clipped to the footprint so no texel outside the sleeve is touched), and
-`retouch_sleeve_gloss` attenuates **mip 0 only**, then regenerates the pyramid
-from it (`mip_payloads_from_mip0`), so the mip chain is a filtered version of one
-full-resolution mask instead of a separately quantised one per level. Measured
-off the shipped packs:
+## Offline checks on the repository artifact
 
-| | first pass | this build |
-|---|---|---|
-| leg-only UV area touched | 3.2 % | **0.8 %** |
-| leg-only faces touched | 151 | **33** (all z 2.6–11.9, the shoes) |
-| sleeve faces covered | — | 100 % (1,740 faces) |
-| alpha inside / outside the mask | — | 5.51 / 11.25 (0.49×) |
-| mip count, texture payload | 11, 1,398,256 B | 11, 1,398,256 B |
+The following apply to the **repository ZIP**, not automatically to the
+installation shown in the screenshots:
 
-The remaining 33 faces are **atlas sharing, not mask reach**: their UVs sit
-inside the sleeve islands of `c02_01_df` (mask value up to 1.00 at their
-centroids), so those texels are sampled by both the sleeve and the boot and no
-mask can separate them. Removing that residue needs the boots re-UV'd, which is
-a texture-authoring change, not a build pass.
+```bash
+.venv/bin/python -m pytest -q tests/test_christie_las.py tests/test_seam_normals.py
+.venv/bin/python tools/pd2-las/diagnose_mesh.py --pack slim \
+  --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+```
 
-### 7. Neck tonal split (measured twice — the first measurement was read backwards)
+- **78 tests passed**, covering both Christie packs and the seam-normal pass.
+- Slim: **7,695 vertices / 12,996 triangles**, 66 shells.
+- **0 divergent interior coincident-normal pairs**; all 431 retained divergent
+  pairs are on borders.
+- Sleeve mid-band leakage: **0.00 cm² left / 0.00 cm² right**.
+- Sleeve gloss mask covers 100% of its sleeve-face centroid samples; **33
+  boot faces / 0.8% of leg-only UV area** still share that footprint. This is
+  an offline atlas limitation, not a boot appearance observation in this batch.
+- No vertices have a hand-chain weight above 0.5; the wrist blend peaks at 0.40.
 
-A hard vertical boundary on the throat, pale RGB(121,120,127) left vs tan
-RGB(147,129,117) right, with horizontal banding.
+These checks constrain topology, attributes and mask scope. They do not
+invalidate the visible issues above or establish crash-free gameplay.
 
-The first pass guessed a heister-head UV seam and left it alone because the head
-was not in the repository. It is: `tools/build_joy_head_mods.py` builds the nine
-head-replacement packs, and four of them put a Miranda head over a heister — the
-combination a Christie LAS player actually sees, because LAS keeps the heister's
-head. `tools/pd2-las/neck_junction.py` was written to measure the junction, and
-its first answer ("~70 % of the throat is the head's skin, the head's neck border
-is 110/110 front-most, so the rim at z 149.5 is the hard line") was **wrong**:
-the front-most surface is the largest y (+y is the character's front), the
-exposure test and the winner test both compared the other way round, the border
-set was all 53 of the head's boundary loops instead of the neck rim, and the
-committed render had the camera behind the character. §10 of the diagnosis has
-the details and the fixes, now pinned by tests.
+**Verification metadata is still misleading:**
+[`build_christie_las.py`](../../tools/pd2-las/build_christie_las.py) hardcodes
+`runtime_verified: true` using the November 5 base-pack check, and the regression
+test asserts that inherited boolean. It is not per-build visual certification.
+This screenshot/documentation update does not change that code or rebuild any
+pack.
 
-Corrected, over `dist/Christie_LAS.zip` with the four `Miranda_L4D2_over_*`
-heads:
+## Next work, in order
 
-- **0.0 % of the throat window is see-through** — the pale half is a surface;
-- the **body owns 84.3–99.5 %** of the window (Joy 99.5 %, the other three
-  84.3 %), the head 0.5–15.7 %: the tan is the body's own `mtr_body` skin, the
-  pale is the white blazer, and the head's neck is buried behind both;
-- **0 of 98–120 head neck-rim edges are exposed**, from the front or from
-  behind, so the rim is not the line either — and it never was;
-- the body does not split itself: its throat samples one uniform tan on both
-  sides (205,157,128 in the front band, the darker samples at x ±3.5–5.0
-  mirrored exactly).
-
-The skirt extension that the first pass proposed shipped on the **L4D2** head
-path, for the reason in §10.3: it puts the head's open end 6.5 cm deeper inside
-the torso for the bodies and collars this audit has not measured. On this body it
-changes no cell: `neck_junction.py --ab` reports 0 of 2,401 throat cells changing
-owner between the 2026-11-05 packs and the skirted ones. The Romance path was
-reverted after the renders showed the skirt being squashed into the head there
-(§10.3).
-
-**Item 7 stays open**, with a bisect instead of a theory (diagnosis §10.4):
-uninstall the head pack, keep the slim body, and look at the throat again. If the
-boundary survives, it is the body; if it vanishes, it is the head pack's hair
-sheets, which are the only part of that head still in front of the blazer.
-
-## Suggested order of work
-
-1. ~~**Coincident-vertex normal unification** (item 1)~~ — **done**:
-   `unify_coincident_normals`, 0 interior divergent pairs in both packs, borders
-   left as folds, tests in `tests/test_seam_normals.py` and
-   `test_interior_coincident_normals_agree`.
-2. **Elbow sliver + armpit hole** (2–3) — the two places where the mesh visibly
-   comes apart.
-3. **Wrist line** (4) — skin band, red UV speck, cuff lip.
-4. ~~**Trouser blotches** (6)~~ — **done**: face-raster mask scoped to the
-   sleeve islands, mip 0 attenuated and the pyramid regenerated (0.8 % of the
-   leg UV area left, and that residue is atlas sharing with the boots).
-5. **Neck split** (7) — measured twice, corrected once; **open**: neither the
-   head's neck rim nor the body's UVs split the throat offline, so the next step
-   is the in-game bisect above (diagnosis §10).
+1. Record the installed Slim ZIP/payload identity and active head/glove setup.
+   Keep the five visual findings open regardless of whether offline tests pass.
+2. Isolate the rear forearm patches and the neck bands with the controls above;
+   these have the clearest local boundaries and highest visual impact.
+3. Isolate the global suit shading channels; do not attribute the back/arm
+   patches to the small residual boot UV overlap.
+4. Review elbow deformation through motion and the cuff/glove combination
+   against vanilla, then make the smallest targeted fix supported by those
+   comparisons.
+5. Capture matched lobby/menu views plus a short gameplay/FPS check before
+   calling the corrected build visually verified.
