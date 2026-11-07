@@ -5,6 +5,8 @@ as a Legendary Armour Skins (LAS) armor skin (the `2b.rar` product shape),
 built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
 **State:** the pack is built, game-tested, tracked in git, and offline-verified.
+**Suite at this commit:** `pytest tests -q` → **650 passed, 26 skipped** (67 of
+them `tests/test_christie_las.py`), `pyflakes` clean on `tools/` and `tests/`.
 Deliverables in **`dist/`**:
 - `dist/Miranda_LAS.zip` (5,414,012 bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
 - `dist/lawson_las.zip` (9,123,392 bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
@@ -14,29 +16,63 @@ Deliverables in **`dist/`**:
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,
   audit `docs/pd2-las/CHEST-VARIANT.md`, tests `tests/test_bust_variant.py`.
 - Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
-  - `dist/Miranda_L4D2_over_Joy.zip` (`10,585,799` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,238,712` B)
-  - `dist/Miranda_L4D2_over_Clover.zip` (`7,636,591` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,297,599` B)
-  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,142,005` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,810` B)
-  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,140,504` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,805,595` B)
+  - `dist/Miranda_L4D2_over_Joy.zip` (`10,600,653` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,238,712` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (`7,648,225` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,297,599` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,160,274` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,810` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,147,084` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,805,595` B)
 
-  All eight rebuild byte-identically (`tools/build_joy_head_mods.py` writes fixed
-  `2020-01-01` zip timestamps, so `dist/*.zip.sha256` is a true build hash). The
-  four **L4D2** packs in this tree were rebuilt on 2026-11-05: the previously
+
+  All eight Miranda packs rebuild byte-identically (`tools/build_joy_head_mods.py`
+  writes fixed `2020-01-01` zip timestamps, so `dist/*.zip.sha256` is a true
+  build hash); `Geralt_over_Rust.zip` is unchanged by the rebuild. Current shas
+  (2026-11-07, neck skirt — see the last paragraph of this item):
+
+  - `Miranda_L4D2_over_Joy.zip` — 10,600,653 B, sha256 `2b19542b7e20770536091e750eb23cc460e7a28ddce572bde10055dbdbb7bc95`
+  - `Miranda_L4D2_over_Clover.zip` — 7,648,225 B, sha256 `baa9b5cf5ea3575a5a08a368d7144b044ce434d63c30020fc1fd241de3519d0a`
+  - `Miranda_L4D2_over_Bonnie.zip` — 8,160,274 B, sha256 `9cdb80c1fec899437ea1ef48ba6b832f85898121d0c0fa0ecbd3fee6d7164977`
+  - `Miranda_L4D2_over_Sydney.zip` — 7,147,084 B, sha256 `d0c88d7ce45ed6b9ea5dbd39e975341b46203ded5e66aa5746fcbf533eb0f2ef`
+  - `Miranda_Romance_over_Joy.zip` — 10,238,712 B, sha256 `c53953eabf0dd41021d92ce12c56c880df8432c25c4506199cfda03beee39e6d`
+  - `Miranda_Romance_over_Clover.zip` — 7,297,599 B, sha256 `28a4d849a7a232ac8766345b3042b4b557a62cb41145e7fea74ca152b5548847`
+  - `Miranda_Romance_over_Bonnie.zip` — 7,791,810 B, sha256 `d51d96640712eddeb1b6c97cc8776b56ada4438c1e553159b0ff1e74c4d71a27`
+  - `Miranda_Romance_over_Sydney.zip` — 6,805,595 B, sha256 `b0df49097cd3800f83ae28a5388eadc62d717b2e9fe682d8534f36bdf5fd9d07`
+  - `Geralt_over_Rust.zip` — 8,121,550 B, sha256 `0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d`
+
+  The four **L4D2** packs were rebuilt on 2026-11-05 as well: the previously
   tracked ones had been built against an older `dist/Miranda_LAS.zip` and carried
   a scrambled diffuse-alpha plane in their `*_head_df.texture` (specular noise —
   RGB bit-identical, previews byte-identical; see
   [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md)).
+  The 2026-11-07 rebuild adds `extend_neck_skirt()` to the **L4D2** head drawables
+  only - one extra ring 6.5 cm below the neck sheet's rim, tucked to 88 % and
+  shifted 0.5 cm forward, inside the torso: 4,402 -> 4,515 verts and 7,109 ->
+  7,321 tris (over Joy; 7,305 over Clover/Bonnie/Sydney), lowest point
+  z 149.48 -> 142.98. The four **Romance** packs are byte-identical to their
+  2026-11-05 state: on that rig the neck skin shares the `Hair` mesh with the
+  hair cap and the 1.5 mm flyaway wires, so the rim filter caught 741 hair edges
+  instead of ~145 and the wire pass that follows squashed the new ring into the
+  head (340 verts at z 168-170, 2,318 tris) - visible in the rendered previews as
+  a pale lump under the chin. `tests/test_pd2_las.py` pins the counts both ways.
+  On the Christie body the skirt changes no cell (`neck_junction.py --ab`: 0 of
+  2,401 throat cells change owner): it is insurance against a neckline wider than
+  Christie's, not a fix for item 7, which is still open -
+  `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.
+
   **Coverage:** Clover and Bonnie replace the heist, menu *and* Safe House
   (`*_chill`) models; Joy and Sydney replace the heist + menu models only, so
   their Safe House units keep the vanilla head. **In-game status 2026-11-05:**
   the four **L4D2** packs (`Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}.zip`)
-  are tested in game by the user; the Romance variants and Geralt over Rust
+  were tested in game by the user; the Romance variants and Geralt over Rust
   remain unverified — there is no checklist for the head packs (the LAS one is
-  `docs/pd2-las/in-game-checklist.md`).
+  `docs/pd2-las/in-game-checklist.md`). **That test covers the 2026-11-05 bytes,
+  not the ones tracked now:** the 2026-11-07 neck-skirt rebuild changed all four
+  L4D2 packs (the Romance four came out byte-identical to 2026-11-05, see the
+  paragraph below), so until someone looks at a throat again they are
+  *offline-verified only*. The check that would settle it is in
+  `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.4.
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,773,888 B, sha256
-`4df217a6…ea2e`) and `dist/Christie_LAS_Slim.zip` (4,206,230 B, sha256
-`33832eaf…aca7`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,794,618 B, sha256
+`c57edbba…1f765`) and `dist/Christie_LAS_Slim.zip` (4,222,761 B, sha256
+`5e55745f…70b4d`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -66,9 +102,27 @@ near-sleeve gap on both arms; slim also has independent bounded multi-pose fold
 solutions. Final isolated outer sheets, cuff/idle comparisons and actual FPS
 renders were inspected for base and slim. See
 `christie{,_slim}_idle_rest_outer_sheet.png` and
-`fps_christie{,_slim}_skel_{front,cuff}.png`. Validation: 59 Christie tests
-and 613 tests overall passed (29 skipped). Nothing built after 2026-11-05 has
-been in game yet, so an in-game idle-elbow check is still recommended.
+`fps_christie{,_slim}_skel_{front,cuff}.png`. Validation at that
+point: 59 Christie tests and 613 tests overall (29 skipped); the suite is at 650 /
+26 skipped today. Nothing built after 2026-11-05 has been in game yet, so an
+in-game idle-elbow check is still recommended.
+The same day, `stitch_sleeve_seams` closed the sleeve's lengthwise slit and the
+4-vertex elbow holes (0.00 cm² leaking on both sleeves of both packs, 0
+orientation breaks, UVs byte-identical), and `unify_coincident_normals` gave
+every *interior* coincident vertex one normal (0 interior divergent pairs, the
+border folds left alone); see "2026-11-07 sleeve seam stitch" / "seam normals" in
+`CHRISTIE.md`, §8-§9 of the diagnosis audit and the corrected screenshot review.
+The same day the sleeve-gloss mask was rebuilt: it is now rasterised from the
+sleeve's own UV faces and clipped to that footprint, and only mip 0 is
+attenuated (the pyramid is regenerated from it). Leg-only UV coverage 3.2 % →
+**0.8 %** (151 → 33 faces, all on the boots, and those 33 are atlas sharing
+rather than mask reach); sleeve coverage 100 %, alpha inside/outside 5.51/11.25.
+Work-order item 3 (the armpit notch) was measured and **closed as "not a
+defect"**: `cast_front` does not cull, so the wedge is empty space between the
+arm and the torso, the sleeve's armhole rim is coincident with the torso on its
+whole upper arc and free on the lower one — as an armhole is — and the 2B
+reference carries the same arm/body gap (8.2 cm² against 31.2). No build change.
+67 Christie tests now, 635 overall.
 See `docs/pd2-las/CHRISTIE.md` ("The elbow, measured on the elbow's own
 axis"). Tests: `tests/test_christie_las.py`.
 
@@ -149,6 +203,13 @@ las_pack.write_pack + zip → Miranda_LAS.zip`. Textures: VTF→DDS via
 - Surgical replacement of shipped heister models — retired route, dead.
 - `z.write()` for reproducible zips (embeds mtimes) — `las_pack.zip_pack`
   already solves this.
+- Seam repair by *merging coincident vertex indices* → the two rims carry
+  different UV islands, so the seam comes back as a texture tear. Weld the
+  attributes (position/normal/weights), rewire the faces, keep the corners.
+- Bridging the rims **before** welding them → zero-area triangles (a new
+  triangle closes a pair that is already coincident at post-weld positions).
+- Spanning a run gap of 3+ rim pairs while stitching → that "gap" is the
+  armhole. The sleeve seam only ever jumps 1-2 rim pairs.
 
 ## Environment traps (already fixed — know them)
 

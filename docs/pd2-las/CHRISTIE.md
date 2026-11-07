@@ -1,9 +1,13 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `4df217a6…ea2e`, 4,773,888 B)
+Validation at this commit: **67 Christie tests**, `tests/` overall **650 passed,
+26 skipped**, `pyflakes` clean. The two packs below are the ones in `dist/`; the
+dated log further down keeps the earlier hashes it was written with.
+
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `c57edbba…1f765`, 4,794,618 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `33832eaf…aca7`,
-  4,206,230 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `5e55745f…70b4d`,
+  4,222,761 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -89,6 +93,55 @@ inspected for both packs. Evidence: `christie{,_slim}_idle_rest_outer_sheet.png`
 Validation: **59 Christie tests passed; full `tests/` suite 613 passed,
 29 skipped**. This is an offline render/structural clearance; no build after
 2026-11-05 has yet been tested in game.
+
+**2026-11-07 sleeve seam stitch (`stitch_sleeve_seams`):** the diagnosis
+(`docs/audits/2026-11-07-christie-slim-diagnosis.md`) found the sleeve was never
+a closed tube: the upper sleeve is authored as a sheet whose lengthwise seam is
+a *slit* — two rims with separate vertices, 0 cm apart — plus a 4-vertex hole at
+the back of each elbow. Rays cast radially from the arm axis escaped through
+both, which is the dark stripe the in-game screenshots show at the sleeve. The
+new pass runs on the welded body and its shadow after `rebind_arms_at_idle`, so
+it works on the final shape and weights: it welds the coincident rims (one
+position, one averaged normal, one weight set, faces rewired — the UV per corner
+stays, the rims carry different UV islands), lofts the pairs that are left with
+one quad per rim step, and fans the remaining loops of four or fewer vertices
+from a free diagonal. It adds **no vertices** and never moves a UV: the `uv0`
+array is byte-identical to the previous packs. Base gains 64 triangles (21 rims
+welded, 4 holes plugged), slim 71 (23, 4); triangles 17287 → 17351 and
+12925 → 12996. Measured with `diagnose_mesh.py --templates` (radial probe over
+the tube's middle band, so the open cuff mouth is excluded): the sleeve slit
+falls from 21.53 cm² to 0.00 on the base left sleeve and from 35.14/4.95 cm² to
+0.00/0.00 on the slim pair, with every leaky slice gone. Boundary edges
+3302 → 3246 (base) and 2358 → 2297 (slim), `orientation_breaks` 0 in both,
+winding agreement 97.3 %, 0 degenerate faces. Side effect: the inner-elbow patch
+now folds when the elbow is *fully* bent (opposed pairs at the old 72° menu pose
+base 5 → 7, slim 1 → 4; every in-game pose unchanged) — the regression test
+budgets that row separately. New test
+`test_sleeve_tube_is_closed_along_its_length`; 63 Christie tests green. Packs
+rebuilt: `2934c818fd71588d0968e1d784e352754e4bb84384172ddd550aab9d31ef5649`
+base, `14f75d66173696581d1bba2aaa216df5112d7029eff73bc5f409045df57d0b16` slim.
+Not yet checked in game.
+
+**2026-11-07 seam normals (`unify_coincident_normals`):** the last shading
+defect from the screenshot review — PD2 splits a vertex wherever one position
+needs two UVs or two materials, and in the 2B reference every copy carries the
+*same* normal (0 of 22,486 pairs diverge), so its seams are invisible. Ours
+diverged on 480 (slim) / 856 (base) pairs, which shades as a hard step along
+every seam. The new pass runs last, after `stitch_sleeve_seams`, on the body and
+its shadow: each coincident group gets one mean normal on its **interior**
+copies only. Copies on a border edge are the rim of a garment panel (cuff mouth,
+sleeve opening, lining edge) — a real fold, kept as-is, so the silhouette does
+not smear. Slim unifies 98 copies over 49 groups, base 100 over 50; interior
+divergent pairs 49/50 → **0**, border pairs untouched (431/806), worst pre-fix
+pair 101°/103° (beyond 120° the pass refuses to average), winding agreement
+97.3 → 97.1/97.2 %, 0 orientation breaks, no position/UV/face/weight change.
+Packs rebuilt: `c57edbbaa91a8aa7059b7432a76d63a1a84b2617feb1eef2557c597091b1f765`
+base, `5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d` slim.
+Also `bootstrap.sh` now installs **scipy**, which the slim build needs
+(`_elbow_coverage_correction`) and which a clean bootstrap used to miss. Tests:
+`tests/test_seam_normals.py` plus `test_interior_coincident_normals_agree`
+and `test_sleeve_gloss_mask_stays_on_the_sleeve`; 67 Christie tests green.
+Not yet checked in game.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
@@ -381,7 +434,16 @@ command, so the whole set is reproducible in one run per pack:
     --out docs/pd2-las/renders --pose --hang
 # slim pack: the same command with
 #   --zip dist/Christie_LAS_Slim.zip --pack Christie_LAS_Slim --item christie_slim
+# the two FPS renders are a second run with --fps, same --pack/--item
 ```
+
+The committed set was regenerated on **2026-11-07**: it had gone stale at
+`484a743`, i.e. it predated the seam stitch, the interior normal unification and
+the sleeve-gloss pass that rebuilt both packs, so the pictures no longer matched
+the bytes in `dist/`. Re-rendering moved only mesh pixels (the skeleton overlay is
+identical pixel for pixel) and every image was re-checked for blank frames and a
+missing overlay. Note that the `--fps` run writes nine files where the repo keeps
+two, `fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest.
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
   directions. `top` looks down the body axis from above and `bottom` looks up
@@ -416,6 +478,10 @@ command, so the whole set is reproducible in one run per pack:
 - `christie_source_{front,side,iso,forearm_front,forearm_side}.png` — the
   ORIGINAL DOA5 model from `references/Christie.zip` with its own skeleton
   (`--source` mode of the renderer), as the reference for comparisons
+- `neck_skirt_romance_regression.png` — one-off 2026-11-07 pair, not part of
+  the reproducible set: the Romance-over-Clover neck on 2026-11-05 (shipped)
+  next to the skirted build that shipped by mistake, 4x. Evidence for §10.3 of
+  the diagnosis audit.
 - `christie_{base,slim}_fit_before_after.png` — left forearm/wrist, the pack as
   shipped before 2026-11-06 (bone along the top edge of the sleeve, cuff off the
   `Hand` pivot) next to the re-centred build. A one-off composite made before
@@ -585,6 +651,30 @@ blocks) and the sleeve-region mean alpha drops 23.5 → 11.6; the mask was
 confirmed to land on the sleeves by rendering the built model with the mask
 tint-baked into the diffuse (red arms, grey torso).
 `c02_05` (heels) gets an empty mask — no arm-chain verts — and is left alone.
+
+**Revised 2026-11-07.** The 24-texel vertex discs reached well past the sleeve:
+measured off the shipped packs they covered **3.2 %** of the leg faces' UV area
+over **151** faces, 123 of them at z 0–20 cm (the boots), and because the
+attenuation was re-quantised per 4×4 DXT block at every mip, its edge grew into
+~5 cm axis-aligned patches at mip 3 — the stair-stepped sheen on the trousers in
+the 2026-11-07 screenshots. Two changes:
+
+- `sleeve_uv_mask(uvs, faces)` rasterises the **UV triangle** of every face whose
+  mean arm-chain share exceeds `SLEEVE_BONE_SHARE` (rather than splatting a disc
+  at each arm-weighted vertex), blurs it by `SLEEVE_FEATHER_TEXELS = 3` and
+  **clips it back to the unblurred footprint**, so the feather softens the edge
+  of the change without ever reaching a texel the sleeve does not own;
+- `retouch_sleeve_gloss` attenuates **mip 0 only** and rebuilds the pyramid from
+  it (`pd2_dds.mip_payloads_from_mip0` + `pack_dds`), so the mips are a filtered
+  version of one full-resolution mask instead of a separately quantised one.
+
+Result: leg-only UV area touched 3.2 % → **0.8 %** (33 faces, all at
+z 2.6–11.9 cm), sleeve faces covered 100 % (1,740), atlas area 13.3 %, alpha
+inside the mask 5.51 against 11.25 outside (0.49×). The 33 remaining faces are
+**atlas sharing, not mask reach** — their UVs sit inside the sleeve islands of
+`c02_01_df` (mask 0.29–1.00 at their centroids), so those texels are sampled by
+the sleeve and the boot both; separating them needs the boots re-UV'd. Pinned by
+`test_sleeve_gloss_mask_stays_on_the_sleeve`.
 
 ### The elbow at the in-game hang (why the first build looked fine offline)
 

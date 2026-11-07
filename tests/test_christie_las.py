@@ -712,6 +712,168 @@ def test_sleeve_end_surrounds_the_glove_spawn(which):
         assert d <= limit, f"{which} {key}: cuff is {d:.2f} cm from the pivot"
 
 
+@pytest.mark.parametrize("which", sorted(PACKS))
+@pytest.mark.parametrize("side", (-1, 1))
+def test_sleeve_tube_is_closed_along_its_length(which, side):
+    """The sleeve's zero-width seam must be stitched shut, not just merged.
+
+    Both packs ship the upper sleeve as a tube whose lengthwise seam is a
+    *slit*: the two rims carry separate vertices, so the surface is open even
+    though the gap between them is 0 cm (docs/audits/2026-11-07-christie-slim-
+    diagnosis.md, item 2). A ray cast radially from the shoulder->wrist bone
+    chain therefore escapes through it: 35.1 cm2 on the slim left sleeve, 5.0
+    on the slim right, 21.5 on the base left, 0.0 on the base right (whose
+    slit happens to sit under an overlapping layer). In game that reads as a
+    dark stripe down the sleeve. `stitch_sleeve_seams` closes the tube, and a
+    closed tube leaks nothing at all.
+    """
+    import build_models as bm
+    import diagnose_mesh as dg
+
+    path = REPO / PACKS[which][0]
+    _zf(which).close()                      # skip cleanly when not built
+    pack_dir, item_id = PACKS[which][1], PACKS[which][2]
+    template = bm.load_template(_templates() / "2b.model")
+    p = dg.load(path, pack_dir, item_id)
+    joints = dg.joints_of(path, item_id, template)
+    s = dg.sleeve_slit_area(p, joints, side)
+    name = "left" if side < 0 else "right"
+    assert s["cm2"] < 1.0, (
+        f"{which} {name} sleeve leaks {s['cm2']:.2f} cm2 of ray samples "
+        f"through its seam (s, z, cm2: {s['slices'][:3]}); the stitch pass "
+        "is not closing the slit")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_sleeve_gloss_mask_stays_on_the_sleeve(which):
+    """The specular attenuation may only land on texels the sleeve samples.
+
+    The first pass punched a 24-texel disc around every arm-weighted vertex.
+    Measured off the shipped packs, that mask reached **3.2 %** of the leg
+    faces' UV area over **151** faces, 123 of them at z 0-20 cm - the boots
+    (docs/audits/2026-11-07-christie-slim-diagnosis.md, item 6). The block
+    quantisation of that edge is what the screenshots show as stair-stepped
+    blotches on the trousers.
+
+    ``sleeve_uv_mask`` rasterises the sleeve's own UV triangles and clips the
+    feather to that footprint, so the only faces it can still reach are ones
+    whose UVs genuinely sit inside a sleeve island. ``retouch_sleeve_gloss``
+    then attenuates mip 0 and rebuilds the pyramid from it, so the mask edge
+    cannot grow with distance; both are pinned here.
+    """
+    import build_christie_las as bcl
+    import diagnose_mesh as dg
+
+    pd2_dds = bcl.pd2_dds
+
+    path = REPO / PACKS[which][0]
+    pack_dir, item_id = PACKS[which][1], PACKS[which][2]
+    zf = _zf(which)
+    try:
+        name = next(n for n in zf.namelist()
+                    if n.endswith(f"{item_id}_c02_01_df.texture"))
+        blob = zf.read(name)
+    finally:
+        zf.close()
+
+    p = dg.load(path, pack_dir, item_id)
+    faces, fmat, uvs = p["faces"], p["fmat"], p["uv"]
+    arm_w = p["w"]["arm"]
+    role = "mtr_c02_01"
+    sleeve = [fi for fi in np.where(fmat == role)[0]
+              if float(arm_w[faces[fi]].mean()) > bcl.SLEEVE_BONE_SHARE]
+    assert len(sleeve) > 500, f"{which}: only {len(sleeve)} sleeve faces found"
+
+    mask = bcl.sleeve_uv_mask(uvs, [faces[fi] for fi in sleeve],
+                              feather_texels=bcl.SLEEVE_FEATHER_TEXELS)
+
+    def centroid(fi: int) -> tuple[float, float]:
+        c = uvs[faces[fi]].mean(axis=0)
+        return float(np.clip(c[0], 0.0, 1.0)), float(np.clip(1.0 + c[1], 0.0, 1.0))
+
+    def coverage(indices) -> tuple[float, int]:
+        vals = [mask[int(y * 1023), int(x * 1023)] for x, y in
+                (centroid(fi) for fi in indices)]
+        covered = [v for v in vals if v > 0.05]
+        return (len(covered) / max(1, len(vals)), len(covered))
+
+    covered, _ = coverage(sleeve)
+    assert covered >= 0.99, f"{which}: mask misses {1 - covered:.1%} of the sleeve"
+
+    leg_w = p["w"]["leg"]
+    leg = [fi for fi in np.where(fmat == role)[0]
+           if float(leg_w[faces[fi]].mean()) > 0.5
+           and float(arm_w[faces[fi]].mean()) < 0.1]
+    share, count = coverage(leg)
+    assert share < 0.015, (
+        f"{which}: the gloss mask covers {share:.1%} of the leg-only UV area "
+        f"over {count} faces (the vertex-disc mask scored 3.2 % / 151)")
+    assert count <= 60, f"{which}: mask touches {count} leg-only faces"
+
+    size, mips, mip0 = pd2_dds.dds_mip0_slice(blob)
+    assert size == 1024 and mips == 11
+    alpha = pd2_dds.decode_dxt5(mip0, size, size)[..., 3].astype(np.float64)
+    inside = float(alpha[mask > 0.5].mean())
+    outside = float(alpha[mask <= 0.5].mean())
+    assert 0.3 < inside / outside < 0.8, (
+        f"{which}: sleeve alpha {inside:.2f} vs rest of the atlas {outside:.2f} "
+        f"({inside / outside:.2f}x) - the attenuation is not in the shipped texture")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_interior_coincident_normals_agree(which):
+    """A duplicated vertex must shade as one vertex (work order item 1).
+
+    PD2 meshes split vertices at UV and material seams, so one position carries
+    several copies. The 2B reference carries 22,486 such pairs and **none** of
+    them disagrees by more than 30 degrees - that is why its seams are
+    invisible. Ours used to diverge on 480 (slim) / 856 (base) pairs, which
+    shades as a hard step along every seam; `unify_coincident_normals` gives
+    the *interior* copies one shared normal and leaves the copies that sit on a
+    garment edge alone, because those are a real fold.
+    """
+    import build_christie_las as bcl
+    import build_models as bm
+    import diesel_model as dm
+    import render_mesh_skeleton as rms
+
+    pack_dir, item_id = PACKS[which][1], PACKS[which][2]
+    with _zf(which) as zf:
+        geo = rms.g_body_geo(zf, pack_dir, item_id)
+    g = bm.Group(name="body",
+                 verts=[tuple(map(float, v)) for v in geo["verts"]],
+                 normals=[tuple(map(float, n)) for n in geo["normals"]],
+                 faces=[tuple(map(int, f)) for f in geo["faces"]])
+    report = bcl.coincident_normal_report(g)
+    assert report["interior"] == 0, (
+        f"{which}: {report['interior']} interior coincident pairs still "
+        "disagree on their normal (the 2B reference has 0)")
+    # ...and the pass must not have blanket-smoothed genuine folds: every
+    # remaining divergence has to sit on a border edge.
+    assert report["border"] > 300, (
+        f"{which}: only {report['border']} border pairs diverge - a garment "
+        "edge lost its hard normal, which means the pass went too far")
+
+    # Reference anchor: the 2B body agrees everywhere, border included.
+    mf = dm.ModelFile.read((_templates() / "2b.model").read_bytes())
+    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
+    for section in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(section.payload)
+        if next((n for n in hl if dm.hash64(n) == md["name_hash"]), "") != "g_body":
+            continue
+        gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        geo2 = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+        top2 = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+        ref = bm.Group(name="2b",
+                       verts=[tuple(map(float, v)) for v in geo2["verts"]],
+                       normals=[tuple(map(float, n)) for n in geo2["normals"]],
+                       faces=[tuple(map(int, f)) for f in
+                              np.asarray(top2["indices"], int).reshape(-1, 3)])
+        ref_report = bcl.coincident_normal_report(ref)
+        assert ref_report == {"interior": 0, "border": 0, "pairs": 0}, ref_report
+        break
+
+
 def test_fit_numbers_match_the_build_report():
     """The numbers BUILD_INFO records from the build and the ones measured here
     on the shipped .model must agree — catches a stale dist/ artefact."""
@@ -987,12 +1149,21 @@ def test_elbow_deforms_cleanly_from_idle_rest(which):
     # Rest can already contain opposed normals where lining/garment panels
     # meet; the deformation must not create additional opposed face pairs.
     rest_creases = at60["crease_pairs"]
+    # The menu row is *maximum* flexion (the old 72-degree bind): the fabric
+    # has to double back inside the crease there, and the source already folds
+    # on a few edges (base rest 3, menu 5). stitch_sleeve_seams closes the
+    # inner-elbow patch, so that patch joins the same fold (base menu 5 -> 7,
+    # slim 1 -> 4) while every other row stays put. Give the menu row a wider
+    # budget; the in-game rows keep the tight one.
     for label, metrics in (("menu", at0), ("27deg", at45), ("22deg", at50),
                            ("idle", at60), ("straight", at72)):
         assert metrics["seam_gap_max"] < 0.02, (
             f"{which} {label}: coincident sleeve vertices separate by "
             f"{metrics['seam_gap_max']:.3f} cm")
-        assert metrics["crease_pairs"] <= rest_creases + 2
+        budget = rest_creases + (5 if label == "menu" else 2)
+        assert metrics["crease_pairs"] <= budget, (
+            f"{which} {label}: {metrics['crease_pairs']} opposed face pairs at "
+            f"the elbow ring (rest {rest_creases}, budget {budget})")
     # Near-idle flexion: measured base/slim minima are 0.70/0.71 at 27 deg
     # and 0.795/0.803 at 22 deg. Inner-crease edges naturally shorten here;
     # the hard continuity requirement above is the more important invariant.
