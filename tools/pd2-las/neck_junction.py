@@ -258,11 +258,31 @@ def junction(body: Path, head: Path, tmp: Path) -> dict:
     }
 
 
+def grid_difference(a: dict, b: dict) -> dict:
+    """How many throat cells belong to a different mesh in two reports.
+
+    Zero means the two heads put the same mesh in front at every sampled cell,
+    i.e. the change between them is invisible from the front - which is what the
+    2026-11-07 neck skirt had to be shown to be (diagnosis §10.2).
+    """
+    kinds = ("body", "head", "miss")
+    changed = np.zeros_like(np.asarray(a["grid"]["body"], bool))
+    by_kind = {}
+    for kind in kinds:
+        differs = np.asarray(a["grid"][kind], bool) != np.asarray(b["grid"][kind], bool)
+        by_kind[kind] = int(differs.sum())
+        changed |= differs
+    return {"changed": int(changed.sum()), "cells": int(changed.size),
+            "by_kind": by_kind}
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--body", type=Path, default=CHRISTIE_BODY)
     ap.add_argument("--head", type=Path, action="append")
     ap.add_argument("--render", type=Path, help="write a tinted composite PNG")
+    ap.add_argument("--ab", type=Path, metavar="HEAD_ZIP",
+                    help="compare with a second head pack, cell by cell")
     args = ap.parse_args(argv)
     if not args.body.is_file():
         raise SystemExit(f"missing body pack {args.body}")
@@ -297,6 +317,11 @@ def main(argv=None) -> int:
                            ("miss", "see-through")):
             share = rep["grid"][key].sum() / total * 100
             print(f"   {label:14s} {share:5.1f} % of the throat window")
+        if args.ab:
+            other = junction(args.body, args.ab, tmp)
+            diff = grid_difference(rep, other)
+            print(f"   vs {args.ab.name}: {diff['changed']} of {diff['cells']} cells "
+                  f"change owner ({diff['by_kind']})")
         if args.render and not rendered:
             _render(args.body, head, args.render, tmp)
             rendered += 1

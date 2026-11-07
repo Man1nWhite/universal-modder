@@ -119,3 +119,19 @@ def test_neck_border_ignores_the_skull_and_finds_the_neck_ring():
     assert border["n"] == n
     assert border["z"] == pytest.approx((150.0, 150.0), abs=1e-9)
     assert border["radius"] == pytest.approx(3.0, abs=1e-6)
+
+
+def test_grid_difference_counts_cells_that_change_owner():
+    """The A/B for two heads: same owner everywhere means the change is invisible."""
+    body = np.array([[True, True], [False, False]])
+    head = np.array([[False, False], [True, True]])
+    miss = np.zeros_like(body)
+    same = {"grid": {"body": body, "head": head, "miss": miss}}
+    assert nj.grid_difference(same, same)["changed"] == 0
+
+    moved = np.array([[True, False], [False, False]])
+    other = {"grid": {"body": moved, "head": ~moved & ~miss, "miss": miss}}
+    diff = nj.grid_difference(same, other)
+    assert diff["changed"] == 1
+    assert diff["cells"] == 4
+    assert diff["by_kind"] == {"body": 1, "head": 1, "miss": 0}

@@ -474,10 +474,11 @@ body does not split *itself* either: its throat samples one uniform tan on both
 sides (205,157,128 on the front band, and the darker samples at x ±3.5–5.0 are
 the same value mirrored), which the earlier pass already found.
 
-The textured front and back renders of the junction
-(`preview_textured.render` over both packs, z 156 ± 11 cm) are **byte-identical**
-before and after the skirt, and the winner grid is identical cell for cell, which
-is the same statement made twice.
+`neck_junction.py --ab <before.zip>` settles that cell by cell: between the
+2026-11-05 packs and the skirted ones, **0 of 2,401 throat cells change owner**
+(body 0, head 0, miss 0). The textured front and back composites taken during
+this round (`preview_textured.render` over body + head, z 156 ± 11 cm) came out
+byte-identical as well.
 
 The tinted render that ships with this section
 (`docs/pd2-las/renders/neck_junction_christie_joy.png`, head orange, body grey)

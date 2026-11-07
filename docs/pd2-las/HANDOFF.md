@@ -43,8 +43,9 @@ Deliverables in **`dist/`**:
   The 2026-11-07 rebuild adds `extend_neck_skirt()` to every Miranda head's neck
   sheet — one extra ring 6.5 cm below the rim, tucked to 88 % and shifted 0.5 cm
   forward, inside the torso: 4,402 → 4,515 verts, 7,109 → 7,321 tris, lowest
-  point z 149.48 → 142.98. It changes no pixel on the Christie body (the junction
-  renders are byte-identical before and after) and is there so the head's open
+  point z 149.48 → 142.98. It changes no cell on the Christie body
+  (`neck_junction.py --ab`: 0 of 2,401 throat cells change owner) and is there so
+  the head's open
   end cannot surface on a body whose neckline is wider than Christie's. Item 7
   itself is still open — `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.
   **Coverage:** Clover and Bonnie replace the heist, menu *and* Safe House
