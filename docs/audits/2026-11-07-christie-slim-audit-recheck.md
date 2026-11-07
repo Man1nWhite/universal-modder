@@ -22,13 +22,23 @@ vertices and leaves `uv0` byte-identical). What moves, re-running
 
 | pack | tris | t/1000cm² | bad verts | dup pairs | diverged |
 | --- | --- | --- | --- | --- | --- |
-| Christie base | 17287 → 17351 | 447 → 448 | 750 → 792 | 1437 → 1440 | 856 |
-| Christie slim | 12925 → 12996 | 375 → 376 | 480 → 526 | 949 → 953 | 480 |
+| Christie base | 17287 → 17351 | 447 → 448 | 750 → 792 → 788 | 1437 → 1440 | 856 → 806 |
+| Christie slim | 12925 → 12996 | 375 → 376 | 480 → 526 → 522 | 949 → 953 | 480 → 431 |
 
-The +42/+46 "bad verts" are exactly the seam vertices whose normal is now the
-mean of the two rims it joins (the weld). That is the seam shading smoothly
-instead of as a hard line — desirable, and *not* the interior normal
-unification the audit's item 1 asks for, which is still open.
+Two builds move these columns. The seam stitch welds 21/23 rim pairs and adds
+64/71 triangles; welding averages the two rims' normals, which raises "bad
+verts" by 42/46 (a vertex with one incident face >90° off its normal — the mean
+of an outer and an inner surface is exactly that). The second build adds
+`unify_coincident_normals` (work order item 1, §9 of the diagnosis), which
+gives interior copies one shared normal: interior divergent pairs 50 (base) / 49
+(slim) → **0**, and the audit's own `diverged` column falls to 806 / 431. Every
+remaining divergent pair sits on a garment edge and is kept on purpose — those
+are folds, not seams.
+
+`audit_metrics.py` now prints both the divergent-pair height histogram
+(`--z-hist`, which always sums to the `diverged` column) and the diffuse-alpha
+statistics (`--alpha`, over the whole texel grid), so the audit's own numbers are
+reproducible rather than quoted.
 
 **Bottom line:** the *defect list* in the audit survives (items 1–5 are real;
 item 6 is partly mis-explained). The **"Correction" section does not**: its
@@ -176,6 +186,11 @@ numbers support.
   and `_apply_slim_fold_solution()` exist as named.
 
 ## Suggested edits to the audit
+
+*All eight are applied to
+[`2026-11-07-christie-slim-screenshot-review.md`](2026-11-07-christie-slim-screenshot-review.md)
+on 2026-11-07; the list is kept as the record of what was wrong.*
+
 
 1. Replace the "2B reference (PD2)" column with the real 2B numbers, or relabel
    it "Christie base" and delete the "better than the reference" claim.

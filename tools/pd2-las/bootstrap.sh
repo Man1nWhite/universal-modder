@@ -16,8 +16,10 @@ if [ ! -x .venv/bin/python ]; then
 fi
 # pillow/numpy are pinned: the tracked dist/*.zip bytes depend on
 # them (tools/pd2-port/STATUS.md §7) — all routes build in this venv.
-.venv/bin/pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr lupa
-.venv/bin/python -c "import pytest, PIL, numpy, yaml, py7zr, lupa" && echo "venv ok"
+.venv/bin/pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr lupa scipy
+# scipy is a hard dependency of the slim build (_elbow_coverage_correction) and
+# of the elbow-depth test, so it belongs here, not in a per-run install.
+.venv/bin/python -c "import pytest, PIL, numpy, yaml, py7zr, lupa, scipy" && echo "venv ok"
 # Optional: an independent Source-format decoder (GMA/VPK/VTF/MDL). Only used by
 # inspect_textures.py's cross-check and by the test that pins it, so a failure
 # here is a note, never a broken bootstrap.

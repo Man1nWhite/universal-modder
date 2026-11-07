@@ -118,6 +118,26 @@ rebuilt: `2934c818fd71588d0968e1d784e352754e4bb84384172ddd550aab9d31ef5649`
 base, `14f75d66173696581d1bba2aaa216df5112d7029eff73bc5f409045df57d0b16` slim.
 Not yet checked in game.
 
+**2026-11-07 seam normals (`unify_coincident_normals`):** the last shading
+defect from the screenshot review — PD2 splits a vertex wherever one position
+needs two UVs or two materials, and in the 2B reference every copy carries the
+*same* normal (0 of 22,486 pairs diverge), so its seams are invisible. Ours
+diverged on 480 (slim) / 856 (base) pairs, which shades as a hard step along
+every seam. The new pass runs last, after `stitch_sleeve_seams`, on the body and
+its shadow: each coincident group gets one mean normal on its **interior**
+copies only. Copies on a border edge are the rim of a garment panel (cuff mouth,
+sleeve opening, lining edge) — a real fold, kept as-is, so the silhouette does
+not smear. Slim unifies 98 copies over 49 groups, base 100 over 50; interior
+divergent pairs 49/50 → **0**, border pairs untouched (431/806), worst pre-fix
+pair 101°/103° (beyond 120° the pass refuses to average), winding agreement
+97.3 → 97.1/97.2 %, 0 orientation breaks, no position/UV/face/weight change.
+Packs rebuilt: `f26771918a4cb7f3cabb61dce2776efca4066b1a65df1dc50ddccd54a1b5ff38`
+base, `f8ce4c307d46d395d39dde553fc861e413ecf833134bf9efd73b092591223ed8` slim.
+Also `bootstrap.sh` now installs **scipy**, which the slim build needs
+(`_elbow_coverage_correction`) and which a clean bootstrap used to miss. Tests:
+`tests/test_seam_normals.py` plus `test_interior_coincident_normals_agree`;
+65 Christie tests green. Not yet checked in game.
+
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
 `PAYDAY 2\assets\mod_overrides\` with SuperBLT + BeardLib + Legendary Armour

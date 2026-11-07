@@ -744,6 +744,60 @@ def test_sleeve_tube_is_closed_along_its_length(which, side):
         "is not closing the slit")
 
 
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_interior_coincident_normals_agree(which):
+    """A duplicated vertex must shade as one vertex (work order item 1).
+
+    PD2 meshes split vertices at UV and material seams, so one position carries
+    several copies. The 2B reference carries 22,486 such pairs and **none** of
+    them disagrees by more than 30 degrees - that is why its seams are
+    invisible. Ours used to diverge on 480 (slim) / 856 (base) pairs, which
+    shades as a hard step along every seam; `unify_coincident_normals` gives
+    the *interior* copies one shared normal and leaves the copies that sit on a
+    garment edge alone, because those are a real fold.
+    """
+    import build_christie_las as bcl
+    import build_models as bm
+    import diesel_model as dm
+    import render_mesh_skeleton as rms
+
+    pack_dir, item_id = PACKS[which][1], PACKS[which][2]
+    with _zf(which) as zf:
+        geo = rms.g_body_geo(zf, pack_dir, item_id)
+    g = bm.Group(name="body",
+                 verts=[tuple(map(float, v)) for v in geo["verts"]],
+                 normals=[tuple(map(float, n)) for n in geo["normals"]],
+                 faces=[tuple(map(int, f)) for f in geo["faces"]])
+    report = bcl.coincident_normal_report(g)
+    assert report["interior"] == 0, (
+        f"{which}: {report['interior']} interior coincident pairs still "
+        "disagree on their normal (the 2B reference has 0)")
+    # ...and the pass must not have blanket-smoothed genuine folds: every
+    # remaining divergence has to sit on a border edge.
+    assert report["border"] > 300, (
+        f"{which}: only {report['border']} border pairs diverge - a garment "
+        "edge lost its hard normal, which means the pass went too far")
+
+    # Reference anchor: the 2B body agrees everywhere, border included.
+    mf = dm.ModelFile.read((_templates() / "2b.model").read_bytes())
+    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
+    for section in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(section.payload)
+        if next((n for n in hl if dm.hash64(n) == md["name_hash"]), "") != "g_body":
+            continue
+        gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        geo2 = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
+        top2 = dm.decode_topology(mf.by_id(gp["topology"]).payload)
+        ref = bm.Group(name="2b",
+                       verts=[tuple(map(float, v)) for v in geo2["verts"]],
+                       normals=[tuple(map(float, n)) for n in geo2["normals"]],
+                       faces=[tuple(map(int, f)) for f in
+                              np.asarray(top2["indices"], int).reshape(-1, 3)])
+        ref_report = bcl.coincident_normal_report(ref)
+        assert ref_report == {"interior": 0, "border": 0, "pairs": 0}, ref_report
+        break
+
+
 def test_fit_numbers_match_the_build_report():
     """The numbers BUILD_INFO records from the build and the ones measured here
     on the shipped .model must agree — catches a stale dist/ artefact."""

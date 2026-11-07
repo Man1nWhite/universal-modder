@@ -44,25 +44,45 @@ canvas — the source crops are all slightly different sizes (491–563 px wide)
 A first pass of this review blamed a **"blocky / faceted shading"** problem on
 `_recompute_normals()` keeping stale authored normals. **That diagnosis was
 wrong and is withdrawn.** It was an artifact of magnifying the screenshots 6–20×
-with interpolation before judging them. Measured on the actual packed model, the
-slim pack's shading data is *better* than the PD2-authored reference:
+with interpolation before judging them.
 
-| metric | 2B reference (PD2) | Christie slim |
-| --- | --- | --- |
-| vertices with an incident face >90° off their own vertex normal | 750 / 10361 = **7.2 %** (base) | 480 / 7695 = **6.2 %** |
-| "faceted" score (smooth regions only) | **29.9 %** | **6.5 %** |
-| tris per 1000 cm² of surface | **695** | 375 |
-| texels per cm (1024² atlas) | 5.58 | **9.02** |
-| diffuse low-freq / high-freq ratio | 1.18 | 2.24 (clean fabric weave, no baked lighting) |
+The table that replaced it was wrong too, in both columns. The cell labelled
+"2B reference (PD2)" held the **Christie base** pack (10,361 vertices is
+`christie.model` `g_body`), "695" is not the reference's triangle density, the
+texel-density row contradicts itself (it gives 5.58 to a pack that measures 5.52
+and 9.02 to one that measures 5.51), and two of its metrics — "faceted score"
+and "diffuse low-freq / high-freq ratio" — were never defined anywhere in the
+tooling. Re-measured with `tools/pd2-las/audit_metrics.py` on the shipped packs:
+
+| metric | 2B reference (PD2) | Christie base | Christie slim |
+| --- | --- | --- | --- |
+| vertices / triangles | 27,741 / 35,260 | 10,361 / 17,351 | 7,695 / 12,996 |
+| vertices with an incident face >90° off their own vertex normal | 65 = **0.23 %** | 788 = 7.6 % | 522 = 6.8 % |
+| same, per 1,000 triangles | **1.8** | 45.4 | 40.2 |
+| tris per 1,000 cm² of surface | **1,024** | 448 | 376 |
+| texels per cm (1024² atlas) | **5.52** | 5.20 | 5.51 |
+
+**Read the normalized row, not the percentage.** Percentage-of-vertices falls as
+a mesh gets denser, and the reference has 2.7× our triangles and 3.6× our vertex
+count, so the raw column is density-confounded; per 1,000 triangles says the
+same thing, so the conclusion holds either way. It is narrower than the old
+one: slim's normal/face agreement (6.8 %) is in the same band as this project's
+own **base** pack (7.6 %) and roughly 20–25× the reference's rate. The claim
+that the slim pack's shading data is *better than the PD2-authored reference*
+does not survive — it rested on the mislabelled column.
 
 Also cleared, with evidence:
 
 - **Normal map format is correct.** `c02_01_nm` is R=255, G=varying, B=0 —
   tangent-space DXT5nm. The user-tested `Miranda_LAS` `miranda_body_nm` has the
   byte-identical structure (R=255, G varying, B=0), so this is not a build bug.
-- **Specular (diffuse alpha) is fine.** Christie garment alpha sits at mean
-  10–12 with ~85 levels, inside the shipped-pack envelope (Miranda body 21.6/64
-  levels, lawson body1 17.2/40 levels). The 2026-11-06 sleeve retouch landed.
+- **Specular (diffuse alpha) is in range.** `audit_metrics.py --alpha` over the
+  **whole 1024×1024 texture** — all texels, unused padding included, which is
+  the region these numbers describe — gives Christie garment `c02_01_df`
+  mean alpha **10.13 / 85 distinct levels** (p10 4, p50 9, p90 16, max 255 on
+  0.07 % of texels), against Miranda's shipped `body_df` **21.63 / 64** and
+  lawson's `body1_df` **17.23 / 40**. The 2026-11-06 sleeve retouch landed; the
+  garment is the *least* transparent of the three.
 - **At native 1:1 pixel scale the blazer shades smoothly.** The apparent
   "polygon plates" are the fabric weave in the diffuse plus the matcap, and they
   only read as faceting when upscaled with smoothing.
@@ -72,77 +92,129 @@ magnification invents structure that is not in the mesh.
 
 ## Confirmed issues
 
-### 1. Hard normal seams at duplicated UV-seam vertices — the one real shading defect
+### 1. Hard normal seams at duplicated UV-seam vertices — fixed
 
 This survived every test, and it is the item the withdrawn diagnosis was
-groping for. Around duplicated (coincident) vertices, adjacent copies do not
+groping for. Around duplicated (coincident) vertices, adjacent copies did not
 agree on their normal:
 
-| pack | duplicate vertex pairs | pairs with normals >30° apart |
-| --- | --- | --- |
-| 2B reference (PD2-authored) | 22486 | **0 (0.0 %)** |
-| Christie base | 1437 | 857 (59.6 %) |
-| **Christie slim** | 949 | **480 (50.6 %)** |
+| pack | duplicate vertex pairs | pairs with normals >30° apart | interior (before the fix) | on a border edge |
+| --- | --- | --- | --- | --- |
+| 2B reference (PD2-authored) | 22,486 | **0 (0.0 %)** | 0 | 0 |
+| Christie base | 1,440 | 806 (56.0 %) | 0 (**was 50**) | 806 |
+| **Christie slim** | 953 | 431 (45.2 %) | 0 (**was 49**) | 431 |
 
 In the reference, duplicated seam vertices carry *identical* normals, so seams
-are invisible. In ours, half of them diverge by more than 30°, which shades as a
-hard crease/step exactly along the seam. Distribution by height (z, cm):
+are invisible. In ours, half of them diverged by more than 30°, which shades as
+a hard crease/step exactly along the seam. Distribution by height, in uniform
+20 cm bins (`audit_metrics.py --z-hist`), summing to the *diverged* column:
 
-- z 140–160 (upper chest / collar): 132
-- z 0–20 (feet / boot tops): 99
-- z 100–140 (waist / hips): 134
-- z 80–100: 19
+| z band (cm) | slim, shipped | slim, before the fix | base, shipped |
+| --- | --- | --- | --- |
+| below 0 (boot soles / shoe lining) | 87 | 87 | 87 |
+| 0–20 (boot tops) | 99 | 99 | 100 |
+| 80–100 | 19 | 19 | 359 |
+| 100–120 (waist / hips) | 43 | 68 | 76 |
+| 120–140 (sleeve) | 56 | 66 | 56 |
+| 140–160 (chest / collar) | 121 | 132 | 122 |
+| 160–180 | 6 | 9 | 6 |
+| **sum** | **431** | **480** | **806** |
 
-This is the most defensible defect in the set: it is measured against the
-reference the project already treats as ground truth, it is deterministic, and
-it is testable offline with no game access. Fix direction: after
-`_recompute_normals()`, propagate one normal per coincident group (average the
-group, or copy the predominant one), the same way `_weld_positions` already
-handles positions. Careful: `_recompute_normals` deliberately preserves genuine
-hard edges, so do not blanket-smooth — only unify *coincident* vertices.
+The earlier version of this list gave four ad-hoc bins that summed to **384 of
+480** — it omitted the crown of the head and, more importantly, everything below
+z 0, where a fifth of the divergent pairs live (the shoe's inner and outer
+surfaces share positions).
+
+**Fixed 2026-11-07** (`unify_coincident_normals` in
+`tools/pd2-las/build_christie_las.py`): every *interior* coincident group gets
+one shared normal, the group mean; shadow. Borders keep both normals — a copy
+that sits on a border edge is the edge of a garment panel (cuff rim, sleeve
+mouth, lining edge), and those are genuine folds, not UV splits. Slim unifies
+98 copies over 49 groups, base 100 over 50; the worst interior pair is 101
+(slim) / 103 (base) degrees, so the mean stands within ~50° of both sides —
+pairs beyond 120° are skipped rather than averaged into a sideways normal.
+Measured after the change: **0 interior divergent pairs in both packs**, 431 /
+806 border pairs untouched, winding agreement 97.1 / 97.2 %, 0 orientation
+breaks. Rendered with a Gouraud shader that interpolates the *stored* normals
+(the repo renderers shade per face and cannot show this), the change is
+invisible from the front and softens the back/collar and lapel seams; median
+normal change 22.6°, maximum 50.6°. Guarded by
+`test_interior_coincident_normals_agree` (shipped packs *and* the 2B reference,
+which must stay at 0 of 22,486) and `tests/test_seam_normals.py` (the pass
+itself, on hand-built meshes).
 
 ### 2. Elbow: detached sliver on the outer silhouette
 
-Confirmed at native scale (image 5, x ≈ 86–90, y ≈ 420–470 on the left arm; a
-matching one on the right): a thin near-white **spike stands clear of the arm**
-with background pixels between it and the sleeve. Not a highlight — there is a
+Confirmed at native scale — `christie_slim_05_lobby_back.png`, crop
+(60, 400)–(130, 490), nearest-neighbour ×5: at x ≈ 86–90, y ≈ 420–470 on the
+left arm (and a matching one on the right) a thin near-white **spike stands
+clear of the arm** with background pixels between it and the sleeve. Not a highlight — there is a
 real gap. Consistent with `_elbow_coverage_correction` / the bounded slim fold
 solution displacing a vertex whose neighbours did not follow. Bound each moved
 vertex's displacement relative to its 1-ring, not only against face inversion.
 
 ### 3. Armpit: hole in the sleeve–torso seam
 
-Confirmed at native scale (image 1, x ≈ 330–355 / y ≈ 395–425): a **hard-edged
-triangular notch** where the background is visible through the underside of the
+Confirmed at native scale — `christie_slim_01_lobby_front-three-quarter.png`,
+crop (325, 390)–(365, 430), nearest-neighbour ×12: at x ≈ 330–355 / y ≈ 395–425
+a **hard-edged triangular notch** where the background is visible through the underside of the
 arm where sleeve meets blazer, with straight edges too regular to be shading.
 Likely the bind-pose-stitched seam opening when `rebind_arms_at_idle` takes the
 elbow from PD2's 72° to the idle 12°.
 
 ### 4. Wrist line: bare skin band, red UV speck, ragged cuff lip
 
-- A **pale cream/tan band** (RGB ≈ 208,182,171; R−B ≈ +37 vs the sleeve's −4)
-  shows between cuff and glove — skin-toned, i.e. the bare wrist between the
-  stretched sleeve end and the spawned glove, or the blazer lining.
-- A **red texture patch** (peak RGB 187,44,21; 155 px with R−B > 40) sits
-  exactly on the wrist seam — the red/white trim island picked up by a UV that
-  the stretched boundary falls onto.
-- The cuff lip is a **sawtooth** of alternating light/dark rather than a ring.
+All three are visible in one crop: `christie_slim_03_lobby_front-three-quarter-wrist.png`,
+crop (300, 540)–(410, 630), nearest-neighbour ×5. Re-measured in that crop
+(the first pass quoted a "cream band" without saying where it sampled):
+
+- The **pale band just under the cuff lip** (box x 318–336, y 578–584, right at
+  the sawtooth) averages RGB **(188, 175, 177)**, R−B = **+11**, against the
+  sleeve above it at (206, 201, 201), R−B = +5. So the band is barely warmer
+  than the garment: it is not obviously bare skin. A much warmer patch does
+  exist in every shot (the statistic reaches R−B = +108 on the hand itself),
+  which is probably where the earlier "208,182,171 / +37" figure came from — it
+  measured skin, not the band. The diagnosis reaches the same conclusion from
+  the mesh: the band is the **open cuff interior** plus ~0.5 cm of skin, and
+  the pack contributes only the open ring.
+- The **red texture patch** — the one hard fact here: peak RGB **(187, 44, 21)**
+  at about (343, 583), 128 pixels with R−B > 40 and R > 120 inside the 40×40
+  box (325, 565)–(365, 605). It sits exactly on the wrist seam.
+- The cuff lip is a **sawtooth** of alternating light/dark rather than a ring
+  (the top of the same crop).
 
 ### 5. Fingertips render spiky
 
-The glove fingers end in thin pointed blades with hard black slots (image 8, 9,
-10). Partly the vanilla PD2 glove, but the slivers match this pack's own cut:
+The glove fingers end in thin pointed blades with hard black slots
+(`christie_slim_08_menu_back-rifle.png`, `…_09_…`, `…_10_…`; in shot 8 the hand
+sits at x 300–430, y 640–760). Partly the vanilla PD2 glove, but the slivers match this pack's own cut:
 `cut_hands()` keeps a face only when all three verts are non-hand, leaving a
 ragged open border exactly where the glove spawns and where the sleeve was
 stretched past the wrist.
 
 ### 6. Soft axis-aligned blotches on the trousers
 
-Confirmed at native scale (image 8, y ≈ 700–730): low-contrast patches with
-**stair-stepped axis-aligned edges** — a texture/mip artifact, not geometry.
-Most likely `sleeve_uv_masks` splatting its 24-texel disc from arm-weighted
-vertices whose UVs land on leg islands, and/or the mask pyramid bleeding across
-UI islands at coarse mips. Check that the mask only covers sleeve islands.
+Confirmed at native scale — `christie_slim_08_menu_back-rifle.png`, crop
+(150, 680)–(360, 760): low-contrast patches with **stair-stepped axis-aligned
+edges**, i.e. a texture/mip artifact, not geometry.
+
+The mechanism is **per-block specular attenuation, not the splat edge**. The
+diagnosis measures it: `sleeve_uv_masks` builds a 24-texel disc mask from
+arm-weighted vertices and `retouch_sleeve_gloss` attenuates **diffuse alpha
+only** (the specular mask), **per 4×4 DXT block, at every mip**. So it cannot
+change albedo at all, and its edge is quantised to the block grid: ~0.7 cm per
+block at mip 0 on the suit, ~5 cm axis-aligned patches at mip 3 — which is
+exactly the stair-stepped look. There is no "UI island" bleed to chase: the pass
+writes to one atlas, `c02_01_df` (the suit), and the pack ships nine textures —
+the icon, the skin df/nm pair, and a df/nm pair per garment material. None of
+them is a UI sheet.
+
+Two corrections to the first pass: the mask is far narrower than "the trousers"
+— of the 151 leg-only faces it touches, 123 are at z 0–20 cm, i.e. the **shoes**
+(3.2 % of the leg faces' UV area) — and the artifact is a *gloss* difference, so
+it reads as a slightly different sheen, not as a stain. Scope it to the sleeve
+islands and rebuild it at mip 0 only, and the block quantisation cannot grow
+with distance.
 
 ### 7. Neck tonal split (head-mod territory — verify ownership first)
 
@@ -153,9 +225,10 @@ chased in the wrong repository.
 
 ## Suggested order of work
 
-1. **Coincident-vertex normal unification** (item 1) — measured, reference-backed,
-   testable offline. Add a test asserting 0 % divergent coincident pairs, matching
-   the 2B reference.
+1. ~~**Coincident-vertex normal unification** (item 1)~~ — **done**:
+   `unify_coincident_normals`, 0 interior divergent pairs in both packs, borders
+   left as folds, tests in `tests/test_seam_normals.py` and
+   `test_interior_coincident_normals_agree`.
 2. **Elbow sliver + armpit hole** (2–3) — the two places where the mesh visibly
    comes apart.
 3. **Wrist line** (4) — skin band, red UV speck, cuff lip.

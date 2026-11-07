@@ -2274,6 +2274,103 @@ def _fill_ring(ring, taken, count, dirn, v, min_face_cm2):
     return []
 
 
+def coincident_normal_report(g: bm.Group, max_deg: float = 30.0) -> dict:
+    """Count coincident vertex pairs whose normals disagree by > ``max_deg``.
+
+    The 2B reference carries 22,486 coincident pairs and **none** of them
+    diverges: in a PD2-authored mesh a duplicated vertex is a UV/material
+    split, not a shading edge. Ours had 480 (slim) / 856 (base) diverging,
+    which shades as a hard crease exactly along every seam. Pairs are only
+    counted as *interior* when neither copy sits on a border edge - those are
+    real garment folds (hem, cuff rim, lining edge) and must keep their own
+    normals.
+    """
+    import numpy as np
+
+    verts = np.asarray(g.verts, float)
+    normals = np.asarray(g.normals, float)
+    normals /= np.maximum(np.linalg.norm(normals, axis=1, keepdims=True), 1e-12)
+    count: dict[tuple[int, int], int] = {}
+    for a, b, c in g.faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            k = (x, y) if x < y else (y, x)
+            count[k] = count.get(k, 0) + 1
+    border = {v for e, n in count.items() if n == 1 for v in e}
+    interior = border_pairs = 0
+    for ids in _coincident_groups(verts):
+        for i in range(len(ids)):
+            for j in range(i + 1, len(ids)):
+                a, b = ids[i], ids[j]
+                if np.degrees(np.arccos(np.clip(normals[a] @ normals[b],
+                                                -1, 1))) <= max_deg:
+                    continue
+                if a in border or b in border:
+                    border_pairs += 1
+                else:
+                    interior += 1
+    return {"interior": interior, "border": border_pairs,
+            "pairs": interior + border_pairs}
+
+
+def unify_coincident_normals(g: bm.Group, *, max_deg: float = 30.0,
+                             max_mean_deg: float = 120.0) -> dict:
+    """Give every *interior* coincident group one shared normal.
+
+    Coincident vertices exist because one position needs several UVs or
+    materials. PD2 meshes authored that way carry identical normals
+    on every copy (2B: 0 of 22,486 pairs diverge), so the UV split is invisible.
+    Ours inherited the source's copy-per-corner normals instead, and each seam
+    shades as a hard step - the one shading defect the screenshot review found
+    that survived re-measurement (diagnosis work order item 1).
+
+    Only *interior* groups are unified: a copy that sits on a border edge is
+    the edge of a garment panel, and its two sides are a real fold (the cuff
+    rim, the sleeve opening, the lining edge). Those keep both normals, so the
+    pass cannot blanket-smooth genuine hard edges.
+
+    Positions, UVs, faces, materials and weights are untouched - only the
+    stored normal of interior duplicates is replaced by the group mean.
+
+    Copies more than ``max_mean_deg`` apart are left alone: their mean lies
+    further than 60 degrees from both, so it would shade neither surface. The
+    worst interior pair in the shipped meshes is 101 (slim) / 103 (base)
+    degrees, comfortably inside that bar; the guard exists so a future edit
+    cannot average two genuinely opposed layers into a sideways normal.
+    """
+    import numpy as np
+
+    report = {"groups": 0, "verts": 0}
+    if not len(g.verts) or len(g.normals) != len(g.verts):
+        return report
+    verts = np.asarray(g.verts, float)
+    normals = np.asarray(g.normals, float)
+    normals /= np.maximum(np.linalg.norm(normals, axis=1, keepdims=True), 1e-12)
+    count: dict[tuple[int, int], int] = {}
+    for a, b, c in g.faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            k = (x, y) if x < y else (y, x)
+            count[k] = count.get(k, 0) + 1
+    border = {v for e, n in count.items() if n == 1 for v in e}
+    for ids in _coincident_groups(verts):
+        inner = [i for i in ids if i not in border]
+        if len(inner) < 2:
+            continue
+        sub = normals[inner]
+        spread = float(np.degrees(np.arccos(np.clip((sub @ sub.T).min(), -1, 1))))
+        if spread <= max_deg or spread > max_mean_deg:
+            continue
+        mean = sub.sum(axis=0)
+        length = float(np.linalg.norm(mean))
+        if length < 1e-9:      # two copies flat opposite: no meaningful mean
+            continue
+        normals[inner] = mean / length
+        report["groups"] += 1
+        report["verts"] += len(inner)
+    if report["verts"]:
+        g.normals = [tuple(float(x) for x in row) for row in normals]
+    return report
+
+
 def stitch_sleeve_seams(g: bm.Group, template: bm.Template, *,
                         max_gap_cm: float = 3.6, weld_cm: float = 0.06,
                         min_normal_dot: float = 0.2,
@@ -3174,6 +3271,8 @@ def main(argv=None) -> int:
     # carries the same rest_worlds into the viewmodel.
     idle_rest: dict[str, dict] = {}
     stitch: dict[str, dict] = {}
+    unified: dict[str, dict] = {}
+    normals_left: dict[str, dict] = {}
     for gname in ("body", "shadow"):
         idle_rest[gname] = rebind_arms_at_idle(
             groups[gname], template, slim=args.variant == "slim")
@@ -3186,6 +3285,19 @@ def main(argv=None) -> int:
               f"{stitch[gname]['filled']} hole(s) filled")
         for line in stitch[gname]["details"]:
             print(f"  {line}")
+        # Seam shading: one normal per interior coincident group, exactly what
+        # the 2B reference does (0 of its 22,486 pairs diverge). Borders keep
+        # both normals - those copies are a garment fold, not a UV split.
+        unified[gname] = unify_coincident_normals(groups[gname])
+        normals_left[gname] = coincident_normal_report(groups[gname])
+        print(f"[{gname}] seam normals: {unified[gname]['verts']} interior "
+              f"copies unified over {unified[gname]['groups']} groups; "
+              f"{normals_left[gname]['interior']} interior / "
+              f"{normals_left[gname]['border']} border pair(s) still diverging")
+        if normals_left[gname]["interior"]:
+            raise SystemExit(
+                f"[{gname}] {normals_left[gname]['interior']} interior "
+                "coincident pairs still disagree on their normal")
         breaks = bm.orientation_breaks(groups[gname])
         agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
                                      groups[gname].normals)
@@ -3274,6 +3386,8 @@ def main(argv=None) -> int:
         "cuff_taper": cuff_report,
         "idle_arm_rest": idle_rest,
         "sleeve_stitch": stitch,
+        "seam_normals": {g: {"unified": unified[g], "left": normals_left[g]}
+                         for g in unified},
         "fit_tpp": fit,
         "fit_fps": fps_fit if fps_bytes is not None else None,
     }
@@ -3293,7 +3407,10 @@ def main(argv=None) -> int:
                              "elbow_trim": elbow_report,
                              "cuff_taper": cuff_report,
                              "idle_arm_rest": idle_rest,
-                             "sleeve_stitch": stitch},
+                             "sleeve_stitch": stitch,
+                             "seam_normals": {g: {"unified": unified[g],
+                                                  "left": normals_left[g]}
+                                              for g in unified}},
                       fps_model_slots=fps_slots)
     print(f"pack  -> {pack}")
     zipped = lop.zip_pack(pack)

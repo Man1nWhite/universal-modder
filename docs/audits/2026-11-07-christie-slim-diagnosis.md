@@ -272,15 +272,70 @@ unification of work order item 1, which stays open.
 
 Test coverage: `test_sleeve_tube_is_closed_along_its_length[base|slim-left|right]`
 asserts the radial probe leaks < 1 cm², and `diagnose_mesh.py --templates`
-prints the same number for both packs. Suite state after the change: **63
-Christie tests, 607 tests overall, 30 skipped, 0 failed.** Nothing here has been
+prints the same number for both packs. Suite state after both changes: **65
+Christie tests, 633 tests overall, 26 skipped, 0 failed.** Nothing here has been
 checked in game — the pack to check is `14f75d66…` (slim) / `2934c818…` (base).
+
+## 9. Item 1 shipped: `unify_coincident_normals` (2026-11-07)
+
+The first item on the work order was the seam shading: a PD2 mesh duplicates a
+vertex wherever one position needs two UVs or two materials, and in the 2B
+reference every copy of a position carries the *same* normal (0 of 22,486 pairs
+diverge), which is why its seams are invisible. Ours diverged on 480 (slim) /
+856 (base) pairs — the hard step the screenshots show along seams.
+
+`unify_coincident_normals()` now runs on the welded body and its shadow after
+`stitch_sleeve_seams()`, so it is the last thing that touches geometry before
+authoring. For each coincident group it replaces the stored normal of the
+**interior** copies with the group mean. It touches nothing else: no position,
+UV, face, material or weight changes, and copies that sit on a border edge are
+left alone.
+
+Why borders are excluded: a copy on a border edge is the rim of a garment panel
+(cuff mouth, sleeve opening, lining edge, shoe lining). Its two sides are a real
+fold, so one normal cannot represent it — averaging there would smear the
+silhouette rather than remove a seam. The reference has no such pairs because
+its authoring never duplicates a fold; ours comes from the DOA5 source and from
+`cut_hands`, and re-authoring those edges is out of scope here.
+
+| | base | slim |
+| --- | --- | --- |
+| interior groups unified / copies re-normalled | 50 / 100 | 49 / 98 |
+| interior divergent pairs, before → after | 50 → **0** | 49 → **0** |
+| border divergent pairs (untouched) | 806 | 431 |
+| worst interior pair, before | 103° | 101° |
+| winding agreement | 97.3 → 97.2 % | 97.3 → 97.1 % |
+| orientation breaks | 0 → 0 | 0 → 0 |
+| "bad vertices" (`audit_metrics.py`) | 792 → 788 | 526 → 522 |
+
+Two details worth knowing:
+
+- **The mean is bounded.** Copies more than 120° apart are skipped, because
+  their mean lies more than 60° from both surfaces. The shipped worst cases
+  (101°/103°) are comfortably inside that, and the 128 interior pairs measure a
+  median of 19° apart, but the guard stops a future edit from averaging two
+  opposed layers into a sideways normal.
+- **The visual effect is small and local.** Rendered with a Gouraud shader that
+  interpolates the *stored* normals (the repo renderers shade per face, so they
+  cannot show this), the front of the coat is pixel-identical, and the back,
+  collar and lapel seams soften — the median normal change is 22.6°, the maximum
+  50.6°. This is a seam-quality fix, not a new look; the metric that moves is
+  the audit's own (`diverged`: 480 → 431 slim, 856 → 806 base), not
+  `bad vertices`, which is a coarse binary and is dominated by the two-layer
+  garment rather than by seams.
+
+Tests: `tests/test_seam_normals.py` covers the pass on hand-built meshes (an
+interior pair unifies, a border pair does not, a within-tolerance pair is left
+alone, a 130°-plus pair is skipped);
+`test_christie_las.py::test_interior_coincident_normals_agree` pins the shipped
+packs to 0 interior pairs and to > 300 border pairs (so the fix cannot "pass" by
+smoothing the garment edges), and re-derives the reference's 0-of-22,486.
 
 ## What this changes in the audit
 
 | audit item | status after diagnosis |
 | --- | --- |
-| 1 normal seams | real, but 431/480 are legitimate free edges; fix the 49 interior groups |
+| 1 normal seams | real; the 49 interior groups are unified (**§9**), the 431 free-edge folds stay by design |
 | 2 elbow sliver | real; the hole and the seam predate the 11-07 round (identical in base); fix topology, not displacement — **fixed in §8** |
 | 3 armpit hole | real, inherited, **slim is smaller than base**; not caused by rebinding; needs modelling |
 | 4 wrist band / red speck | band = open cuff interior + 0.5 cm of skin, not a bare wrist; red not reproducible from the pack |
@@ -289,9 +344,9 @@ checked in game — the pack to check is `14f75d66…` (slim) / `2934c818…` (b
 
 ## Suggested order of work
 
-1. **Interior coincident-normal unification** (49 groups, reference-backed,
-   testable offline: assert 0 interior divergent pairs, keep border
-   divergence).
+1. ~~**Interior coincident-normal unification**~~ — **done**, see §9:
+   `unify_coincident_normals`, 0 interior divergent pairs, border folds kept,
+   `tests/test_seam_normals.py` + `test_interior_coincident_normals_agree`.
 2. ~~**Weld/plug the sleeve seam and the 4-vertex elbow loop**~~ — **done**, see
    §8: `stitch_sleeve_seams()`, both packs rebuilt, sleeve tube closed on every
    slice, 0 orientation breaks.

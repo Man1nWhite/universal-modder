@@ -34,9 +34,9 @@ Deliverables in **`dist/`**:
   remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,775,366 B, sha256
-`2934c818…5649`) and `dist/Christie_LAS_Slim.zip` (4,207,535 B, sha256
-`14f75d66…0b16`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,775,131 B, sha256
+`f2677191…5ff38`) and `dist/Christie_LAS_Slim.zip` (4,206,310 B, sha256
+`f8ce4c30…23ed8`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -71,8 +71,11 @@ and 613 tests overall passed (29 skipped). Nothing built after 2026-11-05 has
 been in game yet, so an in-game idle-elbow check is still recommended.
 The same day, `stitch_sleeve_seams` closed the sleeve's lengthwise slit and the
 4-vertex elbow holes (0.00 cm² leaking on both sleeves of both packs, 0
-orientation breaks, UVs byte-identical); see "2026-11-07 sleeve seam stitch" in
-`CHRISTIE.md` and §8 of the diagnosis audit. 63 Christie tests now.
+orientation breaks, UVs byte-identical), and `unify_coincident_normals` gave
+every *interior* coincident vertex one normal (0 interior divergent pairs, the
+border folds left alone); see "2026-11-07 sleeve seam stitch" / "seam normals" in
+`CHRISTIE.md`, §8-§9 of the diagnosis audit and the corrected screenshot review.
+65 Christie tests now.
 See `docs/pd2-las/CHRISTIE.md` ("The elbow, measured on the elbow's own
 axis"). Tests: `tests/test_christie_las.py`.
 
