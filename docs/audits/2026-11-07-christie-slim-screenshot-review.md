@@ -9,6 +9,27 @@ The user confirmed a **heister head mod is in play**, so the Christie face/hair
 visible in the shots is not from this pack (which is `headless: true`). Head
 appearance is out of scope below.
 
+The screenshots are archived byte-identical in
+[`docs/pd2-las/screenshots/`](../pd2-las/screenshots/) so the crops referenced
+below stay reproducible:
+
+| shot | file | view |
+| --- | --- | --- |
+| 1 | `christie_slim_01_lobby_front-three-quarter.png` | lobby, front 3/4 |
+| 2 | `christie_slim_02_lobby_front.png` | lobby, front |
+| 3 | `christie_slim_03_lobby_front-three-quarter-wrist.png` | lobby, front 3/4, wrist |
+| 4 | `christie_slim_04_lobby_right-profile.png` | lobby, right profile |
+| 5 | `christie_slim_05_lobby_back.png` | lobby, back |
+| 6 | `christie_slim_06_lobby_back-three-quarter.png` | lobby, back 3/4 |
+| 7 | `christie_slim_07_lobby_left-profile.png` | lobby, left profile |
+| 8 | `christie_slim_08_menu_back-rifle.png` | menu, back, rifle |
+| 9 | `christie_slim_09_menu_left-profile-rifle.png` | menu, left profile, rifle |
+| 10 | `christie_slim_10_menu_front-rifle.png` | menu, front, rifle |
+| 11 | `christie_slim_11_menu_right-three-quarter-rifle.png` | menu, right 3/4, rifle |
+
+Pixel coordinates below are in **each file's own pixel space**, not a shared
+canvas — the source crops are all slightly different sizes (491–563 px wide).
+
 ## Correction (read this first)
 
 A first pass of this review blamed a **"blocky / faceted shading"** problem on
