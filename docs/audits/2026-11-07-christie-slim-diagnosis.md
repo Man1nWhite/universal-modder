@@ -405,6 +405,60 @@ alone, a 130°-plus pair is skipped);
 packs to 0 interior pairs and to > 300 border pairs (so the fix cannot "pass" by
 smoothing the garment edges), and re-derives the reference's 0-of-22,486.
 
+## 10. Item 7 (throat): the head model's neck skirt, measured with the head in the repo
+
+The review called this "almost certainly the heister head mod's UV seam, not
+this pack", and left it alone because the head was not in the repository. It is:
+`tools/build_joy_head_mods.py` builds the nine head-replacement packs from
+`models/… Miranda Lawson (Romance).zip` and `references/Ada Wong over Joy.7z`,
+and four of them mount a Miranda head over a heister body — the combination a
+Christie LAS player actually sees, because LAS keeps the heister's head.
+
+To measure it without a game, `tools/pd2-las/neck_junction.py` puts the body and
+a head in one space, ray-casts the front of the throat on a 0.25 cm grid
+(x ±6 cm, z 149–161 cm) and reports which mesh owns each cell. Output for the
+four `Miranda_L4D2_over_*` packs over `dist/Christie_LAS.zip`:
+
+| head pack | head neck border | body in front | head in front | see-through |
+|---| --- | --- | --- | --- |
+| over Joy | 176 verts, z 149.5–188.0, r 5.98 | 30.7 % | 69.3 % | 0.0 % |
+| over Clover | same | 29.7 % | 70.3 % | 0.0 % |
+| over Bonnie | same | 29.7 % | 70.3 % | 0.0 % |
+| over Sydney | same | 29.7 % | 70.3 % | 0.0 % |
+
+Three things follow, and they replace the review's guess:
+
+1. **There is no hole.** 0.0 % of the throat window misses geometry, so the pale
+   patch is a surface, not background seen through a gap.
+2. **The throat is mostly the head's skin** (~70 %), and where the body wins it
+   wins by a median **10.3 cm** — those cells are the blazer's collar and lapel
+   standing in front of the neck, not the body's neck. The pale side of the
+   review's boundary is the white blazer, the tan side is the head's neck skin.
+3. **The head's neck ends inside the window.** Its skirt border is the 176-vertex
+   loop whose lowest point is z 149.5 — mid-throat for a blazer this open. The
+   junction is therefore a *hard edge* (a border loop seen edge-on, with the
+   body's own chest skin behind it inside the V), which is the horizontal
+   banding in the screenshot, and it is why the two skins meet with no blend.
+
+Christie's own body is not the cause: its skin neck is a single closed tube
+(one boundary loop, 20 verts, z 160.9–163.2, radius 5.83 cm around (0, 4.1)),
+its throat samples one uniform tan on both sides (203, 156, 123 left / 205, 157,
+127 right at the median), and its normals and diffuse alpha are symmetric
+(22.3° vs 20.9° face-normal deviation, alpha 37 vs 38). Nothing in the body
+splits the throat in half.
+
+**The fix belongs in the head packs, and it is a skirt extension.**
+`build_joy_head_mods.py` would extrude the head's neck border downward and
+slightly inward (2–3 rings, ~6 cm, keeping the rim's UVs and Neck weights), so
+the border ends *inside* the torso instead of at z 149.5 in the middle of the
+opening. The hard edge then becomes an intersection curve the geometry itself
+defines, and the "banding" disappears. The same check that found this can score
+it: rerun `neck_junction.py` and require that no head-owned cell lies within
+~0.5 cm of a head border edge.
+
+This is not applied yet: it changes all eight Miranda head packs, and the
+junction can only be signed off in game.
+
 ## What this changes in the audit
 
 | audit item | status after diagnosis |
@@ -430,7 +484,11 @@ smoothing the garment edges), and re-derives the reference's 0-of-22,486.
 4. ~~**Mask scope**~~ — **done**, see §7: the mask is rasterised from the sleeve
    UV faces and clipped to that footprint, mip 0 is attenuated and the pyramid
    regenerated from it.
-5. Leave the gloves, the red speck and the cream band alone until the glove
+5. ~~**Neck split**~~ — **measured**, see §10: `tools/pd2-las/neck_junction.py`
+   shows the head's neck skirt ends mid-throat (70 % of the throat window is
+   head skin, 0 % see-through) while the body's neck is uniform on both sides.
+   The fix is a skirt extension in `build_joy_head_mods.py`, not applied yet.
+6. Leave the gloves, the red speck and the cream band alone until the glove
    model is part of the comparison — they are not in this mesh.
 
 ## Open observation (unverified)

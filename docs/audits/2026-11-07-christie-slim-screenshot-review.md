@@ -237,12 +237,33 @@ centroids), so those texels are sampled by both the sleeve and the boot and no
 mask can separate them. Removing that residue needs the boots re-UV'd, which is
 a texture-authoring change, not a build pass.
 
-### 7. Neck tonal split (head-mod territory — verify ownership first)
+### 7. Neck tonal split (measured 2026-11-07 — it is the head model, and it is ours)
 
 A hard vertical boundary on the throat, pale RGB(121,120,127) left vs tan
-RGB(147,129,117) right, with horizontal banding. This is almost certainly the
-**heister head mod's** UV seam, not this pack. Flagged only so it is not
-chased in the wrong repository.
+RGB(147,129,117) right, with horizontal banding.
+
+The first pass guessed a heister-head UV seam and left it alone because the head
+was not in the repository. It is: `tools/build_joy_head_mods.py` builds the nine
+head-replacement packs, and four of them put a Miranda head over a heister — the
+combination a Christie LAS player actually sees, because LAS keeps the heister's
+head. `tools/pd2-las/neck_junction.py` now measures the junction:
+
+- **0.0 % of the throat window is see-through**, so the pale half is a surface,
+  not background through a gap;
+- **~70 % of the throat is the head's skin**; where the body wins it wins by a
+  median of 10.3 cm, i.e. those cells are the blazer's collar and lapel standing
+  in front of the neck — so *pale = the white blazer, tan = the head's neck*;
+- the head's neck skirt **ends at z 149.5 cm**, mid-throat for a neckline this
+  open, so the junction is a border loop seen edge-on with the body's own chest
+  skin behind it — that edge is the horizontal banding;
+- the body is not splitting anything: its neck is one closed tube (20-vertex
+  border, z 160.9–163.2, r 5.83), uniform tan left/right (203,156,123 /
+  205,157,127), symmetric normals (22.3° vs 20.9°) and alpha (37 / 38).
+
+Fix: extrude the head's neck border downward and inward inside the torso in
+`build_joy_head_mods.py`, so the border stops ending mid-throat. Not applied —
+it changes all eight Miranda packs and needs the in-game check. Diagnosis §10
+has the numbers and the render (`docs/pd2-las/renders/neck_junction_christie_joy.png`).
 
 ## Suggested order of work
 
@@ -256,4 +277,5 @@ chased in the wrong repository.
 4. ~~**Trouser blotches** (6)~~ — **done**: face-raster mask scoped to the
    sleeve islands, mip 0 attenuated and the pyramid regenerated (0.8 % of the
    leg UV area left, and that residue is atlas sharing with the boots).
-5. Defer item 7 to the head mod.
+5. ~~**Neck split**~~ (7) — **measured**: it is the head packs' neck skirt, not
+   this body; see the section above and diagnosis §10.
