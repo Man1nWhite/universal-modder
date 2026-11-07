@@ -500,6 +500,7 @@ def cut_hands(g: bm.Group, min_weight: float = 0.5) -> bm.Group:
 
     out = bm.Group(name=g.name)
     out.palette = list(g.palette)
+    out.rest_worlds = dict(g.rest_worlds) if g.rest_worlds else None
     removed = len(g.verts) - len(keep)
     for si in sorted(by_slice):
         tri_ids = by_slice[si]
@@ -1577,6 +1578,186 @@ def trim_elbows(g: bm.Group, template: bm.Template,
     return records
 
 
+# Author the arm skinning rest pose where the heister actually idles. The old
+# rest bind baked a 72-degree elbow and required a 60-degree correction before
+# the first visible frame; every local corrective then had to repair that
+# extreme deformation. A 12-degree rest elbow needs no idle corrective at all.
+IDLE_ELBOW_STRAIGHTEN = 60.0
+IDLE_WRIST_STRAIGHTEN = -8.0
+IDLE_REST_TAUBIN_PASSES = 8
+
+
+def idle_arm_rest_worlds(template: bm.Template) -> dict:
+    """Absolute PD2 worlds for the near-idle authoring pose."""
+    import render_mesh_skeleton as rms
+
+    pose = {f"{side}Arm": (2, 22) for side in ("Left", "Right")}
+    pose.update({f"{side}ForeArm": (rms.BEND_AXIS, -IDLE_ELBOW_STRAIGHTEN)
+                 for side in ("Left", "Right")})
+    pose.update({f"{side}Hand": (rms.BEND_AXIS, IDLE_WRIST_STRAIGHTEN)
+                 for side in ("Left", "Right")})
+    return rms.posed_worlds(template, pose)
+
+
+def _coincident_groups(verts) -> list[list[int]]:
+    """UV/material duplicate indices sharing an authored position."""
+    import numpy as np
+
+    groups = {}
+    for i, point in enumerate(np.asarray(verts, float)):
+        groups.setdefault(tuple(np.round(point, 4)), []).append(i)
+    return [ids for ids in groups.values() if len(ids) > 1]
+
+
+def _weld_positions(verts, groups) -> None:
+    for ids in groups:
+        verts[ids] = verts[ids].mean(axis=0)
+
+
+def rebind_arms_at_idle(g: bm.Group, template: bm.Template,
+                        passes: int = IDLE_REST_TAUBIN_PASSES) -> dict:
+    """Re-author geometry and inverse binds together in the idle arm pose.
+
+    This is a *rest-pose change*, not a pose-space corrective. First the old
+    packed skinning evaluates the near-idle pose. Coincident UV/material
+    vertices share that displacement, then a small seam-welded Taubin pass
+    relaxes the outer sleeve's folded rest surface. Finally every palette
+    bone's inverse bind is authored from the same absolute idle world (via
+    ``Group.rest_worlds``), so evaluating that pose in the shipped model is the
+    identity: the relaxed surface is exactly what the game displays at idle.
+
+    The pose uses the renderer's measured flexion axis. Torso, leg, head and
+    other unposed bones keep their old worlds. Weights, topology, UVs and
+    materials are unchanged; body and shadow run through the same function.
+    """
+    import numpy as np
+    import diesel_model as dm
+
+    if not g.verts:
+        return {"verts": 0, "passes": 0}
+    old = np.asarray(g.verts, dtype=np.float64)
+    worlds = idle_arm_rest_worlds(template)
+    transforms = {}
+    for pi, name in enumerate(g.palette):
+        sid = template.name_id[name]
+        old_world = template.worlds[sid]
+        new_world = worlds.get(sid, old_world)
+        transforms[pi] = np.array(
+            dm.mat_mul(dm.mat_inv(old_world), new_world), float).reshape(4, 4)
+    posed = np.zeros_like(old)
+    for i, point in enumerate(old):
+        matrix = np.zeros((4, 4))
+        total = 0.0
+        for pi, weight in g.weights[i]:
+            matrix += weight * transforms[pi]
+            total += weight
+        matrix /= total or 1.0
+        posed[i] = point @ matrix[:3, :3] + matrix[3, :3]
+
+    # Rebind displacement must not open duplicated material/UV seams.
+    groups = _coincident_groups(old)
+    for ids in groups:
+        displacement = (posed[ids] - old[ids]).mean(axis=0)
+        posed[ids] = old[ids] + displacement
+    g.rest_worlds = {
+        name: worlds.get(template.name_id[name], template.worlds[template.name_id[name]])
+        for name in g.palette
+    }
+    g.verts = [tuple(map(float, row)) for row in posed]
+
+    # Taubin smoothing (positive/negative Laplacian pair) relaxes the folded
+    # sleeve without the shrinkage of ordinary Laplacian smoothing. The fade
+    # is full within 3 cm of the elbow and zero by 10 cm; hands and other bone
+    # chains are excluded. Each pass re-welds coincident positions.
+    verts = posed.copy()
+    before_relax = verts.copy()
+    faces = np.asarray(g.faces, dtype=np.int64)
+    edges = np.concatenate([faces[:, [0, 1]], faces[:, [1, 2]], faces[:, [2, 0]]])
+    edges = np.concatenate([edges, edges[:, ::-1]])
+    degree = np.bincount(edges[:, 0], minlength=len(verts)).astype(float)
+    degree[degree == 0.0] = 1.0
+    alpha = np.zeros(len(verts))
+    for side in ("Left", "Right"):
+        names = (f"{side}Arm", f"{side}ForeArm", f"{side}Hand")
+        if any(name not in g.palette for name in names[:2]):
+            continue
+        A, E, H = [np.asarray(g.rest_worlds[name], float).reshape(4, 4)[3, :3]
+                   for name in names]
+        best = np.full(len(verts), np.inf)
+        arc = np.zeros(len(verts))
+        accumulated = 0.0
+        for a, b in ((A, E), (E, H)):
+            ab = b - a
+            length = float(np.linalg.norm(ab))
+            unit = ab / length
+            t = np.clip((verts - a) @ unit, 0.0, length)
+            distance = np.linalg.norm(verts - (a + t[:, None] * unit), axis=1)
+            better = distance < best
+            best[better] = distance[better]
+            arc[better] = accumulated + t[better]
+            accumulated += length
+        distance_from_joint = np.abs(arc - np.linalg.norm(E - A))
+        x = np.clip((10.0 - distance_from_joint) / 7.0, 0.0, 1.0)
+        fade = x * x * (3.0 - 2.0 * x)
+        pair_weight = np.array([
+            sum(w for pi, w in g.weights[i] if g.palette[pi] in names[:2])
+            for i in range(len(verts))])
+        hand_weight = np.array([
+            sum(w for pi, w in g.weights[i] if g.palette[pi] == names[2])
+            for i in range(len(verts))])
+        use = (pair_weight > 0.5) & (best < 12.0)
+        alpha = np.maximum(alpha, fade * use * (1.0 - np.clip(hand_weight, 0.0, 1.0)))
+    movable = np.where(alpha > 0.0)[0]
+    for _ in range(passes):
+        for lam in (0.55, -0.58):
+            mean = np.column_stack([
+                np.bincount(edges[:, 0], weights=verts[edges[:, 1], axis],
+                            minlength=len(verts)) / degree
+                for axis in range(3)])
+            target = verts + lam * (mean - verts)
+            verts[movable] = ((1.0 - alpha[movable, None]) * verts[movable]
+                              + alpha[movable, None] * target[movable])
+            _weld_positions(verts, groups)
+    # Relaxation is useful only if the resulting outer surface remains valid.
+    # Damp the largest mover at each inverting sliver, then re-weld the *delta*
+    # so a seam cannot reopen after damping. A global backoff is the final
+    # deterministic guard for a cluster of mutually adjacent slivers.
+    displacement = verts - before_relax
+    for _ in range(4):
+        displacement = _damp_flips(faces, before_relax, displacement, passes=48)
+        for ids in groups:
+            displacement[ids] = displacement[ids].mean(axis=0)
+    tri = faces
+    n0 = np.cross(before_relax[tri[:, 1]] - before_relax[tri[:, 0]],
+                  before_relax[tri[:, 2]] - before_relax[tri[:, 0]])
+    for _ in range(20):
+        candidate = before_relax + displacement
+        n1 = np.cross(candidate[tri[:, 1]] - candidate[tri[:, 0]],
+                      candidate[tri[:, 2]] - candidate[tri[:, 0]])
+        bad = np.einsum("ij,ij->i", n0, n1) <= 0.0
+        bad &= np.linalg.norm(displacement[tri], axis=2).max(axis=1) > 1e-6
+        if not bad.any():
+            break
+        displacement *= 0.85
+    else:
+        raise SystemExit(f"idle elbow relaxation {g.name}: inversion damping failed")
+    verts = before_relax + displacement
+    g.verts = [tuple(map(float, row)) for row in verts]
+    _check_flips(g, before_relax, f"idle elbow relaxation {g.name}")
+    _recompute_normals(g, np.asarray(g.normals, dtype=np.float64))
+    report = {
+        "rest_elbow_deg": 72.0 - IDLE_ELBOW_STRAIGHTEN,
+        "taubin_passes": passes,
+        "verts": len(verts),
+        "coincident_groups": len(groups),
+        "max_rebind_shift_cm": round(float(np.linalg.norm(posed - old, axis=1).max()), 5),
+        "max_relax_shift_cm": round(float(np.linalg.norm(verts - before_relax, axis=1).max()), 5),
+    }
+    print(f"  idle arm rest {g.name}: {len(movable)} verts in relaxation window, "
+          f"{len(groups)} seam groups, max relax {report['max_relax_shift_cm']} cm")
+    return report
+
+
 def taper_cuff(g: bm.Group, template: bm.Template,
                bones=("Left", "Right")) -> list[dict]:
     """Pull the sleeve mouth in toward the forearm axis (the "cone" cuff).
@@ -2308,6 +2489,21 @@ def main(argv=None) -> int:
             if breaks or agree < 0.9:
                 raise SystemExit(f"[{gname}] hand cut broke the mesh")
 
+    # Author the final body and shadow in the actual near-idle skinning pose.
+    # This is deliberately after slim / hand cutting so every surviving vertex
+    # and its final weights share one coherent rest bind; FPS extraction below
+    # carries the same rest_worlds into the viewmodel.
+    idle_rest: dict[str, dict] = {}
+    for gname in ("body", "shadow"):
+        idle_rest[gname] = rebind_arms_at_idle(groups[gname], template)
+        breaks = bm.orientation_breaks(groups[gname])
+        agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
+                                     groups[gname].normals)
+        print(f"[{gname}] after idle rebind: orientation breaks {breaks}, "
+              f"winding agreement {agree:.1%}")
+        if breaks or agree < 0.9:
+            raise SystemExit(f"[{gname}] idle rebind broke the mesh")
+
     # Sleeve gloss: darken diffuse alpha (the specular mask) in the sleeve UV
     # regions only, every mip. In game the sleeves read glossier than the
     # torso because their normal-map phong mask is stronger there.
@@ -2386,6 +2582,7 @@ def main(argv=None) -> int:
         "centring": centring,
         "elbow_trim": elbow_report,
         "cuff_taper": cuff_report,
+        "idle_arm_rest": idle_rest,
         "fit_tpp": fit,
         "fit_fps": fps_fit if fps_bytes is not None else None,
     }
@@ -2403,7 +2600,8 @@ def main(argv=None) -> int:
                              "fit_fps": fps_fit,
                              "centring": centring,
                              "elbow_trim": elbow_report,
-                             "cuff_taper": cuff_report},
+                             "cuff_taper": cuff_report,
+                             "idle_arm_rest": idle_rest},
                       fps_model_slots=fps_slots)
     print(f"pack  -> {pack}")
     zipped = lop.zip_pack(pack)

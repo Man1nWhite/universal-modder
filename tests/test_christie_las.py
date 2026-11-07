@@ -17,11 +17,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sys
 import zipfile
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
@@ -32,9 +34,10 @@ pytestmark = pytest.mark.skipif(
     not SOURCE_ZIP.is_file(), reason="references/Christie.zip not present"
 )
 
+DIST = Path(os.environ.get("CHRISTIE_DIST", REPO / "dist")).resolve()
 PACKS = {
-    "base": ("dist/Christie_LAS.zip", "Christie_LAS", "christie", False),
-    "slim": ("dist/Christie_LAS_Slim.zip", "Christie_LAS_Slim",
+    "base": (DIST / "Christie_LAS.zip", "Christie_LAS", "christie", False),
+    "slim": (DIST / "Christie_LAS_Slim.zip", "Christie_LAS_Slim",
              "christie_slim", True),   # slim also cuts the hands (glove adapter)
 }
 
@@ -204,13 +207,8 @@ def _g_body_bounds(which: str):
     raise AssertionError("no g_body drawable")
 
 
-# PD2 2B bind-space joints (cm) — x mirrored per side. Segment = own joint ->
-# child joint; the slim pack thins the full cross-section about these axes.
-_P2_JOINTS = {
-    "Arm": (20.863, 2.967, 146.699), "ForeArm": (39.502, -0.995, 133.292),
-    "Hand": (45.985, 18.701, 124.472), "UpLeg": (10.689, 8.412, 99.487),
-    "Leg": (10.689, 2.912, 52.717), "Foot": (10.689, 0.925, 9.889),
-}
+# PD2 animation-chain segment names; rest-space joint coordinates come from
+# each candidate's shipped inverse binds, not from the old 72-degree template.
 _P2_SEGMENTS = {"Arm": ("Arm", "ForeArm"), "ForeArm": ("ForeArm", "Hand"),
                 "UpLeg": ("UpLeg", "Leg"), "Leg": ("Leg", "Foot")}
 
@@ -255,10 +253,11 @@ def _principal_radius(which: str, bone: str, side: str,
 
     v, dom = _g_body_geo_dom(which)
     a0, b0 = _P2_SEGMENTS[bone]
+    template = _rest_template(which)
 
     def J(n):
-        p = _P2_JOINTS[n]
-        return np.array([-p[0] if side == "Left" else p[0], p[1], p[2]])
+        world = template.worlds[template.name_id[f"{side}{n}"]]
+        return np.array(world[12:15], float)
 
     a, b = J(a0), J(b0)
     u = (b - a) / np.linalg.norm(b - a)
@@ -463,7 +462,7 @@ def test_forearm_centerline_straight_in_base_pack():
     import build_models as bm
     import segment_fit as sf
 
-    tpl = bm.load_template(_templates() / "2b.model")
+    tpl = _rest_template("base")
     geom = sf.limb_geom(tpl)
     v, dom = _g_body_geo_dom("base")
     for side in ("Left", "Right"):
@@ -540,6 +539,24 @@ def _templates() -> Path:
     pytest.skip("2B templates not extracted (run tools/pd2-las/bootstrap.sh)")
 
 
+def _rest_template(which: str):
+    """PD2 animation hierarchy with this pack's encoded authoring rest worlds."""
+    from dataclasses import replace
+    import build_models as bm
+
+    template = bm.load_template(_templates() / "2b.model")
+    _, pack_dir, item_id, _g = PACKS[which]
+    with _zf(which) as zf:
+        data = zf.read(f"{pack_dir}/assets/units/{item_id}/skins/"
+                       f"{item_id}/{item_id}.model")
+    drawn = bm.read_drawable(data, "g_body")
+    worlds = dict(template.worlds)
+    for name, world in drawn.get("rest_worlds", {}).items():
+        if name in template.name_id:
+            worlds[template.name_id[name]] = world
+    return replace(template, worlds=worlds)
+
+
 def _fit_report(which: str, fps: bool = False) -> dict:
     """segment_fit report for a built pack, against the PD2 bind skeleton."""
     import build_models as bm
@@ -579,21 +596,23 @@ def test_limb_tubes_sit_on_their_bones(which, fps):
             f"{r['drift']:.2f} cm along the segment (limit {_FOREARM_MAX_DRIFT})")
 
 
-def _arm_thickness_at_elbow(which: str) -> float:
-    """p90 distance from the Arm->ForeArm->Hand polyline, 2 cm band at the joint.
+def _arm_radii_at_elbow(which: str, side: str = "Left") -> np.ndarray:
+    """Inner (p10) and outer (p90) radii in the 2 cm elbow band.
 
-    Measured along the *chain*: the two segments meet at 72 degrees, so any
-    window picked by one segment's axial coordinate catches the other one's
-    cross-section (see ``trim_elbows``)."""
+    Measured along the encoded rest chain: its two segments meet at 12 degrees,
+    so any window picked by one segment's axial coordinate catches the other
+    one's cross-section too. Both tails matter: an outer-thickness limit alone
+    allowed a corrective to pinch the inner elbow.
+    """
     import numpy as np
-    import build_models as bm
     import segment_fit as sf
 
-    tpl = bm.load_template(_templates() / "2b.model")
-    chain = [sf.joint_pos(tpl, n) for n in ("LeftArm", "LeftForeArm", "LeftHand")]
+    tpl = _rest_template(which)
+    chain = [sf.joint_pos(tpl, f"{side}{n}") for n in ("Arm", "ForeArm", "Hand")]
     s_joint = float(np.linalg.norm(chain[1] - chain[0]))
     v, dom = _g_body_geo_dom(which)
-    m = np.array([nm in ("LeftArm", "LeftForeArm") and w > 0.2 for nm, w in dom])
+    m = np.array([nm in (f"{side}Arm", f"{side}ForeArm") and w > 0.2
+                  for nm, w in dom])
     pts = v[m]
     best = np.full(len(pts), np.inf)
     arc = np.zeros(len(pts))
@@ -610,7 +629,7 @@ def _arm_thickness_at_elbow(which: str) -> float:
         acc += L
     band = (np.abs(arc - s_joint) < 2.0) & (best < 12)
     assert band.sum() >= 8, f"{which}: only {int(band.sum())} verts at the elbow"
-    return float(np.percentile(best[band], 90))
+    return np.percentile(best[band], [10, 90])
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
@@ -623,10 +642,27 @@ def test_elbow_is_not_puffier_than_the_reference(which):
     cross-section about the arm chain, which brings it to 7.18 cm without
     moving the crease (the crease test above still passes).
     """
-    got = _arm_thickness_at_elbow(which)
+    got = _arm_radii_at_elbow(which)[1]
     assert got <= _ELBOW_MAX_THICKNESS, (
         f"{which}: arm is {got:.2f} cm thick at the elbow (limit "
         f"{_ELBOW_MAX_THICKNESS}; 2B reference 7.03, was 8.16 before the trim)")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+@pytest.mark.parametrize("side", ("Left", "Right"))
+def test_elbow_inner_sleeve_does_not_collapse(which, side):
+    """The joint must retain a continuous sleeve, not just a valid outer bound.
+
+    The rejected multi-pose corrective passed topology, normal, seam and outer
+    thickness checks but visibly pinched both elbows in the bottom skeleton
+    render. Its inner (p10) radius fell to 3.83 cm from the stable sleeve's
+    4.35 cm. Check both arms and both packs so that failure cannot return
+    unnoticed behind another aggregate fold metric.
+    """
+    got = _arm_radii_at_elbow(which, side)[0]
+    assert got >= 4.0, (
+        f"{which} {side}: inner elbow radius collapsed to {got:.2f} cm "
+        "(minimum 4.00; stable sleeve approximately 4.35)")
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
@@ -691,25 +727,16 @@ def test_fit_numbers_match_the_build_report():
 
 
 # ---------------------------------------------------------------------------
-# the elbow at the in-game idle: the bind pose bakes a ~72 deg bend, the idle
-# hangs near straight (elbow ~12 deg), and the sleeve has to give back
-# r*dtheta of length on the outside of the bend - the crease that showed up in
-# game. These tests pin the posed result on the shipped bytes through the same
-# LBS the diagnostic renderer uses (posed_worlds / skin_verts, row-vector
-# convention).
-#
-# The rotation axis matters and was wrong until 2026-11-07: on the PD2 arm,
-# local X of the ForeArm is a *twist* (the Arm-ForeArm angle stays at its bind
-# 72.1 deg for every angle), and local Y is flexion (72.1 -> 0.1 deg at -72).
-# A probe that rotates about X measures a sleeve being wrung out, not a bent
-# elbow; `test_elbow_bend_axis_is_flexion` pins the distinction. Every number
-# in the two tests below is on the flexion axis.
+# Elbow deformation from the encoded 12-degree authoring rest. The old 72-
+# degree menu pose is now a flexion of the rest skeleton, not its identity.
+# Probes use the same posed_worlds / skin_verts LBS as the diagnostic renderer.
+# Local X twists the ForeArm; local Y changes the Arm-ForeArm flexion angle.
 # ---------------------------------------------------------------------------
 _BEND_AXIS = 1          # ForeArm/Hand local axis that changes the joint angle
-_BIND_ELBOW_DEG = 72.0  # Arm-ForeArm angle in the PD2 bind/menu pose
-#: degrees of straightening from bind: 22 = mild, 45 = mid, 60 = the in-game
-#: idle (elbow 12 deg), 72 = dead straight (hyperextension probe)
-_STRAIGHTEN = (22, 45, 60, 72)
+_BIND_ELBOW_DEG = 72.0  # old PD2 template/menu pose, now a 60-degree flexion
+#: rotation from the encoded rest: 0 = old menu pose, 60 = idle identity,
+#: 72 = straightened extension probe. These remain template-relative angles.
+_STRAIGHTEN = (0, 22, 45, 60, 72)
 
 
 def _elbow_angle(pw, template) -> float:
@@ -769,9 +796,14 @@ def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
                 w_fa[i] += w
     ring = np.where((w_arm > 0.02) & (w_fa > 0.02) & (w_arm + w_fa > 0.5))[0]
     ringset = set(ring.tolist())
+    coincident = {}
+    for i, p in enumerate(v):
+        if w_arm[i] + w_fa[i] > 0.5:
+            coincident.setdefault(tuple(np.round(p, 4)), []).append(i)
+    seam_groups = [np.array(ids, int) for ids in coincident.values() if len(ids) > 1]
 
     # blend width along the Shoulder->Arm->ForeArm->Hand chain, bind pose
-    bones = dict((n, p) for n, p, _ in rms.skeleton(template))
+    bones = dict((n, p) for n, p, _ in rms.rest_skeleton(template, skel))
     pts = [bones[f"Left{n}"] for n in ("Shoulder", "Arm", "ForeArm", "Hand")]
     cum = np.concatenate([[0.0], np.cumsum([float(np.linalg.norm(b - a))
                                             for a, b in zip(pts[:-1], pts[1:])])])
@@ -788,8 +820,14 @@ def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
 
     pose = {f"{s}Arm": (2, 22) for s in ("Left", "Right")}
     pose.update({f"{s}ForeArm": (_BEND_AXIS, -straighten_deg) for s in ("Left", "Right")})
+    pose.update({f"{s}Hand": (_BEND_AXIS, -8) for s in ("Left", "Right")})
     pw = rms.posed_worlds(template, pose)
     pv = rms.skin_verts(geo, skel, pw)
+    seam_gap = 0.0
+    for ids in seam_groups:
+        pts = pv[ids]
+        seam_gap = max(seam_gap, float(np.linalg.norm(
+            pts[:, None, :] - pts[None, :, :], axis=2).max()))
 
     edges = set()
     for tri in faces:
@@ -825,6 +863,7 @@ def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
                 frac_lt_070=float((ratio < 0.70).mean()),
                 crease_pairs=flips,
                 elbow_deg=_elbow_angle(pw, template),
+                seam_gap_max=seam_gap,
                 shorten_max=float(shortening.max()),
                 shorten_sum=float(shortening.sum()))
 
@@ -875,6 +914,38 @@ def _unit(a, b):
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
+def test_idle_rest_worlds_survive_tpp_and_fps(which):
+    """FPS extraction must retain the exact custom inverse-bind arm worlds."""
+    import build_models as bm
+    import render_mesh_skeleton as rms
+
+    _, pack_dir, item_id, _g = PACKS[which]
+    unit = f"{pack_dir}/assets/units/{item_id}/skins/{item_id}"
+    with _zf(which) as zf:
+        tpp = bm.read_drawable(zf.read(f"{unit}/{item_id}.model"), "g_body")
+        fps = bm.read_drawable(zf.read(f"{unit}/fps_{item_id}.model"), "g_body")
+    assert tpp and fps
+    template = bm.load_template(_templates() / "2b.model")
+    for side in ("Left", "Right"):
+        for part in ("Arm", "ForeArm", "Hand"):
+            name = f"{side}{part}"
+            a = np.asarray(tpp["rest_worlds"][name], float)
+            b = np.asarray(fps["rest_worlds"][name], float)
+            assert np.allclose(a, b, atol=2e-5), name
+            assert np.max(np.abs(a - template.worlds[template.name_id[name]])) > 0.01
+    # Renderer rest overlays use the shipped inverse binds, not stale PD2 worlds.
+    bones = dict((name, point) for name, point, _parent in
+                 rms.rest_skeleton(template, {
+                     "objects": [template.name_id[name] for name in tpp["palette"]],
+                     "rotations": [np.linalg.inv(np.asarray(
+                         tpp["rest_worlds"][name], float).reshape(4, 4)).reshape(-1).tolist()
+                         for name in tpp["palette"]],
+                 }))
+    for name in ("LeftForeArm", "RightForeArm"):
+        assert np.allclose(bones[name], tpp["rest_worlds"][name][12:15], atol=1e-5)
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
 def test_elbow_blend_is_wide(which):
     """The weld ring must span >= 10.8 cm of arm chain with >= 72 mixed verts.
 
@@ -893,36 +964,42 @@ def test_elbow_blend_is_wide(which):
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
-def test_elbow_does_not_crumple_at_the_idle_angle(which):
-    """Posed LBS probe on the elbow's own (flexion) axis.
+def test_elbow_deforms_cleanly_from_idle_rest(which):
+    """The 12-degree idle is the identity bind; flexion must not crumple it.
 
-    Straightening the bind's 72 deg bend to the in-game idle's ~12 deg must
-    not crumple the sleeve. Before the 2026-11-07 outer-elbow de-puff, the
-    worst edge in the elbow window shortened 3.12 cm at that angle and the
-    surface compressed to 0.19 of bind length (PD2's own 2B body: 0.98 cm /
-    0.72); it is 2.08 cm / 0.29 now. Absolute shortening is the metric that
-    tracks the visual fold - a relative ratio can be held flat while a wider
-    blend merely spreads the same crushed material over more edges.
+    Older packs authored a 72-degree rest elbow and had to straighten it by
+    60 degrees before the first idle frame. The shipped skinbones now author
+    the same near-idle pose as this probe's 60-degree row, so that row must be
+    an exact no-op on the elbow ring. The 0-degree row flexes *into* the old
+    menu pose; 72 extends 12 degrees beyond idle. All use original rest edge
+    lengths and the shipped linear-blend matrices.
     """
     at0 = _hang_pose_metrics(which, 0)
     at45 = _hang_pose_metrics(which, 45)
+    at50 = _hang_pose_metrics(which, 50)
     at60 = _hang_pose_metrics(which, 60)
+    at72 = _hang_pose_metrics(which, 72)
     assert abs(at60["elbow_deg"] - 12.0) < 1.0, (
         f"{which}: the probe straightens to {at60['elbow_deg']:.1f} deg, not "
         "the idle's 12 deg")
-    # bind pose is identity: no compressed edge, no opposed normals
-    assert at0["min_ratio"] > 0.99 and at0["shorten_max"] < 0.01
-    assert at45["min_ratio"] >= 0.44, (
-        f"{which}: at 45 deg the worst edge compresses to "
-        f"{at45['min_ratio']:.2f} of bind length")
-    assert at60["min_ratio"] >= 0.27, (
-        f"{which}: at the idle the worst edge compresses to "
-        f"{at60['min_ratio']:.2f} (0.19 before the outer-elbow de-puff)")
-    assert at60["shorten_max"] <= 2.25, (
-        f"{which}: worst edge shortens {at60['shorten_max']:.2f} cm when the "
-        "elbow straightens to the idle (was 3.12 before the outer de-puff, "
-        "budget 2.25; measured 2.08)")
-    # a fold shows up as neighbouring faces that end up facing each other
-    assert at60["crease_pairs"] <= at0["crease_pairs"] + 2, (
-        f"{which}: opposed-normal pairs {at0['crease_pairs']} -> "
-        f"{at60['crease_pairs']} at the idle (creasing, not bending)")
+    # Idle rest is identity: no compressed edge and no new opposed normals.
+    assert at60["min_ratio"] > 0.99 and at60["shorten_max"] < 0.01
+    # Rest can already contain opposed normals where lining/garment panels
+    # meet; the deformation must not create additional opposed face pairs.
+    rest_creases = at60["crease_pairs"]
+    for label, metrics in (("menu", at0), ("27deg", at45), ("22deg", at50),
+                           ("idle", at60), ("straight", at72)):
+        assert metrics["seam_gap_max"] < 0.02, (
+            f"{which} {label}: coincident sleeve vertices separate by "
+            f"{metrics['seam_gap_max']:.3f} cm")
+        assert metrics["crease_pairs"] <= rest_creases + 2
+    # Near-idle flexion: measured base/slim minima are 0.70/0.71 at 27 deg
+    # and 0.795/0.803 at 22 deg. Inner-crease edges naturally shorten here;
+    # the hard continuity requirement above is the more important invariant.
+    assert at45["min_ratio"] >= 0.65
+    assert at45["shorten_max"] <= 1.20
+    assert at50["min_ratio"] >= 0.75
+    assert at50["shorten_max"] <= 0.85
+    # Straightening the remaining 12 degrees must not introduce a new fold.
+    assert at72["min_ratio"] >= 0.70
+    assert at72["shorten_max"] <= 0.60

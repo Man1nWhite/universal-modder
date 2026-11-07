@@ -34,11 +34,11 @@ Deliverables in **`dist/`**:
   remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,768,590 B, sha256
-`21abb7e5…d9b7b4b`) and `dist/Christie_LAS_Slim.zip` (4,204,560 B, sha256
-`7f02004f…b402a27`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,773,833 B, sha256
+`2fc22808…8603b`) and `dist/Christie_LAS_Slim.zip` (4,206,160 B, sha256
+`eb8e4f34…9482`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
-×0.9 thinner in x/y, arm verts an extra ×0.75 (arms 25% thinner), height
+×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
 wrist; `fix_arm_fits()` translates the Arm/ForeArm/Hand fits so
 elbow/wrist/hand land exactly on the PD2 pivots) from
@@ -57,9 +57,15 @@ the Arm/ForeArm ramp to 9+10 cm and pulled the flared cuff in
 0.187 → **0.333** of bind length, joint thickness 7.18 → 6.69 cm, cuff mouth
 p90 6.37 → 5.39 cm, 0 inverted faces. Renders:
 `christie{,_slim}_{elbow_bend,elbow_idle,cuff}_before_after.png`, all fixed-
-frame per row from `tools/pd2-las/elbow_before_after.py`. Nothing built after
-2026-11-05 has been in game yet; the idle-elbow screenshot is still the one
-piece of evidence missing.
+frame per row from `tools/pd2-las/elbow_before_after.py`. Several later
+correctives were rendered and rejected. The final fix authors a 12° near-idle
+arm rest, reapplies the skin with seam-welded eight-pass Taubin relaxation and
+inversion damping, and propagates the custom rest worlds through both TPP and
+FPS inverse binds. Final isolated outer-blazer front/side sheets and rest-bottom
+views were inspected for base and slim; the sleeve connection is continuous.
+See `christie{,_slim}_idle_rest_outer_sheet.png`. Validation: 55 Christie tests
+and 609 tests overall passed (29 skipped). Nothing built after 2026-11-05 has
+been in game yet, so an in-game idle-elbow check is still recommended.
 See `docs/pd2-las/CHRISTIE.md` ("The elbow, measured on the elbow's own
 axis"). Tests: `tests/test_christie_las.py`.
 
