@@ -348,7 +348,10 @@ asserts the radial probe leaks < 1 cm², and `diagnose_mesh.py --templates`
 prints the same number for both packs. Suite state after both changes: **65
 Christie tests, 633 tests overall, 26 skipped, 0 failed** (after the gloss pass
 of §7: 67 / 635, same skips). Nothing here has been
-checked in game — the pack to check is `14f75d66…` (slim) / `2934c818…` (base).
+checked in game. The packs to check were `14f75d66…` (slim) / `2934c818…` (base)
+at the time of writing; the gloss pass of §7 rebuilt them again, and the current
+bytes are `5e55745f…70b4d` (slim) / `c57edbba…1f765` (base), which are the ones in
+`dist/` and the ones an in-game check would cover.
 
 ## 9. Item 1 shipped: `unify_coincident_normals` (2026-11-07)
 
@@ -547,6 +550,7 @@ body's own UVs (§10.2).
 | 4 wrist band / red speck | band = open cuff interior + 0.5 cm of skin, not a bare wrist; red not reproducible from the pack |
 | 5 spiky fingertips | the pack has no hands; only the cuff ring is ours |
 | 6 trouser blotches | mask bleed was real, gloss-only, mostly on the shoes; mechanism was per-block attenuation, not the splat edge — **fixed**: face-raster mask, mip 0 only, leg UV coverage 3.2 % → 0.8 % (§7) |
+| 7 neck tonal split | measured twice and corrected once (§10): the head's neck rim is **not** the visible line (0 of 98–120 rim edges exposed, front or back; the body owns 84.3–99.5 % of the throat window) and the body's own UVs do not split it either. The skirt shipped on the L4D2 path as insurance (§10.3). **Open**; next step is the in-game bisect of §10.4 |
 
 ## Suggested order of work
 

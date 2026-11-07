@@ -35,6 +35,11 @@ gives interior copies one shared normal: interior divergent pairs 50 (base) / 49
 remaining divergent pair sits on a garment edge and is kept on purpose — those
 are folds, not seams.
 
+A third build, the sleeve-gloss mask fix (§7 of the diagnosis), touches only
+`c02_01_df.texture`: no vertex, UV, topology or texel-density number in this
+document moves. The pack in `dist/` today is `5e55745f…70b4d` (slim) /
+`c57edbba…1f765` (base).
+
 `audit_metrics.py` now prints both the divergent-pair height histogram
 (`--z-hist`, which always sums to the `diverged` column) and the diffuse-alpha
 statistics (`--alpha`, over the whole texel grid), so the audit's own numbers are

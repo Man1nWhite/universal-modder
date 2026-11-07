@@ -1,9 +1,13 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `2934c818…5649`, 4,775,366 B)
+Validation at this commit: **67 Christie tests**, `tests/` overall **650 passed,
+26 skipped**, `pyflakes` clean. The two packs below are the ones in `dist/`; the
+dated log further down keeps the earlier hashes it was written with.
+
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `c57edbba…1f765`, 4,794,618 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `14f75d66…0b16`,
-  4,207,535 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `5e55745f…70b4d`,
+  4,222,761 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -430,7 +434,16 @@ command, so the whole set is reproducible in one run per pack:
     --out docs/pd2-las/renders --pose --hang
 # slim pack: the same command with
 #   --zip dist/Christie_LAS_Slim.zip --pack Christie_LAS_Slim --item christie_slim
+# the two FPS renders are a second run with --fps, same --pack/--item
 ```
+
+The committed set was regenerated on **2026-11-07**: it had gone stale at
+`484a743`, i.e. it predated the seam stitch, the interior normal unification and
+the sleeve-gloss pass that rebuilt both packs, so the pictures no longer matched
+the bytes in `dist/`. Re-rendering moved only mesh pixels (the skeleton overlay is
+identical pixel for pixel) and every image was re-checked for blank frames and a
+missing overlay. Note that the `--fps` run writes nine files where the repo keeps
+two, `fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest.
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
   directions. `top` looks down the body axis from above and `bottom` looks up
@@ -465,6 +478,10 @@ command, so the whole set is reproducible in one run per pack:
 - `christie_source_{front,side,iso,forearm_front,forearm_side}.png` — the
   ORIGINAL DOA5 model from `references/Christie.zip` with its own skeleton
   (`--source` mode of the renderer), as the reference for comparisons
+- `neck_skirt_romance_regression.png` — one-off 2026-11-07 pair, not part of
+  the reproducible set: the Romance-over-Clover neck on 2026-11-05 (shipped)
+  next to the skirted build that shipped by mistake, 4x. Evidence for §10.3 of
+  the diagnosis audit.
 - `christie_{base,slim}_fit_before_after.png` — left forearm/wrist, the pack as
   shipped before 2026-11-06 (bone along the top edge of the sleeve, cuff off the
   `Hand` pivot) next to the re-centred build. A one-off composite made before

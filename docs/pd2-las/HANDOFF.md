@@ -5,6 +5,8 @@ as a Legendary Armour Skins (LAS) armor skin (the `2b.rar` product shape),
 built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
 **State:** the pack is built, game-tested, tracked in git, and offline-verified.
+**Suite at this commit:** `pytest tests -q` → **650 passed, 26 skipped** (67 of
+them `tests/test_christie_las.py`), `pyflakes` clean on `tools/` and `tests/`.
 Deliverables in **`dist/`**:
 - `dist/Miranda_LAS.zip` (5,414,012 bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
 - `dist/lawson_las.zip` (9,123,392 bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
@@ -59,13 +61,18 @@ Deliverables in **`dist/`**:
   (`*_chill`) models; Joy and Sydney replace the heist + menu models only, so
   their Safe House units keep the vanilla head. **In-game status 2026-11-05:**
   the four **L4D2** packs (`Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}.zip`)
-  are tested in game by the user; the Romance variants and Geralt over Rust
+  were tested in game by the user; the Romance variants and Geralt over Rust
   remain unverified — there is no checklist for the head packs (the LAS one is
-  `docs/pd2-las/in-game-checklist.md`).
+  `docs/pd2-las/in-game-checklist.md`). **That test covers the 2026-11-05 bytes,
+  not the ones tracked now:** the 2026-11-07 neck-skirt rebuild changed all four
+  L4D2 packs (the Romance four came out byte-identical to 2026-11-05, see the
+  paragraph below), so until someone looks at a throat again they are
+  *offline-verified only*. The check that would settle it is in
+  `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.4.
 
 **Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,794,618 B, sha256
-`c57edbba…b1f76`) and `dist/Christie_LAS_Slim.zip` (4,222,761 B, sha256
-`5e55745f…170b4`) (+ `.sha256` sidecars) — built by
+`c57edbba…1f765`) and `dist/Christie_LAS_Slim.zip` (4,222,761 B, sha256
+`5e55745f…70b4d`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -95,9 +102,10 @@ near-sleeve gap on both arms; slim also has independent bounded multi-pose fold
 solutions. Final isolated outer sheets, cuff/idle comparisons and actual FPS
 renders were inspected for base and slim. See
 `christie{,_slim}_idle_rest_outer_sheet.png` and
-`fps_christie{,_slim}_skel_{front,cuff}.png`. Validation: 59 Christie tests
-and 613 tests overall passed (29 skipped). Nothing built after 2026-11-05 has
-been in game yet, so an in-game idle-elbow check is still recommended.
+`fps_christie{,_slim}_skel_{front,cuff}.png`. Validation at that
+point: 59 Christie tests and 613 tests overall (29 skipped); the suite is at 650 /
+26 skipped today. Nothing built after 2026-11-05 has been in game yet, so an
+in-game idle-elbow check is still recommended.
 The same day, `stitch_sleeve_seams` closed the sleeve's lengthwise slit and the
 4-vertex elbow holes (0.00 cm² leaking on both sleeves of both packs, 0
 orientation breaks, UVs byte-identical), and `unify_coincident_normals` gave

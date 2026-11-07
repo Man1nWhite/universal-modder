@@ -73,7 +73,12 @@ Nine packages: Joy 10 entries, Clover 13, Bonnie 13, Sydney 12, Geralt 15.
 - Head drawables in all eight Miranda packs: 4,402 vertices / 7,109 triangles (atom 0 = head 6,885 tris,
   atom 1 = 3D eyelashes 224 tris), unit normals, blend weights summing to 1, bone indices in range, UVs
   inside `[0,1]`, `uvdir_u`/`uvdir_v` unit length, declared bounds equal to the real bounds, no degenerate
-  or duplicated triangles, every atom slice inside its geometry/topology.
+  or duplicated triangles, every atom slice inside its geometry/topology. **These are the 2026-11-05
+  counts.** The 2026-11-07 neck-skirt rebuild (§10.3 of
+  `docs/audits/2026-11-07-christie-slim-diagnosis.md`) moved the four L4D2 packs to 4,515 / 7,321 tris
+  over Joy and 4,508 / 7,305 over Clover, Bonnie and Sydney, lowest vertex z 149.48 → 142.98; the four
+  Romance packs are byte-identical to the ones audited here, and
+  `tests/test_pd2_las.py::test_neck_skirt_is_on_the_l4d2_heads_and_not_on_the_romance_ones` pins both.
 - Every material a drawable can reach resolves in the `*.material_config` shipped in the same directory.
   The only unresolved hash (`#84ea363244e1050b`) belongs to the collision drawables (`c_headphys1/2`),
   which never render.
