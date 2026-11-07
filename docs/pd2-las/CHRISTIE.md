@@ -1,9 +1,9 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `21abb7e5…d9b7b4b`, 4,768,590 B)
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `4df217a6…ea2e`, 4,773,888 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `7f02004f…b402a27`,
-  4,204,560 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `33832eaf…aca7`,
+  4,206,230 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -51,7 +51,44 @@ rebuilt, elbow thickness at the joint 7.18 → **6.69 cm** (2B reference 7.03).
 A second pass the same day widened the ramp to 9/10 cm and pulled the cuff in
 ([below](#round-2-the-blend-ramp-and-the-cuff-2026-11-07)): `21abb7e5…` base,
 `7f02004f…` slim. Tests renamed/re-based:
-`test_elbow_bend_axis_is_flexion`, `test_elbow_does_not_crumple_at_the_idle_angle`.
+`test_elbow_bend_axis_is_flexion`; the final custom-rest successor is
+`test_elbow_deforms_cleanly_from_idle_rest`.
+
+**Final 2026-11-07 elbow correction:** the earlier 359-vertex multi-pose solve
+was withdrawn after it pinched both elbow cross-sections despite improving
+aggregate metrics. Independent corrective deltas, dual-quaternion skinning,
+trim/ramp removal, longitudinal stretching, graph diffusion and a radial tube
+rebuild were also rendered and rejected; none is in the packs. The shipped fix
+instead authors the arms in the **near-idle 12° rest pose**, using PD2's measured
+flexion axis, then applies eight seam-constrained Taubin relaxation passes.
+Coincident UV/material vertices are welded during every rebind/relaxation step;
+inversion damping and deterministic backoff prevent relaxed slivers from
+flipping. Base relaxes 237 window vertices (maximum 2.28202 cm), slim 235
+(maximum 2.32909 cm); both finish with zero new orientation breaks.
+
+The final visual review exposed a real near-sleeve coverage gap at the 50° side
+view. A tight-camera, multi-angle boundary repair extends only the existing
+elbow vertices (never the mid-bicep proportion slices), converts the required
+posed displacement back through each vertex's inverse LBS matrix, and revalidates
+both arms after inversion damping. It adds no vertices, faces or far-side cover.
+Slim then receives two independent bounded multi-pose fold solutions (28 vertices,
+maximum 0.51962 cm); nearest-position mirroring was rejected. This closes the
+reported base/slim gap without changing cuffs, materials, topology or FPS counts.
+
+`Group.rest_worlds` now carries these authoring transforms through TPP and FPS
+extraction into the shipped inverse binds. Fit diagnostics and unposed renderer
+overlays read those transforms rather than assuming the old 72° template rest.
+The regression suite checks the 12° identity pose, TPP/FPS rest-world equality,
+coincident-vertex continuity at menu/intermediate/idle/extended poses, both
+arms' inner radii and 50° near-shell coverage, slim proportions, cuffs and glove
+placement. Final material-isolated outer sheets, full-material idle/cuff
+comparisons, rest views and the actual `fps_<item>.model` renders were visually
+inspected for both packs. Evidence: `christie{,_slim}_idle_rest_outer_sheet.png`,
+`christie{,_slim}_{skel_bottom,hang_elbow_side,hang_elbow_front}.png`, and
+`fps_christie{,_slim}_skel_{front,cuff}.png`.
+Validation: **59 Christie tests passed; full `tests/` suite 613 passed,
+29 skipped**. This is an offline render/structural clearance; no build after
+2026-11-05 has yet been tested in game.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to

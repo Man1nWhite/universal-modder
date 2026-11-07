@@ -195,7 +195,7 @@ def main(argv=None) -> int:
         panels, labels = build_panels(args, template, rows)
         compose(panels, labels, [
             shipped + " (window = union of both panels).",
-            "after = 9/10 cm Arm/ForeArm blend ramp + outer-elbow de-puff.",
+            "after = 12 deg authoring rest + seam-welded Taubin relaxation.",
             *args.note,
         ], args.out / f"{stem}_elbow_bend_before_after.png",
             f"{name}elbow: shipped (left) vs current build (right)")

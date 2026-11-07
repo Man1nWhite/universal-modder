@@ -636,6 +636,10 @@ class Group:
     palette: list[str] = field(default_factory=list)  # target bone names
     weights: list = field(default_factory=list)       # per vert [(pal_idx, w), ...]
     mat_slots: list[str] = field(default_factory=list)  # out material per slice
+    # Optional authoring rest worlds. Most groups use template.worlds; a
+    # group rebound in another pose supplies the matching absolute world
+    # matrix per palette bone so geometry and inverse-bind transforms agree.
+    rest_worlds: dict | None = None
 
 
 def _map_source_bone(model: ModelData, idx: int, skel_map: dict) -> str | None:
@@ -2770,7 +2774,9 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
 
     # -- skinbones --
     palette_ids = [template.name_id[n] for n in g.palette]
-    rotations = [dm.mat_inv(template.worlds[template.name_id[n]]) for n in g.palette]
+    rest_worlds = g.rest_worlds or {}
+    rotations = [dm.mat_inv(rest_worlds.get(n, template.worlds[template.name_id[n]]))
+                 for n in g.palette]
     maps = [list(range(len(palette_ids)))]
     maps += [list(range(len(palette_ids))) for _ in g.slices]
     skin = {"maps": maps, "root": template.hips_id, "objects": palette_ids,
@@ -2878,6 +2884,10 @@ def read_drawable(path, drawable: str = "g_body") -> dict | None:
             "blendindices": geo["blendindices"],
             "blendweights": geo["blendweights"],
             "palette": [name_of.get(b, str(b)) for b in sk["objects"]],
+            "rest_worlds": {
+                name_of.get(b, str(b)): dm.mat_inv(rotation)
+                for b, rotation in zip(sk["objects"], sk["rotations"])
+            },
         }
     return None
 
@@ -2891,9 +2901,19 @@ def segment_fit_report(path, template: "Template", drawable: str = "g_body") -> 
         raise ValueError(f"{path}: no {drawable} drawable")
     weights = [[(pi, w) for pi, w in zip(bi, bw) if w > 0.0]
                for bi, bw in zip(drawn["blendindices"], drawn["blendweights"])]
-    rep = sf.measure(drawn["verts"], weights, drawn["palette"], template)
+    # Geometry and inverse binds may intentionally use an authoring rest pose
+    # other than the animation template (Christie's near-idle arms). Measure
+    # against the rest skeleton encoded in the shipped skinbones, not against
+    # a stale template pose that the vertices no longer claim to inhabit.
+    from dataclasses import replace
+    worlds = dict(template.worlds)
+    for name, world in drawn.get("rest_worlds", {}).items():
+        if name in template.name_id:
+            worlds[template.name_id[name]] = world
+    rest_template = replace(template, worlds=worlds)
+    rep = sf.measure(drawn["verts"], weights, drawn["palette"], rest_template)
     rep["cuffs"] = {b: sf.cuff_distance(drawn["verts"], weights, drawn["palette"],
-                                        template, b)
+                                        rest_template, b)
                     for b in ("LeftHand", "RightHand")}
     return rep
 
@@ -2991,6 +3011,7 @@ def extract_bones(g: Group, bones, name: str, min_weight: float = 0.5) -> Group:
 
     out = Group(name=name)
     out.palette = list(g.palette)
+    out.rest_worlds = dict(g.rest_worlds) if g.rest_worlds else None
     # vertices are emitted per slice, in first-use order, so each slice owns a
     # contiguous block: skin arms first, then the sleeve that covers them
     for si in sorted(by_slice):

@@ -74,10 +74,20 @@ def _joints(tpl, worlds):
     return {tpl.id_name[sid]: np.array(w[12:15], float) for sid, w in worlds.items()}
 
 
-def test_bind_pose_round_trips():
+def _authoring_worlds(rms, tpl):
+    """The base pack's encoded 12-degree arm rest plus ordinary body worlds."""
+    pose = {f"{side}Arm": (2, 22) for side in ("Left", "Right")}
+    pose.update({f"{side}ForeArm": (rms.BEND_AXIS, -60)
+                 for side in ("Left", "Right")})
+    pose.update({f"{side}Hand": (rms.BEND_AXIS, -8)
+                 for side in ("Left", "Right")})
+    return rms.posed_worlds(tpl, pose)
+
+
+def test_authoring_rest_round_trips():
     rms, tpl, geo, sk = _fixtures()
     v0 = np.array(geo["verts"], float)
-    got = rms.skin_verts(geo, sk, rms.posed_worlds(tpl, {}))
+    got = rms.skin_verts(geo, sk, _authoring_worlds(rms, tpl))
     assert np.abs(got - v0).max() < 1e-3
 
 
@@ -144,10 +154,11 @@ def test_bind_matrices_are_inverse_bind_worlds():
     """``skinbones['rotations']`` is W^-1 per palette entry (row-vector)."""
     import diesel_model as dm
 
-    _, tpl, _, sk = _fixtures()
+    rms, tpl, _, sk = _fixtures()
     ident = np.eye(4)
+    authoring = _authoring_worlds(rms, tpl)
     for k, bid in enumerate(sk["objects"]):
-        w = np.array(tpl.worlds[bid], float).reshape(4, 4)
+        w = np.array(authoring[bid], float).reshape(4, 4)
         r = np.array(sk["rotations"][k], float).reshape(4, 4)
         assert np.abs(w @ r - ident).max() < 1e-3, (
             f"{tpl.id_name[bid]}: rotations[{k}] is not the inverse bind world")
@@ -424,8 +435,9 @@ def test_cuff_mouth_view_looks_down_the_forearm():
     """
     import render_mesh_skeleton as rms
 
-    _rms, tpl, geo, _sk = _fixtures()
-    bones = {n: np.array(h, float) for n, h, _p in rms.skeleton(tpl)}
+    _rms, tpl, geo, sk = _fixtures()
+    rest_bones = rms.rest_skeleton(tpl, sk)
+    bones = {n: np.array(h, float) for n, h, _p in rest_bones}
     elbow, wrist = bones["LeftForeArm"], bones["LeftHand"]
     axis = wrist - elbow
     axis /= np.linalg.norm(axis)
@@ -440,7 +452,7 @@ def test_cuff_mouth_view_looks_down_the_forearm():
 
     with tempfile.TemporaryDirectory() as td:
         out = Path(td) / "cuff.png"
-        rms.render_cuff_mouth(geo, rms.skeleton(tpl), [elbow, wrist], out,
+        rms.render_cuff_mouth(geo, rest_bones, [elbow, wrist], out,
                               radius=7.0)
         assert out.is_file()
         a = np.array(Image.open(out).convert("RGB")).astype(int)
