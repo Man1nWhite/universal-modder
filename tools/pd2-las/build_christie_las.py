@@ -2011,6 +2011,432 @@ def rebind_arms_at_idle(g: bm.Group, template: bm.Template,
     return report
 
 
+# ---------------------------------------------------------------------------
+# sleeve stitch: the source sheet is cut open along the inner arm and pinched
+# shut at the elbow crease; both are topology, not deformation
+# ---------------------------------------------------------------------------
+def _arm_chain_weight(g: bm.Group):
+    """Per-vertex weight on the arm chain (Shoulder/Arm/ForeArm/Hand)."""
+    import numpy as np
+
+    chain = tuple(pi for pi, name in enumerate(g.palette)
+                  if name.endswith(("Arm", "Shoulder")) or name in
+                  ("LeftHand", "RightHand"))
+    out = np.zeros(len(g.verts))
+    for i, infl in enumerate(g.weights):
+        out[i] = sum(w for pi, w in infl if pi in chain)
+    return out
+
+
+def _sleeve_shells(g: bm.Group, arm):
+    """Connected components (over triangles) dominated by arm weights.
+
+    The blazer sleeve is one shell per arm; the cuff band is another. Anything
+    hanging off a different bone chain (torso panels, trouser legs, shoes) is
+    excluded, so the repair below cannot touch them.
+    """
+    import numpy as np
+
+    parent = list(range(len(g.verts)))
+
+    def find(a: int) -> int:
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    for a, b, c in g.faces:
+        ra = find(int(a))
+        for x in (int(b), int(c)):
+            rx = find(x)
+            if rx != ra:
+                parent[rx] = ra
+    root = np.array([find(i) for i in range(len(g.verts))])
+    seen: dict[int, set[int]] = {}
+    for a, b, c in g.faces:
+        seen.setdefault(int(root[a]), set()).update((int(a), int(b), int(c)))
+    keep = {r for r, vs in seen.items()
+            if sum(arm[i] for i in vs) / len(vs) > 0.5}
+    return root, keep
+
+
+def _weld_attributes(g: bm.Group, i: int, j: int, v, n) -> None:
+    """Give two duplicate vertices one position, normal and influence list."""
+    import numpy as np
+
+    wi = {p: w for p, w in g.weights[i]}
+    wj = {p: w for p, w in g.weights[j]}
+    merged = {p: 0.5 * (wi.get(p, 0.0) + wj.get(p, 0.0)) for p in set(wi) | set(wj)}
+    top = sorted(merged.items(), key=lambda t: -t[1])[:3]
+    total = sum(w for _, w in top) or 1.0
+    g.weights[i] = [(p, w / total) for p, w in top]
+    g.weights[j] = list(g.weights[i])
+    nx = n[i] + n[j]
+    nx /= float(np.linalg.norm(nx)) or 1.0
+    g.normals[i] = g.normals[j] = tuple(float(x) for x in nx)
+    px = 0.5 * (v[i] + v[j])
+    g.verts[i] = g.verts[j] = tuple(float(x) for x in px)
+    v[i] = v[j] = px
+
+
+def _rim_pairs(v, n, ring, max_gap_cm: float, min_dot: float):
+    """Matched rims of one cut edge, as runs of (i, j) loop-index pairs.
+
+    A sheet cut open along one line leaves ONE boundary loop that runs up one
+    rim, around the far opening and back down the other rim, so the two rims are
+    traversed in opposite directions and index as ``j = C - i``. That reflection
+    is what separates a cut edge from a real opening: the two rims of a sock
+    mouth pair up as ``j = i + n/2`` (a rotation across the hole), whose vertices
+    face opposite ways. Both tests are required — see the module notes in
+    ``docs/audits/2026-11-07-christie-slim-diagnosis.md``.
+    """
+    import numpy as np
+
+    m = len(ring)
+    P = v[np.asarray(ring, dtype=np.int64)]
+    D = np.linalg.norm(P[:, None, :] - P[None, :, :], axis=2)
+    for k in range(m):
+        for d in (0, 1, m - 1):
+            D[k, (k + d) % m] = np.inf
+    part = -np.ones(m, dtype=np.int64)
+    for k in range(m):
+        j = int(np.argmin(D[k]))
+        if D[k, j] <= max_gap_cm and int(np.argmin(D[j])) == k:
+            part[k] = j
+    pairs = [(k, int(part[k])) for k in range(m) if part[k] >= 0 and k < int(part[k])]
+    if len(pairs) < 2:
+        return []
+    # same-facing surface only: the opposite sides of a round opening are
+    # antiparallel and must not be bridged
+    same = [(i, j) for i, j in pairs
+            if float(n[ring[i]] @ n[ring[j]]) >= min_dot]
+    if len(same) < 2:
+        return []
+    sums = {}
+    for i, j in same:
+        sums[(i + j) % m] = sums.get((i + j) % m, 0) + 1
+    c_id, c_hits = max(sums.items(), key=lambda t: t[1])
+    if c_hits < max(2, 0.6 * len(same)):
+        return []
+    sel = sorted((i, j) for i, j in same if (i + j) % m == c_id)
+    runs: list[list[tuple[int, int]]] = []
+    cur = [sel[0]]
+    for prev, nxt in zip(sel, sel[1:]):
+        # one unpartnered corner vertex on both rims is allowed (the cuff end of
+        # the slit): the loft below steps over it. A bigger jump is a different
+        # opening (the armhole) and must not be spanned.
+        if 1 <= nxt[0] - prev[0] <= 2 and 1 <= prev[1] - nxt[1] <= 2:
+            cur.append(nxt)
+        else:
+            runs.append(cur)
+            cur = [nxt]
+    runs.append(cur)
+    return [r for r in runs if len(r) >= 2]
+
+
+def _insert_faces(g: bm.Group, faces: list[tuple], slot: str) -> tuple[int, int]:
+    """Add triangles to an existing render atom of ``slot``, keeping the tiling.
+
+    A Diesel render atom is a (vertex block, triangle run) pair; the run has to
+    stay contiguous, so the faces are spliced into the run of the same material
+    and every later run's ``base_index`` is shifted to match. The new faces
+    reference vertices outside the atom's own block, which is legal (the neck
+    cap does the same) and keeps the vertex array untouched.
+    """
+    if not faces:
+        return (0, 0)
+    added = len(faces)
+    si = next((k for k, s in enumerate(g.mat_slots) if s == slot), None)
+    if si is None:
+        base_i = len(g.faces) * 3
+        g.faces.extend(faces)
+        g.slices.append((slot, len(g.verts), base_i, added, 0))
+        g.mat_slots.append(slot)
+        return (base_i // 3, added)
+    src, base_v, base_i, tris, nverts = g.slices[si]
+    end = base_i + 3 * tris
+    at = end // 3
+    g.faces[at:at] = faces
+    for k, (m2, bv2, bi2, t2, nv2) in enumerate(g.slices):
+        if k != si and bi2 >= end:
+            g.slices[k] = (m2, bv2, bi2 + 3 * added, t2, nv2)
+    g.slices[si] = (src, base_v, base_i, tris + added, nverts)
+    return (at, added)
+
+
+def _check_slices(g: bm.Group, tag: str) -> None:
+    """The render atoms must still tile the triangle stream."""
+    want = 0
+    for _m, _bv, base_i, tris, _nv in sorted(g.slices, key=lambda s: s[2]):
+        if base_i != want * 3:
+            raise SystemExit(f"{tag}: render atom starts at triangle "
+                             f"{base_i // 3}, not {want}")
+        want += tris
+    if want != len(g.faces):
+        raise SystemExit(f"{tag}: atoms draw {want} of {len(g.faces)} triangles")
+
+
+def _edge_maps(faces):
+    """Undirected edge -> use count, and the owner's direction when there is one.
+
+    ``dirn[key]`` is how the single owning face traverses the edge (``x -> y``);
+    any edge used twice loses its entry, because a closed edge has no direction
+    to match. This is the whole basis of the fill/bridge validation below: a new
+    triangle may only be added to an edge that has room for it, and where it will
+    be the second user it has to run *against* the owner or the engine culls one
+    of the two faces and the hole it was meant to close reappears.
+    """
+    count: dict[tuple[int, int], int] = {}
+    dirn: dict[tuple[int, int], tuple[int, int]] = {}
+    for a, b, c in faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            k = (x, y) if x < y else (y, x)
+            count[k] = count.get(k, 0) + 1
+            if count[k] == 1:
+                dirn[k] = (x, y)
+            else:
+                dirn.pop(k, None)
+    return count, dirn
+
+
+def _face_edges(tri):
+    return ((tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0]))
+
+
+def _tri_area(v, tri) -> float:
+    import numpy as np
+
+    return 0.5 * float(np.linalg.norm(
+        np.cross(v[tri[1]] - v[tri[0]], v[tri[2]] - v[tri[0]])))
+
+
+def _closable(tris, count, dirn) -> bool:
+    """Would adding ``tris`` keep every edge they touch 2-manifold and wound?"""
+    use: dict[tuple[int, int], list] = {}
+    for t in tris:
+        for x, y in _face_edges(t):
+            k = (x, y) if x < y else (y, x)
+            use.setdefault(k, []).append((x, y))
+    for k, dirs in use.items():
+        have = count.get(k, 0)
+        if have + len(dirs) > 2:
+            return False
+        if have == 1 and len(dirs) == 1 and dirs[0] == dirn[k]:
+            return False
+    return True
+
+
+def _commit(tris, count, dirn) -> None:
+    for t in tris:
+        for x, y in _face_edges(t):
+            k = (x, y) if x < y else (y, x)
+            count[k] = count.get(k, 0) + 1
+            if count[k] == 1:
+                dirn[k] = (x, y)
+            else:
+                dirn.pop(k, None)
+
+
+def _rim_arc(m: int, start: int, stop: int, step: int) -> list[int]:
+    """Positions walking the loop from ``start`` to ``stop`` (cyclic)."""
+    out = [start]
+    k = start
+    for _ in range(m):
+        if k == stop:
+            return out
+        k = (k + step) % m
+        out.append(k)
+    return []
+
+
+def _fill_ring(ring, taken, count, dirn, v, min_face_cm2):
+    """Triangulate a small boundary loop, wound against its own edges.
+
+    Every fan start is tried, because the first one can be blocked: the elbow
+    pinhole has a triangle lying across one diagonal, so a fan from the wrong
+    corner would either duplicate it or put three faces on that edge. Triangles
+    that already exist (as that flap) are dropped rather than re-added — a
+    coincident copy would z-fight — and the first start whose fan is *entirely*
+    valid wins. The winding is never guessed from vertex normals: the loop is
+    directed by its owning faces, so the reverse direction is exact.
+    """
+    m = len(ring)
+    for start in range(m):
+        rr = ring[start:] + ring[:start]
+        cand = [(rr[0], rr[k + 1], rr[k]) for k in range(1, m - 1)]
+        cand = [t for t in cand if len(set(t)) == 3]
+        cand = [t for t in cand if frozenset(t) not in taken]
+        cand = [t for t in cand if _tri_area(v, t) >= min_face_cm2]
+        if not cand or (m > 3 and len(cand) < 2):
+            continue
+        if _closable(cand, count, dirn):
+            return cand
+    return []
+
+
+def stitch_sleeve_seams(g: bm.Group, template: bm.Template, *,
+                        max_gap_cm: float = 3.6, weld_cm: float = 0.06,
+                        min_normal_dot: float = 0.2,
+                        max_hole_verts: int = 6,
+                        min_face_cm2: float = 2.0e-3) -> dict:
+    """Close the topology holes the DOA5 blazer sleeve ships with.
+
+    **The underarm slit.** The sleeve is authored as a sheet wrapped around the
+    arm and cut open along the inner-arm line. One boundary loop runs up the
+    front rim, around the armhole and back down the back rim; the two rims
+    coincide at the armpit and again near the cuff, but stand 2-3 cm apart
+    across the upper arm and the elbow. Nothing spans that strip, so at the
+    authored idle it is hidden against the ribs and at any other pose the game
+    shows a slit of bare arm inside the sleeve. Measured off the shipped model:
+    a 20-40 degree open sector of the sleeve cross-section from z 121 to z 133.
+    This pass bridges the strip with new triangles built from the *existing* rim
+    vertices — no vertex is moved, added or removed, so every rim keeps its own
+    UV and the two texture islands stay intact. Those islands are neighbouring
+    columns of the same fabric (flat tan across the whole gap), which is what
+    lets the bridge read as continuous cloth; the winding comes from the rim
+    edges themselves, not from a shading guess.
+
+    **The elbow pinhole.** A 4-vertex boundary loop sits in the same shell at
+    the inner elbow, identical in both packs, so it is inherited from the source
+    rather than caused by the slim pass. It is triangulated across its free
+    diagonal; a triangle already covering the other diagonal is left in place
+    and not duplicated.
+
+    Pairs closer than ``weld_cm`` are the opposite case — duplicated rows that
+    are already touching — and get one position, normal and influence list so
+    they can never shade apart or be driven apart.
+
+    Only shells dominated by the arm chain are touched, and every edit is
+    validated against the edge map first: a new triangle may only go where the
+    edge it attaches to has room for it and the right direction. Returns the
+    report shown in the build log.
+    """
+    import numpy as np
+
+    report = {"loops": 0, "filled": 0, "bridged": 0, "welded": 0,
+              "new_faces": 0, "details": []}
+    if not g.faces:
+        return report
+    v = np.asarray(g.verts, dtype=np.float64)
+    n = np.asarray(g.normals, dtype=np.float64)
+    n = n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
+    arm = _arm_chain_weight(g)
+    root, shells = _sleeve_shells(g, arm)
+    if not shells:
+        return report
+
+    slice_of = [-1] * len(g.faces)
+    for si, (_m, _bv, base_i, tris, _nv) in enumerate(g.slices):
+        for f in range(base_i // 3, base_i // 3 + tris):
+            slice_of[f] = si
+    owner_face: dict[tuple[int, int], int] = {}
+    for f, (a, b, c) in enumerate(g.faces):
+        for x, y in ((a, b), (b, c), (c, a)):
+            k = (x, y) if x < y else (y, x)
+            owner_face.setdefault(k, f)
+
+    faces = [(int(a), int(b), int(c)) for a, b, c in g.faces]
+    taken = {frozenset(t): i for i, t in enumerate(faces)}
+    count, dirn = _edge_maps(faces)
+
+    extra: dict[str, list[tuple]] = {}
+    for loop in bm.boundary_loops(faces):
+        ring = [int(i) for i in loop[:-1]]
+        if len(ring) < 3 or len(set(ring)) != len(ring):
+            continue
+        if not all(int(root[i]) in shells for i in ring):
+            continue
+        if sum(arm[i] > 0.4 for i in ring) / len(ring) < 0.8:
+            continue
+        slots: dict[str, int] = {}
+        for k in range(len(ring)):
+            x, y = ring[k], ring[(k + 1) % len(ring)]
+            kk = (x, y) if x < y else (y, x)
+            if count.get(kk) != 1 or kk not in owner_face:
+                continue
+            slot = g.mat_slots[slice_of[owner_face[kk]]]
+            slots[slot] = slots.get(slot, 0) + 1
+        if not slots:
+            continue
+        slot = max(slots.items(), key=lambda t: t[1])[0]
+        report["loops"] += 1
+        centre = v[np.asarray(ring)].mean(axis=0)
+
+        if len(ring) <= max_hole_verts:
+            tris = _fill_ring(ring, taken, count, dirn, v, min_face_cm2)
+            if tris:
+                _commit(tris, count, dirn)
+                extra.setdefault(slot, []).extend(tris)
+                for t in tris:
+                    taken[frozenset(t)] = -1
+                report["filled"] += 1
+                report["details"].append(
+                    f"filled {len(tris)} tri(s) at ({centre[0]:.1f},"
+                    f"{centre[1]:.1f},{centre[2]:.1f})")
+            continue
+
+        m = len(ring)
+        for run in _rim_pairs(v, n, ring, max_gap_cm, min_normal_dot):
+            # Weld the touching pairs first: the loft must measure the final
+            # positions, or a triangle that closes an already-coincident pair
+            # is built at its pre-weld area and collapses to a degenerate one.
+            for i, j in run:
+                if float(np.linalg.norm(v[ring[i]] - v[ring[j]])) <= weld_cm:
+                    _weld_attributes(g, ring[i], ring[j], v, n)
+                    report["welded"] += 1
+            quads: list[tuple] = []
+            n_quads = 0
+            for (i, j), (i2, j2) in zip(run, run[1:]):
+                # Loft the two rim arcs between consecutive matched pairs. They
+                # are the same length whenever the pairing is contiguous; where
+                # a corner vertex on both rims has no partner (the cuff end of
+                # the slit) the arcs are one step longer and still match, which
+                # is what closes that corner instead of leaving a wedge.
+                arc_a = _rim_arc(m, i, i2, 1)
+                arc_b = _rim_arc(m, j, j2, -1)
+                if not arc_a or len(arc_a) != len(arc_b):
+                    continue
+                for k in range(len(arc_a) - 1):
+                    a, b = ring[arc_a[k]], ring[arc_a[k + 1]]
+                    d, c = ring[arc_b[k]], ring[arc_b[k + 1]]
+                    if len({a, b, c, d}) < 4:
+                        continue
+                    tris = [(a, d, c), (a, c, b)]
+                    tris = [t for t in tris if _tri_area(v, t) >= min_face_cm2]
+                    if not tris:
+                        continue
+                    if not _closable(tris, count, dirn):
+                        tris = [(t[0], t[2], t[1]) for t in tris]
+                        if not _closable(tris, count, dirn):
+                            continue
+                    _commit(tris, count, dirn)
+                    quads.extend(tris)
+                    n_quads += 1
+            if quads:
+                extra.setdefault(slot, []).extend(quads)
+                report["bridged"] += n_quads
+                gap_max = max(float(np.linalg.norm(v[ring[i]] - v[ring[j]]))
+                              for i, j in run)
+                report["details"].append(
+                    f"bridged {n_quads} quad(s) / {len(quads)} tris over "
+                    f"{len(run)} rim pairs, gap to {gap_max:.2f} cm at "
+                    f"({centre[0]:.1f},{centre[1]:.1f},{centre[2]:.1f})")
+
+    for slot, tris in extra.items():
+        start, added = _insert_faces(g, tris, slot)
+        report["new_faces"] += added
+    if report["new_faces"]:
+        _check_slices(g, f"stitch {g.name}")
+        breaks = bm.orientation_breaks(g)
+        agree = bm.winding_agreement(g.verts, g.faces, g.normals)
+        if breaks:
+            raise SystemExit(f"stitch {g.name}: {breaks} orientation breaks "
+                             "after closing the sleeve")
+        if agree < 0.9:
+            raise SystemExit(f"stitch {g.name}: winding agreement {agree:.1%}")
+    return report
+
+
 def taper_cuff(g: bm.Group, template: bm.Template,
                bones=("Left", "Right")) -> list[dict]:
     """Pull the sleeve mouth in toward the forearm axis (the "cone" cuff).
@@ -2747,9 +3173,19 @@ def main(argv=None) -> int:
     # and its final weights share one coherent rest bind; FPS extraction below
     # carries the same rest_worlds into the viewmodel.
     idle_rest: dict[str, dict] = {}
+    stitch: dict[str, dict] = {}
     for gname in ("body", "shadow"):
         idle_rest[gname] = rebind_arms_at_idle(
             groups[gname], template, slim=args.variant == "slim")
+        # Close the sleeve's cut edges while every vertex and weight is final:
+        # the underarm slit (a 12 x 3 cm hole in the sheet) and the 4-vertex
+        # elbow pinhole. Topology only — no vertex, UV or material is touched.
+        stitch[gname] = stitch_sleeve_seams(groups[gname], template)
+        print(f"[{gname}] sleeve stitch: {stitch[gname]['new_faces']} new tris, "
+              f"{stitch[gname]['welded']} duplicate rims welded, "
+              f"{stitch[gname]['filled']} hole(s) filled")
+        for line in stitch[gname]["details"]:
+            print(f"  {line}")
         breaks = bm.orientation_breaks(groups[gname])
         agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
                                      groups[gname].normals)
@@ -2837,6 +3273,7 @@ def main(argv=None) -> int:
         "elbow_trim": elbow_report,
         "cuff_taper": cuff_report,
         "idle_arm_rest": idle_rest,
+        "sleeve_stitch": stitch,
         "fit_tpp": fit,
         "fit_fps": fps_fit if fps_bytes is not None else None,
     }
@@ -2855,7 +3292,8 @@ def main(argv=None) -> int:
                              "centring": centring,
                              "elbow_trim": elbow_report,
                              "cuff_taper": cuff_report,
-                             "idle_arm_rest": idle_rest},
+                             "idle_arm_rest": idle_rest,
+                             "sleeve_stitch": stitch},
                       fps_model_slots=fps_slots)
     print(f"pack  -> {pack}")
     zipped = lop.zip_pack(pack)

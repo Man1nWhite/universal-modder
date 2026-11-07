@@ -5,6 +5,15 @@ action poses with a sniper rifle). Pack under review is the tracked
 `dist/Christie_LAS_Slim.zip`, sha256 `33832eaf…aca7` (4,206,230 B) — the
 2026-11-07 rebuild with the elbow round, the cuff taper and the glove adapter.
 
+**Update, later on 2026-11-07:** this review describes the pack as it was
+shipped that morning. The sleeve has since been rebuilt with
+`stitch_sleeve_seams` (sha256 `14f75d66…`): the lengthwise slit and the
+4-vertex hole at the back of each elbow are closed, so the tube is watertight
+along its length — see §8 of `2026-11-07-christie-slim-diagnosis.md`. That does
+not settle item 2 below: the diagnosis attributes the *outer-silhouette* sliver
+to pose coverage, not to the hole, which is always backed by the opposite wall
+of the sleeve.
+
 The user confirmed a **heister head mod is in play**, so the Christie face/hair
 visible in the shots is not from this pack (which is `headless: true`). Head
 appearance is out of scope below.

@@ -34,9 +34,9 @@ Deliverables in **`dist/`**:
   remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,773,888 B, sha256
-`4df217a6…ea2e`) and `dist/Christie_LAS_Slim.zip` (4,206,230 B, sha256
-`33832eaf…aca7`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,775,366 B, sha256
+`2934c818…5649`) and `dist/Christie_LAS_Slim.zip` (4,207,535 B, sha256
+`14f75d66…0b16`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -69,6 +69,10 @@ renders were inspected for base and slim. See
 `fps_christie{,_slim}_skel_{front,cuff}.png`. Validation: 59 Christie tests
 and 613 tests overall passed (29 skipped). Nothing built after 2026-11-05 has
 been in game yet, so an in-game idle-elbow check is still recommended.
+The same day, `stitch_sleeve_seams` closed the sleeve's lengthwise slit and the
+4-vertex elbow holes (0.00 cm² leaking on both sleeves of both packs, 0
+orientation breaks, UVs byte-identical); see "2026-11-07 sleeve seam stitch" in
+`CHRISTIE.md` and §8 of the diagnosis audit. 63 Christie tests now.
 See `docs/pd2-las/CHRISTIE.md` ("The elbow, measured on the elbow's own
 axis"). Tests: `tests/test_christie_las.py`.
 
@@ -149,6 +153,13 @@ las_pack.write_pack + zip → Miranda_LAS.zip`. Textures: VTF→DDS via
 - Surgical replacement of shipped heister models — retired route, dead.
 - `z.write()` for reproducible zips (embeds mtimes) — `las_pack.zip_pack`
   already solves this.
+- Seam repair by *merging coincident vertex indices* → the two rims carry
+  different UV islands, so the seam comes back as a texture tear. Weld the
+  attributes (position/normal/weights), rewire the faces, keep the corners.
+- Bridging the rims **before** welding them → zero-area triangles (a new
+  triangle closes a pair that is already coincident at post-weld positions).
+- Spanning a run gap of 3+ rim pairs while stitching → that "gap" is the
+  armhole. The sleeve seam only ever jumps 1-2 rim pairs.
 
 ## Environment traps (already fixed — know them)
 

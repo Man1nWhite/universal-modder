@@ -1,9 +1,9 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `4df217a6…ea2e`, 4,773,888 B)
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `2934c818…5649`, 4,775,366 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `33832eaf…aca7`,
-  4,206,230 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `14f75d66…0b16`,
+  4,207,535 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -89,6 +89,34 @@ inspected for both packs. Evidence: `christie{,_slim}_idle_rest_outer_sheet.png`
 Validation: **59 Christie tests passed; full `tests/` suite 613 passed,
 29 skipped**. This is an offline render/structural clearance; no build after
 2026-11-05 has yet been tested in game.
+
+**2026-11-07 sleeve seam stitch (`stitch_sleeve_seams`):** the diagnosis
+(`docs/audits/2026-11-07-christie-slim-diagnosis.md`) found the sleeve was never
+a closed tube: the upper sleeve is authored as a sheet whose lengthwise seam is
+a *slit* — two rims with separate vertices, 0 cm apart — plus a 4-vertex hole at
+the back of each elbow. Rays cast radially from the arm axis escaped through
+both, which is the dark stripe the in-game screenshots show at the sleeve. The
+new pass runs on the welded body and its shadow after `rebind_arms_at_idle`, so
+it works on the final shape and weights: it welds the coincident rims (one
+position, one averaged normal, one weight set, faces rewired — the UV per corner
+stays, the rims carry different UV islands), lofts the pairs that are left with
+one quad per rim step, and fans the remaining loops of four or fewer vertices
+from a free diagonal. It adds **no vertices** and never moves a UV: the `uv0`
+array is byte-identical to the previous packs. Base gains 64 triangles (21 rims
+welded, 4 holes plugged), slim 71 (23, 4); triangles 17287 → 17351 and
+12925 → 12996. Measured with `diagnose_mesh.py --templates` (radial probe over
+the tube's middle band, so the open cuff mouth is excluded): the sleeve slit
+falls from 21.53 cm² to 0.00 on the base left sleeve and from 35.14/4.95 cm² to
+0.00/0.00 on the slim pair, with every leaky slice gone. Boundary edges
+3302 → 3246 (base) and 2358 → 2297 (slim), `orientation_breaks` 0 in both,
+winding agreement 97.3 %, 0 degenerate faces. Side effect: the inner-elbow patch
+now folds when the elbow is *fully* bent (opposed pairs at the old 72° menu pose
+base 5 → 7, slim 1 → 4; every in-game pose unchanged) — the regression test
+budgets that row separately. New test
+`test_sleeve_tube_is_closed_along_its_length`; 63 Christie tests green. Packs
+rebuilt: `2934c818fd71588d0968e1d784e352754e4bb84384172ddd550aab9d31ef5649`
+base, `14f75d66173696581d1bba2aaa216df5112d7029eff73bc5f409045df57d0b16` slim.
+Not yet checked in game.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
