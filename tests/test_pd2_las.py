@@ -579,6 +579,45 @@ class TestLasScaffold:
                 assert geo["vert_count"] > 4000
                 assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
 
+    def test_neck_skirt_is_on_the_l4d2_heads_and_not_on_the_romance_ones(self):
+        """The skirt is a L4D2-path change; the Romance path must not carry it.
+
+        On the Romance rig the neck skin is part of the "Hair" mesh, together
+        with the hair cap and the 1.5 mm flyaway wire strips, so the rim filter
+        catches 741 hair-sheet edges instead of the neck's ~145. The wire pass
+        that follows then squashes the new ring into the head (it is not in
+        `best_comp`): +340 verts at z 168-170 and 2,318 triangles, where the
+        L4D2 packs get +113 verts at z 143 and 212 triangles. That shipped once
+        - the previews showed a pale lump under the chin - so the counts and the
+        lowest vertex are pinned here. Diagnosis §10.3.
+        """
+        import numpy as np
+
+        import neck_junction as nj
+
+        specs = [
+            ("Miranda_L4D2_over_Joy.zip", 4515, 7321, 142.98),
+            ("Miranda_L4D2_over_Clover.zip", 4508, 7305, 142.98),
+            ("Miranda_L4D2_over_Bonnie.zip", 4508, 7305, 142.98),
+            ("Miranda_L4D2_over_Sydney.zip", 4508, 7305, 142.98),
+            ("Miranda_Romance_over_Joy.zip", 4454, 7070, 148.90),
+            ("Miranda_Romance_over_Clover.zip", 4454, 7070, 148.90),
+            ("Miranda_Romance_over_Bonnie.zip", 4454, 7070, 148.90),
+            ("Miranda_Romance_over_Sydney.zip", 4454, 7070, 148.90),
+        ]
+        tmp = REPO / "build" / "tmp"
+        tmp.mkdir(parents=True, exist_ok=True)
+        for name, verts, tris, min_z in specs:
+            zp = REPO / "dist" / name
+            assert zp.is_file(), f"missing {zp}"
+            v, f = nj._head_mesh(zp, tmp)
+            assert len(v) == verts, f"{name}: {len(v)} verts, expected {verts}"
+            assert len(f) == tris, f"{name}: {len(f)} tris, expected {tris}"
+            assert float(np.min(v[:, 2])) == pytest.approx(min_z, abs=0.1), (
+                f"{name}: lowest head vertex z {np.min(v[:, 2]):.2f}, expected {min_z} "
+                f"- a Romance head below 148.9 means its skirt was squashed into the head"
+            )
+
     def test_tracked_pack_specular_alpha_and_pd2_normal_layout(self):
         """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""
         import numpy as np

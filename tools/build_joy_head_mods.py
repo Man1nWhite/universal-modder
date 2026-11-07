@@ -1725,7 +1725,13 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
                 else:
                     p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2, tris=tris)
                     p = tuck_hair_for_joy_hood(p, uv_img, tris=tris)
-                p, n, uv_img, tris = extend_neck_skirt(p, n, uv_img, tris)
+                # No neck skirt here. On this rig the neck skin shares the "Hair"
+                # mesh with the hair cap and the flyaway wire strips, so the rim
+                # filter catches 741 hair-sheet edges instead of the neck's ~145,
+                # and the wire pass below then squashes the new ring into the head
+                # (it is not part of `best_comp`): +2,318 tris and a visible lump
+                # at z ~169 instead of a skirt at z 143. The L4D2 path has its own
+                # mesh for the neck sheet and takes the skirt there.
                 uv_dae = np.column_stack([uv_img[:, 0], 1.0 - uv_img[:, 1]])
                 if best_comp and len(best_comp) < len(tris):
                     keep_v = set(np.unique(tris[sorted(best_comp)]).tolist())

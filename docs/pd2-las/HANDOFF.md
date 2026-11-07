@@ -14,10 +14,10 @@ Deliverables in **`dist/`**:
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,
   audit `docs/pd2-las/CHEST-VARIANT.md`, tests `tests/test_bust_variant.py`.
 - Female heister head-replacement `mod_overrides` packages built by `tools/build_joy_head_mods.py`:
-  - `dist/Miranda_L4D2_over_Joy.zip` (`10,600,653` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,307,642` B)
-  - `dist/Miranda_L4D2_over_Clover.zip` (`7,648,225` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,349,388` B)
-  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,160,274` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,877,915` B)
-  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,147,084` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,840,385` B)
+  - `dist/Miranda_L4D2_over_Joy.zip` (`10,600,653` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,238,712` B)
+  - `dist/Miranda_L4D2_over_Clover.zip` (`7,648,225` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,297,599` B)
+  - `dist/Miranda_L4D2_over_Bonnie.zip` (`8,160,274` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,810` B)
+  - `dist/Miranda_L4D2_over_Sydney.zip` (`7,147,084` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,805,595` B)
 
 
   All eight Miranda packs rebuild byte-identically (`tools/build_joy_head_mods.py`
@@ -29,10 +29,10 @@ Deliverables in **`dist/`**:
   - `Miranda_L4D2_over_Clover.zip` — 7,648,225 B, sha256 `baa9b5cf5ea3575a5a08a368d7144b044ce434d63c30020fc1fd241de3519d0a`
   - `Miranda_L4D2_over_Bonnie.zip` — 8,160,274 B, sha256 `9cdb80c1fec899437ea1ef48ba6b832f85898121d0c0fa0ecbd3fee6d7164977`
   - `Miranda_L4D2_over_Sydney.zip` — 7,147,084 B, sha256 `d0c88d7ce45ed6b9ea5dbd39e975341b46203ded5e66aa5746fcbf533eb0f2ef`
-  - `Miranda_Romance_over_Joy.zip` — 10,307,642 B, sha256 `73a76496a344fffde7f174a0f2d267dc77d1531d9af1596fdf5e8e55ed85a686`
-  - `Miranda_Romance_over_Clover.zip` — 7,349,388 B, sha256 `9f0488fd4aeeba4da10ccd021740b829cad6f16c1cb21e95e73489dad3c51a74`
-  - `Miranda_Romance_over_Bonnie.zip` — 7,877,915 B, sha256 `b4bea22043bc674313697433dcc1c20c46fdb8dde000f519a1576283dd2e76fd`
-  - `Miranda_Romance_over_Sydney.zip` — 6,840,385 B, sha256 `9e87a2255aa8d6f070452b7aea3a6e3c02917da4c8bf4188bbcef55accf56d3c`
+  - `Miranda_Romance_over_Joy.zip` — 10,238,712 B, sha256 `c53953eabf0dd41021d92ce12c56c880df8432c25c4506199cfda03beee39e6d`
+  - `Miranda_Romance_over_Clover.zip` — 7,297,599 B, sha256 `28a4d849a7a232ac8766345b3042b4b557a62cb41145e7fea74ca152b5548847`
+  - `Miranda_Romance_over_Bonnie.zip` — 7,791,810 B, sha256 `d51d96640712eddeb1b6c97cc8776b56ada4438c1e553159b0ff1e74c4d71a27`
+  - `Miranda_Romance_over_Sydney.zip` — 6,805,595 B, sha256 `b0df49097cd3800f83ae28a5388eadc62d717b2e9fe682d8534f36bdf5fd9d07`
   - `Geralt_over_Rust.zip` — 8,121,550 B, sha256 `0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d`
 
   The four **L4D2** packs were rebuilt on 2026-11-05 as well: the previously
@@ -40,14 +40,21 @@ Deliverables in **`dist/`**:
   a scrambled diffuse-alpha plane in their `*_head_df.texture` (specular noise —
   RGB bit-identical, previews byte-identical; see
   [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md)).
-  The 2026-11-07 rebuild adds `extend_neck_skirt()` to every Miranda head's neck
-  sheet — one extra ring 6.5 cm below the rim, tucked to 88 % and shifted 0.5 cm
-  forward, inside the torso: 4,402 → 4,515 verts, 7,109 → 7,321 tris, lowest
-  point z 149.48 → 142.98. It changes no cell on the Christie body
-  (`neck_junction.py --ab`: 0 of 2,401 throat cells change owner) and is there so
-  the head's open
-  end cannot surface on a body whose neckline is wider than Christie's. Item 7
-  itself is still open — `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.
+  The 2026-11-07 rebuild adds `extend_neck_skirt()` to the **L4D2** head drawables
+  only - one extra ring 6.5 cm below the neck sheet's rim, tucked to 88 % and
+  shifted 0.5 cm forward, inside the torso: 4,402 -> 4,515 verts and 7,109 ->
+  7,321 tris (over Joy; 7,305 over Clover/Bonnie/Sydney), lowest point
+  z 149.48 -> 142.98. The four **Romance** packs are byte-identical to their
+  2026-11-05 state: on that rig the neck skin shares the `Hair` mesh with the
+  hair cap and the 1.5 mm flyaway wires, so the rim filter caught 741 hair edges
+  instead of ~145 and the wire pass that follows squashed the new ring into the
+  head (340 verts at z 168-170, 2,318 tris) - visible in the rendered previews as
+  a pale lump under the chin. `tests/test_pd2_las.py` pins the counts both ways.
+  On the Christie body the skirt changes no cell (`neck_junction.py --ab`: 0 of
+  2,401 throat cells change owner): it is insurance against a neckline wider than
+  Christie's, not a fix for item 7, which is still open -
+  `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.
+
   **Coverage:** Clover and Bonnie replace the heist, menu *and* Safe House
   (`*_chill`) models; Joy and Sydney replace the heist + menu models only, so
   their Safe House units keep the vanilla head. **In-game status 2026-11-05:**

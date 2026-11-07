@@ -268,11 +268,13 @@ heads:
   sides (205,157,128 in the front band, the darker samples at x ±3.5–5.0
   mirrored exactly).
 
-The skirt extension that the first pass proposed shipped anyway, for the reason
-in §10.3: it puts the head's open end 6.5 cm deeper inside the torso for the
-bodies and collars this audit has not measured. On this body it changes no cell:
-`neck_junction.py --ab` reports 0 of 2,401 throat cells changing owner between
-the 2026-11-05 packs and the skirted ones.
+The skirt extension that the first pass proposed shipped on the **L4D2** head
+path, for the reason in §10.3: it puts the head's open end 6.5 cm deeper inside
+the torso for the bodies and collars this audit has not measured. On this body it
+changes no cell: `neck_junction.py --ab` reports 0 of 2,401 throat cells changing
+owner between the 2026-11-05 packs and the skirted ones. The Romance path was
+reverted after the renders showed the skirt being squashed into the head there
+(§10.3).
 
 **Item 7 stays open**, with a bisect instead of a theory (diagnosis §10.4):
 uninstall the head pack, keep the slim body, and look at the throat again. If the

@@ -486,25 +486,36 @@ is now taken from the **front** and says the same thing: the throat is body-grey
 edge to edge, with two orange slivers at the shoulders where the head's sheets
 are the nearest surface.
 
-### 10.3 The skirt shipped anyway, as insurance
+### 10.3 The skirt shipped on the L4D2 path — and the render caught it on Romance
 
-`build_joy_head_mods.py` now runs `extend_neck_skirt()` on the neck sheet in both
-head paths (`build_l4d2_meshes` for the four heister heads,
-`build_romance_meshes` for the same heads from the Romance rig): it finds the
-rim edges of §10.1 item 3 and extrudes one ring, dropped 6.5 cm, tucked to 88 %
-of the radius, 0.5 cm towards the front, carrying the rim's normals and UVs and
-stitched with two triangles per rim edge, winding chosen from the rim's own
-faces. Existing indices do not move; `compute_joy_head_weights` then puts the new
-ring on Neck/Spine2 by z. The head drawable goes **4,402 verts / 7,109 tris →
-4,515 / 7,321**, its lowest point **z 149.48 → 142.98**, the rim radius
-5.98 → 5.78 cm (Joy) and 5.90 → 5.70 (the other three).
+`build_joy_head_mods.py` now runs `extend_neck_skirt()` on the neck sheet of the
+**L4D2** head path (`build_l4d2_meshes`, `mid == 3`): it finds the rim edges of
+§10.1 item 3 and extrudes one ring, dropped 6.5 cm, tucked to 88 % of the radius,
+0.5 cm towards the front, carrying the rim's normals and UVs and stitched with two
+triangles per rim edge, winding chosen from the rim's own faces. Existing indices
+do not move; `compute_joy_head_weights` then puts the new ring on Neck/Spine2 by
+z. The head drawable goes **4,402 verts / 7,109 tris -> 4,515 / 7,321** (7,305 for
+Clover/Bonnie/Sydney), its lowest point **z 149.48 -> 142.98**.
 
-Why ship something that changes no pixel on this body: it is 12,934 bytes in the
-L4D2 packs, it is entirely inside the torso (both renders prove it), and it makes
-the head's open end independent of how deep the body's neckline is. The neckline
-that hides it here is Christie's; Clover's suit collar, the Safe House
-dressing-gown necklines and the `Miranda_LAS`/`Miranda_Busty_LAS` bodies are not
-measured, and a rim that ends 6.5 cm lower cannot surface on any of them.
+The **Romance** path does not take it, and that is a bug the renders found rather
+than the numbers. On that rig the neck skin is part of the `Hair` mesh, together
+with the hair cap and the 1.5 mm flyaway wire strips, so the same rim filter caught
+**741 hair-sheet edges instead of the neck's ~145**; the wire pass that follows
+(`keep_v` / `wire_mask`, which squashes everything outside the largest triangle
+component to 20 % about `(0, 6, 175)`) then treated the new ring as a flyaway and
+dragged it into the head: **+340 verts at z 168-170 and +2,318 triangles** instead
+of +145 / +290 at z 143, and the rendered previews showed a pale lump under the
+chin on all four Romance packs. Re-rendering `docs/previews/` was what surfaced it;
+`neck_junction.py` could not, because the squashed ring is hidden and the throat
+window is unaffected. The four Romance packs were rebuilt back to their
+2026-11-05 bytes, and `tests/test_pd2_las.py` now pins head vert/tri counts and the
+lowest vertex for all eight packs, so the two paths cannot be confused again.
+
+Why ship the L4D2 skirt when it changes nothing on Christie: it costs 14.9 kB in
+the Joy pack, it is entirely inside the torso there (the textured front and back
+composites are byte-identical), and it makes the head's open end independent of how
+deep the body's neckline is. The neckline that hides it on Christie is Christie's;
+the measuring window cannot speak for a collar that sits lower.
 
 ### 10.4 Item 7 is therefore open, with a bisect instead of a theory
 
