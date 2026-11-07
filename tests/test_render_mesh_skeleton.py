@@ -193,11 +193,12 @@ def test_render_cli_writes_every_file_the_docs_name():
 
     doc = (REPO / "docs" / "pd2-las" / "CHRISTIE.md").read_text(encoding="utf-8")
     section = doc.split("## Mesh + skeleton renders", 1)[1].split("\n## ", 1)[0]
-    # the two composites are made outside the renderer and are called out as such
+    # the composites (`*_before_after.png`) are made outside the renderer from
+    # two runs and are called out as such in the doc; only CLI output is checked
     documented = set()
     for m in re.finditer(r"`(christie[a-z_{},]*\.png)`", section):
         pat = m.group(1)
-        if "fit_before_after" in pat:
+        if "before_after" in pat:
             continue
         parts = [pat]
         while any("{" in q for q in parts):

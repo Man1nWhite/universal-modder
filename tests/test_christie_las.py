@@ -691,19 +691,40 @@ def test_fit_numbers_match_the_build_report():
 
 
 # ---------------------------------------------------------------------------
-# the elbow at the in-game hang: the bind pose bakes a ~72 deg bend, the idle
-# hangs near straight, and a narrow weld ring folds into X-pleats (seen in
-# game 2026-11-06). widen_elbow_blend re-splits the weights; these tests pin
-# the posed result on the shipped bytes through the same LBS the diagnostic
-# renderer uses (posed_worlds / skin_verts, row-vector convention).
+# the elbow at the in-game idle: the bind pose bakes a ~72 deg bend, the idle
+# hangs near straight (elbow ~12 deg), and the sleeve has to give back
+# r*dtheta of length on the outside of the bend - the crease that showed up in
+# game. These tests pin the posed result on the shipped bytes through the same
+# LBS the diagnostic renderer uses (posed_worlds / skin_verts, row-vector
+# convention).
+#
+# The rotation axis matters and was wrong until 2026-11-07: on the PD2 arm,
+# local X of the ForeArm is a *twist* (the Arm-ForeArm angle stays at its bind
+# 72.1 deg for every angle), and local Y is flexion (72.1 -> 0.1 deg at -72).
+# A probe that rotates about X measures a sleeve being wrung out, not a bent
+# elbow; `test_elbow_bend_axis_is_flexion` pins the distinction. Every number
+# in the two tests below is on the flexion axis.
 # ---------------------------------------------------------------------------
-_HANG_ARM_DEG = 6       # shoulder swing in the probe poses
-_HANG_FOREARM = (22, 45, 80)   # deg of bind-bend straightening
+_BEND_AXIS = 1          # ForeArm/Hand local axis that changes the joint angle
+_BIND_ELBOW_DEG = 72.0  # Arm-ForeArm angle in the PD2 bind/menu pose
+#: degrees of straightening from bind: 22 = mild, 45 = mid, 60 = the in-game
+#: idle (elbow 12 deg), 72 = dead straight (hyperextension probe)
+_STRAIGHTEN = (22, 45, 60, 72)
+
+
+def _elbow_angle(pw, template) -> float:
+    import numpy as np
+
+    A, E, H = (np.array(pw[template.name_id[f"Left{n}"]][12:15], float)
+               for n in ("Arm", "ForeArm", "Hand"))
+    u1 = (E - A) / np.linalg.norm(E - A)
+    u2 = (H - E) / np.linalg.norm(H - E)
+    return float(np.degrees(np.arccos(np.clip(u1 @ u2, -1, 1))))
 
 
 def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
     """Edge compression + opposed-normal pairs inside the weld ring when the
-    elbow is straightened from the bind bend toward the hang."""
+    elbow is straightened from the bind bend toward the in-game idle."""
     import numpy as np
 
     import diesel_model as dm
@@ -765,8 +786,8 @@ def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
         arc[upd] = cum[si] + t[upd] * float(np.sqrt(ab @ ab))
     span = float(arc[ring].max() - arc[ring].min())
 
-    pose = {f"{s}Arm": (0, _HANG_ARM_DEG) for s in ("Left", "Right")}
-    pose.update({f"{s}ForeArm": (0, -straighten_deg) for s in ("Left", "Right")})
+    pose = {f"{s}Arm": (2, 22) for s in ("Left", "Right")}
+    pose.update({f"{s}ForeArm": (_BEND_AXIS, -straighten_deg) for s in ("Left", "Right")})
     pw = rms.posed_worlds(template, pose)
     pv = rms.skin_verts(geo, skel, pw)
 
@@ -781,6 +802,7 @@ def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
     lp = np.linalg.norm(pv[e[:, 0]] - pv[e[:, 1]], axis=1)
     ok = lb > 1e-9
     ratio = lp[ok] / lb[ok]
+    shortening = np.maximum(lb - lp, 0.0)[ok]
 
     n = np.cross(pv[faces[:, 1]] - pv[faces[:, 0]], pv[faces[:, 2]] - pv[faces[:, 0]])
     nl = np.linalg.norm(n, axis=1)
@@ -801,7 +823,55 @@ def _hang_pose_metrics(which: str, straighten_deg: int) -> dict:
     return dict(blend_span_cm=span, ring=len(ring),
                 min_ratio=float(ratio.min()),
                 frac_lt_070=float((ratio < 0.70).mean()),
-                crease_pairs=flips)
+                crease_pairs=flips,
+                elbow_deg=_elbow_angle(pw, template),
+                shorten_max=float(shortening.max()),
+                shorten_sum=float(shortening.sum()))
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_elbow_bend_axis_is_flexion(which):
+    """Local Y of the PD2 ForeArm must be the elbow's flexion axis.
+
+    Pins the distinction the whole probe rests on: rotating about local X
+    leaves the Arm-ForeArm angle at its bind 72.1 deg (it swings the forearm
+    on a cone - a twist of the sleeve), while local Y moves it 1:1. The
+    2026-11-06 round measured the X pose, so it tuned the weights against a
+    twisted sleeve; this test stops that from silently recurring.
+    """
+    import build_models as bm
+    import numpy as np
+    import render_mesh_skeleton as rms
+
+    template = bm.load_template(_templates() / "2b.model")
+    bind = np.degrees(np.arccos(np.clip(
+        _unit(pw_joint(template, "LeftArm"), pw_joint(template, "LeftForeArm")) @
+        _unit(pw_joint(template, "LeftForeArm"), pw_joint(template, "LeftHand")), -1, 1)))
+    assert abs(bind - _BIND_ELBOW_DEG) < 1.0, f"bind elbow is {bind:.1f} deg"
+    for deg in (-40, -60, -72):
+        pw = rms.posed_worlds(template, {f"{s}ForeArm": (_BEND_AXIS, deg)
+                                        for s in ("Left", "Right")})
+        got = _elbow_angle(pw, template)
+        assert abs((bind + deg) - got) < 1.5, (
+            f"ForeArm local Y {deg:+d} deg gives a {got:.1f} deg elbow; "
+            f"expected {bind + deg:.1f}")
+        pw_x = rms.posed_worlds(template, {f"{s}ForeArm": (0, deg)
+                                          for s in ("Left", "Right")})
+        assert abs(_elbow_angle(pw_x, template) - bind) < 0.5, (
+            "ForeArm local X changed the elbow angle - the axis constants in "
+            "render_mesh_skeleton.BEND_AXIS no longer describe this rig")
+
+
+def pw_joint(template, name):
+    import numpy as np
+    w = template.worlds[template.name_id[name]]
+    return np.array(w[12:15], float)
+
+
+def _unit(a, b):
+    import numpy as np
+    d = b - a
+    return d / np.linalg.norm(d)
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
@@ -809,10 +879,9 @@ def test_elbow_blend_is_wide(which):
     """The weld ring must span >= 10.8 cm of arm chain with >= 72 mixed verts.
 
     Shipped 2026-11-05 state: 9.4 cm / 64 verts on both packs - a narrow,
-    steep weight step that buckled the sleeve when the baked 72 deg crease
-    unfolded to the in-game hang. The 2B reference body: 16.2 cm / 331.
-    widen_elbow_blend re-splits 7 cm proximal + 9 cm distal of the pivot;
-    the measured ring is 12.1 cm / 83 verts (verts near the window edges get
+    steep weight step at the joint. The 2B reference body: 16.2 cm / 331.
+    widen_elbow_blend re-splits 7 cm proximal + 9 cm distal of the pivot; the
+    measured ring is ~12 cm / 83 verts (verts near the window edges get
     cross-weights under the 0.02 mix threshold, so the span is shorter than
     the nominal 16 cm window).
     """
@@ -824,23 +893,36 @@ def test_elbow_blend_is_wide(which):
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
-def test_elbow_does_not_fold_at_the_hang_angle(which):
-    """Posed LBS probe: straightening the elbow toward the in-game hang must
-    not buckle the sleeve. Shipped 2026-11-05 state, measured with the same
-    code: at 45 deg of straightening the ring's worst edge compressed to 0.53
-    of its bind length and 2.8% of edges sat under 0.70 - the crease braid of
-    the X-fold. The widened blend holds 0.71 / 0% at 45 deg and keeps the
-    opposed-normal pair count at its bind-pose baseline even at 80 deg."""
+def test_elbow_does_not_crumple_at_the_idle_angle(which):
+    """Posed LBS probe on the elbow's own (flexion) axis.
+
+    Straightening the bind's 72 deg bend to the in-game idle's ~12 deg must
+    not crumple the sleeve. Before the 2026-11-07 outer-elbow de-puff, the
+    worst edge in the elbow window shortened 3.12 cm at that angle and the
+    surface compressed to 0.19 of bind length (PD2's own 2B body: 0.98 cm /
+    0.72); it is 2.08 cm / 0.29 now. Absolute shortening is the metric that
+    tracks the visual fold - a relative ratio can be held flat while a wider
+    blend merely spreads the same crushed material over more edges.
+    """
     at0 = _hang_pose_metrics(which, 0)
-    at22 = _hang_pose_metrics(which, 22)
     at45 = _hang_pose_metrics(which, 45)
-    at80 = _hang_pose_metrics(which, 80)
-    assert at22["min_ratio"] >= 0.78, (
-        f"{which}: at 22 deg the worst ring edge compresses to "
-        f"{at22['min_ratio']:.2f} (was 0.70 before the widen)")
-    assert at45["min_ratio"] >= 0.65 and at45["frac_lt_070"] == 0.0, (
-        f"{which}: at 45 deg min ratio {at45['min_ratio']:.2f}, "
-        f"{at45['frac_lt_070']:.1%} of edges under 0.70")
-    assert at80["crease_pairs"] <= at0["crease_pairs"] + 2, (
+    at60 = _hang_pose_metrics(which, 60)
+    assert abs(at60["elbow_deg"] - 12.0) < 1.0, (
+        f"{which}: the probe straightens to {at60['elbow_deg']:.1f} deg, not "
+        "the idle's 12 deg")
+    # bind pose is identity: no compressed edge, no opposed normals
+    assert at0["min_ratio"] > 0.99 and at0["shorten_max"] < 0.01
+    assert at45["min_ratio"] >= 0.44, (
+        f"{which}: at 45 deg the worst edge compresses to "
+        f"{at45['min_ratio']:.2f} of bind length")
+    assert at60["min_ratio"] >= 0.27, (
+        f"{which}: at the idle the worst edge compresses to "
+        f"{at60['min_ratio']:.2f} (0.19 before the outer-elbow de-puff)")
+    assert at60["shorten_max"] <= 2.25, (
+        f"{which}: worst edge shortens {at60['shorten_max']:.2f} cm when the "
+        "elbow straightens to the idle (was 3.12 before the outer de-puff, "
+        "budget 2.25; measured 2.08)")
+    # a fold shows up as neighbouring faces that end up facing each other
+    assert at60["crease_pairs"] <= at0["crease_pairs"] + 2, (
         f"{which}: opposed-normal pairs {at0['crease_pairs']} -> "
-        f"{at80['crease_pairs']} at the hang (creasing, not bending)")
+        f"{at60['crease_pairs']} at the idle (creasing, not bending)")

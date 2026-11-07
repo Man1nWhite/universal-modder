@@ -1,8 +1,9 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `046e4000…0fdced`) — full body
-  incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `85cf9688…72fd080`) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `21abb7e5…d9b7b4b`, 4,768,590 B)
+  — full body incl. Christie's hands.
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `7f02004f…b402a27`,
+  4,204,560 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -36,6 +37,21 @@ elbow X-fold, the wrist seam and the sleeve gloss are addressed by
 `widen_elbow_blend` (both packs, weights only), the forearm wrist fade
 (slim), and the diffuse-alpha sleeve retouch (both packs) — see the sections
 below. The 25%-arm slim scale was rebalanced to 20% + tuck at the same time.
+
+**2026-11-07 elbow round** — *the 11-06 poses rotated the elbow about the
+wrong axis*, so the fold they tuned against was a twisted sleeve, not a bent
+elbow (see [The elbow, measured on the elbow's own
+axis](#the-elbow-measured-on-the-elbows-own-axis-2026-11-07)). On the real
+flexion axis the shipped sleeve still crumpled when the bind's 72° elbow
+straightened to the in-game idle's ~12°; `trim_elbows` now also de-puffs the
+**outer** side of the bend (wider window, `ELBOW_OUTER_TRIM = 0.65`), which
+takes the worst edge in the elbow window from 3.12 cm of shortening to
+2.08 cm and from 0.187 to 0.295 of bind length, with 0 inverted faces. Packs
+rebuilt, elbow thickness at the joint 7.18 → **6.69 cm** (2B reference 7.03).
+A second pass the same day widened the ramp to 9/10 cm and pulled the cuff in
+([below](#round-2-the-blend-ramp-and-the-cuff-2026-11-07)): `21abb7e5…` base,
+`7f02004f…` slim. Tests renamed/re-based:
+`test_elbow_bend_axis_is_flexion`, `test_elbow_does_not_crumple_at_the_idle_angle`.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to
@@ -92,6 +108,12 @@ is the PD2 template bind pose and is intentionally left alone — only
 straightness *within* each segment is enforced.
 
 **Elbow blend widening (`widen_elbow_blend`, 2026-11-06, both packs):** the
+*(2026-11-07 caveat: the probe pose this was tuned on rotated the ForeArm
+about a **twist** axis, so the numbers below describe a wrung-out sleeve
+rather than a bent elbow. The pass itself is kept — a wide, smooth weight
+ramp is correct for both axes — but the elbow-quality numbers to trust are
+the ones in [The elbow, measured on the elbow's own
+axis](#the-elbow-measured-on-the-elbows-own-axis-2026-11-07).)* the
 weld ring above is narrow *in target space*: 4+3 cm in source coordinates
 spans 9.4 cm of the 23.3 cm target arm with 64 mixed-weight verts (2B: 16.2
 cm / 331). The bind pose bakes a ~72° elbow bend and the in-game idle hangs
@@ -121,6 +143,140 @@ shipped bytes through the same `posed_worlds`/`skin_verts` LBS the diagnostic
 renderer uses. New `--hang` renders (`christie{,_slim}_hang{,_elbow}_{front,side}.png`
 in `docs/pd2-las/renders/`) show the near-straight in-game pose; the slim
 elbow at −80° is a smooth tube, no braid.
+
+### The elbow, measured on the elbow's own axis (2026-11-07)
+
+Every posed elbow number in this document up to 2026-11-06 came from a pose
+that rotated the `ForeArm` bone about its **local X**. On this rig that is not
+flexion. The joint angle per axis, measured on the 2B template with
+`render_mesh_skeleton.posed_worlds`:
+
+| ForeArm rotation | −72° | −40° | +40° | +72° |
+| --- | --- | --- | --- | --- |
+| local **X** (what the 11-06 pose used) | 72.1° | 72.1° | 72.1° | 72.1° |
+| local **Y** (real flexion) | 0.1° | 32.1° | 112.1° | 144.1° |
+
+A local-X rotation swings the forearm on a cone about the upper arm and leaves
+the elbow at its bind **72.1°** for every angle — i.e. it twists the sleeve at
+the weld ring (that *is* a real deformation, and the 2026-11-06 X-fold may
+well have included it, but it is not the elbow bending). Local Y moves the
+joint angle 1:1, so that is the axis every elbow probe uses now:
+`render_mesh_skeleton.BEND_AXIS`, `--hang` = straighten 72° → 12° (−60° on Y),
+and `test_elbow_bend_axis_is_flexion` pins the distinction so it cannot drift
+back.
+
+**What the correct axis shows.** The bind pose bakes 72° into the elbow; the
+heister's idle hangs at ~12°, so the sleeve has to give back about
+`r·Δθ ≈ 6 cm × 1.05 rad` of length on the **outside of the bend** — material
+that LBS cannot shrink, only fold. Measured on the shipped 2026-11-06 packs
+(worst edge in the ±12 cm elbow window, base = slim on this metric):
+
+| straightening from bind | elbow | min edge ratio | worst edge shortening |
+| --- | --- | --- | --- |
+| 22° | 50° | 0.736 | 0.71 cm |
+| 45° | 27° | 0.399 | 2.31 cm |
+| **60° (in-game idle)** | **12°** | **0.187** | **3.12 cm** |
+| 72° (hyperextension probe) | 0° | 0.066 | 3.62 cm |
+
+PD2's own 2B body, same code and same angles: 0.719 / 0.98 cm at the idle. So
+Christie's sleeve was compressing 3× harder than the reference and crumpling
+~3 cm of material into a crease — the visual defect, and it survives every
+weight profile: widening the blend (`widen_elbow_blend` 4+3 → 7+9 → 12+12 cm)
+moves the *same* crushed material onto more edges (measured at 12+12: worst
+edge 3.28 cm, 0.119 min ratio — worse than shipped) and rubberises the limb
+(1.1 cm of displacement 8 cm down the forearm). Relative edge ratios can look
+better while the absolute fold gets bigger, which is why the test now asserts
+**absolute shortening** as well.
+
+**The fix: de-puff the outside of the bend.** The excess length is generated
+on the outer half of the ring, so `trim_elbows` now squeezes that side too,
+over a much wider window than the 0.88 uniform trim: `ELBOW_OUTER_TRIM = 0.65`
+(extra radial scale), full strength within 3 cm of the joint in *arc length*,
+fading to 1.0 by 9 cm, blended around the ring by the bend-plane bisector
+(`outer = clip(-(p − elbow)·normalize(u_arm + u_forearm) / 6 cm)`, floor 0.15
+so the crook is not dented). Positions only — skeleton, bind matrices, bone
+lengths and weights are untouched, and `_check_flips` still gates the build.
+74 + 73 verts move, largest shift 3.78 cm, and the elbow's own p90 thickness
+drops 7.18 → 6.69 cm (2B 7.03), so the joint is no longer the widest part of
+the arm.
+
+| | 2026-11-06 pack | 2026-11-07 pack | 2B reference |
+| --- | --- | --- | --- |
+| idle (elbow 12°) min edge ratio | 0.187 | **0.295** | 0.719 |
+| idle worst edge shortening | 3.12 cm | **2.08 cm** | 0.98 cm |
+| 45° straightening min edge ratio | 0.399 | **0.464** | 0.769 |
+| 45° worst edge shortening | 2.31 cm | **1.53 cm** | 0.67 cm |
+| inverted faces (elbow window) | 0 | 0 | 0 |
+| p90 thickness at the joint | 7.18 cm | 6.69 cm | 7.03 cm |
+
+The remaining gap to 2B is real and is *not* a weighting problem: 2B's sleeve
+is thinner at the joint (r ≈ 4 cm vs 6 cm), so it has proportionally less
+material to fold. Closing it further would mean a snugger sleeve at the
+elbow, which is a shape decision, not a fit bug — the trim above is the part
+of it that is free.
+
+Renders: `christie{,_slim}_elbow_idle_before_after.png` (both packs, in-game
+idle, old pack left / new right) and the regenerated `*_hang_*` /
+`*_skel_pose_*` sets, which now show the actual in-game pose.
+
+### Round 2: the blend ramp and the cuff (2026-11-07)
+
+Two follow-ups, both measured on the flexion axis with the de-puff in place.
+
+**The blend ramp.** `widen_elbow_blend`'s reach is a trade: wider spreads the
+crumple over more edges but drags material that should stay rigid. Swept on the
+base pack, worst edge inside the ±12 cm elbow window, "rubber" = displacement
+against a rigid skin 8-22 cm down the forearm:
+
+| Arm+ForeArm ramp | 25° straighten min / short | 45° min / short | idle (12°) min / short | rubber @45° / @idle |
+| --- | --- | --- | --- | --- |
+| 4+3 (pre-weld) | 0.249 / 2.88 cm | — | — | 0.06 cm |
+| **7+9** (2026-11-07 shipped) | 0.700 / 0.82 cm | 0.464 / 1.53 cm | 0.295 / 2.08 cm | 0.05 / 0.07 cm |
+| **9+10** (this build) | 0.724 / 0.71 cm | 0.492 / 1.33 cm | **0.333 / 1.83 cm** | 0.18 / 0.24 cm |
+| 10+12 | 0.761 / 0.63 cm | 0.555 / 1.21 cm | 0.408 / 1.69 cm | 0.58 / 0.76 cm |
+| 12+12 | 0.768 / 0.60 cm | 0.560 / 1.13 cm | 0.400 / 1.55 cm | 0.50 / 0.65 cm |
+
+9+10 is the last ramp that is still effectively rigid away from the joint
+(0.24 cm at idle). 10+12 buys a further 0.14 cm of shortening for 0.76 cm of
+rubber at 16 cm from the elbow - a soft wrist, visible in game. 12+12 is
+non-monotone on shortening (1.55 cm) for the same rubber. Both elbow tests
+still pass unmodified at 9+10, so the gate was not loosened.
+
+**The cuff.** The sleeve mouth flared to 6.2-6.5 cm p90 at the wrist against a
+~4.5 cm forearm and PD2's own 2B body, whose sleeve *narrows* to 2.4-2.7 cm
+there (`cuff_profile` sweep, both packs). `taper_cuff` scales the visible outer
+shell radially about the `ForeArm` axis over the last 9 cm
+(`CUFF_TAPER = 0.28`, `CUFF_TAPER_CM = 9.0`), so the mouth keeps its **axial**
+position - the glove spawns at the `Hand` pivot and the fit report measures
+that distance (base 1.12 → 1.03 cm, slim 1.81 → 1.81 cm, limits 1.5 / 2.4).
+Guard rails: nothing is ever pushed *outward* (inner layers and hidden cap
+verts sit inside `CUFF_FLOOR_CM = 3.0`), the pull stops at
+`max(hand p90 + 0.5 cm, 3.0 cm)` per slab, and verts carrying no ForeArm
+weight are untouched. Mouth p90 over the last 3 cm of the forearm (ForeArm-dominant
+verts, measured on the shipped mesh) 6.27 → **5.39 cm** base and 5.98 →
+**5.15 cm** slim; median 5.04 → 3.89 and 4.58 → 4.10 cm. The build's own
+report, which runs before the slim pass, prints 6.37 → 5.37 cm for both.
+
+Getting there took three shapes because the sleeve is *bridged* to the hand -
+32 triangles mix a ForeArm-dominant and a Hand-dominant vertex, and every ring
+carries several layers:
+
+1. per-vertex scale from the vertex's own `w_fore`/`w_hand` → 63 flipped faces
+   (the weights swing 0.8 → 1.0 across one ring);
+2. per-slab scale with a weight-membership guard → 38 flipped faces, and the
+   `max(target, floor)` guard *pushed* the lining outward by up to 2.86 cm;
+3. the current shape: one scale per slab, the field **diffused over the mesh
+   graph** (`_diffuse`, 40 edge-averaging passes, half the step), the mask
+   limited to the outer shell (`d > 4 cm`), and a bounded
+   `_damp_flips` repair (halve the largest-moving vertex of any inverting
+   sliver) → **0 flipped faces**, largest shift 1.56 cm, 574 verts per side.
+
+Renders: `christie{,_slim}_elbow_bend_before_after.png` (three elbow angles,
+including the idle), `christie{,_slim}_cuff_before_after.png` (front and side at
+the idle) and `christie{,_slim}_elbow_idle_before_after.png`, all produced by
+`tools/pd2-las/elbow_before_after.py` with the *same fixed crop per row* - the
+2026-11-07 sheet auto-framed each panel separately, so a change of camera read
+as a change of mesh.
 
 ## Build
 
@@ -185,7 +341,9 @@ command, so the whole set is reproducible in one run per pack:
 .venv/bin/python tools/pd2-las/render_mesh_skeleton.py \
     --zip dist/Christie_LAS.zip --pack Christie_LAS --item christie \
     --templates "<2B>/assets/units/2b/skins/2b" \
-    --out docs/pd2-las/renders --pose --hang   # add --Slim for the slim pack
+    --out docs/pd2-las/renders --pose --hang
+# slim pack: the same command with
+#   --zip dist/Christie_LAS_Slim.zip --pack Christie_LAS_Slim --item christie_slim
 ```
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
@@ -223,17 +381,35 @@ command, so the whole set is reproducible in one run per pack:
   (`--source` mode of the renderer), as the reference for comparisons
 - `christie_{base,slim}_fit_before_after.png` — left forearm/wrist, the pack as
   shipped before 2026-11-06 (bone along the top edge of the sleeve, cuff off the
-  `Hand` pivot) next to the re-centred build. Generated by
-  `/home/user/work/before_after.py`-style two-crop composites, not by the
-  renderer, so it is the only pair here the command above does not refresh.
+  `Hand` pivot) next to the re-centred build. A one-off composite made before
+  `elbow_before_after.py` existed; the pairs below supersede it.
 - `christie_skel_pose_{front,side}.png`, `christie_skel_pose_wrist_*.png` (and
   the `slim` pair) — the mesh re-skinned into a relaxed pose with the posed
   skeleton drawn on top; regenerate with `--pose`
 - `christie{,_slim}_hang_{front,side}.png` and
-  `christie{,_slim}_hang_elbow_{front,side}.png` — the **in-game hang**
-  (Arm +6°, ForeArm −80°: the elbow near straight while the bind pose bakes
-  ~72°), the pose where the X-fold lived; regenerate with `--hang`. The
-  close-ups are selected on the *posed* positions.
+  `christie{,_slim}_hang_elbow_{front,side}.png` — the **in-game idle**:
+  shoulder swung down 22°, elbow straightened from the bind's 72° to 12° on
+  the *flexion* axis (`BEND_AXIS`, i.e. −60° on local Y) and the wrist eased
+  8°, the pose the sleeve has to survive; regenerate with `--hang`. The
+  close-ups are selected on the *posed* positions. Until 2026-11-07 this pose
+  rotated the ForeArm about local X, which is a twist and left the elbow at
+  72°, so the images showed a wrung sleeve, not a hanging arm.
+- `christie{,_slim}_elbow_idle_before_after.png` — the in-game idle close-up,
+  previously shipped pack on the left, current build on the right, with the
+  measured numbers in the caption.
+- `christie{,_slim}_elbow_bend_before_after.png` — the same comparison at three
+  elbow angles (47°, 22°, 12°), and
+  `christie{,_slim}_cuff_before_after.png` — the sleeve mouth at the idle from
+  the front and from the character's left.
+
+  All three come from `tools/pd2-las/elbow_before_after.py`, which takes the
+  "before" pack as a file (use `git show <sha>:dist/Christie_LAS.zip >
+  /tmp/before.zip` for an older build) and crops every row from the **union of
+  both columns' geometry**, square and with a fixed depth band, so the two
+  panels of a row share scale, centre and framing. The 2026-11-07 sheet let
+  each panel auto-frame its own subset, which made a change of camera
+  indistinguishable from a change of mesh - and its caption sat on top of the
+  legend. Both defects are gone.
 
 Until 2026-11-06 this list named files that never existed (`*_skel_wrist_side`
 with no base-pack prefix, `christie_base_skel_top`) and the renderer never wrote
@@ -326,7 +502,10 @@ works:
 Arc length along the chain is the only unambiguous locality here. The crease
 metric moved 2.57 -> 2.17 cm (slim 2.33 -> 2.17) rather than away, and
 `tests/test_christie_las.py::test_elbow_is_not_puffier_than_the_reference` holds
-the thickness at the joint under 7.4 cm.
+the thickness at the joint under 7.4 cm. Since the 2026-11-07 outer de-puff
+the joint measures **6.69 cm** — slightly under the 2B reference (7.03) — and
+the [posed measurement](#the-elbow-measured-on-the-elbows-own-axis-2026-11-07)
+is what keeps the *deformation* honest, not just the bind-pose silhouette.
 
 ### The far end: what the cuff mouth looks like
 

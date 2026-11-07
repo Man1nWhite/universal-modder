@@ -699,19 +699,105 @@ NECK_FADE_CM = 4.0     # ~one neck radius below the Neck joint
 ELBOW_CREASE_CM = 8.0  # verts within this euclidean distance of the elbow joint are protected from slim    # slim alpha fades to 0 this close to the Arm/ForeArm joint
 
 # widen_elbow_blend: reach of the widened Arm/ForeArm weight window, in cm
-# either side of the elbow pivot on the TARGET arm (23.3 cm). Calibrated on
-# the hang-pose probe 2026-11-06: the shipped 4+3 cm weld left a braid of
-# pleats at the in-game hang; 7+9 cm with a monotone material coordinate
-# removes it (edge compression at 22 deg straightening: min ratio 0.70 ->
-# 0.86) without touching the crease's bind-pose geometry.
-ELBOW_WIDEN_A_CM = 7.0   # proximal (upper-arm) reach
-ELBOW_WIDEN_B_CM = 9.0   # distal (forearm) reach
+# either side of the elbow pivot on the TARGET arm (23.3 cm). A monotone
+# material coordinate (see the function) keeps the re-split continuous across
+# the crease; the width is a measured trade between crumple and rubber.
+#
+# Sweep on the flexion axis, base pack with the outer-elbow trim in place
+# (worst edge in the +-12 cm elbow window at the in-game idle = 12 deg;
+# "rubber" = displacement vs a rigid skin 8+ cm down the forearm):
+#
+#   ramp    min ratio  worst shortening   rubber    first cut 2026-11-06
+#   4+3      0.249        2.88 cm         0.06      (weld, pre-widen)
+#   7+9      0.295        2.08 cm         0.07      2026-11-06 .. 11-07
+#   9+10     0.333        1.83 cm         0.24      ** current **
+#   10+12    0.408        1.69 cm         0.76
+#   12+12    0.400        1.55 cm         0.65
+#
+# 9+10 is the last ramp that is effectively rigid away from the joint; past it
+# the forearm starts to bend like rubber (10+12 drags a vertex 0.76 cm at
+# 16 cm from the elbow, which is visible as a soft wrist). No ramp restores a
+# crisp crease - the fold amplitude is r*dtheta of geometry, not weights - so
+# the elbow is de-puffed geometrically below (ELBOW_OUTER_TRIM) instead.
+ELBOW_WIDEN_A_CM = 9.0    # proximal (upper-arm) reach
+ELBOW_WIDEN_B_CM = 10.0   # distal (forearm) reach
+
+#: Cuff taper (2026-11-07). The sleeve mouth flares to ~5.1 cm median / 6.2 cm
+#: p90 radius at the wrist against a ~4.4 cm forearm and PD2's 2B body, whose
+#: sleeve *narrows* to 2.4-2.7 cm there - in game the cuff reads as a cone, and
+#: it is the widest thing on the arm (see docs/pd2-las/CHRISTIE.md). A smooth
+#: radial taper over the last 9 cm of the forearm pulls it in without touching
+#: the mouth's axial position (the glove still spawns at the Hand pivot) and
+#: without shrinking Christie's own hand: hand-weighted verts are held still,
+#: and the taper stops short of the hand surface by CUFF_HAND_CLEAR_CM.
+CUFF_TAPER = 0.28        # radial scale removed at the mouth (1 - k)
+CUFF_TAPER_CM = 9.0      # axial window, measured back from the wrist
+CUFF_FLOOR_CM = 3.0      # never narrower than this (room for the in-game glove)
+CUFF_HAND_CLEAR_CM = 0.5  # keep this much air between sleeve and hand surface
+CUFF_INNER_CM = 4.0      # verts deeper than this are the cuff's hidden lining
 
 # slim bicep tuck: extra radial reduction of the upper-arm belly, on top of
 # the segment scale (0.80). A smooth bump over the middle 45% of the Arm
 # segment; the shoulder and the protected elbow crease are untouched.
 BICEP_TUCK = 0.10
 BICEP_BAND = (0.28, 0.72)   # normalized t/L where the bump rises and falls
+
+
+def _diffuse(faces, values, iterations: int, lam: float = 0.5):
+    """Diffuse a per-vertex scalar field over the mesh graph.
+
+    ``values`` is smoothed with ``x <- (1-lam) x + lam * mean(neighbours)``
+    ``iterations`` times, so a discontinuity in the input (a weight class
+    boundary, a layer seam) becomes a ramp a few edges wide. Used by
+    ``taper_cuff`` to keep the sleeve->hand transition from tearing bridge
+    triangles.
+    """
+    import numpy as np
+
+    tri = np.asarray(faces, dtype=np.int64)
+    if tri.ndim != 2 or tri.shape[1] != 3:
+        return values
+    e = np.concatenate([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]])
+    e = np.concatenate([e, e[:, ::-1]])
+    n = len(values)
+    deg = np.bincount(e[:, 0], minlength=n).astype(np.float64)
+    deg[deg == 0.0] = 1.0
+    x = np.asarray(values, dtype=np.float64).copy()
+    for _ in range(iterations):
+        acc = np.bincount(e[:, 0], weights=x[e[:, 1]], minlength=n)
+        x = (1.0 - lam) * x + lam * (acc / deg)
+    return x
+
+
+def _damp_flips(faces, verts, disp, passes: int = 24, shrink: float = 0.5):
+    """Shrink the displacement of inverting slivers until none invert.
+
+    ``disp`` is a per-vertex offset; the loop halves the offset of the
+    largest-moving vertex of every triangle whose normal would reverse, and is
+    a no-op when nothing inverts. Returns the corrected offsets.
+    """
+    import numpy as np
+
+    tri = np.asarray(faces, dtype=np.int64)
+    d = np.array(disp, dtype=np.float64, copy=True)
+    mag = np.linalg.norm(d, axis=1)
+    if tri.ndim != 2 or tri.shape[1] != 3 or not (mag > 1e-9).any():
+        return d
+    for _ in range(passes):
+        p = verts + d
+        n0 = np.cross(verts[tri[:, 1]] - verts[tri[:, 0]],
+                      verts[tri[:, 2]] - verts[tri[:, 0]])
+        n1 = np.cross(p[tri[:, 1]] - p[tri[:, 0]], p[tri[:, 2]] - p[tri[:, 0]])
+        bad = np.einsum("ij,ij->i", n0, n1) <= 0.
+        bad &= mag[tri].max(axis=1) > 1e-6
+        if not bad.any():
+            break
+        for row in np.where(bad)[0]:
+            idx = tri[row]
+            i = int(idx[np.argmax(mag[idx])])
+            d[i] *= shrink
+            mag[i] *= shrink
+    return d
 
 
 def _smoothstep(x: float) -> float:
@@ -1358,6 +1444,35 @@ ELBOW_TRIM_FLAT_CM = 2.0     # full strength this close (arc) to the joint
 ELBOW_TRIM_FADE_CM = 6.0     # ... zero by this far, for a C1 blend
 ELBOW_TRIM_W_MIN = 0.5       # sleeve verts only (Arm+ForeArm weight)
 
+#: Outer-elbow de-puff (2026-11-07). The trim above is a uniform radial
+#: squeeze. The side that actually suffers when the elbow straightens in game
+#: is the *outside* of the bend: the bind pose bakes 72 deg, the idle hangs at
+#: ~12 deg (see ``ELBOW_BEND_AXIS``), and the outer surface therefore has to
+#: give back ~r*dtheta of length. Measured on the shipped pack, the worst edge
+#: in the elbow window shortens 3.12 cm at that angle (PD2's own 2B body: 0.98
+#: cm) and the surface crumples to absorb it. Squeezing only the outer side,
+#: over a wider window, removes part of the excess where it is generated:
+#: max edge shortening 3.12 -> 2.28 cm and the worst compression 0.19 -> 0.27
+#: of bind length, with 0 inverted faces before and after and the crook of the
+#: elbow untouched. Numbers and the axis bug that hid this are in
+#: docs/pd2-las/CHRISTIE.md ("The elbow, measured on the elbow's own axis").
+ELBOW_OUTER_TRIM = 0.65      # extra radial scale on the outer elbow
+ELBOW_OUTER_FLAT_CM = 3.0    # full strength this close (arc) to the joint
+ELBOW_OUTER_FADE_CM = 9.0    # ... zero by this far
+ELBOW_OUTER_FLOOR = 0.15     # residual share applied all round the ring
+ELBOW_OUTER_SPAN_CM = 6.0    # |offset| that counts as "fully on the outer side"
+
+#: Which local axis of the PD2 ``ForeArm`` bone is elbow *flexion*. Verified on
+#: the 2B template: rotating about local X leaves the Arm-ForeArm angle at its
+#: bind 72.1 deg for every angle (it swings the forearm on a cone - a twist of
+#: the sleeve about the upper arm), while local Y moves the joint angle 1:1
+#: (bind 72.1 deg -> 0.1 deg at -72). Every posed elbow probe must use Y; the
+#: 2026-11-06 round used X and therefore measured a twisted sleeve, not a bent
+#: one.
+ELBOW_BEND_AXIS = 1
+ELBOW_BIND_DEG = 72.0
+ELBOW_IDLE_DEG = 12.0        # in-game idle: the elbow hangs nearly straight
+
 
 def _chain_param(v, chain):
     """Arc length along `chain` of each point's nearest point, plus the offset."""
@@ -1429,18 +1544,186 @@ def trim_elbows(g: bm.Group, template: bm.Template,
         alpha = blend * np.array([_smoothstep(w / ELBOW_TRIM_W_MIN) for w in w_pair]) \
             * (1.0 - np.clip(w_hand, 0.0, 1.0))
         disp = (alpha * (scale - 1.0))[:, None] * off
+        # --- outer-side de-puff (see ELBOW_OUTER_TRIM) --------------------
+        # The bend-plane bisector points into the crook, so the outer elbow is
+        # the side with a NEGATIVE projection on it. Its extent is taken from
+        # the offset about the chain, not from the distance to the joint.
+        u_arm = chain[1] - chain[0]
+        u_arm /= np.linalg.norm(u_arm)
+        u_fore = chain[2] - chain[1]
+        u_fore /= np.linalg.norm(u_fore)
+        crook = u_arm + u_fore
+        crook /= np.linalg.norm(crook)
+        outer = np.clip(-(v - chain[1]) @ crook / ELBOW_OUTER_SPAN_CM, 0.0, 1.0)
+        outer_blend = np.array([_smoothstep((ELBOW_OUTER_FADE_CM - d) /
+                                           (ELBOW_OUTER_FADE_CM - ELBOW_OUTER_FLAT_CM))
+                                for d in d_arc])
+        alpha_out = outer_blend * alpha * (ELBOW_OUTER_FLOOR
+                                          + (1.0 - ELBOW_OUTER_FLOOR) * outer)
+        disp = disp + (alpha_out * (ELBOW_OUTER_TRIM - 1.0))[:, None] * off
         mov = np.linalg.norm(disp, axis=1) > 1e-6
         if not mov.any():
             continue
         new = new + disp
-        records.append({"joint": child, "scale": scale,
+        records.append({"joint": child, "scale": scale, "outer_scale": ELBOW_OUTER_TRIM,
                         "verts": int(mov.sum()),
                         "max_shift_cm": round(float(np.linalg.norm(disp, axis=1).max()), 2)})
         print(f"  trim {child}: {records[-1]['verts']} verts, radial scale "
-              f"{scale} about the arm chain, largest shift "
-              f"{records[-1]['max_shift_cm']} cm")
+              f"{scale} (outer {ELBOW_OUTER_TRIM}) about the arm chain, largest "
+              f"shift {records[-1]['max_shift_cm']} cm")
     g.verts = [tuple(row) for row in new]
     _check_flips(g, v, f"elbow trim {g.name}")
+    _recompute_normals(g, n_old)
+    return records
+
+
+def taper_cuff(g: bm.Group, template: bm.Template,
+               bones=("Left", "Right")) -> list[dict]:
+    """Pull the sleeve mouth in toward the forearm axis (the "cone" cuff).
+
+    ``p' = c(t) + off * scale`` with ``c`` the point on the ForeArm axis and
+    ``off`` the radial offset, so the mouth keeps its axial position - the
+    in-game glove spawns at the ``Hand`` pivot and the fit report measures that
+    distance - while the radius comes down over the last ``CUFF_TAPER_CM``.
+    The scale is ``1 - CUFF_TAPER * s`` with ``s`` a smoothstep from the start
+    of the window to the wrist. Guard rails:
+
+      * only the visible outer shell moves (``d > CUFF_INNER_CM``); the lining
+        and the hidden cap verts stay, or they get squeezed toward the axis;
+      * nothing is ever pushed *outward*: the pull stops at
+        ``min(d, max(hand p90 + CUFF_HAND_CLEAR_CM, CUFF_FLOOR_CM))`` per slab,
+        so the sleeve cannot swallow the hand or the glove;
+      * verts carrying no ForeArm weight are untouched, so the torso, the other
+        arm and the coat hem do not move.
+
+    The displacement field is *diffused over the mesh graph* before it is
+    applied and any inverting sliver is damped afterwards: the sleeve is
+    bridged to the hand (32 triangles mix a ForeArm- and a Hand-dominant
+    vertex) and every ring carries several layers, so a per-vertex or
+    per-weight-class scale tears those bridge triangles (measured: 63 and 38
+    flipped faces on two earlier attempts). Skeleton, bind matrices and skin
+    weights are untouched.
+
+    Measured effect (base pack, p90 radius at the mouth): 6.37 -> 5.39 cm,
+    median 5.04 -> 3.89 cm; slim 5.98 -> 5.15. Axial distance from the mouth
+    ring to the ``Hand`` pivot is unchanged; the cuff ring metric moves
+    1.12 -> 1.03 cm because it is a 3D distance and the ring came in radially.
+    """
+    import numpy as np
+
+    v = np.array(g.verts, dtype=np.float64)
+    n_old = np.array(g.normals, dtype=np.float64)
+    new = v.copy()
+    disp_all = np.zeros_like(v)
+    sides: list[dict] = []
+    records: list[dict] = []
+    for side in bones:
+        arm, fore, hand = (f"{side}{n}" for n in ("Arm", "ForeArm", "Hand"))
+        if fore not in template.name_id or hand not in template.name_id:
+            continue
+        e, h = _joint(template, fore), _joint(template, hand)
+        u = (h - e) / float(np.linalg.norm(h - e))
+        L = float(np.linalg.norm(h - e))
+        t = (v - e) @ u
+        off = (v - e) - np.outer(t, u)
+        d = np.linalg.norm(off, axis=1)
+        # weights: sleeve verts move, hand-dominant verts do not
+        idx = {name: g.palette.index(name) for name in (fore, hand)
+               if name in g.palette}
+        if fore not in idx:
+            continue
+        w_fore = np.zeros(len(v))
+        w_hand = np.zeros(len(v))
+        for i, infl in enumerate(g.weights):
+            for pi, w in infl:
+                if pi == idx[fore]:
+                    w_fore[i] += w
+                elif hand in idx and pi == idx[hand]:
+                    w_hand[i] += w
+        # Per-slab scale, not per-vertex: a vertex's own weight swings from 0.8
+        # to 1.0 across one ring and to 0 on the hand, and scaling each vertex
+        # by its own weight tears the bridge triangles between the layers
+        # (measured: 63 flipped faces on the first attempt). One scale per
+        # slab moves a cross-section rigidly in the radial direction, which
+        # cannot flip anything.
+        edges = np.arange(L - CUFF_TAPER_CM, L + 2.0, 1.0)
+        slab_scale = np.ones(len(edges) - 1)
+        slab_clear = np.zeros(len(edges) - 1)
+        for k in range(len(edges) - 1):
+            m = (t >= edges[k]) & (t < edges[k + 1])
+            hnd = m & (w_hand > 0.6)
+            s_mid = _smoothstep((0.5 * (edges[k] + edges[k + 1])
+                                 - (L - CUFF_TAPER_CM)) / CUFF_TAPER_CM)
+            slab_scale[k] = 1.0 - CUFF_TAPER * s_mid
+            slab_clear[k] = (np.percentile(d[hnd], 90) + CUFF_HAND_CLEAR_CM
+                             if hnd.sum() >= 3 else 0.0)
+        # smooth the guard profile so a sparse slab cannot punch a dent
+        for _ in range(2):
+            slab_clear = 0.5 * slab_clear + 0.25 * (np.roll(slab_clear, 1)
+                                                    + np.roll(slab_clear, -1))
+        # The sleeve is *bridged* to the hand (32 triangles mix a ForeArm-
+        # dominant and a Hand-dominant vertex) and every ring carries several
+        # layers at once, so any per-vertex or per-class switch tears slivers
+        # (measured: 63 flipped faces from per-vertex weights, 38 from a
+        # weight-membership guard plus a per-slab scale, 9 from a spatial
+        # smoothstep on the distance to the hand). The displacement field is
+        # therefore diffused over the mesh graph: start from the slab taper,
+        # then repeatedly replace every vertex's value by a blend of itself
+        # and its edge neighbours. That turns the step into a gradient a few
+        # edges wide, which no triangle can flip, and leaves the taper's
+        # amplitude intact where the sleeve is a clean tube.
+        ks = np.clip(np.searchsorted(edges, t) - 1, 0, len(edges) - 2)
+        # Only the visible outer shell is tapered: the lining sits 3-3.5 cm
+        # from the axis and squeezing it toward the floor flips the slivers
+        # that seam it to the mouth ring (measured: 2 flipped faces). The step
+        # this mask introduces is removed by the diffusion below.
+        alpha = np.where((w_fore > 0.05) & (d > CUFF_INNER_CM),
+                         1.0 - slab_scale[ks], 0.0)
+        alpha = _diffuse(g.faces, alpha, iterations=40)
+        alpha = np.where(w_fore > 0.02, alpha, 0.0)
+        # guards: never *push* a vertex outwards (the sleeve has inner layers
+        # and hidden cap verts well inside CUFF_FLOOR_CM - clamping them up
+        # inflated the mesh by up to 2.9 cm and tore the rings apart); only
+        # stop the pull-in early.
+        lo = np.minimum(d, np.maximum(slab_clear[ks], CUFF_FLOOR_CM))
+        target = np.maximum(d * (1.0 - alpha), lo)
+        target = np.minimum(target, d)
+        scale = np.where(d > 1e-9, target / np.maximum(d, 1e-9), 1.0)
+        disp = off * (scale - 1.0)[:, None]
+        disp_all += disp
+        sides.append({"side": side, "d": d, "u": u, "e": e,
+                      "mov": np.linalg.norm(disp, axis=1) > 1e-6,
+                      "shift": np.linalg.norm(disp, axis=1).max(),
+                      "mouth": (np.abs(t - L) < 2.0) & (w_fore > 0.6)
+                      & (w_hand < 0.3)})
+    # -- flip-safe damping -------------------------------------------------
+    # A few sliver triangles (0.07-0.35 cm^2 - the lining seaming the mouth
+    # ring to the hand) can still invert when one of their vertices moves and
+    # the others do not. Instead of leaving them flipped or softening the whole
+    # taper, the largest-moving vertex of every inverting triangle is damped by
+    # half, repeatedly, until none invert: a local, deterministic correction on
+    # a handful of verts.
+    disp_all = _damp_flips(g.faces, v, disp_all)
+    new = v + disp_all
+    for info in sides:
+        sel = info["mouth"]
+        if not sel.any():
+            continue
+        e, u, d = info["e"], info["u"], info["d"]
+        after = np.linalg.norm(
+            new[sel] - (e + np.outer((new[sel] - e) @ u, u)), axis=1)
+        records.append({"side": info["side"],
+                        "verts": int(info["mov"].sum()),
+                        "mouth_p90_cm": round(float(np.percentile(d[sel], 90)), 2),
+                        "mouth_p90_after_cm": round(float(np.percentile(after, 90)), 2),
+                        "max_shift_cm": round(
+                            float(info["shift"]), 2)})
+        r = records[-1]
+        print(f"  cuff {info['side']}: {r['verts']} verts, mouth p90 "
+              f"{r['mouth_p90_cm']} -> {r['mouth_p90_after_cm']} cm, largest "
+              f"shift {r['max_shift_cm']} cm")
+    g.verts = [tuple(row) for row in new]
+    _check_flips(g, v, f"cuff taper {g.name}")
     _recompute_normals(g, n_old)
     return records
 
@@ -1969,6 +2252,7 @@ def main(argv=None) -> int:
     # before any slim pass, so the base pack is clean too.
     centring: list[dict] = []
     elbow_report: list[dict] = []
+    cuff_report: list[dict] = []
     for gname in ("body", "shadow"):
         straighten_segments(groups[gname], template)
         # straighten only fixes the kink it can see (its 4.5 cm radial mask
@@ -1980,6 +2264,9 @@ def main(argv=None) -> int:
         elbows = trim_elbows(groups[gname], template)
         if gname == "body":
             elbow_report = elbows
+        cuffs = taper_cuff(groups[gname], template)
+        if gname == "body":
+            cuff_report = cuffs
         breaks = bm.orientation_breaks(groups[gname])
         agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
                                      groups[gname].normals)
@@ -2098,6 +2385,7 @@ def main(argv=None) -> int:
         # asserts on the same fields, so a regression shows up there too
         "centring": centring,
         "elbow_trim": elbow_report,
+        "cuff_taper": cuff_report,
         "fit_tpp": fit,
         "fit_fps": fps_fit if fps_bytes is not None else None,
     }
@@ -2114,7 +2402,8 @@ def main(argv=None) -> int:
                              "fit_tpp": fit,
                              "fit_fps": fps_fit,
                              "centring": centring,
-                             "elbow_trim": elbow_report},
+                             "elbow_trim": elbow_report,
+                             "cuff_taper": cuff_report},
                       fps_model_slots=fps_slots)
     print(f"pack  -> {pack}")
     zipped = lop.zip_pack(pack)

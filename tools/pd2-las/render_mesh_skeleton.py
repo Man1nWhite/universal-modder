@@ -27,6 +27,24 @@ import build_models as bm  # noqa: E402
 
 ARM_CHAIN = ("Arm", "ForeArm", "Hand", "Shoulder")
 
+#: Which local axis of a PD2 limb bone is *flexion* (the joint angle changes)
+#: as opposed to a swing/twist of the whole chain. Measured on the 2B template
+#: (`posed_worlds`, joint angle from the bone positions):
+#:
+#:     ForeArm local X:  Arm-ForeArm angle 72.1 deg at every angle  -> twist
+#:     ForeArm local Y:  72.1 -> 0.1 deg at -72                      -> flexion
+#:     Hand    local X:  Fore-Hand angle 6.5 deg at every angle     -> twist
+#:     Hand    local Y:  6.5 -> 36.8 deg at +40                      -> flexion
+#:
+#: The 2026-11-06 "hang" pose rotated the ForeArm about X, so it never bent
+#: the elbow: it swung the forearm on a cone about the upper arm, i.e. it
+#: twisted the sleeve at the weld ring. Everything measured on that pose
+#: described a twisted sleeve, not a bent elbow. Keep these constants and use
+#: BEND_AXIS for every "does the elbow deform well" question.
+BEND_AXIS = 1
+BIND_ELBOW_DEG = 72.0      # Arm-ForeArm angle in the PD2 bind/menu pose
+IDLE_ELBOW_DEG = 12.0      # the heister's idle: the elbow hangs near straight
+
 
 def g_body_geo(zf: zipfile.ZipFile, pack_dir: str, item: str):
     mf = dm.ModelFile.read(
@@ -553,12 +571,13 @@ def main(argv=None) -> int:
     ap.add_argument("--out", type=Path, default=REPO / "build/pd2-las/previews")
     ap.add_argument("--pose", action="store_true",
                     help="also render a menu-like flexed pose (Arm/ForeArm/Hand "
-                         "bent) with the mesh re-skinned onto the posed skeleton")
+                         "flexed on the joint axes) with the mesh re-skinned "
+                         "onto the posed skeleton")
     ap.add_argument("--hang", action="store_true",
-                    help="also render the in-game hang (Arm +6 deg, ForeArm "
-                         "-80 deg: the elbow near straight while the bind pose "
-                         "bakes a ~72 deg bend) - the pose where a narrow "
-                         "elbow weight blend folds into X-pleats")
+                    help="also render the in-game idle (elbow straightened from "
+                         "the bind-pose 72 deg to 12 deg on the flexion axis) - "
+                         "the pose where the outer elbow has to give back "
+                         "r*dtheta of length and the sleeve creases")
     args = ap.parse_args(argv)
     if args.source is not None:
         render_source(args.source, args.out)
@@ -606,11 +625,14 @@ def main(argv=None) -> int:
             render(tube, near_bones, view,
                    args.out / f"{stem}_forearm_{view}.png")
     if args.pose:
+        # Elbow and wrist on the FLEXION axis (see BEND_AXIS): the old X pose
+        # twisted both joints instead of bending them, so the preview showed a
+        # sleeve being wrung out rather than a bent arm.
         pose = {}
         for side in ("Left", "Right"):
-            pose[f"{side}Arm"] = (0, 6)
-            pose[f"{side}ForeArm"] = (0, -22)
-            pose[f"{side}Hand"] = (0, -38)
+            pose[f"{side}Arm"] = (2, 20)       # swing the shoulder in/down
+            pose[f"{side}ForeArm"] = (BEND_AXIS, -22)
+            pose[f"{side}Hand"] = (BEND_AXIS, -20)
         pw = posed_worlds(template, pose)
         posed_bones = [(template.id_name[sid], np.array(pw[sid][12:15], float),
                         template.id_name.get(template.id_obj[sid]["parent"])
@@ -631,11 +653,16 @@ def main(argv=None) -> int:
                 render(hand, near_bones, view,
                        args.out / f"{stem}_skel_pose_wrist_{view}.png")
     if args.hang:
-        # the in-game idle: elbow nearly straight. The bind pose bakes ~72 deg
-        # here, so the sleeve must unfold through the weld ring - the pose
-        # where a narrow Arm/ForeArm blend folds into pleats (2026-11-06).
-        pose = {f"{s}Arm": (0, 6) for s in ("Left", "Right")}
-        pose.update({f"{s}ForeArm": (0, -80) for s in ("Left", "Right")})
+        # The in-game idle: elbow nearly straight. The bind pose bakes 72 deg
+        # into the elbow, so the sleeve has to give back r*dtheta of length on
+        # the outside of the bend - the pose where the crease folds (the
+        # 2026-11-06 "X-fold" and the 2026-11-07 crumple measurements).
+        # Straightening 72 -> 12 deg is -60 deg on the FLEXION axis; the old
+        # (0, -80) rotated about a twist axis and left the joint at 72 deg.
+        straighten = IDLE_ELBOW_DEG - BIND_ELBOW_DEG    # = -60
+        pose = {f"{s}Arm": (2, 22) for s in ("Left", "Right")}
+        pose.update({f"{s}ForeArm": (BEND_AXIS, straighten) for s in ("Left", "Right")})
+        pose.update({f"{s}Hand": (BEND_AXIS, -8) for s in ("Left", "Right")})
         pw = posed_worlds(template, pose)
         posed_bones = [(template.id_name[sid], np.array(pw[sid][12:15], float),
                         template.id_name.get(template.id_obj[sid]["parent"])

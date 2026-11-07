@@ -34,8 +34,9 @@ Deliverables in **`dist/`**:
   remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` and
-`dist/Christie_LAS_Slim.zip` (+ `.sha256`) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,768,590 B, sha256
+`21abb7e5…d9b7b4b`) and `dist/Christie_LAS_Slim.zip` (4,204,560 B, sha256
+`7f02004f…b402a27`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm verts an extra ×0.75 (arms 25% thinner), height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -45,8 +46,22 @@ elbow/wrist/hand land exactly on the PD2 pivots) from
 slim variant cuts the wrists and ships the glove-adapter hook so in-game
 gloves work). The separate no-hands pack was removed (slim supersedes it).
 Base pack **tested in game 2026-11-05** (headless LAS confirmed;
-texture gloss fixed via specular-alpha attenuation). See
-`docs/pd2-las/CHRISTIE.md`. Tests: `tests/test_christie_las.py`.
+texture gloss fixed via specular-alpha attenuation). The **2026-11-07 elbow
+round** found that every posed elbow probe until then rotated the `ForeArm`
+about local X, which on this rig is a twist (the joint stays at its bind
+72.1°); local Y is flexion. On the real axis the shipped sleeve crumpled when
+the bind elbow straightened to the idle's ~12°, so `trim_elbows` now also
+de-puffs the outer side of the bend, and a second pass the same day widened
+the Arm/ForeArm ramp to 9+10 cm and pulled the flared cuff in
+(`taper_cuff`): worst edge shortens 3.12 → **1.83 cm**, compresses
+0.187 → **0.333** of bind length, joint thickness 7.18 → 6.69 cm, cuff mouth
+p90 6.37 → 5.39 cm, 0 inverted faces. Renders:
+`christie{,_slim}_{elbow_bend,elbow_idle,cuff}_before_after.png`, all fixed-
+frame per row from `tools/pd2-las/elbow_before_after.py`. Nothing built after
+2026-11-05 has been in game yet; the idle-elbow screenshot is still the one
+piece of evidence missing.
+See `docs/pd2-las/CHRISTIE.md` ("The elbow, measured on the elbow's own
+axis"). Tests: `tests/test_christie_las.py`.
 
 ## Quickstart
 
