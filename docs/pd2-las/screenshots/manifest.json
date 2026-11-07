@@ -1,0 +1,158 @@
+{
+  "captured_build_sha256": null,
+  "captured_build_note": "Installed pack hash was not supplied with this batch; do not infer it from the repository ZIP.",
+  "supplied_on": "2026-11-07",
+  "coordinate_convention": "Original PNG pixels, origin top-left. Crop boxes are (left, top, right, bottom), right/bottom exclusive.",
+  "screenshots": [
+    {
+      "shot": 1,
+      "upload": "image-1.png",
+      "file": "christie_slim_01_lobby_front.png",
+      "view": "Lobby / idle, front",
+      "width": 506,
+      "height": 980,
+      "bytes": 908114,
+      "sha256": "f7c1ee4599a37a40602be295bca959bb6b58e3992c4e29f72bc35b25f8963d48"
+    },
+    {
+      "shot": 2,
+      "upload": "image-2.png",
+      "file": "christie_slim_02_lobby_right-three-quarter.png",
+      "view": "Lobby / idle, front three-quarter, face toward image-right",
+      "width": 495,
+      "height": 1000,
+      "bytes": 902414,
+      "sha256": "6b4016fa1a6c18d45160757bc3f3507fe2e3303e42c4610fbdd303f3fd16644d"
+    },
+    {
+      "shot": 3,
+      "upload": "image-3.png",
+      "file": "christie_slim_03_lobby_right-profile.png",
+      "view": "Lobby / idle, profile, face toward image-right",
+      "width": 528,
+      "height": 1012,
+      "bytes": 963545,
+      "sha256": "560da1c186b2f3f7bd4ee161e0e09e24812230cfbee28396a9c1d21e804880f5"
+    },
+    {
+      "shot": 4,
+      "upload": "image-4.png",
+      "file": "christie_slim_04_lobby_back-three-quarter-right.png",
+      "view": "Lobby / idle, back three-quarter, image-right-facing side",
+      "width": 540,
+      "height": 1020,
+      "bytes": 985402,
+      "sha256": "04050fdcc972f4c10f70d1b1810bc37abc504f28b3168f268502cd9b2cedeb9b"
+    },
+    {
+      "shot": 5,
+      "upload": "image-5.png",
+      "file": "christie_slim_05_lobby_back.png",
+      "view": "Lobby / idle, back",
+      "width": 594,
+      "height": 1010,
+      "bytes": 1040233,
+      "sha256": "31e11a640a8e183bbf7903282484e164fe8977da5873fc61364daf0e3b299579"
+    },
+    {
+      "shot": 6,
+      "upload": "image-6.png",
+      "file": "christie_slim_06_lobby_back-three-quarter-left.png",
+      "view": "Lobby / idle, back three-quarter, image-left-facing side",
+      "width": 560,
+      "height": 1055,
+      "bytes": 1057977,
+      "sha256": "877e4fba442fddb4cd3e265f1810b2a4131bb4e1f04a452fd4e7516a5d2f7dd4"
+    },
+    {
+      "shot": 7,
+      "upload": "image-7.png",
+      "file": "christie_slim_07_lobby_left-profile.png",
+      "view": "Lobby / idle, profile, face toward image-left",
+      "width": 502,
+      "height": 1018,
+      "bytes": 927534,
+      "sha256": "d0ffdfcfb21ee57524e5ba27c55c07b7ea9d89045b2f5e0df32317d9d6a31c0a"
+    },
+    {
+      "shot": 8,
+      "upload": "image-8.png",
+      "file": "christie_slim_08_lobby_left-three-quarter.png",
+      "view": "Lobby / idle, front three-quarter, face toward image-left",
+      "width": 519,
+      "height": 1017,
+      "bytes": 950197,
+      "sha256": "7a8e6c4cdedcc8cd3b23fb5f2f853213981e4fe0051281bf9bf645ea6c2f4d25"
+    },
+    {
+      "shot": 9,
+      "upload": "image-9.png",
+      "file": "christie_slim_09_menu_front-three-quarter-right-rifle.png",
+      "view": "Menu / rifle, front three-quarter, face toward image-right",
+      "width": 585,
+      "height": 911,
+      "bytes": 680098,
+      "sha256": "b19c04daee3fd79b3c6d7c6c8bd64da30954b2979d7180d353efce66ab517625"
+    },
+    {
+      "shot": 10,
+      "upload": "image-10.png",
+      "file": "christie_slim_10_menu_right-profile-rifle.png",
+      "view": "Menu / rifle, profile, face toward image-right",
+      "width": 557,
+      "height": 916,
+      "bytes": 638631,
+      "sha256": "63150b82b4a29ba5f75b3010cfd3c32bbcc608c7b39d29522cac7422cbb7b819"
+    },
+    {
+      "shot": 11,
+      "upload": "image-11.png",
+      "file": "christie_slim_11_menu_back-three-quarter-right-rifle.png",
+      "view": "Menu / rifle, back three-quarter, image-right-facing side",
+      "width": 541,
+      "height": 890,
+      "bytes": 608104,
+      "sha256": "ca173efe530a7a356de77cc73bc5dbc50fdb23a8fd1ea9e83f83ad88d1cfed94"
+    },
+    {
+      "shot": 12,
+      "upload": "image-12.png",
+      "file": "christie_slim_12_menu_back-rifle.png",
+      "view": "Menu / rifle, back",
+      "width": 574,
+      "height": 910,
+      "bytes": 668302,
+      "sha256": "4540c7f3359cb000c4c414e204940af4b1cc087811045614dca6c69af5ee289b"
+    },
+    {
+      "shot": 13,
+      "upload": "image-13.png",
+      "file": "christie_slim_13_menu_left-profile-rifle.png",
+      "view": "Menu / rifle, profile, face toward image-left",
+      "width": 536,
+      "height": 881,
+      "bytes": 635597,
+      "sha256": "49ada3d1bfb31e980dabbbb93d3d1cfead1967dcefce394599bd051185f4d125"
+    },
+    {
+      "shot": 14,
+      "upload": "image-14.png",
+      "file": "christie_slim_14_menu_front-three-quarter-left-rifle.png",
+      "view": "Menu / rifle, front three-quarter, face toward image-left",
+      "width": 531,
+      "height": 902,
+      "bytes": 672626,
+      "sha256": "2f125c9ba1a9468382ee143ce25dccf03808aee0dcf6eb48d4746715e7aa8c8b"
+    },
+    {
+      "shot": 15,
+      "upload": "image-15.png",
+      "file": "christie_slim_15_menu_front-rifle.png",
+      "view": "Menu / rifle, front",
+      "width": 536,
+      "height": 899,
+      "bytes": 701117,
+      "sha256": "20bb5b85ec5ee20f3f3f370c1695c831fba94817de2525c34d682d067b905a63"
+    }
+  ]
+}

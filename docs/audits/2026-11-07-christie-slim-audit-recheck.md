@@ -1,4 +1,12 @@
-# Recheck: `2026-11-07-christie-slim-screenshot-review.md`
+# Historical recheck: the original 11-frame Christie slim review
+
+> The screenshot review and archive have since been replaced with a **15-frame
+> batch**. This document rechecks the *former* version of the review, not the
+> current one. Its old screenshot filenames, coordinates and pack attribution
+> are historical; the original images/review remain in Git history. See the
+> [replacement review](2026-11-07-christie-slim-screenshot-review.md) for current
+> visual findings and evidence provenance. The new batch's installed hash was
+> not supplied.
 
 Scope: re-derive every offline number the slim screenshot audit quotes, from the
 same artifacts it says it reviewed — `dist/Christie_LAS_Slim.zip`
