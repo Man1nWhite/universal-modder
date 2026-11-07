@@ -1358,6 +1358,35 @@ ELBOW_TRIM_FLAT_CM = 2.0     # full strength this close (arc) to the joint
 ELBOW_TRIM_FADE_CM = 6.0     # ... zero by this far, for a C1 blend
 ELBOW_TRIM_W_MIN = 0.5       # sleeve verts only (Arm+ForeArm weight)
 
+#: Outer-elbow de-puff (2026-11-07). The trim above is a uniform radial
+#: squeeze. The side that actually suffers when the elbow straightens in game
+#: is the *outside* of the bend: the bind pose bakes 72 deg, the idle hangs at
+#: ~12 deg (see ``ELBOW_BEND_AXIS``), and the outer surface therefore has to
+#: give back ~r*dtheta of length. Measured on the shipped pack, the worst edge
+#: in the elbow window shortens 3.12 cm at that angle (PD2's own 2B body: 0.98
+#: cm) and the surface crumples to absorb it. Squeezing only the outer side,
+#: over a wider window, removes part of the excess where it is generated:
+#: max edge shortening 3.12 -> 2.28 cm and the worst compression 0.19 -> 0.27
+#: of bind length, with 0 inverted faces before and after and the crook of the
+#: elbow untouched. Numbers and the axis bug that hid this are in
+#: docs/pd2-las/CHRISTIE.md ("The elbow, measured on the elbow's own axis").
+ELBOW_OUTER_TRIM = 0.65      # extra radial scale on the outer elbow
+ELBOW_OUTER_FLAT_CM = 3.0    # full strength this close (arc) to the joint
+ELBOW_OUTER_FADE_CM = 9.0    # ... zero by this far
+ELBOW_OUTER_FLOOR = 0.15     # residual share applied all round the ring
+ELBOW_OUTER_SPAN_CM = 6.0    # |offset| that counts as "fully on the outer side"
+
+#: Which local axis of the PD2 ``ForeArm`` bone is elbow *flexion*. Verified on
+#: the 2B template: rotating about local X leaves the Arm-ForeArm angle at its
+#: bind 72.1 deg for every angle (it swings the forearm on a cone - a twist of
+#: the sleeve about the upper arm), while local Y moves the joint angle 1:1
+#: (bind 72.1 deg -> 0.1 deg at -72). Every posed elbow probe must use Y; the
+#: 2026-11-06 round used X and therefore measured a twisted sleeve, not a bent
+#: one.
+ELBOW_BEND_AXIS = 1
+ELBOW_BIND_DEG = 72.0
+ELBOW_IDLE_DEG = 12.0        # in-game idle: the elbow hangs nearly straight
+
 
 def _chain_param(v, chain):
     """Arc length along `chain` of each point's nearest point, plus the offset."""
@@ -1429,16 +1458,33 @@ def trim_elbows(g: bm.Group, template: bm.Template,
         alpha = blend * np.array([_smoothstep(w / ELBOW_TRIM_W_MIN) for w in w_pair]) \
             * (1.0 - np.clip(w_hand, 0.0, 1.0))
         disp = (alpha * (scale - 1.0))[:, None] * off
+        # --- outer-side de-puff (see ELBOW_OUTER_TRIM) --------------------
+        # The bend-plane bisector points into the crook, so the outer elbow is
+        # the side with a NEGATIVE projection on it. Its extent is taken from
+        # the offset about the chain, not from the distance to the joint.
+        u_arm = chain[1] - chain[0]
+        u_arm /= np.linalg.norm(u_arm)
+        u_fore = chain[2] - chain[1]
+        u_fore /= np.linalg.norm(u_fore)
+        crook = u_arm + u_fore
+        crook /= np.linalg.norm(crook)
+        outer = np.clip(-(v - chain[1]) @ crook / ELBOW_OUTER_SPAN_CM, 0.0, 1.0)
+        outer_blend = np.array([_smoothstep((ELBOW_OUTER_FADE_CM - d) /
+                                           (ELBOW_OUTER_FADE_CM - ELBOW_OUTER_FLAT_CM))
+                                for d in d_arc])
+        alpha_out = outer_blend * alpha * (ELBOW_OUTER_FLOOR
+                                          + (1.0 - ELBOW_OUTER_FLOOR) * outer)
+        disp = disp + (alpha_out * (ELBOW_OUTER_TRIM - 1.0))[:, None] * off
         mov = np.linalg.norm(disp, axis=1) > 1e-6
         if not mov.any():
             continue
         new = new + disp
-        records.append({"joint": child, "scale": scale,
+        records.append({"joint": child, "scale": scale, "outer_scale": ELBOW_OUTER_TRIM,
                         "verts": int(mov.sum()),
                         "max_shift_cm": round(float(np.linalg.norm(disp, axis=1).max()), 2)})
         print(f"  trim {child}: {records[-1]['verts']} verts, radial scale "
-              f"{scale} about the arm chain, largest shift "
-              f"{records[-1]['max_shift_cm']} cm")
+              f"{scale} (outer {ELBOW_OUTER_TRIM}) about the arm chain, largest "
+              f"shift {records[-1]['max_shift_cm']} cm")
     g.verts = [tuple(row) for row in new]
     _check_flips(g, v, f"elbow trim {g.name}")
     _recompute_normals(g, n_old)
