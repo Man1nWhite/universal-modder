@@ -46,9 +46,10 @@ BIND_ELBOW_DEG = 72.0      # Arm-ForeArm angle in the PD2 bind/menu pose
 IDLE_ELBOW_DEG = 12.0      # the heister's idle: the elbow hangs near straight
 
 
-def g_body_geo(zf: zipfile.ZipFile, pack_dir: str, item: str):
+def g_body_geo(zf: zipfile.ZipFile, pack_dir: str, item: str, fps: bool = False):
+    model_stem = f"fps_{item}" if fps else item
     mf = dm.ModelFile.read(
-        zf.read(f"{pack_dir}/assets/units/{item}/skins/{item}/{item}.model"))
+        zf.read(f"{pack_dir}/assets/units/{item}/skins/{item}/{model_stem}.model"))
     hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
     for s in mf.by_type(dm.MODEL_DATA):
         md = dm.decode_model_data(s.payload)
@@ -73,7 +74,7 @@ def g_body_geo(zf: zipfile.ZipFile, pack_dir: str, item: str):
                     [material] * atom["tri_count"])
             geo["face_materials"] = face_materials
             return geo
-    raise SystemExit("no g_body drawable in pack")
+    raise SystemExit(f"no g_body drawable in {'FPS ' if fps else ''}pack")
 
 
 def _subset_near_polyline(geo, chain, radius: float, pad: float = 6.0):
@@ -597,6 +598,8 @@ def main(argv=None) -> int:
     ap.add_argument("--zip", type=Path, required=True)
     ap.add_argument("--pack", required=True)
     ap.add_argument("--item", required=True)
+    ap.add_argument("--fps", action="store_true",
+                    help="render the shipped fps_<item>.model and FPS skeleton")
     ap.add_argument("--templates", type=Path, required=True)
     ap.add_argument("--out", type=Path, default=REPO / "build/pd2-las/previews")
     ap.add_argument("--pose", action="store_true",
@@ -612,9 +615,10 @@ def main(argv=None) -> int:
         render_source(args.source, args.out)
         return 0
     with zipfile.ZipFile(args.zip) as zf:
-        geo = g_body_geo(zf, args.pack, args.item)
+        geo = g_body_geo(zf, args.pack, args.item, fps=args.fps)
+        model_stem = f"fps_{args.item}" if args.fps else args.item
         mf = dm.ModelFile.read(
-            zf.read(f"{args.pack}/assets/units/{args.item}/skins/{args.item}/{args.item}.model"))
+            zf.read(f"{args.pack}/assets/units/{args.item}/skins/{args.item}/{model_stem}.model"))
         hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
         skel = None
         for s in mf.by_type(dm.MODEL_DATA):
@@ -623,10 +627,11 @@ def main(argv=None) -> int:
             if name == "g_body" and md.get("version") == 3:
                 skel = dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)
                 break
-    template = bm.load_template(args.templates / "2b.model")
+    template = bm.load_template(
+        args.templates / ("fps_2b.model" if args.fps else "2b.model"))
     bones = rest_skeleton(template, skel)
     args.out.mkdir(parents=True, exist_ok=True)
-    stem = args.item
+    stem = f"fps_{args.item}" if args.fps else args.item
     # every view is rendered so the committed set is fully reproducible from
     # this CLI - docs/pd2-las/CHRISTIE.md names these files explicitly
     for view in ("front", "side", "iso", "top", "bottom"):

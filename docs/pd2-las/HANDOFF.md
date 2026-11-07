@@ -34,9 +34,9 @@ Deliverables in **`dist/`**:
   remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,773,833 B, sha256
-`2fc22808…8603b`) and `dist/Christie_LAS_Slim.zip` (4,206,160 B, sha256
-`eb8e4f34…9482`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,773,888 B, sha256
+`4df217a6…ea2e`) and `dist/Christie_LAS_Slim.zip` (4,206,230 B, sha256
+`33832eaf…aca7`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -61,10 +61,13 @@ frame per row from `tools/pd2-las/elbow_before_after.py`. Several later
 correctives were rendered and rejected. The final fix authors a 12° near-idle
 arm rest, reapplies the skin with seam-welded eight-pass Taubin relaxation and
 inversion damping, and propagates the custom rest worlds through both TPP and
-FPS inverse binds. Final isolated outer-blazer front/side sheets and rest-bottom
-views were inspected for base and slim; the sleeve connection is continuous.
-See `christie{,_slim}_idle_rest_outer_sheet.png`. Validation: 55 Christie tests
-and 609 tests overall passed (29 skipped). Nothing built after 2026-11-05 has
+FPS inverse binds. A final tight-camera boundary repair closes the reviewed 50°
+near-sleeve gap on both arms; slim also has independent bounded multi-pose fold
+solutions. Final isolated outer sheets, cuff/idle comparisons and actual FPS
+renders were inspected for base and slim. See
+`christie{,_slim}_idle_rest_outer_sheet.png` and
+`fps_christie{,_slim}_skel_{front,cuff}.png`. Validation: 59 Christie tests
+and 613 tests overall passed (29 skipped). Nothing built after 2026-11-05 has
 been in game yet, so an in-game idle-elbow check is still recommended.
 See `docs/pd2-las/CHRISTIE.md` ("The elbow, measured on the elbow's own
 axis"). Tests: `tests/test_christie_las.py`.

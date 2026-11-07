@@ -1,9 +1,9 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `2fc22808…8603b`, 4,773,833 B)
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `4df217a6…ea2e`, 4,773,888 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `eb8e4f34…9482`,
-  4,206,160 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `33832eaf…aca7`,
+  4,206,230 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -66,18 +66,27 @@ inversion damping and deterministic backoff prevent relaxed slivers from
 flipping. Base relaxes 237 window vertices (maximum 2.28202 cm), slim 235
 (maximum 2.32909 cm); both finish with zero new orientation breaks.
 
+The final visual review exposed a real near-sleeve coverage gap at the 50° side
+view. A tight-camera, multi-angle boundary repair extends only the existing
+elbow vertices (never the mid-bicep proportion slices), converts the required
+posed displacement back through each vertex's inverse LBS matrix, and revalidates
+both arms after inversion damping. It adds no vertices, faces or far-side cover.
+Slim then receives two independent bounded multi-pose fold solutions (28 vertices,
+maximum 0.51962 cm); nearest-position mirroring was rejected. This closes the
+reported base/slim gap without changing cuffs, materials, topology or FPS counts.
+
 `Group.rest_worlds` now carries these authoring transforms through TPP and FPS
 extraction into the shipped inverse binds. Fit diagnostics and unposed renderer
 overlays read those transforms rather than assuming the old 72° template rest.
 The regression suite checks the 12° identity pose, TPP/FPS rest-world equality,
 coincident-vertex continuity at menu/intermediate/idle/extended poses, both
-arms' inner radii, slim proportions, cuffs and glove placement. The final
-material-isolated outer-blazer front/side sheets and rest-bottom views were
-visually inspected for both packs: the biceps–elbow–forearm surface is
-continuous, without the rejected stepped separation. Evidence:
-`christie{,_slim}_idle_rest_outer_sheet.png` and the refreshed
-`christie{,_slim}_{skel_bottom,hang_elbow_side,hang_elbow_front}.png`.
-Validation: **55 Christie tests passed; full `tests/` suite 609 passed,
+arms' inner radii and 50° near-shell coverage, slim proportions, cuffs and glove
+placement. Final material-isolated outer sheets, full-material idle/cuff
+comparisons, rest views and the actual `fps_<item>.model` renders were visually
+inspected for both packs. Evidence: `christie{,_slim}_idle_rest_outer_sheet.png`,
+`christie{,_slim}_{skel_bottom,hang_elbow_side,hang_elbow_front}.png`, and
+`fps_christie{,_slim}_skel_{front,cuff}.png`.
+Validation: **59 Christie tests passed; full `tests/` suite 613 passed,
 29 skipped**. This is an offline render/structural clearance; no build after
 2026-11-05 has yet been tested in game.
 

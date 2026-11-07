@@ -1586,6 +1586,33 @@ IDLE_ELBOW_STRAIGHTEN = 60.0
 IDLE_WRIST_STRAIGHTEN = -8.0
 IDLE_REST_TAUBIN_PASSES = 8
 
+# Bounded multi-pose fold solves for the slim sleeve after coverage repair.
+# Each vertex is limited to +/-0.30 cm per axis. The objective checks adjacent
+# face normals at 72/50/27/22/12/0 degrees, with coincident UV/material vertices
+# welded. Left and right are independent solutions; nearest-position mirroring
+# was explicitly rejected because the two corrected rest surfaces differ.
+SLIM_FOLD_DELTAS = {
+    "Left": {
+        1953: (.1227, -.1101, -.0015), 1954: (.0730, .0396, -.0203),
+        1945: (-.0421, .0748, .0379), 1944: (-.1599, -.0785, -.0259),
+        1959: (.1299, .0793, .1692), 1964: (.0410, .1344, -.1317),
+        1965: (.3000, .1252, .3000), 1955: (-.2966, -.2408, -.2472),
+        1966: (.0336, .3000, -.3000), 1956: (-.0034, -.0138, .0094),
+        1974: (-.3000, -.3000, .3000), 1984: (-.3000, -.3000, .3000),
+        1985: (.3000, .2411, -.3000),
+    },
+    "Right": {
+        1356: (.0100, -.2690, -.1637), 1359: (.0200, .0009, .0153),
+        1358: (-.1057, .0568, -.0759), 1370: (.0521, -.0876, .2840),
+        1368: (.3000, -.3000, .3000), 1371: (.1628, .0859, -.2471),
+        1372: (-.2312, .3000, .1925), 1367: (-.0135, -.0482, -.0150),
+        1376: (-.2383, .2435, .1419), 1373: (-.0294, .3000, .2750),
+        1375: (.3000, -.2713, -.3000), 1374: (-.3000, -.3000, .3000),
+        1369: (.2889, -.3000, .0462), 1378: (-.1339, .1435, -.1363),
+        1377: (-.2163, .3000, -.1002),
+    },
+}
+
 
 def idle_arm_rest_worlds(template: bm.Template) -> dict:
     """Absolute PD2 worlds for the near-idle authoring pose."""
@@ -1614,8 +1641,219 @@ def _weld_positions(verts, groups) -> None:
         verts[ids] = verts[ids].mean(axis=0)
 
 
+def _elbow_coverage_correction(g: bm.Group, template: bm.Template) -> dict:
+    """Extend the existing near sleeve boundary where posed coverage opens.
+
+    The 50-degree side view exposed a real gap beyond the outer sleeve's posed
+    vertex boundary; widening the camera depth only hid it with far-side body
+    faces. For each small enclosed background component, extend the nearest
+    existing boundary vertex just past that component. Convert the posed +Y
+    displacement through the inverse of that vertex's linear-blend matrix and
+    store it in the authored rest mesh. UV/material duplicates receive exactly
+    the same delta. No faces, vertices, weights, UVs or materials are added.
+
+    Repeat at the near-idle and intermediate review angles, then recheck 50
+    degrees. The right arm is evaluated in a mirrored side camera, so both arms
+    get the same near-shell treatment. The depth band remains tight throughout.
+    """
+    import contextlib
+    import io
+    import tempfile
+    import numpy as np
+    from PIL import Image
+    from scipy import ndimage
+    import diesel_model as dm
+    import render_mesh_skeleton as rms
+    from elbow_before_after import pose_for, window_for
+
+    if not g.verts:
+        return {"vertices": 0, "max_shift_cm": 0.0}
+    blendindices = [[pi for pi, _w in row] for row in g.weights]
+    blendweights = [[w for _pi, w in row] for row in g.weights]
+    rotations = [dm.mat_inv(g.rest_worlds[name]) for name in g.palette]
+    skel = {"objects": [template.name_id[name] for name in g.palette],
+            "rotations": rotations}
+    outer_faces = []
+    for (_src, _bv, base_i, tris, _nv), slot in zip(g.slices, g.mat_slots):
+        if slot in ("mtr_c02_01", "shadow_caster"):
+            first = base_i // 3
+            outer_faces.extend(g.faces[first:first + tris])
+    outer_faces = np.asarray(outer_faces, dtype=np.int64)
+    start = np.asarray(g.verts, dtype=np.float64)
+    groups = _coincident_groups(start)
+    moved = set()
+    remaining = []
+
+    def enclosed(path: Path, minimum: int = 100):
+        pixels = np.asarray(Image.open(path).convert("RGB"))
+        dark = pixels.max(axis=2) < 45
+        dark[:70] = False  # intentional renderer legend
+        labels, _count = ndimage.label(dark)
+        border = set(np.unique(np.concatenate(
+            [labels[0], labels[-1], labels[:, 0], labels[:, -1]])).tolist())
+        result = []
+        for index in np.unique(labels):
+            if not index or index in border:
+                continue
+            mask = labels == index
+            area = int(mask.sum())
+            if area <= minimum:
+                continue
+            ys, xs = np.where(mask)
+            result.append((area, (int(xs.min()), int(ys.min()),
+                                  int(xs.max()), int(ys.max())), mask))
+        return result
+
+    with (tempfile.TemporaryDirectory(prefix="christie-elbow-coverage-") as tmp,
+          contextlib.redirect_stdout(io.StringIO())):
+        image_path = Path(tmp) / "near_shell.png"
+        for side in ("Left", "Right"):
+            for straighten in (22.0, 60.0, 45.0, 0.0, 22.0):
+                worlds, bones = pose_for(template, -straighten)
+                geo = {"verts": g.verts, "faces": g.faces,
+                       "blendindices": blendindices, "blendweights": blendweights}
+                posed = rms.skin_verts(geo, skel, worlds)
+                view_posed = posed.copy()
+                pivot = np.array(
+                    worlds[template.name_id[f"{side}ForeArm"]][12:15], float)
+                if side == "Right":
+                    view_posed[:, 0] *= -1.0
+                    pivot[0] *= -1.0
+                near_distance = np.linalg.norm(view_posed - pivot, axis=1)
+                if not (near_distance <= 6.5).any():
+                    raise RuntimeError(f"coverage framing {g.name} {side} {straighten}: "
+                                       f"min {near_distance.min()} pivot {pivot} "
+                                       f"bounds {view_posed.min(axis=0)} {view_posed.max(axis=0)}")
+                window, _ = window_for([view_posed], pivot, "side", 6.5)
+                depth = float(rms.depth_towards_camera(
+                    "side", np.atleast_2d(pivot))[0])
+                outer = {"verts": view_posed, "faces": outer_faces}
+                rms.render(outer, bones, "side", image_path, zoom=window,
+                           depth=(depth - 9.0, depth + 9.0))
+                holes = enclosed(image_path)
+                if straighten == 22.0 and not holes:
+                    continue
+
+                u0, u1, v0, v1 = window
+                scale = min(940.0 / (u1 - u0), 940.0 / (v1 - v0))
+                offset = np.array([30.0 - u0 * scale, 30.0 + v1 * scale])
+                uv = rms.project(view_posed, "side")
+                screen = np.column_stack(
+                    [uv[:, 0] * scale + offset[0], -uv[:, 1] * scale + offset[1]])
+                face_depth = rms.depth_towards_camera(
+                    "side", view_posed[outer_faces].mean(axis=1)) - depth
+                candidates = np.unique(outer_faces[np.abs(face_depth) < 9.0])
+                # Keep the repair at the elbow, not the mid-bicep proportion
+                # slices. A farther boundary vertex is not required: the near
+                # one can extend across the same exposed component.
+                candidates = candidates[
+                    np.linalg.norm(view_posed[candidates] - pivot, axis=1) <= 8.0]
+
+                # Row-vector LBS: rest_delta @ A = posed_delta.
+                matrices = np.zeros((len(posed), 3, 3))
+                for i, weights in enumerate(g.weights):
+                    for pi, weight in weights:
+                        if weight <= 0.0:
+                            continue
+                        inv_bind = np.asarray(rotations[pi], float).reshape(4, 4)[:3, :3]
+                        pose = np.asarray(
+                            worlds[template.name_id[g.palette[pi]]],
+                            float).reshape(4, 4)[:3, :3]
+                        matrices[i] += weight * (inv_bind @ pose)
+
+                desired = np.zeros_like(posed)
+                selected = {}
+                for area, (x0, y0, x1, y1), mask in holes:
+                    for lo in range(y0, y1 + 1, 60):
+                        hi = min(lo + 60, y1 + 1)
+                        row = mask[lo:hi]
+                        if not row.any():
+                            continue
+                        target = int(np.where(row)[1].max()) + 60
+                        nearby = candidates[
+                            (screen[candidates, 1] >= lo - 30)
+                            & (screen[candidates, 1] <= hi + 30)
+                            & (screen[candidates, 0] < x0 + 10)
+                            & (screen[candidates, 0] > x0 - 180)]
+                        if not len(nearby):
+                            continue
+                        best = int(nearby[np.argmax(screen[nearby, 0])])
+                        selected[best] = max(selected.get(best, target), target)
+                for index, target in selected.items():
+                    dy = float(np.clip((target - screen[index, 0]) / scale, 0.0, 8.0))
+                    desired[index] = np.linalg.solve(
+                        matrices[index].T, np.array([0.0, dy, 0.0]))
+                updated = np.asarray(g.verts, dtype=np.float64)
+                for index in selected:
+                    for ids in groups:
+                        if index in ids:
+                            desired[ids] = desired[index]
+                            break
+                updated += desired
+                g.verts = [tuple(map(float, row)) for row in updated]
+                moved.update(selected)
+
+        # A boundary extension must not invert its adjacent rest triangles.
+        # Damp only the offending movers and re-weld duplicated UV/material
+        # vertices after every pass, then validate the posed coverage below.
+        faces = np.asarray(g.faces, dtype=np.int64)
+        displacement = np.asarray(g.verts, float) - start
+        for _ in range(4):
+            displacement = _damp_flips(faces, start, displacement, passes=48)
+            for ids in groups:
+                displacement[ids] = displacement[ids].mean(axis=0)
+        g.verts = [tuple(map(float, row)) for row in start + displacement]
+
+        # The final 50-degree pass above must leave no enclosed near-shell gap.
+        worlds, bones = pose_for(template, -22.0)
+        for side in ("Left", "Right"):
+            geo = {"verts": g.verts, "faces": g.faces,
+                   "blendindices": blendindices, "blendweights": blendweights}
+            posed = rms.skin_verts(geo, skel, worlds)
+            pivot = np.array(worlds[template.name_id[f"{side}ForeArm"]][12:15], float)
+            if side == "Right":
+                posed[:, 0] *= -1.0
+                pivot[0] *= -1.0
+            window, _ = window_for([posed], pivot, "side", 6.5)
+            depth = float(rms.depth_towards_camera("side", np.atleast_2d(pivot))[0])
+            rms.render({"verts": posed, "faces": outer_faces}, bones, "side",
+                       image_path, zoom=window, depth=(depth - 9.0, depth + 9.0))
+            remaining.extend((side, area, bounds)
+                             for area, bounds, _mask in enclosed(image_path, 500))
+    if remaining:
+        raise SystemExit(f"idle elbow coverage {g.name}: remaining gaps {remaining}")
+    shift = np.linalg.norm(np.asarray(g.verts, float) - start, axis=1)
+    return {"vertices": len(moved), "max_shift_cm": round(float(shift.max()), 5)}
+
+
+def _apply_slim_fold_solution(g: bm.Group) -> dict:
+    """Apply the independently solved, seam-welded slim fold corrections."""
+    import numpy as np
+
+    start = np.asarray(g.verts, dtype=np.float64)
+    updated = start.copy()
+    groups = _coincident_groups(start)
+    for side, deltas in SLIM_FOLD_DELTAS.items():
+        for index, delta in deltas.items():
+            if index >= len(updated):
+                raise SystemExit(f"slim fold solution {g.name}: missing vertex {index}")
+            if not any(g.palette[pi].startswith(side) and w > 0.01
+                       for pi, w in g.weights[index]):
+                raise SystemExit(f"slim fold solution {g.name}: wrong vertex {index}")
+            for ids in groups:
+                if index in ids:
+                    updated[ids] += np.asarray(delta, float)
+                    break
+            else:
+                updated[index] += np.asarray(delta, float)
+    g.verts = [tuple(map(float, row)) for row in updated]
+    return {"vertices": sum(len(v) for v in SLIM_FOLD_DELTAS.values()),
+            "max_shift_cm": round(float(np.linalg.norm(updated - start, axis=1).max()), 5)}
+
+
 def rebind_arms_at_idle(g: bm.Group, template: bm.Template,
-                        passes: int = IDLE_REST_TAUBIN_PASSES) -> dict:
+                        passes: int = IDLE_REST_TAUBIN_PASSES,
+                        slim: bool = False) -> dict:
     """Re-author geometry and inverse binds together in the idle arm pose.
 
     This is a *rest-pose change*, not a pose-space corrective. First the old
@@ -1744,6 +1982,14 @@ def rebind_arms_at_idle(g: bm.Group, template: bm.Template,
     verts = before_relax + displacement
     g.verts = [tuple(map(float, row)) for row in verts]
     _check_flips(g, before_relax, f"idle elbow relaxation {g.name}")
+    before_coverage = np.asarray(g.verts, dtype=np.float64).copy()
+    coverage = _elbow_coverage_correction(g, template)
+    _check_flips(g, before_coverage, f"idle elbow coverage {g.name}")
+    fold = {"vertices": 0, "max_shift_cm": 0.0}
+    if slim:
+        before_fold = np.asarray(g.verts, dtype=np.float64).copy()
+        fold = _apply_slim_fold_solution(g)
+        _check_flips(g, before_fold, f"slim multi-pose fold solution {g.name}")
     _recompute_normals(g, np.asarray(g.normals, dtype=np.float64))
     report = {
         "rest_elbow_deg": 72.0 - IDLE_ELBOW_STRAIGHTEN,
@@ -1752,9 +1998,16 @@ def rebind_arms_at_idle(g: bm.Group, template: bm.Template,
         "coincident_groups": len(groups),
         "max_rebind_shift_cm": round(float(np.linalg.norm(posed - old, axis=1).max()), 5),
         "max_relax_shift_cm": round(float(np.linalg.norm(verts - before_relax, axis=1).max()), 5),
+        "coverage_vertices": coverage["vertices"],
+        "max_coverage_shift_cm": coverage["max_shift_cm"],
+        "fold_solution_vertices": fold["vertices"],
+        "max_fold_solution_shift_cm": fold["max_shift_cm"],
     }
     print(f"  idle arm rest {g.name}: {len(movable)} verts in relaxation window, "
-          f"{len(groups)} seam groups, max relax {report['max_relax_shift_cm']} cm")
+          f"{len(groups)} seam groups, max relax {report['max_relax_shift_cm']} cm; "
+          f"coverage {coverage['vertices']} verts / "
+          f"{coverage['max_shift_cm']} cm; fold solve "
+          f"{fold['vertices']} verts / {fold['max_shift_cm']} cm")
     return report
 
 
@@ -2495,7 +2748,8 @@ def main(argv=None) -> int:
     # carries the same rest_worlds into the viewmodel.
     idle_rest: dict[str, dict] = {}
     for gname in ("body", "shadow"):
-        idle_rest[gname] = rebind_arms_at_idle(groups[gname], template)
+        idle_rest[gname] = rebind_arms_at_idle(
+            groups[gname], template, slim=args.variant == "slim")
         breaks = bm.orientation_breaks(groups[gname])
         agree = bm.winding_agreement(groups[gname].verts, groups[gname].faces,
                                      groups[gname].normals)

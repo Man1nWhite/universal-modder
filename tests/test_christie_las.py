@@ -1003,3 +1003,47 @@ def test_elbow_deforms_cleanly_from_idle_rest(which):
     # Straightening the remaining 12 degrees must not introduce a new fold.
     assert at72["min_ratio"] >= 0.70
     assert at72["shorten_max"] <= 0.60
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+@pytest.mark.parametrize("side", ("Left", "Right"))
+def test_elbow_closeup_depth_has_no_false_holes(which, side, tmp_path):
+    """The 50-degree side review must not cut an enclosed black hole.
+
+    The near-shell camera-depth band must retain continuous sleeve coverage.
+    Widening the band is not a valid fix: it can cover a genuine gap with
+    unrelated far-side body faces. Internal background components larger than
+    500 pixels catch a recurrence without mistaking the exterior silhouette
+    for a mesh hole.
+    """
+    import build_models as bm
+    import render_mesh_skeleton as rms
+    from elbow_before_after import load_pack, pose_for, window_for
+    from review_christie_idle import material_subset
+    from scipy import ndimage
+
+    _, pack, item, _g = PACKS[which]
+    geo, skel = load_pack(Path(PACKS[which][0]), pack, item)
+    template = bm.load_template(_templates() / "2b.model")
+    worlds, bones = pose_for(template, -22)
+    posed = rms.skin_verts(geo, skel, worlds)
+    pivot = np.array(worlds[template.name_id[f"{side}ForeArm"]][12:15], float)
+    if side == "Right":
+        posed[:, 0] *= -1.0
+        pivot[0] *= -1.0
+    window, _ = window_for([posed], pivot, "side", 6.5)
+    depth = float(rms.depth_towards_camera("side", np.atleast_2d(pivot))[0])
+    out = tmp_path / "elbow.png"
+    rms.render(material_subset(geo, "mtr_c02_01"), bones, "side", out,
+               zoom=window, verts=posed, depth=(depth - 9, depth + 9))
+    from PIL import Image
+    pixels = np.asarray(Image.open(out).convert("RGB"))
+    dark = pixels.max(axis=2) < 45
+    dark[:70] = False  # renderer legend is an intentional dark rectangle
+    labels, _ = ndimage.label(dark)
+    border = set(np.unique(np.concatenate(
+        [labels[0], labels[-1], labels[:, 0], labels[:, -1]])).tolist())
+    internal = [i for i in np.unique(labels) if i and i not in border]
+    holes = [(i, int((labels == i).sum())) for i in internal
+             if (labels == i).sum() > 500]
+    assert not holes, f"{which} {side}: enclosed background regions: {holes}"
