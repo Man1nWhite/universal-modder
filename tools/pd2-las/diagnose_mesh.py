@@ -30,7 +30,6 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -328,17 +327,17 @@ def diagnose(label: str, path: Path, pack: str, item: str,
         print(f"  wrist shell {k:2d} {mats:11s} verts {len(vs):4d} "
               f"t_past_hand max {t.max():5.1f} cm")
 
-    # sleeve gloss mask: how much leg/shoe UV area is inside it
-    W, r = 1024, 24
+    # sleeve gloss mask: the mask the build actually ships. It is rasterised
+    # from the sleeve's own UV triangles (build_christie_las.sleeve_uv_mask),
+    # so a leg face can only be inside it if the sleeve and the trouser islands
+    # overlap in the atlas.
+    import build_christie_las as bcl
+
     role = "mtr_c02_01"
-    fv = np.unique(f[fmat == role])
-    armv = fv[p["w"]["arm"][fv] > 0.40]
-    canvas = Image.new("L", (W, W), 0)
-    pen = ImageDraw.Draw(canvas)
-    for i in armv:
-        x, y = p["uv"][i][0] * W, (1 + p["uv"][i][1]) * W
-        pen.ellipse([x - r, y - r, x + r, y + r], fill=255)
-    mask = np.asarray(canvas.filter(ImageFilter.BoxBlur(12))) / 255.0
+    sleeve_faces = [fi for fi in np.where(fmat == role)[0]
+                    if float(p["w"]["arm"][f[fi]].mean()) > bcl.SLEEVE_BONE_SHARE]
+    mask = bcl.sleeve_uv_mask(p["uv"], [f[fi] for fi in sleeve_faces],
+                              feather_texels=bcl.SLEEVE_FEATHER_TEXELS)
 
     def uva(fi):
         t = p["uv"][f[fi]]
@@ -347,16 +346,19 @@ def diagnose(label: str, path: Path, pack: str, item: str,
 
     def mval(fi):
         c = p["uv"][f[fi]].mean(0)
-        return mask[int(np.clip((1 + c[1]) * W, 0, W - 1)),
-                    int(np.clip(c[0] * W, 0, W - 1))]
+        y = int(np.clip((1 + c[1]) * 1024, 0, 1023))
+        x = int(np.clip(c[0] * 1024, 0, 1023))
+        return mask[y, x]
 
     leg = [fi for fi in np.where(fmat == role)[0]
            if p["w"]["leg"][f[fi]].mean() > 0.5 and p["w"]["arm"][f[fi]].mean() < 0.1]
     tot = sum(uva(fi) for fi in leg)
     cov = sum(uva(fi) for fi in leg if mval(fi) > 0.05)
-    if tot:
-        print(f"sleeve gloss mask on {role} leg-only faces: {cov / tot * 100:.1f}% "
-              f"of their UV area over {sum(1 for fi in leg if mval(fi) > 0.05)} faces")
+    sleeve_pct = (sum(1 for fi in sleeve_faces if mval(fi) > 0.5)
+                  / max(1, len(sleeve_faces)) * 100)
+    print(f"sleeve gloss mask: {cov / max(tot, 1e-9) * 100:.1f}% of the {role} "
+          f"leg-only UV area covered ({sum(1 for fi in leg if mval(fi) > 0.05)} of "
+          f"{len(leg)} faces); sleeve faces covered {sleeve_pct:.0f}%")
 
     # sleeve slit: the radial-dodging area of each sleeve tube. The stitch pass
     # is supposed to have closed the zero-width seam, so only the open cuff

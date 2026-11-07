@@ -131,8 +131,8 @@ not smear. Slim unifies 98 copies over 49 groups, base 100 over 50; interior
 divergent pairs 49/50 → **0**, border pairs untouched (431/806), worst pre-fix
 pair 101°/103° (beyond 120° the pass refuses to average), winding agreement
 97.3 → 97.1/97.2 %, 0 orientation breaks, no position/UV/face/weight change.
-Packs rebuilt: `f26771918a4cb7f3cabb61dce2776efca4066b1a65df1dc50ddccd54a1b5ff38`
-base, `f8ce4c307d46d395d39dde553fc861e413ecf833134bf9efd73b092591223ed8` slim.
+Packs rebuilt: `c57edbbaa91a8aa7059b7432a76d63a1a84b2617feb1eef2557c597091b1f765`
+base, `5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d` slim
 Also `bootstrap.sh` now installs **scipy**, which the slim build needs
 (`_elbow_coverage_correction`) and which a clean bootstrap used to miss. Tests:
 `tests/test_seam_normals.py` plus `test_interior_coincident_normals_agree`;
@@ -633,6 +633,30 @@ blocks) and the sleeve-region mean alpha drops 23.5 → 11.6; the mask was
 confirmed to land on the sleeves by rendering the built model with the mask
 tint-baked into the diffuse (red arms, grey torso).
 `c02_05` (heels) gets an empty mask — no arm-chain verts — and is left alone.
+
+**Revised 2026-11-07.** The 24-texel vertex discs reached well past the sleeve:
+measured off the shipped packs they covered **3.2 %** of the leg faces' UV area
+over **151** faces, 123 of them at z 0–20 cm (the boots), and because the
+attenuation was re-quantised per 4×4 DXT block at every mip, its edge grew into
+~5 cm axis-aligned patches at mip 3 — the stair-stepped sheen on the trousers in
+the 2026-11-07 screenshots. Two changes:
+
+- `sleeve_uv_mask(uvs, faces)` rasterises the **UV triangle** of every face whose
+  mean arm-chain share exceeds `SLEEVE_BONE_SHARE` (rather than splatting a disc
+  at each arm-weighted vertex), blurs it by `SLEEVE_FEATHER_TEXELS = 3` and
+  **clips it back to the unblurred footprint**, so the feather softens the edge
+  of the change without ever reaching a texel the sleeve does not own;
+- `retouch_sleeve_gloss` attenuates **mip 0 only** and rebuilds the pyramid from
+  it (`pd2_dds.mip_payloads_from_mip0` + `pack_dds`), so the mips are a filtered
+  version of one full-resolution mask instead of a separately quantised one.
+
+Result: leg-only UV area touched 3.2 % → **0.8 %** (33 faces, all at
+z 2.6–11.9 cm), sleeve faces covered 100 % (1,740), atlas area 13.3 %, alpha
+inside the mask 5.51 against 11.25 outside (0.49×). The 33 remaining faces are
+**atlas sharing, not mask reach** — their UVs sit inside the sleeve islands of
+`c02_01_df` (mask 0.29–1.00 at their centroids), so those texels are sampled by
+the sleeve and the boot both; separating them needs the boots re-UV'd. Pinned by
+`test_sleeve_gloss_mask_stays_on_the_sleeve`.
 
 ### The elbow at the in-game hang (why the first build looked fine offline)
 

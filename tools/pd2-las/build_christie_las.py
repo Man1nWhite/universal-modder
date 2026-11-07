@@ -384,94 +384,122 @@ def convert_textures(zf: zipfile.ZipFile, identity: Identity) -> dict[str, bytes
 # Extra alpha attenuation inside the sleeve UV regions only:
 SLEEVE_GLOSS_ATTEN = 0.55
 SLEEVE_BONE_SHARE = 0.40    # vert counts as sleeve above this arm-chain share
-SLEEVE_SPLAT_TEXELS = 24    # splat radius around each sleeve vert's UV (mip0 texels)
+SLEEVE_FEATHER_TEXELS = 3.0  # edge feather of the sleeve footprint (mip0 texels)
+
+
+def sleeve_uv_mask(uvs, faces, *, work: int = 1024, feather_texels: float = 3.0):
+    """Texel coverage of a set of UV triangles (the sleeve's own islands).
+
+    Rasterising the *faces* rather than splatting a disc around each vertex is
+    what keeps the sleeve gloss mask off the rest of the suit: the mask is then
+    exactly the UV footprint of the sleeve, so a texel that belongs to the
+    trousers or the shoes cannot pick it up no matter how close the islands sit
+    in the atlas. The blur is applied **inside** that footprint only (the
+    blurred mask is clipped to the unblurred one), so the feather softens the
+    edge of the change without ever reaching a texel the sleeve does not own.
+    """
+    import numpy as np
+    from PIL import Image, ImageDraw, ImageFilter
+
+    im = Image.new("L", (work, work), 0)
+    pen = ImageDraw.Draw(im)
+    for a, b, c in faces:
+        pts = []
+        for i in (a, b, c):
+            u, v = uvs[int(i)]
+            # stored UVs are internal (u, -v_source): row 0 of the texture is
+            # sampled at internal v = -1, so y = (1 + v) * size — the same
+            # mapping preview_textured._sample(flip_v=True) applies.
+            pts.append((float(u) * work, (1.0 + float(v)) * work))
+        pen.polygon(pts, fill=255)
+    hard = np.asarray(im, dtype=np.float64) / 255.0
+    if feather_texels > 0:
+        soft = np.asarray(im.filter(ImageFilter.GaussianBlur(feather_texels)),
+                          dtype=np.float64) / 255.0
+        return np.where(hard > 0.0, soft, 0.0)
+    return hard
 
 
 def sleeve_uv_masks(group: bm.Group) -> dict:
     """Per-material-role texel masks (1024x1024 working res) of sleeve UV regions.
 
-    A vertex counts as sleeve when more than ``SLEEVE_BONE_SHARE`` of its skin
-    weight sits on the arm chain (Arm/ForeArm/Hand/fingers). Each sleeve
-    vertex's UV is splatted with a disc; the mask is box-blurred for
-    feathering. Row convention matches ``preview_textured._sample`` with
-    ``flip_v=True``: row 0 is internal v = 1.
+    A face counts as sleeve when the *mean* arm-chain share (Arm/ForeArm/Hand/
+    fingers) of its three vertices is above ``SLEEVE_BONE_SHARE``; only those
+    faces are rasterised into the role's canvas. The sleeve and the trousers
+    share material `c02_01`, which is exactly why the mask has to be limited to
+    the faces the arm chain actually drives.
     """
     import numpy as np
-    from PIL import Image, ImageDraw, ImageFilter
 
     armish = {n for n in group.palette
               if n.endswith("Arm") or n.endswith("ForeArm")
               or n.endswith("Hand") or "Finger" in n}
-    roles = {KEEP_MATERIALS[src_mat][1]
-             for src_mat, *_ in group.slices}
-    WORK = 1024
-    canvases = {role: Image.new("L", (WORK, WORK), 0) for role in roles}
-    r = max(2, SLEEVE_SPLAT_TEXELS * WORK // 1024)
-    for src_mat, base_v, _base_i, _tris, nverts in group.slices:
-        role = KEEP_MATERIALS[src_mat][1]
-        d = ImageDraw.Draw(canvases[role])
-        for i in range(base_v, base_v + nverts):
-            share = sum(w for pi, w in group.weights[i]
-                        if group.palette[pi] in armish)
-            if share <= SLEEVE_BONE_SHARE:
-                continue
-            u, v = group.uvs[i]
-            # stored UVs are internal (u, -v_source): row 0 of the texture is
-            # sampled at internal v = -1, so y = (1 + v) * size — this is the
-            # same mapping preview_textured._sample(flip_v=True) applies.
-            x, y = u * WORK, (1.0 + v) * WORK
-            d.ellipse([x - r, y - r, x + r, y + r], fill=255)
-    out = {}
-    for role, im in canvases.items():
-        im = im.filter(ImageFilter.BoxBlur(max(1, r // 2)))
-        out[role] = np.asarray(im, dtype=np.float64) / 255.0
+    share = np.array([sum(w for pi, w in infl if group.palette[pi] in armish)
+                      for infl in group.weights])
+    face_role: list[str] = []
+    for src_mat, _bv, _base_i, tris, _nv in group.slices:
+        face_role.extend([KEEP_MATERIALS[src_mat][1]] * tris)
+    if len(face_role) != len(group.faces):
+        raise SystemExit(
+            f"sleeve_uv_masks: {len(face_role)} slice faces against "
+            f"{len(group.faces)} triangles")
+    out: dict = {}
+    roles = sorted(set(face_role))
+    for role in roles:
+        sel = [(group.faces[f], face_role[f]) for f in range(len(group.faces))
+               if face_role[f] == role
+               and float(share[list(group.faces[f])].mean()) > SLEEVE_BONE_SHARE]
+        if not sel:
+            out[role] = np.zeros((1024, 1024), dtype=np.float64)
+            continue
+        out[role] = sleeve_uv_mask(group.uvs, [faces for faces, _r in sel],
+                                   feather_texels=SLEEVE_FEATHER_TEXELS)
     return out
 
 
 def retouch_sleeve_gloss(textures: dict[str, bytes], group: bm.Group,
                          texture_prefix: str, texel_masks: dict) -> int:
-    """Darken diffuse alpha (gloss) inside the sleeve UV regions, every mip.
+    """Darken diffuse alpha (gloss) inside the sleeve UV regions.
 
-    The .texture payloads carry a full mipmap pyramid with mip 0 first, so the
-    per-level block grids all start at the payload front; each level's mask is
-    the previous level's 2x2-block mean. Returns the number of blocks touched
-    at mip 0.
+    Only **mip 0** is attenuated, block by block, and the rest of the pyramid is
+    regenerated from the attenuated mip 0. Attenuating every level separately
+    (the 2026-11-06 shape of this pass) quantises the mask edge to whatever the
+    block grid is at that level — ~0.7 cm per block at mip 0 on the suit but
+    ~5 cm at mip 3 — which is the stair-stepped sheen patch the screenshots
+    show on the trousers. Regenerating instead means the coarse mips inherit a
+    *filtered* version of the same mask, so the only edge in the texture is the
+    one drawn at full resolution.
+
+    Returns the number of mip-0 blocks touched.
     """
     import numpy as np
+    from PIL import Image
 
     total = 0
-    for src_mat, (_slot, role) in KEEP_MATERIALS.items():
+    for _src_mat, (_slot, role) in KEEP_MATERIALS.items():
         key = f"{texture_prefix}_{role}_df.texture"
         if key not in textures:
             continue
         payload = bytearray(textures[key])
-        h = int.from_bytes(payload[12:16], "little")
-        w = int.from_bytes(payload[16:20], "little")
-        # mip0 texel mask -> block grid, then halve per level
-        from PIL import Image
-
+        size, _mips, mip0 = pd2_dds.dds_mip0_slice(bytes(payload))
+        blocks = max(1, size // 4)
+        # mip0 texel mask -> one value per 4x4 block
         im = Image.fromarray((np.clip(texel_masks[role], 0, 1) * 255).astype(np.uint8))
-        im = im.resize((w, h), Image.BILINEAR)
-        block_mask = (np.asarray(im, dtype=np.float64) / 255.0)[:h // 4 * 4, :w // 4 * 4] \
-            .reshape(h // 4, 4, w // 4, 4).mean(axis=(1, 3))
-        off = 128
-        level_mask = block_mask          # (h//4, w//4) for the current level
-        while off < len(payload):
-            bh, bw = level_mask.shape
-            flat = level_mask.reshape(-1)
-            for bi in np.where(flat > 0.004)[0]:
-                fac = 1.0 - SLEEVE_GLOSS_ATTEN * float(flat[bi])
-                blk = np.frombuffer(bytes(payload[off + 16 * bi:off + 16 * bi + 8]),
-                                    dtype=np.uint8)
-                alpha = dds._dxt5_alpha_decode(blk) * fac
-                payload[off + 16 * bi: off + 16 * bi + 8] = dds._dxt5_alpha_encode(alpha)
-            total += int((flat > 0.004).sum())
-            off += 16 * bh * bw
-            if h % 8 or w % 8 or bh < 2 or bw < 2:
-                break                    # can't halve further cleanly
-            h, w = h // 2, w // 2
-            level_mask = level_mask.reshape(bh // 2, 2, bw // 2, 2).mean(axis=(1, 3))
-        textures[key] = bytes(payload)
+        im = im.resize((size, size), Image.BILINEAR)
+        block_mask = (np.asarray(im, dtype=np.float64) / 255.0)[:blocks * 4, :blocks * 4] \
+            .reshape(blocks, 4, blocks, 4).mean(axis=(1, 3))
+        mip0 = bytearray(mip0)
+        flat = block_mask.reshape(-1)
+        for bi in np.where(flat > 0.004)[0]:
+            fac = 1.0 - SLEEVE_GLOSS_ATTEN * float(flat[bi])
+            blk = np.frombuffer(bytes(mip0[16 * bi:16 * bi + 8]), dtype=np.uint8)
+            alpha = dds._dxt5_alpha_decode(blk) * fac
+            mip0[16 * bi: 16 * bi + 8] = dds._dxt5_alpha_encode(alpha)
+        total += int((flat > 0.004).sum())
+        # regenerate mips 1..n from the attenuated mip 0; keep mip 0 as encoded
+        chain = pd2_dds.mip_payloads_from_mip0(bytes(mip0), size)
+        chain[0] = bytes(mip0)
+        textures[key] = pd2_dds.pack_dds(chain, size)
     return total
 
 

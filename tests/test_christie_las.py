@@ -745,6 +745,82 @@ def test_sleeve_tube_is_closed_along_its_length(which, side):
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
+def test_sleeve_gloss_mask_stays_on_the_sleeve(which):
+    """The specular attenuation may only land on texels the sleeve samples.
+
+    The first pass punched a 24-texel disc around every arm-weighted vertex.
+    Measured off the shipped packs, that mask reached **3.2 %** of the leg
+    faces' UV area over **151** faces, 123 of them at z 0-20 cm - the boots
+    (docs/audits/2026-11-07-christie-slim-diagnosis.md, item 6). The block
+    quantisation of that edge is what the screenshots show as stair-stepped
+    blotches on the trousers.
+
+    ``sleeve_uv_mask`` rasterises the sleeve's own UV triangles and clips the
+    feather to that footprint, so the only faces it can still reach are ones
+    whose UVs genuinely sit inside a sleeve island. ``retouch_sleeve_gloss``
+    then attenuates mip 0 and rebuilds the pyramid from it, so the mask edge
+    cannot grow with distance; both are pinned here.
+    """
+    import build_christie_las as bcl
+    import diagnose_mesh as dg
+
+    pd2_dds = bcl.pd2_dds
+
+    path = REPO / PACKS[which][0]
+    pack_dir, item_id = PACKS[which][1], PACKS[which][2]
+    zf = _zf(which)
+    try:
+        name = next(n for n in zf.namelist()
+                    if n.endswith(f"{item_id}_c02_01_df.texture"))
+        blob = zf.read(name)
+    finally:
+        zf.close()
+
+    p = dg.load(path, pack_dir, item_id)
+    faces, fmat, uvs = p["faces"], p["fmat"], p["uv"]
+    arm_w = p["w"]["arm"]
+    role = "mtr_c02_01"
+    sleeve = [fi for fi in np.where(fmat == role)[0]
+              if float(arm_w[faces[fi]].mean()) > bcl.SLEEVE_BONE_SHARE]
+    assert len(sleeve) > 500, f"{which}: only {len(sleeve)} sleeve faces found"
+
+    mask = bcl.sleeve_uv_mask(uvs, [faces[fi] for fi in sleeve],
+                              feather_texels=bcl.SLEEVE_FEATHER_TEXELS)
+
+    def centroid(fi: int) -> tuple[float, float]:
+        c = uvs[faces[fi]].mean(axis=0)
+        return float(np.clip(c[0], 0.0, 1.0)), float(np.clip(1.0 + c[1], 0.0, 1.0))
+
+    def coverage(indices) -> tuple[float, int]:
+        vals = [mask[int(y * 1023), int(x * 1023)] for x, y in
+                (centroid(fi) for fi in indices)]
+        covered = [v for v in vals if v > 0.05]
+        return (len(covered) / max(1, len(vals)), len(covered))
+
+    covered, _ = coverage(sleeve)
+    assert covered >= 0.99, f"{which}: mask misses {1 - covered:.1%} of the sleeve"
+
+    leg_w = p["w"]["leg"]
+    leg = [fi for fi in np.where(fmat == role)[0]
+           if float(leg_w[faces[fi]].mean()) > 0.5
+           and float(arm_w[faces[fi]].mean()) < 0.1]
+    share, count = coverage(leg)
+    assert share < 0.015, (
+        f"{which}: the gloss mask covers {share:.1%} of the leg-only UV area "
+        f"over {count} faces (the vertex-disc mask scored 3.2 % / 151)")
+    assert count <= 60, f"{which}: mask touches {count} leg-only faces"
+
+    size, mips, mip0 = pd2_dds.dds_mip0_slice(blob)
+    assert size == 1024 and mips == 11
+    alpha = pd2_dds.decode_dxt5(mip0, size, size)[..., 3].astype(np.float64)
+    inside = float(alpha[mask > 0.5].mean())
+    outside = float(alpha[mask <= 0.5].mean())
+    assert 0.3 < inside / outside < 0.8, (
+        f"{which}: sleeve alpha {inside:.2f} vs rest of the atlas {outside:.2f} "
+        f"({inside / outside:.2f}x) - the attenuation is not in the shipped texture")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
 def test_interior_coincident_normals_agree(which):
     """A duplicated vertex must shade as one vertex (work order item 1).
 

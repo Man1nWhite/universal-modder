@@ -210,11 +210,31 @@ the icon, the skin df/nm pair, and a df/nm pair per garment material. None of
 them is a UI sheet.
 
 Two corrections to the first pass: the mask is far narrower than "the trousers"
-— of the 151 leg-only faces it touches, 123 are at z 0–20 cm, i.e. the **shoes**
+— of the 151 leg-only faces it touched, 123 are at z 0–20 cm, i.e. the **shoes**
 (3.2 % of the leg faces' UV area) — and the artifact is a *gloss* difference, so
-it reads as a slightly different sheen, not as a stain. Scope it to the sleeve
-islands and rebuild it at mip 0 only, and the block quantisation cannot grow
-with distance.
+it reads as a slightly different sheen, not as a stain.
+
+**Fixed in this build.** The mask no longer comes from vertex discs: each sleeve
+face's UV triangle is rasterised into the atlas (`sleeve_uv_mask`, 3-texel
+feather clipped to the footprint so no texel outside the sleeve is touched), and
+`retouch_sleeve_gloss` attenuates **mip 0 only**, then regenerates the pyramid
+from it (`mip_payloads_from_mip0`), so the mip chain is a filtered version of one
+full-resolution mask instead of a separately quantised one per level. Measured
+off the shipped packs:
+
+| | first pass | this build |
+|---|---|---|
+| leg-only UV area touched | 3.2 % | **0.8 %** |
+| leg-only faces touched | 151 | **33** (all z 2.6–11.9, the shoes) |
+| sleeve faces covered | — | 100 % (1,740 faces) |
+| alpha inside / outside the mask | — | 5.51 / 11.25 (0.49×) |
+| mip count, texture payload | 11, 1,398,256 B | 11, 1,398,256 B |
+
+The remaining 33 faces are **atlas sharing, not mask reach**: their UVs sit
+inside the sleeve islands of `c02_01_df` (mask value up to 1.00 at their
+centroids), so those texels are sampled by both the sleeve and the boot and no
+mask can separate them. Removing that residue needs the boots re-UV'd, which is
+a texture-authoring change, not a build pass.
 
 ### 7. Neck tonal split (head-mod territory — verify ownership first)
 
@@ -232,5 +252,7 @@ chased in the wrong repository.
 2. **Elbow sliver + armpit hole** (2–3) — the two places where the mesh visibly
    comes apart.
 3. **Wrist line** (4) — skin band, red UV speck, cuff lip.
-4. **Trouser blotches** (6) — mask/mip scope.
+4. ~~**Trouser blotches** (6)~~ — **done**: face-raster mask scoped to the
+   sleeve islands, mip 0 attenuated and the pyramid regenerated (0.8 % of the
+   leg UV area left, and that residue is atlas sharing with the boots).
 5. Defer item 7 to the head mod.

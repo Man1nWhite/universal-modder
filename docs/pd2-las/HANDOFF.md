@@ -34,9 +34,9 @@ Deliverables in **`dist/`**:
   remain unverified — there is no checklist for the head packs (the LAS one is
   `docs/pd2-las/in-game-checklist.md`).
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,775,131 B, sha256
-`f2677191…5ff38`) and `dist/Christie_LAS_Slim.zip` (4,206,310 B, sha256
-`f8ce4c30…23ed8`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,794,618 B, sha256
+`c57edbba…b1f76`) and `dist/Christie_LAS_Slim.zip` (4,222,761 B, sha256
+`5e55745f…170b4`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -75,7 +75,17 @@ orientation breaks, UVs byte-identical), and `unify_coincident_normals` gave
 every *interior* coincident vertex one normal (0 interior divergent pairs, the
 border folds left alone); see "2026-11-07 sleeve seam stitch" / "seam normals" in
 `CHRISTIE.md`, §8-§9 of the diagnosis audit and the corrected screenshot review.
-65 Christie tests now.
+The same day the sleeve-gloss mask was rebuilt: it is now rasterised from the
+sleeve's own UV faces and clipped to that footprint, and only mip 0 is
+attenuated (the pyramid is regenerated from it). Leg-only UV coverage 3.2 % →
+**0.8 %** (151 → 33 faces, all on the boots, and those 33 are atlas sharing
+rather than mask reach); sleeve coverage 100 %, alpha inside/outside 5.51/11.25.
+Work-order item 3 (the armpit notch) was measured and **closed as "not a
+defect"**: `cast_front` does not cull, so the wedge is empty space between the
+arm and the torso, the sleeve's armhole rim is coincident with the torso on its
+whole upper arc and free on the lower one — as an armhole is — and the 2B
+reference carries the same arm/body gap (8.2 cm² against 31.2). No build change.
+67 Christie tests now, 635 overall.
 See `docs/pd2-las/CHRISTIE.md` ("The elbow, measured on the elbow's own
 axis"). Tests: `tests/test_christie_las.py`.
 

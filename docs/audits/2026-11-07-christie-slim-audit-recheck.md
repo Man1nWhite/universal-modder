@@ -182,7 +182,7 @@ numbers support.
   visible at native scale.
 - Item 7's scoping to the heister head mod is right; the pack ships no head.
 - Code references: `cut_hands()` really does keep a face only when all three
-  vertices are non-hand; `SLEEVE_SPLAT_TEXELS = 24`; `_elbow_coverage_correction()`
+  vertices are non-hand; `_elbow_coverage_correction()`
   and `_apply_slim_fold_solution()` exist as named.
 
 ## Suggested edits to the audit

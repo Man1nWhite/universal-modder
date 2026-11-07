@@ -110,10 +110,52 @@ armhole border is at |x| ≈ 16 cm). The audit's `rebind_arms_at_idle` hypothesi
 would predict this gap opening when the elbow straightens; the mesh shows it
 already open in rest, and base has more of it.
 
-**Fix (if it is worth fixing):** this is a modelling fix, not a deformation fix —
-either extend the skin torso to close the armhole, or pull the sleeve's inner
-rim into the torso so its border is hidden inside the shell. Changing weights or
-the fold solver cannot close a gap that consists of empty space.
+**What the ray cast actually says (measured 2026-11-07).** `cast_front` does not
+cull backfaces — any triangle hit counts — so a *miss* is a ray that passes
+through **no geometry at all**. The wedge is therefore not a hole in a surface
+and not the sleeve's interior showing through: it is the empty space between two
+separate silhouette blocks, the sleeve shell on the lateral side and the blazer
+torso on the medial side, with the background visible between them. There is
+nothing to patch — closing it means moving one block into the other.
+
+Measured rim-to-torso clearance, sleeve armhole loop 17 (22 verts, shell 9),
+nearest vertex outside the sleeve shells:
+
+| rim vertex | z | clearance |
+| --- | --- | --- |
+| v2013 | 153.3 | 0.00 cm (coincident with the torso) |
+| v2010 | 148.5 | 0.00 cm |
+| v2003 | 143.7 | 0.00 cm |
+| v1997 | 141.1 | 0.00 cm |
+| v2002 | 135.0 | 8.66 cm |
+| v2068 | 130.3 | 13.14 cm |
+
+So the armhole's **upper arc is already sewn to the torso** (exactly what
+`unify_coincident_normals` then shades) and its lower arc is free by design —
+that is what an armhole is. The pack has no modelling error here; the slit the
+screenshots show is the gap between a hanging arm and the waist.
+
+**The reference does not close it either.** Same ray cast, same window, on the
+2B template (`g_body` of `2b.model`):
+
+| | total | z 131–136 | z 136–141 | z ≥ 146 |
+| --- | --- | --- | --- | --- |
+| 2B template | 8.2 cm² | **0.0 cm²** | 7.8 cm² | 0.5 cm² |
+| Christie slim | 31.2 cm² | 11.5 cm² | 19.8 cm² | 0.0 cm² |
+
+Read that with the metric's own bias in mind: a cell only counts when there is
+geometry within 6 cm on **both** sides, so a *wider* arm/body gap scores *fewer*
+cells. 2B's clearance at z 134 is 15.5 cm against Christie's 9.5 cm — the
+reference scores zero below z 136 largely because its arm hangs further out, not
+because its armhole is closed. The honest reading is that both models carry an
+open arm/body gap and the tighter one produces more "crack" cells.
+
+**Decision: no build change.** The gap is inherited (base 39.5 cm², slim
+31.2 cm²), it is empty space rather than a hole, and the only ways to remove it
+— pull the sleeve's underarm into the torso, or bridge rim to torso with a
+gusset — change the silhouette and cannot be validated without an in-game pose
+test. Recorded here so the next round starts from the measurement instead of
+re-deriving it.
 
 ## 4. Item 2 (elbow sliver): the hole and the seam are both in the base pack
 
@@ -186,9 +228,40 @@ at mip 0 (~0.7 cm on the suit) and per 4×4 block at coarser mips, i.e. up to
 axis-aligned soft patches — but the effect is gloss variation, and the faces it
 touches are mostly the shoes, not the trousers.
 
-**Fix:** restrict the mask to sleeve islands before splatting (the mask should
-never be sampled by a non-arm-weighted face), and apply it at mip 0 only, letting
-the mips be regenerated, so block quantisation cannot grow with distance.
+**Fix, shipped in this build.** Two changes, both in
+`tools/pd2-las/build_christie_las.py`:
+
+1. `sleeve_uv_mask(uvs, faces)` replaces the 24-texel vertex discs: the UV
+   triangle of every face whose mean arm-chain share exceeds `SLEEVE_BONE_SHARE`
+   is rasterised into the 1024 atlas (PIL polygon fill), blurred by
+   `SLEEVE_FEATHER_TEXELS = 3.0` and **clipped back to the unblurred footprint**,
+   so the feather softens the edge of the change without ever reaching a texel
+   the sleeve does not own.
+2. `retouch_sleeve_gloss()` attenuates **mip 0 only** and rebuilds the whole
+   chain with `pd2_dds.mip_payloads_from_mip0` + `pack_dds`, so the mips are a
+   filtered version of one full-resolution mask instead of a separately
+   quantised one at every level — the stair-stepping cannot grow with distance.
+
+Result off the rebuilt packs (same numbers in base and slim, the mask is a UV
+property):
+
+| | vertex discs | face raster |
+| --- | --- | --- |
+| leg-only UV area touched | 3.2 % | **0.8 %** |
+| leg-only faces touched | 151 | **33** |
+| where | 123 of 151 at z 0–20 (shoes) | all 33 at z 2.6–11.9 (shoes) |
+| sleeve faces covered | — | 100 % of 1,740 |
+| atlas area covered | — | 13.3 % |
+
+The 33 remaining faces are **atlas sharing, not mask reach**: their UVs sit
+inside the sleeve islands of `c02_01_df` (mask value 0.29–1.00 at their
+centroids), so those texels are sampled by both the sleeve and the boot. No mask
+can separate them; that would need the boots re-UV'd.
+
+Attenuation still lands where it should — mean alpha inside the mask 5.51 against
+11.25 outside (0.49×, `SLEEVE_GLOSS_ATTEN = 0.55` after DXT), with the mip count
+(11) and the texture payload (1,398,256 B) unchanged, so the change is scope and
+sampling only, not a different texture format.
 
 ## 8. Step 2 shipped: `stitch_sleeve_seams` (2026-11-07)
 
@@ -337,10 +410,10 @@ smoothing the garment edges), and re-derives the reference's 0-of-22,486.
 | --- | --- |
 | 1 normal seams | real; the 49 interior groups are unified (**§9**), the 431 free-edge folds stay by design |
 | 2 elbow sliver | real; the hole and the seam predate the 11-07 round (identical in base); fix topology, not displacement — **fixed in §8** |
-| 3 armpit hole | real, inherited, **slim is smaller than base**; not caused by rebinding; needs modelling |
+| 3 armpit hole | **not a hole**: the ray cast passes through empty space between the arm and the torso, the armhole's upper arc is sewn (0.00 cm) and the reference carries the same kind of gap; inherited, slim smaller than base. No build change made (§3) |
 | 4 wrist band / red speck | band = open cuff interior + 0.5 cm of skin, not a bare wrist; red not reproducible from the pack |
 | 5 spiky fingertips | the pack has no hands; only the cuff ring is ours |
-| 6 trouser blotches | mask bleed is real but gloss-only and mostly on the shoes; mechanism is per-block attenuation, not the splat edge |
+| 6 trouser blotches | mask bleed was real, gloss-only, mostly on the shoes; mechanism was per-block attenuation, not the splat edge — **fixed**: face-raster mask, mip 0 only, leg UV coverage 3.2 % → 0.8 % (§7) |
 
 ## Suggested order of work
 
@@ -350,8 +423,12 @@ smoothing the garment edges), and re-derives the reference's 0-of-22,486.
 2. ~~**Weld/plug the sleeve seam and the 4-vertex elbow loop**~~ — **done**, see
    §8: `stitch_sleeve_seams()`, both packs rebuilt, sleeve tube closed on every
    slice, 0 orientation breaks.
-3. **Close the armpit**: extend the skin armhole or tuck the sleeve rim.
-4. **Mask scope**: splat only on sleeve islands; mip 0 only.
+3. ~~**Close the armpit**~~ — **measured and closed as "no defect"**, see §3:
+   the ray cast passes through empty space, the armhole's upper arc is welded to
+   the torso, and the 2B reference has the same arm/body gap. No build change.
+4. ~~**Mask scope**~~ — **done**, see §7: the mask is rasterised from the sleeve
+   UV faces and clipped to that footprint, mip 0 is attenuated and the pyramid
+   regenerated from it.
 5. Leave the gloves, the red speck and the cream band alone until the glove
    model is part of the comparison — they are not in this mesh.
 
