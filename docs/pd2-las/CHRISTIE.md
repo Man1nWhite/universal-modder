@@ -132,11 +132,12 @@ divergent pairs 49/50 → **0**, border pairs untouched (431/806), worst pre-fix
 pair 101°/103° (beyond 120° the pass refuses to average), winding agreement
 97.3 → 97.1/97.2 %, 0 orientation breaks, no position/UV/face/weight change.
 Packs rebuilt: `c57edbbaa91a8aa7059b7432a76d63a1a84b2617feb1eef2557c597091b1f765`
-base, `5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d` slim
+base, `5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d` slim.
 Also `bootstrap.sh` now installs **scipy**, which the slim build needs
 (`_elbow_coverage_correction`) and which a clean bootstrap used to miss. Tests:
-`tests/test_seam_normals.py` plus `test_interior_coincident_normals_agree`;
-65 Christie tests green. Not yet checked in game.
+`tests/test_seam_normals.py` plus `test_interior_coincident_normals_agree`
+and `test_sleeve_gloss_mask_stays_on_the_sleeve`; 67 Christie tests green.
+Not yet checked in game.
 
 Both are Legendary Armour Skins add-ons built from `references/Christie.zip`
 (Dead or Alive 5, `christie_c2` — MDL/VVD/VTX + VMT/VTF materials). Install to

@@ -214,7 +214,8 @@ Two corrections to the first pass: the mask is far narrower than "the trousers"
 (3.2 % of the leg faces' UV area) — and the artifact is a *gloss* difference, so
 it reads as a slightly different sheen, not as a stain.
 
-**Fixed in this build.** The mask no longer comes from vertex discs: each sleeve
+**Fixed in the 2026-11-07 follow-up build.** The mask no longer comes from
+vertex discs: each sleeve
 face's UV triangle is rasterised into the atlas (`sleeve_uv_mask`, 3-texel
 feather clipped to the footprint so no texel outside the sleeve is touched), and
 `retouch_sleeve_gloss` attenuates **mip 0 only**, then regenerates the pyramid

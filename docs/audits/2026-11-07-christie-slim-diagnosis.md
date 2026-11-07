@@ -346,7 +346,8 @@ unification of work order item 1, which stays open.
 Test coverage: `test_sleeve_tube_is_closed_along_its_length[base|slim-left|right]`
 asserts the radial probe leaks < 1 cm², and `diagnose_mesh.py --templates`
 prints the same number for both packs. Suite state after both changes: **65
-Christie tests, 633 tests overall, 26 skipped, 0 failed.** Nothing here has been
+Christie tests, 633 tests overall, 26 skipped, 0 failed** (after the gloss pass
+of §7: 67 / 635, same skips). Nothing here has been
 checked in game — the pack to check is `14f75d66…` (slim) / `2934c818…` (base).
 
 ## 9. Item 1 shipped: `unify_coincident_normals` (2026-11-07)
