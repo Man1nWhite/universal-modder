@@ -2024,45 +2024,142 @@ def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
     return touched
 
 
-def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
+import math
+
+import numpy as np
+
+
+def _top_rim(g: Group, mats) -> list[int] | None:
+    """The boundary ring of the skin slice whose vertices sit highest.
+
+    The neck opening is the only boundary loop of the skin slice that reaches
+    the top of the column. Reading the geometry off this rim (instead of
+    carrying a hardcoded axis, radius and scale) is what keeps the pass working
+    when the retarget changes the column width.
+    """
+    skin: set[int] = set()
+    for mat, base_v, _bi, _t, nv in g.slices:
+        if mat in mats:
+            skin.update(range(base_v, base_v + nv))
+    if not skin:
+        return None
+    counts: dict[tuple[int, int], int] = {}
+    directed: dict[tuple[int, int], int] = {}
+    for a, b, c in g.faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            key = (x, y) if x < y else (y, x)
+            counts[key] = counts.get(key, 0) + 1
+            directed[(x, y)] = directed.get((x, y), 0) + 1
+    edges = [(x, y) for (x, y) in directed
+             if counts[(x, y) if x < y else (y, x)] == 1
+             and x in skin and y in skin]
+    if not edges:
+        return None
+    nxt: dict[int, list[int]] = {}
+    for x, y in edges:
+        nxt.setdefault(x, []).append(y)
+    seen: set[tuple[int, int]] = set()
+    best: tuple[float, list[int]] | None = None
+    for x, y in edges:
+        if (x, y) in seen:
+            continue
+        loop, cur = [x], (x, y)
+        while cur not in seen:
+            seen.add(cur)
+            loop.append(cur[1])
+            cand = [v for v in nxt.get(cur[1], []) if (cur[1], v) not in seen]
+            if not cand:
+                break
+            cur = (cur[1], cand[0])
+        if len(loop) < 4 or loop[0] != loop[-1]:
+            continue
+        ring = loop[:-1]
+        top = max(g.verts[i][2] for i in ring)
+        if best is None or top > best[0]:
+            best = (top, ring)
+    return None if best is None else best[1]
+
+
+def slim_neck(g: Group, mats=("skin",), axis=None,
               z_lo: float = 157.0, z_full: float = 161.0,
-              r_full: float = 8.0, r_stop: float = 14.0,
-              sx: float = 0.55, sy: float = 0.70) -> dict:
-    """Slim the neck to the PD2 reference, above the trapezius.
+              r_full: float | None = None, r_stop: float | None = None,
+              sx: float | None = None, sy: float | None = None,
+              target_hw: float = 4.70, fade: float = 5.0,
+              min_scale: float = 0.30) -> dict:
+    """Slim the neck to the PD2 reference, measured on the mesh's own opening.
 
     The 3BA body is authored for Skyrim, where the *head* mesh supplied most of
-    the neck: the source body stops at 157 cm with a 12 cm half-width there. The
+    the neck: the source body stops at 157 cm and hands the neck over. The
     retarget stretches the spine axially to PD2's longer torso, which also lifts
-    and widens that neck stub, so the shipped body carries an 18.8 cm wide
-    column up to 167 cm -- in the previews it reads as a stovepipe rising out of
-    the collar, and no collar can close over it.
+    and widens that stub, so the shipped body carries an 18.8 cm wide column up
+    to 167 cm -- in the previews it reads as a stovepipe rising out of the
+    collar, and no collar can close over it. The PD2 reference body (2B) is the
+    ground truth for this rig: 9.4 cm wide at 160-163.
 
-    The PD2 reference body (2B) is the ground truth for this rig: 16 cm
-    half-width at 157 cm, then a real neck -- 4.7 cm at 160, 4.8 at 162, top at
-    163.2. This pass narrows *only* the column: a radial scale about the neck
-    axis (``axis``), full for ``r <= r_full`` and fading out by ``r_stop`` so the
-    trapezius and the shoulder line are untouched, ramping in with height
-    (``z_lo`` -> ``z_full``) so there is no step at the shoulder.
+    Three constants have to be right for the pass to bite, and each was wrong:
 
-    This is deliberately a radial-only correction: the neck must retain its
-    full height to meet the heister's head. The in-game reference showed that
-    shortening the body neck to fit the collar opened a visible gap under the
-    jaw. The torso is aligned to the head separately by a small upper-body pitch
-    about the waist (``turn_upper_body``), which keeps the legs upright.
+    ``axis``
+        the column's own centre. The retarget is recentred onto the 3BA axis
+        (y≈9.5, see :func:`align_neck`), not the PD2 one (y≈7.0). Measuring
+        about the wrong centre moves the radial mask by 2.5 cm, so the *front*
+        of the neck (r 11.9 from y=7.0) is barely touched while the *back*
+        (r 6.9) is slimmed to the floor -- a 1.6x front/back asymmetry that
+        reads as a rim protruding over the collar.
+    ``r_full`` / ``r_stop``
+        the mask band. With ``r_full=8, r_stop=14`` every vertex between 14 and
+        the 18.8 cm rim takes ``mask = 0`` and is left exactly as the retarget
+        built it. The rim is the one part that must move.
+    ``sx`` / ``sy``
+        the scale. 0.55 on an 18.8 cm half-width still lands at 10.3 cm, i.e.
+        2.2x the 4.7 cm reference. The factors were tuned on a 9.4 cm column
+        and never revisited when the docstring's own measurement said 18.8.
+
+    With no ``axis``/``r_full``/``r_stop``/``sx``/``sy`` given, the pass reads
+    its geometry off the mesh: the top rim of the skin slice gives the axis and
+    the half-width, the mask band is derived from that half-width (full inside
+    it, fading out over ``fade``), and the scale is whatever makes the rim land
+    on ``target_hw``. Callers that pass the constants explicitly get the old
+    behaviour, which is what the existing unit tests pin.
+
+    It keeps the radial-only, height-ramped shape either way: the neck must
+    retain its full height to meet the heister's head (shortening it opened a
+    gap under the jaw), and the trapezius and shoulder line stay untouched.
     """
-    import math
-
     def smooth(t: float) -> float:
         t = max(0.0, min(1.0, t))
         return t * t * (3.0 - 2.0 * t)
 
+    calibrated = axis is None
+    rim_hw = 0.0
+    scale = 1.0
+    if calibrated:
+        ring = _top_rim(g, mats)
+        if not ring or len(ring) < 3:
+            return {"moved": 0, "peak": 0.0, "axis": None, "scale": 1.0,
+                    "rim_hw": 0.0}
+        P = np.asarray([g.verts[i] for i in ring], dtype=np.float64)
+        cx, cy = float(P[:, 0].mean()), float(P[:, 1].mean())
+        rim_hw = float(np.hypot(P[:, 0] - cx, P[:, 1] - cy).mean())
+        if rim_hw <= 1e-6:
+            return {"moved": 0, "peak": 0.0, "axis": None, "scale": 1.0,
+                    "rim_hw": 0.0}
+        scale = max(min_scale, min(1.0, target_hw / rim_hw))
+        axis = (cx, cy)
+        r_full = rim_hw * 1.05
+        r_stop = r_full + fade
+        sx = sy = scale
+    else:
+        r_full = 8.0 if r_full is None else r_full
+        r_stop = 14.0 if r_stop is None else r_stop
+        sx = 0.55 if sx is None else sx
+        sy = 0.70 if sy is None else sy
+
     ax, ay = axis
-    touched = 0
-    moved = 0.0
-    for mat, base_v, _bi, _tris, nverts in g.slices:
+    touched, moved = 0, 0.0
+    for mat, base_v, _bi, _t, nv in g.slices:
         if mat not in mats:
             continue
-        for i in range(base_v, base_v + nverts):
+        for i in range(base_v, base_v + nv):
             x, y, z = g.verts[i]
             if z <= z_lo:
                 continue
@@ -2078,9 +2175,8 @@ def slim_neck(g: Group, mats=("skin",), axis=(0.0, 7.0),
             moved = max(moved, math.hypot(nx - x, ny - y))
             g.verts[i] = (nx, ny, z)
             touched += 1
-
-    return {"moved": touched, "peak": moved}
-
+    return {"moved": touched, "peak": moved, "axis": axis,
+            "scale": scale, "rim_hw": rim_hw}
 
 
 def _slice_vertex_order(tris) -> list[int]:
@@ -2602,21 +2698,74 @@ def boundary_loops(faces) -> list[list[int]]:
     return loops
 
 
+import numpy as np
+
+
+def _ring_plane(P):
+    """Best-fit plane of a boundary ring: centroid, unit normal (up-facing)."""
+    c = P.mean(axis=0)
+    Q = P - c
+    _u, _s, vt = np.linalg.svd(Q, full_matrices=False)
+    n = vt[2]
+    if n[2] < 0.0:
+        n = -n
+    return c, n
+
+
+def _planar_diameter(P, n):
+    """Max pairwise distance of the ring projected into its own plane.
+
+    The bbox diagonal the gate used to measure inflates a circular ring by
+    sqrt(2): a perfectly good 9.4 cm neck opening reads as 13.3 cm and a
+    15.5 cm one as 21.9, so a real opening is thrown away as if it were a UV
+    seam. Measuring in the ring's own plane compares like with like.
+    """
+    Q = P - P.mean(axis=0)
+    Q = Q - np.outer(Q @ n, n)
+    return float(np.sqrt(((Q[:, None, :] - Q[None, :, :]) ** 2).sum(-1).max()))
+
+
 def cap_holes(g: Group, min_z: float, slot: str,
               source_material: str = "skin", allowed: set[int] | None = None,
-              max_span: float = 14.0) -> int:
+              max_span: float = 14.0, max_roundness: float = 0.55) -> int:
     """Close boundary loops of the group that lie entirely above `min_z`.
 
     The 3BA body is authored to wear a *separate* Skyrim head, so it ends in an
     open collar. Without a head the player sees the inside of her own torso
     through it, and the shadow mesh is not closed either. Each loop above
-    `min_z` gets a fan to its centroid, with the centroid weighted like the loop
-    it closes so the cap deforms with the neck instead of tearing off.
+    `min_z` gets a fan to its centre, with the centre weighted like the loop it
+    closes so the cap deforms with the neck instead of tearing off.
+
+    Three things had to change for the cap to actually close the neck flush:
+
+    *The `min_z` gate is all-or-nothing on the loop's lowest vertex.* A
+    diagonally cut opening straddles the threshold: at a 1.5 cm cut the ring is
+    rejected until its centre clears 156.75 cm, and :func:`turn_upper_body`
+    (which runs *before* this pass, pitching the upper body 1.8 degrees about
+    (0, 2.5, 98)) lowers the back of the neck by ~0.3 cm. Compare the loop's
+    *centre* against the threshold, not its extreme.
+
+    *The span gate measured the bbox diagonal.* See :func:`_planar_diameter`.
+    A real opening is also checked against a roundness bound: a UV-shell seam is
+    a boundary loop too, but it is a ragged arc, not a circle, and its radius
+    scatters. ``max_roundness`` is the coefficient of variation of the ring
+    radius about its own centroid, measured in the ring's plane; the neck rims
+    in the shipped packs score 0.05-0.33 and the torso-length seam loops that
+    must stay open score 0.87.
+
+    *The apex was the ring's arithmetic mean, and the stored normal was the
+    normalised sum of the rim's vertex normals.* On a diagonally cut opening the
+    mean sits above the low side, so every facet on that side tilts its plane
+    upward -- the fan stops being a lid and becomes a shelf across the throat.
+    And on a round rim the vertex normals cancel exactly, ``length = norm or
+    1.0`` leaves the zero vector unnormalised, and the cap ships a (0, 0, 0)
+    normal. The apex is now the ring centroid (which lies on the cut plane by
+    construction) and the normal is that plane's normal; each facet is wound
+    against it so the fan cannot flip across a tilted rim.
+
     Returns the number of triangles added, and registers them as their own
     render atom so the engine actually draws the cap.
     """
-    import numpy as np
-
     if not g.faces:
         return 0
     p = np.asarray(g.verts, dtype=np.float64)
@@ -2628,34 +2777,35 @@ def cap_holes(g: Group, min_z: float, slot: str,
         idx = [i for i in loop if i < len(g.verts)]
         if len(idx) < 3:
             continue
-        if float(z[idx].min()) < min_z:
-            continue
         if allowed is not None and any(i not in allowed for i in idx):
-            continue
-        # a seam between two UV shells is a boundary loop too; only the real
-        # opening is small and roundish
-        span = float(np.linalg.norm(p[idx].max(axis=0) - p[idx].min(axis=0)))
-        if span > max_span:
             continue
         ring = idx[:-1] if len(idx) > 3 and idx[0] == idx[-1] else idx
         if len(ring) < 3:
             continue
-        # centroid vertex, weighted and normalised like its neighbours
-        centre = np.array([g.verts[i] for i in ring], dtype=np.float64).mean(axis=0)
-        normal = np.zeros(3)
-        for i in ring:
-            normal += np.asarray(g.normals[i], dtype=np.float64)
+        P = p[ring]
+        centre, normal = _ring_plane(P)
+        if float(centre[2]) < min_z:
+            continue
+        if _planar_diameter(P, normal) > max_span:
+            continue
+        radial = P - centre
+        radial = radial - np.outer(radial @ normal, normal)
+        rad = np.linalg.norm(radial, axis=1)
+        if float(rad.mean()) <= 1e-9:
+            continue
+        if float(rad.std() / rad.mean()) > max_roundness:
+            continue
         length = float(np.linalg.norm(normal)) or 1.0
-        normal /= length
+        normal = normal / length
         weight_sum: dict[int, float] = {}
         for i in ring:
             for pal, w in g.weights[i]:
                 weight_sum[pal] = weight_sum.get(pal, 0.0) + w / len(ring)
         total = sum(weight_sum.values()) or 1.0
-        infl = sorted(((p, w / total) for p, w in weight_sum.items()),
+        infl = sorted(((pal, w / total) for pal, w in weight_sum.items()),
                       key=lambda t: -t[1])[:3]
         renorm = sum(w for _, w in infl) or 1.0
-        infl = [(p, w / renorm) for p, w in infl]
+        infl = [(pal, w / renorm) for pal, w in infl]
         uv = np.array([g.uvs[i] for i in ring], dtype=np.float64).mean(axis=0)
         new_index = len(g.verts)
         g.verts.append(tuple(float(x) for x in centre))
@@ -2664,9 +2814,15 @@ def cap_holes(g: Group, min_z: float, slot: str,
         g.weights.append(infl)
         for k in range(len(ring)):
             a, b = ring[k], ring[(k + 1) % len(ring)]
-            # reversed relative to the boundary walk so the fan faces outward,
-            # matching the winding of the surface it closes
-            g.faces.append((b, a, new_index))
+            # wind every facet against the same plane normal: the old
+            # "reversed relative to the boundary walk" rule flips across a
+            # tilted rim and leaves the fan inside-out on one side
+            # cross(p[b] - p[a], centre - p[a]) is the facet normal of the
+            # winding (a, b, apex); keep it when it agrees with the ring plane
+            if float(np.cross(p[b] - p[a], centre - p[a]) @ normal) > 0.0:
+                g.faces.append((a, b, new_index))
+            else:
+                g.faces.append((b, a, new_index))
             added += 1
     if added:
         g.slices.append((source_material, base_v, base_i, added,
