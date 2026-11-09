@@ -12,10 +12,25 @@ sleeve mid-band probes report **0.00 cm²** leakage. Those checks do not settle
 the in-game shading findings. No models/textures were rebuilt for the review.
 
 Previously recorded full-suite validation: **67 Christie tests**, `tests/`
-overall **650 passed, 26 skipped**, `pyflakes` clean. The screenshot-only update
-reran the targeted tests listed above, not the full suite/lint. The two packs
-below are the ones in `dist/`; the dated log further down keeps the earlier
-hashes it was written with.
+overall **650 passed, 26 skipped**, `pyflakes` clean. That figure is stale, and the
+`pyflakes` part is also not reproducible today (5 warnings; see `HANDOFF.md`).
+
+**Re-measured 2026-11-10**, and it depends on whether the 2B fixture is extracted:
+
+| `/tmp/2bsrc` | command | result |
+| --- | --- | --- |
+| extracted | `pytest -q tests` | **645 passed, 30 skipped** (rc=0) |
+| extracted | `pytest -q tests/test_christie_las.py` | **67 passed** |
+| absent, `--ignore=tests/test_render_mesh_skeleton.py` | `pytest -q tests` | 577 passed, 85 skipped |
+
+The screenshot-only update reran the targeted tests listed above, not the full
+suite/lint. The two packs below are the ones in `dist/`; the dated log further
+down keeps the earlier hashes it was written with.
+
+> **All 67 Christie tests passing does not clear the packs.** They do not check
+> per-atom index containment, and both packs draw 16 out-of-bounds triangles from
+> `s_body`. See
+> [`docs/audits/2026-11-10-diagnostics-and-tests-masking-repair-plan.md`](../audits/2026-11-10-diagnostics-and-tests-masking-repair-plan.md).
 
 - `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `c57edbba…1f765`, 4,794,618 B)
   — full body incl. Christie's hands.
