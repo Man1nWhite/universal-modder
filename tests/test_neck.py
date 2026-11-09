@@ -34,15 +34,20 @@ def _group(rows):
 
 
 def test_slim_neck_narrows_only_the_column():
-    """Shoulder-line vertices (r > r_stop) and everything below z_lo stay put."""
+    """The mask band is full inside the rim and fades out over ``fade``.
+
+    The defaults are the documented ones (axis y=7.0, full to r=8, gone by
+    r=14); the calibrated path is covered in ``test_neck_three_zone.py``.
+    """
     g = _group([("skin", [
         (0.0, 7.0, 150.0),      # below the band
         (0.0, 7.0, 157.0),      # exactly at z_lo: untouched
-        (9.0, 7.0, 162.0),      # the neck column: narrowed
+        (9.0, 7.0, 162.0),      # r=9: inside the fade, narrowed
         (20.0, 7.0, 162.0),     # trapezius, r = 20 > r_stop: untouched
     ])])
 
-    rep = bm.slim_neck(g)
+    rep = bm.slim_neck(g, axis=(0.0, 7.0), r_full=8.0, r_stop=14.0,
+                       sx=0.55, sy=0.70)
 
     assert rep["moved"] == 1
     assert g.verts[0] == (0.0, 7.0, 150.0)
@@ -57,7 +62,8 @@ def test_slim_neck_ramps_in_with_height():
     """A vertex at the bottom of the ramp moves less than one at the top."""
     g = _group([("skin", [(9.0, 7.0, 158.0), (9.0, 7.0, 162.0)])])
 
-    bm.slim_neck(g)
+    bm.slim_neck(g, axis=(0.0, 7.0), r_full=8.0, r_stop=14.0,
+                 sx=0.55, sy=0.70)
 
     low = 9.0 - g.verts[0][0]
     high = 9.0 - g.verts[1][0]
@@ -69,7 +75,8 @@ def test_slim_neck_leaves_the_garment_alone():
     g = _group([("skin", [(9.0, 7.0, 162.0)]),
                 ("jacket", [(9.0, 7.0, 162.0)])])
 
-    rep = bm.slim_neck(g)
+    rep = bm.slim_neck(g, axis=(0.0, 7.0), r_full=8.0, r_stop=14.0,
+                       sx=0.55, sy=0.70)
 
     assert rep["moved"] == 1
     assert g.verts[1] == (9.0, 7.0, 162.0)
@@ -100,7 +107,8 @@ def test_slim_neck_preserves_the_full_neck_height():
     g = _group([("skin", [(0.0, 7.0, 150.0), (3.0, 7.0, 160.0),
                           (3.0, 7.0, 164.0), (3.0, 7.0, 167.0)])])
 
-    bm.slim_neck(g)
+    bm.slim_neck(g, axis=(0.0, 7.0), r_full=8.0, r_stop=14.0,
+                 sx=0.55, sy=0.70)
 
     assert max(v[2] for v in g.verts) == 167.0
     assert g.verts[0] == (0.0, 7.0, 150.0)

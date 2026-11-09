@@ -4,9 +4,34 @@
 as a Legendary Armour Skins (LAS) armor skin (the `2b.rar` product shape),
 built reproducibly from `l4d2_miranda_lawson_1.zip` by `tools/pd2-las/`.
 
-**State:** the pack is built, game-tested, tracked in git, and offline-verified.
-**Suite at this commit:** `pytest tests -q` → **650 passed, 26 skipped** (67 of
-them `tests/test_christie_las.py`), `pyflakes` clean on `tools/` and `tests/`.
+**State:** the packs are built and tracked in git. **Read the 2026-11-10 rows of
+"Next actions" before touching anything** — five repair plans are unexecuted and
+the worktree carries an uncommitted neck patch (see "Worktree state").
+**Environment, measured 2026-11-10.** The sandbox wipes `.venv` and `/tmp` **between
+sessions** — assume it did. Restore everything with one script:
+
+```bash
+bash tools/pd2-las/recover_env.sh --verify    # venv + 2B templates + suite
+```
+
+It is idempotent. Doing it by hand is the trap: without the 2B template in `/tmp/2bsrc`,
+`pytest -q tests` cannot even *collect* (`test_render_mesh_skeleton.py:42` runs
+`_templates()` at import) and 68 tests vanish.
+
+| state of `/tmp/2bsrc` | command | result |
+| --- | --- | --- |
+| **extracted** | `pytest -q tests` | **645 passed, 30 skipped** (rc=0) |
+| absent | `pytest -q tests` | **fails collection** (rc=2) |
+| absent, worked around | `pytest -q tests --ignore=tests/test_render_mesh_skeleton.py` | 577 passed, 85 skipped |
+
+**`pyflakes` is NOT clean right now** (measured 2026-11-10): 5 warnings — 4 introduced by the
+uncommitted neck patch (`build_models.py:2027` redundant `import math`, `:2701` redundant
+`import numpy as np`, `:2772` unused local `z`, and `tests/test_neck_three_zone.py:26` unused
+`pytest`) and 1 pre-existing at `HEAD` (`tests/test_christie_las.py:462` unused `bm` import).
+`HEAD` itself is clean. Fix the four in the necks patch when it is committed. `recover_env.sh` extracts the RAR with
+`node-unrar-js` — **from a script file, never `node -e`**, which cannot resolve the
+emscripten wasm sidecar and dies with a long stack trace.
+
 Deliverables in **`dist/`**:
 - `dist/Miranda_LAS.zip` (5,414,012 bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
 - `dist/lawson_las.zip` (9,123,392 bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
@@ -132,17 +157,22 @@ axis"). Tests: `tests/test_christie_las.py`.
 bash tools/pd2-las/bootstrap.sh     # venv + 2B templates + build + tests + lint
 ```
 
-That is the whole recovery procedure too. The arena sandbox periodically
-wipes `.venv`, `/tmp` and `build/` and rewinds local git to `0f1d838` while
-the worktree looks dirty — **the work is safe on the remote**. Recover with:
+**Recovery.** The arena sandbox periodically wipes `.venv`, `/tmp` and `build/` and
+rewinds local git while the worktree looks dirty — **the work is safe on the session
+branch**. Recover with:
 
 ```bash
-git fetch origin && git reset --hard origin/arena/ab9ca3e6-universal-modder
-bash tools/pd2-las/bootstrap.sh
+git fetch origin
+git reset --hard origin/arena/282ccb75-universal-modder   # read the branch first, below
+bash tools/pd2-las/recover_env.sh --verify
 ```
 
-Commit and push early and often; everything through the latest sweep is on
-the remote branch.
+The branch name changes every session (`arena/<id>-universal-modder`); **read it from
+`git rev-parse --abbrev-ref HEAD` rather than copying the line above**, which is only
+correct for the session that wrote it.
+
+`bootstrap.sh` still works, but it also builds every pack (slow) and its RAR step is the
+fragile part; `recover_env.sh` does only the two things a wiped sandbox actually needs.
 
 ## Where things live
 
@@ -166,7 +196,12 @@ las_pack.write_pack + zip → Miranda_LAS.zip`. Textures: VTF→DDS via
 `vtf.py`/`dds_encode.py`. Provenance and hashes in `BUILD_INFO.json`
 (payload, source zip, 2B template inputs).
 
-## Do-not-break invariants (each has a test — run `pytest -q tests/`)
+## Do-not-break invariants (each has a test — run `pytest -q tests`)
+
+> **Caveat, 2026-11-10:** "has a test" does **not** mean "is protected". The list below is
+> accurate about intent, but the atom-tiling invariant in particular has no containment check,
+> and a tiling-preserving mutant that draws 16 out-of-bounds triangles passes 207 geometry
+> tests. See the diagnostics plan before treating a green suite as evidence.
 
 - Models byte-round-trip through `ModelFile.read → write`; builds are
   byte-reproducible (zip uses fixed 2020-01-01 timestamps).
@@ -220,15 +255,93 @@ las_pack.write_pack + zip → Miranda_LAS.zip`. Textures: VTF→DDS via
 - Unmapped source bones fold into the nearest mapped ancestor (facial
   flex bones and `hlp_*`/`ValveBiped.*` helpers are covered this way).
 
+## Worktree state (2026-11-10 — check this before assuming a clean tree)
+
+`git status` is **not clean**, and the suite numbers above depend on it:
+
+| path | state | why it matters |
+| --- | --- | --- |
+| `tools/pd2-las/build_models.py` | modified **+209 / −53** | the three-zone neck work; **uncommitted** |
+| `tests/test_neck.py` | modified +14 / −6 | pairs with the above |
+| `tests/test_neck_three_zone.py` | **untracked**, 8 tests | part of the 645/577 counts |
+| `docs/audits/2026-11-09-neck-arm/` | untracked | reference renders |
+| nine `docs/audits/*.md` | untracked | the repair plans referenced throughout |
+
+**What the neck patch does and does not affect** (measured 2026-11-10, worth knowing before you
+commit it):
+
+* It rewrites `slim_neck` and `cap_holes` and adds three helpers (`_top_rim`, `_ring_plane`,
+  `_planar_diameter`).
+* **Both runnable builders are byte-identical with it applied.** `build_christie_las --variant
+  slim` still produces sha256 `5e55745f…b4d`, and `build_busty_variant` still produces
+  `52f4c461…` — both equal to the tracked packs. So the patch changes **no shipped artefact**.
+* That is because its **only caller is `build_skyrim_outfit.py:313` / `:413`**, and the Skyrim
+  reference zips are absent (`references/1.zip`–`5.zip`). **The patch is therefore never
+  exercised by a build in this checkout** — only by 16 unit tests (`tests/test_neck.py`,
+  `tests/test_neck_three_zone.py`), which do call `slim_neck` directly.
+* Consequence: it is safe to commit (it cannot alter `dist/`), but do not claim it is
+  *build-verified*. Its end-to-end validation needs the Skyrim sources.
+
+**Do not `git checkout .` or `git stash` to clean up** — that deletes the only copy of
+`tests/test_neck_three_zone.py` (it is untracked, so git cannot restore it) and drops the
+neck patch. Commit or stash deliberately, and read the neck plan first.
+
+**`dist/` IS rebuildable, and the build is byte-reproducible** (measured 2026-11-10, correcting an
+earlier claim in this file that it was not):
+
+```bash
+.venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
+    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b" \
+    --out /tmp/rebuild --dist /tmp/rebuild-dist
+# -> sha256 5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d
+#    identical to the tracked dist/Christie_LAS_Slim.zip, dist/ left clean
+```
+
+`references/Christie.zip` and `references/2b.rar` are both tracked, so nothing external is
+missing. **Always pass `--dist /tmp/...`** — `--out` alone still writes the zip into `dist/`.
+If you do mutate or overwrite a shipped pack, restore the bytes and verify the sha256: three
+tests (`test_sha256_sidecar`, `test_build_info_records_headless_and_provenance`,
+`test_handoff_and_agents_quote_the_tracked_pack_bytes`) fail on any rezip, which looks like a
+caught bug but is only byte drift.
+
+Still out of reach: the **Skyrim** route (`references/1.zip`–`5.zip` absent) and the ME2/L4D2
+packs' own sources. This rebuild claim covers **Christie only**, which is what every open repair
+plan touches.
+
 ## Next actions, in order
 
-1. User runs `docs/pd2-las/in-game-checklist.md` against
+### 2026-11-10 — five repair plans are written and **none is executed**
+
+Each lives in `docs/audits/` and is self-contained (root cause, exact `file:line`, phases,
+acceptance criteria). Read the one you are working on cold; they assume no session context.
+
+0. **Extract the 2B fixture** (two commands, above). Do this before anything else — every other
+   measurement in these plans was taken against a half-dark suite.
+1. **[`2026-11-10-s-body-atom-oob-fps-elbow-cuff-repair-plan.md`](../audits/2026-11-10-s-body-atom-oob-fps-elbow-cuff-repair-plan.md)**
+   — the highest-priority *defect*: `s_body` draws 16 out-of-bounds triangles in both shipped
+   packs (measured again today: max reach past its own vertex block 920 base / 730 slim;
+   `g_body` is clean). Silent in game and invisible to every preview.
+2. **[`2026-11-10-diagnostics-and-tests-masking-repair-plan.md`](../audits/2026-11-10-diagnostics-and-tests-masking-repair-plan.md)**
+   — why (1) survived a green suite. Executable proof: a tiling-preserving mutant passes
+   **207 geometry tests** and is caught only by a byte count. Start at P1a, then P2.
+3. **[`2026-11-09-uv-seam-normal-splits-tangent-basis-repair-plan.md`](../audits/2026-11-09-uv-seam-normal-splits-tangent-basis-repair-plan.md)**
+   — `U·V` is 5–20° skewed on 98.7 % of vertices in every pack this repo builds, while the four
+   external `Miranda_*` packs are exactly 0.00°. Nothing asserts `U·V`.
+4. **[`2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md`](../audits/2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md)**
+   — wrist cuff / glove adapter.
+5. **[`2026-11-09-neck-three-zone-repair-plan.md`](../audits/2026-11-09-neck-three-zone-repair-plan.md)**
+   — the neck; note the standing verdict in `tools/pd2-las/MODLOG.md` (**turn the body, do not
+   hide the body neck inside the head**). Its patch is already in the worktree.
+
+Then, unchanged from before the 2026-11-10 round:
+
+6. User runs `docs/pd2-las/in-game-checklist.md` against
    `build/pd2-las/Miranda_LAS.zip` (or the freshly bootstrapped one —
    byte-identical). Known watch items: normal-map Y+ (flip green if
    lighting inverts), contour silhouette behind walls, boot soles ~12 cm
    below ground.
-2. Fix whatever the checklist finds (expect small touch-ups, not redesign).
-3. **Release gate:** resolve ME2 asset redistribution rights. Until then the
+7. Fix whatever the checklist finds (expect small touch-ups, not redesign).
+8. **Release gate:** resolve ME2 asset redistribution rights. Until then the
    pack is for private testing only.
 
 Offline confidence was rated 8/10 for "loads and displays correctly"
