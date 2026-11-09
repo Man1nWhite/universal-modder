@@ -2024,8 +2024,6 @@ def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
     return touched
 
 
-import math
-
 import numpy as np
 
 
@@ -2698,9 +2696,6 @@ def boundary_loops(faces) -> list[list[int]]:
     return loops
 
 
-import numpy as np
-
-
 def _ring_plane(P):
     """Best-fit plane of a boundary ring: centroid, unit normal (up-facing)."""
     c = P.mean(axis=0)
@@ -2769,7 +2764,6 @@ def cap_holes(g: Group, min_z: float, slot: str,
     if not g.faces:
         return 0
     p = np.asarray(g.verts, dtype=np.float64)
-    z = p[:, 2]
     base_v = len(g.verts)
     base_i = len(g.faces) * 3
     added = 0

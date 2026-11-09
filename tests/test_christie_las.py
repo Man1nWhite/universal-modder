@@ -459,7 +459,6 @@ def test_forearm_centerline_straight_in_base_pack():
     line fit is invariant to the overall offset.
     """
     import numpy as np
-    import build_models as bm
     import segment_fit as sf
 
     tpl = _rest_template("base")
