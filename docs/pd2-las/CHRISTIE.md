@@ -32,10 +32,10 @@ down keeps the earlier hashes it was written with.
 > `s_body`. See `tools/pd2-las/MODLOG.md` for the executed repair plans and their
 > results; the diagnostics plan was executed and deleted per plan convention.
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `196606c0…3d5e24`, 4,981,789 B)
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `9e7c2d82…94fd95c`, 4,983,848 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `ee85fc15…5bd7b8`,
-  4,392,046 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `7a4d010c…190a3e6f`,
+  4,393,967 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -163,8 +163,27 @@ not smear. Slim unifies 348 copies over 87 groups, base 512 over 128 groups; int
 divergent pairs 0/0 → **0**, border pairs untouched (480/836), worst pre-fix
 pair 101°/103° (beyond 120° the pass refuses to average), winding agreement
 97.4 %, 0 orientation breaks, no position/UV/face/weight change.
-Packs rebuilt: `196606c0c548d173a20af56946ef485d42e4f2f33c912accaf3165d2133d5e24`
-base, `ee85fc159c13a0d18e33bd9b4237ebd278818d328456be1af309417a5bd7b8` slim.
+**2026-11-10 elbow de-spike (`despike_elbows`):** the retargeted elbow kept a
+handful of vertices 1.3-2.2 cm proud of the ring they belong to, on the crease
+side of the joint, so at 45-60 degrees of flexion the inner elbow showed a
+beak (visible in `christie_outer_sheet.png` at 45 deg before this pass, in the
+side column on the character's front). They are authored geometry, not
+skinning: the pose only transforms them, and the earlier passes miss them by
+construction - `straighten_segments`/`centre_segments` mask at 4.5 cm radius,
+and `trim_elbows` scales whatever survives uniformly, so a lone outlier outside
+their mask keeps its offset. The new pass runs last, on the shipped idle-rest
+geometry (`Group.rest_worlds` puts the joint where the game shows it, so the
+judgement is made in the pose that ships): a vertex only moves when it beats
+the median radius of its own one-ring by 0.75 cm, and it moves radially onto
+that median - direction, UVs, weights, topology and the triangle list are
+untouched, and each move is backed off (never below 25 %) until none of its own
+triangles flips or collapses. Base loses 9 left / 10 right, slim 8 / 4; largest
+shift 1.42 cm base, 2.50 cm slim; body and shadow move together (a mismatch is
+a build failure). 19 vertices total on base, 12 on slim - the mesh is otherwise
+bit-identical.
+Packs rebuilt: `9e7c2d8213463d85c75190b1d3dcf4c4088aeee2d6065ce001320c47094fd95c`
+base, `7a4d010c7e15e92615cf3aedcbbc11ce69781e4b15ab8a461e4d0a88190a3e6f` slim
+(previously `196606c0…`/`ee85fc15…`).
 Also `bootstrap.sh` now installs **scipy**, which the slim build needs
 (`_elbow_coverage_correction`) and which a clean bootstrap used to miss.
 **2026-11-11 forearm normal rotation:** `rebind_arms_at_idle` now rotates

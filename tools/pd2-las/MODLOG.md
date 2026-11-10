@@ -1,5 +1,38 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-10 — elbow de-spike: the inner-elbow beak
+
+- Reported from a review render: a spike on the inner side of the elbow. It is
+  real: at 45-60 degrees of flexion the material-isolated side view shows a
+  1.5-2.5 cm beak on the crease side, and it is present in both packs.
+- Root cause is authored geometry, not skinning. `v1970`/`v1983` (base) sit at
+  r 7.8/7.4 cm about the arm chain while their rings sit at 4.0-6.4 cm, and
+  their symmetric partners on the right arm mirror them. Every existing
+  corrective misses them by construction: `straighten_segments` and
+  `centre_segments` mask at 4.5 cm radius, `trim_elbows` scales the whole ring
+  uniformly, and the Taubin relaxation only averages.
+- New pass `despike_elbows` in `build_christie_las.py`, run after
+  `rebind_arms_at_idle` so the mesh it judges is the one that ships (the idle
+  rest is the shipped rest). A vertex moves only when it beats the median
+  radius of its own one-ring by 0.75 cm, it moves radially onto that median,
+  and each move is backed off until no incident triangle flips or collapses
+  (the build still gates on `_check_flips`). No topology/UV/weight change.
+  Body and shadow must report the same vertex count or the build fails.
+- Measured: base 9 left + 10 right, slim 8 + 4; largest shift 1.42 cm (base)
+  and 2.50 cm (slim). Whole-mesh diff against the previous packs: 19 verts on
+  base, 12 on slim, everything else bit-identical.
+- **Test fix (masking, caught here):** `test_elbow_closeup_depth_has_no_false_holes`
+  drew the skeleton overlay and then looked for dark regions enclosed by
+  anything. The overlay is drawn *over* the sleeve, so where the bone line
+  crosses the silhouette it can enclose a patch of background that no triangle
+  closes - which is exactly what the de-spike caused (1 978 px on base, larger
+  on slim, three packs at once). Rendering the sleeve with no bones gives
+  **no** enclosed background before or after, so the invariant was never about
+  the mesh; the test now renders the mesh alone, with a comment saying why.
+- Renders and packs regenerated; `HANDOFF.md`/`CHRISTIE.md` byte counts and
+  hashes updated. Suite: 657 passed, 30 skipped, 2 failed (the pre-existing
+  slim `test_sleeve_tube_is_closed_along_its_length` leak).
+
 ## 2026-11-10 — every Christie render rebuilt from the shipped packs
 
 - Request: "render everything fresh" — the committed set in

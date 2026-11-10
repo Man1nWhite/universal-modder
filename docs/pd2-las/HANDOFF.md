@@ -95,9 +95,9 @@ Deliverables in **`dist/`**:
   *offline-verified only*. The check that would settle it is in
   `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.4.
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,981,789 B, sha256
-`196606c0…3d5e24`) and `dist/Christie_LAS_Slim.zip` (4,392,046 B, sha256
-`ee85fc15…5bd7b8`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,983,848 B, sha256
+`9e7c2d82…94fd95c`) and `dist/Christie_LAS_Slim.zip` (4,393,967 B, sha256
+`7a4d010c…190a3e6f`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -293,7 +293,7 @@ earlier claim in this file that it was not):
 .venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b" \
     --out /tmp/rebuild --dist /tmp/rebuild-dist
-# -> sha256 ee85fc159c13a0d18e33bd9b4237ebd278818d328456be1af309417a5bd7b8ae
+# -> sha256 7a4d010c7e15e92615cf3aedcbbc11ce69781e4b15ab8a461e4d0a88190a3e6f
 #    identical to the tracked dist/Christie_LAS_Slim.zip, dist/ left clean
 ```
 

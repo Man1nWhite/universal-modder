@@ -1387,7 +1387,13 @@ def test_elbow_closeup_depth_has_no_false_holes(which, side, tmp_path):
     window, _ = window_for([posed], pivot, "side", 6.5)
     depth = float(rms.depth_towards_camera("side", np.atleast_2d(pivot))[0])
     out = tmp_path / "elbow.png"
-    rms.render(material_subset(geo, "mtr_c02_01"), bones, "side", out,
+    # No skeleton overlay: the overlay is drawn *over* the mesh, so its lines
+    # can enclose a patch of background that no triangle closes and the
+    # component detector below then reports it as a hole. That is what a
+    # 2026-11-10 pass did to this test (three packs, >1 900 px regions) while
+    # the mesh itself had no enclosed background at all. The invariant is about
+    # the sleeve, so render the sleeve alone.
+    rms.render(material_subset(geo, "mtr_c02_01"), [], "side", out,
                zoom=window, verts=posed, depth=(depth - 9, depth + 9))
     from PIL import Image
     pixels = np.asarray(Image.open(out).convert("RGB"))

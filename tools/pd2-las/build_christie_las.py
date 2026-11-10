@@ -1642,6 +1642,170 @@ def _chain_param(v, chain):
     return arc, off
 
 
+#: De-spike (2026-11-10). The retargeted elbow keeps a handful of vertices
+#: that stand 1.3-2.2 cm proud of the ring they belong to, and they sit on the
+#: *crease* side of the joint - the front of the arm - so at 45-50 degrees of
+#: flexion they read as a beak on the inner elbow in the material-isolated
+#: review sheets. They are authored geometry, not a bake error: the pose only
+#: transforms them, and every earlier pass misses them because
+#: ``straighten_segments``/``centre_segments`` mask at 4.5 cm radius and
+#: ``trim_elbows`` scales whatever survives uniformly.
+#:
+#: This pass runs *after* ``rebind_arms_at_idle`` - the shipped geometry is the
+#: idle pose - so the elbow chain is already at its 12-degree rest and a vertex
+#: is judged in the pose the game displays. It is not a smoother: a vertex only
+#: moves when it beats the median radius of its own one-ring by
+#: ``ELBOW_SPIKE_CM``, and it moves radially, onto that median, so it keeps its
+#: direction, UVs, weights and the ring's topology. The move is tested against
+#: the vertex's own triangle fan and backed off until nothing inverts.
+ELBOW_SPIKE_CM = 0.75        # own radius minus neighbour median that is a spike
+ELBOW_SPIKE_MAX_CM = 3.0     # refuse (and report) a correction larger than this
+ELBOW_SPIKE_WINDOW_CM = 11.0  # only vertices this close to the arm chain
+ELBOW_SPIKE_JOINT_CM = 9.0   # ... and this close to the elbow joint along the chain
+
+
+def _chain_param_world(verts, chain):
+    """Arc length along `chain` and distance to it, for every vertex."""
+    import numpy as np
+
+    best = np.full(len(verts), np.inf)
+    arc = np.zeros(len(verts))
+    acc = 0.0
+    for a, b in zip(chain[:-1], chain[1:]):
+        ab = b - a
+        length = float(np.linalg.norm(ab))
+        u = ab / max(length, 1e-12)
+        t = np.clip((verts - a) @ u, 0.0, length)
+        d = np.linalg.norm(verts - (a + np.outer(t, u)), axis=1)
+        better = d < best
+        best = np.where(better, d, best)
+        arc = np.where(better, t + acc, arc)
+        acc += length
+    return arc, best
+
+
+def despike_elbows(g: bm.Group, template: bm.Template,
+                   bones=(("LeftArm", "LeftForeArm", "LeftHand"),
+                          ("RightArm", "RightForeArm", "RightHand"))) -> list[dict]:
+    """Pull authored elbow spikes back onto the ring they belong to.
+
+    Runs on the shipped (idle-rest) geometry, so ``g.rest_worlds`` gives the
+    joint positions. Each flagged vertex keeps its direction about the arm
+    chain and moves to the median radius of its one-ring neighbours; the move
+    is reduced (never below 25 %) until none of its own triangles flips. There
+    is no topology, UV or weight change, and the build still gates on
+    ``_check_flips``.
+    """
+    import numpy as np
+
+    if not g.verts or not g.rest_worlds:
+        return []
+    v = np.array(g.verts, dtype=np.float64)
+    n_old = np.array(g.normals, dtype=np.float64)
+    faces = np.array(g.faces, dtype=np.int64)
+    # outer blazer only: the sleeve is the surface being reviewed
+    # the caster shares the body's triangles with a single ``shadow_caster``
+    # slot, so it takes the same selection instead of the material test
+    if "shadow_caster" in g.mat_slots:
+        outer = np.ones(len(faces), dtype=bool)
+    else:
+        outer = np.zeros(len(faces), dtype=bool)
+        for (_src, _bv, base_i, tris, _nv), slot in zip(g.slices, g.mat_slots):
+            if slot == "mtr_c02_01":
+                first = base_i // 3
+                outer[first:first + tris] = True
+    adj: dict[int, set[int]] = {}
+    for f in faces[outer]:
+        for i, j in ((f[0], f[1]), (f[1], f[2]), (f[2], f[0])):
+            adj.setdefault(int(i), set()).add(int(j))
+            adj.setdefault(int(j), set()).add(int(i))
+    of_vert: dict[int, list[int]] = {}
+    for fi in np.where(outer)[0]:
+        for i in faces[fi]:
+            of_vert.setdefault(int(i), []).append(int(fi))
+    n0 = np.cross(v[faces[:, 1]] - v[faces[:, 0]], v[faces[:, 2]] - v[faces[:, 0]])
+    a0 = np.linalg.norm(n0, axis=1)
+    new = v.copy()
+    records: list[dict] = []
+    for parent, child, hand in bones:
+        if any(n not in g.rest_worlds for n in (parent, child, hand)):
+            continue
+        chain = [np.asarray(g.rest_worlds[n], float).reshape(4, 4)[3, :3]
+                 for n in (parent, child, hand)]
+        arc, radius = _chain_param_world(v, chain)
+        s_joint = float(np.linalg.norm(chain[1] - chain[0]))
+        near = (radius <= ELBOW_SPIKE_WINDOW_CM) & (np.abs(arc - s_joint) <= ELBOW_SPIKE_JOINT_CM)
+        field = np.where(near, radius, np.inf)
+        cand = [int(i) for i in np.where(near)[0] if adj.get(int(i))]
+        moved = 0
+        limited = 0
+        refused = 0
+        biggest = 0.0
+        touched: set[int] = set()
+        for i in cand:
+            nbrs = [j for j in adj.get(i, ()) if np.isfinite(field[j])]
+            if len(nbrs) < 3:
+                continue
+            target = float(np.median(radius[nbrs]))
+            excess = radius[i] - target
+            if excess <= ELBOW_SPIKE_CM:
+                continue
+            if excess > ELBOW_SPIKE_MAX_CM:
+                p = v[i]
+                raise SystemExit(
+                    f"despike {child}: vertex {i} at ({p[0]:.1f}, {p[1]:.1f}, "
+                    f"{p[2]:.1f}) cm stands {excess:.2f} cm off its ring "
+                    f"(limit {ELBOW_SPIKE_MAX_CM}); inspect it before raising "
+                    f"the limit")
+            best = None
+            for a, b in zip(chain[:-1], chain[1:]):
+                ab = b - a
+                t = np.clip((v[i] - a) @ ab / max(float(ab @ ab), 1e-12), 0.0, 1.0)
+                p = a + t * ab
+                d = float(np.linalg.norm(v[i] - p))
+                if best is None or d < best[0]:
+                    best = (d, p)
+            d, p = best
+            if d < 1e-6:
+                continue
+            unit = (v[i] - p) / d
+            for frac in (1.0, 0.75, 0.5, 0.35, 0.25):
+                trial = new.copy()
+                trial[i] = p + unit * (d + (target - d) * frac)
+                ok = True
+                for fi in of_vert.get(i, ()):
+                    a, b, c = faces[fi]
+                    tn = np.cross(trial[b] - trial[a], trial[c] - trial[a])
+                    if (float(tn @ n0[fi]) <= 0.0
+                            or float(np.linalg.norm(tn)) < 0.25 * a0[fi]):
+                        ok = False
+                        break
+                if ok:
+                    new = trial
+                    moved += 1
+                    touched.add(i)
+                    if frac < 1.0:
+                        limited += 1
+                    biggest = max(biggest, float(np.linalg.norm(new[i] - v[i])))
+                    break
+            else:
+                refused += 1
+        if moved or refused:
+            records.append({"joint": child, "verts": moved,
+                            "partial": limited, "refused": refused,
+                            "max_shift_cm": round(biggest, 2)})
+            print(f"  de-spike {child}: {moved} verts pulled back onto their "
+                  f"ring about the arm chain ({limited} only part way, "
+                  f"{refused} refused as wedge vertices), largest shift "
+                  f"{biggest:.2f} cm; ids {sorted(touched)[:30]}")
+    if not records:
+        return records
+    g.verts = [tuple(row) for row in new]
+    _check_flips(g, v, f"elbow de-spike {g.name}")
+    _recompute_normals(g, n_old)
+    return records
+
+
 def trim_elbows(g: bm.Group, template: bm.Template,
                 bones=(("LeftArm", "LeftForeArm", "LeftHand"),
                        ("RightArm", "RightForeArm", "RightHand")),
@@ -3651,6 +3815,7 @@ def main(argv=None) -> int:
     # before any slim pass, so the base pack is clean too.
     centring: list[dict] = []
     elbow_report: list[dict] = []
+    spike_report: list[dict] = []
     cuff_report: list[dict] = []
     for gname in ("body", "shadow"):
         straighten_segments(groups[gname], template)
@@ -3748,6 +3913,21 @@ def main(argv=None) -> int:
               f"winding agreement {agree:.1%}")
         if breaks or agree < 0.9:
             raise SystemExit(f"[{gname}] idle rebind broke the mesh")
+        # The shipped geometry is the idle pose now, so this is the last - and
+        # the only - place where a vertex can be judged in the pose the game
+        # actually shows. Pull the authored elbow spikes back onto their ring.
+        spikes = despike_elbows(groups[gname], template)
+        if gname == "body":
+            spike_report = spikes
+        if gname == "shadow":
+            # The caster duplicates the body mesh, so it has to lose the same
+            # spikes: compare the vertex counts, not the shifts (the shadow
+            # carries the same circle but tests its own, slightly different,
+            # fan normals)
+            if [s["verts"] for s in spikes] != [s["verts"] for s in spike_report]:
+                raise SystemExit(
+                    f"de-spike touched {[s['verts'] for s in spikes]} shadow "
+                    f"verts but {[s['verts'] for s in spike_report]} body verts")
 
     # Sleeve gloss: darken diffuse alpha (the specular mask) in the sleeve UV
     # regions only, every mip. In game the sleeves read glossier than the
@@ -3826,6 +4006,7 @@ def main(argv=None) -> int:
         # asserts on the same fields, so a regression shows up there too
         "centring": centring,
         "elbow_trim": elbow_report,
+        "elbow_despike": spike_report,
         "cuff_taper": cuff_report,
         "idle_arm_rest": idle_rest,
         "sleeve_stitch": stitch,
@@ -3848,6 +4029,7 @@ def main(argv=None) -> int:
                              "fit_fps": fps_fit,
                              "centring": centring,
                              "elbow_trim": elbow_report,
+                             "elbow_despike": spike_report,
                              "cuff_taper": cuff_report,
                              "idle_arm_rest": idle_rest,
                              "sleeve_stitch": stitch,
