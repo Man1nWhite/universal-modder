@@ -1,5 +1,15 @@
 # Christie_LAS_Slim — replacement screenshot review (2026-11-07)
 
+> **Historical: the images this review describes are no longer archived.** On
+> 2026-11-10 the user replaced all 15 PNGs with 8 new in-game frames, and the
+> installed build for those was reported as `Christie_LAS_Slim`
+> `7a4d010c…90a3e6f` (the de-spiked slim ZIP). Filenames, crop boxes and
+> dimensions below refer to files that now exist only in Git history, and the
+> "installed hash was not supplied" caveat applied to that batch only. Read the
+> current evidence in the
+> [2026-11-10 review](2026-11-10-christie-slim-screenshot-review.md); the
+> appearance findings here are kept because most of them still apply.
+
 ## Evidence and scope
 
 This review **replaces the earlier 11-frame screenshot review**. The user
@@ -34,21 +44,21 @@ at the upper-left, with right/bottom exclusive.
 
 | Shot | Archived file | View | Pixels |
 |---|---|---|---|
-| 01 | [`christie_slim_01_lobby_front.png`](../pd2-las/screenshots/christie_slim_01_lobby_front.png) | lobby, front | 506 × 980 |
-| 02 | [`christie_slim_02_lobby_right-three-quarter.png`](../pd2-las/screenshots/christie_slim_02_lobby_right-three-quarter.png) | lobby, front 3/4, facing image-right | 495 × 1000 |
-| 03 | [`christie_slim_03_lobby_right-profile.png`](../pd2-las/screenshots/christie_slim_03_lobby_right-profile.png) | lobby, profile, facing image-right | 528 × 1012 |
-| 04 | [`christie_slim_04_lobby_back-three-quarter-right.png`](../pd2-las/screenshots/christie_slim_04_lobby_back-three-quarter-right.png) | lobby, back 3/4 | 540 × 1020 |
-| 05 | [`christie_slim_05_lobby_back.png`](../pd2-las/screenshots/christie_slim_05_lobby_back.png) | lobby, back | 594 × 1010 |
-| 06 | [`christie_slim_06_lobby_back-three-quarter-left.png`](../pd2-las/screenshots/christie_slim_06_lobby_back-three-quarter-left.png) | lobby, opposite back 3/4 | 560 × 1055 |
-| 07 | [`christie_slim_07_lobby_left-profile.png`](../pd2-las/screenshots/christie_slim_07_lobby_left-profile.png) | lobby, profile, facing image-left | 502 × 1018 |
-| 08 | [`christie_slim_08_lobby_left-three-quarter.png`](../pd2-las/screenshots/christie_slim_08_lobby_left-three-quarter.png) | lobby, front 3/4, facing image-left | 519 × 1017 |
-| 09 | [`christie_slim_09_menu_front-three-quarter-right-rifle.png`](../pd2-las/screenshots/christie_slim_09_menu_front-three-quarter-right-rifle.png) | menu, front 3/4, rifle | 585 × 911 |
-| 10 | [`christie_slim_10_menu_right-profile-rifle.png`](../pd2-las/screenshots/christie_slim_10_menu_right-profile-rifle.png) | menu, profile, rifle | 557 × 916 |
-| 11 | [`christie_slim_11_menu_back-three-quarter-right-rifle.png`](../pd2-las/screenshots/christie_slim_11_menu_back-three-quarter-right-rifle.png) | menu, back 3/4, rifle | 541 × 890 |
-| 12 | [`christie_slim_12_menu_back-rifle.png`](../pd2-las/screenshots/christie_slim_12_menu_back-rifle.png) | menu, back, rifle | 574 × 910 |
-| 13 | [`christie_slim_13_menu_left-profile-rifle.png`](../pd2-las/screenshots/christie_slim_13_menu_left-profile-rifle.png) | menu, opposite profile, rifle | 536 × 881 |
-| 14 | [`christie_slim_14_menu_front-three-quarter-left-rifle.png`](../pd2-las/screenshots/christie_slim_14_menu_front-three-quarter-left-rifle.png) | menu, opposite front 3/4, rifle | 531 × 902 |
-| 15 | [`christie_slim_15_menu_front-rifle.png`](../pd2-las/screenshots/christie_slim_15_menu_front-rifle.png) | menu, front, rifle | 536 × 899 |
+| 01 | `christie_slim_01_lobby_front.png` | lobby, front | 506 × 980 |
+| 02 | `christie_slim_02_lobby_right-three-quarter.png` | lobby, front 3/4, facing image-right | 495 × 1000 |
+| 03 | `christie_slim_03_lobby_right-profile.png` | lobby, profile, facing image-right | 528 × 1012 |
+| 04 | `christie_slim_04_lobby_back-three-quarter-right.png` | lobby, back 3/4 | 540 × 1020 |
+| 05 | `christie_slim_05_lobby_back.png` | lobby, back | 594 × 1010 |
+| 06 | `christie_slim_06_lobby_back-three-quarter-left.png` | lobby, opposite back 3/4 | 560 × 1055 |
+| 07 | `christie_slim_07_lobby_left-profile.png` | lobby, profile, facing image-left | 502 × 1018 |
+| 08 | `christie_slim_08_lobby_left-three-quarter.png` | lobby, front 3/4, facing image-left | 519 × 1017 |
+| 09 | `christie_slim_09_menu_front-three-quarter-right-rifle.png` | menu, front 3/4, rifle | 585 × 911 |
+| 10 | `christie_slim_10_menu_right-profile-rifle.png` | menu, profile, rifle | 557 × 916 |
+| 11 | `christie_slim_11_menu_back-three-quarter-right-rifle.png` | menu, back 3/4, rifle | 541 × 890 |
+| 12 | `christie_slim_12_menu_back-rifle.png` | menu, back, rifle | 574 × 910 |
+| 13 | `christie_slim_13_menu_left-profile-rifle.png` | menu, opposite profile, rifle | 536 × 881 |
+| 14 | `christie_slim_14_menu_front-three-quarter-left-rifle.png` | menu, opposite front 3/4, rifle | 531 × 902 |
+| 15 | `christie_slim_15_menu_front-rifle.png` | menu, front, rifle | 536 × 899 |
 
 ## Findings — observed appearance, not assumed root causes
 

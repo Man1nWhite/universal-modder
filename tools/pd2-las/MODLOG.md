@@ -1,5 +1,48 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-10 — replace the screenshot archive with the de-spiked build's captures
+
+- Request: replace the archived Christie screenshots with the 8 PNGs supplied
+  today, then look at them. Documentation/evidence round only — no model,
+  texture, Lua hook or distributable ZIP changed.
+- Replaced the 15 PNGs of the 2026-11-07 batch with the 8 supplied originals,
+  byte-for-byte in upload order (7 lobby/idle, **1** menu/rifle). The batch's
+  `image-1.png` is a Blender bone-overlay close-up, not an in-game screenshot,
+  and is deliberately not archived. `manifest.json` rewritten (dimensions,
+  bytes, full SHA-256, upload mapping); the six rifle angles the old batch had
+  are **not** in the archive now, so the rifle pose is documented from one view.
+- **Installed build: recorded as `Christie_LAS_Slim` `7a4d010c…90a3e6f`** on the
+  user's report — the de-spiked slim ZIP in `dist/`. The manifest states that
+  this is a user report, not a hash measured from the captures, and that it does
+  not cover the separate head model or spawned gloves.
+- New review `docs/audits/2026-11-10-christie-slim-screenshot-review.md`. It is
+  the first in-game look at the de-spiked elbow: after a `(+3, +3)` px
+  alignment against the replaced profile frame, the new arm contour over the
+  elbow rows sits −14…+6 px relative to the old one (mostly inside it) — no
+  outward growth, so the fix is not contradicted, but this is two captures of
+  two builds, not a matched pair. The rifle frame still shows a thin flap-like
+  inner-elbow fold, so that finding stays open.
+- Findings carried forward with new coordinates: rear-sleeve dark wedge (05),
+  neck bands (01/02/08), coarse suit tonal patches, cuff/glove rim. Measured at
+  1:1: the wedge core in 05 is **darker** than the wall beside it (29,30,26 vs
+  41,42,38; wall σ≈7) and does not reproduce the weave, so it is not a
+  see-through hole. Neck band magnitude is unchanged within noise (largest
+  single-row step 9.4/11.9/6.9 now vs 10.6 in the replaced frame).
+- **Withdrawn:** the 2026-11-07 "small red/orange marks at the cuff junction".
+  In this batch 948 of 962 strongly red pixels in shot 01 lie on the bright
+  object contour (100 % in 05–07), and **none** fall inside the cuff/glove box —
+  that is rim antialiasing, not a texture speck.
+- Marked both older reviews historical in their headers and pointed them at the
+  new one; corrected the stale `CHRISTIE.md` head to the current evidence, build
+  identity and test counts.
+- Validation: 8/8 archive files byte-identical to the uploads; `pytest -q
+  tests/test_christie_las.py tests/test_seam_normals.py` → **86 passed, 2
+  failed**, both the pre-existing slim sleeve-tube probes (4.95 cm², right
+  sleeve) — unchanged by a docs-only round.
+- Next: isolate the inner-elbow flap in the rifle pose, re-check the rear-sleeve
+  wedge under flat/unlit controls, then settle neck-band ownership head-on vs
+  head-off. A matched before/after angle set for both builds is still missing.
+
 ## 2026-11-10 — elbow de-spike: the inner-elbow beak
 
 - **Reproduction check (2026-11-10, after the fix):** both packs rebuild to the
