@@ -539,7 +539,7 @@ def check_skinning_keyword(rep: Report, model: DieselModel, cfg: str,
             continue
         for atom in d["atoms"]:
             base = atom["base_vertex"]
-            nverts = atom["geo_len"]
+            nverts = atom["slice_len"]
             mat_id = atom["material_id"]
             tpl = name_by_hash.get(d["material_hashes"][mat_id], "")
             m = re.search(r"SKINNED_(\d)WEIGHT", tpl)

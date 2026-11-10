@@ -125,7 +125,7 @@ def meshes_of(model: DieselModel, raw: bytes):
         tris = []
         for atom in md.render_atoms:
             # the parser names the atom fields
-            # (base_vertex, tri_count, base_index, vertex_count, material_id);
+            # (base_vertex, tri_count, base_index, slice_len, material_id);
             # base_index counts *indices*, so it is three per triangle
             base_index = atom["base_index"] // 3
             tri_count = atom["tri_count"]

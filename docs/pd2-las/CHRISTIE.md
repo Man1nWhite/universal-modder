@@ -29,13 +29,13 @@ down keeps the earlier hashes it was written with.
 
 > **All 67 Christie tests passing does not clear the packs.** They do not check
 > per-atom index containment, and both packs draw 16 out-of-bounds triangles from
-> `s_body`. See
-> [`docs/audits/2026-11-10-diagnostics-and-tests-masking-repair-plan.md`](../audits/2026-11-10-diagnostics-and-tests-masking-repair-plan.md).
+> `s_body`. See `tools/pd2-las/MODLOG.md` for the executed repair plans and their
+> results; the diagnostics plan was executed and deleted per plan convention.
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `c57edbba…1f765`, 4,794,618 B)
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `196606c0…3d5e24`, 4,981,789 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `5e55745f…70b4d`,
-  4,222,761 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `ee85fc15…5bd7b8`,
+  4,392,046 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -159,14 +159,18 @@ every seam. The new pass runs last, after `stitch_sleeve_seams`, on the body and
 its shadow: each coincident group gets one mean normal on its **interior**
 copies only. Copies on a border edge are the rim of a garment panel (cuff mouth,
 sleeve opening, lining edge) — a real fold, kept as-is, so the silhouette does
-not smear. Slim unifies 98 copies over 49 groups, base 100 over 50; interior
-divergent pairs 49/50 → **0**, border pairs untouched (431/806), worst pre-fix
+not smear. Slim unifies 348 copies over 87 groups, base 512 over 128 groups; interior
+divergent pairs 0/0 → **0**, border pairs untouched (480/836), worst pre-fix
 pair 101°/103° (beyond 120° the pass refuses to average), winding agreement
-97.3 → 97.1/97.2 %, 0 orientation breaks, no position/UV/face/weight change.
-Packs rebuilt: `c57edbbaa91a8aa7059b7432a76d63a1a84b2617feb1eef2557c597091b1f765`
-base, `5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d` slim.
+97.4 %, 0 orientation breaks, no position/UV/face/weight change.
+Packs rebuilt: `196606c0c548d173a20af56946ef485d42e4f2f33c912accaf3165d2133d5e24`
+base, `ee85fc159c13a0d18e33bd9b4237ebd278818d328456be1af309417a5bd7b8` slim.
 Also `bootstrap.sh` now installs **scipy**, which the slim build needs
-(`_elbow_coverage_correction`) and which a clean bootstrap used to miss. Tests:
+(`_elbow_coverage_correction`) and which a clean bootstrap used to miss.
+**2026-11-11 forearm normal rotation:** `rebind_arms_at_idle` now rotates
+stored normals by the same LBS skinning matrix that poses the vertices
+(covector transform `n' = n @ (R^-1)^T`), fixing the dark rear-forearm shading
+patches where `fn · vn` was 0.29 → ≥ 0.90. Tests:
 `tests/test_seam_normals.py` plus `test_interior_coincident_normals_agree`
 and `test_sleeve_gloss_mask_stays_on_the_sleeve`; 67 Christie tests green.
 Not yet checked in game.

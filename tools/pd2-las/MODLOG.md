@@ -1,5 +1,34 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-11 — Christie forearm normals + sleeve seam repair (executed plan)
+
+- Executed `docs/audits/2026-11-07-christie-forearm-normals-and-seam-repair-plan.md`
+  (then deleted per plan convention).
+- **Forearm normal rotation:** `rebind_arms_at_idle` now rotates stored normals
+  by the same LBS skinning matrix that poses the vertices
+  (covector transform `n' = n @ (R^-1)^T`), fixing dark rear-forearm shading
+  patches where `fn · vn` was 0.29 → ≥ 0.90 on `mtr_c02_01` rear forearms.
+- **`stitch_sleeve_seams`:** `min_normal_dot` 0.2→0.3; surface-tangency filter
+  rejects radial cuff-vent/lining bulkheads (chord/normal angle > 0.45); quad
+  loft scored by worst face/vertex-normal alignment (best_score ≥ 0.5) rejects
+  inside-out caps; short-loop fill gated on connected-component tri count ≥ 32
+  (rejects 6–9 tri decorative cuff patches, keeps the 698-tri pinhole); UV
+  continuation clones wrapped bridge vertices (Δu 0.20 → < 0.08). Only the
+  genuine inner-elbow pinhole is now filled (1 hole vs 4).
+- **Packs rebuilt:** `Christie_LAS.zip` 4,981,789 B sha256
+  `196606c0…3d5e24`; `Christie_LAS_Slim.zip` 4,392,046 B sha256
+  `ee85fc15…5bd7b8`. `.sha256` sidecars regenerated. `HANDOFF.md` and
+  `CHRISTIE.md` sizes/hashes updated.
+- Seam unification counts: slim 348 copies over 87 groups, base 512 over 128
+  groups; interior divergent pairs 0 on both; border pairs untouched (480/836).
+- Validation: 644 passed, 30 skipped, 2 failed —
+  `test_sleeve_tube_is_closed_along_its_length` for slim remains at 6.70/4.95
+  cm² leak (rims in z 125.3–126.6 have no paired vertices to bridge; a
+  geometry limitation beyond stitching). All other Christie tests pass.
+- New files: `tools/pd2-las/extract_2b.py`, `tools/pd2-port/check_skip_budget.py`.
+- `bootstrap.sh` now uses `extract_2b.py` (file-based, fixes `node -e` wasm
+  `__dirname` failure) instead of broken inline `node -e` RAR extraction.
+
 ## 2026-11-07 — replace Christie Slim screenshots and reassess appearance
 
 - Request: replace the archived screenshots with 15 new uploads, then analyze

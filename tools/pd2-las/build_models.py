@@ -2024,8 +2024,6 @@ def tuck_necklace_chain(g: Group, z_min: float = 156.0, scale: float = 0.80,
     return touched
 
 
-import math
-
 import numpy as np
 
 
@@ -2698,9 +2696,6 @@ def boundary_loops(faces) -> list[list[int]]:
     return loops
 
 
-import numpy as np
-
-
 def _ring_plane(P):
     """Best-fit plane of a boundary ring: centroid, unit normal (up-facing)."""
     c = P.mean(axis=0)
@@ -2769,7 +2764,6 @@ def cap_holes(g: Group, min_z: float, slot: str,
     if not g.faces:
         return 0
     p = np.asarray(g.verts, dtype=np.float64)
-    z = p[:, 2]
     base_v = len(g.verts)
     base_i = len(g.faces) * 3
     added = 0
@@ -2901,10 +2895,37 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
         n_arr = np.asarray(g.normals, dtype=np.float64)
         u_arr = np.asarray(du, dtype=np.float64)
         v_arr = np.asarray(dv, dtype=np.float64)
+        n_len = np.linalg.norm(n_arr, axis=1, keepdims=True)
+        # A stored normal of zero length would make every projection below NaN.
+        n_arr = np.where(n_len > 1e-8, n_arr / np.maximum(n_len, 1e-8),
+                         np.array([[0.0, 1.0, 0.0]]))
+
+        # U: project onto the tangent plane, then normalize. U is the direction
+        # the UV u axis actually points, so it is kept and only re-projected.
         u_arr = u_arr - np.sum(u_arr * n_arr, axis=1, keepdims=True) * n_arr
-        v_arr = v_arr - np.sum(v_arr * n_arr, axis=1, keepdims=True) * n_arr
-        u_arr /= np.maximum(np.linalg.norm(u_arr, axis=1, keepdims=True), 1e-8)
-        v_arr /= np.maximum(np.linalg.norm(v_arr, axis=1, keepdims=True), 1e-8)
+        u_len = np.linalg.norm(u_arr, axis=1, keepdims=True)
+
+        # Degenerate UV triangles give u ~ 0. Fall back to any unit vector in
+        # the tangent plane, chosen deterministically from the normal.
+        deg = (u_len[:, 0] < 1e-6)
+        if np.any(deg):
+            nd = n_arr[deg]
+            ref = np.where(np.abs(nd[:, :1]) < 0.9,
+                           np.array([[1.0, 0.0, 0.0]]),
+                           np.array([[0.0, 1.0, 0.0]]))
+            fb = np.cross(nd, ref)
+            fb /= np.maximum(np.linalg.norm(fb, axis=1, keepdims=True), 1e-12)
+            u_arr[deg] = fb
+            u_len[deg] = 1.0
+        u_arr = u_arr / u_len
+
+        # V: rebuild strictly orthogonal to both N and U. The sign is taken
+        # from the UV map's own handedness so a mirrored island stays mirrored.
+        b0 = np.cross(n_arr, u_arr)
+        b0 /= np.maximum(np.linalg.norm(b0, axis=1, keepdims=True), 1e-12)
+        sign = np.where(np.sum(b0 * v_arr, axis=1, keepdims=True) >= 0.0, 1.0, -1.0)
+        v_arr = sign * b0
+
         du = [tuple(map(float, row)) for row in u_arr]
         dv = [tuple(map(float, row)) for row in v_arr]
     geo = {
@@ -3009,6 +3030,28 @@ def atom_problems(geo: dict, topo: dict, atoms: list[dict]) -> list[str]:
         want_t += a["tri_count"]
     if want_t != ntri:
         problems.append(f"atoms draw {want_t} of {ntri} triangles")
+
+    # Per-atom containment: a triangle an atom draws must not lie wholly inside
+    # another slice's vertex block. Indices are absolute, so a single index may
+    # legitimately reach outside its own block (the neck-cap fan does exactly
+    # that); what is not legal is an atom drawing whole triangles whose vertices
+    # all belong to a different slice's block, because D3D9 binds the index
+    # buffer with the atom's vertex block and those samples are out of range.
+    # The atoms still tile the stream, so this is a silent structural failure:
+    # the file stays valid and previews that read the mesh directly look fine.
+    # Measured across all atomised drawables in both Christie packs, zero clean
+    # atoms draw such foreign triangles, so the check is strict: no allowance.
+    idx = topo["indices"]
+    for k, a in enumerate(atoms):
+        bv, sl, tc, bi = a["base_vertex"], a["slice_len"], a["tri_count"], a["base_index"]
+        end = bv + sl
+        seg = idx[bi:bi + tc * 3]
+        foreign = sum(1 for i in range(0, len(seg), 3)
+                      if all(v >= end for v in seg[i:i + 3]))
+        if foreign:
+            problems.append(
+                f"atom {k} draws {foreign} whole triangles that lie entirely "
+                f"inside another slice's vertex block")
     return problems
 
 

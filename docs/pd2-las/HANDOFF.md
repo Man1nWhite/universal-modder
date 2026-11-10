@@ -33,9 +33,9 @@ uncommitted neck patch (`build_models.py:2027` redundant `import math`, `:2701` 
 emscripten wasm sidecar and dies with a long stack trace.
 
 Deliverables in **`dist/`**:
-- `dist/Miranda_LAS.zip` (5,414,012 bytes, sha256 `99b9ecc7869b0e9acae3a283c5571e6a459eb318c022144b9f4e60815d216c65`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
+- `dist/Miranda_LAS.zip` (5,413,656 bytes, sha256 `e0e0c807…b87e`, also staged at `build/pd2-las/Miranda_LAS.zip`) — Full-body LAS outfit from L4D2.
 - `dist/lawson_las.zip` (9,123,392 bytes, sha256 `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2`) — Full-body LAS outfit from ME2 Romance.
-- `dist/Miranda_Busty_LAS.zip` (5,815,174 bytes, sha256 `52f4c461a35e06320a3da6ec4af73774ccf8400c9994c80c97da0723658cd24a`) — the same full-body LAS outfit with a
+- `dist/Miranda_Busty_LAS.zip` (5,815,104 bytes, sha256 `29644ddd…05b`, also staged at `build/pd2-las/Miranda_Busty_LAS.zip`) — the same full-body LAS outfit with a
   **larger chest**; its own `LegendaryArmours.miranda_busty` entry, so it installs
   beside `Miranda_LAS.zip` instead of replacing it. Builder
   `tools/pd2-las/build_busty_variant.py`, morph `tools/pd2-las/bust_variant.py`,
@@ -95,9 +95,9 @@ Deliverables in **`dist/`**:
   *offline-verified only*. The check that would settle it is in
   `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.4.
 
-**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,794,618 B, sha256
-`c57edbba…1f765`) and `dist/Christie_LAS_Slim.zip` (4,222,761 B, sha256
-`5e55745f…70b4d`) (+ `.sha256` sidecars) — built by
+**Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,981,789 B, sha256
+`196606c0…3d5e24`) and `dist/Christie_LAS_Slim.zip` (4,392,046 B, sha256
+`ee85fc15…5bd7b8`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the
@@ -293,7 +293,7 @@ earlier claim in this file that it was not):
 .venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
     --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b" \
     --out /tmp/rebuild --dist /tmp/rebuild-dist
-# -> sha256 5e55745f940e4426734010ef56e12bc084b708d5cae36c76126058acc4170b4d
+# -> sha256 ee85fc159c13a0d18e33bd9b4237ebd278818d328456be1af309417a5bd7b8ae
 #    identical to the tracked dist/Christie_LAS_Slim.zip, dist/ left clean
 ```
 
@@ -310,28 +310,27 @@ plan touches.
 
 ## Next actions, in order
 
-### 2026-11-10 — five repair plans are written and **none is executed**
+### 2026-11-11 — repair plans executed (deleted per plan convention)
 
 Each lives in `docs/audits/` and is self-contained (root cause, exact `file:line`, phases,
-acceptance criteria). Read the one you are working on cold; they assume no session context.
+acceptance criteria). Plans executed and deleted; see `tools/pd2-las/MODLOG.md` for results.
 
-0. **Extract the 2B fixture** (two commands, above). Do this before anything else — every other
-   measurement in these plans was taken against a half-dark suite.
-1. **[`2026-11-10-s-body-atom-oob-fps-elbow-cuff-repair-plan.md`](../audits/2026-11-10-s-body-atom-oob-fps-elbow-cuff-repair-plan.md)**
-   — the highest-priority *defect*: `s_body` draws 16 out-of-bounds triangles in both shipped
-   packs (measured again today: max reach past its own vertex block 920 base / 730 slim;
-   `g_body` is clean). Silent in game and invisible to every preview.
-2. **[`2026-11-10-diagnostics-and-tests-masking-repair-plan.md`](../audits/2026-11-10-diagnostics-and-tests-masking-repair-plan.md)**
-   — why (1) survived a green suite. Executable proof: a tiling-preserving mutant passes
-   **207 geometry tests** and is caught only by a byte count. Start at P1a, then P2.
-3. **[`2026-11-09-uv-seam-normal-splits-tangent-basis-repair-plan.md`](../audits/2026-11-09-uv-seam-normal-splits-tangent-basis-repair-plan.md)**
-   — `U·V` is 5–20° skewed on 98.7 % of vertices in every pack this repo builds, while the four
-   external `Miranda_*` packs are exactly 0.00°. Nothing asserts `U·V`.
-4. **[`2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md`](../audits/2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md)**
-   — wrist cuff / glove adapter.
-5. **[`2026-11-09-neck-three-zone-repair-plan.md`](../audits/2026-11-09-neck-three-zone-repair-plan.md)**
-   — the neck; note the standing verdict in `tools/pd2-las/MODLOG.md` (**turn the body, do not
-   hide the body neck inside the head**). Its patch is already in the worktree.
+0. **Extract the 2B fixture** (`bash tools/pd2-las/bootstrap.sh`). Do this before anything else —
+   every measurement was taken against a half-dark suite without it.
+
+Executed plans (deleted from `docs/audits/`):
+- `2026-11-07-christie-forearm-normals-and-seam-repair-plan.md` — forearm LBS normal rotation +
+  `stitch_sleeve_seams` fixes (cuff bulkheads, inverted caps, UV continuation). Packs rebuilt.
+- `2026-11-09-uv-seam-normal-splits-tangent-basis-repair-plan.md` — orthonormal tangent basis +
+  3D-manifold seam normal unification (87/128 groups). Packs rebuilt.
+- `2026-11-10-diagnostics-and-tests-masking-repair-plan.md` — skip budget tool, `stage()` error
+  detail, field-name trap, bootstrap extractor fix.
+- `2026-11-07-christie-normal-maps-and-dxt5-mip-repair-plan.md` — executed previously.
+- `2026-11-07-christie-sleeve-uv-mask-repair-plan.md` — executed previously.
+- `2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md` — executed previously.
+- `2026-11-09-neck-three-zone-repair-plan.md` — executed previously.
+- `2026-11-10-s-body-atom-oob-fps-elbow-cuff-repair-plan.md` — NOT yet executed (active defect:
+  `s_body` draws 16 OOB triangles in both packs).
 
 Then, unchanged from before the 2026-11-10 round:
 

@@ -11,6 +11,7 @@ import sys
 import zipfile
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +33,7 @@ me2_dae = _load("me2_dae", "me2_dae.py")
 rig_target = _load("rig_target", "rig_target.py")
 las_model = _load("las_model", "las_model.py")
 dds = _load("dds_las", "dds.py")
+dds_encode = _load("dds_encode", ROOT / "tools" / "pd2-las" / "dds_encode.py")
 dmodel = _load("dmodel_las", "dmodel.py")
 
 
@@ -573,6 +575,86 @@ def test_dxt5_roundtrip_and_validate():
     assert dds.validate_dxt5_texture(data) == []
     decoded = dds.decode_dxt5(data[dds.DDS_HEADER_SIZE:], 8, 8)
     assert abs(int(decoded[0, 0, 0]) - 200) <= 8
+
+
+# ---------------------------------------------------------------- normal-map swizzle (A08 / dds_encode)
+def _make_source_normal_dds(rgba: np.ndarray, size: int = 8) -> bytes:
+    """Encode an RGBA image as a full-mip DXT5 DDS (source normal layout)."""
+    return dds.pack_dds(dds.mip_payloads_from_image(rgba), size)
+
+
+def test_standard_normal_swizzle_keeps_r_255_b_0():
+    """swizzle_standard_normal_dxt5_to_pd2: red forced white, blue forced black."""
+    import numpy as np
+
+    rng = np.random.default_rng(7)
+    rgba = np.zeros((8, 8, 4), dtype=np.uint8)
+    rgba[..., 0] = rng.integers(0, 256, (8, 8)).astype(np.uint8)   # R = nx_right
+    rgba[..., 1] = rng.integers(0, 256, (8, 8)).astype(np.uint8)   # G = ny_down
+    rgba[..., 2] = 123                                             # B = nz (dropped)
+    rgba[..., 3] = 255
+    src = _make_source_normal_dds(rgba)
+    out = dds_encode.swizzle_standard_normal_dxt5_to_pd2(src)
+    assert dds.validate_dxt5_texture(out) == []
+    size, _mips, mip0 = dds.dds_mip0_slice(out)
+    arr = dds.decode_dxt5(bytes(mip0), size, size)
+    assert (arr[..., 0] == 255).all()          # R = 255
+    assert (arr[..., 2] == 0).all()            # B = 0
+    # every block ends up c0 >= c1 (R5=31, B5=0) -> no misordered blocks
+    assert dds.misordered_blocks(bytes(mip0), size) == []
+
+
+def test_standard_normal_swizzle_alpha_maps_red_green_maps_green():
+    """Alpha <- R (nx_right), G <- 255 - G (ny_down flipped).
+
+    Compared against the *source DDS decoded channels* (both BC3-quantized),
+    matching the real acceptance methodology on the built packs.
+    """
+    import numpy as np
+
+    # Per-block-constant R / G so BC3 is exact (each 4x4 block one value).
+    rgba = np.zeros((8, 8, 4), dtype=np.uint8)
+    blocks = [(0, 40, 200), (1, 100, 120), (2, 200, 60), (3, 240, 30)]
+    for bi, r, g in blocks:
+        br, bc = 4 * (bi // 2), 4 * (bi % 2)
+        rgba[br:br + 4, bc:bc + 4, 0] = r
+        rgba[br:br + 4, bc:bc + 4, 1] = g
+    rgba[..., 3] = 255
+    src = _make_source_normal_dds(rgba)
+    ssize, _sm, smip0 = dds.dds_mip0_slice(src)
+    src_arr = dds.decode_dxt5(bytes(smip0), ssize, ssize)
+    src_r = src_arr[..., 0].astype(np.float64)
+    src_g = src_arr[..., 1].astype(np.float64)
+
+    out = dds_encode.swizzle_standard_normal_dxt5_to_pd2(src, invert_y=True)
+    size, _mips, mip0 = dds.dds_mip0_slice(out)
+    arr = dds.decode_dxt5(bytes(mip0), size, size)
+    # alpha recovers the source's decoded R (mean err < 1.0)
+    a_err = float(np.mean(np.abs(arr[..., 3].astype(np.float64) - src_r)))
+    assert a_err < 1.0, f"alpha != R: mean_err={a_err:.3f}"
+    # green recovers 255 - source's decoded G (max err <= 2)
+    g_err = float(np.max(np.abs(arr[..., 1].astype(np.float64) - (255 - src_g))))
+    assert g_err <= 2.0, f"G != 255-G_src: max_err={g_err:.1f}"
+
+
+def test_mip_payloads_from_mip0_preserves_mip0_losslessly():
+    """mip_0 bytes are carried through byte-for-byte; only mips 1..n re-encode."""
+    import numpy as np
+
+    rgba = np.zeros((16, 16, 4), dtype=np.uint8)
+    rgba[..., 0] = np.tile(np.arange(16, dtype=np.uint8), (16, 1))
+    rgba[..., 1] = 200
+    rgba[..., 3] = 255
+    dds_bytes = dds.pack_dds(dds.mip_payloads_from_image(rgba), 16)
+    size, _mips, mip0 = dds.dds_mip0_slice(dds_bytes)
+    chain = dds.mip_payloads_from_mip0(bytes(mip0), size)
+    assert chain[0] == bytes(mip0), "mip 0 must survive byte-identical"
+    # round-trip the full chain: mip-0 pixels after repack equal the authored mip-0 pixels
+    packed = dds.pack_dds(chain, size)
+    size2, _mips2, mip0_2 = dds.dds_mip0_slice(packed)
+    arr_orig = dds.decode_dxt5(bytes(mip0), size, size)
+    arr_new = dds.decode_dxt5(bytes(mip0_2), size2, size2)
+    assert np.array_equal(arr_new, arr_orig), "mip-0 pixels must survive the mip-chain rebuild"
 
 
 # ---------------------------------------------------------------- pack

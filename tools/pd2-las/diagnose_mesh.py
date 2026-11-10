@@ -161,11 +161,14 @@ def loops_of(edges, verts):
     return out
 
 
-def _hits_any(o, d, tri) -> bool:
+def _hits_any(o, d, tri, front_faces_only: bool = False) -> bool:
     v0, e1, e2 = tri[:, 0], tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0]
     pv = np.cross(d, e2)
     det = np.einsum("ij,ij->i", e1, pv)
-    ok = np.abs(det) > 1e-9
+    if front_faces_only:
+        ok = det > 1e-9          # front face only (D3D9 culls backfaces)
+    else:
+        ok = np.abs(det) > 1e-9  # either face
     inv = np.zeros_like(det); inv[ok] = 1.0 / det[ok]
     tv = o - v0
     u = np.einsum("ij,ij->i", tv, pv) * inv
@@ -176,7 +179,8 @@ def _hits_any(o, d, tri) -> bool:
 
 
 def sleeve_slit_area(p: dict, joints: dict, side: int, step_deg: float = 6.0,
-                     slice_cm: float = 0.5, lo: float = 0.10, hi: float = 0.90) -> dict:
+                     slice_cm: float = 0.5, lo: float = 0.10, hi: float = 0.90,
+                     cull_backfaces: bool = False) -> dict:
     """Radial-dodging area of one sleeve: the hole a zero-width slit makes.
 
     The sleeve is a tube: a ray cast radially from its bone axis must hit the
@@ -188,6 +192,9 @@ def sleeve_slit_area(p: dict, joints: dict, side: int, step_deg: float = 6.0,
 
     `joints` maps bone names to rest positions (`{name: (x, y, z)}`, see
     :func:`diagnose`); `side` is -1 for the left (negative x) arm, +1 right.
+    With ``cull_backfaces=True``, rays are cast inward from outside the sleeve
+    and only front-face hits count, matching D3D9 backface culling so
+    inside-out caps and reversed bridge triangles are caught as leaks.
     Returns ``{"cm2": float, "slices": [(s, z, cm2), ...]}``.
     """
     v, f, fmat = p["verts"], p["faces"], p["fmat"]
@@ -214,9 +221,21 @@ def sleeve_slit_area(p: dict, joints: dict, side: int, step_deg: float = 6.0,
             o = a + u * (seg * (k + 0.5) / n)
             rel = tri.reshape(-1, 3) - o
             r = float(np.median(np.linalg.norm(rel - np.outer(rel @ u, u), axis=1)))
-            miss = sum(0 if _hits_any(o, np.cos(np.radians(dg)) * e1
-                                      + np.sin(np.radians(dg)) * e2, tri) else 1
-                       for dg in np.arange(0.0, 360.0, step_deg))
+            if cull_backfaces:
+                # Cast inward from outside; only front-face hits count, so an
+                # inside-out cap or reversed bridge triangle reads as a leak.
+                miss = sum(
+                    0 if _hits_any(
+                        o + 15.0 * ray_dir, -ray_dir, tri,
+                        front_faces_only=True) else 1
+                    for dg in np.arange(0.0, 360.0, step_deg)
+                    for ray_dir in [np.cos(np.radians(dg)) * e1
+                                    + np.sin(np.radians(dg)) * e2])
+            else:
+                miss = sum(0 if _hits_any(o, np.cos(np.radians(dg)) * e1
+                                          + np.sin(np.radians(dg)) * e2, tri)
+                           else 1
+                           for dg in np.arange(0.0, 360.0, step_deg))
             if miss:
                 a2 = miss / (360.0 / step_deg) * 2 * np.pi * r * (seg / n)
                 total += a2
@@ -345,20 +364,26 @@ def diagnose(label: str, path: Path, pack: str, item: str,
                          - (t[2, 0] - t[0, 0]) * (t[1, 1] - t[0, 1]))
 
     def mval(fi):
-        c = p["uv"][f[fi]].mean(0)
-        y = int(np.clip((1 + c[1]) * 1024, 0, 1023))
+        c = bcl.uv_to_texel_frac(p["uv"][f[fi]].mean(0))
+        y = int(np.clip(c[1] * 1024, 0, 1023))
         x = int(np.clip(c[0] * 1024, 0, 1023))
         return mask[y, x]
 
     leg = [fi for fi in np.where(fmat == role)[0]
            if p["w"]["leg"][f[fi]].mean() > 0.5 and p["w"]["arm"][f[fi]].mean() < 0.1]
+    leg_z = [float(p["verts"][f[fi], 2].mean()) for fi in leg]
     tot = sum(uva(fi) for fi in leg)
     cov = sum(uva(fi) for fi in leg if mval(fi) > 0.05)
+    leg_hits = [fi for fi in leg if mval(fi) > 0.05]
+    trouser_hits = [fi for fi in leg_hits
+                    if 20.0 < leg_z[leg.index(fi)] < 60.0]
     sleeve_pct = (sum(1 for fi in sleeve_faces if mval(fi) > 0.5)
                   / max(1, len(sleeve_faces)) * 100)
-    print(f"sleeve gloss mask: {cov / max(tot, 1e-9) * 100:.1f}% of the {role} "
-          f"leg-only UV area covered ({sum(1 for fi in leg if mval(fi) > 0.05)} of "
-          f"{len(leg)} faces); sleeve faces covered {sleeve_pct:.0f}%")
+    max_hit_z = max([leg_z[leg.index(fi)] for fi in leg_hits] or [0.0])
+    print(f"sleeve gloss mask: sleeve faces covered {sleeve_pct:.0f}%; "
+          f"{role} leg-only UV area {cov / max(tot, 1e-9) * 100:.2f}% "
+          f"({len(leg_hits)} of {len(leg)} faces, max z {max_hit_z:.1f} cm); "
+          f"trouser band z in [20, 60) hits: {len(trouser_hits)}")
 
     # sleeve slit: the radial-dodging area of each sleeve tube. The stitch pass
     # is supposed to have closed the zero-width seam, so only the open cuff

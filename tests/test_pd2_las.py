@@ -932,6 +932,53 @@ class TestLasScaffold:
                     assert float(lash_patch.mean()) < 48.0, f"{zip_name}: upper lash liner missing ({lash_patch.mean():.1f})"
 
 
+def test_our_packs_have_an_orthonormal_tangent_basis():
+    """N.U, N.V *and* U.V must all be zero; U and V must be unit length.
+
+    The existing assertions in test_ingame_visual_artifact_regressions only
+    cover N.U and N.V, which a plain projection satisfies exactly - that is how
+    a 5-20 degree shear shipped in every pack this repo builds. U.V is the
+    missing gate, and it is checked here on the packs this repo actually builds
+    (Christie base + slim, TPP and FPS).
+    """
+    import zipfile
+
+    import numpy as np
+
+    import diesel_model as dm
+
+    specs = [
+        ("Christie_LAS_Slim.zip", "Christie_LAS_Slim",
+         "assets/units/christie_slim/skins/christie_slim/christie_slim.model"),
+        ("Christie_LAS_Slim.zip", "Christie_LAS_Slim",
+         "assets/units/christie_slim/skins/christie_slim/fps_christie_slim.model"),
+        ("Christie_LAS.zip", "Christie_LAS",
+         "assets/units/christie/skins/christie/christie.model"),
+        ("Christie_LAS.zip", "Christie_LAS",
+         "assets/units/christie/skins/christie/fps_christie.model"),
+    ]
+    for zip_name, prefix, model_rel in specs:
+        zp = REPO / "dist" / zip_name
+        if not zp.is_file():
+            pytest.skip(f"{zip_name} not built")
+        with zipfile.ZipFile(zp) as z:
+            mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
+        for si, sec in enumerate(mf.by_type(dm.GEOMETRY)):
+            geo = dm.decode_geometry(sec.payload)
+            n = np.asarray(geo["normals"], dtype=np.float64)
+            u = np.asarray(geo["uvdir_u"], dtype=np.float64)
+            v = np.asarray(geo["uvdir_v"], dtype=np.float64)
+            tag = f"{zip_name}:{model_rel}[{si}]"
+            assert np.abs(np.linalg.norm(u, axis=1) - 1.0).max() < 1e-4, \
+                f"{tag}: U not unit"
+            assert np.abs(np.linalg.norm(v, axis=1) - 1.0).max() < 1e-4, \
+                f"{tag}: V not unit"
+            assert np.abs((n * u).sum(1)).max() < 1e-4, f"{tag}: N.U"
+            assert np.abs((n * v).sum(1)).max() < 1e-4, f"{tag}: N.V"
+            assert np.abs((u * v).sum(1)).max() < 1e-4, \
+                f"{tag}: U.V  <- the missing gate"
+
+
 
 
 

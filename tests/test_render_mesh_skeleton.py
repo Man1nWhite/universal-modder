@@ -36,7 +36,8 @@ def _templates() -> Path:
     env = os.environ.get("PD2_2B_TEMPLATES")
     if env and (Path(env) / "2b.model").is_file():
         return Path(env)
-    pytest.skip("2B templates not extracted (run tools/pd2-las/bootstrap.sh)")
+    pytest.skip("2B templates not extracted (run tools/pd2-las/bootstrap.sh)",
+                allow_module_level=True)
 
 
 TEMPLATES = _templates()

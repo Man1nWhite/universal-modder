@@ -315,3 +315,80 @@ def swizzle_source_normal_dxt5_to_pd2(nm_dds: bytes, invert_y: bool = True) -> b
         out[:, 12 + b] = ((new_c_bits >> np.uint32(8 * b)) & np.uint32(0xFF)).astype(np.uint8)
 
     return hdr + out.tobytes()
+
+
+def swizzle_standard_normal_dxt5_to_pd2(
+    nm_dds: bytes, invert_y: bool = True
+) -> bytes:
+    """Swizzle standard DirectX DXT5 normal map (R=nx_right, G=ny_down, B=nz)
+    to PAYDAY 2 DXT5nm (R=255, G=255-ny_down, B=0, A=nx_right) in BC3 block space.
+
+    - Alpha (Nx <- R): expands each block's exact 4-entry BC3 Red palette,
+      fits 8-bit endpoints (a0 >= a1) to the 16 block pixels' actual min/max,
+      and assigns nearest 8-entry 3-bit alpha indices.
+    - Green (Ny): exact 6-bit -> 6-bit endpoint bijection (63 - g when invert_y)
+      with lossless 2-bit index permutation (c_bits ^ 0x55555555 when swapped)
+      so e0 >= e1 (R5=31, B5=0) holds on every block with zero quantization loss.
+    - Red is forced to 255 (R5 = 31) and Blue to 0 (B5 = 0).
+    """
+    hdr = nm_dds[:128]
+    blocks = np.frombuffer(nm_dds[128:], dtype=np.uint8).reshape(-1, 16)
+    n = blocks.shape[0]
+    out = np.zeros((n, 16), dtype=np.uint8)
+
+    c0 = blocks[:, 8].astype(np.int32) | (blocks[:, 9].astype(np.int32) << 8)
+    c1 = blocks[:, 10].astype(np.int32) | (blocks[:, 11].astype(np.int32) << 8)
+    c_bits = (
+        blocks[:, 12].astype(np.uint32)
+        | (blocks[:, 13].astype(np.uint32) << 8)
+        | (blocks[:, 14].astype(np.uint32) << 16)
+        | (blocks[:, 15].astype(np.uint32) << 24)
+    )
+
+    # 1. Alpha <- Source Red (nx_right)
+    r0 = ((c0 >> 11) & 31) * 255 // 31
+    r1 = ((c1 >> 11) & 31) * 255 // 31
+    pal_r = np.stack([r0, r1, (2 * r0 + r1) // 3, (r0 + 2 * r1) // 3], axis=1)
+    shifts_c = (2 * np.arange(16, dtype=np.uint32))[None, :]
+    ci = (c_bits[:, None] >> shifts_c) & np.uint32(3)
+    r_px = np.take_along_axis(pal_r, ci.astype(np.int64), axis=1)
+
+    a0 = r_px.max(axis=1)
+    a1 = r_px.min(axis=1)
+    out[:, 0] = a0.astype(np.uint8)
+    out[:, 1] = a1.astype(np.uint8)
+
+    pal_a = np.empty((n, 8), dtype=np.int32)
+    pal_a[:, 0] = a0
+    pal_a[:, 1] = a1
+    for i in range(1, 7):
+        pal_a[:, i + 1] = ((7 - i) * a0 + i * a1) // 7
+    idx_a = np.abs(r_px[:, :, None] - pal_a[:, None, :]).argmin(axis=2).astype(np.uint64)
+    idx_a[a0 == a1] = 0
+    shifts_a = (3 * np.arange(16, dtype=np.uint64))[None, :]
+    a_bits = (idx_a << shifts_a).sum(axis=1, dtype=np.uint64)
+    for b in range(6):
+        out[:, 2 + b] = ((a_bits >> np.uint64(8 * b)) & np.uint64(0xFF)).astype(np.uint8)
+
+    # 2. Green <- Source Green (ny_down, flipped if invert_y), R=255, B=0
+    g0 = (c0 >> 5) & 63
+    g1 = (c1 >> 5) & 63
+    if invert_y:
+        g0 = 63 - g0
+        g1 = 63 - g1
+    swap_g = g0 < g1
+    g_hi = np.where(swap_g, g1, g0)
+    g_lo = np.where(swap_g, g0, g1)
+    e0 = (31 << 11) | (g_hi << 5)
+    e1 = (31 << 11) | (g_lo << 5)
+    new_c_bits = np.where(swap_g, c_bits ^ np.uint32(0x55555555), c_bits)
+    new_c_bits[e0 == e1] = 0
+
+    out[:, 8] = (e0 & 0xFF).astype(np.uint8)
+    out[:, 9] = ((e0 >> 8) & 0xFF).astype(np.uint8)
+    out[:, 10] = (e1 & 0xFF).astype(np.uint8)
+    out[:, 11] = ((e1 >> 8) & 0xFF).astype(np.uint8)
+    for b in range(4):
+        out[:, 12 + b] = ((new_c_bits >> np.uint32(8 * b)) & np.uint32(0xFF)).astype(np.uint8)
+
+    return hdr + out.tobytes()
