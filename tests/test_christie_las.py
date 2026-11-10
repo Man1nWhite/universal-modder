@@ -29,6 +29,7 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 SOURCE_ZIP = REPO / "references" / "Christie.zip"
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
+sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
 
 pytestmark = pytest.mark.skipif(
     not SOURCE_ZIP.is_file(), reason="references/Christie.zip not present"
@@ -167,6 +168,89 @@ class TestPack:
             assert float(blocks[:, 0].mean()) < 128, \
                 f"{role}: diffuse alpha endpoints still near full gloss"
 
+    def test_normal_map_and_diffuse_mip0_meet_audit_criteria(self, which):
+        """A08 acceptance criteria on the built packs (normal maps + diffuse mip-0).
+
+        Normal map: clean DXT5, 0 misordered blocks, R=255/B=0 on every mip,
+        alpha <- source R (mean err < 1.0), green <- 255 - source G (max err <= 2).
+        Diffuse mip-0: RGB lossless vs the source VTF mip 0.
+        """
+        import struct
+
+        import numpy as np
+
+        from vtf import parse_vtf, to_dds
+
+        import dds as pd2_dds
+
+        _, pack_dir, item_id, _g = PACKS[which]
+        zf = _zf(which)
+        unit = f"{pack_dir}/assets/units/{item_id}/skins/{item_id}"
+        vtf_bytes = {}
+        with zipfile.ZipFile(SOURCE_ZIP) as src_zf:
+            for name in src_zf.namelist():
+                if name.endswith(".vtf"):
+                    vtf_bytes[name.rsplit("/", 1)[-1][:-4]] = src_zf.read(name)
+
+        mat_of = {"body": "cri_body_base", "c02_01": "cri_02_01_base",
+                  "c02_02": "cri_02_02_base", "c02_05": "cri_02_05_base"}
+
+        def source_rgba(mat, kind):
+            blob = vtf_bytes.get(f"{mat}_{kind}") or vtf_bytes.get(
+                f"{mat.replace('_base', '')}_{kind}")
+            if blob is None:
+                return None
+            dds_b = to_dds(parse_vtf(blob))
+            size, _mips, mip0 = pd2_dds.dds_mip0_slice(dds_b)
+            return pd2_dds.decode_dxt5(bytes(mip0), size, size)
+
+        for role in ("body", "c02_01", "c02_02", "c02_05"):
+            mat = mat_of[role]
+            nm_key = f"{unit}/{item_id}_{role}_nm.texture"
+            df_key = f"{unit}/{item_id}_{role}_df.texture"
+            nm_blob = zf.read(nm_key)
+            df_blob = zf.read(df_key)
+
+            assert pd2_dds.validate_dxt5_texture(nm_blob) == [], \
+                f"{role}_nm: invalid DXT5"
+            _m, _h, _flags, _hw, w, _p, _d, _mi = struct.unpack_from(
+                "<4s7I", nm_blob, 0)
+            mip0_len = max(1, w // 4) ** 2 * 16
+            assert pd2_dds.misordered_blocks(
+                nm_blob[128:128 + mip0_len], w) == [], \
+                f"{role}_nm: misordered blocks"
+            nsize, nmips, nmip0 = pd2_dds.dds_mip0_slice(nm_blob)
+            nrgba = pd2_dds.decode_dxt5(bytes(nmip0), nsize, nsize)
+            pos = 128
+            for lvl in range(nmips):
+                ls = max(1, nsize >> lvl)
+                blen = max(1, ls // 4) ** 2 * 16
+                for bo in range(pos, pos + blen, 16):
+                    c0 = struct.unpack_from("<H", nm_blob, bo + 8)[0]
+                    assert ((c0 >> 11) & 31) == 31 and (c0 & 31) == 0, \
+                        f"{role}_nm: mip{lvl} block not R=255/B=0"
+                pos += blen
+            src_nm = source_rgba(mat, "nrm")
+            assert src_nm is not None, f"{role}: no source nrm VTF"
+            src_r = src_nm[..., 0].astype(np.float64)
+            src_g = src_nm[..., 1].astype(np.float64)
+            a_err = float(np.mean(
+                np.abs(nrgba[..., 3].astype(np.float64) - src_r)))
+            assert a_err < 1.0, \
+                f"{role}_nm: alpha vs R mean_err={a_err:.3f}"
+            g_err = float(np.max(
+                np.abs(nrgba[..., 1].astype(np.float64) - (255 - src_g))))
+            assert g_err <= 2.0, \
+                f"{role}_nm: G vs 255-G max_err={g_err:.1f}"
+
+            dsize, _dmips, dmip0 = pd2_dds.dds_mip0_slice(df_blob)
+            dra = pd2_dds.decode_dxt5(bytes(dmip0), dsize, dsize)
+            src_df = source_rgba(mat, "base")
+            assert src_df is not None, f"{role}: no source base VTF"
+            assert dra.shape == src_df.shape, f"{role}_df: size mismatch"
+            assert np.array_equal(dra[..., :3], src_df[..., :3]), \
+                f"{role}_df: mip-0 RGB not lossless"
+
     def test_build_info_records_headless_and_provenance(self, which):
         _, pack_dir, item_id, glove = PACKS[which]
         zf = _zf(which)
@@ -184,6 +268,41 @@ class TestPack:
         _, pack_dir, _item, _g = PACKS[which]
         info = json.loads(_zf(which).read(f"{pack_dir}/BUILD_INFO.json"))
         assert info["runtime_verified"] is True   # in-game check 2026-11-05
+
+    def test_arm_loop_balance_no_one_sided_mouth(self, which, tmp_path):
+        """Adapter pack must not ship a one-sided arm opening.
+
+        For every material, arm-region boundary loops must appear on both
+        sides or neither (``(L == 0) == (R == 0)``). A material with loops on
+        exactly one side is the bare-arm ring the adapter pack must not show
+        (§6 of the arm-skin-stub glove-adapter repair plan).
+        """
+        import preview_textured as pt
+        import build_models as bm
+
+        model_path = tmp_path / f"{PACKS[which][2]}.model"
+        model_path.write_bytes(_zf(which).read(_model_rel(which)))
+
+        out = {}
+        for m in pt.material_meshes(model_path):
+            V, F = m["vertices"], m["triangles"]
+            loops = bm.boundary_loops([tuple(int(x) for x in t) for t in F])
+            L = R = 0
+            for lp in loops:
+                idx = [i for i in lp if i < len(V)]
+                if len(idx) < 6:
+                    continue
+                P = V[idx]
+                if np.abs(P[:, 0]).max() < 33.0:
+                    continue
+                if P[:, 0].mean() < 0:
+                    L += 1
+                else:
+                    R += 1
+            if L or R:
+                out[m["material"]] = (L, R)
+        bad = [k for k, (L, R) in out.items() if (L == 0) != (R == 0)]
+        assert not bad, f"{which}: one-sided arm openings: {bad}"
 
 
 def _g_body_bounds(which: str):
@@ -776,7 +895,7 @@ def test_sleeve_gloss_mask_stays_on_the_sleeve(which):
         zf.close()
 
     p = dg.load(path, pack_dir, item_id)
-    faces, fmat, uvs = p["faces"], p["fmat"], p["uv"]
+    faces, fmat, uvs, verts = p["faces"], p["fmat"], p["uv"], p["verts"]
     arm_w = p["w"]["arm"]
     role = "mtr_c02_01"
     sleeve = [fi for fi in np.where(fmat == role)[0]
@@ -787,36 +906,100 @@ def test_sleeve_gloss_mask_stays_on_the_sleeve(which):
                               feather_texels=bcl.SLEEVE_FEATHER_TEXELS)
 
     def centroid(fi: int) -> tuple[float, float]:
-        c = uvs[faces[fi]].mean(axis=0)
-        return float(np.clip(c[0], 0.0, 1.0)), float(np.clip(1.0 + c[1], 0.0, 1.0))
+        c = bcl.uv_to_texel_frac(uvs[faces[fi]].mean(axis=0))
+        return float(c[0]), float(c[1])
 
-    def coverage(indices) -> tuple[float, int]:
-        vals = [mask[int(y * 1023), int(x * 1023)] for x, y in
-                (centroid(fi) for fi in indices)]
-        covered = [v for v in vals if v > 0.05]
-        return (len(covered) / max(1, len(vals)), len(covered))
+    def uva(fi) -> float:
+        t = uvs[faces[fi]]
+        return 0.5 * abs((t[1, 0] - t[0, 0]) * (t[2, 1] - t[0, 1])
+                         - (t[2, 0] - t[0, 0]) * (t[1, 1] - t[0, 1]))
 
-    covered, _ = coverage(sleeve)
+    def coverage(indices) -> tuple[float, int, float]:
+        """(area share, count, max z) of the masked faces among ``indices``."""
+        total_area = sum(uva(fi) for fi in indices)
+        if total_area <= 0.0:
+            return 0.0, 0, 0.0
+        hit_area = 0.0
+        count = 0
+        zs = []
+        for fi in indices:
+            x, y = centroid(fi)
+            if mask[int(np.clip(y * 1023, 0, 1023)),
+                    int(np.clip(x * 1023, 0, 1023))] > 0.05:
+                hit_area += uva(fi)
+                count += 1
+                zs.append(float(verts[faces[fi], 2].mean()))
+        return hit_area / total_area, count, max(zs) if zs else 0.0
+
+    covered, _sleeve_count, _ = coverage(sleeve)
     assert covered >= 0.99, f"{which}: mask misses {1 - covered:.1%} of the sleeve"
 
+    # Gate 1 -- the trousers and the seat must be untouched. The shipped pack
+    # darkened 402 of the 630 faces at z in [20, 60) cm before this was fixed.
     leg_w = p["w"]["leg"]
+    trouser = [fi for fi in np.where(fmat == role)[0]
+               if float(leg_w[faces[fi]].mean()) > 0.5
+               and float(arm_w[faces[fi]].mean()) < 0.1
+               and 20.0 < float(verts[faces[fi], 2].mean()) < 60.0]
+    assert trouser, f"{which}: no trouser faces found to gate"
+    t_share, t_count, _ = coverage(trouser)
+    assert t_count == 0, (
+        f"{which}: gloss mask reaches {t_count} trouser faces at z in [20, 60) cm")
+
+    # Gate 2 -- DOA5 shares the boot / ankle-strap islands with the sleeve cuff
+    # trim, so a few feathered faces are expected, but every leg-weighted hit
+    # must be down at the boot.
     leg = [fi for fi in np.where(fmat == role)[0]
            if float(leg_w[faces[fi]].mean()) > 0.5
            and float(arm_w[faces[fi]].mean()) < 0.1]
-    share, count = coverage(leg)
-    assert share < 0.015, (
-        f"{which}: the gloss mask covers {share:.1%} of the leg-only UV area "
-        f"over {count} faces (the vertex-disc mask scored 3.2 % / 151)")
+    share, count, max_z = coverage(leg)
+    assert share < 0.010, (
+        f"{which}: mask covers {share:.2%} of the leg-only UV area over "
+        f"{count} faces (fixed expectation 0.79% / 34; the buggy mask scores "
+        f"37.33% / 627 with 564 of them above z=20 cm)")
     assert count <= 60, f"{which}: mask touches {count} leg-only faces"
+    assert max_z < 20.0, (
+        f"{which}: a leg-weighted face at z={max_z:.1f} cm is attenuated")
 
+    # Texture check: sleeve vs trouser specular alpha in the shipped mip 0.
     size, mips, mip0 = pd2_dds.dds_mip0_slice(blob)
     assert size == 1024 and mips == 11
     alpha = pd2_dds.decode_dxt5(mip0, size, size)[..., 3].astype(np.float64)
-    inside = float(alpha[mask > 0.5].mean())
-    outside = float(alpha[mask <= 0.5].mean())
-    assert 0.3 < inside / outside < 0.8, (
-        f"{which}: sleeve alpha {inside:.2f} vs rest of the atlas {outside:.2f} "
-        f"({inside / outside:.2f}x) - the attenuation is not in the shipped texture")
+
+    def mean_alpha(indices):
+        return float(np.mean([
+            alpha[int(np.clip(y * (size - 1), 0, size - 1)),
+                  int(np.clip(x * (size - 1), 0, size - 1))]
+            for x, y in (centroid(fi) for fi in indices)]))
+
+    sleeve_mu = mean_alpha(sleeve)
+    trouser_mu = mean_alpha(trouser)
+    assert 5.4 <= sleeve_mu <= 6.5, (
+        f"{which}: sleeve specular alpha {sleeve_mu:.2f} outside [5.4, 6.5]")
+    assert 11.0 <= trouser_mu <= 11.7, (
+        f"{which}: trouser specular alpha {trouser_mu:.2f} outside [11.0, 11.7]")
+    assert sleeve_mu < 0.60 * trouser_mu, (
+        f"{which}: sleeve specular alpha {sleeve_mu:.2f} vs trousers "
+        f"{trouser_mu:.2f} - the attenuation is not on the sleeve")
+
+
+def test_uv_to_texel_frac_matches_udim_wrap_for_both_tile_signs():
+    """Both UDIM tile signs must map to the same top-down row.
+
+    The stored v of a top-down-authored atlas is ``1 - v_src``. A tile at
+    ``v_src = 1.62`` stores ``v = -0.62``; a tile at ``v_src = 0.62`` stores
+    ``v = 0.38``. Under D3D9 Wrap both must sample row ``0.62`` -- the mirror
+    ``1 - mod(-v, 1) == mod(v, 1)`` was the shipped bug.
+    """
+    import build_christie_las as bcl
+
+    v_src = 0.62
+    negative_tile = np.array([[0.25, -v_src]])      # v_src = 1.62 -> stored v = -0.62
+    positive_tile = np.array([[0.25, 1.0 - v_src]]) # v_src = 0.62 -> stored v = 0.38
+    a = bcl.uv_to_texel_frac(negative_tile)
+    b = bcl.uv_to_texel_frac(positive_tile)
+    assert np.allclose(a, b), (a, b)
+    assert abs(float(a[0, 1]) - v_src) < 1e-9, a
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))
@@ -1217,3 +1400,97 @@ def test_elbow_closeup_depth_has_no_false_holes(which, side, tmp_path):
     holes = [(i, int((labels == i).sum())) for i in internal
              if (labels == i).sum() > 500]
     assert not holes, f"{which} {side}: enclosed background regions: {holes}"
+
+
+def _model_rel(which: str, fps: bool = False) -> str:
+    pack_dir = PACKS[which][1]   # e.g. "Christie_LAS_Slim"
+    item_dir = PACKS[which][2]   # e.g. "christie_slim"
+    stem = f"fps_{item_dir}" if fps else item_dir
+    return f"{pack_dir}/assets/units/{item_dir}/skins/{item_dir}/{stem}.model"
+
+
+_DRAWABLE_NAMES = ("g_body", "g_body_lod1", "s_body",
+                   "fps_christie", "fps_christie_slim",
+                   "fps_christie_lod1", "fps_christie_slim_lod1")
+
+
+def _model_atoms(zip_path: Path, model_rel: str):
+    """Yield (drawable_name, idx, atoms) for every atomised drawable.
+
+    `idx` is the flat index buffer and `atoms` the drawable's list of
+    {base_vertex, slice_len, base_index, tri_count} render-atom descriptions.
+    The drawable name is resolved from the model_data name hash.
+    """
+    sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+    import diesel_model as dm
+    from diesel_model import decode_model_data, decode_passthroughgp
+    from dmodel import DieselModel
+
+    name_by_hash = {dm.hash64(n): n for n in _DRAWABLE_NAMES}
+    with zipfile.ZipFile(zip_path) as zf:
+        raw = zf.read(model_rel)
+    mf = DieselModel.from_bytes(raw)
+    for s in mf.sections:
+        if s.tag != "model_data" or s.obj is None:
+            continue
+        md = decode_model_data(raw[s.start:s.end])
+        if "atoms" not in md:
+            continue
+        pt = mf.by_id.get(md["passthroughgp"])
+        if pt is None or pt.obj is None:
+            continue
+        pg = decode_passthroughgp(raw[pt.start:pt.end])
+        gs = mf.by_id.get(pg["geometry"])
+        ts = mf.by_id.get(pg["topology"])
+        if gs is None or ts is None or gs.obj is None or ts.obj is None:
+            continue
+        idx = np.asarray(dm.decode_topology(raw[ts.start:ts.end])["indices"],
+                         np.int64)
+        yield name_by_hash.get(md["name_hash"]), idx, md["atoms"]
+
+
+def _atom_oob(atoms, idx) -> list[tuple[int, int, int, int, int]]:
+    """(atom_index, base_vertex, block_end, lo, hi) for each atom indexing out."""
+    bad = []
+    for ai, a in enumerate(atoms):
+        bv, sl, tc, bi = (a["base_vertex"], a["slice_len"], a["tri_count"],
+                          a["base_index"])
+        seg = idx[bi:bi + tc * 3]
+        end = bv + sl
+        if int(((seg < bv) | (seg >= end)).sum()):
+            bad.append((ai, bv, end, int(seg.min()), int(seg.max())))
+    return bad
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_no_atom_indexes_outside_its_vertex_block(which):
+    """An atom's index run must not reference another material slice's block.
+
+    s_body's atom 0 on both shipped packs draws 16 whole triangles (48 indices)
+    that live inside atom 1's vertex block - 730 (slim) / 919 (base) vertices
+    past its own block. D3D9 binds the index buffer with the atom's vertex
+    block, so that is an out-of-range sample no offline preview can see.
+    """
+    bad = []
+    for name, idx, atoms in _model_atoms(DIST / PACKS[which][0],
+                                         _model_rel(which)):
+        for ai, bv, end, lo, hi in _atom_oob(atoms, idx):
+            bad.append((name, ai, bv, end, lo, hi))
+    assert not bad, (
+        f"{which}: atom(s) index outside their vertex block: {bad}")
+
+
+@pytest.mark.parametrize("which", sorted(PACKS))
+def test_fps_shadow_and_body_share_the_same_triangle_runs(which):
+    """FPS s_body and g_body share one index buffer at different vertex counts,
+    so their atom triangle runs must agree or the shared stream is misread."""
+    seen: dict[str, list[tuple[int, int]]] = {}
+    for name, _idx, atoms in _model_atoms(DIST / PACKS[which][0],
+                                          _model_rel(which, fps=True)):
+        if name in ("s_body", "g_body"):
+            seen[name] = [(a["base_index"], a["tri_count"]) for a in atoms]
+    assert set(seen) == {"s_body", "g_body"}, (
+        f"{which}: FPS missing s_body/g_body: {sorted(seen)}")
+    assert seen["s_body"] == seen["g_body"], (
+        f"{which}: FPS atom runs differ: "
+        f"s_body={seen['s_body']} g_body={seen['g_body']}")

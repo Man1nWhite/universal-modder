@@ -82,8 +82,8 @@ All built PAYDAY 2 deliverables live in **`dist/`** (tracked in git with `.sha25
 | Deliverable in `dist/` | Type | Source & Reference Archives | Builder Script |
 |---|---|---|---|
 | `dist/lawson_las.zip` (`9,123,392` B) | Full-body LAS outfit (ME2 Romance) | `models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `references/2b.rar` | `tools/pd2-port/build_las_pack.py` |
-| `dist/Miranda_LAS.zip` (`5,414,012` B) | Full-body LAS outfit (L4D2 port) | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `tools/pd2-las/build_models.py` |
-| `dist/Miranda_Busty_LAS.zip` (`5,815,174` B) | Full-body LAS outfit (L4D2 port) with a **larger chest** — separate `LegendaryArmours.miranda_busty` entry, installs beside the stock one | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `tools/pd2-las/build_busty_variant.py` (morph in `bust_variant.py`) |
+| `dist/Miranda_LAS.zip` (`5,413,656` B) | Full-body LAS outfit (L4D2 port) | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `tools/pd2-las/build_models.py` |
+| `dist/Miranda_Busty_LAS.zip` (`5,815,104` B) | Full-body LAS outfit (L4D2 port) with a **larger chest** — separate `LegendaryArmours.miranda_busty` entry, installs beside the stock one | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `tools/pd2-las/build_busty_variant.py` (morph in `bust_variant.py`) |
 | `dist/Miranda_L4D2_over_Joy.zip` (`10,600,653` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,238,712` B) | Joy head-replacement `mod_overrides` (L4D2 & ME2 Romance) | `models/*` + `references/Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
 | `dist/Miranda_L4D2_over_Clover.zip` (`7,648,225` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,297,599` B) | Clover + Safe House head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
 | `dist/Miranda_L4D2_over_Bonnie.zip` (`8,160,274` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,810` B) | Bonnie + Safe House head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |

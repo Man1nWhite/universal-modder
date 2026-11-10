@@ -29,22 +29,7 @@ fi
     || echo "sourcepp unavailable — inspect_textures.py runs without the cross-check"
 
 echo "== 2/5 extract 2B reference pack (templates) =="
-mkdir -p /tmp/rarx /tmp/2bsrc
-if [ ! -d "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b" ]; then
-    cd /tmp/rarx
-    [ -d node_modules/node-unrar-js ] || { npm init -y >/dev/null 2>&1; npm install node-unrar-js >/dev/null 2>&1; }
-    node -e '
-const { createExtractorFromFile } = require("node-unrar-js");
-(async () => {
-  const extractor = await createExtractorFromFile({
-    filepath: process.argv[1], targetPath: "/tmp/2bsrc",
-  });
-  const files = [...extractor.extract().files];
-  console.log("extracted entries:", files.length);
-})().catch((e) => { console.error(e); process.exit(1); });' \
-        "$REPO/references/2b.rar"
-    cd "$REPO"
-fi
+.venv/bin/python tools/pd2-las/extract_2b.py
 test -f "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b/2b.model" && echo "templates ok"
 
 echo "== 3/5 build models + packs =="

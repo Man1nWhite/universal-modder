@@ -27,8 +27,9 @@ def stage(name: str, args: list[str], cwd: Path = ROOT) -> tuple[str, bool, str]
     t0 = time.time()
     proc = subprocess.run([PY, *args], cwd=cwd, capture_output=True, text=True)
     ok = proc.returncode == 0
-    tail = (proc.stdout + proc.stderr).strip().splitlines()
-    detail = tail[-1].strip() if tail else ""
+    lines = [l.strip() for l in (proc.stdout + proc.stderr).strip().splitlines() if l.strip()]
+    errs = [l for l in lines if l.startswith("ERROR") or " error" in l.lower()]
+    detail = (errs[0] if errs else lines[-1] if lines else "")[:120]
     print(f"  [{'ok  ' if ok else 'FAIL'}] {name:<34} {time.time() - t0:5.1f}s  {detail[:90]}")
     return name, ok, detail
 
@@ -72,6 +73,7 @@ def main() -> int:
         results.append(stage("auditor self-test",
                               [str(HERE / "check_guide_compliance_self_test.py")]))
         results.append(stage("pytest suite", ["-m", "pytest", "-q", "tests"]))
+        results.append(stage("skip budget", [str(HERE / "check_skip_budget.py")]))
 
     bad = [n for n, ok, _ in results if not ok]
     print()

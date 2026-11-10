@@ -152,7 +152,7 @@ class Model(Object3D):
             self.passthrough_id = br.u32(); self.topologyip_id = br.u32()
             for _ in range(br.u32()):
                 self.render_atoms.append(dict(zip(
-                    ('base_vertex','tri_count','base_index','geo_len','material_id'),
+                    ('base_vertex','tri_count','base_index','slice_len','material_id'),
                     (br.u32(), br.u32(), br.u32(), br.u32(), br.u32()))))
             self.matgroup_id = br.u32(); self.lightset_id = br.u32()
             self.properties = br.u32()

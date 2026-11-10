@@ -109,12 +109,19 @@ def material_meshes(model_path: Path) -> list[dict]:
 
 
 def _sample(tex: np.ndarray, uv: np.ndarray, flip_v: bool) -> np.ndarray:
-    """Bilinear texture lookup for (..., 2) UVs in 0..1 (wrapping)."""
+    """Bilinear wrap sample from a top-down ``(H, W, 4)`` texture array.
+
+    ``flip_v=True`` is the convention for UVs authored by
+    ``build_models.transfer_group``: they store ``(u_src, 1 - v_src)``, so the
+    top-down row fraction is ``mod(-uv_y, 1.0)`` and must not be inverted a
+    second time (``1 - mod(-x, 1) == mod(x, 1)``, which silently mirrors the
+    model). ``flip_v=False`` keeps the raw-``v`` reading for NIF-sourced UVs.
+    """
     h, w = tex.shape[:2]
     u = np.mod(uv[..., 0], 1.0)
     v = np.mod(-uv[..., 1] if flip_v else uv[..., 1], 1.0)
     x = u * w - 0.5
-    y = (1.0 - v) * h - 0.5
+    y = v * h - 0.5
     x0 = np.floor(x).astype(np.int64)
     y0 = np.floor(y).astype(np.int64)
     fx = (x - x0)[..., None]

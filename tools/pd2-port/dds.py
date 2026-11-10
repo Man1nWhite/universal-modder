@@ -306,6 +306,25 @@ def _level_payload(img) -> bytes:
     return encode_dxt5(arr)
 
 
+def _submip_payloads_from_image(img) -> list[bytes]:
+    """Encode mip levels 1..n (size//2 down to 1x1) from an RGBA mip-0 array.
+
+    Mip 0 itself is deliberately NOT (re)encoded here: the caller owns it and
+    may supply an already-authored / block-edited BC3 payload that must be
+    preserved byte-for-byte.
+    """
+    np = _np()
+    level = np.asarray(img, dtype=np.uint8)
+    h, w = level.shape[:2]
+    if h != w or h == 0 or (h & (h - 1)):
+        raise ValueError(f"texture must be square power-of-two, got {w}x{h}")
+    payloads: list[bytes] = []
+    while level.shape[0] > 1:
+        level = downsample2x2(level)
+        payloads.append(_level_payload(level))
+    return payloads
+
+
 def mip_payloads_from_image(img) -> list[bytes]:
     """Full mip chain from an RGBA image (power-of-two, square)."""
     np = _np()
@@ -313,18 +332,21 @@ def mip_payloads_from_image(img) -> list[bytes]:
     h, w = arr.shape[:2]
     if h != w or h == 0 or (h & (h - 1)):
         raise ValueError(f"texture must be square power-of-two, got {w}x{h}")
-    payloads = [_level_payload(arr)]
-    level = arr
-    while level.shape[0] > 1:
-        level = downsample2x2(level)
-        payloads.append(_level_payload(level))
-    return payloads
+    return [_level_payload(arr)] + _submip_payloads_from_image(arr)
 
 
 def mip_payloads_from_mip0(mip0: bytes, size: int) -> list[bytes]:
-    """Full mip chain by box-filtering an existing DXT5 mip-0 payload."""
-    img = decode_dxt5(mip0, size, size)
-    return mip_payloads_from_image(img)
+    """Full mip chain preserving existing DXT5 mip-0 bytes losslessly (c0 >= c1).
+
+    The authored mip-0 BC3 payload is canonicalised (c0 >= c1 endpoint order)
+    and carried through untouched; only mips 1..n are box-filtered down from a
+    Pillow decode of mip 0.
+    """
+    mip0_fixed, _ = fix_misordered_blocks(bytes(mip0), size)
+    if size == 1:
+        return [mip0_fixed]
+    img = decode_dxt5(mip0_fixed, size, size)
+    return [mip0_fixed] + _submip_payloads_from_image(img)
 
 
 def pack_dds(mip_payloads: list[bytes], size: int) -> bytes:
@@ -460,7 +482,7 @@ def repair_dxt5_texture(dds_bytes: bytes) -> tuple[bytes, bool]:
     )
     if struct_ok and fixed_blocks == 0:
         return dds_bytes, False
-    payloads = [mip0] + mip_payloads_from_mip0(mip0, size)[1:]
+    payloads = mip_payloads_from_mip0(mip0, size)
     # keep the original reserved bytes; rewrite the fields that matter
     header = bytearray(dds_bytes[:DDS_HEADER_SIZE])
     struct.pack_into("<I", header, 8, MIP_FLAGS)
