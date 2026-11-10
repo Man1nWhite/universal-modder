@@ -107,7 +107,15 @@ elbow/wrist/hand land exactly on the PD2 pivots) from
 slim variant cuts the wrists and ships the glove-adapter hook so in-game
 gloves work). The separate no-hands pack was removed (slim supersedes it).
 Base pack **tested in game 2026-11-05** (headless LAS confirmed;
-texture gloss fixed via specular-alpha attenuation). The **2026-11-07 elbow
+texture gloss fixed via specular-alpha attenuation). **Slim pack seen in game
+2026-11-10** in the [current 8-frame screenshot
+batch](../audits/2026-11-10-christie-slim-screenshot-review.md), reported as the
+de-spiked `7a4d010c…90a3e6f` bytes: the lobby silhouettes show no outward growth
+at the inner elbow, but the rifle pose still shows a thin flap-like fold there,
+and the rear-sleeve dark wedge and neck bands are still visible. That batch
+replaced every archived screenshot; the 2026-11-07 and 11-frame sets are Git
+history only, and their "not tested in game" status does not extend to this
+build. The **2026-11-07 elbow
 round** found that every posed elbow probe until then rotated the `ForeArm`
 about local X, which on this rig is a twist (the joint stays at its bind
 72.1°); local Y is flexion. On the real axis the shipped sleeve crumpled when

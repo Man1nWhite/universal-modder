@@ -1,15 +1,23 @@
 # Christie LAS packs — DOA5 Christie as body-only PAYDAY 2 LAS outfits
 
-**Latest visual evidence (2026-11-07):** the user replaced the 11 archived
-screenshots with [15 byte-identical captures](screenshots/README.md), 8 lobby
-and 7 menu/rifle views. The [replacement review](../audits/2026-11-07-christie-slim-screenshot-review.md)
-keeps five appearance findings open: dark rear-forearm patches, hard neck
-bands, coarse suit tonal patches, angular elbow folds and the cuff/glove join.
-The installed build hash was not supplied, so this is not hash-matched visual
-clearance for the ZIPs below. Offline checks rerun for this review:
-**78 passed** across `test_christie_las.py` and `test_seam_normals.py`; both Slim
-sleeve mid-band probes report **0.00 cm²** leakage. Those checks do not settle
-the in-game shading findings. No models/textures were rebuilt for the review.
+**Latest visual evidence (2026-11-10):** the user replaced the 15 archived
+screenshots with [8 byte-identical captures](screenshots/README.md) — 7
+lobby/idle views and **one** menu/rifle view — and identified the installed pack
+as **`Christie_LAS_Slim`** (`7a4d010c…90a3e6f`, the de-spiked ZIP below). That is
+a user report, not a hash measured from the pixels, and it covers neither the
+separate head nor the spawned gloves. The [new
+review](../audits/2026-11-10-christie-slim-screenshot-review.md) is the first
+in-game look at the de-spiked elbow: the lobby silhouettes show no outward
+growth at the joint, so the fix is not contradicted, but the rifle pose still
+shows a thin flap-like fold at the inner elbow. It keeps these appearances open:
+the rear-sleeve dark wedge, hard neck bands, coarse suit tonal patches, the
+residual elbow crease/flap and the cuff/glove rim. The earlier "red/orange mark
+at the cuff" is **withdrawn** — in the new frames the strongly red pixels are
+contour antialiasing, none inside the cuff. Offline checks rerun: **86 passed, 2
+failed** across `test_christie_las.py` and `test_seam_normals.py`; the two
+failures are the known slim sleeve-tube probes (4.95 cm² on the right sleeve).
+No models/textures were rebuilt for the review. The 2026-11-07 review keeps its
+findings as history, against images that are no longer archived.
 
 Previously recorded full-suite validation: **67 Christie tests**, `tests/`
 overall **650 passed, 26 skipped**, `pyflakes` clean. That figure is stale, and the

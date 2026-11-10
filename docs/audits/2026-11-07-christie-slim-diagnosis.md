@@ -1,13 +1,14 @@
 # Christie_LAS_Slim — structural diagnosis (2026-11-07)
 
 > **Historical scope:** this diagnosis investigates the earlier 11-frame review
-> and records subsequent offline mesh changes. The user has since replaced the
-> screenshot archive with 15 PNGs. The [current screenshot review](2026-11-07-christie-slim-screenshot-review.md)
-> uses the new filenames/coordinates and separates visible dark forearm patches,
-> neck bands and coarse suit shading from these structural checks. Old screenshot
-> coordinates below refer to the former batch in Git history. Its installed
-> hash and the new batch's installed hash must not be conflated. A closed sleeve
-> probe is not visual clearance for those appearances.
+> and records subsequent offline mesh changes. The screenshot archive has since
+> been replaced twice: 15 PNGs on 2026-11-07, then the current 8 PNGs on
+> 2026-11-10. The [current screenshot review](2026-11-10-christie-slim-screenshot-review.md)
+> uses the current filenames/coordinates and separates the visible dark rear-sleeve
+> patches, neck bands, elbow flap and coarse suit shading from these structural
+> checks. Old screenshot coordinates below refer to batches that are in Git
+> history only, and none of their installed-hash caveats carry over to the current
+> one. A closed sleeve probe is not visual clearance for those appearances.
 
 The earlier 11-frame screenshot review (the previous version of
 `2026-11-07-christie-slim-screenshot-review.md`) explained
