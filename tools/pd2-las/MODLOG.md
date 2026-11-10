@@ -2,6 +2,24 @@
 
 ## 2026-11-10 — elbow de-spike: the inner-elbow beak
 
+- **Reproduction check (2026-11-10, after the fix):** both packs rebuild to the
+  committed bytes from `references/` alone (`9e7c2d82…`, `7a4d010c…`), and all
+  97 renderer-driven renders were re-rendered into an empty tree and compared
+  by hash: **97/97 identical, 0 drift**. The 3 one-offs with no generator
+  (`christie{,_slim}_fit_before_after`, `neck_skirt_romance_regression`) are
+  untouched history.
+- **Direction check:** the de-spike only ever removes material. Rendered with
+  the overlay off, the new silhouette minus the old (dilated by 1 px) is
+  0 px on slim at 45/60/72 degrees, 0 px on base at 22, and <= 214 px
+  elsewhere - those are 1 px antialiasing along the *left* contour of the
+  sleeve, i.e. the silhouette moving in, not out. The elbow is strictly
+  smaller, never bumpier.
+- A previous commit of this round regenerated the review sheets but silently
+  skipped the 20 angle tiles and the two `idle_rest` sheets (the copy step
+  only mapped `outer_sheet`); the fresh-render comparison caught it and they
+  are now in. That is why `*_idle_rest_outer_sheet.png` must always be
+  byte-identical to `*_outer_sheet.png` - both are the same run now.
+
 - Reported from a review render: a spike on the inner side of the elbow. It is
   real: at 45-60 degrees of flexion the material-isolated side view shows a
   1.5-2.5 cm beak on the crease side, and it is present in both packs.

@@ -97,7 +97,7 @@ Deliverables in **`dist/`**:
 
 **Christie (DOA5), body-only:** `dist/Christie_LAS.zip` (4,983,848 B, sha256
 `9e7c2d82…94fd95c`) and `dist/Christie_LAS_Slim.zip` (4,393,967 B, sha256
-`7a4d010c…190a3e6f`) (+ `.sha256` sidecars) — built by
+`7a4d010c…90a3e6f`) (+ `.sha256` sidecars) — built by
 `tools/pd2-las/build_christie_las.py` (`--variant base|slim`; slim =
 ×0.9 thinner in x/y, arm cross-sections ×0.80 plus the bicep tuck, height
 unchanged, hands cut for in-game gloves with sleeves stretched deep past the

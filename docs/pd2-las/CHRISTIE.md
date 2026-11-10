@@ -34,7 +34,7 @@ down keeps the earlier hashes it was written with.
 
 - `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `9e7c2d82…94fd95c`, 4,983,848 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `7a4d010c…190a3e6f`,
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `7a4d010c…90a3e6f`,
   4,393,967 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
