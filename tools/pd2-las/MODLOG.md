@@ -1,5 +1,100 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-10 — elbow de-spike: the inner-elbow beak
+
+- **Reproduction check (2026-11-10, after the fix):** both packs rebuild to the
+  committed bytes from `references/` alone (`9e7c2d82…`, `7a4d010c…`), and all
+  97 renderer-driven renders were re-rendered into an empty tree and compared
+  by hash: **97/97 identical, 0 drift**. The 3 one-offs with no generator
+  (`christie{,_slim}_fit_before_after`, `neck_skirt_romance_regression`) are
+  untouched history.
+- **Direction check:** the de-spike only ever removes material. Rendered with
+  the overlay off, the new silhouette minus the old (dilated by 1 px) is
+  0 px on slim at 45/60/72 degrees, 0 px on base at 22, and <= 214 px
+  elsewhere - those are 1 px antialiasing along the *left* contour of the
+  sleeve, i.e. the silhouette moving in, not out. The elbow is strictly
+  smaller, never bumpier.
+- A previous commit of this round regenerated the review sheets but silently
+  skipped the 20 angle tiles and the two `idle_rest` sheets (the copy step
+  only mapped `outer_sheet`); the fresh-render comparison caught it and they
+  are now in. That is why `*_idle_rest_outer_sheet.png` must always be
+  byte-identical to `*_outer_sheet.png` - both are the same run now.
+
+- Reported from a review render: a spike on the inner side of the elbow. It is
+  real: at 45-60 degrees of flexion the material-isolated side view shows a
+  1.5-2.5 cm beak on the crease side, and it is present in both packs.
+- Root cause is authored geometry, not skinning. `v1970`/`v1983` (base) sit at
+  r 7.8/7.4 cm about the arm chain while their rings sit at 4.0-6.4 cm, and
+  their symmetric partners on the right arm mirror them. Every existing
+  corrective misses them by construction: `straighten_segments` and
+  `centre_segments` mask at 4.5 cm radius, `trim_elbows` scales the whole ring
+  uniformly, and the Taubin relaxation only averages.
+- New pass `despike_elbows` in `build_christie_las.py`, run after
+  `rebind_arms_at_idle` so the mesh it judges is the one that ships (the idle
+  rest is the shipped rest). A vertex moves only when it beats the median
+  radius of its own one-ring by 0.75 cm, it moves radially onto that median,
+  and each move is backed off until no incident triangle flips or collapses
+  (the build still gates on `_check_flips`). No topology/UV/weight change.
+  Body and shadow must report the same vertex count or the build fails.
+- Measured: base 9 left + 10 right, slim 8 + 4; largest shift 1.42 cm (base)
+  and 2.50 cm (slim). Whole-mesh diff against the previous packs: 19 verts on
+  base, 12 on slim, everything else bit-identical.
+- **Test fix (masking, caught here):** `test_elbow_closeup_depth_has_no_false_holes`
+  drew the skeleton overlay and then looked for dark regions enclosed by
+  anything. The overlay is drawn *over* the sleeve, so where the bone line
+  crosses the silhouette it can enclose a patch of background that no triangle
+  closes - which is exactly what the de-spike caused (1 978 px on base, larger
+  on slim, three packs at once). Rendering the sleeve with no bones gives
+  **no** enclosed background before or after, so the invariant was never about
+  the mesh; the test now renders the mesh alone, with a comment saying why.
+- Renders and packs regenerated; `HANDOFF.md`/`CHRISTIE.md` byte counts and
+  hashes updated. Suite: 657 passed, 30 skipped, 2 failed (the pre-existing
+  slim `test_sleeve_tube_is_closed_along_its_length` leak).
+
+## 2026-11-10 — every Christie render rebuilt from the shipped packs
+
+- Request: "render everything fresh" — the committed set in
+  `docs/pd2-las/renders/` had to match the bytes now in `dist/`.
+- Rebuilt all five generators against `dist/Christie_LAS.zip` (`196606c0…`)
+  and `dist/Christie_LAS_Slim.zip` (`ee85fc15…`): `render_mesh_skeleton.py`
+  (TPP `--pose --hang`, FPS `--fps`, `--source` for the five source views),
+  `review_christie_idle.py` (both packs), `elbow_before_after.py`
+  (`--mode elbow/cuff/idle` × both packs, `--before` = the packs at `cfc3ee6`)
+  and `neck_junction.py --render` (both packs, Joy head).
+- **75 of the 100 files are renderer-driven** (the other 25 are listed as
+  one-offs below); 75 rebuilt, **61 were already byte-identical** with the
+  committed image and **14 moved**. The elbow/cuff/idle comparison sheets came
+  out byte-identical with `cfc3ee6` as the "before" pack, which pins that
+  recipe and confirms the captions still describe the right pair.
+- What moved, and why: `0a76215` rebuilt both packs (normal rotation + seam
+  repair) but refreshed only the unposed views, so `skel_pose_*` (6),
+  `hang_*`/`hang_elbow_*` (6) and the two `*_idle_rest_outer_sheet.png` were
+  still pictures of the pre-`stitch_sleeve_seams` mesh.
+- The two `*_idle_rest_outer_sheet.png` were the worst offenders: rendering them
+  packs at `4a69cce` reproduces the committed bytes **exactly** (0 px), so they
+  are pictures of the pack one rebuild ago and differ from the current build
+  over ~2.3 M px. (A close-up auto-frames itself, so any mesh change re-frames
+  the whole tile — that figure is frame movement, not 2.3 M changed mesh
+  pixels.) Both now come from the same `review_christie_idle.py` run as
+  `*_outer_sheet` and are byte-identical to it.
+- Visual re-check of every changed file: no blank frames, no missing overlay,
+  the diffs are mesh pixels only. `christie_slim_hang_elbow_{front,side}` gained
+  the loose shoulder-side sleeve flap that the new seam repair leaves inside the
+  close-up's cut: a 70-tri `mtr_c02_01` island on the character's left (x<0)
+  spanning 6.3–14.0 cm from the arm chain, z 133.7–156.5, i.e. it reaches 6 cm
+  past the 8 cm selection radius. It is the same surface in both packs, not a
+  new hole, and it is outside the framing of the 12/22/45 elbow review rows.
+- Validation: 657 passed, 30 skipped, 2 failed — the same known slim
+  `test_sleeve_tube_is_closed_along_its_length` leak (6.70/4.95 cm²), unrelated.
+  `tests/test_render_mesh_skeleton.py` 13 passed (the doc-vs-CLI naming test
+  reads `CHRISTIE.md`, which was updated in the same commit).
+- `CHRISTIE.md` §"Mesh + skeleton renders" now records the 2026-11-10
+  regeneration, the 61/14 split and the `idle_rest` history.
+- Not regenerated (no generator exists in the tree, and they are dated
+  evidence, not current-state renders): `christie{,_slim}_fit_before_after.png`
+  (one-off `70af4e5` pair) and `neck_skirt_romance_regression.png` (one-off
+  `005a191`). Still accurate as history; do not cite them as current builds.
+
 ## 2026-11-11 — Christie forearm normals + sleeve seam repair (executed plan)
 
 - Executed `docs/audits/2026-11-07-christie-forearm-normals-and-seam-repair-plan.md`

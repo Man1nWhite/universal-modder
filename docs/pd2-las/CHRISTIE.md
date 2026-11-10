@@ -32,10 +32,10 @@ down keeps the earlier hashes it was written with.
 > `s_body`. See `tools/pd2-las/MODLOG.md` for the executed repair plans and their
 > results; the diagnostics plan was executed and deleted per plan convention.
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `196606c0…3d5e24`, 4,981,789 B)
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `9e7c2d82…94fd95c`, 4,983,848 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `ee85fc15…5bd7b8`,
-  4,392,046 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `7a4d010c…90a3e6f`,
+  4,393,967 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim
@@ -163,8 +163,27 @@ not smear. Slim unifies 348 copies over 87 groups, base 512 over 128 groups; int
 divergent pairs 0/0 → **0**, border pairs untouched (480/836), worst pre-fix
 pair 101°/103° (beyond 120° the pass refuses to average), winding agreement
 97.4 %, 0 orientation breaks, no position/UV/face/weight change.
-Packs rebuilt: `196606c0c548d173a20af56946ef485d42e4f2f33c912accaf3165d2133d5e24`
-base, `ee85fc159c13a0d18e33bd9b4237ebd278818d328456be1af309417a5bd7b8` slim.
+**2026-11-10 elbow de-spike (`despike_elbows`):** the retargeted elbow kept a
+handful of vertices 1.3-2.2 cm proud of the ring they belong to, on the crease
+side of the joint, so at 45-60 degrees of flexion the inner elbow showed a
+beak (visible in `christie_outer_sheet.png` at 45 deg before this pass, in the
+side column on the character's front). They are authored geometry, not
+skinning: the pose only transforms them, and the earlier passes miss them by
+construction - `straighten_segments`/`centre_segments` mask at 4.5 cm radius,
+and `trim_elbows` scales whatever survives uniformly, so a lone outlier outside
+their mask keeps its offset. The new pass runs last, on the shipped idle-rest
+geometry (`Group.rest_worlds` puts the joint where the game shows it, so the
+judgement is made in the pose that ships): a vertex only moves when it beats
+the median radius of its own one-ring by 0.75 cm, and it moves radially onto
+that median - direction, UVs, weights, topology and the triangle list are
+untouched, and each move is backed off (never below 25 %) until none of its own
+triangles flips or collapses. Base loses 9 left / 10 right, slim 8 / 4; largest
+shift 1.42 cm base, 2.50 cm slim; body and shadow move together (a mismatch is
+a build failure). 19 vertices total on base, 12 on slim - the mesh is otherwise
+bit-identical.
+Packs rebuilt: `9e7c2d8213463d85c75190b1d3dcf4c4088aeee2d6065ce001320c47094fd95c`
+base, `7a4d010c7e15e92615cf3aedcbbc11ce69781e4b15ab8a461e4d0a88190a3e6f` slim
+(previously `196606c0…`/`ee85fc15…`).
 Also `bootstrap.sh` now installs **scipy**, which the slim build needs
 (`_elbow_coverage_correction`) and which a clean bootstrap used to miss.
 **2026-11-11 forearm normal rotation:** `rebind_arms_at_idle` now rotates
@@ -469,13 +488,21 @@ command, so the whole set is reproducible in one run per pack:
 # the two FPS renders are a second run with --fps, same --pack/--item
 ```
 
-The committed set was regenerated on **2026-11-07**: it had gone stale at
+The committed set was regenerated on **2026-11-10** from the packs that ship at
+`0a76215` (base `196606c0…3d5e24`, slim `ee85fc15…5bd7b8`). Every one of the 75
+renderer-driven files was rebuilt and compared pixel for pixel against the
+previous bytes: 61 were already current and 14 moved. The movers are the poses
+and the elbow close-ups — `skel_pose_*` (both packs), `hang_*` (both packs) and
+the two slim `hang_elbow` close-ups — because `0a76215` rebuilt the packs under
+them and only refreshed the unposed views. The two `*_idle_rest_outer_sheet.png`
+were the worst: they had never been re-rendered since `4a69cfe`, so they showed
+the pack as built at `a012cf3` and differed from the current build over the
+whole sheet; they now come from the same review run as `*_outer_sheet.png` and
+are byte-identical to it. An earlier pass (2026-11-07) had gone stale at
 `484a743`, i.e. it predated the seam stitch, the interior normal unification and
-the sleeve-gloss pass that rebuilt both packs, so the pictures no longer matched
-the bytes in `dist/`. Re-rendering moved only mesh pixels (the skeleton overlay is
-identical pixel for pixel) and every image was re-checked for blank frames and a
-missing overlay. Note that the `--fps` run writes nine files where the repo keeps
-two, `fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest.
+the sleeve-gloss pass. Every image was re-checked for blank frames and a missing
+overlay. Note that the `--fps` run writes nine files where the repo keeps two,
+`fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest.
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
   directions. `top` looks down the body axis from above and `bottom` looks up
@@ -513,11 +540,14 @@ two, `fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest
 - `neck_skirt_romance_regression.png` — one-off 2026-11-07 pair, not part of
   the reproducible set: the Romance-over-Clover neck on 2026-11-05 (shipped)
   next to the skirted build that shipped by mistake, 4x. Evidence for §10.3 of
-  the diagnosis audit.
+  the diagnosis audit. It is dated evidence for that bug, so the 2026-11-10
+  regeneration deliberately left it alone: it is a picture of two 2026-11-05
+  head packs, not of the current Christie build.
 - `christie_{base,slim}_fit_before_after.png` — left forearm/wrist, the pack as
   shipped before 2026-11-06 (bone along the top edge of the sleeve, cuff off the
   `Hand` pivot) next to the re-centred build. A one-off composite made before
-  `elbow_before_after.py` existed; the pairs below supersede it.
+  `elbow_before_after.py` existed (commit `70af4e5`); the pairs below supersede
+  it, and it is likewise left as-is: both its panels are historical builds.
 - `christie_skel_pose_{front,side}.png`, `christie_skel_pose_wrist_*.png` (and
   the `slim` pair) — the mesh re-skinned into a relaxed pose with the posed
   skeleton drawn on top; regenerate with `--pose`
