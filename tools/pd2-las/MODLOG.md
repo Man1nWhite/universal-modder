@@ -1,5 +1,49 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-10 — every Christie render rebuilt from the shipped packs
+
+- Request: "render everything fresh" — the committed set in
+  `docs/pd2-las/renders/` had to match the bytes now in `dist/`.
+- Rebuilt all five generators against `dist/Christie_LAS.zip` (`196606c0…`)
+  and `dist/Christie_LAS_Slim.zip` (`ee85fc15…`): `render_mesh_skeleton.py`
+  (TPP `--pose --hang`, FPS `--fps`, `--source` for the five source views),
+  `review_christie_idle.py` (both packs), `elbow_before_after.py`
+  (`--mode elbow/cuff/idle` × both packs, `--before` = the packs at `cfc3ee6`)
+  and `neck_junction.py --render` (both packs, Joy head).
+- **75 of the 100 files are renderer-driven** (the other 25 are listed as
+  one-offs below); 75 rebuilt, **61 were already byte-identical** with the
+  committed image and **14 moved**. The elbow/cuff/idle comparison sheets came
+  out byte-identical with `cfc3ee6` as the "before" pack, which pins that
+  recipe and confirms the captions still describe the right pair.
+- What moved, and why: `0a76215` rebuilt both packs (normal rotation + seam
+  repair) but refreshed only the unposed views, so `skel_pose_*` (6),
+  `hang_*`/`hang_elbow_*` (6) and the two `*_idle_rest_outer_sheet.png` were
+  still pictures of the pre-`stitch_sleeve_seams` mesh.
+- The two `*_idle_rest_outer_sheet.png` were the worst offenders: rendering them
+  packs at `4a69cce` reproduces the committed bytes **exactly** (0 px), so they
+  are pictures of the pack one rebuild ago and differ from the current build
+  over ~2.3 M px. (A close-up auto-frames itself, so any mesh change re-frames
+  the whole tile — that figure is frame movement, not 2.3 M changed mesh
+  pixels.) Both now come from the same `review_christie_idle.py` run as
+  `*_outer_sheet` and are byte-identical to it.
+- Visual re-check of every changed file: no blank frames, no missing overlay,
+  the diffs are mesh pixels only. `christie_slim_hang_elbow_{front,side}` gained
+  the loose shoulder-side sleeve flap that the new seam repair leaves inside the
+  close-up's cut: a 70-tri `mtr_c02_01` island on the character's left (x<0)
+  spanning 6.3–14.0 cm from the arm chain, z 133.7–156.5, i.e. it reaches 6 cm
+  past the 8 cm selection radius. It is the same surface in both packs, not a
+  new hole, and it is outside the framing of the 12/22/45 elbow review rows.
+- Validation: 657 passed, 30 skipped, 2 failed — the same known slim
+  `test_sleeve_tube_is_closed_along_its_length` leak (6.70/4.95 cm²), unrelated.
+  `tests/test_render_mesh_skeleton.py` 13 passed (the doc-vs-CLI naming test
+  reads `CHRISTIE.md`, which was updated in the same commit).
+- `CHRISTIE.md` §"Mesh + skeleton renders" now records the 2026-11-10
+  regeneration, the 61/14 split and the `idle_rest` history.
+- Not regenerated (no generator exists in the tree, and they are dated
+  evidence, not current-state renders): `christie{,_slim}_fit_before_after.png`
+  (one-off `70af4e5` pair) and `neck_skirt_romance_regression.png` (one-off
+  `005a191`). Still accurate as history; do not cite them as current builds.
+
 ## 2026-11-11 — Christie forearm normals + sleeve seam repair (executed plan)
 
 - Executed `docs/audits/2026-11-07-christie-forearm-normals-and-seam-repair-plan.md`

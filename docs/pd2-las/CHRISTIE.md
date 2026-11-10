@@ -469,13 +469,21 @@ command, so the whole set is reproducible in one run per pack:
 # the two FPS renders are a second run with --fps, same --pack/--item
 ```
 
-The committed set was regenerated on **2026-11-07**: it had gone stale at
+The committed set was regenerated on **2026-11-10** from the packs that ship at
+`0a76215` (base `196606c0…3d5e24`, slim `ee85fc15…5bd7b8`). Every one of the 75
+renderer-driven files was rebuilt and compared pixel for pixel against the
+previous bytes: 61 were already current and 14 moved. The movers are the poses
+and the elbow close-ups — `skel_pose_*` (both packs), `hang_*` (both packs) and
+the two slim `hang_elbow` close-ups — because `0a76215` rebuilt the packs under
+them and only refreshed the unposed views. The two `*_idle_rest_outer_sheet.png`
+were the worst: they had never been re-rendered since `4a69cfe`, so they showed
+the pack as built at `a012cf3` and differed from the current build over the
+whole sheet; they now come from the same review run as `*_outer_sheet.png` and
+are byte-identical to it. An earlier pass (2026-11-07) had gone stale at
 `484a743`, i.e. it predated the seam stitch, the interior normal unification and
-the sleeve-gloss pass that rebuilt both packs, so the pictures no longer matched
-the bytes in `dist/`. Re-rendering moved only mesh pixels (the skeleton overlay is
-identical pixel for pixel) and every image was re-checked for blank frames and a
-missing overlay. Note that the `--fps` run writes nine files where the repo keeps
-two, `fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest.
+the sleeve-gloss pass. Every image was re-checked for blank frames and a missing
+overlay. Note that the `--fps` run writes nine files where the repo keeps two,
+`fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest.
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
   directions. `top` looks down the body axis from above and `bottom` looks up
@@ -513,11 +521,14 @@ two, `fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest
 - `neck_skirt_romance_regression.png` — one-off 2026-11-07 pair, not part of
   the reproducible set: the Romance-over-Clover neck on 2026-11-05 (shipped)
   next to the skirted build that shipped by mistake, 4x. Evidence for §10.3 of
-  the diagnosis audit.
+  the diagnosis audit. It is dated evidence for that bug, so the 2026-11-10
+  regeneration deliberately left it alone: it is a picture of two 2026-11-05
+  head packs, not of the current Christie build.
 - `christie_{base,slim}_fit_before_after.png` — left forearm/wrist, the pack as
   shipped before 2026-11-06 (bone along the top edge of the sleeve, cuff off the
   `Hand` pivot) next to the re-centred build. A one-off composite made before
-  `elbow_before_after.py` existed; the pairs below supersede it.
+  `elbow_before_after.py` existed (commit `70af4e5`); the pairs below supersede
+  it, and it is likewise left as-is: both its panels are historical builds.
 - `christie_skel_pose_{front,side}.png`, `christie_skel_pose_wrist_*.png` (and
   the `slim` pair) — the mesh re-skinned into a relaxed pose with the posed
   skeleton drawn on top; regenerate with `--pose`
