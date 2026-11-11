@@ -2,7 +2,7 @@
 
 Input:  `4.zip` (Skyrim SE meshes) + `1.zip`/`2.zip`/`3.zip` (textures) at the
         repo root, and the 2B LAS reference pack for templates
-        (`references/2b.rar` -> `/tmp/2bsrc`, see bootstrap.sh).
+        (`references/2b.rar` -> `build/pd2-las/2b/`, see extract_2b.py).
 Output: `build/skyrim-nif/outfit.model` (+ previews).
 
 The geometry path is `build_models.py`'s: per-bone similarity retarget onto the
@@ -10,7 +10,7 @@ PD2 player skeleton with harmonic weight blending, then Diesel authoring against
 the 2B template. Only the source side differs — see `skyrim_source.py`.
 
     .venv/bin/python tools/pd2-las/build_skyrim_outfit.py \\
-        --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+        --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b"
 
 Nothing here is installable yet: the pack also needs a head (the Skyrim archives
 carry no head/hair mesh), first-person arms, materials and textures. This script

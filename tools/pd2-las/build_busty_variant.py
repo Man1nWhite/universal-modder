@@ -10,9 +10,11 @@ so it installs side by side with `dist/Miranda_LAS.zip` instead of replacing it.
 
 Usage (from the repo root):
 
-    bash tools/pd2-las/bootstrap.sh          # textures + 2B templates + .venv
-    .venv/bin/python tools/pd2-las/build_busty_variant.py \\
-        --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+    bash tools/pd2-las/recover_env.sh        # once: .venv + the 2B templates
+    .venv/bin/python tools/pd2-las/build_busty_variant.py [--templates DIR]
+
+`--templates` defaults to `build_models.DEFAULT_TEMPLATES`, where
+`recover_env.sh` unpacks them (`build/pd2-las/2b/`).
 
 Outputs:
   build/pd2-las/Miranda_Busty_LAS/         pack folder (installable)
@@ -474,8 +476,10 @@ def build(args) -> int:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--templates", type=Path, required=True,
-                    help="directory containing 2b.model and fps_2b.model")
+    ap.add_argument("--templates", type=Path, default=bm.DEFAULT_TEMPLATES,
+                    help="directory containing 2b.model and fps_2b.model "
+                         "(default: where recover_env.sh unpacks 2b.rar, "
+                         "under build/pd2-las/2b/)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
                     help="build directory (also holds the base pack's outputs)")
     ap.add_argument("--source-zip", type=Path, default=bm.SOURCE_ZIP)
@@ -492,7 +496,9 @@ def main(argv=None) -> int:
     ap.add_argument("--update-dist", action="store_true",
                     help="copy built zip to dist/ even when --out is custom")
     ap.add_argument("--no-previews", action="store_true")
-    return build(ap.parse_args(argv))
+    args = ap.parse_args(argv)
+    bm.require_templates(args.templates)
+    return build(args)
 
 
 if __name__ == "__main__":

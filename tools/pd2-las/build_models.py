@@ -36,12 +36,14 @@ Matrix conventions (read before touching retarget_maps / transfer_group):
   a similarity in comments or docs.
 
 Usage (from the repo root):
-  .venv/bin/python tools/pd2-las/build_models.py \
-      --templates /path/to/dir/with/2b.model \
-      --out build/pd2-las
+  bash tools/pd2-las/recover_env.sh        # once: .venv + the 2B templates
+  .venv/bin/python tools/pd2-las/build_models.py [--templates DIR] [--out DIR]
 
-The template directory must contain 2b.model and fps_2b.model (extracted from
-2b.rar: 7z x 2b.rar). Previews are written to <out>/previews/.
+--templates is the directory holding 2b.model and fps_2b.model from
+references/2b.rar. It defaults to DEFAULT_TEMPLATES, the place extract_2b.py
+unpacks them to (build/pd2-las/2b/). With the default --out (build/pd2-las) the finished
+zip also replaces the tracked dist/Miranda_LAS.zip; any other --out leaves the
+tracked files alone. Previews are written to <out>/previews/.
 """
 
 from __future__ import annotations
@@ -58,11 +60,15 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import diesel_model as dm  # noqa: E402
+import extract_2b  # noqa: E402
 from source_model import ModelData, load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
 REPO = HERE.parents[1]
 SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
+#: The default of every builder's --templates: where extract_2b.py unpacks
+#: references/2b.rar. That module is the one place the path is written.
+DEFAULT_TEMPLATES = extract_2b.TEMPLATES
 
 TPP_MDLS = (
     "models/survivors/survivor_producer.mdl",
@@ -3092,12 +3098,17 @@ def read_drawable(path, drawable: str = "g_body") -> dict | None:
 
 
 def segment_fit_report(path, template: "Template", drawable: str = "g_body") -> dict:
-    """Mesh-vs-skeleton fit numbers for a built model (see segment_fit.py)."""
+    """Mesh-vs-skeleton fit numbers for a built model (see segment_fit.py).
+
+    ``path`` is a `.model` file or, like `read_drawable`, the file's bytes: a
+    model read out of a pack zip needs no copy on disk to be measured.
+    """
     import segment_fit as sf
 
     drawn = read_drawable(path, drawable)
     if drawn is None:
-        raise ValueError(f"{path}: no {drawable} drawable")
+        label = path if isinstance(path, (str, Path)) else f"model ({len(path)} bytes)"
+        raise ValueError(f"{label}: no {drawable} drawable")
     weights = [[(pi, w) for pi, w in zip(bi, bw) if w > 0.0]
                for bi, bw in zip(drawn["blendindices"], drawn["blendweights"])]
     # Geometry and inverse binds may intentionally use an authoring rest pose
@@ -3448,14 +3459,28 @@ def template_name(h: int, mf: dm.ModelFile) -> str:
 
 # ------------------------------------------------------------ main
 
+def require_templates(path: Path, names=("2b.model", "fps_2b.model")) -> Path:
+    """`path` when it holds the 2B template models, else an exit that says how to get them."""
+    missing = [n for n in names if not (Path(path) / n).is_file()]
+    if missing:
+        raise SystemExit(
+            f"2B templates not found in {extract_2b.shown(Path(path))} "
+            f"(missing: {', '.join(missing)}). Run `{extract_2b.RECOVER}` to unpack "
+            "references/2b.rar, or pass --templates DIR.")
+    return Path(path)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--templates", type=Path, required=True,
-                    help="directory containing 2b.model and fps_2b.model")
+    ap.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES,
+                    help="directory containing 2b.model and fps_2b.model "
+                         "(default: where recover_env.sh unpacks 2b.rar, "
+                         "under build/pd2-las/2b/)")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--source-zip", type=Path, default=SOURCE_ZIP)
     ap.add_argument("--no-previews", action="store_true")
     args = ap.parse_args(argv)
+    require_templates(args.templates)
 
     skel_map = json.loads((HERE / "skeleton_map.json").read_text())
     tpp_template = load_template(args.templates / "2b.model")

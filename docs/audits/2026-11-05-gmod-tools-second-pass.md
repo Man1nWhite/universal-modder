@@ -6,6 +6,9 @@
 Source readers underneath them (`vpk.py`, `vtf.py`, `source_model.py`), plus the tool
 survey in `tools/pd2-las/README.md`.
 
+*(Later note: that survey has moved out of the README into
+`knowledge/techniques/garry-s-mod-and-source-addon-tooling-what-runs-headless-what.md`.)*
+
 No game runtime was available and none is needed: every finding below is reproducible
 offline. Three sources of truth were used, in this order of authority:
 

@@ -1,32 +1,63 @@
 #!/usr/bin/env python3
-"""Build the Miranda Lawson Legendary Armour Skins pack from the ME2 source.
+"""Build a PAYDAY 2 Legendary Armour Skins (LAS) outfit pack from a rigged character.
 
-Source of truth: ``PC _ Computer - Mass Effect 2 - Non-Playable Characters -
-Miranda Lawson (Romance).zip`` (rigged COLLADA + textures) at the repository
-root. Output: ``dist/lawson_las.zip``, root ``Lawson_LAS/``, laid out on the
-supplied ``2b.rar`` Legendary Armour Skins contract:
+Last stage of the ``tools/pd2-port`` pipeline, and the place where one
+character's configuration lives. The builder reads a source archive (a rigged
+COLLADA ``.dae`` plus its PNG textures), retargets the skin onto PAYDAY 2's
+biped rig and writes a BeardLib pack laid out on the supplied ``2b.rar``
+Legendary Armour Skins contract. With ``<id>`` standing for the outfit's id:
 
 - ``main.xml`` BeardLib manifest (Localization + Hooks + AddFiles);
-- ``hooks/lawson.lua`` registering ``LegendaryArmours.lawson`` with the 2B flag
+- ``hooks/<id>.lua`` registering ``LegendaryArmours.<id>`` with the 2B flag
   set (``hide_mask``, ``hide_armor``, ``replace_all``, ``fps_hide_armor``,
   ``fps_replace_body``);
-- TPP unit ``lawson`` and FPS unit ``fps_lawson`` (unit/object/material_config);
-- DXT5 ``.texture`` pairs with full mip pyramids (``dmodel``/``dds``);
+- TPP unit ``<id>`` and FPS unit ``fps_<id>`` (unit/object/material_config);
+- DXT5 ``.texture`` pairs with full mip pyramids (``dds.py``);
 - DODB ``.model`` files authored by ``las_model.py`` from the retargeted source
-  skin (``rig_target.py``, rig contract in ``reference/las_rig.json``).
+  skin (``rig_target.py``, rig contract in ``reference/las_rig.json``);
+- ``CREDITS.txt`` and ``build_manifest.json`` (version, status, file hashes).
 
-Unlike the retired route there is no character swap and no external
-``pd2-work`` workspace: everything is derived from the tracked source zip and
-the tracked rig contract. Nothing here is game-verified.
+Unlike the retired character-swap route there is no external ``pd2-work``
+workspace: everything is derived from the tracked source archive and the
+tracked rig contract. Nothing here is game-verified.
+
+The shipped port. The values in this file port Miranda Lawson from Mass
+Effect 2: source ``models/PC _ Computer - Mass Effect 2 - Non-Playable
+Characters - Miranda Lawson (Romance).zip`` (rigged COLLADA + textures),
+``<id>`` = ``lawson``, output ``dist/lawson_las.zip`` with root
+``Lawson_LAS/``. That pack is tracked in git, compared byte for byte in CI
+and published by the ``lawson-las-v*`` release tags, so every literal below
+that reaches the pack is pinned.
+
+Porting another character. There is no per-character config file: a port is
+the set of constants and helpers in this file plus the joint map in
+``rig_target.py``:
+
+- ``SOURCE_ZIP`` / ``DAE_NAME``: the archive and the ``.dae`` inside it
+  (``--source`` replaces the archive path only);
+- ``TEXTURE_SLOTS`` / ``SPECULAR_SLOTS``: which source PNG feeds which
+  texture;
+- ``TPP_LAYOUT`` / ``FPS_LAYOUT`` / ``TEMPLATE`` / ``MAT_BASE``: source mesh
+  -> drawable, material, render template and texture base name;
+- ``UNIT_DIR`` / ``GUI_DIR`` / ``ROOT_DIR`` / ``DEFAULT_OUT`` and the
+  ``lawson`` literals in ``hook_lua()``, ``main_xml()``, ``localization()``,
+  ``credits_txt()``, ``material_config()``, ``encode_textures()`` (the icon's
+  file name), ``assemble()`` and ``validate()``: the pack's identity;
+- the fix-ups: ``eye_uv_planar``, ``repair_rebound_skin_normals``,
+  ``_filter_hair_main_component``, the collar snap in ``build_models`` and
+  the ``face`` / ``eyes`` branches of ``_prepare_diffuse_rgba`` and
+  ``encode_textures``. They repair defects of the shipped source and find
+  their targets by its mesh names and UV layout.
+
+``README.md`` next to this file has the full checklist.
 
 Usage:
     python tools/pd2-port/build_las_pack.py            # -> dist/lawson_las.zip
     python tools/pd2-port/build_las_pack.py --check    # validate only
 
 The build is deterministic: same source + same tool code -> same zip bytes.
-``dist/lawson_las.zip`` is tracked in git and published as the asset of the
-GitHub release tagged ``lawson-las-v1``; ``--version`` stamps the release
-version into the pack's ``build_manifest.json``.
+``--version`` stamps the release version into the pack's
+``build_manifest.json``.
 """
 from __future__ import annotations
 
@@ -46,21 +77,39 @@ import las_model  # noqa: E402
 import rig_target  # noqa: E402
 from me2_dae import load_dae  # noqa: E402
 
+# ---------------------------------------------------------------------------
+# Character configuration. From here down to MAT_BASE the values describe one
+# port; they are the shipped port's (Miranda Lawson, Mass Effect 2). RIG_JSON
+# is the exception: PAYDAY 2's rig is the same for every outfit.
+# ---------------------------------------------------------------------------
+
+# The source archive (a rigged COLLADA file plus its PNG textures), the
+# default output path and the .dae to read inside the archive.
 SOURCE_ZIP = ROOT / "models" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 RIG_JSON = HERE / "reference" / "las_rig.json"
 DEFAULT_OUT = ROOT / "dist" / "lawson_las.zip"
 DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
 
+# Pack identity: where the units and the menu icon live inside the pack, the
+# pack's root folder (the folder that lands in mod_overrides) and the version
+# stamped into build_manifest.json. The outfit id ("lawson") is also spelled
+# out in hook_lua(), main_xml(), localization(), material_config(),
+# encode_textures() (the icon's file name), assemble() and validate().
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"
 ASSET_DIR = "assets"
 ROOT_DIR = "Lawson_LAS"
 VERSION = "0.1.2"
-# The pack is an unlicensed fan derivative of ripped ME2 assets: offline
-# validated, not game-verified, not cleared for commercial redistribution.
+# A port of ripped game assets is an unlicensed fan derivative (the shipped
+# one is, of Mass Effect 2): offline validated, not game-verified, not
+# cleared for commercial redistribution.
 STATUS = "experimental - offline validated, not game-verified"
 
-# Texture Setup.txt slots -> (diffuse png, normal png or None, file base name)
+# Source mesh name -> (diffuse png, normal png or "__flat__" or None, file
+# base name). The keys are the mesh node names of the .dae; "__flat__"
+# synthesizes a flat normal map for a material that has none; the base name
+# becomes <base>_df.texture / <base>_nm.texture in the pack. Shipped port:
+# transcribed from the "Texture Setup.txt" that comes with the source archive.
 TEXTURE_SLOTS = {
     "Body 1": ("HMF_MIR_NKDa_DIFF.png", "HMF_MIR_NKDa_Norm.png", "body1"),
     "Body 2": ("HMF_MIR_LGTa_Diff.png", "HMF_MIR_LGTa_Norm.png", "body2"),
@@ -75,7 +124,10 @@ TEXTURE_SLOTS = {
 # PAYDAY 2's DIFFUSE_TEXTURE:NORMALMAP shader reads the specular/gloss mask
 # from the diffuse texture's alpha channel (0 = matte, 255 = full mirror gloss;
 # 2B reference has mean ~8, p90 = 28..48, max = 92..96).
-# Base name -> (optional ME2 spec PNG, scale, max_alpha, default_alpha)
+# Base name -> (optional source spec PNG, scale, max_alpha, default_alpha):
+# the PNG's luminance times `scale`, clipped to max_alpha, becomes the alpha;
+# without a PNG the alpha is default_alpha everywhere. The numbers are tuned
+# per material against that 2B range, so they are the shipped port's.
 SPECULAR_SLOTS = {
     "body1": ("HMF_MIR_NKDa_SPEC.png", 0.18, 42, 12),
     "body2": ("HMF_MIR_LGTa_Spec.png", 0.25, 64, 16),
@@ -86,7 +138,9 @@ SPECULAR_SLOTS = {
     "mouth": (None, 0.0, 6, 6),
 }
 
-# mesh name -> (drawable, material) for the TPP model
+# Source mesh name -> (drawable, material) for the third-person (TPP) model.
+# A material belongs to exactly one drawable; the drawable names are repeated
+# in the .object files written by assemble().
 TPP_LAYOUT = {
     "Body 1": ("g_body", "mtr_body1"),
     "Body 2": ("g_body", "mtr_body2"),
@@ -97,6 +151,9 @@ TPP_LAYOUT = {
     "Teeth": ("g_head", "mtr_teeth"),
     "Mouth Inside": ("g_head", "mtr_mouth"),
 }
+# The meshes that feed the first-person (FPS) unit. Only their arm vertices
+# are kept (rig_target.split_arm_verts), so list the meshes that cover the
+# arms and the hands.
 FPS_LAYOUT = {
     "Body 1": ("g_body", "mtr_body1"),
     "Body 2": ("g_body", "mtr_body2"),
@@ -113,6 +170,7 @@ TEMPLATE = {
     "mtr_teeth": ("DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS", True, False),
     "mtr_mouth": ("DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS", True, False),
 }
+# material -> texture base name (the <base>_df / <base>_nm pair it samples)
 MAT_BASE = {
     "mtr_body1": "body1", "mtr_body2": "body2", "mtr_face": "face",
     "mtr_hair": "hair", "mtr_eyes": "eyes", "mtr_lashes": "lashes",
@@ -129,13 +187,23 @@ def eye_uv_planar(
 ) -> list[tuple[float, float]]:
     """Planar-project each eyeball's UVs from its frontal plane.
 
-    ME2's eye shader placed the iris itself (EYE_Iris_Norm / EYE_Lens_Norm /
-    four spec maps), so the DAE UVs put the diffuse iris right on the u-seam
-    facing the camera — triangles spanning the seam smear the texture and the
-    eyes render as blank pink spheres. Projecting each eyeball from its own
-    frontal plane centers a round iris on the pupil direction. This is the
-    static-mesh approximation of that shader; the sphere sides/back map
-    outside the unit square but sit inside the head.
+    A fix-up for sources whose eye shader placed the iris itself: their eye
+    UVs are not meant for a plain diffuse lookup. Shipped port: Mass Effect
+    2's eye shader builds the iris from EYE_Iris_Norm / EYE_Lens_Norm / four
+    spec maps, so the DAE UVs put the diffuse iris right on the u-seam facing
+    the camera — triangles spanning the seam smear the texture and the eyes
+    render as blank pink spheres. Projecting each eyeball from its own frontal
+    plane centers a round iris on the pupil direction. This is the static-mesh
+    approximation of such a shader: the projection ignores depth, so the sides
+    and the back of each sphere reuse the front's texels (clamped to the
+    texture border), but they sit inside the head.
+
+    The mesh is split into two eyeballs by the sign of x and projected onto
+    the XZ plane (the character faces along Y). ``dx_frac`` / ``dz_frac``
+    shift the iris centre outward / upward in eyeball radii (``dx_frac_pos``
+    overrides the shift of the +x eye) and ``radius_scale`` sets how much of
+    the texture one radius spans; ``build_models`` passes the shipped port's
+    tuning.
     """
     out = [(0.5, 0.5)] * len(positions)
     for sign, pred in ((-1.0, lambda x: x < 0.0), (1.0, lambda x: x >= 0.0)):
@@ -185,7 +253,14 @@ def atom_for(rm, material: str, keep=None) -> "las_model.Atom":
 
 
 def _neck_skin_uv_island_mask(uv_img, tris):
-    """Select the exact Scalp_Diff neck-skin UV island (645 verts) via UV flood-fill."""
+    """Select the UV islands that touch a seed box, via UV flood-fill.
+
+    Vertices are welded by UV and joined across triangles; every island with
+    a vertex inside ``u < 0.45, v_img > 0.85`` is selected. Shipped port: the
+    ``Hair`` mesh carries the neck skin next to the hair cards, and that box
+    seeds the neck-skin island of its scalp texture (Scalp_Diff). The seed
+    box is this texture's layout - another source needs its own.
+    """
     import numpy as np
 
     rounded = np.round(uv_img * 1000.0).astype(np.int64)
@@ -209,12 +284,21 @@ def _neck_skin_uv_island_mask(uv_img, tris):
 
 
 def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
-    """Repair corrupted boundary normals along the face/neck seam and mouth corners.
+    """Repair skin normals on the face and along the face/neck seam.
 
-    In the ME2 source mesh, 7 right-cheek/temple boundary vertices on ``Face``
-    (and their 4 matching twins on ``Hair`` neck skin) plus 3 mouth-corner
-    vertices have normals corrupted by adjacent hair cards or mouthbag
-    geometry (dot with true skin surface normal = 0.017..0.540).
+    The method is general: smooth geometric normals are recomputed over the
+    welded skin surface (the face mesh plus the neck-skin island of the hair
+    mesh), every stored normal that disagrees with them (dot < 0.75) is
+    replaced, the normals of coincident face/neck seam vertices are averaged
+    so the seam shades continuously, and the winding of both meshes is
+    re-checked.
+
+    Why the shipped port needs it: its source mesh has a few vertices on
+    ``Face`` - around the eyes, the nostrils and the mouth - whose normals are
+    corrupted by adjacent hair cards or mouthbag geometry. The last step
+    (tilting the nostril-cavity normals away from the light) and the
+    neck-skin island are located by this character's UV layout: retune or
+    drop them for another head.
     """
     import numpy as np
 
@@ -284,6 +368,7 @@ def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
 
     # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
     # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
+    # The two UV ellipses below are where the shipped port's face texture has its nostrils.
     fuv = np.asarray(face_rm.uvs, dtype=np.float64)
     fu = fuv[:, 0]
     fv_img = 1.0 - fuv[:, 1]
@@ -307,14 +392,21 @@ def repair_rebound_skin_normals(face_rm, hair_rm) -> None:
 
 
 def _filter_hair_main_component(hair_rm) -> None:
-    """Drop the 33 disconnected 1.5-mm flyaway wire strips (809 tris) from Hair.
+    """Tuck away the hair strips that are not connected to the main hair mesh.
 
-    In ME2's Unreal Engine 3 shader, those 33 sub-millimeter ribbons used a
-    soft alpha-blended hair wisp mask (Scalp_Spec2), whereas in PAYDAY 2's
-    opaque character material they rasterize as 1-pixel jagged black wires
-    slicing across the right eye/cheek and floating in front of the forehead.
-    Keeping the main 3D edge-connected component (2,753 tris: the solid hair
-    cap + neck skin) removes all 33 sub-pixel wire artifacts cleanly.
+    A fix-up for sources that draw flyaway wisps as alpha-blended ribbons: in
+    PAYDAY 2's opaque character material such ribbons rasterize as 1-pixel
+    jagged black wires. The largest edge-connected component of the mesh is
+    left alone; every vertex outside it is pulled to 20 % of its offset from
+    a point inside the head, which hides the strips without changing the
+    vertex or triangle count.
+
+    Shipped port: 33 disconnected 1.5-mm strips (809 tris) that Mass Effect
+    2's Unreal Engine 3 shader blended through a hair wisp mask (Scalp_Spec2)
+    sliced across the right eye/cheek and floated in front of the forehead.
+    The component that stays is the solid hair cap + neck skin (2,753 tris).
+    The tuck point (0, 5.5, 169) lies inside this character's head in PD2
+    space - move it for another one.
     """
     from collections import defaultdict
     import numpy as np
@@ -370,9 +462,10 @@ def build_models(scene, rig, log=print):
     from dataclasses import replace
     import numpy as np
 
-    # Smooth bone weights across the unified welded scene graph so cross-mesh
-    # seams (Face <-> Hair under-chin seam, Body 1 <-> Body 2 catsuit seams)
-    # receive identical weights and never crack apart when posed in-game.
+    # Smooth bone weights across the unified welded scene graph, not mesh by
+    # mesh, so the vertices on a seam between two meshes receive identical
+    # weights and never crack apart when posed in-game (shipped port: the
+    # Face <-> Hair under-chin seam and the Body 1 <-> Body 2 suit seams).
     all_pos, all_wts, all_tris = [], [], []
     offsets: dict[str, tuple[int, int]] = {}
     for m in scene.meshes:
@@ -393,12 +486,17 @@ def build_models(scene, rig, log=print):
         )
         for m in scene.meshes
     }
+    # ---- per-character fix-ups (the shipped port's), applied by mesh name ---
+    # A source without these meshes skips the guarded steps; the Eyes block
+    # further down is unconditional, so a source without a mesh called "Eyes"
+    # has to drop or adapt it.
     if "Hair" in rigged:
         _filter_hair_main_component(rigged["Hair"])
     if "Face" in rigged and "Hair" in rigged:
         repair_rebound_skin_normals(rigged["Face"], rigged["Hair"])
     if "Hair" in rigged and "Body 1" in rigged:
         # Snap the bottom collar rim of Hair neck-skin to Body 1 chest skin
+        # (positions and weights), so neck and chest cannot part at the collar
         ph = np.asarray(rigged["Hair"].positions, dtype=np.float64)
         uvh = np.asarray(rigged["Hair"].uvs, dtype=np.float64)
         th = np.asarray(rigged["Hair"].triangles, dtype=np.int32)
@@ -417,6 +515,7 @@ def build_models(scene, rig, log=print):
 
     # Center eyeball planar UVs on the visible eyelid opening (palpebral fissure)
     # and soften horizontal/vertical normal tilt across the recessed 1.5cm eyeball sphere.
+    # The offsets and the 0.35 tilt factor are tuned to the shipped port's eyes.
     rigged["Eyes"].uvs = eye_uv_planar(
         rigged["Eyes"].positions,
         dx_frac=0.13,
@@ -432,6 +531,8 @@ def build_models(scene, rig, log=print):
         eye_nrms.append((nx_s / ln, ny / ln, nz_s / ln))
     rigged["Eyes"].normals = eye_nrms
 
+    # ---- generic from here: group the meshes into drawables per the layout
+    # tables, cut the first-person arms, author both models ------------------
     tpp_drawables: dict[str, list] = {}
     for mesh_name, (drawable, material) in TPP_LAYOUT.items():
         tpp_drawables.setdefault(drawable, []).append(atom_for(rigged[mesh_name], material))
@@ -460,15 +561,24 @@ def build_models(scene, rig, log=print):
 
 
 def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
-    """Pack PD2 specular/gloss intensity into diffuse alpha and shade eye sclera."""
+    """Pack PD2 specular/gloss intensity into diffuse alpha (``SPECULAR_SLOTS``).
+
+    That is the generic job, done by the last block. The ``face`` and ``eyes``
+    branches before it are fix-ups of the shipped port, placed by its UV
+    layout: nostril and lash-line darkening on the face texture, and a
+    synthesized iris and sclera that replace the eye diffuse altogether. The
+    ``eyes`` branch returns with its own alpha, so the ``eyes`` row of
+    ``SPECULAR_SLOTS`` is not consulted.
+    """
     import numpy as np
     from PIL import Image
 
     rgba = np.asarray(img.convert("RGBA"), dtype=np.uint8).copy()
     if base == "face":
-        # Darken the two inner-nostril UV pockets (u=0.452, v_img=0.484 and
-        # u=0.563, v_img=0.493) so recessed nostril walls render with natural
-        # cavity ambient occlusion in PAYDAY 2's flat-lit shaders.
+        # Darken the two inner-nostril UV pockets (centred on u=0.454 and
+        # u=0.559 at v_img=0.472 in the shipped port's face texture) so
+        # recessed nostril walls render with natural cavity ambient occlusion
+        # in PAYDAY 2's flat-lit shaders.
         h, w = rgba.shape[:2]
         yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
         u = (xx + 0.5) / w
@@ -496,8 +606,12 @@ def _prepare_diffuse_rgba(base: str, img, source: dict[str, bytes]):
                 rgb * (1.0 - w_wl[m_wl, None]) + target_lash * w_wl[m_wl, None], 0.0, 255.0
             ).astype(np.uint8)
     if base == "eyes":
-        # Synthesize the exact full-aperture deep-sapphire iris (iris_outer=0.28,
-        # iris_inner=0.25, pupil_r=0.115) matching Miranda_LAS (build_las.py).
+        # Synthesize the iris instead of sampling the source's eye diffuse
+        # (see eye_uv_planar: the source shader built the iris itself).
+        # Shipped port: a full-aperture deep-sapphire iris (iris_outer=0.28,
+        # iris_inner=0.25, pupil_r=0.115), the same recipe as the sibling
+        # L4D2-route pack Miranda_LAS (tools/pd2-las/build_las.py). The
+        # colours belong to the character - change them per port.
         h, w = rgba.shape[:2]
         yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
         u = (xx + 0.5) / w - 0.5
@@ -583,6 +697,10 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
     ``dds.pd2_normal_channels``; ``invert_nm_y`` converts DirectX-style green.
     Diffuse textures receive attenuated specular masks in their alpha channel
     per PAYDAY 2's ``DIFFUSE_TEXTURE:NORMALMAP`` shader convention.
+
+    Three steps here belong to the shipped port's source rather than to PD2:
+    the red/green swap of the source normal maps, the flattened ``eyes`` and
+    nostril normals, and the menu icon taken from the ``Face`` diffuse.
     """
     import dds
     import numpy as np
@@ -608,7 +726,10 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
             if suffix == "nm":
                 nm_in = img
                 if png != "__flat__":
-                    # UE3/ME2 extracted normal PNGs store vertical Y_down in Red and horizontal X_right in Green
+                    # A convention of the source, not of PD2: the shipped port's normal PNGs
+                    # (extracted from Mass Effect 2 / UE3) store vertical Y_down in Red and
+                    # horizontal X_right in Green, so the two channels are swapped before the
+                    # PD2 repack. A source that already has X in Red must not take this swap.
                     nm_in = np.asarray(img, dtype=np.uint8)[..., [1, 0, 2, 3]].copy()
                     if base == "eyes":
                         nm_xy = 128.0 + (nm_in[..., :2].astype(np.float32) - 128.0) * 0.22
@@ -638,7 +759,8 @@ def encode_textures(source: dict[str, bytes], invert_nm_y: bool = True, log=prin
             if problems:
                 raise ValueError(f"{path}: {problems}")
         log(f"  texture {base}: ok")
-    # menu icon: face diffuse, square 256
+    # menu icon: the diffuse of the "Face" mesh, square 256 (shipped port's
+    # choice - any diffuse in TEXTURE_SLOTS will do for another character)
     from PIL import Image
     face = Image.open(io.BytesIO(source[TEXTURE_SLOTS["Face"][0]])).convert("RGBA")
     icon = face.resize((256, 256))
@@ -721,6 +843,14 @@ def object_xml(unit_base: str, drawables: list[str]) -> str:
             '</dynamic_object>\n')
 
 
+# ---------------------------------------------------------------------------
+# Pack text files. unit_xml() and object_xml() above take the unit name as an
+# argument; hook_lua(), main_xml(), localization() and credits_txt() below
+# spell out the outfit id, the menu strings and the provenance of the shipped
+# port. Their output goes into the byte-pinned pack, so for another character
+# change them together with UNIT_DIR / GUI_DIR / ROOT_DIR and the names in
+# assemble() and validate().
+# ---------------------------------------------------------------------------
 def hook_lua() -> str:
     return (
         "LegendaryArmours = LegendaryArmours or {}\n"
@@ -806,6 +936,10 @@ def assemble(scene, rig, source: dict[str, bytes], invert_nm_y: bool = True,
     tpp_res, fps_res = build_models(scene, rig, log)
     textures = encode_textures(source, invert_nm_y=invert_nm_y, log=log)
 
+    # Per character, and kept in step with the layout tables by hand: the
+    # material lists are the materials of TPP_LAYOUT / FPS_LAYOUT plus the
+    # shadow caster, and the drawable lists passed to object_xml() below are
+    # the drawables of those tables.
     tpp_mats = ["mtr_body1", "mtr_body2", "mtr_face", "mtr_hair", "mtr_eyes",
                 "mtr_lashes", "mtr_teeth", "mtr_mouth", "shadow_caster"]
     fps_mats = ["mtr_body1", "mtr_body2", "shadow_caster"]

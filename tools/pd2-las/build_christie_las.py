@@ -29,11 +29,13 @@ rebuilt from the normal map's alpha (Source stores the phong mask there and
 leaves diffuse alpha at 255, which PD2 reads as full mirror gloss — the washed
 out look) via `dds_encode.attenuate_dxt5_alpha_from_normal`.
 
-Usage (from the repo root):
-  .venv/bin/python tools/pd2-las/build_christie_las.py \
-      --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"            # base
-  .venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
-      --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"            # slim
+Usage (from the repo root; run `bash tools/pd2-las/recover_env.sh` once for
+the .venv and the 2B templates that `--templates` defaults to):
+  .venv/bin/python tools/pd2-las/build_christie_las.py                  # base
+  .venv/bin/python tools/pd2-las/build_christie_las.py --variant slim   # slim
+
+Both write the tracked zips in `dist/`; add `--out DIR --dist DIR` to build
+somewhere else and leave them alone.
 """
 
 from __future__ import annotations
@@ -3755,12 +3757,15 @@ def write_pack(out_root: Path, identity: Identity, tpp_model: bytes,
 # ---------------------------------------------------------------------------
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--templates", type=Path, required=True,
-                    help="directory with 2b.model / fps_2b.model (from 2b.rar)")
+    ap.add_argument("--templates", type=Path, default=bm.DEFAULT_TEMPLATES,
+                    help="directory with 2b.model / fps_2b.model (from 2b.rar; "
+                         "default: where recover_env.sh unpacks it, under "
+                         "build/pd2-las/2b/)")
     ap.add_argument("--variant", choices=sorted(IDENTITIES), default="base",
+                    # argparse %-formats help strings: a literal percent sign is "%%"
                     help="base = full body with hands; "
-                         f"slim = {(1 - SLIM_SCALE):.0%} thinner in x/y (arms an "
-                         "extra 20%), height unchanged, hands cut at the wrist "
+                         f"slim = {(1 - SLIM_SCALE):.0%}% thinner in x/y (arms an "
+                         "extra 20%%), height unchanged, hands cut at the wrist "
                          "for in-game gloves (glove adapter hook shipped)")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
@@ -3768,6 +3773,8 @@ def main(argv=None) -> int:
                     help="ship only the third-person unit (no fps viewmodel)")
     ap.add_argument("--no-previews", action="store_true")
     args = ap.parse_args(argv)
+    bm.require_templates(args.templates,
+                         ("2b.model", "fps_2b.model") if args.fps else ("2b.model",))
 
     identity = IDENTITIES[args.variant]
     source_sha = hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()

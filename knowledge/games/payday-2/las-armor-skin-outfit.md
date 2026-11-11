@@ -29,7 +29,7 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 > `docs/audits/2026-10-19-las-guide-compliance.md`. What remains: the user-side
 > in-game checklist (`docs/pd2-las/in-game-checklist.md`) and the ME2
 > redistribution-rights gate before any public release. Start-here doc for the
-> next agent: `docs/pd2-las/HANDOFF.md`; one-command rebuild:
+> next agent: `tools/pd2-las/README.md`; one-command rebuild:
 > `bash tools/pd2-las/bootstrap.sh`.
 
 ## Setup
@@ -97,7 +97,7 @@ a broken rig this time — the L4D2 mod is a complete, working character model
 ```sh
 bash tools/pd2-las/bootstrap.sh    # venv + 2B templates + build + tests + lint
 # or, manually:
-python tools/pd2-las/build_models.py --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+python tools/pd2-las/build_models.py   # --templates defaults to build/pd2-las/2b/…, where bootstrap.sh unpacks 2b.rar
 python -m pytest -q tests/
 ```
 
@@ -106,12 +106,17 @@ pack scaffold; `build_models.py` builds the models and auto-creates the
 scaffold if missing, then zips. Output goes to `build/pd2-las/` (gitignored):
 `miranda.model`, `fps_miranda.model`, `Miranda_LAS/` (installable pack) and
 `Miranda_LAS.zip` (reproducible, fixed timestamps), plus `previews/`,
-`textures/`, `source_inventory.json`. Provenance (payload hashes, source zip
-hash, 2B template input hashes) lives in `Miranda_LAS/BUILD_INFO.json`.
+`textures/`, `source_inventory.json`. That inventory (what the source archive
+contains: bones, meshes, triangle counts, texture formats) is the same whatever
+stage wrote it, and a copy is tracked as `tools/pd2-las/source_inventory.json`,
+so the source can be looked up without building. Provenance (payload hashes,
+source zip hash, 2B template input hashes) lives in
+`Miranda_LAS/BUILD_INFO.json`.
 
 ## Verification
 
-- 192 offline tests (5 skip without ffmpeg): readers against the tracked
+- Offline tests (`make -sC tools/pd2-las test` prints the current count):
+  one test per invariant on the tracked packs, readers against the tracked
   source zip, byte-exact Diesel codec round-trips, retarget coherence
   (weights, winding, signed volumes, bind placement), pack/registration
   contract vs 2B, guide material_config contract, zip reproducibility.
@@ -122,8 +127,9 @@ hash, 2B template input hashes) lives in `Miranda_LAS/BUILD_INFO.json`.
   structural diff vs the 2B reference (identical schema at every layer the
   engine reads).
 - **Not verified:** anything in-game. Known watch items are checklist
-  items 17–18 (normal-map Y+ orientation, contour silhouette) plus the
-  boot-sole ground clip (~12 cm).
+  items 17–18 (normal-map Y+ orientation, contour silhouette). The boot-sole
+  ground clip of about 12 cm that this note used to list is gone: the lowest
+  vertex of the tracked body is at z = −0.75 cm.
 
 ## Gotchas
 
@@ -173,6 +179,11 @@ hash, 2B template input hashes) lives in `Miranda_LAS/BUILD_INFO.json`.
     sandbox snapshot restore. **Fix:** the work is on the remote —
     `git fetch && git reset --hard origin/<branch>`, then
     `bash tools/pd2-las/bootstrap.sh`. Push early; this happened 3×.
+    The reset is only right when everything local is already on the remote
+    (`git log origin/<branch>..HEAD` empty, `git status` clean of real edits):
+    it discards whatever was never pushed. A later kind of restart keeps the
+    commits and drops `.venv`, `dist/` and `build/` instead; for that one,
+    `git checkout -- dist build node_modules` and `make -sC tools/pd2-las env`.
 11. **Symptom:** API friction. **Cause:** convenience wrappers differ from
     stdlib guesses. **Fix:** `VpkArchive.from_zip(path_str, name)` takes a
     path not a `ZipFile`; `ModelFile.read(data)` not `read_bytes`;

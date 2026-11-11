@@ -11,8 +11,19 @@ Stages:
   textures    convert every VTF to DDS (.texture) + PNG previews
   pack        write the LAS pack scaffold into <out>/Miranda_LAS/
 
-Diesel `.model` authoring is NOT done here yet — the scaffold is registration,
-textures and XMLs only, marked WIP. See README.md.
+Every stage leaves the same ``<out>/source_inventory.json``: what the source
+archive contains (its hash, the VPK entries, both models' bones, meshes and
+triangle counts, each texture's format and size). It holds no build result, so
+it does not depend on which stage ran last. The copy in git is
+``tools/pd2-las/source_inventory.json`` (`RECORD`); ``--stage inventory --out
+tools/pd2-las`` rewrites it (the Makefile's ``inventory`` target), and a test
+fails while it differs from a fresh one. A pack's ``BUILD_INFO.json`` embeds
+the same record plus the hash of every converted texture.
+
+Diesel `.model` authoring is not this script's job: `build_models.py` authors
+the two models, runs these stages itself and adds the models to the pack. Run
+on its own, this script leaves a scaffold (registration, textures and XMLs
+only) marked WIP. See README.md.
 """
 from __future__ import annotations
 
@@ -24,6 +35,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+#: The source inventory that is tracked in git, so that what the source archive
+#: contains can be read without building anything.
+RECORD = HERE / "source_inventory.json"
 
 from dds_encode import (  # noqa: E402
     attenuate_dxt5_alpha_from_normal,
@@ -117,8 +131,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: source not found: {source}", file=sys.stderr)
         return 2
 
+    # `--stage inventory` promises JSON on stdout, so its progress goes to stderr
+    def say(text: str) -> None:
+        print(text, file=sys.stderr if args.stage == "inventory" else sys.stdout)
+
     arc = VpkArchive.from_zip(source, args.vpk_inner)
-    print(f"vpk: {len(arc.entries)} entries from {source.name}")
+    say(f"vpk: {len(arc.entries)} entries from {source.name}")
 
     inventory = {
         "source_zip": source.name,
@@ -136,10 +154,31 @@ def main(argv: list[str] | None = None) -> int:
     tpp = load_model(*(arc.read(p) for p in TPP_MDLS))
     fps = load_model(*(arc.read(p) for p in FPS_MDLS))
     inventory["models"] = {"third_person": model_inventory(tpp), "first_person": model_inventory(fps)}
-    print(
+    say(
         f"models: tpp={tpp.name} ({len(tpp.bones)} bones, {tpp.triangle_count} tris) "
         f"fps={fps.name} ({len(fps.bones)} bones, {fps.triangle_count} tris)"
     )
+
+    # So is what the source says about each texture: the headers are parsed here
+    # for every stage, the pixels are converted only by the stages that need them.
+    raw_vtf_imgs = {
+        stem: parse_vtf(arc.read(f"materials/models/miranda/{stem}.vtf"))
+        for stem in sorted(VTF_TO_PACK)
+    }
+    inventory["textures"] = {
+        stem: {
+            "format": img.format_name,
+            "size": [img.width, img.height],
+            "mips": img.mipmap_count,
+            "pack_texture": f"{VTF_TO_PACK[stem]}.texture",
+        }
+        for stem, img in raw_vtf_imgs.items()
+    }
+    # What a pack embeds in BUILD_INFO.json: the inventory and, once the textures
+    # are converted, the hash of each one as shipped. The hashes are build
+    # results, so they stay out of the inventory itself, which would otherwise
+    # depend on the stage that wrote it.
+    build_record = inventory
 
     textures: dict[str, bytes] = {}
     if args.stage in ("textures", "all"):
@@ -148,10 +187,6 @@ def main(argv: list[str] | None = None) -> int:
         tex_dir = out / "textures"
         tex_dir.mkdir(parents=True, exist_ok=True)
         vtf_info = {}
-        raw_vtf_imgs = {
-            stem: parse_vtf(arc.read(f"materials/models/miranda/{stem}.vtf"))
-            for stem in sorted(VTF_TO_PACK)
-        }
         raw_dds = {stem: to_dds(img) for stem, img in raw_vtf_imgs.items()}
         for stem, pack_name in sorted(VTF_TO_PACK.items()):
             img = raw_vtf_imgs[stem]
@@ -273,14 +308,11 @@ def main(argv: list[str] | None = None) -> int:
             (tex_dir / f"{pack_name}.texture").write_bytes(dds)
             (png_dir / f"{stem}.png").write_bytes(to_png(img))
             vtf_info[stem] = {
-                "format": img.format_name,
-                "size": [img.width, img.height],
-                "mips": img.mipmap_count,
-                "pack_texture": f"{pack_name}.texture",
+                **inventory["textures"][stem],
                 "dds_sha256": hashlib.sha256(dds).hexdigest(),
             }
             print(f"texture: {stem} {img.format_name} {img.width}x{img.height} -> {pack_name}.texture")
-        inventory["textures"] = vtf_info
+        build_record = {**inventory, "textures": vtf_info}
 
     if args.stage in ("pack", "all"):
         if not textures:
@@ -299,14 +331,14 @@ def main(argv: list[str] | None = None) -> int:
         face = Image.open(io.BytesIO(to_png(parse_vtf(arc.read("materials/models/miranda/miranda_face_color.vtf")))))
         icon_img = face.crop((face.width // 8, 0, face.width * 7 // 8, face.height // 2)).resize((256, 256))
         icon = rgba_to_bc3_dds(np.asarray(icon_img.convert("RGBA"), dtype=np.uint8))
-        pack = write_pack(out, textures, icon, inventory, models_present=False)
+        pack = write_pack(out, textures, icon, build_record, models_present=False)
         print(f"pack scaffold: {pack}")
         print("NOTE: Diesel .model files are not generated yet; scaffold is marked WIP.")
 
     inv_path = out / "source_inventory.json"
     inv_path.write_text(json.dumps(inventory, indent=2) + "\n")
     if args.stage == "inventory":
-        # keep stdout pure JSON for scripting; the file is always persisted
+        # stdout is the JSON and nothing else, for scripting; the file is always persisted
         json.dump(inventory, sys.stdout, indent=2)
         print()
     else:

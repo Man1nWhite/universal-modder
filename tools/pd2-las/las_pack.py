@@ -8,9 +8,10 @@ flags — with fresh IDs and paths:
     LegendaryArmours.miranda    units/miranda/skins/miranda/{miranda,fps_miranda}
 
 The scaffold contains converted textures, the icon, registration and the
-unit/object/material_config XMLs. Diesel `.model` authoring is the remaining
-step (see README.md); until the two model files exist the scaffold ships a
-WIP_DO_NOT_INSTALL.txt and `models_present` is false in BUILD_INFO.json.
+unit/object/material_config XMLs. The two Diesel `.model` files come from
+`build_models.py` (see README.md); a scaffold without them ships a
+WIP_DO_NOT_INSTALL.txt and has `models_present` false in BUILD_INFO.json, and
+`refresh_build_info` flips that once the models are in the pack.
 
 Registration and packaging facts verified against the 2B reference and the
 BeardLib/LAS sources listed in knowledge/games/payday-2/las-armor-skin-outfit.md.

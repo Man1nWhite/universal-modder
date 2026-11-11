@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Diesel .model reader — Python port of the core of diesel-modding/payday2-model-tool.
 
-Reads legacy and Diesel 3 ("DODB") containers. Used by the Clover->Lawson port.
-Writer helpers live in build_model.py. Formats per Research Notes/format_documentation.md
-in that repo and the C# sources (ModelReader.cs, Sections/*.cs, Hash64.cs).
+Reads legacy and Diesel 3 ("DODB") containers. Nothing in it depends on the
+character being ported: the rig extraction, the pack checks and the previews
+here use it, and so do other PAYDAY 2 tools in this repository. The writer for
+DODB containers is las_model.py. Formats per Research
+Notes/format_documentation.md in the payday2-model-tool repo and its C#
+sources (ModelReader.cs, Sections/*.cs, Hash64.cs).
 """
 import struct, sys
 from pathlib import Path

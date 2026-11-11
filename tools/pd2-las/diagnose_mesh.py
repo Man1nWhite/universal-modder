@@ -16,7 +16,7 @@ script answers the structural questions behind them, on either pack:
     .venv/bin/python tools/pd2-las/diagnose_mesh.py            # both packs
     .venv/bin/python tools/pd2-las/diagnose_mesh.py --pack slim
     .venv/bin/python tools/pd2-las/diagnose_mesh.py \
-        --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # + slit
+        --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b"   # + slit
 
 Everything is read-only. Numbers quoted in
 `docs/audits/2026-11-07-christie-slim-diagnosis.md` come from this script.

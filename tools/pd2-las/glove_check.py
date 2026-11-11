@@ -17,10 +17,11 @@ from PIL import Image, ImageDraw
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
+import extract_2b  # noqa: E402
 import pose_preview as pp  # noqa: E402
 import preview_textured as pt  # noqa: E402
 
-TPL = Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b/2b.model")
+TPL = extract_2b.TEMPLATES / "2b.model"
 
 
 def load_largest_model(path):

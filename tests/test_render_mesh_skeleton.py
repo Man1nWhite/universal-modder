@@ -25,19 +25,12 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 def _templates() -> Path:
-    """The 2B reference pack, wherever bootstrap.sh / the sandbox put it."""
-    import os
+    """The 2B reference pack, where extract_2b.py unpacks it."""
+    import extract_2b
 
-    for cand in (Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"),
-                 Path(os.environ.get("HOME", "/home/user"))
-                 / "tmpsrc/2B - LAS/assets/units/2b/skins/2b"):
-        if (cand / "2b.model").is_file():
-            return cand
-    env = os.environ.get("PD2_2B_TEMPLATES")
-    if env and (Path(env) / "2b.model").is_file():
-        return Path(env)
-    pytest.skip("2B templates not extracted (run tools/pd2-las/bootstrap.sh)",
-                allow_module_level=True)
+    if not extract_2b.present():
+        pytest.skip(extract_2b.MISSING, allow_module_level=True)
+    return extract_2b.TEMPLATES
 
 
 TEMPLATES = _templates()

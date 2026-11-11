@@ -127,7 +127,7 @@ def parse_vtf(data: bytes) -> VtfImage:
     highres_format, = struct.unpack_from("<I", data, 52)
     mipmap_count, = struct.unpack_from("<B", data, 56)
     lowres_format, = struct.unpack_from("<I", data, 57)
-    # Empirically (VTF 7.4, see tools/pd2-las/README.md): low-res width/height
+    # Empirically (VTF 7.4, the textures named in the module docstring): low-res width/height
     # are single bytes at 61/62, followed by a u16 depth at 63.
     lowres_width, lowres_height = data[61], data[62]
     depth, = struct.unpack_from("<H", data, 63)

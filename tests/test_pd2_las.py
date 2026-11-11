@@ -344,12 +344,16 @@ class TestLasScaffold:
         assert info["payload_sha256"]["main.xml"] == digest
 
     def test_source_zip_hash_recorded(self):
-        """The repo source zip hash must match what the last build recorded."""
-        inv_path = REPO / "build" / "pd2-las" / "source_inventory.json"
-        if not inv_path.is_file():
-            pytest.skip("build output not present")
-        inv = json.loads(inv_path.read_text())
+        """The tracked source inventory describes the source zip that is in the repo.
+
+        It used to read the last build's copy under build/ and skip without one,
+        which is every CI run. The record is tracked now, so this always runs.
+        """
+        import build_las
+
+        inv = json.loads(build_las.RECORD.read_text())
         digest = hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()
+        assert inv["source_zip"] == SOURCE_ZIP.name
         assert inv["source_zip_sha256"] == digest
 
     def test_inventory_stage_always_persists(self, tmp_path):
@@ -363,6 +367,86 @@ class TestLasScaffold:
         assert inv["source_zip_sha256"] == hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()
         assert "third_person" in inv["models"]
         assert inv["models"]["third_person"]["triangles"] > 0
+
+    def test_tracked_source_inventory_is_current(self, tmp_path):
+        """`tools/pd2-las/source_inventory.json` is what the inventory stage writes today.
+
+        The record is in git so that the source can be read without building: bone
+        names, mesh and triangle counts, texture formats. It is only worth reading
+        while it is true. If this fails after a change to the source archive or to
+        a reader, look at the diff and run `make -sC tools/pd2-las inventory`.
+        """
+        import build_las
+
+        assert build_las.main(["--stage", "inventory", "--out", str(tmp_path)]) == 0
+        fresh = (tmp_path / "source_inventory.json").read_text()
+        assert json.loads(fresh) == json.loads(build_las.RECORD.read_text())
+        assert fresh == build_las.RECORD.read_text(), "same content, different formatting"
+
+    def test_source_inventory_does_not_depend_on_the_stage(self, tmp_path, monkeypatch):
+        """Every stage writes the same record.
+
+        `textures` used to be added by the stages that convert them, so the file
+        said more or less depending on the command that ran last, and the quick
+        `--stage inventory` replaced a full record with a shorter one. A tracked
+        file cannot behave like that: the record now holds source facts only, and
+        the hashes of the converted textures go to the pack's BUILD_INFO.json.
+        """
+        import build_las
+        import dds_encode
+
+        # the block encoder is the slow part of the textures stage and has no
+        # bearing on the record
+        monkeypatch.setattr(dds_encode, "rgba_to_bc3_dds", lambda rgba: b"DDS stub")
+        records = {}
+        for stage in ("inventory", "extract", "textures"):
+            out = tmp_path / stage
+            assert build_las.main(["--stage", stage, "--out", str(out)]) == 0
+            records[stage] = (out / "source_inventory.json").read_bytes()
+        assert (tmp_path / "textures" / "textures" / "miranda_face_df.texture").is_file()
+        assert records["extract"] == records["inventory"]
+        assert records["textures"] == records["inventory"]
+        record = json.loads(records["inventory"])
+        assert sorted(record["textures"]) == sorted(build_las.VTF_TO_PACK)
+        for facts in record["textures"].values():
+            assert sorted(facts) == ["format", "mips", "pack_texture", "size"], (
+                "a build result in the source inventory makes it depend on the stage")
+
+    def test_inventory_stage_prints_only_json(self, tmp_path):
+        """`--stage inventory` is for scripts: stdout is one JSON document, the record.
+
+        Two progress lines used to come first, so nothing could parse it.
+        """
+        import subprocess
+
+        proc = subprocess.run(
+            [sys.executable, str(REPO / "tools" / "pd2-las" / "build_las.py"),
+             "--stage", "inventory", "--out", str(tmp_path)],
+            capture_output=True, text=True)
+        assert proc.returncode == 0, proc.stderr
+        assert json.loads(proc.stdout) == json.loads((tmp_path / "source_inventory.json").read_text())
+        assert "vpk:" in proc.stderr, "the progress lines belong on stderr"
+
+    def test_tracked_pack_embeds_the_tracked_source_inventory(self):
+        """BUILD_INFO.json of the tracked pack carries this record plus each texture's hash.
+
+        That ties the three together without building anything: the record in git,
+        the record the shipped pack was built from, and the texture files inside it.
+        """
+        import build_las
+
+        record = json.loads(build_las.RECORD.read_text())
+        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        assert dist_zip.is_file(), f"missing tracked deliverable: {dist_zip}"
+        with zipfile.ZipFile(dist_zip) as z:
+            embedded = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))["source_inventory"]
+            hashes = {}
+            for stem, facts in embedded["textures"].items():
+                hashes[stem] = facts.pop("dds_sha256")
+                shipped = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{facts['pack_texture']}")
+                assert hashlib.sha256(shipped).hexdigest() == hashes[stem], stem
+        assert len(hashes) == len(build_las.VTF_TO_PACK)
+        assert embedded == record
 
     def test_material_config_weight_classes(self, pack):
         """Guide contract: contour template + unique on TPP skins, fps depth scaling."""
@@ -605,12 +689,10 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Bonnie.zip", 4454, 7070, 148.90),
             ("Miranda_Romance_over_Sydney.zip", 4454, 7070, 148.90),
         ]
-        tmp = REPO / "build" / "tmp"
-        tmp.mkdir(parents=True, exist_ok=True)
         for name, verts, tris, min_z in specs:
             zp = REPO / "dist" / name
             assert zp.is_file(), f"missing {zp}"
-            v, f = nj._head_mesh(zp, tmp)
+            v, f = nj._head_mesh(zp)
             assert len(v) == verts, f"{name}: {len(v)} verts, expected {verts}"
             assert len(f) == tris, f"{name}: {len(f)} tris, expected {tris}"
             assert float(np.min(v[:, 2])) == pytest.approx(min_z, abs=0.1), (

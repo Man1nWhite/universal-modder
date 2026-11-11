@@ -8,13 +8,19 @@ skip reason has a maximum count, and any new reason or growth fails.
 Run from the repo root:
     .venv/bin/python tools/pd2-port/check_skip_budget.py
 
-The tool runs `pytest -rs` itself, groups skip reasons by prefix match against
+The tool runs `pytest -rsxX` itself, groups skip reasons by prefix match against
 `ALLOWED`, and multiplies by the `[N]` repeat count shown by `-rs`. A reason
 not starting with any ALLOWED key, or one exceeding its count, is a failure.
 
 Reasons for fixtures that are present in this checkout (e.g. the extracted 2B
 templates) are listed at count 0 so that their reappearance — a regression to
 a 59-skip state — fails immediately.
+
+Expected failures are budgeted the same way. An `xfail` marker switches off the
+verdict of a test that still runs, so one line can hide a defect just as a skip
+can: each test allowed to fail is named in `ALLOWED_XFAIL` with a maximum count,
+and an expected failure anywhere else fails. A marked test that passes (XPASS)
+counts too: its marker is still there.
 """
 
 from __future__ import annotations
@@ -39,31 +45,44 @@ ALLOWED: dict[str, int] = {
     "needs ffmpeg": 4,
     "4.zip absent": 10,
     "the Skyrim source archive was intentionally removed after cancellation": 2,
-    "build output not present": 1,
     "sourcepp is an optional extra": 2,
     "lupa (LuaJIT) not installed": 1,
     "Git Bash / MSYS only": 1,
-    # Regressions to watch for: the fixture is extracted, so these must be 0:
-    "2B templates not extracted (run tools/pd2-las/bootstrap.sh)": 0,
-    "extracted 2B templates at /tmp/2bsrc not present": 0,
-    "2b.rar reference models not extracted to /tmp/2bsrc": 0,
+    # Regression to watch for: the fixture is extracted, so this must be 0. Every
+    # test that needs the 2B templates skips with tools/pd2-las/extract_2b.MISSING,
+    # which starts with this prefix; any other wording is unbudgeted and fails too.
     "2B templates not extracted": 0,
-    "templates": 0,
+}
+
+#: Maximum number of expected failures (xfail) per test, by node-id prefix.
+#: These are known defects that are recorded where the marker is, not tests
+#: that somebody wanted out of the way.
+ALLOWED_XFAIL: dict[str, int] = {
+    # the two slim sleeves that are still open: KNOWN_SLEEVE_LEAK_CM2 in that file
+    "tests/test_christie_las.py::test_sleeve_tube_is_closed_along_its_length": 2,
 }
 
 _SKIP = re.compile(r"^SKIPPED \[(\d+)\] .*?: (.+)$")
+_XFAIL = re.compile(r"^(?:XFAIL|XPASS) (\S+)")
 
 
 def main() -> int:
     proc = subprocess.run(
-        [PY, "-m", "pytest", "-q", "-rs",
+        [PY, "-m", "pytest", "-q", "-rsxX",
          "tests",
          "--ignore=examples",
          "--ignore=tests/test_render_mesh_skeleton.py"],
         cwd=REPO, capture_output=True, text=True,
     )
     counts: dict[str, int] = {}
+    xfails: dict[str, int] = {}
     for line in (proc.stdout + proc.stderr).splitlines():
+        x = _XFAIL.match(line.strip())
+        if x:
+            node = x.group(1)
+            key = next((k for k in ALLOWED_XFAIL if node.startswith(k)), node)
+            xfails[key] = xfails.get(key, 0) + 1
+            continue
         m = _SKIP.match(line.strip())
         if not m:
             continue
@@ -96,6 +115,19 @@ def main() -> int:
         print(f"  OVER {reason!r}: {count}x (no budget)")
         failures.append(f"unbudgeted skip reason: {reason!r} ({count}x)")
 
+    for key in sorted(set(ALLOWED_XFAIL) | set(xfails)):
+        count = xfails.get(key, 0)
+        budget = ALLOWED_XFAIL.get(key)
+        if budget is None:
+            print(f"  OVER xfail {key}: {count}x (no budget)")
+            failures.append(f"unbudgeted expected failure (xfail): {key} ({count}x)")
+        elif count > budget:
+            print(f"  OVER xfail {key}: {count}x (budget {budget}x)")
+            failures.append(
+                f"expected failures over budget: {key} ({count}x, budget {budget}x)")
+        else:
+            print(f"  OK xfail {key}: {count}x (budget {budget}x)")
+
     if failures:
         print()
         print(f"FAIL: {len(failures)} skip budget problem(s):")
@@ -104,7 +136,8 @@ def main() -> int:
         return 1
 
     total = sum(v for k, v in counts.items() if not k.startswith("__UNBUDGETED__"))
-    print(f"\nOK: {total} budgeted skip(s) across {len(ALLOWED)} reason(s).")
+    print(f"\nOK: {total} budgeted skip(s) across {len(ALLOWED)} reason(s), "
+          f"{sum(xfails.values())} expected failure(s) within budget.")
     return 0
 
 

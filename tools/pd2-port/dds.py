@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """DXT5 DDS helpers for PAYDAY 2 .texture files (raw DDS buffers).
 
+Nothing here depends on the character being ported: an RGBA image goes in and
+a PAYDAY 2 texture comes out. The pack builder of this directory and other
+PAYDAY 2 tools in the repository share these helpers.
+
 Vanilla PAYDAY 2 DXT5 textures carry a complete mipmap pyramid:
 
 - flags   = 0x000A1007  (CAPS | HEIGHT | WIDTH | PIXELFORMAT | LINEARSIZE |
@@ -9,13 +13,13 @@ Vanilla PAYDAY 2 DXT5 textures carry a complete mipmap pyramid:
 - dwPitchOrLinearSize = byte size of mip 0
 - one payload per level down to 1x1; below 4x4 each level is one DXT block
 
-build_package2.py once wrote mip 0 only (flags 0x00081007, dwMipMapCount 0,
-caps 0x00001000) and its block encoder could emit DXT5 colour endpoints in the
-wrong order (c0 < c1). Decoders read such blocks as the 3-colour mode with a
-transparent index, so those blocks render as holes. These helpers always emit
-c0 > c1, build full chains from an RGBA image or from an existing mip-0
-payload, and repair textures that lack the pyramid or contain mis-ordered
-endpoints.
+The retired builder of this directory (build_package2.py, since deleted) once
+wrote mip 0 only (flags 0x00081007, dwMipMapCount 0, caps 0x00001000) and its
+block encoder could emit DXT5 colour endpoints in the wrong order (c0 < c1).
+Decoders read such blocks as the 3-colour mode with a transparent index, so
+those blocks render as holes. These helpers always emit c0 > c1, build full
+chains from an RGBA image or from an existing mip-0 payload, and repair
+textures that lack the pyramid or contain mis-ordered endpoints.
 
 Encoding needs numpy; validation is pure stdlib.
 """

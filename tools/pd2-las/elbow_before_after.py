@@ -17,10 +17,10 @@ cm is printed in the row label so the scale is on the page.
 
 Usage (the "before" pack is whatever you last shipped, e.g. from git):
 
-    git show <sha>:dist/Christie_LAS.zip > /tmp/before.zip
+    git show <sha>:dist/Christie_LAS.zip > build/before.zip
     .venv/bin/python tools/pd2-las/elbow_before_after.py --mode elbow \\
         --pack Christie_LAS --item christie \\
-        --before /tmp/before.zip --after dist/Christie_LAS.zip \\
+        --before build/before.zip --after dist/Christie_LAS.zip \\
         --templates "<2B>/assets/units/2b/skins/2b" \\
         --out docs/pd2-las/renders
 

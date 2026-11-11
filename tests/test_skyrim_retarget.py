@@ -9,8 +9,8 @@ Two things are worth pinning down offline, and both use the real files:
   counterpart. That is the whole contract — if a joint drifts, every animation
   in the game bends the outfit in the wrong place.
 
-The template half needs `references/2b.rar` unpacked to `/tmp/2bsrc` (that is
-what `tools/pd2-las/bootstrap.sh` does); the tests skip without it.
+The template half needs `references/2b.rar` unpacked (that is what
+`tools/pd2-las/recover_env.sh` does); the tests skip without it.
 """
 
 from __future__ import annotations
@@ -29,13 +29,13 @@ sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 import build_models as bm  # noqa: E402
 import skyrim_retarget as sr  # noqa: E402
 import skyrim_source as ss  # noqa: E402
+from extract_2b import MISSING, TEMPLATES  # noqa: E402
 
 MESH_ZIP = ROOT / "4.zip"
-TEMPLATES = Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b")
 
 needs_source = pytest.mark.skipif(not MESH_ZIP.exists(), reason="4.zip absent")
 needs_templates = pytest.mark.skipif(
-    not (TEMPLATES / "2b.model").exists(), reason="2B templates not extracted")
+    not (TEMPLATES / "2b.model").exists(), reason=MISSING)
 
 
 @pytest.fixture(scope="module")

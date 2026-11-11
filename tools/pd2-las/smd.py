@@ -33,7 +33,7 @@ round-trip silently loses a rig:
 Read + write, and a `--from` CLI that turns any `.gma`/`.vpk`/`.zip` addon into
 per-model `.smd` + stub `.qc` files on disk for the Blender side:
 
-    python tools/pd2-las/smd.py path/to/addon.gma --out /tmp/smd
+    python tools/pd2-las/smd.py path/to/addon.gma --out build/smd
 """
 from __future__ import annotations
 

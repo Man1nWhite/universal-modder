@@ -13,9 +13,24 @@ handed to the runtime the skin transfer has to survive two kinds of checks:
             the built .model bytes, and a retarget-vs-decoded overlay that must
             come out yellow (i.e. identical).
 
+The gates and the rasterisers work on whatever source the builder is
+configured for: the .dae name and the texture slots are read from
+``build_las_pack`` (``SOURCE_ZIP`` here repeats the builder's archive path).
+Two things are written for the shipped port (Miranda Lawson, Mass Effect 2):
+
+- the side check in ``gather_report`` looks up a few left-side joints by that
+  skeleton's names. It prints ``CROSSED`` for them, which is the expected
+  reading for a source that needs the half turn about Z (source ``Left*`` at
+  +X, PD2 ``Left*`` at -X) and not a failure;
+- the head close-up in ``gather_render`` picks the meshes named ``Face``,
+  ``Eyes`` and ``Eyelashes``.
+
 Usage:
   python tools/pd2-port/preview_check.py report
-  python tools/pd2-port/preview_check.py render /tmp/las_preview
+  python tools/pd2-port/preview_check.py render [DIR]
+
+``render`` writes its PNGs to DIR, by default ``build/pd2-port/preview`` in the
+checkout (gitignored).
 """
 import math
 import sys
@@ -32,11 +47,20 @@ import dmodel                           # noqa: E402
 import me2_dae                           # noqa: E402
 import rig_target                        # noqa: E402
 
+# appended, so this directory's own modules keep winning on import
+sys.path.append(str(HERE.parent / "pd2-las"))
+import extract_2b                       # noqa: E402  (where 2b.rar is unpacked)
+
 REPO = HERE.parents[1]
 SOURCE_ZIP = REPO / "models" / ("PC _ Computer - Mass Effect 2 - Non-Playable "
                      "Characters - Miranda Lawson (Romance).zip")
 RIG_JSON = HERE / "reference" / "las_rig.json"
-REFERENCE_2B = Path("/tmp/rarx/out/2B - LAS/assets/units/2b/skins/2b/2b.model")
+#: optional: the donor model's bounds are printed next to the retarget's when the
+#: 2B reference pack is unpacked (bash tools/pd2-las/recover_env.sh)
+REFERENCE_2B = extract_2b.TEMPLATES / "2b.model"
+#: where ``render`` writes when no directory is given: inside the checkout and
+#: gitignored, like every other build output
+DEFAULT_RENDER_DIR = REPO / "build" / "pd2-port" / "preview"
 
 # ----------------------------------------------------------------- geometry
 
@@ -367,7 +391,8 @@ def gather_report(scene, rig, rebound, built_files=None):
         med, p95, mx = np.median(rel), np.percentile(rel, 95), rel.max()
         # informational on corner-split meshes (edges are per-triangle):
         # a coherent bind sits at p95 ~170%, the frame-op "torn" state 330%+,
-        # fold-tearing 1000%+. The hard gates are spikes + twin separation.
+        # fold-tearing 1000%+ (figures seen on the shipped port). The hard
+        # gates are spikes + twin separation.
         flag = "OK " if p95 < 2.0 else "WARN"
         if p95 >= 4.0:
             flag, ok = "FAIL", False
@@ -413,6 +438,9 @@ def gather_report(scene, rig, rebound, built_files=None):
             p = dst.positions[v]
             print(f"  {src.name:10s} v{v:<6d} spike {s:6.2f} cm  dom={dom:16s} "
                   f"pos=({p[0]:7.2f},{p[1]:7.2f},{p[2]:7.2f})")
+    # Which world side do the source's left joints sit on, and which side is
+    # the PD2 bone they map to? The joint names are the shipped port's; for
+    # that source "CROSSED" is the expected answer (see the module docstring).
     print("== side-swap world-side check (ME2 Left vs mapped PD2 side) ==")
     for jname, j in scene.joints.items():
         if jname in ("LeftUpLeg", "LeftShoulder", "LeftCollar", "LeftElbow"):
@@ -557,7 +585,8 @@ def gather_render(scene, rig, rebound, out_dir: Path):
         img = raster_textured(mats, yaw_deg=yaw, pitch_deg=pitch)
         img.save(out_dir / f"textured_{vname}.png")
         print(f"  wrote textured_{vname}.png")
-    # face close-up (hair hides the face in the full sheet): Face/Eyes/Lashes
+    # face close-up (hair hides the face in the full sheet): Face/Eyes/Lashes,
+    # by the mesh names of the shipped port's source
     face_mats = [t for t, m in zip(mats, rebound)
                  if m.name in ("Face", "Eyes", "Eyelashes")]
     for vname, yaw, pitch in views:
@@ -573,7 +602,7 @@ def main(argv):
     rebound = rebind_all(scene, rig)
     ok = gather_report(scene, rig, rebound)
     if cmd == "render":
-        out = Path(argv[2]) if len(argv) > 2 else Path("/tmp/las_preview")
+        out = Path(argv[2]) if len(argv) > 2 else DEFAULT_RENDER_DIR
         gather_render(scene, rig, rebound, out)
     print("RESULT:", "OK" if ok else "GATES FAILED")
     return 0 if ok else 1

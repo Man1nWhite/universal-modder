@@ -71,7 +71,7 @@ def _body_mesh(path: Path) -> tuple[np.ndarray, np.ndarray]:
             np.asarray(top["indices"], int).reshape(-1, 3))
 
 
-def _head_mesh(path: Path, tmp: Path) -> tuple[np.ndarray, np.ndarray]:
+def _head_mesh(path: Path) -> tuple[np.ndarray, np.ndarray]:
     """Vertices and triangles of the pack's head drawable.
 
     The drawable is not always called ``g_head``: Clover's pack ships it as
@@ -234,9 +234,9 @@ def border_exposure(head_verts, head_faces, body_verts, body_faces,
             "back": int((~covered_back).sum())}
 
 
-def junction(body: Path, head: Path, tmp: Path) -> dict:
+def junction(body: Path, head: Path) -> dict:
     bv, bf = _body_mesh(body)
-    hv, hf = _head_mesh(head, tmp)
+    hv, hf = _head_mesh(head)
     xs = np.arange(THROAT["x"][0], THROAT["x"][1] + 1e-9, THROAT["step"])
     zs = np.arange(THROAT["z"][0], THROAT["z"][1] + 1e-9, THROAT["step"])
     db = front_depth(bv, bf, xs, zs)
@@ -288,14 +288,12 @@ def main(argv=None) -> int:
         raise SystemExit(f"missing body pack {args.body}")
 
     heads = [Path(h) for h in (args.head or HEADS)]
-    tmp = Path("/tmp/neck_junction")
-    tmp.mkdir(parents=True, exist_ok=True)
     rendered = 0
     for head in heads:
         if not head.is_file():
             print(f"{head.name}: not built")
             continue
-        rep = junction(args.body, head, tmp)
+        rep = junction(args.body, head)
         total = rep["grid"]["body"].size
         print(f"\n== {head.name} over {args.body.name}")
         b = rep["body_border"]
@@ -318,23 +316,23 @@ def main(argv=None) -> int:
             share = rep["grid"][key].sum() / total * 100
             print(f"   {label:14s} {share:5.1f} % of the throat window")
         if args.ab:
-            other = junction(args.body, args.ab, tmp)
+            other = junction(args.body, args.ab)
             diff = grid_difference(rep, other)
             print(f"   vs {args.ab.name}: {diff['changed']} of {diff['cells']} cells "
                   f"change owner ({diff['by_kind']})")
         if args.render and not rendered:
-            _render(args.body, head, args.render, tmp)
+            _render(args.body, head, args.render)
             rendered += 1
     return 0
 
 
-def _render(body: Path, head: Path, out: Path, tmp: Path) -> None:
+def _render(body: Path, head: Path, out: Path) -> None:
     from PIL import Image
 
     import shellview
 
     bv, bf = _body_mesh(body)
-    hv, hf = _head_mesh(head, tmp)
+    hv, hf = _head_mesh(head)
     verts = np.vstack([bv, hv])
     faces = np.vstack([bf, hf + len(bv)])
     colours = np.vstack([np.tile([0.62, 0.66, 0.72], (len(bf), 1)),

@@ -16,7 +16,16 @@ same sign for both (the two conventions flip both axes together).  The
 strength of that relation proves the file really is a normal map; the signs
 say how the map is laid out relative to the UV space.
 
-Usage:  python tools/pd2-port/check_nm_convention.py
+The measurement is the same for any source: it walks the normal maps listed
+in ``build_las_pack.TEXTURE_SLOTS`` inside ``SOURCE_ZIP``. What follows it is
+not. The "What the provenance says" paragraph and the verdict are written for
+the shipped port's source - Mass Effect 2, a DirectX 9 title, hence Y- maps -
+and are printed whatever was measured. For another source, point
+``SOURCE_ZIP`` at it, settle the convention from the engine that authored
+*its* maps, and reword that conclusion.
+
+Usage (from the repository root; the source path is relative):
+    python tools/pd2-port/check_nm_convention.py
 """
 from __future__ import annotations
 

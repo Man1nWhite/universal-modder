@@ -1,27 +1,46 @@
 #!/usr/bin/env python3
-"""Map the ME2 Miranda skeleton onto the PD2 LAS rig and rebind the skin.
+"""Map a source character's skeleton onto the PD2 LAS rig and rebind the skin.
 
 The PD2 rig contract lives in ``reference/las_rig.json`` (extracted from the
-user-supplied ``2b.rar`` reference model by ``extract_las_rig.py``). The ME2
-COLLADA rig is a full facial biped; joints that have no PD2 counterpart fold
-into their nearest mapped parent.
+user-supplied ``2b.rar`` reference model by ``extract_las_rig.py``) and is the
+same for every outfit. The source side is whatever ``me2_dae.load_dae``
+returned. Three pieces tie the two together:
 
-Two rig facts drive the mapping:
+- ``BONE_MAP`` (with the finger and face name tokens) names the PD2 bone for
+  every source joint. Joints that have no PD2 counterpart - twists, IK
+  helpers, props, facial chains - fold into their nearest mapped parent;
+  three-joint finger chains map onto PD2's three bones per finger, so the
+  hands articulate. This table is the per-character part of the module.
+- ``target_ops`` builds one bind operator per PD2 bone from joint *positions*
+  only. Stored joint orientations never enter: frame conventions differ per
+  engine and tear the mesh at the joints.
+- ``rebind_mesh`` re-expresses every vertex's weights in PD2 bones (the three
+  heaviest, normalized) and moves the vertex with a harmonic blend of their
+  operators, in row-vector form::
+
+      p_target = p_source @ inv(sum_i w_i * inv(op_i))
+
+  which is plain ``p @ op`` for a single influence. Vertices then animate on
+  the PD2 skeleton with ``SkinBones.rotations = inv(W_target)``.
+
+``smooth_weights``, ``weld_adjacency`` and ``repair_winding`` are helpers
+around that transfer and know nothing about the source; ``split_arm_verts``
+is the first-person arm cut.
+
+The shipped port (Miranda Lawson, Mass Effect 2). The joint names in
+``BONE_MAP`` and in the humanoid branch of ``target_ops`` are those of the
+ME2 COLLADA rig, a full facial biped. Two facts about that source drive the
+mapping:
 
 - Both rigs are Z-up centimeters with nearly identical bind heights (hips
-  z≈101, head z≈166), so the transfer is close to rigid per limb.
-- The ME2 rig labels sides observer-relative: its ``Left*`` chain sits at +X
-  where the PD2 rig has ``Right*``. Joints are therefore mapped **by world
-  side** (ME2 ``Left*`` → PD2 ``Right*`` and vice versa). Residual risk: if the
-  source mesh itself is mirrored (not just labelled), asymmetric surface detail
-  will show it — verify in-game.
+  z≈101, head z≈166), so the core of the body transfers rigidly at 1:1.
+- The source faces -Y with its ``Left*`` chain at +X, PD2 faces +Y with
+  ``Left*`` at -X. A half turn about Z (``diag(-1, -1, 1)``) brings one onto
+  the other, so joints map ``Left*`` → ``Left*`` and nothing is mirrored.
 
-Skin transfer is the standard bind-pose rebind::
-
-    p_target = sum_i w_i * (W_target_i @ W_source_i^-1) @ p_source
-
-in row-vector form ``p' = p @ mmul(minv(W_s), W_t)``. Vertices then animate on
-the PD2 skeleton with ``SkinBones.rotations = inv(W_target)``.
+A source with another skeleton needs its own ``BONE_MAP``; one that also
+lacks the joint names the humanoid branch reads falls through to the generic
+branch of ``target_ops``, a rigid fit per bone segment.
 """
 from __future__ import annotations
 
@@ -30,11 +49,18 @@ from dataclasses import dataclass, field
 
 from me2_dae import DaeScene, Mesh, SkinBind, mmul, minv
 
-# ME2 joint -> PD2 bone.
-# In the ME2 COLLADA file, Miranda faces -Y with +X = Left and -X = Right.
-# A 180-degree rotation around Z (diag(-1, -1, 1)) maps ME2 -Y (forward) to
-# PD2 +Y (forward) and ME2 +X (Left*) to PD2 -X (Left*), preserving Left->Left
-# and Right->Right without mirroring.
+# Source joint -> PD2 bone. This table is what a port of another skeleton
+# rewrites: one entry per source joint that carries skin weight (map_joint
+# raises on a weighted joint it cannot place).
+#
+# The entries are the shipped port's, i.e. the Mass Effect 2 skeleton.
+# In that COLLADA file the character faces -Y with +X = Left and -X = Right.
+# A 180-degree rotation around Z (diag(-1, -1, 1)) maps source -Y (forward) to
+# PD2 +Y (forward) and source +X (Left*) to PD2 -X (Left*), preserving
+# Left->Left and Right->Right without mirroring. For a source that faces the
+# other way or labels its sides the other way, settle that first:
+# preview_check.py prints the x of the left-side joints next to the PD2 bones
+# they map to.
 BONE_MAP: dict[str, str] = {
     # center line
     "God": "Hips",
@@ -57,7 +83,7 @@ BONE_MAP: dict[str, str] = {
     "eye_RightLookat": "Head",
     "eye_LeftLookat": "Head",
     "Camera": "Head",
-    # ME2 left arm -> PD2 left arm
+    # source left arm -> PD2 left arm
     "LeftCollar": "LeftShoulder",
     "LeftShoulder": "LeftArm",
     "LeftShoulderTwist1": "LeftArm",
@@ -69,7 +95,7 @@ BONE_MAP: dict[str, str] = {
     "LeftShoulder-Swivel": "LeftArm",
     "Prop02": "LeftHand",
     "LHIK": "LeftHand",
-    # ME2 right arm -> PD2 right arm
+    # source right arm -> PD2 right arm
     "RightCollar": "RightShoulder",
     "RightShoulder": "RightArm",
     "RightShoulderTwist1": "RightArm",
@@ -81,7 +107,7 @@ BONE_MAP: dict[str, str] = {
     "RightShoulder-Swivel": "RightArm",
     "Prop01": "RightHand",
     "RHIK": "RightHand",
-    # ME2 left leg -> PD2 left leg
+    # source left leg -> PD2 left leg
     "LeftHip": "LeftUpLeg",
     "LeftHipTwist1": "LeftUpLeg",
     "LeftKnee": "LeftLeg",
@@ -89,7 +115,7 @@ BONE_MAP: dict[str, str] = {
     "LeftToe": "LeftToeBase",
     "LeftHip-Swivel": "LeftUpLeg",
     "LFIK": "LeftFoot",
-    # ME2 right leg -> PD2 right leg
+    # source right leg -> PD2 right leg
     "RightHip": "RightUpLeg",
     "RightHipTwist1": "RightUpLeg",
     "RightKnee": "RightLeg",
@@ -99,13 +125,17 @@ BONE_MAP: dict[str, str] = {
     "RFIK": "RightFoot",
 }
 
-# Any name containing a finger token folds to its side's hand.
+# Any name containing a finger token folds to its side's hand (the fallback
+# for finger joints that are not in the chain map below).
 _FINGER_TOKENS = ("ThumbFinger", "PinkFinger", "IndexFinger",
                   "MiddleFinger", "RingFinger", "Finger")
 
-# ME2's five finger chains (three joints each) map one-to-one onto PD2's five
-# three-bone finger chains, so the fingers articulate instead of riding along
-# with the hand. PD2 spells the little finger "Pinky"; ME2 spells it "Pink".
+# A source with five finger chains of three joints each maps one-to-one onto
+# PD2's five three-bone finger chains, so the fingers articulate instead of
+# riding along with the hand. Keys are the source's finger names, values
+# PD2's. Shipped port: the ME2 joints are "<Side><Finger>Finger",
+# "...Finger1" and "...Finger2", and ME2 spells the little finger "Pink"
+# where PD2 spells it "Pinky".
 _FINGER_CHAINS = {
     "Thumb": "Thumb",
     "Index": "Index",
@@ -125,7 +155,7 @@ _FACE_TOKENS = ("brow", "Brow", "eye", "Eye", "Lip", "lip", "Cheek", "cheek",
 
 
 def map_joint(name: str) -> str:
-    """Map one ME2 joint name to its PD2 bone name. Raises on unknown joints."""
+    """Map one source joint name to its PD2 bone name. Raises on unknown joints."""
     if name in BONE_MAP:
         return BONE_MAP[name]
     if any(tok in name for tok in _FINGER_TOKENS):
@@ -152,18 +182,20 @@ class RiggedMesh:
 def repair_winding(positions, normals, triangles):
     """Reverse the triangles that face away from their own vertex normals.
 
-    The bind-pose transfer rotates every bone piece independently (each piece
-    is fitted onto the PD2 bone it is bound to), so where the ME2 and the PD2
-    rigs disagree -- the hips, the wrists, the ankles -- the neighbouring
-    pieces end up rotated against each other and a band of triangles folds
-    back on itself.  A folded triangle is wound inside out: the game culls it
-    (a hole in the skin) and the skin shades it backwards (a black patch).
+    The bind-pose transfer moves each bone's piece of the skin with that
+    bone's own operator, so where the source and the PD2 rigs disagree --
+    typically the hips, the wrists, the ankles -- neighbouring pieces can end
+    up rotated against each other and a band of triangles folds back on
+    itself.  A folded triangle is wound inside out: the game culls it (a hole
+    in the skin) and the skin shades it backwards (a black patch).
 
     The vertex normals are the smooth normals of the *unfolded* surface, so
     the triangle's own winding is the thing that is wrong: swapping two
     indices puts the triangle back in front of the skin without moving a
-    single vertex.  The ME2 meshes are corner-split (no shared edges), so
-    flipping a triangle cannot make its neighbours inconsistent.
+    single vertex.  On a corner-split mesh (no shared edges - the shipped
+    port's source is one) flipping a triangle cannot make its neighbours
+    inconsistent; on a welded mesh check the result with an edge-orientation
+    test as well, as ``check_mesh_geometry.py`` does.
 
     Returns the repaired triangles and the number of flips.
     """
@@ -395,6 +427,10 @@ def _umeyama_sim_op(src_pts, tgt_pts, weights):
     return _make_sim_op(s, X, cs, ct), X, s
 
 
+# (PD2 finger, source finger-joint stem) for the humanoid branch of
+# target_ops; the stems are the shipped port's. This rebinds the name that
+# built the BONE_MAP entries near the top of the module - that loop has
+# already run by the time this line executes.
 _FINGER_CHAINS = (
     ("Thumb", "ThumbFinger"),
     ("Index", "IndexFinger"),
@@ -407,16 +443,28 @@ _FINGER_CHAINS = (
 def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
     """One bind operator per TARGET bone (row-vector).
 
-    For the full ME2 biped, Miranda faces -Y in the COLLADA file with +X = Left
-    and -X = Right at 1:1 cm scale (Pelvis z=101.2 vs PD2 101.8, Head z=166.1
-    vs PD2 166.8, boot soles at z=0). A single upright rigid transform
-    R_core = diag(-1, -1, 1) aligned at Hips (x, y) and grounded at z=0 maps
-    the torso, head, shoulders, and legs without any seam between Body 1 and
-    Body 2. The arms, palms, and 5 three-joint finger chains are retargeted so
-    each knuckle and phalanx sits directly on its PD2 bone pivot.
+    Humanoid branch. Taken when the source skeleton has ``Pelvis`` and
+    ``Left``/``RightShoulder`` joints and the rig has ``LeftArm``; it then
+    reads the collar, shoulder, elbow, wrist and finger joints by the names of
+    the shipped port's skeleton. It expects a source that stands upright at
+    PD2's scale, faces -Y and has its ``Left*`` side at +X: a single upright
+    rigid transform R_core = diag(-1, -1, 1) aligned at Hips (x, y) and
+    grounded at z=0 maps the torso, head and legs in one piece, so no seam
+    can open between the body meshes. The shoulder girdle and the arms are
+    built through PD2's standing menu pose, the palms get a similarity fit,
+    and the 5 three-joint finger chains are retargeted so each knuckle and
+    phalanx sits directly on its PD2 bone pivot.
 
-    For synthetic minimal fixtures in unit tests, falls back to per-segment
-    rigid fits.
+    Shipped port: Miranda faces -Y in the COLLADA file with +X = Left and
+    -X = Right at 1:1 cm scale (Pelvis z=101.2 vs PD2 101.8, Head z=166.1 vs
+    PD2 166.8, boot soles at z=0), which is what makes the rigid core valid,
+    and the arm construction below is tuned on her proportions. A source of
+    another height or build has to be scaled, or the branch re-tuned, first.
+
+    Generic branch. Any other skeleton - the synthetic minimal fixtures of the
+    unit tests among them - gets per-segment rigid fits: the source joints
+    are grouped by the PD2 bone they map to, and the heaviest joint of each
+    group is fitted, bone segment onto bone segment.
     """
     if ("Pelvis" in scene.joints and "LeftShoulder" in scene.joints
             and "RightShoulder" in scene.joints and "LeftArm" in rig.world):
@@ -462,11 +510,14 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
             pt_wrist = _apply_op(op_hand, ps_h)
 
             # Construct Shoulder, Arm, and ForeArm bind operators via PD2's
-            # standing menu pose M_menu = W_posed @ inv(W_bind):
-            # 1. In the standing pose, the shoulder sits at a natural feminine
-            #    width (+1.2 cm outward from ME2's native Shoulder) so the
-            #    bare deltoid cap is round without a pointy overhang or gap
-            #    between Body 1 and Body 2.
+            # standing menu pose M_menu = W_posed @ inv(W_bind). The offsets
+            # and pose directions are hand-tuned on the shipped port's body;
+            # re-measure them for another character.
+            # 1. In the standing pose, the shoulder sits at the character's
+            #    natural shoulder width (shipped port: +1.2 cm outward from
+            #    the source's native Shoulder joint) so the bare deltoid cap
+            #    is round without a pointy overhang or gap between the body
+            #    meshes (Body 1 and Body 2).
             # 2. The standing elbow is shifted 2.8 cm inward along the exact
             #    invariant hinge axis of inv(M_menu[Arm]) @ M_menu[ForeArm],
             #    so Arm and ForeArm meet with 0.000 cm gap in BOTH bind pose
@@ -581,10 +632,11 @@ def target_ops(scene: DaeScene, rig: TargetRig) -> dict[str, list[list[float]]]:
 def weld_adjacency(positions, triangles) -> list[list[int]]:
     """Neighbour graph of a possibly corner-split mesh.
 
-    The ME2 DAEs duplicate vertices per corner (separate normals/uvs), so
-    triangle-index edges alone form isolated 3-vertex islands: any per-vertex
-    processing then pulls coincident twins apart and the surface shreds.
-    Twins (identical positions) are therefore wired together too.
+    COLLADA exports often duplicate vertices per corner (separate
+    normals/uvs) - the shipped port's source does - so triangle-index edges
+    alone form isolated 3-vertex islands: any per-vertex processing then pulls
+    coincident twins apart and the surface shreds. Twins (identical positions)
+    are therefore wired together too.
     """
     n = len(positions)
     neigh: list[set[int]] = [set() for _ in range(n)]
@@ -606,9 +658,10 @@ def smooth_weights(weights, positions, triangles, iters: int = 2,
 
     Hard weight boundaries (crotch, armpit) make neighbouring vertices take
     different bind operators and tear: single vertices displaced 7-12 cm more
-    than their neighbours. Blending each vertex's weights toward the mean of
-    its edge neighbours softens those seams; the same smoothed field is what
-    the game deforms with at runtime, so animation seams improve too.
+    than their neighbours (measured on the shipped port). Blending each
+    vertex's weights toward the mean of its edge neighbours softens those
+    seams; the same smoothed field is what the game deforms with at runtime,
+    so animation seams improve too.
 
     The DAE meshes are corner-split (twins share a position but not an
     index). Smoothing per index pulls twins apart and shreds the surface, so
@@ -664,7 +717,14 @@ def smooth_weights(weights, positions, triangles, iters: int = 2,
 
 def rebind_mesh(mesh: Mesh, scene: DaeScene, rig: TargetRig,
                 smooth_iters: int = 0) -> RiggedMesh:
-    """Bind-pose skin transfer from the ME2 scene to the PD2 rig (cm, Z-up)."""
+    """Bind-pose skin transfer from the source scene to the PD2 rig (cm, Z-up).
+
+    Source weights are merged per mapped PD2 bone (``map_joint``), cut to the
+    three heaviest and renormalized; positions and normals are moved by the
+    harmonic blend of those bones' operators (``target_ops``); triangles the
+    move folded inside out are re-wound (``repair_winding``). A vertex without
+    weights rides the source's root joint onto ``Hips``.
+    """
     src_weights = (smooth_weights(mesh.weights, mesh.positions, mesh.triangles,
                                  smooth_iters)
                    if smooth_iters else mesh.weights)
@@ -672,6 +732,9 @@ def rebind_mesh(mesh: Mesh, scene: DaeScene, rig: TargetRig,
     ops = target_ops(scene, rig)
 
     def root_op():
+        # the source's root joint, looked up by the names the shipped port's
+        # skeleton uses ("root", else "God") - another skeleton may call it
+        # something else
         root_name = "root" if "root" in scene.joints else "God"
         return mmul(minv(scene.joints[root_name].world), rig.world["Hips"])
 

@@ -9,6 +9,15 @@ guide prescribes and *what* the pack does instead. Rules that the guide
 leaves open (or that only the running game can settle) are reported as WARN,
 never as a silent pass.
 
+The rules are the guide's and hold for any outfit pack this pipeline builds.
+Where the audit looks inside a pack is configuration, and it is the shipped
+port's (Miranda Lawson, Mass Effect 2): ``DEFAULT_PACK``, ``UNIT_DIR`` and the
+``Lawson_LAS/`` and ``lawson`` names in ``audit()``, ``check_packaging()`` and
+``check_notes()``. Two checks also speak about that port's source: ``N2``
+looks for its game's name in the credits, and the ``G1`` warning states its
+normal maps' provenance. Auditing another character's pack means changing
+those together with the builder's names.
+
 Usage:
     python tools/pd2-port/check_guide_compliance.py            # dist/lawson_las.zip
     python tools/pd2-port/check_guide_compliance.py FILE.zip
@@ -324,7 +333,11 @@ def check_winding(rep: Report, model: DieselModel) -> None:
 
     A triangle that faces away from the surface is culled by the game: the
     skin gets a hole where it was, and the shading around it is wrong.  The
-    ME2 meshes are corner-split, so the check is per triangle.
+    check is per triangle, against that triangle's own vertex normals: the
+    right test for corner-split meshes (no shared edges), which is what the
+    shipped port's source delivers.  On a welded mesh this heuristic can
+    over-fire at joints; ``check_mesh_geometry.py`` switches to an
+    edge-orientation test there.
     """
     inverted = 0
     total = 0
@@ -705,7 +718,8 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
                      f"main.xml lacks {label}")
 
     # AddFiles entries must resolve (paths are relative to the AddFiles
-    # directory attribute inside Lawson_LAS/, and carry no extension)
+    # directory attribute inside the pack's root folder - Lawson_LAS/ for the
+    # shipped port - and carry no extension)
     m_dir = re.search(r'<AddFiles\b[^>]*\bdirectory="([^"]*)"', main)
     add_dir = m_dir.group(1).strip("/") if m_dir else ""
     add_prefix = f"{add_dir}/" if add_dir else ""
@@ -837,7 +851,9 @@ def audit(pack_path: Path) -> Report:
         check_packaging(rep, pack)
         check_notes(rep, pack)
 
-    # the guide's open question the pack cannot settle offline
+    # the guide's open question the pack cannot settle offline. The warning is
+    # unconditional and its text is the shipped port's answer (an ME2 source);
+    # another source needs its own provenance written here.
     rep.warn("G1", "guide: invert the green channel if the source map is "
                    "DirectX-style (PD2 wants OpenGL-style Y+)",
              "the pack's normal maps are built with the green channel inverted. "

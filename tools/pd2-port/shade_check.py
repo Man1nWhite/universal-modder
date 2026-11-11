@@ -5,7 +5,15 @@ The compliance checker only proves that the vertex normals are unit length;
 this tool shows what they actually *do*: if the stored normals disagree with
 the face orientation, the skin lights up backwards (black patches).
 
-Usage:  python tools/pd2-port/shade_check.py [out_dir]
+The renderer and the metric take any retargeted mesh. Which mesh they get is
+set below for the shipped port: ``SOURCE_ZIP`` and ``DAE`` name its source
+archive, and ``main`` picks the mesh called ``Body 1``. Change the three to
+look at another source or another mesh.
+
+Usage (from the repository root; the source path is relative):
+    python tools/pd2-port/shade_check.py [out_dir]
+
+``out_dir`` defaults to ``build/pd2-port/shade`` in the checkout (gitignored).
 """
 from __future__ import annotations
 
@@ -25,6 +33,9 @@ from me2_dae import load_dae  # noqa: E402
 SOURCE_ZIP = "models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 DAE = "Miranda Lawson (Romance) - Adjusted Version.dae"
 RIG = Path(__file__).parent / "reference" / "las_rig.json"
+#: where the renders go when no directory is given: inside the checkout and
+#: gitignored, like every other build output
+DEFAULT_OUT = Path(__file__).resolve().parents[2] / "build" / "pd2-port" / "shade"
 
 LIGHT = np.array([0.35, -0.55, 0.76])
 LIGHT = LIGHT / np.linalg.norm(LIGHT)
@@ -104,7 +115,7 @@ def render(pos, tris, nrm, width=700, height=1000, yaw=0.0, pitch=8.0):
 
 
 def main(argv):
-    out = Path(argv[1]) if len(argv) > 1 else Path("/tmp/las_shade")
+    out = Path(argv[1]) if len(argv) > 1 else DEFAULT_OUT
     out.mkdir(parents=True, exist_ok=True)
     z = zipfile.ZipFile(SOURCE_ZIP)
     scene = load_dae(z.read(DAE))

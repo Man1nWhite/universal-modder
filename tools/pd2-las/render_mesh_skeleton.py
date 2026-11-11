@@ -7,7 +7,7 @@ arm pivots are marked. Usage:
 
   .venv/bin/python tools/pd2-las/render_mesh_skeleton.py \
       --zip dist/Christie_LAS_Slim.zip --pack Christie_LAS_Slim \
-      --item christie_slim --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b" \
+      --item christie_slim --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b" \
       --out build/pd2-las/previews
 """
 from __future__ import annotations

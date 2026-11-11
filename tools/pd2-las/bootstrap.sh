@@ -5,7 +5,7 @@
 #   bash tools/pd2-las/bootstrap.sh
 #
 # Idempotent: safe to re-run. Recovers from the arena sandbox rollbacks that
-# wipe .venv, /tmp and build/ while leaving git history on the remote.
+# wipe .venv and build/ while leaving git history on the remote.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 REPO="$PWD"
@@ -28,15 +28,13 @@ fi
     && echo "sourcepp ok (optional cross-check enabled)" \
     || echo "sourcepp unavailable — inspect_textures.py runs without the cross-check"
 
-echo "== 2/5 extract 2B reference pack (templates) =="
+echo "== 2/5 extract 2B reference pack (templates -> build/pd2-las/2b/) =="
 .venv/bin/python tools/pd2-las/extract_2b.py
-test -f "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b/2b.model" && echo "templates ok"
 
 echo "== 3/5 build models + packs =="
-.venv/bin/python tools/pd2-las/build_models.py \
-    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
-.venv/bin/python tools/pd2-las/build_busty_variant.py \
-    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+# the builders find the templates on their own (extract_2b.TEMPLATES)
+.venv/bin/python tools/pd2-las/build_models.py
+.venv/bin/python tools/pd2-las/build_busty_variant.py
 .venv/bin/python tools/pd2-port/build_las_pack.py
 sha256sum dist/lawson_las.zip > dist/lawson_las.zip.sha256
 .venv/bin/python tools/build_joy_head_mods.py
@@ -55,4 +53,4 @@ echo "== 5/5 lint =="
 
 echo
 echo "bootstrap complete: deliverables in dist/ (lawson_las.zip, Miranda_LAS.zip, Miranda_Busty_LAS.zip, Miranda_L4D2_over_Joy.zip, Miranda_Romance_over_Joy.zip)"
-echo "next: docs/pd2-las/in-game-checklist.md (user side) + HANDOFF.md (context)"
+echo "next: tools/pd2-las/README.md, section Next (the in-game checklist is its first item)"

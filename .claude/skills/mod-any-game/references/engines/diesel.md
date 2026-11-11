@@ -8,7 +8,7 @@ Unreal Engine 4/5 and shares nothing with this.
 
 - **`assets/<dlc>/….bundle`** — Diesel containers. Each is a header plus named sections; the game streams
   units, textures and models out of them. Legacy (32-bit) bundles and Diesel 3 / "DODB" (64-bit) bundles are
-  different containers, and a reader needs both: `tools/pd2-las/dmodel.py`'s `DieselModel` handles legacy and
+  different containers, and a reader needs both: `tools/pd2-port/dmodel.py`'s `DieselModel` handles legacy and
   DODB `.model` files, which is the same split one layer down.
 - **Loose files in `mod_overrides/`** — a file here replaces the bundled one of the same hash64 path, with no
   loader installed at all. This is the cheapest mod that exists in the game: one file, no Lua, no hooks.
@@ -38,15 +38,20 @@ guessing.
   Model Tool; treat it as a 32-bit-era tool for authoring.
 - **Diesel Bundle Viewer** (legacy) and **Diesel Crate Browser** (64-bit) — browsing/extracting bundles.
 - **SuperBLT** and **BeardLib** — the loader and the mod framework.
-- In this repo: `tools/pd2-las/dmodel.py` (PYTHONPATH: `tools/pd2-las`) reads `.model`, `build_las_pack.py`
-  builds a reproducible LAS pack, `tools/pd2-port/` holds the pack contract and the offline checks. There is
-  no bundle writer here: authoring goes through Model Tool or a hand-built container.
+- In this repo, two offline routes to a LAS outfit; neither needs the game or Blender. `tools/pd2-port/`
+  turns a rigged COLLADA character into a reproducible pack (`build_las_pack.py`) and holds the pack contract
+  and the offline checks; it is not tied to one character, and its README lists what a port of another one
+  changes. `tools/pd2-las/` re-authors compiled Source-engine models onto a reference pack's skeleton.
+  `.model` code: `tools/pd2-port/dmodel.py` reads legacy and DODB containers and `las_model.py` writes DODB
+  (PYTHONPATH: `tools/pd2-port`); `tools/pd2-las/diesel_model.py` reads and writes the legacy container,
+  byte for byte. There is no bundle writer here: packs ship loose files, and `.model` authoring goes through
+  these writers or Model Tool.
 
 ## Verification and safety
 
 - Everything is verifiable offline: pack checksums, material↔model hash sets, DDS mip chains, texture names
-  in `material_config`, and a structural diff against a known-good reference pack. `tools/pd2-port/` does
-  exactly that; make it pass before asking for a game launch.
+  in `material_config`, and a structural diff against a known-good reference pack. `tools/pd2-port/check_all.py`
+  runs such checks for the pack that pipeline ships; make it pass before asking for a game launch.
 - The game's anti-cheat is server-side: **do not** touch the client, install loaders or change the install to
   test a pack. An outfit or an override is safe to test offline in an offline heist; anything that hooks the
   client is not.

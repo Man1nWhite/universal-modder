@@ -12,9 +12,8 @@ Builder: `tools/pd2-las/build_busty_variant.py` · morph: `tools/pd2-las/bust_va
 · report: `build/pd2-las/busty_variant_report.json`.
 
 ```sh
-bash tools/pd2-las/bootstrap.sh          # venv, 2B templates, textures
-.venv/bin/python tools/pd2-las/build_busty_variant.py \
-    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+bash tools/pd2-las/recover_env.sh        # venv + the 2B templates (build/pd2-las/2b/)
+.venv/bin/python tools/pd2-las/build_busty_variant.py
 ```
 
 ## Model space (measured, not assumed)
@@ -145,7 +144,7 @@ emits all five sheets by name:
 ## Verification
 
 * `tests/test_bust_variant.py` — 24 test functions, **23 passing on a clean checkout** plus the
-  end-to-end geometry one, which skips without the extracted 2B templates at `/tmp/2bsrc`:
+  end-to-end geometry one, which skips without the 2B templates unpacked (`build/pd2-las/2b/`):
   morph contract, continuity across
   the edit rim, taut-catsuit cleavage contour, slice containment, open-boundary
   collar-lip pinning during fairing, watertight welded subdivision across seams,

@@ -9,14 +9,14 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 import diesel_model as dm  # noqa: E402
+from extract_2b import MISSING, TEMPLATES as REF_DIR  # noqa: E402
 
-REF_DIR = Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b")
 REF_2B = REF_DIR / "2b.model"
 REF_FPS = REF_DIR / "fps_2b.model"
 
 needs_ref = pytest.mark.skipif(
     not REF_2B.exists() or not REF_FPS.exists(),
-    reason="2b.rar reference models not extracted to /tmp/2bsrc",
+    reason=MISSING,
 )
 
 

@@ -30,6 +30,10 @@ import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
+#: Where the three input archives are unpacked, once, and reused by later runs:
+#: inside the checkout and gitignored (``build/*``), so it is found again on any
+#: platform and never committed. Delete it to force a fresh extraction.
+EXTRACT_DIR = ROOT / "build" / "head-mods"
 sys.path.insert(0, str(ROOT / "tools" / "pd2-port"))
 sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 
@@ -2101,9 +2105,9 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
 
 
 def main() -> None:
-    ada_root = ensure_ada_reference(Path("/tmp/ada_joy"))
-    me2_dir = ensure_me2_extracted(Path("/tmp/me2_extract"))
-    geralt_root = ensure_geralt_extracted(Path("/tmp/geralt_extract"))
+    ada_root = ensure_ada_reference(EXTRACT_DIR / "ada_joy")
+    me2_dir = ensure_me2_extracted(EXTRACT_DIR / "me2_extract")
+    geralt_root = ensure_geralt_extracted(EXTRACT_DIR / "geralt_extract")
     flat_nm = np.zeros((512, 512, 4), dtype=np.uint8)
     flat_nm[:, :] = [255, 128, 0, 128]
     sec_nm_dds = encode_rgba_dds(flat_nm)

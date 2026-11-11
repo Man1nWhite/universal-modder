@@ -38,15 +38,20 @@ Report failures with the item number and a screenshot.
    region shares one frame and should read cleanly.
 7. Face intact at close range: eyes, nose, lips present; slight lip/jaw
    softness is known/acceptable for v1.
-8. Shadow (`s_body`) renders under the character. Ground contact: the
-   boot soles may sit a few cm below the target ground plane (z ≈ -12 cm
-   offline) — check for floor clipping and report if visible.
+8. Shadow (`s_body`) renders under the character. Ground contact: offline the
+   lowest vertex of the body is at z = −0.75 cm, so the soles should stand on
+   the floor — check for floor clipping or floating and report if visible.
 
 ## First person (arms)
 
 9. Arms visible on weapon viewmodels; correct texture (body material with
    `DEPTH_SCALING`, mirroring the 2B fps contract).
 10. No shadow mesh clipping into the fps camera.
+
+With `Miranda_Busty_LAS`, also play one heist in first person and read the log
+afterwards: its first-person `.object` lists `g_head` and `g_head_lod1`, and its
+first-person model has neither (`tools/pd2-las/README.md`, Next). Report a
+crash, a line about a missing object, or that there was neither.
 
 ## Materials
 

@@ -3,6 +3,31 @@
 *Last updated: 2026-10-19, after the fourth check (the "quadruple check").*
 *Everything here was measured; nothing is inherited from a previous session's memory.*
 
+> **Scope and age of this page** (note added 2026-11-11).
+>
+> This is the status of the **shipped port**: Miranda Lawson from *Mass
+> Effect 2*, built by the configuration that is in the tree. The pipeline is
+> not tied to that character — [`README.md`](README.md) describes it in
+> general terms and lists what a port of another character has to change.
+> "ME2" and "the source" on this page mean the shipped port's source.
+>
+> The page was written on 2026-10-19, and only part of it has been kept up
+> since:
+>
+> - **Current, pinned by tests:** the pack's size and checksum in §1 and the
+>   audit result in §3.
+> - **Overtaken by the code:** the transfer. The cause given in §4, and all
+>   of §6, describe independent per-bone fits. `rig_target.target_ops` now
+>   moves a humanoid source's torso, head and legs with one rigid transform
+>   and builds the arms, hands and fingers separately; the build re-winds 3
+>   triangles where 0.1.1 had 1,027 inverted. The `rig_target.py` docstrings
+>   describe the transfer as it is; measure again before acting on §6.
+> - **Stale details:** the test suite has grown from the 195 tests of §3 to
+>   almost 800; `check_all.py` takes about ten seconds and about three minutes
+>   with `--full`, not the times given in §2. (§7 was corrected in place: the
+>   inputs live in `models/` and `references/`, and the 2B pack is unpacked
+>   inside the checkout.)
+
 If you are a new agent picking this work up: read this page first, then
 [`MODLOG.md`](MODLOG.md) (the journal, newest first) and the
 [knowledge note](../../knowledge/games/payday-2/las-moog-outfit-porting.md)
@@ -130,9 +155,11 @@ problem — it changes the shape of the skin, so it needs a real review.
     constraint 1.
   - *Parent-offset directions with the independent fits*: worse (832
     inverted in Body 2).
-* The `rig_target.py` docstring still describes the *old* rationale ("one
+* ~~The `rig_target.py` docstring still describes the *old* rationale ("one
   operator per target bone, a rigid fit of the source bone segment onto the
-  target bone segment"). Update it when the transfer changes.
+  target bone segment"). Update it when the transfer changes.~~
+  *(2026-11-11: done — the docstrings describe the transfer that is in the
+  tree; the per-segment fit survives as the generic branch of `target_ops`.)*
 
 ### A shape that is likely to work
 
@@ -159,14 +186,14 @@ has to absorb it without folding.
 * **Never upload release assets from the sandbox**: `gh release upload`
   fails with EOF there. Tag the release and let the `lawson-las.yml` workflow
   build and upload (it creates the release if needed).
-* The ME2 source zip and `2b.rar` sit in the repo root. `2b.rar` is RAR5:
-  there is no preinstalled tool, so build one —
-  `curl -L https://codeload.github.com/pmachapman/Unrar/tar.gz/refs/heads/master
-  | tar xz -C /tmp && make -C /tmp/unrar-master -j4` — and run
-  `unrar x 2b.rar -o+/tmp/rarx` (the `-o` is attached; a positional
-  out-directory is read as another archive). The reference pack is the
-  2B LAS unit, used as the ground truth for the rig contract and the
-  manifest layout.
+* The ME2 source zip is in `models/` and `2b.rar` in `references/`.
+  `2b.rar` is RAR5 and no preinstalled tool reads it:
+  `bash tools/pd2-las/recover_env.sh` unpacks it into `build/pd2-las/2b/`,
+  inside the checkout and gitignored (`tools/pd2-las/extract_2b.py`, with
+  `node-unrar-js`). The reference pack is the 2B LAS unit, used as the
+  ground truth for the rig contract and the manifest layout. *(Rewritten
+  2026-11-11: this bullet used to build `unrar` from source and unpack the
+  pack into the system temp directory, which does not outlive a session.)*
 * `um publish check .` and `um kb check --index` are the repo-wide gates;
   run both before pushing (0 failures, the warnings are pre-existing).
 * Sequence file edits — parallel edits to the same file race.
@@ -177,8 +204,9 @@ A parallel agent session works on `arena/136395ac-universal-modder` (branch
 `136395ac`). It ran its own double/triple/quadruple sweeps and added a
 **handoff kit of its own**:
 
-* `docs/pd2-las/HANDOFF.md` — a 5-minute start-here (state, quickstart,
-  do-not-break invariants, dead ends, environment traps, next actions);
+* `docs/pd2-las/HANDOFF.md` — then a 5-minute start-here; today the dated
+  record of that pipeline (tracked bytes, in-game sightings, dead ends), with
+  `tools/pd2-las/README.md` as its start-here;
 * `tools/pd2-las/bootstrap.sh` — one command from a clean checkout (or after
   a sandbox wipe) to a built pack and green tests: venv, 2B template
   extraction, build, pytest, pyflakes;
@@ -199,7 +227,7 @@ only found on this line. If both are to be kept, merge them deliberately
 | File | What it is |
 |---|---|
 | `build_las_pack.py` | the builder (`python tools/pd2-port/build_las_pack.py` → `dist/lawson_las.zip`); `--check` validates without writing, `--version` stamps the manifest, `--keep-nm-green` keeps the source's green channel |
-| `me2_dae.py` | the ME2 COLLADA importer (meshes, joints, skin weights) |
+| `me2_dae.py` | the COLLADA importer (meshes, joints, skin weights); named after its first source, an ME2 export |
 | `rig_target.py` | the retarget: bone mapping, per-bone operators, the rebind, `repair_winding()`, the FPS cut |
 | `las_model.py` | the DODB model writer (3 weights, tangent channels 22/23) |
 | `dds.py` | DXT5 encode/decode and PD2's packed normal-map layout |

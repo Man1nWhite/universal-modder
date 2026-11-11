@@ -32,9 +32,12 @@ Miranda Lawson ships as a **Legendary Armour Skins (LAS) add-on** — an
 equipable, full-body outfit with its own units and first-person arms (the
 `2b.rar` product shape), built through **two complementary routes**:
 
-**1. ME2 COLLADA route — primary, released.** `tools/pd2-port/`, built from
-`PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson
-(Romance).zip` (rigged COLLADA + textures at the repo root). Output is
+**1. ME2 COLLADA route — primary, released.** Built by `tools/pd2-port/`, a
+rigged-COLLADA → LAS pipeline that is not tied to this character: Miranda is
+the port it ships, and [its README](tools/pd2-port/README.md) lists what a
+port of another character changes. Source: `models/PC _ Computer - Mass
+Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` (rigged
+COLLADA + textures). Output is
 `dist/lawson_las.zip` (tracked), installed to **`PAYDAY 2\assets\mod_overrides\`**
 and requiring **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe**.
 Audited against the ModWorkshop LAS/MOOG guide on every build
@@ -45,13 +48,13 @@ Current state, open problems and workflow traps:
 [`tools/pd2-port/STATUS.md`](tools/pd2-port/STATUS.md).
 
 **2. L4D2 Source route — parallel line.** `tools/pd2-las/`, built from
-`l4d2_miranda_lawson_1.zip` (an L4D2 Miranda replacement for Rochelle) onto
-the 2B template skeleton. Output `dist/Miranda_LAS.zip` (tracked in `dist/` and
+`models/l4d2_miranda_lawson_1.zip` (an L4D2 Miranda replacement for Rochelle)
+onto the 2B template skeleton. Output `dist/Miranda_LAS.zip` (tracked in `dist/` and
 `build/pd2-las/Miranda_LAS.zip` with `.sha256` checksums), installed to
-**`PAYDAY 2\assets\mod_overrides\`** like 2B itself. Pipeline:
-[`tools/pd2-las/`](tools/pd2-las/README.md); agents start at
-[`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md) (one-command bootstrap,
-verified invariants, dead ends).
+**`PAYDAY 2\assets\mod_overrides\`** like 2B itself. Agents start at
+[`tools/pd2-las/README.md`](tools/pd2-las/README.md) (status command, build
+commands, invariants); the dated state, in-game results and dead ends are in
+[`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md).
 
 **3. Heister Head-Replacement `mod_overrides` (Joy, Clover, Bonnie, Sydney, and Geralt over Rust).**
 `tools/build_joy_head_mods.py` builds standalone `mod_overrides` head-replacement packages:
