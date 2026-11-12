@@ -898,14 +898,10 @@
  },
  "reach": {
   "tools/pd2-las/build_christie_las.py": {
-   "build": 77,
-   "functions": 80,
-   "neither": [
-    "_insert_faces.owner",
-    "render_material_config.mat",
-    "stitch_sleeve_seams.comp_find"
-   ],
-   "tests": 41,
+   "build": 84,
+   "functions": 84,
+   "neither": [],
+   "tests": 11,
    "tests_only": []
   },
   "tools/pd2-las/dds_encode.py": {
@@ -932,37 +928,26 @@
    "tests_only": []
   },
   "tools/pd2-las/las_outfit_pack.py": {
-   "build": 6,
-   "functions": 16,
-   "neither": [
-    "hook_lua",
-    "localization",
-    "main_xml",
+   "build": 5,
+   "functions": 11,
+   "neither": [],
+   "tests": 11,
+   "tests_only": [
+    "_sha",
+    "render_glove_adapter_lua",
     "render_hook_lua",
     "render_localization",
     "render_main_xml",
-    "render_unit_xml",
-    "zip_bytes",
-    "zip_pack"
-   ],
-   "tests": 7,
-   "tests_only": [
-    "_sha"
+    "write_pack"
    ]
   },
   "tools/pd2-las/las_pack.py": {
-   "build": 11,
-   "functions": 18,
+   "build": 18,
+   "functions": 19,
    "neither": [
-    "PackIdentity.__repr__",
-    "refresh_build_info.sha256",
-    "registration",
-    "render_hook_lua",
-    "render_main_xml",
-    "texture_stem",
-    "write_pack.sha256"
+    "PackIdentity.__repr__"
    ],
-   "tests": 11,
+   "tests": 18,
    "tests_only": []
   },
   "tools/pd2-port/build_las_pack.py": {
@@ -988,14 +973,17 @@
   },
   "tools/pd2-port/dmodel.py": {
    "build": 25,
-   "functions": 33,
+   "functions": 36,
    "neither": [
-    "BR.u32",
-    "BR.vec3",
+    "BR.i32",
+    "BR.u16",
+    "Bones.parse",
+    "DieselGeometry.weights4",
     "DieselModel.find_by_name",
     "DieselModel.objects",
-    "Hashlist.name",
-    "TopologyIP.parse",
+    "DieselModel.world_rows",
+    "DieselModel.world_rows.walk",
+    "minv",
     "mmul"
    ],
    "tests": 26,

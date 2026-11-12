@@ -452,7 +452,24 @@ def lane(steps: list, log: Path, lock) -> None:
         print(line + ("\n" + (done.stdout + done.stderr)[-1200:] if done.returncode else ""), flush=True)
 
 
+def before_any_merge(command: str) -> bool:
+    """`record` and `assemble` describe the tree as it was before a merge, and write the tracked reference.
+    On a later tree they would count the recorded lines against merged files, so there they refuse."""
+    tracked = EVIDENCE / "reference.json"
+    if not tracked.exists():
+        return True
+    files = sorted(json.loads(tracked.read_text()).get("reach") or {})
+    top = Path(__file__).resolve().parents[2]
+    if subprocess.run(["git", "diff", "--quiet", BASE, "--", *files], cwd=top).returncode == 0:
+        return True
+    print(f"copies.py {command}: the files that held the copies differ from {BASE[:7]}. This command describes the tree "
+          "before a merge and would overwrite the tracked reference, so it was not run.")
+    return False
+
+
 def record() -> int:
+    if not before_any_merge("record"):
+        return 2
     ensure_tools()
     shutil.rmtree(OUT / "parts", ignore_errors=True)
     log = OUT / "record.log"
@@ -468,6 +485,8 @@ def record() -> int:
 
 
 def assemble() -> int:
+    if not before_any_merge("assemble"):
+        return 2
     build, suite, lint = part("build"), part("suite"), part("lint")
     golden, traces = [part("golden1"), part("golden2")], [part("trace-a"), part("trace-b")]
     outputs = {}

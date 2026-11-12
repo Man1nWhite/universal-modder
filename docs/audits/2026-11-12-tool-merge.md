@@ -273,7 +273,10 @@ same bytes", so each is named here.
    all its calls. Since the second merge a `Registration` is made once for each
    file written, so six helper functions are called more or fewer times
    than before, 29 times at most. The rule covers functions called up to 40
-   times, and `after` lists the ones it was applied to.
+   times, and `after` lists the ones it was applied to. For this rule two fields
+   were added to each of the 1,145 rows of the reference traces in the commit of
+   the second merge, taken from the two recordings made before the merges. What
+   each row held before is unchanged.
 
 A run of `after` on `8bd4fbf` with three date lines added to
 `docs/pd2-las/DECISIONS.md` gave: 16 of 16 zips; 794 tests pass; of the 1,145
@@ -332,8 +335,9 @@ AVX-512, and the third merge ran only together with the first two. One EPYC
 9V74 reported no AVX-512 where seven others reported it; the line is what that
 runner said about itself.
 
-The commits after `8bd4fbf` change documents only. Their runs are on the pull
-request.
+The commits after `8bd4fbf` change documents, the record next to this file and
+the script of this audit, and no file that a build reads. Their runs are on
+the pull request.
 
 The workflow `lawson LAS pack` was started once by hand, on `8bd4fbf` (run
 43287034158). It built `lawson_las.zip`, the zip was the tracked bytes, and
@@ -369,8 +373,9 @@ then its `tests` step failed (E4). Its publishing step runs for a tag
 for the comparison (it fetches the LAS mod and installs `texture2ddecoder`
 under `build/copies/`, outside the environment) and
 `python tools/pd2-las/copies.py after` for the check a merge is held to, about
-14 minutes. `record` is only meaningful on the tree before a merge; its output
-is the tracked reference.
+14 minutes. `record` and `assemble` describe the tree before a merge
+and write the tracked reference. Where the files that held the copies differ
+from `26fce3e` they refuse to run.
 
 ## Corrected after the first version of this file
 
@@ -385,3 +390,10 @@ is the tracked reference.
   from starting `lawson LAS pack` on GitHub. The first version counted
   thirteen.
 - The sections on the runners and on the changes to the check are new.
+- In the commits of the first two merges the reference was assembled again,
+  and the recorded coverage was counted against merged files. That changed
+  four entries of `reach` in `reference.json` and four lines of `record.txt`.
+  Both are back to what was recorded before the merges. The builds, the suite,
+  the traces and the lint figures of the reference never changed, and nine
+  recorded outputs have another hash only through the first two changes to
+  the check.
