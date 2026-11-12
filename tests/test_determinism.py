@@ -149,8 +149,10 @@ def test_a_vertex_without_uv_area_takes_its_handedness_from_a_rule():
         assert hands[4] == hands[1] == hands[2] == hands[0], hands          # taken from the corners it shares a triangle with
         assert hands[5:] == [int(tangents.UNMIRRORED)] * 3, hands           # nobody to take it from
         seen[mirrored] = hands[0]
-        # the same from float64 values that round to these float32 values, and from the triangles in another order
-        nudged = lambda rows: [tuple(x * (1 + 1e-10) for x in row) for row in rows]      # noqa: E731
+        # the same from float64 values that round to these float32 values (each nudged by its own amount: the
+        # last bits of a working value), and from the triangles in another order
+        rng = np.random.default_rng(3)
+        nudged = lambda rows: [tuple(x * (1 + 1e-10 * rng.uniform(-1, 1)) for x in row) for row in rows]      # noqa: E731
         assert tangents.tangent_frames(nudged(verts), nudged(normals), nudged(uvs), faces) == (u, v)
         assert tangents.tangent_frames(verts, normals, uvs, faces[::-1]) == (u, v)
     assert seen == {False: -seen[True], True: seen[True]} and seen[False] == int(tangents.UNMIRRORED)
