@@ -20,19 +20,22 @@ cd "$REPO"
 PY="$REPO/.venv/bin/python"
 
 # ---------------------------------------------------------------- 1. the venv
-if [ ! -x "$PY" ]; then
-    echo "== creating .venv"
-    python3 -m venv .venv
-    .venv/bin/pip install -q --upgrade pip
-else
+# A .venv counts only if it has pip. `uv run` makes one without (bin/um goes
+# through uv when uv is installed, and the CI job installs it), on whichever
+# interpreter uv picked: that one is started again from python3.
+if [ -x "$PY" ] && "$PY" -m pip --version >/dev/null 2>&1; then
     echo "== .venv present"
+else
+    echo "== creating .venv"
+    python3 -m venv --clear .venv
+    "$PY" -m pip install -q --upgrade pip
 fi
 
 echo "== installing dependencies"
 # pillow/numpy carry the same pins as bootstrap.sh (and CI): the tracked zips
 # only rebuild byte for byte with these versions. status.py reads the pins from
 # bootstrap.sh, and tests/test_pd2_las_status.py keeps the three in step.
-.venv/bin/pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr scipy
+"$PY" -m pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr scipy
 "$PY" -c "import pytest, PIL, numpy, yaml, py7zr, scipy" && echo "   deps ok"
 
 # ------------------------------------------------------------ 2. the templates

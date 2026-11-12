@@ -376,3 +376,20 @@ def test_no_tool_or_test_depends_on_a_fixed_tmp_path():
                            'DEFAULT_RENDER_DIR = REPO / "build" / "pd2-port" / "preview"'),
                           ("tools/pd2-port/shade_check.py", '/ "build" / "pd2-port" / "shade"')):
         assert constant in (REPO / rel).read_text(), f"{rel} no longer keeps its files under build/"
+
+
+def test_env_scripts_do_not_trust_a_venv_without_pip():
+    """A `.venv` is the build's environment only if `python -m pip` works in it.
+
+    `uv run` leaves a `.venv` without pip, on an interpreter of uv's choosing, and
+    `bin/um` goes through uv wherever uv is installed: the CI job, for one. Both
+    scripts used to take any `.venv/bin/python` for theirs and then call
+    `.venv/bin/pip`, which is not there. The first run of the fresh-build step on a
+    GitHub runner died of it within a second, with nothing built (2026-11-12).
+    """
+    for rel in ("tools/pd2-las/recover_env.sh", "tools/pd2-las/bootstrap.sh"):
+        lines = (REPO / rel).read_text(encoding="utf-8").splitlines()
+        code = "\n".join(line for line in lines if not line.lstrip().startswith("#"))
+        assert "bin/pip" not in code, f"{rel} calls a pip script; use `python -m pip`"
+        assert "-m pip --version" in code, f"{rel} does not ask the venv whether it has pip"
+        assert "python3 -m venv --clear .venv" in code, f"{rel} does not start a venv without pip again"

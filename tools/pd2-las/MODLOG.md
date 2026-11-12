@@ -563,3 +563,17 @@
   mutations of the new code, each caught by a test. `pyflakes um tools tests` clean, `um kb check --index`
   PASS on 247 notes, `um publish check .` PASS, `check_all.py --full` all 8 stages.
 
+## 2026-11-12 — the first CI run in three weeks; `make env` beside a venv that `uv` made
+
+- The owner switched Actions on again. `test.yml`, started by hand on the branch, passed every step it had
+  before and failed in the new fresh-build step within a second: exit code 2, nothing built.
+- **Cause:** `bin/um` runs through `uv` when `uv` is installed, and the CI job installs it. `uv run` leaves a
+  `.venv` without pip. `recover_env.sh` and `bootstrap.sh` took any `.venv/bin/python` for the build's
+  environment and called `.venv/bin/pip`. Reproduced in the sandbox with `uv` installed.
+- **Fix:** a `.venv` counts only if `python -m pip` works in it; otherwise it is made again from `python3`.
+  `test_env_scripts_do_not_trust_a_venv_without_pip` keeps both scripts to that.
+- The CI step writes the runner's CPU and the comparison's lines as notices, which the GitHub API serves. The
+  sandbox cannot reach the host that serves a run's log.
+- Validation: with a uv-made `.venv` in place, the step passes exactly as the workflow runs it;
+  `pytest -q tests` → 781 passed, 29 skipped, 2 xfailed; `pyflakes um tools tests` clean.
+

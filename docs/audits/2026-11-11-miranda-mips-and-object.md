@@ -388,11 +388,24 @@ hash of such a model. It prints which of the two it found:
 | the packs before this change, for comparison | fails: `face_df`, `eyes`, the busty `.object` and the busty icon "have to be the same bytes" |
 
 `.github/workflows/test.yml` runs `make -sC tools/pd2-las env fresh` as its last step, and can now be started
-by hand from the Actions tab. It has never run on a runner. The nearest thing that could be done here: in a
+by hand from the Actions tab. When this was written it had never run on a runner. The nearest thing that could be done here: in a
 clone of the pushed branch with no environment, no templates and no build output, that command takes a minute,
 passes, and changes no tracked file, with the sandbox's routines and with those of an AVX2 CPU. That is still
 this machine. The test suite does not care which routines it gets either: held to those of an AVX2 CPU it
 gives the same 780 passed, 29 skipped and 2 expected failures.
+
+**2026-11-12: the first run on a runner.** Actions was switched on again and `test.yml` was started by hand on
+this branch (run 43194541009). Every step that existed before passed. The new step failed within a second,
+with exit code 2 and nothing built, and the cause was the job, not the CPU: two steps earlier `bin/um` runs
+through `uv`, which makes a `.venv` without pip on an interpreter of its own choosing; `recover_env.sh` took
+any `.venv/bin/python` for the build's environment and then called `.venv/bin/pip`. Reproduced here with `uv`
+installed: the same error and the same exit code, in 14 ms. `recover_env.sh` and `bootstrap.sh` now start the
+venv again when it has no pip. The rehearsal in a clean clone could not find this, because the sandbox has no
+`uv`: it rehearsed the command, not the job.
+
+This session cannot open a run's log: the host that serves it is not reachable from the sandbox. It can read
+step results and annotations, so the step now writes the runner's CPU and the comparison's lines as notices.
+What the runs after this fix reported is in pull request #30.
 
 **Not tested:** another C library (a newer glibc, Windows, macOS) and another architecture. Holding the
 routines down on one machine is not the same as building on another.

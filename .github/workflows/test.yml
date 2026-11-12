@@ -61,4 +61,12 @@ jobs:
         # ways that tools/pd2-las/fresh_check.py names and allows, and runners
         # have more than one kind of CPU. Last in the job, so that the steps
         # above run as they always have, without the templates.
-        run: make -sC tools/pd2-las env fresh
+        # The runner's CPU and the comparison's own lines are also written as
+        # notices: annotations are the one part of a run the GitHub API serves,
+        # so a tool that cannot open the log can still read what happened.
+        run: |
+          echo "::notice title=runner::$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs), $(nproc) threads, AVX-512 $(grep -qm1 avx512f /proc/cpuinfo && echo yes || echo no), AVX2 $(grep -qm1 avx2 /proc/cpuinfo && echo yes || echo no)"
+          out=$(make -sC tools/pd2-las env fresh 2>&1) && status=0 || status=$?
+          printf '%s\n' "$out"
+          printf '%s\n' "$out" | grep -E 'members are the same|as allowed|DIFFERENT|no fresh build' | cut -c1-300 | sed 's/^ */::notice title=fresh build::/' || true
+          if [ "$status" != 0 ]; then printf '%s\n' "$out" | tail -n 4 | sed 's/^/::error title=fresh build::/'; exit "$status"; fi
