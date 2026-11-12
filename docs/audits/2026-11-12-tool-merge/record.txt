@@ -1,0 +1,97 @@
+build: 16 of 16 tracked zips are the tracked bytes after a fresh build (exit 0)
+suite: 1 failed, 785 passed, 29 skipped, 2 xfailed, 1 warning in 262.11s (0:04:22) (exit 1)
+   skipped 10: 4.zip absent
+   skipped 7: pack not built in this checkout
+   skipped 4: needs ffmpeg
+   skipped 2: sourcepp is an optional extra
+   skipped 2: the Skyrim source archive was intentionally removed after cancellation
+   skipped 2: nifly not built: /home/user/universal-modder/tools/skyrim-nif/build/libniflywrap.so not found — run `bash tool
+   skipped 1: lupa (LuaJIT) not installed
+   skipped 1: Git Bash / MSYS only
+trace: 16 of 16 zips the tracked bytes; 16 of 16 zips the tracked bytes
+   busty: 227 functions steady, 0 not: 
+   christie: 232 functions steady, 0 not: 
+   heads: 131 functions steady, 0 not: 
+   lawson: 144 functions steady, 0 not: 
+   miranda: 167 functions steady, 0 not: 
+   slim: 244 functions steady, 0 not: 
+lint: pylint 4.1.3: 18 duplicate blocks, 218 lines, in 67 files
+    26 lines: build_joy_head_mods | build_las_pack
+    24 lines: build_christie_las | build_models
+    14 lines: build_joy_head_mods | build_las_pack
+    14 lines: build_christie_las | las_outfit_pack
+    13 lines: build_joy_head_mods | build_las_pack
+    12 lines: build_christie_las | build_models
+    12 lines: check_guide_compliance_self_test | check_test_suite_mutations
+    12 lines: build_joy_head_mods | build_las_pack
+    11 lines: build_christie_las | build_models
+    11 lines: build_christie_las | source_model
+outputs (exit, lines printed, files written, steady text, unsteady files):
+   audit_metrics                            0     7   0 yes 0
+   build_skyrim_outfit                      2    11   0 yes 0
+   check_guide_compliance                   0   123   0 yes 0
+   check_guide_compliance_christie          1    26   0 yes 0
+   check_guide_compliance_miranda           1    26   0 yes 0
+   check_guide_compliance_self_test         0    22   0 yes 0
+   check_mesh_geometry                      0    15   0 yes 0
+   check_mesh_geometry_christie             1    18   0 yes 0
+   check_mesh_geometry_miranda              1    18   0 yes 0
+   check_nm_convention                      0    36   0 yes 0
+   check_test_suite_mutations               0     9   1 yes 0
+   diagnose_mesh                            0    35   0 yes 0
+   elbow_before_after                       1    27   0 yes 0
+   extract_2b                               0     3   0 yes 0
+   extract_las_rig                          0     3   1 yes 0
+   glove_check                              0     3   1 yes 0
+   inventory                                0   320   1 yes 0
+   mip_audit                                0    97   0 yes 0
+   neck_junction                            0    34   0 yes 0
+   pose_preview                             1    15   0 yes 0
+   preview_check                            0    74   0 yes 0
+   preview_textured                         0     9   1 yes 0
+   render_mesh_skeleton                     0    12  10 yes 0
+   render_mod_previews                      0    17  15 yes 0
+   resolve_rig_names                        0     4   0 yes 0
+   skin_texture                             1    19   0 yes 0
+   status                                   0    15   0 yes 0
+   um_kb_check                              0     3   0 yes 0
+   um_publish_check                         0     3   0 yes 0
+   uv_check                                 1    16   0 yes 0
+reach (functions, reached by a build, by a test; then those reached by neither):
+   tools/pd2-port/dmodel.py: 36 / 25 / 26; neither: BR.i32, BR.u16, Bones.parse, DieselGeometry.weights4, DieselModel.find_by_name, DieselModel.objects, DieselModel.world_rows, DieselModel.world_rows.walk, minv, mmul
+   tools/pd2-las/diesel_model.py: 38 / 34 / 34; neither: compute_uv_directions, compute_uv_directions.norm, mat_apply_vec, mat_from_pos_rot_rows
+   tools/pd2-port/las_model.py: 19 / 19 / 19; neither: 
+   tools/pd2-port/me2_dae.py: 17 / 17 / 17; neither: 
+   tools/pd2-port/dds.py: 22 / 17 / 19; neither: _encode_block, _rgb565, repair_dxt5_texture
+   tools/pd2-las/dds_encode.py: 23 / 20 / 18; neither: attenuate_dxt5_alpha_by_block_mask, rgba_to_bgra_dds, set_dxt5_constant_alpha
+   tools/pd2-las/las_pack.py: 19 / 18 / 18; neither: PackIdentity.__repr__
+   tools/pd2-las/las_outfit_pack.py: 11 / 5 / 11; neither: 
+   tools/pd2-las/build_christie_las.py: 84 / 84 / 11; neither: 
+   tools/pd2-port/build_las_pack.py: 23 / 23 / 20; neither: 
+who opens what (function <- tools):
+   write .model: build_busty_variant.build <- build_busty_variant; build_christie_las.main <- build_christie_las; build_christie_las.write_pack <- build_christie_las; build_joy_head_mods.ensure_ada_reference <- build_joy_head_mods; build_las_pack.validate <- build_las_pack; build_models.main <- build_models; check_guide_compliance.audit <- check_guide_compliance,check_guide_compliance_christie,check_guide_com; las_pack.install_models <- build_busty_variant,build_models
+   write .texture: build_christie_las.write_pack <- build_christie_las; build_joy_head_mods.ensure_ada_reference <- build_joy_head_mods; build_las.main <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models
+   write .zip: build_busty_variant.build <- build_busty_variant; build_joy_head_mods.write_deterministic_zip <- build_joy_head_mods; build_models.main <- build_models; check_guide_compliance_self_test.audit_pack <- check_guide_compliance_self_test; check_test_suite_mutations._write <- check_test_suite_mutations; check_test_suite_mutations.main <- check_test_suite_mutations; las_outfit_pack.zip_pack <- build_christie_las; las_pack.zip_pack <- build_busty_variant,build_models
+   write main.xml: build_christie_las.write_pack <- build_christie_las; las_pack.write_pack <- build_busty_variant,build_models
+   write .lua: build_christie_las.write_pack <- build_christie_las; las_pack.write_pack <- build_busty_variant,build_models
+   write english.txt: build_christie_las.write_pack <- build_christie_las; las_pack.write_pack <- build_busty_variant,build_models
+   write .unit: build_christie_las.write_pack <- build_christie_las; las_pack.write_pack <- build_busty_variant,build_models
+   write .object: build_christie_las.write_pack <- build_christie_las; las_pack.install_models <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models
+   write .material_config: build_christie_las.write_pack <- build_christie_las; build_joy_head_mods.ensure_ada_reference <- build_joy_head_mods; las_pack.write_pack <- build_busty_variant,build_models
+   write BUILD_INFO.json: build_christie_las.write_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models
+   write .sha256: build_busty_variant.build <- build_busty_variant; build_christie_las.main <- build_christie_las; build_joy_head_mods.write_deterministic_zip <- build_joy_head_mods; build_models.main <- build_models
+   write .vtf: build_joy_head_mods.ensure_geralt_extracted <- build_joy_head_mods; vpk.extract <- build_models
+   write .dae: build_joy_head_mods.ensure_me2_extracted <- build_joy_head_mods
+   read .model: audit_metrics._model_bytes <- audit_metrics; build_busty_variant.<dictcomp> <- build_busty_variant; build_busty_variant._load_base_model_bytes <- build_busty_variant; build_busty_variant._render_sheets <- build_busty_variant; build_busty_variant.build <- build_busty_variant; build_christie_las.main <- build_christie_las; build_christie_las.write_pack <- build_christie_las; build_joy_head_mods.patch_joy_model <- build_joy_head_mods; build_models.<dictcomp> <- build_models; diesel_model.read_path <- build_busty_varia
+   read .texture: build_busty_variant.<dictcomp> <- build_busty_variant; build_busty_variant._render_sheets <- build_busty_variant; build_christie_las.write_pack <- build_christie_las; build_joy_head_mods.make_character_icon_dds <- build_joy_head_mods; las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models; uv_check._tex <- uv_check
+   read .zip: - <- check_test_suite_mutations; audit_metrics._model_bytes <- audit_metrics,neck_junction; build_busty_variant.build <- build_busty_variant; build_christie_las.main <- build_christie_las; build_joy_head_mods._emit_female_heister_packages <- build_joy_head_mods; build_joy_head_mods.build_geralt_rust_mod <- build_joy_head_mods; build_joy_head_mods.build_l4d2_joy_mod <- build_joy_head_mods; build_joy_head_mods.build_me2_romance_joy_mod <- build_joy_head_mods; build_joy_head_mods.ensure_me2_extracted <- build_joy_head
+   read main.xml: build_christie_las.write_pack <- build_christie_las; las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models
+   read .lua: build_christie_las.write_pack <- build_christie_las; las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models; publish.check <- um_publish_check
+   read english.txt: build_christie_las.write_pack <- build_christie_las; las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models
+   read .unit: build_christie_las.write_pack <- build_christie_las; las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models
+   read .object: build_christie_las.write_pack <- build_christie_las; las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models
+   read .material_config: build_christie_las.write_pack <- build_christie_las; build_joy_head_mods.build_l4d2_joy_mod <- build_joy_head_mods; build_joy_head_mods.build_me2_romance_joy_mod <- build_joy_head_mods; las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.write_pack <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models
+   read BUILD_INFO.json: las_outfit_pack.zip_pack <- build_christie_las; las_pack.refresh_build_info <- build_busty_variant,build_models; las_pack.zip_pack <- build_busty_variant,build_models
+   read .sha256: status.pack_status <- status
+   read .vtf: build_joy_head_mods.load_vtf_rgba <- build_joy_head_mods
+   read .dae: build_joy_head_mods.build_l4d2_joy_mod <- build_joy_head_mods; build_joy_head_mods.build_me2_romance_joy_mod <- build_joy_head_mods
