@@ -162,11 +162,12 @@ reported and not fixed here; (c) reached by nothing.
 | W4 | only `las_outfit_pack` wrote `glove_adapter = true` into the hook | c | no tracked pack has the line, and LAS never reads it: `output.glove_adapter = output.glove_adapter or false` reads its own new table |
 | W5 | `las_outfit_pack` had a fixed description, a fixed name for the adapter's hook and longer comments in it | c | reached by tests only |
 | W6 | `build_las_pack` indents with four spaces, names its table and hook file otherwise, ends two files with a newline, stamps its zip 2026 | a | the bytes of `lawson_las`; nothing reads the white space |
-| W7 | `las_pack.render_object_xml` puts one tab before `</graphic_group>`, `las_outfit_pack.render_object_xml` two; one lists a fixed table of objects, the other what the model has | a | the bytes of the Miranda packs and of the Christie packs. All 32 `.object` files of 2B and the LAS mod have two tabs; a parser reads both |
-| W8 | the first-person material file of `las_pack` lists four head materials without `DEPTH_SCALING` | c | every object of the first-person model of `Miranda_LAS` uses `mtr_body`, which has it; the four are used by none |
+| W7 | `las_pack.render_object_xml` puts one tab before `</graphic_group>`, `las_outfit_pack.render_object_xml` two; one lists a fixed table of objects, the other what the model has | a | the bytes of the Miranda packs and of the Christie packs. All 32 `</graphic_group>` lines in the 36 `.object` files of 2B and the LAS mod have two tabs (four of the files have no such line); a parser reads both |
+| W8 | the first-person material file of `las_pack` lists four head materials without `DEPTH_SCALING` | c | in the first-person models of `Miranda_LAS` and `Miranda_Busty_LAS` the `g_*` objects draw with `mtr_body`, which has it, and `s_body` with `shadow_caster`; one more object, which the `.object` file does not name, draws with a material that the material file does not list; no object draws with any of the four |
 | E1 | only `bootstrap.sh` installs `lupa` and `sourcepp` | b | after `make env` and in CI, 12 tests do not run. Among them are the ones that run the hook and the glove adapter of a pack in a Lua interpreter |
 | E2 | only `recover_env.sh` upgrades pip | c | the same 20 packages either way |
 | E3 | `bootstrap.sh` went on to build four packs in place, wrote `dist/lawson_las.zip.sha256` from that build and then checked it, ran the suite and a lint | c | no Makefile target, workflow or test started it. A checksum written from the build it checks cannot fail |
+| E4 | the list of packages is written three times: `recover_env.sh` installs pytest, pillow, numpy, pyyaml, pyflakes, py7zr and scipy; `test.yml` installs a list of its own without py7zr; `lawson-las.yml` one without py7zr, pyflakes and scipy | b | four tests of `tests/test_christie_las.py` import scipy. With the four packages of `lawson-las.yml` the suite ends with 4 failed, the same four at `26fce3e` and after the merges, and on GitHub the `tests` step of `lawson LAS pack` fails (run 43287034158). `main` has the same test and the same list. No file under `tests/` names py7zr. This row was added after that run: the comparison had held the pins of the workflows against each other, not their lists |
 | | unexplained | | none |
 
 No difference at all: the hash; the 13 tag numbers; the inverse on 3,037
@@ -180,7 +181,7 @@ four places.
 | --- | --- | --- |
 | idstring hash, tag numbers | one right answer, the copies agree | merged |
 | the files that register a pack, the unit file, the glove adapter, the zip | a choice | the shared part merged; what a pack chooses is a `Registration` |
-| the environment and the pins | a choice | merged; the choice is `--extras` |
+| the environment and the pins | a choice | the two scripts and the pins merged; the choice is `--extras`. Each workflow still installs a list of packages of its own (E4): reported |
 | reading a `.model` | one right answer, the copies disagree (M3) and each reads what the other cannot (M1, M2, M4) | apart. One reader would change what `dmodel` returns for 471 sections: that is the fix of M3, and it is not made here |
 | writing a `.model` | apart on purpose (M11) | apart |
 | decoding and encoding BC3 | a choice with nothing shared: the bytes are the choice (D1, D2) | apart |
@@ -226,14 +227,26 @@ script and both workflows install with it as their constraints file, and
 it says so. In a copy of the tree the script makes the same 20 packages as
 before the merge, and `--extras` adds exactly the two that `bootstrap.sh`
 added. 16 of 16 zips; 794 tests pass; traces and tools as after the second
-merge.
+merge. The workflows do not run the script: each still installs a list of
+packages of its own (E4).
 
 Each merge has tests in `tests/test_one_implementation.py` (and one in
 `tests/test_pd2_las_status.py`) that fail when the copy or the difference is
 put back. Shown failing: the old hash, a tag number and `minv` written into
 `dmodel.py` again; a second hook template; the flag of a Miranda pack changed
 to `replace_body`; the year of the zip changed; a second zip writer;
-`bootstrap.sh` restored; a version written into `test.yml` again. Ten of ten.
+`bootstrap.sh` restored; a version written into `test.yml` again. Nine of nine.
+
+What is left under the old names. `las_pack.render_hook_lua`,
+`render_localization` and `render_main_xml`, and the three functions of the
+same names in `las_outfit_pack.py`, are one line each: they hand that module's
+`Registration` to the writer. `dmodel.hash_str` is one line over
+`diesel_model.hash64`, and `dmodel.TAGS` is the 13 shared numbers and the
+seven kinds that only `dmodel` names. `build_joy_head_mods.write_deterministic_zip`
+takes the bytes of its zip from `las_outfit_pack.zip_bytes` and writes them
+next to their `.sha256`. Builders, checks and tests call these names. None of
+them holds a template, the constant of the hash, a tag number or a `ZipInfo`,
+and the tests of `tests/test_one_implementation.py` fail if one does.
 
 Test edits beyond an import line: `test_status_reads_its_pins_from_bootstrap`
 became `test_the_pins_are_written_once` (it read `bootstrap.sh` and held three
@@ -242,6 +255,35 @@ copies equal to it; there is nothing left to hold equal); two tuples in
 `tests/test_render_mesh_skeleton.py` names the Makefile target. One import line
 changed in `tests/test_pd2_las.py`. Nothing else in a test changed.
 
+## Where the check was changed after it reported a mismatch
+
+Three times `copies.py after` reported a mismatch and the comparison was
+changed, not the code it checks. Each change makes the check weaker than "the
+same bytes", so each is named here.
+
+1. The line numbers of a traceback are left out of what a tool prints. Two of
+   the 30 tools stop with a traceback inside `dmodel.py`, which is 33 lines
+   shorter since the first merge.
+2. For `um kb check` and `um publish check` the numbers are left out of what
+   they print. Both walk the whole tree and count what they see, and the tree
+   has new files. Their exit codes are still compared. Run by hand on this
+   tree, `um kb check` ends with exit 0 and `PASS: 247 notes checked`.
+3. A function that a build calls another number of times is held to the set of
+   values it returned. Every other function is held to a checksum chained over
+   all its calls. Since the second merge a `Registration` is made once for each
+   file written, so six helper functions are called more or fewer times
+   than before, 29 times at most. The rule covers functions called up to 40
+   times, and `after` lists the ones it was applied to.
+
+A run of `after` on `8bd4fbf` with three date lines added to
+`docs/pd2-las/DECISIONS.md` gave: 16 of 16 zips; 794 tests pass; of the 1,145
+functions in the six traces 1,118 return what they returned, 12 are
+called another number of times and return the same values, 15 are gone and
+none returns anything else; 30 of 30 tools. Of the 15 that are gone,
+13 have their values coming from the function that replaced them;
+the other two are `render_main_xml.<locals>._base`, a helper inside a deleted
+function, once in the trace of each Christie pack.
+
 ## Jobs with more than one implementation
 
 | Job | Before | After |
@@ -249,7 +291,7 @@ changed in `tests/test_pd2_las.py`. Nothing else in a test changed.
 | idstring hash | 2 | 1 |
 | tag numbers | 2 | 1 |
 | glove adapter | 2 | 1 |
-| environment script | 2 | 1 |
+| making the environment | 4 (`bootstrap.sh`, `recover_env.sh`, the list of packages in each workflow) | 3 (`recover_env.sh`, the list in each workflow: E4) |
 | the two pins | 4 places | 1 |
 | `main.xml`, the hook, the strings | 4 | 2 (`las_outfit_pack.py`; `build_las_pack.py` for `lawson_las`) |
 | unit file | 3 | 2 (the same two) |
@@ -263,14 +305,47 @@ changed in `tests/test_pd2_las.py`. Nothing else in a test changed.
 | `.object` file | 2 | 2 |
 | material file | 3 | 3 |
 
-Eighteen jobs had more than one implementation. Thirteen still do. pylint's
+Eighteen jobs had more than one implementation. Fourteen still do: one script
+makes the environment now, and each workflow still installs a list of packages
+of its own (E4). pylint's
 duplicate-code report: 18 blocks and 218 lines before, 16 blocks and 195 lines after.
+
+## What machines that are not this one showed
+
+The workflow `test` runs the suite on a GitHub runner, then builds all 14 packs
+there and holds each of the 16 zips to its tracked sha256 with `sha256sum -c`.
+What is read here comes through the API: the result of each step, and the lines
+the workflow writes about its runner and its build. The logs themselves cannot
+be read from this sandbox.
+
+| Commit | Runs | CPUs of the runners | Suite | Zips that were the tracked bytes |
+| --- | --- | --- | --- | --- |
+| `75f3d8f`, the expectations | 2 | EPYC 7763 (no AVX-512); EPYC 9V45 (AVX-512) | passes | 16 of 16 in both |
+| `d641fc4`, the script of this audit | 2 | EPYC 9V74 twice (AVX-512) | fails in both. A clean checkout of the commit gives 1 failed here: the test the script itself broke, named in the record above and corrected in the next commit | 16 of 16 in both |
+| `4d7cb0e`, the first merge | 2 | EPYC 9V74; EPYC 9V45 (both AVX-512) | passes | 16 of 16 in both |
+| `3846653`, the second merge | 2 | EPYC 7763 (no AVX-512); EPYC 9V74 (AVX-512) | passes | 16 of 16 in both |
+| `8bd4fbf`, all three merges | 21 | without AVX-512: EPYC 7763 five times, EPYC 9V74 once. With it: EPYC 9V74 seven times, Xeon Platinum 8573C seven times, Xeon 6975P-C once | passes in all 21 | 16 of 16 in all 21 |
+
+`b5e36d3` and `692ea90` were pushed together with the commit after them and
+have no run of their own. So the first merge on its own met only CPUs with
+AVX-512, and the third merge ran only together with the first two. One EPYC
+9V74 reported no AVX-512 where seven others reported it; the line is what that
+runner said about itself.
+
+The commits after `8bd4fbf` change documents only. Their runs are on the pull
+request.
+
+The workflow `lawson LAS pack` was started once by hand, on `8bd4fbf` (run
+43287034158). It built `lawson_las.zip`, the zip was the tracked bytes, and
+then its `tests` step failed (E4). Its publishing step runs for a tag
+`lawson-las-v*` only, so nothing was published.
 
 ## Reported, not fixed
 
 1. `tools/pd2-port/dmodel.py` misreads the skinned geometry of legacy models
-   (M3). `check_guide_compliance.py` therefore audits `lawson_las` and stops on
-   the 13 packs that are legacy. Fixing it means undoing the shift in `dmodel`
+   (M3). `check_guide_compliance.py` therefore audits `lawson_las` and stops with
+   `struct.error` on `Miranda_LAS` and `Christie_LAS`, the two legacy packs it
+   was started on here. Fixing it means undoing the shift in `dmodel`
    or reading legacy files through `diesel_model`; either changes what several
    checks print.
 2. After `make env` and in CI the tests that need `lupa` or `sourcepp` skip
@@ -279,6 +354,14 @@ duplicate-code report: 18 blocks and 218 lines before, 16 blocks and 195 lines a
 3. `diesel_model` cannot read a geometry section with a vertex colour channel
    and cannot write back one with four weights (M4, M5). No pack here has
    either; six sections of other people's models do.
+4. Each workflow installs a list of packages of its own, and the list in
+   `.github/workflows/lawson-las.yml` has no scipy (E4). Four tests of
+   `tests/test_christie_las.py` import it, so the `tests` step of
+   `lawson LAS pack` fails and the upload after it is skipped. `main` has the
+   same test and the same list, and the workflow runs on every push to `main`,
+   so the next push there should show it. Adding `scipy` to that install line
+   ends the failure. Having both workflows run `recover_env.sh` would end the
+   third copy of the list as well.
 
 ## How to repeat
 
@@ -288,3 +371,17 @@ under `build/copies/`, outside the environment) and
 `python tools/pd2-las/copies.py after` for the check a merge is held to, about
 14 minutes. `record` is only meaningful on the tree before a merge; its output
 is the tracked reference.
+
+## Corrected after the first version of this file
+
+- W7 counted 32 `.object` files. There are 36, with 32 `</graphic_group>`
+  lines among them.
+- W8 said every object of the first-person model draws with `mtr_body`.
+- The changes put back to show a test failing were counted as ten. Nine were
+  made.
+- The first item of "Reported, not fixed" said `check_guide_compliance.py`
+  stops on 13 packs. It was started on two.
+- E4, the fourth item of "Reported, not fixed" and the count of fourteen came
+  from starting `lawson LAS pack` on GitHub. The first version counted
+  thirteen.
+- The sections on the runners and on the changes to the check are new.

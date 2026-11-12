@@ -677,6 +677,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D27 — One writer for the files that register a pack
 
+- **Decided:** 2026-11-12
 - **Decision:** `main.xml`, the hook, the strings, the unit file, the glove adapter and the zip of every pack built in `tools/pd2-las/` are written by `las_outfit_pack.py`, and so is the zip of the head packs. What a pack chooses is a `Registration`: its flags (`WHOLE_CHARACTER` or `BODY_ONLY`), its units, its textures, the glove adapter. `las_pack.py`, `build_christie_las.py` and `las_outfit_pack.py` each state it in a function called `registration`.
 - **Why:** three copies gave the same bytes for the same pack but for those choices, measured on the four packs, so a fact learned about these files had to be written three times. The one line in which the hooks differed is no drift: a pack with a head says `replace_all`, a pack without says `replace_body`, and LAS drops the heister's head for the first.
 - **Rejected:** the same writer for `lawson_las` (its files have another layout, which its tracked bytes carry); merging the writers of the `.object` and material files (they differ in what decides their content); keeping a second text of the glove adapter for the cancelled outfit (no build reached it).
@@ -685,6 +686,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D28 — One environment script, and the pins are written once
 
+- **Decided:** 2026-11-12
 - **Decision:** `recover_env.sh` (`make -sC tools/pd2-las env`) is the only script that makes the environment. The versions of pillow and numpy are in `tools/pd2-las/pins.txt`: the script and both workflows install with it as their constraints file, and `status.py` reads it. `bootstrap.sh` is retired. What only it installed, lupa and sourcepp, is `recover_env.sh --extras`.
 - **Why:** the two scripts made the same environment, 20 packages in the same versions, and four files wrote the two pins while a test kept them equal. One file cannot disagree with itself.
 - **Rejected:** adding lupa and sourcepp to the default environment or to CI (that changes which tests run; it is reported in the audit instead); one file that fixes the whole list of packages (each place that installs keeps its own list, only the versions are shared).
@@ -693,6 +695,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D29 — The idstring hash is written once; the two `.model` readers stay two
 
+- **Decided:** 2026-11-12
 - **Decision:** `tools/pd2-port/dmodel.py` takes `hash64` and the 13 tag numbers it shares from `tools/pd2-las/diesel_model.py`, and its unused `minv` is gone. The two readers themselves are not merged.
 - **Why:** the hashes gave the same value on 20,261 inputs. The readers do not agree: `dmodel` does not undo the legacy shift of channel types and misreads 471 of 826 legacy geometry sections, while `diesel_model` cannot read the DODB container or the packed channels of `lawson_las`. One reader would change what `dmodel` returns, which is a fix and belongs in a change of its own.
 - **Rejected:** merging the readers in the same change; merging the two writers of the DDS header (they agree on every tracked texture, and were the fourth job where three were allowed).
