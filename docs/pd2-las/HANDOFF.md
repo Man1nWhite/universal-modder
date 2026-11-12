@@ -85,7 +85,7 @@ they were. Nothing that should show changed. The evidence is in
 
 - **The four LAS packs:** every U and V direction of both models is now computed from the float32 positions,
   normals and UVs beside it, so their last digits moved, and where the UV map gives a vertex no handedness it
-  is set by a rule. Of the 1,492 vertices the rule decides in the geometries this build authors, 1,147 came out reversed against the previous build.
+  is set by a rule: 1,492 vertices, of which 1,147 came out reversed against the previous build, whose signs rounding had chosen.
 - **The two Miranda packs also:** `eyes` and `face_df`, now evaluated in float64 and cut off with a margin
   check. Decoded, 233 of the 262,144 texels of the eye's level 0 differ and 45 of the face's; 7,081 of the 4,194,304 texels of an L4D2 head atlas and 10,523 of a Romance one. What was drawn moved by one step at most; a block that holds such a texel is encoded again, so a decoded texel can move by more (11 steps at most in the eye).
 - **The two Christie packs also:** two triangles in each index list changed places (they are the same

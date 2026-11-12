@@ -128,7 +128,9 @@ it is unmirrored (`tangents.py`). The one departure from `mikktspace.c`: there t
 decides, which depends on the order of the triangles; here the majority decides, which does not.
 
 In this repository's models the sign had been rounding's choice: 222 such vertices contradicted their
-neighbours. Of the 1,492 vertices the rule decides in the geometries this build authors, 1,147 came out reversed against the previous build.
+neighbours. The rule decides 1,492 vertices in the geometries this build authors: the 1,452 without UV area
+and 40 more that get no V direction either (their triangles' contributions cancel, or no triangle uses them).
+1,147 of them came out reversed against the previous build.
 
 ## What was changed
 
@@ -235,8 +237,8 @@ every push.
   the build draws or repaints, the figures in `BUILD_INFO.json`.
 - **Rests on the declared code path:** the float32 geometry of the two Christie packs where float64 linear
   algebra ends in it (row 5).
-- **Not x86-64 Linux:** no declared code path exists; the builders refuse to build. Windows and macOS were
-  not tried.
+- **Not x86-64 Linux:** no declared code path exists; the builders refuse to build. On ARM, left free, 14 of
+  the 16 zips came out as tracked ("Afterwards"). Windows and macOS were not tried.
 - **glibc** is asked for its plain math and cannot be checked. No byte moved between its routines here, and
   the runners' glibc 2.43 built what the sandbox's 2.36 built.
 - **Not pinned:** scipy (the Christie builder uses `scipy.ndimage`), py7zr, the system's zlib. The runners and
@@ -252,8 +254,34 @@ every push.
 - Nothing was looked at in the game. Whether a frame's handedness shows at a vertex without UV area is not
   known; the previous builds had it by chance, and the game's own models often have no frame there.
 - The rule for a tie in `_fill_ring` was tested with stand-ins for its geometry, not on a second real ring.
+- Which test fails on ARM (see "Afterwards").
 - The Christie values of row 5 were not made independent of the code path. They are a least-squares fit and
   its consequences; making them so means the matrix code, which was out of scope.
+
+## Afterwards
+
+Commit `a005c05`, in which the step blocks:
+
+| Run | Runner's CPU | Threads | Zips that were the tracked bytes |
+| --- | --- | --- | --- |
+| 43234112601 | Intel Xeon Platinum 8573C: AVX-512 | 4 | 16 of 16 |
+| 43234105598 | AMD EPYC 9V74: AVX-512 | 4 | 16 of 16 |
+| 43234099277 | AMD EPYC 9V74: AVX-512 | 4 | 16 of 16 |
+
+None of these three landed on a runner without AVX-512. The two EPYC 7763 runs of `e5eb882` above built the
+same zips with the same check: no pack changed between the two commits. Later runs are in pull request #30.
+
+**One run on ARM** (43234100505: `ubuntu-24.04-arm`, a Neoverse V2 with glibc 2.39; not a gate). There is no
+declared code path on ARM, so the builders were left free: numpy on NEON, OpenBLAS's neoversev2 kernels on
+four threads. 14 of the 16 zips are the tracked bytes: both Miranda packs in both copies, all eight head
+packs, `lawson_las`, `Geralt_over_Rust`. The two Christie packs differ, and in kind c only: two positions and
+one or two normals in each third-person model, by 3e-14 to 2e-12, which are values that are zero up to
+rounding; the U and V directions made from those values; the hashes `BUILD_INFO.json` records. That is row 5
+again and nothing else. On another architecture, with other kernels, another thread count and another C
+library, every rule held, and only what the declared code path carries moved.
+
+The test step of that job failed as well. Its log cannot be read from the sandbox, and it was not looked
+into: the suite has never been asked to pass on ARM.
 
 ## How to repeat it
 
