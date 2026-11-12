@@ -38,6 +38,7 @@ sys.path.insert(0, str(ROOT / "tools" / "pd2-port"))
 sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 
 import dds  # noqa: E402
+import determinism  # noqa: E402
 import diesel_model as dm  # noqa: E402
 import me2_dae  # noqa: E402
 import source_model as sm  # noqa: E402
@@ -518,10 +519,12 @@ def repair_skin_and_neck_normals(
 
 def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarray:
     """Synthesize a crisp 1024x1024 radially symmetric deep-sapphire Miranda eye texture."""
-    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+    # float64, and a radius made of * + and sqrt: the same on every machine. What goes
+    # through sin, cos, exp, arctan2 and powers below is rounded with a margin at the end.
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
     u = (xx + 0.5) / size - 0.5
     v = (yy + 0.5) / size - 0.5
-    r = np.hypot(u, v)
+    r = np.sqrt(u * u + v * v)
     theta = np.arctan2(v, u)
 
     iris_outer = 0.28
@@ -534,7 +537,8 @@ def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarr
     fiber_detail = 0.45 * f1 + 0.35 * f2 + 0.20 * f3
 
     rn = np.clip((r - pupil_r) / max(iris_inner - pupil_r, 1e-4), 0.0, 1.0)
-    collarette = np.exp(-(((rn - 0.28) / 0.14) ** 2))
+    bump = (rn - 0.28) / 0.14
+    collarette = np.exp(-(bump * bump))
     radial = 1.0 - 0.38 * (rn ** 1.35) + 0.12 * collarette + 0.14 * fiber_detail
     radial = np.clip(radial, 0.22, 1.25)
 
@@ -562,9 +566,9 @@ def build_crisp_miranda_eye_texture(me2_dir: Path, size: int = 1024) -> np.ndarr
 
     iris_mask = np.clip((iris_outer + 0.012 - r) / 0.022, 0.0, 1.0)
     rgba = np.zeros((size, size, 4), dtype=np.uint8)
-    rgba[:, :, 0] = np.clip(sc_r * (1.0 - iris_mask) + iris_r * iris_mask, 0.0, 255.0).astype(np.uint8)
-    rgba[:, :, 1] = np.clip(sc_g * (1.0 - iris_mask) + iris_g * iris_mask, 0.0, 255.0).astype(np.uint8)
-    rgba[:, :, 2] = np.clip(sc_b * (1.0 - iris_mask) + iris_b * iris_mask, 0.0, 255.0).astype(np.uint8)
+    rgba[:, :, 0] = determinism.floor8(sc_r * (1.0 - iris_mask) + iris_r * iris_mask, "the eye of a head pack")
+    rgba[:, :, 1] = determinism.floor8(sc_g * (1.0 - iris_mask) + iris_g * iris_mask, "the eye of a head pack")
+    rgba[:, :, 2] = determinism.floor8(sc_b * (1.0 - iris_mask) + iris_b * iris_mask, "the eye of a head pack")
     rgba[:, :, 3] = np.where(r < 0.125, 4, np.where(r < 0.28, 10, 8)).astype(np.uint8)
     return rgba
 
@@ -1117,40 +1121,46 @@ def render_head_portrait(atom0_mesh: dict, atom1_mesh: dict, atlas_rgb: np.ndarr
 
 
 def shade_nostril_cavities(face_rgba: np.ndarray) -> np.ndarray:
-    """Darken the two nostril-cavity interior UV pockets and zero their specular gloss so inner nostril walls do not catch bright frontal highlights."""
+    """Darken the two nostril-cavity interior UV pockets and zero their specular gloss so inner nostril walls do not catch bright frontal highlights.
+
+    Evaluated in double precision and cut off to bytes with a margin
+    (`determinism.floor8`): in single precision the result depended on the
+    math library of the machine that built the pack.
+    """
     out = face_rgba.copy()
     H, W = out.shape[:2]
-    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32) / float(H)
-    d_r = np.hypot((xx - 0.454) / 0.020, (yy - 0.472) / 0.025)
-    d_l = np.hypot((xx - 0.559) / 0.020, (yy - 0.472) / 0.025)
-    d_min = np.minimum(d_r, d_l)
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float64) / float(H)
+    right, left, down = (xx - 0.454) / 0.020, (xx - 0.559) / 0.020, (yy - 0.472) / 0.025
+    d_min = np.minimum(np.sqrt(right * right + down * down), np.sqrt(left * left + down * down))
     w_nost = np.clip(1.0 - (d_min ** 1.6), 0.0, 1.0) * 0.90
-    target_dark = np.array([14.0, 7.0, 5.0], dtype=np.float32)
+    target_dark = np.array([14.0, 7.0, 5.0])
     for c_i in range(3):
-        out[:, :, c_i] = np.clip(
-            out[:, :, c_i] * (1.0 - w_nost) + target_dark[c_i] * w_nost, 0, 255
-        ).astype(np.uint8)
+        out[:, :, c_i] = determinism.floor8(
+            out[:, :, c_i] * (1.0 - w_nost) + target_dark[c_i] * w_nost, "the nostrils of a head pack"
+        )
     out[:, :, 3] = np.where(d_min < 1.0, np.minimum(out[:, :, 3], 2), out[:, :, 3]).astype(np.uint8)
     # Darken the upper eyelid lash margin + upper waterline so the upper lash line is crisp
     w_lash = np.zeros_like(xx)
     for uc, u_min, u_max in ((0.260, 0.190, 0.322), (0.747, 0.684, 0.808)):
         du = (xx - uc) / 0.062
-        v_center = 0.293 + 0.003 * (du ** 2)
+        du2 = du * du
+        v_center = 0.293 + 0.003 * du2
         dv = (yy - v_center) / 0.011
-        w_eye = np.exp(-(du ** 4) - (dv ** 2) * 1.8) * (
+        w_eye = np.exp(-(du2 * du2) - (dv * dv) * 1.8) * (
             (xx >= u_min) & (xx <= u_max) & (yy <= 0.3055)
         )
         w_lash = np.maximum(w_lash, w_eye)
+    near, far, low = (xx - 0.068) / 0.042, (xx - 0.927) / 0.036, (yy - 0.926) / 0.010
     w_wl = np.maximum(
-        np.exp(-(((xx - 0.068) / 0.042) ** 4) - (((yy - 0.926) / 0.010) ** 2)),
-        np.exp(-(((xx - 0.927) / 0.036) ** 4) - (((yy - 0.926) / 0.010) ** 2)),
+        np.exp(-(near * near) * (near * near) - low * low),
+        np.exp(-(far * far) * (far * far) - low * low),
     )
     w_l = np.clip(np.maximum(w_lash, w_wl) * 0.88, 0.0, 1.0)
-    target_lash = np.array([18.0, 13.0, 11.0], dtype=np.float32)
+    target_lash = np.array([18.0, 13.0, 11.0])
     for c_i in range(3):
-        out[:, :, c_i] = np.clip(
-            out[:, :, c_i] * (1.0 - w_l) + target_lash[c_i] * w_l, 0, 255
-        ).astype(np.uint8)
+        out[:, :, c_i] = determinism.floor8(
+            out[:, :, c_i] * (1.0 - w_l) + target_lash[c_i] * w_l, "the lash lines of a head pack"
+        )
     return out
 
 
@@ -2105,6 +2115,7 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
 
 
 def main() -> None:
+    determinism.enter(__file__)
     ada_root = ensure_ada_reference(EXTRACT_DIR / "ada_joy")
     me2_dir = ensure_me2_extracted(EXTRACT_DIR / "me2_extract")
     geralt_root = ensure_geralt_extracted(EXTRACT_DIR / "geralt_extract")

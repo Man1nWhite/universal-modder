@@ -171,7 +171,7 @@ def test_the_eye_levels_are_the_picture_a_finer_drawing_gives():
         figures = mip_audit.measure(want, got, True)
         assert figures["colour_max"] < 2.0 and figures["gloss_max"] <= 4, (level, figures)
         assert figures.get("iris", 0.0) < 0.05, (level, figures)
-    each = {level: mip_audit.measure(fine[level], build_las.draw_eye(fine[level].shape[0]), True) for level in (1, 4, 7)}
+    each = {level: mip_audit.measure(fine[level], build_las.draw_eye(fine[level].shape[0], check=False), True) for level in (1, 4, 7)}
     assert each[1]["colour_max"] < 2.0
     assert each[4]["colour_p99"] > 10 and each[7]["iris"] > 6, each
 

@@ -248,7 +248,7 @@ def eye_drawn_finer() -> list:
     finely, so it is closer to what the eye is at each size than either the
     build's levels or a drawing made again, one point per texel, at each size.
     """
-    fine = build_las.mip_levels(build_las.draw_eye(build_las.EYE_SIZE * EYE_FINER))
+    fine = build_las.mip_levels(build_las.draw_eye(build_las.EYE_SIZE * EYE_FINER, check=False), check=False)
     return fine[EYE_FINER.bit_length() - 1:]
 
 
@@ -579,7 +579,7 @@ def report(before: Path | None) -> int:
     print(_row(["---"] * 11))
     for level, (fine, built) in enumerate(zip(eye_drawn_finer(), references["eyes"])):
         side = built.shape[0]
-        ours, each = measure(fine, built, True), measure(fine, build_las.draw_eye(side), True)
+        ours, each = measure(fine, built, True), measure(fine, build_las.draw_eye(side, check=False), True)
         print(_row([level, f"{side}x{side}", f"{ours['colour_mean']:.2f}", f"{ours['colour_p99']:.2f}",
                     f"{ours['colour_max']:.2f}", ours["gloss_max"], f"{ours['iris']:.2f}" if "iris" in ours else "-",
                     f"{each['colour_mean']:.2f}", f"{each['colour_p99']:.2f}", f"{each['colour_max']:.2f}",

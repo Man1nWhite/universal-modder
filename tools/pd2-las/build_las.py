@@ -54,6 +54,8 @@ from dds_encode import (  # noqa: E402
     srgb_to_linear,
     swizzle_source_normal_dxt5_to_pd2,
 )
+import determinism  # noqa: E402
+from determinism import above, floor8, rounded  # noqa: E402
 from las_pack import write_pack  # noqa: E402
 from source_model import load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
@@ -139,7 +141,7 @@ EYE_IRIS_INNER, EYE_IRIS_OUTER = 0.25, 0.28
 EYE_IRIS_WEIGHT = 16
 
 
-def mip_levels(rgba: np.ndarray) -> list[np.ndarray]:
+def mip_levels(rgba: np.ndarray, check: bool = True) -> list[np.ndarray]:
     """A square power-of-two image and every level below it, down to 1x1.
 
     Each level is the area average of level 0, not of the level above it, so no
@@ -155,7 +157,10 @@ def mip_levels(rgba: np.ndarray) -> list[np.ndarray]:
     gloss = rgba[..., 3].astype(np.float64)
     levels = [rgba]
     for level in range(1, side.bit_length()):
-        colour = np.rint(linear_to_srgb(box_reduce(light, 1 << level)) * 255.0)
+        # colour has been through two powers: rounded with the margin check, a
+        # half going up (`determinism.rounded`). Gloss is a mean of whole
+        # numbers, exact on any machine: plain rounding.
+        colour = rounded(linear_to_srgb(box_reduce(light, 1 << level)) * 255.0, f"mip level {level}", check)
         alpha = np.rint(box_reduce(gloss, 1 << level))
         levels.append(np.dstack([colour, alpha]).astype(np.uint8))
     return levels
@@ -180,52 +185,52 @@ def repaint_face(rgba: np.ndarray) -> np.ndarray:
     The Source model has separate eyelash and eye-shadow geometry that the port
     does not carry, so both are painted into the texture. Colour and gloss
     (alpha) change inside the painted areas and nowhere else.
+
+    Where a texel is painted is decided on numbers made of + - * / and sqrt, or
+    with `above`, which stops the build at its threshold. How much it is painted
+    goes through powers and exp, so the result is cut off to bytes with a
+    margin (`floor8`).
     """
     face_rgba = rgba.copy()
     height, width = face_rgba.shape[:2]
-    yy, xx = np.mgrid[0 : height, 0 : width].astype(np.float32)
+    yy, xx = np.mgrid[0 : height, 0 : width].astype(np.float64)
     u = (xx + 0.5) / width
     v = (yy + 0.5) / height
     for uc, vc in ((0.454, 0.472), (0.559, 0.472)):
-        d = np.hypot((u - uc) / 0.020, (v - vc) / 0.025)
-        w_n = np.clip(1.0 - (d ** 1.6), 0.0, 1.0) * 0.90
-        m = w_n > 0.0
+        across, down = (u - uc) / 0.020, (v - vc) / 0.025
+        d = np.sqrt(across * across + down * down)
+        m = d < 1.0
         if m.any():
-            rgb = face_rgba[m, :3].astype(np.float32)
-            target = np.array([14.0, 7.0, 5.0], dtype=np.float32)
-            face_rgba[m, :3] = np.clip(
-                rgb * (1.0 - w_n[m, None]) + target * w_n[m, None],
-                0.0,
-                255.0,
-            ).astype(np.uint8)
-        m_spec = d < 1.0
-        if m_spec.any():
-            face_rgba[m_spec, 3] = np.minimum(face_rgba[m_spec, 3], 2)
+            w_n = (np.clip(1.0 - (d[m] ** 1.6), 0.0, 1.0) * 0.90)[:, None]
+            rgb = face_rgba[m, :3].astype(np.float64)
+            target = np.array([14.0, 7.0, 5.0])
+            face_rgba[m, :3] = floor8(rgb * (1.0 - w_n) + target * w_n, "the eye sockets of the face")
+            face_rgba[m, 3] = np.minimum(face_rgba[m, 3], 2)
     # Upper eyelid lash liner + upper waterline (L4D2 mesh has no separate 3D Eyelashes mesh)
     w_lash = np.zeros_like(u)
     for uc, u_min, u_max in ((0.260, 0.190, 0.322), (0.747, 0.684, 0.808)):
         du = (u - uc) / 0.062
-        v_center = 0.293 + 0.003 * (du ** 2)
+        du2 = du * du
+        v_center = 0.293 + 0.003 * du2
         dv = (v - v_center) / 0.011
-        w_eye = np.exp(-(du ** 4) - (dv ** 2) * 1.8) * (
+        w_eye = np.exp(-(du2 * du2) - (dv * dv) * 1.8) * (
             (u >= u_min) & (u <= u_max) & (v <= 0.3055)
         )
         w_lash = np.maximum(w_lash, w_eye)
+    left, right, low = (u - 0.068) / 0.042, (u - 0.927) / 0.036, (v - 0.926) / 0.010
     w_wl = np.maximum(
-        np.exp(-(((u - 0.068) / 0.042) ** 4) - (((v - 0.926) / 0.010) ** 2)),
-        np.exp(-(((u - 0.927) / 0.036) ** 4) - (((v - 0.926) / 0.010) ** 2)),
+        np.exp(-(left * left) * (left * left) - low * low),
+        np.exp(-(right * right) * (right * right) - low * low),
     )
     w_l = np.clip(np.maximum(w_lash, w_wl) * 0.88, 0.0, 1.0)
-    m_l = w_l > 0.02
+    m_l = above(w_l, 0.02, "the lash lines of the face")
     if m_l.any():
-        rgb = face_rgba[m_l, :3].astype(np.float32)
-        target_lash = np.array([18.0, 13.0, 11.0], dtype=np.float32)
-        face_rgba[m_l, :3] = np.clip(
-            rgb * (1.0 - w_l[m_l, None]) + target_lash * w_l[m_l, None],
-            0.0,
-            255.0,
-        ).astype(np.uint8)
-        face_rgba[w_l > 0.35, 3] = np.minimum(face_rgba[w_l > 0.35, 3], 4)
+        rgb = face_rgba[m_l, :3].astype(np.float64)
+        target_lash = np.array([18.0, 13.0, 11.0])
+        w = w_l[m_l, None]
+        face_rgba[m_l, :3] = floor8(rgb * (1.0 - w) + target_lash * w, "the lash lines of the face")
+        strong = above(w_l, 0.35, "the gloss of the lash lines")
+        face_rgba[strong, 3] = np.minimum(face_rgba[strong, 3], 4)
     return face_rgba
 
 
@@ -268,7 +273,8 @@ def face_levels(dds: bytes) -> tuple[list[np.ndarray], list[np.ndarray]]:
             factor = 1 << level
             colour = linear_to_srgb(srgb_to_linear(converted[..., :3] / 255.0) + box_reduce(light, factor))
             alpha = converted[..., 3] + box_reduce(gloss, factor)[..., 0]
-            image = np.dstack([np.rint(colour * 255.0), np.clip(np.rint(alpha), 0, 255)]).astype(np.uint8)
+            image = np.dstack([rounded(colour * 255.0, f"level {level} of the face"),
+                               np.clip(np.rint(alpha), 0, 255)]).astype(np.uint8)
         image[..., 3] = np.minimum(image[..., 3], ceiling)
         levels.append(image)
         changed.append(np.stack([(image[..., :3] != converted[..., :3]).any(axis=2),
@@ -303,23 +309,23 @@ def repainted_face_texture(dds: bytes) -> bytes:
     return bytes(out)
 
 
-def draw_eye(size: int = EYE_SIZE) -> np.ndarray:
-    """The eye texture, level 0: (size, size, 4) uint8, one point per texel.
+def eye_values(size: int = EYE_SIZE) -> np.ndarray:
+    """The eye before it is rounded to bytes: (size, size, 4) float64 on the 0..255 scale.
 
     Source draws its eyes with a shader of their own (iris, cornea and the
     lid's shadow are projected at run time) and has no texture that could be
     converted, so the eye is drawn here: sclera with the lid's shadow, a blue
     iris with fibres, a dark rim and the pupil. Alpha is gloss.
 
-    The build draws it once, at `EYE_SIZE`, and averages that drawing for the
-    levels below (`mip_levels`). Drawing it again at each smaller size, one
-    point per texel, is not the same picture: the fibres fall between the
-    points. `mip_audit.py` draws it at other sizes to measure both.
+    Radii, masks and gloss are made of + - * / and sqrt, which every machine
+    rounds the same way. The fibres, the collarette and the falloffs go through
+    arctan2, sin, cos, exp and powers, whose last digit belongs to the math
+    library that computed it: `draw_eye` rounds with a margin for that.
     """
-    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
     u = (xx + 0.5) / size - 0.5
     v = (yy + 0.5) / size - 0.5
-    r = np.hypot(u, v)
+    r = np.sqrt(u * u + v * v)
     theta = np.arctan2(v, u)
     sclera_t = np.clip((r - 0.25) / 0.25, 0.0, 1.0)
     lid_ao = np.clip(
@@ -338,7 +344,8 @@ def draw_eye(size: int = EYE_SIZE) -> np.ndarray:
     f2 = np.cos(theta * 64.0 - 0.6 * np.cos(theta * 11.0))
     f3 = np.sin(theta * 112.0 + 3.5 * rn)
     fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * np.sin(rn * np.pi)
-    collarette = np.exp(-(((rn - 0.34) / 0.14) ** 2))
+    bump = (rn - 0.34) / 0.14
+    collarette = np.exp(-(bump * bump))
     radial = 1.0 - 0.38 * (rn**1.35) + 0.12 * collarette + 0.14 * fiber_detail
     upper_iris_ao = np.clip(1.0 - 0.18 * np.clip((-v - 0.05) / 0.20, 0.0, 1.0), 0.80, 1.0)
     radial = radial * upper_iris_ao
@@ -355,12 +362,28 @@ def draw_eye(size: int = EYE_SIZE) -> np.ndarray:
     )
     iris_rgb = iris_rgb * (1.0 - 0.78 * limbus[..., None])
     pupil_mask = np.clip((pupil_r + 0.012 - r) / 0.018, 0.0, 1.0)
-    iris_rgb = iris_rgb * (1.0 - pupil_mask[..., None]) + np.array([2.0, 3.0, 5.0], dtype=np.float32) * pupil_mask[..., None]
+    iris_rgb = iris_rgb * (1.0 - pupil_mask[..., None]) + np.array([2.0, 3.0, 5.0]) * pupil_mask[..., None]
     rgb = rgb * (1.0 - iris_mask[..., None]) + iris_rgb * iris_mask[..., None]
     cornea_mask = np.clip(1.0 - (r - iris_outer) / 0.03, 0.0, 1.0)
     alpha = np.where(r < 0.118, 4.0, 8.0 + 4.0 * cornea_mask)
-    eye_rgba = np.clip(np.dstack([rgb, alpha]), 0, 255).astype(np.uint8)
-    return eye_rgba
+    return np.clip(np.dstack([rgb, alpha]), 0.0, 255.0)
+
+
+def draw_eye(size: int = EYE_SIZE, check: bool = True) -> np.ndarray:
+    """The eye texture, level 0: (size, size, 4) uint8, one point per texel.
+
+    `eye_values`, cut off to bytes (`determinism.floor8`). With `check`, the
+    build stops if a value lies within `determinism.MARGIN` of a rounding
+    boundary: under another math library such a value could fall on the other
+    side, and the texture would depend on the machine that drew it.
+
+    The build draws it once, at `EYE_SIZE`, and averages that drawing for the
+    levels below (`mip_levels`). Drawing it again at each smaller size, one
+    point per texel, is not the same picture: the fibres fall between the
+    points. `mip_audit.py` draws it at other sizes to measure both, without the
+    check: those drawings are yardsticks and ship nowhere.
+    """
+    return floor8(eye_values(size), "the eye texture", check)
 
 
 def eye_weights() -> list[np.ndarray]:
@@ -372,7 +395,8 @@ def eye_weights() -> list[np.ndarray]:
     iris. A block of a small level cannot hold both, and has to keep the iris.
     """
     centre = (np.arange(EYE_SIZE) + 0.5) / EYE_SIZE - 0.5
-    radius = np.hypot(centre[None, :], centre[:, None])
+    across, down = centre[None, :], centre[:, None]
+    radius = np.sqrt(across * across + down * down)
     iris = np.clip((EYE_IRIS_OUTER - radius) / (EYE_IRIS_OUTER - EYE_IRIS_INNER), 0.0, 1.0)
     return [1 + np.rint((EYE_IRIS_WEIGHT - 1) * box_reduce(iris, 1 << level)[..., 0]).astype(np.int64)
             for level in range(EYE_SIZE.bit_length())]
@@ -395,6 +419,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--stage", choices=["extract", "inventory", "textures", "pack", "all"],
                     default="all")
     args = ap.parse_args(argv)
+    determinism.enter(__file__)
 
     source = Path(args.source)
     out = Path(args.out)

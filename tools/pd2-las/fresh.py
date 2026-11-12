@@ -35,6 +35,7 @@ REPO = HERE.parents[1]
 PY = REPO / ".venv" / "bin" / "python"
 sys.path.insert(0, str(HERE))
 
+import determinism  # noqa: E402
 import trace_run  # noqa: E402
 
 #: What builds the 14 tracked packs, in the order they depend on each other: the
@@ -51,9 +52,9 @@ BUILDERS = {
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"
 #: Numeric code paths for `matrix`: environment variables that numpy, OpenBLAS
-#: and glibc read when they load. "declared" is the build as it runs by itself.
-#: Every other one also sets PD2_CODEPATH=free, which keeps a builder from
-#: choosing a code path of its own.
+#: and glibc read when they load. "declared" is the build as it runs by itself,
+#: on the code path of determinism.CODE_PATH. Every other one also sets
+#: PD2_CODEPATH=free, which tells the builders to leave the code path alone.
 CONFIGS = {
     "declared": {},
     "as-is": {},
@@ -230,6 +231,12 @@ def check(args) -> int:
     tree = REPO / "build" / "fresh" / "tree"
     print(f"machine: {machine()}", flush=True)
     note("runner", machine())
+    told = subprocess.run([str(PY), str(HERE / "determinism.py")], cwd=REPO, capture_output=True, text=True,
+                          env={**os.environ, **({"PD2_CODEPATH": "free"} if args.free else {})})
+    path = (told.stdout.strip().splitlines() or [told.stderr.strip()[-300:] or "?"])[-1]
+    path = ("left to the machine: " if args.free else "declared: ") + path
+    print(f"code path {path}", flush=True)
+    note("code path", path)
     copy_tree(tree)
     try:
         run_builders(tree, {"PD2_CODEPATH": "free"} if args.free else {}, names)
@@ -266,12 +273,6 @@ def check(args) -> int:
 
 PROBE = r'''
 import ctypes, glob, hashlib, json, math, os, struct, sys
-sys.path.insert(0, sys.argv[1])
-try:
-    import determinism
-    determinism.declare()
-except ImportError:
-    pass
 import numpy as np
 from numpy._core._multiarray_umath import __cpu_features__ as features
 def blas():
@@ -314,7 +315,8 @@ def one_config(name: str, builders: list[str], traced: bool) -> dict:
     result = {"config": name, "env": extra}
     try:
         copy_tree(base / "tree")
-        probe = subprocess.run([str(PY), "-c", PROBE, str(HERE)], env={**os.environ, **extra}, capture_output=True, text=True)
+        told = {**os.environ, **extra, **(determinism.CODE_PATH if name == "declared" else {})}
+        probe = subprocess.run([str(PY), "-c", PROBE], env=told, capture_output=True, text=True)
         result["probe"] = (json.loads(probe.stdout) if probe.returncode == 0 and probe.stdout.strip()
                            else {"numpy": "probe failed", "blas": probe.stderr.strip()[-200:]})
         started = time.time()

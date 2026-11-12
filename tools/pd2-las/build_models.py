@@ -60,7 +60,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import diesel_model as dm  # noqa: E402
+import determinism  # noqa: E402
 import extract_2b  # noqa: E402
+import tangents  # noqa: E402
 from source_model import ModelData, load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
@@ -2894,46 +2896,14 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
         pal_idx.append(tuple(idxs[:4]))
         pal_w.append((ws[0] / s, ws[1] / s, ws[2] / s))
 
-    du, dv = dm.compute_uv_directions(g.verts, g.uvs, g.faces)
+    # The tangent frames come from the float32 values the file will hold, and
+    # where the UV map gives a vertex no handedness, from a rule (tangents.py).
+    # Made from the float64 working values, as they were until 2026-11-12, they
+    # depended on the CPU that ran the build.
     if len(g.normals) == len(g.verts) and len(g.verts) > 0:
-        import numpy as np
-
-        n_arr = np.asarray(g.normals, dtype=np.float64)
-        u_arr = np.asarray(du, dtype=np.float64)
-        v_arr = np.asarray(dv, dtype=np.float64)
-        n_len = np.linalg.norm(n_arr, axis=1, keepdims=True)
-        # A stored normal of zero length would make every projection below NaN.
-        n_arr = np.where(n_len > 1e-8, n_arr / np.maximum(n_len, 1e-8),
-                         np.array([[0.0, 1.0, 0.0]]))
-
-        # U: project onto the tangent plane, then normalize. U is the direction
-        # the UV u axis actually points, so it is kept and only re-projected.
-        u_arr = u_arr - np.sum(u_arr * n_arr, axis=1, keepdims=True) * n_arr
-        u_len = np.linalg.norm(u_arr, axis=1, keepdims=True)
-
-        # Degenerate UV triangles give u ~ 0. Fall back to any unit vector in
-        # the tangent plane, chosen deterministically from the normal.
-        deg = (u_len[:, 0] < 1e-6)
-        if np.any(deg):
-            nd = n_arr[deg]
-            ref = np.where(np.abs(nd[:, :1]) < 0.9,
-                           np.array([[1.0, 0.0, 0.0]]),
-                           np.array([[0.0, 1.0, 0.0]]))
-            fb = np.cross(nd, ref)
-            fb /= np.maximum(np.linalg.norm(fb, axis=1, keepdims=True), 1e-12)
-            u_arr[deg] = fb
-            u_len[deg] = 1.0
-        u_arr = u_arr / u_len
-
-        # V: rebuild strictly orthogonal to both N and U. The sign is taken
-        # from the UV map's own handedness so a mirrored island stays mirrored.
-        b0 = np.cross(n_arr, u_arr)
-        b0 /= np.maximum(np.linalg.norm(b0, axis=1, keepdims=True), 1e-12)
-        sign = np.where(np.sum(b0 * v_arr, axis=1, keepdims=True) >= 0.0, 1.0, -1.0)
-        v_arr = sign * b0
-
-        du = [tuple(map(float, row)) for row in u_arr]
-        dv = [tuple(map(float, row)) for row in v_arr]
+        du, dv = tangents.tangent_frames(g.verts, g.normals, g.uvs, g.faces)
+    else:
+        du, dv = dm.compute_uv_directions(g.verts, g.uvs, g.faces)
     geo = {
         "vert_count": len(g.verts),
         "headers": [
@@ -3480,6 +3450,7 @@ def main(argv=None) -> int:
     ap.add_argument("--source-zip", type=Path, default=SOURCE_ZIP)
     ap.add_argument("--no-previews", action="store_true")
     args = ap.parse_args(argv)
+    determinism.enter(__file__)
     require_templates(args.templates)
 
     skel_map = json.loads((HERE / "skeleton_map.json").read_text())

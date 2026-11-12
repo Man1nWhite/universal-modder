@@ -55,6 +55,7 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
 import build_models as bm  # noqa: E402
+import determinism  # noqa: E402
 import diesel_model as dm  # noqa: E402
 import dds_encode as dds  # noqa: E402
 import segment_fit as sf  # noqa: E402
@@ -2665,6 +2666,10 @@ def _rim_arc(m: int, start: int, stop: int, step: int) -> list[int]:
     return []
 
 
+#: By how much a later fan has to beat the best one so far to replace it.
+_FAN_TIE = 1e-9
+
+
 def _fill_ring(ring, taken, count, dirn, v, n, min_face_cm2):
     """Triangulate a small boundary loop, wound against its own edges.
 
@@ -2702,7 +2707,12 @@ def _fill_ring(ring, taken, count, dirn, v, n, min_face_cm2):
         if total_area <= 0.0:
             continue
         mean = weighted / total_area
-        if best is None or mean > best[0]:
+        # A later start has to be better by more than rounding can explain. Two
+        # starts often give the same triangles (a quad has one diagonal that
+        # works), and then their means are equal in exact arithmetic. Until
+        # 2026-11-12 whichever of them the CPU's rounding made larger won, and
+        # that decided the order of the triangles in the file.
+        if best is None or mean > best[0] + _FAN_TIE:
             best = (mean, cand)
     if best is None or best[0] <= 0.0:
         return []
@@ -3755,6 +3765,21 @@ def write_pack(out_root: Path, identity: Identity, tpp_model: bytes,
 
 
 # ---------------------------------------------------------------------------
+def _figures(report):
+    """A fit report as it is written to a file: every number to six decimals.
+
+    Written in full, the numbers carried the last bits of a least-squares fit
+    into BUILD_INFO.json, and those bits belong to the CPU that ran it.
+    """
+    if isinstance(report, float):
+        return round(float(report), 6)
+    if isinstance(report, dict):
+        return {key: _figures(value) for key, value in report.items()}
+    if isinstance(report, (list, tuple)):
+        return [_figures(value) for value in report]
+    return report
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--templates", type=Path, default=bm.DEFAULT_TEMPLATES,
@@ -3773,6 +3798,7 @@ def main(argv=None) -> int:
                     help="ship only the third-person unit (no fps viewmodel)")
     ap.add_argument("--no-previews", action="store_true")
     args = ap.parse_args(argv)
+    determinism.enter(__file__)
     bm.require_templates(args.templates,
                          ("2b.model", "fps_2b.model") if args.fps else ("2b.model",))
 
@@ -4019,8 +4045,8 @@ def main(argv=None) -> int:
         "sleeve_stitch": stitch,
         "seam_normals": {g: {"unified": unified[g], "left": normals_left[g]}
                          for g in unified},
-        "fit_tpp": fit,
-        "fit_fps": fps_fit if fps_bytes is not None else None,
+        "fit_tpp": _figures(fit),
+        "fit_fps": _figures(fps_fit) if fps_bytes is not None else None,
     }
     (args.out / f"{identity.item_id}_report.json").write_text(
         json.dumps(report, indent=2) + "\n")
@@ -4032,8 +4058,8 @@ def main(argv=None) -> int:
                              # the mesh-vs-skeleton numbers travel inside the
                              # pack so tests/test_christie_las.py can compare the
                              # build's own measurement with the shipped bytes
-                             "fit_tpp": fit,
-                             "fit_fps": fps_fit,
+                             "fit_tpp": _figures(fit),
+                             "fit_fps": _figures(fps_fit),
                              "centring": centring,
                              "elbow_trim": elbow_report,
                              "elbow_despike": spike_report,

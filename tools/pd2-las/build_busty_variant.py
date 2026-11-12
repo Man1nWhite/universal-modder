@@ -44,6 +44,7 @@ sys.path.insert(0, str(HERE))
 
 import build_las  # noqa: E402
 import build_models as bm  # noqa: E402
+import determinism  # noqa: E402
 import bust_variant as bv  # noqa: E402
 import las_pack  # noqa: E402
 from source_model import load_model  # noqa: E402
@@ -495,6 +496,7 @@ def main(argv=None) -> int:
                     help="copy built zip to dist/ even when --out is custom")
     ap.add_argument("--no-previews", action="store_true")
     args = ap.parse_args(argv)
+    determinism.enter(__file__)
     bm.require_templates(args.templates)
     return build(args)
 

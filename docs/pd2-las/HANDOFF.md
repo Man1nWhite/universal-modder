@@ -18,19 +18,19 @@ this table stops matching the zip in `dist/`. The two Miranda LAS packs are also
 
 | Pack | sha256 | What it is | Built by |
 | --- | --- | --- | --- |
-| `dist/Miranda_LAS.zip` (`5,919,788` B) | `f0e9c6983c718e7e08346ef8afc5911c6589534a8217594503b1eef917fb6b2f` | full body and first-person arms, from the L4D2 addon | `tools/pd2-las/build_models.py` |
-| `dist/Miranda_Busty_LAS.zip` (`6,321,190` B) | `5c802b25a46620f25fdb5777c0ecd36203afb8dc1914701187eb0f57f5b31fc7` | the same with a larger chest; its own `LegendaryArmours.miranda_busty` entry, so it installs beside the base pack | `tools/pd2-las/build_busty_variant.py` |
-| `dist/Christie_LAS.zip` (`4,983,848` B) | `9e7c2d8213463d85c75190b1d3dcf4c4088aeee2d6065ce001320c47094fd95c` | body only (`replace_body`, no `g_head`), with Christie's hands | `tools/pd2-las/build_christie_las.py` |
-| `dist/Christie_LAS_Slim.zip` (`4,393,967` B) | `7a4d010c7e15e92615cf3aedcbbc11ce69781e4b15ab8a461e4d0a88190a3e6f` | the slim variant: wrists cut for the in-game gloves, with the glove-adapter hook | `tools/pd2-las/build_christie_las.py --variant slim` |
+| `dist/Miranda_LAS.zip` (`5,919,822` B) | `b7fe6b08c31f439dd3628bf82935b5e3e210f3639c239e8fc35572b7bfece002` | full body and first-person arms, from the L4D2 addon | `tools/pd2-las/build_models.py` |
+| `dist/Miranda_Busty_LAS.zip` (`6,321,140` B) | `d8856d8d0f581c5e0cc7e12af132f373f1fb1952f530418ba4abde05a166e9cb` | the same with a larger chest; its own `LegendaryArmours.miranda_busty` entry, so it installs beside the base pack | `tools/pd2-las/build_busty_variant.py` |
+| `dist/Christie_LAS.zip` (`4,982,791` B) | `1b486c42bc66c9e00c7574210366045a3f0fa31d5cea2c3a978ea7cebde9cc86` | body only (`replace_body`, no `g_head`), with Christie's hands | `tools/pd2-las/build_christie_las.py` |
+| `dist/Christie_LAS_Slim.zip` (`4,392,978` B) | `79529a56f80268e2f81614ecd2c9a124c874aa60e30e98e401d139444c351c6c` | the slim variant: wrists cut for the in-game gloves, with the glove-adapter hook | `tools/pd2-las/build_christie_las.py --variant slim` |
 | `dist/lawson_las.zip` (`9,123,392` B) | `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2` | full body from the ME2 Romance model; the sibling pipeline's pack, listed for its bytes only | `tools/pd2-port/build_las_pack.py` |
-| `dist/Miranda_L4D2_over_Joy.zip` (`10,679,783` B) | `790324056c32c02bd79be3ec4ab237d187fc0f929cb172c20e244d17c2386ade` | L4D2 head over Joy | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Clover.zip` (`7,727,355` B) | `2ca4d494100eb410d26053f7363d1e39b74c5a31e4b163870592ed4c7aede550` | L4D2 head over Clover | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Bonnie.zip` (`8,239,404` B) | `00398955f050d3566cc8f7a35f3a857c7153faeb662d0387366c11c8203a9042` | L4D2 head over Bonnie | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Sydney.zip` (`7,226,214` B) | `74b6794f7380ffd25497bfb9326ed4f18f8a720584bc9b158efffa9caf4faba9` | L4D2 head over Sydney | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Joy.zip` (`10,238,712` B) | `c53953eabf0dd41021d92ce12c56c880df8432c25c4506199cfda03beee39e6d` | ME2 Romance head over Joy | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Clover.zip` (`7,297,599` B) | `28a4d849a7a232ac8766345b3042b4b557a62cb41145e7fea74ca152b5548847` | ME2 Romance head over Clover | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,810` B) | `d51d96640712eddeb1b6c97cc8776b56ada4438c1e553159b0ff1e74c4d71a27` | ME2 Romance head over Bonnie | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Sydney.zip` (`6,805,595` B) | `b0df49097cd3800f83ae28a5388eadc62d717b2e9fe682d8534f36bdf5fd9d07` | ME2 Romance head over Sydney | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Joy.zip` (`10,679,847` B) | `2bd2d3afa80f8a621482f6bb230c5ac669f26a15cd9f87c5c534f9d383334f72` | L4D2 head over Joy | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Clover.zip` (`7,727,419` B) | `f36ade1b0c347476192bc3aac068410b992fc22c320b9208d85be3f83d922b76` | L4D2 head over Clover | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Bonnie.zip` (`8,239,468` B) | `12b1351ddaac2e4b53c7f7bd90ddf8eaf42eafbf3f265ff99a804186742171bd` | L4D2 head over Bonnie | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_L4D2_over_Sydney.zip` (`7,226,278` B) | `8df709037af979e7b0fdc14ad27740db5caa0f0525ce64d2d5c0a93c6dbe4745` | L4D2 head over Sydney | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_Romance_over_Joy.zip` (`10,238,861` B) | `312b8cc3c81da93679a719cb2767979544504c46bbbe5e0c8510f60cfa204d15` | ME2 Romance head over Joy | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_Romance_over_Clover.zip` (`7,297,748` B) | `cf3c80f3d8d3cb305e2f80140edd6845128228072ee4f1f42c068cfa5043cb1d` | ME2 Romance head over Clover | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,959` B) | `756fdd6ead621985cf24bd8c11d05a8c5f6d2fc1d74344ede1830cd1b170400f` | ME2 Romance head over Bonnie | `tools/build_joy_head_mods.py` |
+| `dist/Miranda_Romance_over_Sydney.zip` (`6,805,744` B) | `8eb937a3a97135f1731cbcbe8f37dbd0c4f8af4369e7673897d7708b95a3597d` | ME2 Romance head over Sydney | `tools/build_joy_head_mods.py` |
 | `dist/Geralt_over_Rust.zip` (`8,121,550` B) | `0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d` | Geralt's head over Rust | `tools/build_joy_head_mods.py` |
 
 Every pack rebuilds to these bytes in the pinned environment on a CPU with AVX-512, which the sandboxes have:
