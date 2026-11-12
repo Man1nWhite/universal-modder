@@ -577,3 +577,25 @@
 - Validation: with a uv-made `.venv` in place, the step passes exactly as the workflow runs it;
   `pytest -q tests` → 781 passed, 29 skipped, 2 xfailed; `pyflakes um tools tests` clean.
 
+## 2026-11-12 (later) — the tracked bytes stop depending on the CPU
+
+- **Asked for:** make every tracked pack independent of the CPU that builds it, and prove it on machines that
+  are not the sandbox. Full record: `docs/audits/2026-11-12-cpu-independence.md`; the decision: D26.
+- **Check first.** `fresh.py check` builds all 14 packs in a copy and compares the 16 zips with their sha256.
+  Its expected result on each kind of runner was committed before its first run. On an EPYC 7763 (no AVX-512)
+  2 of 16 zips were the tracked bytes, on three runners with AVX-512 all 16: as expected.
+- **Trace before fixing.** `trace_run.py` (a checksum of what every function was given and returned) and
+  `fresh.py matrix` (the build under other code paths). Eight rows of causes, none unexplained. Two were new:
+  the Christie builder's `_fill_ring` picked between two fans that are the same triangles, and its fit figures
+  went into `BUILD_INFO.json` with all their digits.
+- **Fixed by kind.** A rule for a decision on zero (`tangents.py`, from `mikktspace.c` and from a census of
+  the 2B and LAS models; `_fill_ring`). Tangent frames from the stored float32 values. A margin check for what
+  is drawn (`determinism.floor8`, `rounded`, `above`). A declared code path for the rest
+  (`determinism.enter`).
+- **Found by the margin check, not by the matrix:** a mean in the repainted face that is 8.5 give or take
+  1e-15, depending on the math library. Halves now go up.
+- **Tried and dropped:** rounding what is drawn to the nearest byte. It removed one known miss of the mip
+  audit, which means it changed the art. The build cuts off, as before, from 1/1024 below a whole number.
+- **Removed:** `fresh_check.py`, its tests, the first D26, the README's item under Next.
+- Twelve packs re-shipped; `lawson_las` and `Geralt_over_Rust` unchanged; the mip audit keeps its nine known
+  misses. After the fix, four runners (two of them without AVX-512) built all 16 zips to the tracked sha256.

@@ -120,7 +120,7 @@ CODE_PATH = {
     "OPENBLAS_CORETYPE": "Nehalem",                                        # OpenBLAS: its SSE4.2 kernels
     "OPENBLAS_NUM_THREADS": "1",                                           # and one thread: a split sum is another sum
     "NPY_DISABLE_CPU_FEATURES": "X86_V3 X86_V4 AVX512_ICL AVX512_SPR",     # numpy's own loops: its x86-64-v2 baseline
-    "GLIBC_TUNABLES": "glibc.cpu.hwcaps=-AVX2,-FMA",                       # glibc's math: the routines without FMA
+    "GLIBC_TUNABLES": "glibc.cpu.hwcaps=-AVX2,-FMA",                       # glibc's math: asked for the routines without FMA
 }
 
 #: cos of the first number, from glibc 2.36: by its plain routine, by its FMA
@@ -164,17 +164,18 @@ def loaded() -> str:
 
 
 def libm() -> str:
-    """Which of glibc's math routines answered, as far as the witness can tell."""
+    """What the witness says about glibc's math. Only on glibc 2.36 does it tell the plain routine from the FMA one."""
     x, plain, fused = WITNESS
     got = math.cos(x).hex()
-    return "plain routines" if got == plain else "CPU-specific routines" if got == fused else "routines without a witness here"
+    return ("answers as 2.36's plain routine" if got == plain else "answers as 2.36's FMA routine" if got == fused
+            else "answers as neither routine of 2.36")
 
 
 def describe() -> str:
     import numpy
     core, threads = blas()
     return (f"numpy {numpy.__version__} dispatching to {' '.join(_levels()) or 'nothing named'}; "
-            f"OpenBLAS {core} kernels on {threads} thread(s); glibc {platform.libc_ver()[1] or '?'} math: {libm()}")
+            f"OpenBLAS {core} kernels on {threads} thread(s); glibc {platform.libc_ver()[1] or '?'}, whose cos {libm()}")
 
 
 def enter(script) -> None:

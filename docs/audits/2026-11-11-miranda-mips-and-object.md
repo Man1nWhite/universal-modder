@@ -324,6 +324,9 @@ and `Geralt_over_Rust` do not read that file and did not change.
 
 ## Does a pack depend on the machine that builds it
 
+> Superseded on 2026-11-12. The causes are fixed, the comparison that allowed a difference is deleted, and CI
+> compares every zip with its sha256: [`2026-11-12-cpu-independence.md`](2026-11-12-cpu-independence.md).
+
 The task asked for CI to rebuild both packs on a clean runner and compare them with the tracked sha256. Two
 things stand in the way, and both were found by trying.
 

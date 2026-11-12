@@ -60,31 +60,24 @@ jobs:
         run: ./bin/um kb check --index
       - name: nothing that shouldn't ship
         run: ./bin/um publish check .
-      - name: a fresh build of the two Miranda LAS packs must be the tracked packs
-        # the sidecar step above compares each zip with its own checksum, which a
-        # stale pack passes. Here the builders run on this runner, from what is
-        # in the repository: `env` makes the pinned .venv and unpacks the 2B
-        # templates (node and npm, for node-unrar-js), `fresh` builds both packs
-        # into build/fresh/ and compares them with the tracked ones member by
-        # member. Not zip against zip: a .model depends on the CPU in two small
-        # ways that tools/pd2-las/fresh_check.py names and allows, and runners
-        # have more than one kind of CPU. Last in the job, so that the steps
-        # above run as they always have, without the templates.
-        # The runner's CPU and the comparison's own lines are also written as
+      - name: every tracked pack must equal a fresh build, byte for byte
+        # All 14 packs are built again in a copy of the checkout, on this
+        # runner, and each of the 16 tracked zips is compared with its tracked
+        # .sha256 by sha256sum -c. No tolerance. `env` makes the pinned .venv
+        # and unpacks the 2B templates first (node and npm, for node-unrar-js).
+        # The builders put themselves on the declared code path
+        # (tools/pd2-las/determinism.py), which is why a runner with AVX-512 and
+        # one without build the same bytes. Before 2026-11-12 they did not:
+        # docs/audits/2026-11-12-cpu-independence.md.
+        # The runner's CPU, the code path and the result are also written as
         # notices: annotations are the one part of a run the GitHub API serves,
         # so a tool that cannot open the log can still read what happened.
+        # On a runner that is not x86-64 (the one-off ARM comparison) the
+        # declared code path does not exist: the builders are left free and the
+        # step reports what differs.
+        # Last in the job, and run even after a failure above, so that it
+        # always reports.
+        if: ${{ !cancelled() }}
         run: |
-          echo "::notice title=runner::$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs), $(nproc) threads, AVX-512 $(grep -qm1 avx512f /proc/cpuinfo && echo yes || echo no), AVX2 $(grep -qm1 avx2 /proc/cpuinfo && echo yes || echo no)"
-          out=$(make -sC tools/pd2-las env fresh 2>&1) && status=0 || status=$?
-          printf '%s\n' "$out"
-          printf '%s\n' "$out" | grep -E 'members are the same|as allowed|DIFFERENT|no fresh build' | cut -c1-300 | sed 's/^ */::notice title=fresh build::/' || true
-          if [ "$status" != 0 ]; then printf '%s\n' "$out" | tail -n 4 | sed 's/^/::error title=fresh build::/'; exit "$status"; fi
-      - name: every tracked pack against a fresh build, byte for byte (reports only, for now)
-        # All 14 packs are built again in a copy of the checkout and each of the
-        # 16 tracked zips is compared with its tracked .sha256 by sha256sum -c.
-        # Not blocking yet: on a runner without AVX-512 it is expected to report
-        # 14 zips as different, and that expectation was written down before the
-        # first run (docs/audits/2026-11-12-cpu-independence.md). It becomes the
-        # gate when the cause is fixed. It reports through notices as well.
-        continue-on-error: true
-        run: .venv/bin/python tools/pd2-las/fresh.py check
+          make -sC tools/pd2-las env
+          .venv/bin/python tools/pd2-las/fresh.py check ${{ runner.arch != 'X64' && '--free' || '' }}

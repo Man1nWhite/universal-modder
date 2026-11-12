@@ -177,8 +177,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   downloaded and installed straight from the repository, without building
   anything (the user, asked on 2026-11-11).
 - **Source:** the commits above; `tests/test_dist_checksums.py`
-- **Status:** holds on the kind of CPU the packs were built on, and not on
-  every other: D26.
+- **Status:** holds, on any x86-64 Linux machine since 2026-11-12: D26.
 
 ### D10 — A variant is its own pack with its own LAS id
 
@@ -625,43 +624,53 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `docs/audits/2026-11-11-miranda-mips-and-object.md`
 - **Status:** holds.
 
-### D26 — A fresh build is compared member by member; a model may differ in two named ways
+### D26 — The tracked bytes do not depend on the CPU that builds them
 
-- **Decided:** 2026-11-11
-- **Decision:** `make -sC tools/pd2-las fresh` builds both Miranda packs
-  again into `build/fresh/` and `fresh_check.py` compares them with the
-  tracked packs member by member. Every member has to be the same bytes,
-  except a `.model`: its floats may differ in their last bits, and the V
-  direction of a vertex whose triangles all have no area in UV may be
-  reversed. `BUILD_INFO.json` may differ in the sha256 it records for such a
-  model, and nowhere else. CI runs it as the last step of its job.
-- **Why:** D9 says a rebuild gives the same bytes. Measured on 2026-11-11,
-  that is true on a CPU with AVX-512, which is what every sandbox so far has
-  been, and not on others. With OpenBLAS held to the routines of an AVX2 CPU,
-  which is what most of GitHub's runners are, 14 of the 16 tracked zips do not
-  equal a fresh build. A check of zip against zip would be red or green by the
-  runner it landed on, and would say nothing about the members a change was
-  about.
-- **What differs in a Miranda pack, and why:** one member, the third-person
-  model, by 136 bytes of 1,819,989 (174 with the routines of an SSE4.2 CPU).
-  Positions, normals, UVs, weights, bones and triangles are the same. 44
-  vertices of the hair have no triangle with area in UV, so the UV map gives
-  them no handedness; `build_models` then takes the sign of their V direction
-  from a number that is zero but for rounding (the dot product of `cross(n, u)`
-  with a fallback that lies in the plane of `n` and `u`), and 16 to 21 of the
-  44 come out reversed. One U direction differs in its last bits. The shadow
-  caster carries copies of the same vertices.
-- **Not done:** the builder was not changed. Making that sign a decision
-  would move the bytes of every third-person model, the Christie ones
-  included, and the change that found this was about two textures and one
-  `.object`. The two Christie packs (both models) and the eight head packs
-  (four or five blocks of the head atlas) differ too; `fresh` does not build
-  them. It is under Next in the README.
-- **Not known:** what a different C library does (a newer glibc, Windows).
-  The eye texture is drawn with single-precision `arctan2` and powers, and
-  four of its 786,432 values already differ by one step between AVX-512 and
-  the rest; its encoded bytes are the same on all three, so far.
-- **Source:** `docs/audits/2026-11-11-miranda-mips-and-object.md`, "Does a
-  pack depend on the machine that builds it"; `tools/pd2-las/fresh_check.py`;
-  `tests/test_fresh_check.py`
+- **Decided:** 2026-11-12
+- **Replaces:** the first D26 (2026-11-11), which let a fresh build differ
+  from the tracked pack in two named ways. That allowance and the comparison
+  that implemented it (`fresh_check.py`) are deleted.
+- **Decision:** a tracked zip is the tracked bytes on any x86-64 Linux
+  machine with the pinned environment, and CI holds every one of the 16 to
+  that with `sha256sum -c`, on its runner, with no tolerance
+  (`make -sC tools/pd2-las fresh`). Four rules keep it so:
+  1. A decision on a number that is zero in exact arithmetic gets a rule, in
+     the code that takes it: the handedness of a tangent frame where the UV
+     map gives none (`tangents.py`), and which of two fans with the same
+     triangles fills a ring (`build_christie_las._fill_ring`).
+  2. What a file derives from other values in the same file is computed from
+     those values as they are stored, with + - * / sqrt and exact sums:
+     tangent frames, from the float32 positions, normals and UVs.
+  3. A value that has been through sin, cos, exp, arctan2 or a power is
+     rounded with a margin check that stops the build
+     (`determinism.floor8`, `rounded`, `above`): what the build draws and
+     repaints, and the mip levels made from it.
+  4. What is left, float64 linear algebra that ends in a float32 of the
+     geometry, runs on one declared code path: OpenBLAS's Nehalem kernels on
+     one thread, numpy's x86-64-v2 loops, glibc asked for its plain math.
+     Every builder restarts itself onto it, checks what numpy and OpenBLAS
+     loaded and refuses to build otherwise (`determinism.enter`).
+- **Why not rule 4 alone:** it would have made all 16 zips match, in a few
+  lines. It would have left in every model a sign that rounding had chosen,
+  and textures that the next numpy could redraw. Rules 1 to 3 hold on any
+  code path; the code path is for what cannot be made to.
+- **What rule 4 carries, measured:** with the code path left to the machine,
+  the two Christie packs differ in one or two normals whose component is
+  zero up to rounding and, in the slim pack, in two positions. Nothing else
+  in any pack moves.
+- **Where it ends:** x86-64 Linux. Elsewhere the declared code path does not
+  exist and the builders refuse. glibc is asked and cannot be checked; no
+  byte moved between its routines, or between glibc 2.36 and the runners'
+  2.43. scipy, py7zr and the system's zlib are not pinned. `lawson_las`
+  belongs to the other pipeline (D3), which does not enter the code path; it
+  has not moved on any path or runner. The menu icons that are renders rest
+  on the code path.
+- **Rejected:** baking the drawn textures into tracked images (new binary
+  sources, and the formula stops being the source of truth); rewriting the
+  matrix code so that it needs no declared kernels; rounding what is drawn
+  to the nearest byte, which changed the art (the build cut off, and still
+  does).
+- **Source:** `docs/audits/2026-11-12-cpu-independence.md`;
+  `tools/pd2-las/determinism.py`, `tangents.py`, `fresh.py`;
+  `tests/test_determinism.py`
 - **Status:** holds.

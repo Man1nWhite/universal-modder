@@ -44,11 +44,8 @@ inventory:  ## what the source archive contains -> tools/pd2-las/source_inventor
 audit:      ## the mip levels of the face and eye textures against the pictures they stand for (Markdown on stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/mip_audit.py
 
-fresh:      ## both Miranda packs built again into build/fresh/ and compared with the tracked ones, member by member
-	cd "$(ROOT)" && $(PY) $(HERE)/build_models.py --out build/fresh > build/fresh.log 2>&1 \
-		&& $(PY) $(HERE)/build_busty_variant.py --out build/fresh >> build/fresh.log 2>&1 \
-		|| { tail -n 30 build/fresh.log; exit 1; }
-	cd "$(ROOT)" && $(PY) $(HERE)/fresh_check.py
+fresh:      ## every tracked pack built again in a copy of the tree and compared with its tracked sha256, no tolerance
+	cd "$(ROOT)" && $(PY) $(HERE)/fresh.py check
 
 test:       ## the whole suite, offline
 	cd "$(ROOT)" && $(PY) -m pytest -q tests

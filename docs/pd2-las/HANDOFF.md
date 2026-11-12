@@ -33,15 +33,14 @@ this table stops matching the zip in `dist/`. The two Miranda LAS packs are also
 | `dist/Miranda_Romance_over_Sydney.zip` (`6,805,744` B) | `8eb937a3a97135f1731cbcbe8f37dbd0c4f8af4369e7673897d7708b95a3597d` | ME2 Romance head over Sydney | `tools/build_joy_head_mods.py` |
 | `dist/Geralt_over_Rust.zip` (`8,121,550` B) | `0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d` | Geralt's head over Rust | `tools/build_joy_head_mods.py` |
 
-Every pack rebuilds to these bytes in the pinned environment on a CPU with AVX-512, which the sandboxes have:
-each builder writes one fixed timestamp into every zip entry, so a `.sha256` sidecar is a true build hash
-there. On another kind of CPU 14 of the 16 do not. Measured on 2026-11-11 by holding numpy and OpenBLAS to the
-routines of other CPUs: a third-person LAS model comes out with the V direction of some hair vertices reversed
-(136 to 174 bytes of 1.8 million in a Miranda pack), and a head atlas with 19 or 20 texels different;
-`lawson_las.zip` and `Geralt_over_Rust.zip` come out the same. The cause, and the member-by-member comparison
-that allows for it (the README's `fresh` command), are in
-[`docs/audits/2026-11-11-miranda-mips-and-object.md`](../audits/2026-11-11-miranda-mips-and-object.md), "Does a
-pack depend on the machine that builds it", and in [`DECISIONS.md`](DECISIONS.md), D26.
+Every pack rebuilds to these bytes in the pinned environment on any x86-64 Linux machine: each builder writes
+one fixed timestamp into every zip entry and, since 2026-11-12, puts itself on one declared numeric code path
+before it computes anything, so a `.sha256` sidecar is a true build hash. CI builds all 14 packs on its runner
+and compares the 16 zips with these hashes, with no tolerance, and has done so on runners with AVX-512 and
+without. Before that day 12 of the 14 packs came out differently on a CPU without AVX-512. The causes, the
+fixes and where the guarantee ends are in
+[`docs/audits/2026-11-12-cpu-independence.md`](../audits/2026-11-12-cpu-independence.md) and in
+[`DECISIONS.md`](DECISIONS.md), D26.
 
 ## Seen in game
 
@@ -56,8 +55,8 @@ that the tracked bytes were in game. This table does.
 | --- | --- | --- |
 | `Miranda_LAS`, `Miranda_Busty_LAS` | no record | — |
 | `Christie_LAS` | 2026-11-05, tested by the user: the headless outfit shows the heister's own head; the texture gloss was fixed by attenuating the diffuse alpha | no: the tracked zip comes from the later elbow, seam and normal rounds, and the record has no later sighting of the base pack |
-| `Christie_LAS_Slim` | 2026-11-10, eight screenshots from the user | reported as the tracked bytes (`7a4d010c…90a3e6f`) |
-| `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, and again on 2026-11-11 |
+| `Christie_LAS_Slim` | 2026-11-10, eight screenshots from the user | no: rebuilt on 2026-11-12 (tangent frames, the order of two triangles, `BUILD_INFO.json`); the screenshots show `7a4d010c…90a3e6f` |
+| `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 
@@ -76,6 +75,27 @@ that the tracked bytes were in game. This table does.
   `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.4.
 
 ## How the tracked bytes came about
+
+### The rebuild of 2026-11-12
+
+Twelve packs were built again that day, so that their bytes no longer depend on the CPU that builds them: the
+four LAS packs and the eight Miranda head packs. `lawson_las` and `Geralt_over_Rust` are byte for byte what
+they were. Nothing that should show changed. The evidence is in
+[`docs/audits/2026-11-12-cpu-independence.md`](../audits/2026-11-12-cpu-independence.md).
+
+- **The four LAS packs:** every U and V direction of both models is now computed from the float32 positions,
+  normals and UVs beside it, so their last digits moved, and where the UV map gives a vertex no handedness it
+  is set by a rule. Of the 1,492 vertices the rule decides in the geometries this build authors, 1,147 came out reversed against the previous build.
+- **The two Miranda packs also:** `eyes` and `face_df`, now evaluated in float64 and cut off with a margin
+  check. Decoded, 233 of the 262,144 texels of the eye's level 0 differ and 45 of the face's; 7,081 of the 4,194,304 texels of an L4D2 head atlas and 10,523 of a Romance one. What was drawn moved by one step at most; a block that holds such a texel is encoded again, so a decoded texel can move by more (11 steps at most in the eye).
+- **The two Christie packs also:** two triangles in each index list changed places (they are the same
+  triangles), and the fit figures in `BUILD_INFO.json` are written to six decimals.
+- **The eight head packs:** the head atlas (the drawn eye; in the Romance packs also the nostril and lash
+  pass) and the menu icon, which is a render of it.
+
+Before: `Miranda_LAS` `5,919,788` B `f0e9c698…`, `Miranda_Busty_LAS` `6,321,190` B `5c802b25…`, `Christie_LAS`
+`4,983,848` B `9e7c2d82…`, `Christie_LAS_Slim` `4,393,967` B `7a4d010c…`. The head packs' previous sizes and
+hashes are in the audit.
 
 ### Miranda
 
@@ -191,6 +211,6 @@ Each was true of older bytes or of an older tree; none is true of what is tracke
 | "unit scale exactly 2.54" | nothing multiplies by 2.54. The per-bone fits carry the scale: by surface area the Miranda mesh is 2.90 × its source in third person and 2.35 × in first person |
 | "shadow signed volume ≈ 81572 (tpp) / 1188 (fps)" | `Miranda_LAS`: 72,178.6 cm³ in third person. The first-person arms are an open mesh, so their figure (1,846.2) is not a volume and no test uses it |
 | "boot soles ~12 cm below ground" | the lowest vertex of the `Miranda_LAS` body is at z = −0.75 cm |
-| "a clean `bootstrap.sh` still yields a different base pack" (2026-11-05) | all four LAS packs rebuild to the tracked sha256 on a CPU with AVX-512; on another kind of CPU they do not (D26) |
+| "a clean `bootstrap.sh` still yields a different base pack" (2026-11-05) | all four LAS packs rebuild to the tracked sha256, on any x86-64 Linux machine since 2026-11-12 (D26) |
 | "without the 2B templates `pytest` cannot collect"; "`pyflakes` is not clean"; "the worktree carries an uncommitted neck patch" (2026-11-10) | the suite collects and passes without the templates, with skips; `pyflakes um tools tests` is clean; the patch is part of the history |
 | "fits more than 30° from the global rotation inherit the nearest kept ancestor" | that filter is not in the code: `DECISIONS.md`, D6 |

@@ -17,7 +17,7 @@ reference pack and written as Diesel `.model` + `.texture` + `.material_config` 
 Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: inputs, environment,
 templates and, per tracked pack, its checksum and `BUILD_INFO.json` flags (`models_present`, `runtime_verified`).
 
-- **Done:** all four packs are complete, models included, and rebuild to the same bytes on a CPU like the builder's.
+- **Done:** all four packs are complete, models included, and rebuild to the same bytes on any x86-64 Linux machine.
 - **Open:** in-game sign-off and the other items under [Next](#next).
 - **Blocked:** public release. The sources are fan rips (Mass Effect 2 by way
   of an L4D2 addon; Dead or Alive 5) with unresolved redistribution rights.
@@ -30,7 +30,7 @@ From the repo root. `make -sC tools/pd2-las` alone lists every target.
 make -sC tools/pd2-las env      # once per fresh clone or wiped sandbox: pinned .venv + the 2B templates
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
 make -sC tools/pd2-las build    # or busty | christie | slim | all: the table above
-make -sC tools/pd2-las fresh    # both Miranda packs built again beside the tracked ones and compared member by member
+make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases are the defect under Next
 ```
 
@@ -38,10 +38,10 @@ make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases ar
   "Entering directory" lines.
 - `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored); the builders default `--templates` to
   it, and only `extract_2b.py` writes that path.
-- A build **overwrites the tracked zips** in `dist/` and `build/pd2-las/`. In the pinned environment, on a CPU
-  with AVX-512, an unchanged tree reproduces them byte for byte and `git status --short dist build` prints
-  nothing. On another CPU a few bytes of a model move ([Next](#next)); `fresh` allows for exactly that and
-  touches no tracked file. Run a builder with `--out build/x` (Christie: also `--dist build/x`) to do the same.
+- A build **overwrites the tracked zips** in `dist/` and `build/pd2-las/`. In the pinned environment an
+  unchanged tree reproduces them byte for byte on any x86-64 Linux machine: every builder first puts itself
+  on one declared code path (`determinism.py`) and refuses to build off it. `fresh` checks all 16 zips in a
+  copy and touches no tracked file; nor does a builder run with `--out build/x` (Christie: also `--dist build/x`).
 - **Done means:** `test` passes and `git status --short dist build` lists only packs you meant to
   change. A changed zip needs its size and sha256 in `AGENTS.md`, its copies and `docs/pd2-las/HANDOFF.md`
   (`test_las_pack.py`); a changed `Miranda_LAS` also needs `tools/build_joy_head_mods.py` run again.
@@ -63,7 +63,8 @@ make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases ar
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `build_skyrim_outfit.py`, `skyrim_*.py`, `skin_texture.py`, `decimate.py` | Skyrim outfit route: cancelled, its source archives were removed, so it does not build here |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `fresh_check.py` | the commands above, status, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the comparison behind `fresh`: what may differ between two builds of a pack and what may not |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, status, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
+| `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and the rounding with a margin; tangent frames from the values the file stores; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 | `bootstrap.sh` | everything from scratch: environment, rebuilds, every `.sha256`, tests, lint |
 
 ## Invariants
@@ -101,6 +102,8 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 - Do not publish or redistribute the packs or their sources.
 - Do not silence a failing test with a skip or an `xfail`: both are budgeted
   by `tools/pd2-port/check_skip_budget.py`. The one exception: [Next](#next).
+- Do not cut a computed value off with `astype(np.uint8)`, and do not decide on a number that is zero up to
+  rounding: `determinism.floor8`, `rounded` and `above` stop the build at a boundary; a tie needs a rule (D26).
 - Do not put dates, hashes or measurements in this file; they belong in
   `HANDOFF.md`, `MODLOG.md` and the packs' `BUILD_INFO.json`.
 - Do not write commands, invariants or open work anywhere else: `AGENTS.md`
@@ -116,9 +119,6 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
    texels at full gloss in `body_df` and `head_df` of the Miranda packs and in three Christie
    textures; the Christie sleeve-gloss pass moves gloss around inside the blocks it touches.
-4. A pack's bytes depend on the CPU that builds it (same audit; `docs/pd2-las/DECISIONS.md`, D26): where the UV
-   map gives a vertex no direction, `build_models.author_group_sections` takes the sign of its V direction from
-   rounding, and the head builder draws its eye in single precision. Decide both, then widen `fresh` to every pack.
 
 ## Further reading
 

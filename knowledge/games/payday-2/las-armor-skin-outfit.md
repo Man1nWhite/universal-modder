@@ -232,9 +232,13 @@ source zip hash, 2B template input hashes) lives in
     **How to see it on one machine:** build with
     `OPENBLAS_CORETYPE=Haswell` and with
     `NPY_DISABLE_CPU_FEATURES="X86_V4 AVX512_ICL AVX512_SPR"` and compare the
-    members. **Fix:** make the decision explicit, keep drawn art as a tracked
-    image; until then compare builds member by member and name what may
-    differ (`tools/pd2-las/fresh_check.py`).
+    members. **Fix:** give the decision a rule; compute what a file derives
+    from the values it stores; round what has been through sin, exp or a
+    power with a margin check that stops the build near a boundary; put the
+    rest on one declared code path that the build sets and verifies
+    (`tools/pd2-las/determinism.py`, `tangents.py`). Check with a rebuild on
+    another CPU and a plain sha256 (`tools/pd2-las/fresh.py`). A tolerance
+    in the comparison hides the defect it was written for.
 
 ## Assets
 
