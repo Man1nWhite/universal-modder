@@ -3521,7 +3521,8 @@ def main(argv=None) -> int:
         name: hashlib.sha256((args.templates / name).read_bytes()).hexdigest()
         for name in ("2b.model", "fps_2b.model")
     })
-    zip_path = las_pack.zip_pack(pack_dir)
+    import las_outfit_pack
+    zip_path = las_outfit_pack.zip_pack(pack_dir)
     zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     (zip_path.parent / f"{zip_path.name}.sha256").write_text(
         f"{zip_sha}  build/pd2-las/{zip_path.name}\n"

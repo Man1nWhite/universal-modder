@@ -18,9 +18,11 @@ file is worse than one without it.
 from __future__ import annotations
 
 import hashlib
+import io
 import json
 import shutil
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
 
 ITEM_ID = "skyrim_outfit"
@@ -33,19 +35,32 @@ GUI_BASE = f"guis/dlcs/{ITEM_ID}/armor_skins"
 TPP_UNIT = f"{UNIT_BASE}/{ITEM_ID}"
 FPS_UNIT = f"{UNIT_BASE}/fps_{ITEM_ID}"
 HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
+#: the glove adapter is hooked here, which runs after LAS's loader; hooked where the
+#: outfit is declared it would run before it
+GLOVE_HOOK_SOURCE = "lib/tweak_data/blackmarkettweakdata"
 
 # LAS maps each flag onto the character parts it replaces (see the mod's
 # hooks/outfits/loader.lua): replace_all sets head=true as well, replace_body
 # only body/hands/arms. This outfit ships no head — the source archives carry
 # none and the template's is someone else's character — so it must not claim
 # replace_all, or LAS drops the heister's head and the unit is decapitated.
-FLAG_KEYS = (
+BODY_ONLY = (
     "hide_mask",
     "hide_armor",
     "replace_body",
     "fps_hide_armor",
     "fps_replace_body",
 )
+#: for an outfit that brings its own head: the one line in which the hook of a
+#: pack with a head and the hook of a pack without one differ
+WHOLE_CHARACTER = (
+    "hide_mask",
+    "hide_armor",
+    "replace_all",
+    "fps_hide_armor",
+    "fps_replace_body",
+)
+FLAG_KEYS = BODY_ONLY
 
 DISPLAY_NAME = "Skyrim Outfit"
 
@@ -53,31 +68,122 @@ DISPLAY_NAME = "Skyrim Outfit"
 # ---------------------------------------------------------------------------
 # registration
 # ---------------------------------------------------------------------------
-def render_hook_lua(with_fps: bool = False, hands: str = "adapter") -> str:
-    flags = ",\n".join(f"\t{k} = true" for k in FLAG_KEYS)
+@dataclass(frozen=True)
+class Registration:
+    """What one pack tells BeardLib and LAS about itself: main.xml, the hook, the strings.
+
+    Every pack built in this directory is registered by the three functions
+    below. What a pack chooses is here, as data: `registration` in las_pack.py,
+    in build_christie_las.py and in this module say what each family chooses.
+    """
+    item_id: str
+    display_name: str
+    description: str
+    unit: str                       # the third-person unit, the way LAS loads it
+    flags: tuple                    # BODY_ONLY or WHOLE_CHARACTER
+    fps_unit: str | None = None     # None: no first-person unit is registered
+    category: str | None = None     # None: the item id
+    icon: str | None = None         # None: guis/dlcs/<item id>/armor_skins/<item id>
+    hook_file: str | None = None    # None: <item id>_las.lua
+    # <df_nm> names a pair by its base name; the engine appends _df/_nm itself.
+    # Given the full "outfit_body_df" it looks for outfit_body_df_df.texture,
+    # which silently leaves every material untextured (flat black in game).
+    pairs: tuple = ()
+    textures: tuple = ()            # textures registered on their own, by full name
+    glove_adapter: bool = False     # the pack ships <item id>_glove_adapter.lua
+    # Intent flag. LAS 4.1.9's loader drops it (it reads a fresh `output` table,
+    # not this data), so the adapter file is what actually re-enables the adapter.
+    glove_flag: bool = False        # `glove_adapter = true` in the outfit's table as well
+
+
+def hook_lua(told: Registration) -> str:
+    """The hook on `HOOK_SOURCE` that adds the outfit to `LegendaryArmours`."""
+    flags = ",\n".join(f"\t{k} = true" for k in told.flags)
     lines = [
         "LegendaryArmours = LegendaryArmours or {}",
         "la = LegendaryArmours",
         "",
-        f"la.{ITEM_ID} = {{",
-        f'\tcategory = "{CATEGORY}",',
+        f"la.{told.item_id} = {{",
+        f'\tcategory = "{told.category or told.item_id}",',
         "",
-        f'\tunit = "{TPP_UNIT}",',
+        f'\tunit = "{told.unit}",',
     ]
-    if with_fps:
-        lines.append(f'\tfps_unit = "{FPS_UNIT}",')
+    if told.fps_unit:
+        lines.append(f'\tfps_unit = "{told.fps_unit}",')
     lines += ["", flags]
-    if hands == "adapter":
-        # Intent flag. LAS 4.1.9's loader drops it (it reads a fresh `output`
-        # table, not this data), so the companion hook
-        # `<item>_glove_adapter.lua` is what actually re-enables the adapter.
+    if told.glove_flag:
         lines[-1] += ","
         lines += ["", "\tglove_adapter = true"]
     lines += ["}", ""]
     return "\n".join(lines)
 
 
-def render_glove_adapter_lua() -> str:
+def localization(told: Registration) -> str:
+    return json.dumps(
+        {
+            f"bm_menu_{told.item_id}_armor_skins": told.display_name,
+            f"bm_askn_{told.item_id}": told.display_name,
+            f"bm_askn_{told.item_id}_desc": told.description,
+        },
+        indent=2,
+    )
+
+
+def main_xml(told: Registration) -> str:
+    """The BeardLib mod table: the strings, the hooks, and every file under assets/ by name."""
+    icon = told.icon or f"guis/dlcs/{told.item_id}/armor_skins/{told.item_id}"
+    hook_file = told.hook_file or f"{told.item_id}_las.lua"
+    hooks = [f'\t\t<hook file="{hook_file}" source_file="{HOOK_SOURCE}"/>']
+    if told.glove_adapter:
+        hooks.append(f'\t\t<hook file="{told.item_id}_glove_adapter.lua" '
+                     f'source_file="{GLOVE_HOOK_SOURCE}"/>')
+    hook_lines = "\n".join(hooks)
+    pairs = "\n".join(f'\t\t\t\t<df_nm path="{base}"/>' for base in told.pairs)
+    singles = "".join(f'\t\t\t\t<texture path="{name}"/>\n' for name in told.textures)
+    units = [told.unit] + ([told.fps_unit] if told.fps_unit else [])
+    unit_lines = "\n".join(f'\t\t\t\t<unit_mat path="{u}"/>' for u in units)
+    return (
+        f'<table name="{told.display_name}" image="{icon}">\n'
+        "\n"
+        '\t<Localization directory="localization" default="english.txt"/>\n'
+        "\n"
+        '\t<Hooks directory="hooks">\n'
+        f"{hook_lines}\n"
+        "\t</Hooks>\n"
+        "\n"
+        '\t<AddFiles directory="assets">\n'
+        "\n"
+        f'\t\t\t\t<texture path="{icon}"/>\n'
+        f"{pairs}\n"
+        f"{singles}"
+        "\n"
+        f"{unit_lines}\n"
+        "\n"
+        "\t\t\t\t</AddFiles>\n"
+        "</table>\n"
+    )
+
+
+def registration(texture_stems=(), with_fps: bool = False, hands: str = "adapter") -> Registration:
+    """What this module's own outfit registers.
+
+    `hands` is "adapter" for a pack without hands, which ships the glove
+    adapter and says so in its table; anything else registers neither.
+    """
+    return Registration(
+        item_id=ITEM_ID, category=CATEGORY, display_name=DISPLAY_NAME,
+        description="a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit.",
+        unit=TPP_UNIT, fps_unit=FPS_UNIT if with_fps else None, flags=FLAG_KEYS,
+        icon=f"{GUI_BASE}/{ITEM_ID}",
+        pairs=tuple(f"{UNIT_BASE}/{stem[:-3]}" for stem in texture_stems if stem.endswith("_df")),
+        glove_adapter=hands == "adapter", glove_flag=hands == "adapter")
+
+
+def render_hook_lua(with_fps: bool = False, hands: str = "adapter") -> str:
+    return hook_lua(registration((), with_fps, hands))
+
+
+def render_glove_adapter_lua(item_id: str | None = None, label: str | None = None) -> str:
     """Compat hook that gives the outfit vanilla-suit glove behaviour.
 
     LAS 4.1.9's `hooks/outfits/loader.lua` breaks changeable gloves for every
@@ -115,21 +221,26 @@ def render_glove_adapter_lua() -> str:
       ``pairs(true)``. An empty table keeps the default ``hnd_forearms`` adapter.
     * ``default_glove_id`` cannot be set through the outfit's data.xml — LAS's
       fresh-table read drops it — so a PostHook override is the only route.
+
+    One text serves every pack built in this directory: `item_id` names the
+    outfit (this module's own by default), `label` the pack in the first line
+    of the file.
     """
-    key = f"las_{ITEM_ID}"
-    return f"""-- SkyrimOutfit LAS: vanilla-suit glove behaviour for {key}.
--- Restores a real default glove (LAS forces default_glove_id = false, which
--- leaves "Default" gloves with no hands) and re-enables the glove adapter.
+    item_id = item_id or ITEM_ID
+    label = label or PACK_DIR_NAME
+    key = f"las_{item_id}"
+    return f"""-- {label} LAS: vanilla-suit glove behaviour for {key}.
+-- This outfit ships NO hands (cut at the wrist), so the heister's own gloves
+-- must spawn: LAS forces default_glove_id = false (no hands at all) and
+-- disables the glove adapter. Restore a real default glove, re-enable the
+-- adapter, and keep the stock hands visible as fallback.
 -- See las_outfit_pack.render_glove_adapter_lua for the full rationale.
-Hooks:PostHook(BlackMarketTweakData, "init", "SkyrimOutfit_GloveAdapter", function(self)
+Hooks:PostHook(BlackMarketTweakData, "init", "{item_id}_GloveAdapter", function(self)
 \tlocal ps = self.player_styles and self.player_styles["{key}"]
 \tif not ps then return end
 
-\t-- The base game keeps a suit's hands visible by giving the style a REAL
-\t-- default glove (suit_default_gloves -> default_glove_id), so "Default"
-\t-- gloves resolve to an actual hand mesh. LAS sets default_glove_id = false,
-\t-- so "Default" gloves spawn nothing and the suit has no hands. Restore a
-\t-- real default glove, exactly like the vanilla/DLC suits.
+\t-- A real default glove, exactly like the vanilla/DLC suits (LAS's
+\t-- fresh-table read drops this, leaving "Default" gloves with no unit).
 \tps.default_glove_id = "heist_default"
 
 \t-- Enable the adapter with a table (NOT a boolean: BeardLib's table.merge
@@ -144,14 +255,7 @@ Hooks:PostHook(BlackMarketTweakData, "init", "SkyrimOutfit_GloveAdapter", functi
 \t\tend
 \tend
 
-\t-- Do NOT hide the stock hands. LAS forces default_glove_id = false and the
-\t-- glove spawn above is not reliable in-game; the old approach hid the stock
-\t-- hands (body_replacement.hands = true) and relied solely on the glove unit,
-\t-- so when it failed to appear the suit had NO hands. Keeping hands = false
-\t-- lets the heister's own stock hands show through the sleeves as a guaranteed
-\t-- fallback (nothing is authored). When a glove unit DOES spawn (default or
-\t-- equipped) it sets var_hands_replace = 1 and replaces the stock hands, so
-\t-- there are no double hands.
+\t-- Keep the stock hands visible as a guaranteed fallback.
 \tif ps.body_replacement then ps.body_replacement.hands = false end
 \tif ps.third_body_replacement then ps.third_body_replacement.hands = false end
 end)
@@ -159,56 +263,12 @@ end)
 
 
 def render_localization() -> str:
-    return json.dumps(
-        {
-            f"bm_menu_{ITEM_ID}_armor_skins": DISPLAY_NAME,
-            f"bm_askn_{ITEM_ID}": DISPLAY_NAME,
-            f"bm_askn_{ITEM_ID}_desc": (
-                "a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit."
-            ),
-        },
-        indent=2,
-    )
+    return localization(registration())
 
 
 def render_main_xml(texture_stems: list[str], with_fps: bool = False,
                     hands: str = "adapter") -> str:
-    # <df_nm> names the pair by its stem; the engine appends _df/_nm itself.
-    # Passing the full "outfit_body_df" makes it look for outfit_body_df_df.texture,
-    # which silently leaves every material untextured (flat black in game).
-    pairs = "\n".join(
-        f'\t\t\t\t<df_nm path="{UNIT_BASE}/{stem[:-3]}"/>'
-        for stem in texture_stems
-        if stem.endswith("_df")
-    )
-    units = [TPP_UNIT] + ([FPS_UNIT] if with_fps else [])
-    unit_lines = "\n".join(f'\t\t\t\t<unit_mat path="{u}"/>' for u in units)
-    hooks = [f'\t\t<hook file="{ITEM_ID}_las.lua" source_file="{HOOK_SOURCE}"/>']
-    if hands == "adapter":
-        # The compat hook runs on blackmarkettweakdata (after LAS's loader),
-        # not armorskinstweakdata where the outfit is declared.
-        hooks.append(f'\t\t<hook file="{ITEM_ID}_glove_adapter.lua" '
-                     f'source_file="lib/tweak_data/blackmarkettweakdata"/>')
-    hook_lines = "\n".join(hooks)
-    return (
-        f'<table name="{DISPLAY_NAME}" image="{GUI_BASE}/{ITEM_ID}">\n'
-        "\n"
-        '\t<Localization directory="localization" default="english.txt"/>\n'
-        "\n"
-        '\t<Hooks directory="hooks">\n'
-        f"{hook_lines}\n"
-        "\t</Hooks>\n"
-        "\n"
-        '\t<AddFiles directory="assets">\n'
-        "\n"
-        f'\t\t\t\t<texture path="{GUI_BASE}/{ITEM_ID}"/>\n'
-        f"{pairs}\n"
-        "\n"
-        f"{unit_lines}\n"
-        "\n"
-        "\t\t\t\t</AddFiles>\n"
-        "</table>\n"
-    )
+    return main_xml(registration(texture_stems, with_fps, hands))
 
 
 def render_unit_xml(unit_base: str) -> str:
@@ -443,15 +503,26 @@ def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
     return pack
 
 
+def zip_bytes(entries, stamp: tuple = (2020, 1, 1, 0, 0, 0)) -> bytes:
+    """A zip that is the same bytes whenever its content is.
+
+    `entries` are (name, bytes) pairs in the order they go in. Every entry
+    carries the same time and mode 0644 and is deflated, so nothing of the
+    machine or of the day reaches the archive.
+    """
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, data in entries:
+            entry = zipfile.ZipInfo(name, date_time=stamp)
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            entry.external_attr = 0o644 << 16
+            zf.writestr(entry, data)
+    return buffer.getvalue()
+
+
 def zip_pack(pack: Path) -> Path:
-    """Reproducible zip: fixed timestamps, sorted entries, stored content."""
+    """The pack folder as an installable zip next to it (top level = the folder's name)."""
     out = pack.with_suffix(".zip")
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path in sorted(pack.rglob("*")):
-            if path.is_file():
-                entry = zipfile.ZipInfo(path.relative_to(pack.parent).as_posix(),
-                                        date_time=(2020, 1, 1, 0, 0, 0))
-                entry.compress_type = zipfile.ZIP_DEFLATED
-                entry.external_attr = 0o644 << 16
-                zf.writestr(entry, path.read_bytes())
+    out.write_bytes(zip_bytes((path.relative_to(pack.parent).as_posix(), path.read_bytes())
+                              for path in sorted(pack.rglob("*")) if path.is_file()))
     return out

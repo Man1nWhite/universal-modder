@@ -40,6 +40,7 @@ sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 import dds  # noqa: E402
 import determinism  # noqa: E402
 import diesel_model as dm  # noqa: E402
+import las_outfit_pack  # noqa: E402
 import me2_dae  # noqa: E402
 import source_model as sm  # noqa: E402
 import vtf as vtf_mod  # noqa: E402
@@ -1213,14 +1214,7 @@ def find_miranda_las_zip() -> Path:
 
 
 def write_deterministic_zip(files: dict[str, bytes], out_zip_paths: list[Path]) -> None:
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
-        for k in sorted(files.keys()):
-            zi = zipfile.ZipInfo(filename=k, date_time=(2020, 1, 1, 0, 0, 0))
-            zi.compress_type = zipfile.ZIP_DEFLATED
-            zi.external_attr = 0o644 << 16
-            zf.writestr(zi, files[k], compress_type=zipfile.ZIP_DEFLATED, compresslevel=6)
-    raw = buf.getvalue()
+    raw = las_outfit_pack.zip_bytes((name, files[name]) for name in sorted(files))
     sha = hashlib.sha256(raw).hexdigest()
     for zp in out_zip_paths:
         zp.parent.mkdir(parents=True, exist_ok=True)

@@ -898,10 +898,14 @@
  },
  "reach": {
   "tools/pd2-las/build_christie_las.py": {
-   "build": 84,
-   "functions": 84,
-   "neither": [],
-   "tests": 11,
+   "build": 77,
+   "functions": 80,
+   "neither": [
+    "_insert_faces.owner",
+    "render_material_config.mat",
+    "stitch_sleeve_seams.comp_find"
+   ],
+   "tests": 41,
    "tests_only": []
   },
   "tools/pd2-las/dds_encode.py": {
@@ -928,26 +932,37 @@
    "tests_only": []
   },
   "tools/pd2-las/las_outfit_pack.py": {
-   "build": 5,
-   "functions": 11,
-   "neither": [],
-   "tests": 11,
-   "tests_only": [
-    "_sha",
-    "render_glove_adapter_lua",
+   "build": 6,
+   "functions": 16,
+   "neither": [
+    "hook_lua",
+    "localization",
+    "main_xml",
     "render_hook_lua",
     "render_localization",
     "render_main_xml",
-    "write_pack"
+    "render_unit_xml",
+    "zip_bytes",
+    "zip_pack"
+   ],
+   "tests": 7,
+   "tests_only": [
+    "_sha"
    ]
   },
   "tools/pd2-las/las_pack.py": {
-   "build": 18,
-   "functions": 19,
+   "build": 11,
+   "functions": 18,
    "neither": [
-    "PackIdentity.__repr__"
+    "PackIdentity.__repr__",
+    "refresh_build_info.sha256",
+    "registration",
+    "render_hook_lua",
+    "render_main_xml",
+    "texture_stem",
+    "write_pack.sha256"
    ],
-   "tests": 18,
+   "tests": 11,
    "tests_only": []
   },
   "tools/pd2-port/build_las_pack.py": {

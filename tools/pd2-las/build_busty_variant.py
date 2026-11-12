@@ -47,6 +47,7 @@ import build_models as bm  # noqa: E402
 import determinism  # noqa: E402
 import bust_variant as bv  # noqa: E402
 import las_pack  # noqa: E402
+import las_outfit_pack  # noqa: E402
 from source_model import load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
@@ -447,7 +448,7 @@ def build(args) -> int:
                    for name in ("2b.model", "fps_2b.model")},
         source_zip_sha256=hashlib.sha256(args.source_zip.read_bytes()).hexdigest(),
     )
-    zip_path = las_pack.zip_pack(pack)
+    zip_path = las_outfit_pack.zip_pack(pack)
     zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     (zip_path.parent / f"{zip_path.name}.sha256").write_text(
         f"{zip_sha}  {_display_path(zip_path)}\n")

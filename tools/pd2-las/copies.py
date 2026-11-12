@@ -412,6 +412,22 @@ def s_lines(path: Path) -> dict:
     return out
 
 
+def r_values(path: Path) -> dict:
+    """Function -> the distinct checksums of what its first 40 calls returned."""
+    out = {}
+    if path.is_file():
+        for line in path.read_text(errors="replace").splitlines():
+            if line.startswith("R "):
+                parts = line.split()
+                out.setdefault(parts[1].rsplit("#", 1)[0], set()).add(parts[2])
+    return out
+
+
+def set_mark(values) -> list:
+    """How many different values, and one checksum of them all: enough to tell the same set again."""
+    return [str(len(values)), sha(",".join(sorted(values)))[:16]]
+
+
 def part_trace(label: str) -> None:
     sys.path.insert(0, str(HERE))
     os.environ["PYTHONHASHSEED"] = "0"
@@ -465,7 +481,9 @@ def assemble() -> int:
     steady, unsteady = {}, {}
     for log in sorted((OUT / "trace-a").glob("*.log")):
         a, b = s_lines(log), s_lines(OUT / "trace-b" / log.name)
-        steady[log.stem] = {name: value for name, value in sorted(a.items()) if b.get(name) == value}
+        va, vb = r_values(log), r_values(OUT / "trace-b" / log.name)
+        steady[log.stem] = {name: value + (set_mark(va[name]) if name in va and va[name] == vb.get(name) else ["-", "-"])
+                            for name, value in sorted(a.items()) if b.get(name) == value}
         unsteady[log.stem] = sorted((set(a) | set(b)) - set(steady[log.stem]))
     jobs = {"read": {}, "write": {}}
     for source in (build.get("opens") or {}, golden[0].get("opens") or {}):
@@ -1323,15 +1341,25 @@ def after(mode) -> int:
         before = {}
         for line in (EVIDENCE / "trace" / f"{builder}.txt").read_text().splitlines():
             parts = line.split()
-            before[parts[0]] = parts[1:4]
-        now = s_lines(OUT / "trace-now" / f"{builder}.log")
-        changed = sorted(name for name in before if name in now and now[name] != before[name])
+            before[parts[0]] = parts[1:]
+        now, values = s_lines(OUT / "trace-now" / f"{builder}.log"), r_values(OUT / "trace-now" / f"{builder}.log")
+        changed, recalled = [], []
+        for name in sorted(before):
+            if name in now and now[name] != before[name][:3]:
+                # a function that is called another number of times has another chained checksum; what
+                # counts is whether each call still returns a value it returned before (first 40 calls)
+                was = before[name]
+                same = (len(was) >= 5 and was[4] != "-" and int(was[0]) <= 40 and int(now[name][0]) <= 40
+                        and set_mark(values.get(name, set()))[1] == was[4])
+                (recalled if same else changed).append(name)
         gone = sorted(name for name in before if name not in now)
         new = sorted(name for name in now if name not in before)
-        moved = {name: [other for other in new if now[other] == before[name]] for name in gone}
-        say.append(f"   {builder}: {len(before) - len(changed) - len(gone)} of {len(before)} functions return what they returned; "
+        moved = {name: [other for other in new if now[other] == before[name][:3]] for name in gone}
+        say.append(f"   {builder}: {len(before) - len(changed) - len(recalled) - len(gone)} of {len(before)} functions return what they returned; "
+                   f"{len(recalled)} are called another number of times and return the same values; "
                    f"{len(changed)} return something else; {len(gone)} are gone; {len(new)} are new")
-        say += [f"      RETURNS SOMETHING ELSE {name}: was {' '.join(before[name])}, is {' '.join(now[name])}" for name in changed[:12]]
+        say += [f"      RETURNS SOMETHING ELSE {name}: was {' '.join(before[name][:3])}, is {' '.join(now[name])}" for name in changed[:12]]
+        say += [f"      called {now[name][0]} times, was {before[name][0]}, the same values: {name}" for name in recalled[:12]]
         say += [f"      gone {name}" + (f" (the same values now come from {', '.join(moved[name])})" if moved[name] else "") for name in gone[:20]]
         say += [f"      new {name}" for name in new[:20]]
         bad += bool(changed)

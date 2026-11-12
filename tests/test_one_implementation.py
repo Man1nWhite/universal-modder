@@ -7,6 +7,7 @@ fails when a second copy, or the difference between the copies, comes back.
 from __future__ import annotations
 
 import ast
+import json
 import sys
 import zipfile
 from pathlib import Path
@@ -83,3 +84,92 @@ def test_the_reader_of_the_port_has_no_inverse_of_its_own():
     """`dmodel.minv` was `me2_dae.minv` a second time, and nothing called it."""
     assert not hasattr(dmodel, "minv")
     assert [path.name for path in sorted(PORT.glob("*.py")) if _defines(path, "minv")] == ["me2_dae.py"]
+
+
+# ---------------------------------------------------------------- the files that register a pack
+WRITERS = [LAS / "las_pack.py", LAS / "las_outfit_pack.py", LAS / "build_christie_las.py", REPO / "tools" / "build_joy_head_mods.py"]
+
+
+def _strings(path: Path) -> str:
+    """Every string in the code of a file, docstrings left out."""
+    tree = _tree(path)
+    docs = {id(node.body[0].value) for node in ast.walk(tree)
+            if isinstance(node, (ast.Module, ast.FunctionDef, ast.ClassDef)) and node.body
+            and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant)}
+    return "\n".join(node.value for node in ast.walk(tree)
+                     if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs)
+
+
+def _pack(name: str) -> dict:
+    with zipfile.ZipFile(REPO / "dist" / f"{name}.zip") as z:
+        return {info.filename: z.read(info) for info in z.infolist()}
+
+
+def _registrations() -> dict:
+    """The four packs of tools/pd2-las, each as its own builder describes it to the one writer."""
+    import build_christie_las as christie
+    import las_pack
+
+    strings = json.loads(next(data for member, data in _pack("Miranda_Busty_LAS").items() if member.endswith("english.txt")))
+    busty = las_pack.PackIdentity("miranda_busty", strings["bm_askn_miranda_busty"], strings["bm_askn_miranda_busty_desc"],
+                                  pack_dir_name="Miranda_Busty_LAS")
+    told = {"Miranda_LAS": las_pack.registration(), "Miranda_Busty_LAS": las_pack.registration(busty)}
+    for identity in christie.IDENTITIES.values():
+        textures = [member.rsplit("/", 1)[-1] for member in _pack(identity.pack_dir_name)
+                    if member.endswith(".texture") and "/units/" in member]
+        told[identity.pack_dir_name] = christie.registration(identity, textures, True)
+    return told
+
+
+def test_the_registration_files_have_one_writer():
+    """main.xml, the hook, the strings, the unit file, the glove adapter and the zip are written in one place.
+
+    las_pack.py, las_outfit_pack.py and build_christie_las.py each wrote the
+    first three, two of them the unit file and the zip, two the glove adapter;
+    build_joy_head_mods.py had a zip writer of its own. For the same pack they
+    gave the same bytes but for the differences that are now `Registration`.
+    (tools/pd2-port/build_las_pack.py writes lawson_las in another layout and
+    stays apart: docs/audits/2026-11-12-tool-merge.md.)
+    """
+    marks = {'<Hooks directory="hooks">': "main.xml", "LegendaryArmours = LegendaryArmours or {}": "the hook",
+             "bm_menu_": "the strings", '<unit type="dah" slot="1">': "the unit file", "_GloveAdapter": "the glove adapter"}
+    for mark, what in marks.items():
+        assert [path.name for path in WRITERS if mark in _strings(path)] == ["las_outfit_pack.py"], what
+    zippers = [path.name for path in WRITERS
+               if any(isinstance(node, ast.Attribute) and node.attr == "ZipInfo" for node in ast.walk(_tree(path)))]
+    assert zippers == ["las_outfit_pack.py"], zippers
+
+
+def test_that_writer_gives_each_tracked_pack_its_files():
+    """What the one writer gives for a pack is what the tracked pack has, byte for byte, and so is the zip."""
+    import las_outfit_pack as writer
+
+    for name, told in _registrations().items():
+        files = _pack(name)
+
+        def text(end):
+            return next(data for member, data in files.items() if member.endswith(end)).decode("utf-8")
+
+        assert writer.main_xml(told) == text("/main.xml"), name
+        assert writer.hook_lua(told) == text(f"/hooks/{told.item_id}_las.lua"), name
+        assert writer.localization(told) == text("/localization/english.txt"), name
+        for unit in (told.unit, told.fps_unit):
+            assert writer.render_unit_xml(unit) == text(f"/{unit.rsplit('/', 1)[-1]}.unit"), (name, unit)
+        if told.glove_adapter:
+            assert writer.render_glove_adapter_lua(told.item_id, name) == text(f"/hooks/{told.item_id}_glove_adapter.lua"), name
+    for name in ("Miranda_LAS", "Christie_LAS_Slim", "Miranda_L4D2_over_Joy"):
+        assert writer.zip_bytes(_pack(name).items()) == (REPO / "dist" / f"{name}.zip").read_bytes(), name
+
+
+def test_the_flag_follows_whether_the_pack_has_a_head():
+    """`replace_all` makes LAS replace the heister's head as well; `replace_body` leaves it.
+
+    The copies of the hook differed in exactly this line, and it is no drift:
+    the Miranda packs carry a head and the Christie packs do not.
+    """
+    import las_outfit_pack as writer
+
+    assert set(writer.WHOLE_CHARACTER) ^ set(writer.BODY_ONLY) == {"replace_all", "replace_body"}
+    for name, told in _registrations().items():
+        objects = b"".join(data for member, data in _pack(name).items() if member.endswith(".object") and "/fps_" not in member)
+        assert told.flags is (writer.WHOLE_CHARACTER if b'name="g_head"' in objects else writer.BODY_ONLY), name

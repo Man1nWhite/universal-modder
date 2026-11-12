@@ -79,8 +79,7 @@ VVD_PATH = "models/plasmid/doa5/christie_c2.vvd"
 VTX_PATH = "models/plasmid/doa5/christie_c2.dx90.vtx"
 MAT_DIR = "materials/models/plasmid/doa5/christie/c2/"
 
-HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
-GLOVE_HOOK_SOURCE = "lib/tweak_data/blackmarkettweakdata"
+HOOK_SOURCE = lop.HOOK_SOURCE
 
 #: Horizontal (X/Y) scale for the slim variant; Z (height) is left untouched.
 SLIM_SCALE = 0.9
@@ -142,13 +141,7 @@ IDENTITIES = {
 # Headless LAS contract: replace_body swaps body/arms/hands but leaves the
 # head alone; replace_all would also replace the head and there is no head mesh
 # in this pack, so claiming it would decapitate the heister.
-FLAG_KEYS = (
-    "hide_mask",
-    "hide_armor",
-    "replace_body",
-    "fps_hide_armor",
-    "fps_replace_body",
-)
+FLAG_KEYS = lop.BODY_ONLY
 
 # source material -> (Diesel material slot, texture pair role)
 KEEP_MATERIALS = {
@@ -3469,113 +3462,27 @@ def slim_group(g: bm.Group, template: bm.Template, scale: float = SLIM_SCALE,
     return g
 
 # ---------------------------------------------------------------------------
-# pack XML renderers (same contract as las_pack.py / las_outfit_pack.py)
+# what the pack registers; las_outfit_pack.py writes the files
 # ---------------------------------------------------------------------------
-def render_hook_lua(identity: Identity, with_fps: bool) -> str:
-    flags = ",\n".join(f"\t{k} = true" for k in FLAG_KEYS)
-    lines = [
-        "LegendaryArmours = LegendaryArmours or {}",
-        "la = LegendaryArmours",
-        "",
-        f"la.{identity.item_id} = {{",
-        f'\tcategory = "{identity.item_id}",',
-        "",
-        f'\tunit = "{identity.tpp_unit}",',
-    ]
-    if with_fps:
-        lines.append(f'\tfps_unit = "{identity.fps_unit}",')
-    lines += ["", flags, "}", ""]
-    return "\n".join(lines)
+def registration(identity: Identity, textures=(), with_fps: bool = True) -> lop.Registration:
+    """What a Christie pack tells BeardLib and LAS about itself.
 
-
-def render_glove_adapter_lua(identity: Identity) -> str:
-    """Compat hook restoring vanilla glove behaviour for the no-hands pack.
-
-    Same rationale as las_outfit_pack.render_glove_adapter_lua (LAS 4.1.9's
-    loader forces default_glove_id = false and disables the glove adapter for
-    replace_body outfits): with no authored hands the heister needs a real
-    default glove so "Default" gloves spawn hands, and the adapter must be an
-    empty *table* (BeardLib table.merge would call pairs(true) on a boolean).
+    No head, so `replace_body`. `textures` are the pack's texture files: each
+    `_df` among them registers its df/nm pair by base name. The pack without
+    hands ships the glove adapter (`las_outfit_pack.render_glove_adapter_lua`).
     """
-    key = f"las_{identity.item_id}"
-    return f"""-- {identity.pack_dir_name} LAS: vanilla-suit glove behaviour for {key}.
--- This outfit ships NO hands (cut at the wrist), so the heister's own gloves
--- must spawn: LAS forces default_glove_id = false (no hands at all) and
--- disables the glove adapter. Restore a real default glove, re-enable the
--- adapter, and keep the stock hands visible as fallback.
--- See las_outfit_pack.render_glove_adapter_lua for the full rationale.
-Hooks:PostHook(BlackMarketTweakData, "init", "{identity.item_id}_GloveAdapter", function(self)
-\tlocal ps = self.player_styles and self.player_styles["{key}"]
-\tif not ps then return end
-
-\t-- A real default glove, exactly like the vanilla/DLC suits (LAS's
-\t-- fresh-table read drops this, leaving "Default" gloves with no unit).
-\tps.default_glove_id = "heist_default"
-
-\t-- Enable the adapter with a table (NOT a boolean: BeardLib's table.merge
-\t-- would call pairs(true)). An empty table keeps the default hnd_forearms.
-\tps.glove_adapter = {{}}
-
-\t-- Drop the exclude-list entry LAS added for replace_body.
-\tlocal list = self.glove_adapter and self.glove_adapter.player_style_exclude_list
-\tif list then
-\t\tfor i = #list, 1, -1 do
-\t\t\tif list[i] == "{key}" then table.remove(list, i) end
-\t\tend
-\tend
-
-\t-- Keep the stock hands visible as a guaranteed fallback.
-\tif ps.body_replacement then ps.body_replacement.hands = false end
-\tif ps.third_body_replacement then ps.third_body_replacement.hands = false end
-end)
-"""
+    stems = [name[:-len(".texture")] if name.endswith(".texture") else name for name in sorted(textures)]
+    return lop.Registration(
+        item_id=identity.item_id, display_name=identity.display_name, description=identity.description,
+        unit=identity.tpp_unit, fps_unit=identity.fps_unit if with_fps else None, flags=FLAG_KEYS,
+        pairs=tuple(f"{identity.unit_base}/{stem[:-3]}" for stem in stems if stem.endswith("_df")),
+        glove_adapter=identity.glove_adapter)
 
 
-def render_localization(identity: Identity) -> str:
-    return json.dumps(
-        {
-            f"bm_menu_{identity.item_id}_armor_skins": identity.display_name,
-            f"bm_askn_{identity.item_id}": identity.display_name,
-            f"bm_askn_{identity.item_id}_desc": identity.description,
-        },
-        indent=2,
-    )
 
 
-def render_main_xml(identity: Identity, texture_stems: list[str],
-                    with_fps: bool) -> str:
-    # df_nm registers the PAIR by base name; the engine appends _df/_nm itself
-    def _base(stem: str) -> str:
-        return stem[:-len(".texture")] if stem.endswith(".texture") else stem
-    pairs = "\n".join(
-        f'\t\t\t\t<df_nm path="{identity.unit_base}/{_base(stem)[:-3]}"/>'
-        for stem in sorted(texture_stems) if _base(stem).endswith("_df"))
-    units = [identity.tpp_unit] + ([identity.fps_unit] if with_fps else [])
-    unit_lines = "\n".join(f'\t\t\t\t<unit_mat path="{u}"/>' for u in units)
-    hooks = [f'\t\t<hook file="{identity.item_id}_las.lua" source_file="{HOOK_SOURCE}"/>']
-    if identity.glove_adapter:
-        hooks.append(f'\t\t<hook file="{identity.item_id}_glove_adapter.lua" '
-                     f'source_file="{GLOVE_HOOK_SOURCE}"/>')
-    hook_lines = "\n".join(hooks)
-    return (
-        f'<table name="{identity.display_name}" image="{identity.gui_base}/{identity.item_id}">\n'
-        "\n"
-        '\t<Localization directory="localization" default="english.txt"/>\n'
-        "\n"
-        '\t<Hooks directory="hooks">\n'
-        f"{hook_lines}\n"
-        "\t</Hooks>\n"
-        "\n"
-        '\t<AddFiles directory="assets">\n'
-        "\n"
-        f'\t\t\t\t<texture path="{identity.gui_base}/{identity.item_id}"/>\n'
-        f"{pairs}\n"
-        "\n"
-        f"{unit_lines}\n"
-        "\n"
-        '\t\t\t\t</AddFiles>\n'
-        "</table>\n"
-    )
+
+
 
 
 def render_material_config(identity: Identity, fps: bool,
@@ -3723,15 +3630,13 @@ def write_pack(out_root: Path, identity: Identity, tpp_model: bytes,
     for stem, data in sorted(textures.items()):
         (unit_dir / stem).write_bytes(data)
     (gui_dir / f"{identity.item_id}.texture").write_bytes(icon)
-    (pack / "main.xml").write_text(
-        render_main_xml(identity, sorted(textures), with_fps))
-    (pack / "hooks" / f"{identity.item_id}_las.lua").write_text(
-        render_hook_lua(identity, with_fps))
+    told = registration(identity, textures, with_fps)
+    (pack / "main.xml").write_text(lop.main_xml(told))
+    (pack / "hooks" / f"{identity.item_id}_las.lua").write_text(lop.hook_lua(told))
     if identity.glove_adapter:
         (pack / "hooks" / f"{identity.item_id}_glove_adapter.lua").write_text(
-            render_glove_adapter_lua(identity))
-    (pack / "localization" / "english.txt").write_text(
-        render_localization(identity))
+            lop.render_glove_adapter_lua(identity.item_id, identity.pack_dir_name))
+    (pack / "localization" / "english.txt").write_text(lop.localization(told))
 
     payload = {}
     for path in sorted(pack.rglob("*")):

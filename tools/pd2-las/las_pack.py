@@ -20,7 +20,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import las_outfit_pack as lop  # noqa: E402  (the one writer of the registration files)
 
 ITEM_ID = "miranda"
 CATEGORY = "miranda"
@@ -29,7 +33,7 @@ UNIT_BASE = "units/miranda/skins/miranda"
 GUI_BASE = "guis/dlcs/miranda/armor_skins"
 TPP_UNIT = f"{UNIT_BASE}/miranda"
 FPS_UNIT = f"{UNIT_BASE}/fps_miranda"
-HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
+HOOK_SOURCE = lop.HOOK_SOURCE
 
 DISPLAY_NAME = "Miranda Lawson"
 DESCRIPTION = ("Miranda Lawson joins the Payday Gang. "
@@ -72,43 +76,32 @@ BASE_IDENTITY = PackIdentity(ITEM_ID, DISPLAY_NAME, DESCRIPTION,
                              unit_base=UNIT_BASE, gui_base=GUI_BASE)
 
 
-FLAG_KEYS = (
-    "hide_mask",
-    "hide_armor",
-    "replace_all",
-    "fps_hide_armor",
-    "fps_replace_body",
-)
+FLAG_KEYS = lop.WHOLE_CHARACTER      # these packs bring their own head
+
+
+def registration(identity: PackIdentity | None = None) -> lop.Registration:
+    """What a pack of this family tells BeardLib and LAS about itself.
+
+    Its own head, so `replace_all`; both units; the three df/nm pairs by base
+    name and the eyes, which have no normal map, as a texture on their own.
+    """
+    identity = identity or BASE_IDENTITY
+    unit = identity.unit_base
+    return lop.Registration(
+        item_id=identity.item_id, category=identity.category,
+        display_name=identity.display_name, description=identity.description,
+        unit=identity.tpp_unit, fps_unit=identity.fps_unit, flags=FLAG_KEYS,
+        icon=f"{identity.gui_base}/{identity.icon_name}", hook_file=identity.hook_file,
+        pairs=tuple(f"{unit}/{df_nm_base(pair, identity)}" for pair in DF_NM_PAIRS),
+        textures=tuple(f"{unit}/{texture_stem(role, identity)}" for role in SINGLE_ROLES))
 
 
 def render_hook_lua(identity: PackIdentity | None = None) -> str:
-    identity = identity or BASE_IDENTITY
-    flags = ",\n".join(f"\t{k} = true" for k in FLAG_KEYS)
-    return (
-        "LegendaryArmours = LegendaryArmours or {}\n"
-        "la = LegendaryArmours\n"
-        "\n"
-        f"la.{identity.item_id} = {{\n"
-        f"\tcategory = \"{identity.category}\",\n"
-        "\n"
-        f'\tunit = "{identity.tpp_unit}",\n'
-        f'\tfps_unit = "{identity.fps_unit}",\n'
-        "\n"
-        f"{flags}\n"
-        "}\n"
-    )
+    return lop.hook_lua(registration(identity))
 
 
 def render_localization(identity: PackIdentity | None = None) -> str:
-    identity = identity or BASE_IDENTITY
-    return json.dumps(
-        {
-            f"bm_menu_{identity.item_id}_armor_skins": identity.display_name,
-            f"bm_askn_{identity.item_id}": identity.display_name,
-            f"bm_askn_{identity.item_id}_desc": identity.description,
-        },
-        indent=2,
-    )
+    return lop.localization(registration(identity))
 
 
 # texture base name (on disk) -> role; the pack prefixes every stem with its id.
@@ -138,51 +131,9 @@ def df_nm_base(pair: str, identity: PackIdentity) -> str:
 
 
 def render_main_xml(identity: PackIdentity | None = None) -> str:
-    identity = identity or BASE_IDENTITY
-    unit = identity.unit_base
-    pairs = "\n".join(
-        f'\t\t\t\t<df_nm path="{unit}/{df_nm_base(pair, identity)}"/>'
-        for pair in DF_NM_PAIRS
-    )
-    singles = "\n".join(
-        f'\t\t\t\t<texture path="{unit}/{texture_stem(role, identity)}"/>'
-        for role in SINGLE_ROLES
-    )
-    return (
-        f'<table name="{identity.display_name}" image="{identity.gui_base}/{identity.icon_name}">\n'
-        "\n"
-        '\t<Localization directory="localization" default="english.txt"/>\n'
-        "\n"
-        '\t<Hooks directory="hooks">\n'
-        f'\t\t<hook file="{identity.hook_file}" source_file="{HOOK_SOURCE}"/>\n'
-        "\t</Hooks>\n"
-        "\n"
-        '\t<AddFiles directory="assets">\n'
-        "\n"
-        f'\t\t\t\t<texture path="{identity.gui_base}/{identity.icon_name}"/>\n'
-        f"{pairs}\n"
-        f"{singles}\n"
-        "\n"
-        f'\t\t\t\t<unit_mat path="{identity.tpp_unit}"/>\n'
-        f'\t\t\t\t<unit_mat path="{identity.fps_unit}"/>\n'
-        "\n"
-        "\t\t\t\t</AddFiles>\n"
-        "</table>\n"
-    )
+    return lop.main_xml(registration(identity))
 
 
-def render_unit_xml(unit_base: str) -> str:
-    return (
-        '<?xml version="1.0"?>\n'
-        '<unit type="dah" slot="1">\n'
-        f'\t<object file="{unit_base}" />\n'
-        "\n"
-        "\t<extensions>\n"
-        '\t\t<extension name="unit_data" class="ScriptUnitData" />\n'
-        '\t\t<extension name="contour" class="ContourExt"/>\n'
-        "\t</extensions>\n"
-        "</unit>"
-    )
 
 
 #: The objects of a 2B unit as its two `.object` files list them: name, and whether
@@ -345,7 +296,7 @@ def write_pack(
 
     for unit_base, fps in ((identity.tpp_unit, False), (identity.fps_unit, True)):
         stem = Path(unit_base).name
-        (unit_dir / f"{stem}.unit").write_bytes(render_unit_xml(unit_base).encode("utf-8"))
+        (unit_dir / f"{stem}.unit").write_bytes(lop.render_unit_xml(unit_base).encode("utf-8"))
         (unit_dir / f"{stem}.object").write_bytes(render_object_xml(unit_base, fps).encode("utf-8"))
         (unit_dir / f"{stem}.material_config").write_bytes(
             render_material_config(unit_base, fps, identity).encode("utf-8")
@@ -433,23 +384,3 @@ def refresh_build_info(pack: Path, identity: PackIdentity | None = None, **overr
     info["models_present"] = models_present
     info.update(overrides)
     info_path.write_text(json.dumps(info, indent=2, sort_keys=True) + "\n")
-
-
-def zip_pack(pack: Path) -> Path:
-    """Zip the pack folder in installable layout (top-level = folder name).
-
-    Reproducible: fixed timestamps and permissions so identical content
-    yields an identical archive (release-integrity friendly).
-    """
-    import zipfile
-
-    out = pack.with_suffix(".zip")
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for path in sorted(pack.rglob("*")):
-            if path.is_file():
-                info = zipfile.ZipInfo(path.relative_to(pack.parent).as_posix(),
-                                       date_time=(2020, 1, 1, 0, 0, 0))
-                info.compress_type = zipfile.ZIP_DEFLATED
-                info.external_attr = 0o644 << 16
-                z.writestr(info, path.read_bytes())
-    return out

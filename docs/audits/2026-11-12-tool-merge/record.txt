@@ -64,9 +64,9 @@ reach (functions, reached by a build, by a test; then those reached by neither):
    tools/pd2-port/me2_dae.py: 17 / 17 / 17; neither: 
    tools/pd2-port/dds.py: 22 / 17 / 19; neither: _encode_block, _rgb565, repair_dxt5_texture
    tools/pd2-las/dds_encode.py: 23 / 20 / 18; neither: attenuate_dxt5_alpha_by_block_mask, rgba_to_bgra_dds, set_dxt5_constant_alpha
-   tools/pd2-las/las_pack.py: 19 / 18 / 18; neither: PackIdentity.__repr__
-   tools/pd2-las/las_outfit_pack.py: 11 / 5 / 11; neither: 
-   tools/pd2-las/build_christie_las.py: 84 / 84 / 11; neither: 
+   tools/pd2-las/las_pack.py: 18 / 11 / 11; neither: PackIdentity.__repr__, refresh_build_info.sha256, registration, render_hook_lua, render_main_xml, texture_stem, write_pack.sha256
+   tools/pd2-las/las_outfit_pack.py: 16 / 6 / 7; neither: hook_lua, localization, main_xml, render_hook_lua, render_localization, render_main_xml, render_unit_xml, zip_bytes, zip_pack
+   tools/pd2-las/build_christie_las.py: 80 / 77 / 41; neither: _insert_faces.owner, render_material_config.mat, stitch_sleeve_seams.comp_find
    tools/pd2-port/build_las_pack.py: 23 / 23 / 20; neither: 
 who opens what (function <- tools):
    write .model: build_busty_variant.build <- build_busty_variant; build_christie_las.main <- build_christie_las; build_christie_las.write_pack <- build_christie_las; build_joy_head_mods.ensure_ada_reference <- build_joy_head_mods; build_las_pack.validate <- build_las_pack; build_models.main <- build_models; check_guide_compliance.audit <- check_guide_compliance,check_guide_compliance_christie,check_guide_com; las_pack.install_models <- build_busty_variant,build_models

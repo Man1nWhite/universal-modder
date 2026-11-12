@@ -957,7 +957,8 @@ class TestLasScaffold:
         import shutil
         import zipfile
 
-        from las_pack import refresh_build_info, zip_pack
+        from las_pack import refresh_build_info
+        from las_outfit_pack import zip_pack
 
         clone = tmp_path / "Miranda_LAS"
         shutil.copytree(pack, clone)
