@@ -1,5 +1,8 @@
 # Miranda LAS: the busty `.object` and the mip levels of the face and the eyes
 
+> Note of 2026-11-12: `tools/pd2-las/bootstrap.sh`, which this record names, was retired later. The environment is
+> `make -sC tools/pd2-las env` (`recover_env.sh`): `docs/audits/2026-11-12-tool-merge.md`.
+
 Dated 2026-11-11. Two defects in `Miranda_LAS` and `Miranda_Busty_LAS` were fixed and six packs were
 re-shipped: those two, and the four `Miranda_L4D2_over_*` head packs, which are built from the face texture
 inside `dist/Miranda_LAS.zip`. This page is the evidence: what was read, what was measured, with what, and

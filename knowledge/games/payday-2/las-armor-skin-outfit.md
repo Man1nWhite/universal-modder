@@ -29,8 +29,8 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 > `docs/audits/2026-10-19-las-guide-compliance.md`. What remains: the user-side
 > in-game checklist (`docs/pd2-las/in-game-checklist.md`) and the ME2
 > redistribution-rights gate before any public release. Start-here doc for the
-> next agent: `tools/pd2-las/README.md`; one-command rebuild:
-> `bash tools/pd2-las/bootstrap.sh`.
+> next agent: `tools/pd2-las/README.md`; the environment, then every pack rebuilt and compared:
+> `make -sC tools/pd2-las env fresh`.
 
 ## Setup
 
@@ -95,9 +95,9 @@ a broken rig this time — the L4D2 mod is a complete, working character model
 ## Build steps
 
 ```sh
-bash tools/pd2-las/bootstrap.sh    # venv + 2B templates + build + tests + lint
+make -sC tools/pd2-las env fresh test   # venv + 2B templates; every pack rebuilt and compared; the suite
 # or, manually:
-python tools/pd2-las/build_models.py   # --templates defaults to build/pd2-las/2b/…, where bootstrap.sh unpacks 2b.rar
+python tools/pd2-las/build_models.py   # --templates defaults to build/pd2-las/2b/…, where `make env` unpacks 2b.rar
 python -m pytest -q tests/
 ```
 
@@ -178,7 +178,7 @@ source zip hash, 2B template input hashes) lives in
     git so the worktree looks like untracked files on `66cfdb7`. **Cause:**
     sandbox snapshot restore. **Fix:** the work is on the remote —
     `git fetch && git reset --hard origin/<branch>`, then
-    `bash tools/pd2-las/bootstrap.sh`. Push early; this happened 3×.
+    `make -sC tools/pd2-las env`. Push early; this happened 3×.
     The reset is only right when everything local is already on the remote
     (`git log origin/<branch>..HEAD` empty, `git status` clean of real edits):
     it discards whatever was never pushed. A later kind of restart keeps the

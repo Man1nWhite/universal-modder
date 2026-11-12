@@ -1,8 +1,8 @@
 """`tools/pd2-las/status.py` is the one-call orientation for the pd2-las tree.
 
 The README points at it instead of describing the state in prose, so it has to
-stay true: valid JSON, the same checksums as the sidecars, the pins that
-bootstrap.sh installs. The same goes for the rest of the README's command
+stay true: valid JSON, the same checksums as the sidecars, the pins of
+pins.txt. The same goes for the rest of the README's command
 surface: the Makefile targets, the builders' `--templates` default, and the
 tests and paths the README names.
 """
@@ -83,21 +83,28 @@ def test_status_agrees_with_the_checksum_sidecars():
         assert isinstance(pack["runtime_verified"], bool), name
 
 
-def test_status_reads_its_pins_from_bootstrap():
-    """One place for the pinned versions: bootstrap.sh. Everything else installs the same ones.
+def test_the_pins_are_written_once():
+    """One place for the pinned versions: tools/pd2-las/pins.txt.
 
-    The tracked zips only rebuild byte for byte with these pillow/numpy versions, so an
-    environment script or a CI job that drifts from them produces "different" packs that
-    are only byte drift.
+    The tracked zips only rebuild byte for byte with these pillow/numpy versions. They
+    used to be written in four places (two environment scripts, two workflows) that this
+    test kept equal. Now every install that names a pinned package takes pins.txt as its
+    constraints file, and none writes a version of its own.
     """
     status = _load()
     pins = status.pins()
     assert set(pins) == set(status.PINNED), pins
+    named = re.compile(r"\b(%s)\b" % "|".join(pins))
     for rel in ("tools/pd2-las/recover_env.sh", ".github/workflows/test.yml",
                 ".github/workflows/lawson-las.yml"):
         text = (REPO / rel).read_text()
-        for name, version in pins.items():
-            assert f"{name}=={version}" in text, f"{rel} does not install {name}=={version}"
+        installs = [line.strip() for line in text.splitlines()
+                    if "pip install" in line and not line.lstrip().startswith("#") and named.search(line)]
+        assert installs, f"{rel} installs none of {sorted(pins)}"
+        for line in installs:
+            assert "-c tools/pd2-las/pins.txt" in line, f"{rel} installs a pinned package without pins.txt: {line}"
+        for name in pins:
+            assert f"{name}==" not in text, f"{rel} writes a version of {name} of its own"
 
 
 def test_status_only_names_inputs_and_builders_that_exist():
@@ -303,7 +310,7 @@ def test_the_2b_templates_have_one_home_inside_the_repo():
         ignored = subprocess.run([git, "check-ignore", "-q", str(unpacked)], cwd=REPO)
         assert ignored.returncode == 0, "build/pd2-las/2b/ must stay gitignored"
 
-    for script in ("recover_env.sh", "bootstrap.sh"):
+    for script in ("recover_env.sh",):
         assert "tools/pd2-las/extract_2b.py" in (HERE / script).read_text(), script
 
     old = ("2b" + "src", "tmp" + "src", TMP + "/" + "rarx")        # not spelled out: this file is scanned too
@@ -387,7 +394,7 @@ def test_env_scripts_do_not_trust_a_venv_without_pip():
     `.venv/bin/pip`, which is not there. The first run of the fresh-build step on a
     GitHub runner died of it within a second, with nothing built (2026-11-12).
     """
-    for rel in ("tools/pd2-las/recover_env.sh", "tools/pd2-las/bootstrap.sh"):
+    for rel in ("tools/pd2-las/recover_env.sh",):
         lines = (REPO / rel).read_text(encoding="utf-8").splitlines()
         code = "\n".join(line for line in lines if not line.lstrip().startswith("#"))
         assert "bin/pip" not in code, f"{rel} calls a pip script; use `python -m pip`"

@@ -1,5 +1,8 @@
 # Historical recheck: the original 11-frame Christie slim review
 
+> Note of 2026-11-12: `tools/pd2-las/bootstrap.sh`, which this record names, was retired later. The environment is
+> `make -sC tools/pd2-las env` (`recover_env.sh`): `docs/audits/2026-11-12-tool-merge.md`.
+
 > The screenshot archive has since been replaced **twice** — with a 15-frame
 > batch on 2026-11-07 and with the current 8-frame batch on 2026-11-10. This
 > document rechecks the *original 11-frame* version of the review, not either

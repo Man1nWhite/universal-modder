@@ -211,6 +211,6 @@ Each was true of older bytes or of an older tree; none is true of what is tracke
 | "unit scale exactly 2.54" | nothing multiplies by 2.54. The per-bone fits carry the scale: by surface area the Miranda mesh is 2.90 × its source in third person and 2.35 × in first person |
 | "shadow signed volume ≈ 81572 (tpp) / 1188 (fps)" | `Miranda_LAS`: 72,178.6 cm³ in third person. The first-person arms are an open mesh, so their figure (1,846.2) is not a volume and no test uses it |
 | "boot soles ~12 cm below ground" | the lowest vertex of the `Miranda_LAS` body is at z = −0.75 cm |
-| "a clean `bootstrap.sh` still yields a different base pack" (2026-11-05) | all four LAS packs rebuild to the tracked sha256, on any x86-64 Linux machine since 2026-11-12 (D26) |
+| "a clean `bootstrap.sh` still yields a different base pack" (2026-11-05) | all four LAS packs rebuild to the tracked sha256, on any x86-64 Linux machine since 2026-11-12 (D26); the script itself is retired (D28) |
 | "without the 2B templates `pytest` cannot collect"; "`pyflakes` is not clean"; "the worktree carries an uncommitted neck patch" (2026-11-10) | the suite collects and passes without the templates, with skips; `pyflakes um tools tests` is clean; the patch is part of the history |
 | "fits more than 30° from the global rotation inherit the nearest kept ancestor" | that filter is not in the code: `DECISIONS.md`, D6 |

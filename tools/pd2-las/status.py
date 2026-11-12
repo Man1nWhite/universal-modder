@@ -9,7 +9,7 @@ an agent otherwise spends its first tool calls finding out:
 
 - ``inputs``:    are the source and reference archives in the checkout?
 - ``env``:       is there a ``.venv``, and does it carry the pillow/numpy
-                 versions ``bootstrap.sh`` pins? The tracked zips only rebuild
+                 versions ``pins.txt`` names? The tracked zips only rebuild
                  byte for byte with those.
 - ``templates``: are the 2B templates unpacked where the builders'
                  ``--templates`` default and the tests look for them
@@ -64,8 +64,8 @@ PINNED = ("pillow", "numpy")
 
 
 def pins() -> dict[str, str]:
-    """The versions bootstrap.sh installs - the one place they are written."""
-    text = (HERE / "bootstrap.sh").read_text(encoding="utf-8")
+    """The pinned versions, from pins.txt - the one place they are written."""
+    text = (HERE / "pins.txt").read_text(encoding="utf-8")
     return {name: version for name, version in
             re.findall(r"\b(%s)==([0-9][0-9A-Za-z.]*)" % "|".join(PINNED), text)}
 

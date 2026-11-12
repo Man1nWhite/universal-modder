@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The 2B reference pack: where its templates live, and how they get there.
 
-    python3 tools/pd2-las/extract_2b.py     # idempotent; recover_env.sh and bootstrap.sh run it
+    python3 tools/pd2-las/extract_2b.py     # idempotent; recover_env.sh runs it
 
 ``references/2b.rar`` is unpacked as it is into ``build/pd2-las/2b/`` (gitignored
 with the rest of ``build/``). The two models every builder skins onto end up in

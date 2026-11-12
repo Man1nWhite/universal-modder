@@ -38,7 +38,7 @@ PACK = REPO / "dist" / "Christie_LAS.zip"
 
 pytestmark = pytest.mark.skipif(
     not PACK.is_file(),
-    reason="Christie base pack not built (run tools/pd2-las/bootstrap.sh)",
+    reason="Christie base pack not built (run make -sC tools/pd2-las christie)",
 )
 
 

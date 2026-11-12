@@ -1220,3 +1220,17 @@
   and the character renders. If it still crashes, collect the new crash.txt and
   the exact install path; remaining unknowns are model deformation, animation
   binding and texture orientation.
+
+## 2026-11-12 — `dmodel.py` no longer carries a hash of its own
+
+- `hash64` and the 13 tag numbers it shares with
+  `tools/pd2-las/diesel_model.py` are taken from there: the same value on
+  20,261 inputs, and `lawson_las` rebuilds to the same bytes. `dmodel.minv`,
+  which nothing called, is gone; `me2_dae.minv` is the inverse of this
+  pipeline.
+- `tools/pd2-las/bootstrap.sh`, named above, is retired:
+  `make -sC tools/pd2-las env`.
+- Open: `dmodel` does not undo the legacy shift of geometry channel types, so
+  it misreads skinned legacy models (471 of 826 geometry sections measured).
+  `lawson_las` is DODB and is read right.
+  `docs/audits/2026-11-12-tool-merge.md`.

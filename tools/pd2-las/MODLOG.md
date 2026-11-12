@@ -599,3 +599,22 @@
 - **Removed:** `fresh_check.py`, its tests, the first D26, the README's item under Next.
 - Twelve packs re-shipped; `lawson_las` and `Geralt_over_Rust` unchanged; the mip audit keeps its nine known
   misses. After the fix, four runners (two of them without AVX-512) built all 16 zips to the tracked sha256.
+
+## 2026-11-12 — one implementation where there were two or three
+
+- Three jobs that more than one piece of code did are merged, and no byte of a
+  tracked pack changed: the files that register a pack (`las_outfit_pack.py`
+  writes them, and a pack's choices are a `Registration`); the environment
+  (`recover_env.sh` only, the pins in `pins.txt`); and of the `.model` code the
+  idstring hash and the tag numbers (`diesel_model.py`). The record is
+  `docs/audits/2026-11-12-tool-merge.md`; the decisions are D27, D28 and D29.
+- `bootstrap.sh` is retired. The entries above that name it describe a script
+  that no longer exists. The environment is `make -sC tools/pd2-las env`, and
+  what only that script installed (lupa, sourcepp) is
+  `bash tools/pd2-las/recover_env.sh --extras`.
+- Found by comparing the copies and not fixed: `tools/pd2-port/dmodel.py`
+  misreads the skinned geometry of legacy models, so
+  `check_guide_compliance.py` stops on every pack but `lawson_las`; and the
+  tests that run a pack's Lua in an interpreter skip after `make env` and in
+  CI, for want of lupa.
+- `copies.py` holds the evidence: `record`, `compare`, `after`.

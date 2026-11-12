@@ -65,7 +65,7 @@ make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases ar
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
 | `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, status, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and the rounding with a margin; tangent frames from the values the file stores; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
-| `bootstrap.sh` | everything from scratch: environment, rebuilds, every `.sha256`, tests, lint |
+| `pins.txt`, `copies.py` | the two pinned versions, written once (`recover_env.sh`, CI and `status.py` read them); what a merge of two tools is held to: `record`, `compare`, `after` |
 
 ## Invariants
 

@@ -174,7 +174,7 @@ the artifact was not, because the 2B templates were unavailable. It is now rebui
 
 Two consecutive rebuilds produce identical bytes (deterministic). `tests/test_bust_variant.py::
 test_shipped_busty_drawable_normals_are_unit_length` now pins the artifact, so a stale zip fails the
-suite instead of shipping. Rebuild with `bash tools/pd2-las/bootstrap.sh` on a machine with node (it
+suite instead of shipping. Rebuild with `make -sC tools/pd2-las env busty` on a machine with node (`env`
 unpacks `references/2b.rar` for the templates).
 
 ## The keyhole lip was folded inside out (2026-11-05)

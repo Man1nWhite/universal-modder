@@ -24,8 +24,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: install deps
-        run: python -m pip install --upgrade pip "pillow==13.0.0" "numpy==2.4.6" "pyyaml>=6" pytest scipy
-        # scipy is a hard dependency: bootstrap.sh installs it and the
+        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy "pyyaml>=6" pytest scipy
+        # The versions of pillow and numpy are those of tools/pd2-las/pins.txt.
+        # scipy is a hard dependency: the slim build needs it and the
         # elbow-depth test in tests/test_christie_las.py imports it.
       # ffmpeg is only for test_compile_small_edl. Without recommends apt skips mesa, VA/VDPAU drivers and
       # pocketsphinx-en-us (about half the download), and with man-db's auto-update off dpkg skips the man-page

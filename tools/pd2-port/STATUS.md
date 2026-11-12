@@ -207,9 +207,9 @@ A parallel agent session works on `arena/136395ac-universal-modder` (branch
 * `docs/pd2-las/HANDOFF.md` — then a 5-minute start-here; today the dated
   record of that pipeline (tracked bytes, in-game sightings, dead ends), with
   `tools/pd2-las/README.md` as its start-here;
-* `tools/pd2-las/bootstrap.sh` — one command from a clean checkout (or after
-  a sandbox wipe) to a built pack and green tests: venv, 2B template
-  extraction, build, pytest, pyflakes;
+* `make -sC tools/pd2-las env` (`tools/pd2-las/recover_env.sh`) — from a clean
+  checkout (or after a sandbox wipe) to the pinned venv and the 2B templates;
+  the targets `fresh` and `test` then rebuild every pack and run the suite;
 * `knowledge/games/payday-2/las-armor-skin-outfit.md` — its own knowledge
   note (a different file from the one this branch edits, so the two do not
   conflict textually).

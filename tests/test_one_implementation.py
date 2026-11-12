@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 import sys
 import zipfile
 from pathlib import Path
@@ -173,3 +174,22 @@ def test_the_flag_follows_whether_the_pack_has_a_head():
     for name, told in _registrations().items():
         objects = b"".join(data for member, data in _pack(name).items() if member.endswith(".object") and "/fps_" not in member)
         assert told.flags is (writer.WHOLE_CHARACTER if b'name="g_head"' in objects else writer.BODY_ONLY), name
+
+
+# ---------------------------------------------------------------- the environment
+def test_one_script_makes_the_environment_and_the_pins_are_written_once():
+    """`bootstrap.sh` made the same venv as `recover_env.sh`, and four files wrote the two pins.
+
+    After the venv part of either script, every package both installed had the
+    same version. What only bootstrap.sh added, lupa and sourcepp, is
+    `recover_env.sh --extras`; what it did after that (build four packs, run the
+    suite, lint) are the Makefile's `all`, `fresh` and `test` and CI's lint step.
+    """
+    scripts = sorted(path.relative_to(REPO).as_posix() for path in (REPO / "tools").rglob("*.sh")
+                     if "-m venv" in path.read_text(encoding="utf-8"))
+    assert scripts == ["tools/pd2-las/recover_env.sh"], scripts
+    assert not (LAS / "bootstrap.sh").exists()
+    pinned = re.compile(r"\b(pillow|numpy)==")
+    places = [*(REPO / "tools").rglob("*.sh"), *LAS.glob("*.txt"), *(REPO / ".github" / "workflows").glob("*.yml")]
+    writers = sorted(path.relative_to(REPO).as_posix() for path in places if pinned.search(path.read_text(encoding="utf-8")))
+    assert writers == ["tools/pd2-las/pins.txt"], writers

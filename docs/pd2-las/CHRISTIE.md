@@ -188,7 +188,7 @@ bit-identical.
 Packs rebuilt: `9e7c2d8213463d85c75190b1d3dcf4c4088aeee2d6065ce001320c47094fd95c`
 base, `7a4d010c7e15e92615cf3aedcbbc11ce69781e4b15ab8a461e4d0a88190a3e6f` slim
 (previously `196606c0…`/`ee85fc15…`).
-Also `bootstrap.sh` now installs **scipy**, which the slim build needs
+Also the environment (`make -sC tools/pd2-las env`) installs **scipy**, which the slim build needs
 (`_elbow_coverage_correction`) and which a clean bootstrap used to miss.
 **2026-11-11 forearm normal rotation:** `rebind_arms_at_idle` now rotates
 stored normals by the same LBS skinning matrix that poses the vertices
