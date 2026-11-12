@@ -46,7 +46,10 @@ OUT = REPO / "build" / "copies"
 TOOLS = OUT / "tools"
 EVIDENCE = REPO / "docs" / "audits" / "2026-11-12-tool-merge"
 BASE = "26fce3e03de22d1466636d4b22764601f0541f02"            # the last commit before any merge: the copies are compared as they were there
-TEMPLATES = "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b"
+sys.path.insert(0, str(HERE))
+import extract_2b  # noqa: E402  (it owns where the 2B templates are)
+
+TEMPLATES = os.path.relpath(extract_2b.TEMPLATES, REPO)
 
 # the files that hold the copies
 COPIES = [
@@ -91,6 +94,9 @@ GOLDEN = [
     ("um_kb_check", ["-m", "um", "kb", "check", "--index"]),
     ("um_publish_check", ["-m", "um", "publish", "check", "."]),
 ]
+
+# these walk every file of the tree and count: a new file changes the numbers they print, not what they find
+WHOLE_TREE = {"um_kb_check", "um_publish_check"}
 
 INTEREST = [".model", ".texture", ".dds", ".zip", "main.xml", ".lua", "english.txt", ".unit", ".object", ".material_config",
             "BUILD_INFO.json", ".sha256", ".vtf", ".gma", ".vpk", ".rar", ".dae", ".smd"]
@@ -308,6 +314,7 @@ def steady_text(text: str, tree: Path, scratch: Path) -> str:
     for path, token in ((scratch, "<scratch>"), (tree, "<tree>"), (REPO, "<repo>")):
         text = text.replace(str(path), token)
     text = re.sub(re.escape(tempfile.gettempdir()) + r"/[\w.\-]+", "<tmp>", text)
+    text = re.sub(r'(File "[^"\n]*", line )\d+', r"\1N", text)      # a traceback names lines; a file that lost some keeps its error
     return re.sub(r"\b\d+(?:\.\d+)?\s?(?:s|ms|sec|secs|seconds)\b", "<time>", text)
 
 
@@ -385,6 +392,8 @@ def part_golden(run: int) -> None:
         except subprocess.TimeoutExpired:
             rc, text = "timeout", ""
         text = steady_text(text, tree, scratch)
+        if name in WHOLE_TREE:
+            text = re.sub(r"\d+", "N", text)
         (base / f"{name}.txt").write_text(text)
         commands[name] = {"rc": rc, "seconds": round(time.time() - started, 1), "lines": text.count("\n"), "printed": sha(text),
                           "written": written(logdir, tree, scratch)}
@@ -1253,9 +1262,7 @@ def part_suite_plain() -> None:
                        "failed": re.findall(r"^FAILED (\S+)", done.stdout, flags=re.M)})
 
 
-def after(quick: bool) -> int:
-    """What the tree gives now, against the reference: packs, suite, every builder's trace, every recorded output."""
-    reference = json.loads((EVIDENCE / "reference.json").read_text())
+def run_after(quick: bool) -> None:
     (OUT / "parts").mkdir(parents=True, exist_ok=True)
     for name in ("fresh-now", "suite-now", "golden9", "trace-now"):
         (OUT / "parts" / f"{name}.json").unlink(missing_ok=True)
@@ -1268,6 +1275,41 @@ def after(quick: bool) -> int:
         thread.start()
     for thread in threads:
         thread.join()
+
+
+def first_difference(name: str) -> str:
+    before, now = OUT / "run1" / f"{name}.txt", OUT / "run9" / f"{name}.txt"
+    if not (before.is_file() and now.is_file()):
+        return ""
+    for x, y in zip(before.read_text().splitlines(), now.read_text().splitlines()):
+        if x != y:
+            return f"was `{x.strip()[:90]}`, is `{y.strip()[:90]}`"
+    return "one prints more lines than the other"
+
+
+def rehash() -> int:
+    """The rules of `steady_text` as they are now, applied to the saved texts of the reference runs and of the last run."""
+    for run in (1, 2, 9):
+        base, data = OUT / f"run{run}", part(f"golden{run}")
+        for name, row in (data.get("commands") or {}).items():
+            path = base / f"{name}.txt"
+            if path.is_file():
+                text = steady_text(path.read_text(), base / "tree", base / "scratch")
+                if name in WHOLE_TREE:
+                    text = re.sub(r"\d+", "N", text)
+                path.write_text(text)
+                row["printed"] = sha(text)
+        if data:
+            save(f"golden{run}", data)
+    return 0
+
+
+def after(mode) -> int:
+    """What the tree gives now, against the reference: packs, suite, every builder's trace, every recorded output."""
+    reference = json.loads((EVIDENCE / "reference.json").read_text())
+    quick = mode == "quick"
+    if mode != "recheck":
+        run_after(quick)
     say, bad = [], 0
     if not quick:
         fresh_now, suite_now = part("fresh-now"), part("suite-now")
@@ -1302,7 +1344,7 @@ def after(quick: bool) -> int:
         if got["rc"] != want["rc"]:
             unlike.append(f"{name}: exit {got['rc']}, was {want['rc']}")
         if want["printed"] and got["printed"] != want["printed"]:
-            unlike.append(f"{name}: prints something else")
+            unlike.append(f"{name}: prints something else: {first_difference(name)}")
         unlike += [f"{name}: wrote another {path}" for path, digest in want["written"].items() if got["written"].get(path) != digest]
     tools = len(reference["outputs"])
     say.append(f"outputs: {tools - len({line.split(':')[0] for line in unlike})} of {tools} tools give what they gave")
@@ -1316,16 +1358,16 @@ def after(quick: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["record", "assemble", "compare", "report", "after", "_build", "_suite", "_lint", "_golden", "_trace",
+    ap.add_argument("command", choices=["record", "assemble", "compare", "report", "rehash", "after", "_build", "_suite", "_lint", "_golden", "_trace",
                                         "_cmp_files", "_cmp_env", "_cmp_tests", "_fresh", "_suite_plain"])
     ap.add_argument("arg", nargs="?")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
-    whole = {"record": record, "assemble": assemble, "compare": compare, "report": compare_report}
+    whole = {"record": record, "assemble": assemble, "compare": compare, "report": compare_report, "rehash": rehash}
     if args.command in whole:
         return whole[args.command]()
     if args.command == "after":
-        return after(args.arg == "quick")
+        return after(args.arg)
     if args.command == "_golden":
         part_golden(int(args.arg))
     elif args.command == "_trace":

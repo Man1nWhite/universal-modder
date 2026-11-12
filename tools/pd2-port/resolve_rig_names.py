@@ -4,7 +4,7 @@
 The LAS rig contract (``reference/las_rig.json``) was extracted from the 2B
 reference model, whose finger bones carry only a name *hash* (the Model Tool
 writes names when the PAYDAY-2-Hashlist is installed). The hash is the
-lookup3 variant in ``dmodel.hash64``, so the names can be recovered offline:
+lookup3 variant in ``diesel_model.hash64``, so the names can be recovered offline:
 hash the PD2 naming convention's candidates and keep the ones that match a
 bone's stored hash. The stored hash is never modified - only the human
 readable ``name`` field is filled in.

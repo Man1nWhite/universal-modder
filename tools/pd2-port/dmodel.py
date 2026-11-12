@@ -7,52 +7,20 @@ here use it, and so do other PAYDAY 2 tools in this repository. The writer for
 DODB containers is las_model.py. Formats per Research
 Notes/format_documentation.md in the payday2-model-tool repo and its C#
 sources (ModelReader.cs, Sections/*.cs, Hash64.cs).
+
+The idstring hash and the numbers of the section tags are not written here a
+second time: they are those of tools/pd2-las/diesel_model.py.
 """
 import struct, sys
 from pathlib import Path
 
-# ---------- idstring hash (port of Hash64.cs, Jenkins lookup3 variant) ----------
-M64 = 0xFFFFFFFFFFFFFFFF
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pd2-las"))
+from diesel_model import TAG_NAMES, hash64  # noqa: E402
 
-def _mix(a, b, c):
-    a = (a - b) & M64; a = (a - c) & M64; a = (a ^ (c >> 43)) & M64
-    b = (b - c) & M64; b = (b - a) & M64; b = (b ^ ((a << 9) & M64)) & M64
-    c = (c - a) & M64; c = (c - b) & M64; c = (c ^ (b >> 8)) & M64
-    a = (a - b) & M64; a = (a - c) & M64; a = (a ^ (c >> 38)) & M64
-    b = (b - c) & M64; b = (b - a) & M64; b = (b ^ ((a << 23) & M64)) & M64
-    c = (c - a) & M64; c = (c - b) & M64; c = (c ^ (b >> 5)) & M64
-    a = (a - b) & M64; a = (a - c) & M64; a = (a ^ (c >> 35)) & M64
-    b = (b - c) & M64; b = (b - a) & M64; b = (b ^ ((a << 49) & M64)) & M64
-    c = (c - a) & M64; c = (c - b) & M64; c = (c ^ (b >> 11)) & M64
-    a = (a - b) & M64; a = (a - c) & M64; a = (a ^ (c >> 12)) & M64
-    b = (b - c) & M64; b = (b - a) & M64; b = (b ^ ((a << 18) & M64)) & M64
-    c = (c - a) & M64; c = (c - b) & M64; c = (c ^ (b >> 22)) & M64
-    return a, b, c
-
-def hash64(k: bytes, level=0) -> int:
-    a = b = level
-    c = 0x9E3779B97F4A7C13
-    ln = len(k); i = 0
-    while ln - i >= 24:
-        a = (a + int.from_bytes(k[i:i+8], 'little')) & M64
-        b = (b + int.from_bytes(k[i+8:i+16], 'little')) & M64
-        c = (c + int.from_bytes(k[i+16:i+24], 'little')) & M64
-        a, b, c = _mix(a, b, c)
-        i += 24
-    tail = k[i:]
-    c = (c + len(k)) & M64
-    # tail switch: bytes 16..22 -> c (shift 8*(i-15); c's LSB holds length),
-    # 8..15 -> b, 0..7 -> a
-    for idx in range(min(len(tail), 23) - 1, -1, -1):
-        byte = tail[idx]
-        if idx >= 16:   c = (c + (byte << (8 * (idx - 15)))) & M64
-        elif idx >= 8:  b = (b + (byte << (8 * (idx - 8)))) & M64
-        else:           a = (a + (byte << (8 * idx))) & M64
-    a, b, c = _mix(a, b, c)
-    return c
 
 def hash_str(s: str) -> int:
-    return hash64(s.encode('utf-8'))
+    """The idstring hash of a name given as text."""
+    return hash64(s)
 
 class Hashlist:
     def __init__(self, *paths):
@@ -90,14 +58,13 @@ class BR:
         v = self.d[self.p:self.p+n]; self.p += n; return v
 
 # ---------- tags (Utils.cs) ----------
+# The thirteen kinds of section a model of this repository carries have their
+# numbers in diesel_model.TAG_NAMES. These are the seven more a reader can meet.
 TAGS = {
-    0x5DC011B8: 'animation_data', 0x7623C465: 'author', 0x29276B1D: 'material_group',
-    0x3C54609C: 'material', 0x0FFCD100: 'object3D', 0x62212D88: 'model_data',
-    0x7AB072D3: 'geometry', 0x4C507A13: 'topology', 0xE3A3B1CA: 'passthroughGP',
-    0x03B634BD: 'topologyIP', 0x648A206C: 'quatLinearRotCtrl', 0x197345A5: 'quatBezRotCtrl',
-    0x65CC1825: 'skinbones', 0x0EB43C77: 'bones', 0xFFA13B80: 'light', 0x33552583: 'lightSet',
+    **TAG_NAMES,
+    0x648A206C: 'quatLinearRotCtrl', 0x197345A5: 'quatBezRotCtrl',
+    0xFFA13B80: 'light', 0x33552583: 'lightSet',
     0x26A5128C: 'linearVector3Ctrl', 0x76BF5B66: 'linearFloatCtrl', 0x46BF31A7: 'camera',
-    0x7C7844FD: 'custom_hashlist',
 }
 TAGS_INV = {v: k for k, v in TAGS.items()}
 
@@ -343,20 +310,6 @@ class DieselModel:
 
 def mmul(a, b):
     return [[sum(a[i][k]*b[k][j] for k in range(4)) for j in range(4)] for i in range(4)]
-
-def minv(m):
-    """4x4 inverse (row-major)."""
-    n = [row[:] + [1.0 if i == j else 0.0 for j in range(4)] for i, row in enumerate(m)]
-    for col in range(4):
-        piv = max(range(col, 4), key=lambda r: abs(n[r][col]))
-        n[col], n[piv] = n[piv], n[col]
-        d = n[col][col] or 1e-12
-        n[col] = [x / d for x in n[col]]
-        for r in range(4):
-            if r != col and n[r][col]:
-                f = n[r][col]
-                n[r] = [x - f*y for x, y in zip(n[r], n[col])]
-    return [row[4:] for row in n]
 
 if __name__ == '__main__':
     model_path = sys.argv[1]

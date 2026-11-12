@@ -233,7 +233,7 @@ LAS flags to be switched **on**, not merely present).
     names only with the PAYDAY-2-Hashlist installed), so there were no names
     to map onto and every finger token was folded to the hand. **Fix.**
     Recover the names offline — the contract's hash is the lookup3 variant in
-    `dmodel.hash64`, so hash PD2's naming convention
+    `diesel_model.hash64`, so hash PD2's naming convention
     (`LeftHandThumb1..3`, `LeftHandIndex1..3`, `LeftHandMiddle1..3`,
     `LeftHandRing1..3`, `LeftHandPinky1..3` and the Right set) and match it
     against the stored `name_hash` values (`resolve_rig_names.py` in

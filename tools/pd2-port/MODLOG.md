@@ -684,7 +684,7 @@
 - **Fix, step 1 — recover the bone names offline.** The contract stores a
   name *hash* per bone (the Model Tool writes names only with the
   PAYDAY-2-Hashlist installed). The hash is the lookup3 variant in
-  `dmodel.hash64`, so PD2's naming convention can be hashed and matched
+  `diesel_model.hash64`, so PD2's naming convention can be hashed and matched
   against the stored hashes: 30 of 187 hash-only bones resolve
   (`LeftHandThumb1..3`, `LeftHandIndex1..3`, `LeftHandMiddle1..3`,
   `LeftHandRing1..3`, `LeftHandPinky1..3` and the Right set). New tool

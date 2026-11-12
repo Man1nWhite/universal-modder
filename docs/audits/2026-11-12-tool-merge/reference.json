@@ -658,14 +658,14 @@
   },
   "check_guide_compliance_christie": {
    "lines": 26,
-   "printed": "290104c43231d30e3fb8b22175f4e2f72ff232272af9785afa9755bc9e1bad0f",
+   "printed": "9cd8a63306552f4d5e76a7b6b93cf89efb31826477b9a9f43858db409f6e7eb7",
    "rc": 1,
    "unsteady_files": [],
    "written": {}
   },
   "check_guide_compliance_miranda": {
    "lines": 26,
-   "printed": "290104c43231d30e3fb8b22175f4e2f72ff232272af9785afa9755bc9e1bad0f",
+   "printed": "9cd8a63306552f4d5e76a7b6b93cf89efb31826477b9a9f43858db409f6e7eb7",
    "rc": 1,
    "unsteady_files": [],
    "written": {}
@@ -686,14 +686,14 @@
   },
   "check_mesh_geometry_christie": {
    "lines": 18,
-   "printed": "3383ddaae3f7cd418234de097ef3ab396d2d1cc49ddd83a9f7e12ae9026a297c",
+   "printed": "c07f5f502c66f474176af3eaed15349df5fb8d44c9ebb1d6d516ca068aaef75e",
    "rc": 1,
    "unsteady_files": [],
    "written": {}
   },
   "check_mesh_geometry_miranda": {
    "lines": 18,
-   "printed": "3383ddaae3f7cd418234de097ef3ab396d2d1cc49ddd83a9f7e12ae9026a297c",
+   "printed": "c07f5f502c66f474176af3eaed15349df5fb8d44c9ebb1d6d516ca068aaef75e",
    "rc": 1,
    "unsteady_files": [],
    "written": {}
@@ -786,7 +786,7 @@
   },
   "pose_preview": {
    "lines": 15,
-   "printed": "846ea4f2b7eee4089f03f2b7638412172c72a27ebc35efc4398a5321a4d79905",
+   "printed": "d9b12e874b49b786f956346b4141ad800f787aebde419c50eeffaa8a16289da1",
    "rc": 1,
    "unsteady_files": [],
    "written": {}
@@ -857,7 +857,7 @@
   },
   "skin_texture": {
    "lines": 19,
-   "printed": "791eb0c03ef3275c3a5682eb6b67ce1ef07bed64131e928f975b6ddd2a4823f3",
+   "printed": "01b79b005fd93980fb7a0bc6f6eea6a3abc0d2dc21eb8cbcbc299b98406e38c8",
    "rc": 1,
    "unsteady_files": [],
    "written": {}
@@ -871,21 +871,21 @@
   },
   "um_kb_check": {
    "lines": 3,
-   "printed": "0d9070ccd53d6339f8e9ced6bc5dfe098d7b2aa9bfca993cc0d4c4a6c450f888",
+   "printed": "7006106c115d06056af3fde720602b3fec8d171f9b38b0871d1d691a19d3de95",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
   },
   "um_publish_check": {
    "lines": 5,
-   "printed": "da54ff6058156f366b87eb0f65577136b7e881d6b7ae9d99f28562f2f9536716",
+   "printed": "c74eba2a71fc9f4375b678565b817dab5aeb55d526390b2dcb411b694f3ed818",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
   },
   "uv_check": {
    "lines": 21,
-   "printed": "af24c65f76d5781e681dcc7db0d8fbe30e3f6ac11f229f5565ab9050b32b0916",
+   "printed": "5de0c7a761e55f37d96ed524eb9b69ad1996ca4cafc57fc09af70f7f34824a20",
    "rc": 1,
    "unsteady_files": [],
    "written": {
@@ -973,17 +973,14 @@
   },
   "tools/pd2-port/dmodel.py": {
    "build": 25,
-   "functions": 36,
+   "functions": 33,
    "neither": [
-    "BR.i32",
-    "BR.u16",
-    "Bones.parse",
-    "DieselGeometry.weights4",
+    "BR.u32",
+    "BR.vec3",
     "DieselModel.find_by_name",
     "DieselModel.objects",
-    "DieselModel.world_rows",
-    "DieselModel.world_rows.walk",
-    "minv",
+    "Hashlist.name",
+    "TopologyIP.parse",
     "mmul"
    ],
    "tests": 26,
