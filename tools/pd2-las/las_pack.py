@@ -185,32 +185,44 @@ def render_unit_xml(unit_base: str) -> str:
     )
 
 
-def render_object_xml(base: str, fps: bool) -> str:
-    if fps:
-        graphics = (
-            '<graphic_group name="character" enabled="true" culling_object="c_block">\n'
-            '\t\t\t<object name="g_body" enabled="true" />\n'
-            '\t\t\t<object name="g_head" enabled="false" />\n'
-            '\t\t\t<object name="g_head_lod1" enabled="false" />\n'
-            '\t\t\t<object name="g_body_lod1" enabled="false" />\n'
-            "\t\t"
-        )
-    else:
-        graphics = (
-            '<graphic_group name="character" enabled="true" culling_object="c_block">\n'
-            '\t\t\t<object name="g_body_lod1" enabled="false" />\n'
-            '\t\t\t<object name="g_body" enabled="true" />\n'
-            '\t\t\t<object name="g_head_lod1" enabled="false" />\n'
-            '\t\t\t<object name="g_head" enabled="true" />\n'
-            "\t\t"
-        )
+#: The objects of a 2B unit as its two `.object` files list them: name, and whether
+#: the object is shown. The first-person unit has the head too, switched off.
+TPP_OBJECTS = (("g_body_lod1", False), ("g_body", True), ("g_head_lod1", False), ("g_head", True))
+FPS_OBJECTS = (("g_body", True), ("g_head", False), ("g_head_lod1", False), ("g_body_lod1", False))
+
+
+def render_object_xml(base: str, fps: bool, drawables: list[str] | None = None) -> str:
+    """A unit's `.object`: its material config and the objects to show or to hide.
+
+    Without ``drawables`` this is the 2B list, which is what a scaffold gets before
+    its models exist. With the names of the drawables a built model has
+    (`las_outfit_pack.model_drawables`), only the objects that model contains are
+    listed. The model stores those names as hashes and nothing else compares the two
+    files; in the 2B pack every listed object exists, so a pack built here keeps to
+    that. A `g_` drawable this list does not know is an error: it would be an object
+    with no line.
+    """
+    objects = FPS_OBJECTS if fps else TPP_OBJECTS
+    if drawables is not None:
+        unknown = sorted({name for name in drawables if name.startswith("g_")}
+                         - {name for name, _ in objects})
+        if unknown:
+            raise ValueError(f"the model has drawables the .object does not list: {unknown}")
+        if "g_body" not in drawables:
+            raise ValueError("the model has no g_body, the one object a unit shows")
+        objects = tuple(entry for entry in objects if entry[0] in drawables)
+    lines = "".join(
+        f'\t\t\t<object name="{name}" enabled="{"true" if shown else "false"}" />\n'
+        for name, shown in objects)
     return (
         '<?xml version="1.0"?>\n'
         "<dynamic_object>\n"
         f'\t<diesel materials="{base}" orientation_object="root_point" />\n'
         "\n"
         "\t<graphics>\n"
-        f"\t\t{graphics}\n"
+        '\t\t<graphic_group name="character" enabled="true" culling_object="c_block">\n'
+        f"{lines}"
+        "\t\t\n"
         "\t</graphic_group>\n"
         "\t</graphics>\n"
         "</dynamic_object>\n"
@@ -371,6 +383,30 @@ def write_pack(
     }
     (pack / "BUILD_INFO.json").write_text(json.dumps(build_info, indent=2, sort_keys=True) + "\n")
     return pack
+
+
+def install_models(pack: Path, tpp_model: Path, fps_model: Path,
+                   identity: PackIdentity | None = None) -> None:
+    """Put the two built models into a scaffold, which makes it installable.
+
+    Each unit's `.object` is rewritten from its model (`render_object_xml`), so it
+    lists the objects that model has and no others, and the WIP marker goes. Call
+    `refresh_build_info` afterwards: it hashes the tree this leaves.
+    """
+    from las_outfit_pack import model_drawables
+
+    identity = identity or BASE_IDENTITY
+    unit_dir = pack / "assets" / identity.unit_base
+    for unit_base, fps, model in ((identity.tpp_unit, False, tpp_model),
+                                  (identity.fps_unit, True, fps_model)):
+        stem = Path(unit_base).name
+        data = Path(model).read_bytes()
+        (unit_dir / f"{stem}.model").write_bytes(data)
+        (unit_dir / f"{stem}.object").write_bytes(
+            render_object_xml(unit_base, fps, model_drawables(data)).encode("utf-8"))
+    wip = pack / "WIP_DO_NOT_INSTALL.txt"
+    if wip.exists():
+        wip.unlink()
 
 
 def refresh_build_info(pack: Path, identity: PackIdentity | None = None, **overrides) -> None:

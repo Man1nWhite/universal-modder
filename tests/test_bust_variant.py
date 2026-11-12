@@ -334,8 +334,8 @@ def test_variant_first_person_arms_are_the_base_arms():
     the arms: every drawable the variant ships must exist in the base pack with
     byte-identical vertices, normals, UVs and triangles.
 
-    The variant's `.object` still lists the two names it dropped. That is open:
-    `ABSENT_OBJECTS` in `tests/test_pd2_las_invariants.py`.
+    The variant's `.object` does not list the two names it dropped: both Miranda
+    builders write that file from the model (`las_pack.install_models`).
     """
     import numpy as np
 

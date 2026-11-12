@@ -3544,11 +3544,8 @@ def main(argv=None) -> int:
 
     import las_pack
 
-    for label, out_path in packs:
-        shutil.copy2(out_path, unit_dir / out_path.name)
-    wip = pack_dir / "WIP_DO_NOT_INSTALL.txt"
-    if wip.exists():
-        wip.unlink()
+    # the two models go in, and each unit's .object is rewritten from its model
+    las_pack.install_models(pack_dir, *(out_path for _, out_path in packs))
     las_pack.refresh_build_info(pack_dir, templates={
         name: hashlib.sha256((args.templates / name).read_bytes()).hexdigest()
         for name in ("2b.model", "fps_2b.model")

@@ -1,11 +1,9 @@
 # pd2-las — Source-engine characters as PAYDAY 2 LAS outfits
 
-Builds **Legendary Armour Skins (LAS)** outfit packs for PAYDAY 2 from compiled
-Source-engine models (`.mdl`/`.vvd`/`.vtx` + `.vtf`). Each mesh is re-skinned
-onto the PD2 player skeleton embedded in the `2b.rar` reference pack and
-written as Diesel `.model` + `.texture` + `.material_config` behind a BeardLib
-`LegendaryArmours.<id>` registration. Pure Python: no Source compile step, no
-Blender, and no game is needed to build.
+Builds **Legendary Armour Skins (LAS)** outfit packs for PAYDAY 2 from compiled Source-engine models
+(`.mdl`/`.vvd`/`.vtx` + `.vtf`). Each mesh is re-skinned onto the PD2 player skeleton embedded in the `2b.rar`
+reference pack and written as Diesel `.model` + `.texture` + `.material_config` behind a BeardLib
+`LegendaryArmours.<id>` registration. Pure Python: no Source compile step, no Blender, and no game is needed to build.
 
 | Tracked pack (`dist/<name>.zip`) | Source archive | Builder | `make` target |
 | --- | --- | --- | --- |
@@ -16,11 +14,10 @@ Blender, and no game is needed to build.
 
 ## Status
 
-Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed,
-one JSON object: inputs, environment, templates and, per tracked pack, its
-checksum and `BUILD_INFO.json` flags (`models_present`, `runtime_verified`).
+Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: inputs, environment,
+templates and, per tracked pack, its checksum and `BUILD_INFO.json` flags (`models_present`, `runtime_verified`).
 
-- **Done:** all four packs are complete, models included, and reproducible.
+- **Done:** all four packs are complete, models included, and rebuild to the same bytes on a CPU like the builder's.
 - **Open:** in-game sign-off and the other items under [Next](#next).
 - **Blocked:** public release. The sources are fan rips (Mass Effect 2 by way
   of an L4D2 addon; Dead or Alive 5) with unresolved redistribution rights.
@@ -33,20 +30,21 @@ From the repo root. `make -sC tools/pd2-las` alone lists every target.
 make -sC tools/pd2-las env      # once per fresh clone or wiped sandbox: pinned .venv + the 2B templates
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
 make -sC tools/pd2-las build    # or busty | christie | slim | all: the table above
+make -sC tools/pd2-las fresh    # both Miranda packs built again beside the tracked ones and compared member by member
 make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases are the defect under Next
 ```
 
-- Each target is one script call; `make -n <target>` prints it. Keep the `-s`:
-  a bare `make -C` wraps the status JSON in "Entering directory" lines.
-- `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored); the
-  builders default `--templates` to it, and only `extract_2b.py` writes that path.
-- A build **overwrites the tracked zips** in `dist/` and `build/pd2-las/`; in
-  the pinned environment an unchanged tree reproduces them byte for byte and
-  `git status --short dist build` prints nothing. Run a builder with
-  `--out build/x` (Christie: also `--dist build/x`) to leave them alone.
-- **Done means:** `test` passes and `git status --short dist build` lists only
-  packs you meant to change. A changed zip needs its size and sha256 updated in
-  `AGENTS.md`, its copies and `docs/pd2-las/HANDOFF.md` (`test_las_pack.py`).
+- `make -n <target>` prints what a target runs. Keep the `-s`: a bare `make -C` wraps the status JSON in
+  "Entering directory" lines.
+- `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored); the builders default `--templates` to
+  it, and only `extract_2b.py` writes that path.
+- A build **overwrites the tracked zips** in `dist/` and `build/pd2-las/`. In the pinned environment, on a CPU
+  with AVX-512, an unchanged tree reproduces them byte for byte and `git status --short dist build` prints
+  nothing. On another CPU a few bytes of a model move ([Next](#next)); `fresh` allows for exactly that and
+  touches no tracked file. Run a builder with `--out build/x` (Christie: also `--dist build/x`) to do the same.
+- **Done means:** `test` passes and `git status --short dist build` lists only packs you meant to
+  change. A changed zip needs its size and sha256 in `AGENTS.md`, its copies and `docs/pd2-las/HANDOFF.md`
+  (`test_las_pack.py`); a changed `Miranda_LAS` also needs `tools/build_joy_head_mods.py` run again.
 
 ## File map
 
@@ -64,7 +62,8 @@ make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases ar
 | `diagnose_mesh.py`, `neck_junction.py`, `uv_check.py`, `audit_metrics.py`, `glove_check.py`, `review_christie_idle.py`, `pose_preview.py`, `pose_zoom.py`, `preview_textured.py`, `shellview.py` | diagnostics for built packs, off the build path; each docstring carries its command |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `build_skyrim_outfit.py`, `skyrim_*.py`, `skin_texture.py`, `decimate.py` | Skyrim outfit route: cancelled, its source archives were removed, so it does not build here |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, status, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
+| `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `fresh_check.py` | the commands above, status, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the comparison behind `fresh`: what may differ between two builds of a pack and what may not |
 | `bootstrap.sh` | everything from scratch: environment, rebuilds, every `.sha256`, tests, lint |
 
 ## Invariants
@@ -80,8 +79,8 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 | **Skin:** 3 weights per vertex summing to 1, palette-local indices, parents before children (`Hips` first) | `test_skin_has_three_weights_and_a_root_first_palette` |
 | **Atoms:** a render atom's triangle indices are global vertex indices, all inside the atom's own vertex block | `test_atoms_index_global_vertices_inside_their_own_block` |
 | **Materials:** a model names its materials by hash and the `.material_config` declares them: `CONTOUR` and `unique` on third-person skin, `DEPTH_SCALING` in first person | `test_materials_are_the_ones_the_material_config_declares` |
-| **Objects:** a unit's `.object` lists exactly the `g_` drawables its model has (one exception, under Next); the body is on, the LODs are off | `test_objects_listed_by_the_unit_are_the_ones_the_model_has` |
-| **Textures:** DXT5 with a full mip chain (two exceptions, under Next); diffuse alpha is gloss and stays low; a normal map holds X in alpha and Y in green | `test_textures_keep_gloss_low_and_normals_in_the_diesel_layout` |
+| **Objects:** a unit's `.object` lists exactly the `g_` drawables its model has; the body is on, the LODs are off | `test_objects_listed_by_the_unit_are_the_ones_the_model_has` |
+| **Textures:** every unit texture is DXT5 with a full mip chain; diffuse alpha is gloss and stays low at every level; a normal map holds X in alpha and Y in green | `test_textures_keep_gloss_low_and_normals_in_the_diesel_layout` |
 | **Codec:** `ModelFile.read → write` is byte-exact on the 2B templates and on every tracked model | `test_codec_round_trips_byte_for_byte` |
 | **Registration** follows the 2B contract: a hook on `lib/tweak_data/armorskinstweakdata` that creates `LegendaryArmours.<id>`, BeardLib `main.xml` AddFiles, menu locales | `test_registration_follows_the_2b_contract` |
 | **Tracked bytes:** every zip equals its `.sha256` sidecar, and its `BUILD_INFO.json` hashes its own payload | `test_tracked_bytes_match_their_sidecar_and_build_info` |
@@ -109,16 +108,17 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 
 ## Next
 
-1. In-game verification with `docs/pd2-las/in-game-checklist.md` (written for
-   `Miranda_LAS`); it needs a human with PAYDAY 2, SuperBLT, BeardLib and LAS.
+1. In-game verification with `docs/pd2-las/in-game-checklist.md` (written for `Miranda_LAS`); it needs a human
+   with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the last rebuild of the Miranda packs.
 2. The Christie slim sleeves are open just past the elbow: a known defect, not
    fixed by decision (`docs/pd2-las/DECISIONS.md`, D18). Two cases of
    `test_sleeve_tube_is_closed_along_its_length` are strict expected failures.
-3. `miranda_face_df` and `miranda_eyes` ship a single mip level (`SINGLE_LEVEL`
-   in the invariant tests). Check them at a distance in game, or re-ship.
-4. `fps_miranda_busty.object` lists `g_head` and `g_head_lod1`; its model has
-   neither (`ABSENT_OBJECTS` in the invariant tests). Play a heist in first
-   person with the busty pack, or write that file from the model and re-ship.
+3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
+   texels at full gloss in `body_df` and `head_df` of the Miranda packs and in three Christie
+   textures; the Christie sleeve-gloss pass moves gloss around inside the blocks it touches.
+4. A pack's bytes depend on the CPU that builds it (same audit; `docs/pd2-las/DECISIONS.md`, D26): where the UV
+   map gives a vertex no direction, `build_models.author_group_sections` takes the sign of its V direction from
+   rounding, and the head builder draws its eye in single precision. Decide both, then widen `fresh` to every pack.
 
 ## Further reading
 

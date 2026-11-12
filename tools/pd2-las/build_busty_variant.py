@@ -430,11 +430,9 @@ def build(args) -> int:
     pack = las_pack.write_pack(out_root, textures, icon, {"note": "bust variant"},
                               models_present=False, identity=IDENTITY)
     unit_dir = pack / "assets" / IDENTITY.unit_base
-    shutil.copy2(tpp_path, unit_dir / tpp_path.name)
-    shutil.copy2(fps_path, unit_dir / fps_path.name)
-    wip = pack / "WIP_DO_NOT_INSTALL.txt"
-    if wip.exists():
-        wip.unlink()
+    # the first-person model has no head slots (`drop_drawables` above), so its
+    # .object must not list any: install_models writes each .object from its model
+    las_pack.install_models(pack, tpp_path, fps_path, IDENTITY)
     las_pack.refresh_build_info(
         pack, IDENTITY,
         variant={

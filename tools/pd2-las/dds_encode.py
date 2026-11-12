@@ -1,10 +1,25 @@
 """Minimal DDS writers for the LAS pack: RGBA -> BC3 (DXT5) and uncompressed.
 
-A naive block encoder (min/max endpoints) is enough for UI icons and previews;
-production material textures should come from `vtf.to_dds()` (the original DXT5
-payloads) and never be re-encoded. The DXT5 colour-endpoint order is always
-emitted with c0 > c1 — decoders read c0 <= c1 as the 3-colour + transparent
-index mode, which renders as holes (this defect bit the retired pipeline).
+Two encoders live here.
+
+`rgba_to_bc3_dds` is the naive one (the two colour endpoints are the corners of
+the block's bounding box). It writes one level and is enough for UI icons and
+previews.
+
+`encode_bc3_blocks` is for texels that end up on a model: it tries every pair of
+a block's own colours as the endpoints and keeps the pair with the least error.
+`bc3_dds_from_levels` writes a whole mip pyramid with it.
+
+Production material textures should come from `vtf.to_dds()` (the original DXT5
+payloads) and not be re-encoded. Where the build has to change a texture, it
+re-encodes the blocks it changed and keeps the rest (`build_las.py`).
+
+The layout of a block is Microsoft's ("Block compression (Direct3D 10)", BC3):
+alpha_0, alpha_1 and sixteen 3-bit codes, where code 0 is alpha_0, code 1 is
+alpha_1 and codes 2 to 7 run from alpha_0 towards alpha_1; then two RGB565
+colours and sixteen 2-bit codes. The colour endpoints are always written with
+c0 >= c1: some decoders read c0 < c1 as the three-colour mode with a transparent
+code, which renders as holes (this defect bit the retired pipeline).
 """
 from __future__ import annotations
 
@@ -58,8 +73,13 @@ def _encode_bc3_block(block: np.ndarray) -> bytes:
     if a0 == a1:
         a_data = bytes([a0, a1]) + b"\x00" * 6
     else:
+        # in code order: 0 is alpha_0, 1 is alpha_1, 2..7 run from the one to the
+        # other. (This list used to be in ramp order, alpha_1 last, with the
+        # position written as the code: a texel meant to be the minimum then
+        # decoded one step above it, and one meant for the step below the
+        # maximum decoded as the minimum.)
         levels = np.array(
-            [a0] + [((7 - i) * a0 + i * a1) // 7 for i in range(1, 7)] + [a1]
+            [a0, a1] + [((7 - i) * a0 + i * a1) // 7 for i in range(1, 7)]
         )
         alpha_bits = 0
         for i, a in enumerate(alpha):
@@ -113,6 +133,191 @@ def rgba_to_bc3_dds(rgba: np.ndarray) -> bytes:
         for bx in range(0, padded.shape[1], 4):
             out += _encode_bc3_block(padded[by : by + 4, bx : bx + 4])
     return _dds_header(width, height, b"DXT5") + bytes(out)
+
+
+def srgb_to_linear(value: np.ndarray) -> np.ndarray:
+    """sRGB-encoded values in 0..1 as linear light (IEC 61966-2-1)."""
+    value = np.asarray(value, dtype=np.float64)
+    return np.where(value <= 0.04045, value / 12.92, ((value + 0.055) / 1.055) ** 2.4)
+
+
+def linear_to_srgb(value: np.ndarray) -> np.ndarray:
+    """Linear light in 0..1 as sRGB-encoded values; out-of-range input is clipped."""
+    value = np.clip(np.asarray(value, dtype=np.float64), 0.0, 1.0)
+    return np.where(value <= 0.0031308, value * 12.92, 1.055 * value ** (1.0 / 2.4) - 0.055)
+
+
+def box_reduce(image: np.ndarray, factor: int) -> np.ndarray:
+    """Every `factor` x `factor` texels averaged into one, as float64.
+
+    This is what a mip level is: each of its texels stands for the area the
+    texels above it covered. Colour has to be averaged as light, so convert with
+    `srgb_to_linear` first; data such as gloss is averaged as it is.
+    """
+    height, width = image.shape[:2]
+    if height % factor or width % factor:
+        raise ValueError(f"{width}x{height} does not divide by {factor}")
+    image = np.asarray(image, dtype=np.float64)
+    return image.reshape(height // factor, factor, width // factor, factor, -1).mean(axis=(1, 3))
+
+
+#: every pair of the 16 texels of a block: the candidates for its two colour endpoints
+_TEXEL_PAIRS = np.array([(i, j) for i in range(16) for j in range(i + 1, 16)])
+
+
+def _expand_565(value: np.ndarray) -> np.ndarray:
+    """RGB565 as 8 bits per channel, the way a decoder widens it (bit replication)."""
+    r, g, b = (value >> 11) & 31, (value >> 5) & 63, value & 31
+    return np.stack([(r << 3) | (r >> 2), (g << 2) | (g >> 4), (b << 3) | (b >> 2)], axis=-1)
+
+
+def encode_bc3_texels(texels: np.ndarray, weights: np.ndarray | None = None) -> np.ndarray:
+    """DXT5 blocks for (n, 16, 4) RGBA texels, each block row by row: (n, 16) uint8.
+
+    Colour. A block holds four colours on one line between its two endpoints, so
+    the choice of that line is the whole encoding. Here the endpoints are two of
+    the block's own colours: all 120 pairs are tried and the pair that reproduces
+    the 16 texels with the least squared error is kept. The corners of the
+    bounding box (`rgba_to_bc3_dds`), or the brightest texel and the one farthest
+    from it, put a grey line through a block that is mostly blue iris with some
+    black pupil and some grey sclera, and the iris comes out grey; the search
+    keeps the iris and gives up the few sclera texels. Ties go to the first pair
+    and the arithmetic is integer, so the bytes do not depend on the machine.
+
+    ``weights`` is an (n, 16) array of whole numbers: how much the colour error
+    of each texel counts when the pair is chosen. Without it every texel counts
+    the same. Where a block cannot hold everything, the weights say what it has
+    to hold: in an 8x8 level of the eye texture a block has three iris texels and
+    thirteen of sclera, most of which the lids cover.
+
+    Alpha. The eight-value mode with the block's maximum and minimum as alpha_0
+    and alpha_1, and each texel on the nearest of the eight values.
+    """
+    texels = np.asarray(texels)
+    if texels.ndim != 3 or texels.shape[1:] != (16, 4):
+        raise ValueError("expected (n, 16, 4) RGBA texels")
+    texels = texels.astype(np.int32)
+    count = len(texels)
+    if weights is None:
+        weights = np.ones((count, 16), dtype=np.int64)
+    else:
+        weights = np.asarray(weights)
+        if weights.shape != (count, 16) or not np.issubdtype(weights.dtype, np.integer) or (weights < 0).any():
+            raise ValueError("weights have to be (n, 16) whole numbers, none below zero")
+        weights = weights.astype(np.int64)
+    out = np.zeros((count, 16), dtype=np.uint8)
+
+    alpha = texels[:, :, 3]
+    a0, a1 = alpha.max(axis=1), alpha.min(axis=1)
+    # code k of 2..7 stands for ((8 - k) * alpha_0 + (k - 1) * alpha_1) / 7. A GPU
+    # interpolates that as a real number, so the nearest value is found without
+    # rounding it: everything is compared in sevenths.
+    sevenths = np.stack([7 * a0, 7 * a1] + [(8 - k) * a0 + (k - 1) * a1 for k in range(2, 8)], axis=1)
+    code = np.abs(7 * alpha[:, :, None] - sevenths[:, None, :]).argmin(axis=2).astype(np.uint64)
+    code[a0 == a1] = 0
+    bits = (code << (3 * np.arange(16, dtype=np.uint64))[None, :]).sum(axis=1, dtype=np.uint64)
+    out[:, 0], out[:, 1] = a0, a1
+    for k in range(6):
+        out[:, 2 + k] = (bits >> np.uint64(8 * k)) & np.uint64(0xFF)
+
+    rgb = texels[:, :, :3]
+    # each texel's colour as the nearest RGB565 (dropping the low bits instead
+    # would leave 200 at 206 where 198 is on offer)
+    packed = ((((rgb[:, :, 0] * 31 + 127) // 255) << 11) | (((rgb[:, :, 1] * 63 + 127) // 255) << 5)
+              | ((rgb[:, :, 2] * 31 + 127) // 255))
+    first, second = _TEXEL_PAIRS[:, 0], _TEXEL_PAIRS[:, 1]
+    for start in range(0, count, 512):                  # 512 blocks at a time: about 50 MB
+        block = slice(start, start + 512)
+        one, other = packed[block][:, first], packed[block][:, second]
+        c0, c1 = np.maximum(one, other), np.minimum(one, other)
+        p0, p1 = _expand_565(c0), _expand_565(c1)
+        colours = np.stack([p0, p1, (2 * p0 + p1 + 1) // 3, (p0 + 2 * p1 + 1) // 3], axis=2)
+        distance = ((rgb[block][:, None, :, None, :] - colours[:, :, None, :, :]) ** 2).sum(axis=4)
+        best = (distance.min(axis=3) * weights[block][:, None, :]).sum(axis=2).argmin(axis=1)
+        rows = np.arange(len(best))
+        c0, c1 = c0[rows, best], c1[rows, best]
+        code = distance[rows, best].argmin(axis=2).astype(np.uint32)
+        code[c0 == c1] = 0
+        bits = (code << (2 * np.arange(16, dtype=np.uint32))[None, :]).sum(axis=1, dtype=np.uint32)
+        target = out[block]
+        target[:, 8], target[:, 9] = c0 & 0xFF, c0 >> 8
+        target[:, 10], target[:, 11] = c1 & 0xFF, c1 >> 8
+        for k in range(4):
+            target[:, 12 + k] = (bits >> np.uint32(8 * k)) & np.uint32(0xFF)
+    return out
+
+
+def pad_to_blocks(rgba: np.ndarray) -> np.ndarray:
+    """The image with each side brought up to a multiple of four by repeating its edge.
+
+    A level smaller than a block still fills a block. What fills the rest decides
+    the block's endpoints, and zeros would pull one of them to black.
+    """
+    height, width = rgba.shape[:2]
+    return np.pad(rgba, ((0, -height % 4), (0, -width % 4), (0, 0)), mode="edge")
+
+
+def image_to_texels(rgba: np.ndarray) -> np.ndarray:
+    """An (H, W, 4) image whose sides are multiples of four as (n, 16, 4) blocks, row by row."""
+    height, width = rgba.shape[:2]
+    if rgba.ndim != 3 or rgba.shape[2] != 4 or height % 4 or width % 4:
+        raise ValueError("expected (H, W, 4) RGBA with sides that are multiples of 4")
+    return rgba.reshape(height // 4, 4, width // 4, 4, 4).transpose(0, 2, 1, 3, 4).reshape(-1, 16, 4)
+
+
+def bc3_levels(dds: bytes) -> list[tuple[int, int, int]]:
+    """(byte offset, width, height) of every mip level a DXT5 DDS declares."""
+    if dds[:4] != b"DDS " or dds[84:88] != b"DXT5":
+        raise ValueError("not a DXT5 DDS")
+    height, width = struct.unpack_from("<2I", dds, 12)
+    count = max(1, struct.unpack_from("<I", dds, 28)[0])
+    levels, offset = [], 128
+    for level in range(count):
+        w, h = max(1, width >> level), max(1, height >> level)
+        levels.append((offset, w, h))
+        offset += ((w + 3) // 4) * ((h + 3) // 4) * 16
+    if offset != len(dds):
+        raise ValueError(f"the header declares {count} levels ({offset} bytes), the file has {len(dds)}")
+    return levels
+
+
+def decode_bc3_level(dds: bytes, level: int = 0) -> np.ndarray:
+    """One mip level of a DXT5 DDS as (h, w, 4) uint8 RGBA, decoded by Pillow."""
+    import io
+
+    from PIL import Image
+
+    offset, width, height = bc3_levels(dds)[level]
+    across, down = (width + 3) // 4 * 4, (height + 3) // 4 * 4
+    payload = dds[offset : offset + across // 4 * (down // 4) * 16]
+    image = Image.open(io.BytesIO(_dds_header(across, down, b"DXT5") + payload))
+    image.load()
+    return np.asarray(image.convert("RGBA"), dtype=np.uint8)[:height, :width].copy()
+
+
+def bc3_dds_from_levels(levels: list[np.ndarray], weights: list[np.ndarray] | None = None) -> bytes:
+    """A DXT5 DDS with the given mip levels, level 0 first, in the game's header shape.
+
+    The caller decides what each level shows (see `box_reduce`); every level is
+    encoded with `encode_bc3_texels`. The chain has to be complete: each side
+    halves, never below one texel, down to 1x1. ``weights`` gives, for each
+    level, an (h, w) array of whole numbers: how much each texel's colour counts.
+    """
+    height, width = levels[0].shape[:2]
+    expected = [(max(1, height >> k), max(1, width >> k)) for k in range(max(height, width).bit_length())]
+    if [level.shape[:2] for level in levels] != expected:
+        raise ValueError(f"levels {[level.shape[:2] for level in levels]} are not the full chain {expected}")
+    if weights is not None and [w.shape for w in weights] != expected:
+        raise ValueError("weights have to match the levels, texel for texel")
+    payload = b""
+    for index, level in enumerate(levels):
+        texels = image_to_texels(pad_to_blocks(np.asarray(level, dtype=np.uint8)))
+        count = None
+        if weights is not None:
+            padded = pad_to_blocks(np.asarray(weights[index])[..., None])
+            count = padded.reshape(padded.shape[0] // 4, 4, padded.shape[1] // 4, 4).transpose(0, 2, 1, 3).reshape(-1, 16)
+        payload += encode_bc3_texels(texels, count).tobytes()
+    return _dds_header(width, height, b"DXT5", mips=len(levels)) + payload
 
 
 def rgba_to_bgra_dds(rgba: np.ndarray) -> bytes:

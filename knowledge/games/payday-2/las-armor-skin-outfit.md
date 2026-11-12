@@ -190,6 +190,51 @@ source zip hash, 2B template input hashes) lives in
     `skeleton_map.json` is `map` / `drop.patterns` / `target_only.names`;
     dropped/unmapped source bones fold into the nearest mapped ancestor
     (that is how facial flex bones and `hlp_*` helpers are absorbed).
+12. **Symptom:** a first-person `.object` listed `g_head` and `g_head_lod1`,
+    and its model had neither. **Cause:** the file came from a fixed list, the
+    model from a builder that drops drawables; nothing compared them.
+    **Fix:** write the `.object` from the model. What is known about the other
+    direction: the game, BeardLib and LAS never ask the outfit unit for an
+    object by name (the game spawns it as `char_mesh`, links it, sets its
+    material, enables it); in the 34 units LAS ships and in 2B's two, every
+    `<object>` line has a node, while a `culling_object` without one occurs
+    twice and is tolerated. What the engine does with a listed object that is
+    not there is not known.
+13. **Symptom:** gloss looked like noise on a texture encoded here.
+    **Cause:** DXT5 alpha codes were written as positions on the ramp. In the
+    format, code 0 is alpha_0, code 1 is alpha_1 and codes 2 to 7 run from
+    alpha_0 towards alpha_1. **Fix:** write the codes in that order, and test
+    an encoder with a ramp: a flat image has one code and hides this.
+14. **Symptom:** a few texels at full gloss after "attenuating" DXT5 alpha by
+    scaling the two endpoints. **Cause:** a block with alpha_0 <= alpha_1 has
+    four interpolated values and two constants, 0 and 255, which scaling the
+    endpoints leaves alone. **Fix:** decode such a block, scale, encode again.
+15. **Symptom:** blue eyes turned grey a few metres away once the eye texture
+    got mip levels. **Cause:** a DXT5 block holds four colours on one line; a
+    block of a 16x16 or 8x8 eye holds pupil, iris and sclera, and an encoder
+    spends the line on whatever fills most of the block. A reference encoder
+    does the same. **Fix:** let the texels that matter count for more when the
+    endpoints are chosen. Judge mip levels as pictures: work out which level
+    is on screen at which distance (texels per cm on the mesh against pixels
+    per cm on screen) and compare each level with the image it stands for.
+    A header check passes a level that is grey.
+16. **Symptom:** a repainted texture lost its mip levels and got a second lossy
+    pass everywhere. **Cause:** decode all, change 2 %, encode all, one level.
+    **Fix:** keep the source's blocks at every level and encode again only the
+    blocks whose content changed; add the change to each lower level as the
+    area average of what was painted, taken as light.
+17. **Symptom:** a pack that "rebuilds byte for byte" came out different on
+    another machine. **Cause:** numpy and OpenBLAS pick their routines by the
+    CPU, and their results differ in the last bits. That shows wherever a
+    decision hangs on a number that is zero but for rounding (here: the sign
+    of the V direction of a vertex whose triangles have no area in UV) and
+    wherever single-precision maths is truncated to bytes (a drawn eye).
+    **How to see it on one machine:** build with
+    `OPENBLAS_CORETYPE=Haswell` and with
+    `NPY_DISABLE_CPU_FEATURES="X86_V4 AVX512_ICL AVX512_SPR"` and compare the
+    members. **Fix:** make the decision explicit, keep drawn art as a tracked
+    image; until then compare builds member by member and name what may
+    differ (`tools/pd2-las/fresh_check.py`).
 
 ## Assets
 

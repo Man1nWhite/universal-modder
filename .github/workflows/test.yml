@@ -1,5 +1,6 @@
 name: test
-on: [push, pull_request]
+# workflow_dispatch: so that the checks can be run by hand on a branch, from the Actions tab
+on: [push, pull_request, workflow_dispatch]
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -50,3 +51,14 @@ jobs:
         run: ./bin/um kb check --index
       - name: nothing that shouldn't ship
         run: ./bin/um publish check .
+      - name: a fresh build of the two Miranda LAS packs must be the tracked packs
+        # the sidecar step above compares each zip with its own checksum, which a
+        # stale pack passes. Here the builders run on this runner, from what is
+        # in the repository: `env` makes the pinned .venv and unpacks the 2B
+        # templates (node and npm, for node-unrar-js), `fresh` builds both packs
+        # into build/fresh/ and compares them with the tracked ones member by
+        # member. Not zip against zip: a .model depends on the CPU in two small
+        # ways that tools/pd2-las/fresh_check.py names and allows, and runners
+        # have more than one kind of CPU. Last in the job, so that the steps
+        # above run as they always have, without the templates.
+        run: make -sC tools/pd2-las env fresh

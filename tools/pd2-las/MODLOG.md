@@ -505,3 +505,61 @@
   file), `test` → 750 passed, 29 skipped, 2 xfailed, exit 0. `bootstrap.sh` → 16 sidecars OK, 762 passed,
   26 skipped, 2 xfailed. `check_all.py --full`: all 8 stages pass. Without the templates: 692 passed,
   86 skipped. `pyflakes um tools tests` clean; `um kb check --index` and `um publish check .` PASS.
+
+## 2026-11-11 (sixth pass) — the busty `.object`, the mip levels of the face and the eyes, and what they dragged along
+
+- **Asked for:** fix the two findings of the fifth pass in `Miranda_LAS` and `Miranda_Busty_LAS` and re-ship
+  both, with evidence that each fix is right in the game and not only in tests written here. Full record:
+  `docs/audits/2026-11-11-miranda-mips-and-object.md`; reasons: `DECISIONS.md`, D23 to D26.
+- **The `.object`.** `las_pack.install_models` writes each `.object` from the model beside it; both Miranda
+  builders end on it. `fps_miranda_busty.object` now lists `g_body` and `g_body_lod1`. Which way to make file
+  and model agree was decided by reading what uses the unit: the game's Lua, BeardLib and LAS never ask an
+  outfit unit for an object by name. In the 34 units LAS ships and the two of 2B, no `<object>` line lacks a
+  node.
+- **The mip levels, three attempts.** The first two gave the face and the eyes a pyramid and passed every
+  test: right header, right payload, low gloss. Both had a grey iris at 16x16, (61, 55, 52) where the picture
+  has (25, 57, 117), which is what is on screen from two to three metres. The tests asked whether the file
+  was well formed. The third attempt started from what a level is for:
+  - `tools/pd2-las/mip_audit.py`: which level is on screen at which distance (eyes 103 texels per cm, face
+    46), every level against the picture it stands for (CIEDE2000, gloss, the iris) with limits written first,
+    the same images through outside encoders, a second decoder, and a render of the head at 1 to 16 m.
+  - The face keeps the source's blocks at all eleven levels; 1,731 of 87,383 differ. Every level passes.
+  - The eyes are encoded by a search over every pair of a block's colours, with the iris counting sixteen
+    times the sclera. The iris is within 1.71 at every level. Levels 3 to 7 miss the per-texel colour limits,
+    as `quicktex` at its highest setting does on the same images; they are listed, not waved through.
+- **Level 0 had been wrong all along.** `rgba_to_bc3_dds` wrote alpha codes in ramp order. The face's gloss
+  was scrambled inside 80 % of its blocks, the worst texel by 29 of 255. Its only test used a flat image.
+- **Ten texels at full gloss** in level 1 of the converted face: a DXT5 block with alpha_0 <= alpha_1 has the
+  constants 0 and 255, and scaling the endpoints does not lower a constant. The face is held to its ceiling
+  now. The same constant is in `body_df` and `head_df` and in three Christie textures: README, Next.
+- **The four L4D2 head packs** take their face from `dist/Miranda_LAS.zip` and moved with it. Asked; the
+  user chose to re-ship them. Their face quarter went from a mean CIEDE2000 of 1.42 to 0.57 against the face
+  the Miranda build means.
+- **The eye is drawn once and averaged down**, where the task said to draw it at each size. Measured against
+  a drawing with 16 points per texel: one drawing averaged stays within 1.66 in every texel of every level;
+  drawn again at each size, one point per texel, the fibres fall between the points and the iris of the 4x4
+  level is off by 11.
+- **The tracked bytes depend on the CPU that builds them.** Found while making the CI step, by holding numpy
+  and OpenBLAS to the routines of other CPUs. With those of an AVX2 CPU, 14 of the 16 tracked zips do not
+  equal a fresh build. In a Miranda pack it is one member, the third-person model: 44 hair vertices have no
+  triangle with area in UV, `author_group_sections` takes the sign of their V direction from a number that is
+  zero but for rounding, and 16 to 21 of them come out reversed. In a head pack it is 19 or 20 texels of the
+  eye its builder draws. The textures and the `.object` of this pass come out the same on all three. Not
+  fixed: README, Next; `DECISIONS.md`, D26.
+- **`make -sC tools/pd2-las fresh`** builds both Miranda packs into `build/fresh/` and `fresh_check.py`
+  compares them with the tracked ones member by member, allowing a model those two differences and nothing
+  else. CI runs it as its last step. Until now CI compared those zips with their own sidecars.
+- **No workflow has run in the repository since 2026-10-22**: not for the nineteen pull requests merged
+  since, not for the pushes of this branch or its pull request, not on the six-hourly schedule. The new step
+  has never run on a runner; in a clean clone of the pushed branch it passes in a minute.
+- **What a still cannot show.** In the render, the old pack with its single level is closer to the ideal
+  picture at every distance (0.96 against 1.24 at 2 m, 1.46 against 2.25 at 8 m). One level is right on
+  average and crawls in motion; the pyramid is steady and blurrier. Only the game shows which matters, and
+  nobody has looked: `docs/pd2-las/in-game-checklist.md` opens with the ten minutes that would.
+- **Three sandbox wipes** during the pass took the environment, the rebuilt packs and all scratch with
+  them. The packs came back byte for byte each time, on the same kind of CPU each time.
+- Validation: `pytest -q tests` → 780 passed, 29 skipped, 2 xfailed with the templates, 710 passed and 89
+  skipped without, and the same 780 with numpy and OpenBLAS held to the routines of an AVX2 CPU. 41
+  mutations of the new code, each caught by a test. `pyflakes um tools tests` clean, `um kb check --index`
+  PASS on 247 notes, `um publish check .` PASS, `check_all.py --full` all 8 stages.
+

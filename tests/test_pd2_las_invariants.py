@@ -208,9 +208,13 @@ class Texture:
         blocks = np.vstack(self.levels).astype(np.int32)
         return blocks[:, 8] | (blocks[:, 9] << 8), blocks[:, 10] | (blocks[:, 11] << 8)
 
-    def alpha(self) -> np.ndarray:
-        """The alpha of every pixel of level 0, decoded."""
-        blocks = self.levels[0]
+    def alpha(self, level: int = 0) -> np.ndarray:
+        """The alpha of every texel of one level, decoded, as an image.
+
+        A level smaller than a block still fills a block; the texels beyond the
+        level's own size are not part of the image and are cut off here.
+        """
+        blocks = self.levels[level]
         a0, a1 = blocks[:, 0].astype(np.int32), blocks[:, 1].astype(np.int32)
         bits = np.zeros(len(blocks), dtype=np.uint64)
         for k in range(6):
@@ -223,7 +227,11 @@ class Texture:
         for k in range(1, 7):
             six = ((5 - k) * a0 + k * a1) // 5 if k < 5 else np.full_like(a0, 0 if k == 5 else 255)
             palette[:, k + 1] = np.where(eight, ((7 - k) * a0 + k * a1) // 7, six)
-        return np.take_along_axis(palette, index, axis=1)
+        texels = np.take_along_axis(palette, index, axis=1)
+        width, height = (max(1, side >> level) for side in self.size)
+        across, down = (width + 3) // 4, (height + 3) // 4
+        image = texels.reshape(down, across, 4, 4).transpose(0, 2, 1, 3).reshape(down * 4, across * 4)
+        return image[:height, :width]
 
 
 def _texture(raw: bytes) -> Texture:
@@ -565,34 +573,26 @@ def test_materials_are_the_ones_the_material_config_declares(pack, stem):
             assert "CONTOUR" not in material["template"], name
 
 
-#: `<object>` lines that name an object the model beside the file does not have, by
-#: unit. `build_busty_variant.py` drops the two disabled head drawables from the
-#: first-person model, and `las_pack.render_object_xml` writes the 2B list all the
-#: same. Whether the game minds a disabled object that is not there is not known, so
-#: this is an open item (the README's Next), listed here so that it cannot spread and
-#: cannot be forgotten.
-ABSENT_OBJECTS = {("Miranda_Busty_LAS", "fps_miranda_busty"): {"g_head", "g_head_lod1"}}
-
-
 @each_model
 def test_objects_listed_by_the_unit_are_the_ones_the_model_has(pack, stem):
     """**Objects.** A unit's `.object` file lists the drawables its model has.
 
     The `.unit` names the `.object`; the `.object` names the material config and,
     in its one graphic group, every object to show or to hide. The model stores
-    those names as hashes and no build step compares the two files, so a line with
-    no object behind it is found here or in the game.
+    those names as hashes, so a line with no object behind it is found here or in
+    the game. The Miranda builders write the file from the model they built
+    (`las_pack.install_models`), the Christie builder does the same in
+    `las_outfit_pack`; this test is what holds for the bytes that are tracked.
 
     1. `.unit` and `.object` name the unit's own path, and the orientation object
        is a node of the model;
-    2. the `<object>` lines are the model's `g_` drawables, no more and no fewer
-       (`ABSENT_OBJECTS` holds the one exception);
+    2. the `<object>` lines are the model's `g_` drawables, no more and no fewer;
     3. the body is switched on, and in third person the head when the pack ships
        one; the LODs and a first-person head are off, as in the 2B units;
     4. the culling object is `c_block`. The first-person model has it and the
        third-person model does not, which is the 2B layout too: `2b.object` names
-       it and `2b.model` has none. So a culling object that is not there is not
-       the open question that an `<object>` line is.
+       it and `2b.model` has none. So a culling object that is not there is the
+       template's own layout, which an `<object>` line with no object is not.
     """
     z, unit, item = _zip(pack), _unit_dir(pack), ITEMS[pack]
     path = f"units/{item}/skins/{item}/{stem}"
@@ -617,12 +617,9 @@ def test_objects_listed_by_the_unit_are_the_ones_the_model_has(pack, stem):
     drawn = {name for name in model.drawables if name.startswith("g_")}
     assert drawn <= set(listed), (
         f"{stem}.object does not list {sorted(drawn - set(listed))}, which the model has")
-    absent = set(listed) - set(model.joints)
-    assert absent == ABSENT_OBJECTS.get((pack, stem), set()), (
-        f"{stem}.object lists {sorted(absent)} and the model has no object of that name: "
-        f"write the file from the model, or update ABSENT_OBJECTS and the README's Next")
-    assert set(listed) - absent == drawn, (
-        f"{stem}.object lists {sorted(set(listed) - absent - drawn)}, which is no `g_` drawable")
+    assert set(listed) <= drawn, (
+        f"{stem}.object lists {sorted(set(listed) - drawn)} and the model has no drawable of "
+        f"that name: write the file from the model (`las_pack.install_models`)")
 
     on = {name for name, enabled in listed.items() if enabled == "true"}
     head = set() if model.first_person else {"g_head"} & drawn
@@ -630,30 +627,27 @@ def test_objects_listed_by_the_unit_are_the_ones_the_model_has(pack, stem):
         f"{stem}.object switches on {sorted(on)}, expected {sorted({'g_body'} | head)}")
 
 
-#: Unit textures that ship one level where every other one carries the full mipmap
-#: pyramid, by role. The Miranda build repaints these two and writes them with a
-#: single-level encoder. Vanilla textures have the pyramid, so this is an open item
-#: (the README's Next), listed here so that it cannot spread and cannot be forgotten.
-SINGLE_LEVEL = {"Miranda_LAS": {"face_df", "eyes"}, "Miranda_Busty_LAS": {"face_df", "eyes"}}
-
-
 @each_pack
 def test_textures_keep_gloss_low_and_normals_in_the_diesel_layout(pack):
     """**Textures.** Diffuse alpha is gloss and stays low; a normal map has X in alpha and Y in green.
 
-    Every texture of a unit is a DXT5 DDS whose payload is exactly the mip chain its
+    Every texture of a unit is a DXT5 DDS with the full mip pyramid down to 1x1, in
+    the header shape of the game's own files. Its payload is exactly the chain the
     header declares, with the colour endpoints of every block in the order c0 >= c1
     (the other order is DXT1's transparent mode, which some decoders apply to DXT5
-    too and draw as holes).
+    too and draw as holes). A converted texture brings the source's pyramid; the
+    repainted face keeps it and gets the repaint in every level
+    (`build_las.repainted_face_texture`); the eyes are drawn, and their levels
+    are made with them (`build_las.eye_texture`). How close each of those levels
+    is to the picture it stands for is `tests/test_mip_audit.py`. The menu icon is
+    not a unit texture and has one level, like 2B's.
 
     The skin shader reads the alpha of the diffuse texture as gloss. Source leaves
-    that channel at 255; the build attenuates it. A normal map keeps two channels,
+    that channel at 255; the build attenuates it, and it has to stay low on every
+    level, or the skin turns shiny with distance. A normal map keeps two channels,
     X in alpha and Y in green (Source's green, inverted); the build writes 255 into
     red and 0 into blue, which the shader does not read. A map that still has X in
     red is the Source layout, unconverted.
-
-    A texture carries the full pyramid down to 1x1 in the header shape of the game's
-    own files, except the ones in `SINGLE_LEVEL`.
     """
     z, unit, item = _zip(pack), _unit_dir(pack), ITEMS[pack]
     roles = {name[len(unit) + len(item) + 2:-len(".texture")]: name
@@ -662,26 +656,27 @@ def test_textures_keep_gloss_low_and_normals_in_the_diesel_layout(pack):
     diffuse = set(roles) - normal
     assert normal and {role[:-3] + "_df" for role in normal} <= diffuse, sorted(roles)
 
-    single = set()
     for role, name in sorted(roles.items()):
         texture = _texture(z.read(name))
         width, height = texture.size
-        if len(texture.levels) == 1:
-            single.add(role)
-        else:
-            assert width == height and len(texture.levels) == width.bit_length(), (
-                f"{role}: {len(texture.levels)} levels for {width}x{height}")
-            # CAPS | HEIGHT | WIDTH | PIXELFORMAT | MIPMAPCOUNT | LINEARSIZE; TEXTURE | COMPLEX | MIPMAP
-            assert (texture.flags, texture.caps) == (0x000A1007, 0x00401008), (
-                f"{role}: header flags {texture.flags:#x}, caps {texture.caps:#x}")
+        assert width == height and len(texture.levels) == width.bit_length(), (
+            f"{role}: {len(texture.levels)} mip levels for {width}x{height}, "
+            f"the full pyramid has {max(width, height).bit_length()}")
+        # CAPS | HEIGHT | WIDTH | PIXELFORMAT | MIPMAPCOUNT | LINEARSIZE; TEXTURE | COMPLEX | MIPMAP
+        assert (texture.flags, texture.caps) == (0x000A1007, 0x00401008), (
+            f"{role}: header flags {texture.flags:#x}, caps {texture.caps:#x}")
         c0, c1 = texture.endpoints()
         assert not (c0 < c1).any(), f"{role}: {int((c0 < c1).sum())} blocks with c0 < c1"
 
         alpha = texture.alpha()
         if role in diffuse:
-            # measured: mean 3.5 to 28.2 of 255; at most 0.52 % of the pixels above 128
-            assert alpha.mean() < 40.0, f"{role}: mean gloss {alpha.mean():.1f} of 255"
-            assert (alpha > 128).mean() < 0.02, f"{role}: {(alpha > 128).mean():.1%} of it above half gloss"
+            # measured, over all levels: mean 3.5 to 29.5 of 255; at most 0.77 % of
+            # a level above 128
+            for level in range(len(texture.levels)):
+                gloss = texture.alpha(level)
+                assert gloss.mean() < 40.0, f"{role}, level {level}: mean gloss {gloss.mean():.1f} of 255"
+                assert (gloss > 128).mean() < 0.02, (
+                    f"{role}, level {level}: {(gloss > 128).mean():.1%} of it above half gloss")
         else:
             red = np.concatenate([c0 >> 11, c1 >> 11])
             blue = np.concatenate([c0 & 31, c1 & 31])
@@ -691,8 +686,6 @@ def test_textures_keep_gloss_low_and_normals_in_the_diesel_layout(pack):
             # measured: X spans at least 140 of 255 (alpha), Y at least 22 of 63 (green endpoints)
             assert int(alpha.max()) - int(alpha.min()) > 100, f"{role}: no X in alpha"
             assert int(green.max()) - int(green.min()) > 15, f"{role}: no Y in green"
-    assert single == SINGLE_LEVEL.get(pack, set()), (
-        f"single-level textures are now {sorted(single)}: update SINGLE_LEVEL and the README's Next")
 
 
 def _codec_cases() -> list:
@@ -853,7 +846,7 @@ def test_variants_change_only_what_they_claim():
 
     The first-person model is not the same file. The base model carries `g_head`
     and `g_head_lod1` as disabled copies of the arms; the variant's has neither,
-    while its `.object` still lists both (`ABSENT_OBJECTS`, the Objects test).
+    and so its `.object` is the base file without the lines of those two.
     """
     base, busty = "Miranda_LAS", "Miranda_Busty_LAS"
     base_id, busty_id = ITEMS[base], ITEMS[busty]
@@ -868,6 +861,8 @@ def test_variants_change_only_what_they_claim():
     for name in ("g_head", "g_head_lod1"):
         assert same(theirs.drawables[name], ours.drawables[name]), f"the head changed ({name})"
     arms_base, arms = _model(base, f"fps_{base_id}"), _model(busty, f"fps_{busty_id}")
+    head_slots = {"g_head", "g_head_lod1"}
+    assert set(arms_base.drawables) - set(arms.drawables) == head_slots
     assert set(arms.drawables) <= set(arms_base.drawables)
     for name, d in arms.drawables.items():
         assert same(arms_base.drawables[name], d), f"the first-person arms changed ({name})"
@@ -908,6 +903,13 @@ def test_variants_change_only_what_they_claim():
         for ending in (".unit", ".object", ".material_config"):
             text = z_base.read(f"{base_dir}/{stem}{base_id}{ending}").decode()
             twin = z_busty.read(f"{busty_dir}/{stem}{busty_id}{ending}").decode()
+            if (stem, ending) == ("fps_", ".object"):
+                lines = text.splitlines(keepends=True)
+                kept = [line for line in lines
+                        if not any(f'<object name="{slot}"' in line for slot in head_slots)]
+                assert len(kept) == len(lines) - len(head_slots), (
+                    f"fps_{base_id}.object has no line for each of {sorted(head_slots)}")
+                text = "".join(kept)
             assert twin == text.replace(base_id, busty_id), f"{stem}{busty_id}{ending} differs"
 
     def icon(pack, item):

@@ -10,6 +10,36 @@ AddFramework from `assets/mod_overrides/`).
 Nothing here can be verified offline — every item needs the running game.
 Report failures with the item number and a screenshot.
 
+## Ten minutes: the rebuild of 2026-11-11
+
+Six packs were rebuilt that day: `Miranda_LAS`, `Miranda_Busty_LAS` and the four
+`Miranda_L4D2_over_*` head packs. What changed, and what was measured offline,
+is in `docs/audits/2026-11-11-miranda-mips-and-object.md`. None of it has been
+seen in the game. These five steps are what would settle it. Write down the
+resolution, the FOV setting, the texture quality and the anisotropic filter
+before you start: the offline figures assume 1080p or 2160p, the game's default
+field of view and no anisotropic filter.
+
+Install `Miranda_LAS` and `Miranda_Busty_LAS` together; they are separate
+outfits. For the comparisons, the packs as they were are
+`git show 13538a1:dist/Miranda_LAS.zip` and the same for the other five.
+
+| Step | What to do | Pass | Fail |
+| --- | --- | --- | --- |
+| A. It loads | Start the game, open the outfits, equip the busty outfit | The menu comes up, both outfits are listed, the preview shows the body | A crash, a script error, or an outfit that is missing |
+| B. First person | Play any heist alone with the busty outfit: look at the arms with a weapon out, reload, interact once | The arms are there and move; the heist starts and ends without a crash | No arms, or a crash when the heist loads. This is the step the `.object` change is about |
+| C. The face, close | In the outfit preview, zoom in on the face and turn it under the light | The lash lines are clean, the eyes are blue, the sheen on the skin is even | Sparkling dots of gloss on the cheeks or the forehead (the old pack had its gloss scrambled inside each block; a few such dots at mid distance are a known finding for the neck and the body) |
+| D. The face, a few metres away | Look at the character where the game shows it from a few metres (the lobby, or a friend's view of you at about 4 m and 8 m), while it moves | At about 4 m the eyes read as blue; the face holds still as it moves. At about 8 m an eye is three pixels wide and the offline render shows it grey-blue: that is expected | Grey eyes at 4 m, or a face that crawls and sparkles as it moves. Do the same with the old pack: it had one mip level, so it should crawl where the new one holds still, and its eyes may look bluer at 8 m. If you cannot tell them apart, or you prefer the old one, say so |
+| E. A head pack | Equip the heister whose head pack you use and look at the face in the menu | It looks as it did | A visible change in colour, or gloss dots on the face |
+
+Afterwards read the game's `crash.txt` and `crashlog.txt` (the two files you sent
+for the lawson pack) and the BLT log of that session. Pass: no entry from this
+session, and no line that names `miranda`, `g_head` or `fps_miranda_busty`.
+
+Step D is the one the offline work cannot replace. In a still frame the old
+pack is closer to the ideal picture than the new one at every distance; the mip
+levels are there for motion, and only the game shows motion.
+
 ## Install sanity
 
 1. Game reaches the menu without script errors (BeardLib console clean).
@@ -47,11 +77,6 @@ Report failures with the item number and a screenshot.
 9. Arms visible on weapon viewmodels; correct texture (body material with
    `DEPTH_SCALING`, mirroring the 2B fps contract).
 10. No shadow mesh clipping into the fps camera.
-
-With `Miranda_Busty_LAS`, also play one heist in first person and read the log
-afterwards: its first-person `.object` lists `g_head` and `g_head_lod1`, and its
-first-person model has neither (`tools/pd2-las/README.md`, Next). Report a
-crash, a line about a missing object, or that there was neither.
 
 ## Materials
 

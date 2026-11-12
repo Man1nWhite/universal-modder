@@ -177,7 +177,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   downloaded and installed straight from the repository, without building
   anything (the user, asked on 2026-11-11).
 - **Source:** the commits above; `tests/test_dist_checksums.py`
-- **Status:** holds.
+- **Status:** holds on the kind of CPU the packs were built on, and not on
+  every other: D26.
 
 ### D10 — A variant is its own pack with its own LAS id
 
@@ -426,21 +427,22 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   three suites and no row; Objects was a rule in one docstring
   (`las_outfit_pack.render_object_xml`: the file lists exactly what the model
   has), which the Christie builder follows and `las_pack.py` does not.
-- **Two exceptions that are written down.** Each is a set in the test file,
-  and its test fails when the set grows and when it shrinks, so the list
-  cannot spread and cannot outlive a fix (the rule of D18, without an
-  `xfail`: nothing fails today). Both are under the README's Next.
-  - `SINGLE_LEVEL`: `miranda_face_df` and `miranda_eyes` ship one mip level
-    where every other unit texture has the full chain. Whether it shows in
-    game is not known.
-  - `ABSENT_OBJECTS`: `fps_miranda_busty.object` lists `g_head` and
+- **Two exceptions that were written down, and are gone.** Each was a set in
+  the test file whose test failed when the set grew and when it shrank, so the
+  list could not spread and could not outlive a fix (the rule of D18, without
+  an `xfail`). Both packs were rebuilt on 2026-11-11 and both sets were
+  removed with the defects: D23 and D24.
+  - `SINGLE_LEVEL`: `miranda_face_df` and `miranda_eyes` shipped one mip level
+    where every other unit texture has the full chain.
+  - `ABSENT_OBJECTS`: `fps_miranda_busty.object` listed `g_head` and
     `g_head_lod1`, and its model has no object of either name. The variant's
     builder drops the two disabled head drawables from the first-person model;
-    `las_pack.render_object_xml` writes a fixed list. In the 2B pack and in
+    `las_pack.render_object_xml` wrote a fixed list. In the 2B pack and in
     the other seven tracked units every `<object>` line has its object.
     Whether the game minds is not known: no Miranda pack has an in-game
-    record. The pack was not changed: a fix gives a tracked deliverable a new
-    sha256, and that is the user's call.
+    record. The pack was not changed at the time: a fix gives a tracked
+    deliverable a new sha256, and that is the user's call. The user made it
+    the same day (D23).
 - **Source:** the docstring of `tests/test_pd2_las_invariants.py`
 - **Status:** holds.
 
@@ -490,4 +492,176 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `tests/test_las_pack.py::test_handoff_and_agents_quote_the_tracked_pack_bytes`
   for the handoff's table (every tracked zip, each with its own size and
   sha256)
+- **Status:** holds.
+
+### D23 — A unit's `.object` is written from the model beside it
+
+- **Decision:** `las_pack.install_models` puts the two models into a pack and
+  writes each `.object` from the drawables that model has. Both Miranda
+  builders end on it. `las_pack.render_object_xml` without a model still
+  gives the 2B list, which is what a scaffold without models needs.
+- **Why:** `fps_miranda_busty.object` listed `g_head` and `g_head_lod1`, and
+  its model has neither (D21). The file came from a fixed list; the model came
+  from a builder that drops those two drawables. Nothing compared the two.
+- **Two ways to make them agree, and why this one.** Remove the two lines, or
+  keep the two head slots in the model, as the base pack and 2B do. What uses
+  the unit decides, so it was read (2026-11-11):
+  - the game spawns the outfit unit, links it, sets its material and enables
+    it; it never asks it for an object by name
+    (`lib/managers/criminalsmanager.lua` 468 to 500 in the decompiled Lua of
+    update 214; `g_head` occurs in none of its 1,732 files);
+  - BeardLib does the same in `Hooks/Items/PlayerStyleGloveHooks.lua` 372 to
+    396 (commit `95eb1c0c`), and has no `g_head` either;
+  - LAS maps `fps_unit` to the style's `unit` (`hooks/outfits/loader.lua` 8)
+    and looks up objects by name only for the deployable bags of the
+    character, each lookup guarded
+    (`hooks/las_hooks/criminalsmanager.lua` 116 to 122, commit `b7c38c1d`).
+  So nothing needs the head slots, and either way would do. The lines were
+  removed because that changes one text file of 478 bytes and leaves the
+  model, which has shipped since 2026-11-04, alone.
+- **What files the game accepts show.** In the 34 units LAS itself ships and
+  in both 2B units, every `<object>` line has a node in the model: none of the
+  36 has the defect. A `culling_object` without a node does occur, once in LAS
+  and once in 2B, so that kind is tolerated. Of the 15 first-person units of
+  LAS, none lists `g_head`.
+- **Not known:** what the engine does with an `<object>` line that has no
+  node. It reads the file in native code, which is not in the Lua. The old
+  pack was never run, and the fix does not need the answer.
+- **Rejected:** keeping the head slots in the variant's first-person model.
+  It would make that model the base pack's, byte for byte, which the Variants
+  invariant would like; it is also a second change to a file nobody has seen
+  in game, made for tidiness.
+- **Source:** `las_pack.install_models`;
+  `tests/test_pd2_las.py::TestLasScaffold::test_install_models_writes_each_object_from_its_model`;
+  the Objects and Variants invariants;
+  `docs/audits/2026-11-11-miranda-mips-and-object.md`
+- **Status:** holds; not seen in game.
+
+### D24 — The build encodes only what it changed, and its mip levels are judged as pictures
+
+- **Decision:** three rules for the two Miranda textures the build does not
+  simply convert.
+  1. The repainted face keeps the source's blocks, at every mip level. Only
+     the half of a block whose content changed is encoded again: colour where
+     a texel's colour changed, alpha where its gloss did
+     (`build_las.repainted_face_texture`). A lower level is the source's own
+     level plus what the repaint added, averaged over each texel's area as
+     light (`build_las.face_levels`).
+  2. The eye texture is drawn, so every level is made here: the area average
+     of the drawn eye, colour averaged as light, gloss as data
+     (`build_las.mip_levels`), encoded with the pair search of
+     `dds_encode.encode_bc3_texels` and with the iris counting sixteen times
+     the sclera (`build_las.eye_weights`).
+  3. Every level is held to limits written before it was measured
+     (`mip_audit.LIMITS`): CIEDE2000 against the picture the level stands
+     for, absolute error for gloss, and the colour of the iris. What the pack
+     misses is a list in the same file, `KNOWN_MISSES`, and
+     `tests/test_mip_audit.py` fails when the pack and the list disagree in
+     either direction.
+- **Why 1:** the build used to decode the whole face, repaint 2 % of it and
+  encode all of it again as one level. That was a second lossy pass over
+  every block, it threw the source's mip levels away, and the encoder wrote
+  its alpha codes in the wrong order, so the gloss of 80 % of the blocks was
+  scrambled inside the block (the worst texel off by 29 of 255). The module's
+  own docstring said production textures are never re-encoded.
+- **Why 2:** a block of DXT5 holds four colours on one line. From 64x64 down,
+  a block of the eye holds pupil, iris, dark rim and sclera. The two encoders
+  the repository had, and `quicktex` at its highest setting, spend the line
+  on the sclera, and the iris of the 16x16 or the 8x8 level comes out grey.
+  Those are the levels on screen from two to eight metres at 1080p. With the
+  weights the iris is within 1.71 of the picture at every level.
+- **Why the eye is drawn once and averaged**, where the task that asked for
+  these levels said to draw it at each size: drawn again with one point per
+  texel of a small level, the fibres of the iris fall between the points.
+  Against a drawing with 16 points per texel of level 0, the average of one
+  drawing stays within 1.66 in every texel of every level; a drawing per size
+  is off by more than 13 in one texel of a hundred at 32x32, and its iris by
+  11 at 4x4 (`mip_audit.eye_drawn_finer`, and the test named after it).
+- **Why 3:** the first two attempts at these levels passed every test: the
+  header was right, the payload was the declared chain, gloss was low. The
+  tests asked whether the file was well formed, and the levels were grey.
+- **What the limits are not.** They are not met everywhere, and they were not
+  moved: levels 3 to 7 of the eyes miss the per-texel colour limits, as every
+  encoder that was tried does on that picture. The list says so.
+- **Rejected:**
+  - generating the face's lower levels from its level 0 and encoding them
+    whole: no closer to the ideal render than the source's own levels (mean
+    CIEDE2000 1.31, 1.70, 2.30 at 2, 4 and 8 m against 1.24, 1.58, 2.25) and
+    it re-encodes 21,847 blocks to change 487;
+  - the shared helper `tools/pd2-port/dds.py` for the levels: it builds them
+    from a decode of level 0, and its encoder gives the 16x16 iris
+    (61, 55, 52);
+  - an outside encoder in the build: `quicktex` is better than the pair
+    search at 512 to 128 (mean 0.8 against 1.4), but a compiled dependency
+    would decide the tracked bytes. It is the yardstick, in a separate
+    environment, and nothing that ships is made with it;
+  - an uncompressed eye texture, which would have no block error at all: a
+    format no unit texture of any tracked pack uses, untested in game.
+- **Source:** `docs/audits/2026-11-11-miranda-mips-and-object.md` (method,
+  tables, the before/after render); `tools/pd2-las/mip_audit.py`;
+  `tests/test_mip_audit.py`; `tests/test_pd2_las.py::TestMirandaTextures`
+- **Status:** holds; not seen in game. In a still frame one level is closer
+  to the ideal than eleven at every distance, and at 8 m the eyes come out
+  grey-blue where one level shows them blue; what the levels are for is
+  motion, which only the game shows.
+
+### D25 — A pack built from another pack is rebuilt with it
+
+- **Decision:** when `dist/Miranda_LAS.zip` changes, the four
+  `Miranda_L4D2_over_*` head packs are rebuilt and re-shipped in the same
+  change.
+- **Why:** `tools/build_joy_head_mods.py` takes the face, head and body
+  textures out of that zip. Every tracked pack equals a fresh build (D9, and
+  the README's "Done means"); a head pack built from the old face stops being
+  one the moment the face changes, and the next full rebuild rewrites four
+  packs nobody meant to touch.
+- **How it came up:** the 2026-11-11 change was scoped to the two Miranda LAS
+  packs. Rebuilding everything showed the four head packs move with them
+  (the head atlas and the menu icon of each). The user was asked and chose to
+  re-ship them.
+- **Not done:** a head pack does not record which `Miranda_LAS.zip` it was
+  built from, so nothing but a rebuild shows that one is stale.
+- **Source:** `docs/pd2-las/HANDOFF.md`, "Head packs";
+  `docs/audits/2026-11-11-miranda-mips-and-object.md`
+- **Status:** holds.
+
+### D26 — A fresh build is compared member by member; a model may differ in two named ways
+
+- **Decided:** 2026-11-11
+- **Decision:** `make -sC tools/pd2-las fresh` builds both Miranda packs
+  again into `build/fresh/` and `fresh_check.py` compares them with the
+  tracked packs member by member. Every member has to be the same bytes,
+  except a `.model`: its floats may differ in their last bits, and the V
+  direction of a vertex whose triangles all have no area in UV may be
+  reversed. `BUILD_INFO.json` may differ in the sha256 it records for such a
+  model, and nowhere else. CI runs it as the last step of its job.
+- **Why:** D9 says a rebuild gives the same bytes. Measured on 2026-11-11,
+  that is true on a CPU with AVX-512, which is what every sandbox so far has
+  been, and not on others. With OpenBLAS held to the routines of an AVX2 CPU,
+  which is what most of GitHub's runners are, 14 of the 16 tracked zips do not
+  equal a fresh build. A check of zip against zip would be red or green by the
+  runner it landed on, and would say nothing about the members a change was
+  about.
+- **What differs in a Miranda pack, and why:** one member, the third-person
+  model, by 136 bytes of 1,819,989 (174 with the routines of an SSE4.2 CPU).
+  Positions, normals, UVs, weights, bones and triangles are the same. 44
+  vertices of the hair have no triangle with area in UV, so the UV map gives
+  them no handedness; `build_models` then takes the sign of their V direction
+  from a number that is zero but for rounding (the dot product of `cross(n, u)`
+  with a fallback that lies in the plane of `n` and `u`), and 16 to 21 of the
+  44 come out reversed. One U direction differs in its last bits. The shadow
+  caster carries copies of the same vertices.
+- **Not done:** the builder was not changed. Making that sign a decision
+  would move the bytes of every third-person model, the Christie ones
+  included, and the change that found this was about two textures and one
+  `.object`. The two Christie packs (both models) and the eight head packs
+  (four or five blocks of the head atlas) differ too; `fresh` does not build
+  them. It is under Next in the README.
+- **Not known:** what a different C library does (a newer glibc, Windows).
+  The eye texture is drawn with single-precision `arctan2` and powers, and
+  four of its 786,432 values already differ by one step between AVX-512 and
+  the rest; its encoded bytes are the same on all three, so far.
+- **Source:** `docs/audits/2026-11-11-miranda-mips-and-object.md`, "Does a
+  pack depend on the machine that builds it"; `tools/pd2-las/fresh_check.py`;
+  `tests/test_fresh_check.py`
 - **Status:** holds.
