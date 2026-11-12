@@ -96,7 +96,8 @@
      "glove_check",
      "pose_preview",
      "preview_textured",
-     "render_mesh_skeleton"
+     "render_mesh_skeleton",
+     "uv_check"
     ],
     "dmodel.__init__": [
      "build_las_pack.py",
@@ -721,11 +722,19 @@
    "written": {}
   },
   "elbow_before_after": {
-   "lines": 27,
-   "printed": "1ba085c779780e073f1a7ccfce8915f5565268efe4624d73d9b29445db1b38ea",
-   "rc": 1,
+   "lines": 12,
+   "printed": "9b12e8614b9192d44b2668e03cdd16441c90bd80b23b38ce1634fcaff7ded535",
+   "rc": 0,
    "unsteady_files": [],
-   "written": {}
+   "written": {
+    "<scratch>/elbow/christie_elbow_bend_before_after.png": "5e9f20c4929a705011c2cf3d6d5ba840cad7e07713ffbfb5d13ce9f95c98e167",
+    "<scratch>/panels/christie_r0_after.png": "d0f4959c0bda42249122a59615796979d3da18a0ab9cfe354a46944d41f2dbce",
+    "<scratch>/panels/christie_r0_before.png": "d0f4959c0bda42249122a59615796979d3da18a0ab9cfe354a46944d41f2dbce",
+    "<scratch>/panels/christie_r1_after.png": "8d6a6ca125fa2b44b11a2458495d009e0b4c233996167bdb77395d69778c9d58",
+    "<scratch>/panels/christie_r1_before.png": "8d6a6ca125fa2b44b11a2458495d009e0b4c233996167bdb77395d69778c9d58",
+    "<scratch>/panels/christie_r2_after.png": "0b4aa4464a25d9bfd2fa26f3d0892d07fb82aef54b7008909cfe52a5c4a0c3e5",
+    "<scratch>/panels/christie_r2_before.png": "0b4aa4464a25d9bfd2fa26f3d0892d07fb82aef54b7008909cfe52a5c4a0c3e5"
+   }
   },
   "extract_2b": {
    "lines": 3,
@@ -868,18 +877,23 @@
    "written": {}
   },
   "um_publish_check": {
-   "lines": 3,
-   "printed": "97f47aa92f467318863cf91fe672c912818afac7346d84c729542f0ebb2b9b3e",
+   "lines": 5,
+   "printed": "da54ff6058156f366b87eb0f65577136b7e881d6b7ae9d99f28562f2f9536716",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
   },
   "uv_check": {
-   "lines": 16,
-   "printed": "fd1a5f06b9a6a9749e18675c7fed718744bacc34a5450574fdda8489c7980a54",
+   "lines": 21,
+   "printed": "af24c65f76d5781e681dcc7db0d8fbe30e3f6ac11f229f5565ab9050b32b0916",
    "rc": 1,
    "unsteady_files": [],
-   "written": {}
+   "written": {
+    "<scratch>/uv.png/uvcheck_2b_g_body_front.png": "26ab4d782345ca5d88713be9429525762cda5a04cc7f88a0da1d9ac65430796e",
+    "<scratch>/uv.png/uvcheck_2b_g_body_iso.png": "7486d304b4d21778a856138b9463e23e5a00f55af1310287e20121f85bb83e42",
+    "<scratch>/uv.png/uvcheck_2b_g_head_front.png": "165f829d940e7f39d7cbc07079baba01bfbeb311f4e3377378f77cb06fd37c3a",
+    "<scratch>/uv.png/uvcheck_2b_g_head_iso.png": "5f0ce0ad123e681c236a7d6cbfe93cc020995c8f73ddf4a88f067bfef18b7721"
+   }
   }
  },
  "reach": {

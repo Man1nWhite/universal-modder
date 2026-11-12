@@ -1,0 +1,1115 @@
+THE COPIES AS THEY WERE AT 26fce3e, ON REAL FILES
+
+corpus (different files; a file in several packs counts once, under the first):
+  2B | models, different files: 3
+  2B | models, places they are in: 3
+  2B | textures, different files: 3
+  2B | textures, places they are in: 3
+  Christie | models, different files: 4
+  Christie | models, places they are in: 4
+  Christie | textures, different files: 12
+  Christie | textures, places they are in: 18
+  LAS mod | models, different files: 34
+  LAS mod | models, places they are in: 34
+  LAS mod | textures, different files: 41
+  LAS mod | textures, places they are in: 41
+  Miranda | models, different files: 4
+  Miranda | models, places they are in: 8
+  Miranda | textures, different files: 9
+  Miranda | textures, places they are in: 32
+  head Geralt | models, different files: 1
+  head Geralt | models, places they are in: 2
+  head Geralt | textures, different files: 3
+  head Geralt | textures, places they are in: 3
+  heads L4D2 | models, different files: 6
+  heads L4D2 | models, places they are in: 10
+  heads L4D2 | textures, different files: 6
+  heads L4D2 | textures, places they are in: 30
+  heads Romance | models, different files: 6
+  heads Romance | models, places they are in: 10
+  heads Romance | textures, different files: 3
+  heads Romance | textures, places they are in: 12
+  lawson_las | models, different files: 2
+  lawson_las | models, places they are in: 2
+  lawson_las | textures, different files: 15
+  lawson_las | textures, places they are in: 17
+copies that could not be imported:
+  none: 
+
+== .model: dmodel (tools/pd2-port) and diesel_model (tools/pd2-las)
+ containers:
+    2B | legacy: 3
+    Christie | legacy: 4
+    LAS mod | legacy: 34
+    Miranda | legacy: 4
+    head Geralt | legacy: 1
+    heads L4D2 | legacy: 6
+    heads Romance | legacy: 6
+    lawson_las | DODB v1: 2
+ whole:
+    DODB v1 | diesel_model stops: ValueError: DODB container not supported (game units are legac: 2
+    DODB v1 | dmodel reads the file: 2
+    legacy | diesel_model reads the file: 58
+    legacy | dmodel reads the file: 58
+ sections:
+    legacy | section lists the same: 58
+ tags:
+    both name it the same: 11806
+    only dmodel names it: 2
+ tag tables:
+    diesel_model: 13
+    dmodel: 20
+    only in dmodel: ['camera', 'light', 'lightSet', 'linearFloatCtrl', 'linearVector3Ctrl', 'quatBezRotCtrl', 'quatLinearRotCtrl']
+    same number for the same name: 13
+ reads:
+    DODB v1 | geometry | dmodel reads | diesel_model stops (KeyError: 7): 3
+    DODB v1 | material | dmodel reads | diesel_model reads: 12
+    DODB v1 | material_group | dmodel reads | diesel_model reads: 5
+    DODB v1 | model_data | dmodel reads | diesel_model reads: 5
+    DODB v1 | object3D | dmodel reads | diesel_model reads: 120
+    DODB v1 | passthroughGP | dmodel reads | diesel_model reads: 3
+    DODB v1 | skinbones | dmodel reads | diesel_model reads: 3
+    DODB v1 | topology | dmodel reads | diesel_model reads: 3
+    DODB v1 | topologyIP | dmodel reads | diesel_model reads: 3
+    legacy | animation_data | dmodel has no reader | diesel_model has no reader: 47
+    legacy | author | dmodel has no reader | diesel_model has no reader: 39
+    legacy | custom_hashlist | dmodel has no reader | diesel_model reads: 24
+    legacy | geometry | dmodel reads | diesel_model reads: 826
+    legacy | geometry | dmodel reads | diesel_model stops (ValueError: unsupported geometry channel 5 (item siz): 4
+    legacy | light | dmodel has no reader | diesel_model has no reader: 2
+    legacy | material | dmodel reads | diesel_model reads: 594
+    legacy | material_group | dmodel reads | diesel_model reads: 733
+    legacy | model_data | dmodel reads | diesel_model reads: 1316
+    legacy | object3D | dmodel reads | diesel_model reads: 4778
+    legacy | passthroughGP | dmodel reads | diesel_model reads: 830
+    legacy | skinbones | dmodel reads | diesel_model reads: 798
+    legacy | topology | dmodel reads | diesel_model reads: 830
+    legacy | topologyIP | dmodel reads | diesel_model reads: 830
+ fields, section by section (where both copies read the section):
+    DODB v1 | material: the same in all 12 sections: items, name_hash, remaining, skipped
+    DODB v1 | material_group: the same in all 5 sections: items, remaining
+    DODB v1 | model_data: the same in all 5 sections: anim_ids, bounding_int, bounding_radius, bounds_max, bounds_min, lightset_id, matrix, name_hash, parent_id, pos, properties, remaining, version
+        DIFFERENT matgroup_id: in 2 of 5 sections; lawson_las:fps_lawson.model section 66: only dmodel gives it ;; lawson_las:lawson.model section 73: only dmodel gives it
+        DIFFERENT passthrough_id: in 2 of 5 sections; lawson_las:fps_lawson.model section 66: only dmodel gives it ;; lawson_las:lawson.model section 73: only dmodel gives it
+        DIFFERENT render_atoms: in 2 of 5 sections; lawson_las:fps_lawson.model section 66: only dmodel gives it ;; lawson_las:lawson.model section 73: only dmodel gives it
+        DIFFERENT skinbones_id: in 2 of 5 sections; lawson_las:fps_lawson.model section 66: only dmodel gives it ;; lawson_las:lawson.model section 73: only dmodel gives it
+        DIFFERENT topologyip_id: in 2 of 5 sections; lawson_las:fps_lawson.model section 66: only dmodel gives it ;; lawson_las:lawson.model section 73: only dmodel gives it
+    DODB v1 | object3D: the same in all 120 sections: anim_ids, matrix, name_hash, parent_id, pos, remaining
+    DODB v1 | passthroughGP: the same in all 3 sections: geometry_id, topology_id
+    DODB v1 | skinbones: the same in all 3 sections: bone_mappings, global_skin_transform, object_ids, remaining, root_bone_id, rotations
+    DODB v1 | topology: the same in all 3 sections: faces, items2, name_hash, primitive, remaining
+    DODB v1 | topologyIP: the same in all 3 sections: topology_id
+    legacy | geometry: the same in all 826 sections: header sizes, header types, positions, vert_count
+        DIFFERENT joints: in 471 of 826 sections; Christie_LAS:christie.model section 10193: item 0 of 41492/41492: 0 / 2 ;; Christie_LAS:christie.model section 10203: item 0 of 41476/41476: 0 / 2
+        DIFFERENT name_hash: in 127 of 826 sections; Christie_LAS:fps_christie.model section 777890663: item 0 of 1/1: 562975723421696 / 5803137644013891838 ;; Christie_LAS_Slim:fps_christie_slim.model section 777890663: item 0 of 1/1: 562975723421696 / 5803137644013891838
+        DIFFERENT normals: in 226 of 826 sections; Christie_LAS:christie.model section 10193: item 0 of 31119/31119: 0.0 / 0.9061486124992371 ;; Christie_LAS:christie.model section 10203: item 0 of 31107/31107: 0.0 / 0.9061486124992371
+        DIFFERENT packed_vu: in 428 of 826 sections; Christie_LAS:christie.model section 10193: 0 items / 31119 items ;; Christie_LAS:christie.model section 10203: 0 items / 31107 items
+        DIFFERENT remaining: in 71 of 826 sections; Geralt_over_Rust:npc_criminal_wild_1.model section 10107: item 0 of 1/1: b'\x16\x00\x17\x00\x14\x00\x00\x00\x16\x / b'' ;; Miranda_L4D2_over_Bonnie:npc_criminal_bonnie.model section 10108: item 0 of 1/1: b'\x0e\x00\x00\x00\x00\x00\x00\x00\x0e\x / b''
+        DIFFERENT uvs: in 220 of 826 sections; Geralt_over_Rust:npc_criminal_wild_1.model section 10004: item 0 of 2196/2196: 0.5959912538528442 / 0.12970486283302307 ;; Geralt_over_Rust:npc_criminal_wild_1.model section 10010: item 0 of 3126/3126: -0.05097609758377075 / 0.704365611076355
+        DIFFERENT weights3: in 471 of 826 sections; Christie_LAS:christie.model section 10193: 0 items / 31119 items ;; Christie_LAS:christie.model section 10203: 0 items / 31107 items
+    legacy | material: the same in all 594 sections: items, name_hash, remaining, skipped
+    legacy | material_group: the same in all 733 sections: items, remaining
+    legacy | model_data: the same in all 1316 sections: anim_ids, bounding_int, bounding_radius, bounds_max, bounds_min, lightset_id, matrix, name_hash, parent_id, pos, properties, remaining, version
+        DIFFERENT matgroup_id: in 474 of 1316 sections; Christie_LAS:christie.model section 24: only dmodel gives it ;; Christie_LAS:christie.model section 25: only dmodel gives it
+        DIFFERENT passthrough_id: in 474 of 1316 sections; Christie_LAS:christie.model section 24: only dmodel gives it ;; Christie_LAS:christie.model section 25: only dmodel gives it
+        DIFFERENT render_atoms: in 474 of 1316 sections; Christie_LAS:christie.model section 24: only dmodel gives it ;; Christie_LAS:christie.model section 25: only dmodel gives it
+        DIFFERENT skinbones_id: in 474 of 1316 sections; Christie_LAS:christie.model section 24: only dmodel gives it ;; Christie_LAS:christie.model section 25: only dmodel gives it
+        DIFFERENT topologyip_id: in 474 of 1316 sections; Christie_LAS:christie.model section 24: only dmodel gives it ;; Christie_LAS:christie.model section 25: only dmodel gives it
+    legacy | object3D: the same in all 4778 sections: anim_ids, matrix, name_hash, parent_id, pos, remaining
+    legacy | passthroughGP: the same in all 830 sections: geometry_id, topology_id
+    legacy | skinbones: the same in all 798 sections: bone_mappings, global_skin_transform, object_ids, remaining, root_bone_id, rotations
+    legacy | topology: the same in all 830 sections: faces, items2, name_hash, primitive, remaining
+    legacy | topologyIP: the same in all 830 sections: topology_id
+ channels:
+    DODB v1 | type  1 size 3: 3
+    DODB v1 | type  2 size 8: 3
+    DODB v1 | type  7 size 9: 3
+    DODB v1 | type 17 size 7: 3
+    DODB v1 | type 19 size 3: 3
+    DODB v1 | type 22 size 8: 3
+    DODB v1 | type 23 size 8: 3
+    legacy | type  1 size 3: 830
+    legacy | type  2 size 3: 627
+    legacy | type  5 size 5: 4
+    legacy | type  7 size 2: 506
+    legacy | type  8 size 2: 19
+    legacy | type  9 size 2: 16
+    legacy | type 15 size 7: 492
+    legacy | type 17 size 2: 31
+    legacy | type 17 size 3: 459
+    legacy | type 17 size 4: 2
+    legacy | type 20 size 3: 449
+    legacy | type 21 size 3: 449
+ roundtrip:
+    2B | custom_hashlist | same bytes: 3
+    2B | geometry | same bytes: 16
+    2B | material | same bytes: 22
+    2B | material_group | same bytes: 22
+    2B | model_data | same bytes: 64
+    2B | object3D | same bytes: 522
+    2B | passthroughGP | same bytes: 16
+    2B | skinbones | same bytes: 105
+    2B | topology | same bytes: 16
+    2B | topologyIP | same bytes: 16
+    2B | whole file | same bytes: 3
+    Christie | custom_hashlist | same bytes: 4
+    Christie | geometry | same bytes: 10
+    Christie | material | same bytes: 66
+    Christie | material_group | same bytes: 46
+    Christie | model_data | same bytes: 78
+    Christie | object3D | same bytes: 620
+    Christie | passthroughGP | same bytes: 10
+    Christie | skinbones | same bytes: 116
+    Christie | topology | same bytes: 10
+    Christie | topologyIP | same bytes: 10
+    Christie | whole file | same bytes: 4
+    LAS mod | geometry | encoder stops (error): 2
+    LAS mod | geometry | same bytes: 442
+    LAS mod | material | same bytes: 269
+    LAS mod | material_group | same bytes: 241
+    LAS mod | model_data | same bytes: 744
+    LAS mod | object3D | same bytes: 2101
+    LAS mod | passthroughGP | same bytes: 448
+    LAS mod | skinbones | same bytes: 252
+    LAS mod | topology | same bytes: 448
+    LAS mod | topologyIP | same bytes: 448
+    LAS mod | whole file | same bytes: 34
+    Miranda | custom_hashlist | same bytes: 4
+    Miranda | geometry | same bytes: 12
+    Miranda | material | same bytes: 62
+    Miranda | material_group | same bytes: 50
+    Miranda | model_data | same bytes: 84
+    Miranda | object3D | same bytes: 620
+    Miranda | passthroughGP | same bytes: 12
+    Miranda | skinbones | same bytes: 118
+    Miranda | topology | same bytes: 12
+    Miranda | topologyIP | same bytes: 12
+    Miranda | whole file | same bytes: 4
+    head Geralt | custom_hashlist | same bytes: 1
+    head Geralt | geometry | same bytes: 22
+    head Geralt | material | same bytes: 15
+    head Geralt | material_group | same bytes: 22
+    head Geralt | model_data | same bytes: 22
+    head Geralt | object3D | same bytes: 63
+    head Geralt | passthroughGP | same bytes: 22
+    head Geralt | skinbones | same bytes: 19
+    head Geralt | topology | same bytes: 22
+    head Geralt | topologyIP | same bytes: 22
+    head Geralt | whole file | same bytes: 1
+    heads L4D2 | custom_hashlist | same bytes: 6
+    heads L4D2 | geometry | same bytes: 161
+    heads L4D2 | material | same bytes: 80
+    heads L4D2 | material_group | same bytes: 176
+    heads L4D2 | model_data | same bytes: 162
+    heads L4D2 | object3D | same bytes: 426
+    heads L4D2 | passthroughGP | same bytes: 161
+    heads L4D2 | skinbones | same bytes: 94
+    heads L4D2 | topology | same bytes: 161
+    heads L4D2 | topologyIP | same bytes: 161
+    heads L4D2 | whole file | same bytes: 6
+    heads Romance | custom_hashlist | same bytes: 6
+    heads Romance | geometry | same bytes: 161
+    heads Romance | material | same bytes: 80
+    heads Romance | material_group | same bytes: 176
+    heads Romance | model_data | same bytes: 162
+    heads Romance | object3D | same bytes: 426
+    heads Romance | passthroughGP | same bytes: 161
+    heads Romance | skinbones | same bytes: 94
+    heads Romance | topology | same bytes: 161
+    heads Romance | topologyIP | same bytes: 161
+    heads Romance | whole file | same bytes: 6
+    lawson_las | material | same bytes: 12
+    lawson_las | material_group | same bytes: 5
+    lawson_las | model_data | same bytes: 5
+    lawson_las | object3D | same bytes: 120
+    lawson_las | passthroughGP | same bytes: 3
+    lawson_las | skinbones | same bytes: 3
+    lawson_las | topology | same bytes: 3
+    lawson_las | topologyIP | same bytes: 3
+ roundtrip_examples:
+ names:
+    2B | name hashes that are not: 54
+    2B | name hashes that are the hash of a name the file lists: 586
+    Christie | name hashes that are not: 26
+    Christie | name hashes that are the hash of a name the file lists: 758
+    Miranda | name hashes that are not: 24
+    Miranda | name hashes that are the hash of a name the file lists: 766
+    head Geralt | name hashes that are not: 59
+    head Geralt | name hashes that are the hash of a name the file lists: 85
+    heads L4D2 | name hashes that are not: 402
+    heads L4D2 | name hashes that are the hash of a name the file lists: 588
+    heads Romance | name hashes that are not: 402
+    heads Romance | name hashes that are the hash of a name the file lists: 588
+ hash:
+    different for a name given as text: 0
+    different values: 0
+    different with a level: 0
+    names from the files: 261
+    probes: 20261
+ inverse:
+    could not be inverted: 0
+    different once packed as float32: 0
+    dmodel.minv and me2_dae.minv are the same text: False
+    largest difference to diesel_model.mat_inv: 0.0
+    matrices: 3037
+
+== DDS: dds (tools/pd2-port) and dds_encode (tools/pd2-las)
+  decode:
+    2B | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 27962026
+    2B | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 3419360
+      texels: 27962026
+    2B | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 3419360
+      texels: 27962026
+    Christie | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 9393490
+    Christie | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 5571623
+      texels: 9393490
+    Christie | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 5571623
+      texels: 9393490
+    LAS mod | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 14128467
+    LAS mod | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 8601644
+      texels: 14128467
+    LAS mod | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 8601644
+      texels: 14128467
+    Miranda | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 7820627
+    Miranda | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 3955143
+      texels: 7820627
+    Miranda | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 3955143
+      texels: 7820627
+    head Geralt | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 11184810
+    head Geralt | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 8099331
+      texels: 11184810
+    head Geralt | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 8099331
+      texels: 11184810
+    heads L4D2 | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 11709097
+    heads L4D2 | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 7078049
+      texels: 11709097
+    heads L4D2 | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 7078049
+      texels: 11709097
+    heads Romance | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 11184810
+    heads Romance | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 7662993
+      texels: 11184810
+    heads Romance | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 7662993
+      texels: 11184810
+    lawson_las | Pillow against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 0
+      colour differs: 0
+      texels: 12582907
+    lawson_las | dds.py against Pillow:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 6149201
+      texels: 12582907
+    lawson_las | dds.py against texture2ddecoder:
+      alpha by at most: 0
+      alpha differs: 0
+      colour by at most: 1
+      colour differs: 6149201
+      texels: 12582907
+  downsample:
+    different between downsample2x2 and box_reduce rounded: 0
+    values: 196608
+  encode:
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.18, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.43, 0.08]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [2.15, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 399
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 840
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 345
+    texture: Christie_LAS:christie_body_df.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.34, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.09, 0.07]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [0.48, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 403
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 616
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 401
+    texture: Christie_LAS:christie_body_nm.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.11, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.19, 0.1]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [4.88, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 359
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 646
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 262
+    texture: Christie_LAS:christie_c02_01_df.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.02, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.02, 0.03]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [0.15, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 857
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 887
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 793
+    texture: Christie_LAS:christie_c02_01_nm.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.04, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.21, 0.03]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [0.59, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 718
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 849
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 562
+    texture: Christie_LAS:christie_c02_02_df.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.02, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.02, 0.01]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [0.2, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 893
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 883
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 815
+    texture: Christie_LAS:christie_c02_02_nm.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.09, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.31, 0.16]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [0.1, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 290
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 1019
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 290
+    texture: Christie_LAS:christie_c02_05_df.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.0, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.0, 0.0]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [0.02, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 1006
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 1008
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 1005
+    texture: Christie_LAS:christie_c02_05_nm.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.2, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.44, 0.09]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [2.08, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 370
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 830
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 333
+    texture: Christie_LAS_Slim:christie_slim_body_df.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.11, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.19, 0.1]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [4.88, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 361
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 646
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 263
+    texture: Christie_LAS_Slim:christie_slim_c02_01_df.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.16, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.2, 0.0]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [2.34, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 959
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 823
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 781
+    texture: Geralt_over_Rust:npc_criminal_wild_1_head_df.texture
+    blocks: 1024
+    error of dds.encode_dxt5 (colour, alpha): [0.03, 0.0]
+    error of dds_encode.encode_bc3_texels (colour, alpha): [0.01, 0.06]
+    error of dds_encode.rgba_to_bc3_dds (colour, alpha): [0.15, 0.0]
+    same blocks: dds.encode_dxt5 and dds_encode.encode_bc3_texels: 726
+    same blocks: dds.encode_dxt5 and dds_encode.rgba_to_bc3_dds: 896
+    same blocks: dds_encode.rgba_to_bc3_dds and dds_encode.encode_bc3_texels: 680
+    texture: Geralt_over_Rust:npc_criminal_wild_1_head_nm.texture
+  fix:
+    LAS mod:
+      blocks with c0 < c1: 0
+      blocks with c0 = c1 and indices: 2225
+      of those, fixed to other bytes by the two: 0
+      of those, left by one and cleared by the other: 0
+      other blocks the two leave different: 0
+      texels texture2ddecoder shows changed by _enforce_c0_ge_c1: 0
+      texels texture2ddecoder shows changed by fix_misordered_blocks: 0
+      textures: 1
+  fourcc:
+    2B | DXT1: 1
+    2B | DXT5: 2
+    Christie | DXT5: 12
+    LAS mod | DXT1: 26
+    LAS mod | DXT5: 11
+    LAS mod | no fourcc: 4
+    Miranda | DXT5: 9
+    head Geralt | DXT5: 2
+    head Geralt | no fourcc: 1
+    heads L4D2 | DXT5: 5
+    heads L4D2 | no fourcc: 1
+    heads Romance | DXT5: 2
+    heads Romance | no fourcc: 1
+    lawson_las | DXT5: 15
+  header:
+    2B | full chain | pack_dds: False | _dds_header: False: 1
+    2B | full chain | pack_dds: True | _dds_header: True: 1
+    Christie | full chain | pack_dds: True | _dds_header: True: 10
+    Christie | one level | pack_dds: cannot write it | _dds_header: True: 2
+    LAS mod | full chain | pack_dds: False | _dds_header: False: 7
+    LAS mod | one level | pack_dds: cannot write it | _dds_header: False: 4
+    Miranda | full chain | pack_dds: True | _dds_header: True: 7
+    Miranda | one level | pack_dds: cannot write it | _dds_header: True: 2
+    head Geralt | full chain | pack_dds: True | _dds_header: True: 2
+    heads L4D2 | full chain | pack_dds: True | _dds_header: True: 5
+    heads Romance | full chain | pack_dds: True | _dds_header: True: 2
+    lawson_las | full chain | pack_dds: True | _dds_header: True: 15
+  header_examples:
+    2B: 2B:base_df.texture: bytes [24] are not what _dds_header writes
+    LAS mod: LAS mod:hev.texture: bytes [28] are not what _dds_header writes
+  levels:
+    2B | dds_mip0_slice agrees | bc3_levels agrees: 2
+    Christie | dds_mip0_slice agrees | bc3_levels agrees: 12
+    LAS mod | dds_mip0_slice agrees | bc3_levels agrees: 11
+    Miranda | dds_mip0_slice agrees | bc3_levels agrees: 9
+    head Geralt | dds_mip0_slice agrees | bc3_levels agrees: 2
+    heads L4D2 | dds_mip0_slice agrees | bc3_levels agrees: 5
+    heads Romance | dds_mip0_slice agrees | bc3_levels agrees: 2
+    lawson_las | dds_mip0_slice agrees | bc3_levels agrees: 15
+  order:
+    2B:
+      blocks: 1747630
+      c0 < c1: 0
+      c0 = c1 with indices: 0
+      textures: 2
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 0
+    Christie:
+      blocks: 587110
+      c0 < c1: 0
+      c0 = c1 with indices: 0
+      textures: 12
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 0
+    LAS mod:
+      blocks: 883041
+      c0 < c1: 0
+      c0 = c1 with indices: 3167
+      textures: 11
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 3
+    Miranda:
+      blocks: 488801
+      c0 < c1: 0
+      c0 = c1 with indices: 0
+      textures: 9
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 0
+    head Geralt:
+      blocks: 699054
+      c0 < c1: 0
+      c0 = c1 with indices: 0
+      textures: 2
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 0
+    heads L4D2:
+      blocks: 731827
+      c0 < c1: 0
+      c0 = c1 with indices: 0
+      textures: 5
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 0
+    heads Romance:
+      blocks: 699054
+      c0 < c1: 0
+      c0 = c1 with indices: 0
+      textures: 2
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 0
+    lawson_las:
+      blocks: 786457
+      c0 < c1: 0
+      c0 = c1 with indices: 0
+      textures: 15
+      textures with c0 < c1: 0
+      textures with c0 = c1 and indices: 0
+
+== the files that register a pack (- is the tracked line, + what the writer gives for the same pack)
+  flags in the code:
+    build_christie_las: ['hide_mask', 'hide_armor', 'replace_body', 'fps_hide_armor', 'fps_replace_body']
+    las_outfit_pack: ['hide_mask', 'hide_armor', 'replace_body', 'fps_hide_armor', 'fps_replace_body']
+    las_pack: ['hide_mask', 'hide_armor', 'replace_all', 'fps_hide_armor', 'fps_replace_body']
+  glove:
+    Christie_LAS_Slim:
+      build_christie_las: the tracked bytes
+      las_outfit_pack:
+        +-- SkyrimOutfit LAS: vanilla-suit glove behaviour for las_christie_slim.
+        +-- Restores a real default glove (LAS forces default_glove_id = false, which
+        +-- leaves "Default" gloves with no hands) and re-enables the glove adapter.
+        -Hooks:PostHook(BlackMarketTweakData, "init", "christie_slim_GloveAdapter", function(self)
+        +Hooks:PostHook(BlackMarketTweakData, "init", "SkyrimOutfit_GloveAdapter", function(self)
+        -\t-- A real default glove, exactly like the vanilla/DLC suits (LAS's
+        -\t-- fresh-table read drops this, leaving "Default" gloves with no unit).
+        +\t-- The base game keeps a suit's hands visible by giving the style a REAL
+        +\t-- default glove (suit_default_gloves -> default_glove_id), so "Default"
+        +\t-- gloves resolve to an actual hand mesh. LAS sets default_glove_id = false,
+        +\t-- so "Default" gloves spawn nothing and the suit has no hands. Restore a
+        +\t-- real default glove, exactly like the vanilla/DLC suits.
+        -\t-- Keep the stock hands visible as a guaranteed fallback.
+        +\t-- Do NOT hide the stock hands. LAS forces default_glove_id = false and the
+        ... 7 more
+      lines: [30, 38]
+      lines of Lua without comments: [14, 14]
+      same Lua without comments: False
+      where the Lua differs:
+        -Hooks:PostHook(BlackMarketTweakData, "init", "christie_slim_GloveAdapter", function(self)
+        +Hooks:PostHook(BlackMarketTweakData, "init", "SkyrimOutfit_GloveAdapter", function(self)
+  packs:
+    Christie_LAS:
+      first-person unit: True
+      flags: ['hide_mask', 'hide_armor', 'replace_body', 'fps_hide_armor', 'fps_replace_body']
+      glove adapter: False
+      hook file: christie_las.lua
+      textures:
+        christie_body_df
+        christie_body_nm
+        christie_c02_01_df
+        christie_c02_01_nm
+        christie_c02_02_df
+        christie_c02_02_nm
+        christie_c02_05_df
+        christie_c02_05_nm
+      writers:
+        build_christie_las:
+          hook: the tracked bytes
+          loc: the tracked bytes
+          main: the tracked bytes
+        build_las_pack: cannot: ValueError: it writes one pack only, lawson_las
+        las_outfit_pack:
+          hook: the tracked bytes
+          loc:
+            -  "bm_askn_christie_desc": "Christie from Dead or Alive 5 joins the Payday Gang. Body-only Legendary Armour Skins outfit (no head \u2014 the heister 
+            +  "bm_askn_christie_desc": "a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit."
+          main: the tracked bytes
+        las_pack:
+          hook: ['-\\treplace_body = true,', '+\\treplace_all = true,']
+          loc: the tracked bytes
+          main:
+            -\t\t\t\t<df_nm path="units/christie/skins/christie/christie_c02_01"/>
+            -\t\t\t\t<df_nm path="units/christie/skins/christie/christie_c02_02"/>
+            -\t\t\t\t<df_nm path="units/christie/skins/christie/christie_c02_05"/>
+            +\t\t\t\t<df_nm path="units/christie/skins/christie/christie_face"/>
+            +\t\t\t\t<df_nm path="units/christie/skins/christie/christie_head"/>
+            +\t\t\t\t<texture path="units/christie/skins/christie/christie_eyes"/>
+    Christie_LAS_Slim:
+      first-person unit: True
+      flags: ['hide_mask', 'hide_armor', 'replace_body', 'fps_hide_armor', 'fps_replace_body']
+      glove adapter: True
+      hook file: christie_slim_las.lua
+      textures:
+        christie_slim_body_df
+        christie_slim_body_nm
+        christie_slim_c02_01_df
+        christie_slim_c02_01_nm
+        christie_slim_c02_02_df
+        christie_slim_c02_02_nm
+        christie_slim_c02_05_df
+        christie_slim_c02_05_nm
+      writers:
+        build_christie_las:
+          glove: the tracked bytes
+          hook: the tracked bytes
+          loc: the tracked bytes
+          main: the tracked bytes
+        build_las_pack: cannot: ValueError: it writes one pack only, lawson_las
+        las_outfit_pack:
+          glove:
+            +-- SkyrimOutfit LAS: vanilla-suit glove behaviour for las_christie_slim.
+            +-- Restores a real default glove (LAS forces default_glove_id = false, which
+            +-- leaves "Default" gloves with no hands) and re-enables the glove adapter.
+            -Hooks:PostHook(BlackMarketTweakData, "init", "christie_slim_GloveAdapter", function(self)
+            +Hooks:PostHook(BlackMarketTweakData, "init", "SkyrimOutfit_GloveAdapter", function(self)
+            -\t-- A real default glove, exactly like the vanilla/DLC suits (LAS's
+            -\t-- fresh-table read drops this, leaving "Default" gloves with no unit).
+            +\t-- The base game keeps a suit's hands visible by giving the style a REAL
+            +\t-- default glove (suit_default_gloves -> default_glove_id), so "Default"
+            +\t-- gloves resolve to an actual hand mesh. LAS sets default_glove_id = false,
+            +\t-- so "Default" gloves spawn nothing and the suit has no hands. Restore a
+            +\t-- real default glove, exactly like the vanilla/DLC suits.
+            -\t-- Keep the stock hands visible as a guaranteed fallback.
+            +\t-- Do NOT hide the stock hands. LAS forces default_glove_id = false and the
+            ... 7 more
+          hook: ['-\\tfps_replace_body = true', '+\\tfps_replace_body = true,', '+', '+\\tglove_adapter = true']
+          loc:
+            -  "bm_askn_christie_slim_desc": "Christie from Dead or Alive 5, body-only LAS outfit scaled 10% thinner in width and depth (height unchanged), hands 
+            +  "bm_askn_christie_slim_desc": "a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit."
+          main: the tracked bytes
+        las_pack:
+          hook: ['-\\treplace_body = true,', '+\\treplace_all = true,']
+          loc: the tracked bytes
+          main:
+            -\t\t<hook file="christie_slim_glove_adapter.lua" source_file="lib/tweak_data/blackmarkettweakdata"/>
+            -\t\t\t\t<df_nm path="units/christie_slim/skins/christie_slim/christie_slim_c02_01"/>
+            -\t\t\t\t<df_nm path="units/christie_slim/skins/christie_slim/christie_slim_c02_02"/>
+            -\t\t\t\t<df_nm path="units/christie_slim/skins/christie_slim/christie_slim_c02_05"/>
+            +\t\t\t\t<df_nm path="units/christie_slim/skins/christie_slim/christie_slim_face"/>
+            +\t\t\t\t<df_nm path="units/christie_slim/skins/christie_slim/christie_slim_head"/>
+            +\t\t\t\t<texture path="units/christie_slim/skins/christie_slim/christie_slim_eyes"/>
+    Miranda_Busty_LAS:
+      first-person unit: True
+      flags: ['hide_mask', 'hide_armor', 'replace_all', 'fps_hide_armor', 'fps_replace_body']
+      glove adapter: False
+      hook file: miranda_busty_las.lua
+      textures:
+        miranda_busty_body_df
+        miranda_busty_body_nm
+        miranda_busty_eyes
+        miranda_busty_face_df
+        miranda_busty_face_nm
+        miranda_busty_head_df
+        miranda_busty_head_nm
+      writers:
+        build_christie_las:
+          hook: ['-\\treplace_all = true,', '+\\treplace_body = true,']
+          loc: the tracked bytes
+          main: ['-\\t\\t\\t\\t<texture path="units/miranda_busty/skins/miranda_busty/miranda_busty_eyes"/>']
+        build_las_pack: cannot: ValueError: it writes one pack only, lawson_las
+        las_outfit_pack:
+          hook: ['-\\treplace_all = true,', '+\\treplace_body = true,']
+          loc:
+            -  "bm_askn_miranda_busty_desc": "Miranda Lawson joins the Payday Gang - Legendary Armour Skins outfit with a larger chest, built from the L4D2 Rochel
+            +  "bm_askn_miranda_busty_desc": "a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit."
+          main: ['-\\t\\t\\t\\t<texture path="units/miranda_busty/skins/miranda_busty/miranda_busty_eyes"/>']
+        las_pack:
+          hook: the tracked bytes
+          loc: the tracked bytes
+          main: the tracked bytes
+    Miranda_LAS:
+      first-person unit: True
+      flags: ['hide_mask', 'hide_armor', 'replace_all', 'fps_hide_armor', 'fps_replace_body']
+      glove adapter: False
+      hook file: miranda_las.lua
+      textures: ['miranda_body_df', 'miranda_body_nm', 'miranda_eyes', 'miranda_face_df', 'miranda_face_nm', 'miranda_head_df', 'miranda_head_nm']
+      writers:
+        build_christie_las:
+          hook: ['-\\treplace_all = true,', '+\\treplace_body = true,']
+          loc: the tracked bytes
+          main: ['-\\t\\t\\t\\t<texture path="units/miranda/skins/miranda/miranda_eyes"/>']
+        build_las_pack: cannot: ValueError: it writes one pack only, lawson_las
+        las_outfit_pack:
+          hook: ['-\\treplace_all = true,', '+\\treplace_body = true,']
+          loc:
+            -  "bm_askn_miranda_desc": "Miranda Lawson joins the Payday Gang. Legendary Armour Skins outfit, built from the L4D2 Rochelle model."
+            +  "bm_askn_miranda_desc": "a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit."
+          main: ['-\\t\\t\\t\\t<texture path="units/miranda/skins/miranda/miranda_eyes"/>']
+        las_pack:
+          hook: the tracked bytes
+          loc: the tracked bytes
+          main: the tracked bytes
+    lawson_las:
+      first-person unit: True
+      flags: ['hide_mask', 'hide_armor', 'replace_all', 'fps_hide_armor', 'fps_replace_body']
+      glove adapter: False
+      hook file: lawson.lua
+      textures:
+        body1_df
+        body1_nm
+        body2_df
+        body2_nm
+        eyes_df
+        eyes_nm
+        face_df
+        face_nm
+        hair_df
+        hair_nm
+        lashes_df
+        lashes_nm
+        mouth_df
+        mouth_nm
+        teeth_df
+        teeth_nm
+      writers:
+        build_christie_las:
+          hook: ['-    hide_mask = true,', '-', '+\\thide_mask = true,', '-\\treplace_all = true,', '-', '+\\treplace_body = true,']
+          loc: the tracked bytes but for the last newline
+          main:
+            -<table name="Lawson" image="guis/dlcs/lawson/armor_skins/lawson">
+            +<table name="Miranda Lawson" image="guis/dlcs/lawson/armor_skins/lawson">
+            -    <Localization directory="localization" default="english.txt"/>
+            +\t<Localization directory="localization" default="english.txt"/>
+            -    <Hooks directory="hooks">
+            -        <hook file="lawson.lua" source_file="lib/tweak_data/armorskinstweakdata"/>
+            -    </Hooks>
+            +\t<Hooks directory="hooks">
+            +\t\t<hook file="lawson_las.lua" source_file="lib/tweak_data/armorskinstweakdata"/>
+            +\t</Hooks>
+            -    <AddFiles directory="assets">
+            +\t<AddFiles directory="assets">
+            -        <texture path="guis/dlcs/lawson/armor_skins/lawson"/>
+            -        <df_nm path="units/lawson/skins/lawson/body1"/>
+            ... 23 more
+        build_las_pack:
+          hook: the tracked bytes
+          loc: the tracked bytes
+          main: the tracked bytes
+        las_outfit_pack:
+          hook: ['-    hide_mask = true,', '-', '+\\thide_mask = true,', '-\\treplace_all = true,', '-', '+\\treplace_body = true,']
+          loc:
+            -  "bm_askn_lawson_desc": "Miranda Lawson joins the Payday Gang. Mass Effect 2 outfit, worn as a Legendary Armour skin."
+            +  "bm_askn_lawson_desc": "a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit."
+          main:
+            -<table name="Lawson" image="guis/dlcs/lawson/armor_skins/lawson">
+            +<table name="Miranda Lawson" image="guis/dlcs/lawson/armor_skins/lawson">
+            -    <Localization directory="localization" default="english.txt"/>
+            +\t<Localization directory="localization" default="english.txt"/>
+            -    <Hooks directory="hooks">
+            -        <hook file="lawson.lua" source_file="lib/tweak_data/armorskinstweakdata"/>
+            -    </Hooks>
+            +\t<Hooks directory="hooks">
+            +\t\t<hook file="lawson_las.lua" source_file="lib/tweak_data/armorskinstweakdata"/>
+            +\t</Hooks>
+            -    <AddFiles directory="assets">
+            +\t<AddFiles directory="assets">
+            -        <texture path="guis/dlcs/lawson/armor_skins/lawson"/>
+            -        <df_nm path="units/lawson/skins/lawson/body1"/>
+            ... 23 more
+        las_pack:
+          hook: ['-    hide_mask = true,', '-', '+\\thide_mask = true,', '-']
+          loc: the tracked bytes but for the last newline
+          main:
+            -<table name="Lawson" image="guis/dlcs/lawson/armor_skins/lawson">
+            +<table name="Miranda Lawson" image="guis/dlcs/lawson/armor_skins/lawson">
+            -    <Localization directory="localization" default="english.txt"/>
+            +\t<Localization directory="localization" default="english.txt"/>
+            -    <Hooks directory="hooks">
+            -        <hook file="lawson.lua" source_file="lib/tweak_data/armorskinstweakdata"/>
+            -    </Hooks>
+            +\t<Hooks directory="hooks">
+            +\t\t<hook file="lawson_las.lua" source_file="lib/tweak_data/armorskinstweakdata"/>
+            +\t</Hooks>
+            -    <AddFiles directory="assets">
+            +\t<AddFiles directory="assets">
+            -        <texture path="guis/dlcs/lawson/armor_skins/lawson"/>
+            -        <df_nm path="units/lawson/skins/lawson/body1"/>
+            ... 19 more
+  shape:
+    .material_config, Christie_LAS against Miranda_LAS with the names taken out:
+      -    <material name="mtr_face" unique="true" version="2"
+      +    <material name="mtr_c02_01" unique="true" version="2"
+      -        <diffuse_texture file="units/ID/skins/ID/ID_face_df"/>
+      -        <bump_normal_texture file="units/ID/skins/ID/ID_face_nm"/>
+      +        <diffuse_texture file="units/ID/skins/ID/ID_c02_01_df"/>
+      +        <bump_normal_texture file="units/ID/skins/ID/ID_c02_01_nm"/>
+      -    <material name="mtr_head" unique="true" version="2"
+      +    <material name="mtr_c02_02" unique="true" version="2"
+      -        <diffuse_texture file="units/ID/skins/ID/ID_head_df"/>
+      -        <bump_normal_texture file="units/ID/skins/ID/ID_head_nm"/>
+      +        <diffuse_texture file="units/ID/skins/ID/ID_c02_02_df"/>
+      +        <bump_normal_texture file="units/ID/skins/ID/ID_c02_02_nm"/>
+      -    <material name="mtr_hair" unique="true" version="2"
+      +    <material name="mtr_c02_05" unique="true" version="2"
+      ... 8 more
+    .object, Christie_LAS against Miranda_LAS with the names taken out:
+      -\t\t\t<object name="g_head_lod1" enabled="false" />
+      -\t\t\t<object name="g_head" enabled="true" />
+      -\t</graphic_group>
+      +\t\t</graphic_group>
+    first-person .material_config, Christie_LAS against Miranda_LAS with the names taken out:
+      -<materials version="3" group="fps_ID">
+      +<materials version="3" group="ID">
+      -    <material name="mtr_face" render_template="generic:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS" version="2">
+      -        <diffuse_texture file="units/ID/skins/ID/ID_face_df"/>
+      -        <bump_normal_texture file="units/ID/skins/ID/ID_face_nm"/>
+      +    <material name="mtr_c02_01" render_template="generic:DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS" version="2">
+      +        <diffuse_texture file="units/ID/skins/ID/ID_c02_01_df"/>
+      +        <bump_normal_texture file="units/ID/skins/ID/ID_c02_01_nm"/>
+      -    <material name="mtr_head" render_template="generic:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS" version="2">
+      -        <diffuse_texture file="units/ID/skins/ID/ID_head_df"/>
+      -        <bump_normal_texture file="units/ID/skins/ID/ID_head_nm"/>
+      -    </material>
+      -
+      -    <material name="mtr_hair" render_template="generic:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS" version="2">
+      ... 9 more
+    first-person .object, Christie_LAS against Miranda_LAS with the names taken out:
+      +\t\t\t<object name="g_body_lod1" enabled="false" />
+      -\t\t\t<object name="g_head" enabled="false" />
+      -\t\t\t<object name="g_head_lod1" enabled="false" />
+      -\t\t\t<object name="g_body_lod1" enabled="false" />
+      -\t</graphic_group>
+      +\t\t</graphic_group>
+  unit:
+    Christie_LAS:christie.unit:
+      build_las_pack: ['-\\t<object file="units/christie/skins/christie/christie" />', '+\\t<object file="units/lawson/skins/lawson/christie" />']
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    Christie_LAS:fps_christie.unit:
+      build_las_pack: ['-\\t<object file="units/christie/skins/christie/fps_christie" />', '+\\t<object file="units/lawson/skins/lawson/fps_christie" />']
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    Christie_LAS_Slim:christie_slim.unit:
+      build_las_pack: ['-\\t<object file="units/christie_slim/skins/christie_slim/christie_slim" />', '+\\t<object file="units/lawson/skins/lawson/christie_slim" />']
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    Christie_LAS_Slim:fps_christie_slim.unit:
+      build_las_pack:
+        -\t<object file="units/christie_slim/skins/christie_slim/fps_christie_slim" />
+        +\t<object file="units/lawson/skins/lawson/fps_christie_slim" />
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    Miranda_Busty_LAS:fps_miranda_busty.unit:
+      build_las_pack:
+        -\t<object file="units/miranda_busty/skins/miranda_busty/fps_miranda_busty" />
+        +\t<object file="units/lawson/skins/lawson/fps_miranda_busty" />
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    Miranda_Busty_LAS:miranda_busty.unit:
+      build_las_pack: ['-\\t<object file="units/miranda_busty/skins/miranda_busty/miranda_busty" />', '+\\t<object file="units/lawson/skins/lawson/miranda_busty" />']
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    Miranda_LAS:fps_miranda.unit:
+      build_las_pack: ['-\\t<object file="units/miranda/skins/miranda/fps_miranda" />', '+\\t<object file="units/lawson/skins/lawson/fps_miranda" />']
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    Miranda_LAS:miranda.unit:
+      build_las_pack: ['-\\t<object file="units/miranda/skins/miranda/miranda" />', '+\\t<object file="units/lawson/skins/lawson/miranda" />']
+      las_outfit_pack: the tracked bytes
+      las_pack: the tracked bytes
+    lawson_las:fps_lawson.unit:
+      build_las_pack: the tracked bytes
+      las_outfit_pack: the tracked bytes but for the last newline
+      las_pack: the tracked bytes but for the last newline
+    lawson_las:lawson.unit:
+      build_las_pack: the tracked bytes
+      las_outfit_pack: the tracked bytes but for the last newline
+      las_pack: the tracked bytes but for the last newline
+  zip:
+    Christie_LAS:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Christie_LAS_Slim:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Geralt_over_Rust:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_Busty_LAS:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_L4D2_over_Bonnie:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_L4D2_over_Clover:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_L4D2_over_Joy:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_L4D2_over_Sydney:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_LAS:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_Romance_over_Bonnie:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_Romance_over_Clover:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_Romance_over_Joy:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    Miranda_Romance_over_Sydney:
+      build_las_pack.write_zip: other bytes
+      las_outfit_pack.zip_pack: the tracked bytes
+      las_pack.zip_pack: the tracked bytes
+      year stamped: [2020]
+    lawson_las:
+      build_las_pack.write_zip: the tracked bytes
+      las_outfit_pack.zip_pack: other bytes
+      las_pack.zip_pack: other bytes
+      year stamped: [2026]
+
+== the environment
+  bootstrap.sh:
+    exit: 0
+    last lines: ['venv ok', 'sourcepp ok (optional cross-check enabled)']
+    pip: pip 23.0.1
+    tests that name lupa or sourcepp:
+      files: ['tests/test_glove_behavior_lua.py', 'tests/test_gma.py', 'tests/test_inspect_textures.py']
+      result: 53 passed in 0.36s
+      skipped: []
+  freeze after recover_env.sh:
+    PyYAML==6.0.3
+    Pygments==2.21.0
+    backports.zstd==1.8.0
+    brotli==1.2.1
+    inflate64==1.0.4
+    iniconfig==2.3.1
+    multivolumefile==0.2.3
+    numpy==2.4.6
+    packaging==26.3
+    pillow==13.0.0
+    pluggy==1.7.0
+    psutil==7.2.2
+    py7zr==1.1.4
+    pybcj==1.0.8
+    pycryptodomex==3.24.2
+    pyflakes==4.1.0
+    pyppmd==1.3.1
+    pytest==9.2.0
+    scipy==1.17.1
+    texttable==1.7.2
+  in both, same version: 20
+  install lines:
+    .github/workflows/lawson-las.yml: ['run: python -m pip install --upgrade pip "pillow==13.0.0" "numpy==2.4.6" "pyyaml>=6" pytest']
+    .github/workflows/test.yml:
+      run: python -m pip install --upgrade pip "pillow==13.0.0" "numpy==2.4.6" "pyyaml>=6" pytest scipy
+      run: python -m pip install --quiet pyflakes && python -m pyflakes um tools tests
+    tools/pd2-las/bootstrap.sh:
+      .venv/bin/python -m pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr lupa scipy
+      .venv/bin/python -m pip install -q sourcepp 2>/dev/null \
+    tools/pd2-las/recover_env.sh: ['"$PY" -m pip install -q --upgrade pip', '"$PY" -m pip install -q pytest pillow==13.0.0 numpy==2.4.6 pyyaml pyflakes py7zr scipy']
+  only after recover_env.sh: []
+  only after the venv part of bootstrap.sh: ['lupa==2.8', 'sourcepp==2026.11.1']
+  pins:
+    .github/workflows/lawson-las.yml: ['numpy==2.4.6', 'pillow==13.0.0']
+    .github/workflows/test.yml: ['numpy==2.4.6', 'pillow==13.0.0']
+    tools/pd2-las/bootstrap.sh: ['numpy==2.4.6', 'pillow==13.0.0']
+    tools/pd2-las/recover_env.sh: ['numpy==2.4.6', 'pillow==13.0.0']
+  recover_env.sh:
+    exit: 0
+    last lines: ['   templates ok: build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b', '== done']
+    pip: pip 26.3
+    tests that name lupa or sourcepp:
+      files: ['tests/test_glove_behavior_lua.py', 'tests/test_gma.py', 'tests/test_inspect_textures.py']
+      result: 41 passed, 3 skipped in 0.21s
+      skipped:
+        1: tests/test_glove_behavior_lua.py:36: lupa (LuaJIT) not installed
+        1: tests/test_gma.py:231: sourcepp is an optional extra
+        1: tests/test_inspect_textures.py:295: sourcepp is an optional extra
+
+== the tests written for one copy, run against the other
+  diesel_model with the hash of dmodel:
+    failed: []
+    result: 353 passed, 5 skipped, 2 xfailed in 115.68s (0:01:55)
+    tests:
+      test_build_models.py
+      test_bust_variant.py
+      test_christie_las.py
+      test_determinism.py
+      test_diesel_model.py
+      test_fps_hands.py
+      test_hands_graft.py
+      test_pd2_las.py
+      test_pd2_las_invariants.py
+      test_render_mesh_skeleton.py
+  dmodel with the hash of diesel_model:
+    failed: []
+    result: 180 passed, 2 xfailed in 155.21s (0:02:35)
+    tests: ['test_las_pack.py', 'test_christie_las.py', 'test_pd2_las.py']
+  las_outfit_pack with render_unit_xml and zip_pack of las_pack:
+    failed: []
+    result: 114 passed, 3 skipped, 2 xfailed in 42.88s
+    tests: ['test_skyrim_materials.py', 'test_glove_adapter.py', 'test_glove_behavior_lua.py', 'test_christie_las.py']
+  las_pack with render_unit_xml and zip_pack of las_outfit_pack:
+    failed: []
+    result: 88 passed in 37.64s
+    tests: ['test_pd2_las.py', 'test_bust_variant.py']

@@ -39,7 +39,7 @@ outputs (exit, lines printed, files written, steady text, unsteady files):
    check_nm_convention                      0    36   0 yes 0
    check_test_suite_mutations               0     9   1 yes 0
    diagnose_mesh                            0    35   0 yes 0
-   elbow_before_after                       1    27   0 yes 0
+   elbow_before_after                       0    12   7 yes 0
    extract_2b                               0     3   0 yes 0
    extract_las_rig                          0     3   1 yes 0
    glove_check                              0     3   1 yes 0
@@ -55,8 +55,8 @@ outputs (exit, lines printed, files written, steady text, unsteady files):
    skin_texture                             1    19   0 yes 0
    status                                   0    15   0 yes 0
    um_kb_check                              0     3   0 yes 0
-   um_publish_check                         0     3   0 yes 0
-   uv_check                                 1    16   0 yes 0
+   um_publish_check                         0     5   0 yes 0
+   uv_check                                 1    21   4 yes 0
 reach (functions, reached by a build, by a test; then those reached by neither):
    tools/pd2-port/dmodel.py: 36 / 25 / 26; neither: BR.i32, BR.u16, Bones.parse, DieselGeometry.weights4, DieselModel.find_by_name, DieselModel.objects, DieselModel.world_rows, DieselModel.world_rows.walk, minv, mmul
    tools/pd2-las/diesel_model.py: 38 / 34 / 34; neither: compute_uv_directions, compute_uv_directions.norm, mat_apply_vec, mat_from_pos_rot_rows

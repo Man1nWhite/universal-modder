@@ -3,6 +3,7 @@
 
     python tools/pd2-las/copies.py record     what the tools read, write and print before anything is merged
     python tools/pd2-las/copies.py compare    the copies of each job, as they were before the merge, on real files
+    python tools/pd2-las/copies.py after      the record again on the tree as it is now, against the first
 
 The record is what a merge is held to (docs/audits/2026-11-12-tool-merge.md). Its parts:
 
@@ -63,7 +64,7 @@ GOLDEN = [
     ("mip_audit", ["tools/pd2-las/mip_audit.py"]),
     ("audit_metrics", ["tools/pd2-las/audit_metrics.py"]),
     ("diagnose_mesh", ["tools/pd2-las/diagnose_mesh.py"]),
-    ("elbow_before_after", ["tools/pd2-las/elbow_before_after.py", "--before", "dist/Christie_LAS.zip", "--after", "dist/Christie_LAS_Slim.zip",
+    ("elbow_before_after", ["tools/pd2-las/elbow_before_after.py", "--before", "dist/Christie_LAS.zip", "--after", "dist/Christie_LAS.zip",
                             "--templates", TEMPLATES, "--out", "{s}/elbow", "--scratch", "{s}/panels"]),
     ("glove_check", ["tools/pd2-las/glove_check.py", "{c}/christie.model", "{s}/glove.png"]),
     ("neck_junction", ["tools/pd2-las/neck_junction.py"]),
@@ -72,7 +73,7 @@ GOLDEN = [
     ("render_mesh_skeleton", ["tools/pd2-las/render_mesh_skeleton.py", "--zip", "dist/Christie_LAS.zip", "--pack", "Christie_LAS",
                               "--item", "christie", "--templates", TEMPLATES, "--out", "{s}/skeleton"]),
     ("skin_texture", ["tools/pd2-las/skin_texture.py", "--out", "{s}/skin", "--no-preview"]),
-    ("uv_check", ["tools/pd2-las/uv_check.py", "--two-b", TEMPLATES + "/2b.model", "--ours", "{m}/miranda.model", "--out", "{s}/uv.png"]),
+    ("uv_check", ["tools/pd2-las/uv_check.py", "--two-b", TEMPLATES, "--ours", "{m}/miranda.model", "--out", "{s}/uv.png"]),
     ("build_skyrim_outfit", ["tools/pd2-las/build_skyrim_outfit.py"]),
     ("check_guide_compliance", ["tools/pd2-port/check_guide_compliance.py", "dist/lawson_las.zip"]),
     ("check_guide_compliance_miranda", ["tools/pd2-port/check_guide_compliance.py", "dist/Miranda_LAS.zip"]),
@@ -534,12 +535,14 @@ SWAP_HEAD = '''
 # -- appended for one test run: functions of this copy are replaced by the other copy's --
 import importlib.util as _swap_util
 import pathlib as _swap_path
+import sys as _swap_sys
 
 
 def _other_copy(rel):
     path = _swap_path.Path(__file__).resolve().parent / rel
     spec = _swap_util.spec_from_file_location("_other_copy_" + path.stem, str(path))
     module = _swap_util.module_from_spec(spec)
+    _swap_sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -1236,23 +1239,100 @@ def compare() -> int:
     return compare_report()
 
 
+# ================================================================ after a merge: the record again, against the reference
+def part_fresh() -> None:
+    done = subprocess.run([str(PY), "tools/pd2-las/fresh.py", "check"], cwd=REPO, capture_output=True, text=True)
+    lines = done.stdout.strip().splitlines()
+    save("fresh-now", {"rc": done.returncode, "summary": lines[-1] if lines else done.stderr[-300:]})
+
+
+def part_suite_plain() -> None:
+    done = subprocess.run([str(PY), "-m", "pytest", "-q", "tests", "-rf"], cwd=REPO, capture_output=True, text=True)
+    (OUT / "suite-now.txt").write_text(done.stdout + done.stderr)
+    save("suite-now", {"rc": done.returncode, "summary": (done.stdout.strip().splitlines() or [done.stderr[-300:]])[-1],
+                       "failed": re.findall(r"^FAILED (\S+)", done.stdout, flags=re.M)})
+
+
+def after(quick: bool) -> int:
+    """What the tree gives now, against the reference: packs, suite, every builder's trace, every recorded output."""
+    reference = json.loads((EVIDENCE / "reference.json").read_text())
+    (OUT / "parts").mkdir(parents=True, exist_ok=True)
+    for name in ("fresh-now", "suite-now", "golden9", "trace-now"):
+        (OUT / "parts" / f"{name}.json").unlink(missing_ok=True)
+    log = OUT / "after.log"
+    log.write_text("")
+    lock = threading.Lock()
+    lanes = [[["_trace", "now"], ["_golden", "9"]]] + ([] if quick else [[["_fresh"], ["_suite_plain"]]])
+    threads = [threading.Thread(target=lane, args=(steps, log, lock)) for steps in lanes]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    say, bad = [], 0
+    if not quick:
+        fresh_now, suite_now = part("fresh-now"), part("suite-now")
+        say.append(f"fresh: {fresh_now.get('summary')} (exit {fresh_now.get('rc')})")
+        say.append(f"suite: {suite_now.get('summary')} (exit {suite_now.get('rc')}); failed: {suite_now.get('failed')}")
+        bad += fresh_now.get("rc") != 0 or suite_now.get("rc") != 0
+    trace_now = part("trace-now")
+    say.append(f"trace: {trace_now.get('same')} of {trace_now.get('of')} zips the tracked bytes")
+    bad += trace_now.get("same") != trace_now.get("of") or not trace_now.get("of")
+    for builder in sorted(reference["trace"]["functions"]):
+        before = {}
+        for line in (EVIDENCE / "trace" / f"{builder}.txt").read_text().splitlines():
+            parts = line.split()
+            before[parts[0]] = parts[1:4]
+        now = s_lines(OUT / "trace-now" / f"{builder}.log")
+        changed = sorted(name for name in before if name in now and now[name] != before[name])
+        gone = sorted(name for name in before if name not in now)
+        new = sorted(name for name in now if name not in before)
+        moved = {name: [other for other in new if now[other] == before[name]] for name in gone}
+        say.append(f"   {builder}: {len(before) - len(changed) - len(gone)} of {len(before)} functions return what they returned; "
+                   f"{len(changed)} return something else; {len(gone)} are gone; {len(new)} are new")
+        say += [f"      RETURNS SOMETHING ELSE {name}: was {' '.join(before[name])}, is {' '.join(now[name])}" for name in changed[:12]]
+        say += [f"      gone {name}" + (f" (the same values now come from {', '.join(moved[name])})" if moved[name] else "") for name in gone[:20]]
+        say += [f"      new {name}" for name in new[:20]]
+        bad += bool(changed)
+    outputs, unlike = part("golden9").get("commands") or {}, []
+    for name, want in reference["outputs"].items():
+        got = outputs.get(name)
+        if got is None:
+            unlike.append(f"{name}: was not run")
+            continue
+        if got["rc"] != want["rc"]:
+            unlike.append(f"{name}: exit {got['rc']}, was {want['rc']}")
+        if want["printed"] and got["printed"] != want["printed"]:
+            unlike.append(f"{name}: prints something else")
+        unlike += [f"{name}: wrote another {path}" for path, digest in want["written"].items() if got["written"].get(path) != digest]
+    tools = len(reference["outputs"])
+    say.append(f"outputs: {tools - len({line.split(':')[0] for line in unlike})} of {tools} tools give what they gave")
+    say += ["      " + line for line in unlike]
+    bad += bool(unlike)
+    text = "\n".join(say)
+    (OUT / "after.txt").write_text(text + "\n")
+    print(text)
+    return 1 if bad else 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["record", "assemble", "compare", "report", "_build", "_suite", "_lint", "_golden", "_trace",
-                                        "_cmp_files", "_cmp_env", "_cmp_tests"])
+    ap.add_argument("command", choices=["record", "assemble", "compare", "report", "after", "_build", "_suite", "_lint", "_golden", "_trace",
+                                        "_cmp_files", "_cmp_env", "_cmp_tests", "_fresh", "_suite_plain"])
     ap.add_argument("arg", nargs="?")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     whole = {"record": record, "assemble": assemble, "compare": compare, "report": compare_report}
     if args.command in whole:
         return whole[args.command]()
+    if args.command == "after":
+        return after(args.arg == "quick")
     if args.command == "_golden":
         part_golden(int(args.arg))
     elif args.command == "_trace":
         part_trace(args.arg)
     else:
         {"_build": part_build, "_suite": part_suite, "_lint": part_lint, "_cmp_files": part_files, "_cmp_env": part_env,
-         "_cmp_tests": part_tests}[args.command]()
+         "_cmp_tests": part_tests, "_fresh": part_fresh, "_suite_plain": part_suite_plain}[args.command]()
     return 0
 
 
