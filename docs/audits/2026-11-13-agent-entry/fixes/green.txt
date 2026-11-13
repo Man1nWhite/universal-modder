@@ -1,0 +1,24 @@
+LAS pack verification
+  repo: ~/universal-modder
+  pack: ~/universal-modder/dist/lawson_las.zip
+  [ok  ] tracked pack matches its checksum          9123392 bytes, sha256 9c8a28368862edcc…
+  [ok  ] guide compliance audit               1.0s  summary: 38 pass, 1 warn, 0 fail
+  [ok  ] winding and tangent frame            0.6s  summary: 20677 triangles, 0 inverted, 0 degenerate
+  [ok  ] normal-map convention                0.7s  VERDICT: the source is DirectX-style (Y-); the default build inverts the green channel, wh
+  [ok  ] pack-level test mutations            9.8s  5/5 pack-level test mutations caught
+  [ok  ] auditor self-test                   28.1s  16/16 mutations detected
+  [ok  ] lint                                 1.5s  
+  [ok  ] um and its command groups            0.9s  --help of um and of 10 groups
+  [ok  ] knowledge base                       1.3s  PASS: 247 notes checked
+  [ok  ] nothing that shouldn't ship          2.0s  WARN: 2438 files, 0 failures, 4 warnings
+  [ok  ] pytest suite                       124.6s  805 passed, 29 skipped, 2 xfailed, 1 warning in 124.18s (0:02:04)
+  [ok  ] skip budget                          0.0s  OK: 29 budgeted skip(s) across 9 reason(s), 2 expected failure(s) within budget.
+  [ok  ] every tracked zip, built again     118.1s  16 of 16 tracked zips are the tracked bytes after a fresh build
+
+all 13 stages passed
+next: git status --short
+
+real	4m48.744s
+user	4m36.482s
+sys	0m12.270s
+EXIT=0

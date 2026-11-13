@@ -1,0 +1,73 @@
+commit: b47635d
+nothing changed
+    6 passed
+1  a CLAUDE.md that is a copy of AGENTS.md
+    1 failed, 5 passed
+    fails: test_the_instruction_file_is_written_once
+1b a CLAUDE.md that is the one line @AGENTS.md
+    1 failed, 5 passed
+    fails: test_the_instruction_file_is_written_once
+2  the size of a pack in README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+2b a test count in tools/README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+3  a path that does not exist, in tools/pd2-las/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+3b a make target that does not exist, in HANDOFF.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+3c a test that does not exist, in tools/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+4  700 bytes more in AGENTS.md
+    1 failed, 5 passed
+    fails: test_what_loads_at_start_stays_small
+5  a step added to the test workflow that green does not run
+    1 failed, 5 passed
+    fails: test_green_runs_what_the_test_workflow_runs
+6  a build target misspelt in AGENTS.md
+    1 failed, 5 passed
+    fails: test_agents_md_answers_each_question_with_one_command
+6b the row for status removed from AGENTS.md
+    1 failed, 5 passed
+    fails: test_agents_md_answers_each_question_with_one_command
+
+the tests of the fixes of 2026-11-13
+nothing changed
+    23 passed
+7  scipy taken out of what the lawson workflow installs
+    1 failed, 15 passed
+    fails: test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs
+8  STATUS.md says the release serves the tracked pack
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+8b release notes for v3 with the tracked sha256, STATUS.md not touched
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+8c the release taken out of the open work in tools/pd2-las/README.md while it is behind
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+8d a release that serves the tracked pack, recorded in STATUS.md, still listed as open work
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+9  the tracked size of lawson_las in STATUS.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9b the tracked sha256 of lawson_las in STATUS.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9c the audit's result in STATUS.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9d a count of mutations in tools/pd2-port/README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9e a count of checks in tools/skyrim-nif/README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+10 a script that does not exist, in tools/skyrim-nif/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists

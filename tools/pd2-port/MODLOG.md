@@ -1252,7 +1252,8 @@
   the installer to `dist/lawson_las.zip`.
 - `test_the_status_page_matches_the_shipped_pack` is replaced by
   `test_the_status_page_says_whether_the_release_serves_the_tracked_pack`: it compares the newest release
-  notes with the tracked `.sha256` and fails while the page says the other thing.
+  notes with the tracked `.sha256` and fails while the page says the other thing. It reads the list of open
+  work in `tools/pd2-las/README.md` too, which names the release now and has to drop it once one is made.
 - The `lawson LAS pack` workflow installs scipy, which the suite imports: its `tests` step had failed on
   `main` since 2026-11-12, before the upload and the release step. Run by hand on this branch
   (`workflow_dispatch`), it passes.

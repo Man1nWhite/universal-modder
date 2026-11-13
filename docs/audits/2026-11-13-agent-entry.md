@@ -4,8 +4,9 @@ Goal: an agent that opens this repository cold reaches the right action in fewer
 no fact is written in two places. This page gives the numbers and says how each was obtained. Everything it
 cites is under [`2026-11-13-agent-entry/`](2026-11-13-agent-entry/).
 
-- **Before:** `19ca55a` (main). **After:** `df3fe8c`. The commits after `df3fe8c` add this page and its
-  evidence, nothing else.
+- **Before:** `19ca55a` (main). **After:** `df3fe8c`. `98defe1` and `68272ba` add this page and its evidence,
+  nothing else. The commits after `68272ba` fix what the report left open:
+  [Fixed after the report](#fixed-after-the-report). Every figure above that section is of `df3fe8c`.
 - The baseline was committed as `1dacfc1` before any document, test or tool was touched. Two of its eight
   tasks were measured again later; "Corrected while checking" says which and why.
 - A call is one shell command or one file read. Bytes are those of the file or of the command's output.
@@ -110,9 +111,10 @@ are not counted: this work did not touch them. In Codex the list of skills is 9.
 | `tools/pd2-las/README.md` | 11,598 B | 11,845 B |
 | `tools/pd2-port/README.md` | 22,161 B | 22,109 B |
 
-- Of 671 non-blank lines removed, 506 were dropped and 165 moved. Each is in
-  [`ledger.tsv`](2026-11-13-agent-entry/ledger.tsv) with what became of it, and `measure.py ledger` stops
-  with an error when a removed line has no entry. 226 of the dropped lines are the two copies.
+- Of 671 non-blank lines removed, 506 were dropped and 165 moved; 226 of the dropped lines are the two
+  copies. Each is in [`ledger.tsv`](2026-11-13-agent-entry/ledger.tsv) with what became of it, and
+  `measure.py ledger` stops with an error when a removed line has no entry. The file is the ledger of the
+  head: with the fixes it has 977 lines, 664 dropped and 313 moved.
 - Sizes and hashes of packs in documents: 14 sizes in four documents and 14 hashes in one → none, apart from
   `tools/pd2-port/STATUS.md` (below). [`before/facts.tsv`](2026-11-13-agent-entry/before/facts.tsv),
   [`after/facts.tsv`](2026-11-13-agent-entry/after/facts.tsv).
@@ -201,32 +203,136 @@ Each new test fails when the defect is put back, and no other test of the file d
 - **Cursor (editor and CLI), Copilot in VS Code, the Copilot cloud agent, OpenCode.** Cited, not run. The
   command for each is in the last table of `harness-loaders.md`.
 - **Claude Code before 2.1.277**, and the other cases its documentation lists, load nothing now. Not run.
-- **Nothing in game.** No pack changed by a byte, so there is nothing new to look at.
+- **Nothing in game.** Between `19ca55a` and `df3fe8c` no pack changed by a byte. The fixes rebuilt the two
+  Christie packs with one line of `BUILD_INFO.json` changed in each; nobody has looked at them in game.
 
 ## Left as it was
 
-- **The `lawson LAS pack` workflow fails on `main`**, in its `tests` step, as
-  `docs/audits/2026-11-12-tool-merge.md` said it would ("Reported, not fixed", 4): its install has no scipy.
-  Its steps run by hand give the same four failures on `19ca55a` and on `62a4104`, and none on `df3fe8c`
-  once scipy is installed. It runs on `main` and on tags, so it will run, and fail the same way, when this
-  branch is merged.
 - **The skills.** Twelve skills in three identical trees (`skills/`, `.claude/skills/`, `.agents/skills/`),
   the layout upstream has. Codex puts their names and descriptions in every session: 7,108 B, where the block
   that holds `AGENTS.md` is 4,763 B ([`after/harness.txt`](2026-11-13-agent-entry/after/harness.txt)). The
   other harnesses were not asked. This work was not to change them.
-- `tools/pd2-port/STATUS.md` still quotes the size and sha256 of `lawson_las.zip`, pinned by
-  `test_the_status_page_matches_the_shipped_pack`. It is the dated page of one port.
-- `tools/pd2-port/README.md` (356 lines) and `tools/skyrim-nif/README.md` were not gone through line by
-  line. In the first, three places that told an agent to copy computed facts into documents were changed.
-- `check_all.py --full` runs the suite twice (the suite, then the skip budget). That is time, not calls.
-- `.github/workflows/star-chart.yml` still draws a chart of this fork's stars. No page shows it: the old
-  README showed upstream's.
-- `"runtime_verified": true` in both Christie packs is a constant their builder writes, and no tracked
-  Christie bytes have been in game (`HANDOFF.md`). `status` no longer prints the flag. The packs carry it.
+- The report listed six more points here: the `lawson LAS pack` workflow, `tools/pd2-port/STATUS.md`, two
+  READMEs, the suite run twice by `green`, the star chart, and `"runtime_verified": true` in the Christie
+  packs. They are fixed: next section.
+
+## Fixed after the report
+
+The owner asked for the open points to be fixed, and decided four of them: a full pass on
+`tools/pd2-port/STATUS.md`, the star chart removed, `"runtime_verified": false` with both Christie packs
+rebuilt, and the merge with upstream kept out of this branch.
+
+| Open point | Fix | How it was checked |
+| --- | --- | --- |
+| The `lawson LAS pack` workflow fails for want of scipy | `92c9758`: its install line has scipy. `test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs` fails when a workflow that runs the suite installs less than `test.yml` does | started by hand on this branch, the workflow passes: run 43394621347 on `92c9758`, run 43405121829 on `48b26a2`. Its last step, the publish, runs on a tag only and was skipped both times |
+| `"runtime_verified": true` in both Christie packs | `292c5cf`: the builder writes `false`, and both packs are rebuilt | one line of `BUILD_INFO.json` differs in each pack; the names, the order and the zip fields of every member are those of the old zips ([`fixes/christie-packs.txt`](2026-11-13-agent-entry/fixes/christie-packs.txt)); the other 12 packs are untouched. `HANDOFF.md` and `DECISIONS.md` (D31) record it |
+| `star-chart.yml` draws a chart no page shows | `38df6d9`: the workflow and its script are removed | no file names either; one journal entry names the branch. The `star-chart` branch on GitHub, where the workflow pushed its chart, is still there |
+| `green` runs the suite twice | `d605e4f`: the skip budget judges the report that the suite stage wrote | the verdict from the report is the one from a run of its own: 29 skips across 9 reasons, 2 expected failures. T3 takes 293 s where it took 431 s |
+| `STATUS.md` quotes the size and sha256 of `lawson_las`; two READMEs were not gone through | `15c9e7d`, `48b26a2`, `b47635d` | below |
+| Two more merge conflicts with upstream | not done: a change of its own, by the owner's choice | the six files are named under "What changed" |
+
+**What the pass on the documents found.**
+
+- **The tracked `lawson_las` is not the released pack.** Release `lawson-las-v2` serves the build of
+  `282703f`. Ten commits after that tag rebuilt the tracked pack, all stamped with the same version, and none
+  was released. `tools/pd2-port/README.md` said "the tracked `dist/lawson_las.zip` is therefore exactly what
+  the release serves" and "build it yourself — the bytes are identical"; `STATUS.md` gave the tracked size
+  and sha256 in one table with the release, and a test kept those two figures current. This audit left both
+  files as they were, so the claim stood at `df3fe8c`. Found by reading the release (`gh release view`,
+  `git log 282703f..HEAD -- dist/lawson_las.zip.sha256`), not by a test.
+- **`tools/pd2-port/STATUS.md`** is now the dated record of that port: 244 → 98 lines, 14,456 → 7,167 B.
+  It says what the release serves and that the tracked pack is another one, that nothing records the pack in
+  game, what was found and settled, which transfers failed, and what the page and the README used to claim.
+  It quotes no tracked size or sha256 and no count ([`fixes/facts.tsv`](2026-11-13-agent-entry/fixes/facts.tsv): no document
+  quotes one now). It also said "the v1 release stays up": there is a tag and no release.
+- **The test that kept the figures current is replaced.**
+  `test_the_status_page_says_whether_the_release_serves_the_tracked_pack` compares the newest release notes
+  with the tracked `.sha256`. While they differ, `STATUS.md` and the list of open work in
+  `tools/pd2-las/README.md` have to say so; once they agree, both have to stop saying it.
+- **`tools/pd2-port/README.md`**: 22,109 → 21,431 B. It quotes no version, release number, pinned version
+  or count of mutations, and sends the installer to `dist/lawson_las.zip`.
+- **`tools/skyrim-nif/README.md`**: 5,042 → 4,981 B. Its two commands under "Use" stop at once, because the
+  archives they read were removed with the port (`inventory.py` exits 2, `crosscheck.py` exits 1); the page
+  says so and keeps the example that needs no archive. It counted "15 mapped joints, 22 helper folds" in
+  `skeleton_map.json`, which has 54 and 23 entries and had them when the line was written. The result of the
+  nifly cross-check stood twice.
+- **`tools/pd2-las/README.md`**, +107 B: its list of open work names the release, because that list is where
+  T6 is answered.
+- **`AGENTS.md`**: 4,682 → 4,632 B. The exception for `lawson_las` is one clause now.
+
+**The eight tasks on `b47635d`**, the same walk ([`fixes/walk.json`](2026-11-13-agent-entry/fixes/walk.json),
+[`fixes/start.json`](2026-11-13-agent-entry/fixes/start.json), [`fixes/key.json`](2026-11-13-agent-entry/fixes/key.json)):
+
+| | `19ca55a` | `df3fe8c` | `b47635d` |
+| --- | --- | --- | --- |
+| Calls | 26 | 7 | 7 |
+| Bytes | 114,895 | 34,658 | 35,437 |
+| Tokens | 33,589 | 10,042 | 10,275 |
+| Seconds for the eight tasks | 455 | 584 | 448 |
+| `AGENTS.md`, loaded at start | 13,009 B, 3,863 tokens | 4,682 B, 1,275 | 4,632 B, 1,260 |
+| Tracked sizes and hashes quoted in documents | 14 sizes, 14 hashes | 1 size, 1 hash | none |
+
+- The fixes cost 779 B: `HANDOFF.md` records the rebuild of the Christie packs (T5, +675 B), the list of
+  open work names the release (T6, +107 B), and two commands print 3 B less.
+- T3 takes 293 s, not 431 s, so the eight tasks take about as long as before the change, where at `df3fe8c`
+  they took 129 s more.
+- T6's key has a sixth item since `b47635d`: the release. The walk reaches 6 of 6. The walks stored in
+  `before/` and `after/` predate the item, and no document of those commits says it.
+- The answer key differs from the one of `df3fe8c` in the two Christie packs only: their sizes and sha256,
+  `sha256_tracked` of the slim pack, and `no_in_game_flag`, which lists 14 packs where it listed 12.
+- The tokens were counted with the same encoding file (sha256 `446a9538…`, the one tiktoken expects):
+  `HANDOFF.md` of `df3fe8c` gives 4,582 again.
+
+**Tests of the fixes.** Each fails when its defect is put back, on `b47635d`
+([`mutations.sh`](2026-11-13-agent-entry/mutations.sh), [`fixes/mutations.txt`](2026-11-13-agent-entry/fixes/mutations.txt)); the eleven cases
+of the table under "What changed" still fail theirs.
+
+| Put back | Fails |
+| --- | --- |
+| scipy taken out of what the lawson workflow installs | `test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs` |
+| `STATUS.md` says the release serves the tracked pack; release notes for a v3 with the tracked sha256 and `STATUS.md` not touched; the release taken out of the open work while it is behind; a release that serves the tracked pack, still listed as open work | `test_the_status_page_says_whether_the_release_serves_the_tracked_pack` |
+| the tracked size of `lawson_las`, its sha256, or the audit's result in `STATUS.md`; a count of mutations in `tools/pd2-port/README.md`; a count of checks in `tools/skyrim-nif/README.md` | `test_no_document_quotes_what_status_prints` |
+| a script that does not exist, in `tools/skyrim-nif/README.md` | `test_every_path_target_and_test_named_in_an_agent_doc_exists` |
+
+`tests/test_skip_budget.py` is new with `d605e4f` (four tests), `tests/test_christie_las.py` asserts the
+flag, and `test_status_tells_a_rebuilt_pack_from_the_tracked_one` now runs in a checkout of its own: it used
+to skip while a pack was rebuilt and not committed, and that skip had no budget, so `green` would have failed
+in the one state where `status` names it as the next command.
+
+**Checked.**
+
+| Check | Result |
+| --- | --- |
+| `make -sC tools/pd2-las green` on the tree that became `15c9e7d` | 13 of 13 stages; 805 passed, 29 skipped, 2 xfailed; 16 of 16 zips are the tracked bytes after a fresh build ([`fixes/green.txt`](2026-11-13-agent-entry/fixes/green.txt)) |
+| the same with both Christie packs rebuilt and not committed | 13 of 13 stages |
+| the `test` workflow on GitHub | every step passed on each of the six pushes from `92c9758` to `b47635d` (`38df6d9` went up with `d605e4f`); the notice each time: "16 of 16 tracked zips are the tracked bytes after a fresh build". Since the Christie rebuild, four times on a runner without AVX-512 (EPYC 7763) and once with it (Xeon Platinum 8573C, `15c9e7d`) |
+| `copies.py after` on the tree that became `48b26a2` | 16 of 16 zips; 805 passed; the report on every builder's trace is line for line the one from `19ca55a`, with no function that returns something else; 29 of 30 outputs, the one being `status.py`, which prints the rebuilt packs' sizes and hashes. Its entry in `docs/audits/2026-11-12-tool-merge/reference.json` was recorded again: 30 of 30 ([`fixes/copies-after.txt`](2026-11-13-agent-entry/fixes/copies-after.txt)) |
+
+**Not checked.**
+
+- The publish step of the `lawson LAS pack` workflow. It runs on a tag, and no tag was pushed.
+- The two rebuilt Christie packs, or any other pack, in game.
+- `probe_harness.sh` was not run again. Of what a harness loads at start, the fixes changed 50 B of
+  `AGENTS.md`; the sizes in the table are those of the files.
+- No model session has run `TASKS.md` on any commit.
+
+**Left, and whose it is.**
+
+- **A release of `lawson_las`.** The gap closes with a release that has a version of its own, or stays as it
+  is now, written down. The repository's `README.md` says of every source that it is not cleared for
+  redistribution. The owner's decision; nothing was tagged.
+- **The `star-chart` branch on GitHub.** Nothing writes to it any more. The owner's to delete.
+- **The merge with upstream:** six conflicts, as above.
+- **`copies.py after` fails after any pack is rebuilt on purpose**, until `outputs.status` is recorded
+  again: `status.py` prints each pack's size and sha256, and the reference holds a checksum of what it
+  printed.
+- **`tools/skyrim-nif/skeleton_map.json` says of itself "nothing consumes this file yet".**
+  `tools/pd2-las/build_skyrim_outfit.py` reads it. A data file of a cancelled route; not edited.
 
 ## Run it again
 
 ```sh
+# for the figures of "Fixed after the report", use b47635d in place of df3fe8c
 git worktree add --detach ../wt-before 19ca55a && git worktree add --detach ../wt-after df3fe8c
 M=docs/audits/2026-11-13-agent-entry/measure.py           # with tiktoken installed it also counts tokens
 python3 $M walk --tree ../wt-before --routes before        # about 8 minutes; it builds packs

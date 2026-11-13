@@ -27,8 +27,8 @@ README claimed that was not so is under [Corrections](#corrections).
 - None of them moved `VERSION` in `build_las_pack.py`, so two different packs are called 0.1.2, and no
   release serves the later one. A test keeps `VERSION` equal to the newest release notes, so the version
   moves only with a release.
-- Tag `lawson-las-v1` → `2b0b1b4` has no release any more. Its pack, 0.1.1 (`8,015,689` B, `063d5f64…`), has
-  holes in the skin (below).
+- Tag `lawson-las-v1` → `2b0b1b4` has no release. Its pack, 0.1.1 (`8,015,689` B, `063d5f64…`), has holes in
+  the skin (below).
 
 ## Seen in game
 
