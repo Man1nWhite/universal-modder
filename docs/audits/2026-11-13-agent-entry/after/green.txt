@@ -1,24 +1,24 @@
 LAS pack verification
-  repo: ~/universal-modder
-  pack: ~/universal-modder/dist/lawson_las.zip
+  repo: ~/wt/after
+  pack: ~/wt/after/dist/lawson_las.zip
   [ok  ] tracked pack matches its checksum          9123392 bytes, sha256 9c8a28368862edcc…
-  [ok  ] guide compliance audit               0.8s  summary: 38 pass, 1 warn, 0 fail
+  [ok  ] guide compliance audit               0.9s  summary: 38 pass, 1 warn, 0 fail
   [ok  ] winding and tangent frame            0.6s  summary: 20677 triangles, 0 inverted, 0 degenerate
   [ok  ] normal-map convention                0.6s  VERDICT: the source is DirectX-style (Y-); the default build inverts the green channel, wh
-  [ok  ] pack-level test mutations            9.3s  5/5 pack-level test mutations caught
-  [ok  ] auditor self-test                   27.4s  16/16 mutations detected
-  [ok  ] lint                                 1.3s  
-  [ok  ] um and its command groups            0.7s  --help of um and of 10 groups
-  [ok  ] knowledge base                       1.2s  PASS: 247 notes checked
-  [ok  ] nothing that shouldn't ship          4.0s  WARN: 4764 files, 0 failures, 10 warnings
-  [ok  ] pytest suite                       116.2s  800 passed, 29 skipped, 2 xfailed, 1 warning in 115.90s (0:01:55)
-  [ok  ] skip budget                        113.0s  OK: 29 budgeted skip(s) across 9 reason(s), 2 expected failure(s) within budget.
-  [ok  ] every tracked zip, built again     114.2s  16 of 16 tracked zips are the tracked bytes after a fresh build
+  [ok  ] pack-level test mutations           10.4s  5/5 pack-level test mutations caught
+  [ok  ] auditor self-test                   28.3s  16/16 mutations detected
+  [ok  ] lint                                 1.4s  
+  [ok  ] um and its command groups            0.8s  --help of um and of 10 groups
+  [ok  ] knowledge base                       1.4s  PASS: 247 notes checked
+  [ok  ] nothing that shouldn't ship          2.2s  WARN: 2397 files, 0 failures, 4 warnings
+  [ok  ] pytest suite                       127.6s  800 passed, 29 skipped, 2 xfailed, 1 warning in 127.27s (0:02:07)
+  [ok  ] skip budget                        124.3s  OK: 29 budgeted skip(s) across 9 reason(s), 2 expected failure(s) within budget.
+  [ok  ] every tracked zip, built again     124.5s  16 of 16 tracked zips are the tracked bytes after a fresh build
 
 all 13 stages passed
 next: git status --short
 
-real	6m29.592s
-user	6m13.658s
-sys	0m14.507s
+real	7m3.082s
+user	6m45.148s
+sys	0m16.654s
 EXIT=0

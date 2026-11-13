@@ -53,52 +53,54 @@ AGENTS.md	14	ours	| Was a pack seen in game, and which bytes? Dead ends | `docs/
 AGENTS.md	15	ours	| What is open | "Next" in `tools/pd2-las/README.md` |
 AGENTS.md	16	ours	| Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
 AGENTS.md	17	ours	
-AGENTS.md	18	ours	- No document quotes a size, a hash or a test count: `status` and `green` print them.
-AGENTS.md	19	ours	- A rebuilt pack needs no document edited. Commit the zip with its `.sha256`.
-AGENTS.md	20	ours	- A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
-AGENTS.md	21	ours	  `git checkout -- dist build`: both discard work that was never pushed. First `git status` and
-AGENTS.md	22	ours	  `git log origin/<branch>..HEAD` must show nothing local that the remote lacks.
-AGENTS.md	23	ours	
-AGENTS.md	24	ours	## Modding any other game
-AGENTS.md	25	ours	1. Read `skills/mod-any-game/SKILL.md` and follow its loop: intake → recon → route → lab (backups) →
-AGENTS.md	26	upstream	   source of truth → vertical slice → assets → verify in the real game → showcase → publish.
-AGENTS.md	27	ours	2. Search the knowledge base first: `bin/um kb search "<game or engine>"` (`knowledge/INDEX.md`).
-AGENTS.md	28	ours	3. At the end, write a field note (`bin/um kb new ...`) and, once your human agrees, open a PR
-AGENTS.md	29	ours	   (`bin/um kb pr <note> --yes`). See `knowledge/README.md` and `CONTRIBUTING.md`.
-AGENTS.md	30	upstream	
-AGENTS.md	31	upstream	## Tools
-AGENTS.md	32	ours	- `bin/um` is the Python CLI; `bin/um --help` lists its command groups and every group has `--help`. It runs
-AGENTS.md	33	ours	  through `uv`. Where there is no `uv`: `.venv/bin/python -m um ...`.
-AGENTS.md	34	ours	- The fal MCP server is configured for every agent and needs `FAL_KEY` in the agent's environment. Without
-AGENTS.md	35	ours	  MCP, `um fal` does the same over REST (`skills/fal-assets`).
-AGENTS.md	36	ours	- Skills: edit `skills/`, then copy it over `.agents/skills` and `.claude/skills`; a test fails while the
-AGENTS.md	37	ours	  copies differ.
-AGENTS.md	38	ours	- Engine playbooks: `skills/mod-any-game/references/engines/`. Worked examples: `examples/`.
-AGENTS.md	39	upstream	
-AGENTS.md	40	upstream	## Rules (full reasoning in `skills/mod-any-game/references/safety.md`)
-AGENTS.md	41	upstream	- **What you can mod:** any game the user owns: single-player, multiplayer, or servers the user hosts.
-AGENTS.md	42	upstream	  - Never touch online clients protected by anti-cheat.
-AGENTS.md	43	upstream	  - Never write cheats against other players (aimbots, ESP, speed hacks).
-AGENTS.md	44	upstream	  - Never bypass anti-cheat, DRM or ownership checks.
-AGENTS.md	45	upstream	- **Saves:** `um backup` saves before modded launches.
-AGENTS.md	46	upstream	- **What you ship:** never commit or publish game files, extracted assets or decompiled code. Keep
-AGENTS.md	47	upstream	  decompiles outside the repo.
-AGENTS.md	48	upstream	- **Processes:** kill by exact PID (`um win kill`), never by name pattern.
-AGENTS.md	49	upstream	- **Ask first** before:
-AGENTS.md	50	upstream	  - driving the user's mouse and keyboard, and never focus a game with an online mode while they're typing;
-AGENTS.md	51	upstream	  - installing loaders into game folders or changing the registry;
-AGENTS.md	52	upstream	  - publishing anything, PRs included.
-AGENTS.md	53	upstream	- **Keep a journal:** a `MODLOG.md` in the mod's working folder. It becomes your field note at the end.
-AGENTS.md	54	ours	- **Keep the state in a command:** on a long project the next agent should not have to rebuild the state
-AGENTS.md	55	ours	  from a journal (`tools/pd2-las/status.py` is the pattern).
-AGENTS.md	56	ours	- **Sequence your file edits:** parallel edits to the same file race, and the
-AGENTS.md	57	ours	  loser silently clobbers the winner.
-AGENTS.md	58	upstream	
-AGENTS.md	59	upstream	## Working on the toolkit itself
-AGENTS.md	60	ours	- **Python:** 3.10+, deps Pillow, numpy and PyYAML. Code lives in `um/`, one module per CLI group, each
-AGENTS.md	61	ours	  with `register(sub)` and a docstring that doubles as `--help`.
-AGENTS.md	62	upstream	- **Windows tools:** `um/ps1/*.ps1` embed C# 5 (Windows PowerShell 5.1's compiler): no string
-AGENTS.md	63	upstream	  interpolation, no `out var`, no expression-bodied members.
-AGENTS.md	64	ours	- **Tests:** `make -sC tools/pd2-las test` is the suite, `green` everything CI checks.
-AGENTS.md	65	upstream	- **Wording:** keep skills and docs agent-neutral ("the agent", not a product name) except in sections
-AGENTS.md	66	upstream	  about one specific agent.
+AGENTS.md	18	ours	- Take sizes, hashes and test counts from `status` and `green`, not from a document.
+AGENTS.md	19	ours	- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. The exception is `lawson_las`:
+AGENTS.md	20	ours	  write its `.sha256` yourself and update `tools/pd2-port/STATUS.md` ("Publish a release" in
+AGENTS.md	21	ours	  `tools/pd2-port/README.md`).
+AGENTS.md	22	ours	- A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
+AGENTS.md	23	ours	  `git checkout -- dist build`: both discard work that was never pushed. First `git status` and
+AGENTS.md	24	ours	  `git log origin/<branch>..HEAD` must show nothing local that the remote lacks.
+AGENTS.md	25	ours	
+AGENTS.md	26	ours	## Modding any other game
+AGENTS.md	27	ours	1. Read `skills/mod-any-game/SKILL.md` and follow its loop: intake → recon → route → lab (backups) →
+AGENTS.md	28	upstream	   source of truth → vertical slice → assets → verify in the real game → showcase → publish.
+AGENTS.md	29	ours	2. Search the knowledge base first: `bin/um kb search "<game or engine>"` (`knowledge/INDEX.md`).
+AGENTS.md	30	ours	3. At the end, write a field note (`bin/um kb new ...`) and, once your human agrees, open a PR
+AGENTS.md	31	ours	   (`bin/um kb pr <note> --yes`). See `knowledge/README.md` and `CONTRIBUTING.md`.
+AGENTS.md	32	upstream	
+AGENTS.md	33	upstream	## Tools
+AGENTS.md	34	ours	- `bin/um` is the Python CLI; `bin/um --help` lists its command groups and every group has `--help`. It runs
+AGENTS.md	35	ours	  through `uv`. Where there is no `uv`: `.venv/bin/python -m um ...`.
+AGENTS.md	36	ours	- The fal MCP server is configured for every agent and needs `FAL_KEY` in the agent's environment. Without
+AGENTS.md	37	ours	  MCP, `um fal` does the same over REST (`skills/fal-assets`).
+AGENTS.md	38	ours	- Skills: edit `skills/`, then copy it over `.agents/skills` and `.claude/skills`; a test fails while the
+AGENTS.md	39	ours	  copies differ.
+AGENTS.md	40	ours	- Engine playbooks: `skills/mod-any-game/references/engines/`. Worked examples: `examples/`.
+AGENTS.md	41	upstream	
+AGENTS.md	42	upstream	## Rules (full reasoning in `skills/mod-any-game/references/safety.md`)
+AGENTS.md	43	upstream	- **What you can mod:** any game the user owns: single-player, multiplayer, or servers the user hosts.
+AGENTS.md	44	upstream	  - Never touch online clients protected by anti-cheat.
+AGENTS.md	45	upstream	  - Never write cheats against other players (aimbots, ESP, speed hacks).
+AGENTS.md	46	upstream	  - Never bypass anti-cheat, DRM or ownership checks.
+AGENTS.md	47	upstream	- **Saves:** `um backup` saves before modded launches.
+AGENTS.md	48	upstream	- **What you ship:** never commit or publish game files, extracted assets or decompiled code. Keep
+AGENTS.md	49	upstream	  decompiles outside the repo.
+AGENTS.md	50	upstream	- **Processes:** kill by exact PID (`um win kill`), never by name pattern.
+AGENTS.md	51	upstream	- **Ask first** before:
+AGENTS.md	52	upstream	  - driving the user's mouse and keyboard, and never focus a game with an online mode while they're typing;
+AGENTS.md	53	upstream	  - installing loaders into game folders or changing the registry;
+AGENTS.md	54	upstream	  - publishing anything, PRs included.
+AGENTS.md	55	upstream	- **Keep a journal:** a `MODLOG.md` in the mod's working folder. It becomes your field note at the end.
+AGENTS.md	56	ours	- **Keep the state in a command:** on a long project the next agent should not have to rebuild the state
+AGENTS.md	57	ours	  from a journal (`tools/pd2-las/status.py` is the pattern).
+AGENTS.md	58	ours	- **Sequence your file edits:** parallel edits to the same file race, and the
+AGENTS.md	59	ours	  loser silently clobbers the winner.
+AGENTS.md	60	upstream	
+AGENTS.md	61	upstream	## Working on the toolkit itself
+AGENTS.md	62	ours	- **Python:** 3.10+, deps Pillow, numpy and PyYAML. Code lives in `um/`, one module per CLI group, each
+AGENTS.md	63	ours	  with `register(sub)` and a docstring that doubles as `--help`.
+AGENTS.md	64	upstream	- **Windows tools:** `um/ps1/*.ps1` embed C# 5 (Windows PowerShell 5.1's compiler): no string
+AGENTS.md	65	upstream	  interpolation, no `out var`, no expression-bodied members.
+AGENTS.md	66	ours	- **Tests:** `make -sC tools/pd2-las test` is the suite, `green` everything CI checks.
+AGENTS.md	67	upstream	- **Wording:** keep skills and docs agent-neutral ("the agent", not a product name) except in sections
+AGENTS.md	68	upstream	  about one specific agent.

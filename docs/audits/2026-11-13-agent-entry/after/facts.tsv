@@ -54,7 +54,7 @@ pack	Miranda_Romance_over_Sydney	0	0	0	0	0	0	0	0	0	0	0	0	0
 size	9,123,392	1	0	0	0	0	0	0	0	1	0	0	0	0
 sha256	9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2	1	0	0	0	0	0	0	0	1	0	0	0	0
 zip	dist/lawson_las.zip	3	0	0	0	0	0	0	7	2	0	0	1	0
-pack	lawson_las	6	0	1	0	2	1	1	4	1	0	0	0	0
+pack	lawson_las	6	0	2	0	2	1	1	4	1	0	0	0	0
 zip	build/pd2-las/Miranda_Busty_LAS.zip	0	0	0	0	0	0	0	0	0	0	0	0	0
 zip	build/pd2-las/Miranda_LAS.zip	0	0	0	0	0	0	0	0	0	0	0	0	0
 pin	13.0.0	2	0	0	0	0	0	0	1	2	0	0	0	0

@@ -1,0 +1,36 @@
+commit: df3fe8c
+nothing changed
+    6 passed
+1  a CLAUDE.md that is a copy of AGENTS.md
+    1 failed, 5 passed
+    fails: test_the_instruction_file_is_written_once
+1b a CLAUDE.md that is the one line @AGENTS.md
+    1 failed, 5 passed
+    fails: test_the_instruction_file_is_written_once
+2  the size of a pack in README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+2b a test count in tools/README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+3  a path that does not exist, in tools/pd2-las/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+3b a make target that does not exist, in HANDOFF.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+3c a test that does not exist, in tools/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+4  700 bytes more in AGENTS.md
+    1 failed, 5 passed
+    fails: test_what_loads_at_start_stays_small
+5  a step added to the test workflow that green does not run
+    1 failed, 5 passed
+    fails: test_green_runs_what_the_test_workflow_runs
+6  a build target misspelt in AGENTS.md
+    1 failed, 5 passed
+    fails: test_agents_md_answers_each_question_with_one_command
+6b the row for status removed from AGENTS.md
+    1 failed, 5 passed
+    fails: test_agents_md_answers_each_question_with_one_command

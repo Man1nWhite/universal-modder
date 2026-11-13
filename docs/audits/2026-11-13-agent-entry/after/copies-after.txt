@@ -81,3 +81,10 @@ real	9m12.652s
 user	12m26.901s
 sys	0m23.354s
 EXIT=1
+
+--- the same saved run, compared again after `outputs.status` was recorded anew in
+--- docs/audits/2026-11-12-tool-merge/reference.json (status.py prints something else on purpose):
+--- .venv/bin/python tools/pd2-las/copies.py after recheck
+--- Its first 72 lines are the lines from "fresh:" to the last builder above, unchanged. Its last line:
+outputs: 30 of 30 tools give what they gave
+EXIT=0
