@@ -305,11 +305,22 @@ leave the measured area unchanged).
 
 ### 5.3 The base pack is not clean by the same measure
 
-Run with `cull_backfaces=True` — the setting that matches what D3D9 draws — the
-check is not "slim is open", it is "both packs have grazing gaps". That was not
-measured in this pass and is the next thing to measure before any sleeve-fix
-work is planned; it decides whether D18 is a slim regression or a property of
-the sleeve that the slim pass merely exposes.
+Run with `cull_backfaces=True` — the setting whose docstring says it matches
+what D3D9 draws — the check does not separate the packs at all:
+
+| pack | left sleeve | right sleeve |
+|---|---|---|
+| base | 211.59 cm² | 182.04 cm² |
+| slim | 222.09 cm² | 192.51 cm² |
+
+Base, which the strict xfail treats as closed, scores 182-212 cm²; slim adds
+about 5 %. Either the sleeve genuinely has large through-holes that the
+unculled check misses (in which case the 0.00 cm² base figure is the wrong
+measurement, not the slim figure), or the culled variant is measuring something
+else entirely. **Both readings are bad for D18 as written**: a test whose
+verdict flips between 0.00 and 212 cm² for the same mesh depending on one flag
+is not evidence about the mesh. This blocks any sleeve-fix work until the
+metric is settled, and it is the first thing to settle.
 
 ### 5.4 Blender is no longer installed in this sandbox
 

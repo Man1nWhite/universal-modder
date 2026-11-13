@@ -14,8 +14,10 @@ byte changed (`b65fb27e…` / `9da90dd3…`, `fresh` 16 of 16).
 * Which pass opens the gap is unassigned; `ELBOW_OUTER_TRIM`, the
   `SLIM_FOLD_DELTAS` table and every `stitch_sleeve_seams` parameter were ruled
   out by rebuild.
-* The backface-culled variant of the same check has **not** been run, so
-  "base is clean, slim leaks" is unverified. Next measurement.
+* The backface-culled variant scores the base pack 182-212 cm², which is the
+  pack the test treats as clean. The metric's verdict flips between 0.00 and
+  212 cm² on the culling flag alone, so it is not evidence about the mesh.
+  Settling the metric comes before any sleeve fix.
 
 # PAYDAY 2 LAS — review journal
 
