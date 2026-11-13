@@ -15,8 +15,9 @@ The work in this fork is PAYDAY 2: 14 tracked packs in `dist/`, built by three p
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
 
-- No document quotes a size, a hash or a test count: `status` and `green` print them.
-- A rebuilt pack needs no document edited. Commit the zip with its `.sha256`.
+- Take sizes, hashes and test counts from `status` and `green`, not from a document.
+- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. The exception is `lawson_las`,
+  whose size and sha256 `tools/pd2-port/STATUS.md` quotes under a test.
 - A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
   `git checkout -- dist build`: both discard work that was never pushed. First `git status` and
   `git log origin/<branch>..HEAD` must show nothing local that the remote lacks.

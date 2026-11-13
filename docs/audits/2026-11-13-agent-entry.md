@@ -6,6 +6,9 @@ cites is under [`2026-11-13-agent-entry/`](2026-11-13-agent-entry/).
 
 - Before: `19ca55a` (main). After: `62f919e`. The baseline was committed first, as `1dacfc1`, before any
   document, test or tool was touched.
+- One line of `AGENTS.md` was corrected after `62f919e` was measured: it said that no rebuilt pack needs a
+  document edited, and `lawson_las` does (`tools/pd2-port/STATUS.md`, below). The file is 4,630 B (1256 tokens) with it;
+  every figure on this page is the one measured on `62f919e`, 4,528 B (1,229 tokens).
 - A call is one shell command or one file read. Bytes are those of the file or of the command's output.
   Tokens are tiktoken's `o200k_base`.
 
