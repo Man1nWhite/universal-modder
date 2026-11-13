@@ -642,16 +642,9 @@
    "unsteady_files": [],
    "written": {}
   },
-  "build_skyrim_outfit": {
-   "lines": 11,
-   "printed": "daec73cb2c2504194e43b0dfbb9b294dc4d14e6ab9be996375b10417822e773d",
-   "rc": 2,
-   "unsteady_files": [],
-   "written": {}
-  },
   "check_guide_compliance": {
-   "lines": 123,
-   "printed": "fdb7763e1b3282c3f9779f1b319919344f880d5336b0c380b333648f22fb7c84",
+   "lines": 120,
+   "printed": "44a36ec30477620be21700f5b489a2803fc510642c2404e8eed4f6a5ab5a6ab6",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
@@ -672,7 +665,7 @@
   },
   "check_guide_compliance_self_test": {
    "lines": 22,
-   "printed": "5579737074bb926efb4cd8ca4084edf63d492f633ff7a8479c4319cd82c26af8",
+   "printed": "c02d34f07fd277da98615095d4a2e315c3380009bfcb6be32ebd2bf844777231",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
@@ -711,7 +704,7 @@
    "rc": 0,
    "unsteady_files": [],
    "written": {
-    "<tree>/dist/lawson_las.zip": "9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2"
+    "<tree>/dist/lawson_las.zip": "69e0f898c909bc66701142a9e7d4482a4deabf4537f1d59ebed2807f94edf62c"
    }
   },
   "diagnose_mesh": {
@@ -784,28 +777,12 @@
    "unsteady_files": [],
    "written": {}
   },
-  "pose_preview": {
-   "lines": 15,
-   "printed": "d9b12e874b49b786f956346b4141ad800f787aebde419c50eeffaa8a16289da1",
-   "rc": 1,
-   "unsteady_files": [],
-   "written": {}
-  },
   "preview_check": {
    "lines": 74,
    "printed": "c9ae6b81e372bb6cf138dd826efe16b57006180faccab69b8199ecb50958dbab",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
-  },
-  "preview_textured": {
-   "lines": 9,
-   "printed": "dd0f0aae618e17b784eff0398f499d430f28b1e07177b10d2a10c7c66cfc8a12",
-   "rc": 0,
-   "unsteady_files": [],
-   "written": {
-    "<scratch>/textured.png": "12fc0c94b58d563e448ed339a935544f35a846937b105a4d70733d1e908e3db2"
-   }
   },
   "render_mesh_skeleton": {
    "lines": 12,
@@ -855,16 +832,9 @@
    "unsteady_files": [],
    "written": {}
   },
-  "skin_texture": {
-   "lines": 19,
-   "printed": "01b79b005fd93980fb7a0bc6f6eea6a3abc0d2dc21eb8cbcbc299b98406e38c8",
-   "rc": 1,
-   "unsteady_files": [],
-   "written": {}
-  },
   "status": {
-   "lines": 15,
-   "printed": "9918a9f54538548f167fb05816b6ae8bc6341245c91e7a3eaab7cd3a5f2c8a56",
+   "lines": 24,
+   "printed": "ddab91cd728b1b22005b20a945801a864dbfbe47c01be3c1004f20bacf9b62b3",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
@@ -1125,7 +1095,7 @@
    "busty": 227,
    "christie": 232,
    "heads": 131,
-   "lawson": 144,
+   "lawson": 143,
    "miranda": 167,
    "slim": 244
   },

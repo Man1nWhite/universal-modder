@@ -1,0 +1,17 @@
+dist/lawson_las.zip, before and after CREDITS.txt was taken out of the builder
+   before: 9,123,392 B  sha256 9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2  30 members
+   after:  9,122,766 B  sha256 69e0f898c909bc66701142a9e7d4482a4deabf4537f1d59ebed2807f94edf62c  29 members
+   only before: ['Lawson_LAS/CREDITS.txt']
+   only after:  []
+   in both and byte for byte the same: 28
+   in both and different: ['Lawson_LAS/build_manifest.json']
+   manifest.dae: unchanged (Miranda Lawson (Romance) - Adjusted Version.dae)
+   manifest.files: 29 -> 28 entries; gone: ['Lawson_LAS/CREDITS.txt']; new: []; hash changed: []
+   manifest.normal_maps: unchanged ({'layout': 'pd2 (X in alpha)', 'invert_green': True})
+   manifest.runtime_verified: unchanged (False)
+   manifest.source_sha256: unchanged (c4e5d0dd3aab9d9996ae119b018caf6a2ec2aa135005786525c158dc2f069e40)
+   manifest.source_zip: unchanged (PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Laws)
+   manifest.status: unchanged (experimental - offline validated, not game-verified)
+   manifest.version: unchanged (0.1.2)
+   order of the members kept: True
+   dates, modes and compression of the members kept, unchanged: True

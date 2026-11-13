@@ -618,3 +618,137 @@
   tests that run a pack's Lua in an interpreter skip after `make env` and in
   CI, for want of lupa.
 - `copies.py` holds the evidence: `record`, `compare`, `after`.
+
+## 2026-11-13 — one command per question; the Christie packs stop saying they were in game
+
+- The record is `docs/audits/2026-11-13-agent-entry.md`; the decisions are D30 and D31.
+- `status` covers all 14 packs and says `tracked`, `changed`, `broken` or `missing` against the commit. It
+  said `sha256_ok`, against a sidecar the builder had just written. `env` restores only what is missing and
+  ends with the status. `green` is `check_all.py --full`. `lawson` and `heads` are new targets.
+- `AGENTS.md` is the one instruction file and has no copies. No document quotes a pack's size or sha256, so
+  a rebuilt pack needs none edited. The entries above that name `CLAUDE.md`, `GEMINI.md` as a copy, or
+  `test_handoff_and_agents_quote_the_tracked_pack_bytes` describe what was there until this day.
+- **Two packs re-shipped:** `Christie_LAS` and `Christie_LAS_Slim`, for `"runtime_verified": false`. One
+  line of `BUILD_INFO.json` in each; every other member is byte for byte what it was
+  (`docs/audits/2026-11-13-agent-entry/fixes/christie-packs.txt`). Before: `1b486c42…` and `79529a56…`.
+- **Found on the way:** `test_status_tells_a_rebuilt_pack_from_the_tracked_one` skipped while a pack was
+  rebuilt and not committed. The skip budget has no room for that reason, so `green` failed in the one state
+  where `status` names it as the next command. The test now runs in a checkout of its own.
+- Validation, with both packs changed and not committed: `make -sC tools/pd2-las green`, all 13 stages.
+
+## 2026-11-13 (later) — the code of the cancelled Skyrim outfit is deleted
+
+- Request: "Delete stale things". Asked what that covers, the owner answered for this part: everything only
+  the cancelled Skyrim outfit uses. The decision is D33; the release, the tags and the branches that went the
+  same day are in `tools/pd2-port/MODLOG.md`.
+- **Deleted, 29 files, 8,302 lines:** `tools/skyrim-nif/` (9 files: the `.nif` reader, the nifly cross-check
+  and its C++ wrapper, the inventory, the preview, the bone map) and `docs/skyrim-nif/` (5 pages);
+  `build_skyrim_outfit.py`, `skyrim_materials.py`, `skyrim_retarget.py`, `skyrim_source.py`,
+  `skin_texture.py`, `decimate.py`; nine test files.
+- **Cut out of files that stay:**
+  - `build_models.py`, 3,543 → 1,784 lines: the 39 functions only that builder called, or nothing called
+    (`graft_pd2_hands`, `weld_wrist`, `weld_open_seams`, `cap_holes`, `slim_neck`, `trim_neck`, `align_neck`,
+    `turn_body`, `turn_upper_body`, `restore_bust`, `lower_collar`, `redress_from_source`,
+    `follow_layer_weights`, `append_group`, `count_hand_verts`, `extend_blazer_sleeves`, the five `tuck_*`
+    passes, and eighteen helpers), two constants, a module-level `import numpy`, and two pieces keyed on that
+    outfit's material names: the shoulder stay for `jacket` in `transfer_group`, and the default targets of
+    `extend_sleeves_to_wrist`, whose caller now names every layer (the Christie builder always did).
+  - `las_outfit_pack.py`, 528 → 380 lines: the outfit's own registration, `render_hook_lua`,
+    `render_main_xml`, `render_localization`, `write_pack`. `render_glove_adapter_lua` takes the item and
+    the label; it had the outfit's as defaults.
+  - `preview_textured.py` and `pose_preview.py` keep what `glove_check.py`, `pose_zoom.py` and two test
+    files import, and lose their commands: one read `build/skyrim-nif/`, the other looked every texture up
+    as `outfit_<material>_df.texture`. `preview_textured.py` has its own copy of the four-view projection it
+    used to load from `tools/skyrim-nif/preview.py`. `glove_check.py` loses two functions nothing called.
+- **Tests: 836 ids → 705.** 156 went, 25 are new (`docs/audits/2026-11-13-agent-entry/deleted/tests.txt`).
+  - Of the 156, 21 never ran here: they skipped for the outfit's archives or its pack. The suite skips 8
+    tests now, for four reasons that are about the machine (ffmpeg, sourcepp, lupa, Git Bash); the skip
+    budget lost the four reasons that were about the outfit.
+  - What the outfit's test files asserted about functions that stay was kept and moved:
+    `tests/test_las_outfit_pack.py` (13 tests: hook, `main.xml`, object and unit XML, strings, the zip, the
+    icon), `boundary_loops`, `extract_bones`, `group_atom_plan`, `atom_problems` and
+    `extend_sleeves_to_wrist` in `tests/test_build_models.py` and `tests/test_fps_hands.py`.
+  - `tests/test_glove_adapter.py` and `tests/test_glove_behavior_lua.py` tested the glove adapter of the
+    cancelled outfit; their pack-level tests waited for a zip that was not coming. They now test
+    `Christie_LAS_Slim`, the one pack that ships the adapter: the tracked hook is byte for byte what the
+    generator writes, and `Christie_LAS` ships none. The LuaJIT file needs `lupa`
+    (`recover_env.sh --extras`) and skips without it, in CI too; run by hand here, its 10 tests pass.
+- **Orphans found on the way:** `docs/audits/2026-11-09-neck-arm/`, five renders of the Christie slim arm.
+  The one page that showed them, `2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md`, was deleted
+  on 2026-11-10 (`0a76215`); nothing named them. Deleted. (The message of `f6264ae` says two plan pages and
+  1,783 lines for `build_models.py`; one page and 1,784 are right.)
+- **No pack re-shipped.** `make -sC tools/pd2-las green`: all 13 stages, 696 passed, 8 skipped, 2 xfailed,
+  16 of 16 tracked zips the tracked bytes after a fresh build. `copies.py after`: no builder function
+  returns something else, 26 of 26 recorded tools give what they gave; the four that went with the outfit
+  are out of the reference (`docs/audits/2026-11-12-tool-merge.md`, last section).
+- Everything is in history: `git show 19ca55a:<path>`, or `git checkout 19ca55a -- <path>` to bring a file
+  back.
+
+## 2026-11-13 (afternoon) — ten functions that nothing ran are deleted
+
+- **Asked:** the report of the deletions listed ten functions that no file names outside their own module,
+  and asked whether they should go. The owner: "Are you sure they are not used? maybe it's the starting .py".
+  The list had been made by searching for names, which cannot answer that. So it was measured.
+- **Measured on `4e15ed6`, before anything was deleted** (`docs/audits/2026-11-13-agent-entry/reach.py`, a
+  new tool; its output is `answers/reach-before.txt` beside it). The five modules were under line coverage in
+  every Python process, while the suite ran (698 passed), every tracked pack was built again (16 of 16 the
+  tracked bytes), each of the 26 tools with a recorded output was started, and each of the five files was
+  started on its own, with no argument and with `--help`. No line of the ten ran.
+- **The starting .py:** of the five files only `render_mesh_skeleton.py` is a command. The other four have no
+  `__main__` and are imported. No Makefile, workflow or shell script starts any of the five.
+- **Names:** in `tools/`, `tests/` and `um/` each name stood once, at its own `def`; `_rgb565` also in
+  `_encode_block`, its only caller. Elsewhere the names are in the audit records that list them as
+  unreached, and `examples/aoe2-de-civ/sld.py` has a function of its own called `_rgb565` and imports
+  nothing from `tools/`. Upstream has no `tools/` directory.
+- **History** (`answers/history.txt`, every line ever added or removed that names one):
+
+  | Function | File | Added | Its callers |
+  | --- | --- | --- | --- |
+  | `chest_extent` | `bust_variant.py` | `73fbc85`, 2026-11-04 | never one |
+  | `rgba_to_bgra_dds` | `dds_encode.py` | `abd7219`, 2026-10-18 | never one |
+  | `set_dxt5_constant_alpha` | `dds_encode.py` | `34eedeb`, 2026-10-19 | `build_las.py`, until `d94e9c3` (2026-10-21) |
+  | `attenuate_dxt5_alpha_by_block_mask` | `dds_encode.py` | `ce4f844`, 2026-11-06 | never one |
+  | `mat_apply_vec` | `diesel_model.py` | `51bc8d9`, 2026-10-18 | `build_models.py`, until `219a8a4` (2026-10-20) |
+  | `mat_from_pos_rot_rows` | `diesel_model.py` | `51bc8d9`, 2026-10-18 | never one |
+  | `_axis_to_camera` | `render_mesh_skeleton.py` | `eb4f77d`, 2026-11-06 | never one |
+  | `repair_dxt5_texture` | `tools/pd2-port/dds.py` | `02dded4`, 2026-10-18 | `repair_skin_palettes.py` and its test, retired the same day (`62cdb5d`) |
+  | `_encode_block` | `tools/pd2-port/dds.py` | `02dded4`, 2026-10-18 | inside `dds.py`, until `34eedeb` (2026-10-19) |
+  | `_rgb565` | `tools/pd2-port/dds.py` | `02dded4`, 2026-10-18 | `_encode_block` only |
+
+- **Deleted:** the ten, 163 lines with the blank lines around them. Nothing else in the five files changed.
+  The owner's word on these ten is the question; they went on "Delete stale things" (D33) and on the
+  measurement.
+- **Kept, though the same run saw neither run:** `render_source` in `render_mesh_skeleton.py`, which `main`
+  calls under `--source`, and `diesel_model.compute_uv_directions`, which `build_models.py` calls for a mesh
+  group that does not come with one normal per vertex. Something names them; no test and no tracked input
+  exercises them.
+- Bring a function back: `git checkout 4e15ed6 -- <file>` restores the file as it was.
+
+## 2026-11-13 (evening) — the owner confirms the ten; the tangent fallback goes by the same rule
+
+- **Asked:** the report said that the ten functions had gone without the owner's word, and that two more
+  which also never ran were kept because live code calls them. The owner: "yeah, delete those if Nothing
+  runs them". Read as the confirmation of the ten and as the test for the two that were kept. If "those"
+  meant the ten only, the second half is this entry's reading and the owner has not asked for it.
+- **`render_source` stays: someone runs it.** It is the `--source` mode of `render_mesh_skeleton.py`.
+  `docs/pd2-las/CHRISTIE.md` documents it, and run on `references/Christie.zip` it exits 0 and writes the
+  five `christie_source_*.png`, each byte for byte the file tracked under `docs/pd2-las/renders/`. No test
+  and none of the recorded tools runs it, which is why the measurement did not see it.
+- **`diesel_model.compute_uv_directions` is deleted**, with `UV_DET_EPS` beside it, which only it used
+  (`tangents.py` has its own): 32 lines.
+  - Until 2026-11-12 it made every tangent frame. `e5eb882` gave that work to `tangents.py`, which starts
+    from the float32 values the file holds, and left this function as the `else` of
+    `build_models.author_group_sections`, for a group without one normal per vertex or without a vertex.
+    Given float64 values it is site 7 of `docs/audits/2026-11-12-cpu-independence.md`.
+  - That `else` had nothing to give. A group without a vertex gets the same two empty lists from
+    `tangents.tangent_frames`. A group with vertices and fewer normals was written with a geometry section
+    shorter than its header says, and `diesel_model.decode_geometry` cannot read it.
+  - `author_group_sections` now stops at such a group and names it (`ValueError`). Without that check
+    `tangent_frames` stops on an `IndexError` that names nothing.
+    `test_a_group_without_a_normal_for_every_vertex_is_refused` is new; it fails on the code with the
+    fallback and on the code without the check.
+- **No pack moved.** `copies.py after`: 16 of 16 zips are the tracked bytes after a fresh build, no builder
+  function returns something else, 26 of 26 recorded tools give what they gave. A triangle with its normals
+  and an empty group come out of the old code and the new as the same sections, byte for byte
+  (`docs/audits/2026-11-13-agent-entry/answers/after-confirmation/`).
+- Bring it back: `git revert` the commit that carries this entry. The audit page of the day names it.

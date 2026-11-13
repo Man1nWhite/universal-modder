@@ -1,39 +1,26 @@
-"""Assemble a Skyrim-derived outfit as a PAYDAY 2 LAS pack folder.
+"""The files that register a PAYDAY 2 LAS pack, written once for every pack built here.
 
-Same registration contract as `las_pack.py` (the 2B reference, studied as a
-spec), with fresh IDs so both packs can be installed side by side:
+The registration contract is the 2B reference's, studied as a spec: a hook on
+`HOOK_SOURCE` that fills `LegendaryArmours.<item id>`, a BeardLib `main.xml`,
+the menu strings, and per unit a `.unit` and an `.object`. What a pack chooses
+is a `Registration`; `las_pack.py` (the Miranda packs) and
+`build_christie_las.py` each build theirs and call the functions below. The
+icon and the reproducible zip are here too.
 
-    LegendaryArmours.skyrim_outfit
-      units/skyrim_outfit/skins/skyrim_outfit/{skyrim_outfit,fps_skyrim_outfit}
-
-What this module owns is the *layout*: manifest, hook, locales, unit/object
-XMLs, material configs, textures, icon and `BUILD_INFO.json` with a hash per
-file. Model authoring lives in `build_skyrim_outfit.py`.
-
-The first-person unit is optional: `fps_available` in `BUILD_INFO.json` records
-whether it was built, because an LAS entry whose `fps_unit` points at a missing
-file is worse than one without it.
+A unit path ends in the file stem, exactly like `units/2b/skins/2b/2b`: LAS
+looks it up as a unit, so a directory there loads nothing at all. The
+first-person unit is optional, because an LAS entry whose `fps_unit` points at
+a missing file is worse than one without it.
 """
 
 from __future__ import annotations
 
-import hashlib
 import io
 import json
-import shutil
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
-ITEM_ID = "skyrim_outfit"
-CATEGORY = "skyrim_outfit"
-PACK_DIR_NAME = "SkyrimOutfit_LAS"
-UNIT_BASE = f"units/{ITEM_ID}/skins/{ITEM_ID}"
-GUI_BASE = f"guis/dlcs/{ITEM_ID}/armor_skins"
-# the unit path ends in the file stem, exactly like units/2b/skins/2b/2b:
-# LAS looks this up as a unit, so a directory here loads nothing at all
-TPP_UNIT = f"{UNIT_BASE}/{ITEM_ID}"
-FPS_UNIT = f"{UNIT_BASE}/fps_{ITEM_ID}"
 HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
 #: the glove adapter is hooked here, which runs after LAS's loader; hooked where the
 #: outfit is declared it would run before it
@@ -41,8 +28,7 @@ GLOVE_HOOK_SOURCE = "lib/tweak_data/blackmarkettweakdata"
 
 # LAS maps each flag onto the character parts it replaces (see the mod's
 # hooks/outfits/loader.lua): replace_all sets head=true as well, replace_body
-# only body/hands/arms. This outfit ships no head — the source archives carry
-# none and the template's is someone else's character — so it must not claim
+# only body/hands/arms. An outfit that ships no head must not claim
 # replace_all, or LAS drops the heister's head and the unit is decapitated.
 BODY_ONLY = (
     "hide_mask",
@@ -60,9 +46,6 @@ WHOLE_CHARACTER = (
     "fps_hide_armor",
     "fps_replace_body",
 )
-FLAG_KEYS = BODY_ONLY
-
-DISPLAY_NAME = "Skyrim Outfit"
 
 
 # ---------------------------------------------------------------------------
@@ -73,8 +56,8 @@ class Registration:
     """What one pack tells BeardLib and LAS about itself: main.xml, the hook, the strings.
 
     Every pack built in this directory is registered by the three functions
-    below. What a pack chooses is here, as data: `registration` in las_pack.py,
-    in build_christie_las.py and in this module say what each family chooses.
+    below. What a pack chooses is here, as data: `registration` in las_pack.py
+    and in build_christie_las.py say what each family chooses.
     """
     item_id: str
     display_name: str
@@ -91,9 +74,6 @@ class Registration:
     pairs: tuple = ()
     textures: tuple = ()            # textures registered on their own, by full name
     glove_adapter: bool = False     # the pack ships <item id>_glove_adapter.lua
-    # Intent flag. LAS 4.1.9's loader drops it (it reads a fresh `output` table,
-    # not this data), so the adapter file is what actually re-enables the adapter.
-    glove_flag: bool = False        # `glove_adapter = true` in the outfit's table as well
 
 
 def hook_lua(told: Registration) -> str:
@@ -111,9 +91,6 @@ def hook_lua(told: Registration) -> str:
     if told.fps_unit:
         lines.append(f'\tfps_unit = "{told.fps_unit}",')
     lines += ["", flags]
-    if told.glove_flag:
-        lines[-1] += ","
-        lines += ["", "\tglove_adapter = true"]
     lines += ["}", ""]
     return "\n".join(lines)
 
@@ -164,26 +141,7 @@ def main_xml(told: Registration) -> str:
     )
 
 
-def registration(texture_stems=(), with_fps: bool = False, hands: str = "adapter") -> Registration:
-    """What this module's own outfit registers.
-
-    `hands` is "adapter" for a pack without hands, which ships the glove
-    adapter and says so in its table; anything else registers neither.
-    """
-    return Registration(
-        item_id=ITEM_ID, category=CATEGORY, display_name=DISPLAY_NAME,
-        description="a Skyrim SE 3BA outfit as a Legendary Armour Skins outfit.",
-        unit=TPP_UNIT, fps_unit=FPS_UNIT if with_fps else None, flags=FLAG_KEYS,
-        icon=f"{GUI_BASE}/{ITEM_ID}",
-        pairs=tuple(f"{UNIT_BASE}/{stem[:-3]}" for stem in texture_stems if stem.endswith("_df")),
-        glove_adapter=hands == "adapter", glove_flag=hands == "adapter")
-
-
-def render_hook_lua(with_fps: bool = False, hands: str = "adapter") -> str:
-    return hook_lua(registration((), with_fps, hands))
-
-
-def render_glove_adapter_lua(item_id: str | None = None, label: str | None = None) -> str:
+def render_glove_adapter_lua(item_id: str, label: str) -> str:
     """Compat hook that gives the outfit vanilla-suit glove behaviour.
 
     LAS 4.1.9's `hooks/outfits/loader.lua` breaks changeable gloves for every
@@ -223,11 +181,8 @@ def render_glove_adapter_lua(item_id: str | None = None, label: str | None = Non
       fresh-table read drops it — so a PostHook override is the only route.
 
     One text serves every pack built in this directory: `item_id` names the
-    outfit (this module's own by default), `label` the pack in the first line
-    of the file.
+    outfit, `label` the pack in the first line of the file.
     """
-    item_id = item_id or ITEM_ID
-    label = label or PACK_DIR_NAME
     key = f"las_{item_id}"
     return f"""-- {label} LAS: vanilla-suit glove behaviour for {key}.
 -- This outfit ships NO hands (cut at the wrist), so the heister's own gloves
@@ -260,15 +215,6 @@ Hooks:PostHook(BlackMarketTweakData, "init", "{item_id}_GloveAdapter", function(
 \tif ps.third_body_replacement then ps.third_body_replacement.hands = false end
 end)
 """
-
-
-def render_localization() -> str:
-    return localization(registration())
-
-
-def render_main_xml(texture_stems: list[str], with_fps: bool = False,
-                    hands: str = "adapter") -> str:
-    return main_xml(registration(texture_stems, with_fps, hands))
 
 
 def render_unit_xml(unit_base: str) -> str:
@@ -407,102 +353,8 @@ def build_icon(png: bytes, size: int = 256, view: int = 3) -> bytes:
 
 
 # ---------------------------------------------------------------------------
-# assemble
+# zip
 # ---------------------------------------------------------------------------
-def _sha(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
-
-def write_pack(out_root: Path, model: bytes, textures: dict[str, bytes],
-               icon: bytes, material_config: str, fps_config: str | None,
-               fps_model: bytes | None = None, extra: dict | None = None,
-               drawables: list[str] | None = None,
-               fps_drawables: list[str] | None = None,
-               hands: str = "adapter") -> Path:
-    """Write the installable folder (no zip; see `zip_pack`).
-
-    `drawables` / `fps_drawables` are read back out of the model files when not
-    given; passing them explicitly keeps this callable with synthetic models in
-    tests.
-
-    `hands` selects the hand route: ``"adapter"`` ships no hands and re-enables
-    the vanilla glove adapter via a compat hook (gloves stay changeable);
-    ``"graft"`` is the legacy baked-in-hands route.
-    """
-    pack = Path(out_root) / PACK_DIR_NAME
-    if pack.exists():
-        # a rebuild must not ship files from the previous one: dropping a
-        # garment (--jacket bustier) leaves its textures behind otherwise
-        shutil.rmtree(pack)
-    unit_dir = pack / "assets" / UNIT_BASE
-    gui_dir = pack / "assets" / GUI_BASE
-    unit_dir.mkdir(parents=True, exist_ok=True)
-    gui_dir.mkdir(parents=True, exist_ok=True)
-    (pack / "hooks").mkdir(exist_ok=True)
-    (pack / "localization").mkdir(exist_ok=True)
-
-    with_fps = fps_model is not None and fps_config is not None
-
-    (unit_dir / f"{ITEM_ID}.model").write_bytes(model)
-    (unit_dir / f"{ITEM_ID}.unit").write_text(render_unit_xml(TPP_UNIT))
-    if drawables is None:
-        drawables = model_drawables(model)
-    (unit_dir / f"{ITEM_ID}.object").write_text(
-        render_object_xml(TPP_UNIT, drawables))
-    (unit_dir / f"{ITEM_ID}.material_config").write_text(material_config)
-    if with_fps:
-        (unit_dir / f"fps_{ITEM_ID}.model").write_bytes(fps_model)
-        (unit_dir / f"fps_{ITEM_ID}.unit").write_text(render_unit_xml(FPS_UNIT))
-        if fps_drawables is None:
-            fps_drawables = model_drawables(fps_model)
-        (unit_dir / f"fps_{ITEM_ID}.object").write_text(
-            render_object_xml(FPS_UNIT, fps_drawables))
-        (unit_dir / f"fps_{ITEM_ID}.material_config").write_text(fps_config)
-
-    for stem, data in sorted(textures.items()):
-        (unit_dir / f"{stem}.texture").write_bytes(data)
-    (gui_dir / f"{ITEM_ID}.texture").write_bytes(icon)
-
-    (pack / "main.xml").write_text(
-        render_main_xml(sorted(textures), with_fps, hands))
-    (pack / "hooks" / f"{ITEM_ID}_las.lua").write_text(
-        render_hook_lua(with_fps, hands))
-    if hands == "adapter":
-        (pack / "hooks" / f"{ITEM_ID}_glove_adapter.lua").write_text(
-            render_glove_adapter_lua())
-    (pack / "localization" / "english.txt").write_text(render_localization())
-
-    payload = {}
-    for path in sorted(pack.rglob("*")):
-        if path.is_file() and path.name != "BUILD_INFO.json":
-            # the manifest cannot carry its own hash
-            payload[path.relative_to(pack).as_posix()] = _sha(path.read_bytes())
-    info = {
-        "pack": PACK_DIR_NAME,
-        "item_id": ITEM_ID,
-        "display_name": DISPLAY_NAME,
-        "registration": {
-            "hook_source": HOOK_SOURCE,
-            "table": f"LegendaryArmours.{ITEM_ID}",
-            "flags": list(FLAG_KEYS) + (["glove_adapter"] if hands == "adapter" else []),
-            "unit": TPP_UNIT,
-            "fps_unit": FPS_UNIT if with_fps else None,
-        },
-        "hands": hands,
-        "glove_adapter": hands == "adapter",
-        # the compat hook restores a real default glove so "Default" gloves
-        # spawn hands (LAS forces default_glove_id = false -> no hands)
-        "default_glove_id": "heist_default" if hands == "adapter" else None,
-        "models_present": True,
-        "fps_available": with_fps,
-        "runtime_verified": False,
-        "payload_sha256": payload,
-    }
-    info.update(extra or {})
-    (pack / "BUILD_INFO.json").write_text(json.dumps(info, indent=2, sort_keys=True) + "\n")
-    return pack
-
-
 def zip_bytes(entries, stamp: tuple = (2020, 1, 1, 0, 0, 0)) -> bytes:
     """A zip that is the same bytes whenever its content is.
 

@@ -1,0 +1,92 @@
+--- git log --full-history --no-merges -G<name> -p -- . ; one row per commit, file and kind; on 4e15ed6
+--- "def": the line defines the function; "use": any other line with the name. The rows under docs/audits/ are records that
+--- list the function as reached by nothing, not calls of it.
+--- 9e44226 has no parent in this repository, so the whole tree of that day counts as added there: a row of that
+--- commit repeats a definition that an earlier row added.
+== chest_extent
+   + def | tools/pd2-las/bust_variant.py | 73fbc85 2026-11-04 feat(pd2-las): add Miranda_Busty_LAS, a larger-chest 
+== attenuate_dxt5_alpha_by_block_mask
+   + def | tools/pd2-las/dds_encode.py | ce4f844 2026-11-06 Christie LAS: fix in-game elbow X-fold, wrist seam, s
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa
+== rgba_to_bgra_dds
+   + def | tools/pd2-las/dds_encode.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   + def | tools/pd2-las/dds_encode.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa
+== set_dxt5_constant_alpha
+   + def | tools/pd2-las/dds_encode.py | 34eedeb 2026-10-19 Fix glossy textures and hand/finger retargeting in Mi
+   + use | tools/pd2-las/build_las.py | 34eedeb 2026-10-19 Fix glossy textures and hand/finger retargeting in Mi  (x2)
+   - use | tools/pd2-las/build_las.py | d94e9c3 2026-10-21 fix(pd2): weld cross-mesh seam bone weights/normals,   (x2)
+   + def | tools/pd2-las/dds_encode.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa
+== mat_apply_vec
+   + def | tools/pd2-las/diesel_model.py | 51bc8d9 2026-10-18 pd2-las: verified Diesel codec + skin geometry author
+   + use | tools/pd2-las/build_models.py | 51bc8d9 2026-10-18 pd2-las: verified Diesel codec + skin geometry author
+   - use | tools/pd2-las/build_models.py | 219a8a4 2026-10-20 Fix shoulder, upper-arm, and elbow retargeting in Mir
+   + def | tools/pd2-las/diesel_model.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa
+== mat_from_pos_rot_rows
+   + def | tools/pd2-las/diesel_model.py | 51bc8d9 2026-10-18 pd2-las: verified Diesel codec + skin geometry author
+   + def | tools/pd2-las/diesel_model.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa
+== _axis_to_camera
+   + def | tools/pd2-las/render_mesh_skeleton.py | eb4f77d 2026-11-06 Christie LAS: add a face-on cuff mouth render, record
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa
+== repair_dxt5_texture
+   + use | tools/pd2-port/repair_skin_palettes.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl
+   + def | tools/pd2-port/dds.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl
+   + use | tests/test_pd2_packages.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl  (x3)
+   - use | tools/pd2-port/repair_skin_palettes.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   - def | tools/pd2-port/dds.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   - use | tests/test_pd2_packages.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from  (x3)
+   - use | tools/pd2-port/repair_skin_palettes.py | 62cdb5d 2026-10-18 Retire the old-model route; restart on Legendary Armo
+   - use | tests/test_pd2_packages.py | 62cdb5d 2026-10-18 Retire the old-model route; restart on Legendary Armo  (x3)
+   + def | tools/pd2-port/dds.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | docs/audits/2026-11-07-christie-normal-maps-and-dxt5-mip-repair-plan.md | 5a0f356 2026-11-09 docs(audits): add executable repair plans for the Chr  (x2)
+   - use | docs/audits/2026-11-07-christie-normal-maps-and-dxt5-mip-repair-plan.md | 0a76215 2026-11-10 Execute diagnostics-and-tests-masking-repair-plan end  (x2)
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa
+== _encode_block
+   + use | tools/pd2-port/dds.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl
+   + def | tools/pd2-port/dds.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl
+   - use | tools/pd2-port/dds.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   - def | tools/pd2-port/dds.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   - use | tools/pd2-port/dds.py | 34eedeb 2026-10-19 Fix glossy textures and hand/finger retargeting in Mi
+   + def | tools/pd2-port/dds.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa  (x2)
+== _rgb565
+   + use | examples/aoe2-de-civ/sld.py | 8ad57ae 2026-09-29 universal-modder: skills, tools and the fal MCP for m  (x2)
+   + def | examples/aoe2-de-civ/sld.py | 8ad57ae 2026-09-29 universal-modder: skills, tools and the fal MCP for m
+   + use | tools/pd2-port/build_package.py | 9faa4a4 2026-10-17 Add pd2-port toolchain: Diesel3 .model reader/writer,
+   + def | tools/pd2-port/build_package.py | 9faa4a4 2026-10-17 Add pd2-port toolchain: Diesel3 .model reader/writer,
+   + use | tools/pd2-port/build_package2.py | 633d89a 2026-10-17 Lawson swaps v1.1: Clover fix + Bonnie + Sydney packa
+   + def | tools/pd2-port/build_package2.py | 633d89a 2026-10-17 Lawson swaps v1.1: Clover fix + Bonnie + Sydney packa
+   + use | tools/pd2-port/dds.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl  (x2)
+   + def | tools/pd2-port/dds.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl
+   - use | tools/pd2-port/build_package2.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl
+   - def | tools/pd2-port/build_package2.py | 02dded4 2026-10-18 Repair Lawson packs (crash fixes) and add LAS wearabl
+   - use | tools/pd2-port/dds.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from  (x2)
+   - def | tools/pd2-port/dds.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   - use | tools/pd2-port/build_package.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   - def | tools/pd2-port/build_package.py | abd7219 2026-10-18 Retire the old-model route; start the LAS outfit from
+   - use | tools/pd2-port/build_package.py | 62cdb5d 2026-10-18 Retire the old-model route; restart on Legendary Armo
+   - def | tools/pd2-port/build_package.py | 62cdb5d 2026-10-18 Retire the old-model route; restart on Legendary Armo
+   + use | tools/pd2-port/dds.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f  (x2)
+   + def | tools/pd2-port/dds.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | examples/aoe2-de-civ/sld.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f  (x2)
+   + def | examples/aoe2-de-civ/sld.py | 9e44226 2026-11-04 Merge pull request #13 from Man1nWhite/arena/68a9d94f
+   + use | docs/audits/2026-11-12-tool-merge/reference.json | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-12-tool-merge/record.txt | b5e36d3 2026-11-12 audit: what the tools read, write and print before an
+   + use | docs/audits/2026-11-13-agent-entry.md | 4e15ed6 2026-11-13 The audit page records what was deleted and how it wa

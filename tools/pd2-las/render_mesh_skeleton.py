@@ -111,17 +111,6 @@ def _subset_near_polyline(geo, chain, radius: float, pad: float = 6.0):
             "faces": [tuple(remap[i] for i in f) for f in faces[keep]]}
 
 
-def _axis_to_camera(verts, pivot, view: str):
-    """Rotate the model so a bone axis points at the camera, then re-centre.
-
-    A cuff mouth is a ring seen edge-on in every orthographic view of the body,
-    which is why the interesting failure at the end of a sleeve - a torn ring, an
-    off-centre wrist, a cut that is not square to the arm - is invisible in
-    `front`/`side`. Turning the limb to face the lens shows the opening itself.
-    """
-    return np.asarray(verts, float) - np.asarray(pivot, float)
-
-
 def render_cuff_mouth(geo, bones, chain, out_path: Path, radius: float = 7.0):
     """Draw the cuff opening face-on, looking straight down the forearm.
 

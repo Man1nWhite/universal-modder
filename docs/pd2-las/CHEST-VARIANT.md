@@ -122,7 +122,7 @@ describes the pack the variant actually sits beside.
 **Runtime status: never loaded in game.** `BUILD_INFO.json` carries
 `"runtime_verified": false`, exactly like the base pack — every number here is offline evidence
 (measured geometry, rendered sheets, the tests below). `docs/pd2-las/in-game-checklist.md` is the
-gate, and the ME2 asset-rights note applies to this pack as it does to `Miranda_LAS.zip`.
+gate.
 
 ## Previews
 

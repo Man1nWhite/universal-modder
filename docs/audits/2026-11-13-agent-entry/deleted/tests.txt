@@ -1,0 +1,226 @@
+--- test ids: tests/ collected on cf56805 against the tree without the code of the cancelled Skyrim outfit
+--- 836 ids before, 705 after
+
+gone (156):
+  tests/test_dist_checksums.py::test_skyrim_outfit_checksum_is_written_by_the_build
+  tests/test_fps_hands.py::test_shipped_fps_unit_declares_every_material_it_references
+  tests/test_fps_hands.py::test_shipped_fps_unit_keeps_the_fingers
+  tests/test_fps_hands.py::test_shipped_models_render_atoms_tile_the_mesh[fps_skyrim_outfit.model]
+  tests/test_fps_hands.py::test_shipped_models_render_atoms_tile_the_mesh[skyrim_outfit.model]
+  tests/test_fps_hands.py::test_shipped_shadow_drawable_only_casts_shadow
+  tests/test_glove_adapter.py::test_adapter_hook_declares_glove_adapter
+  tests/test_glove_adapter.py::test_graft_hook_does_not_declare_glove_adapter
+  tests/test_glove_adapter.py::test_shipped_adapter_pack_has_no_hand_material
+  tests/test_glove_adapter.py::test_shipped_adapter_pack_ships_the_compat_hook
+  tests/test_hands_graft.py::test_align_neck_ignores_garment_slices
+  tests/test_hands_graft.py::test_align_neck_is_continuous_at_the_band_edge
+  tests/test_hands_graft.py::test_align_neck_recenters_and_tapers_the_neck_column
+  tests/test_hands_graft.py::test_append_group_rebases_the_triangle_offset_too
+  tests/test_hands_graft.py::test_append_group_reindexes_both_palettes
+  tests/test_hands_graft.py::test_atom_problems_catches_a_stale_index_offset
+  tests/test_hands_graft.py::test_count_hand_verts_flags_only_hand_dominated_verts
+  tests/test_hands_graft.py::test_count_hand_verts_zero_without_hand_bones
+  tests/test_hands_graft.py::test_extend_blazer_sleeves_lengthens_jacket_toward_wrist
+  tests/test_hands_graft.py::test_extend_sleeves_leaves_a_sleeve_that_already_reaches_alone
+  tests/test_hands_graft.py::test_extend_sleeves_to_wrist_reaches_past_the_hand_joint
+  tests/test_hands_graft.py::test_follow_layer_weights_can_match_only_lateral_shoulder_skin
+  tests/test_hands_graft.py::test_graft_brings_both_hands_without_moving_them
+  tests/test_hands_graft.py::test_graft_slices_start_where_their_triangles_start
+  tests/test_hands_graft.py::test_graft_uvs_use_the_internal_v_convention
+  tests/test_hands_graft.py::test_lower_collar_ignores_other_slices
+  tests/test_hands_graft.py::test_lower_collar_only_touches_the_collar
+  tests/test_hands_graft.py::test_restore_bust_falloff_is_zero_at_the_band_edges
+  tests/test_hands_graft.py::test_restore_bust_leaves_the_underarm_seam_in_place
+  tests/test_hands_graft.py::test_restore_bust_scales_only_the_front_chest
+  tests/test_hands_graft.py::test_trim_neck_folds_only_the_skin_above_the_line
+  tests/test_hands_graft.py::test_trim_neck_ignores_garment_slices
+  tests/test_hands_graft.py::test_tuck_shirt_cuffs_ignores_collar_and_blazer
+  tests/test_hands_graft.py::test_tuck_shirt_cuffs_retracts_jacket2_up_the_forearm
+  tests/test_hands_graft.py::test_tuck_shirt_sleeves_leaves_collar_and_blazer
+  tests/test_hands_graft.py::test_tuck_shirt_sleeves_pushes_jacket2_inward
+  tests/test_hands_graft.py::test_tuck_underarm_skin_covers_upper_arm_sleeve
+  tests/test_hands_graft.py::test_tuck_underarm_skin_leaves_far_skin_alone
+  tests/test_hands_graft.py::test_tuck_underarm_skin_tucks_only_skin_touching_the_jacket
+  tests/test_hands_graft.py::test_turn_body_is_rigid_and_plants_the_feet
+  tests/test_hands_graft.py::test_weld_open_seams_averages_the_two_rows_of_a_gap_seam
+  tests/test_hands_graft.py::test_weld_open_seams_ignores_a_real_opening
+  tests/test_hands_graft.py::test_weld_open_seams_keeps_three_influences_and_drops_the_rest
+  tests/test_hands_graft.py::test_weld_wrist_caps_the_cuff_in_skin_not_cloth
+  tests/test_hands_graft.py::test_weld_wrist_keeps_the_hand_where_the_weapon_bone_is
+  tests/test_hands_graft.py::test_weld_wrist_pulls_the_sleeve_onto_the_hand_and_caps_the_cuff
+  tests/test_hands_graft.py::test_weld_wrist_reports_atoms_that_tile
+  tests/test_neck.py::test_slim_neck_leaves_the_garment_alone
+  tests/test_neck.py::test_slim_neck_narrows_only_the_column
+  tests/test_neck.py::test_slim_neck_preserves_the_full_neck_height
+  tests/test_neck.py::test_slim_neck_ramps_in_with_height
+  tests/test_neck.py::test_tuck_necklace_chain_ignores_other_materials
+  tests/test_neck.py::test_tuck_necklace_chain_sinks_only_the_loop
+  tests/test_neck.py::test_turn_upper_body_aligns_neck_but_leaves_legs_upright
+  tests/test_neck.py::test_turn_upper_body_rejects_a_reversed_ramp
+  tests/test_neck_three_zone.py::test_bbox_diagonal_inflates_a_circular_opening
+  tests/test_neck_three_zone.py::test_cap_facets_are_all_wound_the_same_way
+  tests/test_neck_three_zone.py::test_cap_holes_closes_the_neck_after_slimming
+  tests/test_neck_three_zone.py::test_cap_holes_z_gate_uses_the_loop_centre_not_its_lowest_vertex
+  tests/test_neck_three_zone.py::test_cap_never_ships_a_zero_normal
+  tests/test_neck_three_zone.py::test_cap_vertex_normal_is_the_fan_plane_not_cancelled_rim_normals
+  tests/test_neck_three_zone.py::test_slim_neck_actually_shrinks_the_rim_to_the_reference
+  tests/test_neck_three_zone.py::test_slim_neck_keeps_the_rim_circular
+  tests/test_redress.py::test_redress_clamps_apparent_displacement
+  tests/test_redress.py::test_redress_only_touches_garment_positions
+  tests/test_redress.py::test_redress_refuses_a_body_it_cannot_map
+  tests/test_redress.py::test_redress_restores_the_source_clearance
+  tests/test_skin_texture.py::test_bake_covers_the_uv_island_and_not_the_background
+  tests/test_skin_texture.py::test_bc3_with_mips_has_a_matching_header
+  tests/test_skin_texture.py::test_body_tone_matches_miranda_head_skin
+  tests/test_skin_texture.py::test_cavity_is_negative_on_a_convex_sphere
+  tests/test_skin_texture.py::test_cavity_is_positive_in_a_crease
+  tests/test_skin_texture.py::test_diffuse_is_filled_and_skin_coloured
+  tests/test_skin_texture.py::test_hand_texture_grain_is_low_amplitude
+  tests/test_skin_texture.py::test_hand_texture_is_skin_not_the_donors_garment_atlas
+  tests/test_skin_texture.py::test_mip_levels_are_box_filtered
+  tests/test_skin_texture.py::test_mip_pyramid_halves_until_one_texel
+  tests/test_skin_texture.py::test_normal_map_is_packed_the_way_diesel_reads_it
+  tests/test_skin_texture.py::test_real_body_bakes
+  tests/test_skin_texture.py::test_smooth_normals_replaces_a_missing_attribute
+  tests/test_skyrim_fit.py::test_boundary_loops_finds_the_open_ring_of_a_tube
+  tests/test_skyrim_fit.py::test_cap_holes_closes_only_the_ring_above_the_cut
+  tests/test_skyrim_fit.py::test_cap_holes_respects_the_allowed_vertex_set
+  tests/test_skyrim_fit.py::test_cap_holes_skips_loops_wider_than_a_neck
+  tests/test_skyrim_fit.py::test_cap_vertex_inherits_the_loop_weights
+  tests/test_skyrim_fit.py::test_decimate_carries_uvs_and_normals
+  tests/test_skyrim_fit.py::test_decimate_keeps_every_island
+  tests/test_skyrim_fit.py::test_decimate_leaves_a_mesh_already_under_budget_alone
+  tests/test_skyrim_fit.py::test_decimate_maps_every_new_vertex_back_to_a_source_vertex
+  tests/test_skyrim_fit.py::test_decimate_merges_only_exactly_coincident_vertices
+  tests/test_skyrim_fit.py::test_decimate_output_has_no_folded_triangles
+  tests/test_skyrim_fit.py::test_decimate_rejects_degenerate_triangles
+  tests/test_skyrim_fit.py::test_decimate_respects_the_vertex_budget
+  tests/test_skyrim_fit.py::test_decimate_stays_on_the_surface
+  tests/test_skyrim_fit.py::test_default_outfit_keeps_both_jacket_layers
+  tests/test_skyrim_fit.py::test_drop_flipped_keeps_a_correctly_wound_pair
+  tests/test_skyrim_fit.py::test_drop_flipped_removes_both_members_of_a_bad_pair
+  tests/test_skyrim_fit.py::test_extract_bones_keeps_only_dominated_geometry
+  tests/test_skyrim_fit.py::test_extract_bones_refuses_an_empty_selection
+  tests/test_skyrim_fit.py::test_heel_fit_compresses_rather_than_translating
+  tests/test_skyrim_fit.py::test_heel_fit_is_idempotent_on_already_flat_geometry
+  tests/test_skyrim_fit.py::test_heel_fit_only_touches_geometry_below_the_ankle
+  tests/test_skyrim_fit.py::test_heel_fit_puts_the_sole_on_the_floor
+  tests/test_skyrim_fit.py::test_necklace_is_the_only_decimated_piece
+  tests/test_skyrim_materials.py::test_collar_decoration_is_painted_out
+  tests/test_skyrim_materials.py::test_collar_decoration_leaves_plain_collar_alone
+  tests/test_skyrim_materials.py::test_contour_materials_are_unique_and_carry_their_variables
+  tests/test_skyrim_materials.py::test_dds_downsampling_halves_until_one_texel
+  tests/test_skyrim_materials.py::test_dds_has_every_mip_level_and_dxt5_fourcc
+  tests/test_skyrim_materials.py::test_dds_round_trips_through_the_decoder
+  tests/test_skyrim_materials.py::test_diffuse_keeps_colour_and_replaces_alpha_with_gloss
+  tests/test_skyrim_materials.py::test_every_material_uses_a_known_render_template
+  tests/test_skyrim_materials.py::test_every_path_the_pack_references_exists
+  tests/test_skyrim_materials.py::test_fps_template_scales_depth_and_drops_contour
+  tests/test_skyrim_materials.py::test_gloss_floor_stops_fabric_going_flat_black
+  tests/test_skyrim_materials.py::test_hook_declares_fps_unit_only_when_one_is_built
+  tests/test_skyrim_materials.py::test_hook_registers_the_table_las_reads
+  tests/test_skyrim_materials.py::test_icon_crop_stays_inside_the_preview_sheet
+  tests/test_skyrim_materials.py::test_localization_covers_all_three_strings
+  tests/test_skyrim_materials.py::test_main_xml_lists_textures_and_unit_materials
+  tests/test_skyrim_materials.py::test_material_config_is_valid_xml_with_one_entry_per_spec
+  tests/test_skyrim_materials.py::test_material_config_paths_point_at_the_pack_rename
+  tests/test_skyrim_materials.py::test_metal_mask_lifts_gloss
+  tests/test_skyrim_materials.py::test_missing_normal_leaves_the_surface_polished
+  tests/test_skyrim_materials.py::test_normal_can_keep_y_when_the_source_is_opengl_like
+  tests/test_skyrim_materials.py::test_normal_moves_x_to_alpha_and_flips_y_for_pd2
+  tests/test_skyrim_materials.py::test_object_xml_only_lists_drawables_that_exist
+  tests/test_skyrim_materials.py::test_object_xml_points_diesel_at_the_material_config
+  tests/test_skyrim_materials.py::test_rebuild_drops_files_from_the_previous_build
+  tests/test_skyrim_materials.py::test_resize_handles_single_channel_masks
+  tests/test_skyrim_materials.py::test_templates_follow_the_guide
+  tests/test_skyrim_materials.py::test_unit_xml_declares_the_extensions_las_needs
+  tests/test_skyrim_materials.py::test_write_pack_is_self_consistent
+  tests/test_skyrim_materials.py::test_zip_is_reproducible
+  tests/test_skyrim_nif.py::test_bone_weight_ranking
+  tests/test_skyrim_nif.py::test_crosscheck_against_nifly
+  tests/test_skyrim_nif.py::test_geometry_from_skin_partition
+  tests/test_skyrim_nif.py::test_header_and_version
+  tests/test_skyrim_nif.py::test_legacy_nitrishape_geometry
+  tests/test_skyrim_nif.py::test_materials_and_alpha
+  tests/test_skyrim_nif.py::test_nifly_bridge_reads_synthetic_file
+  tests/test_skyrim_nif.py::test_nifly_bridge_rejects_missing_file
+  tests/test_skyrim_nif.py::test_node_hierarchy
+  tests/test_skyrim_nif.py::test_rejects_non_nif
+  tests/test_skyrim_nif.py::test_skeleton_map_covers_garment_bones
+  tests/test_skyrim_nif.py::test_static_geometry
+  tests/test_skyrim_nif.py::test_truncated_header_is_reported
+  tests/test_skyrim_nif.py::test_world_transform_composition
+  tests/test_skyrim_retarget.py::test_builtin_body_is_kept
+  tests/test_skyrim_retarget.py::test_every_vertex_is_weighted_to_pd2_bones_only
+  tests/test_skyrim_retarget.py::test_helper_bones_are_folded_not_dropped
+  tests/test_skyrim_retarget.py::test_outfit_fits_the_target_silhouette
+  tests/test_skyrim_retarget.py::test_retarget_handedness_is_preserved
+  tests/test_skyrim_retarget.py::test_retarget_places_every_joint_on_its_target
+  tests/test_skyrim_retarget.py::test_source_meshes_become_one_skinned_model
+  tests/test_skyrim_retarget.py::test_spine_chain_keeps_the_core_orientation
+
+new (25):
+  tests/test_build_models.py::test_atom_problems_catches_a_stale_index_offset
+  tests/test_build_models.py::test_boundary_loops_finds_the_open_ring_of_a_tube
+  tests/test_build_models.py::test_extend_sleeves_leaves_a_sleeve_that_already_reaches_alone
+  tests/test_build_models.py::test_extend_sleeves_to_wrist_reaches_past_the_hand_joint
+  tests/test_build_models.py::test_group_atom_plan_carries_the_vertex_and_the_index_offset_of_each_slice
+  tests/test_fps_hands.py::test_extract_bones_keeps_only_dominated_geometry
+  tests/test_fps_hands.py::test_extract_bones_refuses_an_empty_selection
+  tests/test_glove_adapter.py::test_only_the_pack_without_hands_asks_for_the_adapter
+  tests/test_glove_adapter.py::test_the_outfit_table_does_not_ask_for_the_adapter_itself
+  tests/test_glove_adapter.py::test_the_tracked_pack_with_hands_ships_no_compat_hook
+  tests/test_glove_adapter.py::test_the_tracked_pack_without_hands_declares_no_hand_material
+  tests/test_glove_adapter.py::test_the_tracked_pack_without_hands_ships_the_compat_hook
+  tests/test_las_outfit_pack.py::test_hook_braces_balance
+  tests/test_las_outfit_pack.py::test_hook_declares_fps_unit_only_when_one_is_built
+  tests/test_las_outfit_pack.py::test_hook_of_a_pack_with_a_head_replaces_all
+  tests/test_las_outfit_pack.py::test_hook_registers_the_table_las_reads
+  tests/test_las_outfit_pack.py::test_icon_crop_stays_inside_the_preview_sheet
+  tests/test_las_outfit_pack.py::test_localization_covers_all_three_strings
+  tests/test_las_outfit_pack.py::test_main_xml_lists_textures_and_unit_materials
+  tests/test_las_outfit_pack.py::test_main_xml_registers_the_first_person_unit_when_there_is_one
+  tests/test_las_outfit_pack.py::test_main_xml_registers_the_glove_adapter_hook_only_for_a_pack_that_ships_it
+  tests/test_las_outfit_pack.py::test_object_xml_only_lists_drawables_that_exist
+  tests/test_las_outfit_pack.py::test_object_xml_points_diesel_at_the_material_config
+  tests/test_las_outfit_pack.py::test_unit_xml_declares_the_extensions_las_needs
+  tests/test_las_outfit_pack.py::test_zip_is_reproducible
+
+--- skipped on 2dc7c27 (pytest -q -rsxX tests), 29:
+SKIPPED [1] tests/test_glove_behavior_lua.py:36: lupa (LuaJIT) not installed
+SKIPPED [1] tests/test_encoding.py:72: needs ffmpeg
+SKIPPED [1] tests/test_fps_hands.py:161: pack not built in this checkout
+SKIPPED [1] tests/test_fps_hands.py:182: pack not built in this checkout
+SKIPPED [2] tests/test_fps_hands.py:205: pack not built in this checkout
+SKIPPED [1] tests/test_fps_hands.py:221: pack not built in this checkout
+SKIPPED [1] tests/test_glove_adapter.py:127: pack not built in this checkout
+SKIPPED [1] tests/test_glove_adapter.py:147: pack not built in this checkout
+SKIPPED [1] tests/test_gma.py:231: sourcepp is an optional extra
+SKIPPED [1] tests/test_inspect_textures.py:295: sourcepp is an optional extra
+SKIPPED [1] tests/test_skin_texture.py:145: 4.zip absent
+SKIPPED [1] tests/test_skyrim_fit.py:182: the Skyrim source archive was intentionally removed after cancellation
+SKIPPED [1] tests/test_skyrim_fit.py:189: the Skyrim source archive was intentionally removed after cancellation
+SKIPPED [2] tests/test_skyrim_nif.py:453: nifly not built: ~/universal-modder/tools/skyrim-nif/build/libniflywrap.so not found — run `bash tools/skyrim-nif/build_nifly.sh` first (or point NIFLY_WRAP
+SKIPPED [1] tests/test_skyrim_nif.py:481: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:66: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:76: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:89: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:101: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:108: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:126: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:136: 4.zip absent
+SKIPPED [1] tests/test_skyrim_retarget.py:157: 4.zip absent
+SKIPPED [1] tests/test_um.py:819: needs ffmpeg
+SKIPPED [1] tests/test_um.py:834: needs ffmpeg
+SKIPPED [1] tests/test_um.py:850: needs ffmpeg
+SKIPPED [1] tests/test_um.py:1275: Git Bash / MSYS only
+
+--- skipped now, 8:
+SKIPPED [1] tests/test_glove_behavior_lua.py:37: lupa (LuaJIT) not installed
+SKIPPED [1] tests/test_encoding.py:72: needs ffmpeg
+SKIPPED [1] tests/test_gma.py:231: sourcepp is an optional extra
+SKIPPED [1] tests/test_inspect_textures.py:295: sourcepp is an optional extra
+SKIPPED [1] tests/test_um.py:819: needs ffmpeg
+SKIPPED [1] tests/test_um.py:834: needs ffmpeg
+SKIPPED [1] tests/test_um.py:850: needs ffmpeg
+SKIPPED [1] tests/test_um.py:1275: Git Bash / MSYS only

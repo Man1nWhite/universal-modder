@@ -1,0 +1,71 @@
+script	makefile names it	workflows names it	tests names it	docs names it	makefile reaches it	workflows reaches it	tests reaches it	docs reaches it	named by these scripts
+tools/build_joy_head_mods.py	0	0	1	1	1	1	1	1	tools/pd2-las/fresh.py tools/pd2-las/neck_junction.py
+tools/pd2-las/audit_metrics.py	0	0	0	1	0	0	1	1	tools/pd2-las/copies.py tools/pd2-las/neck_junction.py
+tools/pd2-las/build_busty_variant.py	1	0	1	1	1	1	1	1	tools/pd2-las/bust_variant.py tools/pd2-las/fresh.py tools/pd2-las/status.py
+tools/pd2-las/build_christie_las.py	1	0	1	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-las/diagnose_mesh.py tools/pd2-las/fresh.py tools/pd2-las/las_outfit_pack.py tools/pd2-las/render_mesh_skeleton.py tools/pd2-las/segment_fit.py tools/pd2-las/status.py
+tools/pd2-las/build_las.py	1	0	1	1	1	1	1	1	tools/pd2-las/build_busty_variant.py tools/pd2-las/build_models.py tools/pd2-las/copies.py tools/pd2-las/dds_encode.py tools/pd2-las/mip_audit.py
+tools/pd2-las/build_models.py	1	0	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/build_busty_variant.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_las.py tools/pd2-las/build_skyrim_outfit.py tools/pd2-las/bust_variant.py tools/pd2-las/diagnose_mesh.py tools/pd2-las/elbow_before_after.py tools/pd2-las/fresh.py tools/pd2-las/glove_check.py tools/pd2-las/las_pack.py tools/pd2-las/pose_preview.py tools/pd2-las/preview_textured.py tools/pd2-las/render_mesh_skeleton.py tools/pd2-las/review_christie_idle.py tools/pd2-las/skyrim_retarget.py tools/pd2-las/skyrim_source.py tools/pd2-las/status.py tools/pd2-las/trace_run.py
+tools/pd2-las/build_skyrim_outfit.py	0	0	1	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-las/las_outfit_pack.py tools/pd2-las/preview_textured.py
+tools/pd2-las/bust_variant.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_busty_variant.py
+tools/pd2-las/copies.py	0	0	0	1	0	0	0	1	
+tools/pd2-las/dds_encode.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_busty_variant.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_las.py tools/pd2-las/copies.py tools/pd2-las/fresh.py tools/pd2-las/las_outfit_pack.py tools/pd2-las/mip_audit.py tools/pd2-las/skin_texture.py
+tools/pd2-las/decimate.py	0	0	1	1	1	1	1	1	tools/pd2-las/skyrim_source.py
+tools/pd2-las/determinism.py	0	1	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/build_busty_variant.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_las.py tools/pd2-las/build_models.py tools/pd2-las/copies.py tools/pd2-las/fresh.py
+tools/pd2-las/diagnose_mesh.py	0	0	1	1	0	0	1	1	tools/pd2-las/copies.py tools/pd2-las/neck_junction.py
+tools/pd2-las/diesel_model.py	0	0	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/audit_metrics.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_models.py tools/pd2-las/build_skyrim_outfit.py tools/pd2-las/copies.py tools/pd2-las/diagnose_mesh.py tools/pd2-las/elbow_before_after.py tools/pd2-las/fresh.py tools/pd2-las/glove_check.py tools/pd2-las/las_outfit_pack.py tools/pd2-las/mip_audit.py tools/pd2-las/neck_junction.py tools/pd2-las/pose_preview.py tools/pd2-las/preview_textured.py tools/pd2-las/render_mesh_skeleton.py tools/pd2-las/skin_texture.py tools/pd2-las/skyrim_retarget.py tools/pd2-las/uv_check.py tools/pd2-port/dmodel.py tools/render_mod_previews.py
+tools/pd2-las/elbow_before_after.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_christie_las.py tools/pd2-las/copies.py tools/pd2-las/review_christie_idle.py
+tools/pd2-las/extract_2b.py	0	0	1	1	1	1	1	1	tools/pd2-las/audit_metrics.py tools/pd2-las/build_models.py tools/pd2-las/build_skyrim_outfit.py tools/pd2-las/copies.py tools/pd2-las/glove_check.py tools/pd2-las/recover_env.sh tools/pd2-las/status.py tools/pd2-port/preview_check.py
+tools/pd2-las/fresh.py	1	1	1	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-las/determinism.py tools/pd2-las/trace_run.py
+tools/pd2-las/glove_check.py	0	0	0	1	0	0	0	1	tools/pd2-las/copies.py
+tools/pd2-las/gma.py	0	0	1	1	0	0	1	1	tools/pd2-las/inspect_gma.py tools/pd2-las/inspect_textures.py
+tools/pd2-las/inspect_gma.py	0	0	1	1	0	0	1	1	tools/pd2-las/inspect_textures.py
+tools/pd2-las/inspect_textures.py	0	0	1	1	0	0	1	1	tools/pd2-las/inspect_gma.py tools/pd2-las/smd.py
+tools/pd2-las/las_outfit_pack.py	0	0	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/build_busty_variant.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_models.py tools/pd2-las/build_skyrim_outfit.py tools/pd2-las/copies.py tools/pd2-las/las_pack.py
+tools/pd2-las/las_pack.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_busty_variant.py tools/pd2-las/build_las.py tools/pd2-las/build_models.py tools/pd2-las/copies.py tools/pd2-las/las_outfit_pack.py
+tools/pd2-las/mip_audit.py	1	0	1	1	1	1	1	1	tools/pd2-las/build_las.py tools/pd2-las/copies.py
+tools/pd2-las/neck_junction.py	0	0	1	1	0	0	1	1	tools/pd2-las/copies.py
+tools/pd2-las/pose_preview.py	0	0	0	1	0	0	0	1	tools/pd2-las/copies.py tools/pd2-las/glove_check.py tools/pd2-las/pose_zoom.py
+tools/pd2-las/pose_zoom.py	0	0	0	1	0	0	0	1	
+tools/pd2-las/preview.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_christie_las.py tools/pd2-las/build_models.py tools/pd2-las/build_skyrim_outfit.py tools/pd2-las/preview_textured.py tools/pd2-las/skyrim_source.py tools/pd2-las/uv_check.py
+tools/pd2-las/preview_textured.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_skyrim_outfit.py tools/pd2-las/copies.py tools/pd2-las/glove_check.py tools/pd2-las/pose_preview.py tools/pd2-las/pose_zoom.py
+tools/pd2-las/recover_env.sh	1	0	1	1	1	1	1	1	tools/pd2-las/build_busty_variant.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_models.py tools/pd2-las/copies.py tools/pd2-las/extract_2b.py tools/pd2-las/status.py tools/pd2-port/check_all.py
+tools/pd2-las/render_mesh_skeleton.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_christie_las.py tools/pd2-las/copies.py tools/pd2-las/diagnose_mesh.py tools/pd2-las/elbow_before_after.py tools/pd2-las/review_christie_idle.py tools/pd2-las/segment_fit.py
+tools/pd2-las/review_christie_idle.py	0	0	1	1	0	0	1	1	
+tools/pd2-las/segment_fit.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_christie_las.py tools/pd2-las/build_models.py
+tools/pd2-las/shellview.py	0	0	0	1	0	0	1	1	tools/pd2-las/neck_junction.py
+tools/pd2-las/skin_texture.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_skyrim_outfit.py tools/pd2-las/copies.py
+tools/pd2-las/skyrim_materials.py	0	0	1	0	1	1	1	1	tools/pd2-las/build_skyrim_outfit.py
+tools/pd2-las/skyrim_retarget.py	0	0	1	0	1	1	1	1	tools/pd2-las/build_skyrim_outfit.py
+tools/pd2-las/skyrim_source.py	0	0	1	0	1	1	1	1	tools/pd2-las/build_skyrim_outfit.py
+tools/pd2-las/smd.py	0	0	1	1	0	0	1	1	
+tools/pd2-las/source_model.py	0	0	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/build_busty_variant.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_las.py tools/pd2-las/build_models.py tools/pd2-las/gma.py tools/pd2-las/inspect_gma.py tools/pd2-las/inspect_textures.py tools/pd2-las/skyrim_source.py tools/pd2-las/smd.py
+tools/pd2-las/status.py	1	0	1	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-las/extract_2b.py
+tools/pd2-las/tangents.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_models.py tools/pd2-las/determinism.py
+tools/pd2-las/trace_run.py	0	0	0	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-las/fresh.py
+tools/pd2-las/uv_check.py	0	0	1	1	0	0	1	1	tools/pd2-las/copies.py
+tools/pd2-las/vpk.py	0	0	1	1	1	1	1	1	tools/pd2-las/build_busty_variant.py tools/pd2-las/build_las.py tools/pd2-las/build_models.py tools/pd2-las/gma.py tools/pd2-las/inspect_textures.py tools/pd2-las/mip_audit.py
+tools/pd2-las/vtf.py	0	0	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/build_christie_las.py tools/pd2-las/build_las.py tools/pd2-las/inspect_textures.py
+tools/pd2-port/build_las_pack.py	0	1	1	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-las/fresh.py tools/pd2-port/check_guide_compliance.py tools/pd2-port/check_guide_compliance_self_test.py tools/pd2-port/check_nm_convention.py tools/pd2-port/check_test_suite_mutations.py tools/pd2-port/preview_check.py
+tools/pd2-port/check_all.py	0	0	0	1	0	0	0	1	
+tools/pd2-port/check_guide_compliance.py	0	0	1	1	0	0	1	1	tools/pd2-las/copies.py tools/pd2-port/check_all.py tools/pd2-port/check_guide_compliance_self_test.py
+tools/pd2-port/check_guide_compliance_self_test.py	0	0	1	1	0	0	1	1	tools/pd2-las/copies.py tools/pd2-port/check_all.py
+tools/pd2-port/check_mesh_geometry.py	0	0	0	1	1	1	1	1	tools/pd2-las/build_models.py tools/pd2-las/copies.py tools/pd2-port/check_all.py tools/pd2-port/check_guide_compliance.py tools/pd2-port/rig_target.py
+tools/pd2-port/check_nm_convention.py	0	0	0	1	0	0	1	1	tools/pd2-las/copies.py tools/pd2-port/check_all.py tools/pd2-port/check_guide_compliance.py
+tools/pd2-port/check_skip_budget.py	0	0	0	1	0	0	0	1	tools/pd2-port/check_all.py
+tools/pd2-port/check_test_suite_mutations.py	0	0	0	1	0	0	0	1	tools/pd2-las/copies.py tools/pd2-port/check_all.py
+tools/pd2-port/dds.py	0	0	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/build_christie_las.py tools/pd2-las/copies.py tools/pd2-las/mip_audit.py tools/pd2-las/preview_textured.py tools/pd2-las/skyrim_materials.py tools/pd2-port/build_las_pack.py tools/pd2-port/check_guide_compliance.py tools/pd2-port/check_guide_compliance_self_test.py
+tools/pd2-port/dmodel.py	0	0	1	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-port/build_las_pack.py tools/pd2-port/check_guide_compliance.py tools/pd2-port/check_guide_compliance_self_test.py tools/pd2-port/check_mesh_geometry.py tools/pd2-port/check_test_suite_mutations.py tools/pd2-port/extract_las_rig.py tools/pd2-port/las_model.py tools/pd2-port/me2_dae.py tools/pd2-port/preview_check.py tools/pd2-port/resolve_rig_names.py tools/render_mod_previews.py
+tools/pd2-port/extract_las_rig.py	0	0	0	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-port/rig_target.py
+tools/pd2-port/las_model.py	0	0	1	1	1	1	1	1	tools/pd2-las/copies.py tools/pd2-port/build_las_pack.py tools/pd2-port/dmodel.py
+tools/pd2-port/me2_dae.py	0	0	1	1	1	1	1	1	tools/build_joy_head_mods.py tools/pd2-las/copies.py tools/pd2-port/build_las_pack.py tools/pd2-port/las_model.py tools/pd2-port/preview_check.py tools/pd2-port/rig_target.py tools/pd2-port/shade_check.py
+tools/pd2-port/preview_check.py	0	0	1	1	0	0	1	1	tools/pd2-las/copies.py
+tools/pd2-port/resolve_rig_names.py	0	0	0	1	0	0	0	1	tools/pd2-las/copies.py
+tools/pd2-port/rig_target.py	0	0	1	1	1	1	1	1	tools/pd2-port/build_las_pack.py tools/pd2-port/las_model.py tools/pd2-port/preview_check.py tools/pd2-port/shade_check.py
+tools/pd2-port/shade_check.py	0	0	1	1	0	0	1	1	
+tools/render_mod_previews.py	0	0	0	0	1	1	1	1	tools/pd2-las/build_busty_variant.py tools/pd2-las/copies.py
+tools/skyrim-nif/build_nifly.sh	0	0	0	1	0	0	1	1	tools/skyrim-nif/crosscheck.py tools/skyrim-nif/nifly_bridge.py
+tools/skyrim-nif/crosscheck.py	0	0	1	1	0	0	1	1	tools/skyrim-nif/build_nifly.sh tools/skyrim-nif/nifly_bridge.py
+tools/skyrim-nif/inventory.py	0	0	0	1	0	0	0	1	
+tools/skyrim-nif/nif.py	0	0	1	1	1	1	1	1	tools/pd2-las/skin_texture.py tools/pd2-las/skyrim_source.py tools/skyrim-nif/crosscheck.py tools/skyrim-nif/inventory.py tools/skyrim-nif/nifly_bridge.py tools/skyrim-nif/preview.py
+tools/skyrim-nif/nifly_bridge.py	0	0	1	1	0	0	1	1	tools/skyrim-nif/crosscheck.py
+tools/skyrim-nif/preview.py	0	0	1	1	0	0	1	1	tools/skyrim-nif/inventory.py

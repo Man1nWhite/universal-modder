@@ -85,7 +85,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** the sources are fan rips (Mass Effect 2 by way of an L4D2 addon;
   Dead or Alive 5) whose redistribution rights are unresolved.
 - **Source:** the route-change audit; `tools/pd2-las/README.md`, "Status"
-- **Status:** holds.
+- **Status:** superseded by D32 (2026-11-13).
 
 ## Building
 
@@ -122,8 +122,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     joint placement. **This is the design the README still described until
     2026-11-11.** The description was dropped from the README then, not moved,
     because the code no longer works that way; its text is in the message of
-    `6196b2b`. The constant `FIT_MAX_DIVERGENCE_DEG` is left over from it in
-    `build_models.py`; nothing reads it.
+    `6196b2b`. The constant `FIT_MAX_DIVERGENCE_DEG` was left over from it in
+    `build_models.py` until 2026-11-13; nothing read it, and it went with D33.
 - **Dead ends, do not retry:** raw frame-delta transfer in any form shears
   the mesh into ribbons; one shared fit across both legs collapses the thighs
   onto one point.
@@ -238,7 +238,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Consequence:** that builder cannot run in this checkout; its tests skip
   for the missing archives.
 - **Source:** `6ed6a23`
-- **Status:** holds.
+- **Status:** holds; superseded in part by D33 (2026-11-13): the code that was kept is deleted.
 
 ## Environment, tests and documents
 
@@ -491,7 +491,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `tests/test_las_pack.py::test_handoff_and_agents_quote_the_tracked_pack_bytes`
   for the handoff's table (every tracked zip, each with its own size and
   sha256)
-- **Status:** holds.
+- **Status:** superseded in part by D30 (2026-11-13): `AGENTS.md` has no copies, `HANDOFF.md` no longer
+  quotes the tracked bytes, and the second test named above is gone. The rest holds.
 
 ### D23 — A unit's `.object` is written from the model beside it
 
@@ -700,4 +701,145 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** the hashes gave the same value on 20,261 inputs. The readers do not agree: `dmodel` does not undo the legacy shift of channel types and misreads 471 of 826 legacy geometry sections, while `diesel_model` cannot read the DODB container or the packed channels of `lawson_las`. One reader would change what `dmodel` returns, which is a fix and belongs in a change of its own.
 - **Rejected:** merging the readers in the same change; merging the two writers of the DDS header (they agree on every tracked texture, and were the fourth job where three were allowed).
 - **Source:** `docs/audits/2026-11-12-tool-merge.md`; `tests/test_one_implementation.py`
+- **Status:** holds.
+
+### D30 — One command per question, one instruction file, and no figure in a document that a command prints
+
+- **Decided:** 2026-11-13
+- **Decision:** `make -sC tools/pd2-las status` reports all 14 packs, each as `tracked`, `changed`, `broken`
+  or `missing` against the commit. `env` puts back tracked files that are missing and ends with that status.
+  `green` runs every check of the `test` workflow. A build target prints the state of what it wrote.
+  `AGENTS.md` is the one instruction file: its table gives one command per question, `GEMINI.md` is the line
+  that imports it, and there is no `CLAUDE.md`. No agent document quotes a size, a sha256 or a test count.
+- **Why:** on eight ordinary questions the documents led to 26 calls and 114,895 bytes, and to 7 and 34,658
+  afterwards. `status` reported four packs and `sha256_ok`, which compared a zip with a sidecar its own
+  builder had just written. The instruction file was written three times, and the harnesses that read
+  `CLAUDE.md` as well as `AGENTS.md` loaded it twice. Each rebuild meant editing four documents, under a test
+  that required it.
+- **Rejected:** a `CLAUDE.md` that imports `AGENTS.md` (Cursor's CLI, VS Code and Copilot CLI read both);
+  writing lawson's `.sha256` from its make target (it is the one sidecar no builder writes, so the one whose
+  check means something).
+- **Source:** `docs/audits/2026-11-13-agent-entry.md`; `tests/test_agent_docs.py`,
+  `tests/test_pd2_las_status.py`
+- **Status:** holds. Supersedes D22 where it kept two copies of `AGENTS.md` and the tracked bytes in
+  `HANDOFF.md`.
+
+### D31 — `runtime_verified` is `false` in every pack
+
+- **Decided:** 2026-11-13, by the user
+- **Decision:** `build_christie_las.py` writes `"runtime_verified": false`, as the other builders do. Both
+  Christie packs were rebuilt for it: one line of `BUILD_INFO.json` in each, every other member byte for
+  byte the same.
+- **Why:** the flag said `true` from the 2026-11-05 test of the base pack on, in both packs and through every
+  rebuild after it, while `HANDOFF.md` recorded that no tracked bytes of either pack had been in game. A
+  constant cannot follow what a person saw; the handoff's table does.
+- **Rejected:** leaving the flag and saying so in `HANDOFF.md` (done on 2026-11-11; the pack went on saying
+  the opposite of the record).
+- **Source:** the user, asked on 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`;
+  `tests/test_christie_las.py`
+- **Status:** holds.
+
+### D32 — No pack carries a redistribution restriction
+
+- **Decided:** 2026-11-13, by the user
+- **Decision:** no document says any more that the packs are for private use, that their sources are not
+  cleared for redistribution, or that a public release is blocked. D4 is superseded. Gone with it: "Blocked:
+  public release" and "Do not publish or redistribute the packs or their sources" in
+  `tools/pd2-las/README.md`, the "release gate" item of `docs/pd2-las/in-game-checklist.md`, "not cleared
+  for redistribution" in `tools/pd2-port/README.md`, and the sentence in the top-level `README.md`.
+- **Why:** the user, on reading that sentence in the report of the agent-entry audit: "no mod has that
+  restriction". The record had it as an inference, never as the owner's word: the route-change audit of
+  2026-10-18 listed redistribution clearance as "open", D4 was reconstructed from that audit on 2026-11-11,
+  and the sentence in `README.md` ("The sources are fan rips, so nothing here is cleared for
+  redistribution") was written by the agent on 2026-11-13 from D4. The practice never followed D4 either:
+  the repository is public, and the release workflow published the sibling pack `lawson_las` on 2026-10-19,
+  the day after.
+- **Not changed:** `CREDITS.txt` inside `lawson_las.zip` says "no redistribution permission is claimed"; it
+  names the sources and is part of the tracked bytes, so changing it is a rebuild of the pack. The comment
+  above `STATUS` in `tools/pd2-port/build_las_pack.py`, which writes that file, says the same. (Both went
+  later that day: D34.) The rules
+  under "What you ship" in `AGENTS.md` and in the skills are upstream's, for game files an agent extracts
+  while modding any game; they stay. Publishing is still asked of the owner first, like any publishing.
+- **Source:** the user, 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`
+- **Status:** holds.
+
+### D33 — What is stale is deleted, not kept for later
+
+- **Decided:** 2026-11-13, by the user ("Delete stale things"; which ones was asked and answered that day)
+- **Decision:** five kinds of leftover went.
+  - **The code of the cancelled Skyrim outfit** (D13 had kept it): `tools/skyrim-nif/` and its five pages
+    under `docs/skyrim-nif/`; `build_skyrim_outfit.py`, `skyrim_materials.py`, `skyrim_retarget.py`,
+    `skyrim_source.py`, `skin_texture.py` and `decimate.py` in `tools/pd2-las/`; the outfit's own
+    registration and `write_pack` in `las_outfit_pack.py`; the command of `pose_preview.py`, which read
+    that outfit's build directory, and the one of `preview_textured.py`, which looked every texture up
+    under that outfit's file names and so drew any other pack untextured; and the tests of all of it.
+    In `build_models.py`, the 39 functions that only that builder called, or nothing (the hand graft,
+    the neck, collar, bust and sleeve passes, the hole cap, the redress), and two pieces inside functions
+    that stay, both keyed on the outfit's material names: the shoulder stay for `jacket` in
+    `transfer_group`, and the default targets of `extend_sleeves_to_wrist`. The file went from 3,543
+    lines to 1,784.
+  - **The release and the tags** of the sibling pack: `tools/pd2-port/STATUS.md`, "Released and tracked".
+  - **Sixteen branches on GitHub**, fifteen of them merged session branches: `tools/pd2-port/MODLOG.md`.
+  - **Five renders no page showed:** `docs/audits/2026-11-09-neck-arm/`. The one page that showed them,
+    a repair plan, was deleted on 2026-11-10 (`0a76215`).
+  - **Ten functions that nothing ran**, in modules that stay: `chest_extent` (`bust_variant.py`);
+    `rgba_to_bgra_dds`, `set_dxt5_constant_alpha`, `attenuate_dxt5_alpha_by_block_mask` (`dds_encode.py`);
+    `mat_apply_vec`, `mat_from_pos_rot_rows` (`diesel_model.py`); `_axis_to_camera`
+    (`render_mesh_skeleton.py`); `repair_dxt5_texture`, `_encode_block`, `_rgb565` (`tools/pd2-port/dds.py`).
+    Asked whether they should go, the owner answered with a question: "Are you sure they are not used?
+    maybe it's the starting .py". They were measured, and deleted on the instruction above; shown the
+    measurement, the owner confirmed: "yeah, delete those if Nothing runs them". In `tools/`, `tests/` and
+    `um/` each name stood once, at its own definition (`_rgb565` also in `_encode_block`); under line
+    coverage no test, no build of the 16 packs, none of the 26 recorded tools and no start of the five
+    files ran a line of them; four had been called by the tools of October and lost those calls by
+    2026-10-21, one served only one of those four, and five never had a caller. The measurement and the
+    history: `docs/audits/2026-11-13-agent-entry/answers/`. `git checkout 4e15ed6 -- <file>` brings a file
+    back.
+
+    The same measurement saw two more functions run nowhere, kept at first because live code calls them.
+    The owner's words were read as the test for those two as well, and one went by it:
+    `diesel_model.compute_uv_directions`, with the constant only it used. It made every tangent frame
+    until 2026-11-12; since `e5eb882` it was the fallback of `author_group_sections` for a group without
+    one normal per vertex. No such group can be written: the geometry section declares a normal for every
+    vertex, and written with fewer it cannot be read back. The builder now refuses such a group by name;
+    for every group that can be written the bytes are what they were. The other stays: below.
+- **Why:** a tool that cannot run and a test that can only skip look like coverage and are none: 21 of the
+  suite's 29 skips were tests waiting for the outfit's archive, removed on 2026-11-05, or for its pack.
+  A release that serves an older build under the same version number tells an installer the wrong thing.
+- **Kept, because someone runs it:** `render_source`, the `--source` mode of `render_mesh_skeleton.py`. No
+  test and no recorded tool runs it; a person does. `CHRISTIE.md` documents it, and on
+  `references/Christie.zip` it writes the five tracked `christie_source_*.png`, byte for byte.
+- **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the
+  Christie and Miranda packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and
+  `pose_zoom.py` render with; `build_models.extract_bones` cuts the Christie first-person arms, and
+  `extend_sleeves_to_wrist` stretches the sleeves of `Christie_LAS_Slim`. The tests of those functions that
+  sat in the outfit's test files were kept and now run on what exists: `tests/test_las_outfit_pack.py`,
+  `tests/test_build_models.py`, and `tests/test_glove_adapter.py` with `tests/test_glove_behavior_lua.py`
+  on `Christie_LAS_Slim`, the pack that ships the glove adapter.
+- **Held to:** no tracked pack moved by a byte (`make -sC tools/pd2-las fresh`), after the outfit's code
+  went, after the ten functions went, and after the fallback went.
+  `test_a_group_without_a_normal_for_every_vertex_is_refused` fails when such a group is written again.
+- **Where it is:** `git show 19ca55a:<path>` has every deleted file as it last was on `main`. What the port
+  taught is in `knowledge/games/payday-2/las-moog-outfit-porting.md`.
+- **Source:** the user, 2026-11-13; `tools/pd2-las/MODLOG.md`
+- **Status:** holds.
+
+### D34 — `lawson_las` ships no `CREDITS.txt`
+
+- **Decided:** 2026-11-13, by the user ("CREDITS - remove", asked whether its wording should change). Read
+  as: the whole file goes, not only its sentence about redistribution.
+- **Decision:** `tools/pd2-port/build_las_pack.py` no longer writes `Lawson_LAS/CREDITS.txt`, and the pack
+  was built again without it. `check_guide_compliance.py` lost check `N2`, which looked for that file, and
+  the comment above `STATUS` in the builder lost "not cleared for commercial redistribution".
+- **Why:** the file said "this is an unlicensed, non-commercial fan derivative and no redistribution
+  permission is claimed". It was the last place where a pack carried the restriction D32 removed. No other
+  tracked pack has such a file.
+- **What the pack still says of itself:** `build_manifest.json` names the source archive with its sha256 and
+  says `"runtime_verified": false`; the menu description says "Mass Effect 2 outfit". Where the model comes
+  from is under "Status and limits" in `tools/pd2-port/README.md`.
+- **Consequence:** the tracked pack has 29 files where it had 30. The 28 others are byte for byte what they
+  were, and the manifest lost one line. The version stays 0.1.2: `VERSION` moves with a release ("Publish a
+  release" in `tools/pd2-port/README.md`), and there is none.
+- **Held to:** `test_pack_layout_matches_2b_contract` fails when the builder writes a credits file again.
+- **Source:** the user, 2026-11-13; `tools/pd2-port/MODLOG.md`
 - **Status:** holds.

@@ -1,0 +1,433 @@
+file	line	origin	text
+README.md	1	upstream	<p align="center">
+README.md	2	upstream	  <img src="docs/media/banner.png" alt="universal-modder: mod any game. Point any AI coding agent at the PC games you own. Publish your mods, remix other people's, and make new ones." width="100%">
+README.md	3	upstream	</p>
+README.md	4	upstream	
+README.md	5	upstream	<p align="center">
+README.md	6	upstream	  <b>Skills, tools and a shared knowledge base that let any AI coding agent mod almost any PC game you own.</b><br>
+README.md	7	upstream	  The agent finds the game, works out the engine and the route, reads the real code, builds the mod, makes art, 3D and sound
+README.md	8	upstream	  with <a href="https://fal.ai">fal</a>, tests it in the running game, cuts the video, and writes down what it learned for the next agent.
+README.md	9	upstream	</p>
+README.md	10	upstream	
+README.md	11	upstream	<p align="center">
+README.md	12	upstream	  <a href="https://discord.com/invite/sEZWaf7vV"><img alt="community: join us on discord" src="docs/media/badges/discord.png" height="26"></a>
+README.md	13	upstream	  <a href="#install"><img alt="works with Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot and OpenCode" src="docs/media/badges/agents.png" height="26"></a>
+README.md	14	upstream	  <a href="knowledge/INDEX.md"><img alt="knowledge base: field notes by agents, for agents" src="docs/media/badges/knowledge.png" height="26"></a>
+README.md	15	upstream	  <a href="https://fal.ai"><img alt="assets: fal" src="docs/media/badges/fal.png" height="26"></a>
+README.md	16	upstream	  <a href="LICENSE"><img alt="license: MIT" src="docs/media/badges/license.png" height="26"></a>
+README.md	17	upstream	</p>
+README.md	18	upstream	
+README.md	19	upstream	<p align="center">
+README.md	20	upstream	  <img src="docs/media/mods-teaser.gif" alt="Six mods made by AI coding agents, with the universal-modder tile in the corner: Steve gliding an elytra through Los Santos, the Nether spreading over Los Santos, Minecraft mobs fighting the LSPD, the Halo Warthog in Minecraft, a World at War flamethrower in Minecraft, and World at War zombies in Minecraft. It ends on the universal-modder logo and &quot;mod any game.&quot;" width="560">
+README.md	21	upstream	</p>
+README.md	22	upstream	
+README.md	23	upstream	<p align="center"><b>Coming next: the mod hub.</b> Publish your mods, remix other people's, and make new ones.<br>
+README.md	24	upstream	  Share what you make, get help, and follow along:</p>
+README.md	25	upstream	<p align="center">
+README.md	26	upstream	  <a href="https://discord.com/invite/sEZWaf7vV"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/discord-dark.svg"><img src="docs/media/discord-light.svg" height="32" alt="join the discord"></picture></a>
+README.md	27	upstream	</p>
+README.md	28	ours	
+README.md	29	ours	## PAYDAY 2 — Miranda Lawson (LAS outfit)
+README.md	30	ours	
+README.md	31	ours	Miranda Lawson ships as a **Legendary Armour Skins (LAS) add-on** — an
+README.md	32	ours	equipable, full-body outfit with its own units and first-person arms (the
+README.md	33	ours	`2b.rar` product shape), built through **two complementary routes**:
+README.md	34	ours	
+README.md	35	ours	**1. ME2 COLLADA route — primary, released.** Built by `tools/pd2-port/`, a
+README.md	36	ours	rigged-COLLADA → LAS pipeline that is not tied to this character: Miranda is
+README.md	37	ours	the port it ships, and [its README](tools/pd2-port/README.md) lists what a
+README.md	38	ours	port of another character changes. Source: `models/PC _ Computer - Mass
+README.md	39	ours	Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` (rigged
+README.md	40	ours	COLLADA + textures). Output is
+README.md	41	ours	`dist/lawson_las.zip` (tracked), installed to **`PAYDAY 2\assets\mod_overrides\`**
+README.md	42	ours	and requiring **SuperBLT + BeardLib + Legendary Armour Skins / Wardrobe**.
+README.md	43	ours	Audited against the ModWorkshop LAS/MOOG guide on every build
+README.md	44	ours	(`check_guide_compliance.py`: 38 pass / 1 warn / 0 fail, the auditor itself
+README.md	45	ours	mutation-tested) and guarded against winding defects that leave holes in the
+README.md	46	ours	skin. Release: [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2).
+README.md	47	ours	Current state, open problems and workflow traps:
+README.md	48	ours	[`tools/pd2-port/STATUS.md`](tools/pd2-port/STATUS.md).
+README.md	49	ours	
+README.md	50	ours	**2. L4D2 Source route — parallel line.** `tools/pd2-las/`, built from
+README.md	51	ours	`models/l4d2_miranda_lawson_1.zip` (an L4D2 Miranda replacement for Rochelle)
+README.md	52	ours	onto the 2B template skeleton. Output `dist/Miranda_LAS.zip` (tracked in `dist/` and
+README.md	53	ours	`build/pd2-las/Miranda_LAS.zip` with `.sha256` checksums), installed to
+README.md	54	ours	**`PAYDAY 2\assets\mod_overrides\`** like 2B itself. Agents start at
+README.md	55	ours	[`tools/pd2-las/README.md`](tools/pd2-las/README.md) (status command, build
+README.md	56	ours	commands, invariants); the dated state, in-game results and dead ends are in
+README.md	57	ours	[`docs/pd2-las/HANDOFF.md`](docs/pd2-las/HANDOFF.md).
+README.md	58	ours	
+README.md	59	ours	**3. Heister Head-Replacement `mod_overrides` (Joy, Clover, Bonnie, Sydney, and Geralt over Rust).**
+README.md	60	ours	`tools/build_joy_head_mods.py` builds standalone `mod_overrides` head-replacement packages:
+README.md	61	ours	- **Miranda Lawson** (both L4D2 and ME2 Romance sources) over **Joy, Clover, Bonnie, and Sydney**:
+README.md	62	ours	  `dist/Miranda_{L4D2,Romance}_over_{Joy,Clover,Bonnie,Sydney}.zip` (8 packages).
+README.md	63	ours	- **Geralt of Rivia** (built from `models/Geralt.7z`, Witcher 3 L4D2 port) over **Rust (`npc_criminal_wild_1`)**:
+README.md	64	ours	  `dist/Geralt_over_Rust.zip` (2-atom `mtr_head` + `ALPHA_MASKED` `mtr_hair` setup with `2048x2048` face/eyes/teeth and hair/beard/eyelashes atlases, heist + menu `.model`, 3 `.material_config` files, and B&W HUD/Menu icon).
+README.md	65	ours	All packages include `.sha256` sidecars in `dist/` and rendered 4-angle preview sheets in `docs/previews/` (`00_all_miranda_mods_overview.png` .. `11_Geralt_over_Rust.png`, plus `12_Miranda_Busty_LAS.png` with its `13_Miranda_Busty_vs_LAS_chest.png` before/after close-ups (0–90°) and `14_Miranda_Busty_vs_LAS_top_below.png` overhead/underside pair).
+README.md	66	ours	
+README.md	67	ours	What each Miranda pack replaces: Clover and Bonnie cover the heist model, the
+README.md	68	ours	menu model, *and* the Safe House (`*_chill`) model; Joy and Sydney cover the
+README.md	69	ours	heist and menu models only, so their Safe House unit keeps the vanilla head.
+README.md	70	ours	The four **L4D2** packs (`Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}.zip`)
+README.md	71	ours	were **tested in game on 2026-11-05** (user-side check). The Romance variants
+README.md	72	ours	and `Geralt_over_Rust.zip` are still unverified in game — the only in-game
+README.md	73	ours	checklist in the repo is the LAS one,
+README.md	74	ours	[`docs/pd2-las/in-game-checklist.md`](docs/pd2-las/in-game-checklist.md).
+README.md	75	ours	Audit of this set: [`docs/audits/2026-11-05-head-pack-audit.md`](docs/audits/2026-11-05-head-pack-audit.md).
+README.md	76	ours	
+README.md	77	ours	Both LAS lines follow the ModWorkshop Wiki
+README.md	78	ours	[LAS/MOOG/Outfit Module Guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide).
+README.md	79	ours	The tool trees stay separate by design; [`tools/README.md`](tools/README.md)
+README.md	80	ours	records why and where the boundary is.
+README.md	81	ours	
+README.md	82	ours	The earlier approach that surgically replaced heister character models
+README.md	83	ours	(Clover/Bonnie/Sydney, plus outfit packs built on the same mesh) was **retired
+README.md	84	ours	as a dead end** on 2026-10-18: the source rig was broken, the packs crashed or
+README.md	85	ours	rendered wrong in-game, and the model-editing pipeline was not reproducible
+README.md	86	ours	from a clean checkout. Audits:
+README.md	87	ours	[route change (LAS line)](docs/audits/2026-10-18-route-change-audit.md) ·
+README.md	88	ours	[old model retired (ME2 line)](docs/audits/2026-10-18-old-model-retired-las-restart.md).
+README.md	89	upstream	
+README.md	90	upstream	## Install
+README.md	91	upstream	
+README.md	92	upstream	Pick your agent. Each gets the same skills (Agent Skills format), the fal MCP server, and the `um` CLI.
+README.md	93	upstream	
+README.md	94	upstream	| Agent | Install |
+README.md	95	upstream	|---|---|
+README.md	96	upstream	| **Claude Code** | `/plugin marketplace add rehan-remade/universal-modder`<br>`/plugin install universal-modder@universal-modder` |
+README.md	97	upstream	| **Codex** | `codex plugin marketplace add rehan-remade/universal-modder`<br>`codex plugin add universal-modder@universal-modder` |
+README.md	98	upstream	| **Gemini CLI** | `gemini extensions install https://github.com/rehan-remade/universal-modder` |
+README.md	99	upstream	| **VS Code / Copilot** | Enable `chat.plugins.enabled`, run **Chat: Install Plugin From Source**, and enter this repo's URL |
+README.md	100	upstream	| **Cursor** | Cursor Marketplace, or clone (Cursor reads `AGENTS.md` and `.cursor/mcp.json`) |
+README.md	101	upstream	| **OpenCode** | Clone and run `opencode` inside it (`opencode.json` adds the skills and the fal MCP server)<br>or, on OpenCode 2, `opencode plugin add 'github:rehan-remade/universal-modder#main::path:plugins/opencode'` (the `um` tool and fal MCP; add the skills with **Skills only**) |
+README.md	102	upstream	| **Skills only**<br>(any agent) | `npx skills add https://github.com/rehan-remade/universal-modder` |
+README.md	103	upstream	| **Anything else** | `git clone https://github.com/rehan-remade/universal-modder` and start your agent inside it |
+README.md	104	upstream	
+README.md	105	upstream	Inside a clone, each agent finds the skills where it looks for them: `.agents/skills` (Codex, Gemini CLI,
+README.md	106	upstream	Copilot, Cursor, OpenCode) and `.claude/skills` (Claude Code) are copies of `skills/`. Instructions are in
+README.md	107	upstream	`AGENTS.md`, which `CLAUDE.md` and `GEMINI.md` point to. MCP config is in `.mcp.json`, `.codex/config.toml`,
+README.md	108	upstream	`.cursor/mcp.json`, `.vscode/mcp.json` and `opencode.json` (which also points OpenCode at `skills/`).
+README.md	109	upstream	
+README.md	110	upstream	Without a clone, OpenCode 2 installs the plugin in `plugins/opencode/` with `opencode plugin add`: one
+README.md	111	upstream	`um_run` tool that passes its arguments straight to the CLI and runs `um` from PATH (see below), plus the
+README.md	112	upstream	fal MCP server when `FAL_KEY` is set and none is configured. A clone doesn't need it. See
+README.md	113	upstream	`plugins/opencode/README.md`.
+README.md	114	upstream	
+README.md	115	upstream	**The `um` CLI.** Plugin installs and clones put it on PATH (OpenCode's plugin install doesn't). Anywhere else:
+README.md	116	upstream	```bash
+README.md	117	upstream	uv tool install git+https://github.com/rehan-remade/universal-modder     # or: pipx install git+...
+README.md	118	upstream	```
+README.md	119	upstream	**For assets,** get a [fal API key](https://fal.ai/dashboard/keys). It powers both the fal MCP server and
+README.md	120	upstream	`um fal`. Rather than exporting it from a shell profile or a `.env`, store it once with `um fal key set`: on
+README.md	121	upstream	Linux it goes into the desktop keyring (libsecret's `secret-tool`), elsewhere into an owner-only
+README.md	122	upstream	`~/.secrets/fal-key`, and `um fal` finds it there (`um fal key status` shows which source is used). `FAL_KEY`
+README.md	123	upstream	in the environment still works and wins. The agent configs read `FAL_KEY`, so start your agent with it set; on
+README.md	124	upstream	Linux, take it from the keyring as below. With no key, fal's OAuth endpoint `https://mcp.fal.ai/mcp-relay`
+README.md	125	upstream	signs you in through the browser instead ([fal's MCP guides](https://fal.ai/docs/documentation/setting-up/mcp)),
+README.md	126	upstream	and `um comfy` makes images on a local ComfyUI server.
+README.md	127	upstream	```bash
+README.md	128	upstream	um fal key set                                                   # hidden prompt
+README.md	129	upstream	export FAL_KEY="$(secret-tool lookup service fal.ai key api)"    # Linux: before starting the agent
+README.md	130	upstream	```
+README.md	131	upstream	You also need Git, Python 3.10+ and ffmpeg. `uv` is recommended. Blender is needed for 3D → sprite renders.
+README.md	132	upstream	Windows games are driven natively or from WSL.
+README.md	133	upstream	
+README.md	134	upstream	## Try it
+README.md	135	upstream	> Mod Terraria: add a homing missile launcher and a tactical nuke that craters the world. Make the sprites with fal.
+README.md	136	upstream	
+README.md	137	upstream	> Make a new civilization for Age of Empires II with a unique unit rendered from 3D.
+README.md	138	upstream	
+README.md	139	upstream	> Put real Minecraft inside GTA V story mode. Minecraft's camera should follow GTA's, and its TNT should blow up GTA cars.
+README.md	140	upstream	
+README.md	141	upstream	> Port the Warthog from my Halo install into Minecraft, with a gunner on the turret.
+README.md	142	upstream	
+README.md	143	upstream	> What engine is `C:\Games\Foo`, and has anyone modded it before?
+README.md	144	upstream	
+README.md	145	upstream	The agent starts with the **mod-any-game** skill and runs the same loop every time:
+README.md	146	upstream	1. search the knowledge base;
+README.md	147	upstream	2. recon, then pick a route;
+README.md	148	upstream	3. set up a safe lab (saves backed up);
+README.md	149	upstream	4. read the actual code;
+README.md	150	upstream	5. build one working slice;
+README.md	151	upstream	6. generate assets;
+README.md	152	upstream	7. verify in the real game;
+README.md	153	upstream	8. record;
+README.md	154	upstream	9. package;
+README.md	155	upstream	10. write a field note for the next agent.
+README.md	156	upstream	
+README.md	157	upstream	## A knowledge base that AIs write for AIs
+README.md	158	upstream	[`knowledge/`](knowledge/) holds **field notes**: how specific games were actually modded, decompiled and
+README.md	159	upstream	reverse-engineered. Each note gives:
+README.md	160	upstream	- the exact versions that worked;
+README.md	161	upstream	- the route, and why;
+README.md	162	upstream	- what the engine really does;
+README.md	163	upstream	- how it was verified;
+README.md	164	upstream	- the gotchas (symptom → cause → fix).
+README.md	165	upstream	
+README.md	166	upstream	**Every agent that finishes a mod can open a pull request with its note**, so the next agent starts where it
+README.md	167	upstream	left off instead of rediscovering the same traps.
+README.md	168	upstream	
+README.md	169	upstream	```bash
+README.md	170	upstream	um kb search "grand theft auto"                 # before you start: prior art (works outside the repo too)
+README.md	171	upstream	um kb new --game "Hades II" --title "A new boon god" --from-scan hades --agent "Codex (gpt-6)"
+README.md	172	upstream	um kb check knowledge/games/hades-ii/a-new-boon-god.md
+README.md	173	upstream	um kb pr knowledge/games/hades-ii/a-new-boon-god.md --yes    # after your human says OK: branch, push, PR
+README.md	174	upstream	```
+README.md	175	upstream	Browse [`knowledge/INDEX.md`](knowledge/INDEX.md). Every game is welcome. Contribution rules, for humans and
+README.md	176	upstream	AIs, are in [`CONTRIBUTING.md`](CONTRIBUTING.md): no game files, no decompiled dumps, no cheating other
+README.md	177	upstream	players, and an honest status and verification.
+README.md	178	upstream	
+README.md	179	upstream	A few notes from the community:
+README.md	180	upstream	- [Portalcraft: real Minecraft inside Portal 2](knowledge/games/portal-2/portalcraft-minecraft-inside-portal-2.md)
+README.md	181	upstream	- [Halo 3 weapons, Covenant, vehicles and maps ported into Minecraft](knowledge/games/halo-3-mcc/halo-3-weapons-covenant-vehicles-and-maps-ported-into-minecr.md)
+README.md	182	upstream	- [Bloons TD 6 inside Minecraft, with the game's rules as a headless sim](knowledge/games/minecraft/bloons-td-6-in-minecraft.md)
+README.md	183	upstream	- [A CS2-style conversion of Elden Ring offline, as a native Rust DLL](knowledge/games/elden-ring/cs2-conversion-of-elden-ring-offline-native-rust-dll-via-me3.md)
+README.md	184	upstream	
+README.md	185	upstream	## What's inside
+README.md	186	upstream	
+README.md	187	upstream	**Skills** (`skills/`, Agent Skills format)
+README.md	188	upstream	
+README.md	189	upstream	<table>
+README.md	190	upstream	  <thead><tr><th width="200">Skill</th><th>What it does</th></tr></thead>
+README.md	191	upstream	  <tbody>
+README.md	192	upstream	    <tr><td><a href="skills/mod-any-game"><code>mod-any-game</code></a></td><td>The whole loop, hard safety rules, and <b>engine playbooks</b>: Unity, Unreal, .NET/XNA (Terraria, Stardew, Celeste), Godot, Source 1/2, Bethesda, Minecraft, AoE2/Genie, Bannerlord, Binding of Isaac, RE Engine/MT Framework/FromSoft/GTA/Hedgehog Engine/Black Rock/Cyberpunk/BG3/Avalanche, native C++, indie engines (GameMaker, RPG Maker, Ren'Py, Paradox, Doom, HTML5, LÖVE, Java), retro decomps</td></tr>
+README.md	193	upstream	    <tr><td><a href="skills/game-recon"><code>game-recon</code></a></td><td>Prior field notes, engine and version, managed or native, anti-cheat, loaders, save folders, community route → <code>MODDING_PLAN.md</code></td></tr>
+README.md	194	upstream	    <tr><td><a href="skills/game-research-websearch"><code>game-research-websearch</code></a></td><td>Open-web research that survives dead forums: Wayback/archive.today, GitHub/code and Nexus/Workshop/Thunderstore APIs, Reddit/YouTube, login-gated handoff, screenshots as evidence</td></tr>
+README.md	195	upstream	    <tr><td><a href="skills/reverse-engineering"><code>reverse-engineering</code></a></td><td>ILSpy / Cpp2IL / Vineflower / Ghidra and IDA over MCP / Cheat Engine / Frida / RenderDoc; reverse-engineer a file format and prove it with a round trip</td></tr>
+README.md	196	upstream	    <tr><td><a href="skills/fal-assets"><code>fal-assets</code></a></td><td>Sprites with real transparency, consistent variants, pixel art, seamless textures, PBR maps, image-to-3D, auto-rigging, SFX, music, voice, cutscene video</td></tr>
+README.md	197	upstream	    <tr><td><a href="skills/asset-pipeline"><code>asset-pipeline</code></a></td><td>Art → engine-exact frames: cutout, nearest-neighbour fit, palettes, sheets, team-colour masks, 3D → 8/16-heading sprites</td></tr>
+README.md	198	upstream	    <tr><td><a href="skills/game-automation"><code>game-automation</code></a></td><td>Launch, screenshot (GPU-safe), click/type safely, windowed mode, crash-reporter cleanup, in-game agent bridges</td></tr>
+README.md	199	upstream	    <tr><td><a href="skills/showcase-video"><code>showcase-video</code></a></td><td>Record the window with only the game's audio, pick moments, cut a styled video from an EDL</td></tr>
+README.md	200	upstream	    <tr><td><a href="skills/mashup-mods"><code>mashup-mods</code></a></td><td>Game inside a game: content ports, passthrough mods (worked example: Minecraft × GTA V), decomps as libraries, reimplementations</td></tr>
+README.md	201	upstream	    <tr><td><a href="skills/publish-mod"><code>publish-mod</code></a></td><td>Lint, package per platform, credits, the post</td></tr>
+README.md	202	upstream	    <tr><td><a href="skills/port-a-mod"><code>port-a-mod</code></a></td><td>Port an existing mod to a newer version or loader without drift: one pinned source, a private decompile, data extracted by script, unit-by-unit tests, audits by layer, resumable status docs, and a Forge 1.7.10 → Fabric 1.20.1 mapping table</td></tr>
+README.md	203	upstream	    <tr><td><a href="skills/share-field-notes"><code>share-field-notes</code></a></td><td>Search the knowledge base, write your own note, open the PR</td></tr>
+README.md	204	upstream	  </tbody>
+README.md	205	upstream	</table>
+README.md	206	upstream	
+README.md	207	upstream	**Agents** (`agents/`, subagent files with `name` + `description` frontmatter): a three-agent team for mods
+README.md	208	upstream	that take days. Claude Code loads them with the plugin; in a clone, start with
+README.md	209	upstream	`claude --plugin-dir . --agent mod-orchestrator`. Cursor plugins and Gemini CLI extensions read an `agents/`
+README.md	210	upstream	folder too (untested here; Gemini CLI's subagents can't start other subagents). Three agents use several
+README.md	211	upstream	times the tokens of one, so keep it for long mods. Any agent can read the files as role briefs.
+README.md	212	upstream	
+README.md	213	upstream	<table>
+README.md	214	upstream	  <thead><tr><th width="200">Agent</th><th>What it does</th></tr></thead>
+README.md	215	upstream	  <tbody>
+README.md	216	upstream	    <tr><td><a href="agents/mod-orchestrator.md"><code>mod-orchestrator</code></a></td><td>The supervisor. Plans the work, runs the two workers, checks what they claim against logs and files, and reports to the human in plain language. Start it as the main session: <code>claude --agent mod-orchestrator</code></td></tr>
+README.md	217	upstream	    <tr><td><a href="agents/mod-game-worker.md"><code>mod-game-worker</code></a></td><td>The only agent that touches the running game: build, deploy, launch, probe, measure, fix</td></tr>
+README.md	218	upstream	    <tr><td><a href="agents/mod-offline-worker.md"><code>mod-offline-worker</code></a></td><td>Never touches the game: studies SDK data, dumps and other mods, designs features, writes generators and patches, tests them against stubs, and hands over the exact live probes to run</td></tr>
+README.md	219	upstream	  </tbody>
+README.md	220	upstream	</table>
+README.md	221	upstream	
+README.md	222	upstream	**The `um` CLI** (Python). Every command has `--help` with examples.
+README.md	223	upstream	
+README.md	224	upstream	<!-- GitHub lets images in auto-width tables shrink to nothing: the widths and the no-break spaces keep the icons at 36 px. -->
+README.md	225	upstream	<table>
+README.md	226	upstream	  <thead><tr><th width="62">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th><th width="170">Command</th><th>What it does</th></tr></thead>
+README.md	227	upstream	  <tbody>
+README.md	228	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/scan-dark.svg"><img src="docs/media/icons/scan-light.svg" width="36" height="36" alt=""></picture></td><td><code>um scan</code></td><td>Find Steam/Epic/Xbox installs; fingerprint engine and version, .NET vs native, anti-cheat, installed loaders, save folders, ranked routes</td></tr>
+README.md	229	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/fal-dark.svg"><img src="docs/media/icons/fal-light.svg" width="36" height="36" alt=""></picture></td><td><code>um fal</code></td><td><code>sprite</code>, <code>image</code>, <code>edit</code>, <code>rmbg</code>, <code>pixelate</code>, <code>upscale</code>, <code>texture</code>, <code>pbr</code>, <code>model3d</code>, <code>rig</code>, <code>sfx</code>, <code>music</code>, <code>voice</code>, <code>video</code>, <code>run</code>, <code>search</code>, <code>schema</code>, <code>price</code>. Plain REST, with a manifest of every generation</td></tr>
+README.md	230	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/comfy-dark.svg"><img src="docs/media/icons/comfy-light.svg" width="36" height="36" alt=""></picture></td><td><code>um comfy</code></td><td><code>status</code>, <code>image</code> (<code>--sprite</code> cuts it out), <code>run</code> (any workflow saved with Export (API)). Images from a local ComfyUI server, no API key</td></tr>
+README.md	231	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/sprite-dark.svg"><img src="docs/media/icons/sprite-light.svg" width="36" height="36" alt=""></picture></td><td><code>um sprite</code></td><td><code>cutout</code>, <code>fit</code>, <code>pixelate</code>, <code>palette</code>, <code>sheet</code>, <code>slice</code>, <code>frames</code>, <code>team-mask</code>, <code>seamless</code>, <code>preview</code></td></tr>
+README.md	232	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/render3d-dark.svg"><img src="docs/media/icons/render3d-light.svg" width="36" height="36" alt=""></picture></td><td><code>um render3d</code></td><td>GLB → sprite frames from the game's camera (<code>aoe2</code>, <code>iso8</code>, <code>trueiso</code>, <code>topdown</code>, <code>side</code>, <code>turntable</code>) with Blender</td></tr>
+README.md	233	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/win-dark.svg"><img src="docs/media/icons/win-light.svg" width="36" height="36" alt=""></picture></td><td><code>um win</code></td><td><code>shot</code>, <code>record</code> (gfxcapture + process-loopback audio), <code>drive</code> (input that only reaches the game), <code>ps</code>, <code>kill</code>, <code>launch</code>, <code>reg</code></td></tr>
+README.md	234	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/video-dark.svg"><img src="docs/media/icons/video-light.svg" width="36" height="36" alt=""></picture></td><td><code>um video</code></td><td><code>contact</code> sheets, <code>compile</code> (EDL → titled, beat-cut video with music), <code>mux</code>, <code>beats</code>, <code>first-frame</code></td></tr>
+README.md	235	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/backup-dark.svg"><img src="docs/media/icons/backup-light.svg" width="36" height="36" alt=""></picture></td><td><code>um backup</code></td><td>Snapshot, diff and restore save folders</td></tr>
+README.md	236	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/publish-dark.svg"><img src="docs/media/icons/publish-light.svg" width="36" height="36" alt=""></picture></td><td><code>um publish check</code></td><td>Blocks shipping game files, decompiled code and leaked keys</td></tr>
+README.md	237	upstream	    <tr><td align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/icons/kb-dark.svg"><img src="docs/media/icons/kb-light.svg" width="36" height="36" alt=""></picture></td><td><code>um kb</code></td><td>The knowledge base: <code>search</code>, <code>show</code>, <code>new</code>, <code>check</code>, <code>index</code>, <code>sync</code>, <code>pr</code></td></tr>
+README.md	238	upstream	  </tbody>
+README.md	239	upstream	</table>
+README.md	240	upstream	
+README.md	241	upstream	Two no-build Windows tools ship inside the package (`um/ps1/`): WinDrive input and ProcLoopback game-only
+README.md	242	upstream	audio, both PowerShell with embedded C#.
+README.md	243	upstream	
+README.md	244	upstream	<p align="center"><img src="docs/media/pipeline.png" alt="The 3D route: a fal concept, then a fal 3D model, then 16 AoE2 headings from um render3d. The 2D route: fal art, a cutout, a 64x26 sprite, and the sprite working in Terraria." width="100%"></p>
+README.md	245	upstream	
+README.md	246	upstream	## Built with it
+README.md	247	upstream	- **[examples/terraria-tmodloader](examples/terraria-tmodloader)**: *Fal Arsenal* for tModLoader.
+README.md	248	upstream	  - Weapons: a homing missile launcher, a tactical nuke (crater + mushroom cloud), a chain-lightning rifle, a
+README.md	249	upstream	    black-hole gun and an orbital strike.
+README.md	250	upstream	  - Three new enemies and a two-phase Drone Mothership boss.
+README.md	251	upstream	  - Every sprite came from fal.
+README.md	252	upstream	- **[examples/aoe2-de-civ](examples/aoe2-de-civ)**: *San Franciscans* for Age of Empires II DE.
+README.md	253	upstream	  - A new civilization with a Robotaxi unique unit and Delivery Drones, rendered from fal image-to-3D models
+README.md	254	upstream	    at AoE2's camera angle.
+README.md	255	upstream	  - A Transamerica Pyramid wonder.
+README.md	256	upstream	  - A reverse-engineered `.sld` sprite writer.
+README.md	257	upstream	- **[examples/minecraft-gta5-passthrough](examples/minecraft-gta5-passthrough)**: real Minecraft inside
+README.md	258	upstream	  GTA V story mode.
+README.md	259	upstream	  - A Fabric mod and a ScriptHookV + ReShade add-on exchange camera, ground and events over a local
+README.md	260	upstream	    WebSocket.
+README.md	261	upstream	  - Minecraft's colour + depth are depth-composited into GTA's frame.
+README.md	262	upstream	  - Minecraft TNT, arrows and fireworks become GTA explosions and bullets, and Minecraft mobs fight the
+README.md	263	upstream	    police.
+README.md	264	upstream	
+README.md	265	upstream	Each has a field note with every non-obvious lesson: [knowledge/INDEX.md](knowledge/INDEX.md).
+README.md	266	upstream	
+README.md	267	upstream	## Rules it follows
+README.md	268	upstream	- **Any game you own: single-player, multiplayer, or servers you host.** It refuses to inject into online
+README.md	269	upstream	  games with anti-cheat, write cheats against other players, or bypass anti-cheat, DRM or ownership checks.
+README.md	270	upstream	- **It never ships game files or decompiled code.** Mods ship as code, your own assets, patches or
+README.md	271	upstream	  converters.
+README.md	272	upstream	- **It backs up before touching saves**, and kills processes by PID only.
+README.md	273	upstream	- **It asks before** driving your mouse and keyboard, installing loaders into game folders, or publishing,
+README.md	274	upstream	  PRs included.
+README.md	275	upstream	
+README.md	276	upstream	Full reasoning: [`skills/mod-any-game/references/safety.md`](skills/mod-any-game/references/safety.md).
+README.md	277	upstream	
+README.md	278	upstream	## Made a mod with it?
+README.md	279	upstream	Show it off in the [Discord](https://discord.com/invite/sEZWaf7vV), and put the badge on your mod's page:
+README.md	280	upstream	
+README.md	281	upstream	<p>
+README.md	282	upstream	  <a href="https://github.com/rehan-remade/universal-modder"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/media/made-with-dark.svg"><img src="docs/media/made-with-light.svg" height="32" alt="made with universal-modder"></picture></a>
+README.md	283	upstream	</p>
+README.md	284	upstream	
+README.md	285	upstream	```markdown
+README.md	286	upstream	[![made with universal-modder](https://raw.githubusercontent.com/rehan-remade/universal-modder/main/docs/media/made-with-dark.svg)](https://github.com/rehan-remade/universal-modder)
+README.md	287	upstream	```
+README.md	288	upstream	Use `made-with-light.svg` on a light page.
+README.md	289	upstream	
+README.md	290	upstream	## Credits
+README.md	291	upstream	- Built from real agent sessions modding Terraria, Age of Empires II and GTA V × Minecraft.
+README.md	292	upstream	- Assets: [fal](https://fal.ai) (GPT Image 2, Nano Banana 2, FLUX, Trellis 2, ElevenLabs...).
+README.md	293	upstream	- Standing on the shoulders of tModLoader, genieutils-py, AoE2ScenarioParser, ScriptHookV, ReShade, Fabric,
+README.md	294	upstream	  BepInEx, Harmony, UE4SS, REFramework, SKSE, ILSpy, Ghidra and every modding community that documented its
+README.md	295	upstream	  game.
+README.md	296	upstream	- The engine playbooks also draw on the September 2026 wave of AI-built mods, and on how their creators
+README.md	297	upstream	  explained them in public.
+README.md	298	upstream	
+README.md	299	upstream	MIT licensed. Brand type: Geist Pixel, Sometype Mono and Instrument Sans. Video titles: Space Grotesk and JetBrains Mono. All under the SIL OFL.
+README.md	300	upstream	
+README.md	301	upstream	## Star history
+README.md	302	upstream	
+README.md	303	upstream	<p align="center">
+README.md	304	upstream	  <a href="https://github.com/rehan-remade/universal-modder/stargazers"><img src="https://raw.githubusercontent.com/rehan-remade/universal-modder/star-chart/stars.svg" width="800" alt="universal-modder's GitHub stars over time"></a>
+README.md	305	upstream	</p>
+AGENTS.md	1	upstream	# universal-modder
+AGENTS.md	2	upstream	
+AGENTS.md	3	upstream	A game-modding toolkit and a shared knowledge base for AI coding agents: Claude Code, Codex, Cursor, Gemini
+AGENTS.md	4	upstream	CLI, GitHub Copilot, OpenCode and anything else that reads `AGENTS.md`. When someone opens an agent in this
+AGENTS.md	5	upstream	repo, they almost always want to **mod a game**, or to learn how a game was modded.
+AGENTS.md	6	upstream	
+AGENTS.md	7	upstream	## Start here
+AGENTS.md	8	upstream	1. **Read `skills/mod-any-game/SKILL.md` and follow its loop:** intake → recon → route → lab (backups) →
+AGENTS.md	9	upstream	   source of truth → vertical slice → assets → verify in the real game → showcase → publish.
+AGENTS.md	10	upstream	2. **Search the knowledge base first:** `bin/um kb search "<game or engine>"`. Other agents may already have
+AGENTS.md	11	upstream	   written down the exact versions, routes and gotchas (`knowledge/INDEX.md`).
+AGENTS.md	12	ours	3. **On a long-running project, keep a status page:** the agent that picks
+AGENTS.md	13	ours	   the work up next should not have to reconstruct the state from a journal.
+AGENTS.md	14	ours	   The COLLADA → LAS pipeline in `tools/pd2-port/` keeps one for the port it
+AGENTS.md	15	ours	   ships at `tools/pd2-port/STATUS.md` (shipped artefacts, measured check
+AGENTS.md	16	ours	   results, the open problem, the traps) next to its journal, and
+AGENTS.md	17	ours	   `tools/pd2-las/status.py` prints the state of its tree as JSON — copy
+AGENTS.md	18	ours	   those patterns.
+AGENTS.md	19	ours	4. **At the end, share what you learned:** write a field note (`bin/um kb new ...`) and, once your human
+AGENTS.md	20	upstream	   agrees, open a PR (`bin/um kb pr <note> --yes`). See `knowledge/README.md` and `CONTRIBUTING.md`.
+AGENTS.md	21	upstream	
+AGENTS.md	22	upstream	## Tools
+AGENTS.md	23	upstream	- **`bin/um`** is the Python CLI, and it sets itself up with `uv`.
+AGENTS.md	24	upstream	  - Put it on PATH: `export PATH="$PWD/bin:$PATH"` (from Windows cmd or PowerShell, add `bin` to PATH and
+AGENTS.md	25	upstream	    `bin\um.cmd` runs it), or install it anywhere with
+AGENTS.md	26	upstream	    `uv tool install git+https://github.com/rehan-remade/universal-modder`.
+AGENTS.md	27	upstream	  - Every group has `--help`:
+AGENTS.md	28	upstream	    - `scan`: installed games, engine, anti-cheat, loaders, saves, routes
+AGENTS.md	29	upstream	    - `fal`: sprites, textures, PBR, 3D, rigs, SFX, music, voice, video via fal's REST API
+AGENTS.md	30	upstream	    - `comfy`: images from a local ComfyUI server, with no API key
+AGENTS.md	31	upstream	    - `sprite` / `render3d`: art → engine-ready frames (`render3d` needs Blender on PATH or `BLENDER=...`)
+AGENTS.md	32	upstream	    - `win`: launch, screenshot, input, record on Windows (also from WSL)
+AGENTS.md	33	upstream	    - `video`: contact sheets and EDL showcase edits
+AGENTS.md	34	upstream	    - `backup`: snapshot and restore saves
+AGENTS.md	35	upstream	    - `publish`: pre-release lint
+AGENTS.md	36	upstream	    - `kb`: the knowledge base
+AGENTS.md	37	upstream	- **fal MCP server:** `https://mcp.fal.ai/mcp` with header `Authorization: Bearer $FAL_KEY`.
+AGENTS.md	38	upstream	  - It's pre-configured per agent: `.mcp.json` (Claude Code), `.codex/config.toml` (Codex),
+AGENTS.md	39	upstream	    `.cursor/mcp.json` (Cursor), `.vscode/mcp.json` (VS Code / Copilot), `gemini-extension.json`
+AGENTS.md	40	upstream	    (Gemini CLI), `opencode.json` (OpenCode).
+AGENTS.md	41	upstream	  - It needs `FAL_KEY` in the agent's environment; without it the server doesn't connect. fal's OAuth
+AGENTS.md	42	upstream	    endpoint, `https://mcp.fal.ai/mcp-relay`, takes a browser sign-in instead (see `skills/fal-assets`).
+AGENTS.md	43	upstream	  - No MCP? `um fal` does the same over REST. It also finds the key that `um fal key set` stored (the
+AGENTS.md	44	upstream	    desktop keyring on Linux, `~/.secrets/fal-key` elsewhere).
+AGENTS.md	45	upstream	- **Skills** (`skills/*/SKILL.md`, Agent Skills format) are copied where agents look for them in a clone:
+AGENTS.md	46	upstream	  `.agents/skills` (Codex, Gemini CLI, Copilot, Cursor, OpenCode) and `.claude/skills` (Claude Code). Edit
+AGENTS.md	47	upstream	  `skills/`, then copy it over; a test fails while the copies differ.
+AGENTS.md	48	upstream	- **Engine playbooks:** `skills/mod-any-game/references/engines/`.
+AGENTS.md	49	upstream	- **Worked examples:** `examples/terraria-tmodloader`, `examples/aoe2-de-civ`,
+AGENTS.md	50	upstream	  `examples/minecraft-gta5-passthrough`, `examples/outer-wilds-portal-gun`, `examples/mindustry-homing`,
+AGENTS.md	51	upstream	  `examples/cities-skylines-city-dashboard`.
+AGENTS.md	52	upstream	
+AGENTS.md	53	upstream	## Rules (full reasoning in `skills/mod-any-game/references/safety.md`)
+AGENTS.md	54	upstream	- **What you can mod:** any game the user owns: single-player, multiplayer, or servers the user hosts.
+AGENTS.md	55	upstream	  - Never touch online clients protected by anti-cheat.
+AGENTS.md	56	upstream	  - Never write cheats against other players (aimbots, ESP, speed hacks).
+AGENTS.md	57	upstream	  - Never bypass anti-cheat, DRM or ownership checks.
+AGENTS.md	58	upstream	- **Saves:** `um backup` saves before modded launches.
+AGENTS.md	59	upstream	- **What you ship:** never commit or publish game files, extracted assets or decompiled code. Keep
+AGENTS.md	60	upstream	  decompiles outside the repo.
+AGENTS.md	61	upstream	- **Processes:** kill by exact PID (`um win kill`), never by name pattern.
+AGENTS.md	62	upstream	- **Ask first** before:
+AGENTS.md	63	upstream	  - driving the user's mouse and keyboard, and never focus a game with an online mode while they're typing;
+AGENTS.md	64	upstream	  - installing loaders into game folders or changing the registry;
+AGENTS.md	65	upstream	  - publishing anything, PRs included.
+AGENTS.md	66	upstream	- **Keep a journal:** a `MODLOG.md` in the mod's working folder. It becomes your field note at the end.
+AGENTS.md	67	ours	- **Sequence your file edits:** parallel edits to the same file race, and the
+AGENTS.md	68	ours	  loser silently clobbers the winner.
+AGENTS.md	69	upstream	
+AGENTS.md	70	upstream	## Working on the toolkit itself
+AGENTS.md	71	upstream	- **Python:** 3.10+, deps Pillow, numpy and PyYAML (`uv` handles them via `bin/um`). Code lives in `um/`,
+AGENTS.md	72	upstream	  one module per CLI group, each with `register(sub)` and a docstring that doubles as `--help`.
+AGENTS.md	73	upstream	- **Windows tools:** `um/ps1/*.ps1` embed C# 5 (Windows PowerShell 5.1's compiler): no string
+AGENTS.md	74	upstream	  interpolation, no `out var`, no expression-bodied members.
+AGENTS.md	75	upstream	- **Tests:** `uv run --with pytest pytest -q tests`. CI also runs `um kb check --index` and
+AGENTS.md	76	upstream	  `um publish check .`.
+AGENTS.md	77	upstream	- **Wording:** keep skills and docs agent-neutral ("the agent", not a product name) except in sections
+AGENTS.md	78	upstream	  about one specific agent.
+AGENTS.md	79	ours	
+AGENTS.md	80	ours	## Active Project: PAYDAY 2 Miranda Lawson Mods (`dist/`)
+AGENTS.md	81	ours	
+AGENTS.md	82	ours	All built PAYDAY 2 deliverables live in **`dist/`** (tracked in git with `.sha256` sidecars), while source model archives sit in **`models/`** and reference mod archives sit in **`references/`**:
+AGENTS.md	83	ours	
+AGENTS.md	84	ours	| Deliverable in `dist/` | Type | Source & Reference Archives | Builder Script |
+AGENTS.md	85	ours	|---|---|---|---|
+AGENTS.md	86	ours	| `dist/lawson_las.zip` (`9,123,392` B) | Full-body LAS outfit (ME2 Romance) | `models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` + `references/2b.rar` | `tools/pd2-port/build_las_pack.py` (a character-agnostic COLLADA → LAS pipeline; this pack is the port it ships) |
+AGENTS.md	87	ours	| `dist/Miranda_LAS.zip` (`5,919,822` B) | Full-body LAS outfit (L4D2 port) | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `tools/pd2-las/build_models.py` |
+AGENTS.md	88	ours	| `dist/Miranda_Busty_LAS.zip` (`6,321,140` B) | Full-body LAS outfit (L4D2 port) with a **larger chest** — separate `LegendaryArmours.miranda_busty` entry, installs beside the stock one | `models/l4d2_miranda_lawson_1.zip` + `references/2b.rar` | `tools/pd2-las/build_busty_variant.py` (morph in `bust_variant.py`) |
+AGENTS.md	89	ours	| `dist/Miranda_L4D2_over_Joy.zip` (`10,679,847` B) & `dist/Miranda_Romance_over_Joy.zip` (`10,238,861` B) | Joy head-replacement `mod_overrides` (L4D2 & ME2 Romance) | `models/*` + `references/Ada Wong over Joy.7z` | `tools/build_joy_head_mods.py` |
+AGENTS.md	90	ours	| `dist/Miranda_L4D2_over_Clover.zip` (`7,727,419` B) & `dist/Miranda_Romance_over_Clover.zip` (`7,297,748` B) | Clover + Safe House head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+AGENTS.md	91	ours	| `dist/Miranda_L4D2_over_Bonnie.zip` (`8,239,468` B) & `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,959` B) | Bonnie + Safe House head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+AGENTS.md	92	ours	| `dist/Miranda_L4D2_over_Sydney.zip` (`7,226,278` B) & `dist/Miranda_Romance_over_Sydney.zip` (`6,805,744` B) | Sydney head-replacement `mod_overrides` | `models/*` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+AGENTS.md	93	ours	| `dist/Christie_LAS.zip` (`4,982,791` B) & `dist/Christie_LAS_Slim.zip` (`4,392,978` B) | Body-only LAS outfit (Dead or Alive 5 Christie), the heister keeps their head; the slim one cuts the wrists for the in-game gloves | `references/Christie.zip` + `references/2b.rar` | `tools/pd2-las/build_christie_las.py` (`--variant slim` for the second) |
+AGENTS.md	94	ours	| `dist/Geralt_over_Rust.zip` (`8,121,550` B) | Rust head-replacement `mod_overrides` (Witcher 3 Geralt) | `models/Geralt.7z` + `references/Heister - FPS Gloves in TPS 2.zip` | `tools/build_joy_head_mods.py` |
+AGENTS.md	95	ours	
+AGENTS.md	96	ours	### Where to start
+AGENTS.md	97	ours	
+AGENTS.md	98	ours	Each pipeline has one entry point. Its commands, status, invariants and open work are written there and not in this file.
+AGENTS.md	99	ours	
+AGENTS.md	100	ours	| Pipeline | Start at | First command |
+AGENTS.md	101	ours	|---|---|---|
+AGENTS.md	102	ours	| `tools/pd2-las/`: compiled Source-engine model → LAS outfit (`Miranda_LAS`, `Miranda_Busty_LAS`, `Christie_LAS`, `Christie_LAS_Slim`) | `tools/pd2-las/README.md` | `make -sC tools/pd2-las status` |
+AGENTS.md	103	ours	| `tools/pd2-port/`: rigged COLLADA character → LAS outfit (`lawson_las`) | `tools/pd2-port/README.md`; the state of the shipped port is in `tools/pd2-port/STATUS.md` | `.venv/bin/python tools/pd2-port/check_all.py` |
+AGENTS.md	104	ours	| `tools/build_joy_head_mods.py`: head replacements over the vanilla heisters | `tools/README.md` | `.venv/bin/python tools/build_joy_head_mods.py` |
+AGENTS.md	105	ours	
+AGENTS.md	106	ours	A restarted sandbox comes back without `.venv/` and without anything under `dist/`, `build/` and `node_modules/`, tracked files included, so `git status` lists the packs as deleted. `git checkout -- dist build node_modules` restores them and `make -sC tools/pd2-las env` rebuilds the pinned `.venv` and unpacks the 2B templates; `python3 tools/pd2-las/status.py` says which of the two is still missing. Earlier sessions also found local `HEAD` rewound behind the pushed branch. Only in that case, and only after `git status` and `git log origin/<branch>..HEAD` show nothing local that the remote lacks, `git reset --hard origin/<branch>`: a reset discards commits and edits that were never pushed, so it is never the first step.
+AGENTS.md	107	ours	
+AGENTS.md	108	ours	### Critical Diesel Engine & PAYDAY 2 Invariants (Do Not Break)
+AGENTS.md	109	ours	These hold in every pipeline. A pipeline's own invariants, and the tests that enforce them, are in its entry point above.
+AGENTS.md	110	ours	1. **Two Diesel `.model` Parsers**:
+AGENTS.md	111	ours	   - `tools/pd2-las/diesel_model.py` (`dm.ModelFile.read` + `dm.decode_geometry` / `dm.decode_topology` / `dm.decode_model_data`) decodes any legacy PAYDAY 2 `.model` (`2b.model`, `miranda.model`, `npc_criminal_joy_1.model`).
+AGENTS.md	112	ours	   - `tools/pd2-port/dmodel.py` (`DieselModel.from_bytes`) only populates `geo.weights3` for the models `tools/pd2-port/las_model.py` writes (such as `lawson.model`).
+AGENTS.md	113	ours	2. **Global `Topology` Indices in Multi-Atom Drawables**:
+AGENTS.md	114	ours	   - In Diesel `.model` files (`npc_criminal_joy_1.model`, `miranda.model`), triangle indices in `Topology` for `RenderAtom` `i` are **global vertex indices** in `[base_vertex, base_vertex + slice_len - 1]`, never local `0 .. slice_len - 1`.
+AGENTS.md	115	ours	3. **UV Coordinate Convention (`v_diesel = 1.0 - v_img`)**:
+AGENTS.md	116	ours	   - Diesel `Geometry.uv0` stores OpenGL/COLLADA bottom-up `v` (`v = 1.0` is top row `y_img = 0` of the DDS image; `v = 0.0` is bottom row `y_img = H - 1`).
+AGENTS.md	117	ours	   - When packing a 2×2 atlas at top-down quadrant `(qx, qy) ∈ {0, 1}²`, map `u_diesel = 0.5 * qx + 0.5 * u_img` and `v_diesel = 1.0 - (0.5 * qy + 0.5 * v_img)`.
+AGENTS.md	118	ours	4. **DXT5 Diffuse Alpha = Specular/Gloss & DXT5nm Normal Maps**:
+AGENTS.md	119	ours	   - In `generic:...:DIFFUSE_TEXTURE:NORMALMAP:...` shaders (without `ALPHA_MASKED`), the diffuse texture's alpha channel is **gloss/specular intensity** (`alpha = 255` makes skin/fabric look like wet plastic in-game). Keep diffuse alpha low (`<= 28` or normal-slope attenuated).
+AGENTS.md	120	ours	   - Diesel normal maps are **DXT5** with X in alpha and Y in green (Y+: a DirectX-style source has its green inverted). The shader reads only those two channels; both writers here, `dds.pd2_normal_channels(arr, invert_y=True)` in `tools/pd2-port/` and `swizzle_source_normal_dxt5_to_pd2` in `tools/pd2-las/dds_encode.py`, fill red with 255 and blue with 0.
+AGENTS.md	121	ours	5. **Standing-Pose Shoulder/Arm Alignment & Elbow Hinge Axis (Full-Body LAS)**:
+AGENTS.md	122	ours	   - PAYDAY 2's in-game standing pose swings `RightShoulder`/`LeftShoulder` ~19° downward from bind pose (`z: 147→142 cm`). Retargeting must align clavicle/upper-arm/forearm directions in the **animated standing pose**, and the elbow has to bend about the axis PD2 bends it about so it never shears.
+AGENTS.md	123	ours	   - On the PD2 rig that axis is the `ForeArm`'s **local Y**. Measured on the 2B skeleton: the bind elbow is bent 72.1°, local Y is the normal of that bend, and local X runs along the forearm, so a rotation about X is a twist that leaves the elbow angle unchanged (`docs/pd2-las/CHRISTIE.md`, "The elbow, measured on the elbow's own axis").
+AGENTS.md	124	ours	6. **Joy Head-Replacement (`mod_overrides`) Collar & Skinning Contract**:
+AGENTS.md	125	ours	   - `npc_criminal_joy_1.model` (`and identical npc_criminal_joy_1_menu.model`) uses `g_head_mask_off` (`id=120`, `geo=228`, `topo=229`) and `g_head` (`id=121`, `geo=233`, `topo=234`), both bound to `SkinBones 44` (`['Spine2', 'Neck', 'Head']`).
+AGENTS.md	126	ours	   - Joy's `g_body` hoodie collar (`z ∈ [151, 160]`) is weighted `95.5%` to `Spine2` (`0% Neck`), with an inner collar cone at `y ≈ 7.2–8.5 cm` and outer V-neck lapel at `y ∈ [12.9, 15.5] cm`. Keep lower-throat vertices in the collar channel `y ∈ [9.0, 10.6] cm` and weight `z <= 156 cm` `100%` to `Spine2` so the neck never separates from the collar when `Neck`/`Head` rotate.
+AGENTS.md	127	ours	

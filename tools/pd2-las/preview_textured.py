@@ -1,60 +1,43 @@
-"""Textured, lit preview of an authored PD2 model.
+"""A lit software rasteriser for an authored PD2 model, with per-pixel UV sampling.
 
-`build_skyrim_outfit.py` renders flat per-material colours, which answers
-"is the silhouette right?" but not "do the textures land on the right
-surfaces?". This rasteriser interpolates UVs per pixel and samples the packed
-`.texture` files, so a swapped or flipped map is obvious immediately.
+No command of its own: `glove_check.py` and `pose_zoom.py` render with it, and
+`tests/test_christie_las.py` reads a model's materials through `material_meshes`.
 
-    .venv/bin/python tools/pd2-las/preview_textured.py \\
-        build/skyrim-nif/outfit.model \\
-        dist/SkyrimOutfit_LAS/assets/units/skyrim_outfit/skins/skyrim_outfit \\
-        --out build/skyrim-nif/previews/skyrim_outfit_textured.png
+    meshes = material_meshes(MODEL)                       # one mesh per material of the body drawable
+    image = render(meshes, {}, "front", size, scale, center, cull=True)
 
-Material name -> file stem: `mtr_jacket` reads `outfit_jacket_df.texture`, i.e. the
-`mtr_` -> `outfit_` rename the pack uses. Pass `--flip-v` if the result looks
-mirrored top-to-bottom; the default matches what the game samples.
+`render` takes a texture per material name as an (h, w, 4) float array, or none:
+a material without one is drawn grey. `cull=True` drops back faces as the game does.
 """
 
 from __future__ import annotations
 
-import argparse
-import importlib.util
-import struct
 import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 
 HERE = Path(__file__).resolve().parent
-REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(HERE.parent / "pd2-port"))
 
 import diesel_model as dm  # noqa: E402
 
-VIEWS = ("front", "side", "back", "threequarter")
 
-
-def _load_preview():
-    spec = importlib.util.spec_from_file_location(
-        "skyrim_preview", REPO / "tools" / "skyrim-nif" / "preview.py")
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = mod
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def load_texture(path: Path) -> np.ndarray:
-    """Decode the mip 0 of a DXT5 `.texture` to (h, w, 4) float in 0..1."""
-    from dds import decode_dxt5
-
-    data = path.read_bytes()
-    if data[:4] != b"DDS ":
-        raise ValueError(f"{path} is not a DDS")
-    height, width = struct.unpack_from("<II", data, 12)
-    rgba = decode_dxt5(data[128:], width, height)
-    return rgba.astype(np.float32) / 255.0
+def _project(points: np.ndarray, view: str) -> tuple[np.ndarray, np.ndarray]:
+    """Return (2d points, depth) for an orthographic view. World is Z-up."""
+    if view == "front":
+        return points[:, [0, 2]], -points[:, 1]
+    if view == "back":
+        return np.stack([-points[:, 0], points[:, 2]], 1), points[:, 1]
+    if view == "side":
+        return np.stack([-points[:, 1], points[:, 2]], 1), -points[:, 0]
+    # three-quarter: rotate 35 degrees around Z
+    a = np.deg2rad(35.0)
+    c, s = np.cos(a), np.sin(a)
+    x = points[:, 0] * c - points[:, 1] * s
+    y = points[:, 0] * s + points[:, 1] * c
+    return np.stack([x, points[:, 2]], 1), -y
 
 
 def material_meshes(model_path: Path) -> list[dict]:
@@ -115,7 +98,7 @@ def _sample(tex: np.ndarray, uv: np.ndarray, flip_v: bool) -> np.ndarray:
     ``build_models.transfer_group``: they store ``(u_src, 1 - v_src)``, so the
     top-down row fraction is ``mod(-uv_y, 1.0)`` and must not be inverted a
     second time (``1 - mod(-x, 1) == mod(x, 1)``, which silently mirrors the
-    model). ``flip_v=False`` keeps the raw-``v`` reading for NIF-sourced UVs.
+    model). ``flip_v=False`` reads ``v`` as it is stored.
     """
     h, w = tex.shape[:2]
     u = np.mod(uv[..., 0], 1.0)
@@ -146,7 +129,6 @@ def render(meshes: list[dict], textures: dict[str, Image.Image], view: str,
     filled by the far side of the fabric (the default offline render draws both
     sides and therefore hides such holes).
     """
-    pv = _load_preview()
     _a = np.deg2rad(35.0)
     view_dir = {"front": np.array([0.0, -1.0, 0.0]),
                 "back": np.array([0.0, 1.0, 0.0]),
@@ -167,8 +149,8 @@ def render(meshes: list[dict], textures: dict[str, Image.Image], view: str,
         verts, tris = mesh["vertices"], mesh["triangles"]
         if not len(tris):
             continue
-        pts2, depth = pv._project(verts, view)
-        c2, _ = pv._project(center[None, :], view)
+        pts2, depth = _project(verts, view)
+        c2, _ = _project(center[None, :], view)
         pts2 = (pts2 - c2[0]) * scale
         pts2[:, 1] *= -1.0
         pts2 += size / 2.0
@@ -243,89 +225,3 @@ def render(meshes: list[dict], textures: dict[str, Image.Image], view: str,
 
     return Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8))
 
-
-def texture_sheet(texture_dir: Path, out: Path, names: list[str],
-                  tile: int = 220) -> Path:
-    """Contact sheet: every map, plus the channels PD2 actually reads.
-
-    The columns are: diffuse colour, diffuse alpha (gloss), and the normal map
-    reassembled from Diesel's X-in-alpha / Y-in-green packing with Z rebuilt, so
-    a wrong swizzle shows up as an obviously non-normal-looking normal.
-    """
-    rows = []
-    for name in names:
-        stem = name.replace("mtr_", "outfit_")
-        df_path = texture_dir / f"{stem}_df.texture"
-        nm_path = texture_dir / f"{stem}_nm.texture"
-        df = load_texture(df_path)
-        nm = load_texture(nm_path) if nm_path.exists() else np.zeros_like(df)
-        colour = (df[..., :3] * 255).astype(np.uint8)
-        gloss = np.repeat((df[..., 3:4] * 255).astype(np.uint8), 3, axis=2)
-        nx = nm[..., 3] * 2.0 - 1.0
-        ny = nm[..., 1] * 2.0 - 1.0
-        nz = np.sqrt(np.clip(1.0 - nx * nx - ny * ny, 0.0, 1.0))
-        rebuilt = ((np.stack([nx, -ny, nz], axis=-1) * 0.5 + 0.5) * 255).astype(np.uint8)
-        rows.append((name, [colour, gloss, rebuilt]))
-
-    sheet = Image.new("RGB", (tile * 3 + 8, (tile + 18) * len(rows)), (18, 18, 22))
-    for r, (name, tiles) in enumerate(rows):
-        for c, img in enumerate(tiles):
-            sheet.paste(Image.fromarray(img).resize((tile - 8, tile - 8), Image.LANCZOS),
-                        (c * tile + 4, r * (tile + 18) + 16))
-        ImageDraw.Draw(sheet).text((4, r * (tile + 18) + 3), name, fill=(255, 255, 255))
-    for c, label in enumerate(("diffuse", "gloss (alpha)", "normal rebuilt")):
-        ImageDraw.Draw(sheet).text((c * tile + 4, (tile + 18) * len(rows) - 14),
-                                   label, fill=(170, 190, 220))
-    out.parent.mkdir(parents=True, exist_ok=True)
-    sheet.save(out)
-    return out
-
-
-def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("model", type=Path)
-    ap.add_argument("texture_dir", type=Path,
-                    help="folder holding outfit_*_df.texture")
-    ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--size", type=int, default=520)
-    ap.add_argument("--views", default=",".join(VIEWS))
-    ap.add_argument("--flip-v", action="store_true", default=True)
-    ap.add_argument("--no-flip-v", dest="flip_v", action="store_false")
-    args = ap.parse_args(argv)
-
-    meshes = material_meshes(args.model)
-    names = sorted({m["material"] for m in meshes})
-    textures = {}
-    for name in names:
-        stem = name.replace("mtr_", "outfit_")
-        path = args.texture_dir / f"{stem}_df.texture"
-        if path.exists():
-            textures[name] = load_texture(path)
-        else:
-            print(f"  no texture for {name} ({path.name})")
-    print(f"materials: {[n for n in names]}")
-    print(f"loaded:    {sorted(textures)}")
-
-    allv = np.concatenate([m["vertices"] for m in meshes])
-    lo, hi = allv.min(0), allv.max(0)
-    center = (lo + hi) / 2
-    pv = _load_preview()
-    w2, _ = pv._project(allv, "front")
-    span = float(w2[:, 0].max() - w2[:, 0].min())
-    scale = args.size * 0.88 / max(span, float(hi[2] - lo[2]))
-
-    views = [v for v in args.views.split(",") if v]
-    sheet = Image.new("RGB", (args.size * len(views), args.size), (15, 15, 18))
-    for i, view in enumerate(views):
-        img = render(meshes, textures, view, args.size, scale, center,
-                     flip_v=args.flip_v)
-        ImageDraw.Draw(img).text((8, 8), view, fill=(255, 255, 255))
-        sheet.paste(img, (i * args.size, 0))
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    sheet.save(args.out)
-    print(f"sheet -> {args.out}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

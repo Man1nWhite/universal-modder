@@ -320,15 +320,6 @@ def bc3_dds_from_levels(levels: list[np.ndarray], weights: list[np.ndarray] | No
     return _dds_header(width, height, b"DXT5", mips=len(levels)) + payload
 
 
-def rgba_to_bgra_dds(rgba: np.ndarray) -> bytes:
-    """Write an (H, W, 4) uint8 RGBA array as uncompressed BGRA8888 DDS."""
-    if rgba.ndim != 3 or rgba.shape[2] != 4 or rgba.dtype != np.uint8:
-        raise ValueError("expected (H, W, 4) uint8 RGBA")
-    height, width = rgba.shape[:2]
-    bgra = rgba[:, :, [2, 1, 0, 3]]
-    return _dds_header(width, height, None) + bgra.tobytes()
-
-
 def _enforce_c0_ge_c1(blocks: np.ndarray) -> None:
     """In-place enforce c0 >= c1 on DXT5 RGB565 endpoints (bytes 8..16)."""
     c0 = blocks[:, 8].astype(np.int32) | (blocks[:, 9].astype(np.int32) << 8)
@@ -395,17 +386,6 @@ def attenuate_dxt5_alpha_from_normal(
     return hdr + df_blocks.tobytes()
 
 
-def set_dxt5_constant_alpha(df_dds: bytes, alpha_val: int) -> bytes:
-    """Set a constant alpha value across all DXT5 blocks while preserving RGB."""
-    hdr = df_dds[:128]
-    blocks = np.frombuffer(df_dds[128:], dtype=np.uint8).reshape(-1, 16).copy()
-    blocks[:, 0] = alpha_val
-    blocks[:, 1] = alpha_val
-    blocks[:, 2:8] = 0
-    _enforce_c0_ge_c1(blocks)
-    return hdr + blocks.tobytes()
-
-
 def _dxt5_alpha_decode(b8: np.ndarray) -> np.ndarray:
     """Decode one DXT5 alpha block (8 bytes) to a 4x4 float array."""
     a0, a1 = int(b8[0]), int(b8[1])
@@ -431,33 +411,6 @@ def _dxt5_alpha_encode(a44: np.ndarray) -> bytes:
         for i in range(16):
             bits |= int(idx[i]) << (3 * i)
     return bytes([a0, a1]) + bits.to_bytes(6, "little")
-
-
-def attenuate_dxt5_alpha_by_block_mask(
-        df_dds: bytes, mask: np.ndarray, atten: float) -> bytes:
-    """Scale DXT5 alpha by ``1 - atten * mask`` per 4x4 block, RGB untouched.
-
-    ``mask`` is a (h//4, w//4) float array in 0..1 — one value per BC block.
-    PD2's ``DIFFUSE_TEXTURE:NORMALMAP`` shader reads gloss from diffuse alpha,
-    so this darkens the specular sheen in the masked regions (sleeves) without
-    touching colour blocks or alpha elsewhere.
-    """
-    hdr = df_dds[:128]
-    h = int.from_bytes(df_dds[12:16], "little")
-    w = int.from_bytes(df_dds[16:20], "little")
-    bh, bw = h // 4, w // 4
-    if mask.shape != (bh, bw):
-        raise SystemExit(f"alpha mask shape {mask.shape} != block grid {(bh, bw)}")
-    blocks = np.frombuffer(df_dds[128:], dtype=np.uint8).reshape(-1, 16).copy()
-    flat = mask.reshape(-1)
-    touched = 0
-    for bi in np.where(flat > 0.004)[0]:
-        fac = 1.0 - atten * float(flat[bi])
-        alpha = _dxt5_alpha_decode(blocks[bi][:8]) * fac
-        blocks[bi][:8] = np.frombuffer(
-            _dxt5_alpha_encode(alpha), dtype=np.uint8)
-        touched += 1
-    return hdr + blocks.tobytes()
 
 
 def swizzle_source_normal_dxt5_to_pd2(nm_dds: bytes, invert_y: bool = True) -> bytes:

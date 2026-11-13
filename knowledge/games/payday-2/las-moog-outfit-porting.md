@@ -31,6 +31,18 @@ tags: [payday-2, las, moog, outfit, porting, rigging, materials, render-template
 > companions were planned and never written: a unit-resources inventory and the
 > BeardLib `PlayerStyle` no-LAS alternative (the route sketch below is all there
 > is). The guide is explicitly a work in progress.
+>
+> **2026-11-13:** several items below were learned on a layered Skyrim outfit
+> whose port was cancelled. The code they name was deleted from the repository
+> that day: `skin_texture`, `skyrim_materials`, the outfit's builder and its
+> `.nif` reader, and the functions of `build_models` that only that builder
+> called (`graft_pd2_hands`, `weld_wrist`, `trim_neck`, `align_neck`,
+> `turn_body`, `restore_bust`, the `tuck_*` passes, `count_hand_verts`,
+> `append_group`), with the jacket shoulder stay inside `transfer_group`.
+> `pose_preview.py` keeps the pose and lost its command and flags
+> (`pose_zoom.py` and `glove_check.py` render with it). The techniques stand.
+> The code is in history: `git show 19ca55a:tools/pd2-las/build_models.py`,
+> and likewise for the others.
 
 ## Setup
 
@@ -135,8 +147,8 @@ rasters source/retarget/decoded previews without Blender.
 `check_all.py` runs the checks of the shipped port in one command (the
 tracked checksum, the audit, the winding check, the normal-map analysis and
 the mutation tests; `--full` adds the auditor self-test, the pytest suite and
-the skip budget); the state of that port, its open problems and its traps
-are written down in `tools/pd2-port/STATUS.md`.
+the skip budget); the dated record of that port is `tools/pd2-port/STATUS.md`,
+its limits and its release route are in `tools/pd2-port/README.md`.
 `check_guide_compliance.py` audits the built pack against this guide's rules
 (one check per rule, each citing it); it runs in the test suite, so a pack
 that drifts from the guide fails the build.

@@ -1,0 +1,24 @@
+--- What the two functions that were kept do when something runs them. 2026-11-13, after the owner's
+--- "yeah, delete those if Nothing runs them".
+--- 1: the documented command, into a scratch directory; each PNG against docs/pd2-las/renders/ of the same name.
+--- 2: three groups through build_models.author_group_sections with a stub template (one bone, identity
+---    matrices), once in a worktree of 137f662, which has the fallback, and once in the tree without it; the
+---    geometry section of each result through diesel_model.decode_geometry.
+1. render_source: `render_mesh_skeleton.py --source references/Christie.zip`, against the tracked renders
+   exit 0
+   christie_source_forearm_front.png    sha256 751aadda56f2fda7  the tracked file, byte for byte
+   christie_source_forearm_side.png     sha256 70b42162f602a4c1  the tracked file, byte for byte
+   christie_source_front.png            sha256 8243d5f42ccf788b  the tracked file, byte for byte
+   christie_source_iso.png              sha256 8dba28f2fdf676b5  the tracked file, byte for byte
+   christie_source_side.png             sha256 c524d286783ac7c4  the tracked file, byte for byte
+   5 of 5 are the tracked renders
+
+2. compute_uv_directions: what its one caller did with a group that has no normal for every vertex (old code)
+   --- old code, 137f662, with the fallback
+   a triangle with its three normals: 6 sections, 494 B, sha256 0d538ed86353c4f6; its geometry section reads back
+   an empty group: 6 sections, 188 B, sha256 fdd86091e8b6f7e6; its geometry section reads back
+   a triangle with no normals: 6 sections, 458 B, sha256 56f5884d1a9f5103; its geometry section does NOT read back (error)
+   --- new code, without it
+   a triangle with its three normals: 6 sections, 494 B, sha256 0d538ed86353c4f6; its geometry section reads back
+   an empty group: 6 sections, 188 B, sha256 fdd86091e8b6f7e6; its geometry section reads back
+   a triangle with no normals: refused, ValueError: group 'bare': 0 normals for 3 vertices

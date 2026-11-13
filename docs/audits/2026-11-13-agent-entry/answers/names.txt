@@ -1,0 +1,38 @@
+--- git grep -n -w -I -E '<the ten names>' 4e15ed6 -- .     every tracked line of any file that has one of the names as a whole word,
+--- before anything was deleted. The lines under docs/audits/ are records that list the functions as reached by nothing;
+--- examples/aoe2-de-civ/sld.py has a function of its own called _rgb565 and imports nothing from tools/.
+docs/audits/2026-11-12-tool-merge/record.txt:62:   tools/pd2-las/diesel_model.py: 38 / 34 / 34; neither: compute_uv_directions, compute_uv_directions.norm, mat_apply_vec, mat_from_pos_rot_rows
+docs/audits/2026-11-12-tool-merge/record.txt:65:   tools/pd2-port/dds.py: 22 / 17 / 19; neither: _encode_block, _rgb565, repair_dxt5_texture
+docs/audits/2026-11-12-tool-merge/record.txt:66:   tools/pd2-las/dds_encode.py: 23 / 20 / 18; neither: attenuate_dxt5_alpha_by_block_mask, rgba_to_bgra_dds, set_dxt5_constant_alpha
+docs/audits/2026-11-12-tool-merge/reference.json:881:    "attenuate_dxt5_alpha_by_block_mask",
+docs/audits/2026-11-12-tool-merge/reference.json:882:    "rgba_to_bgra_dds",
+docs/audits/2026-11-12-tool-merge/reference.json:883:    "set_dxt5_constant_alpha"
+docs/audits/2026-11-12-tool-merge/reference.json:894:    "mat_apply_vec",
+docs/audits/2026-11-12-tool-merge/reference.json:895:    "mat_from_pos_rot_rows"
+docs/audits/2026-11-12-tool-merge/reference.json:934:    "_encode_block",
+docs/audits/2026-11-12-tool-merge/reference.json:935:    "_rgb565",
+docs/audits/2026-11-12-tool-merge/reference.json:936:    "repair_dxt5_texture"
+docs/audits/2026-11-13-agent-entry.md:447:- **Ten functions in live modules that nothing calls**, none of them the outfit's: `chest_extent` in
+docs/audits/2026-11-13-agent-entry.md:448:  `bust_variant.py`; `attenuate_dxt5_alpha_by_block_mask`, `rgba_to_bgra_dds` and `set_dxt5_constant_alpha`
+docs/audits/2026-11-13-agent-entry.md:449:  in `dds_encode.py`; `mat_apply_vec` and `mat_from_pos_rot_rows` in `diesel_model.py`; `_axis_to_camera` in
+docs/audits/2026-11-13-agent-entry.md:450:  `render_mesh_skeleton.py`; `repair_dxt5_texture` and `_encode_block` in `tools/pd2-port/dds.py`, with
+docs/audits/2026-11-13-agent-entry.md:451:  `_rgb565`, which only `_encode_block` calls. No file under `tools/`, `tests/` or `um/` names one of them
+examples/aoe2-de-civ/sld.py:33:def _rgb565(c):
+examples/aoe2-de-civ/sld.py:45:    a, b = _rgb565(c0), _rgb565(c1)
+examples/aoe2-de-civ/sld.py:109:    a, b = _rgb565(c0).astype(np.float32), _rgb565(c1).astype(np.float32)
+tools/pd2-las/bust_variant.py:1165:def chest_extent(verts, morph: ChestMorph | None = None) -> dict:
+tools/pd2-las/dds_encode.py:323:def rgba_to_bgra_dds(rgba: np.ndarray) -> bytes:
+tools/pd2-las/dds_encode.py:398:def set_dxt5_constant_alpha(df_dds: bytes, alpha_val: int) -> bytes:
+tools/pd2-las/dds_encode.py:436:def attenuate_dxt5_alpha_by_block_mask(
+tools/pd2-las/diesel_model.py:211:def mat_apply_vec(m: Mat, v):
+tools/pd2-las/diesel_model.py:219:def mat_from_pos_rot_rows(rows3, pos) -> Mat:
+tools/pd2-las/render_mesh_skeleton.py:114:def _axis_to_camera(verts, pivot, view: str):
+tools/pd2-port/dds.py:46:def _rgb565(rgb):
+tools/pd2-port/dds.py:93:def _encode_block(pixels) -> bytes:
+tools/pd2-port/dds.py:111:    e0 = _rgb565(rgb[i0])
+tools/pd2-port/dds.py:112:    e1 = _rgb565(rgb[i1])
+tools/pd2-port/dds.py:470:def repair_dxt5_texture(dds_bytes: bytes) -> tuple[bytes, bool]:
+--- the same search in upstream's main (rehan-remade/universal-modder, 3c4ac6c), which has no tools/ directory:
+examples/aoe2-de-civ/sld.py:33:def _rgb565(c):
+examples/aoe2-de-civ/sld.py:45:    a, b = _rgb565(c0), _rgb565(c1)
+examples/aoe2-de-civ/sld.py:109:    a, b = _rgb565(c0).astype(np.float32), _rgb565(c1).astype(np.float32)

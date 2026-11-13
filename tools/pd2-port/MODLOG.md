@@ -1,8 +1,10 @@
 # Lawson pack journal
 
-> The **current state** lives in [`STATUS.md`](STATUS.md) — what is shipped,
-> the measured check results, the open problem and the workflow traps. This
-> journal is the history behind it.
+> Start at [`README.md`](README.md). The dated record of the shipped port is
+> [`STATUS.md`](STATUS.md): what is released and what is tracked, what
+> was seen in game, what was found, settled and rejected. This journal is the
+> history behind it; an entry that sends you to a section of `STATUS.md` by
+> number means the page as it was until 2026-11-13.
 
 ## 2026-11-04 — SkyrimOutfit: forearms redo — hide the shirt cuff + overlap the glove with the blazer sleeve (NEW)
 
@@ -1234,3 +1236,112 @@
   it misreads skinned legacy models (471 of 826 geometry sections measured).
   `lawson_las` is DODB and is read right.
   `docs/audits/2026-11-12-tool-merge.md`.
+
+## 2026-11-13 — the release is ten rebuilds behind the tracked pack; `STATUS.md` becomes the dated record
+
+- **Found by reading the release:** `lawson-las-v2` serves `lawson_las.zip` of `8,015,688` B, sha256
+  `a24f0b7c…`, the build of `282703f`. Ten commits after that tag rebuilt the tracked pack
+  (`git log 282703f..HEAD -- dist/lawson_las.zip.sha256`), all stamped 0.1.2, none released. The README said
+  "the tracked `dist/lawson_las.zip` is therefore exactly what the release serves" and "build it yourself —
+  the bytes are identical"; `STATUS.md` gave the tracked size and sha256 in one table with the release, under
+  a test that kept those two figures current. There is no v1 release any more, only its tag.
+- `STATUS.md` is rewritten as the dated record (244 lines to 101): released and tracked, seen in game, found
+  and settled, dead ends, corrections. Its check results, timings, venv recipe, file map and the note on
+  another branch are gone; `docs/audits/2026-11-13-agent-entry/ledger.tsv` says what became of each line.
+- The README no longer quotes a version, a release number, the pins or a count of mutations, and it sends
+  the installer to `dist/lawson_las.zip`.
+- `test_the_status_page_matches_the_shipped_pack` is replaced by
+  `test_the_status_page_says_whether_the_release_serves_the_tracked_pack`: it compares the newest release
+  notes with the tracked `.sha256` and fails while the page says the other thing. It reads the list of open
+  work in `tools/pd2-las/README.md` too, which names the release now and has to drop it once one is made.
+- The `lawson LAS pack` workflow installs scipy, which the suite imports: its `tests` step had failed on
+  `main` since 2026-11-12, before the upload and the release step. Run by hand on this branch
+  (`workflow_dispatch`), it passes.
+- The README said the release workflow "uploads `lawson_las.zip` + `lawson_las.zip.sha256`". Since `637b7a9`
+  its publish step uploads the tracked `dist/Miranda_LAS.zip` and its `.sha256` too; `lawson-las-v2` predates
+  that and has two assets. The README says what a tag publishes now. The workflow is not changed.
+- Not done, and the owner's to decide: releasing the tracked pack as `lawson-las-v3` with a version of its
+  own. With scipy installed the publish step can be reached again, so a `lawson-las-v*` tag publishes.
+
+## 2026-11-13 (later) — the stale release, three tags and sixteen branches deleted
+
+- **Asked:** "Delete stale things", after the report said that the release serves an older build than the
+  tracked pack and that the `star-chart` branch could go. What to delete on GitHub was asked and answered the
+  same day: all sixteen branches; both tags without a release, and the pre-release with its tag.
+- **The pre-release `lawson-las-v2`** (2026-10-19; `lawson_las.zip`, sha256 `a24f0b7c…`, the build of
+  `282703f`) is deleted with its tag. GitHub counted 0 downloads of each of its two assets. Deleted with it:
+  the tags `lawson-las-v1` (→ `2b0b1b4`) and `lawson-clover-v1` (→ `9faa4a4`). The three commits are in
+  `main`, and the zip the pre-release served is the one tracked at its commit
+  (`git show 282703f:dist/lawson_las.zip`, the same sha256), so nothing but the names and the page is gone.
+- **In the tree:** `releases/lawson-las-v1.md` and `-v2.md` are deleted, being the page bodies of releases
+  that do not exist (`git show 19ca55a:tools/pd2-port/releases/lawson-las-v2.md`). `STATUS.md` says "There
+  is no release" and records what was deleted; the README's release route numbers the next one 3.
+  `test_the_status_page_says_whether_the_release_serves_the_tracked_pack` knows three states now (no
+  release, a release of the tracked pack, a release of an older build) and
+  `test_a_release_number_is_not_used_twice` rejects notes numbered 1 or 2. The item about the release is out
+  of "Next" in `tools/pd2-las/README.md`: nothing is behind.
+- **Branches:** fifteen `arena/*` session branches, each merged by the pull request beside it and each
+  wholly in `main` (`git merge-base --is-ancestor`), and `star-chart` (`556a41912a3d`, one commit holding
+  `stars.svg`, in no other branch). Restore any with `git push origin <tip>:refs/heads/<name>`.
+
+  | Branch | Tip | Merged by |
+  | --- | --- | --- |
+  | `arena/0811643b-universal-modder` | `0a76215aed10` | #27 |
+  | `arena/20554974-universal-modder` | `55f02b9e02f5` | #30 |
+  | `arena/282ccb75-universal-modder` | `cba46886a8c9` | #26 |
+  | `arena/6ea140bf-universal-modder` | `8e63e4c9a9b9` | #24 |
+  | `arena/71acf8be-universal-modder` | `dcc9c1ce76ae` | #25 |
+  | `arena/7622cd38-universal-modder` | `dd470410a94d` | #21 |
+  | `arena/77634828-universal-modder` | `ca71e60735e8` | #23 |
+  | `arena/90126ffc-universal-modder` | `4a69ccea619a` | #22 |
+  | `arena/901e857c-universal-modder` | `ce4f844aa9a7` | #20 |
+  | `arena/bf348f6f-universal-modder` | `ad7230b5e454` | #28 |
+  | `arena/c1718b15-universal-modder` | `008a5602d6b6` | #16 |
+  | `arena/e22678a8-universal-modder` | `18f414bed70d` | #29 |
+  | `arena/e44a560c-universal-modder` | `c1a1682c6194` | #18 |
+  | `arena/ef46069a-universal-modder` | `e229d9974fc4` | #17 |
+  | `arena/f841574d-universal-modder` | `8db690478f9c` | #19 |
+
+- **The `star chart` workflow is switched off** in the repository's Actions settings
+  (`gh workflow disable star-chart.yml`). On `main` the file is still there until this branch is merged, and
+  it redrew the `star-chart` branch on every push to `main`: the last time on 2026-11-13, so "nothing writes
+  to it" in the report of that day was wrong. `gh workflow enable star-chart.yml` undoes it.
+- **Left on GitHub:** `main` and this session's branch. No tag, no release.
+- **Corrected the same day:** `STATUS.md` said of `lawson-las-v1` "never a release" (`cf56805` through
+  `b3b6966`). There had been one: the release workflow ran on that tag six times on 2026-10-19 and its
+  publish step succeeded in five, as the entry of that day above says. By 2026-11-13 it was gone; nothing
+  here records who took it down or when. `STATUS.md` says so now.
+
+## 2026-11-13 (afternoon) — `lawson_las` built again without `CREDITS.txt`
+
+- **Asked:** the report of the deletions ended with a question: `CREDITS.txt` in the pack still said "no
+  redistribution permission is claimed", against D32, and changing it means building the pack again. The
+  owner: "CREDITS - remove". Read as: the file goes, not only the sentence. The decision is D34.
+- **Builder:** `build_las_pack.py` loses `credits_txt()` and the member `Lawson_LAS/CREDITS.txt`, and the
+  comment above `STATUS` loses "not cleared for commercial redistribution". `check_guide_compliance.py` loses
+  check `N2`, which looked for the file: 38 checks where there were 39.
+  `test_pack_layout_matches_2b_contract` now fails on a pack with a credits file.
+- **Pack:** `make -sC tools/pd2-las lawson`, then the sidecar by hand (the builder does not write it).
+
+  | | Bytes | sha256 | Files |
+  | --- | --- | --- | --- |
+  | before, as tracked at `4e15ed6` | 9,123,392 | `9c8a28368862…` | 30 |
+  | after | 9,122,766 | `69e0f898c909…` | 29 |
+
+  Only `CREDITS.txt` (787 B) is gone. The other 28 files are byte for byte what they were, in the same order,
+  with the same dates and modes, and `build_manifest.json` lost its line for the file and nothing else
+  (`docs/audits/2026-11-13-agent-entry/answers/pack-diff.txt`). The version stays 0.1.2: it moves with a
+  release, and there is none.
+- **What the file said**, since the pack no longer does (`git show 4e15ed6:tools/pd2-port/build_las_pack.py`,
+  `credits_txt()`): the model and textures are ripped from Mass Effect 2 (BioWare/EA) and came through The
+  Models Resource; the layout follows the 2B reference pack; not affiliated with either publisher; "an
+  unlicensed, non-commercial fan derivative and no redistribution permission is claimed"; "Not
+  game-verified". Of these the pack keeps two: the manifest names the source archive with its sha256 and says
+  `"runtime_verified": false`.
+- **The recorded tools:** `copies.py after` gave exit 1, as after any pack built again on purpose: four of 26
+  recorded outputs and two traced functions of the builder gave something else, each by exactly this change.
+  Recorded again; which entries, and how each was checked, is the last section of
+  `docs/audits/2026-11-12-tool-merge.md`.
+- `um publish check` on the unpacked pack gives the same one warning before and after, "no README". It reads
+  a credits file only where a `fal_manifest.jsonl` lists generated assets, and the pack has none.
+- **Not done:** nothing in game, as before. No release: the next one is still `lawson-las-v3`.

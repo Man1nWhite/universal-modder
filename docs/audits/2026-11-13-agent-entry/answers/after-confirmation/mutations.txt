@@ -1,0 +1,111 @@
+--- bash docs/audits/2026-11-13-agent-entry/mutations.sh, on 27fec1d
+commit: 27fec1d
+nothing changed
+    6 passed
+1  a CLAUDE.md that is a copy of AGENTS.md
+    1 failed, 5 passed
+    fails: test_the_instruction_file_is_written_once
+1b a CLAUDE.md that is the one line @AGENTS.md
+    1 failed, 5 passed
+    fails: test_the_instruction_file_is_written_once
+2  the size of a pack in README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+2b a test count in tools/README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+3  a path that does not exist, in tools/pd2-las/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+3b a make target that does not exist, in HANDOFF.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+3c a test that does not exist, in tools/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+4  700 bytes more in AGENTS.md
+    1 failed, 5 passed
+    fails: test_what_loads_at_start_stays_small
+5  a step added to the test workflow that green does not run
+    1 failed, 5 passed
+    fails: test_green_runs_what_the_test_workflow_runs
+6  a build target misspelt in AGENTS.md
+    1 failed, 5 passed
+    fails: test_agents_md_answers_each_question_with_one_command
+6b the row for status removed from AGENTS.md
+    1 failed, 5 passed
+    fails: test_agents_md_answers_each_question_with_one_command
+
+the tests of the fixes of 2026-11-13
+nothing changed
+    23 passed
+7  scipy taken out of what the lawson workflow installs
+    1 failed, 15 passed
+    fails: test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs
+8  no release notes, and STATUS.md does not say that there is no release
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+8b release notes for v3 with the tracked sha256, STATUS.md not touched
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+8c a release of another build, recorded in STATUS.md, not in the open work of tools/pd2-las/README.md
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+8d a release that serves the tracked pack, recorded in STATUS.md, still listed as open work
+    1 failed
+    fails: test_the_status_page_says_whether_the_release_serves_the_tracked_pack
+8e release notes under a number that was used, v2
+    1 failed
+    fails: test_a_release_number_is_not_used_twice
+8f the same release recorded as it should be: this one passes
+    3 passed
+9  the tracked size of lawson_las in STATUS.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9b the tracked sha256 of lawson_las in STATUS.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9c the audit's result in STATUS.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9d a count of mutations in tools/pd2-port/README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+9e a count of checks in tools/README.md
+    1 failed, 5 passed
+    fails: test_no_document_quotes_what_status_prints
+10 a script that does not exist, in tools/pd2-port/README.md
+    1 failed, 5 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+
+what was deleted on 2026-11-13 stays out, and the tests that were kept still catch their defect
+nothing changed
+    52 passed
+11 a row for the deleted Skyrim tools in tools/pd2-las/README.md
+    2 failed, 20 passed
+    fails: test_every_path_target_and_test_named_in_an_agent_doc_exists
+    fails: test_readme_keeps_its_contract
+12 a skip budget for a reason no test skips with
+    1 failed, 4 passed
+    fails: test_no_budget_is_kept_for_a_reason_nothing_skips_with
+13 the glove adapter enabled with a boolean, in the generator
+    2 failed, 9 passed
+    fails: test_compat_hook_enables_adapter_with_a_table_not_a_boolean
+    fails: test_the_tracked_pack_without_hands_ships_the_compat_hook
+13b a unit path without its file stem in main.xml
+    2 failed, 11 passed
+    fails: test_main_xml_lists_textures_and_unit_materials
+    fails: test_main_xml_registers_the_first_person_unit_when_there_is_one
+13c a texture pair named with its _df suffix in main.xml
+    1 failed, 12 passed
+    fails: test_main_xml_lists_textures_and_unit_materials
+14 default sleeve targets for the materials of the cancelled outfit, back in extend_sleeves_to_wrist
+    1 failed
+    fails: test_extend_sleeves_moves_no_material_that_is_not_named
+15 a credits file written into lawson_las again
+    1 failed
+    fails: TestSourceIntegration::test_pack_layout_matches_2b_contract
+16 a group without a normal for every vertex is not refused
+    1 failed
+    fails: test_a_group_without_a_normal_for_every_vertex_is_refused
+EXIT=0

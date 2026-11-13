@@ -5,8 +5,6 @@ uv.lock
 .env
 # intermediate build outputs (extracted VPKs, textures, previews, unpacked trees)
 build/*
-# compiled cross-check library + the nifly source clone
-tools/skyrim-nif/build/
 !build/pd2-las/
 build/pd2-las/*
 !build/pd2-las/Miranda_Busty_LAS.zip

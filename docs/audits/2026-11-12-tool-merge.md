@@ -397,3 +397,57 @@ from `26fce3e` they refuse to run.
   the traces and the lint figures of the reference never changed, and nine
   recorded outputs have another hash only through the first two changes to
   the check.
+
+## 2026-11-13: four of the thirty recorded tools are gone
+
+The owner had the code of the cancelled Skyrim outfit deleted (`docs/pd2-las/DECISIONS.md`, D33). Four
+entries of `outputs` in `reference.json` were records of that code, and are taken out with it; `GOLDEN` in
+`copies.py` lists 26 tools now. Nothing else in the reference was touched.
+
+| Entry | What was recorded | What became of the tool |
+| --- | --- | --- |
+| `build_skyrim_outfit` | exit 2: it needs the outfit's archive, removed on 2026-11-05 (`eb2a9c5`) | deleted |
+| `skin_texture` | exit 1, for the same archive | deleted |
+| `pose_preview` | exit 1: its command read `build/skyrim-nif/` | the command is deleted; `glove_check.py` and `pose_zoom.py` import the pose |
+| `preview_textured` | exit 0 and one PNG, of `miranda.model` with no texture on it: the command looked for `outfit_<material>_df.texture`, the file names of that outfit | the command is deleted; the same two tools and two test files import the rasteriser |
+
+They were three of the eight that did not end with exit 0, which leaves five, and one of the 22 that did.
+
+`python tools/pd2-las/copies.py after` on the tree without that code: 16 of 16 zips are the tracked bytes
+after a fresh build; the report on every builder's trace is line for line the one above, with no function
+that returns something else; 26 of 26 tools give what they gave
+([`2026-11-13-agent-entry/deleted/copies-after.txt`](2026-11-13-agent-entry/deleted/copies-after.txt)).
+`MODEL_TESTS` and `SWAPS` in `copies.py` still name test files that are gone from the tree: `compare` runs
+them in a worktree of `26fce3e`, where they are.
+
+## 2026-11-13: `lawson_las` built again without its credits file, and the reference follows
+
+The owner had `CREDITS.txt` taken out of `lawson_las` (`docs/pd2-las/DECISIONS.md`, D34). The pack was built
+again on purpose, so `copies.py after` gave exit 1: 22 of 26 outputs, and two traced functions of the Lawson
+builder that return something else. Each difference was held against the reference before the reference was
+changed.
+
+| Entry | Was, is | How it was checked |
+| --- | --- | --- |
+| `outputs.status` | another size and sha256 for `lawson_las` | the new text with the old size and hash put back has the recorded checksum |
+| `outputs.check_guide_compliance` | 123 lines, 120: the three lines of check `N2` are gone and the summary counts 37 passes for 38 | the checker of `4e15ed6` on the pack of `4e15ed6` prints the recorded text; `diff` against the new one shows those four lines and no other |
+| `outputs.check_guide_compliance_self_test` | "(39 checks)", "(38 checks)" | the new text with 39 put back has the recorded checksum |
+| `outputs.check_test_suite_mutations` | prints the same; the pack it writes has the new sha256 | the recorded text is unchanged |
+| `trace/lawson.txt`, `build_las_pack.credits_txt` | gone | the function is deleted |
+| `trace/lawson.txt`, `build_las_pack.assemble` | returns the pack's files, one fewer | the 28 files left are byte for byte the old ones ([`pack-diff.txt`](2026-11-13-agent-entry/answers/pack-diff.txt)) |
+| `trace/lawson.txt`, `build_las_pack.sha256` | called 30 times, was 31; 28 different values, were 29 | the 28 values, with the new zip's hash taken out and the hashes of the old zip and of the old `CREDITS.txt` put in, have the recorded checksum of the 29 |
+
+The last row says that every hash the builder computes, of its source archive and of each of the 28 files, is
+the one it computed at `26fce3e`. `trace.functions.lawson` counts 143 for 144. Nothing else in the reference
+was touched, and with these entries recorded again `copies.py after recheck` gives 26 of 26 and exit 0.
+
+The same day ten functions were deleted from `dds_encode.py`, `diesel_model.py`, `tools/pd2-port/dds.py`,
+`bust_variant.py` and `render_mesh_skeleton.py` (D33, last item). Eight of them stand in `reach` of
+`reference.json` and in `record.txt` under "neither", for the three of those files that were measured here:
+that record of `26fce3e` is left as it was taken. On the run above, which had both changes in the tree, the
+five other builders' reports are line for line what they were: no function returns something else.
+
+That evening an eleventh went by the same rule, `compute_uv_directions` with the function inside it; both
+stand in the same record under "neither". `copies.py after` on the tree without them: exit 0, every
+builder's report line for line the one above, 26 of 26 tools
+([`after-confirmation/copies-after.txt`](2026-11-13-agent-entry/answers/after-confirmation/copies-after.txt)).

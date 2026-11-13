@@ -1,0 +1,20 @@
+--- make -sC tools/pd2-las green, on the tree without compute_uv_directions
+LAS pack verification
+  repo: .
+  pack: dist/lawson_las.zip
+  [ok  ] tracked pack matches its checksum          9122766 bytes, sha256 69e0f898c909bc66…
+  [ok  ] guide compliance audit               0.9s  summary: 37 pass, 1 warn, 0 fail
+  [ok  ] winding and tangent frame            0.5s  summary: 20677 triangles, 0 inverted, 0 degenerate
+  [ok  ] normal-map convention                0.6s  VERDICT: the source is DirectX-style (Y-); the default build inverts the green channel, wh
+  [ok  ] pack-level test mutations            9.2s  5/5 pack-level test mutations caught
+  [ok  ] auditor self-test                   27.6s  16/16 mutations detected
+  [ok  ] lint                                 1.1s  
+  [ok  ] um and its command groups            0.7s  --help of um and of 10 groups
+  [ok  ] knowledge base                       1.2s  PASS: 247 notes checked
+  [ok  ] nothing that shouldn't ship          0.9s  WARN: 1021 files, 0 failures, 2 warnings
+  [ok  ] pytest suite                       109.9s  699 passed, 8 skipped, 2 xfailed, 1 warning in 109.67s (0:01:49)
+  [ok  ] skip budget                          0.0s  OK: 8 budgeted skip(s) across 5 reason(s), 2 expected failure(s) within budget.
+  [ok  ] every tracked zip, built again     113.1s  16 of 16 tracked zips are the tracked bytes after a fresh build
+
+all 13 stages passed
+next: git status --short

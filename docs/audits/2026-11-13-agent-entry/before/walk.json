@@ -1,0 +1,356 @@
+{
+ "commit": "19ca55adb9bc31842b0c89de55d49e09d0566274",
+ "routes": "before",
+ "walk": {
+  "T1 set up after a sandbox restart": {
+   "calls": 3,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 1605,
+   "tokens": 619,
+   "seconds": 13.5,
+   "answer_reached": {
+    "ready": true
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": "git checkout -- dist build node_modules",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.3,
+     "bytes": 0,
+     "tokens": 0
+    },
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las env",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 13.1,
+     "bytes": 173,
+     "tokens": 59
+    },
+    {
+     "kind": "run",
+     "target": "python3 tools/pd2-las/status.py",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.1,
+     "bytes": 1432,
+     "tokens": 560
+    }
+   ]
+  },
+  "T2 state of all 14 packs": {
+   "calls": 4,
+   "unpointed": 1,
+   "failed_calls": 0,
+   "bytes": 3030,
+   "tokens": 1138,
+   "seconds": 40.7,
+   "answer_reached": {
+    "4 pd2-las packs": true,
+    "lawson_las": true,
+    "9 head packs": true
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las status",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.1,
+     "bytes": 1432,
+     "tokens": 560
+    },
+    {
+     "kind": "run",
+     "target": ".venv/bin/python tools/pd2-port/check_all.py",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 12.7,
+     "bytes": 635,
+     "tokens": 195
+    },
+    {
+     "kind": "run",
+     "target": ".venv/bin/python tools/build_joy_head_mods.py",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 27.6,
+     "bytes": 963,
+     "tokens": 383
+    },
+    {
+     "kind": "run",
+     "target": "git status --short dist build",
+     "pointed": false,
+     "exit": 0,
+     "seconds": 0.3,
+     "bytes": 0,
+     "tokens": 0
+    }
+   ]
+  },
+  "T3 is everything green": {
+   "calls": 7,
+   "unpointed": 1,
+   "failed_calls": 2,
+   "bytes": 14649,
+   "tokens": 3972,
+   "seconds": 252.4,
+   "answer_reached": {
+    "suite": true,
+    "fresh": true,
+    "kb": true,
+    "publish": true,
+    "pyflakes": false,
+    "um help": false
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": "uv run --with pytest pytest -q tests",
+     "pointed": true,
+     "exit": 127,
+     "seconds": 0.0,
+     "bytes": 36,
+     "tokens": 12
+    },
+    {
+     "kind": "read",
+     "target": "tools/pd2-las/README.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 11598,
+     "tokens": 3204
+    },
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las test",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 127.4,
+     "bytes": 1475,
+     "tokens": 256
+    },
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las fresh",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 121.5,
+     "bytes": 966,
+     "tokens": 320
+    },
+    {
+     "kind": "run",
+     "target": "bin/um kb check --index",
+     "pointed": true,
+     "exit": 1,
+     "seconds": 0.1,
+     "bytes": 91,
+     "tokens": 28
+    },
+    {
+     "kind": "run",
+     "target": ".venv/bin/python -m um kb check --index",
+     "pointed": false,
+     "exit": 0,
+     "seconds": 1.3,
+     "bytes": 24,
+     "tokens": 7
+    },
+    {
+     "kind": "run",
+     "target": "bin/um publish check .",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 2.1,
+     "bytes": 459,
+     "tokens": 145
+    }
+   ]
+  },
+  "T4 rebuild one pack and prove its bytes": {
+   "calls": 3,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 20621,
+   "tokens": 6606,
+   "seconds": 25.6,
+   "answer_reached": {
+    "the rebuilt zip is the tracked one": true
+   },
+   "steps": [
+    {
+     "kind": "read",
+     "target": "tools/pd2-las/README.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 11598,
+     "tokens": 3204
+    },
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las slim",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 25.5,
+     "bytes": 9023,
+     "tokens": 3402
+    },
+    {
+     "kind": "run",
+     "target": "git status --short dist build",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.1,
+     "bytes": 0,
+     "tokens": 0
+    }
+   ]
+  },
+  "T5 was the pack seen in game, and were those the tracked bytes": {
+   "calls": 2,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 30527,
+   "tokens": 9011,
+   "seconds": 0,
+   "answer_reached": {
+    "date": true,
+    "hash seen": true
+   },
+   "steps": [
+    {
+     "kind": "read",
+     "target": "tools/pd2-las/README.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 11598,
+     "tokens": 3204
+    },
+    {
+     "kind": "read",
+     "target": "docs/pd2-las/HANDOFF.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 18929,
+     "tokens": 5807
+    }
+   ]
+  },
+  "T6 what is open": {
+   "calls": 3,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 31262,
+   "tokens": 8720,
+   "seconds": 0,
+   "answer_reached": {
+    "in-game sign-off": true,
+    "sleeve defect": true,
+    "gloss": true,
+    "lawson_las": true,
+    "head packs": false
+   },
+   "steps": [
+    {
+     "kind": "read",
+     "target": "tools/pd2-las/README.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 11598,
+     "tokens": 3204
+    },
+    {
+     "kind": "read",
+     "target": "tools/pd2-port/STATUS.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 14456,
+     "tokens": 3979
+    },
+    {
+     "kind": "read",
+     "target": "tools/README.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 5208,
+     "tokens": 1537
+    }
+   ]
+  },
+  "T7 which command rebuilds Geralt_over_Rust": {
+   "calls": 0,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 0,
+   "tokens": 0,
+   "seconds": 0,
+   "answer_reached": {
+    "command": true
+   },
+   "steps": []
+  },
+  "T8 a pack changed on purpose: make the suite pass again": {
+   "calls": 4,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 13201,
+   "tokens": 3523,
+   "seconds": 122.4,
+   "answer_reached": {
+    "the suite passes": true
+   },
+   "steps": [
+    {
+     "kind": "read",
+     "target": "tools/pd2-las/README.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 11598,
+     "tokens": 3204
+    },
+    {
+     "kind": "run",
+     "target": "wc -c dist/Christie_LAS_Slim.zip; sha256sum dist/Christie_LAS_Slim.zip",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 128,
+     "tokens": 63
+    },
+    {
+     "kind": "run",
+     "target": "sed -i 's/4,392,978/4,392,979/; s/79529a56f80268e2f81614ecd2c9a124c874aa60e30e98e401d139444c351c6c/5f5ea8eaddc291dd1b5eeee6a8fdcf663deb5f03a327e49c5f6d493acab3bbf4/' AGENTS.md CLAUDE.md GEMINI.md docs/pd2-las/HANDOFF.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 0,
+     "tokens": 0
+    },
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las test",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 122.4,
+     "bytes": 1475,
+     "tokens": 256
+    }
+   ]
+  }
+ },
+ "note": "T4 was measured again after the first record: its last step was `make -sC tools/pd2-las status`, whose sha256_ok compares the zip with a sidecar the builder has just rewritten and so proves nothing about a rebuild. The step the README points to for that is `git status --short dist build`. Calls unchanged (3); bytes 22,053 -> 20621. T8 was measured again too, on both commits, after the first record: its last step ran one document test (11,839 B over 4 calls), and the task is to make the suite pass. It now ends with the whole suite. Its starting point changed as well: a zip with a comment, which the pack writer never gives, fails test_that_writer_gives_each_tracked_pack_its_files on any commit; the pack is now changed in one member and written as the writer writes it. Calls unchanged (4); bytes 11,839 -> 13,201. With nothing edited the suite fails on this commit in one test, test_handoff_and_agents_quote_the_tracked_pack_bytes."
+}

@@ -1162,20 +1162,6 @@ def morph_groups(groups: dict, morph: ChestMorph | None = None,
     return report
 
 
-def chest_extent(verts, morph: ChestMorph | None = None) -> dict:
-    """Front reach of the chest band — the number a cup preset is judged on."""
-    morph = morph or ChestMorph()
-    best = None
-    for x, y, z in verts:
-        if morph.weight_at(x, y, z) <= 0.0:
-            continue
-        if best is None or y > best[1]:
-            best = (x, y, z)
-    if best is None:
-        return {"apex": None}
-    return {"apex": [round(best[0], 2), round(best[1], 2), round(best[2], 2)]}
-
-
 def _open_edges(group) -> list[tuple]:
     """Edges used by exactly one face, on position-welded topology."""
     from collections import defaultdict

@@ -1,0 +1,133 @@
+{
+ "commit": "b3b69666c6181797d8a6d76087489ba0e651763c",
+ "routes": "before",
+ "key": {
+  "tracked_zips": 16,
+  "packs_in_dist": 14,
+  "every_zip_is_its_sidecar": true,
+  "ready": true,
+  "hint": null,
+  "ci_checks": [
+   "fresh",
+   "kb",
+   "publish",
+   "pyflakes",
+   "suite",
+   "um help"
+  ],
+  "seen_in_game": {
+   "pack": "Christie_LAS_Slim",
+   "date": "2026-11-10",
+   "record": "docs/audits/2026-11-10-christie-slim-screenshot-review.md",
+   "sha256_seen": "7a4d010c",
+   "sha256_tracked": "9da90dd3",
+   "were_the_tracked_bytes": false
+  },
+  "no_in_game_flag": [
+   "dist/Christie_LAS.zip",
+   "dist/Christie_LAS_Slim.zip",
+   "dist/Geralt_over_Rust.zip",
+   "dist/Miranda_Busty_LAS.zip",
+   "dist/Miranda_L4D2_over_Bonnie.zip",
+   "dist/Miranda_L4D2_over_Clover.zip",
+   "dist/Miranda_L4D2_over_Joy.zip",
+   "dist/Miranda_L4D2_over_Sydney.zip",
+   "dist/Miranda_LAS.zip",
+   "dist/Miranda_Romance_over_Bonnie.zip",
+   "dist/Miranda_Romance_over_Clover.zip",
+   "dist/Miranda_Romance_over_Joy.zip",
+   "dist/Miranda_Romance_over_Sydney.zip",
+   "dist/lawson_las.zip"
+  ],
+  "release_behind": false,
+  "packs": {
+   "dist/Christie_LAS.zip": {
+    "bytes": 4982790,
+    "sha256": "b65fb27ee4e94d453c3f580e453570d3005274790c2e8ecadec451bf9ffc6548",
+    "zip_is_sidecar": true,
+    "runtime_verified": false
+   },
+   "dist/Christie_LAS_Slim.zip": {
+    "bytes": 4392978,
+    "sha256": "9da90dd3e9779832fd03443d78dd39b968a8d6c63a09ce3d52cadf5cd3201f29",
+    "zip_is_sidecar": true,
+    "runtime_verified": false
+   },
+   "dist/Geralt_over_Rust.zip": {
+    "bytes": 8121550,
+    "sha256": "0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_Busty_LAS.zip": {
+    "bytes": 6321140,
+    "sha256": "d8856d8d0f581c5e0cc7e12af132f373f1fb1952f530418ba4abde05a166e9cb",
+    "zip_is_sidecar": true,
+    "runtime_verified": false
+   },
+   "dist/Miranda_L4D2_over_Bonnie.zip": {
+    "bytes": 8239468,
+    "sha256": "12b1351ddaac2e4b53c7f7bd90ddf8eaf42eafbf3f265ff99a804186742171bd",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_L4D2_over_Clover.zip": {
+    "bytes": 7727419,
+    "sha256": "f36ade1b0c347476192bc3aac068410b992fc22c320b9208d85be3f83d922b76",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_L4D2_over_Joy.zip": {
+    "bytes": 10679847,
+    "sha256": "2bd2d3afa80f8a621482f6bb230c5ac669f26a15cd9f87c5c534f9d383334f72",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_L4D2_over_Sydney.zip": {
+    "bytes": 7226278,
+    "sha256": "8df709037af979e7b0fdc14ad27740db5caa0f0525ce64d2d5c0a93c6dbe4745",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_LAS.zip": {
+    "bytes": 5919822,
+    "sha256": "b7fe6b08c31f439dd3628bf82935b5e3e210f3639c239e8fc35572b7bfece002",
+    "zip_is_sidecar": true,
+    "runtime_verified": false
+   },
+   "dist/Miranda_Romance_over_Bonnie.zip": {
+    "bytes": 7791959,
+    "sha256": "756fdd6ead621985cf24bd8c11d05a8c5f6d2fc1d74344ede1830cd1b170400f",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_Romance_over_Clover.zip": {
+    "bytes": 7297748,
+    "sha256": "cf3c80f3d8d3cb305e2f80140edd6845128228072ee4f1f42c068cfa5043cb1d",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_Romance_over_Joy.zip": {
+    "bytes": 10238861,
+    "sha256": "312b8cc3c81da93679a719cb2767979544504c46bbbe5e0c8510f60cfa204d15",
+    "zip_is_sidecar": true
+   },
+   "dist/Miranda_Romance_over_Sydney.zip": {
+    "bytes": 6805744,
+    "sha256": "8eb937a3a97135f1731cbcbe8f37dbd0c4f8af4369e7673897d7708b95a3597d",
+    "zip_is_sidecar": true
+   },
+   "dist/lawson_las.zip": {
+    "bytes": 9123392,
+    "sha256": "9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2",
+    "zip_is_sidecar": true,
+    "runtime_verified": false
+   },
+   "build/pd2-las/Miranda_Busty_LAS.zip": {
+    "bytes": 6321140,
+    "sha256": "d8856d8d0f581c5e0cc7e12af132f373f1fb1952f530418ba4abde05a166e9cb",
+    "zip_is_sidecar": true,
+    "runtime_verified": false
+   },
+   "build/pd2-las/Miranda_LAS.zip": {
+    "bytes": 5919822,
+    "sha256": "b7fe6b08c31f439dd3628bf82935b5e3e210f3639c239e8fc35572b7bfece002",
+    "zip_is_sidecar": true,
+    "runtime_verified": false
+   }
+  }
+ }
+}

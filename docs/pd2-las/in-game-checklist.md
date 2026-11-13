@@ -99,20 +99,13 @@ levels are there for motion, and only the game shows motion.
 15. `hide_mask` / `hide_armor` / `replace_all` / `fps_hide_armor` /
     `fps_replace_body` flags behave as with 2B.
 
-## Release gate (not a bug)
-
-16. Mass Effect 2 asset redistribution rights — the textures/geometry are
-    converted from the L4D2 Miranda mod, itself derived from ME2 assets.
-    Do not publish the pack publicly until that is resolved. Offline
-    testing by the pack owner is fine.
-
 ## Guide watch items (ModWorkshop LAS/MOOG guide)
 
-17. **Normal-map orientation** — PD2 expects OpenGL-style (Y+) normal maps;
+16. **Normal-map orientation** — PD2 expects OpenGL-style (Y+) normal maps;
     the L4D/Source normals should already match. If bumps light up inverted
     (creases look like ridges), flip the green channel of the `*_nm.texture`
     files (guide: "To format a DirectX-style normal map for PAYDAY 2").
-18. **Contour outline** — stand the character behind a wall: the four TPP
+17. **Contour outline** — stand the character behind a wall: the four TPP
     skin materials carry `CONTOUR` + contour variables per the guide, so a
     colored silhouette should show through geometry. No outline = the
     contour variables need different values.
