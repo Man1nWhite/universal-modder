@@ -1,0 +1,63 @@
+{
+ "commit": "62f919e9d841f204a9b0044791a69f64fd624bff",
+ "routes": "after",
+ "start": {
+  "Claude Code": {
+   "files": [
+    "AGENTS.md"
+   ],
+   "bytes": 4528,
+   "tokens": 1229
+  },
+  "Codex": {
+   "files": [
+    "AGENTS.md"
+   ],
+   "bytes": 4528,
+   "tokens": 1229
+  },
+  "Gemini CLI": {
+   "files": [
+    "GEMINI.md:import"
+   ],
+   "bytes": 4539,
+   "tokens": 1234
+  },
+  "Cursor (editor)": {
+   "files": [
+    "AGENTS.md"
+   ],
+   "bytes": 4528,
+   "tokens": 1229
+  },
+  "Cursor (CLI)": {
+   "files": [
+    "AGENTS.md"
+   ],
+   "bytes": 4528,
+   "tokens": 1229
+  },
+  "Copilot (VS Code, Local)": {
+   "files": [
+    "AGENTS.md"
+   ],
+   "bytes": 4528,
+   "tokens": 1229
+  },
+  "Copilot CLI": {
+   "files": [
+    "AGENTS.md",
+    "GEMINI.md"
+   ],
+   "bytes": 4539,
+   "tokens": 1234
+  },
+  "OpenCode": {
+   "files": [
+    "AGENTS.md"
+   ],
+   "bytes": 4528,
+   "tokens": 1229
+  }
+ }
+}

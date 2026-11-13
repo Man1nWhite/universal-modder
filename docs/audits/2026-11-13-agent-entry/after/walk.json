@@ -1,0 +1,184 @@
+{
+ "commit": "62f919e9d841f204a9b0044791a69f64fd624bff",
+ "routes": "after",
+ "walk": {
+  "T1 set up after a sandbox restart": {
+   "calls": 1,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 1944,
+   "tokens": 758,
+   "seconds": 13.2,
+   "answer_reached": {
+    "ready": true
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las env",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 13.2,
+     "bytes": 1944,
+     "tokens": 758
+    }
+   ]
+  },
+  "T2 state of all 14 packs": {
+   "calls": 1,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 1684,
+   "tokens": 680,
+   "seconds": 0.4,
+   "answer_reached": {
+    "4 pd2-las packs": true,
+    "lawson_las": true,
+    "9 head packs": true
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las status",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.4,
+     "bytes": 1684,
+     "tokens": 680
+    }
+   ]
+  },
+  "T3 is everything green": {
+   "calls": 1,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 1407,
+   "tokens": 432,
+   "seconds": 381.9,
+   "answer_reached": {
+    "suite": true,
+    "fresh": true,
+    "kb": true,
+    "publish": true,
+    "pyflakes": true,
+    "um help": true
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las green",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 381.9,
+     "bytes": 1407,
+     "tokens": 432
+    }
+   ]
+  },
+  "T4 rebuild one pack and prove its bytes": {
+   "calls": 1,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 161,
+   "tokens": 64,
+   "seconds": 17.6,
+   "answer_reached": {
+    "the rebuilt zip is the tracked one": true
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": "make -sC tools/pd2-las slim",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 17.6,
+     "bytes": 161,
+     "tokens": 64
+    }
+   ]
+  },
+  "T5 was the pack seen in game, and were those the tracked bytes": {
+   "calls": 1,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 16143,
+   "tokens": 4582,
+   "seconds": 0,
+   "answer_reached": {
+    "date": true,
+    "hash seen": true
+   },
+   "steps": [
+    {
+     "kind": "read",
+     "target": "docs/pd2-las/HANDOFF.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 16143,
+     "tokens": 4582
+    }
+   ]
+  },
+  "T6 what is open": {
+   "calls": 1,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 11845,
+   "tokens": 3266,
+   "seconds": 0,
+   "answer_reached": {
+    "in-game sign-off": true,
+    "sleeve defect": true,
+    "gloss": true,
+    "lawson_las": true,
+    "head packs": true
+   },
+   "steps": [
+    {
+     "kind": "read",
+     "target": "tools/pd2-las/README.md",
+     "pointed": true,
+     "exit": 0,
+     "seconds": 0.0,
+     "bytes": 11845,
+     "tokens": 3266
+    }
+   ]
+  },
+  "T7 which command rebuilds Geralt_over_Rust": {
+   "calls": 0,
+   "unpointed": 0,
+   "failed_calls": 0,
+   "bytes": 0,
+   "tokens": 0,
+   "seconds": 0,
+   "answer_reached": {
+    "command": true
+   },
+   "steps": []
+  },
+  "T8 a pack changed on purpose: make the suite pass again": {
+   "calls": 1,
+   "unpointed": 1,
+   "failed_calls": 0,
+   "bytes": 112,
+   "tokens": 20,
+   "seconds": 0.3,
+   "answer_reached": {
+    "the doc test passes": true
+   },
+   "steps": [
+    {
+     "kind": "run",
+     "target": ".venv/bin/python -m pytest -q tests/test_agent_docs.py -k quotes",
+     "pointed": false,
+     "exit": 0,
+     "seconds": 0.3,
+     "bytes": 112,
+     "tokens": 20
+    }
+   ]
+  }
+ }
+}

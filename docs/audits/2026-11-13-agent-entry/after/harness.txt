@@ -1,0 +1,14 @@
+tree: 62f919e 
+== Claude Code 2.1.323 (Claude Code): the session transcript's "Contents of" headers
+   AGENTS.md  (project instructions, checked into the codebase)  about 4528 B
+== Codex codex-cli 0.168.0: codex debug prompt-input
+   host_skills.instructions: 9121 B
+   agents_md.instructions: 4609 B, holds all of AGENTS.md
+== Gemini CLI 0.68.0: the MemoryDiscovery lines of --debug
+   Successfully read and processed imports: GEMINI.md (Length: 4584)
+== Copilot CLI GitHub Copilot CLI 1.0.110.: copilot instruction list
+   Repository instructions:
+     • AGENTS.md
+         from AGENTS.md
+     • GEMINI.md
+         from GEMINI.md
