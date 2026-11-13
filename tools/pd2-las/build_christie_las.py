@@ -3661,7 +3661,10 @@ def write_pack(out_root: Path, identity: Identity, tpp_model: bytes,
         },
         "models_present": True,
         "fps_available": with_fps,
-        "runtime_verified": True,   # base pack checked in game 2026-11-05
+        # False since 2026-11-13. It was True on the strength of the 2026-11-05 test of the base pack,
+        # in both packs and through every later rebuild: no bytes this builder tracks were ever in
+        # game. What a person saw, and of which bytes, is in docs/pd2-las/HANDOFF.md.
+        "runtime_verified": False,
         "payload_sha256": payload,
     }
     info.update(extra)

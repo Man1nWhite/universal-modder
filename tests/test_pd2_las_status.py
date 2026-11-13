@@ -105,18 +105,19 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
 
 
 def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch):
-    """`changed` is a zip that equals its sidecar and not the commit; `broken` one that does not equal its sidecar."""
+    """`changed` is a zip that equals its sidecar and not the commit; `broken` one that does not equal its sidecar.
+
+    It runs in a checkout of HEAD of its own and reads nothing from this one. It used to skip while this
+    checkout's pack was rebuilt and not committed: the skip budget has no room for that reason, so `green`
+    failed in the one state where `status` names it as the next command.
+    """
     if not (REPO / ".git").exists() or not shutil.which("git"):
         pytest.skip("needs the git checkout")
     status = _load()
     name = "Christie_LAS_Slim"
-    if status.collect(only=[name])["packs"][name]["is"] != "tracked":
-        pytest.skip(f"{name} is not the tracked zip in this checkout")
     clone = tmp_path / "clone"
     subprocess.run(["git", "worktree", "add", "--detach", str(clone), "HEAD"], cwd=REPO, check=True, capture_output=True)
     try:
-        for rel in (f"dist/{name}.zip", f"dist/{name}.zip.sha256"):
-            shutil.copy2(REPO / rel, clone / rel)
         monkeypatch.setattr(status, "REPO", clone)
         assert status.collect(only=[name])["packs"][name]["is"] == "tracked"
         with open(clone / "dist" / f"{name}.zip", "ab") as handle:

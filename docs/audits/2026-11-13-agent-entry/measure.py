@@ -9,6 +9,7 @@
     python3 measure.py lines --tree T --base COMMIT   README.md and AGENTS.md, line by line: upstream's or ours
     python3 measure.py ledger --tree T                every line removed since 19ca55a: dropped, or moved to <file>
     python3 measure.py change --tree T                T8's starting point: the slim pack changed on purpose
+    python3 measure.py packs --tree T --old COMMIT    each tracked zip of COMMIT against T's: the members that differ
 
 T is a checkout of the commit to measure. `walk` builds packs, deletes dist/ and edits docs in T, so give it
 a scratch worktree, never the checkout you work in:
@@ -479,18 +480,54 @@ def ledger(tree: Path, base: str) -> list[list]:
     return rows
 
 
+# --------------------------------------------------------------------------- what a rebuild changed in a pack
+
+def packs(tree: Path, old: str) -> list[str]:
+    """Every tracked zip as COMMIT holds it against the file in T: which members differ, and in JSON which keys."""
+    def fields(z):
+        return [(i.filename, i.date_time, i.compress_type, i.external_attr, i.create_system, i.flag_bits, i.extra, i.comment)
+                for i in z.infolist()]
+
+    out = []
+    for rel in tracked(tree, "dist/*.zip", "build/pd2-las/*.zip"):
+        if sh(f"git rev-parse {old}:'{rel}'", tree)[1].strip() == sh(f"git hash-object '{rel}'", tree)[1].strip():
+            continue
+        was = subprocess.run(["git", "show", f"{old}:{rel}"], cwd=tree, capture_output=True, check=True).stdout
+        now = (tree / rel).read_bytes()
+        a, b = zipfile.ZipFile(io.BytesIO(was)), zipfile.ZipFile(io.BytesIO(now))
+        out.append(f"{rel}: {len(was):,} B {hashlib.sha256(was).hexdigest()[:8]}… -> {len(now):,} B "
+                   f"{hashlib.sha256(now).hexdigest()[:8]}…; {len(a.infolist())} -> {len(b.infolist())} members, "
+                   + ("the same names, order and zip fields" if fields(a) == fields(b) else "OTHER names, order or zip fields"))
+        for name in sorted(set(a.namelist()) | set(b.namelist())):
+            x = a.read(name) if name in a.namelist() else None
+            y = b.read(name) if name in b.namelist() else None
+            if x == y:
+                continue
+            if x is None or y is None:
+                out.append(f"   {name}: in one of the two only")
+                continue
+            line = f"   {name}: {len(x):,} -> {len(y):,} B"
+            if name.endswith(".json"):
+                p, q = json.loads(x), json.loads(y)
+                line += "; keys that differ: " + ", ".join(
+                    f"{k} {json.dumps(p.get(k))} -> {json.dumps(q.get(k))}" for k in sorted(set(p) | set(q)) if p.get(k) != q.get(k))
+            out.append(line)
+    return out or [f"every tracked zip is what {old} holds"]
+
+
 def tsv(rows: list[list]) -> str:
     return "".join("\t".join(str(cell) for cell in row) + "\n" for row in rows)
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["key", "walk", "start", "facts", "graph", "lines", "ledger", "change"])
+    ap.add_argument("command", choices=["key", "walk", "start", "facts", "graph", "lines", "ledger", "change", "packs"])
     ap.add_argument("--tree", type=Path, required=True)
     ap.add_argument("--routes", default="before")
     ap.add_argument("--base", default="23902ef42e8ea9b077bfbbf6911eb8ea0348e55a", help="lines: the merge base with upstream")
     ap.add_argument("--ledger-base", default="19ca55adb9bc31842b0c89de55d49e09d0566274", help="ledger: the commit before the change")
     ap.add_argument("--only", default="", help="walk: the tasks to run, by number: T4,T5")
+    ap.add_argument("--old", default="HEAD", help="packs: the commit whose zips T's are compared with")
     ap.add_argument("--out", type=Path)
     args = ap.parse_args()
     tree = args.tree.resolve()
@@ -500,7 +537,9 @@ def main() -> int:
         mutate(tree)
         return 0
     commit = sh("git rev-parse HEAD", tree)[1].strip()
-    if args.command in ("facts", "graph", "lines", "ledger"):
+    if args.command == "packs":
+        text = "\n".join(packs(tree, args.old)) + "\n"
+    elif args.command in ("facts", "graph", "lines", "ledger"):
         text = tsv({"facts": facts, "graph": graph}[args.command](tree) if args.command in ("facts", "graph")
                    else lines(tree, args.base) if args.command == "lines" else ledger(tree, args.ledger_base))
     else:

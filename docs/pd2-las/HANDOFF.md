@@ -31,15 +31,16 @@ fixes and where the guarantee ends are in
 What a person has reported from the game, by date. Only the user has run the game; the screenshots are the
 user's, and "no record" means that nothing in the repository says anyone looked.
 
-`runtime_verified` in a pack's `BUILD_INFO.json` is a constant its builder writes: `false` in both Miranda
-packs, `true` in both Christie packs on the strength of the 2026-11-05 test of the base pack. It does not say
-that the tracked bytes were in game. This table does.
+`runtime_verified` in a pack's `BUILD_INFO.json` is a constant its builder writes, and it is `false` in every
+pack that has one. Until 2026-11-13 both Christie packs said `true`, on the strength of the 2026-11-05 test of
+the base pack and through every rebuild after it. The flag does not say whether the tracked bytes were in
+game. This table does.
 
 | Pack | Last seen in game | Were those the tracked bytes? |
 | --- | --- | --- |
 | `Miranda_LAS`, `Miranda_Busty_LAS` | no record | — |
 | `Christie_LAS` | 2026-11-05, tested by the user: the headless outfit shows the heister's own head; the texture gloss was fixed by attenuating the diffuse alpha | no: the tracked zip comes from the later elbow, seam and normal rounds, and the record has no later sighting of the base pack |
-| `Christie_LAS_Slim` | 2026-11-10, eight screenshots from the user | no: rebuilt on 2026-11-12 (tangent frames, the order of two triangles, `BUILD_INFO.json`); the screenshots show `7a4d010c…90a3e6f` |
+| `Christie_LAS_Slim` | 2026-11-10, eight screenshots from the user | no: rebuilt on 2026-11-12 (tangent frames, the order of two triangles, `BUILD_INFO.json`) and on 2026-11-13 (one flag in `BUILD_INFO.json`); the screenshots show `7a4d010c…90a3e6f` |
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
@@ -59,6 +60,15 @@ that the tracked bytes were in game. This table does.
   `docs/audits/2026-11-07-christie-slim-diagnosis.md` §10.4.
 
 ## How the tracked bytes came about
+
+### The rebuild of 2026-11-13
+
+Both Christie packs, for one line: `"runtime_verified"` in `BUILD_INFO.json` went from `true` to `false`
+(above; [`DECISIONS.md`](DECISIONS.md), D31). Every other member of both zips is byte for byte what it was,
+under the same names, in the same order, with the same zip fields:
+[`christie-packs.txt`](../audits/2026-11-13-agent-entry/fixes/christie-packs.txt). Before: `Christie_LAS`
+`1b486c42…`, `Christie_LAS_Slim` `79529a56…`. The slim zip kept its size to the byte, so only the hash tells
+the two apart.
 
 ### The rebuild of 2026-11-12
 

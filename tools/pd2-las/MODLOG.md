@@ -618,3 +618,20 @@
   tests that run a pack's Lua in an interpreter skip after `make env` and in
   CI, for want of lupa.
 - `copies.py` holds the evidence: `record`, `compare`, `after`.
+
+## 2026-11-13 — one command per question; the Christie packs stop saying they were in game
+
+- The record is `docs/audits/2026-11-13-agent-entry.md`; the decisions are D30 and D31.
+- `status` covers all 14 packs and says `tracked`, `changed`, `broken` or `missing` against the commit. It
+  said `sha256_ok`, against a sidecar the builder had just written. `env` restores only what is missing and
+  ends with the status. `green` is `check_all.py --full`. `lawson` and `heads` are new targets.
+- `AGENTS.md` is the one instruction file and has no copies. No document quotes a pack's size or sha256, so
+  a rebuilt pack needs none edited. The entries above that name `CLAUDE.md`, `GEMINI.md` as a copy, or
+  `test_handoff_and_agents_quote_the_tracked_pack_bytes` describe what was there until this day.
+- **Two packs re-shipped:** `Christie_LAS` and `Christie_LAS_Slim`, for `"runtime_verified": false`. One
+  line of `BUILD_INFO.json` in each; every other member is byte for byte what it was
+  (`docs/audits/2026-11-13-agent-entry/fixes/christie-packs.txt`). Before: `1b486c42…` and `79529a56…`.
+- **Found on the way:** `test_status_tells_a_rebuilt_pack_from_the_tracked_one` skipped while a pack was
+  rebuilt and not committed. The skip budget has no room for that reason, so `green` failed in the one state
+  where `status` names it as the next command. The test now runs in a checkout of its own.
+- Validation, with both packs changed and not committed: `make -sC tools/pd2-las green`, all 13 stages.

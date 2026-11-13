@@ -491,7 +491,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `tests/test_las_pack.py::test_handoff_and_agents_quote_the_tracked_pack_bytes`
   for the handoff's table (every tracked zip, each with its own size and
   sha256)
-- **Status:** holds.
+- **Status:** superseded in part by D30 (2026-11-13): `AGENTS.md` has no copies, `HANDOFF.md` no longer
+  quotes the tracked bytes, and the second test named above is gone. The rest holds.
 
 ### D23 — A unit's `.object` is written from the model beside it
 
@@ -700,4 +701,40 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** the hashes gave the same value on 20,261 inputs. The readers do not agree: `dmodel` does not undo the legacy shift of channel types and misreads 471 of 826 legacy geometry sections, while `diesel_model` cannot read the DODB container or the packed channels of `lawson_las`. One reader would change what `dmodel` returns, which is a fix and belongs in a change of its own.
 - **Rejected:** merging the readers in the same change; merging the two writers of the DDS header (they agree on every tracked texture, and were the fourth job where three were allowed).
 - **Source:** `docs/audits/2026-11-12-tool-merge.md`; `tests/test_one_implementation.py`
+- **Status:** holds.
+
+### D30 — One command per question, one instruction file, and no figure in a document that a command prints
+
+- **Decided:** 2026-11-13
+- **Decision:** `make -sC tools/pd2-las status` reports all 14 packs, each as `tracked`, `changed`, `broken`
+  or `missing` against the commit. `env` puts back tracked files that are missing and ends with that status.
+  `green` runs every check of the `test` workflow. A build target prints the state of what it wrote.
+  `AGENTS.md` is the one instruction file: its table gives one command per question, `GEMINI.md` is the line
+  that imports it, and there is no `CLAUDE.md`. No agent document quotes a size, a sha256 or a test count.
+- **Why:** on eight ordinary questions the documents led to 26 calls and 114,895 bytes, and to 7 and 34,658
+  afterwards. `status` reported four packs and `sha256_ok`, which compared a zip with a sidecar its own
+  builder had just written. The instruction file was written three times, and the harnesses that read
+  `CLAUDE.md` as well as `AGENTS.md` loaded it twice. Each rebuild meant editing four documents, under a test
+  that required it.
+- **Rejected:** a `CLAUDE.md` that imports `AGENTS.md` (Cursor's CLI, VS Code and Copilot CLI read both);
+  writing lawson's `.sha256` from its make target (it is the one sidecar no builder writes, so the one whose
+  check means something).
+- **Source:** `docs/audits/2026-11-13-agent-entry.md`; `tests/test_agent_docs.py`,
+  `tests/test_pd2_las_status.py`
+- **Status:** holds. Supersedes D22 where it kept two copies of `AGENTS.md` and the tracked bytes in
+  `HANDOFF.md`.
+
+### D31 — `runtime_verified` is `false` in every pack
+
+- **Decided:** 2026-11-13, by the user
+- **Decision:** `build_christie_las.py` writes `"runtime_verified": false`, as the other builders do. Both
+  Christie packs were rebuilt for it: one line of `BUILD_INFO.json` in each, every other member byte for
+  byte the same.
+- **Why:** the flag said `true` from the 2026-11-05 test of the base pack on, in both packs and through every
+  rebuild after it, while `HANDOFF.md` recorded that no tracked bytes of either pack had been in game. A
+  constant cannot follow what a person saw; the handoff's table does.
+- **Rejected:** leaving the flag and saying so in `HANDOFF.md` (done on 2026-11-11; the pack went on saying
+  the opposite of the record).
+- **Source:** the user, asked on 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`;
+  `tests/test_christie_las.py`
 - **Status:** holds.

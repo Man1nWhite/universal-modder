@@ -268,7 +268,9 @@ class TestPack:
     def test_build_info_runtime_flag(self, which):
         _, pack_dir, _item, _g = PACKS[which]
         info = json.loads(_zf(which).read(f"{pack_dir}/BUILD_INFO.json"))
-        assert info["runtime_verified"] is True   # in-game check 2026-11-05
+        # The flag is a builder constant. It said True from the 2026-11-05 test of the base pack on,
+        # through rebuilds nobody saw in game; docs/pd2-las/HANDOFF.md has what was seen, by date.
+        assert info["runtime_verified"] is False
 
     def test_arm_loop_balance_no_one_sided_mouth(self, which, tmp_path):
         """Adapter pack must not ship a one-sided arm opening.
