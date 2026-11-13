@@ -13,6 +13,7 @@ import importlib
 import importlib.util
 import json
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -151,6 +152,37 @@ def test_the_pins_are_written_once():
             assert "-c tools/pd2-las/pins.txt" in line, f"{rel} installs a pinned package without pins.txt: {line}"
         for name in pins:
             assert f"{name}==" not in text, f"{rel} writes a version of {name} of its own"
+
+
+def test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs():
+    """The suite imports scipy, and the release workflow ran the suite without installing it.
+
+    `lawson LAS pack` failed in its `tests` step on every run from 2026-11-12 on, and would
+    have on a release tag: no release could be published. The `test` workflow runs on every
+    push, so its install line is known to carry the suite. Any other workflow that runs
+    pytest has to install at least those packages.
+    """
+    yaml = pytest.importorskip("yaml")
+
+    def lines(path: Path) -> list[str]:
+        jobs = yaml.safe_load(path.read_text())["jobs"].values()
+        return [line.strip() for job in jobs for step in job["steps"] for line in str(step.get("run", "")).splitlines()]
+
+    def installed(line: str) -> set[str]:
+        words, names = shlex.split(line.split("pip install", 1)[1].split("&&")[0]), set()
+        for before, word in zip([""] + words, words):
+            if not word.startswith("-") and before not in ("-c", "-r"):
+                names.add(re.split(r"[<>=!~\[]", word, maxsplit=1)[0].lower())
+        return names
+
+    workflows = REPO / ".github" / "workflows"
+    reference = [installed(line) for line in lines(workflows / "test.yml") if "pip install" in line and "pytest" in line]
+    assert len(reference) == 1 and {"pytest", "scipy"} <= reference[0], reference
+    runs_the_suite = [path for path in sorted(workflows.glob("*.yml")) if any("-m pytest" in line for line in lines(path))]
+    assert [path.name for path in runs_the_suite] == ["lawson-las.yml", "test.yml"], runs_the_suite
+    for path in runs_the_suite:
+        has = set().union(*(installed(line) for line in lines(path) if "pip install" in line))
+        assert reference[0] <= has, f"{path.name} runs the suite without installing {sorted(reference[0] - has)}"
 
 
 def test_status_only_names_inputs_and_targets_that_exist():
