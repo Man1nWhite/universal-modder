@@ -1,0 +1,1153 @@
+{
+ "base": "26fce3e03de22d1466636d4b22764601f0541f02",
+ "build": "16 of 16 tracked zips are the tracked bytes after a fresh build",
+ "jobs": {
+  "read": {
+   ".dae": {
+    "build_joy_head_mods.build_l4d2_joy_mod": [
+     "build_joy_head_mods.py"
+    ],
+    "build_joy_head_mods.build_me2_romance_joy_mod": [
+     "build_joy_head_mods.py"
+    ]
+   },
+   ".lua": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "publish.check": [
+     "um_publish_check"
+    ]
+   },
+   ".material_config": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods.build_l4d2_joy_mod": [
+     "build_joy_head_mods.py"
+    ],
+    "build_joy_head_mods.build_me2_romance_joy_mod": [
+     "build_joy_head_mods.py"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".model": {
+    "audit_metrics._model_bytes": [
+     "audit_metrics"
+    ],
+    "build_busty_variant.<dictcomp>": [
+     "build_busty_variant.py"
+    ],
+    "build_busty_variant._load_base_model_bytes": [
+     "build_busty_variant.py"
+    ],
+    "build_busty_variant._render_sheets": [
+     "build_busty_variant.py"
+    ],
+    "build_busty_variant.build": [
+     "build_busty_variant.py"
+    ],
+    "build_christie_las.main": [
+     "build_christie_las.py"
+    ],
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods.patch_joy_model": [
+     "build_joy_head_mods.py"
+    ],
+    "build_models.<dictcomp>": [
+     "build_models.py"
+    ],
+    "diesel_model.read_path": [
+     "build_busty_variant.py",
+     "build_christie_las.py",
+     "build_models.py",
+     "elbow_before_after",
+     "glove_check",
+     "pose_preview",
+     "preview_textured",
+     "render_mesh_skeleton",
+     "uv_check"
+    ],
+    "dmodel.__init__": [
+     "build_las_pack.py",
+     "check_guide_compliance",
+     "check_guide_compliance_christie",
+     "check_guide_compliance_miranda",
+     "check_guide_compliance_self_test",
+     "check_test_suite_mutations",
+     "extract_las_rig",
+     "preview_check"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.install_models": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".object": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".sha256": {
+    "status.pack_status": [
+     "status"
+    ]
+   },
+   ".texture": {
+    "build_busty_variant.<dictcomp>": [
+     "build_busty_variant.py"
+    ],
+    "build_busty_variant._render_sheets": [
+     "build_busty_variant.py"
+    ],
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods.make_character_icon_dds": [
+     "build_joy_head_mods.py"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "uv_check._tex": [
+     "uv_check"
+    ]
+   },
+   ".unit": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".vtf": {
+    "build_joy_head_mods.load_vtf_rgba": [
+     "build_joy_head_mods.py"
+    ]
+   },
+   ".zip": {
+    "-": [
+     "check_test_suite_mutations"
+    ],
+    "audit_metrics._model_bytes": [
+     "audit_metrics",
+     "neck_junction"
+    ],
+    "build_busty_variant.build": [
+     "build_busty_variant.py"
+    ],
+    "build_christie_las.main": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods._emit_female_heister_packages": [
+     "build_joy_head_mods.py"
+    ],
+    "build_joy_head_mods.build_geralt_rust_mod": [
+     "build_joy_head_mods.py"
+    ],
+    "build_joy_head_mods.build_l4d2_joy_mod": [
+     "build_joy_head_mods.py"
+    ],
+    "build_joy_head_mods.build_me2_romance_joy_mod": [
+     "build_joy_head_mods.py"
+    ],
+    "build_joy_head_mods.ensure_me2_extracted": [
+     "build_joy_head_mods.py"
+    ],
+    "build_las.sha256_file": [
+     "build_busty_variant.py",
+     "build_models.py",
+     "inventory"
+    ],
+    "build_las_pack.load_source": [
+     "build_las_pack.py",
+     "check_nm_convention",
+     "preview_check"
+    ],
+    "build_las_pack.main": [
+     "build_las_pack.py"
+    ],
+    "build_models.main": [
+     "build_models.py"
+    ],
+    "check_guide_compliance.audit": [
+     "check_guide_compliance",
+     "check_guide_compliance_christie",
+     "check_guide_compliance_miranda",
+     "check_guide_compliance_self_test",
+     "check_test_suite_mutations"
+    ],
+    "check_guide_compliance_self_test.read_pack": [
+     "check_guide_compliance_self_test"
+    ],
+    "check_mesh_geometry.main": [
+     "check_mesh_geometry",
+     "check_mesh_geometry_christie",
+     "check_mesh_geometry_miranda"
+    ],
+    "check_test_suite_mutations._read": [
+     "check_test_suite_mutations"
+    ],
+    "check_test_suite_mutations.main": [
+     "check_test_suite_mutations"
+    ],
+    "diagnose_mesh.load": [
+     "diagnose_mesh"
+    ],
+    "elbow_before_after.load_pack": [
+     "elbow_before_after"
+    ],
+    "mip_audit.__init__": [
+     "mip_audit"
+    ],
+    "mip_audit.report": [
+     "mip_audit"
+    ],
+    "neck_junction._head_mesh": [
+     "neck_junction"
+    ],
+    "render_mesh_skeleton.main": [
+     "render_mesh_skeleton"
+    ],
+    "render_mod_previews.load_las_variant_parts": [
+     "render_mod_previews"
+    ],
+    "render_mod_previews.load_lawson_las_parts": [
+     "render_mod_previews"
+    ],
+    "render_mod_previews.render_heister_head_sheet": [
+     "render_mod_previews"
+    ],
+    "status.pack_status": [
+     "status"
+    ],
+    "vpk.from_zip": [
+     "build_busty_variant.py",
+     "build_models.py",
+     "inventory",
+     "mip_audit"
+    ]
+   },
+   "BUILD_INFO.json": {
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   "english.txt": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   "main.xml": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   }
+  },
+  "write": {
+   ".dae": {
+    "build_joy_head_mods.ensure_me2_extracted": [
+     "build_joy_head_mods.py"
+    ]
+   },
+   ".lua": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".material_config": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods.ensure_ada_reference": [
+     "build_joy_head_mods.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".model": {
+    "build_busty_variant.build": [
+     "build_busty_variant.py"
+    ],
+    "build_christie_las.main": [
+     "build_christie_las.py"
+    ],
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods.ensure_ada_reference": [
+     "build_joy_head_mods.py"
+    ],
+    "build_las_pack.validate": [
+     "build_las_pack.py"
+    ],
+    "build_models.main": [
+     "build_models.py"
+    ],
+    "check_guide_compliance.audit": [
+     "check_guide_compliance",
+     "check_guide_compliance_christie",
+     "check_guide_compliance_miranda",
+     "check_guide_compliance_self_test",
+     "check_test_suite_mutations"
+    ],
+    "las_pack.install_models": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".object": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.install_models": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".sha256": {
+    "build_busty_variant.build": [
+     "build_busty_variant.py"
+    ],
+    "build_christie_las.main": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods.write_deterministic_zip": [
+     "build_joy_head_mods.py"
+    ],
+    "build_models.main": [
+     "build_models.py"
+    ]
+   },
+   ".texture": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "build_joy_head_mods.ensure_ada_reference": [
+     "build_joy_head_mods.py"
+    ],
+    "build_las.main": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".unit": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   ".vtf": {
+    "build_joy_head_mods.ensure_geralt_extracted": [
+     "build_joy_head_mods.py"
+    ],
+    "vpk.extract": [
+     "build_models.py"
+    ]
+   },
+   ".zip": {
+    "build_busty_variant.build": [
+     "build_busty_variant.py"
+    ],
+    "build_joy_head_mods.write_deterministic_zip": [
+     "build_joy_head_mods.py"
+    ],
+    "build_models.main": [
+     "build_models.py"
+    ],
+    "check_guide_compliance_self_test.audit_pack": [
+     "check_guide_compliance_self_test"
+    ],
+    "check_test_suite_mutations._write": [
+     "check_test_suite_mutations"
+    ],
+    "check_test_suite_mutations.main": [
+     "check_test_suite_mutations"
+    ],
+    "las_outfit_pack.zip_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.zip_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   "BUILD_INFO.json": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.refresh_build_info": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   "english.txt": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   },
+   "main.xml": {
+    "build_christie_las.write_pack": [
+     "build_christie_las.py"
+    ],
+    "las_pack.write_pack": [
+     "build_busty_variant.py",
+     "build_models.py"
+    ]
+   }
+  }
+ },
+ "lint": {
+  "blocks": 18,
+  "files": 67,
+  "largest": [
+   {
+    "files": [
+     "build_joy_head_mods",
+     "build_las_pack"
+    ],
+    "lines": 26
+   },
+   {
+    "files": [
+     "build_christie_las",
+     "build_models"
+    ],
+    "lines": 24
+   },
+   {
+    "files": [
+     "build_joy_head_mods",
+     "build_las_pack"
+    ],
+    "lines": 14
+   },
+   {
+    "files": [
+     "build_christie_las",
+     "las_outfit_pack"
+    ],
+    "lines": 14
+   },
+   {
+    "files": [
+     "build_joy_head_mods",
+     "build_las_pack"
+    ],
+    "lines": 13
+   },
+   {
+    "files": [
+     "build_christie_las",
+     "build_models"
+    ],
+    "lines": 12
+   },
+   {
+    "files": [
+     "check_guide_compliance_self_test",
+     "check_test_suite_mutations"
+    ],
+    "lines": 12
+   },
+   {
+    "files": [
+     "build_joy_head_mods",
+     "build_las_pack"
+    ],
+    "lines": 12
+   },
+   {
+    "files": [
+     "build_christie_las",
+     "build_models"
+    ],
+    "lines": 11
+   },
+   {
+    "files": [
+     "build_christie_las",
+     "source_model"
+    ],
+    "lines": 11
+   },
+   {
+    "files": [
+     "build_las",
+     "build_models"
+    ],
+    "lines": 10
+   },
+   {
+    "files": [
+     "build_models",
+     "render_mesh_skeleton"
+    ],
+    "lines": 10
+   }
+  ],
+  "lines": 218,
+  "tool": "pylint 4.1.3"
+ },
+ "outputs": {
+  "audit_metrics": {
+   "lines": 7,
+   "printed": "ae36e002ba215ee348e596bec8d9445f61acf2a70266ed529d14d746272580dd",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "build_skyrim_outfit": {
+   "lines": 11,
+   "printed": "daec73cb2c2504194e43b0dfbb9b294dc4d14e6ab9be996375b10417822e773d",
+   "rc": 2,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_guide_compliance": {
+   "lines": 123,
+   "printed": "fdb7763e1b3282c3f9779f1b319919344f880d5336b0c380b333648f22fb7c84",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_guide_compliance_christie": {
+   "lines": 26,
+   "printed": "9cd8a63306552f4d5e76a7b6b93cf89efb31826477b9a9f43858db409f6e7eb7",
+   "rc": 1,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_guide_compliance_miranda": {
+   "lines": 26,
+   "printed": "9cd8a63306552f4d5e76a7b6b93cf89efb31826477b9a9f43858db409f6e7eb7",
+   "rc": 1,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_guide_compliance_self_test": {
+   "lines": 22,
+   "printed": "5579737074bb926efb4cd8ca4084edf63d492f633ff7a8479c4319cd82c26af8",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_mesh_geometry": {
+   "lines": 15,
+   "printed": "93c6b952b14e6bfec1acf908e6c41850f77b518c2dd30f33ff1305f1e033c0d7",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_mesh_geometry_christie": {
+   "lines": 18,
+   "printed": "c07f5f502c66f474176af3eaed15349df5fb8d44c9ebb1d6d516ca068aaef75e",
+   "rc": 1,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_mesh_geometry_miranda": {
+   "lines": 18,
+   "printed": "c07f5f502c66f474176af3eaed15349df5fb8d44c9ebb1d6d516ca068aaef75e",
+   "rc": 1,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_nm_convention": {
+   "lines": 36,
+   "printed": "28b462ac6d04b2b9c853ae21a78c1cc960ce461792e530eedfd9f587b5403681",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "check_test_suite_mutations": {
+   "lines": 9,
+   "printed": "1cbc9176c4addb4f9a26e868ea0db19f5fa4e82e339eeea446e38300f1f4850f",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<tree>/dist/lawson_las.zip": "9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2"
+   }
+  },
+  "diagnose_mesh": {
+   "lines": 35,
+   "printed": "42ac766139a55988aeb25984184f71840be9cd201a4fba577dcb807129b37276",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "elbow_before_after": {
+   "lines": 12,
+   "printed": "9b12e8614b9192d44b2668e03cdd16441c90bd80b23b38ce1634fcaff7ded535",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<scratch>/elbow/christie_elbow_bend_before_after.png": "5e9f20c4929a705011c2cf3d6d5ba840cad7e07713ffbfb5d13ce9f95c98e167",
+    "<scratch>/panels/christie_r0_after.png": "d0f4959c0bda42249122a59615796979d3da18a0ab9cfe354a46944d41f2dbce",
+    "<scratch>/panels/christie_r0_before.png": "d0f4959c0bda42249122a59615796979d3da18a0ab9cfe354a46944d41f2dbce",
+    "<scratch>/panels/christie_r1_after.png": "8d6a6ca125fa2b44b11a2458495d009e0b4c233996167bdb77395d69778c9d58",
+    "<scratch>/panels/christie_r1_before.png": "8d6a6ca125fa2b44b11a2458495d009e0b4c233996167bdb77395d69778c9d58",
+    "<scratch>/panels/christie_r2_after.png": "0b4aa4464a25d9bfd2fa26f3d0892d07fb82aef54b7008909cfe52a5c4a0c3e5",
+    "<scratch>/panels/christie_r2_before.png": "0b4aa4464a25d9bfd2fa26f3d0892d07fb82aef54b7008909cfe52a5c4a0c3e5"
+   }
+  },
+  "extract_2b": {
+   "lines": 3,
+   "printed": "383f5f21efd9cf835e7f95df27565b4fc828ad0bd91fede1a2373bae2aa1709e",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "extract_las_rig": {
+   "lines": 3,
+   "printed": "6bba0ae3ad418b6d1ae02c5d9a864df2a307095d019608ce936f4e5b8cac5264",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<scratch>/rig.json": "914313c3c5edc3054682ef0001b16a719802168a92583b10c184e60ae6af40e2"
+   }
+  },
+  "glove_check": {
+   "lines": 3,
+   "printed": "7ac9902a6ae58226204e8dc6127d1493606c0040d75715c6e0a6e6f6e82113fe",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<scratch>/glove.png": "494c964943116165c81e2985225e59edfd8466d7dd4b93e439c8ae8d1421311a"
+   }
+  },
+  "inventory": {
+   "lines": 320,
+   "printed": "4ea79ed3e7a422966ea15a9a1bed979085039007482d625734824d28f426a224",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<tree>/tools/pd2-las/source_inventory.json": "19e4d701f0f9d3976ab5c7a5e91df45ba48b3ce94533c3b85a252e0216aa00f5"
+   }
+  },
+  "mip_audit": {
+   "lines": 97,
+   "printed": "1cc9d66514532e5f7ddec97c1cf88dcd63dd943ebc7931d55c8f42af4f14eab5",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "neck_junction": {
+   "lines": 34,
+   "printed": "ebd28578eb804cba619c2082e9ea428fcec9f99b58299bf13a0b87b46fc17cbb",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "pose_preview": {
+   "lines": 15,
+   "printed": "d9b12e874b49b786f956346b4141ad800f787aebde419c50eeffaa8a16289da1",
+   "rc": 1,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "preview_check": {
+   "lines": 74,
+   "printed": "c9ae6b81e372bb6cf138dd826efe16b57006180faccab69b8199ecb50958dbab",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "preview_textured": {
+   "lines": 9,
+   "printed": "dd0f0aae618e17b784eff0398f499d430f28b1e07177b10d2a10c7c66cfc8a12",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<scratch>/textured.png": "12fc0c94b58d563e448ed339a935544f35a846937b105a4d70733d1e908e3db2"
+   }
+  },
+  "render_mesh_skeleton": {
+   "lines": 12,
+   "printed": "d75f8a2eaa84d75ea10d87d27a830e053acca77e505f463ae1d379a7334fd27f",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<scratch>/skeleton/christie_forearm_front.png": "a9a29a799e48d0c5572b5cbf8c37cb1d3ab20c47acf7c33a9c294ae11a281566",
+    "<scratch>/skeleton/christie_forearm_side.png": "8539fb6d19ea86e9ec84b76654472bb8578e71ddf43441ce5fd12f3314256dcd",
+    "<scratch>/skeleton/christie_skel_bottom.png": "93de7ce0b5cc699096923390cc3728ba9621c6c4a94feb776a9afc971382b14f",
+    "<scratch>/skeleton/christie_skel_cuff.png": "adc119e65b05c70524e1d8b2c8597ce1c94c0db87e7bf7189ef3c11fa53c532a",
+    "<scratch>/skeleton/christie_skel_front.png": "fe938ee094f8baf1d56985d51b383aa67117521f1bc64cf27582a61005d1ec13",
+    "<scratch>/skeleton/christie_skel_iso.png": "41c02df2cf80734ab958dfde237b94c84098dfefd2d9513866ed359698269a6f",
+    "<scratch>/skeleton/christie_skel_side.png": "db90317675c61259123457d6a82ef9f0de3832567880533ae43c9e08ea12ac05",
+    "<scratch>/skeleton/christie_skel_top.png": "47bf23d40b6aa9a679c0878f5f6eebda344217aaf31b95291ac4e791b0b6cf42",
+    "<scratch>/skeleton/christie_skel_wrist_front.png": "d61bc50f336b87b77fb78d4fa89f80e7b12c850b2d1b28601a4c139596bb26cb",
+    "<scratch>/skeleton/christie_skel_wrist_side.png": "47cd9bb21d45fcba983565a9e6de7e5fef30d3c55f5d84858a1226e45783df61"
+   }
+  },
+  "render_mod_previews": {
+   "lines": 17,
+   "printed": "7d56109df4f23f3479d992942ecc20d2abbe84f6561e72ee1c6433299225e6c9",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {
+    "<tree>/docs/previews/00_all_miranda_mods_overview.png": "519006f5a05f92e1e6438ec8ee7259f4d7f74f7cd2e0fec2912340d547157252",
+    "<tree>/docs/previews/01_Miranda_LAS.png": "4edd3541d468d9f942d88fcb7cd9f6efc3132c4898a387cc1c4fd41c6400d623",
+    "<tree>/docs/previews/02_lawson_las.png": "2db59f3b8c24ef0e8f980e11006ec50854cc7a406e00b2c9676c8d46346f3477",
+    "<tree>/docs/previews/03_Miranda_L4D2_over_Joy.png": "ee4157052dc36e0f3843e58ea741e43cc063fdcebeb670469d0359323a57bb89",
+    "<tree>/docs/previews/04_Miranda_Romance_over_Joy.png": "e02e21fb764315a1fec451bc09c5b0415beab826647b19bd47f581b67886636b",
+    "<tree>/docs/previews/05_Miranda_L4D2_over_Clover.png": "e312c2105d1465f086a14e59929c004cca1b8d7d4e42d481ddafc4fae40d869c",
+    "<tree>/docs/previews/06_Miranda_Romance_over_Clover.png": "a44622aa6ce4722fd6c107c9be617cd3384bf5d9fe00979884c265eadc10fefd",
+    "<tree>/docs/previews/07_Miranda_L4D2_over_Bonnie.png": "862265eff8eeb9b967f31a7b8f944e6d63ab208b77b554669993e8236b15f9ec",
+    "<tree>/docs/previews/08_Miranda_Romance_over_Bonnie.png": "70d3ceadefe811d9c6b32c4df99b6aa11ad6b47bc08360e9c2fefae01533238d",
+    "<tree>/docs/previews/09_Miranda_L4D2_over_Sydney.png": "39e3bdce44f0b9d55cbc049d24c99590b336ed5124e1bf75ae0aeca202d980ad",
+    "<tree>/docs/previews/10_Miranda_Romance_over_Sydney.png": "6449f35b4b8669c2c70d9c0d3d1f06f45055ff0579eff7476b5e118b652db268",
+    "<tree>/docs/previews/11_Geralt_over_Rust.png": "b25ccbde1e4ec86da908728cb95236f598ee8cf81f3c4fb9b1034bd9378a9e21",
+    "<tree>/docs/previews/12_Miranda_Busty_LAS.png": "87de4e418505fbbc7d2958ea64d3451f19316b99df31c560e528bb080458ec33",
+    "<tree>/docs/previews/13_Miranda_Busty_vs_LAS_chest.png": "af1e6b3d7ad4e2a5e7a7b3e4c43dd8b5f7a3bdeff906ae08aca8a9f2099ac1b8",
+    "<tree>/docs/previews/14_Miranda_Busty_vs_LAS_top_below.png": "b6233c4bde03b3b49591337500bc74272d1797b9dc1dfd9850a55adedbd32f06"
+   }
+  },
+  "resolve_rig_names": {
+   "lines": 4,
+   "printed": "33d2a23ac507db8458e96722ea75764b614d485b7f3e1558b577f97fc6e0ec59",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "skin_texture": {
+   "lines": 19,
+   "printed": "01b79b005fd93980fb7a0bc6f6eea6a3abc0d2dc21eb8cbcbc299b98406e38c8",
+   "rc": 1,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "status": {
+   "lines": 15,
+   "printed": "9918a9f54538548f167fb05816b6ae8bc6341245c91e7a3eaab7cd3a5f2c8a56",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "um_kb_check": {
+   "lines": 3,
+   "printed": "7006106c115d06056af3fde720602b3fec8d171f9b38b0871d1d691a19d3de95",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "um_publish_check": {
+   "lines": 5,
+   "printed": "c74eba2a71fc9f4375b678565b817dab5aeb55d526390b2dcb411b694f3ed818",
+   "rc": 0,
+   "unsteady_files": [],
+   "written": {}
+  },
+  "uv_check": {
+   "lines": 21,
+   "printed": "5de0c7a761e55f37d96ed524eb9b69ad1996ca4cafc57fc09af70f7f34824a20",
+   "rc": 1,
+   "unsteady_files": [],
+   "written": {
+    "<scratch>/uv.png/uvcheck_2b_g_body_front.png": "26ab4d782345ca5d88713be9429525762cda5a04cc7f88a0da1d9ac65430796e",
+    "<scratch>/uv.png/uvcheck_2b_g_body_iso.png": "7486d304b4d21778a856138b9463e23e5a00f55af1310287e20121f85bb83e42",
+    "<scratch>/uv.png/uvcheck_2b_g_head_front.png": "165f829d940e7f39d7cbc07079baba01bfbeb311f4e3377378f77cb06fd37c3a",
+    "<scratch>/uv.png/uvcheck_2b_g_head_iso.png": "5f0ce0ad123e681c236a7d6cbfe93cc020995c8f73ddf4a88f067bfef18b7721"
+   }
+  }
+ },
+ "reach": {
+  "tools/pd2-las/build_christie_las.py": {
+   "build": 84,
+   "functions": 84,
+   "neither": [],
+   "tests": 11,
+   "tests_only": []
+  },
+  "tools/pd2-las/dds_encode.py": {
+   "build": 20,
+   "functions": 23,
+   "neither": [
+    "attenuate_dxt5_alpha_by_block_mask",
+    "rgba_to_bgra_dds",
+    "set_dxt5_constant_alpha"
+   ],
+   "tests": 18,
+   "tests_only": []
+  },
+  "tools/pd2-las/diesel_model.py": {
+   "build": 34,
+   "functions": 38,
+   "neither": [
+    "compute_uv_directions",
+    "compute_uv_directions.norm",
+    "mat_apply_vec",
+    "mat_from_pos_rot_rows"
+   ],
+   "tests": 34,
+   "tests_only": []
+  },
+  "tools/pd2-las/las_outfit_pack.py": {
+   "build": 5,
+   "functions": 11,
+   "neither": [],
+   "tests": 11,
+   "tests_only": [
+    "_sha",
+    "render_glove_adapter_lua",
+    "render_hook_lua",
+    "render_localization",
+    "render_main_xml",
+    "write_pack"
+   ]
+  },
+  "tools/pd2-las/las_pack.py": {
+   "build": 18,
+   "functions": 19,
+   "neither": [
+    "PackIdentity.__repr__"
+   ],
+   "tests": 18,
+   "tests_only": []
+  },
+  "tools/pd2-port/build_las_pack.py": {
+   "build": 23,
+   "functions": 23,
+   "neither": [],
+   "tests": 20,
+   "tests_only": []
+  },
+  "tools/pd2-port/dds.py": {
+   "build": 17,
+   "functions": 22,
+   "neither": [
+    "_encode_block",
+    "_rgb565",
+    "repair_dxt5_texture"
+   ],
+   "tests": 19,
+   "tests_only": [
+    "_decode_block",
+    "_expand565"
+   ]
+  },
+  "tools/pd2-port/dmodel.py": {
+   "build": 25,
+   "functions": 36,
+   "neither": [
+    "BR.i32",
+    "BR.u16",
+    "Bones.parse",
+    "DieselGeometry.weights4",
+    "DieselModel.find_by_name",
+    "DieselModel.objects",
+    "DieselModel.world_rows",
+    "DieselModel.world_rows.walk",
+    "minv",
+    "mmul"
+   ],
+   "tests": 26,
+   "tests_only": [
+    "DieselModel.from_bytes"
+   ]
+  },
+  "tools/pd2-port/las_model.py": {
+   "build": 19,
+   "functions": 19,
+   "neither": [],
+   "tests": 19,
+   "tests_only": []
+  },
+  "tools/pd2-port/me2_dae.py": {
+   "build": 17,
+   "functions": 17,
+   "neither": [],
+   "tests": 17,
+   "tests_only": []
+  }
+ },
+ "suite": {
+  "rc": 1,
+  "skips": [
+   [
+    1,
+    "tests/test_glove_behavior_lua.py:36: lupa (LuaJIT) not installed"
+   ],
+   [
+    1,
+    "tests/test_encoding.py:72: needs ffmpeg"
+   ],
+   [
+    1,
+    "tests/test_fps_hands.py:161: pack not built in this checkout"
+   ],
+   [
+    1,
+    "tests/test_fps_hands.py:182: pack not built in this checkout"
+   ],
+   [
+    2,
+    "tests/test_fps_hands.py:205: pack not built in this checkout"
+   ],
+   [
+    1,
+    "tests/test_fps_hands.py:221: pack not built in this checkout"
+   ],
+   [
+    1,
+    "tests/test_glove_adapter.py:127: pack not built in this checkout"
+   ],
+   [
+    1,
+    "tests/test_glove_adapter.py:147: pack not built in this checkout"
+   ],
+   [
+    1,
+    "tests/test_gma.py:231: sourcepp is an optional extra"
+   ],
+   [
+    1,
+    "tests/test_inspect_textures.py:295: sourcepp is an optional extra"
+   ],
+   [
+    1,
+    "tests/test_skin_texture.py:145: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_fit.py:182: the Skyrim source archive was intentionally removed after cancellation"
+   ],
+   [
+    1,
+    "tests/test_skyrim_fit.py:189: the Skyrim source archive was intentionally removed after cancellation"
+   ],
+   [
+    2,
+    "tests/test_skyrim_nif.py:453: nifly not built: /home/user/universal-modder/tools/skyrim-nif/build/libniflywrap.so not found \u2014 run `bash tools/skyrim-nif/build_nifly.sh` first (or point NIFLY_WRAP at a built libniflywrap."
+   ],
+   [
+    1,
+    "tests/test_skyrim_nif.py:481: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:66: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:76: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:89: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:101: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:108: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:126: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:136: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_skyrim_retarget.py:157: 4.zip absent"
+   ],
+   [
+    1,
+    "tests/test_um.py:819: needs ffmpeg"
+   ],
+   [
+    1,
+    "tests/test_um.py:834: needs ffmpeg"
+   ],
+   [
+    1,
+    "tests/test_um.py:850: needs ffmpeg"
+   ],
+   [
+    1,
+    "tests/test_um.py:1275: Git Bash / MSYS only"
+   ]
+  ],
+  "summary": "1 failed, 785 passed, 29 skipped, 2 xfailed, 1 warning in 262.11s (0:04:22)"
+ },
+ "trace": {
+  "functions": {
+   "busty": 227,
+   "christie": 232,
+   "heads": 131,
+   "lawson": 144,
+   "miranda": 167,
+   "slim": 244
+  },
+  "runs": [
+   {
+    "failed": null,
+    "of": 16,
+    "same": 16
+   },
+   {
+    "failed": null,
+    "of": 16,
+    "same": 16
+   }
+  ],
+  "unsteady": {
+   "busty": [],
+   "christie": [],
+   "heads": [],
+   "lawson": [],
+   "miranda": [],
+   "slim": []
+  }
+ }
+}

@@ -1,9 +1,19 @@
 name: test
-on: [push, pull_request]
+# workflow_dispatch: so that the checks can be run by hand on a branch, from the
+# Actions tab. Its one input picks the runner, for a one-off comparison on
+# another architecture (ubuntu-24.04-arm); every other run is on ubuntu-latest.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: runner label
+        default: ubuntu-latest
 jobs:
   test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -14,8 +24,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: install deps
-        run: python -m pip install --upgrade pip "pillow==13.0.0" "numpy==2.4.6" "pyyaml>=6" pytest scipy
-        # scipy is a hard dependency: bootstrap.sh installs it and the
+        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy "pyyaml>=6" pytest scipy
+        # The versions of pillow and numpy are those of tools/pd2-las/pins.txt.
+        # scipy is a hard dependency: the slim build needs it and the
         # elbow-depth test in tests/test_christie_las.py imports it.
       # ffmpeg is only for test_compile_small_edl. Without recommends apt skips mesa, VA/VDPAU drivers and
       # pocketsphinx-en-us (about half the download), and with man-db's auto-update off dpkg skips the man-page
@@ -50,3 +61,24 @@ jobs:
         run: ./bin/um kb check --index
       - name: nothing that shouldn't ship
         run: ./bin/um publish check .
+      - name: every tracked pack must equal a fresh build, byte for byte
+        # All 14 packs are built again in a copy of the checkout, on this
+        # runner, and each of the 16 tracked zips is compared with its tracked
+        # .sha256 by sha256sum -c. No tolerance. `env` makes the pinned .venv
+        # and unpacks the 2B templates first (node and npm, for node-unrar-js).
+        # The builders put themselves on the declared code path
+        # (tools/pd2-las/determinism.py), which is why a runner with AVX-512 and
+        # one without build the same bytes. Before 2026-11-12 they did not:
+        # docs/audits/2026-11-12-cpu-independence.md.
+        # The runner's CPU, the code path and the result are also written as
+        # notices: annotations are the one part of a run the GitHub API serves,
+        # so a tool that cannot open the log can still read what happened.
+        # On a runner that is not x86-64 (the one-off ARM comparison) the
+        # declared code path does not exist: the builders are left free and the
+        # step reports what differs.
+        # Last in the job, and run even after a failure above, so that it
+        # always reports.
+        if: ${{ !cancelled() }}
+        run: |
+          make -sC tools/pd2-las env
+          .venv/bin/python tools/pd2-las/fresh.py check ${{ runner.arch != 'X64' && '--free' || '' }}

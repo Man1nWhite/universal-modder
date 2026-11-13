@@ -1,5 +1,8 @@
 # LAS outfit packs — audit, 2026-11-05
 
+> Note of 2026-11-12: `tools/pd2-las/bootstrap.sh`, which this record names, was retired later. The environment is
+> `make -sC tools/pd2-las env` (`recover_env.sh`): `docs/audits/2026-11-12-tool-merge.md`.
+
 **Scope:** the newest addition to the LAS line — `dist/Miranda_LAS.zip` and its chest-morph sibling
 `dist/Miranda_Busty_LAS.zip`, their `.sha256` sidecars, every `.model` / `.texture` /
 `*.material_config` / `.object` / `.unit` / `hooks/*.lua` / `localization/english.txt` / `main.xml` entry

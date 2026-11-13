@@ -20,7 +20,7 @@ table itself.
 
 ```bash
 # once, for a venv with pillow/numpy
-bash tools/pd2-las/bootstrap.sh      # or: python3 -m venv .venv && .venv/bin/pip install pillow numpy
+make -sC tools/pd2-las env           # or: python3 -m venv .venv && .venv/bin/pip install pillow numpy
 
 # full inventory: JSON + Markdown + tracked previews
 .venv/bin/python tools/skyrim-nif/inventory.py \

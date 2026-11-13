@@ -1,0 +1,6 @@
+# The versions the tracked packs are built with: the zips only rebuild byte for
+# byte with these. This is the one place they are written. recover_env.sh and
+# both CI workflows install with this file as their constraints
+# (pip install -c tools/pd2-las/pins.txt ...), and status.py reads it.
+pillow==13.0.0
+numpy==2.4.6

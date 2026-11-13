@@ -1,0 +1,316 @@
+{
+  "source_zip": "l4d2_miranda_lawson_1.zip",
+  "source_zip_sha256": "3e007b07b71f1fc28f008c3bde134d9a2e1f489e3e144c65c464c85ebfabf6d9",
+  "vpk_inner": "miranda_rochelle.vpk",
+  "vpk_entries": [
+    "addoninfo.txt",
+    "materials/models/miranda/eyeball_l.vmt",
+    "materials/models/miranda/eyeball_r.vmt",
+    "materials/models/miranda/miranda_body.vmt",
+    "materials/models/miranda/miranda_body_color.vtf",
+    "materials/models/miranda/miranda_body_normal.vtf",
+    "materials/models/miranda/miranda_eyes.vtf",
+    "materials/models/miranda/miranda_face.vmt",
+    "materials/models/miranda/miranda_face_color.vtf",
+    "materials/models/miranda/miranda_face_normal.vtf",
+    "materials/models/miranda/miranda_hair.vmt",
+    "materials/models/miranda/miranda_head.vmt",
+    "materials/models/miranda/miranda_head_color.vtf",
+    "materials/models/miranda/miranda_head_normal.vtf",
+    "models/survivors/survivor_producer.dx80.vtx",
+    "models/survivors/survivor_producer.dx90.vtx",
+    "models/survivors/survivor_producer.mdl",
+    "models/survivors/survivor_producer.phy",
+    "models/survivors/survivor_producer.sw.vtx",
+    "models/survivors/survivor_producer.vvd",
+    "models/weapons/arms/v_arms_producer_new.dx80.vtx",
+    "models/weapons/arms/v_arms_producer_new.dx90.vtx",
+    "models/weapons/arms/v_arms_producer_new.mdl",
+    "models/weapons/arms/v_arms_producer_new.sw.vtx",
+    "models/weapons/arms/v_arms_producer_new.vvd"
+  ],
+  "models": {
+    "third_person": {
+      "name": "miranda.smd",
+      "bones": 104,
+      "bone_names": [
+        "ValveBiped.Bip01_Pelvis",
+        "ValveBiped.Bip01_Spine",
+        "ValveBiped.Bip01_Spine1",
+        "ValveBiped.Bip01_Spine2",
+        "ValveBiped.Bip01_Spine4",
+        "ValveBiped.Bip01_R_Clavicle",
+        "ValveBiped.Bip01_R_UpperArm",
+        "ValveBiped.Bip01_R_Forearm",
+        "ValveBiped.Bip01_R_Hand",
+        "ValveBiped.Bip01_R_Finger4",
+        "ValveBiped.Bip01_R_Finger41",
+        "ValveBiped.Bip01_R_Finger42",
+        "ValveBiped.Bip01_R_Finger3",
+        "ValveBiped.Bip01_R_Finger31",
+        "ValveBiped.Bip01_R_Finger32",
+        "ValveBiped.Bip01_R_Finger2",
+        "ValveBiped.Bip01_R_Finger21",
+        "ValveBiped.Bip01_R_Finger22",
+        "ValveBiped.Bip01_R_Finger1",
+        "ValveBiped.Bip01_R_Finger11",
+        "ValveBiped.Bip01_R_Finger12",
+        "ValveBiped.Bip01_R_Finger0",
+        "ValveBiped.Bip01_R_Finger01",
+        "ValveBiped.Bip01_R_Finger02",
+        "ValveBiped.weapon_bone",
+        "ValveBiped.weapon_bone_Clip",
+        "ValveBiped.Bip01_R_Wrist",
+        "ValveBiped.Bip01_R_Ulna",
+        "ValveBiped.attachment_armR_T",
+        "hlp_r_shoulder",
+        "hlp_r_bicep",
+        "ValveBiped.Bip01_L_Clavicle",
+        "ValveBiped.Bip01_L_UpperArm",
+        "ValveBiped.Bip01_L_Forearm",
+        "ValveBiped.Bip01_L_Hand",
+        "ValveBiped.Bip01_L_Finger4",
+        "ValveBiped.Bip01_L_Finger41",
+        "ValveBiped.Bip01_L_Finger42",
+        "ValveBiped.Bip01_L_Finger3",
+        "ValveBiped.Bip01_L_Finger31",
+        "ValveBiped.Bip01_L_Finger32",
+        "ValveBiped.Bip01_L_Finger2",
+        "ValveBiped.Bip01_L_Finger21",
+        "ValveBiped.Bip01_L_Finger22",
+        "ValveBiped.Bip01_L_Finger1",
+        "ValveBiped.Bip01_L_Finger11",
+        "ValveBiped.Bip01_L_Finger12",
+        "ValveBiped.Bip01_L_Finger0",
+        "ValveBiped.Bip01_L_Finger01",
+        "ValveBiped.Bip01_L_Finger02",
+        "ValveBiped.L_weapon_bone",
+        "ValveBiped.Bip01_L_Ulna",
+        "ValveBiped.Bip01_L_Wrist",
+        "ValveBiped.attachment_bandage_armL",
+        "ValveBiped.attachment_armL_T",
+        "hlp_l_shoulder",
+        "hlp_l_bicep",
+        "ValveBiped.Bip01_Neck1",
+        "ValveBiped.Bip01_Head1",
+        "ValveBiped.forward",
+        "Head_Base",
+        "headBase",
+        "brow_Left",
+        "brow_right",
+        "eyeBlink_Right",
+        "outBrow_left",
+        "outBrow_Right",
+        "underEye_left",
+        "underEye_Right",
+        "mouthBase",
+        "cheek_Left",
+        "cheek_right",
+        "innerUpperLip_Left",
+        "upperLip_Left",
+        "innerUpperLip_right",
+        "upperLip_right",
+        "jawBone",
+        "innerLowLip_right",
+        "lowerLip_right",
+        "innerLowLip_left",
+        "lowerLip_Left",
+        "LowerCheek_left",
+        "lowerCheek_right",
+        "outerUpperLip_left",
+        "LipCorner_Left",
+        "outerUpperLip_right",
+        "LipCorner_right",
+        "Eye_Right",
+        "Eye_Left",
+        "lowLid_Right",
+        "eyeBlink_Left",
+        "lowLid_Left",
+        "Sneer",
+        "ValveBiped.Bip01_R_Thigh",
+        "ValveBiped.Bip01_R_Calf",
+        "ValveBiped.Bip01_R_Foot",
+        "ValveBiped.Bip01_R_Toe0",
+        "hlp_r_hip",
+        "ValveBiped.Bip01_L_Thigh",
+        "ValveBiped.Bip01_L_Calf",
+        "ValveBiped.Bip01_L_Foot",
+        "ValveBiped.Bip01_L_Toe0",
+        "ValveBiped.attachment_bandage_legL",
+        "hlp_l_hip"
+      ],
+      "vertices": 9874,
+      "triangles": 16433,
+      "materials": [
+        "miranda_hair",
+        "eyeball_r",
+        "eyeball_l",
+        "miranda_face",
+        "miranda_head",
+        "miranda_body",
+        "phy"
+      ],
+      "meshes": [
+        {
+          "material": "miranda_hair",
+          "triangles": 809
+        },
+        {
+          "material": "eyeball_r",
+          "triangles": 224
+        },
+        {
+          "material": "eyeball_l",
+          "triangles": 224
+        },
+        {
+          "material": "miranda_face",
+          "triangles": 1922
+        },
+        {
+          "material": "miranda_head",
+          "triangles": 3706
+        },
+        {
+          "material": "miranda_body",
+          "triangles": 9548
+        }
+      ]
+    },
+    "first_person": {
+      "name": "miranda_arms.smd",
+      "bones": 53,
+      "bone_names": [
+        "ValveBiped.ValveBiped",
+        "ValveBiped.Bip01",
+        "ValveBiped.Bip01_Spine",
+        "ValveBiped.Bip01_Spine1",
+        "ValveBiped.Bip01_Spine2",
+        "ValveBiped.Bip01_Spine4",
+        "ValveBiped.Bip01_L_Clavicle",
+        "ValveBiped.Bip01_L_UpperArm",
+        "ValveBiped.Bip01_L_Forearm",
+        "ValveBiped.Bip01_L_Hand",
+        "ValveBiped.Bip01_L_Finger4",
+        "ValveBiped.Bip01_L_Finger41",
+        "ValveBiped.Bip01_L_Finger42",
+        "ValveBiped.Bip01_L_Finger3",
+        "ValveBiped.Bip01_L_Finger31",
+        "ValveBiped.Bip01_L_Finger32",
+        "ValveBiped.Bip01_L_Finger2",
+        "ValveBiped.Bip01_L_Finger21",
+        "ValveBiped.Bip01_L_Finger22",
+        "ValveBiped.Bip01_L_Finger1",
+        "ValveBiped.Bip01_L_Finger11",
+        "ValveBiped.Bip01_L_Finger12",
+        "ValveBiped.Bip01_L_Finger0",
+        "ValveBiped.Bip01_L_Finger01",
+        "ValveBiped.Bip01_L_Finger02",
+        "ValveBiped.Bip01_L_Driven_ulna",
+        "ValveBiped.Bip01_L_Forearm_driven",
+        "ValveBiped.Bip01_R_Clavicle",
+        "ValveBiped.Bip01_R_UpperArm",
+        "ValveBiped.Bip01_R_Forearm",
+        "ValveBiped.Bip01_R_Hand",
+        "ValveBiped.Bip01_R_Finger4",
+        "ValveBiped.Bip01_R_Finger41",
+        "ValveBiped.Bip01_R_Finger42",
+        "ValveBiped.Bip01_R_Finger3",
+        "ValveBiped.Bip01_R_Finger31",
+        "ValveBiped.Bip01_R_Finger32",
+        "ValveBiped.Bip01_R_Finger2",
+        "ValveBiped.Bip01_R_Finger21",
+        "ValveBiped.Bip01_R_Finger22",
+        "ValveBiped.Bip01_R_Finger1",
+        "ValveBiped.Bip01_R_Finger11",
+        "ValveBiped.Bip01_R_Finger12",
+        "ValveBiped.Bip01_R_Finger0",
+        "ValveBiped.Bip01_R_Finger01",
+        "ValveBiped.Bip01_R_Finger02",
+        "ValveBiped.Bip01_R_Driven_ulna",
+        "ValveBiped.Bip01_R_Forearm_driven",
+        "ValveBiped.weapon_bone",
+        "ValveBiped.attach_shell_eject",
+        "ValveBiped.attach_muzzle",
+        "ValveBiped.Camera",
+        "ValveBiped.attach_camera"
+      ],
+      "vertices": 1774,
+      "triangles": 2892,
+      "materials": [
+        "miranda_body"
+      ],
+      "meshes": [
+        {
+          "material": "miranda_body",
+          "triangles": 2892
+        }
+      ]
+    }
+  },
+  "textures": {
+    "miranda_body_color": {
+      "format": "DXT5",
+      "size": [
+        1024,
+        1024
+      ],
+      "mips": 11,
+      "pack_texture": "miranda_body_df.texture"
+    },
+    "miranda_body_normal": {
+      "format": "DXT5",
+      "size": [
+        512,
+        512
+      ],
+      "mips": 10,
+      "pack_texture": "miranda_body_nm.texture"
+    },
+    "miranda_eyes": {
+      "format": "DXT5",
+      "size": [
+        128,
+        128
+      ],
+      "mips": 8,
+      "pack_texture": "miranda_eyes.texture"
+    },
+    "miranda_face_color": {
+      "format": "DXT5",
+      "size": [
+        1024,
+        1024
+      ],
+      "mips": 11,
+      "pack_texture": "miranda_face_df.texture"
+    },
+    "miranda_face_normal": {
+      "format": "DXT5",
+      "size": [
+        1024,
+        1024
+      ],
+      "mips": 11,
+      "pack_texture": "miranda_face_nm.texture"
+    },
+    "miranda_head_color": {
+      "format": "DXT5",
+      "size": [
+        1024,
+        1024
+      ],
+      "mips": 11,
+      "pack_texture": "miranda_head_df.texture"
+    },
+    "miranda_head_normal": {
+      "format": "DXT5",
+      "size": [
+        1024,
+        1024
+      ],
+      "mips": 11,
+      "pack_texture": "miranda_head_nm.texture"
+    }
+  }
+}

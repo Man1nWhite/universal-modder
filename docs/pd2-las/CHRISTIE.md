@@ -19,26 +19,22 @@ failures are the known slim sleeve-tube probes (4.95 cm² on the right sleeve).
 No models/textures were rebuilt for the review. The 2026-11-07 review keeps its
 findings as history, against images that are no longer archived.
 
-Previously recorded full-suite validation: **67 Christie tests**, `tests/`
-overall **650 passed, 26 skipped**, `pyflakes` clean. That figure is stale, and the
-`pyflakes` part is also not reproducible today (5 warnings; see `HANDOFF.md`).
+Test counts are not kept on this page any more: `make -sC tools/pd2-las test` prints
+the current ones. The figures it carried from 2026-11-10 (645 passed with the 2B
+templates unpacked, a collection failure without them, five `pyflakes` warnings)
+described that day's tree; none of them holds now.
 
-**Re-measured 2026-11-10**, and it depends on whether the 2B fixture is extracted:
+The two packs below are the ones in `dist/`; the dated log further down keeps the
+earlier hashes it was written with.
 
-| `/tmp/2bsrc` | command | result |
-| --- | --- | --- |
-| extracted | `pytest -q tests` | **645 passed, 30 skipped** (rc=0) |
-| extracted | `pytest -q tests/test_christie_las.py` | **67 passed** |
-| absent, `--ignore=tests/test_render_mesh_skeleton.py` | `pytest -q tests` | 577 passed, 85 skipped |
-
-The screenshot-only update reran the targeted tests listed above, not the full
-suite/lint. The two packs below are the ones in `dist/`; the dated log further
-down keeps the earlier hashes it was written with.
-
-> **All 67 Christie tests passing does not clear the packs.** They do not check
-> per-atom index containment, and both packs draw 16 out-of-bounds triangles from
-> `s_body`. See `tools/pd2-las/MODLOG.md` for the executed repair plans and their
-> results; the diagnostics plan was executed and deleted per plan convention.
+> **Correction, 2026-11-11.** This page said that both packs draw 16
+> out-of-bounds triangles from `s_body`. That was true of the bytes tracked on
+> 2026-11-10. In the packs tracked now, no triangle of any drawable has a corner
+> outside its atom's vertex block
+> (`test_atoms_index_global_vertices_inside_their_own_block`), and
+> `build_models.atom_problems` checks containment as well as tiling. What is
+> still open is the slim sleeve: the two expected failures of
+> `test_sleeve_tube_is_closed_along_its_length` (`DECISIONS.md`, D18).
 
 - `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `9e7c2d82…94fd95c`, 4,983,848 B)
   — full body incl. Christie's hands.
@@ -192,7 +188,7 @@ bit-identical.
 Packs rebuilt: `9e7c2d8213463d85c75190b1d3dcf4c4088aeee2d6065ce001320c47094fd95c`
 base, `7a4d010c7e15e92615cf3aedcbbc11ce69781e4b15ab8a461e4d0a88190a3e6f` slim
 (previously `196606c0…`/`ee85fc15…`).
-Also `bootstrap.sh` now installs **scipy**, which the slim build needs
+Also the environment (`make -sC tools/pd2-las env`) installs **scipy**, which the slim build needs
 (`_elbow_coverage_correction`) and which a clean bootstrap used to miss.
 **2026-11-11 forearm normal rotation:** `rebind_arms_at_idle` now rotates
 stored normals by the same LBS skinning matrix that poses the vertices
@@ -430,10 +426,9 @@ as a change of mesh.
 ## Build
 
 ```sh
-.venv/bin/python tools/pd2-las/build_christie_las.py \
-    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # base pack
-.venv/bin/python tools/pd2-las/build_christie_las.py --variant slim \
-    --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"   # slim pack
+bash tools/pd2-las/recover_env.sh                                      # once: venv + 2B templates
+.venv/bin/python tools/pd2-las/build_christie_las.py                   # base pack
+.venv/bin/python tools/pd2-las/build_christie_las.py --variant slim    # slim pack
 ```
 
 After `straighten_segments` the build runs **`centre_segments`** (puts a limb
@@ -577,7 +572,7 @@ overlay. Note that the `--fps` run writes nine files where the repo keeps two,
 
   All three come from `tools/pd2-las/elbow_before_after.py`, which takes the
   "before" pack as a file (use `git show <sha>:dist/Christie_LAS.zip >
-  /tmp/before.zip` for an older build) and crops every row from the **union of
+  build/before.zip` for an older build) and crops every row from the **union of
   both columns' geometry**, square and with a fixed depth band, so the two
   panels of a row share scale, centre and framing. The 2026-11-07 sheet let
   each panel auto-frame its own subset, which made a change of camera

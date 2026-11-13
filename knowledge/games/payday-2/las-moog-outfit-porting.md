@@ -108,25 +108,34 @@ Human path (guide): extract base `.model` → export `.glb` → import to Blende
 touching materials (a black/grey model in the default pose means the model
 loaded fine) → wire `.material_config` and textures.
 
-Automated path (ours, `tools/pd2-port/`): `me2_dae.py` imports the rigged
-source, `rig_target.py` maps bones by name (folds twists/face to parent bones
-and maps the finger chains onto PD2's finger bones; swaps sides when the source
-labels `Left*` at +X) and rebinds the skin
-mathematically to the PD2 bind — one **bone-segment-fit** rigid transform per
-target bone (source bone head→tail aligned onto the target bone, minimal
-rotation; stored frame orientations never enter, they differ per engine and
-tear the mesh at joints), with folded joints sharing one transform and the
-weight field smoothed over the **welded** vertex graph first —
-the triangles that this per-bone fit folds inside out are detected and
+Automated path (ours, `tools/pd2-port/`): a rigged-COLLADA → LAS pipeline. It
+is not tied to one character: Miranda Lawson (Mass Effect 2) is the port it
+ships, and its README lists what a port of another character has to change.
+`me2_dae.py` imports the rigged source, `rig_target.py` maps joints by name
+through a per-character table (folds twists/face to parent bones and maps the
+finger chains onto PD2's finger bones) and rebinds the skin mathematically to
+the PD2 bind from joint *positions* alone — stored frame orientations never
+enter, they differ per engine and tear the mesh at joints. A humanoid source
+gets one upright rigid transform for the torso, head and legs and constructed
+fits for the shoulders, arms, hands and fingers; any other skeleton gets one
+**bone-segment-fit** rigid transform per target bone (source bone head→tail
+aligned onto the target bone, minimal rotation). Sides map by name: the
+shipped source faces −Y with `Left*` at +X, PD2 faces +Y with `Left*` at −X,
+so a half turn about Z brings one onto the other and nothing is mirrored.
+Joints folded onto one bone share its transform, vertices move by a harmonic
+blend of their bones' operators, and the weight field is smoothed over the
+**welded** vertex graph first —
+the triangles that the transfer folds inside out are detected and
 re-wound afterwards (`rig_target.repair_winding`, see gotcha 19) —
 `las_model.py` writes the DODB model (3-weight channels),
 `build_las_pack.py` writes the unit/object/material_config/LAS hook and DXT5
 textures. `preview_check.py report|render` verifies the transfer offline
 (edge preservation, displacement spikes, twin separation, bone anchors) and
 rasters source/retarget/decoded previews without Blender.
-`check_all.py` runs every check of the Lawson build in one command (the
-audit, the winding check, the normal-map analysis, the mutation tests and
-the pytest suite); the state of that work, its open problems and its traps
+`check_all.py` runs the checks of the shipped port in one command (the
+tracked checksum, the audit, the winding check, the normal-map analysis and
+the mutation tests; `--full` adds the auditor self-test, the pytest suite and
+the skip budget); the state of that port, its open problems and its traps
 are written down in `tools/pd2-port/STATUS.md`.
 `check_guide_compliance.py` audits the built pack against this guide's rules
 (one check per rule, each citing it); it runs in the test suite, so a pack
@@ -224,13 +233,14 @@ LAS flags to be switched **on**, not merely present).
     names only with the PAYDAY-2-Hashlist installed), so there were no names
     to map onto and every finger token was folded to the hand. **Fix.**
     Recover the names offline — the contract's hash is the lookup3 variant in
-    `dmodel.hash64`, so hash PD2's naming convention
+    `diesel_model.hash64`, so hash PD2's naming convention
     (`LeftHandThumb1..3`, `LeftHandIndex1..3`, `LeftHandMiddle1..3`,
     `LeftHandRing1..3`, `LeftHandPinky1..3` and the Right set) and match it
     against the stored `name_hash` values (`resolve_rig_names.py` in
     `tools/pd2-port/`, 30 of 187 hash-only bones resolve); then map the
-    source's finger chains one-to-one onto them (side swaps with the arms;
-    ME2's "Pink" is PD2's "Pinky"). Check the result: every finger bone
+    source's finger chains one-to-one onto them (left onto left, like the
+    arms: the source is turned half a turn about Z, not mirrored; ME2's
+    "Pink" is PD2's "Pinky"). Check the result: every finger bone
     should hold vertices, and the finger-dominant vertices should sit within
     a couple of cm of their bone's origin.
 

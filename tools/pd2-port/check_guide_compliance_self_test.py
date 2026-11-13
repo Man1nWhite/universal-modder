@@ -5,7 +5,13 @@ A checker that passes everything is worthless. This mutates the built pack
 in the ways the guide's rules forbid and asserts that the matching check
 fails. Run it directly, or through the test suite.
 
-    python tools/pd2-port/check_guide_compliance.py --self-test
+    python tools/pd2-port/check_guide_compliance_self_test.py
+
+The mutations are violations of the guide's rules and would break any outfit
+pack the same way. The pack they are applied to is the shipped port's:
+``PACK``, the ``*_CFG`` / ``*_MODEL`` / ``NM_TEXTURE`` paths and the
+``Lawson_LAS/`` and ``lawson`` strings inside the mutation functions change
+with the pack's names.
 """
 from __future__ import annotations
 

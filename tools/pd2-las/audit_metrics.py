@@ -4,8 +4,9 @@ The 2026-11-07 slim screenshot review compared a few offline metrics against
 "the 2B reference". Several of those numbers did not reproduce, so this script
 exists to make every row of that table checkable in one command:
 
-    .venv/bin/python tools/pd2-las/audit_metrics.py \
-        --template "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+    .venv/bin/python tools/pd2-las/audit_metrics.py
+
+(``--template`` defaults to where ``extract_2b.py`` unpacks the 2B pack.)
 
 It reads the shipped packs from ``dist/`` (they are the reviewed artifacts) and,
 if given, the 2B LAS template model that the project treats as ground truth.
@@ -48,6 +49,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import diesel_model as dm  # noqa: E402
+import extract_2b  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -153,9 +155,9 @@ def _texture(zpath: Path, suffix: str) -> bytes | None:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--template", type=Path, default=Path(
-        "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"),
-        help="2B LAS template folder (bootstrap.sh extracts it here)")
+    ap.add_argument("--template", type=Path, default=extract_2b.TEMPLATES,
+                    help="2B LAS template folder (default: where extract_2b.py "
+                         "unpacks it, under build/pd2-las/2b/)")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
     ap.add_argument("--z-hist", action="store_true",
                     help="bucket the divergent coincident pairs by height")

@@ -10,9 +10,11 @@ so it installs side by side with `dist/Miranda_LAS.zip` instead of replacing it.
 
 Usage (from the repo root):
 
-    bash tools/pd2-las/bootstrap.sh          # textures + 2B templates + .venv
-    .venv/bin/python tools/pd2-las/build_busty_variant.py \\
-        --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+    bash tools/pd2-las/recover_env.sh        # once: .venv + the 2B templates
+    .venv/bin/python tools/pd2-las/build_busty_variant.py [--templates DIR]
+
+`--templates` defaults to `build_models.DEFAULT_TEMPLATES`, where
+`recover_env.sh` unpacks them (`build/pd2-las/2b/`).
 
 Outputs:
   build/pd2-las/Miranda_Busty_LAS/         pack folder (installable)
@@ -42,8 +44,10 @@ sys.path.insert(0, str(HERE))
 
 import build_las  # noqa: E402
 import build_models as bm  # noqa: E402
+import determinism  # noqa: E402
 import bust_variant as bv  # noqa: E402
 import las_pack  # noqa: E402
+import las_outfit_pack  # noqa: E402
 from source_model import load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
@@ -428,11 +432,9 @@ def build(args) -> int:
     pack = las_pack.write_pack(out_root, textures, icon, {"note": "bust variant"},
                               models_present=False, identity=IDENTITY)
     unit_dir = pack / "assets" / IDENTITY.unit_base
-    shutil.copy2(tpp_path, unit_dir / tpp_path.name)
-    shutil.copy2(fps_path, unit_dir / fps_path.name)
-    wip = pack / "WIP_DO_NOT_INSTALL.txt"
-    if wip.exists():
-        wip.unlink()
+    # the first-person model has no head slots (`drop_drawables` above), so its
+    # .object must not list any: install_models writes each .object from its model
+    las_pack.install_models(pack, tpp_path, fps_path, IDENTITY)
     las_pack.refresh_build_info(
         pack, IDENTITY,
         variant={
@@ -446,7 +448,7 @@ def build(args) -> int:
                    for name in ("2b.model", "fps_2b.model")},
         source_zip_sha256=hashlib.sha256(args.source_zip.read_bytes()).hexdigest(),
     )
-    zip_path = las_pack.zip_pack(pack)
+    zip_path = las_outfit_pack.zip_pack(pack)
     zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     (zip_path.parent / f"{zip_path.name}.sha256").write_text(
         f"{zip_sha}  {_display_path(zip_path)}\n")
@@ -474,8 +476,10 @@ def build(args) -> int:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--templates", type=Path, required=True,
-                    help="directory containing 2b.model and fps_2b.model")
+    ap.add_argument("--templates", type=Path, default=bm.DEFAULT_TEMPLATES,
+                    help="directory containing 2b.model and fps_2b.model "
+                         "(default: where recover_env.sh unpacks 2b.rar, "
+                         "under build/pd2-las/2b/)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
                     help="build directory (also holds the base pack's outputs)")
     ap.add_argument("--source-zip", type=Path, default=bm.SOURCE_ZIP)
@@ -492,7 +496,10 @@ def main(argv=None) -> int:
     ap.add_argument("--update-dist", action="store_true",
                     help="copy built zip to dist/ even when --out is custom")
     ap.add_argument("--no-previews", action="store_true")
-    return build(ap.parse_args(argv))
+    args = ap.parse_args(argv)
+    determinism.enter(__file__)
+    bm.require_templates(args.templates)
+    return build(args)
 
 
 if __name__ == "__main__":

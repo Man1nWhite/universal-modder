@@ -262,6 +262,376 @@ class TestDdsEncode:
         assert abs(int(out[0, 0, 1]) - 120) <= 8
         assert abs(int(out[0, 0, 3]) - 255) <= 2
 
+    def test_bc3_alpha_codes_are_written_in_the_order_of_the_format(self):
+        """Code 0 is alpha_0, code 1 is alpha_1, codes 2 to 7 run from the one to the other.
+
+        `rgba_to_bc3_dds` used to write a texel's position on the ramp as its
+        code. A decoder then read the texels meant to be the minimum one step
+        above it, and the ones meant for the step below the maximum as the
+        minimum. Nothing showed it, because the only test encoded a flat image:
+        the face diffuse shipped with its gloss scrambled inside 80 % of its
+        blocks (3.9 % of the texels off by two or more, the worst by 29 of 255).
+        A ramp has every code in it.
+        """
+        import numpy as np
+
+        import dds_encode
+
+        ramp = np.zeros((4, 4, 4), dtype=np.uint8)
+        ramp[..., :3] = (120, 90, 60)
+        ramp[..., 3] = np.arange(16, dtype=np.uint8).reshape(4, 4) * 16          # 0, 16, ... 240
+        for name, dds in (
+            ("rgba_to_bc3_dds", dds_encode.rgba_to_bc3_dds(ramp)),
+            ("encode_bc3_texels", dds_encode._dds_header(4, 4, b"DXT5")
+             + dds_encode.encode_bc3_texels(dds_encode.image_to_texels(ramp)).tobytes()),
+        ):
+            assert (dds[128], dds[129]) == (240, 0), name                         # alpha_0 > alpha_1
+            alpha = dds_encode.decode_bc3_level(dds)[..., 3].astype(int).ravel()
+            # eight values 34 apart: nearest is at most 17 away, and the order survives
+            assert np.abs(alpha - ramp[..., 3].ravel()).max() <= 17, (name, alpha.tolist())
+            assert (np.diff(alpha) >= 0).all(), (name, alpha.tolist())
+            assert (alpha[0], alpha[-1]) == (0, 240), (name, alpha.tolist())
+
+    def test_fitted_encoder_keeps_the_colour_most_of_a_block_has(self):
+        """A block with three hues: the endpoints have to be two of its colours.
+
+        Nine texels of blue iris, three of black pupil, four of grey sclera: what
+        a 16x16 level of the eye texture is made of. The corners of the bounding
+        box are a dark and a light grey, and the iris comes out grey; that is how
+        the first mip levels made for this texture looked from three metres. The
+        pair search keeps the iris and the pupil and gives up the sclera.
+        """
+        import numpy as np
+
+        import dds_encode
+
+        blue, black, grey = (19, 54, 111), (2, 3, 5), (100, 92, 88)
+        block = np.zeros((4, 4, 4), dtype=np.uint8)
+        block[..., :3] = np.array([black] * 3 + [blue] * 9 + [grey] * 4, dtype=np.uint8).reshape(4, 4, 3)
+        block[..., 3] = 9
+
+        def decoded(payload: bytes) -> np.ndarray:
+            return dds_encode.decode_bc3_level(dds_encode._dds_header(4, 4, b"DXT5") + payload).astype(int)
+
+        fitted = dds_encode.encode_bc3_texels(dds_encode.image_to_texels(block))
+        iris = decoded(fitted.tobytes())[..., :3].reshape(16, 3)[3:12]
+        assert np.abs(iris - blue).max() <= 8, iris[0]
+        naive = decoded(dds_encode.rgba_to_bc3_dds(block)[128:])[..., :3].reshape(16, 3)[3:12]
+        assert np.abs(naive - blue).max() > 40, "the bounding box no longer loses the iris: update this test"
+
+        c0 = fitted[:, 8].astype(int) | (fitted[:, 9].astype(int) << 8)
+        c1 = fitted[:, 10].astype(int) | (fitted[:, 11].astype(int) << 8)
+        assert (c0 >= c1).all()
+        # one colour: both endpoints are it and every code is 0
+        flat = np.zeros((8, 8, 4), dtype=np.uint8)
+        flat[...] = (200, 120, 88, 9)
+        blocks = dds_encode.encode_bc3_texels(dds_encode.image_to_texels(flat))
+        assert len(blocks) == 4 and len({bytes(b) for b in blocks}) == 1
+        assert bytes(blocks[0][2:8]) == bytes(6) and bytes(blocks[0][12:]) == bytes(4)
+        assert np.abs(decoded(blocks[:1].tobytes())[0, 0] - (200, 120, 88, 9)).max() <= 4
+        # the same input gives the same bytes, and the shape is checked
+        assert np.array_equal(fitted, dds_encode.encode_bc3_texels(dds_encode.image_to_texels(block)))
+        with pytest.raises(ValueError):
+            dds_encode.encode_bc3_texels(np.zeros((3, 15, 4), dtype=np.uint8))
+        with pytest.raises(ValueError):
+            dds_encode.image_to_texels(np.zeros((6, 8, 4), dtype=np.uint8))
+
+    def test_weights_say_which_texels_a_block_has_to_keep(self):
+        """Thirteen texels of sclera, two of iris, one of pupil: an 8x8 level of the eye.
+
+        Every texel counting the same, the block spends its line on the sclera
+        and the iris comes out grey. With the iris and the pupil counting sixteen
+        times as much, it keeps them.
+        """
+        import numpy as np
+
+        import dds_encode
+
+        blue, black = (25, 60, 120), (2, 3, 5)
+        sclera = [(150 - 6 * k, 137 - 6 * k, 131 - 6 * k) for k in range(13)]      # the lid's shadow across it
+        block = np.zeros((4, 4, 4), dtype=np.uint8)
+        block[..., :3] = np.array([black, blue, blue] + sclera, dtype=np.uint8).reshape(4, 4, 3)
+        block[..., 3] = 9
+        texels = dds_encode.image_to_texels(block)
+
+        def iris(blocks) -> np.ndarray:
+            dds = dds_encode._dds_header(4, 4, b"DXT5") + blocks.tobytes()
+            return dds_encode.decode_bc3_level(dds).astype(int)[0, 1, :3]
+
+        even = iris(dds_encode.encode_bc3_texels(texels))
+        assert even[2] - even[0] < 30, even                                         # greyish
+        weights = np.ones((1, 16), dtype=np.int64)
+        weights[0, :3] = 16
+        kept = iris(dds_encode.encode_bc3_texels(texels, weights))
+        assert np.abs(kept - blue).max() <= 8, kept
+        assert np.array_equal(dds_encode.encode_bc3_texels(texels, np.ones((1, 16), dtype=np.int64)),
+                              dds_encode.encode_bc3_texels(texels))
+        # alpha does not depend on the weights
+        assert np.array_equal(dds_encode.encode_bc3_texels(texels, weights)[:, :8],
+                              dds_encode.encode_bc3_texels(texels)[:, :8])
+        for bad in (np.ones((1, 15), dtype=np.int64), np.ones((1, 16)), -np.ones((1, 16), dtype=np.int64)):
+            with pytest.raises(ValueError):
+                dds_encode.encode_bc3_texels(texels, bad)
+        with pytest.raises(ValueError):
+            dds_encode.bc3_dds_from_levels([block, block[:2, :2], block[:1, :1]], [np.ones((4, 4), dtype=np.int64)])
+
+    def test_mip_levels_average_light_and_leave_gloss_as_data(self):
+        """Black beside white is mid grey as light, which is 188 stored, not 128.
+
+        Averaging the stored values darkens whatever has contrast. Gloss is not
+        light: it is averaged as the number it is.
+        """
+        import numpy as np
+
+        import build_las
+        import dds_encode
+
+        image = np.zeros((4, 4, 4), dtype=np.uint8)
+        image[:, ::2] = (255, 255, 255, 200)                    # white columns, gloss 200; black ones, gloss 0
+        levels = build_las.mip_levels(image)
+        assert [level.shape for level in levels] == [(4, 4, 4), (2, 2, 4), (1, 1, 4)]
+        assert levels[0] is image
+        for level in levels[1:]:
+            assert level.dtype == np.uint8
+            assert (level[..., :3] == 188).all() and (level[..., 3] == 100).all(), level[0, 0]
+        # each level is the average of level 0, not of the level above: no rounding piles up
+        rng = np.random.default_rng(3)
+        noise = rng.integers(0, 256, (16, 16, 4), dtype=np.uint8)
+        light = dds_encode.srgb_to_linear(noise[..., :3] / 255.0).mean(axis=(0, 1))
+        last = build_las.mip_levels(noise)[-1][0, 0]
+        assert np.array_equal(last[:3], np.rint(dds_encode.linear_to_srgb(light) * 255.0))
+        assert last[3] == np.rint(noise[..., 3].mean())
+        # the two conversions undo each other on every stored value
+        stored = np.arange(256) / 255.0
+        assert np.array_equal(np.rint(dds_encode.linear_to_srgb(dds_encode.srgb_to_linear(stored)) * 255.0),
+                              np.arange(256))
+        for shape in ((4, 8, 4), (6, 6, 4), (4, 4, 3)):
+            with pytest.raises(ValueError):
+                build_las.mip_levels(np.zeros(shape, dtype=np.uint8))
+        with pytest.raises(ValueError):
+            dds_encode.box_reduce(np.zeros((6, 6, 4)), 4)
+
+    def test_bc3_dds_from_levels_is_the_full_chain_in_the_header_shape_of_the_game(self):
+        """What the eye texture is written with: every level, the game's header, no black borders."""
+        import numpy as np
+
+        import build_las
+        import dds_encode
+
+        yy, xx = np.mgrid[0:32, 0:32]
+        shade = (xx + yy) * 2 + 40                # one ramp: the colours of a block lie on a line
+        image = np.stack([shade, shade // 2 + 40, 255 - shade, xx + 9], axis=-1).astype(np.uint8)
+        levels = build_las.mip_levels(image)
+        dds = dds_encode.bc3_dds_from_levels(levels)
+        flags, height, width, pitch, _depth, count = struct.unpack_from("<6I", dds, 8)
+        # CAPS | HEIGHT | WIDTH | PIXELFORMAT | MIPMAPCOUNT | LINEARSIZE; TEXTURE | COMPLEX | MIPMAP
+        assert (flags, struct.unpack_from("<I", dds, 108)[0]) == (0x000A1007, 0x00401008)
+        assert (width, height, count, pitch) == (32, 32, 6, 64 * 16)
+        layout = dds_encode.bc3_levels(dds)                      # raises unless the payload is the declared chain
+        assert [(w, h) for _offset, w, h in layout] == [(32, 32), (16, 16), (8, 8), (4, 4), (2, 2), (1, 1)]
+        assert [offset for offset, _w, _h in layout] == [128, 1152, 1408, 1472, 1488, 1504] and len(dds) == 1520
+        for level, reference in enumerate(levels):
+            got = dds_encode.decode_bc3_level(dds, level).astype(int)
+            assert got.shape == reference.shape
+            # measured: 0.7 to 6.0 of 255 (the 4x4 level holds the whole ramp in one block)
+            assert np.abs(got[..., :3] - reference[..., :3]).mean() < 8, level
+            assert np.abs(got[..., 3] - reference[..., 3]).max() <= 2, level
+        # a level smaller than a block repeats its edge: a flat image is the same block all the way down
+        flat = np.zeros((8, 8, 4), dtype=np.uint8)
+        flat[...] = (200, 120, 88, 9)
+        payload = dds_encode.bc3_dds_from_levels(build_las.mip_levels(flat))[128:]
+        assert len({payload[i:i + 16] for i in range(0, len(payload), 16)}) == 1
+        # the chain has to be whole, and a file that is not what its header says is refused
+        with pytest.raises(ValueError):
+            dds_encode.bc3_dds_from_levels(levels[:-1])
+        with pytest.raises(ValueError):
+            dds_encode.bc3_dds_from_levels([levels[0], levels[2]])
+        with pytest.raises(ValueError):
+            dds_encode.bc3_levels(dds[:-16])
+        with pytest.raises(ValueError):
+            dds_encode.bc3_levels(b"DDS " + bytes(200))
+
+
+@pytest.fixture(scope="module")
+def miranda_textures(tmp_path_factory):
+    """The textures stage, run once: pack texture name -> the file it wrote."""
+    import build_las
+
+    out = tmp_path_factory.mktemp("miranda_textures")
+    assert build_las.main(["--stage", "textures", "--out", str(out)]) == 0
+    return {path.stem: path.read_bytes() for path in (out / "textures").glob("*.texture")}
+
+
+class TestMirandaTextures:
+    """The two unit textures the build does not simply convert: the face and the eyes."""
+
+    def test_every_unit_texture_leaves_the_stage_with_the_full_pyramid(self, miranda_textures):
+        """Five are converted and bring the source's levels; the two made here must not have fewer.
+
+        The repainted face and the drawn eyes used to be encoded as one level
+        each, and shipped like that.
+        """
+        import build_las
+        import dds_encode
+
+        assert sorted(miranda_textures) == sorted(build_las.VTF_TO_PACK.values())
+        for name, raw in sorted(miranda_textures.items()):
+            layout = dds_encode.bc3_levels(raw)                  # DXT5, and the payload is the declared chain
+            width, height = layout[0][1:]
+            assert width == height and len(layout) == width.bit_length(), (
+                f"{name}: {len(layout)} mip levels for {width}x{height}")
+            assert (struct.unpack_from("<I", raw, 8)[0], struct.unpack_from("<I", raw, 108)[0]) == (
+                0x000A1007, 0x00401008), name
+
+    def test_repaint_touches_only_the_eye_sockets_and_the_lash_lines(self, arc):
+        import numpy as np
+
+        import build_las
+        import dds_encode
+
+        before = dds_encode.decode_bc3_level(build_las.converted_face_diffuse(arc))
+        kept = before.copy()
+        after = build_las.repaint_face(before)
+        assert np.array_equal(before, kept), "the input was painted on"
+        rows, cols = np.nonzero((after != before).any(axis=2))
+        u, v = (cols + 0.5) / before.shape[1], (rows + 0.5) / before.shape[0]
+        sockets = (np.abs(v - 0.472) < 0.03) & ((np.abs(u - 0.454) < 0.025) | (np.abs(u - 0.559) < 0.025))
+        lashes = (v > 0.25) & (v < 0.31) & (((u > 0.18) & (u < 0.33)) | ((u > 0.67) & (u < 0.82)))
+        waterlines = (np.abs(v - 0.926) < 0.03) & ((u < 0.14) | (u > 0.86))
+        assert (sockets | lashes | waterlines).all(), "the repaint reaches outside the areas it is meant for"
+        # measured: 18,289 texels, 1.74 % of the texture
+        assert 0.010 < len(rows) / before[..., 0].size < 0.025
+        assert (after[..., 3] <= before[..., 3]).all(), "the repaint raised gloss somewhere"
+        changed = after[rows, cols, :3].astype(int).sum(axis=1) < before[rows, cols, :3].astype(int).sum(axis=1)
+        assert changed.mean() > 0.95, "the repaint is meant to darken"
+
+    def test_face_levels_are_the_source_levels_plus_the_repaint(self, arc):
+        """Every level gets the repaint; nothing else about the source's levels changes.
+
+        The amount of light the repaint takes away is the same at every level,
+        because a level's texel carries the average of what it covers (up to
+        what eight bits can hold: the faint edge of the lash shading moves a
+        texel of a lower level by less than half a step and is rounded away).
+        And gloss stays under the ceiling at every level, which the converted
+        texture does not: ten texels of its level 1 are at 255.
+        """
+        import numpy as np
+
+        import build_las
+        import dds_encode
+
+        converted = build_las.converted_face_diffuse(arc)
+        levels, changed = build_las.face_levels(converted)
+        source = [dds_encode.decode_bc3_level(converted, k) for k in range(len(levels))]
+        assert len(levels) == 11 and [level.shape[0] for level in levels] == [1024 >> k for k in range(11)]
+        assert np.array_equal(levels[0], build_las.repaint_face(source[0]))
+
+        ceiling = build_las.DF_SPECULAR_FROM_NORMAL["miranda_face_color"][2]
+        assert int(source[1][..., 3].max()) == 255, "the converted texture no longer has the 255s: update this test"
+        assert int((source[1][..., 3] > ceiling).sum()) == 10
+        assert max(int(level[..., 3].max()) for level in levels) <= ceiling
+
+        def light(image):
+            return dds_encode.srgb_to_linear(image[..., :3] / 255.0).mean()
+
+        taken = light(source[0]) - light(levels[0])
+        assert taken > 0.0002                                    # measured: 0.00038 of full white
+        for k in range(1, 9):                                    # measured: within 12 % down to 4x4
+            assert abs((light(source[k]) - light(levels[k])) - taken) < 0.15 * taken, k
+
+        reached = changed[0].any(axis=2)
+        for k, (level, before, differs) in enumerate(zip(levels, source, changed)):
+            assert differs.shape == level.shape[:2] + (2,)
+            assert np.array_equal(differs[..., 0], (level[..., :3] != before[..., :3]).any(axis=2))
+            assert np.array_equal(differs[..., 1], level[..., 3] != before[..., 3])
+            # a texel changes only if the repaint reaches the area it covers, or its gloss was over the ceiling
+            covers = dds_encode.box_reduce(reached, 1 << k)[..., 0] > 0
+            assert not (differs.any(axis=2) & ~covers & (before[..., 3] <= ceiling)).any(), k
+        assert not changed[9].any() and not changed[10].any()    # 2x2 and 1x1: the repaint is under one step
+
+    def test_repainted_face_encodes_again_only_what_the_repaint_changed(self, arc, miranda_textures):
+        """Every other byte is the source's: its blocks, at every level.
+
+        The build used to decode the whole face, repaint 2 % of it and encode
+        all of it again with the naive encoder: a second lossy pass over every
+        block, and the source's own mip levels thrown away.
+        """
+        import numpy as np
+
+        import build_las
+        import dds_encode
+
+        converted = build_las.converted_face_diffuse(arc)
+        face = miranda_textures["miranda_face_df"]
+        assert face == build_las.repainted_face_texture(converted)
+        assert face[:128] == converted[:128] and len(face) == len(converted)
+        levels, changed = build_las.face_levels(converted)
+        total = touched = 0
+        for k, ((offset, width, height), level, differs) in enumerate(
+                zip(dds_encode.bc3_levels(converted), levels, changed)):
+            count = ((width + 3) // 4) * ((height + 3) // 4)
+            old = np.frombuffer(converted, dtype=np.uint8, count=count * 16, offset=offset).reshape(-1, 16)
+            new = np.frombuffer(face, dtype=np.uint8, count=count * 16, offset=offset).reshape(-1, 16)
+            across = (width + 3) // 4
+            mask = dds_encode.pad_to_blocks(differs).reshape(-1, 4, across, 4, 2).any(axis=(1, 3)).reshape(-1, 2)
+            assert np.array_equal(old[~mask[:, 0], 8:], new[~mask[:, 0], 8:]), f"level {k}: a colour block changed"
+            assert np.array_equal(old[~mask[:, 1], :8], new[~mask[:, 1], :8]), f"level {k}: an alpha block changed"
+            total += count
+            touched += int((old != new).any(axis=1).sum())
+            # and what was encoded again shows the picture it was meant to
+            got = dds_encode.decode_bc3_level(face, k).astype(int)
+            where = differs.any(axis=2)
+            if where.any():
+                # measured: colour 0.3 to 6.6 of 255 on average, gloss at most 3
+                assert np.abs(got[where][:, :3] - level[where][:, :3]).mean() < 8, k
+                assert np.abs(got[where][:, 3] - level[where][:, 3]).max() <= 4, k
+            c0 = new[:, 8].astype(int) | (new[:, 9].astype(int) << 8)
+            c1 = new[:, 10].astype(int) | (new[:, 11].astype(int) << 8)
+            assert (c0 >= c1).all(), k
+        # measured: 1,731 of 87,383 blocks, 1.98 %
+        assert total == 87383 and 0.015 < touched / total < 0.025, (touched, total)
+
+    def test_eye_keeps_a_blue_iris_at_every_size(self, miranda_textures):
+        """The eye is drawn from the 16x16 and 8x8 levels a few steps away.
+
+        The first mip levels made for this texture had a grey iris there:
+        (61, 55, 52) at 16x16, where the picture has (25, 57, 117). The format
+        cannot hold three hues in a block and the encoder kept the wrong two.
+        The pair search keeps the iris where it is most of a block; `eye_weights`
+        makes it keep the iris where it is three texels of sixteen.
+        """
+        import numpy as np
+
+        import build_las
+        import dds_encode
+
+        eyes = miranda_textures["miranda_eyes"]
+        reference = build_las.mip_levels(build_las.draw_eye())
+        assert len(dds_encode.bc3_levels(eyes)) == len(reference) == 10
+        weights = build_las.eye_weights()
+        assert [w.shape for w in weights] == [level.shape[:2] for level in reference]
+        assert all(w.dtype == np.int64 and w.min() >= 1 and w.max() <= build_las.EYE_IRIS_WEIGHT for w in weights)
+        assert weights[0][256, 256] == build_las.EYE_IRIS_WEIGHT and weights[0][0, 0] == 1
+
+        def iris(image):
+            side = image.shape[0]
+            centre = (np.arange(side) + 0.5) / side - 0.5
+            radius = np.hypot(centre[None, :], centre[:, None])
+            ring = (radius > 0.14) & (radius < 0.24)
+            light = dds_encode.srgb_to_linear(image[..., :3][ring] / 255.0).mean(axis=0)
+            return dds_encode.linear_to_srgb(light) * 255.0
+
+        for level in range(8):                                   # 512x512 down to 4x4; below that there is no ring
+            want, got = iris(reference[level]), iris(dds_encode.decode_bc3_level(eyes, level))
+            assert want[2] - want[0] > 50, (level, want)         # the picture itself: blue
+            # blue minus red, measured: 104 of 104 at level 0, 93 of 92 at 16x16, 93 of 94 at 8x8,
+            # 50 of 56 at 4x4. Without `eye_weights` the 8x8 level has 43 of 94.
+            assert got[2] - got[0] > 0.8 * (want[2] - want[0]), (
+                f"level {level}: the iris is {np.rint(got).astype(int).tolist()}, "
+                f"the picture has {np.rint(want).astype(int).tolist()}")
+            gloss = dds_encode.decode_bc3_level(eyes, level)[..., 3].astype(int)
+            assert np.abs(gloss - reference[level][..., 3]).max() <= 2, level
+
 
 @pytest.fixture(scope="module")
 def pack(tmp_path_factory):
@@ -344,12 +714,16 @@ class TestLasScaffold:
         assert info["payload_sha256"]["main.xml"] == digest
 
     def test_source_zip_hash_recorded(self):
-        """The repo source zip hash must match what the last build recorded."""
-        inv_path = REPO / "build" / "pd2-las" / "source_inventory.json"
-        if not inv_path.is_file():
-            pytest.skip("build output not present")
-        inv = json.loads(inv_path.read_text())
+        """The tracked source inventory describes the source zip that is in the repo.
+
+        It used to read the last build's copy under build/ and skip without one,
+        which is every CI run. The record is tracked now, so this always runs.
+        """
+        import build_las
+
+        inv = json.loads(build_las.RECORD.read_text())
         digest = hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()
+        assert inv["source_zip"] == SOURCE_ZIP.name
         assert inv["source_zip_sha256"] == digest
 
     def test_inventory_stage_always_persists(self, tmp_path):
@@ -363,6 +737,85 @@ class TestLasScaffold:
         assert inv["source_zip_sha256"] == hashlib.sha256(SOURCE_ZIP.read_bytes()).hexdigest()
         assert "third_person" in inv["models"]
         assert inv["models"]["third_person"]["triangles"] > 0
+
+    def test_tracked_source_inventory_is_current(self, tmp_path):
+        """`tools/pd2-las/source_inventory.json` is what the inventory stage writes today.
+
+        The record is in git so that the source can be read without building: bone
+        names, mesh and triangle counts, texture formats. It is only worth reading
+        while it is true. If this fails after a change to the source archive or to
+        a reader, look at the diff and run `make -sC tools/pd2-las inventory`.
+        """
+        import build_las
+
+        assert build_las.main(["--stage", "inventory", "--out", str(tmp_path)]) == 0
+        fresh = (tmp_path / "source_inventory.json").read_text()
+        assert json.loads(fresh) == json.loads(build_las.RECORD.read_text())
+        assert fresh == build_las.RECORD.read_text(), "same content, different formatting"
+
+    def test_source_inventory_does_not_depend_on_the_stage(self, tmp_path, monkeypatch):
+        """Every stage writes the same record.
+
+        `textures` used to be added by the stages that convert them, so the file
+        said more or less depending on the command that ran last, and the quick
+        `--stage inventory` replaced a full record with a shorter one. A tracked
+        file cannot behave like that: the record now holds source facts only, and
+        the hashes of the converted textures go to the pack's BUILD_INFO.json.
+        """
+        import build_las
+
+        # encoding the eye texture is the slow part of the textures stage and
+        # has no bearing on the record
+        monkeypatch.setattr(build_las, "eye_texture", lambda: b"DDS stub")
+        records = {}
+        for stage in ("inventory", "extract", "textures"):
+            out = tmp_path / stage
+            assert build_las.main(["--stage", stage, "--out", str(out)]) == 0
+            records[stage] = (out / "source_inventory.json").read_bytes()
+        assert (tmp_path / "textures" / "textures" / "miranda_face_df.texture").is_file()
+        assert records["extract"] == records["inventory"]
+        assert records["textures"] == records["inventory"]
+        record = json.loads(records["inventory"])
+        assert sorted(record["textures"]) == sorted(build_las.VTF_TO_PACK)
+        for facts in record["textures"].values():
+            assert sorted(facts) == ["format", "mips", "pack_texture", "size"], (
+                "a build result in the source inventory makes it depend on the stage")
+
+    def test_inventory_stage_prints_only_json(self, tmp_path):
+        """`--stage inventory` is for scripts: stdout is one JSON document, the record.
+
+        Two progress lines used to come first, so nothing could parse it.
+        """
+        import subprocess
+
+        proc = subprocess.run(
+            [sys.executable, str(REPO / "tools" / "pd2-las" / "build_las.py"),
+             "--stage", "inventory", "--out", str(tmp_path)],
+            capture_output=True, text=True)
+        assert proc.returncode == 0, proc.stderr
+        assert json.loads(proc.stdout) == json.loads((tmp_path / "source_inventory.json").read_text())
+        assert "vpk:" in proc.stderr, "the progress lines belong on stderr"
+
+    def test_tracked_pack_embeds_the_tracked_source_inventory(self):
+        """BUILD_INFO.json of the tracked pack carries this record plus each texture's hash.
+
+        That ties the three together without building anything: the record in git,
+        the record the shipped pack was built from, and the texture files inside it.
+        """
+        import build_las
+
+        record = json.loads(build_las.RECORD.read_text())
+        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        assert dist_zip.is_file(), f"missing tracked deliverable: {dist_zip}"
+        with zipfile.ZipFile(dist_zip) as z:
+            embedded = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))["source_inventory"]
+            hashes = {}
+            for stem, facts in embedded["textures"].items():
+                hashes[stem] = facts.pop("dds_sha256")
+                shipped = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{facts['pack_texture']}")
+                assert hashlib.sha256(shipped).hexdigest() == hashes[stem], stem
+        assert len(hashes) == len(build_las.VTF_TO_PACK)
+        assert embedded == record
 
     def test_material_config_weight_classes(self, pack):
         """Guide contract: contour template + unique on TPP skins, fps depth scaling."""
@@ -398,6 +851,85 @@ class TestLasScaffold:
                 if "_texture file=" in line:
                     assert ".texture" not in line and ".dds" not in line, line
 
+    def test_object_xml_lists_only_the_objects_its_model_has(self):
+        """A `.object` line with no object behind it is what the busty pack shipped.
+
+        Its first-person model has no head slots and its `.object` listed both,
+        because the file was the fixed 2B list. Given the model's drawables the
+        writer lists the ones that exist, and nothing but the lines changes.
+        """
+        import re
+
+        from las_pack import render_object_xml
+
+        def lines(text):
+            return re.findall(r'<object name="(\w+)" enabled="(true|false)" />', text)
+
+        base = "units/x/skins/x/fps_x"
+        two_b_fps = [("g_body", "true"), ("g_head", "false"),
+                     ("g_head_lod1", "false"), ("g_body_lod1", "false")]
+        two_b_tpp = [("g_body_lod1", "false"), ("g_body", "true"),
+                     ("g_head_lod1", "false"), ("g_head", "true")]
+        # no model yet (a scaffold): the 2B list
+        assert lines(render_object_xml(base, fps=True)) == two_b_fps
+        assert lines(render_object_xml(base, fps=False)) == two_b_tpp
+        # a model with all four: the same bytes
+        everything = ["c_block", "g_body", "g_body_lod1", "g_head", "g_head_lod1", "s_body"]
+        for fps in (False, True):
+            assert render_object_xml(base, fps, everything) == render_object_xml(base, fps)
+        # a model without the head slots: their lines go, the order and the rest stay
+        text = render_object_xml(base, True, ["c_block", "g_body", "g_body_lod1", "s_body"])
+        assert lines(text) == [("g_body", "true"), ("g_body_lod1", "false")]
+        kept = [line for line in render_object_xml(base, True).splitlines(keepends=True)
+                if "g_head" not in line]
+        assert text == "".join(kept)
+        # a drawable the writer has no line for, or no body at all, is an error
+        with pytest.raises(ValueError, match="g_extra"):
+            render_object_xml(base, True, ["g_body", "g_extra"])
+        with pytest.raises(ValueError, match="g_body"):
+            render_object_xml(base, True, ["g_body_lod1", "s_body"])
+
+    @pytest.mark.parametrize("pack_name", ["Miranda_LAS", "Miranda_Busty_LAS"])
+    def test_install_models_writes_each_object_from_its_model(self, tmp_path, pack_name):
+        """The step both Miranda builders end on, run on the tracked models.
+
+        It needs no templates: the two models come out of the tracked pack, go into
+        a fresh scaffold, and the `.object` files that result have to be the tracked
+        ones, byte for byte. For the busty pack that is the first-person file with
+        no head lines.
+        """
+        import las_pack
+
+        if pack_name == "Miranda_LAS":
+            identity = las_pack.BASE_IDENTITY
+        else:
+            import build_busty_variant
+
+            identity = build_busty_variant.IDENTITY
+        assert identity.pack_dir_name == pack_name
+        item = identity.item_id
+        unit = f"{pack_name}/assets/{identity.unit_base}"
+        models = {}
+        with zipfile.ZipFile(REPO / "dist" / f"{pack_name}.zip") as tracked:
+            for stem in (item, f"fps_{item}"):
+                models[stem] = tmp_path / f"{stem}.model"
+                models[stem].write_bytes(tracked.read(f"{unit}/{stem}.model"))
+            objects = {stem: tracked.read(f"{unit}/{stem}.object") for stem in models}
+
+        scaffold = las_pack.write_pack(tmp_path / "out", {}, b"DDS icon", {"note": "test"},
+                                       models_present=False, identity=identity)
+        unit_dir = scaffold / "assets" / identity.unit_base
+        assert (scaffold / "WIP_DO_NOT_INSTALL.txt").is_file()
+        assert (unit_dir / f"fps_{item}.object").read_text().count("<object ") == 4
+        las_pack.install_models(scaffold, models[item], models[f"fps_{item}"], identity)
+        assert not (scaffold / "WIP_DO_NOT_INSTALL.txt").exists()
+        for stem, path in models.items():
+            assert (unit_dir / f"{stem}.model").read_bytes() == path.read_bytes()
+            assert (unit_dir / f"{stem}.object").read_bytes() == objects[stem], (
+                f"{stem}.object is not the tracked file")
+        fps_lines = (unit_dir / f"fps_{item}.object").read_text().count("<object ")
+        assert fps_lines == (4 if pack_name == "Miranda_LAS" else 2)
+
     def test_refresh_build_info_sees_models(self, pack, tmp_path):
         """refresh_build_info flips models_present and re-hashes the tree."""
         import shutil
@@ -425,7 +957,8 @@ class TestLasScaffold:
         import shutil
         import zipfile
 
-        from las_pack import refresh_build_info, zip_pack
+        from las_pack import refresh_build_info
+        from las_outfit_pack import zip_pack
 
         clone = tmp_path / "Miranda_LAS"
         shutil.copytree(pack, clone)
@@ -605,12 +1138,10 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Bonnie.zip", 4454, 7070, 148.90),
             ("Miranda_Romance_over_Sydney.zip", 4454, 7070, 148.90),
         ]
-        tmp = REPO / "build" / "tmp"
-        tmp.mkdir(parents=True, exist_ok=True)
         for name, verts, tris, min_z in specs:
             zp = REPO / "dist" / name
             assert zp.is_file(), f"missing {zp}"
-            v, f = nj._head_mesh(zp, tmp)
+            v, f = nj._head_mesh(zp)
             assert len(v) == verts, f"{name}: {len(v)} verts, expected {verts}"
             assert len(f) == tris, f"{name}: {len(f)} tris, expected {tris}"
             assert float(np.min(v[:, 2])) == pytest.approx(min_z, abs=0.1), (

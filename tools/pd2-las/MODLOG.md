@@ -326,3 +326,295 @@
   environment before believing a diagnostic is broken.
 - Validation: `pytest -q tests` → 645 passed, 30 skipped; `dist/` clean; no model or texture
   changed. Only documentation updated this round.
+
+## 2026-11-11 (later) — the README becomes an entry point; `--templates` gets a default
+
+- **README rewritten for the agent that opens it cold** (320 → 120 lines): `## Status` (a command, not
+  prose), `## Commands`, `## File map`, `## Invariants` (each row names its tests), `## Do not`, `## Next`,
+  `## Further reading`. It carries no dates, hashes or measurements any more;
+  `tests/test_pd2_las_status.py::test_readme_keeps_its_contract` holds it to that, to its headers and its
+  length, and fails when it cites a test or a path that does not exist.
+- **The contradiction it carried is gone.** It said geometry authoring was done, listed "Diesel `.model`
+  authoring" as an unchecked roadmap item, and showed `BUILD_INFO.json` with `models_present=false`.
+  Measured on the tracked zips: all four packs say `models_present: true`; `runtime_verified` is `false`
+  for the two Miranda packs and `true` for the two Christie packs. Only a bare `build_las.py` scaffold,
+  which no tracked pack is, is marked WIP.
+- **New `status.py`**: stdlib-only and read-only, one JSON object — inputs, the pinned pillow/numpy against
+  what the venv has, the 2B templates, per tracked pack its checksum against the sidecar and the two
+  `BUILD_INFO.json` flags, and a `hint` naming the command that makes `ready` true.
+- **`--templates` is optional** in `build_models.py`, `build_busty_variant.py` and
+  `build_christie_las.py`. The default is `build_models.DEFAULT_TEMPLATES`, the directory `recover_env.sh`
+  and `bootstrap.sh` extract `2b.rar` into; a builder that finds it empty exits with the command to run
+  before it has written anything. `build_skyrim_outfit.py` keeps its required argument: its sources are
+  gone, so nothing here can exercise a change to it.
+- **New `Makefile`**: `make -C tools/pd2-las` lists the targets (`env`, `status`, `build`, `busty`,
+  `christie`, `slim`, `all`, `inventory`, `test`), one script call each.
+- **Two bugs found on the way.** `extract_2b.py` passed the archive to its generated node script as
+  `argv[2]` while the script read `argv[1]`, its own path, so the RAR step of `bootstrap.sh` died with
+  `ERAR_BAD_ARCHIVE` on every run. `build_christie_las.py --help` raised
+  `ValueError: unsupported format character`: the `--variant` help text carried bare `%` signs, which
+  argparse formats.
+- `recover_env.sh` installs the same `pillow==13.0.0 numpy==2.4.6` as `bootstrap.sh` and CI. `status.py`
+  reads the pins from `bootstrap.sh`, and a test keeps the script and both workflows equal to it.
+- The GMod/Source tool survey and the addon-inspection walkthrough left the README for
+  `knowledge/techniques/garry-s-mod-and-source-addon-tooling-what-runs-headless-what.md`. The README's
+  retarget description was not moved: it described an earlier algorithm than the one `retarget_maps`
+  implements and documents.
+- Validation: the four packs rebuilt with the new defaults are byte-identical to the tracked zips
+  (`git status --short dist build` empty). `pytest -q tests` with the templates extracted → 2 failed,
+  667 passed, 29 skipped; the two failures are the slim sleeve tests of the open defect in the
+  2026-11-11 sleeve-seam entry, red before this pass as well. `pyflakes um tools tests` clean,
+  `um kb check --index` PASS on 247 notes.
+
+## 2026-11-11 (third pass) — the 2B templates leave `/tmp`; the decisions get written down
+
+- **The templates moved** from `/tmp/2bsrc` to `build/pd2-las/2b/`, inside the checkout and gitignored.
+  `/tmp` does not outlive a session and does not exist on Windows, and the path was written out in 32
+  files, so every fresh session began with commands that pointed at nothing.
+- **One definition.** `extract_2b.py` owns the location (`TEMPLATES`, `present()`, the skip reason
+  `MISSING`) as well as the unpacking. The builders' `--templates` default, `status.py`,
+  `audit_metrics.py`, `glove_check.py`, `tools/pd2-port/preview_check.py` and seven test modules import
+  it. `recover_env.sh` and `bootstrap.sh` call it and carry no path of their own any more;
+  `recover_env.sh` had held a second copy of the node extractor. `PD2_2B_TEMPLATES`, which two test
+  modules honoured, now redirects everything, for a second checkout that should share one extraction.
+- **No network needed.** The repository tracks `node_modules/node-unrar-js` at its root (it arrived with
+  `2114a92` on 2026-11-06), and a script below the root resolves it, so unpacking needs `node` alone.
+  Without that copy the extractor installs the package with npm next to its script; both paths were run.
+  A fresh `.venv` plus the templates through `make -sC tools/pd2-las env`: 10.9 s.
+- **One skip reason.** Five wordings for "the templates are missing" became `extract_2b.MISSING`, and
+  `check_skip_budget.py` keeps a single zero-budget prefix for it. With the templates pointed nowhere it
+  reports that one reason 59 times over budget; with them present, 29 budgeted skips over 10 reasons.
+- **`preview_check.py`** looked for the 2B model under `/tmp/rarx/out/`, which nothing ever filled, so
+  its "bounds vs 2B donor" lines never printed. It reads the shared location now: retarget Z range
+  [0.01, 181.06] cm against the donor's [−0.53, 186.04].
+- **`make -sC`.** A bare `make -C` wraps its output in "Entering directory" / "Leaving directory" lines
+  on stdout, and nothing inside a makefile turns that off in GNU make 4.3. The README's commands carry
+  `-s`; `make -sC tools/pd2-las status` is one JSON object, and a test parses it.
+- **`docs/pd2-las/DECISIONS.md`**: 17 decisions with date, reason and source, reconstructed from the
+  commit messages on `main` (read through the GitHub API, the checkout being shallow), the audits and
+  `HANDOFF.md`. Where the record gives no reason, the entry says "not recorded". It also keeps what the
+  README dropped: the 2026-10-19 retarget design the README described until today, and where its text is.
+- **Left as written:** four dated audits and the older entries of this journal still say `/tmp/2bsrc`.
+- Validation: from a wipe (no `.venv`, no templates, nothing under `/tmp`), `make -sC tools/pd2-las env`
+  then `all` rebuilds the four packs byte for byte (`git status --short dist build` empty).
+  `pytest -q tests` in that environment → 2 failed, 668 passed, 29 skipped, the two failures being the slim
+  sleeve tests of the open defect above. `bootstrap.sh`, which also installs lupa and sourcepp, passes its
+  16 checksum checks and stops at its test step on the same two (2 failed, 680 passed, 26 skipped).
+  `pyflakes um tools tests` clean; `um kb check --index` PASS on 247 notes;
+  `um publish check .` PASS with 0 warnings — the absolute-path warning it had carried came from a
+  sandbox-specific fallback location in `tests/test_christie_las.py`, which is gone.
+
+## 2026-11-11 (fourth pass) — the suite is green; the open sleeves are an expected failure
+
+- **Decision (the user):** asked what to do about the two red slim-sleeve tests, the user chose to mark
+  them as known failures and not to repair the sleeves. `Christie_LAS_Slim.zip` is untouched
+  (`7a4d010c…90a3e6f`).
+- **The marker.** `KNOWN_SLEEVE_LEAK_CM2` in `tests/test_christie_las.py` records the leak of each open
+  sleeve: slim left 6.70 cm² over four slices, slim right 4.95 cm² over three, all between 52 % and 56 % of
+  the way from shoulder to wrist (z 125.3–126.6 cm); both base sleeves measure 0.00. Those two cases of
+  `test_sleeve_tube_is_closed_along_its_length` are `xfail`, strict and for `AssertionError` only. The
+  test ids did not change.
+- **What keeps it honest**, each run as a mutation and reverted:
+  - a sleeve reported closed → its case fails (strict XPASS), so the marker cannot outlive the defect;
+  - a leak 0.5 cm² above the recorded one → the new `test_known_sleeve_leak_does_not_grow` fails;
+  - the measurement raising something other than an assertion → all six tests fail, none is excused;
+  - no templates → the six skip, under the one zero-budget reason.
+- **`check_skip_budget.py` budgets expected failures too.** `ALLOWED_XFAIL` names the one test and allows
+  it two; any other `xfail` fails the stage. Tried with a scratch test file holding a failing marker, a
+  passing non-strict one and an imperative `pytest.xfail()`: all three reported, exit 1.
+- **`docs/pd2-las/DECISIONS.md`**: D18 records this decision. D9, D11 and D12 now carry the reasons the
+  user gave when asked: the packs are tracked so that they can be downloaded and installed straight from
+  the repository; Christie is body-only because the user wanted the heister's own head with her outfit;
+  slim went from 20 % to 10 % thinner because 20 % looked too thin. Still "not recorded": why the Skyrim
+  route was cancelled (D13), why the inputs were reorganised (D14), the intermediate retarget steps (D6).
+- Validation: from a wipe again (no `.venv`, no templates). `make -sC tools/pd2-las env`, `all` (four
+  packs byte for byte), then `test` → 670 passed, 29 skipped, 2 xfailed, exit 0. `bootstrap.sh`, which
+  stopped at its test step until now, runs to the end: 682 passed, 26 skipped, 2 xfailed.
+  `check_all.py --full`: all 8 stages pass. `pyflakes um tools tests` clean; `um kb check --index` and
+  `um publish check .` PASS.
+
+## 2026-11-11 (fifth pass) — nothing depends on the temp directory; one entry point; one test per invariant
+
+- **Request:** "move from tmp, follow roadmap". Done as: no fixed path under the system temp directory,
+  and the three open items of the roadmap: one entry point (item 4), tests named after the invariants
+  (item 6), the source inventory tracked (item 7). No model, texture, hook or tracked zip changed, and
+  nothing was run in the game.
+- **No fixed temp path** (D19). That directory is wiped between sessions and is not a path on Windows.
+  - `tools/build_joy_head_mods.py` unpacks its three archives into `build/head-mods/` (`EXTRACT_DIR`,
+    85 MB, gitignored). Run from an empty cache, it rebuilds the nine head packs byte for byte.
+  - `neck_junction.py` created a folder there that nothing used. The parameter is gone; the report is the
+    same.
+  - `tests/test_christie_las.py` wrote each model there only to read it back.
+    `build_models.segment_fit_report` now takes the model's bytes, as `read_drawable` does.
+  - `preview_check.py render` and `shade_check.py` write to `build/pd2-port/preview/` and
+    `build/pd2-port/shade/` when no directory is given.
+  - The usage examples in `elbow_before_after.py`, `smd.py`, `CHRISTIE.md` and one knowledge note, and
+    `tools/pd2-port/STATUS.md` §7, name paths inside the checkout.
+  - `test_no_tool_or_test_depends_on_a_fixed_tmp_path` scans every tracked script, test and workflow and
+    the eight entry documents for a path into that directory. Prose may still say that it gets wiped.
+  - It is still named, as history, in the dated audits, in older entries of this journal and in D15.
+- **The source inventory is tracked** (D20): `tools/pd2-las/source_inventory.json`, 9,324 bytes. It holds
+  what the source archive contains and nothing a build adds, so every stage of `build_las.py` writes the
+  same bytes. `make -sC tools/pd2-las inventory` rewrites it. `test_source_zip_hash_recorded` read the
+  copy under `build/` and skipped without one, which was every CI run; it now always runs. Both Miranda
+  packs were rebuilt after the change: byte for byte the same.
+- **One test per invariant** (D21): `tests/test_pd2_las_invariants.py`, 12 tests, 73 cases, one per row of
+  the README's table, in the table's order. They decode the tracked packs with `diesel_model` alone, so
+  71 of the 73 cases run on a fresh clone and in CI; the two Codec cases on the 2B templates skip there.
+  - Four rows are new: Atoms, Materials, Objects, Textures.
+  - Each test was run against mutated copies of the packs, held in memory: 112 mutations, each caught by
+    the test it was aimed at, and 3 controls that stayed green.
+  - **A gap the mutations found:** the rig, reach and height checks pass a first-person mesh that was
+    only multiplied by 2.54. The Units test now also compares surface area with the source for the
+    Miranda packs (2.898 × in third person, 2.347 × in first person). The Christie packs have no such
+    check, because they are a cut of their source (no head; slim also without hands, and thinner), so
+    the source's area is no measure for them. A first-person Christie mesh that was only multiplied by
+    2.54 still passes.
+  - **A finding, not fixed:** `miranda_face_df` and `miranda_eyes` ship one mip level in both Miranda
+    packs; every other unit texture has the full chain. `SINGLE_LEVEL` in the test file names the two,
+    and the test fails when that set grows or shrinks. Whether it shows in the game is not known. It is
+    item 3 under the README's Next.
+  - **A second finding, not fixed:** `fps_miranda_busty.object` lists `g_head` and `g_head_lod1`, and
+    `fps_miranda_busty.model` has no object of either name (their name hashes do not occur in the file).
+    `build_busty_variant.py` drops the two disabled head drawables from the first-person model, and
+    `las_pack.render_object_xml` writes a fixed list; the Christie builder writes its list from the
+    model. In the 2B pack and in the other seven tracked units every `<object>` line has its object.
+    A culling object that is not there is a different matter: `2b.object` names `c_block`, `2b.model`
+    has none, and all four third-person units here do the same. Whether the game minds a disabled
+    object that is not there is not known: no Miranda pack has an in-game record. `ABSENT_OBJECTS`
+    pins it like `SINGLE_LEVEL`; it is item 4 under the README's Next. The pack was not changed: a fix
+    gives a tracked deliverable a new sha256, and that is the user's call.
+- **One entry point** (D22): `tools/pd2-las/README.md`.
+  - `docs/pd2-las/HANDOFF.md` went from 389 lines to 162 and is the dated record: the 14 tracked packs
+    with size and sha256, what was seen in the game and when, how the tracked bytes came about, the dead
+    ends, and a table of seven claims it used to make that are not true of the tracked tree.
+  - `AGENTS.md` and its two copies route to the README: a table of deliverables, one "where to start" row
+    per pipeline, six engine facts. Two of those facts were wrong and are corrected. A normal map is not
+    `R = G = B = ny`: X is in alpha, Y in green, red is 255 and blue 0. The elbow does not flex about
+    `ForeArm` local Z: local Y is the normal of the bind-pose bend, local X runs along the forearm.
+  - `AGENTS.md` no longer tells an agent to start with a hard reset onto the remote branch. That discards
+    whatever is not pushed.
+  - `test_pd2_las_has_one_entry_point` and `test_readme_invariants_are_the_invariant_tests` keep it so;
+    33 edits to the documents were tried against the document tests, 28 that must fail and 5 that must
+    pass. Two of the first run got through (two packs with swapped sha256s, a pack row dropped) and
+    `test_handoff_and_agents_quote_the_tracked_pack_bytes` was tightened until they failed.
+- **`runtime_verified: true`** in both Christie packs is a constant their builder writes, not a record of
+  the tracked bytes in the game. What was seen, and of which bytes, is in the handoff's "Seen in game".
+- Validation: from a wipe (no `.venv`, no templates, no `build/head-mods/`, no `build/pd2-port/`).
+  `make -sC tools/pd2-las env`, then `all` (four packs byte for byte), `inventory` (equal to the tracked
+  file), `test` → 750 passed, 29 skipped, 2 xfailed, exit 0. `bootstrap.sh` → 16 sidecars OK, 762 passed,
+  26 skipped, 2 xfailed. `check_all.py --full`: all 8 stages pass. Without the templates: 692 passed,
+  86 skipped. `pyflakes um tools tests` clean; `um kb check --index` and `um publish check .` PASS.
+
+## 2026-11-11 (sixth pass) — the busty `.object`, the mip levels of the face and the eyes, and what they dragged along
+
+- **Asked for:** fix the two findings of the fifth pass in `Miranda_LAS` and `Miranda_Busty_LAS` and re-ship
+  both, with evidence that each fix is right in the game and not only in tests written here. Full record:
+  `docs/audits/2026-11-11-miranda-mips-and-object.md`; reasons: `DECISIONS.md`, D23 to D26.
+- **The `.object`.** `las_pack.install_models` writes each `.object` from the model beside it; both Miranda
+  builders end on it. `fps_miranda_busty.object` now lists `g_body` and `g_body_lod1`. Which way to make file
+  and model agree was decided by reading what uses the unit: the game's Lua, BeardLib and LAS never ask an
+  outfit unit for an object by name. In the 34 units LAS ships and the two of 2B, no `<object>` line lacks a
+  node.
+- **The mip levels, three attempts.** The first two gave the face and the eyes a pyramid and passed every
+  test: right header, right payload, low gloss. Both had a grey iris at 16x16, (61, 55, 52) where the picture
+  has (25, 57, 117), which is what is on screen from two to three metres. The tests asked whether the file
+  was well formed. The third attempt started from what a level is for:
+  - `tools/pd2-las/mip_audit.py`: which level is on screen at which distance (eyes 103 texels per cm, face
+    46), every level against the picture it stands for (CIEDE2000, gloss, the iris) with limits written first,
+    the same images through outside encoders, a second decoder, and a render of the head at 1 to 16 m.
+  - The face keeps the source's blocks at all eleven levels; 1,731 of 87,383 differ. Every level passes.
+  - The eyes are encoded by a search over every pair of a block's colours, with the iris counting sixteen
+    times the sclera. The iris is within 1.71 at every level. Levels 3 to 7 miss the per-texel colour limits,
+    as `quicktex` at its highest setting does on the same images; they are listed, not waved through.
+- **Level 0 had been wrong all along.** `rgba_to_bc3_dds` wrote alpha codes in ramp order. The face's gloss
+  was scrambled inside 80 % of its blocks, the worst texel by 29 of 255. Its only test used a flat image.
+- **Ten texels at full gloss** in level 1 of the converted face: a DXT5 block with alpha_0 <= alpha_1 has the
+  constants 0 and 255, and scaling the endpoints does not lower a constant. The face is held to its ceiling
+  now. The same constant is in `body_df` and `head_df` and in three Christie textures: README, Next.
+- **The four L4D2 head packs** take their face from `dist/Miranda_LAS.zip` and moved with it. Asked; the
+  user chose to re-ship them. Their face quarter went from a mean CIEDE2000 of 1.42 to 0.57 against the face
+  the Miranda build means.
+- **The eye is drawn once and averaged down**, where the task said to draw it at each size. Measured against
+  a drawing with 16 points per texel: one drawing averaged stays within 1.66 in every texel of every level;
+  drawn again at each size, one point per texel, the fibres fall between the points and the iris of the 4x4
+  level is off by 11.
+- **The tracked bytes depend on the CPU that builds them.** Found while making the CI step, by holding numpy
+  and OpenBLAS to the routines of other CPUs. With those of an AVX2 CPU, 14 of the 16 tracked zips do not
+  equal a fresh build. In a Miranda pack it is one member, the third-person model: 44 hair vertices have no
+  triangle with area in UV, `author_group_sections` takes the sign of their V direction from a number that is
+  zero but for rounding, and 16 to 21 of them come out reversed. In a head pack it is 19 or 20 texels of the
+  eye its builder draws. The textures and the `.object` of this pass come out the same on all three. Not
+  fixed: README, Next; `DECISIONS.md`, D26.
+- **`make -sC tools/pd2-las fresh`** builds both Miranda packs into `build/fresh/` and `fresh_check.py`
+  compares them with the tracked ones member by member, allowing a model those two differences and nothing
+  else. CI runs it as its last step. Until now CI compared those zips with their own sidecars.
+- **No workflow has run in the repository since 2026-10-22**: not for the nineteen pull requests merged
+  since, not for the pushes of this branch or its pull request, not on the six-hourly schedule. The new step
+  has never run on a runner; in a clean clone of the pushed branch it passes in a minute.
+- **What a still cannot show.** In the render, the old pack with its single level is closer to the ideal
+  picture at every distance (0.96 against 1.24 at 2 m, 1.46 against 2.25 at 8 m). One level is right on
+  average and crawls in motion; the pyramid is steady and blurrier. Only the game shows which matters, and
+  nobody has looked: `docs/pd2-las/in-game-checklist.md` opens with the ten minutes that would.
+- **Three sandbox wipes** during the pass took the environment, the rebuilt packs and all scratch with
+  them. The packs came back byte for byte each time, on the same kind of CPU each time.
+- Validation: `pytest -q tests` → 780 passed, 29 skipped, 2 xfailed with the templates, 710 passed and 89
+  skipped without, and the same 780 with numpy and OpenBLAS held to the routines of an AVX2 CPU. 41
+  mutations of the new code, each caught by a test. `pyflakes um tools tests` clean, `um kb check --index`
+  PASS on 247 notes, `um publish check .` PASS, `check_all.py --full` all 8 stages.
+
+## 2026-11-12 — the first CI run in three weeks; `make env` beside a venv that `uv` made
+
+- The owner switched Actions on again. `test.yml`, started by hand on the branch, passed every step it had
+  before and failed in the new fresh-build step within a second: exit code 2, nothing built.
+- **Cause:** `bin/um` runs through `uv` when `uv` is installed, and the CI job installs it. `uv run` leaves a
+  `.venv` without pip. `recover_env.sh` and `bootstrap.sh` took any `.venv/bin/python` for the build's
+  environment and called `.venv/bin/pip`. Reproduced in the sandbox with `uv` installed.
+- **Fix:** a `.venv` counts only if `python -m pip` works in it; otherwise it is made again from `python3`.
+  `test_env_scripts_do_not_trust_a_venv_without_pip` keeps both scripts to that.
+- The CI step writes the runner's CPU and the comparison's lines as notices, which the GitHub API serves. The
+  sandbox cannot reach the host that serves a run's log.
+- Validation: with a uv-made `.venv` in place, the step passes exactly as the workflow runs it;
+  `pytest -q tests` → 781 passed, 29 skipped, 2 xfailed; `pyflakes um tools tests` clean.
+
+## 2026-11-12 (later) — the tracked bytes stop depending on the CPU
+
+- **Asked for:** make every tracked pack independent of the CPU that builds it, and prove it on machines that
+  are not the sandbox. Full record: `docs/audits/2026-11-12-cpu-independence.md`; the decision: D26.
+- **Check first.** `fresh.py check` builds all 14 packs in a copy and compares the 16 zips with their sha256.
+  Its expected result on each kind of runner was committed before its first run. On an EPYC 7763 (no AVX-512)
+  2 of 16 zips were the tracked bytes, on three runners with AVX-512 all 16: as expected.
+- **Trace before fixing.** `trace_run.py` (a checksum of what every function was given and returned) and
+  `fresh.py matrix` (the build under other code paths). Eight rows of causes, none unexplained. Two were new:
+  the Christie builder's `_fill_ring` picked between two fans that are the same triangles, and its fit figures
+  went into `BUILD_INFO.json` with all their digits.
+- **Fixed by kind.** A rule for a decision on zero (`tangents.py`, from `mikktspace.c` and from a census of
+  the 2B and LAS models; `_fill_ring`). Tangent frames from the stored float32 values. A margin check for what
+  is drawn (`determinism.floor8`, `rounded`, `above`). A declared code path for the rest
+  (`determinism.enter`).
+- **Found by the margin check, not by the matrix:** a mean in the repainted face that is 8.5 give or take
+  1e-15, depending on the math library. Halves now go up.
+- **Tried and dropped:** rounding what is drawn to the nearest byte. It removed one known miss of the mip
+  audit, which means it changed the art. The build cuts off, as before, from 1/1024 below a whole number.
+- **Removed:** `fresh_check.py`, its tests, the first D26, the README's item under Next.
+- Twelve packs re-shipped; `lawson_las` and `Geralt_over_Rust` unchanged; the mip audit keeps its nine known
+  misses. After the fix, four runners (two of them without AVX-512) built all 16 zips to the tracked sha256.
+
+## 2026-11-12 — one implementation where there were two or three
+
+- Three jobs that more than one piece of code did are merged, and no byte of a
+  tracked pack changed: the files that register a pack (`las_outfit_pack.py`
+  writes them, and a pack's choices are a `Registration`); the environment
+  (`recover_env.sh` only, the pins in `pins.txt`); and of the `.model` code the
+  idstring hash and the tag numbers (`diesel_model.py`). The record is
+  `docs/audits/2026-11-12-tool-merge.md`; the decisions are D27, D28 and D29.
+- `bootstrap.sh` is retired. The entries above that name it describe a script
+  that no longer exists. The environment is `make -sC tools/pd2-las env`, and
+  what only that script installed (lupa, sourcepp) is
+  `bash tools/pd2-las/recover_env.sh --extras`.
+- Found by comparing the copies and not fixed: `tools/pd2-port/dmodel.py`
+  misreads the skinned geometry of legacy models, so
+  `check_guide_compliance.py` stops on every pack but `lawson_las`; and the
+  tests that run a pack's Lua in an interpreter skip after `make env` and in
+  CI, for want of lupa.
+- `copies.py` holds the evidence: `record`, `compare`, `after`.

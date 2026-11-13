@@ -29,8 +29,8 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 > `docs/audits/2026-10-19-las-guide-compliance.md`. What remains: the user-side
 > in-game checklist (`docs/pd2-las/in-game-checklist.md`) and the ME2
 > redistribution-rights gate before any public release. Start-here doc for the
-> next agent: `docs/pd2-las/HANDOFF.md`; one-command rebuild:
-> `bash tools/pd2-las/bootstrap.sh`.
+> next agent: `tools/pd2-las/README.md`; the environment, then every pack rebuilt and compared:
+> `make -sC tools/pd2-las env fresh`.
 
 ## Setup
 
@@ -95,9 +95,9 @@ a broken rig this time — the L4D2 mod is a complete, working character model
 ## Build steps
 
 ```sh
-bash tools/pd2-las/bootstrap.sh    # venv + 2B templates + build + tests + lint
+make -sC tools/pd2-las env fresh test   # venv + 2B templates; every pack rebuilt and compared; the suite
 # or, manually:
-python tools/pd2-las/build_models.py --templates "/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b"
+python tools/pd2-las/build_models.py   # --templates defaults to build/pd2-las/2b/…, where `make env` unpacks 2b.rar
 python -m pytest -q tests/
 ```
 
@@ -106,12 +106,17 @@ pack scaffold; `build_models.py` builds the models and auto-creates the
 scaffold if missing, then zips. Output goes to `build/pd2-las/` (gitignored):
 `miranda.model`, `fps_miranda.model`, `Miranda_LAS/` (installable pack) and
 `Miranda_LAS.zip` (reproducible, fixed timestamps), plus `previews/`,
-`textures/`, `source_inventory.json`. Provenance (payload hashes, source zip
-hash, 2B template input hashes) lives in `Miranda_LAS/BUILD_INFO.json`.
+`textures/`, `source_inventory.json`. That inventory (what the source archive
+contains: bones, meshes, triangle counts, texture formats) is the same whatever
+stage wrote it, and a copy is tracked as `tools/pd2-las/source_inventory.json`,
+so the source can be looked up without building. Provenance (payload hashes,
+source zip hash, 2B template input hashes) lives in
+`Miranda_LAS/BUILD_INFO.json`.
 
 ## Verification
 
-- 192 offline tests (5 skip without ffmpeg): readers against the tracked
+- Offline tests (`make -sC tools/pd2-las test` prints the current count):
+  one test per invariant on the tracked packs, readers against the tracked
   source zip, byte-exact Diesel codec round-trips, retarget coherence
   (weights, winding, signed volumes, bind placement), pack/registration
   contract vs 2B, guide material_config contract, zip reproducibility.
@@ -122,8 +127,9 @@ hash, 2B template input hashes) lives in `Miranda_LAS/BUILD_INFO.json`.
   structural diff vs the 2B reference (identical schema at every layer the
   engine reads).
 - **Not verified:** anything in-game. Known watch items are checklist
-  items 17–18 (normal-map Y+ orientation, contour silhouette) plus the
-  boot-sole ground clip (~12 cm).
+  items 17–18 (normal-map Y+ orientation, contour silhouette). The boot-sole
+  ground clip of about 12 cm that this note used to list is gone: the lowest
+  vertex of the tracked body is at z = −0.75 cm.
 
 ## Gotchas
 
@@ -172,13 +178,67 @@ hash, 2B template input hashes) lives in `Miranda_LAS/BUILD_INFO.json`.
     git so the worktree looks like untracked files on `66cfdb7`. **Cause:**
     sandbox snapshot restore. **Fix:** the work is on the remote —
     `git fetch && git reset --hard origin/<branch>`, then
-    `bash tools/pd2-las/bootstrap.sh`. Push early; this happened 3×.
+    `make -sC tools/pd2-las env`. Push early; this happened 3×.
+    The reset is only right when everything local is already on the remote
+    (`git log origin/<branch>..HEAD` empty, `git status` clean of real edits):
+    it discards whatever was never pushed. A later kind of restart keeps the
+    commits and drops `.venv`, `dist/` and `build/` instead; for that one,
+    `git checkout -- dist build node_modules` and `make -sC tools/pd2-las env`.
 11. **Symptom:** API friction. **Cause:** convenience wrappers differ from
     stdlib guesses. **Fix:** `VpkArchive.from_zip(path_str, name)` takes a
     path not a `ZipFile`; `ModelFile.read(data)` not `read_bytes`;
     `skeleton_map.json` is `map` / `drop.patterns` / `target_only.names`;
     dropped/unmapped source bones fold into the nearest mapped ancestor
     (that is how facial flex bones and `hlp_*` helpers are absorbed).
+12. **Symptom:** a first-person `.object` listed `g_head` and `g_head_lod1`,
+    and its model had neither. **Cause:** the file came from a fixed list, the
+    model from a builder that drops drawables; nothing compared them.
+    **Fix:** write the `.object` from the model. What is known about the other
+    direction: the game, BeardLib and LAS never ask the outfit unit for an
+    object by name (the game spawns it as `char_mesh`, links it, sets its
+    material, enables it); in the 34 units LAS ships and in 2B's two, every
+    `<object>` line has a node, while a `culling_object` without one occurs
+    twice and is tolerated. What the engine does with a listed object that is
+    not there is not known.
+13. **Symptom:** gloss looked like noise on a texture encoded here.
+    **Cause:** DXT5 alpha codes were written as positions on the ramp. In the
+    format, code 0 is alpha_0, code 1 is alpha_1 and codes 2 to 7 run from
+    alpha_0 towards alpha_1. **Fix:** write the codes in that order, and test
+    an encoder with a ramp: a flat image has one code and hides this.
+14. **Symptom:** a few texels at full gloss after "attenuating" DXT5 alpha by
+    scaling the two endpoints. **Cause:** a block with alpha_0 <= alpha_1 has
+    four interpolated values and two constants, 0 and 255, which scaling the
+    endpoints leaves alone. **Fix:** decode such a block, scale, encode again.
+15. **Symptom:** blue eyes turned grey a few metres away once the eye texture
+    got mip levels. **Cause:** a DXT5 block holds four colours on one line; a
+    block of a 16x16 or 8x8 eye holds pupil, iris and sclera, and an encoder
+    spends the line on whatever fills most of the block. A reference encoder
+    does the same. **Fix:** let the texels that matter count for more when the
+    endpoints are chosen. Judge mip levels as pictures: work out which level
+    is on screen at which distance (texels per cm on the mesh against pixels
+    per cm on screen) and compare each level with the image it stands for.
+    A header check passes a level that is grey.
+16. **Symptom:** a repainted texture lost its mip levels and got a second lossy
+    pass everywhere. **Cause:** decode all, change 2 %, encode all, one level.
+    **Fix:** keep the source's blocks at every level and encode again only the
+    blocks whose content changed; add the change to each lower level as the
+    area average of what was painted, taken as light.
+17. **Symptom:** a pack that "rebuilds byte for byte" came out different on
+    another machine. **Cause:** numpy and OpenBLAS pick their routines by the
+    CPU, and their results differ in the last bits. That shows wherever a
+    decision hangs on a number that is zero but for rounding (here: the sign
+    of the V direction of a vertex whose triangles have no area in UV) and
+    wherever single-precision maths is truncated to bytes (a drawn eye).
+    **How to see it on one machine:** build with
+    `OPENBLAS_CORETYPE=Haswell` and with
+    `NPY_DISABLE_CPU_FEATURES="X86_V4 AVX512_ICL AVX512_SPR"` and compare the
+    members. **Fix:** give the decision a rule; compute what a file derives
+    from the values it stores; round what has been through sin, exp or a
+    power with a margin check that stops the build near a boundary; put the
+    rest on one declared code path that the build sets and verifies
+    (`tools/pd2-las/determinism.py`, `tangents.py`). Check with a rebuild on
+    another CPU and a plain sha256 (`tools/pd2-las/fresh.py`). A tolerance
+    in the comparison hides the defect it was written for.
 
 ## Assets
 

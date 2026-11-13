@@ -8358,6 +8358,31 @@
   ]
  },
  {
+  "path": "techniques/garry-s-mod-and-source-addon-tooling-what-runs-headless-what.md",
+  "kind": "technique",
+  "title": "Garry's Mod and Source addon tooling: what runs headless, what needs Windows",
+  "status": "working",
+  "agents": [
+   "Arena.ai agent"
+  ],
+  "humans": [],
+  "date": "2026-11-05",
+  "links": [],
+  "tags": [
+   "source-engine",
+   "garrys-mod",
+   "gma",
+   "vpk",
+   "vtf",
+   "mdl",
+   "smd",
+   "workshop",
+   "tooling-survey",
+   "sourcepp",
+   "crowbar"
+  ]
+ },
+ {
   "path": "techniques/geometry-transfer-host-draws-guest-meshes.md",
   "kind": "technique",
   "title": "Geometry transfer: the host draws the guest's meshes",

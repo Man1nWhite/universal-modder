@@ -36,12 +36,14 @@ Matrix conventions (read before touching retarget_maps / transfer_group):
   a similarity in comments or docs.
 
 Usage (from the repo root):
-  .venv/bin/python tools/pd2-las/build_models.py \
-      --templates /path/to/dir/with/2b.model \
-      --out build/pd2-las
+  bash tools/pd2-las/recover_env.sh        # once: .venv + the 2B templates
+  .venv/bin/python tools/pd2-las/build_models.py [--templates DIR] [--out DIR]
 
-The template directory must contain 2b.model and fps_2b.model (extracted from
-2b.rar: 7z x 2b.rar). Previews are written to <out>/previews/.
+--templates is the directory holding 2b.model and fps_2b.model from
+references/2b.rar. It defaults to DEFAULT_TEMPLATES, the place extract_2b.py
+unpacks them to (build/pd2-las/2b/). With the default --out (build/pd2-las) the finished
+zip also replaces the tracked dist/Miranda_LAS.zip; any other --out leaves the
+tracked files alone. Previews are written to <out>/previews/.
 """
 
 from __future__ import annotations
@@ -58,11 +60,17 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import diesel_model as dm  # noqa: E402
+import determinism  # noqa: E402
+import extract_2b  # noqa: E402
+import tangents  # noqa: E402
 from source_model import ModelData, load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
 REPO = HERE.parents[1]
 SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
+#: The default of every builder's --templates: where extract_2b.py unpacks
+#: references/2b.rar. That module is the one place the path is written.
+DEFAULT_TEMPLATES = extract_2b.TEMPLATES
 
 TPP_MDLS = (
     "models/survivors/survivor_producer.mdl",
@@ -2888,46 +2896,14 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
         pal_idx.append(tuple(idxs[:4]))
         pal_w.append((ws[0] / s, ws[1] / s, ws[2] / s))
 
-    du, dv = dm.compute_uv_directions(g.verts, g.uvs, g.faces)
+    # The tangent frames come from the float32 values the file will hold, and
+    # where the UV map gives a vertex no handedness, from a rule (tangents.py).
+    # Made from the float64 working values, as they were until 2026-11-12, they
+    # depended on the CPU that ran the build.
     if len(g.normals) == len(g.verts) and len(g.verts) > 0:
-        import numpy as np
-
-        n_arr = np.asarray(g.normals, dtype=np.float64)
-        u_arr = np.asarray(du, dtype=np.float64)
-        v_arr = np.asarray(dv, dtype=np.float64)
-        n_len = np.linalg.norm(n_arr, axis=1, keepdims=True)
-        # A stored normal of zero length would make every projection below NaN.
-        n_arr = np.where(n_len > 1e-8, n_arr / np.maximum(n_len, 1e-8),
-                         np.array([[0.0, 1.0, 0.0]]))
-
-        # U: project onto the tangent plane, then normalize. U is the direction
-        # the UV u axis actually points, so it is kept and only re-projected.
-        u_arr = u_arr - np.sum(u_arr * n_arr, axis=1, keepdims=True) * n_arr
-        u_len = np.linalg.norm(u_arr, axis=1, keepdims=True)
-
-        # Degenerate UV triangles give u ~ 0. Fall back to any unit vector in
-        # the tangent plane, chosen deterministically from the normal.
-        deg = (u_len[:, 0] < 1e-6)
-        if np.any(deg):
-            nd = n_arr[deg]
-            ref = np.where(np.abs(nd[:, :1]) < 0.9,
-                           np.array([[1.0, 0.0, 0.0]]),
-                           np.array([[0.0, 1.0, 0.0]]))
-            fb = np.cross(nd, ref)
-            fb /= np.maximum(np.linalg.norm(fb, axis=1, keepdims=True), 1e-12)
-            u_arr[deg] = fb
-            u_len[deg] = 1.0
-        u_arr = u_arr / u_len
-
-        # V: rebuild strictly orthogonal to both N and U. The sign is taken
-        # from the UV map's own handedness so a mirrored island stays mirrored.
-        b0 = np.cross(n_arr, u_arr)
-        b0 /= np.maximum(np.linalg.norm(b0, axis=1, keepdims=True), 1e-12)
-        sign = np.where(np.sum(b0 * v_arr, axis=1, keepdims=True) >= 0.0, 1.0, -1.0)
-        v_arr = sign * b0
-
-        du = [tuple(map(float, row)) for row in u_arr]
-        dv = [tuple(map(float, row)) for row in v_arr]
+        du, dv = tangents.tangent_frames(g.verts, g.normals, g.uvs, g.faces)
+    else:
+        du, dv = dm.compute_uv_directions(g.verts, g.uvs, g.faces)
     geo = {
         "vert_count": len(g.verts),
         "headers": [
@@ -3092,12 +3068,17 @@ def read_drawable(path, drawable: str = "g_body") -> dict | None:
 
 
 def segment_fit_report(path, template: "Template", drawable: str = "g_body") -> dict:
-    """Mesh-vs-skeleton fit numbers for a built model (see segment_fit.py)."""
+    """Mesh-vs-skeleton fit numbers for a built model (see segment_fit.py).
+
+    ``path`` is a `.model` file or, like `read_drawable`, the file's bytes: a
+    model read out of a pack zip needs no copy on disk to be measured.
+    """
     import segment_fit as sf
 
     drawn = read_drawable(path, drawable)
     if drawn is None:
-        raise ValueError(f"{path}: no {drawable} drawable")
+        label = path if isinstance(path, (str, Path)) else f"model ({len(path)} bytes)"
+        raise ValueError(f"{label}: no {drawable} drawable")
     weights = [[(pi, w) for pi, w in zip(bi, bw) if w > 0.0]
                for bi, bw in zip(drawn["blendindices"], drawn["blendweights"])]
     # Geometry and inverse binds may intentionally use an authoring rest pose
@@ -3448,14 +3429,29 @@ def template_name(h: int, mf: dm.ModelFile) -> str:
 
 # ------------------------------------------------------------ main
 
+def require_templates(path: Path, names=("2b.model", "fps_2b.model")) -> Path:
+    """`path` when it holds the 2B template models, else an exit that says how to get them."""
+    missing = [n for n in names if not (Path(path) / n).is_file()]
+    if missing:
+        raise SystemExit(
+            f"2B templates not found in {extract_2b.shown(Path(path))} "
+            f"(missing: {', '.join(missing)}). Run `{extract_2b.RECOVER}` to unpack "
+            "references/2b.rar, or pass --templates DIR.")
+    return Path(path)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--templates", type=Path, required=True,
-                    help="directory containing 2b.model and fps_2b.model")
+    ap.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES,
+                    help="directory containing 2b.model and fps_2b.model "
+                         "(default: where recover_env.sh unpacks 2b.rar, "
+                         "under build/pd2-las/2b/)")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--source-zip", type=Path, default=SOURCE_ZIP)
     ap.add_argument("--no-previews", action="store_true")
     args = ap.parse_args(argv)
+    determinism.enter(__file__)
+    require_templates(args.templates)
 
     skel_map = json.loads((HERE / "skeleton_map.json").read_text())
     tpp_template = load_template(args.templates / "2b.model")
@@ -3519,16 +3515,14 @@ def main(argv=None) -> int:
 
     import las_pack
 
-    for label, out_path in packs:
-        shutil.copy2(out_path, unit_dir / out_path.name)
-    wip = pack_dir / "WIP_DO_NOT_INSTALL.txt"
-    if wip.exists():
-        wip.unlink()
+    # the two models go in, and each unit's .object is rewritten from its model
+    las_pack.install_models(pack_dir, *(out_path for _, out_path in packs))
     las_pack.refresh_build_info(pack_dir, templates={
         name: hashlib.sha256((args.templates / name).read_bytes()).hexdigest()
         for name in ("2b.model", "fps_2b.model")
     })
-    zip_path = las_pack.zip_pack(pack_dir)
+    import las_outfit_pack
+    zip_path = las_outfit_pack.zip_pack(pack_dir)
     zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
     (zip_path.parent / f"{zip_path.name}.sha256").write_text(
         f"{zip_sha}  build/pd2-las/{zip_path.name}\n"

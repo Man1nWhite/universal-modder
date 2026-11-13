@@ -886,13 +886,18 @@ def test_handoff_and_agents_quote_the_tracked_pack_bytes():
     The busty pack was documented as `5,413,602` B while the tracked zip is `5,815,039` B — a stale
     *base*-pack size, so the doc claimed the variant was smaller than the pack it extends. Sizes and
     checksums in prose rot silently; this pins them to the bytes that are actually in `dist/`.
+
+    `HANDOFF.md` carries the one table of tracked packs: every zip in `dist/` is on it, each on
+    a line with its own size and its own sha256. A sha256 that belongs to *some* pack is not
+    enough: two rows with their checksums swapped describe no pack at all.
     """
     import hashlib
     import re
 
     zips = sorted((ROOT / "dist").glob("*.zip"))
     sizes = {p.name: p.stat().st_size for p in zips}
-    digests = {hashlib.sha256(p.read_bytes()).hexdigest() for p in zips}
+    digest_of = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in zips}
+    digests = set(digest_of.values())
     assert len(sizes) >= 10, "the dist packs have to be present for this to mean anything"
 
     docs = [ROOT / "docs" / "pd2-las" / "HANDOFF.md",
@@ -909,8 +914,20 @@ def test_handoff_and_agents_quote_the_tracked_pack_bytes():
             checked += 1
     assert checked >= 10, f"only {checked} size claims found; the tables were reworded"
 
-    for sha in re.findall(r"\b[0-9a-f]{64}\b", (ROOT / "docs" / "pd2-las" / "HANDOFF.md").read_text()):
+    handoff = (ROOT / "docs" / "pd2-las" / "HANDOFF.md").read_text()
+    for sha in re.findall(r"\b[0-9a-f]{64}\b", handoff):
         assert sha in digests, f"HANDOFF.md quotes a sha256 that belongs to no tracked pack: {sha[:16]}…"
+
+    listed = set()
+    for line in handoff.splitlines():
+        m = claim.search(line)
+        shas = re.findall(r"\b[0-9a-f]{64}\b", line)
+        if m and shas and m.group(1) in digest_of:
+            assert shas == [digest_of[m.group(1)]], (
+                f"HANDOFF.md puts another pack's sha256 on the line of {m.group(1)}")
+            listed.add(m.group(1))
+    assert listed == set(digest_of), (
+        f"HANDOFF.md's table of tracked packs lacks {sorted(set(digest_of) - listed)}")
 
 
 def test_the_status_page_matches_the_shipped_pack():

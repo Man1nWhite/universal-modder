@@ -1,16 +1,43 @@
 #!/usr/bin/env python3
-"""COLLADA (.dae) importer for the ME2 Miranda Lawson source.
+"""COLLADA (.dae) importer for rigged, skinned character sources.
 
-Parses the rigged/skinned COLLADA shipped in
+Parses a rigged/skinned COLLADA file into plain Python data: joint hierarchy
+with bind transforms, geometries (positions/normals/UVs/triangles) and
+per-vertex skin weights. It is the first stage of the ``tools/pd2-port``
+pipeline and takes any source of the shape described below.
+
+The module is named after its first source, a Mass Effect 2 export: the
+shipped port reads ``Miranda Lawson (Romance) - Adjusted Version.dae`` from
 ``PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson
-(Romance).zip`` into plain Python data: joint hierarchy with bind transforms,
-geometries (positions/normals/UVs/triangles) and per-vertex skin weights.
+(Romance).zip``. The one thing here that belongs to that file is the
+``Eyelashes`` fix-up in ``load_dae``, keyed on that mesh name.
+
+What the parser reads:
+
+- node transforms given as ``<matrix>``; a node without one counts as
+  identity (``<translate>``/``<rotate>``/``<scale>`` stacks are not read);
+- joints: the nodes of ``type="JOINT"``, keyed by node name - the joint names
+  of a skin have to be those names;
+- geometry: the first ``<triangles>`` block of each mesh (no polylists), with
+  its ``VERTEX``, ``NORMAL`` and ``TEXCOORD`` inputs, expanded to one vertex
+  per distinct (position, normal, uv) corner;
+- skins: ``<instance_controller>`` nodes, with the bind shape matrix, the
+  inverse bind matrices and the weights, cut to the ``max_weights`` heaviest
+  per vertex and renormalized; an ``<instance_geometry>`` node comes back as
+  an unweighted mesh;
+- ``<unit>`` and ``<up_axis>`` are reported in ``DaeScene`` and not applied:
+  the retarget expects Z-up coordinates in centimeters. The shipped source
+  has them, although its ``<unit>`` declares meters.
+
+The shipped source is such a file: COLLADA 1.4.1 written by Blender 3.6's
+exporter, triangulated, with matrix transforms.
 
 Conventions:
 
-- COLLADA matrices are column-major text; they are stored here transposed
-  (row-vector style, translation in ``rows[3][0..2]``) to match the Diesel
-  convention used by ``dmodel.py``. Composition is ``mmul(local, parent_world)``.
+- COLLADA writes a matrix row by row for column vectors (translation in the
+  last column); it is stored here transposed (row-vector style, translation
+  in ``rows[3][0..2]``) to match the Diesel convention used by ``dmodel.py``.
+  Composition is ``mmul(local, parent_world)``.
 - Skin bind operators combine as ``mmul(inv_bind, world)`` applied to row
   vectors (the transpose of ``world @ inv_bind`` in column form).
 """
@@ -49,11 +76,11 @@ def minv(m: list[list[float]]) -> list[list[float]]:
 def _mat_from_text(text: str) -> list[list[float]]:
     """COLLADA <matrix> text -> row-vector-style rows (Diesel convention).
 
-    This file's matrices are written row-major of the column-vector matrix M
-    (translation in M[0..2][3], i.e. flat indices 3, 7, 11 — verified against
-    the rig: 'root' resolves to z≈101 cm like the PD2 donor). We store
-    S = M^T (row-vector style, translation in ``rows[3][0..2]``), matching
-    ``dmodel.world_rows``.
+    COLLADA matrices are written row-major of the column-vector matrix M
+    (translation in M[0..2][3], i.e. flat indices 3, 7, 11 — verified on the
+    shipped port's source: its 'root' joint resolves to z≈101 cm like the PD2
+    donor's hips). We store S = M^T (row-vector style, translation in
+    ``rows[3][0..2]``), matching ``dmodel.world_rows``.
     """
     a = [float(x) for x in text.split()]
     if len(a) != 16:
@@ -309,8 +336,9 @@ def load_dae(data: bytes | str, *, max_weights: int = 3) -> DaeScene:
         material_images[name] = slots
 
     # link mesh node instances: node name -> (geometry id, controller id, material)
-    # This DAE uses <instance_controller url="#...-skin"> on each mesh node; the
-    # skin's source names the geometry. Some DAEs use <instance_geometry> instead.
+    # A skinned export (the shipped port's source is one) puts an
+    # <instance_controller url="#...-skin"> on each mesh node; the skin's source
+    # names the geometry. Unskinned meshes use <instance_geometry> instead.
     controller_geom: dict[str, str] = {}
     for ctrl in root.iter():
         if _local(ctrl.tag) != "controller":
@@ -390,12 +418,19 @@ def load_dae(data: bytes | str, *, max_weights: int = 3) -> DaeScene:
             tri_list.append((tri[0], tri[1], tri[2]))
 
         if nname == "Eyelashes":
+            # Source-specific fix-up - the only one in this importer - keyed on
+            # the mesh node name. The general problem: a mesh its own engine
+            # draws two-sided can be wound either way, and PAYDAY 2 culls back
+            # faces. The shipped port's case:
             # In ME2, Eyelashes is rendered TwoSided and the upper eyelash
             # ribbon has DAE face/vertex normals with +Y (which becomes -Y,
             # backward-facing and backface-culled in Direct3D9, after the
             # 180 deg Z rotation to PAYDAY 2's +Y forward frame). Orient all
             # 224 eyelash triangles and their vertex normals forward (-Y in
             # DAE -> +Y in PD2) so upper eyelashes are never backface-culled.
+            # It assumes a source that faces -Y: a source that faces the other
+            # way, or has a mesh of this name that must not be re-wound, needs
+            # this block adapted or removed.
             fixed_tris: list[tuple[int, int, int]] = []
             v_acc = [[0.0, 0.0, 0.0] for _ in positions]
             for a, b, c in tri_list:

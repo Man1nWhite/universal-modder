@@ -10,6 +10,12 @@ to notice, the matching test is run, and the run must FAIL.  A test that
 passes or skips is a hole in the suite.
 
     python tools/pd2-port/check_test_suite_mutations.py
+
+The method carries over to any pack; the wiring is the shipped port's. ``PACK``
+is its tracked zip (mutated in place and restored after every run),
+``TPP_MODEL`` and the ``Lawson_LAS/`` paths in the mutations are its layout,
+and ``MUTATIONS`` names the tests that pin it. A second character's pack
+brings its own paths and its own tests.
 """
 from __future__ import annotations
 

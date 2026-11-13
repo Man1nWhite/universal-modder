@@ -13,6 +13,11 @@ one looks at the shape itself:
   OpenGL question the guide leaves to the reader.
 
     python tools/pd2-port/check_mesh_geometry.py [pack.zip]
+
+The analysis works on any Diesel model this pipeline writes. Which models it
+opens is configuration: ``PACK``, ``TPP_MODEL`` and ``FPS_MODEL`` below name
+the shipped port's pack and the unit paths inside it, so reading another
+character's pack means changing those paths as well as passing its zip.
 """
 from __future__ import annotations
 
@@ -149,7 +154,8 @@ def analyse(name: str, g: Geometry, tris) -> dict:
     # joints (blended normals lean away while the winding is correct), so the
     # effective flipped count uses orientation breaks when the mesh has shared
     # edges, and falls back to the normal heuristic for corner-split meshes
-    # (like the ME2 source) where no edges are shared at all.
+    # (like the COLLADA source of the shipped port) where no edges are shared
+    # at all.
     edge_dir = {}
     for a, b, c in tris:
         for x, y in ((a, b), (b, c), (c, a)):

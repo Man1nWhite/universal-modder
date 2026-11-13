@@ -10,7 +10,7 @@ Two layers, like the sibling suites:
   `dist/Miranda_Busty_LAS.zip` and the base `dist/Miranda_LAS.zip`, so they run
   offline from a checkout with no extracted templates.
 
-The full geometry run needs the 2B templates at /tmp/2bsrc (see
+The full geometry run needs the 2B templates (`extract_2b.TEMPLATES`, see
 tools/pd2-las/README.md); that test skips when they are absent, exactly like
 tests/test_build_models.py.
 """
@@ -28,11 +28,11 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 import bust_variant as bv  # noqa: E402
+from extract_2b import MISSING, TEMPLATES  # noqa: E402
 
 DIST = REPO / "dist"
 BASE_ZIP = DIST / "Miranda_LAS.zip"
 VARIANT_ZIP = DIST / "Miranda_Busty_LAS.zip"
-TEMPLATES = Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b")
 
 
 # ------------------------------------------------------------------ unit: morph
@@ -219,8 +219,7 @@ def test_base_pack_rendering_is_unchanged_by_the_identity_refactor():
 
 # ------------------------------------------------------ integration: geometry
 
-needs_templates = pytest.mark.skipif(
-    not TEMPLATES.exists(), reason="extracted 2B templates at /tmp/2bsrc not present")
+needs_templates = pytest.mark.skipif(not TEMPLATES.exists(), reason=MISSING)
 
 
 @needs_templates
@@ -327,12 +326,16 @@ def test_variant_dist_pack_is_tracked_and_self_consistent():
 def test_variant_first_person_arms_are_the_base_arms():
     """The morph must not touch the viewmodel: every authored drawable matches.
 
-    Compared per drawable rather than byte-for-byte: the tracked base pack was
-    produced by an older revision of the builder that shipped two extra copies
-    of the *head* drawables inside the viewmodel. The variant deliberately does
-    not carry those (they are the template's own head), so what has to match is
+    Compared per drawable rather than byte for byte, because the two models are
+    not the same file. The base builder authors the arms into four drawables
+    (`build_models.FPS_GROUPS`): `g_body`, `g_body_lod1` and the template's two
+    head slots, which its `.object` switches off. The variant drops the two head
+    slots (`drop_drawables` in `build_busty_variant.py`), so what has to match is
     the arms: every drawable the variant ships must exist in the base pack with
     byte-identical vertices, normals, UVs and triangles.
+
+    The variant's `.object` does not list the two names it dropped: both Miranda
+    builders write that file from the model (`las_pack.install_models`).
     """
     import numpy as np
 
@@ -684,10 +687,18 @@ def test_smooth_region_never_leaks_into_unselected_slices():
 
 
 def test_display_path_accepts_paths_outside_repo():
+    """A preview path is shown relative to the repo, or in full when it is outside it.
+
+    The outside path is the checkout's own parent directory: outside by
+    construction on every platform, wherever pytest keeps its temporary files.
+    Nothing is created there.
+    """
     import build_busty_variant as bbv
 
-    ext = Path("/tmp/outside_repo_test/Miranda_Busty_LAS.zip")
+    ext = REPO.parent / "outside_repo_test" / "Miranda_Busty_LAS.zip"
     assert bbv._display_path(ext) == str(ext.resolve())
+    inside = Path("build") / "pd2-las" / "previews" / "busty.png"
+    assert bbv._display_path(REPO / inside) == str(inside)
 
 
 def test_shipped_busty_archive_regressions():

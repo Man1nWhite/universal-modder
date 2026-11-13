@@ -3,9 +3,9 @@
 Unit tests cover the Procrustes fit. Integration tests run the full authoring
 into memory and assert the structural contract of the produced models
 (group/material wiring, faces+UVs preserved verbatim, blend weights valid,
-geometry sane, assembled bytes re-readable). They need the extracted 2B LAS
-templates at /tmp/2bsrc (`unrar x 2b.rar` after downloading the archive;
-tools/pd2-las/README.md has the exact steps).
+geometry sane, assembled bytes re-readable). They need the 2B LAS templates
+unpacked where tools/pd2-las/extract_2b.py puts them (build/pd2-las/2b/;
+`bash tools/pd2-las/recover_env.sh` does it) and skip without them.
 """
 import json
 import math
@@ -18,14 +18,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"
 
 import build_models as bm  # noqa: E402
 import diesel_model as dm  # noqa: E402
+from extract_2b import MISSING, TEMPLATES  # noqa: E402
 from source_model import load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
-TEMPLATES = Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b")
-needs_templates = pytest.mark.skipif(
-    not TEMPLATES.exists(), reason="extracted 2B templates at /tmp/2bsrc not present"
-)
+needs_templates = pytest.mark.skipif(not TEMPLATES.exists(), reason=MISSING)
 
 
 # ---------------------------------------------------------------- unit: fit
@@ -136,7 +134,7 @@ def _author():
 @pytest.fixture(scope="module")
 def authored():
     if not TEMPLATES.exists():
-        pytest.skip("templates")
+        pytest.skip(MISSING)
     return _author()
 
 

@@ -13,12 +13,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
 
 import build_models as bm  # noqa: E402
+from extract_2b import MISSING, TEMPLATES  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
-TEMPLATES = Path("/tmp/2bsrc/2B - LAS/assets/units/2b/skins/2b")
-needs_templates = pytest.mark.skipif(
-    not TEMPLATES.exists(), reason="extracted 2B templates at /tmp/2bsrc not present"
-)
+needs_templates = pytest.mark.skipif(not TEMPLATES.exists(), reason=MISSING)
 
 
 # ------------------------------------------------------------------- unit
