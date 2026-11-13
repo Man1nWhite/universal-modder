@@ -27,8 +27,9 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 > reproducible `Miranda_LAS.zip`, 192 tests. Four verification passes and a
 > structural diff vs the 2B reference are in
 > `docs/audits/2026-10-19-las-guide-compliance.md`. What remains: the user-side
-> in-game checklist (`docs/pd2-las/in-game-checklist.md`) and the ME2
-> redistribution-rights gate before any public release. Start-here doc for the
+> in-game checklist (`docs/pd2-las/in-game-checklist.md`). The
+> redistribution-rights gate this note used to name here was dropped on
+> 2026-11-13: the owner says no pack has that restriction. Start-here doc for the
 > next agent: `tools/pd2-las/README.md`; the environment, then every pack rebuilt and compared:
 > `make -sC tools/pd2-las env fresh`.
 
@@ -127,7 +128,7 @@ source zip hash, 2B template input hashes) lives in
   structural diff vs the 2B reference (identical schema at every layer the
   engine reads).
 - **Not verified:** anything in-game. Known watch items are checklist
-  items 17–18 (normal-map Y+ orientation, contour silhouette). The boot-sole
+  items 16–17 (normal-map Y+ orientation, contour silhouette). The boot-sole
   ground clip of about 12 cm that this note used to list is gone: the lowest
   vertex of the tracked body is at z = −0.75 cm.
 
@@ -255,9 +256,11 @@ materials).
    engineering unknown. Checklist: `docs/pd2-las/in-game-checklist.md`.
    Watch items: normal-map OpenGL Y+ (flip green if lighting inverts),
    contour silhouette, boot-sole ground clip (~12 cm).
-2. **Redistribution rights** for ME2-derived assets: private experimental
-   use only until resolved; never a public release. This is a release gate,
-   not a code problem.
+2. **Redistribution rights** for ME2-derived assets: closed on 2026-11-13.
+   This note called it a release gate ("private experimental use only until
+   resolved; never a public release"); the owner says no pack has that
+   restriction (`docs/pd2-las/DECISIONS.md`, D32). It was never a code
+   problem.
 
 Resolved since the route change: Source mesh → Diesel `.model` authoring
 (verified `diesel_model.py` codec + retarget, see `tools/pd2-las/README.md`);

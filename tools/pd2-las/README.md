@@ -17,9 +17,6 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every
 tracked pack of the three pipelines (size, sha256, `make` target, whether the zip `is` what git tracks), the next command.
 
-- **Blocked:** public release. The sources are fan rips (Mass Effect 2 by way
-  of an L4D2 addon; Dead or Alive 5) with unresolved redistribution rights.
-
 ## Commands
 
 From the repo root; `make -sC tools/pd2-las` alone lists every target. They cover all three pipelines: `lawson`
@@ -98,7 +95,6 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 - Do not retry the approaches under "Dead ends" in `docs/pd2-las/HANDOFF.md`.
 - Do not go back to swapping whole heister models in place; that route is
   retired (`docs/audits/2026-10-18-route-change-audit.md`).
-- Do not publish or redistribute the packs or their sources.
 - Do not silence a failing test with a skip or an `xfail`: both are budgeted
   by `tools/pd2-port/check_skip_budget.py`. The one exception: [Next](#next).
 - Do not cut a computed value off with `astype(np.uint8)`, and do not decide on a number that is zero up to

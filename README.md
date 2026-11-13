@@ -12,8 +12,7 @@ of them.
 PAYDAY 2 packs, tracked in `dist/` and rebuilt byte for byte by CI: full-body and body-only Legendary Armour
 Skins outfits (Miranda Lawson, Christie) and head replacements over the vanilla heisters (Miranda, Geralt).
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
-pack is installed and what the pipelines share. The sources are fan rips, so nothing here is cleared for
-redistribution.
+pack is installed and what the pipelines share.
 
 ## Installing
 

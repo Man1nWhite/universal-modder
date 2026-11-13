@@ -85,7 +85,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** the sources are fan rips (Mass Effect 2 by way of an L4D2 addon;
   Dead or Alive 5) whose redistribution rights are unresolved.
 - **Source:** the route-change audit; `tools/pd2-las/README.md`, "Status"
-- **Status:** holds.
+- **Status:** superseded by D32 (2026-11-13).
 
 ## Building
 
@@ -737,4 +737,26 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   the opposite of the record).
 - **Source:** the user, asked on 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`;
   `tests/test_christie_las.py`
+- **Status:** holds.
+
+### D32 — No pack carries a redistribution restriction
+
+- **Decided:** 2026-11-13, by the user
+- **Decision:** no document says any more that the packs are for private use, that their sources are not
+  cleared for redistribution, or that a public release is blocked. D4 is superseded. Gone with it: "Blocked:
+  public release" and "Do not publish or redistribute the packs or their sources" in
+  `tools/pd2-las/README.md`, the "release gate" item of `docs/pd2-las/in-game-checklist.md`, "not cleared
+  for redistribution" in `tools/pd2-port/README.md`, and the sentence in the top-level `README.md`.
+- **Why:** the user, on reading that sentence in the report of the agent-entry audit: "no mod has that
+  restriction". The record had it as an inference, never as the owner's word: the route-change audit of
+  2026-10-18 listed redistribution clearance as "open", D4 was reconstructed from that audit on 2026-11-11,
+  and the sentence in `README.md` ("The sources are fan rips, so nothing here is cleared for
+  redistribution") was written by the agent on 2026-11-13 from D4. The practice never followed D4 either:
+  the repository is public, and the release workflow published the sibling pack `lawson_las` on 2026-10-19,
+  the day after.
+- **Not changed:** `CREDITS.txt` inside `lawson_las.zip` says "no redistribution permission is claimed"; it
+  names the sources and is part of the tracked bytes, so changing it is a rebuild of the pack. The rules
+  under "What you ship" in `AGENTS.md` and in the skills are upstream's, for game files an agent extracts
+  while modding any game; they stay. Publishing is still asked of the owner first, like any publishing.
+- **Source:** the user, 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`
 - **Status:** holds.

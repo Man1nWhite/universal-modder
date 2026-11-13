@@ -428,6 +428,7 @@ SAME = "moved to %s (reworded in place)"
 PORT = SAME % "tools/pd2-port/README.md"
 NEW_STATUS = "moved to tools/pd2-port/STATUS.md"
 NOT_RELEASED = "the release serves the build of 282703f and the tracked pack is ten rebuilds later (tools/pd2-port/STATUS.md)"
+NO_RESTRICTION = "the owner said on 2026-11-13 that no pack has that restriction (docs/pd2-las/DECISIONS.md, D32)"
 # old file -> (first line, last line, what became of the lines in that range), on the base commit's numbering
 LEDGER = {
     "AGENTS.md": [
@@ -465,9 +466,11 @@ LEDGER = {
     "tools/pd2-las/README.md": [
         (4, 6, SAME % "tools/pd2-las/README.md"), (17, 18, SAME % "tools/pd2-las/README.md"),
         (20, 21, "dropped: \"Done\" is what `status` and `fresh` compute; \"Open\" pointed at Next in the same file"),
+        (22, 23, "dropped: " + NO_RESTRICTION),
         (27, 45, SAME % "tools/pd2-las/README.md"),
         (46, 47, "dropped: no document quotes a size or a sha256 any more, so a changed zip needs none edited"),
-        (66, 66, SAME % "tools/pd2-las/README.md"), (107, 108, SAME % "tools/pd2-las/README.md"),
+        (66, 66, SAME % "tools/pd2-las/README.md"), (102, 102, "dropped: " + NO_RESTRICTION),
+        (107, 108, SAME % "tools/pd2-las/README.md"),
         (130, 130, "dropped: `bin/um kb search` finds the note")],
     "tools/pd2-port/README.md": [
         (22, 23, PORT + "; \"published by the release workflow\" corrected: " + NOT_RELEASED),
@@ -492,7 +495,8 @@ LEDGER = {
         (330, 332, PORT + "; the in-game record is tools/pd2-port/STATUS.md, \"Seen in game\""),
         (335, 337, PORT + "; the heights dropped: the `target_ops` docstring in rig_target.py has them"),
         (342, 345, "dropped: \"Guide compliance\" in the same file lists these rules, and names the knowledge note now"),
-        (346, 350, "dropped: \"Pipeline\", stage 2, and the comments under \"Build\" in the same file say it")],
+        (346, 350, "dropped: \"Pipeline\", stage 2, and the comments under \"Build\" in the same file say it"),
+        (351, 355, PORT + "; \"Fine for private use; not cleared for redistribution\" dropped: " + NO_RESTRICTION)],
     "tools/pd2-port/STATUS.md": [
         (1, 4, NEW_STATUS + ", the header: rewritten on 2026-11-13 as the dated record"),
         (6, 29, "dropped: a note that listed which sections below it were stale; those sections are gone. What it said of the transfer today is under \"Found and settled\""),

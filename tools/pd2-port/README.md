@@ -339,10 +339,8 @@ head packs over Joy.
   faces −Y, PD2 faces +Y), so `Left*` joints land on PD2's `Left*` bones and
   nothing is mirrored. A source with another facing or other side labels
   needs that checked before anything else.
-- Provenance: a port inherits the rights position of its source. The shipped
-  port's model and textures are ripped *Mass Effect 2* assets and `2b.rar` is
-  a third-party reference. Fine for private use; **not cleared for
-  redistribution** — the release ships as an unlicensed, non-commercial fan
-  derivative, credited in `CREDITS.txt` and on the release page.
+- Provenance: the shipped port's model and textures are ripped *Mass Effect 2*
+  assets and `2b.rar` is a third-party reference. `CREDITS.txt` in the pack
+  names both and says what the pack is: a non-commercial fan derivative.
 - No cooked-physics payloads are shipped; BeardLib's `unit_mat` registration
   supplies its default.
