@@ -42,16 +42,16 @@ are written about that one port, but what they record about the PAYDAY 2
 side — the rig contract, the guide's rules, the build environment — holds
 for any character.
 
-One command tells you whether a checkout is sound:
+One command tells you whether this pack is sound, and one whether the whole repository is:
 
 ```sh
-python tools/pd2-port/check_all.py          # pack checksum, audit, winding, nm, mutations
-python tools/pd2-port/check_all.py --full   # + the auditor self-test, pytest and the skip budget
+.venv/bin/python tools/pd2-port/check_all.py   # pack checksum, audit, winding, nm, mutations
+make -sC tools/pd2-las green                   # check_all.py --full: + everything the test workflow checks
 ```
 
 `--full` judges the whole repository, not only this directory. Its
 skip-budget stage expects the 2B reference templates to be extracted to
-`build/pd2-las/2b/` (`bash tools/pd2-las/recover_env.sh` does that) and fails
+`build/pd2-las/2b/` (`make -sC tools/pd2-las env` does that) and fails
 without them. The same stage budgets expected failures: an `xfail` that
 `check_skip_budget.py` does not name fails it.
 
@@ -251,9 +251,9 @@ against the guide's rules, each check citing the rule it enforces:
 | Packaging | `main.xml` with Localization/Hooks/AddFiles, every AddFiles entry resolving, the full LAS flag set, menu localization |
 
 The audit runs in the test suite (`test_built_pack_passes_the_guide_compliance_check`),
-so a pack that drifts from the guide fails the build. Current state of the
-shipped port: **38 pass, 1 warning, 0 failures** — the warning is the normal
-maps' green-channel convention, which the files cannot settle (see
+so a pack that drifts from the guide fails the build. `check_all.py` prints
+the counts for the shipped port. Its one warning is the normal maps'
+green-channel convention, which the files cannot settle (see
 `check_nm_convention.py`) and only the running game can confirm.
 
 The auditor is itself tested: `check_guide_compliance_self_test.py` mutates the
@@ -309,9 +309,8 @@ Below, `N` is the next release number; the latest release is
    ```
 
 3. If the bytes changed, update the size, checksum and audit result quoted
-   in [`STATUS.md`](STATUS.md), and the size and checksum in
-   `docs/pd2-las/HANDOFF.md` and the `AGENTS.md` / `CLAUDE.md` / `GEMINI.md`
-   table — tests pin them to the tracked pack.
+   in [`STATUS.md`](STATUS.md): a test pins them to the tracked pack. No other
+   document quotes them.
 4. Tag and push:
 
    ```sh

@@ -178,9 +178,9 @@
    "calls": 3,
    "unpointed": 0,
    "failed_calls": 0,
-   "bytes": 22053,
-   "tokens": 7166,
-   "seconds": 19.0,
+   "bytes": 20621,
+   "tokens": 6606,
+   "seconds": 25.6,
    "answer_reached": {
     "the rebuilt zip is the tracked one": true
    },
@@ -199,18 +199,18 @@
      "target": "make -sC tools/pd2-las slim",
      "pointed": true,
      "exit": 0,
-     "seconds": 18.9,
+     "seconds": 25.5,
      "bytes": 9023,
      "tokens": 3402
     },
     {
      "kind": "run",
-     "target": "make -sC tools/pd2-las status",
+     "target": "git status --short dist build",
      "pointed": true,
      "exit": 0,
      "seconds": 0.1,
-     "bytes": 1432,
-     "tokens": 560
+     "bytes": 0,
+     "tokens": 0
     }
    ]
   },
@@ -351,5 +351,6 @@
     }
    ]
   }
- }
+ },
+ "note": "T4 was measured again after the first record: its last step was `make -sC tools/pd2-las status`, whose sha256_ok compares the zip with a sidecar the builder has just rewritten and so proves nothing about a rebuild. The step the README points to for that is `git status --short dist build`. Calls unchanged (3); bytes 22,053 -> 20621."
 }

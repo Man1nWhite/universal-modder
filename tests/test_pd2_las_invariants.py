@@ -742,7 +742,8 @@ def test_registration_follows_the_2b_contract(pack):
     says `Hooks` where its folder is `hooks`, which is one of the defects not to
     copy. `BUILD_INFO.json` says the same as the files.
     """
-    assert set(ITEMS) == set(_status().PACKS), "this file and status.py list different packs"
+    las = {name for name, target in _status().TARGETS.items() if target != "lawson"}     # the packs tools/pd2-las/ builds
+    assert set(ITEMS) == las, "this file and status.py list different packs"
     z = _zip(pack)
     files = {n[len(pack) + 1:] for n in z.namelist() if not n.endswith("/")}
     info = _info(pack)

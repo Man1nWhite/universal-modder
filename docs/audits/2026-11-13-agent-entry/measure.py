@@ -7,6 +7,7 @@
     python3 measure.py facts --tree T                 every size, sha256, date, script, target and pack name x docs
     python3 measure.py graph --tree T                 every script under tools/ x Makefile, workflows, tests, docs
     python3 measure.py lines --tree T --base COMMIT   README.md and AGENTS.md, line by line: upstream's or ours
+    python3 measure.py ledger --tree T                every line removed since 19ca55a: dropped, or moved to <file>
 
 T is a checkout of the commit to measure. `walk` builds packs, deletes dist/ and edits docs in T, so give it
 a scratch worktree, never the checkout you work in:
@@ -130,8 +131,9 @@ BEFORE = {
     "T4 rebuild one pack and prove its bytes": {
         "steps": [("read", README, ("start", rf"\| `{README}` \|")),
                   ("run", f"make -sC {P} slim", (0, r"\| `slim` \|")),
-                  ("run", f"make -sC {P} status", (0, rf"make -sC {P} status "))],
-        "expect": {"the rebuilt zip is the tracked one": rf'"{SLIM}": {{[^\n]*"sha256_ok": true'}},
+                  # not `status`: its sha256_ok compares the zip with a sidecar the builder has just rewritten
+                  ("run", "git status --short dist build", (0, r"`git status --short dist build` lists only packs you meant to"))],
+        "expect": {"the rebuilt zip is the tracked one": ("empty", 2)}},
     "T5 was the pack seen in game, and were those the tracked bytes": {
         "steps": [("read", README, ("start", rf"\| `{README}` \|")),
                   ("read", "docs/pd2-las/HANDOFF.md", (0, r"what was seen in game and when, dead ends: `docs/pd2-las/HANDOFF\.md`"))],
@@ -155,7 +157,41 @@ BEFORE = {
         "expect": {"the doc test passes": r"1 passed"},
         "teardown": "git checkout -- ."},
 }
-ROUTES = {"before": BEFORE}
+Q = rf"\| `make -sC {P} %s` \|"
+AFTER = {
+    "T1 set up after a sandbox restart": {
+        "fixture": "rm -rf .venv dist build node_modules",
+        "steps": [("run", f"make -sC {P} env", ("start", Q % "env"))],
+        "expect": {"ready": r'"ready": true'}},
+    "T2 state of all 14 packs": {
+        "steps": [("run", f"make -sC {P} status", ("start", Q % "status"))],
+        "expect": {"4 pd2-las packs": r'(?s)"Miranda_LAS": \{"is": "tracked".*"Christie_LAS_Slim": \{"is": "tracked"',
+                   "lawson_las": r'"lawson_las": \{"is": "tracked"', "9 head packs": r'(?s)(_over_\w+": \{"is": "tracked".*){9}'}},
+    "T3 is everything green": {
+        "steps": [("run", f"make -sC {P} green", ("start", Q % "green"))],
+        "expect": {"suite": r"\d+ passed", "fresh": r"16 of 16 tracked zips", "kb": r"PASS: \d+ notes checked",
+                   "publish": r"\d+ files, 0 failures", "pyflakes": r"\[ok  \] lint ", "um help": r"\[ok  \] um and its command groups"}},
+    "T4 rebuild one pack and prove its bytes": {
+        "steps": [("run", f"make -sC {P} slim", ("start", rf"`make -sC {P} <target>`: [^\n]*`slim`"))],
+        "expect": {"the rebuilt zip is the tracked one": rf'"{SLIM}": \{{"is": "tracked"'}},
+    "T5 was the pack seen in game, and were those the tracked bytes": {
+        "steps": [("read", "docs/pd2-las/HANDOFF.md", ("start", r"Was a pack seen in game[^\n]*`docs/pd2-las/HANDOFF\.md`"))],
+        "expect": {"date": r"`Christie_LAS_Slim` \| {seen_date}", "hash seen": r"{seen_sha}"}},
+    "T6 what is open": {
+        "steps": [("read", README, ("start", rf'What is open \| "Next" in `{README}`'))],
+        "expect": {"in-game sign-off": r"In-game verification", "sleeve defect": r"sleeves are open", "gloss": r"Gloss, measured and not fixed",
+                   "lawson_las": r"`lawson_las` and the nine head packs have no record", "head packs": r"the nine head packs have no record"}},
+    "T7 which command rebuilds Geralt_over_Rust": {
+        "steps": [],
+        "expect": {"command": r"`heads` \(the nine `\*_over_\*` packs\)"}},
+    "T8 a pack changed on purpose: make the suite pass again": {
+        "fixture": "mutate",
+        # nothing to edit: "A rebuilt pack needs no document edited". The one call is the check that it is so.
+        "steps": [("run", ".venv/bin/python -m pytest -q tests/test_agent_docs.py -k quotes", None)],
+        "expect": {"the doc test passes": r"1 passed"},
+        "teardown": "git checkout -- ."},
+}
+ROUTES = {"before": BEFORE, "after": AFTER}
 
 
 def mutate(tree: Path) -> str:
@@ -169,7 +205,8 @@ def mutate(tree: Path) -> str:
     return f"sed -i 's/{old_size:,}/{new_size:,}/; s/{old_sha}/{new_sha}/'"
 
 
-def walk(tree: Path, routes: dict) -> dict:
+def walk(tree: Path, routes: dict, only: str = "") -> dict:
+    routes = {task: route for task, route in routes.items() if not only or task[:2] in only.split(",")}
     answers = key(tree)
     fill = {"{seen_date}": answers["seen_in_game"]["date"], "{seen_sha}": answers["seen_in_game"]["sha256_seen"]}
     start = (tree / START).read_text()
@@ -223,6 +260,10 @@ LOADS = {
         "Claude Code": ["CLAUDE.md"], "Codex": ["AGENTS.md"], "Gemini CLI": ["GEMINI.md"],
         "Cursor (editor)": ["AGENTS.md"], "Cursor (CLI)": ["AGENTS.md", "CLAUDE.md"],
         "Copilot (VS Code, Local)": ["AGENTS.md", "CLAUDE.md"], "Copilot CLI": ["AGENTS.md"], "OpenCode": ["AGENTS.md"]},
+    "after": {
+        "Claude Code": ["AGENTS.md"], "Codex": ["AGENTS.md"], "Gemini CLI": ["GEMINI.md:import"],
+        "Cursor (editor)": ["AGENTS.md"], "Cursor (CLI)": ["AGENTS.md"],
+        "Copilot (VS Code, Local)": ["AGENTS.md"], "Copilot CLI": ["AGENTS.md", "GEMINI.md"], "OpenCode": ["AGENTS.md"]},
 }
 
 
@@ -345,26 +386,95 @@ def lines(tree: Path, base: str) -> list[list]:
     return rows
 
 
+# --------------------------------------------------------------------------- every removed line
+
+D_COPY = "dropped: a byte-for-byte copy of AGENTS.md"
+D_UP = "dropped: upstream's presentation of the toolkit, in upstream's README; no agent acts on it here"
+D_STATUS = "dropped: `make -sC tools/pd2-las status` prints it"
+SAME = "moved to %s (reworded in place)"
+# old file -> (first line, last line, what became of the lines in that range), on the base commit's numbering
+LEDGER = {
+    "AGENTS.md": [
+        (3, 5, SAME % "AGENTS.md"), (7, 11, "moved to AGENTS.md, \"Modding any other game\""),
+        (12, 18, "moved to AGENTS.md, Rules: \"Keep the state in a command\""), (19, 20, "moved to AGENTS.md, \"Modding any other game\""),
+        (23, 26, "dropped: `uv tool install` of rehan-remade installs upstream, not this fork; every document calls `bin/um` by path"),
+        (27, 36, "dropped: `bin/um --help` prints the command groups"),
+        (37, 40, "moved to README.md (the MCP config files)"), (41, 44, "moved to AGENTS.md, Tools (two lines); the OAuth endpoint is in skills/fal-assets/SKILL.md"),
+        (45, 51, "moved to AGENTS.md, Tools; the six example names dropped: `ls examples/`"), (71, 72, SAME % "AGENTS.md"),
+        (75, 76, "dropped: `uv run --with pytest` exits 127 where there is no uv and is not the pinned environment; AGENTS.md now names `make -sC tools/pd2-las test` and `green`"),
+        (80, 94, D_STATUS + " (packs, sizes, the target that rebuilds each); which archive feeds which pack was already in models/README.md and references/README.md"),
+        (96, 104, "moved to AGENTS.md (the table of questions)"),
+        (106, 106, "moved to AGENTS.md (the first row and the last bullet); the restore itself moved into tools/pd2-las/recover_env.sh"),
+        (108, 126, "moved to tools/README.md, word for word")],
+    "CLAUDE.md": [(1, 127, D_COPY + "; Claude Code 2.1.277 and later reads AGENTS.md where there is no CLAUDE.md")],
+    "GEMINI.md": [(1, 127, D_COPY + "; replaced by the one line `@AGENTS.md`, which Gemini CLI expands")],
+    "README.md": [
+        (1, 28, D_UP), (29, 66, "moved to tools/README.md (what each pipeline builds, pack layout, install, previews); the audit counts dropped: check_all.py prints them"),
+        (67, 76, "dropped: docs/pd2-las/HANDOFF.md, \"Seen in game\", is the home. This README said the four L4D2 head packs were tested in game on 2026-11-05; the tracked zips are later rebuilds, so the README was the one that was wrong"),
+        (77, 81, "dropped: the guide is linked from tools/pd2-port/README.md, the boundary is tools/README.md"),
+        (82, 89, "dropped: tools/pd2-las/README.md, \"Do not\", and the two audits it names already say it"),
+        (90, 104, "dropped: every command in the table installs rehan-remade/universal-modder, which has no tools/ and no dist/; replaced by the table of what each harness reads in a clone"),
+        (105, 109, SAME % "README.md"), (110, 118, "dropped: installs upstream; plugins/opencode/README.md"),
+        (119, 133, "dropped: skills/fal-assets/SKILL.md holds it"), (134, 289, D_UP), (290, 300, "moved to README.md (one line: licence, credits upstream)"), (301, 305, D_UP)],
+    "docs/pd2-las/HANDOFF.md": [
+        (5, 6, SAME % "docs/pd2-las/HANDOFF.md"), (15, 17, SAME % "docs/pd2-las/HANDOFF.md"),
+        (19, 34, D_STATUS + " (size, sha256) and dist/<name>.zip.sha256 holds the hash; what each pack is: tools/README.md; what builds it: tools/pd2-las/Makefile"),
+        (36, 39, SAME % "docs/pd2-las/HANDOFF.md")],
+    "tools/README.md": [
+        (1, 22, SAME % "tools/README.md" + "; the list of zip names dropped: `status` prints it"),
+        (24, 40, "dropped: \"No code to deduplicate\" and \"234 tests\" were measured on 2026-10-19 and are contradicted by docs/audits/2026-11-12-tool-merge.md, which found jobs done in more than one place and merged some; the dialect and release points moved to tools/README.md, \"Sharing code between the trees\""),
+        (42, 49, "moved to tools/README.md, \"Sharing code between the trees\"; \"unifying files across the two trees: no\" dropped, the 2026-11-12 merge did it under the byte rule")],
+    "tools/pd2-las/README.md": [
+        (4, 6, SAME % "tools/pd2-las/README.md"), (17, 18, SAME % "tools/pd2-las/README.md"),
+        (20, 21, "dropped: \"Done\" is what `status` and `fresh` compute; \"Open\" pointed at Next in the same file"),
+        (27, 45, SAME % "tools/pd2-las/README.md"),
+        (46, 47, "dropped: no document quotes a size or a sha256 any more, so a changed zip needs none edited"),
+        (66, 66, SAME % "tools/pd2-las/README.md"), (107, 108, SAME % "tools/pd2-las/README.md"),
+        (130, 130, "dropped: `bin/um kb search` finds the note")],
+    "tools/pd2-port/README.md": [
+        (45, 54, SAME % "tools/pd2-port/README.md"), (254, 256, "dropped: check_all.py prints the counts"),
+        (312, 314, SAME % "tools/pd2-port/README.md" + "; the copies it named are gone")],
+}
+
+
+def ledger(tree: Path, base: str) -> list[list]:
+    rows = [["file", "line", "what became of it", "text"]]
+    for name, rules in LEDGER.items():
+        old = sh(f"git show {base}:{name}", tree)[1].splitlines()
+        new = (tree / name).read_text().splitlines() if (tree / name).is_file() else []
+        for tag, first, last, _, _ in difflib.SequenceMatcher(None, old, new, autojunk=False).get_opcodes():
+            for number in range(first + 1, last + 1) if tag in ("delete", "replace") else ():
+                if old[number - 1].strip():
+                    fate = [text for lo, hi, text in rules if lo <= number <= hi]
+                    if len(fate) != 1:
+                        raise SystemExit(f"{name}:{number} is removed and {len(fate)} ledger rules cover it")
+                    rows.append([name, number, fate[0], old[number - 1]])
+    return rows
+
+
 def tsv(rows: list[list]) -> str:
     return "".join("\t".join(str(cell) for cell in row) + "\n" for row in rows)
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["key", "walk", "start", "facts", "graph", "lines"])
+    ap.add_argument("command", choices=["key", "walk", "start", "facts", "graph", "lines", "ledger"])
     ap.add_argument("--tree", type=Path, required=True)
     ap.add_argument("--routes", default="before")
-    ap.add_argument("--base", default="23902ef42e8ea9b077bfbbf6911eb8ea0348e55a")
+    ap.add_argument("--base", default="23902ef42e8ea9b077bfbbf6911eb8ea0348e55a", help="lines: the merge base with upstream")
+    ap.add_argument("--ledger-base", default="19ca55adb9bc31842b0c89de55d49e09d0566274", help="ledger: the commit before the change")
+    ap.add_argument("--only", default="", help="walk: the tasks to run, by number: T4,T5")
     ap.add_argument("--out", type=Path)
     args = ap.parse_args()
     tree = args.tree.resolve()
     if args.command == "walk" and tree == Path(__file__).resolve().parents[3]:
         raise SystemExit("walk deletes dist/ and edits documents: give it a scratch worktree, not this checkout")
     commit = sh("git rev-parse HEAD", tree)[1].strip()
-    if args.command in ("facts", "graph", "lines"):
-        text = tsv({"facts": facts, "graph": graph}[args.command](tree) if args.command != "lines" else lines(tree, args.base))
+    if args.command in ("facts", "graph", "lines", "ledger"):
+        text = tsv({"facts": facts, "graph": graph}[args.command](tree) if args.command in ("facts", "graph")
+                   else lines(tree, args.base) if args.command == "lines" else ledger(tree, args.ledger_base))
     else:
-        result = {"key": lambda: key(tree), "walk": lambda: walk(tree, ROUTES[args.routes]),
+        result = {"key": lambda: key(tree), "walk": lambda: walk(tree, ROUTES[args.routes], args.only),
                   "start": lambda: start(tree, LOADS[args.routes])}[args.command]()
         text = json.dumps({"commit": commit, "routes": args.routes, args.command: result}, indent=1) + "\n"
     if args.out:

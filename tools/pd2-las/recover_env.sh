@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
-# Build the environment of a fresh clone, or rebuild it after a sandbox wipe:
-# .venv and the 2B templates. Idempotent and safe to re-run. It is the one
-# script that does this: `make -sC tools/pd2-las env` runs it, and so does CI.
+# Build the environment of a fresh clone, or rebuild it after a sandbox restart:
+# the tracked files the restart deleted, .venv and the 2B templates. Then print
+# the state (status.py). Idempotent and safe to re-run. It is the one script that
+# does this: `make -sC tools/pd2-las env` runs it, and so does CI.
 #
-# The arena sandbox periodically deletes .venv and build/. When that happens:
+# A restarted sandbox comes back without .venv and without anything under dist/,
+# build/ and node_modules/, tracked files included. When that happens:
+#   * `git status` lists the packs as deleted,
 #   * `pytest tests` cannot collect (no pytest),
 #   * every test that needs the 2B templates skips,
 #   * the builders, `glove_check.py` and `diagnose_mesh.py --templates` cannot run.
-# This script restores all three. It touches nothing under dist/ or references/,
-# and writes nothing outside the repo: the templates go to build/pd2-las/2b/.
+# This script restores all of it. Under dist/, build/ and node_modules/ it only
+# puts back tracked files that are missing: a file that is there, changed or not,
+# is left as it is. It writes nothing outside the repo: the templates go to
+# build/pd2-las/2b/.
 #
 # Usage:
 #   bash tools/pd2-las/recover_env.sh           # venv + templates
@@ -30,6 +35,17 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO"
 
 PY="$REPO/.venv/bin/python"
+
+# ------------------------------------------- 0. tracked files that are missing
+# `git checkout -- dist build node_modules` would also throw away a pack that was
+# rebuilt and not committed. This names the deleted files and restores only those.
+if git rev-parse --show-toplevel >/dev/null 2>&1; then
+    MISSING="$(git ls-files --deleted -- dist build node_modules | wc -l | tr -d ' ')"
+    if [ "$MISSING" != 0 ]; then
+        echo "== restoring $MISSING tracked files missing from dist/, build/ and node_modules/"
+        git ls-files -z --deleted -- dist build node_modules | xargs -0 git checkout --
+    fi
+fi
 
 # ---------------------------------------------------------------- 1. the venv
 # A .venv counts only if it has pip. `uv run` makes one without (bin/um goes
@@ -74,4 +90,5 @@ if [ "$VERIFY" = 1 ]; then
     .venv/bin/python -m pytest tests -q --tb=no 2>&1 | tail -n 2
 fi
 
-echo "== done"
+echo "== done; the state:"
+python3 tools/pd2-las/status.py

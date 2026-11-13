@@ -2,8 +2,8 @@
 
 > **Start at [`tools/pd2-las/README.md`](../../tools/pd2-las/README.md).** Commands, status, the file map, the
 > invariants and the open work are written there and nowhere else. This page is the dated record beneath it:
-> which bytes are tracked, what a person has seen in game and when, how the tracked bytes came about, which
-> approaches failed. It gives no commands and keeps no work queue. Reasons: [`DECISIONS.md`](DECISIONS.md).
+> what a person has seen in game and when, how the tracked bytes came about, which approaches failed. It
+> gives no commands and keeps no work queue. Reasons: [`DECISIONS.md`](DECISIONS.md).
 > Day by day: [`tools/pd2-las/MODLOG.md`](../../tools/pd2-las/MODLOG.md).
 
 Rewritten on 2026-11-11. Until then this page was also a quickstart, a recovery guide, a file map, a list of
@@ -12,31 +12,15 @@ tree. What they claimed and what was measured instead is under [Corrections](#co
 
 ## Tracked packs
 
-Measured 2026-11-11. `test_handoff_and_agents_quote_the_tracked_pack_bytes` fails when a size or a sha256 in
-this table stops matching the zip in `dist/`. The two Miranda LAS packs are also tracked, byte for byte, as
-`build/pd2-las/Miranda_LAS.zip` and `build/pd2-las/Miranda_Busty_LAS.zip`.
+Which bytes are tracked is not written here. `make -sC tools/pd2-las status` prints each pack's size and sha256
+and whether the zip is what git holds; `dist/<name>.zip.sha256` is the hash itself. A size or a hash on this
+page is one that a person saw in game or that an earlier build had: `test_no_document_quotes_what_status_prints`
+fails on a current one. The two Miranda LAS packs are also tracked, byte for byte, under `build/pd2-las/`.
 
-| Pack | sha256 | What it is | Built by |
-| --- | --- | --- | --- |
-| `dist/Miranda_LAS.zip` (`5,919,822` B) | `b7fe6b08c31f439dd3628bf82935b5e3e210f3639c239e8fc35572b7bfece002` | full body and first-person arms, from the L4D2 addon | `tools/pd2-las/build_models.py` |
-| `dist/Miranda_Busty_LAS.zip` (`6,321,140` B) | `d8856d8d0f581c5e0cc7e12af132f373f1fb1952f530418ba4abde05a166e9cb` | the same with a larger chest; its own `LegendaryArmours.miranda_busty` entry, so it installs beside the base pack | `tools/pd2-las/build_busty_variant.py` |
-| `dist/Christie_LAS.zip` (`4,982,791` B) | `1b486c42bc66c9e00c7574210366045a3f0fa31d5cea2c3a978ea7cebde9cc86` | body only (`replace_body`, no `g_head`), with Christie's hands | `tools/pd2-las/build_christie_las.py` |
-| `dist/Christie_LAS_Slim.zip` (`4,392,978` B) | `79529a56f80268e2f81614ecd2c9a124c874aa60e30e98e401d139444c351c6c` | the slim variant: wrists cut for the in-game gloves, with the glove-adapter hook | `tools/pd2-las/build_christie_las.py --variant slim` |
-| `dist/lawson_las.zip` (`9,123,392` B) | `9c8a28368862edccc8030a9df378766a804665a750a70954f47b4168a3ce4ad2` | full body from the ME2 Romance model; the sibling pipeline's pack, listed for its bytes only | `tools/pd2-port/build_las_pack.py` |
-| `dist/Miranda_L4D2_over_Joy.zip` (`10,679,847` B) | `2bd2d3afa80f8a621482f6bb230c5ac669f26a15cd9f87c5c534f9d383334f72` | L4D2 head over Joy | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Clover.zip` (`7,727,419` B) | `f36ade1b0c347476192bc3aac068410b992fc22c320b9208d85be3f83d922b76` | L4D2 head over Clover | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Bonnie.zip` (`8,239,468` B) | `12b1351ddaac2e4b53c7f7bd90ddf8eaf42eafbf3f265ff99a804186742171bd` | L4D2 head over Bonnie | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_L4D2_over_Sydney.zip` (`7,226,278` B) | `8df709037af979e7b0fdc14ad27740db5caa0f0525ce64d2d5c0a93c6dbe4745` | L4D2 head over Sydney | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Joy.zip` (`10,238,861` B) | `312b8cc3c81da93679a719cb2767979544504c46bbbe5e0c8510f60cfa204d15` | ME2 Romance head over Joy | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Clover.zip` (`7,297,748` B) | `cf3c80f3d8d3cb305e2f80140edd6845128228072ee4f1f42c068cfa5043cb1d` | ME2 Romance head over Clover | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Bonnie.zip` (`7,791,959` B) | `756fdd6ead621985cf24bd8c11d05a8c5f6d2fc1d74344ede1830cd1b170400f` | ME2 Romance head over Bonnie | `tools/build_joy_head_mods.py` |
-| `dist/Miranda_Romance_over_Sydney.zip` (`6,805,744` B) | `8eb937a3a97135f1731cbcbe8f37dbd0c4f8af4369e7673897d7708b95a3597d` | ME2 Romance head over Sydney | `tools/build_joy_head_mods.py` |
-| `dist/Geralt_over_Rust.zip` (`8,121,550` B) | `0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d` | Geralt's head over Rust | `tools/build_joy_head_mods.py` |
-
-Every pack rebuilds to these bytes in the pinned environment on any x86-64 Linux machine: each builder writes
+Every pack rebuilds to its tracked bytes in the pinned environment on any x86-64 Linux machine: each builder writes
 one fixed timestamp into every zip entry and, since 2026-11-12, puts itself on one declared numeric code path
 before it computes anything, so a `.sha256` sidecar is a true build hash. CI builds all 14 packs on its runner
-and compares the 16 zips with these hashes, with no tolerance, and has done so on runners with AVX-512 and
+and compares the 16 zips with their tracked hashes, with no tolerance, and has done so on runners with AVX-512 and
 without. Before that day 12 of the 14 packs came out differently on a CPU without AVX-512. The causes, the
 fixes and where the guarantee ends are in
 [`docs/audits/2026-11-12-cpu-independence.md`](../audits/2026-11-12-cpu-independence.md) and in

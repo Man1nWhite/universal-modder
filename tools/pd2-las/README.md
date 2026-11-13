@@ -1,9 +1,9 @@
 # pd2-las — Source-engine characters as PAYDAY 2 LAS outfits
 
 Builds **Legendary Armour Skins (LAS)** outfit packs for PAYDAY 2 from compiled Source-engine models
-(`.mdl`/`.vvd`/`.vtx` + `.vtf`). Each mesh is re-skinned onto the PD2 player skeleton embedded in the `2b.rar`
-reference pack and written as Diesel `.model` + `.texture` + `.material_config` behind a BeardLib
-`LegendaryArmours.<id>` registration. Pure Python: no Source compile step, no Blender, and no game is needed to build.
+(`.mdl`/`.vvd`/`.vtx` + `.vtf`): each mesh is re-skinned onto the PD2 player skeleton of the `2b.rar` reference pack
+and written as Diesel `.model` + `.texture` + `.material_config` behind a BeardLib `LegendaryArmours.<id>`
+registration. Pure Python: no Source compile step, no Blender, and no game is needed to build.
 
 | Tracked pack (`dist/<name>.zip`) | Source archive | Builder | `make` target |
 | --- | --- | --- | --- |
@@ -14,37 +14,36 @@ reference pack and written as Diesel `.model` + `.texture` + `.material_config` 
 
 ## Status
 
-Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: inputs, environment,
-templates and, per tracked pack, its checksum and `BUILD_INFO.json` flags (`models_present`, `runtime_verified`).
+Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every
+tracked pack of the three pipelines (size, sha256, `make` target, whether the zip `is` what git tracks), the next command.
 
-- **Done:** all four packs are complete, models included, and rebuild to the same bytes on any x86-64 Linux machine.
-- **Open:** in-game sign-off and the other items under [Next](#next).
 - **Blocked:** public release. The sources are fan rips (Mass Effect 2 by way
   of an L4D2 addon; Dead or Alive 5) with unresolved redistribution rights.
 
 ## Commands
 
-From the repo root. `make -sC tools/pd2-las` alone lists every target.
+From the repo root; `make -sC tools/pd2-las` alone lists every target. They cover all three pipelines: `lawson`
+and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`.
 
 ```sh
-make -sC tools/pd2-las env      # once per fresh clone or wiped sandbox: pinned .venv + the 2B templates
+make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | christie | slim | all: the table above
+make -sC tools/pd2-las build    # or busty | christie | slim | lawson | heads | all; prints the state of the packs it wrote
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases are the defect under Next
+make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
 ```
 
-- `make -n <target>` prints what a target runs. Keep the `-s`: a bare `make -C` wraps the status JSON in
-  "Entering directory" lines.
+- `make -n <target>` prints what a target runs. Without `-s`, make wraps the JSON in "Entering directory" lines.
 - `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored); the builders default `--templates` to
-  it, and only `extract_2b.py` writes that path.
-- A build **overwrites the tracked zips** in `dist/` and `build/pd2-las/`. In the pinned environment an
-  unchanged tree reproduces them byte for byte on any x86-64 Linux machine: every builder first puts itself
-  on one declared code path (`determinism.py`) and refuses to build off it. `fresh` checks all 16 zips in a
-  copy and touches no tracked file; nor does a builder run with `--out build/x` (Christie: also `--dist build/x`).
-- **Done means:** `test` passes and `git status --short dist build` lists only packs you meant to
-  change. A changed zip needs its size and sha256 in `AGENTS.md`, its copies and `docs/pd2-las/HANDOFF.md`
-  (`test_las_pack.py`); a changed `Miranda_LAS` also needs `tools/build_joy_head_mods.py` run again.
+  it, and only `extract_2b.py` writes that path. Of tracked files it restores only missing ones.
+- A build **overwrites the tracked zips** in `dist/` and `build/pd2-las/` and writes their `.sha256`, so only
+  `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
+  `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
+  Linux machine: every builder first puts itself on one declared code path (`determinism.py`). `fresh` checks
+  all 16 zips in a copy and touches no tracked file; nor does a builder run with `--out build/x` (Christie: also `--dist build/x`).
+- **Done means:** `green` passes and `status` shows `changed` only for packs you meant to change. No
+  document needs an edit; a changed `Miranda_LAS` needs `heads` run again.
 
 ## File map
 
@@ -63,7 +62,7 @@ make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases ar
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `build_skyrim_outfit.py`, `skyrim_*.py`, `skin_texture.py`, `decimate.py` | Skyrim outfit route: cancelled, its source archives were removed, so it does not build here |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, status, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 14 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and the rounding with a margin; tangent frames from the values the file stores; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 | `pins.txt`, `copies.py` | the two pinned versions, written once (`recover_env.sh`, CI and `status.py` read them); what a merge of two tools is held to: `record`, `compare`, `after` |
 
@@ -104,8 +103,8 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
   by `tools/pd2-port/check_skip_budget.py`. The one exception: [Next](#next).
 - Do not cut a computed value off with `astype(np.uint8)`, and do not decide on a number that is zero up to
   rounding: `determinism.floor8`, `rounded` and `above` stop the build at a boundary; a tie needs a rule (D26).
-- Do not put dates, hashes or measurements in this file; they belong in
-  `HANDOFF.md`, `MODLOG.md` and the packs' `BUILD_INFO.json`.
+- Do not put dates or measurements in this file (`HANDOFF.md`, `MODLOG.md`, the packs' `BUILD_INFO.json`),
+  nor a size, a hash or a test count in any document: `status` and `green` print them.
 - Do not write commands, invariants or open work anywhere else: `AGENTS.md`
   and `HANDOFF.md` point here, and a test keeps them from growing their own.
 
@@ -119,6 +118,8 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
    texels at full gloss in `body_df` and `head_df` of the Miranda packs and in three Christie
    textures; the Christie sleeve-gloss pass moves gloss around inside the blocks it touches.
+4. The sibling packs: `lawson_las` and the nine head packs have no record of their tracked bytes in game, and
+   the head packs have no checklist.
 
 ## Further reading
 
@@ -127,4 +128,3 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 - The tracked bytes, what was seen in game and when, dead ends: `docs/pd2-las/HANDOFF.md`
 - LAS runtime contract and gotchas: `knowledge/games/payday-2/las-armor-skin-outfit.md`
 - Chest morph: `docs/pd2-las/CHEST-VARIANT.md`; Christie fit: `docs/pd2-las/CHRISTIE.md`; retarget and matrix conventions: the `build_models.py` docstring, `retarget_maps`
-- Reading GMod/Source addons: `knowledge/techniques/garry-s-mod-and-source-addon-tooling-what-runs-headless-what.md`

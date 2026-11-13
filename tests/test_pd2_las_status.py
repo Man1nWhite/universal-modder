@@ -63,24 +63,64 @@ def test_status_cli_prints_one_json_object():
     proc = subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True, cwd=REPO)
     assert proc.returncode == 0, proc.stderr
     data = json.loads(proc.stdout)
-    assert list(data) == ["ready", "hint", "inputs", "env", "templates", "packs"]
-    # short enough to read whole: one line per section and per pack
-    assert len(proc.stdout.splitlines()) == 9 + len(data["packs"])
+    assert list(data)[:4] == ["ready", "hint", "env", "packs"] and list(data)[-1] == "next", list(data)
+    # short enough to read whole: one line per section and per pack, and the next command last
+    lines = proc.stdout.splitlines()
+    assert len(lines) == len(data) + 3 + len(data["packs"])
+    assert lines[-2].startswith(' "next": "') and lines[-1] == "}"
     assert data["ready"] is (data["hint"] is None)
+    assert data["next"] == (data["hint"] or "make -sC tools/pd2-las green")
 
 
-def test_status_agrees_with_the_checksum_sidecars():
+def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
+    """All 14 packs of the three pipelines, not the four of this directory.
+
+    `status` used to report four packs; the state of the other ten took three more commands,
+    one of which rebuilt nine packs to find out. `is` compares with the commit, because a
+    builder writes its own `.sha256`: a zip that equals its sidecar proves nothing about a rebuild.
+    """
     status = _load()
-    packs = status.collect()["packs"]
-    assert set(packs) == set(status.PACKS)
-    for name, pack in packs.items():
-        assert pack["build"] == status.PACKS[name]
-        if not pack["present"]:
+    sidecars = sorted(path.name[: -len(".zip.sha256")] for path in (REPO / "dist").glob("*.zip.sha256"))
+    if not sidecars:
+        pytest.skip("dist/ is absent from this sandbox snapshot")
+    short, full = status.collect()["packs"], status.collect(full=True)["packs"]
+    assert sorted(short) == sidecars and len(sidecars) >= 14
+    for name, pack in full.items():
+        assert pack["make"] == status.target(name) and pack["make"], f"{name}: no make target rebuilds it"
+        if pack["is"] == "missing":
             continue    # dist/ can be absent from a sandbox snapshot; test_dist_checksums owns that case
-        sidecar = (REPO / (pack["zip"] + ".sha256")).read_text().split()[0]
-        assert pack["sha256"] == sidecar and pack["sha256_ok"] is True, name
-        assert pack["models_present"] is True, f"{name}: BUILD_INFO.json says the models are missing"
-        assert isinstance(pack["runtime_verified"], bool), name
+        path = REPO / "dist" / f"{name}.zip"
+        assert pack["is"] in {"tracked", "changed", "ok"}, f"{name}: the zip is not its .sha256"
+        assert pack["sha256"] == (REPO / "dist" / f"{name}.zip.sha256").read_text().split()[0], name
+        assert short[name]["sha256"] == pack["sha256"][:12] and pack["bytes"] == path.stat().st_size, name
+    one = status.collect(only=["slim"])
+    assert list(one) == ["packs", "next"] and list(one["packs"]) == ["Christie_LAS_Slim"]
+
+
+def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch):
+    """`changed` is a zip that equals its sidecar and not the commit; `broken` one that does not equal its sidecar."""
+    if not (REPO / ".git").exists() or not shutil.which("git"):
+        pytest.skip("needs the git checkout")
+    status = _load()
+    name = "Christie_LAS_Slim"
+    if status.collect(only=[name])["packs"][name]["is"] != "tracked":
+        pytest.skip(f"{name} is not the tracked zip in this checkout")
+    clone = tmp_path / "clone"
+    subprocess.run(["git", "worktree", "add", "--detach", str(clone), "HEAD"], cwd=REPO, check=True, capture_output=True)
+    try:
+        for rel in (f"dist/{name}.zip", f"dist/{name}.zip.sha256"):
+            shutil.copy2(REPO / rel, clone / rel)
+        monkeypatch.setattr(status, "REPO", clone)
+        assert status.collect(only=[name])["packs"][name]["is"] == "tracked"
+        with open(clone / "dist" / f"{name}.zip", "ab") as handle:
+            handle.write(b"\0")
+        assert status.collect(only=[name])["packs"][name]["is"] == "broken"
+        digest = __import__("hashlib").sha256((clone / "dist" / f"{name}.zip").read_bytes()).hexdigest()
+        (clone / "dist" / f"{name}.zip.sha256").write_text(f"{digest}  dist/{name}.zip\n")
+        result = status.collect(only=[name])
+        assert result["packs"][name]["is"] == "changed" and "note" in result
+    finally:
+        subprocess.run(["git", "worktree", "remove", "--force", str(clone)], cwd=REPO, capture_output=True)
 
 
 def test_the_pins_are_written_once():
@@ -107,12 +147,12 @@ def test_the_pins_are_written_once():
             assert f"{name}==" not in text, f"{rel} writes a version of {name} of its own"
 
 
-def test_status_only_names_inputs_and_builders_that_exist():
+def test_status_only_names_inputs_and_targets_that_exist():
     status = _load()
     for rel in status.INPUTS:
         assert (REPO / rel).is_file(), rel
-    for command in status.PACKS.values():
-        assert (SCRIPT.parent / command.split()[0]).is_file(), command
+    targets = set(re.findall(r"^([a-z]+):", (HERE / "Makefile").read_text(), flags=re.M))
+    assert set(status.TARGETS.values()) | {status.HEADS} <= targets
 
 
 @pytest.mark.parametrize("builder", ["build_models", "build_busty_variant", "build_christie_las"])
@@ -150,19 +190,28 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     readme = README.read_text()
     targets = set(re.findall(r"^([a-z]+):", makefile, flags=re.M))
 
-    assert "make -C tools/pd2-las" not in readme.replace("`make -C` wraps", ""), (
+    assert "make -C tools/pd2-las" not in readme, (
         "the README's commands need -s: a bare `make -C` wraps the output in directory lines")
     used = set(re.findall(r"make -sC tools/pd2-las (\w+)", readme))
     used |= set(re.findall(r"^\| `(?:Miranda|Christie)\w*`.*\| `(\w+)` \|$", readme, flags=re.M))
-    assert {"env", "status", "build", "busty", "christie", "slim", "test"} <= used, used
+    assert {"env", "status", "build", "busty", "christie", "slim", "fresh", "test", "green"} <= used, used
     assert used <= targets, f"README names make targets that do not exist: {sorted(used - targets)}"
 
     scripts = re.findall(r"\$\(HERE\)/([\w.]+)", makefile)
     assert scripts
     for script in scripts:
         assert (HERE / script).is_file(), script
-    for command in _load().PACKS.values():
-        assert f"$(PY) $(HERE)/{command}\n" in makefile, f"no make target runs `{command}`"
+    for script in re.findall(r"(?<![\w/)])(tools/[\w./-]+\.py)", makefile):
+        assert (REPO / script).is_file(), script
+
+    # one build target per builder, and they are the builders `fresh` runs: all 14 packs, three pipelines
+    sys.path.insert(0, str(HERE))
+    fresh = pytest.importorskip("fresh", reason="fresh.py imports numpy")
+    built = {name: command.replace("$(HERE)", "tools/pd2-las")
+             for name, command in re.findall(r"^([a-z]+):.*\n\t\$\(call BUILD,(.+)\)$", makefile, flags=re.M)}
+    assert sorted(built.values()) == sorted(" ".join(argv) for argv in fresh.BUILDERS.values()), built
+    status = _load()
+    assert set(built) == set(status.TARGETS.values()) | {status.HEADS}
 
     make = shutil.which("make")
     if make:
@@ -173,7 +222,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
         proc = subprocess.run([make, "-sC", "tools/pd2-las", "status"],
                               capture_output=True, text=True, cwd=REPO)
         assert proc.returncode == 0, proc.stderr
-        assert json.loads(proc.stdout)["packs"].keys() == _load().PACKS.keys()
+        assert list(json.loads(proc.stdout)["packs"]) == status.pack_names()
 
 
 def test_readme_keeps_its_contract():
@@ -236,52 +285,41 @@ def test_readme_invariants_are_the_invariant_tests():
 
 
 def test_pd2_las_has_one_entry_point():
-    """Commands, invariants and open work for this tree are written once, in its README.
+    """Commands, invariants and open work are written once: in the README here.
 
     They used to be written three times. `AGENTS.md` had a quickstart of its own;
     `HANDOFF.md` had a quickstart, a recovery guide, a file map, an invariants list and a
-    work queue. The three gave three different first commands, one of them a hard reset
-    onto a branch that no longer existed, and the copies drifted: the handoff still
-    listed a defect the tracked packs do not have and a scale factor that no code applies.
-
-    Now the README is the entry point, the agent files route to it and keep only what
-    holds for every pipeline, and the handoff is the dated record. This test keeps the
-    second copies from growing back.
+    work queue. The copies drifted from the README and from the tree. This test fails when
+    one of them grows back. (What `AGENTS.md` may hold, and that it has no copy of its own,
+    is tests/test_agent_docs.py.)
     """
     entry = "tools/pd2-las/README.md"
     handoff = (REPO / "docs" / "pd2-las" / "HANDOFF.md").read_text()
     agents = (REPO / "AGENTS.md").read_text()
-    for copy in ("CLAUDE.md", "GEMINI.md"):
-        assert (REPO / copy).read_text() == agents, f"{copy} is not a copy of AGENTS.md"
+    readme = README.read_text()
 
-    # both send the reader to the README: the handoff before it says anything else
     assert entry in handoff.split("\n## ", 1)[0], "HANDOFF.md does not open by pointing at the README"
-    section = agents.split("\n## Active Project: PAYDAY 2", 1)[1]
-    assert f"| `{entry}` | `make -sC tools/pd2-las status` |" in section, (
-        "AGENTS.md does not route pd2-las to its README and the status command")
+    assert f"`{entry}`" in agents, "AGENTS.md does not route to the README"
 
-    # the handoff is a record: no commands, no rules, no queue
     assert "```" not in handoff, "HANDOFF.md has a command block; commands belong in the README"
-    headers = [h.lower() for h in re.findall(r"^#{2,4} (.+)$", handoff, flags=re.M)]
+    headers = re.findall(r"^#{2,4} (.+)$", handoff, flags=re.M)
     assert headers, "HANDOFF.md has no sections"
-    for word in ("quickstart", "recover", "invariant", "next", "where things live", "worktree",
-                 "environment", "command", "status"):
-        assert not any(word in h for h in headers), (
-            f"HANDOFF.md has a section about {word!r}: that is the README's job")
+    for header in headers:
+        for word in ("quickstart", "recover", "invariant", "next", "where things live", "worktree",
+                     "environment", "command", "status"):
+            assert word not in header.lower(), (
+                f"HANDOFF.md has a section about {word!r}: that is the README's job")
 
-    # the agent files route; they do not carry a second set of commands for the pipelines
-    assert "```" not in section, "AGENTS.md has a command block for the PAYDAY 2 pipelines"
+    assert "```" not in agents, "AGENTS.md has a command block; it names one make target per question"
     for script in ("bootstrap.sh", "recover_env.sh", "extract_2b.py"):
-        assert script not in section, f"AGENTS.md names {script}; the README's commands are make targets"
+        assert script not in agents, f"AGENTS.md names {script}; the README's commands are make targets"
+    assert "Invariant" not in agents, "AGENTS.md has invariants of its own again: tools/README.md and this README hold them"
 
-    # and whatever targets they do name exist
     targets = set(re.findall(r"^([a-z]+):", (HERE / "Makefile").read_text(), flags=re.M))
     for name, text in (("AGENTS.md", agents), ("HANDOFF.md", handoff)):
         used = set(re.findall(r"make -sC tools/pd2-las (\w+)", text))
         assert used <= targets, f"{name} names make targets that do not exist: {sorted(used - targets)}"
 
-    # the README says so itself, where the next editor will read it
-    readme = README.read_text()
     assert "Do not write commands, invariants or open work anywhere else" in readme
     assert "HANDOFF.md" not in readme.split("\n## Next\n", 1)[1].split("\n## ", 1)[0], (
         "the README's Next sends the reader to HANDOFF.md for the work queue again")
