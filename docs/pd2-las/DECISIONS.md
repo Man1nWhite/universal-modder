@@ -764,7 +764,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 ### D33 — What is stale is deleted, not kept for later
 
 - **Decided:** 2026-11-13, by the user ("Delete stale things"; which ones was asked and answered that day)
-- **Decision:** three kinds of leftover went.
+- **Decision:** four kinds of leftover went.
   - **The code of the cancelled Skyrim outfit** (D13 had kept it): `tools/skyrim-nif/` and its five pages
     under `docs/skyrim-nif/`; `build_skyrim_outfit.py`, `skyrim_materials.py`, `skyrim_retarget.py`,
     `skyrim_source.py`, `skin_texture.py` and `decimate.py` in `tools/pd2-las/`; the outfit's own
@@ -778,9 +778,11 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     lines to 1,783.
   - **The release and the tags** of the sibling pack: `tools/pd2-port/STATUS.md`, "Released and tracked".
   - **Sixteen branches on GitHub**, fifteen of them merged session branches: `tools/pd2-port/MODLOG.md`.
+  - **Five renders no page showed:** `docs/audits/2026-11-09-neck-arm/`. The two plan pages they
+    illustrated were deleted on 2026-11-10 (`0a76215`).
 - **Why:** a tool that cannot run and a test that can only skip look like coverage and are none: 21 of the
-  suite's 29 skips were tests waiting for the outfit's archives, removed on 2026-11-04, or for its pack. A release that serves an
-  older build under the same version number tells an installer the wrong thing.
+  suite's 29 skips were tests waiting for the outfit's archives, removed on 2026-11-04, or for its pack.
+  A release that serves an older build under the same version number tells an installer the wrong thing.
 - **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the
   Christie and Miranda packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and
   `pose_zoom.py` render with; `build_models.extract_bones` cuts the Christie first-person arms, and

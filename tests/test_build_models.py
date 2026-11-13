@@ -457,3 +457,21 @@ def test_extend_sleeves_leaves_a_sleeve_that_already_reaches_alone():
 
     assert report["moved"] == 0
     assert g.verts == before
+
+
+def test_extend_sleeves_moves_no_material_that_is_not_named():
+    """The function had default targets for `jacket`, `skin` and `jacket2`, the materials of the outfit
+    that was cancelled: a source with a material of one of those names would have been stretched unasked."""
+    wrist, elbow = bm.ARM_JOINTS[-1]
+    raw = [e - w for w, e in zip(wrist, elbow)]
+    ln = sum(c * c for c in raw) ** 0.5
+    d = [c / ln for c in raw]                      # wrist -> elbow, unit
+    g = bm.Group(name="g")
+    g.verts = _arm_ring(wrist, d, 9.0, 3.5) + _arm_ring(wrist, d, 20.0, 3.5)
+    g.slices = [("skin", 0, 0, 1, 8), ("jacket", 8, 3, 1, 8)]
+    before = list(g.verts)
+
+    report = bm.extend_sleeves_to_wrist(g, mats={"sleeve": -2.5})
+
+    assert report["moved"] == 0
+    assert g.verts == before

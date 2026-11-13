@@ -62,6 +62,20 @@ def test_what_has_no_budget_fails():
     assert failures == ["skip reason over budget: '2B templates not extracted' (4x, budget 0x)"]
 
 
+def test_no_budget_is_kept_for_a_reason_nothing_skips_with():
+    """A budget outlives its tests quietly. Until 2026-11-13 four reasons had room for 21 tests that waited
+    for the archives and the pack of a cancelled outfit; none of them had run since the archives went."""
+    budget = _budget()
+    said = "".join(path.read_text(encoding="utf-8") for path in sorted((REPO / "tests").glob("*.py"))
+                   if path.name != Path(__file__).name)
+    said += (REPO / "tools" / "pd2-las" / "extract_2b.py").read_text(encoding="utf-8")      # MISSING, the 2B reason
+    stale = [reason for reason in budget.ALLOWED if reason not in said]
+    assert not stale, f"check_skip_budget.ALLOWED has a budget for a reason no test skips with: {stale}"
+    gone = [node for node in budget.ALLOWED_XFAIL if not (REPO / node.split("::")[0]).is_file()
+            or node.split("::")[1] not in (REPO / node.split("::")[0]).read_text(encoding="utf-8")]
+    assert not gone, f"check_skip_budget.ALLOWED_XFAIL names a test that is not there: {gone}"
+
+
 def test_a_saved_report_is_judged_without_running_the_suite(tmp_path, capsys):
     budget = _budget()
     budget.run_suite = lambda: (_ for _ in ()).throw(AssertionError("--report must not start the suite"))

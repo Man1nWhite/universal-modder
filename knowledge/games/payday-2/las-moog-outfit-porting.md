@@ -38,8 +38,11 @@ tags: [payday-2, las, moog, outfit, porting, rigging, materials, render-template
 > `.nif` reader, and the functions of `build_models` that only that builder
 > called (`graft_pd2_hands`, `weld_wrist`, `trim_neck`, `align_neck`,
 > `turn_body`, `restore_bust`, the `tuck_*` passes, `count_hand_verts`,
-> `append_group`). The techniques stand. The code is in history:
-> `git show 19ca55a:tools/pd2-las/build_models.py`, and likewise for the others.
+> `append_group`), with the jacket shoulder stay inside `transfer_group`.
+> `pose_preview.py` keeps the pose and lost its command and flags
+> (`pose_zoom.py` and `glove_check.py` render with it). The techniques stand.
+> The code is in history: `git show 19ca55a:tools/pd2-las/build_models.py`,
+> and likewise for the others.
 
 ## Setup
 

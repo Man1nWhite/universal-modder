@@ -126,4 +126,34 @@ run "9e a count of checks in tools/README.md"
 printf 'Run `retarget_all.py` first.\n' >> tools/pd2-port/README.md
 run "10 a script that does not exist, in tools/pd2-port/README.md"
 
+echo
+echo "what was deleted on 2026-11-13 stays out, and the tests that were kept still catch their defect"
+
+sleeves="tests/test_build_models.py::test_extend_sleeves_moves_no_material_that_is_not_named"
+run "nothing changed" tests/test_agent_docs.py tests/test_pd2_las_status.py tests/test_skip_budget.py \
+    tests/test_las_outfit_pack.py tests/test_glove_adapter.py "$sleeves"
+
+printf '| `build_skyrim_outfit.py`, `skin_texture.py` | Skyrim outfit route: cancelled |\n' >> tools/pd2-las/README.md
+run "11 a row for the deleted Skyrim tools in tools/pd2-las/README.md" tests/test_agent_docs.py tests/test_pd2_las_status.py
+
+sed -i 's/^    "needs ffmpeg": 4,$/    "needs ffmpeg": 4,\n    "nifly not built": 2,/' tools/pd2-port/check_skip_budget.py
+git diff --quiet -- tools/pd2-port/check_skip_budget.py && echo "(12 did not apply: the budget in check_skip_budget.py reads otherwise now)"
+run "12 a skip budget for a reason no test skips with" tests/test_skip_budget.py
+
+sed -i 's/^\\tps.glove_adapter = {{}}$/\\tps.glove_adapter = true/' tools/pd2-las/las_outfit_pack.py
+git diff --quiet -- tools/pd2-las/las_outfit_pack.py && echo "(13 did not apply: the adapter line in las_outfit_pack.py reads otherwise now)"
+run "13 the glove adapter enabled with a boolean, in the generator" tests/test_glove_adapter.py
+
+sed -i 's|<unit_mat path="{u}"/>|<unit_mat path="{u.rsplit(\"/\", 1)[0]}"/>|' tools/pd2-las/las_outfit_pack.py
+git diff --quiet -- tools/pd2-las/las_outfit_pack.py && echo "(13b did not apply: the unit_mat line in las_outfit_pack.py reads otherwise now)"
+run "13b a unit path without its file stem in main.xml" tests/test_las_outfit_pack.py
+
+sed -i 's|<df_nm path="{base}"/>|<df_nm path="{base}_df"/>|' tools/pd2-las/las_outfit_pack.py
+git diff --quiet -- tools/pd2-las/las_outfit_pack.py && echo "(13c did not apply: the df_nm line in las_outfit_pack.py reads otherwise now)"
+run "13c a texture pair named with its _df suffix in main.xml" tests/test_las_outfit_pack.py
+
+sed -i 's/^    targets = dict(mats)$/    targets = {"jacket": -2.5, "skin": -2.2, **mats}/' tools/pd2-las/build_models.py
+git diff --quiet -- tools/pd2-las/build_models.py && echo "(14 did not apply: extend_sleeves_to_wrist reads otherwise now)"
+run "14 default sleeve targets for the materials of the cancelled outfit, back in extend_sleeves_to_wrist" "$sleeves"
+
 cd "$repo" && git worktree remove --force "$work"
