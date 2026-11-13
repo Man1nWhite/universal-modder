@@ -23,7 +23,7 @@ REPO = Path(__file__).resolve().parents[1]
 PD2 = REPO / "tools" / "pd2-las"
 #: what an agent is sent to; the cut rule and these tests apply to them
 AGENT_DOCS = ["AGENTS.md", "GEMINI.md", "README.md", "docs/pd2-las/HANDOFF.md", "tools/README.md",
-              "tools/pd2-las/README.md", "tools/pd2-port/README.md"]
+              "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md"]
 #: these also name packs and tools
 OTHER_DOCS = ["CONTRIBUTING.md", "models/README.md", "references/README.md", "tools/skyrim-nif/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session
@@ -97,10 +97,13 @@ def test_no_document_quotes_what_status_prints():
 
     `HANDOFF.md` and the three instruction files used to quote every pack's size, and a test
     required it, so each rebuild meant editing four documents. `make -sC tools/pd2-las status`
-    prints sizes and hashes from the zips; `green` prints the counts. A record of what a person
-    saw in game names old bytes by the first eight digits of their sha256, which passes here.
-    Not covered: tools/pd2-port/STATUS.md, the dated page of one port, pinned to its pack by
-    test_the_status_page_matches_the_shipped_pack.
+    prints sizes and hashes from the zips; `green` and `check_all.py` print the counts. A record
+    of what a person saw in game, or of what a release serves, names bytes that are not the
+    tracked ones, which passes here.
+
+    `tools/pd2-port/STATUS.md` was left out until 2026-11-13: it quoted the size and sha256 of
+    `lawson_las` beside the release, a test kept them current, and the page read as if the
+    release served them. It did not.
     """
     status = _status()
     packs = status.collect(full=True)["packs"]
@@ -111,8 +114,9 @@ def test_no_document_quotes_what_status_prints():
         for name, pack in packs.items():
             for fact in (f"{pack['bytes']:,}", str(pack["bytes"]), pack["sha256"][:12]):
                 assert fact not in text, f"{rel} quotes {fact} of {name}: `status` prints it"
-        count = re.search(r"\b\d{2,} (?:tests|passed|skipped)\b", text)
-        assert not count, f"{rel} quotes a test count ({count.group(0)!r}): `green` prints it"
+        count = re.search(r"\b\d{2,} (?:tests|passed|skipped)\b|\b\d+ pass, \d+ warn, \d+ fail\b"
+                          r"|\b\d+/\d+ (?:mutations|checks)\b", text)
+        assert not count, f"{rel} quotes a count ({count.group(0)!r}): `green` or `check_all.py` prints it"
 
 
 def test_every_path_target_and_test_named_in_an_agent_doc_exists():

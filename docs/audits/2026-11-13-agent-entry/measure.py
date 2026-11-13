@@ -420,6 +420,9 @@ D_COPY = "dropped: a byte-for-byte copy of AGENTS.md"
 D_UP = "dropped: upstream's presentation of the toolkit, in upstream's README; no agent acts on it here"
 D_STATUS = "dropped: `make -sC tools/pd2-las status` prints it"
 SAME = "moved to %s (reworded in place)"
+PORT = SAME % "tools/pd2-port/README.md"
+NEW_STATUS = "moved to tools/pd2-port/STATUS.md"
+NOT_RELEASED = "the release serves the build of 282703f and the tracked pack is ten rebuilds later (tools/pd2-port/STATUS.md)"
 # old file -> (first line, last line, what became of the lines in that range), on the base commit's numbering
 LEDGER = {
     "AGENTS.md": [
@@ -447,7 +450,9 @@ LEDGER = {
     "docs/pd2-las/HANDOFF.md": [
         (5, 6, SAME % "docs/pd2-las/HANDOFF.md"), (15, 17, SAME % "docs/pd2-las/HANDOFF.md"),
         (19, 34, D_STATUS + " (size, sha256) and dist/<name>.zip.sha256 holds the hash; what each pack is: tools/README.md; what builds it: tools/pd2-las/Makefile"),
-        (36, 39, SAME % "docs/pd2-las/HANDOFF.md")],
+        (36, 39, SAME % "docs/pd2-las/HANDOFF.md"),
+        (50, 52, SAME % "docs/pd2-las/HANDOFF.md" + ": the flag is `false` in every pack since 2026-11-13 (DECISIONS.md, D31)"),
+        (58, 58, SAME % "docs/pd2-las/HANDOFF.md" + ": the rebuild of 2026-11-13 added")],
     "tools/README.md": [
         (1, 22, SAME % "tools/README.md" + "; the list of zip names dropped: `status` prints it"),
         (24, 40, "dropped: \"No code to deduplicate\" and \"234 tests\" were measured on 2026-10-19 and are contradicted by docs/audits/2026-11-12-tool-merge.md, which found jobs done in more than one place and merged some; the dialect and release points moved to tools/README.md, \"Sharing code between the trees\""),
@@ -460,8 +465,60 @@ LEDGER = {
         (66, 66, SAME % "tools/pd2-las/README.md"), (107, 108, SAME % "tools/pd2-las/README.md"),
         (130, 130, "dropped: `bin/um kb search` finds the note")],
     "tools/pd2-port/README.md": [
-        (45, 54, SAME % "tools/pd2-port/README.md"), (254, 256, "dropped: check_all.py prints the counts"),
-        (312, 314, SAME % "tools/pd2-port/README.md" + "; the copies it named are gone")],
+        (22, 23, PORT + "; \"published by the release workflow\" corrected: " + NOT_RELEASED),
+        (34, 43, PORT + ": STATUS.md is the dated record now; \"Its pack facts are pinned by tests\" went with that test"),
+        (45, 54, PORT),
+        (64, 66, PORT + "; \"published as the release asset\" and \"v1 kept for comparison\" dropped: " + NOT_RELEASED + ", and there is no v1 release"),
+        (89, 94, PORT + "; \"default 0.1.2\" dropped: `VERSION` in build_las_pack.py holds it"),
+        (97, 114, PORT + ", one line per command; \"(16 mutations)\" dropped: check_all.py --full prints the count"),
+        (119, 122, PORT + "; \"exactly what the release serves\" dropped: " + NOT_RELEASED + "; the two pinned versions dropped: tools/pd2-las/pins.txt is the one place they are written"),
+        (254, 256, "dropped: check_all.py prints the counts"),
+        (257, 257, "moved to tools/pd2-port/STATUS.md, \"Found and settled\" (the green channel)"),
+        (262, 264, PORT + "; \"16/16\" dropped: check_all.py --full prints it"),
+        (267, 269, PORT + "; \"five ways\" dropped: check_all.py prints the count"),
+        (282, 284, PORT + ", corrected: \"the bytes are identical\" was wrong, " + NOT_RELEASED + "; the installer is sent to dist/lawson_las.zip"),
+        (296, 297, PORT + "; \"the latest release is lawson-las-v2\" dropped: the newest file in tools/pd2-port/releases/ says it"),
+        (311, 314, PORT + ", rewritten: STATUS.md quotes no figure of the tracked pack, so step 3 is to record the release there; "
+                   "test_the_status_page_says_whether_the_release_serves_the_tracked_pack holds it"),
+        (323, 326, PORT + "; \"always downloadable\" dropped: an artifact belongs to one workflow run and expires"),
+        (330, 332, PORT + "; the in-game record is tools/pd2-port/STATUS.md, \"Seen in game\""),
+        (335, 337, PORT + "; the heights dropped: the `target_ops` docstring in rig_target.py has them"),
+        (342, 345, "dropped: \"Guide compliance\" in the same file lists these rules, and names the knowledge note now"),
+        (346, 350, "dropped: \"Pipeline\", stage 2, and the comments under \"Build\" in the same file say it")],
+    "tools/pd2-port/STATUS.md": [
+        (1, 4, NEW_STATUS + ", the header: rewritten on 2026-11-13 as the dated record"),
+        (6, 29, "dropped: a note that listed which sections below it were stale; those sections are gone. What it said of the transfer today is under \"Found and settled\""),
+        (31, 35, "dropped: tools/pd2-port/README.md is where to start, and the header says so"),
+        (37, 45, NEW_STATUS + ", \"Released and tracked\" and \"Seen in game\"; the tracked size and sha256 dropped: `make -sC tools/pd2-las status` prints them; "
+                 "\"the v1 release stays up\" corrected: there is none; the Docs row dropped: README, \"Publish a release\""),
+        (47, 48, "dropped: tools/pd2-port/README.md, \"Install\""),
+        (50, 58, "dropped: tools/pd2-port/README.md and AGENTS.md give the two commands; the timings were stale by the page's own note"),
+        (60, 73, "dropped: check_all.py and `make -sC tools/pd2-las green` print today's results; the G1 warning is under \"Found and settled\""),
+        (75, 99, NEW_STATUS + ", \"Found and settled\", shortened; \"See §6 for the planned fix\" dropped: the transfer was replaced (the `target_ops` docstring)"),
+        (101, 113, NEW_STATUS + ", \"Found and settled\" (the green channel)"),
+        (115, 118, "dropped: the transfer was rebuilt another way by 2026-10-22; \"Corrections\" says so"),
+        (120, 129, "dropped: constraint 1 was overtaken (the core now moves rigidly at 1:1: the `target_ops` docstring); 2 is audit check N3; 3 is the guide audit (README, \"Guide compliance\")"),
+        (131, 135, "dropped: the `target_ops` docstring in rig_target.py has the heights"),
+        (136, 146, NEW_STATUS + ", \"Dead ends\""),
+        (147, 149, "dropped: the tear angles of the transfer of 2026-10-19, which is no longer in the tree"),
+        (150, 157, NEW_STATUS + ", \"Dead ends\""),
+        (158, 162, "dropped: struck through and marked done on 2026-11-11 in the line itself"),
+        (164, 174, "dropped: a proposal for the transfer of 2026-10-19; the transfer was built another way"),
+        (176, 180, "dropped: `make -sC tools/pd2-las env` makes the environment and tools/pd2-las/pins.txt is the one place the versions are written"),
+        (181, 185, "moved to tools/pd2-port/README.md, \"Build\""),
+        (186, 188, "moved to tools/pd2-port/README.md, \"Publish a release\""),
+        (189, 196, "dropped: tools/pd2-port/README.md, \"Inputs and outputs\", and `make -sC tools/pd2-las env`"),
+        (197, 198, "dropped: `make -sC tools/pd2-las green` runs both"),
+        (199, 199, "dropped: AGENTS.md, Rules"),
+        (201, 223, "dropped: the branch it describes is gone and both lines of work are in main; \"Corrections\" says so"),
+        (225, 244, "dropped: tools/pd2-port/README.md names every one of these files under \"Build\", \"Pipeline\" and \"What is reusable\"")],
+    "tools/skyrim-nif/README.md": [
+        (12, 13, SAME % "tools/skyrim-nif/README.md" + "; \"91/91 checks\" dropped: docs/skyrim-nif/CROSSCHECK.md has the count"),
+        (25, 34, "dropped: both commands stop without 1.zip..5.zip, which were removed with the port; the README says so now, and `--help` of "
+                 "inventory.py and crosscheck.py gives each command"),
+        (36, 36, "dropped: a comment, \"one file, ad hoc\"; the sentence above the example says it"),
+        (73, 74, SAME % "tools/skyrim-nif/README.md" + ", in the past tense: measured while the archives were in the tree"),
+        (84, 84, SAME % "tools/skyrim-nif/README.md" + "; \"91/91\" dropped: docs/skyrim-nif/CROSSCHECK.md has the count")],
 }
 
 

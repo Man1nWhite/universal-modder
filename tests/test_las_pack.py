@@ -880,27 +880,32 @@ def test_the_built_pack_has_no_inverted_faces():
             assert inverted == 0, f"{name}: {inverted} of {total} triangles are inverted"
 
 
-def test_the_status_page_matches_the_shipped_pack():
-    """`tools/pd2-port/STATUS.md` is the handoff page - it must not drift.
+def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
+    """`tools/pd2-port/STATUS.md` is the dated record of the port: it has to say what the release serves.
 
-    A status page that quotes a stale size, checksum or audit result is
-    worse than none: the next agent trusts it.
+    Until 2026-11-13 the page quoted the tracked pack's size and sha256 beside the release, and a
+    test here kept those two figures current. The table read as if they were the release's, and
+    the README said outright that the tracked pack "is exactly what the release serves". It was
+    ten rebuilds later. The page quotes no tracked figure now (tests/test_agent_docs.py); what is
+    held here is the one sentence that matters, against the newest release notes and the sidecar.
     """
-    import hashlib
+    import re
 
+    sidecar = ROOT / "dist" / "lawson_las.zip.sha256"
+    if not sidecar.exists():
+        pytest.skip("dist/ is absent from this sandbox snapshot")
     status = (PD2 / "STATUS.md").read_text()
-    pack = ROOT / "dist" / "lawson_las.zip"
-    if not pack.exists():
-        pytest.skip("no built pack")
-    raw = pack.read_bytes()
-    digest = hashlib.sha256(raw).hexdigest()
-    assert digest in status, "STATUS.md does not quote the pack's sha256"
-    assert f"{len(raw):,}" in status, "STATUS.md does not quote the pack's size"
-
-    checker = _load("check_guide_compliance", "check_guide_compliance.py")
-    counts = checker.audit(pack).counts()
-    assert f"**{counts['PASS']} pass, {counts['WARN']} warn, {counts['FAIL']} fail**" in status, (
-        "STATUS.md does not quote the audit's result")
+    notes = max(PD2.glob("releases/lawson-las-v*.md"), key=lambda p: int(re.search(r"v(\d+)\.md$", p.name).group(1)))
+    released = re.search(r"\*\*sha256:\*\*\s*`([0-9a-f]{64})`", notes.read_text()).group(1)
+    tracked = sidecar.read_text().split()[0]
+    assert f"`{notes.stem}`" in status and f"`{released[:8]}…`" in status, (
+        f"STATUS.md does not name the last release, {notes.stem}, with the pack it serves ({released[:8]}…)")
+    sentence = "The tracked pack is not the pack the release serves."
+    if released == tracked:
+        assert sentence not in status, f"{notes.stem} serves the tracked pack; STATUS.md still says it does not"
+    else:
+        assert sentence in status, (
+            f"{notes.stem} serves {released[:8]}… and the tracked pack is {tracked[:8]}…; STATUS.md has to say so")
 
 
 def test_the_builder_version_matches_the_latest_release_notes():

@@ -135,8 +135,8 @@ rasters source/retarget/decoded previews without Blender.
 `check_all.py` runs the checks of the shipped port in one command (the
 tracked checksum, the audit, the winding check, the normal-map analysis and
 the mutation tests; `--full` adds the auditor self-test, the pytest suite and
-the skip budget); the state of that port, its open problems and its traps
-are written down in `tools/pd2-port/STATUS.md`.
+the skip budget); the dated record of that port is `tools/pd2-port/STATUS.md`,
+its limits and its release route are in `tools/pd2-port/README.md`.
 `check_guide_compliance.py` audits the built pack against this guide's rules
 (one check per rule, each citing it); it runs in the test suite, so a pack
 that drifts from the guide fails the build.

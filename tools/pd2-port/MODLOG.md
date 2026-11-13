@@ -1,8 +1,10 @@
 # Lawson pack journal
 
-> The **current state** lives in [`STATUS.md`](STATUS.md) — what is shipped,
-> the measured check results, the open problem and the workflow traps. This
-> journal is the history behind it.
+> Start at [`README.md`](README.md). The dated record of the shipped port is
+> [`STATUS.md`](STATUS.md): what the release serves and what is tracked, what
+> was seen in game, what was found, settled and rejected. This journal is the
+> history behind it; an entry that sends you to a section of `STATUS.md` by
+> number means the page as it was until 2026-11-13.
 
 ## 2026-11-04 — SkyrimOutfit: forearms redo — hide the shirt cuff + overlap the glove with the blazer sleeve (NEW)
 
@@ -1234,3 +1236,25 @@
   it misreads skinned legacy models (471 of 826 geometry sections measured).
   `lawson_las` is DODB and is read right.
   `docs/audits/2026-11-12-tool-merge.md`.
+
+## 2026-11-13 — the release is ten rebuilds behind the tracked pack; `STATUS.md` becomes the dated record
+
+- **Found by reading the release:** `lawson-las-v2` serves `lawson_las.zip` of `8,015,688` B, sha256
+  `a24f0b7c…`, the build of `282703f`. Ten commits after that tag rebuilt the tracked pack
+  (`git log 282703f..HEAD -- dist/lawson_las.zip.sha256`), all stamped 0.1.2, none released. The README said
+  "the tracked `dist/lawson_las.zip` is therefore exactly what the release serves" and "build it yourself —
+  the bytes are identical"; `STATUS.md` gave the tracked size and sha256 in one table with the release, under
+  a test that kept those two figures current. There is no v1 release any more, only its tag.
+- `STATUS.md` is rewritten as the dated record (244 lines to 98): released and tracked, seen in game, found
+  and settled, dead ends, corrections. Its check results, timings, venv recipe, file map and the note on
+  another branch are gone; `docs/audits/2026-11-13-agent-entry/ledger.tsv` says what became of each line.
+- The README no longer quotes a version, a release number, the pins or a count of mutations, and it sends
+  the installer to `dist/lawson_las.zip`.
+- `test_the_status_page_matches_the_shipped_pack` is replaced by
+  `test_the_status_page_says_whether_the_release_serves_the_tracked_pack`: it compares the newest release
+  notes with the tracked `.sha256` and fails while the page says the other thing.
+- The `lawson LAS pack` workflow installs scipy, which the suite imports: its `tests` step had failed on
+  `main` since 2026-11-12, before the upload and the release step. Run by hand on this branch
+  (`workflow_dispatch`), it passes.
+- Not done, and the user's to decide: releasing the tracked pack as `lawson-las-v3` with a version of its
+  own.

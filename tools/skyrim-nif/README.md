@@ -9,8 +9,9 @@ Nothing here *ports* anything yet: it decodes the source, proves it is readable,
 and measures the facts a port decision needs (geometry, skinning, materials,
 texture coverage, rig fit against a target skeleton).
 
-The reader is **byte-exact against nifly** (the C++ library behind Outfit Studio)
-on every mesh in `4.zip` — 91/91 checks, vertex and UV deltas `0.0`. See
+The reader was **byte-exact against nifly** (the C++ library behind Outfit Studio)
+on every mesh of the outfit's mesh archive, `4.zip`: every check passed, with
+vertex and UV deltas of `0.0`. See
 [`docs/skyrim-nif/TOOLING.md`](../../docs/skyrim-nif/TOOLING.md) for why we run
 nifly through a small ctypes bridge instead of PyNifly/PyFFI/SkyMeshGLTF, and
 [`docs/skyrim-nif/CROSSCHECK.md`](../../docs/skyrim-nif/CROSSCHECK.md) for the
@@ -18,22 +19,12 @@ table itself.
 
 ## Use
 
+The reader needs only a Skyrim SE `.nif`:
+
 ```bash
 # once, for a venv with pillow/numpy
 make -sC tools/pd2-las env           # or: python3 -m venv .venv && .venv/bin/pip install pillow numpy
 
-# full inventory: JSON + Markdown + tracked previews
-.venv/bin/python tools/skyrim-nif/inventory.py \
-    --json build/skyrim-nif/source_inventory.json \
-    --markdown build/skyrim-nif/REPORT.md \
-    --previews docs/previews
-
-# cross-check the reader against nifly (optional; builds a ~4 MB .so in ~90 s)
-bash tools/skyrim-nif/build_nifly.sh
-.venv/bin/python tools/skyrim-nif/crosscheck.py \
-    --markdown docs/skyrim-nif/CROSSCHECK.md
-
-# one file, ad hoc
 .venv/bin/python - <<'PY'
 import sys; sys.path.insert(0, "tools/skyrim-nif")
 import nif
@@ -41,6 +32,11 @@ f = nif.parse(open("meshes.nif", "rb").read(), "meshes.nif")
 print(f.shade(), [(s.name, s.num_vertices, s.num_triangles) for s in f.shapes])
 PY
 ```
+
+`inventory.py` and `crosscheck.py` read the outfit's five archives, `1.zip` to `5.zip`, at the repository
+root. Those were removed with the port, so both stop at once ("missing source archives", "no NIFs found").
+With the archives back, `--help` of each gives its command; `build_nifly.sh` builds the bridge the
+cross-check needs (a ~4 MB `.so`, ~90 s).
 
 ## What the reader handles
 
@@ -70,8 +66,9 @@ want their meshes' bounds, not their physics.
 
 ## Verified against
 
-All 12 meshes in `4.zip` parse with a single warning class (the skipped
-`NiSkinData` blocks). Independent sanity checks that would catch a mis-parse:
+Measured while the archives were in the tree. All 12 meshes in `4.zip` parsed
+with a single warning class (the skipped `NiSkinData` blocks). Independent
+sanity checks that would catch a mis-parse:
 
 | check | expected | got |
 | --- | --- | --- |
@@ -81,7 +78,7 @@ All 12 meshes in `4.zip` parse with a single warning class (the skipped
 | garment placement | skirt around the hips | `0_Skirt` 86.6 → 117.7 cm |
 | UV range | inside 0…1 | 0.01…0.99 on the 2048² atlases |
 | four-view render | an actual outfit | a four-view render of the source meshes |
-| **nifly, shape by shape** | identical shapes, verts, tris, bones, textures | **91/91 checks, deltas `0.0`** |
+| **nifly, shape by shape** | identical shapes, verts, tris, bones, textures | **every check, deltas `0.0`** ([`CROSSCHECK.md`](../../docs/skyrim-nif/CROSSCHECK.md)) |
 
 Units: one NIF unit = 1.428 cm; an adult NPC is ~128 units tall.
 
