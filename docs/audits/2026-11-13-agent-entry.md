@@ -366,12 +366,13 @@ the section above then gave it as a reason to hesitate over a release.
   redistribution" in `tools/pd2-port/README.md`, the release gate of `docs/pd2-las/in-game-checklist.md`,
   the note on asset rights in `docs/pd2-las/CHEST-VARIANT.md`, and the gate in the knowledge note on LAS
   outfits. D4 is marked superseded by D32.
-- **Not changed, and it is the owner's to decide:** `CREDITS.txt` inside the tracked `lawson_las.zip` says
+- **Not changed then, and the owner's to decide:** `CREDITS.txt` inside the tracked `lawson_las.zip` said
   "this is an unlicensed, non-commercial fan derivative and no redistribution permission is claimed", and a
-  comment in its builder, `tools/pd2-port/build_las_pack.py`, says "not cleared for commercial
-  redistribution". Changing the text is a rebuild of that pack: other bytes, another sha256. The rules under
-  "What you ship" in `AGENTS.md` and in the skills are upstream's, about game files an agent extracts; the
-  audits of 2026-10-18 are records of their day.
+  comment in its builder, `tools/pd2-port/build_las_pack.py`, said "not cleared for commercial
+  redistribution". Changing the text is a rebuild of that pack: other bytes, another sha256. The owner
+  decided the same day, and both are gone: the next section. The rules under "What you ship" in `AGENTS.md`
+  and in the skills are upstream's, about game files an agent extracts; the audits of 2026-10-18 are records
+  of their day.
 
 **Two more sentences were wrong**, both found while checking this section.
 
@@ -430,17 +431,19 @@ it):
 | `tests/test_glove_behavior_lua.py`, which runs the hook's Lua through `lupa` | 10 passed in an environment with lupa 2.8, set up aside; its runtime there is Lua 5.5, and the game's is 5.1. The pinned environment and CI have no `lupa`: there the file skips, as it did before |
 | the eight tasks on `b3b6966` ([`deleted/walk.json`](2026-11-13-agent-entry/deleted/walk.json)) | 7 calls, 34,887 B, 10,140 tokens, 423 s; every answer reached. T6 reads 387 B less and has five items again: there is no release to be behind. T8 prints 161 B less: `pytest -q` prints a character for each test, and there are fewer. What loads at start is unchanged: 4,632 B |
 | sizes and hashes quoted in documents ([`deleted/facts.tsv`](2026-11-13-agent-entry/deleted/facts.tsv)) | none |
-| the ledger against `19ca55a` ([`ledger.tsv`](2026-11-13-agent-entry/ledger.tsv)) | 1,053 removed lines, each with where it went: 739 dropped, 314 moved |
+| the ledger against `19ca55a` ([`ledger.tsv`](2026-11-13-agent-entry/ledger.tsv)) | 1,053 removed lines then, each with where it went: 739 dropped, 314 moved. The file has five more since the credits file went (next section) |
 | defects put back on `b3b6966` ([`deleted/mutations.txt`](2026-11-13-agent-entry/deleted/mutations.txt)) | 30 cases: 29 fail their test, and the one that is a correct release passes. Six are new: a README row for the deleted tools, a stale skip budget, a glove adapter enabled with a boolean, a unit path without its file stem, a texture pair with its suffix, default sleeve targets for the outfit's materials. Cases 9e and 10 used to write into `tools/skyrim-nif/README.md` and write into two other READMEs now |
 | the `test` workflow on GitHub | every step passed on `cf56805`, `f6264ae` and `b3b6966`; "16 of 16 tracked zips are the tracked bytes after a fresh build" each time, twice without AVX-512 (EPYC 7763) and once with it (EPYC 9V45) |
 | the `lawson LAS pack` workflow, started by hand on `b3b6966` (run 43423900084) | the pack it builds is the tracked one and its suite passes; the publish step was skipped, as on any run that is not a tag |
 
 **Not checked.**
 
-- Nothing in game, as before. No pack changed.
+- Nothing in game, as before. No pack changed in this part; `lawson_las` was built again later the same
+  day (next section).
 - `copies.py compare` was not run again. It works in a worktree of `26fce3e`, where the deleted files are.
 - That nobody else needs a deleted branch or tag: a fork or a clone of this repository keeps its own.
-- The ten functions below were found by name. None was run, and none was removed.
+- The ten functions below were found by name. None was run, and none was removed. (They were measured
+  afterwards, and deleted: the next section.)
 
 **Found and left, with the reason.**
 
@@ -451,6 +454,7 @@ it):
   `_rgb565`, which only `_encode_block` calls. No file under `tools/`, `tests/` or `um/` names one of them
   outside its own module; a call built at run time would escape that search. They came with the Miranda,
   Christie and Lawson work between 2026-10-18 and 2026-11-06, so no answer of the owner covers them.
+  (Asked, the owner doubted that they are unused. The next section has the measurement.)
 - **`docs/pd2-las/renders/`, 101 PNGs, is not stale.** No file has the exact name of 79 of them.
   `CHRISTIE.md` names them by pattern, `render_mesh_skeleton.py` and `elbow_before_after.py` write them, and
   `test_render_cli_writes_every_file_the_docs_name` fails when the page names a render the tool cannot make.
@@ -460,7 +464,97 @@ it):
   `.github/workflows/star-chart.yml` (deleted here, changed there), `.github/workflows/test.yml`,
   `AGENTS.md`, `README.md`, `knowledge/INDEX.md`, `knowledge/index.json` and `um/scan.py`. Tried in a
   worktree and aborted. Still a change of its own.
-- **`CREDITS.txt` in `lawson_las.zip`:** above.
+- **`CREDITS.txt` in `lawson_las.zip`:** above. It was taken out later the same day: the next section.
+
+## The credits file, and whether ten functions are used
+
+The report of the deletions ended with two questions, and the owner answered both: "CREDITS - remove", and
+"Are you sure they are not used? maybe it's the starting .py". The decisions are D34 and the last item of D33
+in [`DECISIONS.md`](../pd2-las/DECISIONS.md). The evidence is in
+[`answers/`](2026-11-13-agent-entry/answers/).
+
+**`lawson_las` ships no `CREDITS.txt`.** The answer was read as: the file goes, and not only its sentence
+about redistribution. The builder no longer writes it, the compliance check that looked for it (`N2`) is
+gone, and `test_pack_layout_matches_2b_contract` fails on a pack that has one.
+
+| `dist/lawson_las.zip` | Bytes | sha256 | Files |
+| --- | --- | --- | --- |
+| at `4e15ed6` | 9,123,392 | `9c8a28368862…` | 30 |
+| built again | 9,122,766 | `69e0f898c909…` | 29 |
+
+- Only `Lawson_LAS/CREDITS.txt` went. The other 28 files are byte for byte what they were, in the same order,
+  and the manifest lost its line for the file and nothing else
+  ([`answers/pack-diff.txt`](2026-11-13-agent-entry/answers/pack-diff.txt)). The version stays 0.1.2.
+- **What went with it:** the file was the one place in the pack that said where the model comes from in
+  words (Mass Effect 2, BioWare/EA, The Models Resource, the 2B reference pack). The manifest still names the
+  source archive with its sha256 and says `"runtime_verified": false`; the menu text says "Mass Effect 2
+  outfit". The old text is in `git show 4e15ed6:tools/pd2-port/build_las_pack.py`, `credits_txt()`.
+- `python tools/pd2-las/copies.py after` gave exit 1, as it does after any pack built again on purpose. Four
+  recorded outputs and two traced functions differed, each by exactly this change, and were recorded again
+  ([the tool-merge audit](2026-11-12-tool-merge.md), last section).
+
+**Are the ten functions used?** The list in the section above came from a search for names. That cannot see
+a call whose name is put together at run time, and it says nothing about a file that is started instead of
+imported, which is what the owner asked. So the five files were measured before anything was deleted
+(`4e15ed6`), with a new tool, [`reach.py`](2026-11-13-agent-entry/reach.py): line coverage in every Python
+process that a command starts.
+
+| What could use them | How it was looked at | Result |
+| --- | --- | --- |
+| a file that is started, not imported | `__main__` in the five files; what the Makefile, the workflows and the shell scripts start | only `render_mesh_skeleton.py` is a command; one of the 26 recorded tools is that command, which the rows below cover. The other four have no `__main__` and can only be imported. The Makefile, the workflows and the shell scripts start none of the five |
+| a test | the suite under coverage: 698 passed | no line of the ten ran |
+| a build | every tracked pack built again: 16 of 16 the tracked bytes | none |
+| a tool | each of the 26 tools with a recorded output, started with its recorded arguments | none |
+| the file itself | each of the five started with no argument and with `--help` | none |
+| a call by name | a whole-word search of every tracked file ([`answers/names.txt`](2026-11-13-agent-entry/answers/names.txt)) | in `tools/`, `tests/` and `um/` each name is written once, at its own `def`; `_rgb565` twice more, in `_encode_block`, which is one of the ten. Elsewhere: the records under `docs/audits/` that list them as unreached, and `examples/aoe2-de-civ/sld.py`, which has a function of its own called `_rgb565` and imports nothing from `tools/` |
+| a call by a name built at run time | the coverage rows above see a call however it is spelled | none |
+| a caller in the past | every line ever added or removed that names one ([`answers/history.txt`](2026-11-13-agent-entry/answers/history.txt)) | five never had a caller. Four lost theirs between 2026-10-18 and 2026-10-21, and `_rgb565` served one of those four |
+| upstream | the same search in upstream's `main` | upstream has no `tools/` directory |
+| an earlier measurement, with another tool | `record.txt` of the tool merge, taken at `26fce3e` on 2026-11-12 by `copies.py record` | the eight of the ten that are in the three files it measured stand there as reached by neither a build nor a test |
+
+Of 146 functions in the five files, 13 ran in no phase
+([`answers/reach-before.txt`](2026-11-13-agent-entry/answers/reach-before.txt)): the ten, and three more.
+
+- **Deleted:** the ten, 163 lines with the blank lines around them, and nothing else in the five files.
+  The owner's word on these ten is the question; they went on "Delete stale things" and on this
+  measurement. `git checkout 4e15ed6 -- <file>` brings a file back as it was.
+- **Kept:** `render_source` in `render_mesh_skeleton.py`, which `main` calls under `--source`;
+  `diesel_model.compute_uv_directions` and the function inside it, which `build_models.py` calls for a mesh
+  group that does not come with one normal per vertex. Live code names them. No test and no tracked input
+  runs them.
+- **After the deletion** the same measurement, on all 57 Python files of `tools/` this time
+  ([`answers/reach-after.txt`](2026-11-13-agent-entry/answers/reach-after.txt)): in the five files the three
+  kept functions are the only ones that ran nowhere. Over the 57 files it is 131, in 23 files, and other
+  code names 129 of them. 61 are the whole of `copies.py` and 7 the whole of `inspect_gma.py`, two commands
+  that this run does not start; the other 63 are spread over 21 files. The two that no other code names are
+  `PackIdentity.__repr__` in `las_pack.py`, which Python calls for `repr()`, and the reader method `BR.i32`
+  in `tools/pd2-port/dmodel.py`. None of the 131 was gone through one by one, and none was deleted.
+
+**What the measurement cannot see:** a script that is not in this repository, and a call typed at a prompt.
+
+**Checked, with both changes in the tree** (`717fb55` the credits file, `51c9754` the ten functions).
+
+| Check | Result |
+| --- | --- |
+| `make -sC tools/pd2-las green` | 13 of 13 stages; 698 passed, 8 skipped, 2 xfailed; 16 of 16 zips are the tracked bytes after a fresh build ([`answers/green.txt`](2026-11-13-agent-entry/answers/green.txt)) |
+| `copies.py after` | against the reference of `4e15ed6`, exit 1 for the entries that follow the pack; with those recorded again, exit 0: no builder function returns something else, 26 of 26 tools give what they gave ([`answers/copies-after.txt`](2026-11-13-agent-entry/answers/copies-after.txt)) |
+| that nothing in the pack points at the file that went | no file of the 29 has the word "credits" in it, in any case |
+| the suite on `717fb55` alone, where the ten functions still are | 697 passed and 1 failed, in a side worktree whose 2B templates were a symbolic link: `test_the_2b_templates_have_one_home_inside_the_repo` asks `git check-ignore`, which refuses a path behind a link. With a copy in place of the link its file passes, 16 of 16 |
+| defects put back on `51c9754` ([`answers/mutations.txt`](2026-11-13-agent-entry/answers/mutations.txt)) | 31 cases: 30 fail their test, and the one that is a correct release passes. The new one, 15, writes a credits file into the pack again. The other 30 read as they did on `b3b6966` |
+| the ledger against `19ca55a` | 1,058 removed lines: 739 dropped, 319 moved. The five new ones are the lines of `tools/pd2-port/README.md` that named the file |
+| `um publish check` on the unpacked pack, before and after | the same one warning both times: no README. It asks for a credit line only where a `fal_manifest.jsonl` lists generated assets |
+| the `test` workflow on GitHub, `51c9754` (run 43444541219) | every step passed; "16 of 16 tracked zips are the tracked bytes after a fresh build", on an EPYC 7763 without AVX-512 |
+| the `lawson LAS pack` workflow, started by hand on `51c9754` (run 43444573483) | the pack it builds is the tracked one, without the file, and its suite passes; the publish step was skipped, as on any run that is not a tag |
+
+**Not checked.**
+
+- Nothing in game, as before. The pack without the file was not loaded by the game.
+- Whether "remove" meant the file or only its sentence about redistribution. It was read as the file.
+  Putting back a file that keeps the attribution and drops that sentence takes the function again, the test
+  that now forbids such a file, and one more rebuild.
+- The 131 functions of `tools/` that the second run saw in no phase. A command that only a person starts is
+  among them and is not dead; telling the two apart is a reading of each, and it was not done.
+- `copies.py compare` was not run again.
 
 ## Run it again
 
@@ -472,6 +566,9 @@ python3 $M walk --tree ../wt-before --routes before        # about 8 minutes; it
 python3 $M walk --tree ../wt-after --routes after          # about 10 minutes
 python3 $M key --tree ../wt-after                          # the answer key, from the artefacts
 bash docs/audits/2026-11-13-agent-entry/mutations.sh       # the table of defects put back
+
+# which functions of a file does nothing run: about 15 minutes; a file after --also is measured and not started
+.venv/bin/python docs/audits/2026-11-13-agent-entry/reach.py tools/pd2-las/diesel_model.py --also tools/pd2-las/build_models.py
 
 mkdir ../harness && (cd ../harness && npm install @anthropic-ai/claude-code @openai/codex @google/gemini-cli @github/copilot)
 bash docs/audits/2026-11-13-agent-entry/probe_harness.sh ../wt-after ../harness/node_modules/.bin

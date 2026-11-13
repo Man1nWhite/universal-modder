@@ -1,0 +1,91 @@
+--- .venv/bin/python tools/pd2-las/copies.py after, on the tree without CREDITS.txt in lawson_las and without the ten functions,
+--- against the reference as it was at 4e15ed6: exit 1, for the entries that follow the pack
+   _fresh: exit 0 after 118 s
+   _suite_plain: exit 0 after 115 s
+   _trace now: exit 0 after 301 s
+   _golden 9: exit 0 after 222 s
+fresh: 16 of 16 tracked zips are the tracked bytes after a fresh build (exit 0)
+suite: 698 passed, 8 skipped, 2 xfailed, 1 warning in 115.06s (0:01:55) (exit 0); failed: []
+trace: 16 of 16 zips the tracked bytes
+   busty: 223 of 227 functions return what they returned; 2 are called another number of times and return the same values; 0 return something else; 2 are gone; 8 are new
+      called 9 times, was 3, the same values: las_pack.df_nm_base
+      called 28 times, was 26, the same values: las_pack.texture_stem
+      gone las_pack.render_unit_xml (the same values now come from las_outfit_pack.render_unit_xml)
+      gone las_pack.zip_pack (the same values now come from las_outfit_pack.zip_pack)
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.render_unit_xml
+      new las_outfit_pack.zip_bytes
+      new las_outfit_pack.zip_pack
+      new las_pack.registration
+   christie: 224 of 232 functions return what they returned; 4 are called another number of times and return the same values; 0 return something else; 4 are gone; 6 are new
+      called 4 times, was 5, the same values: build_christie_las.Identity.fps_unit
+      called 1 times, was 3, the same values: build_christie_las.Identity.gui_base
+      called 4 times, was 5, the same values: build_christie_las.Identity.tpp_unit
+      called 27 times, was 29, the same values: build_christie_las.Identity.unit_base
+      gone build_christie_las.render_hook_lua (the same values now come from las_outfit_pack.hook_lua)
+      gone build_christie_las.render_localization (the same values now come from las_outfit_pack.localization)
+      gone build_christie_las.render_main_xml (the same values now come from las_outfit_pack.main_xml)
+      gone build_christie_las.render_main_xml.<locals>._base
+      new build_christie_las.registration
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.zip_bytes
+   heads: 131 of 131 functions return what they returned; 0 are called another number of times and return the same values; 0 return something else; 0 are gone; 2 are new
+      new las_outfit_pack.Registration
+      new las_outfit_pack.zip_bytes
+   lawson: 139 of 144 functions return what they returned; 0 are called another number of times and return the same values; 2 return something else; 3 are gone; 5 are new
+      RETURNS SOMETHING ELSE build_las_pack.assemble: was 1 d58339f0424c6544 d58339f0424c6544, is 1 003b13271f165aa8 003b13271f165aa8
+      RETURNS SOMETHING ELSE build_las_pack.sha256: was 31 0ad8544ed746347d 0ad8544ed746347d, is 30 56266fd01ef01c6c 56266fd01ef01c6c
+      gone build_las_pack.credits_txt
+      gone dmodel._mix (the same values now come from diesel_model._mix64)
+      gone dmodel.hash64 (the same values now come from diesel_model.hash64)
+      new diesel_model.ModelFile
+      new diesel_model.Section
+      new diesel_model._mix64
+      new diesel_model._u64
+      new diesel_model.hash64
+   miranda: 163 of 167 functions return what they returned; 2 are called another number of times and return the same values; 0 return something else; 2 are gone; 8 are new
+      called 9 times, was 3, the same values: las_pack.df_nm_base
+      called 21 times, was 19, the same values: las_pack.texture_stem
+      gone las_pack.render_unit_xml (the same values now come from las_outfit_pack.render_unit_xml)
+      gone las_pack.zip_pack (the same values now come from las_outfit_pack.zip_pack)
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.render_unit_xml
+      new las_outfit_pack.zip_bytes
+      new las_outfit_pack.zip_pack
+      new las_pack.registration
+   slim: 235 of 244 functions return what they returned; 4 are called another number of times and return the same values; 0 return something else; 5 are gone; 7 are new
+      called 4 times, was 5, the same values: build_christie_las.Identity.fps_unit
+      called 1 times, was 3, the same values: build_christie_las.Identity.gui_base
+      called 4 times, was 5, the same values: build_christie_las.Identity.tpp_unit
+      called 27 times, was 29, the same values: build_christie_las.Identity.unit_base
+      gone build_christie_las.render_glove_adapter_lua (the same values now come from las_outfit_pack.render_glove_adapter_lua)
+      gone build_christie_las.render_hook_lua (the same values now come from las_outfit_pack.hook_lua)
+      gone build_christie_las.render_localization (the same values now come from las_outfit_pack.localization)
+      gone build_christie_las.render_main_xml (the same values now come from las_outfit_pack.main_xml)
+      gone build_christie_las.render_main_xml.<locals>._base
+      new build_christie_las.registration
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.render_glove_adapter_lua
+      new las_outfit_pack.zip_bytes
+outputs: 22 of 26 tools give what they gave
+      check_guide_compliance: prints something else: 
+      check_guide_compliance_self_test: prints something else: 
+      check_test_suite_mutations: wrote another <tree>/dist/lawson_las.zip
+      status: prints something else: 
+
+--- .venv/bin/python tools/pd2-las/copies.py after recheck, the same run against the reference with those entries recorded again
+--- (docs/audits/2026-11-12-tool-merge.md, last section): exit 0. Every line but these two is the line above.
+   lawson: 141 of 143 functions return what they returned; 0 are called another number of times and return the same values; 0 return something else; 2 are gone; 5 are new
+outputs: 26 of 26 tools give what they gave

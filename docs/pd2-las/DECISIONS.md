@@ -788,14 +788,15 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     (`render_mesh_skeleton.py`); `repair_dxt5_texture`, `_encode_block`, `_rgb565` (`tools/pd2-port/dds.py`).
     Asked whether they should go, the owner answered with a question: "Are you sure they are not used?
     maybe it's the starting .py". So this item rests on the instruction above and on a measurement, not on
-    a word of the owner about these ten. Each name stood in the repository once, at its own definition
-    (`_rgb565` also in `_encode_block`); under line coverage no test, no build of the 16 packs, none of the
-    26 recorded tools and no start of the five files ran a line of them; four had been called by the tools
-    of October and lost those calls by 2026-10-21, one served only one of those four, and five never had a
-    caller. The measurement and the history: `docs/audits/2026-11-13-agent-entry/answers/`. Two functions
-    the same measurement did not see run were kept, because live code names them: `render_source`
-    (`render_mesh_skeleton.py --source`) and `diesel_model.compute_uv_directions` (the branch of
-    `build_models.py` for a mesh without normals). `git checkout 4e15ed6 -- <file>` brings a file back.
+    a word of the owner about these ten. In `tools/`, `tests/` and `um/` each name stood once, at its own
+    definition (`_rgb565` also in `_encode_block`); under line coverage no test, no build of the 16 packs,
+    none of the 26 recorded tools and no start of the five files ran a line of them; four had been called
+    by the tools of October and lost those calls by 2026-10-21, one served only one of those four, and
+    five never had a caller. The measurement and the history:
+    `docs/audits/2026-11-13-agent-entry/answers/`. Two functions the same measurement did not see run were
+    kept, because live code names them: `render_source` (`render_mesh_skeleton.py --source`) and
+    `diesel_model.compute_uv_directions` (the branch of `build_models.py` for a mesh group without one
+    normal per vertex). `git checkout 4e15ed6 -- <file>` brings a file back.
 - **Why:** a tool that cannot run and a test that can only skip look like coverage and are none: 21 of the
   suite's 29 skips were tests waiting for the outfit's archive, removed on 2026-11-05, or for its pack.
   A release that serves an older build under the same version number tells an installer the wrong thing.

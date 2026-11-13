@@ -696,9 +696,10 @@
   started on its own, with no argument and with `--help`. No line of the ten ran.
 - **The starting .py:** of the five files only `render_mesh_skeleton.py` is a command. The other four have no
   `__main__` and are imported. No Makefile, workflow or shell script starts any of the five.
-- **Names:** outside `docs/audits/`, each name stood in the repository once, at its own `def`; `_rgb565` also
-  in `_encode_block`, its only caller. `examples/aoe2-de-civ/sld.py` has a function of its own called
-  `_rgb565` and imports nothing from here. Upstream has no `tools/` directory.
+- **Names:** in `tools/`, `tests/` and `um/` each name stood once, at its own `def`; `_rgb565` also in
+  `_encode_block`, its only caller. Elsewhere the names are in the audit records that list them as
+  unreached, and `examples/aoe2-de-civ/sld.py` has a function of its own called `_rgb565` and imports
+  nothing from `tools/`. Upstream has no `tools/` directory.
 - **History** (`answers/history.txt`, every line ever added or removed that names one):
 
   | Function | File | Added | Its callers |
@@ -719,5 +720,6 @@
   measurement.
 - **Kept, though the same run saw neither run:** `render_source` in `render_mesh_skeleton.py`, which `main`
   calls under `--source`, and `diesel_model.compute_uv_directions`, which `build_models.py` calls for a mesh
-  group that comes without normals. Something names them; no test and no tracked input exercises them.
+  group that does not come with one normal per vertex. Something names them; no test and no tracked input
+  exercises them.
 - Bring a function back: `git checkout 4e15ed6 -- <file>` restores the file as it was.
