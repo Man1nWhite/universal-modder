@@ -36,7 +36,7 @@ import math
 
 import numpy as np
 
-#: A triangle with less UV area than this gives no direction (as diesel_model.UV_DET_EPS).
+#: A triangle with less UV area than this gives no direction.
 UV_DET_EPS = 1e-8
 #: The handedness of an unmirrored UV island: V = UNMIRRORED * cross(normal, U).
 #: U points where u grows and V where the image's rows run, downward; seen from

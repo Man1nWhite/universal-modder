@@ -787,19 +787,28 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     `mat_apply_vec`, `mat_from_pos_rot_rows` (`diesel_model.py`); `_axis_to_camera`
     (`render_mesh_skeleton.py`); `repair_dxt5_texture`, `_encode_block`, `_rgb565` (`tools/pd2-port/dds.py`).
     Asked whether they should go, the owner answered with a question: "Are you sure they are not used?
-    maybe it's the starting .py". So this item rests on the instruction above and on a measurement, not on
-    a word of the owner about these ten. In `tools/`, `tests/` and `um/` each name stood once, at its own
-    definition (`_rgb565` also in `_encode_block`); under line coverage no test, no build of the 16 packs,
-    none of the 26 recorded tools and no start of the five files ran a line of them; four had been called
-    by the tools of October and lost those calls by 2026-10-21, one served only one of those four, and
-    five never had a caller. The measurement and the history:
-    `docs/audits/2026-11-13-agent-entry/answers/`. Two functions the same measurement did not see run were
-    kept, because live code names them: `render_source` (`render_mesh_skeleton.py --source`) and
-    `diesel_model.compute_uv_directions` (the branch of `build_models.py` for a mesh group without one
-    normal per vertex). `git checkout 4e15ed6 -- <file>` brings a file back.
+    maybe it's the starting .py". They were measured, and deleted on the instruction above; shown the
+    measurement, the owner confirmed: "yeah, delete those if Nothing runs them". In `tools/`, `tests/` and
+    `um/` each name stood once, at its own definition (`_rgb565` also in `_encode_block`); under line
+    coverage no test, no build of the 16 packs, none of the 26 recorded tools and no start of the five
+    files ran a line of them; four had been called by the tools of October and lost those calls by
+    2026-10-21, one served only one of those four, and five never had a caller. The measurement and the
+    history: `docs/audits/2026-11-13-agent-entry/answers/`. `git checkout 4e15ed6 -- <file>` brings a file
+    back.
+
+    The same measurement saw two more functions run nowhere, kept at first because live code calls them.
+    The owner's words were read as the test for those two as well, and one went by it:
+    `diesel_model.compute_uv_directions`, with the constant only it used. It made every tangent frame
+    until 2026-11-12; since `e5eb882` it was the fallback of `author_group_sections` for a group without
+    one normal per vertex. No such group can be written: the geometry section declares a normal for every
+    vertex, and written with fewer it cannot be read back. The builder now refuses such a group by name;
+    for every group that can be written the bytes are what they were. The other stays: below.
 - **Why:** a tool that cannot run and a test that can only skip look like coverage and are none: 21 of the
   suite's 29 skips were tests waiting for the outfit's archive, removed on 2026-11-05, or for its pack.
   A release that serves an older build under the same version number tells an installer the wrong thing.
+- **Kept, because someone runs it:** `render_source`, the `--source` mode of `render_mesh_skeleton.py`. No
+  test and no recorded tool runs it; a person does. `CHRISTIE.md` documents it, and on
+  `references/Christie.zip` it writes the five tracked `christie_source_*.png`, byte for byte.
 - **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the
   Christie and Miranda packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and
   `pose_zoom.py` render with; `build_models.extract_bones` cuts the Christie first-person arms, and
@@ -808,7 +817,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `tests/test_build_models.py`, and `tests/test_glove_adapter.py` with `tests/test_glove_behavior_lua.py`
   on `Christie_LAS_Slim`, the pack that ships the glove adapter.
 - **Held to:** no tracked pack moved by a byte (`make -sC tools/pd2-las fresh`), after the outfit's code
-  went and again after the ten functions went.
+  went, after the ten functions went, and after the fallback went.
+  `test_a_group_without_a_normal_for_every_vertex_is_refused` fails when such a group is written again.
 - **Where it is:** `git show 19ca55a:<path>` has every deleted file as it last was on `main`. What the port
   taught is in `knowledge/games/payday-2/las-moog-outfit-porting.md`.
 - **Source:** the user, 2026-11-13; `tools/pd2-las/MODLOG.md`

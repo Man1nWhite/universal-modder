@@ -446,3 +446,8 @@ The same day ten functions were deleted from `dds_encode.py`, `diesel_model.py`,
 `reference.json` and in `record.txt` under "neither", for the three of those files that were measured here:
 that record of `26fce3e` is left as it was taken. On the run above, which had both changes in the tree, the
 five other builders' reports are line for line what they were: no function returns something else.
+
+That evening an eleventh went by the same rule, `compute_uv_directions` with the function inside it; both
+stand in the same record under "neither". `copies.py after` on the tree without them: exit 0, every
+builder's report line for line the one above, 26 of 26 tools
+([`after-confirmation/copies-after.txt`](2026-11-13-agent-entry/answers/after-confirmation/copies-after.txt)).

@@ -723,3 +723,32 @@
   group that does not come with one normal per vertex. Something names them; no test and no tracked input
   exercises them.
 - Bring a function back: `git checkout 4e15ed6 -- <file>` restores the file as it was.
+
+## 2026-11-13 (evening) — the owner confirms the ten; the tangent fallback goes by the same rule
+
+- **Asked:** the report said that the ten functions had gone without the owner's word, and that two more
+  which also never ran were kept because live code calls them. The owner: "yeah, delete those if Nothing
+  runs them". Read as the confirmation of the ten and as the test for the two that were kept. If "those"
+  meant the ten only, the second half is this entry's reading and the owner has not asked for it.
+- **`render_source` stays: someone runs it.** It is the `--source` mode of `render_mesh_skeleton.py`.
+  `docs/pd2-las/CHRISTIE.md` documents it, and run on `references/Christie.zip` it exits 0 and writes the
+  five `christie_source_*.png`, each byte for byte the file tracked under `docs/pd2-las/renders/`. No test
+  and none of the recorded tools runs it, which is why the measurement did not see it.
+- **`diesel_model.compute_uv_directions` is deleted**, with `UV_DET_EPS` beside it, which only it used
+  (`tangents.py` has its own): 32 lines.
+  - Until 2026-11-12 it made every tangent frame. `e5eb882` gave that work to `tangents.py`, which starts
+    from the float32 values the file holds, and left this function as the `else` of
+    `build_models.author_group_sections`, for a group without one normal per vertex or without a vertex.
+    Given float64 values it is site 7 of `docs/audits/2026-11-12-cpu-independence.md`.
+  - That `else` had nothing to give. A group without a vertex gets the same two empty lists from
+    `tangents.tangent_frames`. A group with vertices and fewer normals was written with a geometry section
+    shorter than its header says, and `diesel_model.decode_geometry` cannot read it.
+  - `author_group_sections` now stops at such a group and names it (`ValueError`). Without that check
+    `tangent_frames` stops on an `IndexError` that names nothing.
+    `test_a_group_without_a_normal_for_every_vertex_is_refused` is new; it fails on the code with the
+    fallback and on the code without the check.
+- **No pack moved.** `copies.py after`: 16 of 16 zips are the tracked bytes after a fresh build, no builder
+  function returns something else, 26 of 26 recorded tools give what they gave. A triangle with its normals
+  and an empty group come out of the old code and the new as the same sections, byte for byte
+  (`docs/audits/2026-11-13-agent-entry/answers/after-confirmation/`).
+- Bring it back: `git revert` the commit that carries this entry. The audit page of the day names it.

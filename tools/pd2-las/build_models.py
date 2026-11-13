@@ -1140,10 +1140,11 @@ def author_group_sections(g: Group, template: Template, ids: list[int]) -> list[
     # where the UV map gives a vertex no handedness, from a rule (tangents.py).
     # Made from the float64 working values, as they were until 2026-11-12, they
     # depended on the CPU that ran the build.
-    if len(g.normals) == len(g.verts) and len(g.verts) > 0:
-        du, dv = tangents.tangent_frames(g.verts, g.normals, g.uvs, g.faces)
-    else:
-        du, dv = dm.compute_uv_directions(g.verts, g.uvs, g.faces)
+    if len(g.normals) != len(g.verts):
+        # The section below declares a normal for every vertex. Written with
+        # another number of them it does not have the length its header gives.
+        raise ValueError(f"group {g.name!r}: {len(g.normals)} normals for {len(g.verts)} vertices")
+    du, dv = tangents.tangent_frames(g.verts, g.normals, g.uvs, g.faces)
     geo = {
         "vert_count": len(g.verts),
         "headers": [

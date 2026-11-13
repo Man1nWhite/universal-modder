@@ -1,0 +1,78 @@
+--- .venv/bin/python tools/pd2-las/copies.py after, on the tree without compute_uv_directions: exit 0
+   _fresh: exit 0 after 115 s
+   _suite_plain: exit 0 after 121 s
+   _trace now: exit 0 after 300 s
+   _golden 9: exit 0 after 236 s
+fresh: 16 of 16 tracked zips are the tracked bytes after a fresh build (exit 0)
+suite: 699 passed, 8 skipped, 2 xfailed, 1 warning in 120.72s (0:02:00) (exit 0); failed: []
+trace: 16 of 16 zips the tracked bytes
+   busty: 223 of 227 functions return what they returned; 2 are called another number of times and return the same values; 0 return something else; 2 are gone; 8 are new
+      called 9 times, was 3, the same values: las_pack.df_nm_base
+      called 28 times, was 26, the same values: las_pack.texture_stem
+      gone las_pack.render_unit_xml (the same values now come from las_outfit_pack.render_unit_xml)
+      gone las_pack.zip_pack (the same values now come from las_outfit_pack.zip_pack)
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.render_unit_xml
+      new las_outfit_pack.zip_bytes
+      new las_outfit_pack.zip_pack
+      new las_pack.registration
+   christie: 224 of 232 functions return what they returned; 4 are called another number of times and return the same values; 0 return something else; 4 are gone; 6 are new
+      called 4 times, was 5, the same values: build_christie_las.Identity.fps_unit
+      called 1 times, was 3, the same values: build_christie_las.Identity.gui_base
+      called 4 times, was 5, the same values: build_christie_las.Identity.tpp_unit
+      called 27 times, was 29, the same values: build_christie_las.Identity.unit_base
+      gone build_christie_las.render_hook_lua (the same values now come from las_outfit_pack.hook_lua)
+      gone build_christie_las.render_localization (the same values now come from las_outfit_pack.localization)
+      gone build_christie_las.render_main_xml (the same values now come from las_outfit_pack.main_xml)
+      gone build_christie_las.render_main_xml.<locals>._base
+      new build_christie_las.registration
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.zip_bytes
+   heads: 131 of 131 functions return what they returned; 0 are called another number of times and return the same values; 0 return something else; 0 are gone; 2 are new
+      new las_outfit_pack.Registration
+      new las_outfit_pack.zip_bytes
+   lawson: 141 of 143 functions return what they returned; 0 are called another number of times and return the same values; 0 return something else; 2 are gone; 5 are new
+      gone dmodel._mix (the same values now come from diesel_model._mix64)
+      gone dmodel.hash64 (the same values now come from diesel_model.hash64)
+      new diesel_model.ModelFile
+      new diesel_model.Section
+      new diesel_model._mix64
+      new diesel_model._u64
+      new diesel_model.hash64
+   miranda: 163 of 167 functions return what they returned; 2 are called another number of times and return the same values; 0 return something else; 2 are gone; 8 are new
+      called 9 times, was 3, the same values: las_pack.df_nm_base
+      called 21 times, was 19, the same values: las_pack.texture_stem
+      gone las_pack.render_unit_xml (the same values now come from las_outfit_pack.render_unit_xml)
+      gone las_pack.zip_pack (the same values now come from las_outfit_pack.zip_pack)
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.render_unit_xml
+      new las_outfit_pack.zip_bytes
+      new las_outfit_pack.zip_pack
+      new las_pack.registration
+   slim: 235 of 244 functions return what they returned; 4 are called another number of times and return the same values; 0 return something else; 5 are gone; 7 are new
+      called 4 times, was 5, the same values: build_christie_las.Identity.fps_unit
+      called 1 times, was 3, the same values: build_christie_las.Identity.gui_base
+      called 4 times, was 5, the same values: build_christie_las.Identity.tpp_unit
+      called 27 times, was 29, the same values: build_christie_las.Identity.unit_base
+      gone build_christie_las.render_glove_adapter_lua (the same values now come from las_outfit_pack.render_glove_adapter_lua)
+      gone build_christie_las.render_hook_lua (the same values now come from las_outfit_pack.hook_lua)
+      gone build_christie_las.render_localization (the same values now come from las_outfit_pack.localization)
+      gone build_christie_las.render_main_xml (the same values now come from las_outfit_pack.main_xml)
+      gone build_christie_las.render_main_xml.<locals>._base
+      new build_christie_las.registration
+      new las_outfit_pack.Registration
+      new las_outfit_pack.hook_lua
+      new las_outfit_pack.localization
+      new las_outfit_pack.main_xml
+      new las_outfit_pack.render_glove_adapter_lua
+      new las_outfit_pack.zip_bytes
+outputs: 26 of 26 tools give what they gave

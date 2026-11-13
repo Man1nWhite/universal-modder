@@ -607,35 +607,3 @@ def decode_topologyip(payload: bytes) -> dict:
 
 def encode_topologyip(t: dict) -> bytes:
     return struct.pack("<I", t["topology"]) + t.get("remaining", b"")
-
-
-# ---------------------------------------------------- uv directions (p2mt)
-
-UV_DET_EPS = 1e-8
-
-
-def compute_uv_directions(verts, uvs, faces):
-    """Port of p2mt DieselGeometry.ComputeUvDirections (accumulate + normalize)."""
-    acc_u = [[0.0, 0.0, 0.0] for _ in verts]
-    acc_v = [[0.0, 0.0, 0.0] for _ in verts]
-    for a, b, c in faces:
-        e1 = [verts[b][i] - verts[a][i] for i in range(3)]
-        e2 = [verts[c][i] - verts[a][i] for i in range(3)]
-        uv1 = (uvs[b][0] - uvs[a][0], uvs[b][1] - uvs[a][1])
-        uv2 = (uvs[c][0] - uvs[a][0], uvs[c][1] - uvs[a][1])
-        det = uv1[0] * uv2[1] - uv2[0] * uv1[1]
-        if not (abs(det) > UV_DET_EPS):
-            continue
-        inv = 1.0 / det
-        face_u = [(e1[i] * uv2[1] - e2[i] * uv1[1]) * inv for i in range(3)]
-        face_v = [(e1[i] * uv2[0] - e2[i] * uv1[0]) * inv for i in range(3)]
-        for idx in (a, b, c):
-            for i in range(3):
-                acc_u[idx][i] += face_u[i]
-                acc_v[idx][i] += face_v[i]
-
-    def norm(v):
-        l = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) ** 0.5
-        return (0.0, 1.0, 0.0) if l < 1e-12 else (v[0] / l, v[1] / l, v[2] / l)
-
-    return ([norm(v) for v in acc_u], [norm(v) for v in acc_v])

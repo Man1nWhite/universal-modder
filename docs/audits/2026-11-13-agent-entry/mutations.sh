@@ -160,4 +160,8 @@ sed -i 's|^    files\[f"{ROOT_DIR}/main.xml"\] = main_xml().encode()$|&\n    fil
 git diff --quiet -- tools/pd2-port/build_las_pack.py && echo "(15 did not apply: assemble in build_las_pack.py reads otherwise now)"
 run "15 a credits file written into lawson_las again" "tests/test_las_pack.py::TestSourceIntegration::test_pack_layout_matches_2b_contract"
 
+sed -i 's|^    if len(g.normals) != len(g.verts):$|    if False:|' tools/pd2-las/build_models.py
+git diff --quiet -- tools/pd2-las/build_models.py && echo "(16 did not apply: author_group_sections reads otherwise now)"
+run "16 a group without a normal for every vertex is not refused" "tests/test_build_models.py::test_a_group_without_a_normal_for_every_vertex_is_refused"
+
 cd "$repo" && git worktree remove --force "$work"

@@ -475,3 +475,17 @@ def test_extend_sleeves_moves_no_material_that_is_not_named():
 
     assert report["moved"] == 0
     assert g.verts == before
+
+
+def test_a_group_without_a_normal_for_every_vertex_is_refused():
+    """Every group is written with a normal channel, one entry for each vertex: with another number of
+    normals the geometry section is not as long as its header says. Until 2026-11-13 such a group got its
+    tangent frames from a fallback and was written like that; nothing ever took that path."""
+    g = bm.Group(name="sleeve")
+    g.verts = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)]
+    g.uvs = [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)]
+    g.faces = [(0, 1, 2)]
+    g.weights = [[(0, 1.0)], [(0, 1.0)], [(0, 1.0)]]
+
+    with pytest.raises(ValueError, match="'sleeve': 0 normals for 3 vertices"):
+        bm.author_group_sections(g, None, list(range(6)))
