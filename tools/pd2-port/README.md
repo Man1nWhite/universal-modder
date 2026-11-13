@@ -280,7 +280,9 @@ after the preview works, try a backed-up offline heist.
 This is the release route of the shipped port. The GitHub release is
 tag-driven: on a `lawson-las-v*` tag the
 [`lawson LAS pack` workflow](../../.github/workflows/lawson-las.yml) rebuilds
-the pack, runs the tests and attaches the zip to the release of that tag.
+the pack, runs the tests and attaches it to the release of that tag. **It
+attaches the tracked `dist/Miranda_LAS.zip` as well**, each zip with its
+`.sha256`.
 Below, `N` is the next release number: one more than the newest
 `releases/lawson-las-v*.md`.
 
@@ -288,32 +290,37 @@ Below, `N` is the next release number: one more than the newest
    `<!-- pack_version: X.Y.Z -->` marker — the workflow stamps that version
    into the pack — and set `VERSION` in `build_las_pack.py` to the same
    value (a test keeps the two equal).
-2. Rebuild the pack and its checksum from the repository root, and commit
-   both (the zip must match the release asset):
+2. Rebuild the pack and its checksum from the repository root, put the
+   pack's size and sha256 on the **Asset** and **sha256** lines of the
+   notes, and commit all three (the zip must match the release asset):
 
    ```sh
    python tools/pd2-port/build_las_pack.py
    sha256sum dist/lawson_las.zip > dist/lawson_las.zip.sha256
    ```
 
-3. Record the release under "Released and tracked" in [`STATUS.md`](STATUS.md)
-   and take its item out of "Next" in `tools/pd2-las/README.md`: a test fails
-   while either says something else than the newest release notes and the
-   tracked `.sha256` do. No document quotes the tracked pack's size or sha256.
+3. Record the release under "Released and tracked" in [`STATUS.md`](STATUS.md),
+   by its name and the first eight digits of that sha256, and take its item
+   out of "Next" in `tools/pd2-las/README.md`: a test fails while either says
+   something else than the newest release notes and the tracked `.sha256`
+   do. The notes are the one document that gives the pack's size and whole
+   sha256.
 4. Tag and push:
 
    ```sh
    git tag lawson-las-vN && git push origin lawson-las-vN
    ```
 
-   The workflow creates the release page, uploads `lawson_las.zip` +
-   `lawson_las.zip.sha256`, and fails loudly if the tests fail or if the
-   runner's build differs from the committed bytes. Do not upload the assets
+   The workflow creates the release page if there is none, uploads
+   `lawson_las.zip` and `Miranda_LAS.zip` with their `.sha256` files, and
+   fails loudly if the tests fail or if the runner's build differs from the
+   committed bytes. Do not upload the assets
    from a sandbox yourself: `gh release upload` failed there with EOF
    (recorded on 2026-10-19), and the workflow needs no upload from you.
 
 Every push to `main` also rebuilds the pack and uploads it as an artifact of
-that workflow run.
+that workflow run, together with the tracked `Miranda_LAS.zip` and the two
+head packs over Joy.
 
 ## Status and limits
 

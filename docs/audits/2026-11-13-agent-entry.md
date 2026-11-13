@@ -114,7 +114,7 @@ are not counted: this work did not touch them. In Codex the list of skills is 9.
 - Of 671 non-blank lines removed, 506 were dropped and 165 moved; 226 of the dropped lines are the two
   copies. Each is in [`ledger.tsv`](2026-11-13-agent-entry/ledger.tsv) with what became of it, and
   `measure.py ledger` stops with an error when a removed line has no entry. The file is the ledger of the
-  head: with the fixes it has 977 lines, 664 dropped and 313 moved.
+  head: with the fixes it has 982 lines, 664 dropped and 318 moved.
 - Sizes and hashes of packs in documents: 14 sizes in four documents and 14 hashes in one → none, apart from
   `tools/pd2-port/STATUS.md` (below). [`before/facts.tsv`](2026-11-13-agent-entry/before/facts.tsv),
   [`after/facts.tsv`](2026-11-13-agent-entry/after/facts.tsv).
@@ -224,7 +224,7 @@ rebuilt, and the merge with upstream kept out of this branch.
 
 | Open point | Fix | How it was checked |
 | --- | --- | --- |
-| The `lawson LAS pack` workflow fails for want of scipy | `92c9758`: its install line has scipy. `test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs` fails when a workflow that runs the suite installs less than `test.yml` does | started by hand on this branch, the workflow passes: run 43394621347 on `92c9758`, run 43405121829 on `48b26a2`. Its last step, the publish, runs on a tag only and was skipped both times |
+| The `lawson LAS pack` workflow fails for want of scipy | `92c9758`: its install line has scipy. `test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs` fails when a workflow that runs the suite installs less than `test.yml` does | started by hand on this branch, the workflow passes: run 43394621347 on `92c9758`, run 43405121829 on `48b26a2`. Its last step, the publish, runs on a tag only and was skipped both times. With `tests` passing, that step can be reached again |
 | `"runtime_verified": true` in both Christie packs | `292c5cf`: the builder writes `false`, and both packs are rebuilt | one line of `BUILD_INFO.json` differs in each pack; the names, the order and the zip fields of every member are those of the old zips ([`fixes/christie-packs.txt`](2026-11-13-agent-entry/fixes/christie-packs.txt)); the other 12 packs are untouched. `HANDOFF.md` and `DECISIONS.md` (D31) record it |
 | `star-chart.yml` draws a chart no page shows | `38df6d9`: the workflow and its script are removed | no file names either; one journal entry names the branch. The `star-chart` branch on GitHub, where the workflow pushed its chart, is still there |
 | `green` runs the suite twice | `d605e4f`: the skip budget judges the report that the suite stage wrote | the verdict from the report is the one from a run of its own: 29 skips across 9 reasons, 2 expected failures. T3 takes 293 s where it took 431 s |
@@ -240,7 +240,7 @@ rebuilt, and the merge with upstream kept out of this branch.
   and sha256 in one table with the release, and a test kept those two figures current. This audit left both
   files as they were, so the claim stood at `df3fe8c`. Found by reading the release (`gh release view`,
   `git log 282703f..HEAD -- dist/lawson_las.zip.sha256`), not by a test.
-- **`tools/pd2-port/STATUS.md`** is now the dated record of that port: 244 → 98 lines, 14,456 → 7,167 B.
+- **`tools/pd2-port/STATUS.md`** is now the dated record of that port: 244 → 101 lines, 14,456 → 7,530 B.
   It says what the release serves and that the tracked pack is another one, that nothing records the pack in
   game, what was found and settled, which transfers failed, and what the page and the README used to claim.
   It quotes no tracked size or sha256 and no count ([`fixes/facts.tsv`](2026-11-13-agent-entry/fixes/facts.tsv): no document
@@ -249,8 +249,12 @@ rebuilt, and the merge with upstream kept out of this branch.
   `test_the_status_page_says_whether_the_release_serves_the_tracked_pack` compares the newest release notes
   with the tracked `.sha256`. While they differ, `STATUS.md` and the list of open work in
   `tools/pd2-las/README.md` have to say so; once they agree, both have to stop saying it.
-- **`tools/pd2-port/README.md`**: 22,109 → 21,431 B. It quotes no version, release number, pinned version
+- **`tools/pd2-port/README.md`**: 22,109 → 21,810 B. It quotes no version, release number, pinned version
   or count of mutations, and sends the installer to `dist/lawson_las.zip`.
+- **A release tag publishes two packs.** The README said the workflow "uploads `lawson_las.zip` +
+  `lawson_las.zip.sha256`". Since `637b7a9` its publish step uploads the tracked `dist/Miranda_LAS.zip` and
+  its `.sha256` as well, and the artifact of every push to `main` holds four packs. The README says so now.
+  `tools/pd2-las/README.md` lists the public release of the Miranda packs as blocked.
 - **`tools/skyrim-nif/README.md`**: 5,042 → 4,981 B. Its two commands under "Use" stop at once, because the
   archives they read were removed with the port (`inventory.py` exits 2, `crosscheck.py` exits 1); the page
   says so and keeps the example that needs no archive. It counted "15 mapped joints, 22 helper folds" in
@@ -261,7 +265,9 @@ rebuilt, and the merge with upstream kept out of this branch.
 - **`AGENTS.md`**: 4,682 → 4,632 B. The exception for `lawson_las` is one clause now.
 
 **The eight tasks on `b47635d`**, the same walk ([`fixes/walk.json`](2026-11-13-agent-entry/fixes/walk.json),
-[`fixes/start.json`](2026-11-13-agent-entry/fixes/start.json), [`fixes/key.json`](2026-11-13-agent-entry/fixes/key.json)):
+[`fixes/start.json`](2026-11-13-agent-entry/fixes/start.json), [`fixes/key.json`](2026-11-13-agent-entry/fixes/key.json)).
+The commits after `b47635d` change `tools/pd2-port/README.md`, `tools/pd2-port/STATUS.md`, one test and this
+page with its evidence; no route of the walk reads any of them.
 
 | | `19ca55a` | `df3fe8c` | `b47635d` |
 | --- | --- | --- | --- |
@@ -320,7 +326,8 @@ in the one state where `status` names it as the next command.
 
 - **A release of `lawson_las`.** The gap closes with a release that has a version of its own, or stays as it
   is now, written down. The repository's `README.md` says of every source that it is not cleared for
-  redistribution. The owner's decision; nothing was tagged.
+  redistribution, and a `lawson-las-v*` tag would publish `Miranda_LAS.zip` too, which no release has
+  carried. The owner's decision; nothing was tagged, and the workflow's publish step was not changed.
 - **The `star-chart` branch on GitHub.** Nothing writes to it any more. The owner's to delete.
 - **The merge with upstream:** six conflicts, as above.
 - **`copies.py after` fails after any pack is rebuilt on purpose**, until `outputs.status` is recorded

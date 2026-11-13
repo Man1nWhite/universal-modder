@@ -897,8 +897,9 @@ def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
         pytest.skip("dist/ is absent from this sandbox snapshot")
     status = (PD2 / "STATUS.md").read_text()
     notes = max(PD2.glob("releases/lawson-las-v*.md"), key=lambda p: int(re.search(r"v(\d+)\.md$", p.name).group(1)))
-    released = re.search(r"\*\*sha256:\*\*\s*`([0-9a-f]{64})`", notes.read_text()).group(1)
-    tracked = sidecar.read_text().split()[0]
+    line = re.search(r"\*\*sha256:\*\*\s*`([0-9a-f]{64})`", notes.read_text())
+    assert line, f"{notes.name} has no **sha256:** line with the checksum of the pack it releases"
+    released, tracked = line.group(1), sidecar.read_text().split()[0]
     assert f"`{notes.stem}`" in status and f"`{released[:8]}…`" in status, (
         f"STATUS.md does not name the last release, {notes.stem}, with the pack it serves ({released[:8]}…)")
     sentence = "The tracked pack is not the pack the release serves."

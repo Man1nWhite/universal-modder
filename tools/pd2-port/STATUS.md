@@ -16,7 +16,7 @@ README claimed that was not so is under [Corrections](#corrections).
 
 | | Pack | Built at |
 | --- | --- | --- |
-| Release [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2), a pre-release of 2026-10-19 and the only release | `lawson_las.zip`, `8,015,688` B, sha256 `a24f0b7c…`, version 0.1.2 | tag `lawson-las-v2` → `282703f` |
+| Release [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2), a pre-release of 2026-10-19 and the only release | `lawson_las.zip`, sha256 `a24f0b7c…`, version 0.1.2; its size and whole checksum are in [`releases/lawson-las-v2.md`](releases/lawson-las-v2.md) | tag `lawson-las-v2` → `282703f` |
 | Tracked `dist/lawson_las.zip` | another pack, also stamped 0.1.2; `make -sC tools/pd2-las status` prints its size and sha256 | `15b0fbe`, 2026-10-22 |
 
 - Ten commits after the tag rebuilt the tracked pack, from 2026-10-19 to 2026-10-22
@@ -27,8 +27,8 @@ README claimed that was not so is under [Corrections](#corrections).
 - None of them moved `VERSION` in `build_las_pack.py`, so two different packs are called 0.1.2, and no
   release serves the later one. A test keeps `VERSION` equal to the newest release notes, so the version
   moves only with a release.
-- Tag `lawson-las-v1` → `2b0b1b4` has no release. Its pack, 0.1.1 (`8,015,689` B, `063d5f64…`), has holes in
-  the skin (below).
+- Tag `lawson-las-v1` → `2b0b1b4` has no release. Its pack, 0.1.1 (`063d5f64…`, in
+  [`releases/lawson-las-v1.md`](releases/lawson-las-v1.md)), has holes in the skin (below).
 
 ## Seen in game
 
@@ -87,6 +87,9 @@ What this page and the README said until 2026-11-13, and what is so:
   release, and a test kept those two figures current, so the table read as if they were the release's.
 - **"the v1 release stays up"** (this page), "v1 kept for comparison" (the README). There is no v1 release:
   `gh release list` shows `lawson-las-v2` alone. The tag is still there.
+- **"uploads `lawson_las.zip` + `lawson_las.zip.sha256`"** (the README, of the release workflow). Since
+  `637b7a9` the workflow uploads `Miranda_LAS.zip` and its `.sha256` to the release as well. `lawson-las-v2`
+  has the first two only.
 - **"The next piece of work: a consistent bind-pose transfer"** was a plan for the transfer of 2026-10-19.
   The transfer was rebuilt another way within three days. The plan, its constraint set and the tear angles
   of the old scheme are gone from this page; what was measured on the rigs is under Dead ends.

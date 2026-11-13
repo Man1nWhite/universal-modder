@@ -1245,7 +1245,7 @@
   "the tracked `dist/lawson_las.zip` is therefore exactly what the release serves" and "build it yourself —
   the bytes are identical"; `STATUS.md` gave the tracked size and sha256 in one table with the release, under
   a test that kept those two figures current. There is no v1 release any more, only its tag.
-- `STATUS.md` is rewritten as the dated record (244 lines to 98): released and tracked, seen in game, found
+- `STATUS.md` is rewritten as the dated record (244 lines to 101): released and tracked, seen in game, found
   and settled, dead ends, corrections. Its check results, timings, venv recipe, file map and the note on
   another branch are gone; `docs/audits/2026-11-13-agent-entry/ledger.tsv` says what became of each line.
 - The README no longer quotes a version, a release number, the pins or a count of mutations, and it sends
@@ -1257,5 +1257,8 @@
 - The `lawson LAS pack` workflow installs scipy, which the suite imports: its `tests` step had failed on
   `main` since 2026-11-12, before the upload and the release step. Run by hand on this branch
   (`workflow_dispatch`), it passes.
-- Not done, and the user's to decide: releasing the tracked pack as `lawson-las-v3` with a version of its
-  own.
+- The README said the release workflow "uploads `lawson_las.zip` + `lawson_las.zip.sha256`". Since `637b7a9`
+  its publish step uploads the tracked `dist/Miranda_LAS.zip` and its `.sha256` too; `lawson-las-v2` predates
+  that and has two assets. The README says what a tag publishes now. The workflow is not changed.
+- Not done, and the owner's to decide: releasing the tracked pack as `lawson-las-v3` with a version of its
+  own. With scipy installed the publish step can be reached again, so a `lawson-las-v*` tag publishes.
