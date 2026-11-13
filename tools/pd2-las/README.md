@@ -119,7 +119,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
    texels at full gloss in `body_df` and `head_df` of the Miranda packs and in three Christie
    textures; the Christie sleeve-gloss pass moves gloss around inside the blocks it touches.
 4. The sibling packs: `lawson_las` and the nine head packs have no record of their tracked bytes in game, and
-   the head packs have no checklist.
+   the head packs have no checklist. The last release of `lawson_las` serves an older build than the tracked pack (`tools/pd2-port/STATUS.md`).
 
 ## Further reading
 

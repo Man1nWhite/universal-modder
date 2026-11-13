@@ -82,6 +82,14 @@ tracked=$(cut -d' ' -f1 dist/lawson_las.zip.sha256)
 sed "s/$released/$tracked/" "$newest" > "tools/pd2-port/releases/lawson-las-v$((number + 1)).md"
 run "8b release notes for v$((number + 1)) with the tracked sha256, STATUS.md not touched" "$status_test"
 
+sed -i 's/ The last release of `lawson_las` serves an older build than the tracked pack (`tools\/pd2-port\/STATUS.md`)\.//' tools/pd2-las/README.md
+git diff --quiet -- tools/pd2-las/README.md && echo "(8c did not apply: the open item in tools/pd2-las/README.md reads otherwise now)"
+run "8c the release taken out of the open work in tools/pd2-las/README.md while it is behind" "$status_test"
+
+sed "s/$released/$tracked/" "$newest" > "tools/pd2-port/releases/lawson-las-v$((number + 1)).md"
+sed -i "s/^\*\*The tracked pack is not the pack the release serves\.\*\*$/**The tracked pack is what the release serves.** \`lawson-las-v$((number + 1))\`, \`$(echo "$tracked" | cut -c1-8)…\`/" tools/pd2-port/STATUS.md
+run "8d a release that serves the tracked pack, recorded in STATUS.md, still listed as open work" "$status_test"
+
 size=$(python3 -c "import os; print(f\"{os.path.getsize('dist/lawson_las.zip'):,}\")")
 echo "The tracked pack is $size B." >> tools/pd2-port/STATUS.md
 run "9  the tracked size of lawson_las in STATUS.md"

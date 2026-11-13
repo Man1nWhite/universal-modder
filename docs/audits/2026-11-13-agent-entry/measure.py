@@ -38,6 +38,9 @@ import zipfile
 from pathlib import Path
 
 SLIM = "Christie_LAS_Slim"
+#: T6's sixth item, in the key since 2026-11-13: the last release of lawson_las is not the tracked pack. The walks
+#: stored in before/ and after/ predate it; the documents of both commits said the release serves the tracked pack.
+RELEASE_BEHIND = r"(?s)release of `lawson_las` serves an older build than the tracked\s+pack"
 DOCS = ["README.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", "docs/pd2-las/HANDOFF.md", "tools/README.md",
         "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md",
         "tools/skyrim-nif/README.md", "CONTRIBUTING.md", "models/README.md", "references/README.md"]
@@ -146,7 +149,8 @@ BEFORE = {
                   ("read", "tools/pd2-port/STATUS.md", ("start", r"the state of the shipped port is in `tools/pd2-port/STATUS\.md`")),
                   ("read", "tools/README.md", ("start", r"\| `tools/README\.md` \|"))],
         "expect": {"in-game sign-off": r"In-game verification", "sleeve defect": r"sleeves are open", "gloss": r"Gloss, measured and not fixed",
-                   "lawson_las": r"never game-verified", "head packs": r"(?i)over_.{0,200}(unverified|no record|offline-verified)"}},
+                   "lawson_las": r"never game-verified", "head packs": r"(?i)over_.{0,200}(unverified|no record|offline-verified)",
+                   "lawson_las release": RELEASE_BEHIND}},
     "T7 which command rebuilds Geralt_over_Rust": {
         "steps": [],
         "expect": {"command": r"Geralt_over_Rust\.zip`[^\n]*`tools/build_joy_head_mods\.py`"}},
@@ -183,7 +187,8 @@ AFTER = {
     "T6 what is open": {
         "steps": [("read", README, ("start", rf'What is open \| "Next" in `{README}`'))],
         "expect": {"in-game sign-off": r"In-game verification", "sleeve defect": r"sleeves are open", "gloss": r"Gloss, measured and not fixed",
-                   "lawson_las": r"`lawson_las` and the nine head packs have no record", "head packs": r"the nine head packs have no record"}},
+                   "lawson_las": r"`lawson_las` and the nine head packs have no record", "head packs": r"the nine head packs have no record",
+                   "lawson_las release": RELEASE_BEHIND}},
     "T7 which command rebuilds Geralt_over_Rust": {
         "steps": [],
         "expect": {"command": r"`heads` \(the nine `\*_over_\*` packs\)"}},

@@ -887,7 +887,8 @@ def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
     test here kept those two figures current. The table read as if they were the release's, and
     the README said outright that the tracked pack "is exactly what the release serves". It was
     ten rebuilds later. The page quotes no tracked figure now (tests/test_agent_docs.py); what is
-    held here is the one sentence that matters, against the newest release notes and the sidecar.
+    held here is the one sentence that matters, against the newest release notes and the sidecar,
+    and the item in the list of open work that says the same.
     """
     import re
 
@@ -901,11 +902,19 @@ def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
     assert f"`{notes.stem}`" in status and f"`{released[:8]}…`" in status, (
         f"STATUS.md does not name the last release, {notes.stem}, with the pack it serves ({released[:8]}…)")
     sentence = "The tracked pack is not the pack the release serves."
+    # the list of open work, which is where an agent asked "what is open" is sent
+    open_item = "The last release of `lawson_las` serves an older build than the tracked pack"
+    open_work = (ROOT / "tools" / "pd2-las" / "README.md").read_text()
     if released == tracked:
         assert sentence not in status, f"{notes.stem} serves the tracked pack; STATUS.md still says it does not"
+        assert open_item not in open_work, (
+            f"{notes.stem} serves the tracked pack; tools/pd2-las/README.md still lists the release as open work")
     else:
         assert sentence in status, (
             f"{notes.stem} serves {released[:8]}… and the tracked pack is {tracked[:8]}…; STATUS.md has to say so")
+        assert open_item in open_work, (
+            f"{notes.stem} serves {released[:8]}… and the tracked pack is {tracked[:8]}…; "
+            "\"Next\" in tools/pd2-las/README.md has to list it")
 
 
 def test_the_builder_version_matches_the_latest_release_notes():

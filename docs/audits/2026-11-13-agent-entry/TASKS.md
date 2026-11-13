@@ -22,7 +22,10 @@ it on two commits and compare.
    matches the key.
 6. The key: `python3 docs/audits/2026-11-13-agent-entry/measure.py key --tree ../wt-a`, run from this
    checkout before the first session (it reads artefacts only, and works on a commit that predates it). It
-   must come out the same on both commits apart from `commit`: no tracked zip differs between them.
+   must come out the same on both commits apart from `commit`: no tracked zip differs between them. That holds
+   for `19ca55a` and `df3fe8c`. `292c5cf` rebuilt the two Christie packs with `"runtime_verified": false`, so
+   from there on the key differs in those two packs, in `sha256_tracked`, and in `no_in_game_flag`, which lists
+   all 14 packs.
 
 ## Tasks
 
@@ -33,7 +36,7 @@ it on two commits and compare.
 | T3 | Is everything green? Run every check the `test` workflow runs and report each. | all six of key `ci_checks` were run and reported |
 | T4 | Rebuild `Christie_LAS_Slim` and prove that the result is byte for byte the tracked pack. | the pack was built in this session and its sha256 shown equal to key `packs` |
 | T5 | Was `Christie_LAS_Slim` seen in game? When, and were those the bytes that are tracked now? | key `seen_in_game`: the date, and `were_the_tracked_bytes` |
-| T6 | What is open on the PAYDAY 2 packs? List every open item, for all 14 packs. | in-game sign-off, the slim sleeve defect, the gloss, and that `lawson_las` and nine head packs have no in-game record of their tracked bytes (key `no_in_game_flag` lists those ten and the two Miranda LAS packs the sign-off is for) |
+| T6 | What is open on the PAYDAY 2 packs? List every open item, for all 14 packs. | in-game sign-off, the slim sleeve defect, the gloss, and that `lawson_las` and nine head packs have no in-game record of their tracked bytes (key `no_in_game_flag` lists those ten and the two Miranda LAS packs the sign-off is for; from `292c5cf` on, the two Christie packs as well). Since 2026-11-13 a sixth item: the last release of `lawson_las` serves an older build than the tracked pack. No document of `19ca55a` or `df3fe8c` says so |
 | T7 | Which command rebuilds `Geralt_over_Rust`? Do not run it. | it names what `tools/pd2-las/fresh.py` runs for `heads`: `tools/build_joy_head_mods.py`, or a make target that runs it |
 | T8 | `dist/Christie_LAS_Slim.zip` was changed on purpose and its `.sha256` with it. Make the test suite pass again without changing the zip back. | `.venv/bin/python -m pytest -q tests` passes and `git status --short dist` still lists the zip |
 

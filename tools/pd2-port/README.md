@@ -296,10 +296,10 @@ Below, `N` is the next release number: one more than the newest
    sha256sum dist/lawson_las.zip > dist/lawson_las.zip.sha256
    ```
 
-3. Record the release under "Released and tracked" in [`STATUS.md`](STATUS.md):
-   a test fails while that section says something else than the newest
-   release notes and the tracked `.sha256` do. No document quotes the tracked
-   pack's size or sha256.
+3. Record the release under "Released and tracked" in [`STATUS.md`](STATUS.md)
+   and take its item out of "Next" in `tools/pd2-las/README.md`: a test fails
+   while either says something else than the newest release notes and the
+   tracked `.sha256` do. No document quotes the tracked pack's size or sha256.
 4. Tag and push:
 
    ```sh
