@@ -8,6 +8,7 @@
     python3 measure.py graph --tree T                 every script under tools/ x Makefile, workflows, tests, docs
     python3 measure.py lines --tree T --base COMMIT   README.md and AGENTS.md, line by line: upstream's or ours
     python3 measure.py ledger --tree T                every line removed since 19ca55a: dropped, or moved to <file>
+    python3 measure.py change --tree T                T8's starting point: the slim pack changed on purpose
 
 T is a checkout of the commit to measure. `walk` builds packs, deletes dist/ and edits docs in T, so give it
 a scratch worktree, never the checkout you work in:
@@ -26,6 +27,7 @@ import argparse
 import ast
 import difflib
 import hashlib
+import io
 import json
 import re
 import subprocess
@@ -153,8 +155,8 @@ BEFORE = {
                   ("run", f"wc -c dist/{SLIM}.zip; sha256sum dist/{SLIM}.zip", (0, r"A changed zip needs its size and sha256 in")),
                   ("run", "{sed} AGENTS.md CLAUDE.md GEMINI.md docs/pd2-las/HANDOFF.md",
                    (0, r"its size and sha256 in `AGENTS\.md`, its copies and `docs/pd2-las/HANDOFF\.md`")),
-                  ("run", ".venv/bin/python -m pytest -q tests/test_las_pack.py -k quote", (0, r"\(`test_las_pack\.py`\)"))],
-        "expect": {"the doc test passes": r"1 passed"},
+                  ("run", f"make -sC {P} test", (0, rf"make -sC {P} test "))],
+        "expect": {"the suite passes": ("passes", 3)},
         "teardown": "git checkout -- ."},
 }
 Q = rf"\| `make -sC {P} %s` \|"
@@ -186,22 +188,45 @@ AFTER = {
         "expect": {"command": r"`heads` \(the nine `\*_over_\*` packs\)"}},
     "T8 a pack changed on purpose: make the suite pass again": {
         "fixture": "mutate",
-        # nothing to edit: "A rebuilt pack needs no document edited". The one call is the check that it is so.
-        "steps": [("run", ".venv/bin/python -m pytest -q tests/test_agent_docs.py -k quotes", None)],
-        "expect": {"the doc test passes": r"1 passed"},
+        # nothing to edit: "A rebuilt pack needs no document edited". The one call is the suite, which says so.
+        "steps": [("run", f"make -sC {P} test", ("start", rf"`make -sC {P} test` is the suite"))],
+        "expect": {"the suite passes": ("passes", 0)},
         "teardown": "git checkout -- ."},
 }
 ROUTES = {"before": BEFORE, "after": AFTER}
 
 
+def zip_bytes(entries, stamp: tuple = (2020, 1, 1, 0, 0, 0)) -> bytes:
+    """The zip that the one pack writer gives for these members (tools/pd2-las/las_outfit_pack.zip_bytes)."""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, data in entries:
+            entry = zipfile.ZipInfo(name, date_time=stamp)
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            entry.external_attr = 0o644 << 16
+            zf.writestr(entry, data)
+    return buffer.getvalue()
+
+
 def mutate(tree: Path) -> str:
-    """Change the slim pack by one zip comment, and its sidecar with it. Returns the sed that edits the old figures."""
+    """Change the slim pack on purpose, the way a rebuild does. Returns the sed that edits the old figures.
+
+    One member differs (a line break at the end of BUILD_INFO.json), the zip is what the pack writer gives
+    for its members, and the sidecar is written as the builder writes it. A zip that the writer would not
+    give - one with a comment, say - fails test_that_writer_gives_each_tracked_pack_its_files on any commit,
+    whatever the documents say, and so measures nothing about them.
+    """
     path = tree / f"dist/{SLIM}.zip"
     old_size, old_sha = path.stat().st_size, digest(path)
-    with zipfile.ZipFile(path, "a") as z:
-        z.comment = b"changed on purpose"
+    with zipfile.ZipFile(path) as z:
+        entries = [(info.filename, z.read(info)) for info in z.infolist()]
+    if zip_bytes(entries) != path.read_bytes():
+        raise SystemExit(f"{path}: this Python does not deflate as the tracked zip was deflated; "
+                         "use the one the packs are built with (.venv/bin/python)")
+    path.write_bytes(zip_bytes((name, data + b"\n" if name.endswith("/BUILD_INFO.json") else data) for name, data in entries))
     new_size, new_sha = path.stat().st_size, digest(path)
-    (tree / f"dist/{SLIM}.zip.sha256").write_text(f"{new_sha}  {SLIM}.zip\n")
+    (tree / f"dist/{SLIM}.zip.sha256").write_text(f"{new_sha}  dist/{SLIM}.zip\n")
+    print(f"   {SLIM}: {old_size:,} B {old_sha[:12]} -> {new_size:,} B {new_sha[:12]}", flush=True)
     return f"sed -i 's/{old_size:,}/{new_size:,}/; s/{old_sha}/{new_sha}/'"
 
 
@@ -235,6 +260,8 @@ def walk(tree: Path, routes: dict, only: str = "") -> dict:
         for name, want in route["expect"].items():
             if isinstance(want, tuple) and want[0] == "empty":
                 found[name] = steps[want[1]]["exit"] == 0 and not seen[want[1]].strip()
+            elif isinstance(want, tuple) and want[0] == "passes":
+                found[name] = steps[want[1]]["exit"] == 0 and bool(re.search(r"\d+ passed", seen[want[1]]))
             elif isinstance(want, tuple):
                 found[name] = any(re.search(want[1], command) for command in ran)
             else:
@@ -458,7 +485,7 @@ def tsv(rows: list[list]) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["key", "walk", "start", "facts", "graph", "lines", "ledger"])
+    ap.add_argument("command", choices=["key", "walk", "start", "facts", "graph", "lines", "ledger", "change"])
     ap.add_argument("--tree", type=Path, required=True)
     ap.add_argument("--routes", default="before")
     ap.add_argument("--base", default="23902ef42e8ea9b077bfbbf6911eb8ea0348e55a", help="lines: the merge base with upstream")
@@ -467,8 +494,11 @@ def main() -> int:
     ap.add_argument("--out", type=Path)
     args = ap.parse_args()
     tree = args.tree.resolve()
-    if args.command == "walk" and tree == Path(__file__).resolve().parents[3]:
-        raise SystemExit("walk deletes dist/ and edits documents: give it a scratch worktree, not this checkout")
+    if args.command in ("walk", "change") and tree == Path(__file__).resolve().parents[3]:
+        raise SystemExit(f"{args.command} changes tracked files: give it a scratch worktree, not this checkout")
+    if args.command == "change":
+        mutate(tree)
+        return 0
     commit = sh("git rev-parse HEAD", tree)[1].strip()
     if args.command in ("facts", "graph", "lines", "ledger"):
         text = tsv({"facts": facts, "graph": graph}[args.command](tree) if args.command in ("facts", "graph")

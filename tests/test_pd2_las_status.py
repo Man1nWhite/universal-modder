@@ -76,8 +76,12 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     """All 14 packs of the three pipelines, not the four of this directory.
 
     `status` used to report four packs; the state of the other ten took three more commands,
-    one of which rebuilt nine packs to find out. `is` compares with the commit, because a
-    builder writes its own `.sha256`: a zip that equals its sidecar proves nothing about a rebuild.
+    one of which rebuilt nine packs to find out. `is` compares with the commit, because every
+    builder but lawson's writes the `.sha256` itself: a zip that equals its sidecar proves
+    nothing about a rebuild.
+
+    It has to pass on a pack that was rebuilt on purpose and is not committed yet (`changed`):
+    the suite is what tells an agent that nothing else needs editing.
     """
     status = _load()
     sidecars = sorted(path.name[: -len(".zip.sha256")] for path in (REPO / "dist").glob("*.zip.sha256"))
@@ -94,7 +98,9 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
         assert pack["sha256"] == (REPO / "dist" / f"{name}.zip.sha256").read_text().split()[0], name
         assert short[name]["sha256"] == pack["sha256"][:12] and pack["bytes"] == path.stat().st_size, name
     one = status.collect(only=["slim"])
-    assert list(one) == ["packs", "next"] and list(one["packs"]) == ["Christie_LAS_Slim"]
+    assert list(one["packs"]) == ["Christie_LAS_Slim"]
+    # `note` is there while a pack is `changed`; never the environment, which `only` leaves out
+    assert list(one)[0] == "packs" and list(one)[-1] == "next" and set(one) <= {"packs", "note", "next"}, list(one)
 
 
 def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch):
@@ -118,7 +124,7 @@ def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch)
         digest = __import__("hashlib").sha256((clone / "dist" / f"{name}.zip").read_bytes()).hexdigest()
         (clone / "dist" / f"{name}.zip.sha256").write_text(f"{digest}  dist/{name}.zip\n")
         result = status.collect(only=[name])
-        assert result["packs"][name]["is"] == "changed" and "note" in result
+        assert result["packs"][name]["is"] == "changed" and list(result) == ["packs", "note", "next"]
     finally:
         subprocess.run(["git", "worktree", "remove", "--force", str(clone)], cwd=REPO, capture_output=True)
 

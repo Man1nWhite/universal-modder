@@ -2,8 +2,9 @@
 
 Measured on 2026-11-13 (docs/audits/2026-11-13-agent-entry.md): the instruction file was
 written three times (`AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, 13,009 bytes each), 14 pack sizes
-stood in four documents, and two tests required exactly that. An agent needed 26 calls and
-114,965 bytes for eight ordinary questions. Each test here fails when one of those comes back.
+stood in four documents, and two tests required exactly that. The shortest route those
+documents led to took 26 calls for eight ordinary questions; the audit has what they cost.
+Each test here fails when one of those comes back.
 """
 
 from __future__ import annotations

@@ -22,9 +22,10 @@ used to quote and get wrong:
     ``changed``  the zip equals its ``.sha256`` but not the commit: built anew, not committed
     ``broken``   the zip does not equal its ``.sha256``
     ``missing``  the zip or its ``.sha256`` is not there
-  A builder writes its own ``.sha256``, so only the comparison with the commit
-  says that a rebuild reproduced the tracked bytes. The two Miranda packs are
-  also tracked under ``build/pd2-las/``; ``is`` covers both copies.
+  Every builder but lawson's writes the ``.sha256`` itself, so only the
+  comparison with the commit says that a rebuild reproduced the tracked bytes.
+  The two Miranda packs are also tracked under ``build/pd2-las/``; ``is``
+  covers both copies.
 - ``next``:  the command to run now.
 
 Whether a pack was seen in game is not in a zip: docs/pd2-las/HANDOFF.md.

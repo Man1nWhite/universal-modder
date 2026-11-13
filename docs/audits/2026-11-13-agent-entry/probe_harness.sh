@@ -7,7 +7,8 @@
 # No account is needed. Claude Code and Gemini CLI are given a key that is not one: the model call fails, and
 # the loader has run by then. Codex and Copilot CLI have a command for it and make no model call. Each harness
 # gets an empty home directory, so nothing of yours is read or written. Cursor and OpenCode are not here:
-# Cursor's CLI is not on npm, and OpenCode 1.19.5 has no command or log line that names the files it read.
+# Cursor's CLI installs from cursor.com (`curl https://cursor.com/install -fsS | bash`), which the sandbox this
+# was written in could not reach, and OpenCode 1.19.5 has no command or log line that names the files it read.
 set -u
 tree=$(cd "$1" && pwd)
 bin=$(cd "${2:-node_modules/.bin}" && pwd)

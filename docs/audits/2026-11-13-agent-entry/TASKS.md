@@ -11,15 +11,18 @@ it on two commits and compare.
 2. One fresh session per task. Paste the task text, nothing more. Do not name a file or a command.
 3. T1 starts from a restarted sandbox: before the session, `rm -rf .venv dist build node_modules`. Every other
    task starts from a checkout that is set up (`make -sC tools/pd2-las env` has run).
-4. T8 starts from a changed pack. Before the session:
-   `python3 -c "import zipfile; z = zipfile.ZipFile('dist/Christie_LAS_Slim.zip', 'a'); z.comment = b'changed on purpose'; z.close()"`
-   and `(cd dist && sha256sum Christie_LAS_Slim.zip > Christie_LAS_Slim.zip.sha256)`. Afterwards `git checkout -- .`.
+4. T8 starts from a changed pack. Before the session, from this checkout:
+   `python3 docs/audits/2026-11-13-agent-entry/measure.py change --tree ../wt-a`. It changes one member of
+   `dist/Christie_LAS_Slim.zip`, writes the zip as the pack writer does and the `.sha256` as the builder
+   does: what a rebuild on purpose leaves. (A zip the writer would not give, one with a comment for
+   instance, fails `test_that_writer_gives_each_tracked_pack_its_files` on any commit, whatever the documents
+   say.) Afterwards, in the worktree, `git checkout -- .`.
 5. Count from the session's transcript, not from what the agent says it did: one call per shell command and
    per file read; the bytes of every file read and of every command's output. Record whether the answer
    matches the key.
-6. The key: `python3 docs/audits/2026-11-13-agent-entry/measure.py key --tree .`, run in the same worktree
-   (copy `measure.py` in if the commit predates it; it reads artefacts only). It must come out the same on
-   both commits apart from `commit` and `ready`: no tracked zip differs between them.
+6. The key: `python3 docs/audits/2026-11-13-agent-entry/measure.py key --tree ../wt-a`, run from this
+   checkout before the first session (it reads artefacts only, and works on a commit that predates it). It
+   must come out the same on both commits apart from `commit`: no tracked zip differs between them.
 
 ## Tasks
 
