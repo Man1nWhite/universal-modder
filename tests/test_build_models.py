@@ -356,3 +356,104 @@ def test_winding_agreement_is_vacuous_without_faces():
 
     assert bm.winding_agreement(np.zeros((3, 3)), np.zeros((0, 3), int),
                                 np.zeros((3, 3))) == 1.0
+
+
+def test_boundary_loops_finds_the_open_ring_of_a_tube():
+    # a square tube: 4 side quads, open at both ends
+    faces = [(0, 1, 5), (0, 5, 4), (1, 2, 6), (1, 6, 5),
+             (2, 3, 7), (2, 7, 6), (3, 0, 4), (3, 4, 7)]
+    loops = bm.boundary_loops(faces)
+    assert len(loops) == 2
+    assert sorted(len(loop) for loop in loops) == [5, 5]   # closed rings
+    assert all(loop[0] == loop[-1] for loop in loops)
+
+
+# ---------------------------------------------------------------- unit: render atoms, sleeves
+# These came from tests/test_hands_graft.py, which went on 2026-11-13 with the hand graft of the
+# cancelled Skyrim outfit; what they test is on the build path of the packs that exist.
+
+def test_group_atom_plan_carries_the_vertex_and_the_index_offset_of_each_slice():
+    """An atom that has the vertex offset of its slice and not the index offset draws another part
+    of the mesh: the hands grafted onto the cancelled outfit were in the file and nothing drew them."""
+    g = bm.Group(name="body")
+    g.verts = [(0.0, 0.0, 100.0)] * 9
+    g.faces = [(0, 1, 2), (0, 1, 2), (3, 4, 5), (6, 7, 8)]
+    # (source material, first vertex, first index, triangles, vertices)
+    g.slices = [("body", 0, 0, 2, 3), ("hands", 3, 6, 1, 3), ("hands", 6, 9, 1, 3)]
+    g.mat_slots = ["mtr_body", "mtr_hands", "mtr_hands"]
+
+    atoms = bm.group_atom_plan(g, sorted(set(g.mat_slots)))
+
+    assert [a["base_index"] for a in atoms] == [0, 6, 9]
+    assert [a["base_vertex"] for a in atoms] == [0, 3, 6]
+    assert [a["tri_count"] for a in atoms] == [2, 1, 1]
+    assert [a["material_id"] for a in atoms] == [0, 1, 1]
+    geo = {"verts": g.verts}
+    topo = {"indices": [i for face in g.faces for i in face]}
+    assert bm.atom_problems(geo, topo, atoms) == []
+
+
+def test_atom_problems_catches_a_stale_index_offset():
+    geo = {"verts": [(0.0, 0.0, 0.0)] * 6}
+    topo = {"indices": [0, 1, 2, 3, 4, 5]}
+    good = [{"base_vertex": 0, "slice_len": 3, "base_index": 0, "tri_count": 1},
+            {"base_vertex": 3, "slice_len": 3, "base_index": 3, "tri_count": 1}]
+    assert bm.atom_problems(geo, topo, good) == []
+    stale = [dict(good[0]), {**good[1], "base_index": 0}]
+    problems = bm.atom_problems(geo, topo, stale)
+    assert any("not 1" in p or "draw" in p for p in problems), problems
+
+
+def _arm_ring(wrist, d, t, radius, n=8):
+    """``n`` vertices on a circle of ``radius`` around the arm axis at ``t``."""
+    import math
+
+    # any pair of unit vectors perpendicular to d
+    a = (0.0, 0.0, 1.0) if abs(d[2]) < 0.9 else (1.0, 0.0, 0.0)
+    u = [a[1] * d[2] - a[2] * d[1], a[2] * d[0] - a[0] * d[2], a[0] * d[1] - a[1] * d[0]]
+    ln = sum(c * c for c in u) ** 0.5
+    u = [c / ln for c in u]
+    v = [d[1] * u[2] - d[2] * u[1], d[2] * u[0] - d[0] * u[2], d[0] * u[1] - d[1] * u[0]]
+    out = []
+    for i in range(n):
+        th = 2.0 * math.pi * i / n
+        c, s_ = math.cos(th), math.sin(th)
+        out.append(tuple(wrist[j] + t * d[j] + radius * (c * u[j] + s_ * v[j])
+                         for j in range(3)))
+    return out
+
+
+def test_extend_sleeves_to_wrist_reaches_past_the_hand_joint():
+    wrist, elbow = bm.ARM_JOINTS[-1]
+    raw = [e - w for w, e in zip(wrist, elbow)]
+    ln = sum(c * c for c in raw) ** 0.5
+    d = [c / ln for c in raw]                      # wrist -> elbow, unit
+    g = bm.Group(name="g")
+    g.verts = _arm_ring(wrist, d, 9.0, 3.5) + _arm_ring(wrist, d, 20.0, 3.5)
+    g.slices = [("jacket", 0, 0, 1, len(g.verts))]
+    before_elbow = list(g.verts[8:])
+
+    report = bm.extend_sleeves_to_wrist(g, mats={"jacket": -2.5}, t_knee=13.0)
+
+    assert report["moved"] == 8
+    # the mouth ring (t=9) lands 2.5 cm past the hand joint, along the axis
+    for p, q in zip(g.verts[:8], _arm_ring(wrist, d, -2.5, 3.5)):
+        for a, b in zip(p, q):
+            assert a == pytest.approx(b, abs=1e-6)
+    # the ring near the elbow is untouched (past the blend)
+    assert g.verts[8:] == before_elbow
+
+
+def test_extend_sleeves_leaves_a_sleeve_that_already_reaches_alone():
+    g = bm.Group(name="g")
+    wrist, elbow = bm.ARM_JOINTS[-1]
+    for ux, uy in ((1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0),
+                   (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
+        g.verts.append((wrist[0] + 3.0 * ux, wrist[1] + 3.0 * uy, wrist[2]))
+    g.slices = [("jacket", 0, 0, 1, len(g.verts))]
+    before = list(g.verts)
+
+    report = bm.extend_sleeves_to_wrist(g, mats={"jacket": -2.5})
+
+    assert report["moved"] == 0
+    assert g.verts == before

@@ -23,8 +23,7 @@ REPO = Path(__file__).resolve().parents[1]
 PD2 = REPO / "tools" / "pd2-las"
 #: what an agent is sent to; the cut rule and these tests apply to them
 AGENT_DOCS = ["AGENTS.md", "GEMINI.md", "README.md", "docs/pd2-las/HANDOFF.md", "tools/README.md",
-              "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md",
-              "tools/skyrim-nif/README.md"]
+              "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md"]
 #: these also name packs and tools
 OTHER_DOCS = ["CONTRIBUTING.md", "models/README.md", "references/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session

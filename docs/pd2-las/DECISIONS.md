@@ -122,8 +122,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     joint placement. **This is the design the README still described until
     2026-11-11.** The description was dropped from the README then, not moved,
     because the code no longer works that way; its text is in the message of
-    `6196b2b`. The constant `FIT_MAX_DIVERGENCE_DEG` is left over from it in
-    `build_models.py`; nothing reads it.
+    `6196b2b`. The constant `FIT_MAX_DIVERGENCE_DEG` was left over from it in
+    `build_models.py` until 2026-11-13; nothing read it, and it went with D33.
 - **Dead ends, do not retry:** raw frame-delta transfer in any form shears
   the mesh into ribbons; one shared fit across both legs collapses the thighs
   onto one point.
@@ -238,7 +238,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Consequence:** that builder cannot run in this checkout; its tests skip
   for the missing archives.
 - **Source:** `6ed6a23`
-- **Status:** holds.
+- **Status:** holds; superseded in part by D33 (2026-11-13): the code that was kept is deleted.
 
 ## Environment, tests and documents
 
@@ -759,4 +759,37 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   under "What you ship" in `AGENTS.md` and in the skills are upstream's, for game files an agent extracts
   while modding any game; they stay. Publishing is still asked of the owner first, like any publishing.
 - **Source:** the user, 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`
+- **Status:** holds.
+
+### D33 — What is stale is deleted, not kept for later
+
+- **Decided:** 2026-11-13, by the user ("Delete stale things"; which ones was asked and answered that day)
+- **Decision:** three kinds of leftover went.
+  - **The code of the cancelled Skyrim outfit** (D13 had kept it): `tools/skyrim-nif/` and its five pages
+    under `docs/skyrim-nif/`; `build_skyrim_outfit.py`, `skyrim_materials.py`, `skyrim_retarget.py`,
+    `skyrim_source.py`, `skin_texture.py` and `decimate.py` in `tools/pd2-las/`; the outfit's own
+    registration and `write_pack` in `las_outfit_pack.py`; the command of `pose_preview.py`, which read
+    that outfit's build directory, and the one of `preview_textured.py`, which looked every texture up
+    under that outfit's file names and so drew any other pack untextured; and the tests of all of it.
+    In `build_models.py`, the 39 functions that only that builder called, or nothing (the hand graft,
+    the neck, collar, bust and sleeve passes, the hole cap, the redress), and two pieces inside functions
+    that stay, both keyed on the outfit's material names: the shoulder stay for `jacket` in
+    `transfer_group`, and the default targets of `extend_sleeves_to_wrist`. The file went from 3,543
+    lines to 1,783.
+  - **The release and the tags** of the sibling pack: `tools/pd2-port/STATUS.md`, "Released and tracked".
+  - **Sixteen branches on GitHub**, fifteen of them merged session branches: `tools/pd2-port/MODLOG.md`.
+- **Why:** a tool that cannot run and a test that can only skip look like coverage and are none: 21 of the
+  suite's 29 skips were tests waiting for the outfit's archives, removed on 2026-11-04, or for its pack. A release that serves an
+  older build under the same version number tells an installer the wrong thing.
+- **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the
+  Christie and Miranda packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and
+  `pose_zoom.py` render with; `build_models.extract_bones` cuts the Christie first-person arms, and
+  `extend_sleeves_to_wrist` stretches the sleeves of `Christie_LAS_Slim`. The tests of those functions that
+  sat in the outfit's test files were kept and now run on what exists: `tests/test_las_outfit_pack.py`,
+  `tests/test_build_models.py`, and `tests/test_glove_adapter.py` with `tests/test_glove_behavior_lua.py`
+  on `Christie_LAS_Slim`, the pack that ships the glove adapter.
+- **Held to:** no tracked pack moved by a byte (`make -sC tools/pd2-las fresh`).
+- **Where it is:** `git show 19ca55a:<path>` has every deleted file as it last was on `main`. What the port
+  taught is in `knowledge/games/payday-2/las-moog-outfit-porting.md`.
+- **Source:** the user, 2026-11-13; `tools/pd2-las/MODLOG.md`
 - **Status:** holds.

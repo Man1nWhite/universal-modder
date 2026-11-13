@@ -59,7 +59,10 @@ COPIES = [
     "tools/pd2-port/build_las_pack.py",
 ]
 
-# every tool that uses a copy and is not a builder, and what the Makefile and the workflows start
+# every tool that uses a copy and is not a builder, and what the Makefile and the workflows start.
+# Four of the thirty that were recorded went on 2026-11-13 with the cancelled Skyrim outfit: its builder and
+# skin_texture.py are deleted, pose_preview.py and preview_textured.py have no command of their own any more
+# (docs/audits/2026-11-12-tool-merge.md, the last section).
 GOLDEN = [
     ("status", ["tools/pd2-las/status.py"]),
     ("extract_2b", ["tools/pd2-las/extract_2b.py"]),
@@ -71,13 +74,9 @@ GOLDEN = [
                             "--templates", TEMPLATES, "--out", "{s}/elbow", "--scratch", "{s}/panels"]),
     ("glove_check", ["tools/pd2-las/glove_check.py", "{c}/christie.model", "{s}/glove.png"]),
     ("neck_junction", ["tools/pd2-las/neck_junction.py"]),
-    ("pose_preview", ["tools/pd2-las/pose_preview.py"]),
-    ("preview_textured", ["tools/pd2-las/preview_textured.py", "{m}/miranda.model", "{m}", "--out", "{s}/textured.png"]),
     ("render_mesh_skeleton", ["tools/pd2-las/render_mesh_skeleton.py", "--zip", "dist/Christie_LAS.zip", "--pack", "Christie_LAS",
                               "--item", "christie", "--templates", TEMPLATES, "--out", "{s}/skeleton"]),
-    ("skin_texture", ["tools/pd2-las/skin_texture.py", "--out", "{s}/skin", "--no-preview"]),
     ("uv_check", ["tools/pd2-las/uv_check.py", "--two-b", TEMPLATES, "--ours", "{m}/miranda.model", "--out", "{s}/uv.png"]),
-    ("build_skyrim_outfit", ["tools/pd2-las/build_skyrim_outfit.py"]),
     ("check_guide_compliance", ["tools/pd2-port/check_guide_compliance.py", "dist/lawson_las.zip"]),
     ("check_guide_compliance_miranda", ["tools/pd2-port/check_guide_compliance.py", "dist/Miranda_LAS.zip"]),
     ("check_guide_compliance_christie", ["tools/pd2-port/check_guide_compliance.py", "dist/Christie_LAS.zip"]),
@@ -594,6 +593,7 @@ def _other_copy(rel):
 
 
 '''
+# MODEL_TESTS and SWAPS name test files as they are at BASE, where `compare` runs them; some are gone from the tree since
 MODEL_TESTS = ["tests/test_build_models.py", "tests/test_bust_variant.py", "tests/test_christie_las.py", "tests/test_determinism.py",
                "tests/test_diesel_model.py", "tests/test_fps_hands.py", "tests/test_hands_graft.py", "tests/test_pd2_las.py",
                "tests/test_pd2_las_invariants.py", "tests/test_render_mesh_skeleton.py"]

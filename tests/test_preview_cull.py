@@ -21,7 +21,6 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
-sys.path.insert(0, str(ROOT / "tools" / "skyrim-nif"))
 
 import preview_textured as pt  # noqa: E402
 

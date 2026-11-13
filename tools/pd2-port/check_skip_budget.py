@@ -45,11 +45,7 @@ PY = sys.executable
 #: is a regression.
 ALLOWED: dict[str, int] = {
     # Present-by-design skips (fixtures absent by design, not regressed):
-    "nifly not built": 2,
-    "pack not built in this checkout": 7,
     "needs ffmpeg": 4,
-    "4.zip absent": 10,
-    "the Skyrim source archive was intentionally removed after cancellation": 2,
     "sourcepp is an optional extra": 2,
     "lupa (LuaJIT) not installed": 1,
     "Git Bash / MSYS only": 1,

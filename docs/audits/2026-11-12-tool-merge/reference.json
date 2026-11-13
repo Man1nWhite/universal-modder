@@ -642,13 +642,6 @@
    "unsteady_files": [],
    "written": {}
   },
-  "build_skyrim_outfit": {
-   "lines": 11,
-   "printed": "daec73cb2c2504194e43b0dfbb9b294dc4d14e6ab9be996375b10417822e773d",
-   "rc": 2,
-   "unsteady_files": [],
-   "written": {}
-  },
   "check_guide_compliance": {
    "lines": 123,
    "printed": "fdb7763e1b3282c3f9779f1b319919344f880d5336b0c380b333648f22fb7c84",
@@ -784,28 +777,12 @@
    "unsteady_files": [],
    "written": {}
   },
-  "pose_preview": {
-   "lines": 15,
-   "printed": "d9b12e874b49b786f956346b4141ad800f787aebde419c50eeffaa8a16289da1",
-   "rc": 1,
-   "unsteady_files": [],
-   "written": {}
-  },
   "preview_check": {
    "lines": 74,
    "printed": "c9ae6b81e372bb6cf138dd826efe16b57006180faccab69b8199ecb50958dbab",
    "rc": 0,
    "unsteady_files": [],
    "written": {}
-  },
-  "preview_textured": {
-   "lines": 9,
-   "printed": "dd0f0aae618e17b784eff0398f499d430f28b1e07177b10d2a10c7c66cfc8a12",
-   "rc": 0,
-   "unsteady_files": [],
-   "written": {
-    "<scratch>/textured.png": "12fc0c94b58d563e448ed339a935544f35a846937b105a4d70733d1e908e3db2"
-   }
   },
   "render_mesh_skeleton": {
    "lines": 12,
@@ -852,13 +829,6 @@
    "lines": 4,
    "printed": "33d2a23ac507db8458e96722ea75764b614d485b7f3e1558b577f97fc6e0ec59",
    "rc": 0,
-   "unsteady_files": [],
-   "written": {}
-  },
-  "skin_texture": {
-   "lines": 19,
-   "printed": "01b79b005fd93980fb7a0bc6f6eea6a3abc0d2dc21eb8cbcbc299b98406e38c8",
-   "rc": 1,
    "unsteady_files": [],
    "written": {}
   },

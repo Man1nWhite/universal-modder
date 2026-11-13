@@ -397,3 +397,25 @@ from `26fce3e` they refuse to run.
   the traces and the lint figures of the reference never changed, and nine
   recorded outputs have another hash only through the first two changes to
   the check.
+
+## 2026-11-13: four of the thirty recorded tools are gone
+
+The owner had the code of the cancelled Skyrim outfit deleted (`docs/pd2-las/DECISIONS.md`, D33). Four
+entries of `outputs` in `reference.json` were records of that code, and are taken out with it; `GOLDEN` in
+`copies.py` lists 26 tools now. Nothing else in the reference was touched.
+
+| Entry | What was recorded | What became of the tool |
+| --- | --- | --- |
+| `build_skyrim_outfit` | exit 2: it needs the outfit's archives, removed on 2026-11-04 | deleted |
+| `skin_texture` | exit 1, for the same archives | deleted |
+| `pose_preview` | exit 1: its command read `build/skyrim-nif/` | the command is deleted; `glove_check.py` and `pose_zoom.py` import the pose |
+| `preview_textured` | exit 0 and one PNG, of `miranda.model` with no texture on it: the command looked for `outfit_<material>_df.texture`, the file names of that outfit | the command is deleted; the same two tools and two test files import the rasteriser |
+
+They were three of the eight that did not end with exit 0, which leaves five, and one of the 22 that did.
+
+`python tools/pd2-las/copies.py after` on the tree without that code: 16 of 16 zips are the tracked bytes
+after a fresh build; the report on every builder's trace is line for line the one above, with no function
+that returns something else; 26 of 26 tools give what they gave
+([`2026-11-13-agent-entry/deleted/copies-after.txt`](2026-11-13-agent-entry/deleted/copies-after.txt)).
+`MODEL_TESTS` and `SWAPS` in `copies.py` still name test files that are gone from the tree: `compare` runs
+them in a worktree of `26fce3e`, where they are.

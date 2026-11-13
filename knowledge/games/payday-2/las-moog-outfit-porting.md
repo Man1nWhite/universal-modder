@@ -31,6 +31,15 @@ tags: [payday-2, las, moog, outfit, porting, rigging, materials, render-template
 > companions were planned and never written: a unit-resources inventory and the
 > BeardLib `PlayerStyle` no-LAS alternative (the route sketch below is all there
 > is). The guide is explicitly a work in progress.
+>
+> **2026-11-13:** several items below were learned on a layered Skyrim outfit
+> whose port was cancelled. The code they name was deleted from the repository
+> that day: `skin_texture`, `skyrim_materials`, the outfit's builder and its
+> `.nif` reader, and the functions of `build_models` that only that builder
+> called (`graft_pd2_hands`, `weld_wrist`, `trim_neck`, `align_neck`,
+> `turn_body`, `restore_bust`, the `tuck_*` passes, `count_hand_verts`,
+> `append_group`). The techniques stand. The code is in history:
+> `git show 19ca55a:tools/pd2-las/build_models.py`, and likewise for the others.
 
 ## Setup
 

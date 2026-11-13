@@ -120,10 +120,10 @@ run "9c the audit's result in STATUS.md"
 echo "16/16 mutations are caught." >> tools/pd2-port/README.md
 run "9d a count of mutations in tools/pd2-port/README.md"
 
-echo "91/91 checks." >> tools/skyrim-nif/README.md
-run "9e a count of checks in tools/skyrim-nif/README.md"
+echo "91/91 checks." >> tools/README.md
+run "9e a count of checks in tools/README.md"
 
-printf 'Run `retarget_all.py` first.\n' >> tools/skyrim-nif/README.md
-run "10 a script that does not exist, in tools/skyrim-nif/README.md"
+printf 'Run `retarget_all.py` first.\n' >> tools/pd2-port/README.md
+run "10 a script that does not exist, in tools/pd2-port/README.md"
 
 cd "$repo" && git worktree remove --force "$work"

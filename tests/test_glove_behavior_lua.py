@@ -4,11 +4,12 @@ The first shipped adapter pack passed every string-assertion test yet had NO
 HANDS in-game, because the old smoke test stubbed the host semantics with the
 wrong assumptions. This suite executes the real registration chain instead:
 
-1. the pack's generated ``skyrim_outfit_las.lua`` (fills ``LegendaryArmours``);
+1. the generated ``christie_slim_las.lua`` of the pack that ships no hands,
+   ``Christie_LAS_Slim`` (fills ``LegendaryArmours``);
 2. ``BlackMarketTweakData:init`` PostHooks in mod-load order — BeardLib's
    ``BeardLibInitGloves``, then the **verbatim LAS 4.1.9 loader**
    (``tests/fixtures/las_loader_4.1.9.lua``), then the pack's generated
-   ``skyrim_outfit_glove_adapter.lua``;
+   ``christie_slim_glove_adapter.lua``;
 3. a faithful port of BeardLib's ``set_beardlib_character_visual_state``
    glove/adapter decision block.
 
@@ -42,10 +43,12 @@ except ImportError:  # pragma: no cover - older lupa wheels
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
+import build_christie_las as christie  # noqa: E402
 import las_outfit_pack  # noqa: E402
 
 FIXTURE = REPO / "tests" / "fixtures" / "las_loader_4.1.9.lua"
-KEY = "las_skyrim_outfit"
+SLIM = christie.IDENTITIES["slim"]            # the pack without hands
+KEY = f"las_{SLIM.item_id}"
 
 # --------------------------------------------------------------------------
 # Lua host environment + faithful ports of the real game/mod code
@@ -305,11 +308,11 @@ def _setup(lua, *, with_compat_hook: bool):
     lua.execute(LUA_HOST)
     lua.execute("register_beardlib_init_gloves()")
     # the pack's outfit registration (runs at file load, before init)
-    lua.execute(las_outfit_pack.render_hook_lua(with_fps=True, hands="adapter"))
+    lua.execute(las_outfit_pack.hook_lua(christie.registration(SLIM)))
     # the REAL LAS 4.1.9 loader, verbatim
     lua.execute(FIXTURE.read_text())
     if with_compat_hook:
-        lua.execute(las_outfit_pack.render_glove_adapter_lua())
+        lua.execute(las_outfit_pack.render_glove_adapter_lua(SLIM.item_id, SLIM.pack_dir_name))
     # hooks register at file-load time but run at init time against the built
     # table — exactly the game's sequence
     lua.execute("bm = build_blackmarket()")

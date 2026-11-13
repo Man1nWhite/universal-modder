@@ -1,0 +1,21 @@
+--- make -sC tools/pd2-las green, on the tree without the code of the cancelled Skyrim outfit
+LAS pack verification
+  repo: ~/universal-modder
+  pack: ~/universal-modder/dist/lawson_las.zip
+  [ok  ] tracked pack matches its checksum          9123392 bytes, sha256 9c8a28368862edcc…
+  [ok  ] guide compliance audit               0.9s  summary: 38 pass, 1 warn, 0 fail
+  [ok  ] winding and tangent frame            0.5s  summary: 20677 triangles, 0 inverted, 0 degenerate
+  [ok  ] normal-map convention                0.6s  VERDICT: the source is DirectX-style (Y-); the default build inverts the green channel, wh
+  [ok  ] pack-level test mutations            9.4s  5/5 pack-level test mutations caught
+  [ok  ] auditor self-test                   27.0s  16/16 mutations detected
+  [ok  ] lint                                 1.2s  
+  [ok  ] um and its command groups            0.8s  --help of um and of 10 groups
+  [ok  ] knowledge base                       1.3s  PASS: 247 notes checked
+  [ok  ] nothing that shouldn't ship          2.2s  WARN: 3698 files, 0 failures, 6 warnings
+  [ok  ] pytest suite                       118.5s  696 passed, 8 skipped, 2 xfailed, 1 warning in 118.23s (0:01:58)
+  [ok  ] skip budget                          0.0s  OK: 8 budgeted skip(s) across 5 reason(s), 2 expected failure(s) within budget.
+  [ok  ] every tracked zip, built again     116.3s  16 of 16 tracked zips are the tracked bytes after a fresh build
+
+all 13 stages passed
+next: git status --short
+EXIT=0

@@ -55,9 +55,9 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |
 | `skeleton_map.json`, `las_target_skeleton.json` | Source → PD2 bone map; the PD2 rig and object names |
 | `segment_fit.py`, `render_mesh_skeleton.py`, `elbow_before_after.py`, `preview.py` | fit measurements and renders the builders call |
-| `diagnose_mesh.py`, `neck_junction.py`, `uv_check.py`, `audit_metrics.py`, `glove_check.py`, `review_christie_idle.py`, `pose_preview.py`, `pose_zoom.py`, `preview_textured.py`, `shellview.py` | diagnostics for built packs, off the build path; each docstring carries its command |
+| `diagnose_mesh.py`, `neck_junction.py`, `uv_check.py`, `audit_metrics.py`, `glove_check.py`, `review_christie_idle.py`, `pose_zoom.py` | diagnostics for built packs, off the build path; each docstring carries its command |
+| `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
-| `build_skyrim_outfit.py`, `skyrim_*.py`, `skin_texture.py`, `decimate.py` | Skyrim outfit route: cancelled, its source archives were removed, so it does not build here |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
 | `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 14 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and the rounding with a margin; tangent frames from the values the file stores; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |

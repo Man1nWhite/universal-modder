@@ -14,4 +14,4 @@ This directory contains the reference PAYDAY 2 mod archives used as binary/skele
 directories, byte for byte, which is only a way to restore the wrong copy); `tools/build_joy_head_mods.py`
 reads the `models/` one.
 
-**Removed source inputs:** the original Skyrim source archives `1.zip` through `5.zip` were deleted from the repository on 2026-11-04 after the skyrim outfit port was cancelled. The retained `tools/pd2-las/` scripts require those user-supplied inputs to rebuild; do not fetch or republish them unless the user explicitly reopens the work.
+**Removed source inputs:** the Skyrim source archives `1.zip` through `5.zip` were deleted from the repository on 2026-11-04, after the Skyrim outfit port was cancelled, and the tools that read them on 2026-11-13 (`docs/pd2-las/DECISIONS.md`, D33). Do not fetch or republish the archives unless the user explicitly reopens the work.

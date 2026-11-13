@@ -9,7 +9,7 @@
 #   * `git status` lists the packs as deleted,
 #   * `pytest tests` cannot collect (no pytest),
 #   * every test that needs the 2B templates skips,
-#   * the builders, `glove_check.py` and `diagnose_mesh.py --templates` cannot run.
+#   * the builders and `diagnose_mesh.py --templates` cannot run.
 # This script restores all of it. Under dist/, build/ and node_modules/ it only
 # puts back tracked files that are missing: a file that is there, changed or not,
 # is left as it is. It writes nothing outside the repo: the templates go to

@@ -18,7 +18,7 @@ TOOL = REPO / "tools" / "pd2-port" / "check_skip_budget.py"
 #: what `pytest -q -rsxX tests` prints at its end, with every kind of line the budget reads
 REPORT = """\
 =========================== short test summary info ============================
-SKIPPED [2] tests/test_skyrim_nif.py:31: nifly not built
+SKIPPED [2] tests/test_gma.py:31: sourcepp is an optional extra
 SKIPPED [1] tests/test_um.py:900: needs ffmpeg
 SKIPPED [13] tests/test_render_mesh_skeleton.py:39: Christie base pack not built (run make -sC tools/pd2-las christie)
 XFAIL tests/test_christie_las.py::test_sleeve_tube_is_closed_along_its_length[left] - the sleeve is still open
@@ -52,8 +52,8 @@ def test_what_has_no_budget_fails():
     _, failures = budget.judge(REPORT + f"SKIPPED [1] tests/test_pd2_las_status.py:114: {reason}\n")
     assert failures == [f"unbudgeted skip reason: {reason!r} (1x)"]
 
-    _, failures = budget.judge(REPORT.replace("SKIPPED [2] tests/test_skyrim_nif.py", "SKIPPED [3] tests/test_skyrim_nif.py"))
-    assert failures == ["skip reason over budget: 'nifly not built' (3x, budget 2x)"]
+    _, failures = budget.judge(REPORT.replace("SKIPPED [2] tests/test_gma.py", "SKIPPED [3] tests/test_gma.py"))
+    assert failures == ["skip reason over budget: 'sourcepp is an optional extra' (3x, budget 2x)"]
 
     _, failures = budget.judge(REPORT + "XFAIL tests/test_um.py::test_anything - somebody wanted it out of the way\n")
     assert failures == ["unbudgeted expected failure (xfail): tests/test_um.py::test_anything (1x)"]

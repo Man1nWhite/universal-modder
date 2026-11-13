@@ -635,3 +635,49 @@
   rebuilt and not committed. The skip budget has no room for that reason, so `green` failed in the one state
   where `status` names it as the next command. The test now runs in a checkout of its own.
 - Validation, with both packs changed and not committed: `make -sC tools/pd2-las green`, all 13 stages.
+
+## 2026-11-13 (later) — the code of the cancelled Skyrim outfit is deleted
+
+- Request: "Delete stale things". Asked what that covers, the owner answered for this part: everything only
+  the cancelled Skyrim outfit uses. The decision is D33; the release, the tags and the branches that went the
+  same day are in `tools/pd2-port/MODLOG.md`.
+- **Deleted, 29 files, 8,302 lines:** `tools/skyrim-nif/` (9 files: the `.nif` reader, the nifly cross-check
+  and its C++ wrapper, the inventory, the preview, the bone map) and `docs/skyrim-nif/` (5 pages);
+  `build_skyrim_outfit.py`, `skyrim_materials.py`, `skyrim_retarget.py`, `skyrim_source.py`,
+  `skin_texture.py`, `decimate.py`; nine test files.
+- **Cut out of files that stay:**
+  - `build_models.py`, 3,543 → 1,783 lines: the 39 functions only that builder called, or nothing called
+    (`graft_pd2_hands`, `weld_wrist`, `weld_open_seams`, `cap_holes`, `slim_neck`, `trim_neck`, `align_neck`,
+    `turn_body`, `turn_upper_body`, `restore_bust`, `lower_collar`, `redress_from_source`,
+    `follow_layer_weights`, `append_group`, `count_hand_verts`, `extend_blazer_sleeves`, the five `tuck_*`
+    passes, and eighteen helpers), two constants, a module-level `import numpy`, and two pieces keyed on that
+    outfit's material names: the shoulder stay for `jacket` in `transfer_group`, and the default targets of
+    `extend_sleeves_to_wrist`, whose caller now names every layer (the Christie builder always did).
+  - `las_outfit_pack.py`, 528 → 380 lines: the outfit's own registration, `render_hook_lua`,
+    `render_main_xml`, `render_localization`, `write_pack`. `render_glove_adapter_lua` takes the item and
+    the label; it had the outfit's as defaults.
+  - `preview_textured.py` and `pose_preview.py` keep what `glove_check.py`, `pose_zoom.py` and two test
+    files import, and lose their commands: one read `build/skyrim-nif/`, the other looked every texture up
+    as `outfit_<material>_df.texture`. `preview_textured.py` has its own copy of the four-view projection it
+    used to load from `tools/skyrim-nif/preview.py`. `glove_check.py` loses two functions nothing called.
+- **Tests: 836 ids → 705.** 156 went, 25 are new (`docs/audits/2026-11-13-agent-entry/deleted/tests.txt`).
+  - Of the 156, 21 never ran here: they skipped for the outfit's archives or its pack. The suite skips 8
+    tests now, for four reasons that are about the machine (ffmpeg, sourcepp, lupa, Git Bash); the skip
+    budget lost the four reasons that were about the outfit.
+  - What the outfit's test files asserted about functions that stay was kept and moved:
+    `tests/test_las_outfit_pack.py` (13 tests: hook, `main.xml`, object and unit XML, strings, the zip, the
+    icon), `boundary_loops`, `extract_bones`, `group_atom_plan`, `atom_problems` and
+    `extend_sleeves_to_wrist` in `tests/test_build_models.py` and `tests/test_fps_hands.py`.
+  - `tests/test_glove_adapter.py` and `tests/test_glove_behavior_lua.py` tested the glove adapter of the
+    cancelled outfit; their pack-level tests waited for a zip that was not coming. They now test
+    `Christie_LAS_Slim`, the one pack that ships the adapter: the tracked hook is byte for byte what the
+    generator writes, and `Christie_LAS` ships none. The LuaJIT file needs `lupa`
+    (`recover_env.sh --extras`) and skips without it, in CI too; run by hand here, its 10 tests pass.
+- **Orphans found on the way:** `docs/audits/2026-11-09-neck-arm/`, five renders of the Christie slim arm.
+  The two plan pages that showed them were deleted on 2026-11-10 (`0a76215`); nothing named them. Deleted.
+- **No pack re-shipped.** `make -sC tools/pd2-las green`: all 13 stages, 696 passed, 8 skipped, 2 xfailed,
+  16 of 16 tracked zips the tracked bytes after a fresh build. `copies.py after`: no builder function
+  returns something else, 26 of 26 recorded tools give what they gave; the four that went with the outfit
+  are out of the reference (`docs/audits/2026-11-12-tool-merge.md`, last section).
+- Everything is in history: `git show 19ca55a:<path>`, or `git checkout 19ca55a -- <path>` to bring a file
+  back.

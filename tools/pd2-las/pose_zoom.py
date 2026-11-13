@@ -1,6 +1,6 @@
 """Zoomed posed render of one shoulder / upper arm, for before/after checks.
 
-    .venv/bin/python build/cmp_pose_zoom.py MODEL OUT.png [deg]
+    .venv/bin/python tools/pd2-las/pose_zoom.py MODEL OUT.png [deg [x_lo z_lo x_hi z_hi]]
 
 Uses pose_preview's arm adduction (the pose that opens the shoulder seam) and
 renders the character's left shoulder from four angles, cropped tight.
@@ -28,10 +28,6 @@ def main():
     vp = pp.pose(body, -deg, deg)
     meshes = pp.meshes_from(body, vp)
     tex = {}
-    for name in {m["material"] for m in meshes}:
-        df = REPO / "build" / "skyrim-nif" / "textures" / f"outfit_{name.replace('mtr_', '')}_df.texture"
-        if df.exists():
-            tex[name] = pt.load_texture(df)
     views = ("front", "threequarter", "back", "side")
     size = 460
     lo = np.array([float(sys.argv[4]) if len(sys.argv) > 4 else -52.0,

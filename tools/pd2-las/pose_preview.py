@@ -1,10 +1,10 @@
-"""Offline posed preview: adduct the arms to approximate the in-game idle.
+"""Pose a built model offline: adduct the arms to approximate the in-game idle.
 
-The SkyrimOutfit armhole holes only appear when the arms rotate down from the
-bind pose (the blazer shoulder fabric follows the arm bone and pulls away from
-the torso). The static bind-pose preview cannot show them. This script re-skins
-the body drawable with the arms adducted ~60 deg and renders front/back/side so
-the shoulder seam can be inspected offline.
+A hole at the armhole or the wrist only opens when the arms rotate down from the
+bind pose (the shoulder fabric follows the arm bone and pulls away from the
+torso), so a bind-pose render cannot show it. `pose` re-skins the body drawable
+with the arms adducted ~60 deg. No command of its own: `glove_check.py` and
+`pose_zoom.py` render what it returns.
 
 Diesel skinning (row-major storage, translation in row 3):
     Rotations[k] = inverse(WorldBind_k);  v_posed = sum w_k * WorldPosed_k @ Rot_k @ v
@@ -23,10 +23,6 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import diesel_model as dm  # noqa: E402
 import build_models as bm  # noqa: E402
-import preview_textured as pt  # noqa: E402
-from PIL import Image  # noqa: E402
-
-REPO = Path(__file__).resolve().parents[2]
 
 
 def _rot_y(deg):
@@ -121,38 +117,3 @@ def meshes_from(body, vp):
                            uvs=body["uvs"][used], triangles=remap[tris]))
     return meshes
 
-
-def main():
-    model = REPO / "build/skyrim-nif/outfit.model"
-    texdir = REPO / "build/skyrim-nif/textures"
-    body = load_body(model)
-    deg = float(sys.argv[1]) if len(sys.argv) > 1 else 60.0
-    vp = pose(body, -deg, deg)
-    meshes = meshes_from(body, vp)
-    textures = {}
-    for m in {m["material"] for m in meshes}:
-        df = texdir / f"outfit_{m.replace('mtr_', '')}_df.texture"
-        if df.exists():
-            textures[m] = pt.load_texture(df)
-    allv = np.concatenate([m["vertices"] for m in meshes])
-    lo, hi = allv.min(0), allv.max(0)
-    center = (lo + hi) / 2
-    pv = pt._load_preview()
-    w2, _ = pv._project(allv, "front")
-    span = float(w2[:, 0].max() - w2[:, 0].min())
-    size = 560
-    scale = size * 0.88 / max(span, float(hi[2] - lo[2]))
-    out = REPO / "build/skyrim-nif/previews"
-    views = ["front", "back", "side", "threequarter"]
-    cull = "--no-cull" not in sys.argv
-    imgs = [pt.render(meshes, textures, v, size, scale, center, cull=cull) for v in views]
-    sheet = Image.new("RGB", (size * len(views), size), (10, 10, 12))
-    for i, im in enumerate(imgs):
-        sheet.paste(im, (i * size, 0))
-    p = out / ("skyrim_outfit_posed.png" if cull else "skyrim_outfit_posed_nocull.png")
-    sheet.save(p)
-    print("posed preview ->", p, "(cull=%s)" % cull)
-
-
-if __name__ == "__main__":
-    main()
