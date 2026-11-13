@@ -43,7 +43,7 @@ left apart and why, with the measurements: `docs/audits/2026-11-12-tool-merge.md
 `.venv/bin/python tools/pd2-las/copies.py after` and to `tests/test_one_implementation.py`.
 
 - The two `.model` dialects in the table stay two writers: each is byte-exact to its own contract.
-- `tools/pd2-port/` is released from hardcoded paths by `.github/workflows/lawson-las.yml`, with its notes
-  under `tools/pd2-port/releases/`: moving its files breaks the release.
+- `tools/pd2-port/` is released from hardcoded paths by `.github/workflows/lawson-las.yml`, with the notes
+  of a release in `tools/pd2-port/releases/lawson-las-v<N>.md`: moving its files breaks the release.
 - Porting a method across the trees is fine: reimplement it in the target tree's dialect and keep both
   suites green.

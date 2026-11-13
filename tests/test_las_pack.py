@@ -880,6 +880,13 @@ def test_the_built_pack_has_no_inverted_faces():
             assert inverted == 0, f"{name}: {inverted} of {total} triangles are inverted"
 
 
+def _release_notes():
+    """The notes of every release, oldest first. Each is the body of a release page."""
+    import re
+
+    return sorted(PD2.glob("releases/lawson-las-v*.md"), key=lambda p: int(re.search(r"v(\d+)\.md$", p.name).group(1)))
+
+
 def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
     """`tools/pd2-port/STATUS.md` is the dated record of the port: it has to say what the release serves.
 
@@ -889,6 +896,9 @@ def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
     ten rebuilds later. The page quotes no tracked figure now (tests/test_agent_docs.py); what is
     held here is the one sentence that matters, against the newest release notes and the sidecar,
     and the item in the list of open work that says the same.
+
+    That release was deleted the same day, with its notes, so there are three states: no release,
+    a release of the tracked pack, a release of an older build. The page has to say which.
     """
     import re
 
@@ -896,16 +906,23 @@ def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
     if not sidecar.exists():
         pytest.skip("dist/ is absent from this sandbox snapshot")
     status = (PD2 / "STATUS.md").read_text()
-    notes = max(PD2.glob("releases/lawson-las-v*.md"), key=lambda p: int(re.search(r"v(\d+)\.md$", p.name).group(1)))
+    none = "**There is no release.**"
+    sentence = "The tracked pack is not the pack the release serves."
+    # the list of open work, which is where an agent asked "what is open" is sent
+    open_item = "The last release of `lawson_las` serves an older build than the tracked pack"
+    open_work = (ROOT / "tools" / "pd2-las" / "README.md").read_text()
+    if not _release_notes():
+        assert none in status, "tools/pd2-port/releases/ holds no release notes; STATUS.md has to say that there is no release"
+        assert sentence not in status, "there is no release; STATUS.md still says which pack it serves"
+        assert open_item not in open_work, "there is no release; tools/pd2-las/README.md still lists it as open work"
+        return
+    notes = _release_notes()[-1]
+    assert none not in status, f"{notes.name} is the body of a release page; STATUS.md still says there is no release"
     line = re.search(r"\*\*sha256:\*\*\s*`([0-9a-f]{64})`", notes.read_text())
     assert line, f"{notes.name} has no **sha256:** line with the checksum of the pack it releases"
     released, tracked = line.group(1), sidecar.read_text().split()[0]
     assert f"`{notes.stem}`" in status and f"`{released[:8]}…`" in status, (
         f"STATUS.md does not name the last release, {notes.stem}, with the pack it serves ({released[:8]}…)")
-    sentence = "The tracked pack is not the pack the release serves."
-    # the list of open work, which is where an agent asked "what is open" is sent
-    open_item = "The last release of `lawson_las` serves an older build than the tracked pack"
-    open_work = (ROOT / "tools" / "pd2-las" / "README.md").read_text()
     if released == tracked:
         assert sentence not in status, f"{notes.stem} serves the tracked pack; STATUS.md still says it does not"
         assert open_item not in open_work, (
@@ -925,21 +942,35 @@ def test_the_builder_version_matches_the_latest_release_notes():
     tag; a push without notes falls back to the builder's own VERSION. If
     the two drift, the workflow builds a pack with a different version in
     its manifest and the byte check fails (which is how it was found).
+
+    With no release there are no notes, and the builder's VERSION stands alone.
     """
     import re
 
     builder = (PD2 / "build_las_pack.py").read_text()
     version = re.search(r'^VERSION\s*=\s*"([^"]+)"', builder, re.M).group(1)
 
-    notes = sorted(
-        PD2.glob("releases/lawson-las-v*.md"),
-        key=lambda p: int(re.search(r"v(\d+)\.md$", p.name).group(1)),
-    )
-    assert notes, "no release notes found"
+    notes = _release_notes()
+    if not notes:
+        return
     latest = notes[-1]
     stamped = re.search(r"<!--\s*pack_version:\s*([^>]+?)\s*-->", latest.read_text()).group(1)
     assert version == stamped, (
         f"the builder stamps {version} but {latest.name} says {stamped}")
+
+
+def test_a_release_number_is_not_used_twice():
+    """`lawson-las-v1` and `lawson-las-v2` were tags until 2026-11-13; the next release is v3.
+
+    Both were deleted on GitHub that day, v2 with its pre-release (tools/pd2-port/STATUS.md). A
+    clone made before then still has the tags, and git does not move a tag that exists, so a new
+    release under an old number would be two different commits by one name.
+    """
+    import re
+
+    for notes in _release_notes():
+        number = int(re.search(r"v(\d+)\.md$", notes.name).group(1))
+        assert number >= 3, f"{notes.name}: the numbers 1 and 2 are used; the next release is lawson-las-v3"
 
 
 def test_the_tracked_pack_carries_the_builder_version():

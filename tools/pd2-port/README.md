@@ -20,8 +20,8 @@ place.
 **The shipped port.** The configuration in the tree ports **Miranda Lawson**
 from *Mass Effect 2* and builds `dist/lawson_las.zip`. It is the worked
 example for everything below. Its pack is tracked in git and compared byte for
-byte in CI, and the release workflow publishes it on a tag. Whether the last
-release serves the tracked pack is in [`STATUS.md`](STATUS.md). Names such as `me2_dae.py`,
+byte in CI, and the release workflow publishes it on a tag. Whether there is a
+release, and of which build, is in [`STATUS.md`](STATUS.md). Names such as `me2_dae.py`,
 `lawson_las.zip` and `Lawson_LAS/` still carry the character because tests,
 CI and other tools in the repository refer to them. Wherever this page says
 "the shipped port", it means that build.
@@ -34,8 +34,8 @@ and the journal in [`MODLOG.md`](MODLOG.md).
 
 ## Status
 
-[`STATUS.md`](STATUS.md) is the dated record of the shipped port: what the
-release serves and what is tracked, what has been seen in game, what was
+[`STATUS.md`](STATUS.md) is the dated record of the shipped port: what is
+released and what is tracked, what has been seen in game, what was
 found, settled and rejected. [`MODLOG.md`](MODLOG.md) is the journal behind
 it. Both are written about that one port, but what they record about the
 PAYDAY 2 side — the rig contract, the guide's rules — holds for any
@@ -62,7 +62,7 @@ without them. The same stage budgets expected failures: an `xfail` that
 | Rig contract | `reference/las_rig.json` — the PD2 biped skeleton an LAS unit animates on, extracted from the model in `references/2b.rar` by `extract_las_rig.py` (skeleton data only; no 2B art) | the same file — PAYDAY 2's rig does not change with the outfit |
 | Output | a BeardLib pack zip, built deterministically | `dist/lawson_las.zip`, root `Lawson_LAS/` (**tracked in git**) |
 | Checksum | — | `dist/lawson_las.zip.sha256` (tracked; CI refuses to publish a build that differs from it) |
-| Release | — | the newest file in [`releases/`](releases/) is the body of the last release; which pack that release serves is in [`STATUS.md`](STATUS.md) |
+| Release | — | [`STATUS.md`](STATUS.md) says whether there is one and which pack it serves; the body of a release page is `releases/lawson-las-vN.md` |
 
 What a source has to look like for the pipeline as it stands:
 
@@ -88,7 +88,7 @@ python tools/pd2-port/build_las_pack.py --check  # validate only
 #   --source / --out   another source archive, another output zip; the .dae name,
 #                      the texture slots and the pack's names stay those of the code
 #   --version X.Y.Z    stamps build_manifest.json (default: VERSION in the builder,
-#                      which a test keeps equal to the newest release notes)
+#                      which a test keeps equal to the newest release notes, if any)
 #   --keep-nm-green    keeps the source Y channel instead of the default PD2 flip
 #                      (only for sources already authored with PD2's green convention)
 python tools/pd2-port/check_all.py               # the five checks below in one run (the self-test with --full)
@@ -267,9 +267,9 @@ leave both versions active). Select the outfit in the outfit/armor menu with
 Default gloves.
 
 For the shipped port: take `dist/lawson_las.zip` from the checkout, extract
-`Lawson_LAS/`, and select **[LAS] Miranda Lawson**. The
-[releases page](https://github.com/Man1nWhite/universal-modder/releases) can
-serve an older build than the tracked one; [`STATUS.md`](STATUS.md) says which.
+`Lawson_LAS/`, and select **[LAS] Miranda Lawson**. The tracked zip is the
+pack: a release, when there is one, can be of an older build
+([`STATUS.md`](STATUS.md)).
 
 Test the menu preview first. If it crashes, stop and collect fresh crash/loader
 logs plus exact game/BeardLib/LAS versions before trying anything else. Only
@@ -284,7 +284,9 @@ the pack, runs the tests and attaches it to the release of that tag. **It
 attaches the tracked `dist/Miranda_LAS.zip` as well**, each zip with its
 `.sha256`.
 Below, `N` is the next release number: one more than the newest
-`releases/lawson-las-v*.md`.
+`releases/lawson-las-v*.md`, and 3 while there is none, because 1 and 2 are
+used ([`STATUS.md`](STATUS.md), which also says where the body of the last
+release page is).
 
 1. Add `releases/lawson-las-vN.md` (the release page body) with its
    `<!-- pack_version: X.Y.Z -->` marker — the workflow stamps that version
@@ -300,11 +302,10 @@ Below, `N` is the next release number: one more than the newest
    ```
 
 3. Record the release under "Released and tracked" in [`STATUS.md`](STATUS.md),
-   by its name and the first eight digits of that sha256, and take its item
-   out of "Next" in `tools/pd2-las/README.md`: a test fails while either says
-   something else than the newest release notes and the tracked `.sha256`
-   do. The notes are the one document that gives the pack's size and whole
-   sha256.
+   by its name and the first eight digits of that sha256, in place of
+   "There is no release": a test fails while the page says something else
+   than the newest release notes and the tracked `.sha256` do. The notes
+   are the one document that gives the pack's size and whole sha256.
 4. Tag and push:
 
    ```sh
@@ -327,9 +328,10 @@ head packs over Joy.
 - **Offline-validated only.** Nobody has reported the pack from the game
   ([`STATUS.md`](STATUS.md)). Shoulder and hip alignment are what to look at
   there first.
-- **Release.** Whether the last release serves the tracked pack is in
-  [`STATUS.md`](STATUS.md). When it does not, closing the gap is a release
-  with a version of its own: [Publish a release](#publish-a-release).
+- **Release.** Whether there is one, and of which build, is in
+  [`STATUS.md`](STATUS.md). A release that serves an older build than the
+  tracked pack is open work, and "Next" in `tools/pd2-las/README.md` has to
+  list it: [Publish a release](#publish-a-release).
 - **The retarget is tuned on one body.** The humanoid branch moves the torso,
   head and legs rigidly at 1:1, which is right for the shipped port because
   its source already stands at PD2's proportions (the `target_ops` docstring

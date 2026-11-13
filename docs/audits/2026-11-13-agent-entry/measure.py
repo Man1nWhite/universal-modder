@@ -40,6 +40,8 @@ from pathlib import Path
 SLIM = "Christie_LAS_Slim"
 #: T6's sixth item, in the key since 2026-11-13: the last release of lawson_las is not the tracked pack. The walks
 #: stored in before/ and after/ predate it; the documents of both commits said the release serves the tracked pack.
+#: It is an item only on a tree whose release notes name another pack than the tracked one (`release_behind`): the
+#: release was deleted later that day, with its notes, and a tree without them has nothing open there.
 RELEASE_BEHIND = r"(?s)release of `lawson_las` serves an older build than the tracked\s+pack"
 DOCS = ["README.md", "AGENTS.md", "CLAUDE.md", "GEMINI.md", "docs/pd2-las/HANDOFF.md", "tools/README.md",
         "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md",
@@ -71,8 +73,21 @@ def tracked(tree: Path, *patterns: str) -> list[str]:
 
 # --------------------------------------------------------------------------- the answer key
 
+def release_behind(tree: Path) -> bool:
+    """Whether the newest release notes of lawson_las name another pack than the tracked one. No notes: no release."""
+    notes = sorted(tree.glob("tools/pd2-port/releases/lawson-las-v*.md"),
+                   key=lambda path: int(re.search(r"v(\d+)\.md$", path.name).group(1)))
+    if not notes:
+        return False
+    released = re.search(r"\*\*sha256:\*\*\s*`([0-9a-f]{64})`", notes[-1].read_text())
+    return bool(released) and released.group(1) != (tree / "dist/lawson_las.zip.sha256").read_text().split()[0]
+
+
 def key(tree: Path) -> dict:
-    """Read from the zips, their sidecars, status.py, the workflow and the dated record. No agent document is read."""
+    """Read from the zips, their sidecars, status.py, the workflow, the release notes and the dated record.
+
+    No agent document is read.
+    """
     packs = {}
     for side in sorted(tree.glob("dist/*.zip.sha256")) + sorted(tree.glob("build/pd2-las/*.zip.sha256")):
         path = side.with_name(side.name[:-len(".sha256")])
@@ -99,6 +114,7 @@ def key(tree: Path) -> dict:
         "seen_in_game": {"pack": SLIM, "date": review.split("/")[-1][:10], "record": review, "sha256_seen": seen,
                          "sha256_tracked": slim["sha256"][:8], "were_the_tracked_bytes": slim["sha256"].startswith(seen)},
         "no_in_game_flag": sorted(k for k, p in packs.items() if k.startswith("dist/") and p.get("runtime_verified") is not True),
+        "release_behind": release_behind(tree),
         "packs": packs,
     }
 
@@ -264,6 +280,8 @@ def walk(tree: Path, routes: dict, only: str = "") -> dict:
             print(f"   {task[:2]} {kind} {target[:70]:<70} exit {rc} {len(text.encode()):>7} B {seconds:>6} s", flush=True)
         found = {}
         for name, want in route["expect"].items():
+            if want is RELEASE_BEHIND and not answers["release_behind"]:
+                continue                                    # no release, or one of the tracked pack: nothing is open there
             if isinstance(want, tuple) and want[0] == "empty":
                 found[name] = steps[want[1]]["exit"] == 0 and not seen[want[1]].strip()
             elif isinstance(want, tuple) and want[0] == "passes":
@@ -427,7 +445,8 @@ D_STATUS = "dropped: `make -sC tools/pd2-las status` prints it"
 SAME = "moved to %s (reworded in place)"
 PORT = SAME % "tools/pd2-port/README.md"
 NEW_STATUS = "moved to tools/pd2-port/STATUS.md"
-NOT_RELEASED = "the release serves the build of 282703f and the tracked pack is ten rebuilds later (tools/pd2-port/STATUS.md)"
+NOT_RELEASED = ("the release served the build of 282703f, ten rebuilds before the tracked pack, until it was deleted on 2026-11-13 "
+                "(tools/pd2-port/STATUS.md)")
 NO_RESTRICTION = "the owner said on 2026-11-13 that no pack has that restriction (docs/pd2-las/DECISIONS.md, D32)"
 # old file -> (first line, last line, what became of the lines in that range), on the base commit's numbering
 LEDGER = {
@@ -476,7 +495,7 @@ LEDGER = {
         (22, 23, PORT + "; \"published by the release workflow\" corrected: " + NOT_RELEASED),
         (34, 43, PORT + ": STATUS.md is the dated record now; \"Its pack facts are pinned by tests\" went with that test"),
         (45, 54, PORT),
-        (64, 66, PORT + "; \"published as the release asset\" and \"v1 kept for comparison\" dropped: " + NOT_RELEASED + ", and there is no v1 release"),
+        (64, 66, PORT + "; \"published as the release asset\" and \"v1 kept for comparison\" dropped: " + NOT_RELEASED + ", and there never was a v1 release"),
         (89, 94, PORT + "; \"default 0.1.2\" dropped: `VERSION` in build_las_pack.py holds it"),
         (97, 114, PORT + ", one line per command; \"(16 mutations)\" dropped: check_all.py --full prints the count"),
         (119, 122, PORT + "; \"exactly what the release serves\" dropped: " + NOT_RELEASED + "; the two pinned versions dropped: tools/pd2-las/pins.txt is the one place they are written"),
@@ -486,7 +505,7 @@ LEDGER = {
         (267, 269, PORT + "; \"five ways\" dropped: check_all.py prints the count"),
         (282, 284, PORT + ", corrected: \"the bytes are identical\" was wrong, " + NOT_RELEASED + "; the installer is sent to dist/lawson_las.zip"),
         (295, 295, PORT + ", completed: the workflow attaches the tracked Miranda_LAS.zip as well"),
-        (296, 297, PORT + "; \"the latest release is lawson-las-v2\" dropped: the newest file in tools/pd2-port/releases/ says it"),
+        (296, 297, PORT + "; \"the latest release is lawson-las-v2\" dropped: tools/pd2-port/STATUS.md says whether there is a release, and which number is next"),
         (303, 304, PORT + ", completed: the size and sha256 go on two lines of the release notes, which a test reads"),
         (311, 314, PORT + ", rewritten: STATUS.md quotes no figure of the tracked pack, so step 3 is to record the release there; "
                    "test_the_status_page_says_whether_the_release_serves_the_tracked_pack holds it"),
@@ -502,7 +521,7 @@ LEDGER = {
         (6, 29, "dropped: a note that listed which sections below it were stale; those sections are gone. What it said of the transfer today is under \"Found and settled\""),
         (31, 35, "dropped: tools/pd2-port/README.md is where to start, and the header says so"),
         (37, 45, NEW_STATUS + ", \"Released and tracked\" and \"Seen in game\"; the tracked size and sha256 dropped: `make -sC tools/pd2-las status` prints them; "
-                 "\"the v1 release stays up\" corrected: there is none; the Docs row dropped: README, \"Publish a release\""),
+                 "\"the v1 release stays up\" corrected: there never was one; the Docs row dropped: README, \"Publish a release\""),
         (47, 48, "dropped: tools/pd2-port/README.md, \"Install\""),
         (50, 58, "dropped: tools/pd2-port/README.md and AGENTS.md give the two commands; the timings were stale by the page's own note"),
         (60, 73, "dropped: check_all.py and `make -sC tools/pd2-las green` print today's results; the G1 warning is under \"Found and settled\""),

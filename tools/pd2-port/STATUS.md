@@ -12,30 +12,32 @@ README claimed that was not so is under [Corrections](#corrections).
 
 ## Released and tracked
 
-**The tracked pack is not the pack the release serves.**
+**There is no release.** The pack is the tracked `dist/lawson_las.zip`, stamped 0.1.2 and built at `15b0fbe`
+(2026-10-22); `make -sC tools/pd2-las status` prints its size and sha256.
 
-| | Pack | Built at |
-| --- | --- | --- |
-| Release [`lawson-las-v2`](https://github.com/Man1nWhite/universal-modder/releases/tag/lawson-las-v2), a pre-release of 2026-10-19 and the only release | `lawson_las.zip`, sha256 `a24f0b7c…`, version 0.1.2; its size and whole checksum are in [`releases/lawson-las-v2.md`](releases/lawson-las-v2.md) | tag `lawson-las-v2` → `282703f` |
-| Tracked `dist/lawson_las.zip` | another pack, also stamped 0.1.2; `make -sC tools/pd2-las status` prints its size and sha256 | `15b0fbe`, 2026-10-22 |
-
-- Ten commits after the tag rebuilt the tracked pack, from 2026-10-19 to 2026-10-22
-  (`git log 282703f..HEAD -- dist/lawson_las.zip.sha256`). By their subjects: an invisible unit; glossy
+- **Deleted on 2026-11-13, at the owner's direction:** the pre-release `lawson-las-v2` of 2026-10-19 with its
+  tag (→ `282703f`), the tag `lawson-las-v1` (→ `2b0b1b4`, never a release) and the tag `lawson-clover-v1`
+  (→ `9faa4a4`, the retired character swap). The three commits are in `main`. The release notes of v1 and
+  v2 went with them: `git show 19ca55a:tools/pd2-port/releases/lawson-las-v2.md`. The zip the pre-release
+  served is the one tracked at its commit: `git show 282703f:dist/lawson_las.zip`.
+- **Why the pre-release was stale:** it served the build of `282703f` (`lawson_las.zip`, sha256 `a24f0b7c…`),
+  and ten commits after the tag rebuilt the tracked pack, from 2026-10-19 to 2026-10-22
+  (`git log 282703f..15b0fbe -- dist/lawson_las.zip.sha256`). By their subjects: an invisible unit; glossy
   textures; the retarget of the hands and fingers, then of the shoulders, upper arms and elbows; the normal
   maps; the seams at the cheek and mouth, with their bone weights and normals; the eyes, lashes and
-  nostrils; hair at the throat and on the face; the shoulder pose.
-- None of them moved `VERSION` in `build_las_pack.py`, so two different packs are called 0.1.2, and no
-  release serves the later one. A test keeps `VERSION` equal to the newest release notes, so the version
-  moves only with a release.
-- Tag `lawson-las-v1` → `2b0b1b4` has no release. Its pack, 0.1.1 (`063d5f64…`, in
-  [`releases/lawson-las-v1.md`](releases/lawson-las-v1.md)), has holes in the skin (below).
+  nostrils; hair at the throat and on the face; the shoulder pose. None of them moved `VERSION` in
+  `build_las_pack.py`, so both packs were stamped 0.1.2. GitHub counted 0 downloads of each of the
+  pre-release's two assets on the day it was deleted.
+- **The next release is `lawson-las-v3`:** the numbers 1 and 2 are used, and a test rejects release notes
+  with a lower number.
+- 0.1.1, the pack at `2b0b1b4` (sha256 `063d5f64…`), has holes in the skin (below).
 
 ## Seen in game
 
 No record: nothing in the repository says that anyone saw `lawson_las` in the game, on any date, in any
 build. Two of the ten commit subjects speak of what showed in game ("lawson_las invisible unit", `2e73ef4`;
 "Fix in-game normal maps … across all 10 Miranda mods", `309fc0a`) without a report, a screenshot or the
-name of the pack that was looked at. The release notes say "not game-verified".
+name of the pack that was looked at. `CREDITS.txt` in the pack says "Not game-verified".
 
 ## Found and settled
 
@@ -44,7 +46,7 @@ name of the pack that was looked at. The release notes say "not game-verified".
   holes in the chest, the shoulders and the arms and shaded the skin around them backwards. The source meshes
   have none: the transfer of that day made them. It fitted every bone piece by itself, and where the two rigs
   disagree the fits came out 120 to 156 degrees apart, so the triangles between two pieces folded back.
-  - Fix, in the released 0.1.2: `rig_target.repair_winding()` reverses every triangle that faces away from
+  - Fix, in 0.1.2: `rig_target.repair_winding()` reverses every triangle that faces away from
     its own vertex normals. The source's meshes are split at every corner, so reversing one triangle cannot
     put its neighbours out of step.
   - Guard: audit check `N3` fails a pack with an inverted triangle, and the auditor's self-test has that
@@ -85,11 +87,11 @@ What this page and the README said until 2026-11-13, and what is so:
   yourself — the bytes are identical" (the README). The release serves the build of `282703f`; the tracked
   pack is ten rebuilds later. This page gave the tracked pack's size and sha256 in one table with the
   release, and a test kept those two figures current, so the table read as if they were the release's.
-- **"the v1 release stays up"** (this page), "v1 kept for comparison" (the README). There is no v1 release:
-  `gh release list` shows `lawson-las-v2` alone. The tag is still there.
+- **"the v1 release stays up"** (this page), "v1 kept for comparison" (the README). There never was a v1
+  release, only the tag.
 - **"uploads `lawson_las.zip` + `lawson_las.zip.sha256`"** (the README, of the release workflow). Since
   `637b7a9` the workflow uploads `Miranda_LAS.zip` and its `.sha256` to the release as well. `lawson-las-v2`
-  has the first two only.
+  had the first two only.
 - **"The next piece of work: a consistent bind-pose transfer"** was a plan for the transfer of 2026-10-19.
   The transfer was rebuilt another way within three days. The plan, its constraint set and the tear angles
   of the old scheme are gone from this page; what was measured on the rigs is under Dead ends.

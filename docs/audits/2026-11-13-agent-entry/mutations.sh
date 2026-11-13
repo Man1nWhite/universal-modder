@@ -71,24 +71,41 @@ sed -i 's/ pytest scipy$/ pytest/' .github/workflows/lawson-las.yml
 git diff --quiet -- .github/workflows/lawson-las.yml && echo "(7 did not apply: the install line of lawson-las.yml reads otherwise now)"
 run "7  scipy taken out of what the lawson workflow installs" tests/test_pd2_las_status.py
 
-sed -i 's/^\*\*The tracked pack is not the pack the release serves\.\*\*$/**The tracked pack is what the release serves.**/' tools/pd2-port/STATUS.md
-git diff --quiet -- tools/pd2-port/STATUS.md && echo "(8 did not apply: STATUS.md says the release serves the tracked pack, or says it otherwise)"
-run "8  STATUS.md says the release serves the tracked pack" "$status_test"
-
-newest=$(ls tools/pd2-port/releases/lawson-las-v*.md | sort -V | tail -n 1)
-number=$(echo "$newest" | sed 's/.*-v\([0-9]*\)\.md/\1/')
-released=$(grep -o 'sha256:\*\*[^`]*`[0-9a-f]\{64\}' "$newest" | grep -o '[0-9a-f]\{64\}$')
+# The release of lawson_las was deleted on 2026-11-13 with its notes: the tree says "There is no release".
 tracked=$(cut -d' ' -f1 dist/lawson_las.zip.sha256)
-sed "s/$released/$tracked/" "$newest" > "tools/pd2-port/releases/lawson-las-v$((number + 1)).md"
-run "8b release notes for v$((number + 1)) with the tracked sha256, STATUS.md not touched" "$status_test"
+notes() {  # $1: the release number; $2: the sha256 the notes give
+    mkdir -p tools/pd2-port/releases
+    printf '<!-- pack_version: 0.1.2 -->\n\n**sha256:** `%s`\n' "$2" > "tools/pd2-port/releases/lawson-las-v$1.md"
+}
+record() {  # what STATUS.md says in place of "There is no release."
+    sed -i "s/^\*\*There is no release\.\*\*/$1/" tools/pd2-port/STATUS.md
+}
 
-sed -i 's/ The last release of `lawson_las` serves an older build than the tracked pack (`tools\/pd2-port\/STATUS.md`)\.//' tools/pd2-las/README.md
-git diff --quiet -- tools/pd2-las/README.md && echo "(8c did not apply: the open item in tools/pd2-las/README.md reads otherwise now)"
-run "8c the release taken out of the open work in tools/pd2-las/README.md while it is behind" "$status_test"
+sed -i 's/^\*\*There is no release\.\*\* /The pack is tracked. /' tools/pd2-port/STATUS.md
+git diff --quiet -- tools/pd2-port/STATUS.md && echo "(8 did not apply: STATUS.md says otherwise that there is no release)"
+run "8  no release notes, and STATUS.md does not say that there is no release" "$status_test"
 
-sed "s/$released/$tracked/" "$newest" > "tools/pd2-port/releases/lawson-las-v$((number + 1)).md"
-sed -i "s/^\*\*The tracked pack is not the pack the release serves\.\*\*$/**The tracked pack is what the release serves.** \`lawson-las-v$((number + 1))\`, \`$(echo "$tracked" | cut -c1-8)…\`/" tools/pd2-port/STATUS.md
+notes 3 "$tracked"
+run "8b release notes for v3 with the tracked sha256, STATUS.md not touched" "$status_test"
+
+notes 3 0000000000000000000000000000000000000000000000000000000000000000
+record '**The tracked pack is not the pack the release serves.** `lawson-las-v3`, `00000000…`.'
+run "8c a release of another build, recorded in STATUS.md, not in the open work of tools/pd2-las/README.md" "$status_test"
+
+notes 3 "$tracked"
+record "\`lawson-las-v3\` serves the tracked pack, \`$(echo "$tracked" | cut -c1-8)…\`."
+sed -i 's/^   the head packs have no checklist\.$/   the head packs have no checklist. The last release of `lawson_las` serves an older build than the tracked pack./' tools/pd2-las/README.md
+git diff --quiet -- tools/pd2-las/README.md && echo "(8d did not apply: the open item in tools/pd2-las/README.md reads otherwise now)"
 run "8d a release that serves the tracked pack, recorded in STATUS.md, still listed as open work" "$status_test"
+
+notes 2 "$tracked"
+run "8e release notes under a number that was used, v2" "tests/test_las_pack.py::test_a_release_number_is_not_used_twice"
+
+notes 3 "$tracked"
+record "\`lawson-las-v3\` serves the tracked pack, \`$(echo "$tracked" | cut -c1-8)…\`."
+run "8f the same release recorded as it should be: this one passes" "$status_test" \
+    "tests/test_las_pack.py::test_a_release_number_is_not_used_twice" \
+    "tests/test_las_pack.py::test_the_builder_version_matches_the_latest_release_notes"
 
 size=$(python3 -c "import os; print(f\"{os.path.getsize('dist/lawson_las.zip'):,}\")")
 echo "The tracked pack is $size B." >> tools/pd2-port/STATUS.md

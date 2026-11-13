@@ -1,7 +1,7 @@
 # Lawson pack journal
 
 > Start at [`README.md`](README.md). The dated record of the shipped port is
-> [`STATUS.md`](STATUS.md): what the release serves and what is tracked, what
+> [`STATUS.md`](STATUS.md): what is released and what is tracked, what
 > was seen in game, what was found, settled and rejected. This journal is the
 > history behind it; an entry that sends you to a section of `STATUS.md` by
 > number means the page as it was until 2026-11-13.
@@ -1262,3 +1262,48 @@
   that and has two assets. The README says what a tag publishes now. The workflow is not changed.
 - Not done, and the owner's to decide: releasing the tracked pack as `lawson-las-v3` with a version of its
   own. With scipy installed the publish step can be reached again, so a `lawson-las-v*` tag publishes.
+
+## 2026-11-13 (later) — the stale release, three tags and sixteen branches deleted
+
+- **Asked:** "Delete stale things", after the report said that the release serves an older build than the
+  tracked pack and that the `star-chart` branch could go. What to delete on GitHub was asked and answered the
+  same day: all sixteen branches; both tags without a release, and the pre-release with its tag.
+- **The pre-release `lawson-las-v2`** (2026-10-19; `lawson_las.zip`, sha256 `a24f0b7c…`, the build of
+  `282703f`) is deleted with its tag. GitHub counted 0 downloads of each of its two assets. Deleted with it:
+  the tags `lawson-las-v1` (→ `2b0b1b4`) and `lawson-clover-v1` (→ `9faa4a4`). The three commits are in
+  `main`, and the zip the pre-release served is the one tracked at its commit
+  (`git show 282703f:dist/lawson_las.zip`, the same sha256), so nothing but the names and the page is gone.
+- **In the tree:** `releases/lawson-las-v1.md` and `-v2.md` are deleted, being the page bodies of releases
+  that do not exist (`git show 19ca55a:tools/pd2-port/releases/lawson-las-v2.md`). `STATUS.md` says "There
+  is no release" and records what was deleted; the README's release route numbers the next one 3.
+  `test_the_status_page_says_whether_the_release_serves_the_tracked_pack` knows three states now (no
+  release, a release of the tracked pack, a release of an older build) and
+  `test_a_release_number_is_not_used_twice` rejects notes numbered 1 or 2. The item about the release is out
+  of "Next" in `tools/pd2-las/README.md`: nothing is behind.
+- **Branches:** fifteen `arena/*` session branches, each merged by the pull request beside it and each
+  wholly in `main` (`git merge-base --is-ancestor`), and `star-chart` (`556a41912a3d`, one commit holding
+  `stars.svg`, in no other branch). Restore any with `git push origin <tip>:refs/heads/<name>`.
+
+  | Branch | Tip | Merged by |
+  | --- | --- | --- |
+  | `arena/0811643b-universal-modder` | `0a76215aed10` | #27 |
+  | `arena/20554974-universal-modder` | `55f02b9e02f5` | #30 |
+  | `arena/282ccb75-universal-modder` | `cba46886a8c9` | #26 |
+  | `arena/6ea140bf-universal-modder` | `8e63e4c9a9b9` | #24 |
+  | `arena/71acf8be-universal-modder` | `dcc9c1ce76ae` | #25 |
+  | `arena/7622cd38-universal-modder` | `dd470410a94d` | #21 |
+  | `arena/77634828-universal-modder` | `ca71e60735e8` | #23 |
+  | `arena/90126ffc-universal-modder` | `4a69ccea619a` | #22 |
+  | `arena/901e857c-universal-modder` | `ce4f844aa9a7` | #20 |
+  | `arena/bf348f6f-universal-modder` | `ad7230b5e454` | #28 |
+  | `arena/c1718b15-universal-modder` | `008a5602d6b6` | #16 |
+  | `arena/e22678a8-universal-modder` | `18f414bed70d` | #29 |
+  | `arena/e44a560c-universal-modder` | `c1a1682c6194` | #18 |
+  | `arena/ef46069a-universal-modder` | `e229d9974fc4` | #17 |
+  | `arena/f841574d-universal-modder` | `8db690478f9c` | #19 |
+
+- **The `star chart` workflow is switched off** in the repository's Actions settings
+  (`gh workflow disable star-chart.yml`). On `main` the file is still there until this branch is merged, and
+  it redrew the `star-chart` branch on every push to `main`: the last time on 2026-11-13, so "nothing writes
+  to it" in the report of that day was wrong. `gh workflow enable star-chart.yml` undoes it.
+- **Left on GitHub:** `main` and this session's branch. No tag, no release.
