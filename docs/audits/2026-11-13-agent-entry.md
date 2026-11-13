@@ -517,11 +517,12 @@ Of 146 functions in the five files, 13 ran in no phase
 
 - **Deleted:** the ten, 163 lines with the blank lines around them, and nothing else in the five files.
   The owner's word on these ten is the question; they went on "Delete stale things" and on this
-  measurement. `git checkout 4e15ed6 -- <file>` brings a file back as it was.
+  measurement. `git checkout 4e15ed6 -- <file>` brings a file back as it was. (The owner confirmed
+  afterwards: the end of this section.)
 - **Kept:** `render_source` in `render_mesh_skeleton.py`, which `main` calls under `--source`;
   `diesel_model.compute_uv_directions` and the function inside it, which `build_models.py` calls for a mesh
   group that does not come with one normal per vertex. Live code names them. No test and no tracked input
-  runs them.
+  runs them. (The second went later that day: the end of this section.)
 - **After the deletion** the same measurement, on all 57 Python files of `tools/` this time
   ([`answers/reach-after.txt`](2026-11-13-agent-entry/answers/reach-after.txt)): in the five files the three
   kept functions are the only ones that ran nowhere. Over the 57 files it is 131, in 23 files, and other
@@ -556,6 +557,31 @@ Of 146 functions in the five files, 13 ran in no phase
   among them and is not dead; telling the two apart is a reading of each, and it was not done.
 - `copies.py compare` was not run again.
 
+**The owner's confirmation, and the two that were kept** (later the same day, `27fec1d`).
+
+The report said that the ten had gone without the owner's word, and that two more which never ran were kept
+because live code calls them. The owner: "yeah, delete those if Nothing runs them". That is the word for the
+ten. It was also read as the test for the two that were kept. If "those" meant the ten only, the second row
+below goes beyond what was asked, and `git revert 27fec1d` undoes it.
+
+| Kept on the first pass | Does anything run it? | What was done |
+| --- | --- | --- |
+| `render_source`, the `--source` mode of `render_mesh_skeleton.py` | a person does. `CHRISTIE.md` documents the mode, and run on `references/Christie.zip` it exits 0 and writes the five tracked `christie_source_*.png`, byte for byte. No test and no recorded tool runs it, which is why the measurement did not see it | kept |
+| `diesel_model.compute_uv_directions`, the `else` of `build_models.author_group_sections` since `e5eb882` (2026-11-12), for a group without one normal per vertex or without a vertex | nothing does, and nothing could to any use. A group without a vertex gets the same two empty lists from `tangents.tangent_frames`. A group with vertices and fewer normals was written with a geometry section shorter than its header says, which `decode_geometry` cannot read | deleted with the constant only it used, 32 lines. The builder refuses such a group by name; `test_a_group_without_a_normal_for_every_vertex_is_refused` is new |
+
+Checked on that tree ([`answers/after-confirmation/`](2026-11-13-agent-entry/answers/after-confirmation/)):
+
+| Check | Result |
+| --- | --- |
+| the old code and the new on three groups ([`kept-two.txt`](2026-11-13-agent-entry/answers/after-confirmation/kept-two.txt)) | a triangle with its normals and an empty group: the same sections, byte for byte. A triangle without normals: the old code wrote a geometry section that does not read back, the new code refuses the group |
+| `copies.py after` ([`copies-after.txt`](2026-11-13-agent-entry/answers/after-confirmation/copies-after.txt)) | exit 0: 16 of 16 zips are the tracked bytes after a fresh build; no builder function returns something else; 26 of 26 tools give what they gave |
+| `make -sC tools/pd2-las green` ([`green.txt`](2026-11-13-agent-entry/answers/after-confirmation/green.txt)) | 13 of 13 stages; 699 passed, 8 skipped, 2 xfailed |
+| defects put back on `27fec1d` ([`mutations.txt`](2026-11-13-agent-entry/answers/after-confirmation/mutations.txt)) | 32 cases: 31 fail their test, and the one that is a correct release passes. The new one, 16, switches the refusal off. The other 31 read as they did on `51c9754` |
+| the `test` workflow on GitHub, `27fec1d` (run 43455375313) | every step passed; "16 of 16 tracked zips are the tracked bytes after a fresh build" |
+
+Not checked: nothing in game, as before. Of the 131 functions that the second measurement saw in no phase,
+two were this function and the one inside it; the other 129 were not gone through.
+
 ## Run it again
 
 ```sh
@@ -569,6 +595,11 @@ bash docs/audits/2026-11-13-agent-entry/mutations.sh       # the table of defect
 
 # which functions of a file does nothing run: about 15 minutes; a file after --also is measured and not started
 .venv/bin/python docs/audits/2026-11-13-agent-entry/reach.py tools/pd2-las/diesel_model.py --also tools/pd2-las/build_models.py
+
+# the --source mode, which no test runs: its five christie_source_*.png against docs/pd2-las/renders/
+.venv/bin/python tools/pd2-las/render_mesh_skeleton.py --source references/Christie.zip --zip dist/Christie_LAS.zip \
+    --pack Christie_LAS --item christie --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b" --out /tmp/source
+for f in /tmp/source/*.png; do cmp "$f" "docs/pd2-las/renders/$(basename "$f")" && echo "same: $(basename "$f")"; done
 
 mkdir ../harness && (cd ../harness && npm install @anthropic-ai/claude-code @openai/codex @google/gemini-cli @github/copilot)
 bash docs/audits/2026-11-13-agent-entry/probe_harness.sh ../wt-after ../harness/node_modules/.bin
