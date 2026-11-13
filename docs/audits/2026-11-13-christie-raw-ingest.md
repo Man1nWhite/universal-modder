@@ -328,3 +328,47 @@ metric is settled, and it is the first thing to settle.
 "second eye" leg cannot run until it is reinstalled. Stated so that no later
 summary claims a renderer cross-check this round did not have. The images used
 above come from the repo's own `render_mesh_skeleton.py`.
+
+### 5.5 What "the current build" actually is
+
+Recorded because it was nearly mis-reported. `dist/Christie_LAS.zip` and
+`dist/Christie_LAS_Slim.zip` have not changed in this session: they were
+committed at `6f26633`, the base commit of this branch. The four commits made
+today are documentation only — `git diff 6f26633 -- tools/ tests/` is empty.
+Rebuilding both packs today reproduced the committed bytes exactly (`fresh`,
+16 of 16), which is a determinism check and **not** evidence that a redo
+happened. There is no post-redo zip; the redo has produced analysis and two
+corrected claims, no geometry.
+
+### 5.6 The slim forearm is thinner than its own spec in places
+
+The repo's acceptance test measures the principal radius of **unblended** verts
+(pure weight > 0.99) in fixed mid-segment slices and lands on spec:
+
+| bone (slices) | base r | slim r | ratio | spec |
+|---|---|---|---|---|
+| Arm 0.35-0.65 | 4.877 | 3.591 | 0.736 | 0.736 |
+| ForeArm L 0.30-0.55 | 2.930 | 2.302 | 0.786 | 0.80 |
+| ForeArm R 0.30-0.55 | 2.925 | 2.340 | 0.800 | 0.80 |
+| UpLeg / Leg | 6.60 / 4.67 | 5.94 / 4.21 | 0.900 | 0.90 |
+
+Measured station by station instead (p90 radius of verts with >0.9 ForeArm
+weight, same frame, both packs), the forearm is outside the +/-0.02 band over
+most of its length — and in **both directions**:
+
+| t from elbow (cm) | 6 | 8 | 10 | 12 | 14 | 16 | 18 |
+|---|---|---|---|---|---|---|---|
+| base p90 | 6.17 | 4.93 | 4.91 | 4.97 | 4.39 | 5.15 | 5.35 |
+| slim p90 | 5.18 | 3.94 | 4.02 | 3.85 | 4.10 | 3.91 | 4.73 |
+| ratio | 0.840 | 0.800 | 0.818 | **0.774** | **0.934** | **0.760** | 0.883 |
+
+Both packs also dip at 8 cm (base 4.93 between 6.17 and 4.91) and peak at 18 cm
+— that shape is inherited, not created by slimming. What the slim pass adds is
+a sleeve that *wobbles* between 0.76 and 0.93 where the spec says 0.80 ± 0.02.
+
+**This is a candidate for the in-game "coarse" look on the sleeve and it is
+closable offline**, with the brake in `[DECISIONS.md](../pd2-las/DECISIONS.md)`:
+`slim_group` is pointwise per-vertex scaling about a per-segment axis, and the
+acceptance test only samples the slices it names, so a fix must be measured
+station by station in both directions, not on the test's two windows. Not
+attempted this pass.

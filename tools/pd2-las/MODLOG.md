@@ -1,3 +1,20 @@
+## 2026-11-13 (latest) — today's zip is not a new build; slim forearm deviations measured
+
+Two records, no bytes changed.
+
+* The `dist/` Christie zips were committed at `6f26633`, the base of this
+  branch. Every commit made today is documentation; `git diff 6f26633 --
+  tools/ tests/` is empty. The rebuild reproduced them byte for byte, which is
+  determinism, not a redo. Said plainly because it was nearly reported as "a
+  new build shipped".
+* The slim forearm is outside its own 0.80 +/- 0.02 spec over most of its
+  length: 0.760 at 16 cm, 0.774 at 12 cm, 0.934 at 14 cm, in a frame both
+  packs share. Both packs dip at 8 cm and peak at 18 cm (inherited), so the
+  slim pass adds a wobble on top of an existing profile rather than creating
+  the dip. The repo's `test_slim_cross_section_ratios` passes because it samples
+  only two mid-segment windows where the ratio happens to hit 0.786 / 0.800.
+  Details and the table: ingest audit 5.5, 5.6.
+
 ## 2026-11-13 (later) — the current Christie bytes ship with D18 open
 
 The owner chose to ship `dist/Christie_LAS.zip` and `dist/Christie_LAS_Slim.zip`
