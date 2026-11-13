@@ -1,3 +1,18 @@
+## 2026-11-13 (later) — the current Christie bytes ship with D18 open
+
+The owner chose to ship `dist/Christie_LAS.zip` and `dist/Christie_LAS_Slim.zip`
+as they stand rather than hold them for a sleeve fix. No byte changed: no
+builder, no test, no zip. The strict `KNOWN_SLEEVE_LEAK_CM2` XFAIL entries stay
+exactly as they were; nothing was loosened to make the ship look clean.
+
+The re-acceptance is written down in `docs/pd2-las/CHRISTIE.md` (status block at
+the top) and in the 2026-11-13 ingest audit §5: the failing sleeve probe is a
+grazing gap that has not been shown visible in game, the measure behind it does
+not agree with itself (4.95 -> 1.65 cm² with ray spacing on the right sleeve;
+182-212 cm² on the *base* pack when backfaces are culled), and `runtime_verified`
+therefore stays `false` in both packs. Also corrected: the hash list in
+`CHRISTIE.md` was stale by two rebuild rounds and now points at the sidecars.
+
 ## 2026-11-13 — Christie redo, offline defect re-measurement
 
 Re-derived four of the pack's own claims against the tracked zips; no tracked

@@ -25,7 +25,37 @@ templates unpacked, a collection failure without them, five `pyflakes` warnings)
 described that day's tree; none of them holds now.
 
 The two packs below are the ones in `dist/`; the dated log further down keeps the
-earlier hashes it was written with.
+earlier hashes it was written with. **The hashes printed in that list are stale**
+(they predate the 2026-11-12 tangent/order round and the 2026-11-13 flag change);
+`dist/<pack>.zip.sha256` and `make -sC tools/pd2-las status` are the current
+ones and are the only ones to check an install against.
+
+> **Status, 2026-11-13 — shipped with D18 open, knowingly.** The two zips in
+> `dist/` are the current tracked bytes and are what this page's build
+> describes; they were **not** changed on 2026-11-13. They ship with the slim
+> sleeve defect (D18, `DECISIONS.md`) **still open and explicitly re-accepted**
+> by the pack owner, not silently tolerated. Read the re-acceptance before
+> installing: [`../../docs/audits/2026-11-13-christie-raw-ingest.md`](../audits/2026-11-13-christie-raw-ingest.md)
+> §5. In short, three things are true at once and only the first is a defect in
+> the garment:
+>
+> 1. **A sleeve probe still fails on the slim pack.** The failing sample ray
+>    passes close to the surface (4.4 cm from the nearest boundary edge, 4.3 cm
+>    from the nearest sleeve vertex) rather than through a hole. It has not been
+>    shown to be visible in game, and it has not been shown not to be.
+> 2. **The measure behind the defect does not agree with itself.** The same
+>    mesh scores 6.70 cm² at 6° ray spacing, 8.36 cm² at 3° and 7.25 cm² at 1°
+>    on the left sleeve, and 4.95 cm² → 1.65 cm² on the right. Backface-culled,
+>    the setting whose docstring says it matches what D3D9 draws, the **base**
+>    pack scores 182-212 cm² — so the test's "base is closed, slim is open"
+>    split is not something the measure supports.
+> 3. **Nothing was fixed to make this pass.** No test was loosened and no
+>    builder changed on 2026-11-13; the XFAIL entries are exactly as they were.
+>
+> `runtime_verified` stays `false` in both packs: the bytes in `dist/` have not
+> been seen in game, and only the owner running the game can change that. The
+> install matrix, the camera matrix and the pass/fail criteria are already
+> written down in [`christie-redo-checklist.md`](christie-redo-checklist.md).
 
 > **Correction, 2026-11-11.** This page said that both packs draw 16
 > out-of-bounds triangles from `s_body`. That was true of the bytes tracked on

@@ -40,6 +40,7 @@ game. This table does.
 | --- | --- | --- |
 | `Miranda_LAS`, `Miranda_Busty_LAS` | no record | — |
 | `Christie_LAS` | 2026-11-05, tested by the user: the headless outfit shows the heister's own head; the texture gloss was fixed by attenuating the diffuse alpha | no: the tracked zip comes from the later elbow, seam and normal rounds, and the record has no later sighting of the base pack |
+| `Christie_LAS`, `Christie_LAS_Slim` | 2026-11-13: **shipped from `dist/` by the owner's decision with D18 open**, not a sighting | no: nothing was installed or looked at that day; the re-acceptance and what it does and does not cover are in [the ingest audit](../audits/2026-11-13-christie-raw-ingest.md) §5 |
 | `Christie_LAS_Slim` | 2026-11-10, eight screenshots from the user | no: rebuilt on 2026-11-12 (tangent frames, the order of two triangles, `BUILD_INFO.json`) and on 2026-11-13 (one flag in `BUILD_INFO.json`); the screenshots show `7a4d010c…90a3e6f` |
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
