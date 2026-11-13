@@ -340,35 +340,31 @@ Rebuilding both packs today reproduced the committed bytes exactly (`fresh`,
 happened. There is no post-redo zip; the redo has produced analysis and two
 corrected claims, no geometry.
 
-### 5.6 The slim forearm is thinner than its own spec in places
+### 5.6 RETRACTED the same day: the slim forearm "wobble" is not a defect
 
-The repo's acceptance test measures the principal radius of **unblended** verts
-(pure weight > 0.99) in fixed mid-segment slices and lands on spec:
+An earlier version of this section claimed the slim forearm ran 0.760-0.934
+against a 0.80 +/- 0.02 spec, based on a p90 radius per 1 cm station computed
+from two different packs. **That measurement was wrong**, and the claim is
+withdrawn rather than quietly edited, because it is exactly the kind of number
+that gets quoted later.
 
-| bone (slices) | base r | slim r | ratio | spec |
-|---|---|---|---|---|
-| Arm 0.35-0.65 | 4.877 | 3.591 | 0.736 | 0.736 |
-| ForeArm L 0.30-0.55 | 2.930 | 2.302 | 0.786 | 0.80 |
-| ForeArm R 0.30-0.55 | 2.925 | 2.340 | 0.800 | 0.80 |
-| UpLeg / Leg | 6.60 / 4.67 | 5.94 / 4.21 | 0.900 | 0.90 |
+Why it was wrong: a p90 over a 1 cm band is taken over *different vertices* in
+the two packs — the band's membership changes — so the ratio it produces is not
+a per-vertex scaling at all. Measured properly, on the same indices before and
+after `slim_group` inside the real build, the pass does what its docstring says:
 
-Measured station by station instead (p90 radius of verts with >0.9 ForeArm
-weight, same frame, both packs), the forearm is outside the +/-0.02 band over
-most of its length — and in **both directions**:
+* against its own formula ``1 + f(t)*(s-1)`` with ``f`` the documented
+  ``_ring_fade``, the largest deviation over 560 forearm verts is **1.3 %**
+  (median 0.2-0.8 %);
+* away from the two fade zones, **0 of 227** left-forearm and **0 of 333**
+  right-forearm verts fall outside 0.80 +/- 0.02 (the 18 apparent exceptions on
+  the right are the bitwise-protected wrist ring at ratio exactly 1.000, which
+  is the documented behaviour).
 
-| t from elbow (cm) | 6 | 8 | 10 | 12 | 14 | 16 | 18 |
-|---|---|---|---|---|---|---|---|
-| base p90 | 6.17 | 4.93 | 4.91 | 4.97 | 4.39 | 5.15 | 5.35 |
-| slim p90 | 5.18 | 3.94 | 4.02 | 3.85 | 4.10 | 3.91 | 4.73 |
-| ratio | 0.840 | 0.800 | 0.818 | **0.774** | **0.934** | **0.760** | 0.883 |
-
-Both packs also dip at 8 cm (base 4.93 between 6.17 and 4.91) and peak at 18 cm
-— that shape is inherited, not created by slimming. What the slim pass adds is
-a sleeve that *wobbles* between 0.76 and 0.93 where the spec says 0.80 ± 0.02.
-
-**This is a candidate for the in-game "coarse" look on the sleeve and it is
-closable offline**, with the brake in `[DECISIONS.md](../pd2-las/DECISIONS.md)`:
-`slim_group` is pointwise per-vertex scaling about a per-segment axis, and the
-acceptance test only samples the slices it names, so a fix must be measured
-station by station in both directions, not on the test's two windows. Not
-attempted this pass.
+The apparent ramp toward 1.0 at 16-18 cm is the ``WRIST_RING_CM`` fade: the fix
+recorded on 2026-11-06 that stopped the sleeve pinching the cuff shut
+("trumpet" flare 2.27x vs the reference's 1.63x). Had it been "corrected" as
+proposed — forcing 0.80 to the mouth — the sleeve opening would have shrunk from
+4.73 cm to about 3.94 cm at t = 20 cm, against the spawned glove and the 2B
+reference's own 5-6 cm cuff. **The proposed fix would have introduced a real
+defect while removing an intentional one.** It was not applied.

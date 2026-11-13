@@ -7,13 +7,15 @@ Two records, no bytes changed.
   tools/ tests/` is empty. The rebuild reproduced them byte for byte, which is
   determinism, not a redo. Said plainly because it was nearly reported as "a
   new build shipped".
-* The slim forearm is outside its own 0.80 +/- 0.02 spec over most of its
-  length: 0.760 at 16 cm, 0.774 at 12 cm, 0.934 at 14 cm, in a frame both
-  packs share. Both packs dip at 8 cm and peak at 18 cm (inherited), so the
-  slim pass adds a wobble on top of an existing profile rather than creating
-  the dip. The repo's `test_slim_cross_section_ratios` passes because it samples
-  only two mid-segment windows where the ratio happens to hit 0.786 / 0.800.
-  Details and the table: ingest audit 5.5, 5.6.
+* ~~The slim forearm is outside its own 0.80 +/- 0.02 spec over most of its
+  length.~~ **Retracted the same day.** The station table behind that claim was
+  a p90 over a 1 cm band, i.e. a ratio between *different vertices* in the two
+  packs, not a per-vertex scaling. Measured on identical indices inside the
+  real build, `slim_group` matches its own formula to 1.3 % and has zero
+  verts outside 0.80 +/- 0.02 away from the two documented fade zones. The ramp
+  near the wrist is the 2026-11-06 `WRIST_RING_CM` trumpet fix; "correcting" it
+  would have shrunk the sleeve mouth from 4.73 to ~3.94 cm against the glove.
+  Nothing was changed. See ingest audit 5.6.
 
 ## 2026-11-13 (later) — the current Christie bytes ship with D18 open
 
