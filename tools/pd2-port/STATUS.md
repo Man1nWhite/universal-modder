@@ -12,8 +12,11 @@ README claimed that was not so is under [Corrections](#corrections).
 
 ## Released and tracked
 
-**There is no release.** The pack is the tracked `dist/lawson_las.zip`, stamped 0.1.2 and built at `15b0fbe`
-(2026-10-22); `make -sC tools/pd2-las status` prints its size and sha256.
+**There is no release.** The pack is the tracked `dist/lawson_las.zip`, stamped 0.1.2. Its models, textures,
+unit files, hook and menu strings are those built at `15b0fbe` (2026-10-22). On 2026-11-13 it was built
+again without `CREDITS.txt`, at the owner's direction (`docs/pd2-las/DECISIONS.md`, D34): that file and its
+line in the manifest went, and the other 28 files are byte for byte what they were.
+`make -sC tools/pd2-las status` prints its size and sha256.
 
 - **Deleted on 2026-11-13, at the owner's direction:** the pre-release `lawson-las-v2` of 2026-10-19 with its
   tag (→ `282703f`), the tag `lawson-las-v1` (→ `2b0b1b4`; its release was already gone) and the tag
@@ -37,7 +40,7 @@ README claimed that was not so is under [Corrections](#corrections).
 No record: nothing in the repository says that anyone saw `lawson_las` in the game, on any date, in any
 build. Two of the ten commit subjects speak of what showed in game ("lawson_las invisible unit", `2e73ef4`;
 "Fix in-game normal maps … across all 10 Miranda mods", `309fc0a`) without a report, a screenshot or the
-name of the pack that was looked at. `CREDITS.txt` in the pack says "Not game-verified".
+name of the pack that was looked at. `build_manifest.json` in the pack says `"runtime_verified": false`.
 
 ## Found and settled
 

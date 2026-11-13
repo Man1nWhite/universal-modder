@@ -2,10 +2,9 @@ build_las_pack._filter_hair_main_component 1 1f0d778df2b9b132 1f0d778df2b9b132 1
 build_las_pack._neck_skin_uv_island_mask 2 e83f44a7deaf46ba e83f44a7deaf46ba 1 ecc693fb87f56021
 build_las_pack._neck_skin_uv_island_mask.<locals>.find 42744 03655bc8b9a08bcf 03655bc8b9a08bcf 16 229dfb4fbf4fd221
 build_las_pack._prepare_diffuse_rgba 8 1eb6e14bfdf41698 1eb6e14bfdf41698 8 143b2c60f7af2e09
-build_las_pack.assemble 1 d58339f0424c6544 d58339f0424c6544 1 90fdd414c25160ac
+build_las_pack.assemble 1 003b13271f165aa8 003b13271f165aa8 1 30876bae3be3593c
 build_las_pack.atom_for 10 b2e089239c5ef37f de8220632d4145f0 10 3c2b09f613d4aacf
 build_las_pack.build_models 1 978c59f76bd2d09a 978c59f76bd2d09a 1 b9841c98562b003f
-build_las_pack.credits_txt 1 e5105d6b1fe9b61c e5105d6b1fe9b61c 1 c3d773798edb245c
 build_las_pack.encode_textures 1 0e063ed3e4683785 0e063ed3e4683785 1 4aa0e0d96106ce01
 build_las_pack.eye_uv_planar 1 6ca1c85328c5c721 45e923d961030354 1 dd65177cd605fb41
 build_las_pack.hook_lua 1 75160af27d4d4457 75160af27d4d4457 1 8cceadaab7f8052c
@@ -16,7 +15,7 @@ build_las_pack.main_xml 1 4f7017d1b78e72f0 4f7017d1b78e72f0 1 45eb41a25ff028ae
 build_las_pack.material_config 2 d5c0671f1d2a5ca8 d5c0671f1d2a5ca8 2 5e7e76b4f232a28b
 build_las_pack.object_xml 2 ee2dbf7c3886739c ee2dbf7c3886739c 2 bc7e74a0fb45c391
 build_las_pack.repair_rebound_skin_normals 1 1f0d778df2b9b132 1f0d778df2b9b132 1 1efe38c9a7d55f71
-build_las_pack.sha256 31 0ad8544ed746347d 0ad8544ed746347d 29 a39478d6d54c7a35
+build_las_pack.sha256 30 56266fd01ef01c6c 56266fd01ef01c6c 28 b7eefb68563c5974
 build_las_pack.subset_mesh 2 f30322336bfc474e b4b35c96b74808dd 2 33f10c5550d0bead
 build_las_pack.unit_xml 2 ba13812690739d0b ba13812690739d0b 2 766b140fdc3d56d7
 build_las_pack.validate 2 5293d644fe5b96f3 5293d644fe5b96f3 1 1efe38c9a7d55f71

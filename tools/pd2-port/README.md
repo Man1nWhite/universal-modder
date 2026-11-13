@@ -139,7 +139,8 @@ shipped port.
    (`LegendaryArmours.<id>` with `hide_mask` / `hide_armor` / `replace_all` /
    `fps_hide_armor` / `fps_replace_body`), localization, the TPP unit `<id>`
    and the FPS unit `fps_<id>` (arms cut by dominant bone), the DXT5
-   `.texture` pairs, `CREDITS.txt` and a hash manifest.
+   `.texture` pairs and `build_manifest.json` (version, status, the source
+   archive, a hash of every file).
 
 Shared format library: `dmodel.py`, the Diesel `.model` reader behind the
 checks and the rig extraction. The rig contract itself was produced once, by
@@ -153,8 +154,8 @@ checks and the rig extraction. The rig contract itself was produced once, by
 | `rig_target.py` | rig loading, weight smoothing, the harmonic-blend rebind, winding repair, the first-person arm cut, the generic per-segment branch of `target_ops` | `BONE_MAP` and the finger/face tokens (the source skeleton's joint names); the humanoid branch of `target_ops` (the source's facing, 1:1 scale, a hand-tuned arm pose) |
 | `las_model.py`, `dds.py`, `dmodel.py` | everything | — |
 | `reference/las_rig.json`, `extract_las_rig.py`, `resolve_rig_names.py` | everything | — |
-| `build_las_pack.py` | model, texture and pack assembly, validation, the deterministic zip | the constants at the top (source, texture slots, layout, identity), the text of the hook, `main.xml`, localization and credits, the mesh and texture fix-ups |
-| `check_guide_compliance.py` and its self-test | the guide's rules and the mutations | the pack paths and names they look under; the `N2` credits check and the `G1` warning text |
+| `build_las_pack.py` | model, texture and pack assembly, validation, the deterministic zip | the constants at the top (source, texture slots, layout, identity), the text of the hook, `main.xml` and localization, the mesh and texture fix-ups |
+| `check_guide_compliance.py` and its self-test | the guide's rules and the mutations | the pack paths and names they look under; the `G1` warning text |
 | `check_mesh_geometry.py`, `check_test_suite_mutations.py`, `check_all.py` | the analysis and the chain | the pack and model paths |
 | `preview_check.py`, `shade_check.py`, `check_nm_convention.py` | the gates, the rasterisers, the measurement | the source path constants, a few mesh and joint names, the normal-map verdict text |
 
@@ -207,8 +208,8 @@ character yet, so treat it as a map of what to touch, not as a tested recipe.
    and X in green. A source with X in red must not take that swap.
 7. **Name the pack.** `UNIT_DIR`, `GUI_DIR`, `ROOT_DIR` and `DEFAULT_OUT`,
    and the `lawson` literals in `hook_lua()`, `main_xml()`, `localization()`,
-   `credits_txt()`, `material_config()`, `encode_textures()` (the icon's file
-   name), `assemble()` and `validate()`. Then the same names where the checks
+   `material_config()`, `encode_textures()` (the icon's file name),
+   `assemble()` and `validate()`. Then the same names where the checks
    look for them: `check_guide_compliance.py` and its self-test,
    `check_mesh_geometry.py`, `check_test_suite_mutations.py` and the `--pack`
    default of `check_all.py`.
@@ -342,7 +343,8 @@ head packs over Joy.
   nothing is mirrored. A source with another facing or other side labels
   needs that checked before anything else.
 - Provenance: the shipped port's model and textures are ripped *Mass Effect 2*
-  assets and `2b.rar` is a third-party reference. `CREDITS.txt` in the pack
-  names both and says what the pack is: a non-commercial fan derivative.
+  assets and `2b.rar` is a third-party reference. The pack names its source
+  archive in `build_manifest.json` and ships no credits file
+  (`docs/pd2-las/DECISIONS.md`, D34).
 - No cooked-physics payloads are shipped; BeardLib's `unit_mat` registration
   supplies its default.

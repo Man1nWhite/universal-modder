@@ -448,6 +448,7 @@ NEW_STATUS = "moved to tools/pd2-port/STATUS.md"
 NOT_RELEASED = ("the release served the build of 282703f, ten rebuilds before the tracked pack, until it was deleted on 2026-11-13 "
                 "(tools/pd2-port/STATUS.md)")
 NO_RESTRICTION = "the owner said on 2026-11-13 that no pack has that restriction (docs/pd2-las/DECISIONS.md, D32)"
+NO_CREDITS = "the owner had CREDITS.txt taken out of the pack on 2026-11-13 (docs/pd2-las/DECISIONS.md, D34)"
 # old file -> (first line, last line, what became of the lines in that range), on the base commit's numbering
 LEDGER = {
     "AGENTS.md": [
@@ -497,10 +498,13 @@ LEDGER = {
         (22, 23, PORT + "; \"published by the release workflow\" corrected: " + NOT_RELEASED),
         (34, 43, PORT + ": STATUS.md is the dated record now; \"Its pack facts are pinned by tests\" went with that test"),
         (45, 54, PORT),
-        (64, 66, PORT + "; \"published as the release asset\" and \"v1 kept for comparison\" dropped: " + NOT_RELEASED + ", and there never was a v1 release"),
+        (64, 66, PORT + "; \"published as the release asset\" and \"v1 kept for comparison\" dropped: " + NOT_RELEASED + ", and the v1 release was gone"),
         (89, 94, PORT + "; \"default 0.1.2\" dropped: `VERSION` in build_las_pack.py holds it"),
         (97, 114, PORT + ", one line per command; \"(16 mutations)\" dropped: check_all.py --full prints the count"),
         (119, 122, PORT + "; \"exactly what the release serves\" dropped: " + NOT_RELEASED + "; the two pinned versions dropped: tools/pd2-las/pins.txt is the one place they are written"),
+        (154, 154, PORT + "; `CREDITS.txt` dropped: " + NO_CREDITS),
+        (168, 169, PORT + "; \"and credits\" and the `N2` credits check dropped: " + NO_CREDITS),
+        (222, 223, PORT + "; `credits_txt()` dropped: " + NO_CREDITS),
         (254, 256, "dropped: check_all.py prints the counts"),
         (257, 257, "moved to tools/pd2-port/STATUS.md, \"Found and settled\" (the green channel)"),
         (262, 264, PORT + "; \"16/16\" dropped: check_all.py --full prints it"),

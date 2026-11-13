@@ -689,10 +689,11 @@ class TestSourceIntegration:
             f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.UNIT_DIR}/lawson.model",
             f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.UNIT_DIR}/fps_lawson.model",
             f"{build.ROOT_DIR}/{build.ASSET_DIR}/{build.GUI_DIR}/lawson.texture",
-            f"{build.ROOT_DIR}/CREDITS.txt",
         ):
             assert required in names, required
         assert not any(n.endswith(".cooked_physics") for n in names)
+        # The owner had the credits file taken out on 2026-11-13 (docs/pd2-las/DECISIONS.md, D34).
+        assert not [n for n in names if "credits" in n.lower()], "the pack ships no credits file"
 
     def test_validation_passes(self, built):
         build, scene, rig, files = built

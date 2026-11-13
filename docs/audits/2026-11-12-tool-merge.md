@@ -419,3 +419,24 @@ that returns something else; 26 of 26 tools give what they gave
 ([`2026-11-13-agent-entry/deleted/copies-after.txt`](2026-11-13-agent-entry/deleted/copies-after.txt)).
 `MODEL_TESTS` and `SWAPS` in `copies.py` still name test files that are gone from the tree: `compare` runs
 them in a worktree of `26fce3e`, where they are.
+
+## 2026-11-13: `lawson_las` built again without its credits file, and the reference follows
+
+The owner had `CREDITS.txt` taken out of `lawson_las` (`docs/pd2-las/DECISIONS.md`, D34). The pack was built
+again on purpose, so `copies.py after` gave exit 1: 22 of 26 outputs, and two traced functions of the Lawson
+builder that return something else. Each difference was held against the reference before the reference was
+changed.
+
+| Entry | Was, is | How it was checked |
+| --- | --- | --- |
+| `outputs.status` | another size and sha256 for `lawson_las` | the new text with the old size and hash put back has the recorded checksum |
+| `outputs.check_guide_compliance` | 123 lines, 120: the three lines of check `N2` are gone and the summary counts 37 passes for 38 | the checker of `4e15ed6` on the pack of `4e15ed6` prints the recorded text; `diff` against the new one shows those four lines and no other |
+| `outputs.check_guide_compliance_self_test` | "(39 checks)", "(38 checks)" | the new text with 39 put back has the recorded checksum |
+| `outputs.check_test_suite_mutations` | prints the same; the pack it writes has the new sha256 | the recorded text is unchanged |
+| `trace/lawson.txt`, `build_las_pack.credits_txt` | gone | the function is deleted |
+| `trace/lawson.txt`, `build_las_pack.assemble` | returns the pack's files, one fewer | the 28 files left are byte for byte the old ones ([`pack-diff.txt`](2026-11-13-agent-entry/answers/pack-diff.txt)) |
+| `trace/lawson.txt`, `build_las_pack.sha256` | called 30 times, was 31; 28 different values, were 29 | the 28 values, with the new zip's hash taken out and the hashes of the old zip and of the old `CREDITS.txt` put in, have the recorded checksum of the 29 |
+
+The last row says that every hash the builder computes, of its source archive and of each of the 28 files, is
+the one it computed at `26fce3e`. `trace.functions.lawson` counts 143 for 144. Nothing else in the reference
+was touched, and with these entries recorded again `copies.py after recheck` gives 26 of 26 and exit 0.

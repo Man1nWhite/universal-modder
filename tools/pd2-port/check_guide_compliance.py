@@ -13,10 +13,9 @@ The rules are the guide's and hold for any outfit pack this pipeline builds.
 Where the audit looks inside a pack is configuration, and it is the shipped
 port's (Miranda Lawson, Mass Effect 2): ``DEFAULT_PACK``, ``UNIT_DIR`` and the
 ``Lawson_LAS/`` and ``lawson`` names in ``audit()``, ``check_packaging()`` and
-``check_notes()``. Two checks also speak about that port's source: ``N2``
-looks for its game's name in the credits, and the ``G1`` warning states its
-normal maps' provenance. Auditing another character's pack means changing
-those together with the builder's names.
+``check_notes()``. One check also speaks about that port's source: the ``G1``
+warning states its normal maps' provenance. Auditing another character's pack
+means changing those together with the builder's names.
 
 Usage:
     python tools/pd2-port/check_guide_compliance.py            # dist/lawson_las.zip
@@ -791,7 +790,11 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
 
 
 def check_notes(rep: Report, pack: dict[str, bytes]) -> None:
-    """The manifest and the credits must state the pack's real status."""
+    """The manifest must state the pack's real status.
+
+    There was a check ``N2`` for a ``CREDITS.txt``; the pack ships none since
+    2026-11-13 (docs/pd2-las/DECISIONS.md, D34).
+    """
     try:
         man = json.loads(pack["Lawson_LAS/build_manifest.json"])
     except Exception:
@@ -805,14 +808,6 @@ def check_notes(rep: Report, pack: dict[str, bytes]) -> None:
     else:
         rep.warn("N1", "guide: nothing - but a shipped pack should say what it is",
                  "the manifest does not state the verification status")
-    credits = pack.get("Lawson_LAS/CREDITS.txt", b"").decode()
-    if "Mass Effect" in credits and ("rights" in credits.lower()
-                                     or "licens" in credits.lower()):
-        rep.ok("N2", "guide: nothing - but a shipped pack must credit its sources",
-               "CREDITS.txt names the source and the rights position")
-    else:
-        rep.warn("N2", "guide: nothing - but a shipped pack must credit its sources",
-                 "CREDITS.txt does not state the source and rights position")
 
 
 # ------------------------------------------------------------------- driver

@@ -1311,3 +1311,37 @@
   `b3b6966`). There had been one: the release workflow ran on that tag six times on 2026-10-19 and its
   publish step succeeded in five, as the entry of that day above says. By 2026-11-13 it was gone; nothing
   here records who took it down or when. `STATUS.md` says so now.
+
+## 2026-11-13 (afternoon) — `lawson_las` built again without `CREDITS.txt`
+
+- **Asked:** the report of the deletions ended with a question: `CREDITS.txt` in the pack still said "no
+  redistribution permission is claimed", against D32, and changing it means building the pack again. The
+  owner: "CREDITS - remove". Read as: the file goes, not only the sentence. The decision is D34.
+- **Builder:** `build_las_pack.py` loses `credits_txt()` and the member `Lawson_LAS/CREDITS.txt`, and the
+  comment above `STATUS` loses "not cleared for commercial redistribution". `check_guide_compliance.py` loses
+  check `N2`, which looked for the file: 38 checks where there were 39.
+  `test_pack_layout_matches_2b_contract` now fails on a pack with a credits file.
+- **Pack:** `make -sC tools/pd2-las lawson`, then the sidecar by hand (the builder does not write it).
+
+  | | Bytes | sha256 | Files |
+  | --- | --- | --- | --- |
+  | before, as tracked at `4e15ed6` | 9,123,392 | `9c8a28368862…` | 30 |
+  | after | 9,122,766 | `69e0f898c909…` | 29 |
+
+  Only `CREDITS.txt` (787 B) is gone. The other 28 files are byte for byte what they were, in the same order,
+  with the same dates and modes, and `build_manifest.json` lost its line for the file and nothing else
+  (`docs/audits/2026-11-13-agent-entry/answers/pack-diff.txt`). The version stays 0.1.2: it moves with a
+  release, and there is none.
+- **What the file said**, since the pack no longer does (`git show 4e15ed6:tools/pd2-port/build_las_pack.py`,
+  `credits_txt()`): the model and textures are ripped from Mass Effect 2 (BioWare/EA) and came through The
+  Models Resource; the layout follows the 2B reference pack; not affiliated with either publisher; "an
+  unlicensed, non-commercial fan derivative and no redistribution permission is claimed"; "Not
+  game-verified". Of these the pack keeps two: the manifest names the source archive with its sha256 and says
+  `"runtime_verified": false`.
+- **The recorded tools:** `copies.py after` gave exit 1, as after any pack built again on purpose: four of 26
+  recorded outputs and two traced functions of the builder gave something else, each by exactly this change.
+  Recorded again; which entries, and how each was checked, is the last section of
+  `docs/audits/2026-11-12-tool-merge.md`.
+- `um publish check` on the unpacked pack gives the same one warning before and after, "no README". It reads
+  a credits file only where a `fal_manifest.jsonl` lists generated assets, and the pack has none.
+- **Not done:** nothing in game, as before. No release: the next one is still `lawson-las-v3`.

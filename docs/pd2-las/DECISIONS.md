@@ -756,7 +756,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   the day after.
 - **Not changed:** `CREDITS.txt` inside `lawson_las.zip` says "no redistribution permission is claimed"; it
   names the sources and is part of the tracked bytes, so changing it is a rebuild of the pack. The comment
-  above `STATUS` in `tools/pd2-port/build_las_pack.py`, which writes that file, says the same. The rules
+  above `STATUS` in `tools/pd2-port/build_las_pack.py`, which writes that file, says the same. (Both went
+  later that day: D34.) The rules
   under "What you ship" in `AGENTS.md` and in the skills are upstream's, for game files an agent extracts
   while modding any game; they stay. Publishing is still asked of the owner first, like any publishing.
 - **Source:** the user, 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`
@@ -795,4 +796,24 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Where it is:** `git show 19ca55a:<path>` has every deleted file as it last was on `main`. What the port
   taught is in `knowledge/games/payday-2/las-moog-outfit-porting.md`.
 - **Source:** the user, 2026-11-13; `tools/pd2-las/MODLOG.md`
+- **Status:** holds.
+
+### D34 — `lawson_las` ships no `CREDITS.txt`
+
+- **Decided:** 2026-11-13, by the user ("CREDITS - remove", asked whether its wording should change). Read
+  as: the whole file goes, not only its sentence about redistribution.
+- **Decision:** `tools/pd2-port/build_las_pack.py` no longer writes `Lawson_LAS/CREDITS.txt`, and the pack
+  was built again without it. `check_guide_compliance.py` lost check `N2`, which looked for that file, and
+  the comment above `STATUS` in the builder lost "not cleared for commercial redistribution".
+- **Why:** the file said "this is an unlicensed, non-commercial fan derivative and no redistribution
+  permission is claimed". It was the last place where a pack carried the restriction D32 removed. No other
+  tracked pack has such a file.
+- **What the pack still says of itself:** `build_manifest.json` names the source archive with its sha256 and
+  says `"runtime_verified": false`; the menu description says "Mass Effect 2 outfit". Where the model comes
+  from is under "Status and limits" in `tools/pd2-port/README.md`.
+- **Consequence:** the tracked pack has 29 files where it had 30. The 28 others are byte for byte what they
+  were, and the manifest lost one line. The version stays 0.1.2: `VERSION` moves with a release ("Publish a
+  release" in `tools/pd2-port/README.md`), and there is none.
+- **Held to:** `test_pack_layout_matches_2b_contract` fails when the builder writes a credits file again.
+- **Source:** the user, 2026-11-13; `tools/pd2-port/MODLOG.md`
 - **Status:** holds.

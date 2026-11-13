@@ -156,4 +156,8 @@ sed -i 's/^    targets = dict(mats)$/    targets = {"jacket": -2.5, "skin": -2.2
 git diff --quiet -- tools/pd2-las/build_models.py && echo "(14 did not apply: extend_sleeves_to_wrist reads otherwise now)"
 run "14 default sleeve targets for the materials of the cancelled outfit, back in extend_sleeves_to_wrist" "$sleeves"
 
+sed -i 's|^    files\[f"{ROOT_DIR}/main.xml"\] = main_xml().encode()$|&\n    files[f"{ROOT_DIR}/CREDITS.txt"] = b"credits"|' tools/pd2-port/build_las_pack.py
+git diff --quiet -- tools/pd2-port/build_las_pack.py && echo "(15 did not apply: assemble in build_las_pack.py reads otherwise now)"
+run "15 a credits file written into lawson_las again" "tests/test_las_pack.py::TestSourceIntegration::test_pack_layout_matches_2b_contract"
+
 cd "$repo" && git worktree remove --force "$work"

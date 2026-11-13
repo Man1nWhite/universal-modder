@@ -15,7 +15,7 @@ Legendary Armour Skins contract. With ``<id>`` standing for the outfit's id:
 - DXT5 ``.texture`` pairs with full mip pyramids (``dds.py``);
 - DODB ``.model`` files authored by ``las_model.py`` from the retargeted source
   skin (``rig_target.py``, rig contract in ``reference/las_rig.json``);
-- ``CREDITS.txt`` and ``build_manifest.json`` (version, status, file hashes).
+- ``build_manifest.json`` (version, status, the source archive, file hashes).
 
 Unlike the retired character-swap route there is no external ``pd2-work``
 workspace: everything is derived from the tracked source archive and the
@@ -41,8 +41,8 @@ the set of constants and helpers in this file plus the joint map in
   -> drawable, material, render template and texture base name;
 - ``UNIT_DIR`` / ``GUI_DIR`` / ``ROOT_DIR`` / ``DEFAULT_OUT`` and the
   ``lawson`` literals in ``hook_lua()``, ``main_xml()``, ``localization()``,
-  ``credits_txt()``, ``material_config()``, ``encode_textures()`` (the icon's
-  file name), ``assemble()`` and ``validate()``: the pack's identity;
+  ``material_config()``, ``encode_textures()`` (the icon's file name),
+  ``assemble()`` and ``validate()``: the pack's identity;
 - the fix-ups: ``eye_uv_planar``, ``repair_rebound_skin_normals``,
   ``_filter_hair_main_component``, the collar snap in ``build_models`` and
   the ``face`` / ``eyes`` branches of ``_prepare_diffuse_rgba`` and
@@ -100,9 +100,8 @@ GUI_DIR = "guis/dlcs/lawson/armor_skins"
 ASSET_DIR = "assets"
 ROOT_DIR = "Lawson_LAS"
 VERSION = "0.1.2"
-# A port of ripped game assets is an unlicensed fan derivative (the shipped
-# one is, of Mass Effect 2): offline validated, not game-verified, not
-# cleared for commercial redistribution.
+# What the manifest says of the pack: built and checked offline, never
+# recorded in the game.
 STATUS = "experimental - offline validated, not game-verified"
 
 # Source mesh name -> (diffuse png, normal png or "__flat__" or None, file
@@ -845,9 +844,10 @@ def object_xml(unit_base: str, drawables: list[str]) -> str:
 
 # ---------------------------------------------------------------------------
 # Pack text files. unit_xml() and object_xml() above take the unit name as an
-# argument; hook_lua(), main_xml(), localization() and credits_txt() below
-# spell out the outfit id, the menu strings and the provenance of the shipped
-# port. Their output goes into the byte-pinned pack, so for another character
+# argument; hook_lua(), main_xml() and localization() below spell out the
+# outfit id and the menu strings of the shipped port. The pack has no credits
+# file (docs/pd2-las/DECISIONS.md, D34); build_manifest.json names the source
+# archive. Their output goes into the byte-pinned pack, so for another character
 # change them together with UNIT_DIR / GUI_DIR / ROOT_DIR and the names in
 # assemble() and validate().
 # ---------------------------------------------------------------------------
@@ -911,26 +911,6 @@ def localization() -> str:
     }, indent=2) + "\n"
 
 
-def credits_txt() -> str:
-    return (
-        "Miranda Lawson LAS outfit (experimental, unlicensed fan derivative)\n"
-        "====================================================================\n"
-        "\n"
-        "3D model and textures: ripped from Mass Effect 2 (BioWare/EA), supplied\n"
-        "via The Models Resource as 'PC / Computer - Mass Effect 2 - Non-Playable\n"
-        "Characters - Miranda Lawson (Romance)'. Registration/layout follows the\n"
-        "user-supplied 2B Legendary Armour Skins reference pack (2b.rar).\n"
-        "\n"
-        "Not affiliated with or endorsed by BioWare/EA or Supermassive Games.\n"
-        "The model, the textures and the reference pack are not ours to license:\n"
-        "this is an unlicensed, non-commercial fan derivative and no\n"
-        "redistribution permission is claimed. The original artists and\n"
-        "publishers keep all rights to their work.\n"
-        "\n"
-        "Not game-verified. Build: tools/pd2-port/build_las_pack.py\n"
-    )
-
-
 def assemble(scene, rig, source: dict[str, bytes], invert_nm_y: bool = True,
              log=print) -> dict[str, bytes]:
     tpp_res, fps_res = build_models(scene, rig, log)
@@ -962,7 +942,6 @@ def assemble(scene, rig, source: dict[str, bytes], invert_nm_y: bool = True,
     files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model"] = fps_res.data
     for path, data in textures.items():
         files[f"{ROOT_DIR}/{ASSET_DIR}/{path}"] = data
-    files[f"{ROOT_DIR}/CREDITS.txt"] = credits_txt().encode()
     return files
 
 
