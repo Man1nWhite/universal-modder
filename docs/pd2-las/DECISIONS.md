@@ -766,7 +766,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 ### D33 — What is stale is deleted, not kept for later
 
 - **Decided:** 2026-11-13, by the user ("Delete stale things"; which ones was asked and answered that day)
-- **Decision:** four kinds of leftover went.
+- **Decision:** five kinds of leftover went.
   - **The code of the cancelled Skyrim outfit** (D13 had kept it): `tools/skyrim-nif/` and its five pages
     under `docs/skyrim-nif/`; `build_skyrim_outfit.py`, `skyrim_materials.py`, `skyrim_retarget.py`,
     `skyrim_source.py`, `skin_texture.py` and `decimate.py` in `tools/pd2-las/`; the outfit's own
@@ -782,6 +782,20 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   - **Sixteen branches on GitHub**, fifteen of them merged session branches: `tools/pd2-port/MODLOG.md`.
   - **Five renders no page showed:** `docs/audits/2026-11-09-neck-arm/`. The one page that showed them,
     a repair plan, was deleted on 2026-11-10 (`0a76215`).
+  - **Ten functions that nothing ran**, in modules that stay: `chest_extent` (`bust_variant.py`);
+    `rgba_to_bgra_dds`, `set_dxt5_constant_alpha`, `attenuate_dxt5_alpha_by_block_mask` (`dds_encode.py`);
+    `mat_apply_vec`, `mat_from_pos_rot_rows` (`diesel_model.py`); `_axis_to_camera`
+    (`render_mesh_skeleton.py`); `repair_dxt5_texture`, `_encode_block`, `_rgb565` (`tools/pd2-port/dds.py`).
+    Asked whether they should go, the owner answered with a question: "Are you sure they are not used?
+    maybe it's the starting .py". So this item rests on the instruction above and on a measurement, not on
+    a word of the owner about these ten. Each name stood in the repository once, at its own definition
+    (`_rgb565` also in `_encode_block`); under line coverage no test, no build of the 16 packs, none of the
+    26 recorded tools and no start of the five files ran a line of them; four had been called by the tools
+    of October and lost those calls by 2026-10-21, one served only one of those four, and five never had a
+    caller. The measurement and the history: `docs/audits/2026-11-13-agent-entry/answers/`. Two functions
+    the same measurement did not see run were kept, because live code names them: `render_source`
+    (`render_mesh_skeleton.py --source`) and `diesel_model.compute_uv_directions` (the branch of
+    `build_models.py` for a mesh without normals). `git checkout 4e15ed6 -- <file>` brings a file back.
 - **Why:** a tool that cannot run and a test that can only skip look like coverage and are none: 21 of the
   suite's 29 skips were tests waiting for the outfit's archive, removed on 2026-11-05, or for its pack.
   A release that serves an older build under the same version number tells an installer the wrong thing.
@@ -792,7 +806,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   sat in the outfit's test files were kept and now run on what exists: `tests/test_las_outfit_pack.py`,
   `tests/test_build_models.py`, and `tests/test_glove_adapter.py` with `tests/test_glove_behavior_lua.py`
   on `Christie_LAS_Slim`, the pack that ships the glove adapter.
-- **Held to:** no tracked pack moved by a byte (`make -sC tools/pd2-las fresh`).
+- **Held to:** no tracked pack moved by a byte (`make -sC tools/pd2-las fresh`), after the outfit's code
+  went and again after the ten functions went.
 - **Where it is:** `git show 19ca55a:<path>` has every deleted file as it last was on `main`. What the port
   taught is in `knowledge/games/payday-2/las-moog-outfit-porting.md`.
 - **Source:** the user, 2026-11-13; `tools/pd2-las/MODLOG.md`

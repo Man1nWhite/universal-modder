@@ -683,3 +683,41 @@
   are out of the reference (`docs/audits/2026-11-12-tool-merge.md`, last section).
 - Everything is in history: `git show 19ca55a:<path>`, or `git checkout 19ca55a -- <path>` to bring a file
   back.
+
+## 2026-11-13 (afternoon) — ten functions that nothing ran are deleted
+
+- **Asked:** the report of the deletions listed ten functions that no file names outside their own module,
+  and asked whether they should go. The owner: "Are you sure they are not used? maybe it's the starting .py".
+  The list had been made by searching for names, which cannot answer that. So it was measured.
+- **Measured on `4e15ed6`, before anything was deleted** (`docs/audits/2026-11-13-agent-entry/reach.py`, a
+  new tool; its output is `answers/reach-before.txt` beside it). The five modules were under line coverage in
+  every Python process, while the suite ran (698 passed), every tracked pack was built again (16 of 16 the
+  tracked bytes), each of the 26 tools with a recorded output was started, and each of the five files was
+  started on its own, with no argument and with `--help`. No line of the ten ran.
+- **The starting .py:** of the five files only `render_mesh_skeleton.py` is a command. The other four have no
+  `__main__` and are imported. No Makefile, workflow or shell script starts any of the five.
+- **Names:** outside `docs/audits/`, each name stood in the repository once, at its own `def`; `_rgb565` also
+  in `_encode_block`, its only caller. `examples/aoe2-de-civ/sld.py` has a function of its own called
+  `_rgb565` and imports nothing from here. Upstream has no `tools/` directory.
+- **History** (`answers/history.txt`, every line ever added or removed that names one):
+
+  | Function | File | Added | Its callers |
+  | --- | --- | --- | --- |
+  | `chest_extent` | `bust_variant.py` | `73fbc85`, 2026-11-04 | never one |
+  | `rgba_to_bgra_dds` | `dds_encode.py` | `abd7219`, 2026-10-18 | never one |
+  | `set_dxt5_constant_alpha` | `dds_encode.py` | `34eedeb`, 2026-10-19 | `build_las.py`, until `d94e9c3` (2026-10-21) |
+  | `attenuate_dxt5_alpha_by_block_mask` | `dds_encode.py` | `ce4f844`, 2026-11-06 | never one |
+  | `mat_apply_vec` | `diesel_model.py` | `51bc8d9`, 2026-10-18 | `build_models.py`, until `219a8a4` (2026-10-20) |
+  | `mat_from_pos_rot_rows` | `diesel_model.py` | `51bc8d9`, 2026-10-18 | never one |
+  | `_axis_to_camera` | `render_mesh_skeleton.py` | `eb4f77d`, 2026-11-06 | never one |
+  | `repair_dxt5_texture` | `tools/pd2-port/dds.py` | `02dded4`, 2026-10-18 | `repair_skin_palettes.py` and its test, retired the same day (`62cdb5d`) |
+  | `_encode_block` | `tools/pd2-port/dds.py` | `02dded4`, 2026-10-18 | inside `dds.py`, until `34eedeb` (2026-10-19) |
+  | `_rgb565` | `tools/pd2-port/dds.py` | `02dded4`, 2026-10-18 | `_encode_block` only |
+
+- **Deleted:** the ten, 163 lines with the blank lines around them. Nothing else in the five files changed.
+  The owner's word on these ten is the question; they went on "Delete stale things" (D33) and on the
+  measurement.
+- **Kept, though the same run saw neither run:** `render_source` in `render_mesh_skeleton.py`, which `main`
+  calls under `--source`, and `diesel_model.compute_uv_directions`, which `build_models.py` calls for a mesh
+  group that comes without normals. Something names them; no test and no tracked input exercises them.
+- Bring a function back: `git checkout 4e15ed6 -- <file>` restores the file as it was.

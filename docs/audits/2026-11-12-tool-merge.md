@@ -440,3 +440,9 @@ changed.
 The last row says that every hash the builder computes, of its source archive and of each of the 28 files, is
 the one it computed at `26fce3e`. `trace.functions.lawson` counts 143 for 144. Nothing else in the reference
 was touched, and with these entries recorded again `copies.py after recheck` gives 26 of 26 and exit 0.
+
+The same day ten functions were deleted from `dds_encode.py`, `diesel_model.py`, `tools/pd2-port/dds.py`,
+`bust_variant.py` and `render_mesh_skeleton.py` (D33, last item). Eight of them stand in `reach` of
+`reference.json` and in `record.txt` under "neither", for the three of those files that were measured here:
+that record of `26fce3e` is left as it was taken. On the run above, which had both changes in the tree, the
+five other builders' reports are line for line what they were: no function returns something else.

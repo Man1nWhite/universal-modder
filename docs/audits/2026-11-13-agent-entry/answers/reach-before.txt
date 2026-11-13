@@ -1,0 +1,68 @@
+--- .venv/bin/python docs/audits/2026-11-13-agent-entry/reach.py tools/pd2-las/bust_variant.py tools/pd2-las/dds_encode.py tools/pd2-las/diesel_model.py tools/pd2-las/render_mesh_skeleton.py tools/pd2-port/dds.py
+--- on 4e15ed6, before the ten functions were deleted. The table at the end was printed again with --report: the first
+--- run stopped while reading its data, on a file pattern that is corrected since.
+commit: 4e15ed6
+   not committed: ?? docs/audits/2026-11-13-agent-entry/reach.py
+suite
+   pytest -q tests                    exit 0   698 passed, 8 skipped, 2 xfailed, 1 warning in 200.69s (0:03:20)
+builds
+   fresh.py check                     exit 0   16 of 16 tracked zips are the tracked bytes after a fresh build
+tools (26)
+   status                             exit 0   }
+   extract_2b                         exit 0   templates already extracted: build/reach/tree/build/pd2-las/2b
+   inventory                          exit 0   }
+   mip_audit                          exit 0   Every level meets its limits, except the 9 misses listed in KNOWN_MISSES.
+   audit_metrics                      exit 0   Christie slim            7603  12767     34094       374      5.55   468 ( 6.2%)        95
+   diagnose_mesh                      exit 0   hand-weighted verts > 0.5: 0, > 0.0: 253, max 0.40
+   elbow_before_after                 exit 0   wrote build/reach/scratch/elbow/christie_elbow_bend_before_aft
+   glove_check                        exit 0   -> build/reach/scratch/glove.png
+   neck_junction                      exit 0      see-through      0.0 % of the throat window
+   render_mesh_skeleton               exit 0   wrote build/reach/scratch/skeleton/christie_forearm_side.png (
+   uv_check                           exit 1   wrote uvcheck_2b_g_body_iso.png (g_body: 35260 tris)
+   check_guide_compliance             exit 0   summary: 38 pass, 1 warn, 0 fail
+   check_guide_compliance_miranda     exit 1   
+   check_guide_compliance_christie    exit 1   
+   check_mesh_geometry                exit 0   summary: 20677 triangles, 0 inverted, 0 degenerate
+   check_mesh_geometry_miranda        exit 1   
+   check_mesh_geometry_christie       exit 1   
+   check_nm_convention                exit 0   VERDICT: the source is DirectX-style (Y-); the default build inverts the green channel, wh
+   check_test_suite_mutations         exit 0   5/5 pack-level test mutations caught
+   check_guide_compliance_self_test   exit 0   16/16 mutations detected
+   extract_las_rig                    exit 0   wrote build/reach/scratch/rig.json: 212 object3Ds (25 named), 
+   resolve_rig_names                  exit 0   (dry run - pass --apply to write)
+   preview_check                      exit 0   RESULT: OK
+   render_mod_previews                exit 0   Saved build/reach/tree/docs/previews/00_all_miranda_mods_overv
+   um_kb_check                        exit 0   PASS: 247 notes checked
+   um_publish_check                   exit 0   WARN: 993 files, 0 failures, 2 warnings
+start
+   bust_variant.py                    exit 0   
+   bust_variant.py --help             exit 0   
+   dds_encode.py                      exit 0   
+   dds_encode.py --help               exit 0   
+   diesel_model.py                    exit 0   
+   diesel_model.py --help             exit 0   
+   render_mesh_skeleton.py            exit 2   
+   render_mesh_skeleton.py --help     exit 0                           identity, older packs straighten their 72 deg bind
+   dds.py                             exit 0   
+   dds.py --help                      exit 0   
+
+tools/pd2-las/bust_variant.py: 43 functions; run by suite 42, builds 41, tools 0, start 0; by none 1
+   not run by anything: chest_extent (line 1165)
+tools/pd2-las/dds_encode.py: 23 functions; run by suite 18, builds 20, tools 15, start 0; by none 3
+   not run by anything: rgba_to_bgra_dds (line 323)
+   not run by anything: set_dxt5_constant_alpha (line 398)
+   not run by anything: attenuate_dxt5_alpha_by_block_mask (line 436)
+tools/pd2-las/diesel_model.py: 38 functions; run by suite 34, builds 34, tools 20, start 0; by none 4
+   not run by anything: mat_apply_vec (line 211)
+   not run by anything: mat_from_pos_rot_rows (line 219)
+   not run by anything: compute_uv_directions (line 633)
+   not run by anything: compute_uv_directions.norm (line 653)
+tools/pd2-las/render_mesh_skeleton.py: 20 functions; run by suite 13, builds 8, tools 18, start 1; by none 2
+   not run by anything: _axis_to_camera (line 114)
+   not run by anything: render_source (line 550)
+tools/pd2-port/dds.py: 22 functions; run by suite 19, builds 17, tools 12, start 0; by none 3
+   not run by anything: _rgb565 (line 46)
+   not run by anything: _encode_block (line 93)
+   not run by anything: repair_dxt5_texture (line 470)
+
+13 functions in 5 files were run by no test, no build, no tool and no start of the file

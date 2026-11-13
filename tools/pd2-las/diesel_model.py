@@ -208,22 +208,6 @@ def mat_apply_point(m: Mat, p):
             x * m[2] + y * m[6] + z * m[10] + m[14])
 
 
-def mat_apply_vec(m: Mat, v):
-    """Apply only the 3x3 part (rotation/scale) — for normals/directions."""
-    x, y, z = v
-    return (x * m[0] + y * m[4] + z * m[8],
-            x * m[1] + y * m[5] + z * m[9],
-            x * m[2] + y * m[6] + z * m[10])
-
-
-def mat_from_pos_rot_rows(rows3, pos) -> Mat:
-    """Build a matrix from three 3-float rows plus translation."""
-    return (rows3[0][0], rows3[0][1], rows3[0][2], 0.0,
-            rows3[1][0], rows3[1][1], rows3[1][2], 0.0,
-            rows3[2][0], rows3[2][1], rows3[2][2], 0.0,
-            pos[0], pos[1], pos[2], 1.0)
-
-
 # ---------------------------------------------------------------- sections
 
 @dataclass

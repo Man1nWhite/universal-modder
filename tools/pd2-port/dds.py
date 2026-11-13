@@ -43,11 +43,6 @@ def mip_count_for(size: int) -> int:
     return size.bit_length()
 
 
-def _rgb565(rgb):
-    r, g, b = int(rgb[0]), int(rgb[1]), int(rgb[2])
-    return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
-
-
 def _expand565(v):
     return (
         ((v >> 11) & 31) * 255 // 31,
@@ -88,47 +83,6 @@ def _decode_block(block: bytes, force_4color: bool = True) -> list[tuple[int, in
         alpha = pal_a[ai]
         out.append((col[0], col[1], col[2], alpha))
     return out
-
-
-def _encode_block(pixels) -> bytes:
-    """Encode 16 RGBA tuples (row-major 4x4) to a DXT5 block with c0 >= c1."""
-    alpha = [p[3] for p in pixels]
-    rgb = [p[:3] for p in pixels]
-    a0 = max(alpha)
-    a1 = min(alpha)
-    if a0 == a1:
-        ab = bytes([a0, a1]) + b"\x00" * 6
-    else:
-        pal = [a0, a1] + [((7 - i) * a0 + i * a1) // 7 for i in range(1, 7)]
-        bits = 0
-        for px, a in enumerate(alpha):
-            best = min(range(8), key=lambda k: abs(a - pal[k]))
-            bits |= best << (3 * px)
-        ab = bytes([a0, a1]) + bits.to_bytes(6, "little")
-    sums = [c[0] + c[1] + c[2] for c in rgb]
-    i0 = sums.index(max(sums))
-    i1 = max(range(16), key=lambda k: sum((rgb[k][i] - rgb[i0][i]) ** 2 for i in range(3)))
-    e0 = _rgb565(rgb[i0])
-    e1 = _rgb565(rgb[i1])
-    if e0 < e1:
-        e0, e1 = e1, e0
-    if e0 == e1:
-        cb = struct.pack("<HH", e0, e1) + b"\x00" * 4
-    else:
-        c0 = _expand565(e0)
-        c1 = _expand565(e1)
-        pal = [
-            c0,
-            c1,
-            tuple((2 * c0[i] + c1[i]) // 3 for i in range(3)),
-            tuple((c0[i] + 2 * c1[i]) // 3 for i in range(3)),
-        ]
-        bits = 0
-        for px, c in enumerate(rgb):
-            best = min(range(4), key=lambda k: sum((c[i] - pal[k][i]) ** 2 for i in range(3)))
-            bits |= best << (2 * px)
-        cb = struct.pack("<HH", e0, e1) + bits.to_bytes(4, "little")
-    return ab + cb
 
 
 def pd2_normal_channels(arr, invert_y: bool = True):
@@ -465,32 +419,3 @@ def validate_dxt5_texture(dds_bytes: bytes) -> list[str]:
     # NOTE: c0 < c1 colour endpoints are valid DXT5 (always 4-colour RGB) and
     # are not flagged as corruption here (audit A07).
     return errors
-
-
-def repair_dxt5_texture(dds_bytes: bytes) -> tuple[bytes, bool]:
-    """Return (dds, changed): full mip pyramid, correct flags/caps, ordered endpoints."""
-    try:
-        size, mips, mip0_view = dds_mip0_slice(dds_bytes)
-    except ValueError as exc:
-        raise ValueError(f"cannot repair texture: {exc}")
-    mip0, fixed_blocks = fix_misordered_blocks(bytes(mip0_view), size)
-    num_mips = mip_count_for(size)
-    expected_total = DDS_HEADER_SIZE + sum(
-        max(1, (size >> i) // 4) ** 2 * 16 for i in range(num_mips)
-    )
-    struct_ok = (
-        mips == num_mips
-        and len(dds_bytes) == expected_total
-        and struct.unpack_from("<I", dds_bytes, 8)[0] == MIP_FLAGS
-        and struct.unpack_from("<I", dds_bytes, 108)[0] == MIP_CAPS
-    )
-    if struct_ok and fixed_blocks == 0:
-        return dds_bytes, False
-    payloads = mip_payloads_from_mip0(mip0, size)
-    # keep the original reserved bytes; rewrite the fields that matter
-    header = bytearray(dds_bytes[:DDS_HEADER_SIZE])
-    struct.pack_into("<I", header, 8, MIP_FLAGS)
-    struct.pack_into("<I", header, 20, len(mip0))
-    struct.pack_into("<I", header, 28, num_mips)
-    struct.pack_into("<I", header, 108, MIP_CAPS)
-    return bytes(header) + b"".join(payloads), True

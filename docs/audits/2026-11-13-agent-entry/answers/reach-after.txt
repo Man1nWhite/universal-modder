@@ -1,0 +1,237 @@
+--- .venv/bin/python docs/audits/2026-11-13-agent-entry/reach.py <the five files> --also <the 52 other files of tools/>
+--- on the tree after the ten functions were deleted and lawson_las was built again: the commit this file came with.
+--- The five files were started; the 52 after --also were measured in the first three phases only.
+suite
+   pytest -q tests                    exit 0   698 passed, 8 skipped, 2 xfailed, 1 warning in 200.55s (0:03:20)
+builds
+   fresh.py check                     exit 0   16 of 16 tracked zips are the tracked bytes after a fresh build
+tools (26)
+   status                             exit 0   }
+   extract_2b                         exit 0   templates already extracted: build/reach/tree/build/pd2-las/2b
+   inventory                          exit 0   }
+   mip_audit                          exit 0   Every level meets its limits, except the 9 misses listed in KNOWN_MISSES.
+   audit_metrics                      exit 0   Christie slim            7603  12767     34094       374      5.55   468 ( 6.2%)        95
+   diagnose_mesh                      exit 0   hand-weighted verts > 0.5: 0, > 0.0: 253, max 0.40
+   elbow_before_after                 exit 0   wrote build/reach/scratch/elbow/christie_elbow_bend_before_aft
+   glove_check                        exit 0   -> build/reach/scratch/glove.png
+   neck_junction                      exit 0      see-through      0.0 % of the throat window
+   render_mesh_skeleton               exit 0   wrote build/reach/scratch/skeleton/christie_forearm_side.png (
+   uv_check                           exit 1   wrote uvcheck_2b_g_body_iso.png (g_body: 35260 tris)
+   check_guide_compliance             exit 0   summary: 37 pass, 1 warn, 0 fail
+   check_guide_compliance_miranda     exit 1   
+   check_guide_compliance_christie    exit 1   
+   check_mesh_geometry                exit 0   summary: 20677 triangles, 0 inverted, 0 degenerate
+   check_mesh_geometry_miranda        exit 1   
+   check_mesh_geometry_christie       exit 1   
+   check_nm_convention                exit 0   VERDICT: the source is DirectX-style (Y-); the default build inverts the green channel, wh
+   check_test_suite_mutations         exit 0   5/5 pack-level test mutations caught
+   check_guide_compliance_self_test   exit 0   16/16 mutations detected
+   extract_las_rig                    exit 0   wrote build/reach/scratch/rig.json: 212 object3Ds (25 named), 
+   resolve_rig_names                  exit 0   (dry run - pass --apply to write)
+   preview_check                      exit 0   RESULT: OK
+   render_mod_previews                exit 0   Saved build/reach/tree/docs/previews/00_all_miranda_mods_overv
+   um_kb_check                        exit 0   PASS: 247 notes checked
+   um_publish_check                   exit 0   WARN: 996 files, 0 failures, 2 warnings
+start
+   bust_variant.py                    exit 0   
+   bust_variant.py --help             exit 0   
+   dds_encode.py                      exit 0   
+   dds_encode.py --help               exit 0   
+   diesel_model.py                    exit 0   
+   diesel_model.py --help             exit 0   
+   render_mesh_skeleton.py            exit 2   
+   render_mesh_skeleton.py --help     exit 0                           identity, older packs straighten their 72 deg bind
+   dds.py                             exit 0   
+   dds.py --help                      exit 0   
+
+tools/pd2-las/bust_variant.py: 42 functions; run by suite 42, builds 41, tools 0, start 0; by none 0
+tools/pd2-las/dds_encode.py: 20 functions; run by suite 18, builds 20, tools 15, start 0; by none 0
+tools/pd2-las/diesel_model.py: 36 functions; run by suite 34, builds 34, tools 20, start 0; by none 2
+   not run by anything: compute_uv_directions (line 617); other code names it on 1 lines: tools/pd2-las/build_models.py:1146
+   not run by anything: compute_uv_directions.norm (line 637); other code names it on 238 lines: examples/aoe2-de-civ/sld.py:95, examples/outer-wilds-portal-gun/tools/convert.py:93, tests/test_build_models.py:333 ...
+tools/pd2-las/render_mesh_skeleton.py: 19 functions; run by suite 13, builds 8, tools 18, start 1; by none 1
+   not run by anything: render_source (line 539); other code names it on 2 lines: tests/test_render_mesh_skeleton.py:225, tools/pd2-las/render_mesh_skeleton.py:604
+tools/pd2-port/dds.py: 19 functions; run by suite 19, builds 17, tools 12, start 0; by none 0
+tools/build_joy_head_mods.py: 49 functions; run by suite 1, builds 49, tools 0, start 0; by none 0
+tools/pd2-las/audit_metrics.py: 7 functions; run by suite 0, builds 0, tools 4, start 0; by none 3
+   not run by anything: z_histogram (line 126); other code names it on 1 lines: tools/pd2-las/audit_metrics.py:188
+   not run by anything: alpha_stats (line 138); other code names it on 1 lines: tools/pd2-las/audit_metrics.py:211
+   not run by anything: _texture (line 150); other code names it on 5 lines: tests/test_pd2_las.py:851, tests/test_pd2_las_invariants.py:237, tests/test_pd2_las_invariants.py:274 ...
+tools/pd2-las/build_busty_variant.py: 12 functions; run by suite 2, builds 12, tools 0, start 0; by none 0
+tools/pd2-las/build_christie_las.py: 84 functions; run by suite 16, builds 84, tools 2, start 0; by none 0
+tools/pd2-las/build_las.py: 13 functions; run by suite 13, builds 12, tools 11, start 0; by none 0
+tools/pd2-las/build_models.py: 39 functions; run by suite 37, builds 39, tools 3, start 0; by none 0
+tools/pd2-las/copies.py: 61 functions; run by suite 0, builds 0, tools 0, start 0; by none 61
+   not run by anything: sha (line 143); other code names it on 15 lines: tools/build_joy_head_mods.py:1218, tools/build_joy_head_mods.py:1223, tools/build_joy_head_mods.py:1224 ...
+   not run by anything: save (line 149); other code names it on 96 lines: examples/aoe2-de-civ/build_mod.py:248, examples/aoe2-de-civ/build_mod.py:353, examples/aoe2-de-civ/build_mod.py:368 ...
+   not run by anything: part (line 154); other code names it on 66 lines: .github/workflows/test.yml:74, examples/aoe2-de-civ/build_mod.py:411, examples/aoe2-de-civ/make_scenario.py:5 ...
+   not run by anything: ensure_tools (line 159); other code names it on 2 lines: tools/pd2-las/copies.py:472, tools/pd2-las/copies.py:1273
+   not run by anything: measured_env (line 171); other code names it on 3 lines: tools/pd2-las/copies.py:325, tools/pd2-las/copies.py:339, tools/pd2-las/copies.py:388
+   not run by anything: coverage_rc (line 190); other code names it on 5 lines: tools/pd2-las/copies.py:171, tools/pd2-las/copies.py:177, tools/pd2-las/copies.py:179 ...
+   not run by anything: coverage_lines (line 200); other code names it on 2 lines: tools/pd2-las/copies.py:334, tools/pd2-las/copies.py:345
+   not run by anything: functions (line 214); other code names it on 17 lines: tests/test_determinism.py:96, tests/test_determinism.py:101, tests/test_determinism.py:102 ...
+   not run by anything: functions.walk (line 218); other code names it on 42 lines: examples/aoe2-de-civ/civ.py:74, examples/aoe2-de-civ/make_sprites.py:11, examples/minecraft-gta5-passthrough/video/director.py:141 ...
+   not run by anything: reach (line 231); other code names it on 34 lines: examples/cities-skylines-city-dashboard/tools/mock_game.py:106, tests/test_bust_variant.py:84, tests/test_bust_variant.py:102 ...
+   not run by anything: read_opens (line 245); other code names it on 3 lines: tools/pd2-las/copies.py:296, tools/pd2-las/copies.py:329, tools/pd2-las/copies.py:399
+   not run by anything: tool_of (line 264); other code names it on 1 lines: tools/pd2-las/copies.py:330
+   not run by anything: kind (line 275); other code names it on 143 lines: examples/cities-skylines-city-dashboard/tools/mock_game.py:53, examples/cities-skylines-city-dashboard/tools/mock_game.py:58, examples/cities-skylines-city-dashboard/tools/mock_game.py:59 ...
+   not run by anything: summarise (line 282); other code names it on 2 lines: tools/pd2-las/copies.py:334, tools/pd2-las/copies.py:400
+   not run by anything: written (line 294); other code names it on 77 lines: .github/workflows/test.yml:73, examples/aoe2-de-civ/sld.py:364, examples/outer-wilds-portal-gun/tools/convert.py:10 ...
+   not run by anything: steady_text (line 312); other code names it on 3 lines: tools/pd2-las/copies.py:393, tools/pd2-las/copies.py:1328, tools/pd2-las/copies.py:1334
+   not run by anything: part_build (line 321); other code names it on 1 lines: tools/pd2-las/copies.py:1423
+   not run by anything: part_suite (line 337); other code names it on 1 lines: tools/pd2-las/copies.py:1423
+   not run by anything: part_lint (line 348); other code names it on 1 lines: tools/pd2-las/copies.py:1423
+   not run by anything: part_golden (line 365); other code names it on 1 lines: tools/pd2-las/copies.py:1419
+   not run by anything: s_lines (line 403); other code names it on 2 lines: tools/pd2-las/copies.py:501, tools/pd2-las/copies.py:1364
+   not run by anything: r_values (line 414); other code names it on 2 lines: tools/pd2-las/copies.py:502, tools/pd2-las/copies.py:1364
+   not run by anything: set_mark (line 425); other code names it on 2 lines: tools/pd2-las/copies.py:503, tools/pd2-las/copies.py:1372
+   not run by anything: part_trace (line 430); other code names it on 1 lines: tools/pd2-las/copies.py:1421
+   not run by anything: lane (line 444); other code names it on 3 lines: tools/pd2-las/copies.py:478, tools/pd2-las/copies.py:1280, tools/pd2-las/copies.py:1310
+   not run by anything: before_any_merge (line 454); other code names it on 2 lines: tools/pd2-las/copies.py:470, tools/pd2-las/copies.py:487
+   not run by anything: record (line 469); other code names it on 72 lines: examples/minecraft-gta5-passthrough/video/backup_rec.py:8, examples/minecraft-gta5-passthrough/video/backup_rec.py:11, examples/minecraft-gta5-passthrough/video/backup_rec.py:13 ...
+   not run by anything: assemble (line 486); other code names it on 14 lines: examples/cities-skylines-city-dashboard/build.sh:4, examples/cities-skylines-city-dashboard/tools/mock_game.py:300, tests/test_las_pack.py:669 ...
+   not run by anything: bump (line 616); other code names it on 35 lines: tests/test_bust_variant.py:162, tools/build_joy_head_mods.py:541, tools/build_joy_head_mods.py:542 ...
+   not run by anything: flat (line 620); other code names it on 92 lines: examples/aoe2-de-civ/assets/gen.sh:49, examples/aoe2-de-civ/sld.py:107, examples/aoe2-de-civ/sld.py:130 ...
+   not run by anything: flat.walk (line 623); other code names it on 42 lines: examples/aoe2-de-civ/civ.py:74, examples/aoe2-de-civ/make_sprites.py:11, examples/minecraft-gta5-passthrough/video/director.py:141 ...
+   not run by anything: differ (line 637); other code names it on 21 lines: tests/test_christie_las.py:1552, tests/test_determinism.py:77, tests/test_pd2_las_status.py:317 ...
+   not run by anything: base_modules (line 648); other code names it on 1 lines: tools/pd2-las/copies.py:1135
+   not run by anything: group_of (line 670); other code names it on 1 lines: tools/pd2-las/copies.py:706
+   not run by anything: las_models (line 678); other code names it on 1 lines: tools/pd2-las/copies.py:707
+   not run by anything: corpus (line 692); other code names it on 3 lines: tools/pd2-las/copies.py:1136, tools/pd2-las/copies.py:1142, tools/pd2-las/copies.py:1242
+   not run by anything: corpus.add (line 695); other code names it on 190 lines: examples/aoe2-de-civ/aoe2paths.py:41, examples/aoe2-de-civ/make_scenario.py:62, examples/aoe2-de-civ/make_scenario.py:63 ...
+   not run by anything: compare_models (line 717); other code names it on 1 lines: tools/pd2-las/copies.py:1143
+   not run by anything: compare_textures (line 854); other code names it on 1 lines: tools/pd2-las/copies.py:1144
+   not run by anything: compare_textures.outside (line 865); other code names it on 51 lines: examples/outer-wilds-portal-gun/tools/convert.py:5, tests/test_bust_variant.py:541, tests/test_bust_variant.py:652 ...
+   not run by anything: pack_text (line 988); other code names it on 1 lines: tools/pd2-las/copies.py:1063
+   not run by anything: pack_text.text (line 993); other code names it on 366 lines: examples/aoe2-de-civ/aoe2paths.py:95, examples/aoe2-de-civ/assets/gen.sh:29, examples/aoe2-de-civ/assets/gen.sh:31 ...
+   not run by anything: verdict (line 1004); other code names it on 19 lines: tests/test_mip_audit.py:77, tests/test_mip_audit.py:78, tests/test_skip_budget.py:4 ...
+   not run by anything: lua_code (line 1015); other code names it on 1 lines: tools/pd2-las/copies.py:1095
+   not run by anything: render_with (line 1020); other code names it on 1 lines: tools/pd2-las/copies.py:1077
+   not run by anything: compare_writers (line 1057); other code names it on 1 lines: tools/pd2-las/copies.py:1143
+   not run by anything: part_files (line 1133); other code names it on 1 lines: tools/pd2-las/copies.py:1423
+   not run by anything: worktree (line 1152); other code names it on 10 lines: tests/test_pd2_las_status.py:119, tests/test_pd2_las_status.py:131, tests/test_pd2_las_status.py:347 ...
+   not run by anything: part_env (line 1158); other code names it on 1 lines: tools/pd2-las/copies.py:1423
+   not run by anything: part_tests (line 1191); other code names it on 1 lines: tools/pd2-las/copies.py:1424
+   not run by anything: part_tests.run (line 1200); other code names it on 294 lines: .agents/skills/reverse-engineering/references/ue3-packages/unpack_upk.py:12, .claude/skills/reverse-engineering/references/ue3-packages/unpack_upk.py:12, .github/workflows/lawson-las.yml:36 ...
+   not run by anything: lines_of (line 1220); other code names it on 10 lines: tools/pd2-las/copies.py:1231, tools/pd2-las/copies.py:1234, tools/pd2-las/copies.py:1242 ...
+   not run by anything: compare_report (line 1238); other code names it on 2 lines: tools/pd2-las/copies.py:1285, tools/pd2-las/copies.py:1413
+   not run by anything: compare (line 1272); other code names it on 19 lines: tests/test_build_models.py:78, tests/test_build_models.py:207, tools/pd2-las/build_christie_las.py:3865 ...
+   not run by anything: part_fresh (line 1289); other code names it on 1 lines: tools/pd2-las/copies.py:1424
+   not run by anything: part_suite_plain (line 1295); other code names it on 1 lines: tools/pd2-las/copies.py:1424
+   not run by anything: run_after (line 1302); other code names it on 1 lines: tools/pd2-las/copies.py:1349
+   not run by anything: first_difference (line 1317); other code names it on 1 lines: tools/pd2-las/copies.py:1394
+   not run by anything: rehash (line 1327); other code names it on 2 lines: tools/pd2-las/copies.py:1408, tools/pd2-las/copies.py:1413
+   not run by anything: after (line 1344); other code names it on 121 lines: .codex/config.toml:2, .github/workflows/test.yml:34, .github/workflows/test.yml:79 ...
+   not run by anything: main (line 1406); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/pd2-las/determinism.py: 10 functions; run by suite 10, builds 9, tools 7, start 0; by none 0
+tools/pd2-las/diagnose_mesh.py: 13 functions; run by suite 6, builds 0, tools 10, start 0; by none 0
+tools/pd2-las/elbow_before_after.py: 8 functions; run by suite 3, builds 2, tools 8, start 0; by none 0
+tools/pd2-las/extract_2b.py: 4 functions; run by suite 2, builds 0, tools 3, start 0; by none 1
+   not run by anything: _fail (line 77); other code names it on 5 lines: tools/pd2-las/extract_2b.py:98, tools/pd2-las/extract_2b.py:110, tools/pd2-las/extract_2b.py:120 ...
+tools/pd2-las/fresh.py: 18 functions; run by suite 3, builds 8, tools 0, start 0; by none 8
+   not run by anything: BuildFailed.__init__ (line 71); other code names it on 31 lines: examples/aoe2-de-civ/sld.py:149, examples/cities-skylines-city-dashboard/tools/mock_game.py:39, examples/minecraft-gta5-passthrough/host/mcframe.py:65 ...
+   not run by anything: _members (line 128); other code names it on 1 lines: tools/pd2-las/fresh.py:196
+   not run by anything: _count (line 133); other code names it on 3 lines: tools/pd2-las/build_christie_las.py:1995, tools/pd2-las/fresh.py:179, tools/pd2-las/fresh.py:209
+   not run by anything: _model_diff (line 140); other code names it on 1 lines: tools/pd2-las/fresh.py:205
+   not run by anything: _texture_diff (line 176); other code names it on 1 lines: tools/pd2-las/fresh.py:207
+   not run by anything: explain (line 194); other code names it on 3 lines: tools/pd2-las/build_christie_las.py:2703, tools/pd2-las/fresh.py:256, tools/pd2-las/fresh.py:408
+   not run by anything: one_config (line 310); other code names it on 2 lines: tools/pd2-las/copies.py:434, tools/pd2-las/fresh.py:381
+   not run by anything: matrix (line 376); other code names it on 72 lines: examples/outer-wilds-portal-gun/tools/convert.py:136, tests/test_diesel_model.py:159, tests/test_las_pack.py:125 ...
+tools/pd2-las/glove_check.py: 3 functions; run by suite 0, builds 0, tools 3, start 0; by none 0
+tools/pd2-las/gma.py: 13 functions; run by suite 13, builds 0, tools 0, start 0; by none 0
+tools/pd2-las/inspect_gma.py: 7 functions; run by suite 0, builds 0, tools 0, start 0; by none 7
+   not run by anything: load_skeleton_map (line 45); other code names it on 1 lines: tools/pd2-las/inspect_gma.py:79
+   not run by anything: classify_bones (line 55); other code names it on 1 lines: tools/pd2-las/inspect_gma.py:116
+   not run by anything: inspect (line 78); other code names it on 8 lines: tools/pd2-las/build_christie_las.py:1754, tools/pd2-las/copies.py:718, tools/pd2-las/copies.py:845 ...
+   not run by anything: _fmt_paths (line 132); other code names it on 1 lines: tools/pd2-las/inspect_gma.py:176
+   not run by anything: render (line 140); other code names it on 153 lines: examples/aoe2-de-civ/assets/gen.sh:19, examples/aoe2-de-civ/assets/gen.sh:29, examples/aoe2-de-civ/civ.py:71 ...
+   not run by anything: _verdict (line 200); other code names it on 1 lines: tools/pd2-las/inspect_gma.py:194
+   not run by anything: main (line 222); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/pd2-las/inspect_textures.py: 25 functions; run by suite 19, builds 0, tools 0, start 0; by none 6
+   not run by anything: _Container.paths (line 72); other code names it on 92 lines: examples/minecraft-gta5-passthrough/gradle.sh:29, examples/minecraft-gta5-passthrough/gta/build.sh:15, tests/test_agent_docs.py:42 ...
+   not run by anything: inspect (line 399); other code names it on 8 lines: tools/pd2-las/build_christie_las.py:1754, tools/pd2-las/copies.py:718, tools/pd2-las/copies.py:845 ...
+   not run by anything: here_vmt (line 477); other code names it on 1 lines: tools/pd2-las/inspect_textures.py:447
+   not run by anything: _find_vmt (line 495); other code names it on 1 lines: tools/pd2-las/inspect_textures.py:437
+   not run by anything: render (line 508); other code names it on 153 lines: examples/aoe2-de-civ/assets/gen.sh:19, examples/aoe2-de-civ/assets/gen.sh:29, examples/aoe2-de-civ/civ.py:71 ...
+   not run by anything: main (line 565); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/pd2-las/las_outfit_pack.py: 10 functions; run by suite 10, builds 10, tools 0, start 0; by none 0
+tools/pd2-las/las_pack.py: 18 functions; run by suite 17, builds 17, tools 1, start 0; by none 1
+   not run by anything: PackIdentity.__repr__ (line 70); no other code names it
+tools/pd2-las/mip_audit.py: 34 functions; run by suite 24, builds 0, tools 25, start 0; by none 3
+   not run by anything: decoders.outside (line 174); other code names it on 51 lines: examples/outer-wilds-portal-gun/tools/convert.py:5, tests/test_bust_variant.py:541, tests/test_bust_variant.py:652 ...
+   not run by anything: encoders.quick (line 206); other code names it on 9 lines: tests/test_pd2_las.py:760, tools/pd2-las/copies.py:1302, tools/pd2-las/copies.py:1309 ...
+   not run by anything: sheet (line 483); other code names it on 103 lines: examples/aoe2-de-civ/assets/gen.sh:18, examples/aoe2-de-civ/make_sprites.py:4, examples/aoe2-de-civ/make_sprites.py:147 ...
+tools/pd2-las/neck_junction.py: 11 functions; run by suite 7, builds 0, tools 9, start 0; by none 1
+   not run by anything: _render (line 329); other code names it on 1 lines: tools/pd2-las/neck_junction.py:324
+tools/pd2-las/pose_preview.py: 6 functions; run by suite 0, builds 0, tools 6, start 0; by none 0
+tools/pd2-las/pose_zoom.py: 1 functions; run by suite 0, builds 0, tools 0, start 0; by none 1
+   not run by anything: main (line 23); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/pd2-las/preview.py: 7 functions; run by suite 5, builds 5, tools 5, start 0; by none 0
+tools/pd2-las/preview_textured.py: 4 functions; run by suite 3, builds 0, tools 2, start 0; by none 1
+   not run by anything: _sample (line 94); other code names it on 1 lines: tools/pd2-las/preview_textured.py:215
+tools/pd2-las/review_christie_idle.py: 3 functions; run by suite 1, builds 0, tools 0, start 0; by none 2
+   not run by anything: review (line 31); other code names it on 13 lines: tests/test_christie_las.py:479, tests/test_christie_las.py:1415, tests/test_render_mesh_skeleton.py:271 ...
+   not run by anything: main (line 62); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/pd2-las/segment_fit.py: 10 functions; run by suite 9, builds 10, tools 0, start 0; by none 0
+tools/pd2-las/shellview.py: 1 functions; run by suite 0, builds 0, tools 0, start 0; by none 1
+   not run by anything: render (line 22); other code names it on 153 lines: examples/aoe2-de-civ/assets/gen.sh:19, examples/aoe2-de-civ/assets/gen.sh:29, examples/aoe2-de-civ/civ.py:71 ...
+tools/pd2-las/smd.py: 17 functions; run by suite 17, builds 0, tools 0, start 0; by none 0
+tools/pd2-las/source_model.py: 9 functions; run by suite 9, builds 9, tools 9, start 0; by none 0
+tools/pd2-las/status.py: 9 functions; run by suite 9, builds 0, tools 9, start 0; by none 0
+tools/pd2-las/tangents.py: 3 functions; run by suite 3, builds 3, tools 0, start 0; by none 0
+tools/pd2-las/trace_run.py: 9 functions; run by suite 0, builds 0, tools 0, start 0; by none 9
+   not run by anything: _pair (line 37); other code names it on 3 lines: tools/pd2-las/trace_run.py:148, tools/pd2-las/trace_run.py:156, tools/pd2-las/trace_run.py:176
+   not run by anything: Trace.__init__ (line 42); other code names it on 31 lines: examples/aoe2-de-civ/sld.py:149, examples/cities-skylines-city-dashboard/tools/mock_game.py:39, examples/minecraft-gta5-passthrough/host/mcframe.py:65 ...
+   not run by anything: Trace.feed (line 54); other code names it on 7 lines: tools/pd2-las/trace_run.py:111, tools/pd2-las/trace_run.py:113, tools/pd2-las/trace_run.py:116 ...
+   not run by anything: Trace._feed_other (line 74); other code names it on 2 lines: tools/pd2-las/trace_run.py:69, tools/pd2-las/trace_run.py:110
+   not run by anything: Trace.name (line 129); other code names it on 1593 lines: .github/workflows/lawson-las.yml:1, .github/workflows/lawson-las.yml:28, .github/workflows/lawson-las.yml:37 ...
+   not run by anything: Trace.on_call (line 140); other code names it on 1 lines: tools/pd2-las/trace_run.py:199
+   not run by anything: Trace.on_return (line 167); other code names it on 2 lines: tools/pd2-las/trace_run.py:165, tools/pd2-las/trace_run.py:169
+   not run by anything: Trace.finish (line 185); other code names it on 3 lines: tests/test_bust_variant.py:246, tools/pd2-las/trace_run.py:204, um/comfy.py:197
+   not run by anything: main (line 191); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/pd2-las/uv_check.py: 4 functions; run by suite 0, builds 0, tools 4, start 0; by none 0
+tools/pd2-las/vpk.py: 10 functions; run by suite 8, builds 8, tools 7, start 0; by none 2
+   not run by anything: VpkArchive.from_file (line 77); other code names it on 5 lines: tests/test_fal_key.py:104, tests/test_fal_key.py:139, tests/test_fal_key.py:145 ...
+   not run by anything: VpkArchive.__contains__ (line 140); other code names it on 1 lines: examples/outer-wilds-portal-gun/tools/vpk.py:50
+tools/pd2-las/vtf.py: 7 functions; run by suite 7, builds 7, tools 6, start 0; by none 0
+tools/pd2-port/build_las_pack.py: 22 functions; run by suite 19, builds 22, tools 1, start 0; by none 0
+tools/pd2-port/check_all.py: 4 functions; run by suite 0, builds 0, tools 0, start 0; by none 4
+   not run by anything: stage (line 48); other code names it on 53 lines: tests/test_pd2_las.py:457, tests/test_pd2_las.py:461, tests/test_pd2_las.py:730 ...
+   not run by anything: um_groups (line 64); other code names it on 1 lines: tools/pd2-port/check_all.py:118
+   not run by anything: check_tracked_pack (line 77); other code names it on 1 lines: tools/pd2-port/check_all.py:102
+   not run by anything: main (line 88); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/pd2-port/check_guide_compliance.py: 26 functions; run by suite 24, builds 0, tools 26, start 0; by none 0
+tools/pd2-port/check_guide_compliance_self_test.py: 21 functions; run by suite 20, builds 0, tools 21, start 0; by none 0
+tools/pd2-port/check_mesh_geometry.py: 9 functions; run by suite 0, builds 0, tools 9, start 0; by none 0
+tools/pd2-port/check_nm_convention.py: 2 functions; run by suite 0, builds 0, tools 2, start 0; by none 0
+tools/pd2-port/check_skip_budget.py: 3 functions; run by suite 2, builds 0, tools 0, start 0; by none 1
+   not run by anything: run_suite (line 75); other code names it on 2 lines: tests/test_skip_budget.py:81, tools/pd2-port/check_skip_budget.py:156
+tools/pd2-port/check_test_suite_mutations.py: 8 functions; run by suite 0, builds 0, tools 8, start 0; by none 0
+tools/pd2-port/dmodel.py: 33 functions; run by suite 26, builds 23, tools 28, start 0; by none 4
+   not run by anything: BR.i32 (line 45); no other code names it (46 lines of documents do)
+   not run by anything: BR.u16 (line 49); other code names it on 17 lines: examples/aoe2-de-civ/sld.py:11, examples/aoe2-de-civ/sld.py:12, examples/aoe2-de-civ/sld.py:14 ...
+   not run by anything: Bones.parse (line 169); other code names it on 43 lines: examples/aoe2-de-civ/build_mod.py:171, examples/aoe2-de-civ/civ.py:8, examples/outer-wilds-portal-gun/tools/source_mdl.py:159 ...
+   not run by anything: DieselGeometry.weights4 (line 235); other code names it on 3 lines: tools/pd2-port/las_model.py:151, tools/pd2-port/las_model.py:182, tools/pd2-port/las_model.py:192
+tools/pd2-port/extract_las_rig.py: 2 functions; run by suite 0, builds 0, tools 2, start 0; by none 0
+tools/pd2-port/las_model.py: 19 functions; run by suite 19, builds 19, tools 5, start 0; by none 0
+tools/pd2-port/me2_dae.py: 18 functions; run by suite 18, builds 18, tools 18, start 0; by none 0
+tools/pd2-port/preview_check.py: 17 functions; run by suite 3, builds 0, tools 10, start 0; by none 7
+   not run by anything: raster_textured (line 159); other code names it on 2 lines: tools/pd2-port/preview_check.py:585, tools/pd2-port/preview_check.py:593
+   not run by anything: raster_textured.project (line 189); other code names it on 39 lines: .codex/config.toml:1, examples/minecraft-gta5-passthrough/gradle.sh:2, examples/minecraft-gta5-passthrough/gradle.sh:6 ...
+   not run by anything: raster (line 254); other code names it on 8 lines: tools/pd2-port/preview_check.py:11, tools/pd2-port/preview_check.py:156, tools/pd2-port/preview_check.py:161 ...
+   not run by anything: raster.project (line 279); other code names it on 39 lines: .codex/config.toml:1, examples/minecraft-gta5-passthrough/gradle.sh:2, examples/minecraft-gta5-passthrough/gradle.sh:6 ...
+   not run by anything: decoded_drawables (line 369); other code names it on 2 lines: tools/pd2-port/preview_check.py:513, tools/pd2-port/preview_check.py:542
+   not run by anything: gather_render (line 486); other code names it on 2 lines: tools/pd2-port/preview_check.py:25, tools/pd2-port/preview_check.py:606
+   not run by anything: gather_render.mesh_tris (line 498); other code names it on 2 lines: tools/pd2-port/preview_check.py:506, tools/pd2-port/preview_check.py:507
+tools/pd2-port/resolve_rig_names.py: 3 functions; run by suite 0, builds 0, tools 3, start 0; by none 0
+tools/pd2-port/rig_target.py: 31 functions; run by suite 30, builds 24, tools 23, start 0; by none 1
+   not run by anything: rebind_mesh.root_op (line 734); other code names it on 1 lines: tools/pd2-port/rig_target.py:763
+tools/pd2-port/shade_check.py: 4 functions; run by suite 0, builds 0, tools 0, start 0; by none 4
+   not run by anything: geometric_normals (line 44); other code names it on 1 lines: tools/pd2-port/shade_check.py:128
+   not run by anything: render (line 59); other code names it on 153 lines: examples/aoe2-de-civ/assets/gen.sh:19, examples/aoe2-de-civ/assets/gen.sh:29, examples/aoe2-de-civ/civ.py:71 ...
+   not run by anything: render.cam (line 64); other code names it on 32 lines: examples/minecraft-gta5-passthrough/host/fakehost.py:147, examples/minecraft-gta5-passthrough/host/fakehost.py:154, examples/minecraft-gta5-passthrough/host/mcframe.py:33 ...
+   not run by anything: main (line 117); other code names it on 264 lines: .github/workflows/lawson-las.yml:4, .github/workflows/lawson-las.yml:8, .github/workflows/lawson-las.yml:32 ...
+tools/render_mod_previews.py: 14 functions; run by suite 0, builds 1, tools 14, start 0; by none 0
+
+131 functions in 57 files were run by no test, no build, no tool and no start of the file; no other code names 2 of them
+(only the first 5 files were started)
