@@ -2,7 +2,9 @@ tree: 19ca55a
 == Claude Code 2.1.323 (Claude Code): the session transcript's "Contents of" headers
    CLAUDE.md  (project instructions, checked into the codebase)  about 13008 B
 == Codex codex-cli 0.168.0: codex debug prompt-input
-   host_skills.instructions: 9122 B
+   host_skills.instructions: 9129 B
+      4 skills that Codex brings: 1562 B
+      12 skills in .agents/skills of this tree: 7108 B
    agents_md.instructions: 13091 B, holds all of AGENTS.md
 == Gemini CLI 0.68.0: the MemoryDiscovery lines of --debug
    Successfully read and processed imports: GEMINI.md (Length: 12959)

@@ -4,8 +4,9 @@ For each harness and each way of installing this repository: what the harness's 
 or changelog says it loads, and, where the harness could be run here, what it printed. Sources were read on
 2026-11-13; GitHub sources are pinned to the commit that was the head of the default branch that day.
 
-"Measured" means the harness itself was run in a scratch worktree of the commit, without an account, by
-[`probe_harness.sh`](probe_harness.sh). Its output is in [`before/harness.txt`](before/harness.txt) and
+"Measured" means the harness itself was run in a scratch worktree of the commit by
+[`probe_harness.sh`](probe_harness.sh): without an account, in an empty home directory, with nothing of the
+caller's environment but `PATH`. Its output is in [`before/harness.txt`](before/harness.txt) and
 [`after/harness.txt`](after/harness.txt).
 
 ## In a clone

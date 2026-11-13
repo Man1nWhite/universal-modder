@@ -51,7 +51,8 @@ Files: [`before/walk.json`](2026-11-13-agent-entry/before/walk.json),
 ## What loads at the start of a session
 
 The instruction files a harness reads in a clone. Skills lists and tool descriptions also load at start and
-are not counted: this work did not touch them.
+are not counted: this work did not touch them. In Codex the list of skills is 9.1 kB on both commits, and
+7,108 B of it are the names and descriptions of this repository's twelve skills: more than `AGENTS.md` is now.
 
 | Harness | Before | After | How known |
 | --- | --- | --- | --- |
@@ -63,7 +64,8 @@ are not counted: this work did not touch them.
 | Copilot in VS Code | `AGENTS.md` and `CLAUDE.md`: 26,018 B, 7,726 | 4,682 B, 1,275 | its documentation; not run |
 | Cursor, editor; OpenCode | `AGENTS.md`: 13,009 B, 3,863 | 4,682 B, 1,275 | documentation and source; not run |
 
-- "Measured" is which files the harness itself reported, with no account, by `probe_harness.sh`
+- "Measured" is which files the harness itself reported to `probe_harness.sh`, with no account, in an empty
+  home directory and with nothing of the caller's environment but `PATH`
   ([`before/harness.txt`](2026-11-13-agent-entry/before/harness.txt),
   [`after/harness.txt`](2026-11-13-agent-entry/after/harness.txt)). The bytes and tokens are those of the
   files ([`before/start.json`](2026-11-13-agent-entry/before/start.json),
@@ -159,7 +161,7 @@ Each new test fails when the defect is put back, and no other test of the file d
 | Check | Result |
 | --- | --- |
 | `make -sC tools/pd2-las green` on `df3fe8c` | 13 of 13 stages; 800 passed, 29 skipped, 2 xfailed; 16 of 16 zips are the tracked bytes after a fresh build ([`after/green.txt`](2026-11-13-agent-entry/after/green.txt)) |
-| the `test` workflow on GitHub, `df3fe8c` | every step passed; its notice: "16 of 16 tracked zips are the tracked bytes after a fresh build", on a runner without AVX-512. The pass counts are in its log, which this sandbox could not download |
+| the `test` workflow on GitHub, `df3fe8c` and `98defe1` | every step passed on both; the notice of each: "16 of 16 tracked zips are the tracked bytes after a fresh build", the first on a runner without AVX-512 (EPYC 7763), the second on one with it (EPYC 9V45). The pass counts are in the logs, which this sandbox could not download |
 | `copies.py after` on `19ca55a` | exit 0: 16 of 16 zips, 794 passed, 30 of 30 recorded outputs ([`before/copies-after.txt`](2026-11-13-agent-entry/before/copies-after.txt)) |
 | `copies.py after` on the tree that became `62f919e` | 16 of 16 zips; the report on every builder's trace is line for line the one from `19ca55a`; 29 of 30 outputs, the one being `status.py`, changed on purpose. Its entry in `docs/audits/2026-11-12-tool-merge/reference.json` was recorded again (two lines), and `copies.py after recheck` gives 30 of 30 ([`after/copies-after.txt`](2026-11-13-agent-entry/after/copies-after.txt)). Not run again on `df3fe8c`, which changes no builder and nothing `status.py` prints |
 | T8 against the whole suite | the slim pack changed, nothing edited: at `19ca55a` the suite fails in `test_handoff_and_agents_quote_the_tracked_pack_bytes` and passes once four documents are edited; at `df3fe8c` it passes as it is |
@@ -185,6 +187,11 @@ Each new test fails when the defect is put back, and no other test of the file d
   the `.sha256`, and `tools/pd2-port/STATUS.md` quotes its size and sha256 under a test. The line now says so
   and points to "Publish a release" in `tools/pd2-port/README.md` (`62a4104`, `df3fe8c`).
 
+- **The probe was not as clean as its header said.** It ran each harness's `--version` in the real home
+  directory, where Gemini CLI and Codex left temporary files, and it passed the caller's environment on: in
+  this sandbox, with a GitHub token in it. Every call now runs under `env -i` in an empty home. The four
+  harnesses answer as they did, so "no account" is now tested for Copilot CLI too.
+
 ## Not checked, and who has to
 
 - **A model on the eight tasks.** The walk replays the route the documents give. Whether a model takes that
@@ -203,6 +210,10 @@ Each new test fails when the defect is put back, and no other test of the file d
   Its steps run by hand give the same four failures on `19ca55a` and on `62a4104`, and none on `df3fe8c`
   once scipy is installed. It runs on `main` and on tags, so it will run, and fail the same way, when this
   branch is merged.
+- **The skills.** Twelve skills in three identical trees (`skills/`, `.claude/skills/`, `.agents/skills/`),
+  the layout upstream has. Codex puts their names and descriptions in every session: 7,108 B, where the block
+  that holds `AGENTS.md` is 4,763 B ([`after/harness.txt`](2026-11-13-agent-entry/after/harness.txt)). The
+  other harnesses were not asked. This work was not to change them.
 - `tools/pd2-port/STATUS.md` still quotes the size and sha256 of `lawson_las.zip`, pinned by
   `test_the_status_page_matches_the_shipped_pack`. It is the dated page of one port.
 - `tools/pd2-port/README.md` (356 lines) and `tools/skyrim-nif/README.md` were not gone through line by
