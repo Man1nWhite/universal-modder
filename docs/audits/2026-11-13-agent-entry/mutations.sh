@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Put each defect back, one at a time, and say which test of tests/test_agent_docs.py fails.
+# Put each defect back, one at a time, and say which test fails: of tests/test_agent_docs.py, or of
+# the file named in the case.
 #
 #   bash docs/audits/2026-11-13-agent-entry/mutations.sh        # from the repository root; needs .venv
 #
@@ -12,11 +13,13 @@ git -C "$repo" worktree add --detach "$work" HEAD >/dev/null 2>&1 || { echo "git
 cd "$work" || exit 1
 echo "commit: $(git rev-parse --short HEAD)"
 
-run() {  # $1: the defect that was put back
-    out=$("$py" -m pytest -q tests/test_agent_docs.py -p no:cacheprovider 2>&1)
-    echo "$1"
+run() {  # $1: the defect that was put back; $2...: what to give pytest (default: tests/test_agent_docs.py)
+    what=$1; shift
+    [ $# -eq 0 ] && set -- tests/test_agent_docs.py
+    out=$("$py" -m pytest -q "$@" -p no:cacheprovider 2>&1)
+    echo "$what"
     echo "    $(echo "$out" | tail -n 1 | sed 's/ in [0-9.]*s//')"
-    echo "$out" | grep -E '^FAILED' | sed 's/^FAILED tests\/test_agent_docs.py::/    fails: /; s/ - .*//'
+    echo "$out" | grep -E '^FAILED' | sed 's/^FAILED tests\/test_[a-z0-9_]*\.py::/    fails: /; s/ - .*//'
     git checkout -q -- . && git clean -fdq
 }
 
@@ -57,5 +60,45 @@ run "6  a build target misspelt in AGENTS.md"
 sed -i '/^| State of the 14 packs/d' AGENTS.md
 git diff --quiet -- AGENTS.md && echo "(6b did not apply: the status row in AGENTS.md reads otherwise now)"
 run "6b the row for status removed from AGENTS.md"
+
+echo
+echo "the tests of the fixes of 2026-11-13"
+
+status_test="tests/test_las_pack.py::test_the_status_page_says_whether_the_release_serves_the_tracked_pack"
+run "nothing changed" tests/test_agent_docs.py tests/test_pd2_las_status.py "$status_test"
+
+sed -i 's/ pytest scipy$/ pytest/' .github/workflows/lawson-las.yml
+git diff --quiet -- .github/workflows/lawson-las.yml && echo "(7 did not apply: the install line of lawson-las.yml reads otherwise now)"
+run "7  scipy taken out of what the lawson workflow installs" tests/test_pd2_las_status.py
+
+sed -i 's/^\*\*The tracked pack is not the pack the release serves\.\*\*$/**The tracked pack is what the release serves.**/' tools/pd2-port/STATUS.md
+git diff --quiet -- tools/pd2-port/STATUS.md && echo "(8 did not apply: STATUS.md says the release serves the tracked pack, or says it otherwise)"
+run "8  STATUS.md says the release serves the tracked pack" "$status_test"
+
+newest=$(ls tools/pd2-port/releases/lawson-las-v*.md | sort -V | tail -n 1)
+number=$(echo "$newest" | sed 's/.*-v\([0-9]*\)\.md/\1/')
+released=$(grep -o 'sha256:\*\*[^`]*`[0-9a-f]\{64\}' "$newest" | grep -o '[0-9a-f]\{64\}$')
+tracked=$(cut -d' ' -f1 dist/lawson_las.zip.sha256)
+sed "s/$released/$tracked/" "$newest" > "tools/pd2-port/releases/lawson-las-v$((number + 1)).md"
+run "8b release notes for v$((number + 1)) with the tracked sha256, STATUS.md not touched" "$status_test"
+
+size=$(python3 -c "import os; print(f\"{os.path.getsize('dist/lawson_las.zip'):,}\")")
+echo "The tracked pack is $size B." >> tools/pd2-port/STATUS.md
+run "9  the tracked size of lawson_las in STATUS.md"
+
+echo "sha256 \`$tracked\`" >> tools/pd2-port/STATUS.md
+run "9b the tracked sha256 of lawson_las in STATUS.md"
+
+echo "The audit: 38 pass, 1 warn, 0 fail." >> tools/pd2-port/STATUS.md
+run "9c the audit's result in STATUS.md"
+
+echo "16/16 mutations are caught." >> tools/pd2-port/README.md
+run "9d a count of mutations in tools/pd2-port/README.md"
+
+echo "91/91 checks." >> tools/skyrim-nif/README.md
+run "9e a count of checks in tools/skyrim-nif/README.md"
+
+printf 'Run `retarget_all.py` first.\n' >> tools/skyrim-nif/README.md
+run "10 a script that does not exist, in tools/skyrim-nif/README.md"
 
 cd "$repo" && git worktree remove --force "$work"

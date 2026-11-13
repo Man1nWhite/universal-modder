@@ -23,9 +23,10 @@ REPO = Path(__file__).resolve().parents[1]
 PD2 = REPO / "tools" / "pd2-las"
 #: what an agent is sent to; the cut rule and these tests apply to them
 AGENT_DOCS = ["AGENTS.md", "GEMINI.md", "README.md", "docs/pd2-las/HANDOFF.md", "tools/README.md",
-              "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md"]
+              "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md",
+              "tools/skyrim-nif/README.md"]
 #: these also name packs and tools
-OTHER_DOCS = ["CONTRIBUTING.md", "models/README.md", "references/README.md", "tools/skyrim-nif/README.md"]
+OTHER_DOCS = ["CONTRIBUTING.md", "models/README.md", "references/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session
 START_BUDGET = 5000
 STATUS_BUDGET = 2048
@@ -116,7 +117,7 @@ def test_no_document_quotes_what_status_prints():
                 assert fact not in text, f"{rel} quotes {fact} of {name}: `status` prints it"
         count = re.search(r"\b\d{2,} (?:tests|passed|skipped)\b|\b\d+ pass, \d+ warn, \d+ fail\b"
                           r"|\b\d+/\d+ (?:mutations|checks)\b", text)
-        assert not count, f"{rel} quotes a count ({count.group(0)!r}): `green` or `check_all.py` prints it"
+        assert not count, f"{rel} quotes a count ({count.group(0)!r}): name the command that prints it instead"
 
 
 def test_every_path_target_and_test_named_in_an_agent_doc_exists():

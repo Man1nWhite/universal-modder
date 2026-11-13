@@ -513,12 +513,17 @@ LEDGER = {
         (201, 223, "dropped: the branch it describes is gone and both lines of work are in main; \"Corrections\" says so"),
         (225, 244, "dropped: tools/pd2-port/README.md names every one of these files under \"Build\", \"Pipeline\" and \"What is reusable\"")],
     "tools/skyrim-nif/README.md": [
-        (12, 13, SAME % "tools/skyrim-nif/README.md" + "; \"91/91 checks\" dropped: docs/skyrim-nif/CROSSCHECK.md has the count"),
+        (12, 13, "moved to tools/skyrim-nif/README.md, the nifly row of \"Verified against\": the result was written twice in the file; "
+                 "\"91/91 checks\" dropped: docs/skyrim-nif/CROSSCHECK.md has the count"),
+        (14, 17, SAME % "tools/skyrim-nif/README.md" + "; the link to CROSSCHECK.md is in the nifly row"),
         (25, 34, "dropped: both commands stop without 1.zip..5.zip, which were removed with the port; the README says so now, and `--help` of "
                  "inventory.py and crosscheck.py gives each command"),
         (36, 36, "dropped: a comment, \"one file, ad hoc\"; the sentence above the example says it"),
         (73, 74, SAME % "tools/skyrim-nif/README.md" + ", in the past tense: measured while the archives were in the tree"),
-        (84, 84, SAME % "tools/skyrim-nif/README.md" + "; \"91/91\" dropped: docs/skyrim-nif/CROSSCHECK.md has the count")],
+        (83, 83, "dropped: the row named no file and no measurement (\"an actual outfit\" against \"a four-view render of the source meshes\")"),
+        (84, 84, SAME % "tools/skyrim-nif/README.md" + "; \"91/91\" dropped: docs/skyrim-nif/CROSSCHECK.md has the count"),
+        (95, 95, SAME % "tools/skyrim-nif/README.md" + "; the three counts dropped: the file has 54 `map` entries and 23 `fold` entries, and had them "
+                 "when the line said 15 and 22; the row now names the script that reads it")],
 }
 
 

@@ -9,13 +9,10 @@ Nothing here *ports* anything yet: it decodes the source, proves it is readable,
 and measures the facts a port decision needs (geometry, skinning, materials,
 texture coverage, rig fit against a target skeleton).
 
-The reader was **byte-exact against nifly** (the C++ library behind Outfit Studio)
-on every mesh of the outfit's mesh archive, `4.zip`: every check passed, with
-vertex and UV deltas of `0.0`. See
-[`docs/skyrim-nif/TOOLING.md`](../../docs/skyrim-nif/TOOLING.md) for why we run
-nifly through a small ctypes bridge instead of PyNifly/PyFFI/SkyMeshGLTF, and
-[`docs/skyrim-nif/CROSSCHECK.md`](../../docs/skyrim-nif/CROSSCHECK.md) for the
-table itself.
+The reader was checked against nifly (the C++ library behind Outfit Studio),
+shape by shape: [Verified against](#verified-against). Why nifly runs through a
+small ctypes bridge instead of PyNifly/PyFFI/SkyMeshGLTF is in
+[`docs/skyrim-nif/TOOLING.md`](../../docs/skyrim-nif/TOOLING.md).
 
 ## Use
 
@@ -35,8 +32,8 @@ PY
 
 `inventory.py` and `crosscheck.py` read the outfit's five archives, `1.zip` to `5.zip`, at the repository
 root. Those were removed with the port, so both stop at once ("missing source archives", "no NIFs found").
-With the archives back, `--help` of each gives its command; `build_nifly.sh` builds the bridge the
-cross-check needs (a ~4 MB `.so`, ~90 s).
+With the archives back, `--help` of each gives its command, and `build_nifly.sh` builds the bridge the
+cross-check needs.
 
 ## What the reader handles
 
@@ -77,8 +74,7 @@ sanity checks that would catch a mis-parse:
 | skinned body height | ~163 cm | `3BA` shape 16 → 163 cm |
 | garment placement | skirt around the hips | `0_Skirt` 86.6 → 117.7 cm |
 | UV range | inside 0…1 | 0.01…0.99 on the 2048² atlases |
-| four-view render | an actual outfit | a four-view render of the source meshes |
-| **nifly, shape by shape** | identical shapes, verts, tris, bones, textures | **every check, deltas `0.0`** ([`CROSSCHECK.md`](../../docs/skyrim-nif/CROSSCHECK.md)) |
+| **nifly, shape by shape**, every mesh in `4.zip` | identical shapes, verts, tris, bones, textures | **byte-exact: every check passed, vertex and UV deltas `0.0`** ([`CROSSCHECK.md`](../../docs/skyrim-nif/CROSSCHECK.md)) |
 
 Units: one NIF unit = 1.428 cm; an adult NPC is ~128 units tall.
 
@@ -89,7 +85,7 @@ Units: one NIF unit = 1.428 cm; an adult NPC is ~128 units tall.
 | `nif.py` | the reader (`NifFile`, `Node`, `Shape`, `parse()`) |
 | `preview.py` | `.dds` contact sheets + z-buffered four-view mesh renders |
 | `inventory.py` | the report: archives, meshes, textures, colourways, rights |
-| `skeleton_map.json` | XPMSE/3BA → PAYDAY 2 LAS bone map (15 mapped joints, 22 helper folds, 10 dropped 3BA bones) |
+| `skeleton_map.json` | XPMSE/3BA → PAYDAY 2 LAS bone map: joints mapped, helper bones folded into a target, 3BA body bones dropped. Read by `tools/pd2-las/build_skyrim_outfit.py` |
 | `nifly_wrap.cpp` | C ABI over `ousnius/nifly` (open, shapes, geometry, skin, materials, nodes) |
 | `nifly_bridge.py` | ctypes loader + `NiflyFile`; honours `NIFLY_WRAP`, defaults to `build/libniflywrap.so` |
 | `build_nifly.sh` | clones nifly into `build/nifly-src` and compiles the wrapper (~90 s, g++ only, no cmake) |
