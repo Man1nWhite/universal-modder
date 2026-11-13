@@ -200,3 +200,49 @@ input, not of the pack's build.
 - **That the tracked zips load.** Only a user can run the game. Nothing in this
   note says a pack loads, and the install matrix in the checklist has not been
   recorded.
+
+---
+
+## 4. Two artefacts for the decisions this report cannot make
+
+### 4.1 The slim target (decision (a))
+
+[`docs/pd2-las/renders/christie_redo_target_comparison.png`](../pd2-las/renders/christie_redo_target_comparison.png)
+is one orthographic front view each of the **raw source body** in its own bind
+pose, the **base pack** at idle, and the **slim pack** at idle, each scaled to
+its own height, same light, no textures.
+
+It is here because the question "current proportions or re-derived from the DOA5
+silhouette" needs a picture, and the packs and the source are in different poses
+(arms out and hands present vs idle and hands cut), so a width-vs-height table
+is not a fair comparison — a first attempt at one produced nonsense (0.14–1.02
+ratios at the same height fractions) for exactly that reason.
+
+What the sheet shows, stated as observation and not as a recommendation: the
+slim pack's arms are thinner than both the source and the base pack through the
+whole forearm, its torso is narrower at the waist, and the trouser flare — which
+the source has and which the base pack keeps — is intact in both. **Where the
+slim pack departs from the source's own silhouette is the arm, not the leg.** It
+does not settle which target is right; that is the decision.
+
+Read with §2.3: at idle the slim sleeve is also dented 25 % on its outer
+forearm, so "thinner" in this sheet is partly a fit artefact, not a proportion.
+
+### 4.2 The neck, as the bisect will see it
+
+In the same sheet, the base and slim figures show the bare skin neck (§2.1)
+standing out of the blazer collar as a separate band, above the collar and below
+where the vanilla head will sit. That is the surface the §10.4 bisect has to
+rule in or out first. **The sheet is not evidence about the in-game line**: it
+is unlit by the game, untextured, and has no head on it.
+
+### 4.3 The retarget overlay
+
+Not done in this pass, and said plainly rather than implied: the overlay of the
+source ghost against the target skeleton needs the authoring scene, which is the
+next step and is gated on the three decisions below. The bind-pose alignment it
+would validate is currently only checked by the numbers the build already
+records (`fit_tpp`, in `BUILD_INFO.json`): joint offsets of 1.76 cm (left
+forearm) and 2.01 cm (right), cuff placement within 1.02 cm of the pivot.
+Those are the pack's own measurements of itself and are therefore assumption,
+not verification.
