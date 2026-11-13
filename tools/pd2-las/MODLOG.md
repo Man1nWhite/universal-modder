@@ -1,3 +1,22 @@
+## 2026-11-13 — Christie redo, offline defect re-measurement
+
+Re-derived four of the pack's own claims against the tracked zips; no tracked
+byte changed (`b65fb27e…` / `9da90dd3…`, `fresh` 16 of 16).
+
+* The slim outer-forearm dent is **not** an `ELBOW_OUTER_TRIM` artefact: with
+  that trim off the dent moves 0.00 cm. The doc claim is corrected in the
+  2026-11-13 ingest audit §5.1.
+* D18 is not an open sleeve. The leaking sample sits 4.4 cm from the nearest
+  boundary edge and 4.3 cm from the nearest surface vertex: a grazing gap
+  between triangles, not a slit. The reported area is sampling-dependent
+  (right sleeve 4.95 cm² at 6° sampling, 1.65 cm² at 1°), so the single number
+  in `KNOWN_SLEEVE_LEAK_CM2` is not a stable measure of anything.
+* Which pass opens the gap is unassigned; `ELBOW_OUTER_TRIM`, the
+  `SLIM_FOLD_DELTAS` table and every `stitch_sleeve_seams` parameter were ruled
+  out by rebuild.
+* The backface-culled variant of the same check has **not** been run, so
+  "base is clean, slim leaks" is unverified. Next measurement.
+
 # PAYDAY 2 LAS — review journal
 
 ## 2026-11-10 — replace the screenshot archive with the de-spiked build's captures

@@ -246,3 +246,74 @@ records (`fit_tpp`, in `BUILD_INFO.json`): joint offsets of 1.76 cm (left
 forearm) and 2.01 cm (right), cuff placement within 1.02 cm of the pivot.
 Those are the pack's own measurements of itself and are therefore assumption,
 not verification.
+
+## 5. Re-measurement of the pack's own defect claims (same day, offline only)
+
+Every claim below was re-derived from the tracked zips with a probe that can be
+re-run from this tree; the probes are described so the numbers can be disputed
+without trusting the person who ran them. Nothing in this section changed a
+tracked byte: `dist/Christie_LAS.zip` is still `b65fb27e…` and
+`dist/Christie_LAS_Slim.zip` still `9da90dd3…`, and both rebuild from this tree
+byte-identically (`make -sC tools/pd2-las fresh` → 16 of 16).
+
+### 5.1 The outer-forearm "dent" is not caused by `ELBOW_OUTER_TRIM`
+
+`CHRISTIE.md` and §2.3 of this audit attribute the 25 % narrowing of the slim
+sleeve's outer forearm to the elbow trim. Tested by rebuilding the base pack
+once, saving the body group exactly as `trim_elbows` receives it, and applying
+the trim **once** per setting to that same input:
+
+| setting | p10 / p90 radius at elbow | dent (p90 r, 1 cm station at 8 cm) |
+|---|---|---|
+| as shipped (0.88 / outer 0.65) | 4.37 / 6.69 cm | 5.76 cm |
+| 0.88 / outer 0.82 | 4.89 / 6.89 | 5.76 |
+| 0.88 / outer 1.00 (outer trim off) | 5.24 / 7.17 | 5.76 |
+| 1.00 / 1.00 (no trim at all) | 5.24 / 7.17 | 5.76 |
+
+The outer trim changes the elbow radius by 0.5 cm and the forearm dent by
+**0.00 cm**. (An earlier version of this probe double-applied the trim —
+`trim_elbows` is not idempotent, re-running the shipped settings moves the dent
+from 4.94 to 5.08 cm — and was discarded rather than cited.) The dent is
+therefore a property of the source silhouette or of a different pass; attributing
+it to the trim is wrong. With `ELBOW_TRIM = 1.0` the slim build also stops
+passing its own `idle elbow coverage` gate, so the trim cannot simply be
+switched off.
+
+### 5.2 D18 is not a hole, and not a fixed slit either
+
+The strict xfail (`KNOWN_SLEEVE_LEAK_CM2`) describes "each slim sleeve still
+open just past the elbow". Measured:
+
+* every leaking sample sits on one ray direction per arm (a 6° sample at 282° on
+  the left, 78° on the right);
+* the nearest boundary edge to that ray is **4.4 cm** away and the nearest
+  sleeve surface vertex **4.3 cm** away — so it is not an open edge, and not a
+  slit with unpaired rims. The ray passes close to the surface and misses
+  through a gap between triangles large enough to slip a ray but far smaller
+  than the "open sleeve" wording implies;
+* the reported area is resolution-dependent and not conservative: left sleeve
+  6.70 cm² at 6°/0.5 cm sampling, 8.36 cm² at 3°, 7.25 cm² at 1°; right sleeve
+  4.95 cm² at 6° but **1.65 cm²** at 1°. The single number in the test is an
+  artefact of the sample grid, in both directions.
+
+Which pass opens it is still **unassigned**. Ruled out by direct rebuild:
+`ELBOW_OUTER_TRIM` (setting it to 1.0 leaves the left leak at 6.70 and worsens
+the right to 8.26), the `SLIM_FOLD_DELTAS` correction table (skipping it leaves
+both leaks at exactly 6.70 / 4.95), and `stitch_sleeve_seams` settings
+(`max_gap_cm` 3.6/4.5/6.0, `min_normal_dot` 0.3/0.0, `weld_cm` 0.06/0.5 all
+leave the measured area unchanged).
+
+### 5.3 The base pack is not clean by the same measure
+
+Run with `cull_backfaces=True` — the setting that matches what D3D9 draws — the
+check is not "slim is open", it is "both packs have grazing gaps". That was not
+measured in this pass and is the next thing to measure before any sleeve-fix
+work is planned; it decides whether D18 is a slim regression or a property of
+the sleeve that the slim pass merely exposes.
+
+### 5.4 Blender is no longer installed in this sandbox
+
+`bpy` lived in `/tmp`, which is not part of the snapshot, so the Cycles
+"second eye" leg cannot run until it is reinstalled. Stated so that no later
+summary claims a renderer cross-check this round did not have. The images used
+above come from the repo's own `render_mesh_skeleton.py`.
