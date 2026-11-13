@@ -1307,3 +1307,7 @@
   it redrew the `star-chart` branch on every push to `main`: the last time on 2026-11-13, so "nothing writes
   to it" in the report of that day was wrong. `gh workflow enable star-chart.yml` undoes it.
 - **Left on GitHub:** `main` and this session's branch. No tag, no release.
+- **Corrected the same day:** `STATUS.md` said of `lawson-las-v1` "never a release" (`cf56805` through
+  `b3b6966`). There had been one: the release workflow ran on that tag six times on 2026-10-19 and its
+  publish step succeeded in five, as the entry of that day above says. By 2026-11-13 it was gone; nothing
+  here records who took it down or when. `STATUS.md` says so now.

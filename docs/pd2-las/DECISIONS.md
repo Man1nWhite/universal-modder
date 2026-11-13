@@ -755,7 +755,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   the repository is public, and the release workflow published the sibling pack `lawson_las` on 2026-10-19,
   the day after.
 - **Not changed:** `CREDITS.txt` inside `lawson_las.zip` says "no redistribution permission is claimed"; it
-  names the sources and is part of the tracked bytes, so changing it is a rebuild of the pack. The rules
+  names the sources and is part of the tracked bytes, so changing it is a rebuild of the pack. The comment
+  above `STATUS` in `tools/pd2-port/build_las_pack.py`, which writes that file, says the same. The rules
   under "What you ship" in `AGENTS.md` and in the skills are upstream's, for game files an agent extracts
   while modding any game; they stay. Publishing is still asked of the owner first, like any publishing.
 - **Source:** the user, 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`
@@ -775,13 +776,13 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     the neck, collar, bust and sleeve passes, the hole cap, the redress), and two pieces inside functions
     that stay, both keyed on the outfit's material names: the shoulder stay for `jacket` in
     `transfer_group`, and the default targets of `extend_sleeves_to_wrist`. The file went from 3,543
-    lines to 1,783.
+    lines to 1,784.
   - **The release and the tags** of the sibling pack: `tools/pd2-port/STATUS.md`, "Released and tracked".
   - **Sixteen branches on GitHub**, fifteen of them merged session branches: `tools/pd2-port/MODLOG.md`.
-  - **Five renders no page showed:** `docs/audits/2026-11-09-neck-arm/`. The two plan pages they
-    illustrated were deleted on 2026-11-10 (`0a76215`).
+  - **Five renders no page showed:** `docs/audits/2026-11-09-neck-arm/`. The one page that showed them,
+    a repair plan, was deleted on 2026-11-10 (`0a76215`).
 - **Why:** a tool that cannot run and a test that can only skip look like coverage and are none: 21 of the
-  suite's 29 skips were tests waiting for the outfit's archives, removed on 2026-11-04, or for its pack.
+  suite's 29 skips were tests waiting for the outfit's archive, removed on 2026-11-05, or for its pack.
   A release that serves an older build under the same version number tells an installer the wrong thing.
 - **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the
   Christie and Miranda packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and

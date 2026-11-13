@@ -7,6 +7,8 @@ cites is under [`2026-11-13-agent-entry/`](2026-11-13-agent-entry/).
 - **Before:** `19ca55a` (main). **After:** `df3fe8c`. `98defe1` and `68272ba` add this page and its evidence,
   nothing else. The commits after `68272ba` fix what the report left open:
   [Fixed after the report](#fixed-after-the-report). Every figure above that section is of `df3fe8c`.
+  After those, the owner corrected one sentence of this audit and had what is stale deleted:
+  [Deleted on the owner's word](#deleted-on-the-owners-word).
 - The baseline was committed as `1dacfc1` before any document, test or tool was touched. Two of its eight
   tasks were measured again later; "Corrected while checking" says which and why.
 - A call is one shell command or one file read. Bytes are those of the file or of the command's output.
@@ -222,6 +224,10 @@ The owner asked for the open points to be fixed, and decided four of them: a ful
 `tools/pd2-port/STATUS.md`, the star chart removed, `"runtime_verified": false` with both Christie packs
 rebuilt, and the merge with upstream kept out of this branch.
 
+This section is of `2dc7c27`. It speaks of a release, of the `star-chart` branch and of
+`tools/skyrim-nif/`: all three are gone since, and what it said about redistribution was wrong. The next
+section has both.
+
 | Open point | Fix | How it was checked |
 | --- | --- | --- |
 | The `lawson LAS pack` workflow fails for want of scipy | `92c9758`: its install line has scipy. `test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs` fails when a workflow that runs the suite installs less than `test.yml` does | started by hand on this branch, the workflow passes: run 43394621347 on `92c9758`, run 43405121829 on `48b26a2`. Its last step, the publish, runs on a tag only and was skipped both times. With `tests` passing, that step can be reached again |
@@ -328,18 +334,138 @@ in the one state where `status` names it as the next command.
   is now, written down. The repository's `README.md` says of every source that it is not cleared for
   redistribution, and a `lawson-las-v*` tag would publish `Miranda_LAS.zip` too, which no release has
   carried. The owner's decision; nothing was tagged, and the workflow's publish step was not changed.
+  *Since: the sentence in `README.md` was this audit's and was wrong, and the stale release is deleted.
+  Next section.*
 - **The `star-chart` branch on GitHub.** Nothing writes to it any more. The owner's to delete.
+  *Since: deleted. "Nothing writes to it" was wrong: the workflow is on `main` until this branch is merged,
+  and redrew the branch on every push to `main`. It is switched off now.*
 - **The merge with upstream:** six conflicts, as above.
+  *Since: it was seven by then. Deleting the star chart workflow in `38df6d9` added one, upstream having
+  changed that file, and this line did not count it.*
 - **`copies.py after` fails after any pack is rebuilt on purpose**, until `outputs.status` is recorded
   again: `status.py` prints each pack's size and sha256, and the reference holds a checksum of what it
   printed.
 - **`tools/skyrim-nif/skeleton_map.json` says of itself "nothing consumes this file yet".**
   `tools/pd2-las/build_skyrim_outfit.py` reads it. A data file of a cancelled route; not edited.
+  *Since: deleted with that route.*
+
+## Deleted on the owner's word
+
+On the report of the fixes the owner wrote: "Change README - no mod has that resctriction" and "Delete
+stale things". Which things was asked in three questions and answered: all sixteen branches; both tags and
+the pre-release with its tag; everything only the cancelled Skyrim outfit uses. The decisions are D32 and
+D33 in [`DECISIONS.md`](../pd2-las/DECISIONS.md).
+
+**A sentence of this audit was wrong.** `README.md` said: "The sources are fan rips, so nothing here is
+cleared for redistribution." This audit wrote it (`62f919e`) from D4, and D4 had been put together on
+2026-11-11 from an audit of 2026-10-18 that listed clearance as "open". It was never the owner's word, and
+the section above then gave it as a reason to hesitate over a release.
+
+- `018fc07` takes it out of `README.md` and out of what repeated it: "Blocked: public release" and "Do not
+  publish or redistribute the packs or their sources" in `tools/pd2-las/README.md`, "not cleared for
+  redistribution" in `tools/pd2-port/README.md`, the release gate of `docs/pd2-las/in-game-checklist.md`,
+  the note on asset rights in `docs/pd2-las/CHEST-VARIANT.md`, and the gate in the knowledge note on LAS
+  outfits. D4 is marked superseded by D32.
+- **Not changed, and it is the owner's to decide:** `CREDITS.txt` inside the tracked `lawson_las.zip` says
+  "this is an unlicensed, non-commercial fan derivative and no redistribution permission is claimed", and a
+  comment in its builder, `tools/pd2-port/build_las_pack.py`, says "not cleared for commercial
+  redistribution". Changing the text is a rebuild of that pack: other bytes, another sha256. The rules under
+  "What you ship" in `AGENTS.md` and in the skills are upstream's, about game files an agent extracts; the
+  audits of 2026-10-18 are records of their day.
+
+**Two more sentences were wrong**, both found while checking this section.
+
+- From `cf56805` through `b3b6966`, `tools/pd2-port/STATUS.md` said of the tag `lawson-las-v1`: "never a
+  release". There had been one. The release workflow ran on that tag six times on 2026-10-19, and its step
+  "publish to the GitHub release" succeeded in five (`gh run list --workflow lawson-las.yml`; the steps of
+  run 39214619314); the journal of that day says so too. On 2026-11-13 the tag had no release, and nothing
+  in the repository records who took it down or when. `STATUS.md` says that now.
+- The section above counts six conflicts in a merge with upstream. It was seven from `38df6d9` on: that
+  commit deleted the star chart workflow, which upstream has changed since the fork. Tried at `292c5cf`
+  (six), `2dc7c27` (seven) and `b3b6966` (seven).
+
+**What was deleted.** Every tip and every path is written down, so each line can be undone.
+
+| Deleted | Why it was stale | How to get it back |
+| --- | --- | --- |
+| 15 `arena/*` branches on GitHub | each merged by a pull request (#16 to #30) and wholly in `main` | the table of tips in `tools/pd2-port/MODLOG.md`; `git push origin <tip>:refs/heads/<name>` |
+| the `star-chart` branch; the `star chart` workflow switched off | the workflow and its script left this branch in `38df6d9`; no page showed this fork's chart (the README of `main` shows upstream's) | tip `556a41912a3d`; `gh workflow enable star-chart.yml` |
+| the pre-release `lawson-las-v2` with its tag; the tags `lawson-las-v1`, `lawson-clover-v1` | it served the build of `282703f`, and ten commits rebuilt the tracked pack after it, under the same version, 0.1.2; GitHub counted 0 downloads of each asset; neither older tag had a release that day | the three commits are in `main`; the zip is `git show 282703f:dist/lawson_las.zip` |
+| `tools/pd2-port/releases/` (2 files) | the page bodies of releases that do not exist | `git show 19ca55a:tools/pd2-port/releases/lawson-las-v2.md` |
+| the code of the cancelled Skyrim outfit: 29 files, 8,302 lines, and the parts of six more modules that only it used | its archive was removed on 2026-11-05 (`eb2a9c5`): the builder ended with exit 2, and 21 of the suite's 29 skips were its tests | `git show 19ca55a:<path>` |
+| `docs/audits/2026-11-09-neck-arm/`, 5 renders | the page that showed four of them, a repair plan, was deleted on 2026-11-10 (`0a76215`); no file named any of the five | `git show 19ca55a:docs/audits/2026-11-09-neck-arm/arm_three_view.png` |
+
+GitHub has `main` and this branch now, no tag and no release. The next release of `lawson_las` is numbered
+3: a clone made earlier still has the tags of 1 and 2, and a test rejects notes under either number.
+
+**What went with the Skyrim outfit** (`f6264ae`; the entry of the day in `tools/pd2-las/MODLOG.md` lists
+it):
+
+- Whole files: `tools/skyrim-nif/` (9), `docs/skyrim-nif/` (5), six modules in `tools/pd2-las/`, nine test
+  files.
+- `build_models.py`, 3,543 → 1,784 lines: 39 functions that only that builder called, or nothing called,
+  and two pieces inside functions that stay, both keyed on the outfit's material names. `las_outfit_pack.py`,
+  528 → 380: the outfit's own registration and its `write_pack`. The commands of `preview_textured.py` and
+  `pose_preview.py`, which read that outfit's build or its texture names; the modules stay, because
+  `glove_check.py` and `pose_zoom.py` render with them.
+- **Tests, 836 ids → 705** ([`deleted/tests.txt`](2026-11-13-agent-entry/deleted/tests.txt)): 156 went, 25
+  are new. Of the 156, 21 could only skip. What the outfit's test files asserted about functions that
+  stay was kept and moved: `tests/test_las_outfit_pack.py` (13 tests of the writer of the registration files
+  of the four Christie and Miranda packs), and seven tests of `boundary_loops`, `extract_bones`, the render
+  atoms and the sleeve stretch. `tests/test_glove_adapter.py` and `tests/test_glove_behavior_lua.py` tested
+  the glove adapter of the cancelled outfit, and their pack-level tests waited for a zip that was not
+  coming; they now test `Christie_LAS_Slim`, the one pack that ships the adapter. `b3b6966` adds two
+  tests: 707.
+- The suite skips 8 tests now, for four reasons that are about the machine. The skip budget lost its four
+  reasons about the outfit, and `test_no_budget_is_kept_for_a_reason_nothing_skips_with` fails when a
+  budget outlives its tests again (`b3b6966`).
+
+**Checked.**
+
+| Check | Result |
+| --- | --- |
+| `make -sC tools/pd2-las green` on the tree that became `f6264ae` | 13 of 13 stages; 696 passed, 8 skipped, 2 xfailed; 16 of 16 zips are the tracked bytes after a fresh build ([`deleted/green.txt`](2026-11-13-agent-entry/deleted/green.txt)). No tracked pack changed |
+| `copies.py after` on the same tree | no builder function returns something else; 26 of 26 recorded tools give what they gave ([`deleted/copies-after.txt`](2026-11-13-agent-entry/deleted/copies-after.txt)). The four entries that recorded the outfit's tools are out of the reference; three of them recorded a failure ([the tool-merge audit](2026-11-12-tool-merge.md), last section) |
+| `pose_zoom.py` and `glove_check.py` on `christie.model` and `miranda.model`, before the edits to the two modules they render with and on `b3b6966` | the same four PNGs, by sha256 (`38ee41e7…`, `13147db1…`, `494c9649…`, `5b85e89e…`) |
+| `tests/test_glove_behavior_lua.py`, which runs the hook's Lua through `lupa` | 10 passed in an environment with lupa 2.8, set up aside; its runtime there is Lua 5.5, and the game's is 5.1. The pinned environment and CI have no `lupa`: there the file skips, as it did before |
+| the eight tasks on `b3b6966` ([`deleted/walk.json`](2026-11-13-agent-entry/deleted/walk.json)) | 7 calls, 34,887 B, 10,140 tokens, 423 s; every answer reached. T6 reads 387 B less and has five items again: there is no release to be behind. T8 prints 161 B less: `pytest -q` prints a character for each test, and there are fewer. What loads at start is unchanged: 4,632 B |
+| sizes and hashes quoted in documents ([`deleted/facts.tsv`](2026-11-13-agent-entry/deleted/facts.tsv)) | none |
+| the ledger against `19ca55a` ([`ledger.tsv`](2026-11-13-agent-entry/ledger.tsv)) | 1,053 removed lines, each with where it went: 739 dropped, 314 moved |
+| defects put back on `b3b6966` ([`deleted/mutations.txt`](2026-11-13-agent-entry/deleted/mutations.txt)) | 30 cases: 29 fail their test, and the one that is a correct release passes. Six are new: a README row for the deleted tools, a stale skip budget, a glove adapter enabled with a boolean, a unit path without its file stem, a texture pair with its suffix, default sleeve targets for the outfit's materials. Cases 9e and 10 used to write into `tools/skyrim-nif/README.md` and write into two other READMEs now |
+| the `test` workflow on GitHub | every step passed on `cf56805`, `f6264ae` and `b3b6966`; "16 of 16 tracked zips are the tracked bytes after a fresh build" each time, twice without AVX-512 (EPYC 7763) and once with it (EPYC 9V45) |
+| the `lawson LAS pack` workflow, started by hand on `b3b6966` (run 43423900084) | the pack it builds is the tracked one and its suite passes; the publish step was skipped, as on any run that is not a tag |
+
+**Not checked.**
+
+- Nothing in game, as before. No pack changed.
+- `copies.py compare` was not run again. It works in a worktree of `26fce3e`, where the deleted files are.
+- That nobody else needs a deleted branch or tag: a fork or a clone of this repository keeps its own.
+- The ten functions below were found by name. None was run, and none was removed.
+
+**Found and left, with the reason.**
+
+- **Ten functions in live modules that nothing calls**, none of them the outfit's: `chest_extent` in
+  `bust_variant.py`; `attenuate_dxt5_alpha_by_block_mask`, `rgba_to_bgra_dds` and `set_dxt5_constant_alpha`
+  in `dds_encode.py`; `mat_apply_vec` and `mat_from_pos_rot_rows` in `diesel_model.py`; `_axis_to_camera` in
+  `render_mesh_skeleton.py`; `repair_dxt5_texture` and `_encode_block` in `tools/pd2-port/dds.py`, with
+  `_rgb565`, which only `_encode_block` calls. No file under `tools/`, `tests/` or `um/` names one of them
+  outside its own module; a call built at run time would escape that search. They came with the Miranda,
+  Christie and Lawson work between 2026-10-18 and 2026-11-06, so no answer of the owner covers them.
+- **`docs/pd2-las/renders/`, 101 PNGs, is not stale.** No file has the exact name of 79 of them.
+  `CHRISTIE.md` names them by pattern, `render_mesh_skeleton.py` and `elbow_before_after.py` write them, and
+  `test_render_cli_writes_every_file_the_docs_name` fails when the page names a render the tool cannot make.
+- **The label `glove=2B` that `glove_check.py` draws on its sheet.** The stand-in has been a capsule since
+  before this change. The label is in the PNG that `copies.py` holds the tool to, so it was left.
+- **The merge with upstream** (`3c4ac6c`, as fetched earlier): seven conflicts now, in
+  `.github/workflows/star-chart.yml` (deleted here, changed there), `.github/workflows/test.yml`,
+  `AGENTS.md`, `README.md`, `knowledge/INDEX.md`, `knowledge/index.json` and `um/scan.py`. Tried in a
+  worktree and aborted. Still a change of its own.
+- **`CREDITS.txt` in `lawson_las.zip`:** above.
 
 ## Run it again
 
 ```sh
-# for the figures of "Fixed after the report", use b47635d in place of df3fe8c
+# for the figures of "Fixed after the report", use b47635d in place of df3fe8c; for the last section, b3b6966
 git worktree add --detach ../wt-before 19ca55a && git worktree add --detach ../wt-after df3fe8c
 M=docs/audits/2026-11-13-agent-entry/measure.py           # with tiktoken installed it also counts tokens
 python3 $M walk --tree ../wt-before --routes before        # about 8 minutes; it builds packs

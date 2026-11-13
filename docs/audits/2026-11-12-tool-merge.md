@@ -406,8 +406,8 @@ entries of `outputs` in `reference.json` were records of that code, and are take
 
 | Entry | What was recorded | What became of the tool |
 | --- | --- | --- |
-| `build_skyrim_outfit` | exit 2: it needs the outfit's archives, removed on 2026-11-04 | deleted |
-| `skin_texture` | exit 1, for the same archives | deleted |
+| `build_skyrim_outfit` | exit 2: it needs the outfit's archive, removed on 2026-11-05 (`eb2a9c5`) | deleted |
+| `skin_texture` | exit 1, for the same archive | deleted |
 | `pose_preview` | exit 1: its command read `build/skyrim-nif/` | the command is deleted; `glove_check.py` and `pose_zoom.py` import the pose |
 | `preview_textured` | exit 0 and one PNG, of `miranda.model` with no texture on it: the command looked for `outfit_<material>_df.texture`, the file names of that outfit | the command is deleted; the same two tools and two test files import the rasteriser |
 

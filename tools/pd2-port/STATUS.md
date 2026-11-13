@@ -16,10 +16,10 @@ README claimed that was not so is under [Corrections](#corrections).
 (2026-10-22); `make -sC tools/pd2-las status` prints its size and sha256.
 
 - **Deleted on 2026-11-13, at the owner's direction:** the pre-release `lawson-las-v2` of 2026-10-19 with its
-  tag (→ `282703f`), the tag `lawson-las-v1` (→ `2b0b1b4`, never a release) and the tag `lawson-clover-v1`
-  (→ `9faa4a4`, the retired character swap). The three commits are in `main`. The release notes of v1 and
-  v2 went with them: `git show 19ca55a:tools/pd2-port/releases/lawson-las-v2.md`. The zip the pre-release
-  served is the one tracked at its commit: `git show 282703f:dist/lawson_las.zip`.
+  tag (→ `282703f`), the tag `lawson-las-v1` (→ `2b0b1b4`; its release was already gone) and the tag
+  `lawson-clover-v1` (→ `9faa4a4`, the retired character swap). The three commits are in `main`. The
+  release notes of v1 and v2 went with them: `git show 19ca55a:tools/pd2-port/releases/lawson-las-v2.md`.
+  The zip the pre-release served is the one tracked at its commit: `git show 282703f:dist/lawson_las.zip`.
 - **Why the pre-release was stale:** it served the build of `282703f` (`lawson_las.zip`, sha256 `a24f0b7c…`),
   and ten commits after the tag rebuilt the tracked pack, from 2026-10-19 to 2026-10-22
   (`git log 282703f..15b0fbe -- dist/lawson_las.zip.sha256`). By their subjects: an invisible unit; glossy
@@ -87,8 +87,10 @@ What this page and the README said until 2026-11-13, and what is so:
   yourself — the bytes are identical" (the README). The release serves the build of `282703f`; the tracked
   pack is ten rebuilds later. This page gave the tracked pack's size and sha256 in one table with the
   release, and a test kept those two figures current, so the table read as if they were the release's.
-- **"the v1 release stays up"** (this page), "v1 kept for comparison" (the README). There never was a v1
-  release, only the tag.
+- **"the v1 release stays up"** (this page), "v1 kept for comparison" (the README). On 2026-11-13 there was
+  no v1 release, only the tag. There had been one: the workflow ran on that tag six times on 2026-10-19 and
+  its step "publish to the GitHub release" succeeded in five. Nothing here records who took it down, or
+  when. (From `cf56805` through `b3b6966` this page said "never a release". That was wrong.)
 - **"uploads `lawson_las.zip` + `lawson_las.zip.sha256`"** (the README, of the release workflow). Since
   `637b7a9` the workflow uploads `Miranda_LAS.zip` and its `.sha256` to the release as well. `lawson-las-v2`
   had the first two only.

@@ -646,7 +646,7 @@
   `build_skyrim_outfit.py`, `skyrim_materials.py`, `skyrim_retarget.py`, `skyrim_source.py`,
   `skin_texture.py`, `decimate.py`; nine test files.
 - **Cut out of files that stay:**
-  - `build_models.py`, 3,543 → 1,783 lines: the 39 functions only that builder called, or nothing called
+  - `build_models.py`, 3,543 → 1,784 lines: the 39 functions only that builder called, or nothing called
     (`graft_pd2_hands`, `weld_wrist`, `weld_open_seams`, `cap_holes`, `slim_neck`, `trim_neck`, `align_neck`,
     `turn_body`, `turn_upper_body`, `restore_bust`, `lower_collar`, `redress_from_source`,
     `follow_layer_weights`, `append_group`, `count_hand_verts`, `extend_blazer_sleeves`, the five `tuck_*`
@@ -674,7 +674,9 @@
     generator writes, and `Christie_LAS` ships none. The LuaJIT file needs `lupa`
     (`recover_env.sh --extras`) and skips without it, in CI too; run by hand here, its 10 tests pass.
 - **Orphans found on the way:** `docs/audits/2026-11-09-neck-arm/`, five renders of the Christie slim arm.
-  The two plan pages that showed them were deleted on 2026-11-10 (`0a76215`); nothing named them. Deleted.
+  The one page that showed them, `2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md`, was deleted
+  on 2026-11-10 (`0a76215`); nothing named them. Deleted. (The message of `f6264ae` says two plan pages and
+  1,783 lines for `build_models.py`; one page and 1,784 are right.)
 - **No pack re-shipped.** `make -sC tools/pd2-las green`: all 13 stages, 696 passed, 8 skipped, 2 xfailed,
   16 of 16 tracked zips the tracked bytes after a fresh build. `copies.py after`: no builder function
   returns something else, 26 of 26 recorded tools give what they gave; the four that went with the outfit
