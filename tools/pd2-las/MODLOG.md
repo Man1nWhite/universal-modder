@@ -752,3 +752,45 @@
   and an empty group come out of the old code and the new as the same sections, byte for byte
   (`docs/audits/2026-11-13-agent-entry/answers/after-confirmation/`).
 - Bring it back: `git revert` the commit that carries this entry. The audit page of the day names it.
+
+## 2026-11-13 — Christie redo: raw ingest, and a checklist written before any build
+
+Scope: `dist/Christie_LAS.zip` and `dist/Christie_LAS_Slim.zip` only. **No pack was rebuilt on this
+entry**; both zips are the bytes they were, and `make -sC tools/pd2-las green` is green (701 passed).
+
+- **Started from the raw sources, in tools that did not write them.** Blender 4.5.16 (headless,
+  Cycles CPU) and SourceIO 5.5.4, against `references/Christie.zip`. The MDL's 98 bones, 20 materials,
+  4 bodyparts, 7 models, 36,920 triangles and 21,979 VVD vertices agree between SourceIO and the
+  pack's own `load_christie` path. One reader disagrees with both: `source_model.load_model` refuses
+  this source (*"VVD LOD0 vertex count 21979 != model numvertices 18359"*) because it sums
+  `numvertices` across every bodygroup model while the VVD holds one block for the file. The Christie
+  builder does not call it; the trap is recorded, not changed, because it is outside this scope.
+- **Six findings, all in [`docs/audits/2026-11-13-christie-raw-ingest.md`](../../docs/audits/2026-11-13-christie-raw-ingest.md).**
+  The three that change the plan:
+  - the pack keeps a **bare neck** (217 skin vertices, z 150–163 cm, 58 boundary edges above z 145)
+    under the vanilla head — the §10.4 neck bisect has to start there;
+  - the gloss mask is **not** derived from the VMT phong parameters (it reads the normal map's alpha
+    through per-material hand-chosen) and the shirt ships at median gloss 2 against a source diffuse
+    alpha of flat 255 and a phong mask of 14;
+  - the 2026-11-07 elbow trim leaves the sleeve at a **0.037** edge ratio in the bind pose (base
+    0.186), and a Cycles render of the packed slim body shows a **25 % dent on each outer forearm** at
+    idle. The idle 1.000 in the 2026-11-10 audit is true by construction: the mesh is authored in that
+    pose.
+- **D18 reproduced unchanged**, exactly: slim 6.70 / 4.95 cm², base 0.00 / 0.00, same slices at
+  z 125.3–126.6. The open rims are 58- and 56-vertex loops **4.5 cm from each elbow pivot**, and the
+  build's own `BUILD_INFO.json` records them as *"bridged … over 10 rim pairs, gap to 2.94 cm"* — a
+  bridge over a gap, not a closed surface.
+- **The checklist was written first:**
+  [`docs/pd2-las/christie-redo-checklist.md`](../../docs/pd2-las/christie-redo-checklist.md) —
+  install matrix, twelve-camera matrix (including the below-the-elbow crook frame the 2026-11-10 batch
+  does not have), eight offline geometry criteria with pass/fail fixed in advance, six poses, the
+  §10.4 bisect, six material criteria, and the sign-off rows that stay the user's.
+- **Environment, and why it is here:** a fresh sandbox came up with numpy 1.26.4 instead of the pinned
+  2.4.6, and `green` was red for two reasons that have nothing to do with Christie
+  (`test_the_declared_code_path_is_what_gets_loaded`, `test_inventory_stage_prints_only_json`).
+  Restoring `numpy==2.4.6` turned both green. Blender had to be installed into a **separate** venv:
+  the `bpy` wheel pins `numpy<2.0`, and installing it beside the repo's numpy is what broke the pins
+  in the first place.
+- **Not established, and said so on the page:** which surface the neck line belongs to, that any
+  offline pose is a pose the game plays, what the shader does with the diffuse alpha, and that either
+  pack loads.
