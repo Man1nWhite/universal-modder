@@ -195,7 +195,8 @@ def test_green_runs_what_the_test_workflow_runs():
     setup = re.compile(r"^(sudo |python -m pip install --upgrade pip |make -sC tools/pd2-las env$)")
     checks = {      # a command of the workflow -> what in check_all.py runs the same check
         r"pyflakes um tools tests$": '["-m", "pyflakes", "um", "tools", "tests"]',
-        r"^python -m pytest -q tests$": '["-m", "pytest", "-q", "tests"]',
+        # -rsxX adds lines to the report and changes no test: the skip budget reads them, so the suite runs once
+        r"^python -m pytest -q tests$": '["-m", "pytest", "-q", "-rsxX", "tests"]',
         r"^\./bin/um kb check --index$": '["-m", "um", "kb", "check", "--index"]',
         r"^\./bin/um publish check \.$": '["-m", "um", "publish", "check", "."]',
         r"fresh\.py check": '"fresh.py"), "check"]',

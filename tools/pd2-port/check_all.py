@@ -2,7 +2,7 @@
 """Run the whole LAS pack verification chain and print a one-line verdict.
 
     python tools/pd2-port/check_all.py           # ~10 s
-    python tools/pd2-port/check_all.py --full    # + everything the test workflow checks (~8 min)
+    python tools/pd2-port/check_all.py --full    # + everything the test workflow checks (~5 min)
     make -sC tools/pd2-las green                 # the same as --full
 
 Every stage is a separate tool with its own exit code; this only collects
@@ -22,8 +22,9 @@ runs, so "is everything green?" is one command here and not six: the lint, the
 every tracked pack built again and compared with its sha256
 (tools/pd2-las/fresh.py; 16 zips). The skip budget expects the 2B reference
 templates under build/pd2-las/2b/ (``make -sC tools/pd2-las env``) and fails
-without them. It holds expected failures (xfail) to a budget as well. The last
-line printed is the next command to run.
+without them. It holds expected failures (xfail) to a budget as well, and it
+judges the report of the suite stage: the suite runs once. The last line
+printed is the next command to run.
 """
 from __future__ import annotations
 
@@ -31,6 +32,7 @@ import argparse
 import hashlib
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -43,11 +45,14 @@ UM_GROUPS = "scan fal comfy sprite render3d video win backup publish kb".split()
 RERUN: dict[str, str] = {}
 
 
-def stage(name: str, args: list[str], cwd: Path = ROOT) -> tuple[str, bool, str]:
+def stage(name: str, args: list[str], cwd: Path = ROOT, keep: Path | None = None) -> tuple[str, bool, str]:
+    """Run one check. `keep` is where its whole output goes, for a later stage to read."""
     RERUN[name] = ".venv/bin/python " + " ".join(
         arg if not arg.startswith(str(ROOT)) else str(Path(arg).relative_to(ROOT)) for arg in args)
     t0 = time.time()
     proc = subprocess.run([PY, *args], cwd=cwd, capture_output=True, text=True)
+    if keep:
+        keep.write_text(proc.stdout + proc.stderr)
     ok = proc.returncode == 0
     lines = [l.strip() for l in (proc.stdout + proc.stderr).strip().splitlines() if l.strip()]
     errs = [l for l in lines if l.startswith("ERROR") or " error" in l.lower()]
@@ -113,8 +118,13 @@ def main() -> int:
         results.append(um_groups())
         results.append(stage("knowledge base", ["-m", "um", "kb", "check", "--index"]))
         results.append(stage("nothing that shouldn't ship", ["-m", "um", "publish", "check", "."]))
-        results.append(stage("pytest suite", ["-m", "pytest", "-q", "tests"]))
-        results.append(stage("skip budget", [str(HERE / "check_skip_budget.py")]))
+        # One run of the suite serves both stages: -rsxX adds the skip and xfail lines that the budget
+        # reads. Until 2026-11-13 the budget ran the suite a second time, two minutes of the seven.
+        with tempfile.TemporaryDirectory() as scratch:
+            report = Path(scratch) / "pytest-rsxX.txt"
+            results.append(stage("pytest suite", ["-m", "pytest", "-q", "-rsxX", "tests"], keep=report))
+            results.append(stage("skip budget", [str(HERE / "check_skip_budget.py"), "--report", str(report)]))
+        RERUN["skip budget"] = ".venv/bin/python tools/pd2-port/check_skip_budget.py"
         results.append(stage("every tracked zip, built again",
                               [str(ROOT / "tools" / "pd2-las" / "fresh.py"), "check"]))
 
