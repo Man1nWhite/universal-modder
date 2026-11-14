@@ -210,8 +210,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 - **Decided:** 2026-10-20 · `94bb4b0`
 - **Decision:** source models are in `models/`, reference mods in
-  `references/`. One source sits among the references:
-  `references/Christie.zip`.
+  `references/`. One source sits among the references.
 - **Why:** not recorded beyond the commit subject ("organize").
 - **Source:** `94bb4b0`; `models/README.md`, `references/README.md`
 - **Status:** holds.
@@ -404,8 +403,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     `build_models.py`);
   - "Worktree state" → dropped: it described an uncommitted patch that has
     long been committed;
-  - the Christie fit rule in `AGENTS.md` → a line under the README's "Do
-    not".
+  - the fit rule for the body-only outfit in `AGENTS.md` → a line under the
+    README's "Do not".
 - **Corrected on the way, both in `AGENTS.md`:**
   - a normal map is not `R = G = B = ny`. Both writers put X in alpha and Y in
     green and fill red with 255 and blue with 0, and the Textures test holds
@@ -421,7 +420,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   for the handoff's table (every tracked zip, each with its own size and
   sha256)
 - **Status:** superseded in part by D30 (2026-11-13): `AGENTS.md` has no copies, `HANDOFF.md` no longer
-  quotes the tracked bytes, and the second test named above is gone. The rest holds.
+  quotes the tracked bytes, and the second test named above is gone. Superseded in part by D35 (2026-11-14):
+  `HANDOFF.md` keeps the present state only.
 
 ### D23 — A unit's `.object` is written from the model beside it
 
@@ -707,7 +707,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   - **The release and the tags** of the sibling pack: `tools/pd2-port/STATUS.md`, "Released and tracked".
   - **Sixteen branches on GitHub**, fifteen of them merged session branches: `tools/pd2-port/MODLOG.md`.
   - **Five renders no page showed:** `docs/audits/2026-11-09-neck-arm/`. The one page that showed them,
-    a repair plan, was deleted on 2026-11-10 (`0a76215`). They were of a slim arm.
+    a repair plan, was deleted on 2026-11-10 (`0a76215`).
   - **Ten functions that nothing ran**, in modules that stay: `chest_extent` (`bust_variant.py`);
     `rgba_to_bgra_dds`, `set_dxt5_constant_alpha`, `attenuate_dxt5_alpha_by_block_mask` (`dds_encode.py`);
     `mat_apply_vec`, `mat_from_pos_rot_rows` (`diesel_model.py`); `_axis_to_camera`
@@ -733,8 +733,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   suite's 29 skips were tests waiting for the outfit's archive, removed on 2026-11-05, or for its pack.
   A release that serves an older build under the same version number tells an installer the wrong thing.
 - **Kept, because someone runs it:** `render_source`, the `--source` mode of `render_mesh_skeleton.py`. No
-  test and no recorded tool runs it; a person does. Run on `references/Christie.zip` it writes
-  the five `christie_source_*.png`.
+  test and no recorded tool runs it; a person does.
 - **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the LAS
   packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and `pose_zoom.py` render
   with; `build_models.extract_bones` and `extend_sleeves_to_wrist` stay. The tests of those functions that
@@ -768,3 +767,17 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Held to:** `test_pack_layout_matches_2b_contract` fails when the builder writes a credits file again.
 - **Source:** the user, 2026-11-13; `tools/pd2-port/MODLOG.md`
 - **Status:** holds.
+
+### D35 — The project's self-description starts from the present
+
+- **Decided:** 2026-11-14, by the user (a clean slate, after the removal of the deleted packs' tooling)
+- **Decision:** `HANDOFF.md` keeps the present state only: which bytes are tracked (by command, never by a
+  quoted size), what was seen in game and when, the rebuild rule for the packs that can be rebuilt, and the
+  dead ends. The dated narratives of how the tracked bytes came about and the table of claims that earlier
+  copies made are removed. `tools/pd2-las/MODLOG.md` is reset to a fresh-start entry; the text of the removed
+  entries is in git (`git log -- tools/pd2-las/MODLOG.md`). `DECISIONS.md` stays, with no name for the
+  deleted packs' tooling.
+- **Why:** the owner wanted a clean slate for the project's self-description. The dated archaeology
+  duplicated `docs/audits/` and git history and no longer described the present.
+- **Status:** D22's description of what `HANDOFF.md` keeps is superseded by this entry; the rest of D22
+  holds.

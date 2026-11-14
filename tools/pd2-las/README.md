@@ -114,7 +114,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 ## Further reading
 
 - The sibling pipelines (`tools/pd2-port/`, `tools/build_joy_head_mods.py`): [`tools/README.md`](../README.md)
-- Why it is built this way: `docs/pd2-las/DECISIONS.md`; the journal: `tools/pd2-las/MODLOG.md`; dated audits: `docs/audits/`
+- Why it is built this way: `docs/pd2-las/DECISIONS.md`; dated audits: `docs/audits/`
 - The tracked bytes, what was seen in game and when, dead ends: `docs/pd2-las/HANDOFF.md`
 - LAS runtime contract and gotchas: `knowledge/games/payday-2/las-armor-skin-outfit.md`
 - Chest morph: `docs/pd2-las/CHEST-VARIANT.md`; retarget and matrix conventions: the `build_models.py` docstring, `retarget_maps`
