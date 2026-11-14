@@ -231,3 +231,46 @@ offline, and no channel will be touched without that matched build.
 
 `runtime_verified` remains `false`. Nothing in this file claims in-game
 behaviour for any of the five defects.
+
+## 8. Continuation-round addendum (same day, after a sandbox rollback)
+
+The workspace rolled back to `6f26633` at the start of the continuation round:
+`.venv` was gone, `dist/` held pre-`8dd498b` bytes, and the local branch ref had
+moved. The remote branch on origin held `85b757c`, so recovery was
+`git fetch origin arena/4f5923fc-universal-modder && git reset --hard FETCH_HEAD`
+plus `bash tools/pd2-las/recover_env.sh --extras`; `dist/` bytes match the
+`8dd498b` pins again (`1ec1c95a…` / `ebe44af7…`), and the tree is otherwise
+byte-identical to the state this file was written for.
+
+Two read-mostly probes were added to close the remaining unexamined classes:
+
+**Degenerate / sliver triangles** — zero zero-area faces in both packs.
+Min-angle < 2.5°: slim 174 of 12,782, base 157 of 17,309 — concentrated in the
+forearm slit-rim zone (16 / 10 faces at |x| > 33 cm, z ∈ [105, 121] cm),
+i.e. they *are* the seam-stitch bridge quads and cannot be eliminated without
+re-opening the slit. **In the crease window (z ∈ [124, 145], |x| > 25 cm,
+y > −2): 0 (slim), 1 (base; 1.86°, 0.2 cm² — sharp but not degenerate).**
+No degenerate-triangle defect exists to repair.
+
+**Collar / neck zones (the "pale band" hypothesis, closed):**
+
+| zone | faces (base / slim) | p50 | p90 | > 30° |
+| --- | --- | --- | --- | --- |
+| collar band z [144,152) | 630 / 633 | 5.2° / 5.2° | 27.1° / 26.2° | 8% / 7% |
+| neck/jaw top z [152,165) | 1,144 / 1,140 | 8.2° / 8.6° | 49.5° / 49.7° | 17% / 17% |
+| throat hollow z [140,144) | 439 / 439 | 4.0° / 4.0° | 18.7° / 18.5° | 5% / 5% |
+| c02_05 zone z [130,140) | 1,177 / 1,182 | 5.4° / 5.3° | 26.7° / 26.2° | 8% / 7% |
+
+The > 30° neck faces are smooth shading over the neck's curvature under the
+jaw (authored, expected), and the collar's standing edge carries **no specular
+boost**: the collar island's DF alpha is 10.6 vs the whole blazer island's 10.3,
+identical in both packs (p50 10.0 everywhere). The pale band is therefore not
+driven by pack-side collar gloss either. The three strata the screenshot
+review counted (pale band / darker throat / abrupt chest step) match the
+authored collar-rim → shadowed hollow → shirt front stack, with rim light on a
+hard horizontal edge as the most probable enhancer. Attribution and the
+remedy remain with the in-game head on/off bisect (§5) — nothing here
+identifies a pack byte as the cause, and no specular or normal edit is
+defensible offline.
+
+**Net: no new repairable defect surfaced. Attribution is unchanged.**

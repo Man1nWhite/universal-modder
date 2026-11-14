@@ -1,5 +1,21 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-14 (later) — offline audit continued: slivers clean, collar not glossy; sandbox rollback recovered
+
+- The workspace rolled back to `6f26633` at the start of the continuation:
+  `.venv` gone, `dist/` holding pre-`8dd498b` bytes, local branch ref moved.
+  The remote branch held `85b757c`; recovery was `git fetch` +
+  `git reset --hard FETCH_HEAD` plus `recover_env.sh --extras`. `dist/` bytes
+  match the `8dd498b` pins again; tree clean.
+- Continuation measurements (both packs): zero zero-area triangles; the
+  < 2.5° sliver class sits in the slit-rim bridge faces (cannot be removed
+  without re-opening the slit); 0–1 in the crease window. Collar island DF
+  alpha 10.6 vs blazer 10.3 (identical in both packs) — the pale neck band
+  is not pack-side specular; collar/throat zones otherwise clean (§8 of
+  `docs/audits/2026-11-14-christie-shading-offline-audit.md`).
+- No pack byte changed this round either; attribution unchanged; the two
+  in-game deciders (head on/off bisect; rifle-pose capture) are still open.
+
 ## 2026-11-14 — the remaining review items, measured offline: none is a pack defect we can repair blind
 
 - Request: continue fixing the 2026-11-10 review list (neck bands, inner-elbow
