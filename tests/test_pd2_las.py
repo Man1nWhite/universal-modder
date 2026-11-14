@@ -1470,7 +1470,7 @@ def test_our_packs_have_an_orthonormal_tangent_basis():
     cover N.U and N.V, which a plain projection satisfies exactly - that is how
     a 5-20 degree shear shipped in every pack this repo builds. U.V is the
     missing gate, and it is checked here on the packs this repo actually builds
-    (Christie base + slim, TPP and FPS).
+    (the Miranda packs, TPP and FPS).
     """
     import zipfile
 
@@ -1479,14 +1479,14 @@ def test_our_packs_have_an_orthonormal_tangent_basis():
     import diesel_model as dm
 
     specs = [
-        ("Christie_LAS_Slim.zip", "Christie_LAS_Slim",
-         "assets/units/christie_slim/skins/christie_slim/christie_slim.model"),
-        ("Christie_LAS_Slim.zip", "Christie_LAS_Slim",
-         "assets/units/christie_slim/skins/christie_slim/fps_christie_slim.model"),
-        ("Christie_LAS.zip", "Christie_LAS",
-         "assets/units/christie/skins/christie/christie.model"),
-        ("Christie_LAS.zip", "Christie_LAS",
-         "assets/units/christie/skins/christie/fps_christie.model"),
+        ("Miranda_LAS.zip", "Miranda_LAS",
+         "assets/units/miranda/skins/miranda/miranda.model"),
+        ("Miranda_LAS.zip", "Miranda_LAS",
+         "assets/units/miranda/skins/miranda/fps_miranda.model"),
+        ("Miranda_Busty_LAS.zip", "Miranda_Busty_LAS",
+         "assets/units/miranda_busty/skins/miranda_busty/miranda_busty.model"),
+        ("Miranda_Busty_LAS.zip", "Miranda_Busty_LAS",
+         "assets/units/miranda_busty/skins/miranda_busty/fps_miranda_busty.model"),
     ]
     for zip_name, prefix, model_rel in specs:
         zp = REPO / "dist" / zip_name

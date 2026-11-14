@@ -10,7 +10,7 @@ The work in this fork is PAYDAY 2: 14 tracked packs in `dist/`, built by three p
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
 | State of the 14 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build` (Miranda_LAS), `busty`, `christie`, `slim`, `lawson` (lawson_las), `heads` (the nine `*_over_*` packs) |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build` (Miranda_LAS), `busty`, `lawson` (lawson_las), `heads` (the nine `*_over_*` packs); the two Christie packs are tracked but cannot be rebuilt (their builder was deleted) |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |

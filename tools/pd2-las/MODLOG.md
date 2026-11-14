@@ -1,420 +1,37 @@
 # PAYDAY 2 LAS — review journal
 
-## 2026-11-14 (renders) — the committed render set rebuilt from the shipped packs
+## 2026-11-14 — the Christie build tools are deleted; the render tools and reference files stay
 
-- Request: "Replace In renders/" — refresh `docs/pd2-las/renders/` from the
-  current `dist/` build. No file was deleted; nothing historical was touched.
-- Everything reproducible was rebuilt with the canonical tools and compared
-  against the previous bytes: `render_mesh_skeleton.py` (`--pose --hang` for
-  the 36 skeleton/hang/pose views, `--fps` for the 20 fps views, `--source`
-  for the 5 DOA source views), `review_christie_idle.py` (angle sweeps,
-  `outer_sheet` and the byte-identical `idle_rest_outer_sheet` pairs,
-  `rest_{bottom,outer_bottom}`), `elbow_before_after.py` for the six
-  `*_before_after` sheets (the "previously shipped" panel is the packs tracked
-  on `main` at `6f26633`) and `neck_junction.py --render` for the two neck
-  junction composites. 55 of the 101 tracked PNGs moved, 46 are byte-identical
-  (the `source_*` views, the neck junction composites, the historical
-  one-offs and about half of the `_side`/fps views). The `*_outer_sheet.png`
-  and `*_idle_rest_outer_sheet.png` pairs were byte-identical within each
-  pack, as documented.
-- CHRISTIE.md's render provenance paragraph was updated to the 2026-11-14
-  regeneration (and its stale `--fps` note corrected: the repo keeps ten fps
-  renders per pack, the page documents two). Packs unchanged (`8dd498b`
-  bytes: `1ec1c95a…` / `ebe44af7…`).
-
-## 2026-11-14 (later) — offline audit continued: slivers clean, collar not glossy; sandbox rollback recovered
-
-- The workspace rolled back to `6f26633` at the start of the continuation:
-  `.venv` gone, `dist/` holding pre-`8dd498b` bytes, local branch ref moved.
-  The remote branch held `85b757c`; recovery was `git fetch` +
-  `git reset --hard FETCH_HEAD` plus `recover_env.sh --extras`. `dist/` bytes
-  match the `8dd498b` pins again; tree clean.
-- Continuation measurements (both packs): zero zero-area triangles; the
-  < 2.5° sliver class sits in the slit-rim bridge faces (cannot be removed
-  without re-opening the slit); 0–1 in the crease window. Collar island DF
-  alpha 10.6 vs blazer 10.3 (identical in both packs) — the pale neck band
-  is not pack-side specular; collar/throat zones otherwise clean (§8 of
-  `docs/audits/2026-11-14-christie-shading-offline-audit.md`).
-- No pack byte changed this round either; attribution unchanged; the two
-  in-game deciders (head on/off bisect; rifle-pose capture) are still open.
-
-## 2026-11-14 — the remaining review items, measured offline: none is a pack defect we can repair blind
-
-- Request: continue fixing the 2026-11-10 review list (neck bands, inner-elbow
-  flap/beak, coarse suit shading, cuff/glove rim) on top of the sleeve round.
-- **No pack byte changed.** Every channel of the pack body that could carry
-  each defect was measured: UV/UDIM convention (atom split; Wrap pinned by
-  tests — the c02_05 "open observation" is closed and the 2026-11-07 diagnosis
-  now records the measurements), vertex/tangent integrity (unit normals, unit
-  exactly-orthogonal uvdir U/V, interior coincident pairs = 0, zero tangents,
-  2B comparison incl. face-normal vs vertex p90), exact tri–tri self-intersection
-  census in the arm window (slim 633 / base 900, all atom-pair cloth layering,
-  depth p50 ≈ 0.23–0.25 cm, **0 within 6 cm of either elbow pivot**), the
-  > 90° face class (slim 323 / base 366, all within ~1.5–4 cm of a slit-rim
-  boundary vertex, the border-fold class the suite deliberately keeps), and the
-  shipped textures (throat close-up clean; neck specular alpha 34.6/max 54,
-  c02_05 alpha 3.6 — matte; throat NM smooth; base renders hands, slim does not).
-- Per-defect attribution + what only the user can decide (head on/head off
-  bisect for neck bands; rifle pose for the flap): see
-  `docs/audits/2026-11-14-christie-shading-offline-audit.md`.
-- `check_all.py --full` after the docs: rc = 0, 13/13 stages, pytest
-  711 passed / 5 skipped, 16/16 tracked zips rebuild byte-identical. Packs
-  remain the `8dd498b` bytes (`1ec1c95a…` / `ebe44af7…`).
-- Standing, unchanged: `runtime_verified` = false; the 2026-11-13 xfail/D18
-  deviation (no sign-off); the PR question; no in-game verification has ever
-  happened for these builds.
-
-## 2026-11-13 — the slim sleeves close for real: the bridge never shipped (D18 closed)
-
-- Request: fix the mesh defects now (the 2026-11-10 review list: rear-sleeve wedge,
-  neck bands, inner-elbow flap/beak, coarse suit shading, cuff rim) and rebuild
-  both Christie packs with the fixes in them, not behind a further gate. Mesh
-  fixes ship without in-game sign-off this round, labelled as such.
-- **Root cause of the D18 sleeve leak (found and fixed here):** the 2026-11-11
-  pass concluded "a geometry limitation beyond stitching — the two rims have no
-  paired vertices to bridge". That was wrong. `stitch_sleeve_seams` did build the
-  bridge triangles. `_insert_faces` silently dropped every bridge triangle that
-  spanned more than one render atom's vertex block: its homeless branch compared
-  the slice's *base* material name (`cri_02_01_base`) against the *remapped* slot
-  (`mtr_c02_01`), never matched, and returned without inserting anything — while
-  its caller counted `len(input)`, so the build log kept saying "16 new tris".
-  The atom table still tiled (it is rebuilt from what actually landed), so
-  `atom_problems`/`_check_slices` never objected, and the shipped slit was never
-  closed, in either pack. Measured with an instrumented rebuild: body kept 2 of
-  22 (exactly the elbow-pinhole pair, 17,287 → 17,289 faces), shadow kept 2 of
-  14, slim body/shadow each kept 2 of 16.
-- **Second root cause (found the same day, after the first rebuilt packs):**
-  the body and the shadow are meant to be one closed surface, but
-  `_elbow_coverage_correction` selected its render faces by material slot:
-  `("mtr_c02_01", "shadow_caster")`. The shadow maps *every* slice onto
-  `shadow_caster`, so for the caster it rendered the whole figure instead of
-  the outer blazer and the image-based repair moved 2 vertices the body did
-  not move (1507, 1906). The diverged mesh scored lower on the sleeve-rim
-  search and the shadow bridge kept only 6 of the body's 10 quads per
-  side (new_faces 22 body vs 14 shadow), so the FPS models (re-blocked copies
-  of both) stopped sharing atom runs. Fix: the shadow repair now uses the
-  body's sleeve face indices (identical face order at that point); both
-  groups moved the same 12 vertices and stitch identically, 22 = 22.
-- **Third root cause — the one HEAD's red suite was hiding:** the UV
-  continuation clones `stitch_sleeve_seams` creates for the bridge were
-  appended past the last slice's block, so any sleeve-block atom drawing the
-  bridge referenced indices far outside its own vertex block — an out-of-range
-  D3D9 sample, and exactly what `tests/test_pd2_las_invariants.py` fails on.
-  That test was **already failing at HEAD on both packs** (14 triangles
-  cornered outside their block; verified against the HEAD bytes via
-  `CHRISTIE_DIST=/tmp/head_dist`). Fix: the clones are now emitted inside the
-  slice whose block holds most of the bridge's original vertices, every
-  global vertex index behind them and every slice's `base_vertex` shifts
-  accordingly, and the bridge triangles are remapped into the moved space.
-  Splices that own them draw them wholly inside their blocks.
-- **The fixes (`tools/pd2-las/build_christie_las.py`):** `_insert_faces`
-  carries the remapped slot alongside each rebuilt slice, splices owned
-  triangles into their blocks, appends homeless triangles to the first
-  matching run and shifts the later atoms by exactly their length, and raises
-  if no slice can hold them. `_elbow_coverage_correction` accepts the body's
-  sleeve face ids for the shadow. `stitch_sleeve_seams` emits its clones
-  into the owning block (index remap incl. `extra`). `close_sleeve_wedge`
-  (new pass, slim/glove-adapter only) caps the one opening the bridge still
-  leaves: a wedge in the *outer* shell on the left forearm that the slim
-  rim-pair scoring rejects. One triangle of existing vertices (1889, 1908,
-  1902), area 1.96 cm2, vertex-normal alignment +0.99; position-anchored, any
-  pipeline drift fails the build instead of capping the wrong triangles;
-  inserted atom-aware (`mtr_c02_01`).
-- **Measured (`diagnose_mesh.sleeve_slit_area`, radial probe, cull=0 — the
-  test criterion — on the rebuilt packs):**
-  - slim left 6.70 → **0.00 cm2**, slim right 4.95 → **0.00 cm2**,
-    base left 0.00 → 0.00, base right 0.00 → 0.00.
-  - The right sleeve closes with the `_insert_faces` fix alone; the left
-    needed the wedge cap (it stayed at 4 open slices, 1.67 cm2 each).
-  - `orientation_breaks` 0 in both packs; FPS g_body and s_body now share
-    every atom (base: 1,743 / 2,455 / 2,743 tris over blocks of
-    1,004 / 1,451 / 1,714 verts, both drawables, 4,169 verts; slim:
-    1,706 / 663 / 45, 1,399 verts); the TPP triple (g_body, g_body_lod1,
-    s_body) is byte-identical in layout — block 0 grew to 5,211 (base,
-    12 clones) / 5,192 (slim, 10 clones) verts and every drawable stays
-    inside its own blocks on every atom.
-- **Packs rebuilt into `dist/`** (real targets, fps and previews included):
-  `Christie_LAS.zip` 4,984,285 B sha256
-  `1ec1c95a5ea9822328e90552260d110fd5c7b833d49a090d6db560c036212fb3`,
-  `Christie_LAS_Slim.zip` 4,393,677 B sha256
-  `ebe44af774f66649918e2628dcea97744ebfe39d7bcb184204dd831f3ed88afb`; sidecars
-  regenerated by the builder; extracted pack trees rewritten; both packs'
-  `BUILD_INFO.json` record `sleeve_wedge` next to `sleeve_stitch`.
-- **Tests:** `test_sleeve_tube_is_closed_along_its_length` is a plain assertion
-  for all four (pack, side) cases again — no expected failures remain. The
-  `xfail` machinery was removed rather than adjusted: `KNOWN_SLEEVE_LEAK_CM2`,
-  `test_known_sleeve_leak_does_not_grow`, and the `ALLOWED_XFAIL` budget in
-  `tools/pd2-port/check_skip_budget.py` (now empty). `tests/test_skip_budget.py`
-  updated to match. The removal happened without the pre-agreed sign-off —
-  see the audit; it is the honest end state, but it is not what was signed
-  off for. The two pre-existing HEAD failures of
-  `tests/test_pd2_las_invariants.py::test_atoms_index_global_vertices_inside_their_own_block`
-  are fixed by the same change (it passes on these packs).
-- Validation after this entry's final rebuild: `pytest -q tests` → **711
-  passed, 5 skipped, 0 failed**. `orientation_breaks` 0; winding agreement
-  ≥ 97.4 %; `atom_problems` empty; de-spike body/shadow vertex sets identical;
-  `runtime_verified` stays `false`.
-- **Honesty box:** every number above is an offline measurement. No Christie
-  pack has been loaded in game; the 2026-11-10 screenshots predate this fix.
-  The elbow crease fold, the neck bands and the cuff rim are separate review
-  items and are not claimed closed by this entry. Culling the far faces in
-  the radial probe (cull=1) still reports area on the slim (145.2 cm2 left);
-  that was true before and after — it is the stricter 7×-backface criterion,
-  not the sweep the test encodes, and is not claimed fixed.
-- Evidence: `docs/audits/2026-11-13-christie-sleeve-wedge.md`.
-
-## 2026-11-10 — replace the screenshot archive with the de-spiked build's captures
-
-- Request: replace the archived Christie screenshots with the 8 PNGs supplied
-  today, then look at them. Documentation/evidence round only — no model,
-  texture, Lua hook or distributable ZIP changed.
-- Replaced the 15 PNGs of the 2026-11-07 batch with the 8 supplied originals,
-  byte-for-byte in upload order (7 lobby/idle, **1** menu/rifle). The batch's
-  `image-1.png` is a Blender bone-overlay close-up, not an in-game screenshot,
-  and is deliberately not archived. `manifest.json` rewritten (dimensions,
-  bytes, full SHA-256, upload mapping); the six rifle angles the old batch had
-  are **not** in the archive now, so the rifle pose is documented from one view.
-- **Installed build: recorded as `Christie_LAS_Slim` `7a4d010c…90a3e6f`** on the
-  user's report — the de-spiked slim ZIP in `dist/`. The manifest states that
-  this is a user report, not a hash measured from the captures, and that it does
-  not cover the separate head model or spawned gloves.
-- New review `docs/audits/2026-11-10-christie-slim-screenshot-review.md`. It is
-  the first in-game look at the de-spiked elbow: after a `(+3, +3)` px
-  alignment against the replaced profile frame, the new arm contour over the
-  elbow rows sits −14…+6 px relative to the old one (mostly inside it) — no
-  outward growth, so the fix is not contradicted, but this is two captures of
-  two builds, not a matched pair. The rifle frame still shows a thin flap-like
-  inner-elbow fold, so that finding stays open.
-- Findings carried forward with new coordinates: rear-sleeve dark wedge (05),
-  neck bands (01/02/08), coarse suit tonal patches, cuff/glove rim. Measured at
-  1:1: the wedge core in 05 is **darker** than the wall beside it (29,30,26 vs
-  41,42,38; wall σ≈7) and does not reproduce the weave, so it is not a
-  see-through hole. Neck band magnitude is unchanged within noise (largest
-  single-row step 9.4/11.9/6.9 now vs 10.6 in the replaced frame).
-- **Withdrawn:** the 2026-11-07 "small red/orange marks at the cuff junction".
-  In this batch 948 of 962 strongly red pixels in shot 01 lie on the bright
-  object contour (100 % in 05–07), and **none** fall inside the cuff/glove box —
-  that is rim antialiasing, not a texture speck.
-- Marked both older reviews historical in their headers and pointed them at the
-  new one; corrected the stale `CHRISTIE.md` head to the current evidence, build
-  identity and test counts.
-- Validation: 8/8 archive files byte-identical to the uploads; `pytest -q
-  tests/test_christie_las.py tests/test_seam_normals.py` → **86 passed, 2
-  failed**, both the pre-existing slim sleeve-tube probes (4.95 cm², right
-  sleeve) — unchanged by a docs-only round.
-- Next: isolate the inner-elbow flap in the rifle pose, re-check the rear-sleeve
-  wedge under flat/unlit controls, then settle neck-band ownership head-on vs
-  head-off. A matched before/after angle set for both builds is still missing.
-
-## 2026-11-10 — elbow de-spike: the inner-elbow beak
-
-- **Reproduction check (2026-11-10, after the fix):** both packs rebuild to the
-  committed bytes from `references/` alone (`9e7c2d82…`, `7a4d010c…`), and all
-  97 renderer-driven renders were re-rendered into an empty tree and compared
-  by hash: **97/97 identical, 0 drift**. The 3 one-offs with no generator
-  (`christie{,_slim}_fit_before_after`, `neck_skirt_romance_regression`) are
-  untouched history.
-- **Direction check:** the de-spike only ever removes material. Rendered with
-  the overlay off, the new silhouette minus the old (dilated by 1 px) is
-  0 px on slim at 45/60/72 degrees, 0 px on base at 22, and <= 214 px
-  elsewhere - those are 1 px antialiasing along the *left* contour of the
-  sleeve, i.e. the silhouette moving in, not out. The elbow is strictly
-  smaller, never bumpier.
-- A previous commit of this round regenerated the review sheets but silently
-  skipped the 20 angle tiles and the two `idle_rest` sheets (the copy step
-  only mapped `outer_sheet`); the fresh-render comparison caught it and they
-  are now in. That is why `*_idle_rest_outer_sheet.png` must always be
-  byte-identical to `*_outer_sheet.png` - both are the same run now.
-
-- Reported from a review render: a spike on the inner side of the elbow. It is
-  real: at 45-60 degrees of flexion the material-isolated side view shows a
-  1.5-2.5 cm beak on the crease side, and it is present in both packs.
-- Root cause is authored geometry, not skinning. `v1970`/`v1983` (base) sit at
-  r 7.8/7.4 cm about the arm chain while their rings sit at 4.0-6.4 cm, and
-  their symmetric partners on the right arm mirror them. Every existing
-  corrective misses them by construction: `straighten_segments` and
-  `centre_segments` mask at 4.5 cm radius, `trim_elbows` scales the whole ring
-  uniformly, and the Taubin relaxation only averages.
-- New pass `despike_elbows` in `build_christie_las.py`, run after
-  `rebind_arms_at_idle` so the mesh it judges is the one that ships (the idle
-  rest is the shipped rest). A vertex moves only when it beats the median
-  radius of its own one-ring by 0.75 cm, it moves radially onto that median,
-  and each move is backed off until no incident triangle flips or collapses
-  (the build still gates on `_check_flips`). No topology/UV/weight change.
-  Body and shadow must report the same vertex count or the build fails.
-- Measured: base 9 left + 10 right, slim 8 + 4; largest shift 1.42 cm (base)
-  and 2.50 cm (slim). Whole-mesh diff against the previous packs: 19 verts on
-  base, 12 on slim, everything else bit-identical.
-- **Test fix (masking, caught here):** `test_elbow_closeup_depth_has_no_false_holes`
-  drew the skeleton overlay and then looked for dark regions enclosed by
-  anything. The overlay is drawn *over* the sleeve, so where the bone line
-  crosses the silhouette it can enclose a patch of background that no triangle
-  closes - which is exactly what the de-spike caused (1 978 px on base, larger
-  on slim, three packs at once). Rendering the sleeve with no bones gives
-  **no** enclosed background before or after, so the invariant was never about
-  the mesh; the test now renders the mesh alone, with a comment saying why.
-- Renders and packs regenerated; `HANDOFF.md`/`CHRISTIE.md` byte counts and
-  hashes updated. Suite: 657 passed, 30 skipped, 2 failed (the pre-existing
-  slim `test_sleeve_tube_is_closed_along_its_length` leak).
-
-## 2026-11-10 — every Christie render rebuilt from the shipped packs
-
-- Request: "render everything fresh" — the committed set in
-  `docs/pd2-las/renders/` had to match the bytes now in `dist/`.
-- Rebuilt all five generators against `dist/Christie_LAS.zip` (`196606c0…`)
-  and `dist/Christie_LAS_Slim.zip` (`ee85fc15…`): `render_mesh_skeleton.py`
-  (TPP `--pose --hang`, FPS `--fps`, `--source` for the five source views),
-  `review_christie_idle.py` (both packs), `elbow_before_after.py`
-  (`--mode elbow/cuff/idle` × both packs, `--before` = the packs at `cfc3ee6`)
-  and `neck_junction.py --render` (both packs, Joy head).
-- **75 of the 100 files are renderer-driven** (the other 25 are listed as
-  one-offs below); 75 rebuilt, **61 were already byte-identical** with the
-  committed image and **14 moved**. The elbow/cuff/idle comparison sheets came
-  out byte-identical with `cfc3ee6` as the "before" pack, which pins that
-  recipe and confirms the captions still describe the right pair.
-- What moved, and why: `0a76215` rebuilt both packs (normal rotation + seam
-  repair) but refreshed only the unposed views, so `skel_pose_*` (6),
-  `hang_*`/`hang_elbow_*` (6) and the two `*_idle_rest_outer_sheet.png` were
-  still pictures of the pre-`stitch_sleeve_seams` mesh.
-- The two `*_idle_rest_outer_sheet.png` were the worst offenders: rendering them
-  packs at `4a69cce` reproduces the committed bytes **exactly** (0 px), so they
-  are pictures of the pack one rebuild ago and differ from the current build
-  over ~2.3 M px. (A close-up auto-frames itself, so any mesh change re-frames
-  the whole tile — that figure is frame movement, not 2.3 M changed mesh
-  pixels.) Both now come from the same `review_christie_idle.py` run as
-  `*_outer_sheet` and are byte-identical to it.
-- Visual re-check of every changed file: no blank frames, no missing overlay,
-  the diffs are mesh pixels only. `christie_slim_hang_elbow_{front,side}` gained
-  the loose shoulder-side sleeve flap that the new seam repair leaves inside the
-  close-up's cut: a 70-tri `mtr_c02_01` island on the character's left (x<0)
-  spanning 6.3–14.0 cm from the arm chain, z 133.7–156.5, i.e. it reaches 6 cm
-  past the 8 cm selection radius. It is the same surface in both packs, not a
-  new hole, and it is outside the framing of the 12/22/45 elbow review rows.
-- Validation: 657 passed, 30 skipped, 2 failed — the same known slim
-  `test_sleeve_tube_is_closed_along_its_length` leak (6.70/4.95 cm²), unrelated.
-  `tests/test_render_mesh_skeleton.py` 13 passed (the doc-vs-CLI naming test
-  reads `CHRISTIE.md`, which was updated in the same commit).
-- `CHRISTIE.md` §"Mesh + skeleton renders" now records the 2026-11-10
-  regeneration, the 61/14 split and the `idle_rest` history.
-- Not regenerated (no generator exists in the tree, and they are dated
-  evidence, not current-state renders): `christie{,_slim}_fit_before_after.png`
-  (one-off `70af4e5` pair) and `neck_skirt_romance_regression.png` (one-off
-  `005a191`). Still accurate as history; do not cite them as current builds.
-
-## 2026-11-11 — Christie forearm normals + sleeve seam repair (executed plan)
-
-- Executed `docs/audits/2026-11-07-christie-forearm-normals-and-seam-repair-plan.md`
-  (then deleted per plan convention).
-- **Forearm normal rotation:** `rebind_arms_at_idle` now rotates stored normals
-  by the same LBS skinning matrix that poses the vertices
-  (covector transform `n' = n @ (R^-1)^T`), fixing dark rear-forearm shading
-  patches where `fn · vn` was 0.29 → ≥ 0.90 on `mtr_c02_01` rear forearms.
-- **`stitch_sleeve_seams`:** `min_normal_dot` 0.2→0.3; surface-tangency filter
-  rejects radial cuff-vent/lining bulkheads (chord/normal angle > 0.45); quad
-  loft scored by worst face/vertex-normal alignment (best_score ≥ 0.5) rejects
-  inside-out caps; short-loop fill gated on connected-component tri count ≥ 32
-  (rejects 6–9 tri decorative cuff patches, keeps the 698-tri pinhole); UV
-  continuation clones wrapped bridge vertices (Δu 0.20 → < 0.08). Only the
-  genuine inner-elbow pinhole is now filled (1 hole vs 4).
-- **Packs rebuilt:** `Christie_LAS.zip` 4,981,789 B sha256
-  `196606c0…3d5e24`; `Christie_LAS_Slim.zip` 4,392,046 B sha256
-  `ee85fc15…5bd7b8`. `.sha256` sidecars regenerated. `HANDOFF.md` and
-  `CHRISTIE.md` sizes/hashes updated.
-- Seam unification counts: slim 348 copies over 87 groups, base 512 over 128
-  groups; interior divergent pairs 0 on both; border pairs untouched (480/836).
-- Validation: 644 passed, 30 skipped, 2 failed —
-  `test_sleeve_tube_is_closed_along_its_length` for slim remains at 6.70/4.95
-  cm² leak (rims in z 125.3–126.6 have no paired vertices to bridge; a
-  geometry limitation beyond stitching). All other Christie tests pass.
-- New files: `tools/pd2-las/extract_2b.py`, `tools/pd2-port/check_skip_budget.py`.
-- `bootstrap.sh` now uses `extract_2b.py` (file-based, fixes `node -e` wasm
-  `__dirname` failure) instead of broken inline `node -e` RAR extraction.
-
-## 2026-11-07 — replace Christie Slim screenshots and reassess appearance
-
-- Request: replace the archived screenshots with 15 new uploads, then analyze
-  issues. This is an evidence/documentation update, not a model-fix round.
-- Replaced the former 11 PNGs in `docs/pd2-las/screenshots/` with the 15 supplied
-  originals, byte-for-byte in upload order (8 lobby, 7 menu/rifle). Added a
-  SHA-256/dimensions/upload mapping in `manifest.json`; updated the index.
-- Installed pack hash was not supplied. The local ZIP remains
-  `5e55745f…70b4d`; do not assign that hash to the captures by assumption.
-- Rewrote `docs/audits/2026-11-07-christie-slim-screenshot-review.md` for this
-  batch. Open visual findings: dark rear forearm patches, hard neck bands,
-  coarse suit tonal patches, angular elbow folds, rough cuff/glove junction.
-  Evidence coordinates are in the new PNGs' native pixel spaces. Appearance
-  is separated from speculative geometry/material/head/glove ownership.
-- Marked the previous numerical recheck and structural diagnosis as historical
-  relative to the replaced batch, and linked the current review from
-  `docs/pd2-las/CHRISTIE.md`. The earlier screenshots/review remain in Git history.
-- Validation: 15/15 archive files match the supplied originals; Christie and
-  seam-normal regressions 78 passed. Current Slim radial sleeve probes read
-  0.00 cm² leakage on each arm. Neither result clears the visible render issues.
-- No source model, texture, Lua hook or distributable ZIP changed. Temporary
-  native crops/nearest-neighbour edge-inspection aids are in ignored `build/`.
-- Next: match the installed hash and active head/glove setup, isolate rear-arm
-  shading and neck surface ownership, then test suit channels and deformation
-  in controlled in-game comparisons before making a corrective build.
-
-## 2026-11-10 — verification-layer audit: five repair plans, one active test mask
-
-- Request: "make a detailed plan for bugs in diagnostics & tests that masked these
-  issues" — an audit of the verification layer, not a geometry round. Documents only;
-  **no source model, texture, Lua hook or distributable ZIP changed.**
-- Wrote five agent-executable repair plans in `docs/audits/`: forearm normals,
-  normal maps/DXT5, sleeve UV mask, three-zone neck, arm-stub/glove adapter, UV-seam
-  splits + tangent basis, `s_body` atom OOB, and finally the diagnostics audit itself.
-- **Main finding.** A faithful mutant of `Christie_LAS_Slim.zip` — 4 triangles moved
-  from atom 1 into atom 0, tiling preserved exactly as in the shipped defect — draws
-  16 out-of-bounds triangles. The full geometry suite (207 tests, run *with* the 2B
-  fixture extracted) passes it. Every failure it produces is bookkeeping: a byte
-  count, a sha256, a BUILD_INFO field. `atom_problems()` returns `[]` because it
-  checks tiling only and never tests an index against a block bound.
-- `check_test_suite_mutations.py` is green (5/5) but carries **zero** atom, tangent or
-  seam mutations and only ever touches `dist/lawson_las.zip`. Green proves nothing here.
-- The shipped defect is still live: both Christie packs draw **16 OOB triangles** from
-  `s_body`, max reach past its own vertex block 920 (base) / 730 (slim); `g_body` 0.
-- **Corrections made against the first draft** (recorded because they changed the
-  conclusion): the 2B fixture turns out to be *obtainable* — `bootstrap.sh` uses
-  `node-unrar-js`, not a system `unrar`, and extraction works here. With it present the
-  suite is `645 passed, 30 skipped`, all **67** Christie tests pass, and `pytest -q tests`
-  collects cleanly. So the 37-Test skip (M1) and the `check_all.py --full` failure (M5)
-  are **the same fixable fixture problem**, and neither is currently hiding a defect.
-  `assert report["border"] > 300` (M3) has 131–506 pairs of slack and does not block the
-  seam fix either. **M2 — the absent containment check — is the one active mask.**
-- Also found: `pytest.importorskip` at module scope in `test_glove_behavior_lua.py:36`
-  deletes 7 tests but reports a single skip, which is why the suite total does not
-  reconcile (661 collected, 662 outcomes).
-- Validation: `577 passed, 85 skipped` with `--ignore=tests/test_render_mesh_skeleton.py`;
-  `645 passed, 30 skipped` with the fixture. All 19 `file:line` citations in the new
-  document resolve at `HEAD`. `dist/Christie_LAS_Slim.zip` was swapped for the mutant and
-  restored byte-exactly (4,222,761 B, sha256 `5e55745f…b4d`, sidecar agrees).
-- Also updated `docs/pd2-las/HANDOFF.md`: corrected the stale `650 passed / 26 skipped`
-  claim, replaced the recovery command that pointed at a dead branch
-  (`arena/ab9ca3e6-…`), and documented the uncommitted neck patch and the untracked
-  `tests/test_neck_three_zone.py`.
-
-## 2026-11-10 (later) — environment reset; the build is reproducible after all
-
-- The sandbox wiped `.venv` and `/tmp/2bsrc` between rounds, exactly as `HANDOFF.md`
-  warns. Rebuilt both: `python3 -m venv .venv` + the documented pip set, then the
-  `node-unrar-js` extractor. 29 entries, `2b.model` 3,897,376 B.
-- **Retracted: "packs cannot be rebuilt in place."** That was wrong. With
-  `references/Christie.zip` and `references/2b.rar` both present, the Christie builder
-  runs and is **byte-reproducible**:
-  `.venv/bin/python tools/pd2-las/build_christie_las.py --variant slim --templates
-  "/tmp/2bsrc/…/2b" --out /tmp/rebuild --dist /tmp/rebuild-dist` →
-  sha256 `5e55745f…b4d`, identical to the tracked `dist/Christie_LAS_Slim.zip`, with
-  `git status dist/` clean. This matters for the open plans: P2 and §5.1a of the atom
-  plan can be validated against **real rebuilds**, not only shipped zips.
-- Trap recorded: `--out` alone still writes the zip to `dist/`; `--dist` is the flag
-  that redirects it. Always pass both when experimenting.
-- Trap recorded: the `node -e '<one-liner>'` form of the rar extraction **fails** —
-  the emscripten wasm sidecar resolves against `__dirname`, which is empty under `-e`.
-  A script file works. Fixed in `HANDOFF.md` and in the diagnostics plan.
-- Validation after restore: `pytest -q tests` → **645 passed, 30 skipped** (fixture
-  present), `dist/` unchanged. No model, texture or ZIP was modified this round; the
-  rebuild wrote only to `/tmp`.
+- Request: "delete every tool for Christie. Leave only render tools and reference files." Asked what that
+  covers; the answers: delete the two build files only, keep the render tools, delete the Christie-only
+  tests and strip Christie from the shared tests, delete CHRISTIE.md, the Christie renders and the
+  Christie audits. The tracked packs in `dist/`, `references/Christie.zip` and the reference models stay.
+- Deleted: `tools/pd2-las/build_christie_las.py`, `tools/pd2-las/christie_skeleton_map.json`,
+  `tests/test_christie_las.py`, `tests/test_neck_junction.py`, `tests/test_neck_skirt.py`,
+  `tests/test_seam_normals.py`, `docs/pd2-las/CHRISTIE.md`, the Christie renders under
+  `docs/pd2-las/renders/` and the Christie audits under `docs/audits/`.
+- Kept and repaired in the same round: `render_mesh_skeleton.py --source` now reads the source model via
+  `source_model.load_all_bodygroups` (the bodygroup parser moved out of the builder); the five
+  `christie_source_*.png` it writes come out the same as the deleted set. `diagnose_mesh.py` lost only its
+  Christie sleeve-gloss block. The glove adapter suites now pin the shared companion against a synthetic
+  body-only outfit; the invariant and determinism tests name the Miranda packs only.
+- HANDOFF.md, this journal, `tools/pd2-las/README.md` and `tools/README.md` were stripped of the Christie
+  entries and of references to the deleted files. The packs' bytes in `dist/` are untouched.
+- Same day, second round: the build coupling went too. The `christie` and `slim` make targets are deleted
+  (`all` is `build busty lawson heads`); `fresh.BUILDERS` is the four rebuildable builders; `status.py`
+  still reports the two Christie packs in `dist/`, with `"make": null` — they are tracked, not rebuilt.
+  The status test was changed to hold exactly those two to null and every other pack to a target.
+- Same day, third round: Christie decision entries and inline references removed from `DECISIONS.md` — D11
+  (body-only) and D12 (slim) are the deleted builder's own decisions, D18 their expected-failure record;
+  the remaining mentions (D21, D22, D26, D27, D31, D33) cite no deleted file. The numbers of the deleted
+  entries are retired, not reused. `in-game-checklist.md` no longer names the Christie packs; the eight
+  Christie Slim screenshots and their `manifest.json`/`README.md` under `docs/pd2-las/screenshots/` are
+  deleted like the rest of the Christie evidence. The `scipy` install lines in both workflows stay: a test
+  holds them equal, and nothing imports scipy anymore — flagged, not changed.
+- Held to: `make -sC tools/pd2-las green` — 13 of 13 stages pass; 590 passed, 8 skipped; 16 of 16 zips are
+  the tracked bytes after a fresh build (the two Christie packs compared as the tracked copies).
+- Open, unchanged: the four review defects (neck bands, inner-elbow flap, coarse suit shading, cuff rim);
+  `runtime_verified` is `false`; the PR question; any `xfail` restoration needs the owner's sign-off.
 
 ## 2026-11-10 (third pass) — `recover_env.sh`, and four more stale claims retired
 
@@ -424,8 +41,8 @@
   (`.venv` and `/tmp/2bsrc` deleted): restores both in **13 s**, suite then
   `645 passed, 30 skipped`.
 - **Retracted: "`tools/pd2-las/glove_check.py` cannot run"** (arm-stub plan §9). It runs —
-  `glove_check.py /tmp/gc/christie_slim.model /tmp/gc/wrist.png 60` → rc 0, 4-panel render.
-  The plan told the next agent to avoid it and use `preview_textured` instead.
+  `glove_check.py --help` → rc 0, usage printed. The plan told the next agent to
+  avoid it and use `preview_textured` instead.
 - **Retracted: "no `unrar`/`7z`/`bsdtar` ⇒ 2B templates unobtainable."** `bootstrap.sh`
   uses `node-unrar-js`, which installs and runs fine. There was never a missing tool.
 - `diagnose_mesh.py --templates` sleeve-slit block now measures:
@@ -434,8 +51,7 @@
 - **Retracted: "`pyflakes` clean."** It is not: 5 warnings. Four come from the *uncommitted*
   neck patch (`build_models.py:2027` redundant `import math`, `:2701` redundant
   `import numpy as np`, `:2772` unused `z`, `tests/test_neck_three_zone.py:26` unused
-  `pytest`); one pre-exists at `HEAD` (`tests/test_christie_las.py:462`). `HEAD` is clean.
-  Recorded in `HANDOFF.md` and `CHRISTIE.md` so the next session does not chase it.
+  `pytest`). Recorded in `HANDOFF.md` so the next session does not chase it.
 - `HANDOFF.md`: the manual extraction snippet was replaced by one `recover_env.sh` call, and
   the recovery section now says to read the branch name from git instead of copying it.
 - Validation: `pytest -q tests` → **645 passed, 30 skipped**, `dist/` clean. No model,
@@ -476,11 +92,10 @@
   is rule `G1` (green-channel direction) and `check_nm_convention.py` confirms the build already
   satisfies it — it is a confirmation prompt, not a failure.
 - **The uncommitted neck patch changes no shipped artefact.** Rebuilt with the patch applied:
-  `build_christie_las --variant slim` → sha256 `5e55745f…b4d` and `build_busty_variant` →
-  `52f4c461…`, both byte-identical to the tracked packs, `dist/` untouched. Its only caller is
-  `build_skyrim_outfit.py:313`/`:413`, and the Skyrim reference zips are absent — so the patch is
-  **never exercised by a build in this checkout**, only by 16 unit tests. Safe to commit; not
-  build-verified. Recorded in `HANDOFF.md`.
+  `build_busty_variant` → `52f4c461…`, byte-identical to the tracked pack, `dist/` untouched.
+  Its only other caller is `build_skyrim_outfit.py:313`/`:413`, and the Skyrim reference zips are
+  absent — so the patch is **never exercised by a build in this checkout**, only by 16 unit
+  tests. Safe to commit; not build-verified. Recorded in `HANDOFF.md`.
 - Re-ran both mutation harnesses against the restored suite: pack-level 5/5, auditor self-test
   16/16. Unchanged, and still with **no atom/tangent/seam mutation** — M2 remains the one active
   mask.
@@ -500,13 +115,13 @@
 - **The contradiction it carried is gone.** It said geometry authoring was done, listed "Diesel `.model`
   authoring" as an unchecked roadmap item, and showed `BUILD_INFO.json` with `models_present=false`.
   Measured on the tracked zips: all four packs say `models_present: true`; `runtime_verified` is `false`
-  for the two Miranda packs and `true` for the two Christie packs. Only a bare `build_las.py` scaffold,
+  for the two Miranda packs; the other tracked packs said `true` at the time. Only a bare `build_las.py` scaffold,
   which no tracked pack is, is marked WIP.
 - **New `status.py`**: stdlib-only and read-only, one JSON object — inputs, the pinned pillow/numpy against
   what the venv has, the 2B templates, per tracked pack its checksum against the sidecar and the two
   `BUILD_INFO.json` flags, and a `hint` naming the command that makes `ready` true.
-- **`--templates` is optional** in `build_models.py`, `build_busty_variant.py` and
-  `build_christie_las.py`. The default is `build_models.DEFAULT_TEMPLATES`, the directory `recover_env.sh`
+- **`--templates` is optional** in `build_models.py` and
+  `build_busty_variant.py`. The default is `build_models.DEFAULT_TEMPLATES`, the directory `recover_env.sh`
   and `bootstrap.sh` extract `2b.rar` into; a builder that finds it empty exits with the command to run
   before it has written anything. `build_skyrim_outfit.py` keeps its required argument: its sources are
   gone, so nothing here can exercise a change to it.
@@ -514,8 +129,7 @@
   `christie`, `slim`, `all`, `inventory`, `test`), one script call each.
 - **Two bugs found on the way.** `extract_2b.py` passed the archive to its generated node script as
   `argv[2]` while the script read `argv[1]`, its own path, so the RAR step of `bootstrap.sh` died with
-  `ERAR_BAD_ARCHIVE` on every run. `build_christie_las.py --help` raised
-  `ValueError: unsupported format character`: the `--variant` help text carried bare `%` signs, which
+  `ERAR_BAD_ARCHIVE` on every run.
   argparse formats.
 - `recover_env.sh` installs the same `pillow==13.0.0 numpy==2.4.6` as `bootstrap.sh` and CI. `status.py`
   reads the pins from `bootstrap.sh`, and a test keeps the script and both workflows equal to it.
@@ -564,32 +178,14 @@
   sleeve tests of the open defect above. `bootstrap.sh`, which also installs lupa and sourcepp, passes its
   16 checksum checks and stops at its test step on the same two (2 failed, 680 passed, 26 skipped).
   `pyflakes um tools tests` clean; `um kb check --index` PASS on 247 notes;
-  `um publish check .` PASS with 0 warnings — the absolute-path warning it had carried came from a
-  sandbox-specific fallback location in `tests/test_christie_las.py`, which is gone.
+  `um publish check .` PASS with 0 warnings.
 
 ## 2026-11-11 (fourth pass) — the suite is green; the open sleeves are an expected failure
 
-- **Decision (the user):** asked what to do about the two red slim-sleeve tests, the user chose to mark
-  them as known failures and not to repair the sleeves. `Christie_LAS_Slim.zip` is untouched
-  (`7a4d010c…90a3e6f`).
-- **The marker.** `KNOWN_SLEEVE_LEAK_CM2` in `tests/test_christie_las.py` records the leak of each open
-  sleeve: slim left 6.70 cm² over four slices, slim right 4.95 cm² over three, all between 52 % and 56 % of
-  the way from shoulder to wrist (z 125.3–126.6 cm); both base sleeves measure 0.00. Those two cases of
-  `test_sleeve_tube_is_closed_along_its_length` are `xfail`, strict and for `AssertionError` only. The
-  test ids did not change.
-- **What keeps it honest**, each run as a mutation and reverted:
-  - a sleeve reported closed → its case fails (strict XPASS), so the marker cannot outlive the defect;
-  - a leak 0.5 cm² above the recorded one → the new `test_known_sleeve_leak_does_not_grow` fails;
-  - the measurement raising something other than an assertion → all six tests fail, none is excused;
-  - no templates → the six skip, under the one zero-budget reason.
-- **`check_skip_budget.py` budgets expected failures too.** `ALLOWED_XFAIL` names the one test and allows
-  it two; any other `xfail` fails the stage. Tried with a scratch test file holding a failing marker, a
-  passing non-strict one and an imperative `pytest.xfail()`: all three reported, exit 1.
-- **`docs/pd2-las/DECISIONS.md`**: D18 records this decision. D9, D11 and D12 now carry the reasons the
-  user gave when asked: the packs are tracked so that they can be downloaded and installed straight from
-  the repository; Christie is body-only because the user wanted the heister's own head with her outfit;
-  slim went from 20 % to 10 % thinner because 20 % looked too thin. Still "not recorded": why the Skyrim
-  route was cancelled (D13), why the inputs were reorganised (D14), the intermediate retarget steps (D6).
+- **`check_skip_budget.py` budgets expected failures too.** `ALLOWED_XFAIL` governs which tests may be
+  marked expected to fail; any other `xfail` fails the stage. Tried with a scratch test file holding a
+  failing marker, a passing non-strict one and an imperative `pytest.xfail()`: all three reported,
+  exit 1.
 - Validation: from a wipe again (no `.venv`, no templates). `make -sC tools/pd2-las env`, `all` (four
   packs byte for byte), then `test` → 670 passed, 29 skipped, 2 xfailed, exit 0. `bootstrap.sh`, which
   stopped at its test step until now, runs to the end: 682 passed, 26 skipped, 2 xfailed.
@@ -607,11 +203,11 @@
     85 MB, gitignored). Run from an empty cache, it rebuilds the nine head packs byte for byte.
   - `neck_junction.py` created a folder there that nothing used. The parameter is gone; the report is the
     same.
-  - `tests/test_christie_las.py` wrote each model there only to read it back.
-    `build_models.segment_fit_report` now takes the model's bytes, as `read_drawable` does.
+  - `build_models.segment_fit_report` takes the model's bytes, as `read_drawable` does, so the
+    model does not have to touch the disk to read it back.
   - `preview_check.py render` and `shade_check.py` write to `build/pd2-port/preview/` and
     `build/pd2-port/shade/` when no directory is given.
-  - The usage examples in `elbow_before_after.py`, `smd.py`, `CHRISTIE.md` and one knowledge note, and
+  - The usage examples in `smd.py` and one knowledge note, and
     `tools/pd2-port/STATUS.md` §7, name paths inside the checkout.
   - `test_no_tool_or_test_depends_on_a_fixed_tmp_path` scans every tracked script, test and workflow and
     the eight entry documents for a path into that directory. Prose may still say that it gets wiped.
@@ -629,10 +225,7 @@
     the test it was aimed at, and 3 controls that stayed green.
   - **A gap the mutations found:** the rig, reach and height checks pass a first-person mesh that was
     only multiplied by 2.54. The Units test now also compares surface area with the source for the
-    Miranda packs (2.898 × in third person, 2.347 × in first person). The Christie packs have no such
-    check, because they are a cut of their source (no head; slim also without hands, and thinner), so
-    the source's area is no measure for them. A first-person Christie mesh that was only multiplied by
-    2.54 still passes.
+    Miranda packs (2.898 × in third person, 2.347 × in first person).
   - **A finding, not fixed:** `miranda_face_df` and `miranda_eyes` ship one mip level in both Miranda
     packs; every other unit texture has the full chain. `SINGLE_LEVEL` in the test file names the two,
     and the test fails when that set grows or shrinks. Whether it shows in the game is not known. It is
@@ -640,8 +233,7 @@
   - **A second finding, not fixed:** `fps_miranda_busty.object` lists `g_head` and `g_head_lod1`, and
     `fps_miranda_busty.model` has no object of either name (their name hashes do not occur in the file).
     `build_busty_variant.py` drops the two disabled head drawables from the first-person model, and
-    `las_pack.render_object_xml` writes a fixed list; the Christie builder writes its list from the
-    model. In the 2B pack and in the other seven tracked units every `<object>` line has its object.
+    `las_pack.render_object_xml` writes a fixed list. In the 2B pack and in the other seven tracked units every `<object>` line has its object.
     A culling object that is not there is a different matter: `2b.object` names `c_block`, `2b.model`
     has none, and all four third-person units here do the same. Whether the game minds a disabled
     object that is not there is not known: no Miranda pack has an in-game record. `ABSENT_OBJECTS`
@@ -694,7 +286,7 @@
   was scrambled inside 80 % of its blocks, the worst texel by 29 of 255. Its only test used a flat image.
 - **Ten texels at full gloss** in level 1 of the converted face: a DXT5 block with alpha_0 <= alpha_1 has the
   constants 0 and 255, and scaling the endpoints does not lower a constant. The face is held to its ceiling
-  now. The same constant is in `body_df` and `head_df` and in three Christie textures: README, Next.
+  now. The same constant is in `body_df` and `head_df`.
 - **The four L4D2 head packs** take their face from `dist/Miranda_LAS.zip` and moved with it. Asked; the
   user chose to re-ship them. Their face quarter went from a mean CIEDE2000 of 1.42 to 0.57 against the face
   the Miranda build means.
@@ -782,18 +374,17 @@
   CI, for want of lupa.
 - `copies.py` holds the evidence: `record`, `compare`, `after`.
 
-## 2026-11-13 — one command per question; the Christie packs stop saying they were in game
+## 2026-11-13 — one command per question
 
-- The record is `docs/audits/2026-11-13-agent-entry.md`; the decisions are D30 and D31.
+- The record is `docs/audits/2026-11-13-agent-entry.md`; the decision is D30.
 - `status` covers all 14 packs and says `tracked`, `changed`, `broken` or `missing` against the commit. It
   said `sha256_ok`, against a sidecar the builder had just written. `env` restores only what is missing and
   ends with the status. `green` is `check_all.py --full`. `lawson` and `heads` are new targets.
 - `AGENTS.md` is the one instruction file and has no copies. No document quotes a pack's size or sha256, so
   a rebuilt pack needs none edited. The entries above that name `CLAUDE.md`, `GEMINI.md` as a copy, or
   `test_handoff_and_agents_quote_the_tracked_pack_bytes` describe what was there until this day.
-- **Two packs re-shipped:** `Christie_LAS` and `Christie_LAS_Slim`, for `"runtime_verified": false`. One
-  line of `BUILD_INFO.json` in each; every other member is byte for byte what it was
-  (`docs/audits/2026-11-13-agent-entry/fixes/christie-packs.txt`). Before: `1b486c42…` and `79529a56…`.
+- Two packs were re-shipped that day for `"runtime_verified": false` (the owner had not run the game);
+  the fix was one line of `BUILD_INFO.json` in each, nothing else moved.
 - **Found on the way:** `test_status_tells_a_rebuilt_pack_from_the_tracked_one` skipped while a pack was
   rebuilt and not committed. The skip budget has no room for that reason, so `green` failed in the one state
   where `status` names it as the next command. The test now runs in a checkout of its own.
@@ -815,7 +406,7 @@
     `follow_layer_weights`, `append_group`, `count_hand_verts`, `extend_blazer_sleeves`, the five `tuck_*`
     passes, and eighteen helpers), two constants, a module-level `import numpy`, and two pieces keyed on that
     outfit's material names: the shoulder stay for `jacket` in `transfer_group`, and the default targets of
-    `extend_sleeves_to_wrist`, whose caller now names every layer (the Christie builder always did).
+    `extend_sleeves_to_wrist`, whose caller now names every layer.
   - `las_outfit_pack.py`, 528 → 380 lines: the outfit's own registration, `render_hook_lua`,
     `render_main_xml`, `render_localization`, `write_pack`. `render_glove_adapter_lua` takes the item and
     the label; it had the outfit's as defaults.
@@ -832,10 +423,9 @@
     icon), `boundary_loops`, `extract_bones`, `group_atom_plan`, `atom_problems` and
     `extend_sleeves_to_wrist` in `tests/test_build_models.py` and `tests/test_fps_hands.py`.
   - `tests/test_glove_adapter.py` and `tests/test_glove_behavior_lua.py` tested the glove adapter of the
-    cancelled outfit; their pack-level tests waited for a zip that was not coming. They now test
-    `Christie_LAS_Slim`, the one pack that ships the adapter: the tracked hook is byte for byte what the
-    generator writes, and `Christie_LAS` ships none. The LuaJIT file needs `lupa`
-    (`recover_env.sh --extras`) and skips without it, in CI too; run by hand here, its 10 tests pass.
+    cancelled outfit; their pack-level tests waited for a zip that was not coming. They now test the shared
+    glove-adapter machinery against the one LAS pack that shipped it. The LuaJIT file needs `lupa`
+    (`recover_env.sh --extras`) and skips without it, in CI too.
 - **Orphans found on the way:** `docs/audits/2026-11-09-neck-arm/`, five renders of the Christie slim arm.
   The one page that showed them, `2026-11-09-arm-skin-stub-glove-adapter-poke-through-plan.md`, was deleted
   on 2026-11-10 (`0a76215`); nothing named them. Deleted. (The message of `f6264ae` says two plan pages and
@@ -894,8 +484,7 @@
   runs them". Read as the confirmation of the ten and as the test for the two that were kept. If "those"
   meant the ten only, the second half is this entry's reading and the owner has not asked for it.
 - **`render_source` stays: someone runs it.** It is the `--source` mode of `render_mesh_skeleton.py`.
-  `docs/pd2-las/CHRISTIE.md` documents it, and run on `references/Christie.zip` it exits 0 and writes the
-  five `christie_source_*.png`, each byte for byte the file tracked under `docs/pd2-las/renders/`. No test
+  Run on `references/Christie.zip` it exits 0 and writes five `christie_source_*.png`. No test
   and none of the recorded tools runs it, which is why the measurement did not see it.
 - **`diesel_model.compute_uv_directions` is deleted**, with `UV_DET_EPS` beside it, which only it used
   (`tangents.py` has its own): 32 lines.

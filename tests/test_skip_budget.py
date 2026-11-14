@@ -20,7 +20,7 @@ REPORT = """\
 =========================== short test summary info ============================
 SKIPPED [2] tests/test_gma.py:31: sourcepp is an optional extra
 SKIPPED [1] tests/test_um.py:900: needs ffmpeg
-SKIPPED [13] tests/test_render_mesh_skeleton.py:39: Christie base pack not built (run make -sC tools/pd2-las christie)
+SKIPPED [13] tests/test_render_mesh_skeleton.py:39: Christie_LAS.zip is not in dist/ in this checkout
 800 passed, 16 skipped in 120.00s
 """
 

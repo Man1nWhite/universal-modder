@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Build every tracked pack again, in a copy of the working tree, and compare.
+"""Build every rebuildable pack again, in a copy of the working tree, and compare.
 
     python tools/pd2-las/fresh.py check
     python tools/pd2-las/fresh.py matrix [--configs a,b,...] [--builders x,y] [--trace all]
 
-check   builds all 14 packs in build/fresh/tree and compares each of the 16
-        tracked zips with its tracked .sha256, using `sha256sum -c`. No
-        tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
+check   builds the packs that have a builder (the Miranda packs, lawson_las and the
+        nine head packs) in build/fresh/tree and compares each of the 16 tracked
+        zips with its tracked .sha256, using `sha256sum -c`. The two Christie packs
+        are compared as the tracked copies: their builder was deleted on
+        2026-11-14, so they cannot be rebuilt and the comparison pins the sidecars.
+        No tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
         one is not; what differs inside it is listed member by member.
 matrix  the same build under other numeric code paths (CONFIGS), two at a time,
         each in its own copy under build/vary/. Prints which zips move against
@@ -38,14 +41,13 @@ sys.path.insert(0, str(HERE))
 import determinism  # noqa: E402
 import trace_run  # noqa: E402
 
-#: What builds the 14 tracked packs, in the order they depend on each other: the
+#: What builds the rebuildable tracked packs, in the order they depend on each other: the
 #: busty pack reuses what the Miranda build unpacked, and the head packs take
-#: their face from dist/Miranda_LAS.zip.
+#: their face from dist/Miranda_LAS.zip. The two Christie packs are not rebuildable:
+#: their builder was deleted on 2026-11-14.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
     "busty": ["tools/pd2-las/build_busty_variant.py"],
-    "christie": ["tools/pd2-las/build_christie_las.py"],
-    "slim": ["tools/pd2-las/build_christie_las.py", "--variant", "slim"],
     "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
 }

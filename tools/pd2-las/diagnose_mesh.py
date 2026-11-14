@@ -9,7 +9,6 @@ script answers the structural questions behind them, on either pack:
   material interface, or an interior duplicate;
 - where the silhouette is actually see-through (the armpit notch);
 - how far the sleeve, cuff band and skin stub reach past the `Hand` pivot;
-- how much of the trouser/shoe UV area the sleeve gloss mask touches;
 - whether each sleeve is a *closed* tube, or still open along its lengthwise
   seam (needs the arm bone chain, hence `--templates`).
 
@@ -18,8 +17,7 @@ script answers the structural questions behind them, on either pack:
     .venv/bin/python tools/pd2-las/diagnose_mesh.py \
         --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b"   # + slit
 
-Everything is read-only. Numbers quoted in
-`docs/audits/2026-11-07-christie-slim-diagnosis.md` come from this script.
+Everything is read-only.
 """
 from __future__ import annotations
 
@@ -346,44 +344,6 @@ def diagnose(label: str, path: Path, pack: str, item: str,
         print(f"  wrist shell {k:2d} {mats:11s} verts {len(vs):4d} "
               f"t_past_hand max {t.max():5.1f} cm")
 
-    # sleeve gloss mask: the mask the build actually ships. It is rasterised
-    # from the sleeve's own UV triangles (build_christie_las.sleeve_uv_mask),
-    # so a leg face can only be inside it if the sleeve and the trouser islands
-    # overlap in the atlas.
-    import build_christie_las as bcl
-
-    role = "mtr_c02_01"
-    sleeve_faces = [fi for fi in np.where(fmat == role)[0]
-                    if float(p["w"]["arm"][f[fi]].mean()) > bcl.SLEEVE_BONE_SHARE]
-    mask = bcl.sleeve_uv_mask(p["uv"], [f[fi] for fi in sleeve_faces],
-                              feather_texels=bcl.SLEEVE_FEATHER_TEXELS)
-
-    def uva(fi):
-        t = p["uv"][f[fi]]
-        return 0.5 * abs((t[1, 0] - t[0, 0]) * (t[2, 1] - t[0, 1])
-                         - (t[2, 0] - t[0, 0]) * (t[1, 1] - t[0, 1]))
-
-    def mval(fi):
-        c = bcl.uv_to_texel_frac(p["uv"][f[fi]].mean(0))
-        y = int(np.clip(c[1] * 1024, 0, 1023))
-        x = int(np.clip(c[0] * 1024, 0, 1023))
-        return mask[y, x]
-
-    leg = [fi for fi in np.where(fmat == role)[0]
-           if p["w"]["leg"][f[fi]].mean() > 0.5 and p["w"]["arm"][f[fi]].mean() < 0.1]
-    leg_z = [float(p["verts"][f[fi], 2].mean()) for fi in leg]
-    tot = sum(uva(fi) for fi in leg)
-    cov = sum(uva(fi) for fi in leg if mval(fi) > 0.05)
-    leg_hits = [fi for fi in leg if mval(fi) > 0.05]
-    trouser_hits = [fi for fi in leg_hits
-                    if 20.0 < leg_z[leg.index(fi)] < 60.0]
-    sleeve_pct = (sum(1 for fi in sleeve_faces if mval(fi) > 0.5)
-                  / max(1, len(sleeve_faces)) * 100)
-    max_hit_z = max([leg_z[leg.index(fi)] for fi in leg_hits] or [0.0])
-    print(f"sleeve gloss mask: sleeve faces covered {sleeve_pct:.0f}%; "
-          f"{role} leg-only UV area {cov / max(tot, 1e-9) * 100:.2f}% "
-          f"({len(leg_hits)} of {len(leg)} faces, max z {max_hit_z:.1f} cm); "
-          f"trouser band z in [20, 60) hits: {len(trouser_hits)}")
 
     # sleeve slit: the radial-dodging area of each sleeve tube. The stitch pass
     # is supposed to have closed the zero-width seam, so only the open cuff

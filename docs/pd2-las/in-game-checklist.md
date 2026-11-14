@@ -12,11 +12,11 @@ Report failures with the item number and a screenshot.
 
 ## Ten minutes: the rebuild of 2026-11-11
 
-> The six packs below, the two Christie packs and the four Romance head packs were built again on 2026-11-12,
+> The six packs below and the four Romance head packs were built again on 2026-11-12,
 > so that their bytes no longer depend on the CPU that builds them
 > (`docs/audits/2026-11-12-cpu-independence.md`). Nothing that should show changed: the steps are the same, on
 > the packs as they are tracked now. The one place that could look different is how a surface without texture
-> area shades: a few hair cards of Miranda and some triangles of the Christie packs.
+> area shades: a few hair cards of Miranda.
 
 Six packs were rebuilt that day: `Miranda_LAS`, `Miranda_Busty_LAS` and the four
 `Miranda_L4D2_over_*` head packs. What changed, and what was measured offline,

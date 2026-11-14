@@ -26,8 +26,8 @@ jobs:
       - name: install deps
         run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy "pyyaml>=6" pytest scipy
         # The versions of pillow and numpy are those of tools/pd2-las/pins.txt.
-        # scipy is a hard dependency: the slim build needs it and the
-        # elbow-depth test in tests/test_christie_las.py imports it.
+        # scipy is kept in the install line: the release workflow keeps the
+        # same set, and a test holds the two install lines equal.
       # ffmpeg is only for test_compile_small_edl. Without recommends apt skips mesa, VA/VDPAU drivers and
       # pocketsphinx-en-us (about half the download), and with man-db's auto-update off dpkg skips the man-page
       # reindex that can take minutes on the runner. When the Ubuntu mirror crawls (it has, at ~150 KB/s), the step
@@ -62,9 +62,11 @@ jobs:
       - name: nothing that shouldn't ship
         run: ./bin/um publish check .
       - name: every tracked pack must equal a fresh build, byte for byte
-        # All 14 packs are built again in a copy of the checkout, on this
-        # runner, and each of the 16 tracked zips is compared with its tracked
-        # .sha256 by sha256sum -c. No tolerance. `env` makes the pinned .venv
+        # The rebuildable packs are built again in a copy of the checkout, on
+        # this runner, and each of the 16 tracked zips is compared with its
+        # tracked .sha256 by sha256sum -c (the two Christie packs cannot be
+        # rebuilt: their builder was deleted on 2026-11-14, so they are compared
+        # as the tracked copies). No tolerance. `env` makes the pinned .venv
         # and unpacks the 2B templates first (node and npm, for node-unrar-js).
         # The builders put themselves on the declared code path
         # (tools/pd2-las/determinism.py), which is why a runner with AVX-512 and

@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty christie slim lawson heads all inventory audit fresh test green
+.PHONY: help status env build busty lawson heads all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -40,19 +40,13 @@ build:      ## Miranda_LAS -> dist/ and build/pd2-las/
 busty:      ## Miranda_Busty_LAS -> dist/ and build/pd2-las/
 	$(call BUILD,$(HERE)/build_busty_variant.py)
 
-christie:   ## Christie_LAS -> dist/
-	$(call BUILD,$(HERE)/build_christie_las.py)
-
-slim:       ## Christie_LAS_Slim -> dist/
-	$(call BUILD,$(HERE)/build_christie_las.py --variant slim)
-
 lawson:     ## lawson_las -> dist/
 	$(call BUILD,tools/pd2-port/build_las_pack.py)
 
 heads:      ## the nine head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
-all: build busty christie slim lawson heads  ## all 14 packs
+all: build busty lawson heads  ## every pack that can be rebuilt in this checkout (the two Christie packs' builder is deleted; their tracked zips cannot be rebuilt)
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)
@@ -60,7 +54,7 @@ inventory:  ## what the source archive contains -> tools/pd2-las/source_inventor
 audit:      ## the mip levels of the face and eye textures against the pictures they stand for (Markdown on stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/mip_audit.py
 
-fresh:      ## every tracked pack built again in a copy of the tree and compared with its tracked sha256, no tolerance
+fresh:      ## every rebuildable pack built again in a copy of the tree and compared with its tracked sha256, no tolerance
 	cd "$(ROOT)" && $(PY) $(HERE)/fresh.py check
 
 test:       ## the whole suite, offline

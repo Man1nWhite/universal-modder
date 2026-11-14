@@ -7,7 +7,7 @@ third-person unit kept it (the heister holds her gun with two stumps in first
 person). It is item 16 of ``knowledge/games/payday-2/las-moog-outfit-porting.md``.
 
 These tests pin the rule of the cut, `build_models.is_fps_arm_bone` and
-`extract_bones`, which the Christie builder cuts its first-person arms with.
+`extract_bones`, which the Christie builder cut its first-person arms with (until 2026-11-14).
 The pack the bug shipped in was the cancelled Skyrim outfit; the tests that
 re-read that pack went with it on 2026-11-13.
 """

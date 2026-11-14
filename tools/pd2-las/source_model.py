@@ -348,3 +348,149 @@ def load_model(mdl: bytes, vvd: bytes, vtx: bytes) -> ModelData:
             SubMesh(material=materials[material_index], triangle_indices=tuple(flat))
         )
     return out
+
+# ---------------------------------------------------------------------------
+# every bodygroup model of a studio MDL (not just each bodypart's first);
+# moved verbatim from tools/pd2-las/build_christie_las.py when that file was
+# deleted on 2026-11-14 - the parser is source-model machinery, not builder code.
+# ---------------------------------------------------------------------------
+MODEL_STRIDE = 148  # sizeof(mstudiomodel_t) for this MDL 48 build
+
+# ---------------------------------------------------------------------------
+# source loading (all bodygroup models, not just each bodypart's first)
+# ---------------------------------------------------------------------------
+def _read_vtx_meshes_all_models(vtx: bytes) -> list[tuple[int, list[tuple[int, int, int]]]]:
+    """Like source_model._read_vtx_meshes but walks EVERY model of every
+    bodypart (DOA5 ships body/glasses/bra/head variants this way), matching
+    the MDL bodypart->model->mesh order."""
+    out: list[tuple[int, list[tuple[int, int, int]]]] = []
+    version, = struct.unpack_from("<i", vtx, 0)
+    if version != VTX_VERSION:
+        raise SourceModelError(f"unsupported VTX version {version}")
+    _checksum, _num_lods, _mat_repl_off, num_bodyparts, bodypart_off = (
+        struct.unpack_from("<iiiii", vtx, 16))
+    mesh_index = 0
+    for bi in range(num_bodyparts):
+        bp = bodypart_off + bi * 8
+        num_models, model_off = struct.unpack_from("<ii", vtx, bp)
+        for mi in range(num_models):
+            mo = bp + model_off + mi * 8
+            num_lods_m, lod_off = struct.unpack_from("<ii", vtx, mo)
+            for li in range(min(1, num_lods_m)):
+                lo = mo + lod_off + li * 12
+                num_meshes, mesh_off, _switch = struct.unpack_from("<iif", vtx, lo)
+                for mesh_i in range(num_meshes):
+                    me = lo + mesh_off + mesh_i * 9
+                    num_groups, group_off, _flags = struct.unpack_from("<iiB", vtx, me)
+                    triangles: list[tuple[int, int, int]] = []
+                    seen: set[tuple[int, int, int]] = set()
+                    for gi in range(num_groups):
+                        go = me + group_off + gi * VTX_SGROUP_STRIDE
+                        (num_verts, vert_off, num_indices, index_off,
+                         num_strips, strip_off) = struct.unpack_from("<iiiiii", vtx, go)
+                        orig_ids = []
+                        for vi in range(num_verts):
+                            vbase = go + vert_off + vi * VTX_VERTEX_STRIDE
+                            (orig,) = struct.unpack_from("<H", vtx, vbase + 4)
+                            orig_ids.append(orig)
+                        indices = struct.unpack_from(f"<{num_indices}H", vtx, go + index_off)
+
+                        def add_tri(a, b, c):
+                            key = tuple(sorted((a, b, c)))
+                            if key in seen:
+                                return
+                            seen.add(key)
+                            triangles.append((a, b, c))
+
+                        for si in range(num_strips):
+                            so = go + strip_off + si * VTX_STRIP_STRIDE
+                            s_ni, s_ioff, s_nv, s_voff, _s_nb, s_flags = struct.unpack_from(
+                                "<iiiiHB", vtx, so)
+                            if s_flags & 0x02:
+                                strip_idx = indices[s_ioff:s_ioff + s_ni]
+                                for k in range(2, len(strip_idx)):
+                                    a, b, c = (orig_ids[strip_idx[k - 2]],
+                                               orig_ids[strip_idx[k - 1]],
+                                               orig_ids[strip_idx[k]])
+                                    if k % 2:
+                                        a, b = b, a
+                                    if a != b and b != c and a != c:
+                                        add_tri(a, b, c)
+                            else:
+                                for t in range(0, s_ni, 3):
+                                    add_tri(*(orig_ids[indices[s_ioff + t + k]]
+                                              for k in range(3)))
+                    out.append((mesh_index, triangles))
+                    mesh_index += 1
+    return out
+
+
+def load_all_bodygroups(mdl: bytes, vvd: bytes, vtx: bytes) -> ModelData:
+    """The MDL/VVD/VTX triple, including EVERY bodygroup model of every bodypart.
+
+    DOA5 ships body/glasses/bra/head variants as per-bodypart model variants, so
+    ``load_model`` (each bodypart's first model only) cannot parse this triple - its
+    VVD LOD0 count then disagrees. Used by ``render_mesh_skeleton.py --source`` on
+    ``references/Christie.zip``.
+    """
+    if mdl[:4] != MDL_MAGIC:
+        raise SourceModelError("bad MDL magic")
+    version, _checksum = struct.unpack_from("<ii", mdl, 4)
+    if version not in SUPPORTED_MDL_VERSIONS:
+        raise SourceModelError(f"unsupported MDL version {version}")
+
+    base = 76
+    base += 4            # length
+    base += 12 * 6       # eye/illum/hull/view boxes
+    base += 4            # flags
+    bone_count, bone_off = struct.unpack_from("<ii", mdl, base); base += 8
+    base += 8 * 5        # bonecontroller, hitbox, localanim, localseq, activity/events
+    texture_count, texture_off = struct.unpack_from("<ii", mdl, base); base += 8
+    base += 8            # texturedir
+    base += 12           # skinref/skinfamily
+    bodypart_count, bodypart_off = struct.unpack_from("<ii", mdl, base)
+
+    bones = _read_bones(mdl, bone_count, bone_off)
+    materials = _read_textures(mdl, texture_count, texture_off)
+
+    mesh_specs: list[tuple[int, int]] = []  # (material_index, model vertex offset)
+    model_numverts = 0
+    model_name = _cstr(mdl, 12)
+    for bi in range(bodypart_count):
+        bp = bodypart_off + bi * BODYPART_STRIDE
+        _n, num_models, _b, model_index = struct.unpack_from("<iiii", mdl, bp)
+        for mi in range(num_models):
+            mo = bp + model_index + mi * MODEL_STRIDE
+            if mi == 0 and bi == 0:
+                model_name = _cstr(mdl, mo)
+            num_meshes, mesh_index, num_vertices, vertex_index = struct.unpack_from(
+                "<iiii", mdl, mo + 72)
+            voff = vertex_index // VERTEX_STRIDE_VVD
+            model_numverts += num_vertices
+            for mesh_i in range(num_meshes):
+                me = mo + mesh_index + mesh_i * MESH_STRIDE
+                material, _mi, _nv, vertexoffset = struct.unpack_from("<iiii", mdl, me)
+                mesh_specs.append((material, voff + vertexoffset))
+
+    vertices = _read_vvd(vvd, model_numverts)
+    vtx_meshes = _read_vtx_meshes_all_models(vtx)
+    if len(vtx_meshes) != len(mesh_specs):
+        raise SourceModelError(
+            f"VTX has {len(vtx_meshes)} meshes, MDL has {len(mesh_specs)}")
+
+    out = ModelData(name=model_name, bones=bones, materials=materials,
+                       vertices=vertices)
+    nverts = len(vertices)
+    for (material_index, voff), (_mi, triangles) in zip(mesh_specs, vtx_meshes):
+        flat: list[int] = []
+        for tri in triangles:
+            for idx in tri:
+                gidx = voff + idx
+                if not 0 <= gidx < nverts:
+                    raise SourceModelError(f"vertex index {gidx} out of range")
+                flat.append(gidx)
+        out.meshes.append(SubMesh(material=materials[material_index],
+                                     triangle_indices=tuple(flat)))
+    return out
+
+

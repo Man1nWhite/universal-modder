@@ -5,7 +5,7 @@ Three things, one for each kind of cause that was found
 (docs/audits/2026-11-12-cpu-independence.md):
 
 * A decision on a number that is zero in exact arithmetic gets a rule, where it
-  is taken: `tangents.py`, `build_christie_las._fill_ring`.
+  is taken: `tangents.py`.
 * A value that has been through sin, cos, exp, arctan2 or a power, whose last
   digit no standard fixes, is rounded by `floor8` / `rounded` and compared by
   `above`. They stop the build when a value lies so close to a rounding

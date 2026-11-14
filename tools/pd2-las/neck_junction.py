@@ -178,7 +178,7 @@ def neck_rim_edges(verts, faces, *, max_z: float = 156.0,
     the set of edges that is used by exactly one triangle, sits at or below
     ``max_z``, and stays within ``radius`` of the neck axis - the same rule
     ``build_joy_head_mods.extend_neck_skirt`` uses to pick the rim it extends,
-    kept in step by ``tests/test_neck_skirt.py``.
+    kept in step by the neck-skirt extension pass.
     """
     counts: dict[tuple[int, int], int] = {}
     for a, b, c in np.asarray(faces, int):

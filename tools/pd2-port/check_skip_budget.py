@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Skip budget: every `pytest.skip` reason must be known and within its count.
 
-An unconditional `pytest.skip` inside a helper (e.g. test_christie_las.py:539)
-turns off 37 tests with one line. This makes the budget explicit: each known
+An unconditional `pytest.skip` inside a helper
+turns off many tests with one line. This makes the budget explicit: each known
 skip reason has a maximum count, and any new reason or growth fails.
 
 Run from the repo root:
@@ -58,7 +58,7 @@ ALLOWED: dict[str, int] = {
 #: Maximum number of expected failures (xfail) per test, by node-id prefix.
 #: These are known defects that are recorded where the marker is, not tests
 #: that somebody wanted out of the way. Empty since 2026-11-13: the two slim
-#: sleeve cases (KNOWN_SLEEVE_LEAK_CM2, then in tests/test_christie_las.py)
+#: sleeve cases (KNOWN_SLEEVE_LEAK_CM2, once in tests/test_christie_las.py)
 #: closed when the slit bridge stopped being dropped by _insert_faces; there
 #: is no expected failure left.
 ALLOWED_XFAIL: dict[str, int] = {}
