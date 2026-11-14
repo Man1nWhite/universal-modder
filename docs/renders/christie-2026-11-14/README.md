@@ -51,6 +51,7 @@ doorway; it is the one text format this repo can emit losslessly for weights.
 | `model-bridge_body` | same pack, all materials combined, per-material flat colors (not textures) |
 | `model-bridge_body-textured` | same pack, lit with correct UV sampling of the pack's own `.texture` files (DXT5 top mip), back-face culling — closest possible preview without the game |
 | `model-bridge-fps_*` | the first-person viewmodel unit inside the same zip; `aux` is an 8-vert ~430 cm/unit proxy whose material hash (`8db63936938575bf`) is absent from the model hashlist — excluded from the combined `body` render (it spans the whole viewmodel space) and rendered separately |
+| `model-bridge_obj_<view>` | the same pack `.model` exported to OBJ by `tools/pd2-las/model_to_obj.py` (`christie_model-bridge_obj_front/side/iso.png`, `g_body`, per-material flat colours — OBJ/MTL written to `build/christie-obj/`, not tracked) |
 | `model-scratchbase_*` | the from-scratch (pre-bridge) build, sha256 `b65fb27e…` — **provenance only, not the tracked pack** |
 | `slim_model-bridge*` | the tracked Slim pack, sha256 `ebe44af7…` (hands cut at the wrist + glove-adapter hook) |
 
