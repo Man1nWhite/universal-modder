@@ -57,11 +57,11 @@ ALLOWED: dict[str, int] = {
 
 #: Maximum number of expected failures (xfail) per test, by node-id prefix.
 #: These are known defects that are recorded where the marker is, not tests
-#: that somebody wanted out of the way.
-ALLOWED_XFAIL: dict[str, int] = {
-    # the two slim sleeves that are still open: KNOWN_SLEEVE_LEAK_CM2 in that file
-    "tests/test_christie_las.py::test_sleeve_tube_is_closed_along_its_length": 2,
-}
+#: that somebody wanted out of the way. Empty since 2026-11-13: the two slim
+#: sleeve cases (KNOWN_SLEEVE_LEAK_CM2, then in tests/test_christie_las.py)
+#: closed when the slit bridge stopped being dropped by _insert_faces; there
+#: is no expected failure left.
+ALLOWED_XFAIL: dict[str, int] = {}
 
 #: Not judged. Its one skip reason, a checkout without the Christie pack, has no
 #: budget; the tool's own run leaves the file out, and a saved report of the

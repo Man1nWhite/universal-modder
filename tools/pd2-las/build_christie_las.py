@@ -1977,12 +1977,20 @@ def _elbow_coverage_correction(g: bm.Group, template: bm.Template) -> dict:
     rotations = [dm.mat_inv(g.rest_worlds[name]) for name in g.palette]
     skel = {"objects": [template.name_id[name] for name in g.palette],
             "rotations": rotations}
-    outer_faces = []
-    for (_src, _bv, base_i, tris, _nv), slot in zip(g.slices, g.mat_slots):
-        if slot in ("mtr_c02_01", "shadow_caster"):
-            first = base_i // 3
-            outer_faces.extend(g.faces[first:first + tris])
-    outer_faces = np.asarray(outer_faces, dtype=np.int64)
+    ids = getattr(g, "outer_face_ids", None)
+    if ids is not None:
+        # The shadow caster maps every slice onto one slot, so the historical
+        # material test would render the whole figure and pick repair vertices
+        # the body does not want. The main() pass hands in the body's sleeve
+        # face indices instead (identical face order at this point).
+        outer_faces = np.asarray([g.faces[f] for f in ids], dtype=np.int64)
+    else:
+        outer_faces = []
+        for (_src, _bv, base_i, tris, _nv), slot in zip(g.slices, g.mat_slots):
+            if slot == "mtr_c02_01":
+                first = base_i // 3
+                outer_faces.extend(g.faces[first:first + tris])
+        outer_faces = np.asarray(outer_faces, dtype=np.int64)
     start = np.asarray(g.verts, dtype=np.float64)
     groups = _coincident_groups(start)
     moved = set()
@@ -2520,10 +2528,15 @@ def _insert_faces(g: bm.Group, faces: list[tuple], slot: str) -> tuple[int, int]
     # Rebuild the index buffer and the atom table so each triangle sits in the
     # run of the slice whose vertex block contains it.  Slices are processed in
     # ascending base_index so the new runs stay contiguous and tile the stream.
+    # ``new_mat_slots`` carries the remapped (``g.mat_slots``) slot of every
+    # rebuilt slice alongside it: ``slices[k][0]`` keeps the base material name
+    # from transfer time and never equals ``slot`` here, so the homeless branch
+    # below must not compare against it.
     old_faces = list(g.faces)
     order = sorted(range(len(g.slices)), key=lambda k: g.slices[k][2])
     new_faces: list[tuple[int, int, int]] = []
     new_slices: list[tuple] = []
+    new_mat_slots: list[str] = []
     cursor = 0
     first_at = None
     for k in order:
@@ -2534,25 +2547,35 @@ def _insert_faces(g: bm.Group, faces: list[tuple], slot: str) -> tuple[int, int]
         new_faces.extend(new_tris)
         new_tri_count = tri_count + len(new_tris)
         new_slices.append((slot_k, base_v, cursor * 3, new_tri_count, nverts))
+        new_mat_slots.append(g.mat_slots[k])
         if new_tris and first_at is None:
             first_at = cursor * 3 + tri_count * 3
         cursor += new_tri_count
 
     # Homeless triangles (vertices span blocks or fall in no block): historical
-    # behaviour - append to the first matching slice's run.
+    # behaviour - append to the first matching slice's run. The insertion
+    # shifts every later slice's base_index, so those atoms are moved too or
+    # the table stops tiling the stream.
     if homeless:
-        for i, (slot_k, _bv, base_i, tri_count, _nv) in enumerate(new_slices):
-            if slot_k == slot:
+        placed = False
+        for i, (slot_k, bv2, base_i, tri_count, nv2) in enumerate(new_slices):
+            if not placed and new_mat_slots[i] == slot:
                 at = (base_i // 3) + tri_count
                 new_faces[at:at] = homeless
-                slot_k2, bv2, _bi, t2, nv2 = new_slices[i]
-                new_slices[i] = (slot_k2, bv2, base_i, t2 + len(homeless), nv2)
+                new_slices[i] = (slot_k, bv2, base_i, tri_count + len(homeless), nv2)
                 if first_at is None:
                     first_at = base_i + tri_count * 3
-                break
+                placed = True
+            elif placed:
+                new_slices[i] = (slot_k, bv2,
+                                 base_i + len(homeless) * 3, tri_count, nv2)
+        if not placed:
+            raise SystemExit(f"_insert_faces: no slice with slot {slot!r} to "
+                             f"hold {len(homeless)} homeless triangle(s)")
 
     g.faces = new_faces
     g.slices = new_slices
+    g.mat_slots = new_mat_slots
     return (first_at if first_at is not None else 0, added)
 
 
@@ -3119,16 +3142,104 @@ def stitch_sleeve_seams(g: bm.Group, template: bm.Template, *,
     # extend the owning slice's vertex range so clone indices fall in-bounds.
     if clone_data:
         orig_len = len(g.verts)
-        for cd in clone_data:
-            g.verts.append(tuple(cd[0]))
-            g.normals.append(tuple(cd[1]))
-            g.uvs.append(tuple(cd[2]))
-            g.weights.append(cd[3])
-        for si in range(len(g.slices)):
-            _m, bv, _bi, _t, nv = g.slices[si]
-            if bv + nv == orig_len:
-                g.slices[si] = (_m, bv, _bi, _t, nv + len(clone_data))
-                break
+        # UV continuation clones belong to the sleeve block they continue from,
+        # not to the tail of the stream: the bridge triangles reference them,
+        # and a render atom is only legal over its own block. Find, per slot,
+        # the slice whose block holds most of that slot's original
+        # (pre-clone) vertices and append each clone inside that slice's block,
+        # shifting the later blocks and every global index behind them. The
+        # fps extraction re-blocks the result, so this is what keeps g_body,
+        # s_body and the viewmodel contained.
+        target: dict[str, int] = {}
+        for slot, tris in extra.items():
+            counts = [0] * len(g.slices)
+            for t in tris:
+                for x in t:
+                    if x >= orig_len:
+                        continue
+                    for k, (_m, bv, _bi, _tr, nv) in enumerate(g.slices):
+                        if bv <= x < bv + nv:
+                            counts[k] += 1
+                            break
+            best = max(range(len(counts)), key=lambda k: counts[k]) if any(counts) else -1
+            target[slot] = best
+        per_target: dict[int, list[int]] = {}
+        assigned: dict[int, int] = {}
+        for cid in range(len(clone_data)):
+            idx = orig_len + cid
+            owner_slot = next(
+                (slot for slot, tris in extra.items()
+                 if any(idx in t for t in tris)),
+                None)
+            if owner_slot is None or target[owner_slot] < 0:
+                owner_slot = next(iter(extra), None)
+                tgt = target[owner_slot] if owner_slot is not None else -1
+            else:
+                tgt = target[owner_slot]
+            if tgt < 0:
+                raise SystemExit(
+                    f"stitch {g.name}: no slice can accept the UV continuation "
+                    f"clone of rim vertex {clone_data[cid][4] if len(clone_data[cid]) > 4 else cid}; "
+                    "cannot keep the bridge triangles inside one block")
+            per_target.setdefault(tgt, []).append(cid)
+            assigned[cid] = tgt
+        order = sorted(range(len(g.slices)), key=lambda k: g.slices[k][1])
+        ins_before = [0] * len(g.slices)
+        running = 0
+        for k in order:
+            ins_before[k] = running
+            running += len(per_target.get(k, []))
+        # Global vertex indices shift as the clone blocks slide into place.
+        new_index = [0] * orig_len
+        slice_of_global = [-1] * orig_len
+        for k in order:
+            _m, bv, _bi, _tr, nv = g.slices[k]
+            for x in range(bv, bv + nv):
+                slice_of_global[x] = k
+        for x in range(orig_len):
+            k = slice_of_global[x]
+            new_index[x] = (x + ins_before[k] if k >= 0
+                            else x + running)
+        clone_rank: dict[int, int] = {}
+        for k, lst in per_target.items():
+            for rank, cid in enumerate(lst):
+                clone_rank[cid] = ins_before[k] + g.slices[k][4] + rank
+        verts_out: list = []
+        normals_out: list = []
+        uvs_out: list = []
+        weights_out: list = []
+        for k in order:
+            _m, bv, base_i, tri_count, nv = g.slices[k]
+            verts_out.extend(g.verts[bv:bv + nv])
+            normals_out.extend(g.normals[bv:bv + nv])
+            uvs_out.extend(g.uvs[bv:bv + nv])
+            weights_out.extend(g.weights[bv:bv + nv])
+            for cid in per_target.get(k, []):
+                cd = clone_data[cid]
+                verts_out.append(tuple(cd[0]))
+                normals_out.append(tuple(cd[1]))
+                uvs_out.append(tuple(cd[2]))
+                weights_out.append(cd[3])
+        g.verts = verts_out
+        g.normals = normals_out
+        g.uvs = uvs_out
+        g.weights = weights_out
+        g.faces = [tuple(new_index[x] if x < orig_len else clone_rank[x - orig_len]
+                         for x in f) for f in g.faces]
+        cat: dict[int, tuple] = {}
+        for k in range(len(g.slices)):
+            t = g.slices[k]
+            cat[k] = (t[0], t[1] + ins_before[k], t[2], t[3],
+                      t[4] + len(per_target.get(k, [])))
+        g.slices = [(cat[k][0], cat[k][1], g.slices[k][2],
+                     g.slices[k][3], cat[k][4]) for k in range(len(g.slices))]
+        for slot, tris in extra.items():
+            extra[slot] = [tuple(new_index[x] if x < orig_len else clone_rank[x - orig_len]
+                                 for x in t) for t in tris]
+    else:
+        # No clones: the historical tail extension was a no-op (clone_data
+        # empty), nothing to repair.
+        pass
 
     for slot, tris in extra.items():
         start, added = _insert_faces(g, tris, slot)
@@ -3142,6 +3253,108 @@ def stitch_sleeve_seams(g: bm.Group, template: bm.Template, *,
                              "after closing the sleeve")
         if agree < 0.9:
             raise SystemExit(f"stitch {g.name}: winding agreement {agree:.1%}")
+    return report
+
+
+#: The one opening the underarm stitch cannot reach: a wedge of missing wall
+#: in the *outer* shell at the back of the left forearm, between the two rim
+#: arcs the slit bridging leaves open. On the slim (glove-adapter) variant the
+#: bridge's rim-pair scorer rejects three of the five left quads, so the wedge
+#: stays open and a radial ray at bearing ~282-286 deg escapes from z 125.3 to
+#: z 126.6 (the D18 artefact, tests/test_christie_las.py::
+#: test_sleeve_tube_is_closed_along_its_length[-1-slim]).
+#:
+#: One triangle of existing vertices caps it. Vertex IDs are a property of the
+#: slim pipeline only (the base pack never cuts the hands, so its compaction
+#: shifts every index behind them), which is why this pass runs only under
+#: ``glove_adapter`` and why every anchor is verified against its authored
+#: position before it is used — a drifted pipeline fails the build loudly
+#: instead of capping the wrong triangles.
+_WEDGE_CAPS: dict[str, tuple[tuple[int, int, int], tuple[tuple[float, float, float], ...]]] = {
+    "Left": ((1889, 1908, 1902), ((-32.21, -1.62, 121.38), (-28.60, -1.25, 125.74),
+                                  (-30.19, -2.08, 124.06))),
+}
+
+
+def close_sleeve_wedge(g: bm.Group, template: bm.Template, *,
+                       min_face_cm2: float = 2.0e-3,
+                       min_vn_dot: float = 0.5,
+                       pos_tol_cm: float = 2.0) -> dict:
+    """Cap the residual wedge opening in the outer sleeve shell.
+
+    Reuses the stitch's machinery: the candidate triangle is checked against
+    the edge map (nothing may gain a third user; where it closes a border edge
+    it runs against the owner), its winding is checked against the vertex
+    normals, and it is inserted into the sleeve slice's run like any other
+    bridge face. Any mismatch against the authored anchors — moved vertices,
+    drifted IDs, an already-capped mesh — aborts the build instead of shipping
+    a subtly wrong cap.
+    """
+    import numpy as np
+
+    report = {"capped": 0, "details": []}
+    if not g.faces:
+        return report
+    v = np.asarray(g.verts, dtype=np.float64)
+    n = np.asarray(g.normals, dtype=np.float64)
+    n = n / np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-12)
+    faces = [tuple(int(x) for x in row) for row in g.faces]
+    count, dirn = _edge_maps(faces)
+    have = {frozenset(t) for t in faces}
+    # material slot the cap belongs to: the majority slot of the faces that
+    # share an edge with it (same rule the slit bridge uses)
+    owner_face: dict[tuple[int, int], int] = {}
+    slice_of: list[int] = [-1] * len(faces)
+    for si, (_m, _bv, base_i, tris, _nv) in enumerate(g.slices):
+        for f in range(base_i // 3, base_i // 3 + tris):
+            slice_of[f] = si
+    for f, (a, b, c) in enumerate(faces):
+        for x, y in ((a, b), (b, c), (c, a)):
+            k = (x, y) if x < y else (y, x)
+            owner_face.setdefault(k, f)
+
+    add: list[tuple] = []
+    for side, (tri, anchors) in _WEDGE_CAPS.items():
+        fore = f"{side}ForeArm"
+        if fore not in template.name_id:
+            continue
+        for i, want in zip(tri, anchors):
+            if i >= len(v) or float(np.linalg.norm(v[i] - np.asarray(want))) > pos_tol_cm:
+                actual = tuple(round(float(x), 2) for x in v[i]) if i < len(v) else None
+                raise SystemExit(
+                    f"wedge cap anchor v{i} drifted: expected {anchors[tri.index(i)]}, "
+                    f"got {actual} — the slim pipeline changed; re-measure the wedge "
+                    f"and update _WEDGE_CAPS (see docs/audits/2026-11-13-christie-sleeve-wedge.md)")
+        if frozenset(tri) in have:
+            report["details"].append(f"{side}: wedge already capped")
+            continue
+        area = _tri_area(v, tri)
+        vn = _face_vn_dot(v, n, tri)
+        closable = _closable([tri], count, dirn)
+        if area < min_face_cm2 or vn < min_vn_dot or not closable:
+            raise SystemExit(
+                f"wedge cap {tri} rejected: area {area:.3f} cm2, vn-dot {vn:+.2f}, "
+                f"closable {closable} — refusing to ship a marginal cap")
+        # majority material of the edge-neighbouring faces (the sleeve fabric)
+        slots: dict[str, int] = {}
+        for x, y in ((tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])):
+            k = (x, y) if x < y else (y, x)
+            f = owner_face.get(k)
+            if f is not None:
+                slot = g.mat_slots[slice_of[f]]
+                slots[slot] = slots.get(slot, 0) + 1
+        slot = max(slots, key=slots.get) if slots else "mtr_c02_01"
+        add.append((tri, slot, area, vn))
+
+    for tri, slot, area, vn in add:
+        start, added = _insert_faces(g, [tri], slot)
+        _commit([tri], count, dirn)
+        report["capped"] += added
+        report["details"].append(
+            f"capped ({tri[0]},{tri[1]},{tri[2]}) area {area:.2f} cm2, "
+            f"vn {vn:+.2f}, slot {slot}")
+    if report["capped"]:
+        _check_slices(g, f"wedge {g.name}")
     return report
 
 
@@ -3818,8 +4031,21 @@ def main(argv=None) -> int:
     # This is deliberately after slim / hand cutting so every surviving vertex
     # and its final weights share one coherent rest bind; FPS extraction below
     # carries the same rest_worlds into the viewmodel.
+    # The caster maps every slice onto one `shadow_caster` slot, and rendering
+    # it whole makes its coverage repair land on different vertices than the
+    # body's (the two groups are one mesh). Hand the shadow the body's sleeve
+    # face indices so both repairs see the same surface and stay in lockstep.
+    sleeve_ids = []
+    _body = groups["body"]
+    for (_src, _bv, base_i, tris, _nv), slot in zip(_body.slices, _body.mat_slots):
+        if slot == "mtr_c02_01":
+            sleeve_ids.extend(range(base_i // 3, base_i // 3 + tris))
+    groups["shadow"].outer_face_ids = sleeve_ids or None
+    groups["body"].outer_face_ids = None
+
     idle_rest: dict[str, dict] = {}
     stitch: dict[str, dict] = {}
+    wedge: dict[str, dict] = {}
     unified: dict[str, dict] = {}
     normals_left: dict[str, dict] = {}
     for gname in ("body", "shadow"):
@@ -3834,6 +4060,15 @@ def main(argv=None) -> int:
               f"{stitch[gname]['filled']} hole(s) filled")
         for line in stitch[gname]["details"]:
             print(f"  {line}")
+        # The slim bridge leaves one residual wedge in the outer shell (the
+        # glove adapter cuts the hands, so its rim-pair scoring rejects three
+        # left quads); cap it so the tube is closed end to end. Base packs
+        # keep the stitch's bridge as-is.
+        if identity.glove_adapter:
+            wedge[gname] = close_sleeve_wedge(groups[gname], template)
+            print(f"[{gname}] sleeve wedge cap: {wedge[gname]['capped']} tris")
+            for line in wedge[gname]["details"]:
+                print(f"  {line}")
         # Seam shading: one normal per interior coincident group, exactly what
         # the 2B reference does (0 of its 22,486 pairs diverge). Borders keep
         # both normals - those copies are a garment fold, not a UV split.
@@ -3974,6 +4209,7 @@ def main(argv=None) -> int:
                              "cuff_taper": cuff_report,
                              "idle_arm_rest": idle_rest,
                              "sleeve_stitch": stitch,
+                             "sleeve_wedge": wedge,
                              "seam_normals": {g: {"unified": unified[g],
                                                   "left": normals_left[g]}
                                               for g in unified}},

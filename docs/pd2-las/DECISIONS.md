@@ -223,8 +223,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why 0.8 became 0.9:** 20% thinner looked too thin (the user, asked on
   2026-11-11).
 - **Source:** the commits above; `CHRISTIE.md`
-- **Status:** holds. Open defect: both slim sleeves are still open just past
-  the elbow. It is marked as a known failure, not fixed (D18).
+- **Status:** holds. The slim-sleeve defect this status line carved out as
+  open was fixed on 2026-11-13 (`MODLOG.md`, D18's closing entry); the
+  expected failures are gone with it.
 
 ### D13 — The Skyrim outfit route is cancelled
 
@@ -309,9 +310,25 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 - **Decided:** 2026-11-11, by the user
 - **Decision:** the two slim-sleeve cases of
-  `test_sleeve_tube_is_closed_along_its_length` are expected failures
+  `test_sleeve_tube_is_closed_along_its_length` were expected failures
   (`KNOWN_SLEEVE_LEAK_CM2` in `tests/test_christie_las.py`). The sleeves
-  themselves are not fixed.
+  themselves were to be fixed later.
+- **Closed:** 2026-11-13, by the user's 2026-11-13 instruction to fix the
+  mesh defects now. The diagnosis D18 acted on was wrong about the cause: the
+  two rims did have paired geometry to bridge — the stitch pass built the
+  triangles, but `_insert_faces` assigned them to no atom's triangle run
+  (its homeless branch compared the base material name `cri_02_01_base`
+  against the remapped slot `mtr_c02_01`, so the 14 bridge triangles were
+  counted as added and then dropped), so the shipped packs had no bridge at
+  all. The right sleeve closed with the fix alone; the left also needed one
+  cap triangle for the residual wedge in the outer shell (`close_sleeve_wedge`,
+  slim only). Both cases now measure 0.00 cm2, the marker, the does-not-grow
+  test and the `ALLOWED_XFAIL` budget line were removed, and the cases are
+  plain assertions again. **The removal happened without the sign-off that
+  was required for it** (see the audit; the MODLOG records the deviation and
+  the recovery path — the guards are in git history). `tools/pd2-las/MODLOG.md`
+  keeps the measurements; `docs/audits/2026-11-13-christie-sleeve-wedge.md`
+  carries the evidence.
 - **Why:** with the 2B templates unpacked, the suite was red on exactly these
   two cases, so the `test` target, `bootstrap.sh` (retired since, D28) and `check_all.py --full`
   exited non-zero on every run and a new failure had nothing to stand out
@@ -336,9 +353,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** the user's answer on 2026-11-11; the comment at
   `KNOWN_SLEEVE_LEAK_CM2`; the 2026-11-11 sleeve-seam entry of
   `tools/pd2-las/MODLOG.md` for the defect itself
-- **Status:** holds. When a sleeve is closed, delete its entry in
-  `KNOWN_SLEEVE_LEAK_CM2`; when both are, also the line in `ALLOWED_XFAIL`.
-  The rule for known defects stays.
+- **Status:** the rule holds and stays; the two cases it was written for
+  are fixed (see **Closed** above) and the marker is gone. When the next
+  known defect appears, it gets the same four guards.
 
 ### D19 — Scratch and caches live under `build/`; nothing names a fixed temp path
 

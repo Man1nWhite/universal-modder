@@ -824,22 +824,12 @@ def test_sleeve_end_surrounds_the_glove_spawn(which):
         assert d <= limit, f"{which} {key}: cuff is {d:.2f} cm from the pivot"
 
 
-#: Known defect, not fixed: each slim sleeve is still open just past the elbow
-#: (52-56 % of the way from shoulder to wrist, z 125.3-126.6 cm), where the two
-#: rims carry no paired vertices for ``stitch_sleeve_seams`` to bridge
-#: (tools/pd2-las/MODLOG.md, 2026-11-11). Leak in cm2 by (pack, side), measured
-#: on the tracked zip.
-#:
-#: For these cases ``test_sleeve_tube_is_closed_along_its_length`` is an expected
-#: failure, so the suite is green with a known defect in it. Four things keep
-#: that from becoming a place to hide one (docs/pd2-las/DECISIONS.md, D18):
-#:   * the expectation is strict: the day a sleeve closes, its case turns red
-#:     (XPASS) until its entry here is deleted;
-#:   * only an AssertionError is expected: a measurement that breaks still fails;
-#:   * ``test_known_sleeve_leak_does_not_grow`` fails if a leak gets worse;
-#:   * tools/pd2-port/check_skip_budget.py fails on any expected failure that is
-#:     not one of these.
-KNOWN_SLEEVE_LEAK_CM2 = {("slim", -1): 6.70, ("slim", 1): 4.95}
+#: The two D18 slim-sleeve cases (leak 4.95 / 6.70 cm2 at z 124.5-126.6) are
+#: fixed as of 2026-11-13: the slit bridge never reached the serialized mesh
+#: (``_insert_faces`` silently dropped the cross-block triangles - see
+#: tools/pd2-las/MODLOG.md and docs/audits/2026-11-13-christie-sleeve-wedge.md),
+#: and the residual left-forearm wedge is capped by ``close_sleeve_wedge``.
+#: Both cases are ordinary assertions again; nothing is expected to fail.
 
 
 @functools.lru_cache(maxsize=None)
@@ -858,15 +848,10 @@ def _sleeve_leak(which: str, side: int) -> dict:
 
 
 def _sleeve_cases():
-    """(side, which) for every sleeve of every pack; the known-open ones are expected to fail."""
+    """(side, which) for every sleeve of every pack."""
     for which in sorted(PACKS):
         for side in (-1, 1):
-            known = KNOWN_SLEEVE_LEAK_CM2.get((which, side))
-            marks = () if known is None else pytest.mark.xfail(
-                raises=AssertionError, strict=True,
-                reason=f"known defect: this sleeve is still open ({known:.2f} cm2 leak, "
-                       "KNOWN_SLEEVE_LEAK_CM2)")
-            yield pytest.param(side, which, marks=marks)
+            yield side, which
 
 
 @pytest.mark.parametrize("side, which", list(_sleeve_cases()))
@@ -881,10 +866,8 @@ def test_sleeve_tube_is_closed_along_its_length(which, side):
     on the slim right, 21.5 on the base left, 0.0 on the base right (whose
     slit happens to sit under an overlapping layer). In game that reads as a
     dark stripe down the sleeve. `stitch_sleeve_seams` closes the tube, and a
-    closed tube leaks nothing at all.
-
-    The base pack is there. The slim pack is not: its two cases are expected
-    failures, see ``KNOWN_SLEEVE_LEAK_CM2``.
+    closed tube leaks nothing at all. As of 2026-11-13 every case in the
+    matrix measures 0.0 cm2; this test is a plain assertion again.
     """
     s = _sleeve_leak(which, side)
     name = "left" if side < 0 else "right"
@@ -893,24 +876,6 @@ def test_sleeve_tube_is_closed_along_its_length(which, side):
         f"through its seam (s, z, cm2: {s['slices'][:3]}); the stitch pass "
         "is not closing the slit")
 
-
-@pytest.mark.parametrize("which, side", sorted(KNOWN_SLEEVE_LEAK_CM2))
-def test_known_sleeve_leak_does_not_grow(which, side):
-    """An expected failure may get better, never worse.
-
-    ``xfail`` accepts any failure of the assertion above, so on its own it
-    would also accept the slit reopening down the whole sleeve (35.1 cm2 before
-    the stitch pass). This holds each known-open sleeve to the leak recorded
-    for it, with half a square centimetre of slack for a grazing ray or two:
-    one more open slice adds about 1.65 cm2.
-    """
-    leak = _sleeve_leak(which, side)
-    known = KNOWN_SLEEVE_LEAK_CM2[(which, side)]
-    name = "left" if side < 0 else "right"
-    assert leak["cm2"] <= known + 0.5, (
-        f"{which} {name} sleeve leaks {leak['cm2']:.2f} cm2, more than the "
-        f"{known:.2f} cm2 recorded as its known defect (s, z, cm2: "
-        f"{leak['slices'][:6]}): the seam got worse")
 
 
 @pytest.mark.parametrize("which", sorted(PACKS))

@@ -21,9 +21,7 @@ REPORT = """\
 SKIPPED [2] tests/test_gma.py:31: sourcepp is an optional extra
 SKIPPED [1] tests/test_um.py:900: needs ffmpeg
 SKIPPED [13] tests/test_render_mesh_skeleton.py:39: Christie base pack not built (run make -sC tools/pd2-las christie)
-XFAIL tests/test_christie_las.py::test_sleeve_tube_is_closed_along_its_length[left] - the sleeve is still open
-XFAIL tests/test_christie_las.py::test_sleeve_tube_is_closed_along_its_length[right] - the sleeve is still open
-800 passed, 16 skipped, 2 xfailed in 120.00s
+800 passed, 16 skipped in 120.00s
 """
 
 
@@ -39,7 +37,7 @@ def test_a_report_within_the_budget_passes_and_the_left_out_file_is_left_out():
     said, failures = budget.judge(REPORT)
     assert failures == [], failures
     assert said[-1].strip() == (f"OK: 3 budgeted skip(s) across {len(budget.ALLOWED)} reason(s), "
-                                "2 expected failure(s) within budget."), said[-1]
+                                "0 expected failure(s) within budget."), said[-1]
     # the tool's own run passes --ignore for this file; in a report of the whole suite its lines are dropped
     assert budget.IGNORED == ("tests/test_render_mesh_skeleton.py",)
 

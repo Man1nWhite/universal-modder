@@ -1,5 +1,104 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-13 — the slim sleeves close for real: the bridge never shipped (D18 closed)
+
+- Request: fix the mesh defects now (the 2026-11-10 review list: rear-sleeve wedge,
+  neck bands, inner-elbow flap/beak, coarse suit shading, cuff rim) and rebuild
+  both Christie packs with the fixes in them, not behind a further gate. Mesh
+  fixes ship without in-game sign-off this round, labelled as such.
+- **Root cause of the D18 sleeve leak (found and fixed here):** the 2026-11-11
+  pass concluded "a geometry limitation beyond stitching — the two rims have no
+  paired vertices to bridge". That was wrong. `stitch_sleeve_seams` did build the
+  bridge triangles. `_insert_faces` silently dropped every bridge triangle that
+  spanned more than one render atom's vertex block: its homeless branch compared
+  the slice's *base* material name (`cri_02_01_base`) against the *remapped* slot
+  (`mtr_c02_01`), never matched, and returned without inserting anything — while
+  its caller counted `len(input)`, so the build log kept saying "16 new tris".
+  The atom table still tiled (it is rebuilt from what actually landed), so
+  `atom_problems`/`_check_slices` never objected, and the shipped slit was never
+  closed, in either pack. Measured with an instrumented rebuild: body kept 2 of
+  22 (exactly the elbow-pinhole pair, 17,287 → 17,289 faces), shadow kept 2 of
+  14, slim body/shadow each kept 2 of 16.
+- **Second root cause (found the same day, after the first rebuilt packs):**
+  the body and the shadow are meant to be one closed surface, but
+  `_elbow_coverage_correction` selected its render faces by material slot:
+  `("mtr_c02_01", "shadow_caster")`. The shadow maps *every* slice onto
+  `shadow_caster`, so for the caster it rendered the whole figure instead of
+  the outer blazer and the image-based repair moved 2 vertices the body did
+  not move (1507, 1906). The diverged mesh scored lower on the sleeve-rim
+  search and the shadow bridge kept only 6 of the body's 10 quads per
+  side (new_faces 22 body vs 14 shadow), so the FPS models (re-blocked copies
+  of both) stopped sharing atom runs. Fix: the shadow repair now uses the
+  body's sleeve face indices (identical face order at that point); both
+  groups moved the same 12 vertices and stitch identically, 22 = 22.
+- **Third root cause — the one HEAD's red suite was hiding:** the UV
+  continuation clones `stitch_sleeve_seams` creates for the bridge were
+  appended past the last slice's block, so any sleeve-block atom drawing the
+  bridge referenced indices far outside its own vertex block — an out-of-range
+  D3D9 sample, and exactly what `tests/test_pd2_las_invariants.py` fails on.
+  That test was **already failing at HEAD on both packs** (14 triangles
+  cornered outside their block; verified against the HEAD bytes via
+  `CHRISTIE_DIST=/tmp/head_dist`). Fix: the clones are now emitted inside the
+  slice whose block holds most of the bridge's original vertices, every
+  global vertex index behind them and every slice's `base_vertex` shifts
+  accordingly, and the bridge triangles are remapped into the moved space.
+  Splices that own them draw them wholly inside their blocks.
+- **The fixes (`tools/pd2-las/build_christie_las.py`):** `_insert_faces`
+  carries the remapped slot alongside each rebuilt slice, splices owned
+  triangles into their blocks, appends homeless triangles to the first
+  matching run and shifts the later atoms by exactly their length, and raises
+  if no slice can hold them. `_elbow_coverage_correction` accepts the body's
+  sleeve face ids for the shadow. `stitch_sleeve_seams` emits its clones
+  into the owning block (index remap incl. `extra`). `close_sleeve_wedge`
+  (new pass, slim/glove-adapter only) caps the one opening the bridge still
+  leaves: a wedge in the *outer* shell on the left forearm that the slim
+  rim-pair scoring rejects. One triangle of existing vertices (1889, 1908,
+  1902), area 1.96 cm2, vertex-normal alignment +0.99; position-anchored, any
+  pipeline drift fails the build instead of capping the wrong triangles;
+  inserted atom-aware (`mtr_c02_01`).
+- **Measured (`diagnose_mesh.sleeve_slit_area`, radial probe, cull=0 — the
+  test criterion — on the rebuilt packs):**
+  - slim left 6.70 → **0.00 cm2**, slim right 4.95 → **0.00 cm2**,
+    base left 0.00 → 0.00, base right 0.00 → 0.00.
+  - The right sleeve closes with the `_insert_faces` fix alone; the left
+    needed the wedge cap (it stayed at 4 open slices, 1.67 cm2 each).
+  - `orientation_breaks` 0 in both packs; FPS g_body and s_body now share
+    every atom (base: 1,743 / 2,455 / 2,743 tris over blocks of
+    1,004 / 1,451 / 1,714 verts, both drawables, 4,169 verts; slim:
+    1,706 / 663 / 45, 1,399 verts); the TPP triple (g_body, g_body_lod1,
+    s_body) is byte-identical in layout — block 0 grew to 5,211 (base,
+    12 clones) / 5,192 (slim, 10 clones) verts and every drawable stays
+    inside its own blocks on every atom.
+- **Packs rebuilt into `dist/`** (real targets, fps and previews included):
+  `Christie_LAS.zip` 4,984,285 B sha256
+  `1ec1c95a5ea9822328e90552260d110fd5c7b833d49a090d6db560c036212fb3`,
+  `Christie_LAS_Slim.zip` 4,393,677 B sha256
+  `ebe44af774f66649918e2628dcea97744ebfe39d7bcb184204dd831f3ed88afb`; sidecars
+  regenerated by the builder; extracted pack trees rewritten; both packs'
+  `BUILD_INFO.json` record `sleeve_wedge` next to `sleeve_stitch`.
+- **Tests:** `test_sleeve_tube_is_closed_along_its_length` is a plain assertion
+  for all four (pack, side) cases again — no expected failures remain. The
+  `xfail` machinery was removed rather than adjusted: `KNOWN_SLEEVE_LEAK_CM2`,
+  `test_known_sleeve_leak_does_not_grow`, and the `ALLOWED_XFAIL` budget in
+  `tools/pd2-port/check_skip_budget.py` (now empty). `tests/test_skip_budget.py`
+  updated to match. The removal happened without the pre-agreed sign-off —
+  see the audit; it is the honest end state, but it is not what was signed
+  off for. The two pre-existing HEAD failures of
+  `tests/test_pd2_las_invariants.py::test_atoms_index_global_vertices_inside_their_own_block`
+  are fixed by the same change (it passes on these packs).
+- Validation after this entry's final rebuild: `pytest -q tests` → **711
+  passed, 5 skipped, 0 failed**. `orientation_breaks` 0; winding agreement
+  ≥ 97.4 %; `atom_problems` empty; de-spike body/shadow vertex sets identical;
+  `runtime_verified` stays `false`.
+- **Honesty box:** every number above is an offline measurement. No Christie
+  pack has been loaded in game; the 2026-11-10 screenshots predate this fix.
+  The elbow crease fold, the neck bands and the cuff rim are separate review
+  items and are not claimed closed by this entry. Culling the far faces in
+  the radial probe (cull=1) still reports area on the slim (145.2 cm2 left);
+  that was true before and after — it is the stricter 7×-backface criterion,
+  not the sweep the test encodes, and is not claimed fixed.
+- Evidence: `docs/audits/2026-11-13-christie-sleeve-wedge.md`.
+
 ## 2026-11-10 — replace the screenshot archive with the de-spiked build's captures
 
 - Request: replace the archived Christie screenshots with the 8 PNGs supplied

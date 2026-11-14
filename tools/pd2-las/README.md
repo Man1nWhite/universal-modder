@@ -27,7 +27,7 @@ make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing trac
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
 make -sC tools/pd2-las build    # or busty | christie | slim | lawson | heads | all; prints the state of the packs it wrote
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
-make -sC tools/pd2-las test     # the whole suite, offline; its xfailed cases are the defect under Next
+make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
 ```
 
@@ -108,13 +108,10 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 
 1. In-game verification with `docs/pd2-las/in-game-checklist.md` (written for `Miranda_LAS`); it needs a human
    with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the last rebuild of the Miranda packs.
-2. The Christie slim sleeves are open just past the elbow: a known defect, not
-   fixed by decision (`docs/pd2-las/DECISIONS.md`, D18). Two cases of
-   `test_sleeve_tube_is_closed_along_its_length` are strict expected failures.
-3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
+2. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
    texels at full gloss in `body_df` and `head_df` of the Miranda packs and in three Christie
    textures; the Christie sleeve-gloss pass moves gloss around inside the blocks it touches.
-4. The sibling packs: `lawson_las` and the nine head packs have no record of their tracked bytes in game, and
+3. The sibling packs: `lawson_las` and the nine head packs have no record of their tracked bytes in game, and
    the head packs have no checklist.
 
 ## Further reading

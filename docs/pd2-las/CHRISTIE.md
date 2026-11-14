@@ -32,14 +32,15 @@ earlier hashes it was written with.
 > 2026-11-10. In the packs tracked now, no triangle of any drawable has a corner
 > outside its atom's vertex block
 > (`test_atoms_index_global_vertices_inside_their_own_block`), and
-> `build_models.atom_problems` checks containment as well as tiling. What is
-> still open is the slim sleeve: the two expected failures of
-> `test_sleeve_tube_is_closed_along_its_length` (`DECISIONS.md`, D18).
+> `build_models.atom_problems` checks containment as well as tiling. The slim
+> sleeve defect noted here was fixed on 2026-11-13 (see the 2026-11-13 entry in
+> `tools/pd2-las/MODLOG.md` and `docs/audits/2026-11-13-christie-sleeve-wedge.md`);
+> `test_sleeve_tube_is_closed_along_its_length` measures 0.00 cm2 on all four
+> (pack, side) cases and is a plain assertion again (`DECISIONS.md`, D18).
 
-- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `9e7c2d82…94fd95c`, 4,983,848 B)
+- `dist/Christie_LAS.zip` (+ `.sha256`, sha256 `1ec1c95a5ea9822328e90552260d110fd5c7b833d49a090d6db560c036212fb3`, 4,984,285 B)
   — full body incl. Christie's hands.
-- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `7a4d010c…90a3e6f`,
-  4,393,967 B) — 10% thinner torso/legs, 20%
+- `dist/Christie_LAS_Slim.zip` (+ `.sha256`, sha256 `ebe44af774f66649918e2628dcea97744ebfe39d7bcb184204dd831f3ed88afb`, 4,393,677 B) — 10% thinner torso/legs, 20%
   thinner arms in cross-section (plus a 10% bicep tuck, so the upper-arm belly
   lands at 0.736 of base — see `test_slim_cross_section_ratios`), **and no
   hands** (`--variant slim`; the separate no-hands pack was removed — slim

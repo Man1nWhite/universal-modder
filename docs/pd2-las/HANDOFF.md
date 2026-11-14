@@ -166,7 +166,11 @@ no-hands pack was removed (slim supersedes it). Detail and every measurement: `d
   byte-identical), and `unify_coincident_normals` gave every *interior* coincident vertex one normal (0
   interior divergent pairs, the border folds left alone). **The tracked slim pack is a later build and its
   sleeves are open again**, 6.70 and 4.95 cm² just past the elbow (the 2026-11-11 sleeve-seam entry of
-  `MODLOG.md`); that is the known defect in the README's Next and in `DECISIONS.md`, D18.
+  `MODLOG.md`). **Fixed on 2026-11-13** — the bridge faces reached no atom
+  (`_insert_faces` dropped the cross-block triangles), and the residual left
+  wedge is capped in the slim pack; both sleeves measure 0.00 cm2. The
+  README's Next item and `DECISIONS.md`, D18, are updated to match; this
+  pack still has no in-game sign-off.
 - **2026-11-07, the sleeve gloss.** The mask was rebuilt: it is rasterised from the sleeve's own UV faces and
   clipped to that footprint, and only mip 0 is attenuated (the pyramid is regenerated from it). Leg-only UV
   coverage 3.2 % → **0.8 %** (151 → 33 faces, all on the boots, and those 33 are atlas sharing rather than
