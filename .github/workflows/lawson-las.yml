@@ -28,9 +28,8 @@ jobs:
       - name: install build deps
         # the same dependency set the test workflow installs: pillow + numpy build the
         # pack, pyyaml is needed by the um/kb tests, pytest runs them, and scipy is
-        # imported by the suite (the elbow-depth test in tests/test_christie_las.py).
-        # Without scipy the `tests` step below failed on every push to main and on
-        # every tag, so no release could be published. A test keeps the two lists equal.
+        # kept for parity with the test workflow's install line. A test keeps the
+        # two lists equal.
         # The versions are pinned, in tools/pd2-las/pins.txt: the tracked pack is compared byte for byte,
         # and a different Pillow/numpy or zlib changes the deflate output.
         run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy "pyyaml>=6" pytest scipy

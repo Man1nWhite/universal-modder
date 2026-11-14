@@ -12,11 +12,11 @@ Report failures with the item number and a screenshot.
 
 ## Ten minutes: the rebuild of 2026-11-11
 
-> The six packs below, the two Christie packs and the four Romance head packs were built again on 2026-11-12,
+> The six packs below and the four Romance head packs were built again on 2026-11-12,
 > so that their bytes no longer depend on the CPU that builds them
 > (`docs/audits/2026-11-12-cpu-independence.md`). Nothing that should show changed: the steps are the same, on
 > the packs as they are tracked now. The one place that could look different is how a surface without texture
-> area shades: a few hair cards of Miranda and some triangles of the Christie packs.
+> area shades: a few hair cards of Miranda.
 
 Six packs were rebuilt that day: `Miranda_LAS`, `Miranda_Busty_LAS` and the four
 `Miranda_L4D2_over_*` head packs. What changed, and what was measured offline,
@@ -109,3 +109,46 @@ levels are there for motion, and only the game shows motion.
     skin materials carry `CONTOUR` + contour variables per the guide, so a
     colored silhouette should show through geometry. No outline = the
     contour variables need different values.
+
+## Christie LAS — in-game verification (2026-11-14)
+
+Pack to install: `dist/Christie_LAS.zip` → drop `Christie_LAS` into
+`PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS, same as the 2B reference). It is a
+headless LAS outfit (`replace_body`, not `replace_all`): the heister keeps their own head.
+
+> **Know which bytes you are installing.** After the workspace was re-created from a fresh clone
+> of the branch at `6f26633` (2026-11-14), `dist/Christie_LAS.zip` is `b65fb27e…` — the
+> **base-commit** pack, **without** the 2026-11-13 sleeve-bridge rebuild (`1ec1c95a…`), whose
+> bytes were lost unpushed with the old workspace. The sidecar matches the base bytes. Treat
+> this pack as the older build: expect the sleeve-slit history, not the bridged result, and
+> check the inner elbow and rear sleeve with extra care. See
+> `docs/audits/2026-11-14-christie-rebuild-redo.md` (postscript) for what was verified on which
+> bytes. `runtime_verified` is `false`; only this list settles it. Write down resolution, FOV,
+> texture quality and anisotropic filter first.
+
+1. **It loads** — menu outfits list "Christie (DOA5)"; the preview shows the body (open neck by
+   design). A crash or a script error fails this item.
+2. **Third person** — full body in lobby preview and in game: blazer, shirt, trousers, hands,
+   shoes; no missing groups; the neckline is the designed open collar.
+3. **First person** — heist with a weapon out: arms present and moving; reload and interact; no
+   crash.
+4. **The inner elbow, rifle vs no rifle** — the same heister, pose, camera and lighting: (a) arms
+   down (idle), (b) rifle shouldered. In (b) look at the inside of the elbow from the off side.
+   Fail: a hard flat edge or a bright flap that was not there in (a). This is the offline-open
+   defect; the offline render shows a sliver there that is consistent with the authored crease.
+   If it shows, say so with a screenshot — the recorded fix direction is a targeted normal repair
+   on the crease strip, not another geometry pass.
+5. **The throat, head on vs head off** — equip Christie, then equip the vanilla heister, same
+   spot, same light. Fail: a band across the throat only with Christie on. (The pack ships no
+   head; offline work cannot assign this between the body and the head rim.)
+6. **Sleeves gloss** — sleeves should read matte, like the torso, not wet. Fail: a mirror
+   response on the sleeves (the diffuse alpha was rebuilt from the normal map; this item checks
+   it in engine).
+7. **Cuff / glove stack** — spawn a glove, then an alternate glove: the cuff should sit outside
+   the glove in every pose. Fail: sleeve swallowing the glove, or glove floating outside the
+   cuff.
+8. **Movement** — sprint, crouch, interact near-objects: no popping, no spiking fingers, elbows
+   bend cleanly, the shadow follows the body.
+
+Afterwards check the game's crash logs and BLT log for anything naming `christie`,
+`fps_christie` or `LegendaryArmours.christie`.

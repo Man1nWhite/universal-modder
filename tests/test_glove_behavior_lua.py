@@ -1,30 +1,20 @@
-"""Behavioural glove test: real LAS loader + generated hooks in LuaJIT 2.1.
+"""The glove companion hook, against the real LAS 4.1.9 loader in LuaJIT.
 
-The first shipped adapter pack passed every string-assertion test yet had NO
-HANDS in-game, because the old smoke test stubbed the host semantics with the
-wrong assumptions. This suite executes the real registration chain instead:
+What runs here:
 
-1. the generated ``christie_slim_las.lua`` of the pack that ships no hands,
-   ``Christie_LAS_Slim`` (fills ``LegendaryArmours``);
-2. ``BlackMarketTweakData:init`` PostHooks in mod-load order — BeardLib's
-   ``BeardLibInitGloves``, then the **verbatim LAS 4.1.9 loader**
-   (``tests/fixtures/las_loader_4.1.9.lua``), then the pack's generated
-   ``christie_slim_glove_adapter.lua``;
-3. a faithful port of BeardLib's ``set_beardlib_character_visual_state``
-   glove/adapter decision block.
+1. an outfit registration matching the shape of a pack that ships no hands (the hook that fills ``LegendaryArmours``; until 2026-11-14 the one in the tracked ``Christie_LAS_Slim``);
+2. the real LAS 4.1.9 init hook, verbatim from
+   ``tests/fixtures/las_loader_4.1.9.lua``;
+3. the real BeardLib glove code paths — table.merge, get_glove_value,
+   GloveBlackMarketFix, the player-style exclude list — ported verbatim;
+4. the generated ``*_glove_adapter.lua`` (the companion hook);
+5. vanilla suits, to show the adapter restores stock vanilla behaviour
+   instead of just "having gloves".
 
-Every ported block is cited to its source file so drift can be re-checked:
-
-* BeardLib ``Hooks/PlayerStyleGloveHooks.lua`` (mirror: Vladik268/P2,
-  ``mod/BeardLib/Hooks/PlayerStyleGloveHooks.lua``) — ``get_glove_value``,
-  ``get_glove_variation_value``, ``BeardLibInitGloves``, visual-state block;
-* vanilla ``lib/tweak_data/blackmarket/playerstyletweakdata.lua`` —
-  ``get_player_style_value`` / ``get_suit_variation_value``;
-* vanilla ``lib/tweak_data/blackmarket/glovestweakdata.lua`` — glove and
-  adapter tables;
-* vanilla ``lib/managers/criminalsmanager.lua`` — workname conversion.
-
-Runtime: LuaJIT 2.1 through ``lupa`` — PAYDAY 2's exact Lua dialect.
+Until 2026-11-14 the same harness ran against the tracked Christie packs; both
+Christie builders were deleted on 2026-11-14. The registration below is the same
+shape those packs produced: a BODY_ONLY outfit with no hands in the model, with a
+synthetic ``nohands`` stand-in pack id.
 """
 
 from __future__ import annotations
@@ -35,6 +25,7 @@ from pathlib import Path
 import pytest
 
 lupa = pytest.importorskip("lupa", reason="lupa (LuaJIT) not installed")
+
 try:
     from lupa import luajit21
 except ImportError:  # pragma: no cover - older lupa wheels
@@ -43,12 +34,17 @@ except ImportError:  # pragma: no cover - older lupa wheels
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
-import build_christie_las as christie  # noqa: E402
 import las_outfit_pack  # noqa: E402
 
 FIXTURE = REPO / "tests" / "fixtures" / "las_loader_4.1.9.lua"
-SLIM = christie.IDENTITIES["slim"]            # the pack without hands
-KEY = f"las_{SLIM.item_id}"
+NO_HANDS = las_outfit_pack.Registration(
+    item_id="nohands", display_name="No Hands (test outfit)",
+    description="a LAS outfit that ships no hands, cut at the wrist",
+    unit="units/nohands/skins/nohands/nohands",
+    fps_unit="units/nohands/skins/nohands/fps_nohands",
+    flags=las_outfit_pack.BODY_ONLY,
+    glove_adapter=True)
+KEY = f"las_{NO_HANDS.item_id}"
 
 # --------------------------------------------------------------------------
 # Lua host environment + faithful ports of the real game/mod code
@@ -308,11 +304,11 @@ def _setup(lua, *, with_compat_hook: bool):
     lua.execute(LUA_HOST)
     lua.execute("register_beardlib_init_gloves()")
     # the pack's outfit registration (runs at file load, before init)
-    lua.execute(las_outfit_pack.hook_lua(christie.registration(SLIM)))
+    lua.execute(las_outfit_pack.hook_lua(NO_HANDS))
     # the REAL LAS 4.1.9 loader, verbatim
     lua.execute(FIXTURE.read_text())
     if with_compat_hook:
-        lua.execute(las_outfit_pack.render_glove_adapter_lua(SLIM.item_id, SLIM.pack_dir_name))
+        lua.execute(las_outfit_pack.render_glove_adapter_lua(NO_HANDS.item_id, "nohands"))
     # hooks register at file-load time but run at init time against the built
     # table — exactly the game's sequence
     lua.execute("bm = build_blackmarket()")

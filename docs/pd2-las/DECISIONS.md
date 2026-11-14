@@ -190,42 +190,6 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   on a subdivided chest on 2026-11-05
 - **Status:** holds.
 
-### D11 — Christie is body-only: the heister keeps their head
-
-- **Decided:** 2026-11-05 · `5f9129e`
-- **Decision:** the Christie packs ship no head geometry and register
-  `replace_body`, not `replace_all`.
-- **Mechanism:** LAS expands `replace_all` to head, armour, body, hands, arms
-  and vest, and `replace_body` to body, hands and arms. An outfit that
-  declares `replace_all` without shipping a head is shown decapitated
-  (`672eb03`, 2026-11-02).
-- **Why headless at all, when the Miranda packs are full characters:** to
-  keep the heister's own head and wear Christie's outfit with it (the user,
-  asked on 2026-11-11). The commit describes the result as "headless like LAS
-  police uniforms".
-- **Source:** `5f9129e`, `672eb03`; `CHRISTIE.md`
-- **Status:** holds.
-
-### D12 — Christie slim: 10% thinner, same height, wrists cut for the in-game gloves
-
-- **Decided:** 2026-11-05 · `99fe202`, `d2aa2cc`, `0262d2d`, `1d95b30`
-- **Decision:** the slim variant scales the body by 0.9 in x and y and leaves
-  z alone, cuts the hands at the wrist and ships a glove-adapter hook, so the
-  gloves the player equips show at the end of the sleeves.
-- **History:** it began the same day at 0.8 (`99fe202`) and went to 0.9
-  together with the wrist cut (`0262d2d`). The wrist cut first shipped as a
-  separate no-hands pack (`d2aa2cc`), which was dropped that day because slim
-  supersedes it (`1d95b30`).
-- **Mechanism:** LAS 4.1.9 force-disables the glove adapter for
-  `replace_body` outfits. The hook re-enables it with `glove_adapter = {}`,
-  a table, because boolean `true` crashes BeardLib's table merge (`7fb50ac`,
-  2026-11-03).
-- **Why 0.8 became 0.9:** 20% thinner looked too thin (the user, asked on
-  2026-11-11).
-- **Source:** the commits above; `CHRISTIE.md`
-- **Status:** holds. Open defect: both slim sleeves are still open just past
-  the elbow. It is marked as a known failure, not fixed (D18).
-
 ### D13 — The Skyrim outfit route is cancelled
 
 - **Decided:** 2026-11-05, on the user's explicit request · `6ed6a23`
@@ -246,8 +210,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 - **Decided:** 2026-10-20 · `94bb4b0`
 - **Decision:** source models are in `models/`, reference mods in
-  `references/`. One source sits among the references:
-  `references/Christie.zip`.
+  `references/`. One source sits among the references.
 - **Why:** not recorded beyond the commit subject ("organize").
 - **Source:** `94bb4b0`; `models/README.md`, `references/README.md`
 - **Status:** holds.
@@ -285,7 +248,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** one unconditional `pytest.skip` inside a helper had switched off
   37 tests, and a missing fixture silenced 68 without any test failing.
 - **Extended:** 2026-11-11 — the same tool budgets expected failures
-  (`xfail`), for the same reason (D18).
+  (`xfail`), for the same reason: one line may not hide a defect.
 - **Source:** the docstring of `check_skip_budget.py`; `cba4688`
 - **Status:** holds.
 
@@ -304,41 +267,6 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   which enforces it
 - **Status:** holds. D22 finishes it: the other two documents that acted as
   an entry point no longer do.
-
-### D18 — A known defect is an expected failure, strict and bounded; the suite stays green
-
-- **Decided:** 2026-11-11, by the user
-- **Decision:** the two slim-sleeve cases of
-  `test_sleeve_tube_is_closed_along_its_length` are expected failures
-  (`KNOWN_SLEEVE_LEAK_CM2` in `tests/test_christie_las.py`). The sleeves
-  themselves are not fixed.
-- **Why:** with the 2B templates unpacked, the suite was red on exactly these
-  two cases, so the `test` target, `bootstrap.sh` (retired since, D28) and `check_all.py --full`
-  exited non-zero on every run and a new failure had nothing to stand out
-  against. Asked on 2026-11-11, the user chose marking the cases over a
-  geometry repair: the suite goes green without touching the pack, and the
-  cases report again the day a sleeve is fixed.
-- **What a repair would have meant:** a new `Christie_LAS_Slim.zip` in place
-  of the build that the user's latest in-game screenshots were taken with
-  (`CHRISTIE.md`, 2026-11-10), with no certainty of success: the journal
-  calls the hole "a geometry limitation beyond stitching", because the two
-  rims have no paired vertices to bridge.
-- **What keeps the marker from hiding anything:**
-  - it is strict: when a sleeve closes, its case turns red (XPASS) until the
-    entry is deleted;
-  - it accepts an `AssertionError` only: a measurement that breaks still fails;
-  - `test_known_sleeve_leak_does_not_grow` fails if a recorded leak gets
-    worse;
-  - `tools/pd2-port/check_skip_budget.py` names the tests that may be expected
-    to fail and fails on any other `xfail`.
-- **For the next known defect:** give its marker the same four guards. A
-  bare skip or a bare `xfail` is not an option.
-- **Source:** the user's answer on 2026-11-11; the comment at
-  `KNOWN_SLEEVE_LEAK_CM2`; the 2026-11-11 sleeve-seam entry of
-  `tools/pd2-las/MODLOG.md` for the defect itself
-- **Status:** holds. When a sleeve is closed, delete its entry in
-  `KNOWN_SLEEVE_LEAK_CM2`; when both are, also the line in `ALLOWED_XFAIL`.
-  The rule for known defects stays.
 
 ### D19 — Scratch and caches live under `build/`; nothing names a fixed temp path
 
@@ -412,7 +340,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   on them runs everywhere, and it also notices a pack that was committed from
   a different tree than the code beside it.
 - **What it does not replace:** the authoring suites (`test_build_models.py`,
-  `test_bust_variant.py`, `test_christie_las.py`) check the same properties in
+  `test_bust_variant.py`) check the same properties in
   more detail, during a build.
 - **How the thresholds were set:** every number was measured on the tracked
   packs first and stands beside its assertion. Each test was then run against
@@ -425,11 +353,11 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `AGENTS.md` and in the old handoff but had no row; Textures had tests in
   three suites and no row; Objects was a rule in one docstring
   (`las_outfit_pack.render_object_xml`: the file lists exactly what the model
-  has), which the Christie builder follows and `las_pack.py` does not.
+  has), which `las_pack.py` does not.
 - **Two exceptions that were written down, and are gone.** Each was a set in
   the test file whose test failed when the set grew and when it shrank, so the
-  list could not spread and could not outlive a fix (the rule of D18, without
-  an `xfail`). Both packs were rebuilt on 2026-11-11 and both sets were
+  list could not spread and could not outlive a fix (an expected failure is strict and
+    bounded; no bare `xfail`). Both packs were rebuilt on 2026-11-11 and both sets were
   removed with the defects: D23 and D24.
   - `SINGLE_LEVEL`: `miranda_face_df` and `miranda_eyes` shipped one mip level
     where every other unit texture has the full chain.
@@ -475,15 +403,15 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
     `build_models.py`);
   - "Worktree state" → dropped: it described an uncommitted patch that has
     long been committed;
-  - the Christie fit rule in `AGENTS.md` → a line under the README's "Do
-    not", with the detail in `CHRISTIE.md`.
+  - the fit rule for the body-only outfit in `AGENTS.md` → a line under the
+    README's "Do not".
 - **Corrected on the way, both in `AGENTS.md`:**
   - a normal map is not `R = G = B = ny`. Both writers put X in alpha and Y in
     green and fill red with 255 and blue with 0, and the Textures test holds
     the tracked packs to it;
   - the `ForeArm` does not flex about local Z. On the 2B skeleton local Y is
     the normal of the bind-pose bend and local X runs along the forearm, as
-    `CHRISTIE.md` measured on 2026-11-07.
+    as measured on the 2B skeleton on 2026-11-07.
 - **Not kept:** `git reset --hard origin/<branch>` as a routine first
   command. It is right only when everything local is already on the remote;
   otherwise it discards unpushed work. `AGENTS.md` now says so.
@@ -492,7 +420,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   for the handoff's table (every tracked zip, each with its own size and
   sha256)
 - **Status:** superseded in part by D30 (2026-11-13): `AGENTS.md` has no copies, `HANDOFF.md` no longer
-  quotes the tracked bytes, and the second test named above is gone. The rest holds.
+  quotes the tracked bytes, and the second test named above is gone. Superseded in part by D35 (2026-11-14):
+  `HANDOFF.md` keeps the present state only.
 
 ### D23 — A unit's `.object` is written from the model beside it
 
@@ -638,7 +567,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   1. A decision on a number that is zero in exact arithmetic gets a rule, in
      the code that takes it: the handedness of a tangent frame where the UV
      map gives none (`tangents.py`), and which of two fans with the same
-     triangles fills a ring (`build_christie_las._fill_ring`).
+     triangles fills a ring.
   2. What a file derives from other values in the same file is computed from
      those values as they are stored, with + - * / sqrt and exact sums:
      tangent frames, from the float32 positions, normals and UVs.
@@ -656,9 +585,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   and textures that the next numpy could redraw. Rules 1 to 3 hold on any
   code path; the code path is for what cannot be made to.
 - **What rule 4 carries, measured:** with the code path left to the machine,
-  the two Christie packs differ in one or two normals whose component is
-  zero up to rounding and, in the slim pack, in two positions. Nothing else
-  in any pack moves.
+  the tracked packs differ in one or two normals whose component is
+  zero up to rounding. Nothing else in any pack moves.
 - **Where it ends:** x86-64 Linux. Elsewhere the declared code path does not
   exist and the builders refuse. glibc is asked and cannot be checked; no
   byte moved between its routines, or between glibc 2.36 and the runners'
@@ -679,7 +607,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 ### D27 — One writer for the files that register a pack
 
 - **Decided:** 2026-11-12
-- **Decision:** `main.xml`, the hook, the strings, the unit file, the glove adapter and the zip of every pack built in `tools/pd2-las/` are written by `las_outfit_pack.py`, and so is the zip of the head packs. What a pack chooses is a `Registration`: its flags (`WHOLE_CHARACTER` or `BODY_ONLY`), its units, its textures, the glove adapter. `las_pack.py`, `build_christie_las.py` and `las_outfit_pack.py` each state it in a function called `registration`.
+- **Decision:** `main.xml`, the hook, the strings, the unit file, the glove adapter and the zip of every pack built in `tools/pd2-las/` are written by `las_outfit_pack.py`, and so is the zip of the head packs. What a pack chooses is a `Registration`: its flags (`WHOLE_CHARACTER` or `BODY_ONLY`), its units, its textures, the glove adapter. `las_pack.py` and `las_outfit_pack.py` each state it in a function called `registration`.
 - **Why:** three copies gave the same bytes for the same pack but for those choices, measured on the four packs, so a fact learned about these files had to be written three times. The one line in which the hooks differed is no drift: a pack with a head says `replace_all`, a pack without says `replace_body`, and LAS drops the heister's head for the first.
 - **Rejected:** the same writer for `lawson_las` (its files have another layout, which its tracked bytes carry); merging the writers of the `.object` and material files (they differ in what decides their content); keeping a second text of the glove adapter for the cancelled outfit (no build reached it).
 - **Source:** `docs/audits/2026-11-12-tool-merge.md`; `tools/pd2-las/las_outfit_pack.py`; `tests/test_one_implementation.py`
@@ -727,16 +655,14 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 ### D31 — `runtime_verified` is `false` in every pack
 
 - **Decided:** 2026-11-13, by the user
-- **Decision:** `build_christie_las.py` writes `"runtime_verified": false`, as the other builders do. Both
-  Christie packs were rebuilt for it: one line of `BUILD_INFO.json` in each, every other member byte for
-  byte the same.
+- **Decision:** every builder writes `"runtime_verified": false`. The two packs whose flag said `true`
+  were rebuilt for it: one line of `BUILD_INFO.json` in each, every other member byte for byte the same.
 - **Why:** the flag said `true` from the 2026-11-05 test of the base pack on, in both packs and through every
   rebuild after it, while `HANDOFF.md` recorded that no tracked bytes of either pack had been in game. A
   constant cannot follow what a person saw; the handoff's table does.
 - **Rejected:** leaving the flag and saying so in `HANDOFF.md` (done on 2026-11-11; the pack went on saying
   the opposite of the record).
-- **Source:** the user, asked on 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`;
-  `tests/test_christie_las.py`
+- **Source:** the user, asked on 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`
 - **Status:** holds.
 
 ### D32 — No pack carries a redistribution restriction
@@ -807,15 +733,13 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   suite's 29 skips were tests waiting for the outfit's archive, removed on 2026-11-05, or for its pack.
   A release that serves an older build under the same version number tells an installer the wrong thing.
 - **Kept, because someone runs it:** `render_source`, the `--source` mode of `render_mesh_skeleton.py`. No
-  test and no recorded tool runs it; a person does. `CHRISTIE.md` documents it, and on
-  `references/Christie.zip` it writes the five tracked `christie_source_*.png`, byte for byte.
-- **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the
-  Christie and Miranda packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and
-  `pose_zoom.py` render with; `build_models.extract_bones` cuts the Christie first-person arms, and
-  `extend_sleeves_to_wrist` stretches the sleeves of `Christie_LAS_Slim`. The tests of those functions that
+  test and no recorded tool runs it; a person does.
+- **Kept, because something else uses it:** `las_outfit_pack.py` writes the registration files of the LAS
+  packs; `preview_textured.py` and `pose_preview.py` are what `glove_check.py` and `pose_zoom.py` render
+  with; `build_models.extract_bones` and `extend_sleeves_to_wrist` stay. The tests of those functions that
   sat in the outfit's test files were kept and now run on what exists: `tests/test_las_outfit_pack.py`,
   `tests/test_build_models.py`, and `tests/test_glove_adapter.py` with `tests/test_glove_behavior_lua.py`
-  on `Christie_LAS_Slim`, the pack that ships the glove adapter.
+  on a synthetic body-only outfit.
 - **Held to:** no tracked pack moved by a byte (`make -sC tools/pd2-las fresh`), after the outfit's code
   went, after the ten functions went, and after the fallback went.
   `test_a_group_without_a_normal_for_every_vertex_is_refused` fails when such a group is written again.
@@ -843,3 +767,17 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Held to:** `test_pack_layout_matches_2b_contract` fails when the builder writes a credits file again.
 - **Source:** the user, 2026-11-13; `tools/pd2-port/MODLOG.md`
 - **Status:** holds.
+
+### D35 — The project's self-description starts from the present
+
+- **Decided:** 2026-11-14, by the user (a clean slate, after the removal of the deleted packs' tooling)
+- **Decision:** `HANDOFF.md` keeps the present state only: which bytes are tracked (by command, never by a
+  quoted size), what was seen in game and when, the rebuild rule for the packs that can be rebuilt, and the
+  dead ends. The dated narratives of how the tracked bytes came about and the table of claims that earlier
+  copies made are removed. `tools/pd2-las/MODLOG.md` is reset to a fresh-start entry; the text of the removed
+  entries is in git (`git log -- tools/pd2-las/MODLOG.md`). `DECISIONS.md` stays, with no name for the
+  deleted packs' tooling.
+- **Why:** the owner wanted a clean slate for the project's self-description. The dated archaeology
+  duplicated `docs/audits/` and git history and no longer described the present.
+- **Status:** D22's description of what `HANDOFF.md` keeps is superseded by this entry; the rest of D22
+  holds.
