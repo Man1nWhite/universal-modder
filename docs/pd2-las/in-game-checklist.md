@@ -116,14 +116,13 @@ Pack to install: `dist/Christie_LAS.zip` → drop `Christie_LAS` into
 `PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS, same as the 2B reference). It is a
 headless LAS outfit (`replace_body`, not `replace_all`): the heister keeps their own head.
 
-> **Know which bytes you are installing.** After the workspace was re-created from a fresh clone
-> of the branch at `6f26633` (2026-11-14), `dist/Christie_LAS.zip` is `b65fb27e…` — the
-> **base-commit** pack, **without** the 2026-11-13 sleeve-bridge rebuild (`1ec1c95a…`), whose
-> bytes were lost unpushed with the old workspace. The sidecar matches the base bytes. Treat
-> this pack as the older build: expect the sleeve-slit history, not the bridged result, and
-> check the inner elbow and rear sleeve with extra care. See
-> `docs/audits/2026-11-14-christie-rebuild-redo.md` (postscript) for what was verified on which
-> bytes. `runtime_verified` is `false`; only this list settles it. Write down resolution, FOV,
+> **Know which bytes you are installing.** `dist/Christie_LAS.zip` is the 2026-11-13/14
+> sleeve-bridge build, sha256 `1ec1c95a…`, with its `.sha256` sidecar matching (as of the
+> branch state of 2026-11-14). This is **not** the base-commit bytes and not the from-scratch
+> rebuilt base (`b65fb27e…`); the from-scratch build passed every offline gate on this date
+> (`docs/audits/2026-11-14-christie-from-scratch.md`) but its bytes are the **pre-bridge** pack.
+> See `docs/audits/2026-11-14-christie-rebuild-redo.md` for the bridge-era verification record.
+> `runtime_verified` is `false`; only this list settles it. Write down resolution, FOV,
 > texture quality and anisotropic filter first.
 
 1. **It loads** — menu outfits list "Christie (DOA5)"; the preview shows the body (open neck by

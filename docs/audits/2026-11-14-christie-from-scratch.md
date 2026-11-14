@@ -1,99 +1,95 @@
-# Christie packs — from-scratch build and independent verification (2026-11-14)
+# Christie packs — from-scratch build, then verification of the tracked bytes (2026-11-14)
 
-**Why this exists.** The user, on 2026-11-14, directed that the Christie packs be **built from scratch**, because
-"the previous one was a failure". Clarified in the same exchange: the Christie effort as a whole was the failure;
-the ask is the whole thing done properly — fresh builder understanding, fresh verification, honest pass/fail.
-Scope is unchanged: body-only LAS outfits built from `references/Christie.zip`, pack shape per the 2B reference.
+**Why this exists.** The user, on 2026-11-14, directed a **build from scratch**: "the previous one was a
+failure". Clarified in the same exchange: the Christie effort as a whole was the failure; done properly it
+means fresh builder understanding and fresh verification with honest pass/fail. Scope unchanged: body-only LAS
+outfits from `references/Christie.zip`, pack shape per the 2B reference.
 
-**Environment reality (read first).** The workspace was re-created from a fresh clone of the branch at `6f26633`
-**three times on 2026-11-14**. Local commits never survive (`bb05641`, `8d54557` — the re-application of the lost
-Christie deletion — are gone again with this one). Files that persist are the untracked/modified working tree.
-`dist/` has never changed: `Christie_LAS.zip` is `b65fb27e…` (matches its `.sha256` sidecar), `Christie_LAS_Slim.zip`
-is `9da90dd3…`. Everything below is measured on those bytes, in this tree, on this date. Nothing here is durable
-until the branch is pushed — see the last section.
+## 1. Environment disasters, and the outcome that changes the story
 
-## 1. Builder recovered (pre-bridge, not the lost bridge)
+The workspace was re-created from a fresh clone at `6f26633` **three times on 2026-11-14**; every local commit
+died each time. After the last re-clone, HEAD was again the base commit with the Christie deletion uncommitted,
+and `dist/` showed the **base-commit** bytes (`b65fb27e…`). On the user's approval to push, the push was
+rejected: **the remote already carried `8dd498b..0383a7a`** — the never-pushed work had in fact been pushed at
+some point the local clones never saw. A merge of `origin/arena/4f5923fc-universal-modder` on 2026-11-14
+restored:
 
-The deleted builder was restored from the base commit, not from memory of the lost work:
+- `dist/Christie_LAS.zip` → **`1ec1c95a5ea9822328e90552260d110fd5c7b833d49a090d6db560c036212fb3`**
+  (the 2026-11-13/14 sleeve-bridge build); `dist/Christie_LAS.zip.sha256` matches.
+- `dist/Christie_LAS_Slim.zip` → **`ebe44af774f66649918e2628dcea97744ebfe39d7bcb184204dd831f3ed88afb`**
+  (not the base slim `9da90dd3…`); its sidecar matches.
+- `b0a7115` (Christie tooling deletion) and `0383a7a` (project reset) — the builder is deleted and stays deleted.
+
+Everything below was measured on this date, in this tree, **after** the merge.
+
+## 2. The from-scratch build (pre-bridge builder)
+
+`git show 6f26633:tools/pd2-las/build_christie_las.py` and `christie_skeleton_map.json` are the pre-bridge
+sources; they were copied in, the pinned environment was rebuilt (`bash tools/pd2-las/recover_env.sh`, pins from
+`tools/pd2-las/pins.txt`), and both variants were built from `references/Christie.zip`
+(sha256 `605c352a…`, matching `source_zip_sha256`):
 
 ```sh
-git show 6f26633:tools/pd2-las/build_christie_las.py   > tools/pd2-las/build_christie_las.py
-git show 6f26633:tools/pd2-las/christie_skeleton_map.json > tools/pd2-las/christie_skeleton_map.json
+.venv/bin/python tools/pd2-las/build_christie_las.py --variant base --out build/christie-scratch/out      --dist build/christie-scratch/dist
+.venv/bin/python tools/pd2-las/build_christie_las.py --variant slim --out build/christie-scratch/out-slim --dist build/christie-scratch/dist-slim
 ```
 
-These are the **pre-sleeve-bridge** sources (the 2026-11-13/14 `8dd498b` bridge was never pushed and is
-unrecoverable; recreating those bytes would require re-authoring it). As of this writing the recovered files sit
-in `tools/pd2-las/` as untracked changes; the committed deletion is untouched in history.
+Result: the base build reproduces the **base-commit** bytes exactly (`b65fb27e…`), and the slim build reproduces
+`9da90dd3…`. That proves the pre-bridge pipeline is deterministic and was never "the environment's fault" — but
+**neither is the tracked pack**. After the merge, the builder files were deleted again by the canonical
+deletion; nothing of the from-scratch build was committed (`build/` is gitignored).
 
-## 2. From-scratch build (pinned environment)
+## 3. Independent verification — BOTH byte sets
 
-`bash tools/pd2-las/recover_env.sh` rebuilt `.venv` (pins: `tools/pd2-las/pins.txt`; pytest, pillow, numpy,
-pyyaml, py7zr, scipy) and unpacked the 2B templates into `build/pd2-las/2b/`. Then:
+Fresh verifiers (`build/christie-scratch/verify/`, untracked): `verify_pack.py` (payload hashes, zip layout,
+registration/Lua/XML/localization, DXT5 decode + mip pyramids via `texture2ddecoder`, alpha statistics),
+`verify_mesh.py` (hand-written container walk + geometry invariants + edge topology). The repo codec was used
+only as a second signal.
 
-```sh
-.venv/bin/python tools/pd2-las/build_christie_las.py --out build/christie-scratch/out      --dist build/christie-scratch/dist      --variant base
-.venv/bin/python tools/pd2-las/build_christie_las.py --out build/christie-scratch/out-slim --dist build/christie-scratch/dist-slim --variant slim
-```
+### 3.1 Scratch-built base pack (`b65fb27e…`) — passes
 
-Both succeeded from `references/Christie.zip` (sha256 `605c352af06761fe00ea38846a78d505b95c767f7b4c77d02ff25bdf5d282a3b`,
-matching `source_zip_sha256` in BUILD_INFO). The outputs are **byte-identical to the tracked `dist/` zips**:
+15/15 checks pass on `Christie_LAS.zip` and 15/15 on `Christie_LAS_Slim.zip` built from scratch: payload hashes
+match BUILD_INFO; flags carry `replace_body` (never `replace_all`); TPP+FPS hide/replace flags; hook registers
+correctly; no head unit; `main.xml` well-formed; localization scoped; all 9 textures per pack DXT5 with full mip
+pyramids and decode; diffuse alpha attenuated (top-mip alpha endpoints mean 27.3/28.3, 0% at 254+);
+`runtime_verified=false`; hand-walked containers tile exactly; 0 degenerate triangles.
 
-| pack | rebuilt | tracked | identical |
-|---|---|---|---|
-| Christie_LAS.zip | `b65fb27ee4e94d453c3f580e453570d3005274790c2e8ecadec451bf9ffc6548` | same | yes |
-| Christie_LAS_Slim.zip | `9da90dd3e9779832fd03443d78dd39b968a8d6c63a09ce3d52cadf5cd3201f29` | same | yes |
+### 3.2 Tracked sleeve-bridge packs (`1ec1c95a…`, `ebe44af7…`) — passes, and corroborates the lost-session record
 
-So "build from scratch" reproduces, exactly, the packs the user called a failure. **A rebuild cannot fix the
-defects by itself** — the defects are in the source data / design, not in an environment slip. Whatever failed
-in game (neck bands, inner-elbow flap, tone) will still be there. See §5.
+15/15 checks pass on the **tracked** `dist/Christie_LAS.zip` (`1ec1c95a…`) and 15/15 on
+`dist/Christie_LAS_Slim.zip` (`ebe44af7…`): same classes of check, same outcomes. Mesh level:
 
-## 3. Independent verification (fresh code, not the builder's say-so)
+| model | verts | tris | in-range | degenerate | nonmanifold |
+|---|---|---|---|---|---|
+| christie.model (LOD0 and LOD1) | 10,373 | 17,309 | yes | 0 | 13 |
+| fps_christie.model (main arms, ×2 LODs) | 4,169 | 6,941 | yes | 0 | 0 |
+| fps_christie.model (auxiliary) | 8 | 12 | yes | 0 | 0 |
+| christie_slim.model (LOD0 and LOD1) | 7,603 | 12,782 | yes | 0 | 13 |
+| fps_christie_slim.model (main arms, ×2 LODs) | 1,399 | 2,414 | yes | 0 | 0 |
 
-Scripts (untracked, under `build/christie-scratch/verify/`): `verify_pack.py` (payload hashes, zip layout,
-flags, XML/Lua/localization, texture decode via `texture2ddecoder`, alpha statistics), `verify_mesh.py`
-(hand-written container walk + geometry invariants + edge topology). Repo codec used only as a second signal.
+These numbers match the verification record in `docs/audits/2026-11-14-christie-rebuild-redo.md`
+("christie 10,373 verts/17,309 tris; fps 4,169/6,941") — the archived bridge-era measurement is corroborated
+by this independent re-derivation. Boundary edges ~3,302 (inflated by UV-split seam corners).
 
-**Base pack — 15/15 pass. Slim pack — 15/15 pass.** In particular:
+Texture alpha: body diffuse top-mip alpha endpoints mean 27.3 (bridge), same attenuation as the base build.
 
-- `payload_sha256` in `BUILD_INFO.json` matches every shipped file (20/20). No unexpected paths; 21 entries (base) / 22 (slim).
-- Registration: `replace_body` set (never `replace_all`); TPP + FPS hide/replace flags; hook adds `la.christie = {…}` /
-  `la.christie_slim = {…}` with `hide_mask`, `hide_armor`, `replace_body`, `fps_*`; no head unit referenced anywhere;
-  `main.xml` well-formed; `english.txt` keys are item-scoped. Slim also ships the glove-adapter hook (no authored hands).
-- All 9 textures per pack are DXT5 with full mip pyramids (11/11/11/11/10/10/9/9; GUI 256×256 mips=1) and decode cleanly.
-  `christie_body_df` top-mip BC3 alpha endpoints average **27.3** (slim 28.3), 0% at 254+ — the diffuse-alpha
-  attenuation (phong-mask from the normal map) is real, not nominal.
-- `runtime_verified` is `false`; `headless` true; no face/hair/eye/lash bytes in payload; `material_config` is XML
-  with exactly the four kept materials (`body`, `c02_01`, `c02_02`, `c02_05`, df+nm each) plus `shadow_caster`.
-- Both models parse: every container section tiles the file exactly; all triangle indices in range; **zero degenerate
-  triangles**. Mesh statistics:
-  - `christie.model`: LOD0 10,373 verts / 17,289 tris; LOD1 10,369 verts / 17,289 tris; 3,298 boundary edges
-    (inflated by UV-split seam corners — not a hole count); **13 nonmanifold edges** (observation, not fixed here).
-  - `fps_christie.model`: main FP arms 4,157 verts / 6,921 tris (×2 LODs) + one 8-vert/12-tri auxiliary mesh; 0 nonmanifold.
-- Determinism across environments: zips built today match the tracked bytes produced in earlier sessions, byte for byte.
+## 4. Honest status and what "the previous one was a failure" means here
 
-## 4. What is NOT verified
+- A from-scratch build reproduces the **base** bytes deterministically. It does **not** produce or repair the
+  tracked sleeve-bridge bytes, which remain the product of the lost-then-found `8dd498b` work.
+- The tracked pack passes every offline gate that can be run without the game. What has never been run is the
+  game: `runtime_verified` is `false`, and the open items — the inner-elbow flap (authored crease), the throat
+  band question, sleeve gloss in flight, the cuff/glove stack — are the in-game checklist's to settle
+  (`docs/pd2-las/in-game-checklist.md`, "Christie LAS").
+- If the failure the user refers to is what is seen in game, **no rebuild fixes it**. The next step is in-game
+  verification of the tracked bytes, or a scoped repair directed by what the screenshots show.
+- The Christie builder stays deleted per `b0a7115` (the owner's direction). The pre-bridge pair is recoverable
+  from `6f26633` (see the redo report's postscript) but rebuilds only the base pack.
 
-- **In-game behaviour.** The game was not run. `runtime_verified` stays `false`; the in-game steps (including the
-  sleeve-slit history, which refers to the now-lost bridge) are in `docs/pd2-las/in-game-checklist.md` ("Christie LAS").
-- **The inner-elbow flap** (authored crease), **neck bands**, **tonal patches**: not fixed — they were never offline-repairable.
-- **Sleeve-bridge bytes** (`1ec1c95a…`): lost with the never-pushed `8dd498b`; today's build is the pre-bridge base.
-  Do not cite `1ec1c95a` as existing anywhere.
-- **Winding agreement 97.9%** (the builder's own printed figure; below the 98 advisory line used in earlier gate
-  drafts) and the 13 nonmanifold edges — recorded, not addressed.
-- The Slim pack's glove-adapter hook is syntax-simple and XML-checked, not executed.
+## 5. Durability
 
-## 5. Verdict
-
-The tracked Christie packs are **deterministically reproducible** and pass **all offline gates** written for them.
-They are **not** thereby "fixed" — if the 2026-11-14 failure is what shows in game, the next step is in-game
-verification of these exact bytes (install `dist/Christie_LAS.zip` per the in-game checklist), not another rebuild.
-`dist/` was deliberately left untouched: the rebuilt bytes *are* the tracked bytes, so replacing them would change nothing.
-
-`Christie_LAS_Slim` is likewise reproducible and verified the same way.
-
-## 6. Durability — the one open risk
-
-As of this writing, none of this is on the remote: the branch history was wiped three times today; the recovered
-builder and skeleton map (`tools/pd2-las/`), this report, the scratch outputs (`build/christie-scratch/`), the two
-edited docs (`AGENTS.md`, `docs/pd2-las/HANDOFF.md`) and the Christie deletion re-application are **uncommitted or
-unpushed**. The user has not yet approved a push. Until one happens, any re-clone can delete all of it again.
+Everything that survives this work is in the branch's git history (this report, the merged bridge bytes, the
+corrected postscripts in `christie-rebuild-redo.md` / `christie-rebuild-checklist.md`, and the updated
+`AGENTS.md` / `HANDOFF.md` / in-game checklist). `build/` outputs and the scratch verifiers are untracked and
+gitignored by design. Nothing is durable until pushed — this document is written to be true on the merged,
+pushed branch.

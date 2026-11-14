@@ -171,13 +171,11 @@ caveat is recorded under G3.
 - **G9 report — pass.** `docs/audits/2026-11-14-christie-rebuild-redo.md`. `runtime_verified`
   stays `false`; the in-game steps are in `docs/pd2-las/in-game-checklist.md` ("Christie LAS").
 
-> **Postscript (2026-11-14, later) — workspace re-created from a fresh clone at `6f26633`.**
-> The never-pushed 2026-11-13/14 local commits were lost with the re-clone. `dist/Christie_LAS.zip`
-> in this checkout is `b65fb27e…` (the base-commit bytes), **not** the `1ec1c95a…` sleeve-bridge
-> build whose verification is recorded above. The G-gate results above were measured on that
-> earlier workspace and remain a truthful record of those bytes. The untracked `build/` artifacts
-> (recovered builder, renders, venv) did not persist. The committed repository now carries the
-> 2026-11-14 Christie tooling deletion (`b0a7115`'s content) plus this checklist, the report
-> `docs/audits/2026-11-14-christie-rebuild-redo.md`, and the in-game section — all re-committed
-> together from the surviving working tree. If the owner wants the sleeve-bridge pack restored,
-> see the report's postscript; only the owner can make that call.
+> **Postscript (2026-11-14, later) — workspace re-created at `6f26633` three times; all local
+> commits died each time.** At one point `dist/Christie_LAS.zip` showed the base bytes
+> (`b65fb27e…`) and the `1ec1c95a…` sleeve-bridge build looked unrecoverable. On push, the remote
+> already carried `8dd498b..0383a7a`; the merge of 2026-11-14 restores the bridge build in
+> `dist/` (`Christie_LAS.zip` `1ec1c95a…`, `Christie_LAS_Slim.zip` `ebe44af7…`, sidecars match).
+> The G-gate results above were measured on those exact bytes, so they stand as the record.
+> The builder remains deleted (`b0a7115`); the pre-bridge pair can be recovered from `6f26633`
+> (see the report's postscript), but building it reproduces the base pack, not the bridge bytes.

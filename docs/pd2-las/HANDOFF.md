@@ -15,12 +15,12 @@ Every pack that can be rebuilt reproduces its tracked bytes in the pinned enviro
 machine: each builder writes one fixed timestamp into every zip entry and puts itself on one declared numeric
 code path before it computes anything, so a `.sha256` sidecar is a true build hash. CI builds the rebuildable
 packs on its runner and holds the 16 zips to their tracked hashes, with no tolerance, on runners with AVX-512
-and without. The two Christie packs are rebuildable again as of 2026-11-14: the base (pre-bridge) Christie builder was
-recovered from `6f26633` into `tools/pd2-las/` (untracked until it is committed and pushed — a fresh clone
-does not have it). A from-scratch build in that environment reproduces the tracked zips byte for byte
-(`Christie_LAS.zip` `b65fb27e…`, `Christie_LAS_Slim.zip` `9da90dd3…`) and passes the offline verification in
-`docs/audits/2026-11-14-christie-from-scratch.md`. The 2026-11-13/14 sleeve-bridge work (`1ec1c95a…`) remains
-lost — it was never pushed. Neither pack's bytes have been in game; the sidecars hold against the tracked zips.
+and without. The two Christie packs cannot be rebuilt (their builder was deleted on 2026-11-14); their
+sidecars still hold against the tracked zips. The tracked `Christie_LAS.zip` is the 2026-11-13/14 sleeve-bridge
+build (`1ec1c95a…`, see `docs/audits/2026-11-14-christie-rebuild-redo.md`); on 2026-11-14 the pre-bridge builder
+(recovered from `6f26633`) was used for a from-scratch build, which reproduces the **base** bytes (`b65fb27e…`),
+not the tracked bridge bytes — it passed all offline gates (`docs/audits/2026-11-14-christie-from-scratch.md`).
+Neither pack's bytes have been in game.
 
 ## Seen in game
 

@@ -9,21 +9,24 @@ as directed); each gate's verdict is recorded there too.
 through a reconstructed pipeline, and every offline gate passes.
 
 > **Postscript (2026-11-14, later) — the workspace was re-created from a fresh clone at
-> `6f26633`, so the `dist/` this repository now holds is NOT the pack described below.**
-> This report was written in the previous working copy of this repository, whose local commits
-> from 2026-11-13/14 had never been pushed; the re-clone lost them. Concretely: the tracked
-> `dist/Christie_LAS.zip` in this checkout is `b65fb27e…` (the base-commit bytes, matching its
-> `.sha256` sidecar) — **not** the `1ec1c95a…` sleeve-bridge build that this report verified.
-> The 2026-11-14 Christie tooling deletion (`b0a7115`) and the project-reset docs (`0383a7a`)
-> survive only as uncommitted changes in the working tree and are re-committed together with
-> this report. What was lost outright (it lived under `build/`, outside the persisted set):
-> the recovered builder and skeleton map, the rebuilt pack bytes, the bpy venv and stub `.so`
-> set, the Cycles frames and the ingest probe. What persists: all text (this report, the
-> checklist, the in-game section), `references/Christie.zip` (`605c352a…`), and the base
-> commit's own objects — including the **pre-bridge** builder and skeleton map at 6f26633,
-> if the owner ever wants them back. The evidence below remains a truthful record of what was
-> measured, on which bytes, in that earlier workspace; it is not a claim about the bytes this
-> checkout now carries. See the updated G-gate table rows and the final section.
+> `6f26633` three times today; the local, never-pushed commits `8dd498b..0383a7a` vanished from
+> this checkout each time.** Two facts then turned out to both be true at once:
+>
+> - In **this** checkout the tracked `dist/Christie_LAS.zip` was the base-commit bytes
+>   (`b65fb27e…`) and everything recorded below (measured on the `1ec1c95a…` sleeve-bridge
+>   bytes) could not be re-measured — the bridge builder existed nowhere.
+> - When this branch was finally pushed (owner-approved, 2026-11-14), the push was rejected:
+>   **the remote already carried `8dd498b..0383a7a`** (it had been pushed at some point that the
+>   local clones never saw). A merge of `origin/arena/4f5923fc-universal-modder` restored the
+>   bridge pack to `dist/` — `Christie_LAS.zip` is `1ec1c95a…` (sidecar matches), and
+>   `Christie_LAS_Slim.zip` is `ebe44af7…` (sidecar matches; the earlier `9da90dd3…` base slim
+>   bytes are NOT what is tracked).
+>
+> So the evidence below **is** once again a record about the tracked bytes — the `1ec1c95a…`
+> build this report verified is what `dist/` holds on the merged branch. What did not survive
+> anywhere: the recovered builder venv, the Cycles frames and the ingest probe (all under
+> `build/`). The evidence remains what it was: a truthful record of measurements made on
+> `1ec1c95a…`; it does not carry `runtime_verified`.
 
 ## Honesty box — what "independent" means here
 
@@ -94,7 +97,7 @@ through a reconstructed pipeline, and every offline gate passes.
 | G5 rest pose | **pass** — 12° near-idle authored rest reproduced (identical bytes); orientation breaks 0, winding 97.9%, TPP/FPS rest-world equality carried in the model; retarget overlay renders with the arm chain inside the sleeve at hang and at the menu flex (`build/christie-rebuild/overlay/`) |
 | G6 pose sweep | **pass (advisory)** — Cycles CPU frames at rest and 28/48/70° flexion, front/side/close-up; silhouette clean, no boundary/spike defects visible; frames are under `build/` (untracked) |
 | G7 round-trip | **pass** — `.model` re-parses; atoms tile and stay inside their vertex/index blocks (christie 10,373 verts/17,309 tris; fps 4,169/6,941); `material_config` slots present in the model hashlist; the small XML/lua/txt files well-formed; all 8 shipped `.texture`s decode through the independent BC3 path |
-| G8 reproducibility | **pass (as measured then)** — two consecutive builds were byte-identical to each other and to that workspace's tracked pack (`1ec1c95a…`); two sidecars matched. After the re-clone, `dist/` holds `b65fb27e…` (base bytes); see the postscript |
+| G8 reproducibility | **pass** — two consecutive builds were byte-identical to each other and to the tracked pack (`1ec1c95a…`); two sidecars matched. The tracked pack on the merged branch is once again `1ec1c95a…`; see the postscript |
 | G9 report | **pass** — this document |
 
 ## What changed in the repository
@@ -103,21 +106,19 @@ through a reconstructed pipeline, and every offline gate passes.
 - `docs/audits/2026-11-14-christie-rebuild-redo.md` (this file)
 - `docs/pd2-las/in-game-checklist.md` (new Christie LAS section)
 
-**Nothing under `dist/`, `tools/`, `assets/` or `tests/` changed in the earlier workspace.** The
-recovered builder and skeleton map lived untracked under `build/christie-rebuild/` (a deleted
-builder is not silently resurrected into the tree — that decision belongs to the owner). Both the
-recovered copy and the base commit's own builder are absent from the working tree now; the base
-commit still carries the pre-bridge pair at `6f26633` if the owner wants it back:
+**Nothing under `dist/`, `tools/`, `assets/` or `tests/` changed from this report's measurements.**
+After the 2026-11-14 re-clone/merge sequence, the merged branch carries the bridge bytes
+(`1ec1c95a…`) in `dist/`; the builder remains deleted (that deletion is part of `b0a7115` and
+stands). For reference, the pre-bridge pair in the base commit is recoverable with:
 
 ```sh
 git show 6f26633:tools/pd2-las/build_christie_las.py > tools/pd2-las/build_christie_las.py
 git show 6f26633:tools/pd2-las/christie_skeleton_map.json > tools/pd2-las/christie_skeleton_map.json
 ```
 
-— but note 6f26633 predates the 2026-11-13 sleeve-bridge rebuild (`8dd498b`), so building from it
-recovers the base pack, not the sleeve-bridge pack whose bytes were `1ec1c95a…`. To recreate the
-bridge bytes the sleeve-stitch changes of `8dd498b` would have to be re-authored (they existed only
-in the lost, never-pushed commit) or lifted from wherever the owner has them.
+— but building from it recovers the base pack (`b65fb27e…`), which today's from-scratch verification
+(`docs/audits/2026-11-14-christie-from-scratch.md`) reproduces and gates-passes; it does **not** recover
+the sleeve-bridge bytes.
 
 ## Not verified (and why)
 
