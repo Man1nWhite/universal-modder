@@ -1,5 +1,31 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-14 — the remaining review items, measured offline: none is a pack defect we can repair blind
+
+- Request: continue fixing the 2026-11-10 review list (neck bands, inner-elbow
+  flap/beak, coarse suit shading, cuff/glove rim) on top of the sleeve round.
+- **No pack byte changed.** Every channel of the pack body that could carry
+  each defect was measured: UV/UDIM convention (atom split; Wrap pinned by
+  tests — the c02_05 "open observation" is closed and the 2026-11-07 diagnosis
+  now records the measurements), vertex/tangent integrity (unit normals, unit
+  exactly-orthogonal uvdir U/V, interior coincident pairs = 0, zero tangents,
+  2B comparison incl. face-normal vs vertex p90), exact tri–tri self-intersection
+  census in the arm window (slim 633 / base 900, all atom-pair cloth layering,
+  depth p50 ≈ 0.23–0.25 cm, **0 within 6 cm of either elbow pivot**), the
+  > 90° face class (slim 323 / base 366, all within ~1.5–4 cm of a slit-rim
+  boundary vertex, the border-fold class the suite deliberately keeps), and the
+  shipped textures (throat close-up clean; neck specular alpha 34.6/max 54,
+  c02_05 alpha 3.6 — matte; throat NM smooth; base renders hands, slim does not).
+- Per-defect attribution + what only the user can decide (head on/head off
+  bisect for neck bands; rifle pose for the flap): see
+  `docs/audits/2026-11-14-christie-shading-offline-audit.md`.
+- `check_all.py --full` after the docs: rc = 0, 13/13 stages, pytest
+  711 passed / 5 skipped, 16/16 tracked zips rebuild byte-identical. Packs
+  remain the `8dd498b` bytes (`1ec1c95a…` / `ebe44af7…`).
+- Standing, unchanged: `runtime_verified` = false; the 2026-11-13 xfail/D18
+  deviation (no sign-off); the PR question; no in-game verification has ever
+  happened for these builds.
+
 ## 2026-11-13 — the slim sleeves close for real: the bridge never shipped (D18 closed)
 
 - Request: fix the mesh defects now (the 2026-11-10 review list: rear-sleeve wedge,

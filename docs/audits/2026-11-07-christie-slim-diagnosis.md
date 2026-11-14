@@ -584,7 +584,7 @@ body's own UVs (§10.2).
 6. Leave the gloves, the red speck and the cream band alone until the glove
    model is part of the comparison — they are not in this mesh.
 
-## Open observation (unverified)
+## Open observation (unverified) — closed 2026-11-14: the pack matches the source's UDIM pages, D3D9 Wrap
 
 `c02_05` (the dark inner top) is the only material whose stored UVs are positive
 in v (`0.04 … 0.98`); every other role is `-1 … 0`. Under the (1 + v) row mapping
@@ -593,3 +593,29 @@ clamp to an edge row. The texture is nearly uniform dark, so a wrong row would
 be invisible in game. Cheap test: brighten `c02_05_df` for one build and check
 whether the chest panel changes; if it does not, the material is sampling a
 clamped edge.
+
+**What was measured (2026-11-14, on the tracked packs, no pack changed)**
+
+- On disk-decoded TEXCOORD0, the atoms of `g_body` split 97.8 % (base) /
+  97.0 % (slim) of vertices into v ∈ [-1, 0] — every island except one block —
+  and **100 % of atom 3** (`mtr_c02_05`, 230 verts, 378 tris) into
+  v ∈ [+0.04, +0.98]. The FPS drawables are uniformly v ∈ [-1, 0].
+- The source (`references/Christie.zip`, VVD UVs, per mesh) puts the three main
+  materials on the **[1, 2] page** (cri_02_01/02/body: v ∈ [1.00, 2.00], u in
+  range) and `cri_02_05` on the **[0, 1] page** (v ∈ [0.02, 0.96]). The pipeline
+  stores `(u, 1 - v_smd)` losslessly, so the shipped outlier is exactly the
+  source's island placement, not a conversion fault.
+- The pack's UV convention is pinned both ways by tests:
+  `test_uvs_are_stored_as_u_and_one_minus_v` asserts the stored coordinates are
+  the source's `(u, 1 - v)` per material (except mtr_eyes), and
+  `test_uv_to_texel_frac_matches_udim_wrap_for_both_tile_signs` asserts the
+  sampler is D3D9 **Wrap** — `uv_to_texel_frac` maps a tile at v_src = 1.62 and
+  a tile at v_src = 0.62 to the same row. Under that pinned convention both
+  pages render exactly as painted in the source: frac(1 + v) ≡ frac(v), so the
+  [0, 1] island samples identically to the [1, 2] islands' page twins.
+- The 2B known-good reference ships v ∈ [0.50, 0.99], all inside [0, 1] —
+  also fine under Wrap.
+- Conclusion: there is no UV fault in the tracked packs, no byte changed, and
+  no action. The brighten-the-texture test stays available for an in-game
+  cross-check if anyone wants to settle it authoritatively; until then the
+  convention above is the documented one.
