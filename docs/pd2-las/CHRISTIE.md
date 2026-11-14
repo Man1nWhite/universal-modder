@@ -489,24 +489,31 @@ command, so the whole set is reproducible in one run per pack:
     --out docs/pd2-las/renders --pose --hang
 # slim pack: the same command with
 #   --zip dist/Christie_LAS_Slim.zip --pack Christie_LAS_Slim --item christie_slim
-# the two FPS renders are a second run with --fps, same --pack/--item
+# the FPS set is a second run with --fps, same --pack/--item
 ```
 
-The committed set was regenerated on **2026-11-10** from the packs that ship at
-`0a76215` (base `196606c0…3d5e24`, slim `ee85fc15…5bd7b8`). Every one of the 75
-renderer-driven files was rebuilt and compared pixel for pixel against the
-previous bytes: 61 were already current and 14 moved. The movers are the poses
-and the elbow close-ups — `skel_pose_*` (both packs), `hang_*` (both packs) and
-the two slim `hang_elbow` close-ups — because `0a76215` rebuilt the packs under
-them and only refreshed the unposed views. The two `*_idle_rest_outer_sheet.png`
-were the worst: they had never been re-rendered since `4a69cfe`, so they showed
-the pack as built at `a012cf3` and differed from the current build over the
-whole sheet; they now come from the same review run as `*_outer_sheet.png` and
-are byte-identical to it. An earlier pass (2026-11-07) had gone stale at
-`484a743`, i.e. it predated the seam stitch, the interior normal unification and
-the sleeve-gloss pass. Every image was re-checked for blank frames and a missing
-overlay. Note that the `--fps` run writes nine files where the repo keeps two,
-`fps_<item>_skel_front.png` and `fps_<item>_skel_cuff.png`; delete the rest.
+The committed set was regenerated in full on **2026-11-14** from the packs
+tracked at `dist/` (base `1ec1c95a…`, slim `ebe44af7…`). Every renderer-driven
+file was rebuilt and compared against the previous bytes: 55 of the 101 tracked
+PNGs moved, 46 are byte-identical. The movers are the front/iso views, the
+poses, the elbow close-ups and the angle sweeps — everything whose shading
+depends on the 2026-11-10 pack rebuild running through the current toolchain.
+The `*_before_after.png` pairs were rebuilt with `elbow_before_after.py` using
+the packs tracked on `main` at `6f26633` as the "previously shipped" panel, so
+both panels are real builds. The two `*_idle_rest_outer_sheet.png` come from the
+same review run as `*_outer_sheet.png` and are byte-identical to it. The
+`source_*` views (the reference never changes), the two `neck_junction_*`
+composites (the throat is unchanged), `neck_skirt_romance_regression.png`,
+`*_fit_before_after.png` and `miranda_mips_before_after.png` are all
+byte-identical to what was committed. Every image was re-checked for blank
+frames and a missing overlay. The `--fps` run writes the whole `fps_<item>_*`
+set; the repo keeps all ten renders per pack (`skel_*` and `forearm_*`), which
+the 2026-11-10 audit recorded as byte-reproducible — this page documents only
+`fps_<item>_skel_{front,cuff}.png`. The earlier pass (2026-11-10, packs at
+`0a76215`) had itself refreshed 14 movers of 75 renderer-driven files, and the
+2026-11-07 pass had gone stale at `484a743`, i.e. it predated the seam stitch,
+the interior normal unification and the sleeve-gloss pass; the 2026-11-14 pass
+is the first to rebuild the set from the same packs that ship in `dist/`.
 
 - `christie_skel_{front,side,iso,top,bottom}.png` — full body from five
   directions. `top` looks down the body axis from above and `bottom` looks up

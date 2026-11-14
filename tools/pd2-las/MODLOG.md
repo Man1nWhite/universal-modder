@@ -1,5 +1,27 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-14 (renders) — the committed render set rebuilt from the shipped packs
+
+- Request: "Replace In renders/" — refresh `docs/pd2-las/renders/` from the
+  current `dist/` build. No file was deleted; nothing historical was touched.
+- Everything reproducible was rebuilt with the canonical tools and compared
+  against the previous bytes: `render_mesh_skeleton.py` (`--pose --hang` for
+  the 36 skeleton/hang/pose views, `--fps` for the 20 fps views, `--source`
+  for the 5 DOA source views), `review_christie_idle.py` (angle sweeps,
+  `outer_sheet` and the byte-identical `idle_rest_outer_sheet` pairs,
+  `rest_{bottom,outer_bottom}`), `elbow_before_after.py` for the six
+  `*_before_after` sheets (the "previously shipped" panel is the packs tracked
+  on `main` at `6f26633`) and `neck_junction.py --render` for the two neck
+  junction composites. 55 of the 101 tracked PNGs moved, 46 are byte-identical
+  (the `source_*` views, the neck junction composites, the historical
+  one-offs and about half of the `_side`/fps views). The `*_outer_sheet.png`
+  and `*_idle_rest_outer_sheet.png` pairs were byte-identical within each
+  pack, as documented.
+- CHRISTIE.md's render provenance paragraph was updated to the 2026-11-14
+  regeneration (and its stale `--fps` note corrected: the repo keeps ten fps
+  renders per pack, the page documents two). Packs unchanged (`8dd498b`
+  bytes: `1ec1c95a…` / `ebe44af7…`).
+
 ## 2026-11-14 (later) — offline audit continued: slivers clean, collar not glossy; sandbox rollback recovered
 
 - The workspace rolled back to `6f26633` at the start of the continuation:
