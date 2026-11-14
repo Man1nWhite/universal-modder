@@ -46,6 +46,7 @@ doorway; it is the one text format this repo can emit losslessly for weights.
 | `mdl-vvd-vtx_full` | every parsed submesh of the source triple, 22 meshes / 36,920 tris, head+hair+face+glasses included |
 | `mdl-vvd-vtx_kept` | only the four kept materials: `cri_body_base`, `cri_02_01_base`, `cri_02_02_base`, `cri_02_05_base` — 17,287 tris (dry variants only; `*_wet_*` and `cri_02_03/04_base` are **dropped**) |
 | `mdl-vvd-vtx_dropped` | everything dropped — what the body-only pack must not contain |
+| `mdl-vvd-vtx_obj_<view>` | the DOA5 source triple exported to OBJ by `tools/pd2-las/source_to_obj.py` (`christie_mdl-vvd-vtx_obj_front/side/iso.png`); `mdl-vvd-vtx_kept_obj_<view>` is the same with only the four kept body materials (17,287 tris). OBJ/MTL artifacts stay in `build/christie-source-obj/`, untracked |
 | `smd_kept` | the kept set as Valve SMD, re-parsed and rendered (see above) |
 | `model-bridge_<mat>` | the tracked deliverable: `dist/Christie_LAS.zip` (sha256 `1ec1c95a…`), per-material flat renders, `shadow_caster` included |
 | `model-bridge_body` | same pack, all materials combined, per-material flat colors (not textures) |
