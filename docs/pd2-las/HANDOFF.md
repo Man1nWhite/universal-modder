@@ -14,13 +14,18 @@ are also tracked, byte for byte, under `build/pd2-las/`.
 Every pack that can be rebuilt reproduces its tracked bytes in the pinned environment on any x86-64 Linux
 machine: each builder writes one fixed timestamp into every zip entry and puts itself on one declared numeric
 code path before it computes anything, so a `.sha256` sidecar is a true build hash. CI builds the rebuildable
-packs on its runner and holds the 16 zips to their tracked hashes, with no tolerance, on runners with AVX-512
+packs on its runner and holds the 17 zips to their tracked hashes, with no tolerance, on runners with AVX-512
 and without. The two Christie packs cannot be rebuilt (their builder was deleted on 2026-11-14); their
 sidecars still hold against the tracked zips. The tracked `Christie_LAS.zip` is the 2026-11-13/14 sleeve-bridge
 build (`1ec1c95a…`, see `docs/audits/2026-11-14-christie-rebuild-redo.md`); on 2026-11-14 the pre-bridge builder
 (recovered from `6f26633`) was used for a from-scratch build, which reproduces the **base** bytes (`b65fb27e…`),
 not the tracked bridge bytes — it passed all offline gates (`docs/audits/2026-11-14-christie-from-scratch.md`).
 Neither pack's bytes have been in game.
+
+The Honoka pack (`Honoka_LAS`) is tracked as of 2026-11-15. It is the DOAXVV "Secret Report" costume: built by
+`build_honoka_las.py`, put into `dist/` by the `honoka` make target's copy step, so `fresh` does not verify it and
+`status` reports `make: null` for it, as for the Christie packs. Its bytes have never been in game and no record says
+anyone has run them.
 
 ## Seen in game
 
@@ -36,6 +41,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
+| `Honoka_LAS` | no record | — |
 
 - **The Miranda LAS packs** have the checklist `docs/pd2-las/in-game-checklist.md` waiting for a person with
   the game. No tracked bytes of either pack have been in game.

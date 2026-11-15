@@ -204,6 +204,21 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `6ed6a23`
 - **Status:** holds; superseded in part by D33 (2026-11-13): the code that was kept is deleted.
 
+### D36 — The Honoka pack is committed to `dist/`, tracked but not fresh-verified
+
+- **Decided:** 2026-11-15, by the user. The publication options were put to them; they chose
+  committing the built pack to the branch.
+- **Decision:** `dist/Honoka_LAS.zip` (the DOAXVV "Secret Report" costume, `build_honoka_las.py`) and
+  its `.sha256` sidecar are committed. `make honoka` rebuilds into `build/honoka-las/` and copies the
+  zip into `dist/` with the sidecar rewritten to the `dist/` path; `fresh` does not rebuild it (the
+  builder never writes `dist/`), so `status` reports `make: null`, as it does for the Christie packs.
+  No release and no other publication is part of this decision. `runtime_verified` is false; the bytes
+  have never been in game.
+- **Why:** tracking follows the D9 discipline (a sidecar beside every zip) without claiming a rebuild
+  path that cannot byte-verify the copy in `dist/`. A pinned-environment rebuild after a sandbox restart
+  reproduced the previously delivered bytes exactly, but that check is not wired into `fresh`.
+- **Status:** holds.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

@@ -9,15 +9,15 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | --- | --- | --- | --- |
 | `Miranda_LAS` — full body and first-person arms | `models/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `Miranda_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
+| `Honoka_LAS` — the DOAXVV "Secret Report" costume | `references/Outfit for Honoka-109-1-1-1628020933.zip` | `build_honoka_las.py` | `honoka` |
 
-`build_honoka_las.py` builds a third, untracked pack — **Honoka (Secret Report)**, the DOAXVV costume in
-`references/Outfit for Honoka-109-1-1-1628020933.zip` (a XNALara-ish TMC, not Source) — into `build/honoka-las/`
-(git-ignored; nothing installed, `dist/` untouched). It reads the three in-scope meshes from the TMC (`tmc.py`), remaps the
-per-mesh skin palettes to global node indices, merges unmapped helper bones into their nearest mapped ancestor
-(`tmc_skeleton_map.json`), retargets onto the PD2 bind pose (the Miranda fits pipeline), cuts both wrists, encodes the
-DXT5 textures with full mip chains in PD2's layout (alpha = matte gloss; normals X-in-alpha, Y+-in-green, Y inverted), and
-writes the BODY_ONLY registration with the glove-adapter companion, an own 4-view render as the icon, and the deterministic
-zip. One command; `runtime_verified` is `false` — nothing has been run inside PAYDAY 2. See `docs/pd2-las/honoka-tmc-format.md`.
+The Honoka zip is built into `build/honoka-las/` (git-ignored) and `make honoka` copies it into `dist/Honoka_LAS.zip` (tracked
+like the other packs, but `fresh` cannot compare it with the commit — the builder writes `build/honoka-las/` — so `status` reports `make: null`, as for the Christie packs).
+The TMC source is a XNALara-ish export, not Source: it reads the three in-scope meshes (`tmc.py`), remaps the per-mesh skin
+palettes to global node indices, merges unmapped helper bones into their nearest mapped ancestor (`tmc_skeleton_map.json`),
+retargets onto the PD2 bind pose, cuts both wrists, encodes DXT5 with full mip chains (alpha = matte gloss; normals X-in-alpha,
+Y+-in-green, Y inverted), and writes the BODY_ONLY registration with the glove-adapter companion, an own 4-view render as icon.
+`runtime_verified` is `false` — nothing has been run inside PAYDAY 2. See `docs/pd2-las/honoka-tmc-format.md`.
 
 ## Status
 
@@ -27,7 +27,7 @@ tracked pack of the three pipelines (size, sha256, `make` target, whether the zi
 ## Commands
 
 From the repo root; `make -sC tools/pd2-las` alone lists every target. They cover all three pipelines: `lawson`
-and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`.
+and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`; `honoka` builds the Honoka pack and installs it into `dist/`.
 
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
@@ -45,7 +45,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
   Linux machine: every builder first puts itself on one declared code path (`determinism.py`). `fresh` checks
-  all 16 zips in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
+  all 17 zips in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
 - **Done means:** `green` passes and `status` shows `changed` only for packs you meant to change. No
   document needs an edit; a changed `Miranda_LAS` needs `heads` run again.
 
@@ -67,7 +67,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 14 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 15 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and the rounding with a margin; tangent frames from the values the file stores; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 | `pins.txt`, `copies.py` | the two pinned versions, written once (`recover_env.sh`, CI and `status.py` read them); what a merge of two tools is held to: `record`, `compare`, `after` |
 

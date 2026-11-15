@@ -46,7 +46,7 @@ def _defines(path: Path, name: str) -> bool:
 def test_the_idstring_hash_is_written_once():
     """`dmodel` carried its own port of Hash64.cs next to the one in `diesel_model`.
 
-    The two gave the same value for every name in every model of the 16 packs
+    The two gave the same value for every name in every model of the tracked packs
     and of the 2B templates, and for 20,000 random byte strings. A second copy
     is a second place to get it wrong, and the first sign would be a pack whose
     objects the game cannot find.

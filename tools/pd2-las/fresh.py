@@ -5,7 +5,7 @@
     python tools/pd2-las/fresh.py matrix [--configs a,b,...] [--builders x,y] [--trace all]
 
 check   builds the packs that have a builder (the Miranda packs, lawson_las and the
-        nine head packs) in build/fresh/tree and compares each of the 16 tracked
+        nine head packs) in build/fresh/tree and compares each of the 17 tracked
         zips with its tracked .sha256, using `sha256sum -c`. The two Christie packs
         are compared as the tracked copies: their builder was deleted on
         2026-11-14, so they cannot be rebuilt and the comparison pins the sidecars.
@@ -76,7 +76,7 @@ class BuildFailed(Exception):
 
 
 def tracked_zips() -> list[str]:
-    """The 16 tracked zips, as paths from the repository root: every one that has a .sha256 beside it."""
+    """The 17 tracked zips, as paths from the repository root: every one that has a .sha256 beside it."""
     sidecars = sorted(REPO.glob("dist/*.zip.sha256")) + sorted(REPO.glob("build/pd2-las/*.zip.sha256"))
     return [str(path.relative_to(REPO))[: -len(".sha256")] for path in sidecars]
 
@@ -403,7 +403,7 @@ def matrix(args) -> int:
         off = [Path(rel).name for rel, sha in result["sha256"].items() if sha != tracked[rel] and rel.startswith("dist/")]
         moved = [rel for rel, sha in result["sha256"].items() if sha != ref.get("sha256", {}).get(rel)]
         print(f"`{name}`: {len(moved)} of {len(tracked)} zips differ from `{reference}`; "
-              f"{len(off)} of the 14 packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
+              f"{len(off)} of the 15 packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
         for rel in moved:
             if rel.startswith("build/") and "dist/" + Path(rel).name in moved:
                 continue
