@@ -6,7 +6,6 @@ is put back.
 """
 from __future__ import annotations
 
-import json
 import os
 import platform
 import subprocess
@@ -20,15 +19,13 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
-import build_christie_las  # noqa: E402
 import build_las  # noqa: E402
 import determinism  # noqa: E402
 import diesel_model as dm  # noqa: E402
 import fresh  # noqa: E402
 import tangents  # noqa: E402
 
-LAS_PACKS = (("Miranda_LAS", "miranda"), ("Miranda_Busty_LAS", "miranda_busty"),
-             ("Christie_LAS", "christie"), ("Christie_LAS_Slim", "christie_slim"))
+LAS_PACKS = (("Miranda_LAS", "miranda"), ("Miranda_Busty_LAS", "miranda_busty"))
 
 #: an eight-vertex box in every first-person model, copied from fps_2b.model as it is
 TEMPLATE_BOX = 777890663
@@ -172,7 +169,7 @@ def _geometries(data: bytes):
 
 
 def test_tangent_frames_in_the_tracked_models_follow_from_the_file():
-    """Every U and V direction of the eight tracked models, bit for bit, from the positions, normals and UVs beside it.
+    """Every U and V direction of the four tracked Miranda models, bit for bit, from the positions, normals and UVs beside it.
 
     That is what makes them independent of the machine: this test computes them
     again on whatever CPU runs it. Before 2026-11-12 they came from the float64
@@ -197,45 +194,7 @@ def test_tangent_frames_in_the_tracked_models_follow_from_the_file():
                         raise AssertionError(f"{pack} {name} geometry {geometry}: the frames do not follow from the file")
                     checked += 1
                     ruled += len(by_rule)
-    assert checked == 18 and ruled >= 1000, (checked, ruled)
-
-
-# -------------------------------------------------------- the Christie sites
-
-
-def test_a_fan_is_not_replaced_by_the_same_triangles_from_another_corner(monkeypatch):
-    """A quad's two fans along one diagonal are the same triangles; rounding must not pick between them."""
-    monkeypatch.setattr(build_christie_las, "_closable", lambda cand, count, dirn: True)
-    monkeypatch.setattr(build_christie_las, "_tri_area", lambda v, t: 1.0)
-    for noise in (2e-16, -2e-16):
-        def alignment(v, n, t, noise=noise):
-            along_0_2 = (1 in t) != (3 in t)                    # a triangle of the diagonal 0-2 has one of 1 and 3
-            return (0.5 if along_0_2 else 0.1) + (noise if t[0] == 2 else 0.0)
-        monkeypatch.setattr(build_christie_las, "_face_vn_dot", alignment)
-        assert build_christie_las._fill_ring([0, 1, 2, 3], set(), None, None, None, None, 0.0) == [(0, 2, 1), (0, 3, 2)]
-    monkeypatch.setattr(build_christie_las, "_face_vn_dot", lambda v, n, t: 0.9 if (0 in t) != (2 in t) else 0.1)
-    assert build_christie_las._fill_ring([0, 1, 2, 3], set(), None, None, None, None, 0.0) == [(1, 3, 2), (1, 0, 3)]
-
-
-def test_fit_figures_are_written_to_six_decimals():
-    assert build_christie_las._figures({"a": 0.12345678912, "b": [1.00000049, {"c": 2, "d": "x"}], "e": None}) == {
-        "a": 0.123457, "b": [1.0, {"c": 2, "d": "x"}], "e": None}
-
-    def floats(node):
-        if isinstance(node, float):
-            yield node
-        elif isinstance(node, dict):
-            for value in node.values():
-                yield from floats(value)
-        elif isinstance(node, list):
-            for value in node:
-                yield from floats(value)
-
-    for pack in ("Christie_LAS", "Christie_LAS_Slim"):
-        with zipfile.ZipFile(REPO / "dist" / f"{pack}.zip") as z:
-            info = json.loads(z.read(f"{pack}/BUILD_INFO.json"))
-        numbers = list(floats(info["fit_tpp"])) + list(floats(info["fit_fps"]))
-        assert len(numbers) > 100 and all(number == round(number, 6) for number in numbers), pack
+    assert checked == 10 and ruled >= 176, (checked, ruled)  # measured on the two Miranda packs 2026-11-14 (Christie deletion)
 
 
 # ------------------------------------------------------------- the code path
@@ -248,7 +207,7 @@ def _plain_env(**extra) -> dict:
 
 def test_every_builder_enters_the_declared_code_path():
     for rel in ("tools/pd2-las/build_models.py", "tools/pd2-las/build_busty_variant.py", "tools/pd2-las/build_las.py",
-                "tools/pd2-las/build_christie_las.py", "tools/build_joy_head_mods.py"):
+                "tools/build_joy_head_mods.py"):
         main = (REPO / rel).read_text(encoding="utf-8").split("\ndef main(", 1)[1]
         assert "    determinism.enter(__file__)\n" in main[:main.index("\n\n\n") if "\n\n\n" in main else len(main)], rel
     assert determinism.CODE_PATH == {
@@ -286,4 +245,4 @@ def test_two_traces_are_compared_by_function(tmp_path):
     lines = fresh.compare_traces(tmp_path / "one.log", tmp_path / "other.log")
     assert lines[0].startswith("first value that differs: return of a.f#1 (float64 only)")
     assert lines[1:] == ["exact: return of a.g#1"]
-    assert len(fresh.tracked_zips()) == 16 and list(fresh.BUILDERS) == ["miranda", "busty", "christie", "slim", "lawson", "heads"]
+    assert len(fresh.tracked_zips()) == 16 and list(fresh.BUILDERS) == ["miranda", "busty", "lawson", "heads"]

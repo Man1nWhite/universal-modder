@@ -3,9 +3,8 @@
 The registration contract is the 2B reference's, studied as a spec: a hook on
 `HOOK_SOURCE` that fills `LegendaryArmours.<item id>`, a BeardLib `main.xml`,
 the menu strings, and per unit a `.unit` and an `.object`. What a pack chooses
-is a `Registration`; `las_pack.py` (the Miranda packs) and
-`build_christie_las.py` each build theirs and call the functions below. The
-icon and the reproducible zip are here too.
+is a `Registration`; `las_pack.py` (the Miranda packs) calls them, and so does any
+future body-only LAS pack. The icon and the reproducible zip are here too.
 
 A unit path ends in the file stem, exactly like `units/2b/skins/2b/2b`: LAS
 looks it up as a unit, so a directory there loads nothing at all. The
@@ -55,9 +54,9 @@ WHOLE_CHARACTER = (
 class Registration:
     """What one pack tells BeardLib and LAS about itself: main.xml, the hook, the strings.
 
-    Every pack built in this directory is registered by the three functions
+    Every pack built here is registered by the functions
     below. What a pack chooses is here, as data: `registration` in las_pack.py
-    and in build_christie_las.py say what each family chooses.
+    says what each family chooses.
     """
     item_id: str
     display_name: str

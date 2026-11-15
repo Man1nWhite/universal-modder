@@ -59,7 +59,7 @@ def test_the_idstring_hash_is_written_once():
 
 def test_the_hash_is_the_one_the_tracked_models_were_named_with():
     """A model lists its names, and its objects carry the hashes of those names."""
-    for name in ("Miranda_LAS", "Christie_LAS"):
+    for name in ("Miranda_LAS",):
         with zipfile.ZipFile(REPO / "dist" / f"{name}.zip") as z:
             member = next(n for n in z.namelist() if n.endswith(".model") and "/fps_" not in n)
             model = diesel_model.ModelFile.read(z.read(member))
@@ -88,7 +88,7 @@ def test_the_reader_of_the_port_has_no_inverse_of_its_own():
 
 
 # ---------------------------------------------------------------- the files that register a pack
-WRITERS = [LAS / "las_pack.py", LAS / "las_outfit_pack.py", LAS / "build_christie_las.py", REPO / "tools" / "build_joy_head_mods.py"]
+WRITERS = [LAS / "las_pack.py", LAS / "las_outfit_pack.py", REPO / "tools" / "build_joy_head_mods.py"]
 
 
 def _strings(path: Path) -> str:
@@ -107,27 +107,21 @@ def _pack(name: str) -> dict:
 
 
 def _registrations() -> dict:
-    """The four packs of tools/pd2-las, each as its own builder describes it to the one writer."""
-    import build_christie_las as christie
+    """The Miranda packs, each as its own builder describes it to the one writer."""
     import las_pack
 
     strings = json.loads(next(data for member, data in _pack("Miranda_Busty_LAS").items() if member.endswith("english.txt")))
     busty = las_pack.PackIdentity("miranda_busty", strings["bm_askn_miranda_busty"], strings["bm_askn_miranda_busty_desc"],
                                   pack_dir_name="Miranda_Busty_LAS")
-    told = {"Miranda_LAS": las_pack.registration(), "Miranda_Busty_LAS": las_pack.registration(busty)}
-    for identity in christie.IDENTITIES.values():
-        textures = [member.rsplit("/", 1)[-1] for member in _pack(identity.pack_dir_name)
-                    if member.endswith(".texture") and "/units/" in member]
-        told[identity.pack_dir_name] = christie.registration(identity, textures, True)
-    return told
+    return {"Miranda_LAS": las_pack.registration(), "Miranda_Busty_LAS": las_pack.registration(busty)}
 
 
 def test_the_registration_files_have_one_writer():
     """main.xml, the hook, the strings, the unit file, the glove adapter and the zip are written in one place.
 
-    las_pack.py, las_outfit_pack.py and build_christie_las.py each wrote the
-    first three, two of them the unit file and the zip, two the glove adapter;
-    build_joy_head_mods.py had a zip writer of its own. For the same pack they
+    las_pack.py, las_outfit_pack.py (and, until 2026-11-14, build_christie_las.py)
+    each wrote the first three, two of them the unit file and the zip, two the
+    glove adapter; build_joy_head_mods.py had a zip writer of its own. For the same pack they
     gave the same bytes but for the differences that are now `Registration`.
     (tools/pd2-port/build_las_pack.py writes lawson_las in another layout and
     stays apart: docs/audits/2026-11-12-tool-merge.md.)
@@ -158,7 +152,7 @@ def test_that_writer_gives_each_tracked_pack_its_files():
             assert writer.render_unit_xml(unit) == text(f"/{unit.rsplit('/', 1)[-1]}.unit"), (name, unit)
         if told.glove_adapter:
             assert writer.render_glove_adapter_lua(told.item_id, name) == text(f"/hooks/{told.item_id}_glove_adapter.lua"), name
-    for name in ("Miranda_LAS", "Christie_LAS_Slim", "Miranda_L4D2_over_Joy"):
+    for name in ("Miranda_LAS", "Miranda_L4D2_over_Joy"):
         assert writer.zip_bytes(_pack(name).items()) == (REPO / "dist" / f"{name}.zip").read_bytes(), name
 
 
@@ -166,7 +160,7 @@ def test_the_flag_follows_whether_the_pack_has_a_head():
     """`replace_all` makes LAS replace the heister's head as well; `replace_body` leaves it.
 
     The copies of the hook differed in exactly this line, and it is no drift:
-    the Miranda packs carry a head and the Christie packs do not.
+    the Miranda packs carry a head and a body-only outfit does not.
     """
     import las_outfit_pack as writer
 

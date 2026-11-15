@@ -1,7 +1,6 @@
 """A lit software rasteriser for an authored PD2 model, with per-pixel UV sampling.
 
 No command of its own: `glove_check.py` and `pose_zoom.py` render with it, and
-`tests/test_christie_las.py` reads a model's materials through `material_meshes`.
 
     meshes = material_meshes(MODEL)                       # one mesh per material of the body drawable
     image = render(meshes, {}, "front", size, scale, center, cull=True)

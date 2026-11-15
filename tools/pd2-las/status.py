@@ -3,7 +3,7 @@
 
     make -sC tools/pd2-las status            # one JSON object on stdout
     python3 tools/pd2-las/status.py          # the same; needs no venv
-    python3 tools/pd2-las/status.py slim     # only the packs a make target builds, or the packs named
+    python3 tools/pd2-las/status.py build    # only the packs a make target builds, or the packs named
     python3 tools/pd2-las/status.py --sha256 # sha256 in full (default: the first 12 digits)
 
 Read-only and stdlib-only, so it runs before the venv exists. It prints what
@@ -63,11 +63,11 @@ INPUTS = (
 
 #: tracked pack (dist/<name>.zip) -> the make target that rebuilds it. The Makefile
 #: is where a target's command is written; a head pack is any `<who>_over_<heister>`.
+#: The two Christie packs are tracked but are not rebuilt: their builder was deleted
+#: on 2026-11-14, so they have no target and `make` is null for them.
 TARGETS = {
     "Miranda_LAS": "build",
     "Miranda_Busty_LAS": "busty",
-    "Christie_LAS": "christie",
-    "Christie_LAS_Slim": "slim",
     "lawson_las": "lawson",
 }
 HEADS = "heads"
@@ -86,7 +86,7 @@ def target(name: str) -> str | None:
 
 
 def pack_names() -> list[str]:
-    """Every pack with a sidecar in dist/, the four LAS packs first, as the make targets list them."""
+    """Every pack with a sidecar in dist/, the rebuildable LAS packs first, as the make targets list them."""
     found = {path.name[: -len(".zip.sha256")] for path in (REPO / "dist").glob("*.zip.sha256")}
     return [name for name in TARGETS if name in found] + sorted(found - set(TARGETS))
 

@@ -91,14 +91,20 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     short, full = status.collect()["packs"], status.collect(full=True)["packs"]
     assert sorted(short) == sidecars and len(sidecars) >= 14
     for name, pack in full.items():
-        assert pack["make"] == status.target(name) and pack["make"], f"{name}: no make target rebuilds it"
+        assert pack["make"] == status.target(name), name
+        if name not in {"Christie_LAS", "Christie_LAS_Slim"}:
+            # the two Christie packs are tracked but have no rebuild path: their builder was
+            # deleted on 2026-11-14, so `make` is null for them by design
+            assert pack["make"], f"{name}: no make target rebuilds it"
+        else:
+            assert pack["make"] is None, f"{name}: the Christie builder is deleted; make must stay null"
         if pack["is"] == "missing":
             continue    # dist/ can be absent from a sandbox snapshot; test_dist_checksums owns that case
         path = REPO / "dist" / f"{name}.zip"
         assert pack["is"] in {"tracked", "changed", "ok"}, f"{name}: the zip is not its .sha256"
         assert pack["sha256"] == (REPO / "dist" / f"{name}.zip.sha256").read_text().split()[0], name
         assert short[name]["sha256"] == pack["sha256"][:12] and pack["bytes"] == path.stat().st_size, name
-    one = status.collect(only=["slim"])
+    one = status.collect(only=["Christie_LAS_Slim"])
     assert list(one["packs"]) == ["Christie_LAS_Slim"]
     # `note` is there while a pack is `changed`; never the environment, which `only` leaves out
     assert list(one)[0] == "packs" and list(one)[-1] == "next" and set(one) <= {"packs", "note", "next"}, list(one)
@@ -194,7 +200,7 @@ def test_status_only_names_inputs_and_targets_that_exist():
     assert set(status.TARGETS.values()) | {status.HEADS} <= targets
 
 
-@pytest.mark.parametrize("builder", ["build_models", "build_busty_variant", "build_christie_las"])
+@pytest.mark.parametrize("builder", ["build_models", "build_busty_variant"])
 def test_builders_default_to_the_templates_status_reports(builder, tmp_path, monkeypatch):
     """`--templates` is optional: a builder looks where extract_2b.py unpacks the 2B pack.
 
@@ -214,8 +220,6 @@ def test_builders_default_to_the_templates_status_reports(builder, tmp_path, mon
     monkeypatch.setattr(bm, "DEFAULT_TEMPLATES", tmp_path / "no-templates-here")
     # explicit outputs: if the check ever goes missing, nothing tracked is in the way
     argv = ["--out", str(tmp_path / "out")]
-    if builder == "build_christie_las":
-        argv += ["--dist", str(tmp_path / "dist")]
     with pytest.raises(SystemExit) as stop:
         module.main(argv)
     message = str(stop.value)
@@ -233,7 +237,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
         "the README's commands need -s: a bare `make -C` wraps the output in directory lines")
     used = set(re.findall(r"make -sC tools/pd2-las (\w+)", readme))
     used |= set(re.findall(r"^\| `(?:Miranda|Christie)\w*`.*\| `(\w+)` \|$", readme, flags=re.M))
-    assert {"env", "status", "build", "busty", "christie", "slim", "fresh", "test", "green"} <= used, used
+    assert {"env", "status", "build", "busty", "fresh", "test", "green"} <= used, used
     assert used <= targets, f"README names make targets that do not exist: {sorted(used - targets)}"
 
     scripts = re.findall(r"\$\(HERE\)/([\w.]+)", makefile)
@@ -243,7 +247,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     for script in re.findall(r"(?<![\w/)])(tools/[\w./-]+\.py)", makefile):
         assert (REPO / script).is_file(), script
 
-    # one build target per builder, and they are the builders `fresh` runs: all 14 packs, three pipelines
+    # one build target per builder, and they are the builders `fresh` runs: twelve of the 14 packs, the two Christie packs excepted
     sys.path.insert(0, str(HERE))
     fresh = pytest.importorskip("fresh", reason="fresh.py imports numpy")
     built = {name: command.replace("$(HERE)", "tools/pd2-las")
