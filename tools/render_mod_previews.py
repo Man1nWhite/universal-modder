@@ -21,10 +21,11 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `15_Christie_LAS.png` (DOA5 Christie body-only LAS outfit)
   - `16_Christie_LAS_Slim.png` (DOA5 Christie Slim body-only LAS outfit)
   - `17_Honoko2.png` (DOAXVV Honoka Secret Report body-only LAS outfit, built from `.dae`)
-  - `18_all_dist_mods_overview.png` (6x3 grid of all 18 packs in `dist/`)
+  - `18_all_dist_mods_overview.png` (6x4 grid of all 19 packs in `dist/`)
   - `19_Miranda_L4D2_over_Hila.png`
   - `20_Miranda_Romance_over_Hila.png`
   - `21_Honoko3.png` (the same outfit 5% slimmer, scaled about the rig's bones)
+  - `22_Honoko4.png` (Honoko3's geometry in the user's alternate suit colourway)
 
 `00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
@@ -757,6 +758,7 @@ UNIFIED_PATHS = {
     "19_Miranda_L4D2_over_Hila.png": "miranda/model/over-hila/miranda_l4d2_over_hila_sheet.png",
     "20_Miranda_Romance_over_Hila.png": "miranda/model/over-hila/miranda_romance_over_hila_sheet.png",
     "21_Honoko3.png": "honoka/model/dae/honoko3_las_sheet.png",
+    "22_Honoko4.png": "honoka/model/dae/honoko4_las_sheet.png",
 }
 
 
@@ -863,6 +865,20 @@ def main(argv: list[str] | None = None) -> None:
         fps_hon3,
         icon_hon3,
         target_for("21_Honoko3.png"),
+        has_head=False,
+    )
+
+    tpp_hon4, fps_hon4, icon_hon4 = load_multi_mat_las_parts(
+        ROOT / "dist" / "Honoko4.zip", "Honoko4", "honoko4", has_fps=False
+    )
+    th_hon4 = render_las_sheet(
+        "dist/Honoko4.zip — Body-Only LAS Outfit, slim, alternate suit (DOAXVV Honoka Secret Report DAE)",
+        "Honoko3's geometry in the user's alternate suit colourway (black jacket, orange shirt) | "
+        "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7) 2.dds",
+        tpp_hon4,
+        fps_hon4,
+        icon_hon4,
+        target_for("22_Honoko4.png"),
         has_head=False,
     )
 
@@ -1096,7 +1112,7 @@ def main(argv: list[str] | None = None) -> None:
     overview.save(ov_path)
     print(f"Saved {ov_path}")
 
-    # Build complete dist/ overview grid (6 columns x 3 rows = all 18 dist/*.zip packages)
+    # Build complete dist/ overview grid (6 columns x 4 rows = all 19 dist/*.zip packages)
     all_dist_cells = [
         *[thumbs[i] for i in l4d2_indices],
         *[thumbs[i] for i in rom_indices],
@@ -1105,13 +1121,14 @@ def main(argv: list[str] | None = None) -> None:
         ("Christie_LAS_Slim.zip", th_chr_slim),
         ("Honoko2.zip", th_hon2),
         ("Honoko3.zip", th_hon3),
+        ("Honoko4.zip", th_hon4),
         thumbs[10],  # Geralt_over_Rust.zip
     ]
-    dist_overview = Image.new("RGB", (tw * 6, th_h * 3 + 58), (16, 19, 26))
+    dist_overview = Image.new("RGB", (tw * 6, th_h * 4 + 58), (16, 19, 26))
     add_header_and_badges(
         dist_overview,
-        "PAYDAY 2 — All 18 Mod Packages in dist/ (Complete Overview)",
-        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Slim, Honoko2, Honoko3, Geralt",
+        "PAYDAY 2 — All 19 Mod Packages in dist/ (Complete Overview)",
+        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Slim, Honoko2-4, Geralt",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

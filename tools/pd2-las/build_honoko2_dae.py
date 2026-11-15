@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build `Honoko2` — the DOAXVV Honoka "Secret Report" outfit from `.dae` as a PD2 LAS pack.
+"""Build the Honoka "Secret Report" `.dae` outfit as PD2 LAS packs: Honoko2/3/4.
 
 Unlike the earlier TMC-only build (deleted 2026-11-15, D40), which merged the raw
 `.TMC` meshes into 3 material slots and overlaid the unbuttoned `WGT_cap2` jacket
@@ -47,7 +47,7 @@ import tempfile
 import urllib.parse
 import xml.etree.ElementTree as ET
 import zipfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -79,6 +79,8 @@ class PackSpec:
     display_name: str
     description: str
     slim: float = 1.0
+    clearance: bool = False
+    tex_override: dict = field(default_factory=dict)  # garment kind -> diffuse DDS name
 
     @property
     def unit_base(self) -> str:
@@ -101,7 +103,8 @@ class PackSpec:
 
     def mat_sources(self) -> dict[str, tuple[str, str]]:
         """Material slot -> (diffuse, normal) source DDS, in the emission order."""
-        return {self.slot(kind): src for kind, src in MAT_TEXTURE_SOURCES.items()}
+        return {self.slot(kind): (self.tex_override.get(kind, df), nm)
+                for kind, (df, nm) in MAT_TEXTURE_SOURCES.items()}
 
 
 HONOKO2 = PackSpec(
@@ -113,6 +116,10 @@ HONOKO2 = PackSpec(
         "with full per-part materials). Legendary Armour Skins BODY_ONLY outfit."
     ),
 )
+
+#: garment kinds the shadow-caster drawable omits: both shells are fully enclosed by the suit
+#: and the body, so they add no silhouette (D44)
+SHADOW_DROPS = {"bra", "panties"}
 
 #: The same outfit with the mesh scaled 5% about the rig's bones (D42): slimmer through the
 #: torso, arms and bust, while the height, the joints the game animates, the wrist cuts under
@@ -127,9 +134,27 @@ HONOKO3 = PackSpec(
         "Legendary Armour Skins BODY_ONLY outfit."
     ),
     slim=0.95,
+    clearance=True,
 )
 
-PACKS = (HONOKO2, HONOKO3)
+#: Honoko3 in the user's alternate suit colourway: the same geometry, its suit slot textured from
+#: `references/Honoka/Tex_07(L_7) 2.dds` (black jacket, orange shirt) instead of `L_7.dds` (D44).
+HONOKO4 = PackSpec(
+    item_id="honoko4",
+    pack_dir="Honoko4",
+    display_name="Honoka (Secret Report DAE, slim, alt suit)",
+    description=(
+        "The slim 'Secret Report' build of Honoko3 in the user's alternate suit colourway (black "
+        "jacket, orange shirt): same Collada .dae, same 5% bone-anchored slim and layer clearance, "
+        "the suit slot textured from the supplied alternate diffuse. "
+        "Legendary Armour Skins BODY_ONLY outfit."
+    ),
+    slim=0.95,
+    clearance=True,
+    tex_override={"suit": "Tex_07(L_7) 2.dds"},
+)
+
+PACKS = (HONOKO2, HONOKO3, HONOKO4)
 
 # Source garment kinds, in the deterministic order the material slots are emitted in; every DAE
 # submesh maps to exactly one kind, and each pack names its slots `<item_id>_<kind>`.
@@ -668,6 +693,63 @@ def _slim_groups(groups: dict, template, factor: float) -> dict:
     }
 
 
+def _clearance_pass(groups: dict, spec: PackSpec) -> dict:
+    """Open the layer gaps the in-game captures showed closing (D44).
+
+    The 2026-11-15 close-ups of the outfit in game showed dark angular flakes where two shells of
+    the pack sat within a fraction of a millimetre of each other: measured on the built mesh, the
+    bra shell stood 0.2 mm off the skin, the necklace chain 0.7 mm and the collar 3.6 mm, and the
+    5% slim of Honoko3 pressed every pair together a little more, which is why the flakes appeared
+    with it. At those gaps the depth test and the shadow map alternate between the two surfaces and
+    the engine draws one shell's unlit inside through the other. This pass sinks the torso and neck
+    skin 2 mm along its own normals and the bra 0.5 mm along its own, which opens >= 1.2 mm of air
+    at every measured contact while moving nothing the eye sees: all of it sits under the suit,
+    except the necklace, which now floats 2.7 mm off the skin instead of cutting into it.
+
+    The matching half of the fix is in `build_pack`: the shadow-caster drawable no longer carries
+    the bra and panties shells. Both are fully enclosed by the suit and the body, so they add
+    nothing to the pack's silhouette but did cast shadow-map depth through those sub-millimetre
+    gaps - the classic source of angular acne flakes on the surface above them.
+    """
+    import numpy as np
+
+    skin_shrink, bra_shrink = 0.20, 0.05  # cm, along each shell's own normals
+    moved = 0
+    max_shift = 0.0
+    for g in groups.values():
+        v = np.asarray(g.verts, dtype=np.float64)
+        faces = np.asarray(g.faces, dtype=np.int64)
+        nrm = np.zeros_like(v)
+        cr = np.cross(v[faces[:, 1]] - v[faces[:, 0]], v[faces[:, 2]] - v[faces[:, 0]])
+        for k in range(3):
+            np.add.at(nrm, faces[:, k], cr)
+        ln = np.linalg.norm(nrm, axis=1)
+        ln[ln == 0] = 1.0
+        nrm /= ln[:, None]
+
+        rad = np.hypot(v[:, 0], v[:, 1])
+        off = np.zeros(len(v))
+        for (src, base_v, base_i, tris, nverts), slot in zip(g.slices, g.mat_slots):
+            sl = slice(base_v, base_v + nverts)
+            if slot == spec.slot("body"):
+                z, r = v[sl, 2], rad[sl]
+                off[sl] += np.where((z > 108.0) & (r < 12.0), skin_shrink, 0.0)
+            elif slot == spec.slot("bra"):
+                off[sl] += bra_shrink
+        out = v - nrm * off[:, None]
+        delta = np.linalg.norm(out - v, axis=1)
+        moved += int((delta > 1e-6).sum())
+        max_shift = max(max_shift, float(delta.max()) if len(delta) else 0.0)
+        g.verts = [tuple(float(c) for c in row) for row in out]
+    return {
+        "skin_shrink_cm": skin_shrink,
+        "bra_shrink_cm": bra_shrink,
+        "shadow_caster_drops": sorted(SHADOW_DROPS),
+        "vertices_moved": moved,
+        "max_shift_cm": round(max_shift, 4),
+    }
+
+
 def build_pack(
     spec: PackSpec,
     template,
@@ -688,6 +770,10 @@ def build_pack(
     import tmc_las
 
     kinds = list(MAT_TEXTURE_SOURCES)
+    # the bra and panties shells are fully enclosed by the suit and the body: keeping them in the
+    # shadow caster adds no silhouette, only shadow-map acne through the sub-millimetre gaps (D44).
+    # Honoko2 (clearance=False) keeps the old shadow caster so its tracked bytes stand.
+    shadow_kinds = [k for k in kinds if k not in SHADOW_DROPS] if spec.clearance else kinds
     pack_specs = {
         "outfit": {
             "drawables": ["g_body", "g_body_lod1"],
@@ -697,7 +783,7 @@ def build_pack(
         },
         "shadow": {
             "drawables": ["s_body"],
-            "materials": kinds,
+            "materials": shadow_kinds,
             "out_materials": ["shadow_caster"],
         },
     }
@@ -719,6 +805,7 @@ def build_pack(
             share[d] = gname
 
     slim_report = _slim_groups(groups, template, spec.slim) if spec.slim != 1.0 else None
+    clear_report = _clearance_pass(groups, spec) if spec.clearance else None
 
     tpp_mf = bm.assemble_model(template, groups, share, drop_drawables=("g_head", "g_head_lod1"))
 
@@ -792,6 +879,8 @@ def build_pack(
     }
     if slim_report is not None:
         build_info["slim"] = slim_report
+    if clear_report is not None:
+        build_info["clearance"] = clear_report
     (pack / "BUILD_INFO.json").write_text(
         json.dumps(build_info, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -819,6 +908,8 @@ def build_pack(
     }
     if slim_report is not None:
         report["slim"] = slim_report
+    if clear_report is not None:
+        report["clearance"] = clear_report
     (work / f"{spec.item_id}_report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -831,7 +922,7 @@ def main(argv=None) -> int:
     ap.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES,
                     help="directory containing 2b.model (default: where extract_2b.py unpacks it)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
-                    help="directory for Honoko2.zip / Honoko3.zip + .sha256 (default: dist)")
+                    help="directory for the Honoko*.zip packs + .sha256 (default: dist)")
     ap.add_argument("--work-dir", type=Path, default=DEFAULT_WORK,
                     help="working directory for intermediate model/pack tree (default: build/honoko2)")
     ap.add_argument("--dae", type=Path, default=DAE_PATH)

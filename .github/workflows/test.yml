@@ -63,7 +63,7 @@ jobs:
         run: ./bin/um publish check .
       - name: every tracked pack must equal a fresh build, byte for byte
         # The rebuildable packs are built again in a copy of the checkout, on
-        # this runner, and each of the 20 tracked zips is compared with its
+        # this runner, and each of the 21 tracked zips is compared with its
         # tracked .sha256 by sha256sum -c (the two Christie packs cannot be
         # rebuilt: their builder was deleted on 2026-11-14, so they are compared
         # as the tracked copies). No tolerance. `env` makes the pinned .venv

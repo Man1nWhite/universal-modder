@@ -247,7 +247,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     for script in re.findall(r"(?<![\w/)])(tools/[\w./-]+\.py)", makefile):
         assert (REPO / script).is_file(), script
 
-    # one build target per builder, and they are the builders `fresh` runs: sixteen of the 18 packs, the two Christie packs excepted
+    # one build target per builder, and they are the builders `fresh` runs: seventeen of the 19 packs, the two Christie packs excepted
     sys.path.insert(0, str(HERE))
     fresh = pytest.importorskip("fresh", reason="fresh.py imports numpy")
     built = {name: command.replace("$(HERE)", "tools/pd2-las")

@@ -89,3 +89,21 @@ the other nine head packs byte-identical; the two Hila sheets and both `dist/` o
 (`docs/renders/miranda/model/over-hila/`). The hila test rebuilds the expected eye quadrant from the
 reference at test time, so it pins the new bytes without an edit. Nothing of the Hila packs has been in
 game. See D43.
+
+## 2026-11-15 — `Honoko4`: Honoko3 in the user's alternate suit; both slim packs get layer clearance
+
+The user supplied `references/Honoka/Tex_07(L_7) 2.dds` (the suit's UV layout repainted: black jacket,
+orange shirt) and four in-game close-ups of the neck and chest, and asked for the texture on Honoko3's
+costume as a new pack plus fixes for what the close-ups show. `honokodae` now writes three packs:
+`Honoko2` byte-identical to its tracked bytes, `Honoko4` = `Honoko3`'s geometry with the suit slot read
+from the new diffuse, and both slim packs rebuilt with `_clearance_pass`: the torso and neck skin sinks
+2 mm along its own normals, the bra 0.5 mm, and the shadow-caster drawable drops the bra and panties
+shells. Measured before the fix, those shells stood 0.2 mm (bra to skin), 0.7 mm (necklace) and 3.6 mm
+(collar) apart - the dark angular flakes in the close-ups are the depth test and the shadow map
+alternating across gaps that thin - and the 5% slim had pressed each pair tighter, which is why the
+flakes appeared with Honoko3. After it, every measured contact stands >= 1.2 mm open. The neck plug
+needed no change of its own: measured about its centroid axis it nests inside the head unit's neck and
+hair at every height. The nose in the close-ups is the Miranda head unit's, not the body pack's (the
+pack ends in a neck plug at z 167); nothing here changes it. Counts go 18 -> 19 packs and 20 -> 21
+tracked zips; previews: `honoko4_las_sheet.png` and the 19-pack `dist/` overview. Nothing of Honoko3 or
+Honoko4 has been in game. See D44.

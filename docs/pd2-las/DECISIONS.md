@@ -373,6 +373,39 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** the user, 2026-11-15.
 - **Status:** holds.
 
+### D44 — Honoko4 is Honoko3 in the user's alternate suit; Honoko3/4 open the layer gaps the
+        close-ups showed
+
+- **Decided:** 2026-11-15, by the user, attaching four in-game close-ups and the texture
+  `references/Honoka/Tex_07(L_7) 2.dds`: "aply Tex_07(L_7) 2.dds texture ... to costume of Honoko3 and
+  make it Honoko4? Also, any recomendations for the neck and nose? those recomendation you can aply to
+  Honoko3 and Honoko4".
+- **Decision:** `honokodae` builds a third pack: `Honoko4` is `Honoko3` vertex for vertex (same slim,
+  same clearance pass) with the suit slot's diffuse read from the supplied alternate colourway (black
+  jacket, orange shirt; `L_8.dds` stays its normal map). `Honoko3` and `Honoko4` are additionally built
+  with `_clearance_pass`: the torso and neck skin sinks 2 mm along its own normals and the bra 0.5 mm,
+  and their shadow-caster drawable drops the bra and panties shells. `Honoko2` keeps the old build, so
+  its tracked bytes stand and the fix is scoped exactly where the user put it.
+- **Why:** measured on the built mesh, the shells the flakes came from stood 0.2 mm (bra to skin),
+  0.7 mm (necklace to skin) and 3.6 mm (collar to skin) apart, and the slim pass pressed each pair
+  together a little more, which is why the close-ups of Honoko3 show what the Honoka captures of
+  2026-11-15 do not. At those gaps the depth test and the shadow map alternate between the two
+  surfaces and the engine draws one shell's unlit inside through the other; the fully enclosed bra and
+  panties shells added nothing to the silhouette but did write shadow-map depth through them. The
+  neck needed no geometry of its own: with the centroid axis measured, the pack's neck plug nests
+  inside the head unit's neck and hair at every height, and the flakes on the throat were the same
+  contact phenomenon at the collar. The nose in the close-ups is the Miranda head unit's, not this
+  pack's: the body ends in a neck plug at z 167 and carries no head geometry, so nothing here can
+  change it (the head packs are the place for that, and the user scoped this work to Honoko3/4).
+- **Carried by:** `dist/Honoko4.zip` + sidecar, the `clearance` block of both packs' `BUILD_INFO.json`,
+  `honoko4_las_sheet.png` and the 19-pack `dist/` overview.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko4_is_honoko3_in_the_alt_suit` (the
+  geometry is Honoko3's, the suit diffuse is the supplied file, every other slot is unchanged) and
+  `...test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster` (>= 1 mm at every measured
+  contact, four shells in the trimmed shadow caster, six in Honoko2's).
+- **Source:** the user, 2026-11-15.
+- **Status:** holds.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

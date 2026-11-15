@@ -30,7 +30,10 @@ bytes stay reachable through git history (D40).
 `Honoko3` is the second pack of that same outfit and build: identical materials, textures, registration and glove
 adapter, with the mesh scaled 5% about the rig's bones — slimmer through the torso, arms, hips and bust, same
 height, same joint placement, sleeves and skirt hems where they were, soles still on the floor (`_slim_groups`,
-D42). `make -sC tools/pd2-las honokodae` writes both zips in one run and CI verifies both. Only `Honoko2` has
+D42). `Honoko4` is `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange
+shirt, `references/Honoka/Tex_07(L_7) 2.dds`), and `Honoko3`/`Honoko4` carry the layer-clearance pass and
+the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
+`make -sC tools/pd2-las honokodae` writes all three zips in one run and CI verifies all three. Only `Honoko2` has
 been in game.
 
 ## Seen in game
@@ -50,6 +53,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
+| `Honoko4` | no record | — (`Honoko3` in the alternate suit colourway, D44; the close-ups that drove D44 were of `Honoko3`, not of this pack) |
 | `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — the full pack with Christie's own hands; installed hashes not measured |
 | `Christie_LAS_Slim` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — Slim with the white LAS gloves spawned; installed hashes not measured |
 

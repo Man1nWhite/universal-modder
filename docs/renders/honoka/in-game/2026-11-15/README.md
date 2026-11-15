@@ -8,7 +8,8 @@ menu's scroll bars and the Russian menu heading visible at the edges.
 - **Pack:** `dist/Honoko2.zip` — the DOAXVV "Secret Report" costume built from
   `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` by `tools/pd2-las/build_honoko2_dae.py`
   (`make -sC tools/pd2-las honokodae`). The user states these captures are of this pack. The slimmer
-  sibling `dist/Honoko3.zip` (same outfit, mesh scaled 5% about the rig's bones, D42) is **not** in these
+  siblings `dist/Honoko3.zip` (same outfit, mesh scaled 5% about the rig's bones, D42) and
+  `dist/Honoko4.zip` (Honoko3 in the alternate suit colourway, D44) are **not** in these
   frames: it was built on 2026-11-15 after them and has not been in game.
 - **Camera/view convention:** the game's preview turntable, seen from the front, three-quarter, side and
   back as the player rotates the character. No fixed camera: the eight frames are the rotations the user
