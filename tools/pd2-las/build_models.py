@@ -278,7 +278,8 @@ def _decompose_sim_mat(m: dm.Mat):
     return sc, rot, t
 
 
-def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[int, dm.Mat]:
+def retarget_maps(model: ModelData, skel_map: dict, template: Template,
+                  src_worlds: list[dm.Mat] | None = None) -> dict[int, dm.Mat]:
     """Per source bone: map source-world -> target-world.
 
     Anatomically partitioned retargeting that avoids the three
@@ -300,7 +301,8 @@ def retarget_maps(model: ModelData, skel_map: dict, template: Template) -> dict[
     """
     import numpy as np
 
-    src_worlds = source_bone_worlds(model)
+    if src_worlds is None:
+        src_worlds = source_bone_worlds(model)
     src_pos = [np.array(w[12:15], dtype=np.float64) for w in src_worlds]
 
     direct_src: dict[str, list[int]] = {}
@@ -664,7 +666,8 @@ def _map_source_bone(model: ModelData, idx: int, skel_map: dict) -> str | None:
 
 def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
                    template: Template, group_name: str,
-                   fits: dict | None = None) -> Group:
+                   fits: dict | None = None,
+                   swap_winding: bool = True) -> Group:
     import numpy as np
 
     g = Group(name=group_name)
@@ -706,7 +709,9 @@ def transfer_group(model: ModelData, group_spec: dict, skel_map: dict,
             tri = tris[k:k + 3]
             # COLLADA-style (CCW, right-handed) -> Diesel/GLTF: swap b/c.
             # Loaders must hand us CCW like the COLLADA importer does.
-            a, b, c = tri[0], tri[2], tri[1]
+            # Sources already wound CCW (e.g. the TMC reader's
+            # normal-aligned triangles) pass swap_winding=False.
+            a, b, c = (tri[0], tri[2], tri[1]) if swap_winding else (tri[0], tri[1], tri[2])
             for vi in (a, b, c):
                 if vi not in remap:
                     remap[vi] = len(slice_verts)
