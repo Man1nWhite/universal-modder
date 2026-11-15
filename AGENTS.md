@@ -1,14 +1,14 @@
 # universal-modder
 
 A game-modding toolkit and knowledge base for AI coding agents, forked from `rehan-remade/universal-modder`.
-The work in this fork is PAYDAY 2: 16 tracked packs in `dist/`, built by three pipelines under `tools/`.
+The work in this fork is PAYDAY 2: 15 tracked packs in `dist/`, built by three pipelines under `tools/`.
 
 ## PAYDAY 2 packs: one command per question
 
 | Question | Run or read |
 |---|---|
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
-| State of the 16 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
+| State of the 15 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
 | Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build` (Miranda_LAS), `busty`, `lawson` (lawson_las), `honokodae` (Honoko2), `heads` (the nine `*_over_*` packs); the two Christie packs are tracked but cannot be rebuilt — their builder was deleted. On 2026-11-14 a from-scratch build with the pre-bridge builder (recovered from `6f26633`) reproduced the **base** bytes (`b65fb27e…` / `9da90dd3…`), not the tracked sleeve-bridge `dist/Christie_LAS.zip` (`1ec1c95a…`) |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |

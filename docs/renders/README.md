@@ -6,7 +6,7 @@ Legacy render folders (`docs/previews/`, `docs/pd2-las/renders/`, and loose imag
 
 - **Scratch / per-build renders stay in `build/` (gitignored):** automated build sheets and ad-hoc
   diagnostics write to `build/previews/`, `build/pd2-las/previews/`, `build/pd2-las/renders/`,
-  `build/pd2-port/preview/`, `build/pd2-port/shade/`, `build/honoka-las/`, etc. Commit to
+  `build/pd2-port/preview/`, `build/pd2-port/shade/`, `build/honoko2/`, etc. Commit to
   `docs/renders/` only when curating reviewed reference renders or archiving captures.
 - **Not renders:** repository UI/README branding lives in `docs/media/`, knowledge-base figures live in
   `knowledge/**/media/`, and example mod assets live in `examples/`.

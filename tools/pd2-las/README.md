@@ -9,12 +9,11 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | --- | --- | --- | --- |
 | `Miranda_LAS` — full body and first-person arms | `models/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `Miranda_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
-| `Honoka_LAS` — the DOAXVV "Secret Report" costume | `references/Outfit for Honoka-109-1-1-1628020933.zip` | `build_honoka_las.py` | `honoka` |
-| `Honoko2` — the same outfit built from `.dae` (6 mats) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `Honoko2` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
-The Honoka TMC zip is built into `build/honoka-las/` and copied to `dist/Honoka_LAS.zip` (`status` reports `make: null` for it); `Honoko2` writes `dist/Honoko2.zip` directly and is verified by `fresh` (`make honokodae`).
-The TMC/DAE builders remap skin palettes (`tmc.py`, `tmc_skeleton_map.json`), cut wrists, encode DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and register BODY_ONLY with glove adapter and 4-view icon.
-`runtime_verified` is `false`; `Honoka_LAS` was seen in the in-game outfit menu (`docs/pd2-las/HANDOFF.md`). See `docs/pd2-las/honoka-tmc-format.md`.
+`Honoko2` writes `dist/Honoko2.zip` directly and is verified by `fresh` (`make honokodae`).
+The `.dae` builder takes its skinning from the source TMC (`tmc.py`, `tmc_skeleton_map.json`), cuts wrists, encodes DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and registers BODY_ONLY with glove adapter and 4-view icon.
+`runtime_verified` is `false`; `Honoko2` was seen in the in-game outfit menu (`docs/pd2-las/HANDOFF.md`). See `docs/pd2-las/honoka-tmc-format.md`.
 
 ## Status
 
@@ -24,7 +23,8 @@ tracked pack of the three pipelines (size, sha256, `make` target, whether the zi
 ## Commands
 
 From the repo root; `make -sC tools/pd2-las` alone lists every target. They cover all three pipelines: `lawson`
-and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`; `honoka` builds the Honoka pack and installs it into `dist/`.
+and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`; `honokodae` builds the
+Honoko2 outfit pack into `dist/`.
 
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
@@ -54,7 +54,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_busty_variant.py`, `bust_variant.py` | the chest-morph variant |
-| `build_honoka_las.py`, `build_honoko2_dae.py` | the Honoka (DOAXVV TMC and Collada `.dae`) LAS packs: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render |
+| `build_honoko2_dae.py`, `tmc_las.py` | the Honoko2 (DOAXVV "Secret Report") LAS pack, built from the Collada `.dae` with the TMC's skinning: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render; `tmc_las.py` holds the TMC frame map and mesh post-processes |
 | `las_outfit_pack.py` | the registration, hook, localization, unit/object XML, zip and the glove-adapter companion shared by body-only LAS packs |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |

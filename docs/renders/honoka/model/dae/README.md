@@ -4,4 +4,7 @@
 - **Source pack:** `dist/Honoko2.zip` (built by `make -sC tools/pd2-las honokodae` / `tools/pd2-las/build_honoko2_dae.py` from `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`, skinning transferred from `Honoka_DOAXVV_Secret_Report.TMC`).
 - **Files:**
   - `honoko2_las_sheet.png`: Full-body front, 3/4, back, side, upper-body close-up, and 256x256 HUD/menu icon for the 6-material buttoned DOAXVV "Secret Report" LAS outfit (`honoko2_body`, `honoko2_suit`, `honoko2_panties`, `honoko2_bra`, `honoko2_shoes`, `honoko2_jewelry`).
-- **Caveats:** Offline software Z-buffer render (`runtime_verified: false`; headless `BODY_ONLY` outfit using PAYDAY 2 heister gloves via `honoko2_glove_adapter.lua`, not yet launched in PAYDAY 2).
+- **Caveats:** Offline software Z-buffer render (`runtime_verified: false`, the builder constant).
+  The pack has since been seen in the game's outfit menu (2026-11-15, user report); the captures are in
+  [`../../in-game/2026-11-15/`](../../in-game/2026-11-15/README.md). The headless `BODY_ONLY` outfit wears
+  the vanilla PAYDAY 2 heister gloves through `honoko2_glove_adapter.lua`.

@@ -1,0 +1,102 @@
+{
+  "supplied_on": "2026-11-15",
+  "coordinate_convention": "Original PNG pixels, origin top-left.",
+  "screenshots": [
+    {
+      "shot": 1,
+      "upload": "image-1.png",
+      "file": "honoko2_menu_01_front.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, front",
+      "width": 556,
+      "height": 1040,
+      "bytes": 958539,
+      "sha256": "48bb56ca3cd251a4f357cbb06b75e158036f7844b43790e06c5c25d293e505b2",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    },
+    {
+      "shot": 2,
+      "upload": "image-2.png",
+      "file": "honoko2_menu_02_threequarter.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, three-quarter (front, turned right)",
+      "width": 560,
+      "height": 1019,
+      "bytes": 977861,
+      "sha256": "3ab278f8bad132b648621d77fe85f0b66e2da9f4268f96fd4521807e73b7df45",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    },
+    {
+      "shot": 3,
+      "upload": "image-3.png",
+      "file": "honoko2_menu_03_side.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, side (profile)",
+      "width": 589,
+      "height": 1032,
+      "bytes": 1032542,
+      "sha256": "1ea770e51c5dcb3dd7122480ae858e21c8d66b0a0e5165d12a46faf39cca37de",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    },
+    {
+      "shot": 4,
+      "upload": "image-4.png",
+      "file": "honoko2_menu_04_back.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, back",
+      "width": 530,
+      "height": 1010,
+      "bytes": 896249,
+      "sha256": "a242fc5285788ac828af0262a68fa36ab9b09a972337edf058c4e977c9d837fa",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    },
+    {
+      "shot": 5,
+      "upload": "image-5.png",
+      "file": "honoko2_menu_05_back.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, back (second angle)",
+      "width": 545,
+      "height": 1008,
+      "bytes": 914892,
+      "sha256": "8a7ec14d3e7fa45b83ee17a57e75ac067f4a0480c999a9100207a9a4966e4233",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    },
+    {
+      "shot": 6,
+      "upload": "image-6.png",
+      "file": "honoko2_menu_06_back-threequarter.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, back three-quarter",
+      "width": 512,
+      "height": 1049,
+      "bytes": 925531,
+      "sha256": "511b4a984e52e2c78f3a81d0f876d6851195ba6aacd85f38f638ccb27226a625",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    },
+    {
+      "shot": 7,
+      "upload": "image-7.png",
+      "file": "honoko2_menu_07_side.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, side (profile, second angle)",
+      "width": 500,
+      "height": 1019,
+      "bytes": 905748,
+      "sha256": "5fb75209e9e5dca336001b1524f1b6b3470967d5bd44c2e8d101fe50cc2f2517",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    },
+    {
+      "shot": 8,
+      "upload": "image-8.png",
+      "file": "honoko2_menu_08_threequarter.png",
+      "pack": "Honoko2",
+      "view": "Outfit-menu preview, three-quarter (front, turned left)",
+      "width": 533,
+      "height": 1044,
+      "bytes": 979683,
+      "sha256": "0891e7865186286b4346ff6b462d9f2b9e516e68f1242e08ddb895ca594b3284",
+      "note": "user-supplied capture of the Honoko2 pack from dist/Honoko2.zip; byte-identical to the upload"
+    }
+  ]
+}

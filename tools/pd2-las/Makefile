@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honoka honokodae heads all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae heads all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -43,18 +43,13 @@ busty:      ## Miranda_Busty_LAS -> dist/ and build/pd2-las/
 lawson:     ## lawson_las -> dist/
 	$(call BUILD,tools/pd2-port/build_las_pack.py)
 
-honoka:     ## Honoka_LAS (DOAXVV 'Secret Report', TPP-only) -> dist/
-	cd "$(ROOT)" && $(PY) $(HERE)/build_honoka_las.py
-	cp $(ROOT)/build/honoka-las/Honoka_LAS.zip $(ROOT)/dist/Honoka_LAS.zip
-	printf '%s  dist/Honoka_LAS.zip\n' "$$(sha256sum $(ROOT)/dist/Honoka_LAS.zip | cut -d' ' -f1)" > $(ROOT)/dist/Honoka_LAS.zip.sha256
-
 honokodae:  ## Honoko2 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
 
 heads:      ## the nine head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
-all: build busty lawson honoka honokodae heads  ## every pack that can be rebuilt in this checkout (the two Christie packs' builder is deleted; their tracked zips cannot be rebuilt)
+all: build busty lawson honokodae heads  ## every pack that can be rebuilt in this checkout (the two Christie packs' builder is deleted; their tracked zips cannot be rebuilt)
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

@@ -22,13 +22,10 @@ build (`1ec1c95a…`, see `docs/audits/2026-11-14-christie-rebuild-redo.md`); on
 not the tracked bridge bytes — it passed all offline gates (`docs/audits/2026-11-14-christie-from-scratch.md`).
 In game for the first time on 2026-11-15 (menu preview; see *Seen in game* below).
 
-The Honoka pack (`Honoka_LAS`) is tracked as of 2026-11-15. It is the DOAXVV "Secret Report" costume: built by
-`build_honoka_las.py`, put into `dist/` by the `honoka` make target's copy step, so `fresh` does not verify it and
-`status` reports `make: null` for it, as for the Christie packs. Later on 2026-11-15 it was rebuilt with a
-source-connector-triangle filter (26 long thin triangles, up to 146 cm, drawn as hairline streaks from the wrist area)
-and re-committed; the bytes from the first commit stay reachable through git history. In game for the first
-time on 2026-11-15 (menu preview; the user confirmed the captured build is the currently tracked pack — see
-*Seen in game* below).
+The DOAXVV "Secret Report" outfit is the `Honoko2` pack, built from the Collada `.dae` by `build_honoko2_dae.py`.
+It is one of the packs CI rebuilds, so it is verified byte for byte like the rest. The earlier TMC-only build of the
+same costume was deleted on 2026-11-15 at the user's direction, after the `.dae` pack proved the better one; its
+bytes stay reachable through git history (D40).
 
 ## Seen in game
 
@@ -44,16 +41,17 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
-| `Honoka_LAS` | 2026-11-15, menu armor-skin preview, user report | yes — the user confirmed it is the currently tracked pack (ce1d1c0) |
+| `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — the full pack with Christie's own hands; installed hashes not measured |
 | `Christie_LAS_Slim` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — Slim with the white LAS gloves spawned; installed hashes not measured |
 
-The 2026-11-15 captures (all six are the outfit menu, not a heist; archived at `da891d7` and removed
-during the `docs/renders/README.md` cleanup) showed the Honoka tracked pack with a clean silhouette
-(no connector-triangle streaks), Christie_LAS_Slim under the spawned white LAS gloves, and full
-Christie_LAS with Christie's own hands. Lobby/heist behaviour, the inner elbow under a rifle, movement,
-the cuff/glove stack in every pose and the crash logs remain unchecked — the
-[checklist](in-game-checklist.md) is still waiting for a person with the game. The exact Christie builds
+Eight captures of `Honoko2` on 2026-11-15 (the outfit menu, not a heist) are archived under
+[`docs/renders/honoka/in-game/2026-11-15/`](../renders/honoka/in-game/2026-11-15/README.md): the purple
+"Secret Report" blazer and skirt with the vanilla blue heister gloves over the wrist cut, from the front,
+three-quarter, side and back. An earlier set of six captures (archived at `da891d7`, removed in the
+`docs/renders/README.md` cleanup) showed the deleted TMC-only pack plus both Christie packs. Lobby/heist
+behaviour, the inner elbow under a rifle, movement, the cuff/glove stack in every pose and the crash logs
+remain unchecked — the [checklist](in-game-checklist.md) is still waiting for a person with the game. The builds
 installed on 2026-11-15 were identified by the user, not hash-measured from the captured bytes.
 
 - **The Miranda LAS packs** have the checklist `docs/pd2-las/in-game-checklist.md` waiting for a person with

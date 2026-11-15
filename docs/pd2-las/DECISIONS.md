@@ -217,7 +217,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** tracking follows the D9 discipline (a sidecar beside every zip) without claiming a rebuild
   path that cannot byte-verify the copy in `dist/`. A pinned-environment rebuild after a sandbox restart
   reproduced the previously delivered bytes exactly, but that check is not wired into `fresh`.
-- **Status:** holds.
+- **Status:** superseded by D40 (2026-11-15): the pack and its builder are deleted.
 
 ### D37 — The tracked Honoka pack was rebuilt with the source-connector filter
 
@@ -234,7 +234,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   legitimate edge 13.4 cm; smallest stray 23.7 cm), so no real geometry is cut. The pack still cannot
   be `fresh`-verified (the builder never writes `dist/`, see D36); a double build in a separate output
   directory reproduced the new bytes exactly.
-- **Status:** holds.
+- **Status:** superseded by D40 (2026-11-15): the pack and its builder are deleted; the connector filter
+  itself lives on in `tools/pd2-las/tmc_las.py`.
 
 ### D38 — In-game menu captures were supplied for Honoka and both Christie packs; the HANDOFF table is the truth for what was in game
 
@@ -255,6 +256,28 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   user reported keeps the record honest without pretending the checklist is done.
 - **Status:** holds in part (the HANDOFF record stays); the archived captures were removed by D39
   (still reachable at `da891d7` in git history).
+
+### D40 — The TMC-only Honoka pack is deleted; the `.dae` build (`Honoko2`) is the one that stays
+
+- **Decided:** 2026-11-15, by the user: "delete Honoka_LAS.zip ... and tool and references to it.
+  Honoko2.zip is much better — it was built from dae. keep it and upload screenshots that was made with it".
+- **Decision:** `dist/Honoka_LAS.zip`, its `.sha256` sidecar, its builder (`build_honoka_las.py`), the
+  `honoka` make target and that pack's renders and README are deleted; a decision, not a rebuild, so the
+  bytes stay reachable in git history (`ce1d1c0`, and `2e49f14` before it). The handful of helpers the
+  kept `.dae` builder still needs — the TMC frame map and bind matrices, the wrist cut, the long-thin
+  triangle filter and the fallback icon — moved to `tools/pd2-las/tmc_las.py` unchanged, so `Honoko2`
+  keeps its bytes, its `honokodae` target and its `fresh` verification. The eight in-game captures the
+  user made with `Honoko2` are archived byte-identically in `docs/renders/honoka/in-game/2026-11-15/`
+  with a `README.md` and a SHA-256 `manifest.json`; `docs/pd2-las/HANDOFF.md` records the pack as seen in
+  game on 2026-11-15 and remains the authority on what ran.
+- **Why:** the user compared both builds in game and judged the `.dae` one better. It keeps the six
+  material slots the Collada export binds (body, suit, panties, bra, shoes, jewelry) and the buttoned
+  suit, where the TMC build merged the raw meshes into three slots and overlaid the unbuttoned jacket
+  shell on the buttoned one — the overlap that z-fights on the torso and back. Two packs of one costume
+  also meant two builders, two sets of documents and a pack `fresh` could not verify (D36, D37); the
+  worse one went.
+- **Status:** holds. D36 and D37 are superseded. `runtime_verified` stays `false` in `Honoko2` (D31); the
+  outfit-menu captures are the in-game record, not the flag.
 
 ## Environment, tests and documents
 

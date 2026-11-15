@@ -18,8 +18,6 @@ dist/*
 # carries the exact bytes of the built deliverables.
 !dist/lawson_las.zip
 !dist/lawson_las.zip.sha256
-!dist/Honoka_LAS.zip
-!dist/Honoka_LAS.zip.sha256
 !dist/Honoko2.zip
 !dist/Honoko2.zip.sha256
 !dist/Christie_LAS.zip

@@ -45,3 +45,18 @@ All pre-existing tracked renders (`docs/previews/`, `docs/pd2-las/renders/`,
 `docs/renders/christie-2026-11-14/`, `docs/renders/in-game-2026-11-15/`) were removed at the
 owner's direction (still in git history at `da891d7`). `docs/renders/README.md` defines the single
 layout (`docs/renders/<project>/<ext>/...`), enforced by `tests/test_render_rules.py`. See D39.
+
+## 2026-11-15 — the TMC-only Honoka pack deleted; `Honoko2` (.dae) kept, with in-game captures
+
+At the owner's direction the TMC-only Honoka pack is gone: `dist/Honoka_LAS.zip` and its sidecar, the
+builder `build_honoka_las.py`, the `honoka` make target and the renders and README it produced were
+deleted (the bytes stay in git history). The owner compared the two builds in game and judged the `.dae`
+one much better: it keeps the six material slots of the buttoned suit instead of overlaying the
+unbuttoned jacket shell. `Honoko2` keeps its tracked bytes, its `honokodae` target and `fresh`
+verification, and the helpers it still needed from the deleted builder (TMC frame map, bind matrices,
+wrist cut, long-thin triangle filter, fallback icon) moved untouched into `tmc_las.py`.
+
+The owner also supplied eight in-game captures made with `Honoko2` (outfit menu, armor-skin preview: front,
+three-quarter, side and back on the preview turntable). They are archived byte-identically, with a README
+and a SHA-256 manifest, in `docs/renders/honoka/in-game/2026-11-15/`; `docs/pd2-las/HANDOFF.md` records the
+pack as seen in game. `runtime_verified` stays `false` in the pack (D31). See D40.

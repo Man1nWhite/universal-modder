@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Build `Honoko2` — the DOAXVV Honoka "Secret Report" outfit from `.dae` as a PD2 LAS pack.
 
-Unlike `build_honoka_las.py` (which merged raw `.TMC` meshes into 3 material
-slots and overlaid the unbuttoned `WGT_cap2` jacket on top of the buttoned
-`WGT_headdress2` suit), this driver builds from the Collada export
-`references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
+Unlike the earlier TMC-only build (deleted 2026-11-15, D40), which merged the raw
+`.TMC` meshes into 3 material slots and overlaid the unbuttoned `WGT_cap2` jacket
+on top of the buttoned `WGT_headdress2` suit, this driver builds from the Collada
+export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
 
 * **Clean garment selection + per-submesh materials** — uses the complete
   buttoned suit + skirt (`WGT_headdress2_0..5`) together with all body, bra,
@@ -348,10 +348,10 @@ def _cap_wrist_cuts(g, arm_joints, margin: float = 0.5) -> int:
 
 def dae_to_model_data(dae_submeshes: list[dict], tmc):
     """Build a `source_model.ModelData` from `.dae` geometry + `.TMC` skin weights."""
-    import build_honoka_las as bhl
+    import tmc_las
     from source_model import Bone, ModelData, SkinVertex, SubMesh
 
-    M = bhl.basis_matrix()
+    M = tmc_las.basis_matrix()
     model = ModelData(name="honoko2_dae")
     for i, name in enumerate(tmc.node_names):
         model.bones.append(
@@ -562,7 +562,7 @@ def main(argv=None) -> int:
 
     import hashlib as _hl
 
-    import build_honoka_las as bhl
+    import tmc_las
     import build_models as bm
     import las_outfit_pack as lop
     import tmc as tmc_mod
@@ -587,7 +587,7 @@ def main(argv=None) -> int:
         tmc_path = Path(td) / TMC_NAME
         tmc_path.write_bytes(tmc_bytes)
         tmc = tmc_mod.TmcFile(str(tmc_path))
-        src_worlds = bhl.glbl_to_diesel(tmc.global_raw)
+        src_worlds = tmc_las.glbl_to_diesel(tmc.global_raw)
         dae_subs = _parse_dae_submeshes(args.dae)
         model, max_match_err = dae_to_model_data(dae_subs, tmc)
 
@@ -615,8 +615,8 @@ def main(argv=None) -> int:
     cut_report = {}
     for gname, spec in specs.items():
         g = bm.transfer_group(model, spec, skel_map, template, gname, fits=fits, swap_winding=False)
-        cut = bhl.cut_group_at_wrists(g, bm.ARM_JOINTS)
-        thin = bhl.drop_long_thin_triangles(g)
+        cut = tmc_las.cut_group_at_wrists(g, bm.ARM_JOINTS)
+        thin = tmc_las.drop_long_thin_triangles(g)
         cap_tris = _cap_wrist_cuts(g, bm.ARM_JOINTS)
         cut["long_thin"] = thin
         cut["wrist_cap_tris"] = cap_tris
@@ -655,7 +655,7 @@ def main(argv=None) -> int:
     if not args.no_previews:
         icon = _render_icon_bytes(tpp_path, textures)
     else:
-        icon = bhl._fallback_icon()
+        icon = tmc_las.fallback_icon()
     (gui_dir / f"{ITEM_ID}.texture").write_bytes(icon)
     for name, data in sorted(textures.items()):
         (unit_dir / name).write_bytes(data)
