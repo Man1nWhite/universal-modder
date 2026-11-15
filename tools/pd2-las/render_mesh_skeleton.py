@@ -539,10 +539,15 @@ def render(geo, bones, view: str, out_path: Path, zoom: tuple | None = None,
 def render_source(source_zip: Path, out: Path, stem: str = "christie_source"):
     """Render the ORIGINAL DOA5 model (kept body materials) + its own skeleton."""
     import numpy as np
-    import build_christie_las as bc
+    import source_model as sm
 
+    MEMBERS = ("models/plasmid/doa5/christie_c2.mdl",
+               "models/plasmid/doa5/christie_c2.vvd",
+               "models/plasmid/doa5/christie_c2.dx90.vtx")
+    #: kept body materials of the source model; everything head-carried is dropped
+    KEEP = ("cri_body_base", "cri_02_01_base", "cri_02_02_base", "cri_02_05_base")
     with zipfile.ZipFile(source_zip) as zf:
-        model = bc.load_christie(zf)
+        model = sm.load_all_bodygroups(*[zf.read(name) for name in MEMBERS])
     worlds = bm.source_bone_worlds(model)
     bones = [(b.name, np.array(worlds[i][12:15], float),
               model.bones[b.parent].name if b.parent >= 0 else None)
@@ -550,7 +555,7 @@ def render_source(source_zip: Path, out: Path, stem: str = "christie_source"):
     verts = [v.pos for v in model.vertices]
     faces = []
     for m in model.meshes:
-        if m.material not in bc.KEEP_MATERIALS:
+        if m.material not in KEEP:
             continue
         idx = m.triangle_indices
         faces.extend(zip(idx[0::3], idx[1::3], idx[2::3]))
@@ -621,8 +626,7 @@ def main(argv=None) -> int:
     bones = rest_skeleton(template, skel)
     args.out.mkdir(parents=True, exist_ok=True)
     stem = f"fps_{args.item}" if args.fps else args.item
-    # every view is rendered so the committed set is fully reproducible from
-    # this CLI - docs/pd2-las/CHRISTIE.md names these files explicitly
+    # every view is rendered so the committed set is fully reproducible from this CLI
     for view in ("front", "side", "iso", "top", "bottom"):
         render(geo, bones, view, args.out / f"{stem}_skel_{view}.png")
     # wrist close-ups (left arm); `side` is the character's left side

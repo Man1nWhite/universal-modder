@@ -4,7 +4,7 @@ The offline preview used to draw *both* sides of every triangle, so a garment
 overlap that folds open under an arms-down pose was silently filled by the far
 side of the fabric and the hole never showed. `render(..., cull=True)` now drops
 back-facing triangles the way the game does, which is what lets the shoulder
-stay be verified offline (see MODLOG / knowledge note on the overlap armhole).
+stay be verified offline (see the knowledge note on the overlap armhole).
 
 These tests pin the culling *direction*: a triangle whose geometric normal
 points at the camera must survive, and one pointing away must be dropped only

@@ -10,5 +10,5 @@ This directory contains the upstream character model archives ported into PAYDAY
 
 The pipelines are not tied to these characters. A new rigged COLLADA archive for `tools/pd2-port/` goes here
 (its README, "Porting another character", lists what else changes), and so does a new Source-engine archive
-for `tools/pd2-las/`. One source lives elsewhere: `references/Christie.zip`, read by
-`tools/pd2-las/build_christie_las.py`.
+for `tools/pd2-las/`. One source lives elsewhere: `references/Christie.zip`, the Dead or Alive 5 model
+whose prebuilt packs are tracked under `dist/`.

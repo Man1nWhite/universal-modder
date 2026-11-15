@@ -29,9 +29,7 @@ Two measurements per limb segment (``Arm``, ``ForeArm``, ``UpLeg``, ``Leg``):
     that meet there. This is the "does it bend where the bone is" number:
     PD2 rotates about the pivot, not about the mesh's crease.
 
-Used by ``build_christie_las.py`` (to fit the mesh onto the skeleton),
-``build_models.segment_fit_report`` and ``tests/test_christie_las.py`` (so a
-regression shows up in CI, not only in a preview image).
+Used by ``build_models.segment_fit_report``.
 """
 from __future__ import annotations
 

@@ -9,7 +9,7 @@ says which invariant broke and the table says what it means
 These tests read the **tracked packs** in `dist/`, decoded with the codec alone
 (`diesel_model`). Nothing is built and the 2B templates are not needed, so they
 run on a fresh clone and in CI, where the authoring tests in
-`test_build_models.py`, `test_bust_variant.py` and `test_christie_las.py` skip
+`test_build_models.py` and `test_bust_variant.py` skip
 for want of the templates. Those keep the detail; this file keeps the contract.
 Two builder modules are imported for constants only: where the source models
 sit inside the VPK, and the region the chest variant declares.
@@ -581,8 +581,8 @@ def test_objects_listed_by_the_unit_are_the_ones_the_model_has(pack, stem):
     in its one graphic group, every object to show or to hide. The model stores
     those names as hashes, so a line with no object behind it is found here or in
     the game. The Miranda builders write the file from the model they built
-    (`las_pack.install_models`), the Christie builder does the same in
-    `las_outfit_pack`; this test is what holds for the bytes that are tracked.
+    (`las_pack.install_models`); this test is what holds for the bytes that are
+    tracked.
 
     1. `.unit` and `.object` name the unit's own path, and the orientation object
        is a node of the model;
@@ -742,8 +742,10 @@ def test_registration_follows_the_2b_contract(pack):
     says `Hooks` where its folder is `hooks`, which is one of the defects not to
     copy. `BUILD_INFO.json` says the same as the files.
     """
-    las = {name for name, target in _status().TARGETS.items() if target != "lawson"}     # the packs tools/pd2-las/ builds
-    assert set(ITEMS) == las, "this file and status.py list different packs"
+    # the tracked LAS packs in dist/ (the two Christie packs are tracked but their builder
+    # is deleted; they are still verified here, from the tracked bytes)
+    las = {"Miranda_LAS", "Miranda_Busty_LAS", "Christie_LAS", "Christie_LAS_Slim"}
+    assert set(ITEMS) == las, "this file no longer covers every tracked LAS pack"
     z = _zip(pack)
     files = {n[len(pack) + 1:] for n in z.namelist() if not n.endswith("/")}
     info = _info(pack)

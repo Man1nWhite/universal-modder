@@ -204,7 +204,7 @@ def test_green_runs_what_the_test_workflow_runs():
         r"^\./bin/um kb check --index$": '["-m", "um", "kb", "check", "--index"]',
         r"^\./bin/um publish check \.$": '["-m", "um", "publish", "check", "."]',
         r"fresh\.py check": '"fresh.py"), "check"]',
-        # fresh.py builds this pack in a copy and compares all 16 zips with sha256sum -c
+        # fresh.py builds this pack in a copy and compares all 17 zips with sha256sum -c
         r"^python tools/pd2-port/build_las_pack\.py$": '"fresh.py"), "check"]',
         r"^(for sha_file in dist/\*\.zip\.sha256 .*; do|sha256sum -c \"\$sha_file\"|done)$": '"fresh.py"), "check"]',
     }

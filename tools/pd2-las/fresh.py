@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Build every tracked pack again, in a copy of the working tree, and compare.
+"""Build every rebuildable pack again, in a copy of the working tree, and compare.
 
     python tools/pd2-las/fresh.py check
     python tools/pd2-las/fresh.py matrix [--configs a,b,...] [--builders x,y] [--trace all]
 
-check   builds all 14 packs in build/fresh/tree and compares each of the 16
-        tracked zips with its tracked .sha256, using `sha256sum -c`. No
-        tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
+check   builds the packs that have a builder (the Miranda packs, lawson_las and the
+        nine head packs) in build/fresh/tree and compares each of the 17 tracked
+        zips with its tracked .sha256, using `sha256sum -c`. The two Christie packs
+        are compared as the tracked copies: their builder was deleted on
+        2026-11-14, so they cannot be rebuilt and the comparison pins the sidecars.
+        No tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
         one is not; what differs inside it is listed member by member.
 matrix  the same build under other numeric code paths (CONFIGS), two at a time,
         each in its own copy under build/vary/. Prints which zips move against
@@ -38,14 +41,13 @@ sys.path.insert(0, str(HERE))
 import determinism  # noqa: E402
 import trace_run  # noqa: E402
 
-#: What builds the 14 tracked packs, in the order they depend on each other: the
+#: What builds the rebuildable tracked packs, in the order they depend on each other: the
 #: busty pack reuses what the Miranda build unpacked, and the head packs take
-#: their face from dist/Miranda_LAS.zip.
+#: their face from dist/Miranda_LAS.zip. The two Christie packs are not rebuildable:
+#: their builder was deleted on 2026-11-14.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
     "busty": ["tools/pd2-las/build_busty_variant.py"],
-    "christie": ["tools/pd2-las/build_christie_las.py"],
-    "slim": ["tools/pd2-las/build_christie_las.py", "--variant", "slim"],
     "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
 }
@@ -74,7 +76,7 @@ class BuildFailed(Exception):
 
 
 def tracked_zips() -> list[str]:
-    """The 16 tracked zips, as paths from the repository root: every one that has a .sha256 beside it."""
+    """The 17 tracked zips, as paths from the repository root: every one that has a .sha256 beside it."""
     sidecars = sorted(REPO.glob("dist/*.zip.sha256")) + sorted(REPO.glob("build/pd2-las/*.zip.sha256"))
     return [str(path.relative_to(REPO))[: -len(".sha256")] for path in sidecars]
 
@@ -401,7 +403,7 @@ def matrix(args) -> int:
         off = [Path(rel).name for rel, sha in result["sha256"].items() if sha != tracked[rel] and rel.startswith("dist/")]
         moved = [rel for rel, sha in result["sha256"].items() if sha != ref.get("sha256", {}).get(rel)]
         print(f"`{name}`: {len(moved)} of {len(tracked)} zips differ from `{reference}`; "
-              f"{len(off)} of the 14 packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
+              f"{len(off)} of the 15 packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
         for rel in moved:
             if rel.startswith("build/") and "dist/" + Path(rel).name in moved:
                 continue
