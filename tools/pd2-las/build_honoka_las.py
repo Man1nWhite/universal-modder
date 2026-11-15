@@ -44,12 +44,12 @@ pack for PAYDAY 2:
   exactly `g_body` (on) and `g_body_lod1` (off); `s_body` and colliders are
   engine-owned and stay out.
 
-Outputs (default `build/pd2-las/`, git-ignored; **never** `dist/`):
+Outputs (default `build/honoka-las/`, git-ignored; **never** `dist/`):
 
-  build/pd2-las/honoka_las.model            the third-person model
-  build/pd2-las/Honoka_LAS/                 the installable pack folder
-  build/pd2-las/Honoka_LAS.zip              + .sha256
-  build/pd2-las/honoka_las_report.json      build report (runtime_verified: false)
+  build/honoka-las/honoka_las.model            the third-person model
+  build/honoka-las/Honoka_LAS/                 the installable pack folder
+  build/honoka-las/Honoka_LAS.zip              + .sha256
+  build/honoka-las/honoka_las_report.json      build report (runtime_verified: false)
 
 `runtime_verified` stays `false` everywhere; nothing here has been run in
 PAYDAY 2.
@@ -73,7 +73,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 DEFAULT_TEMPLATES = REPO / "build" / "pd2-las" / "2b" / "2B - LAS" / "assets" / "units" / "2b" / "skins" / "2b"
-DEFAULT_OUT = REPO / "build" / "pd2-las"
+DEFAULT_OUT = REPO / "build" / "honoka-las"
 SOURCE_ZIP = REPO / "references" / "Outfit for Honoka-109-1-1-1628020933.zip"
 TMC_NAME = "Honoka_DOAXVV_Secret_Report.TMC"
 TEX_DIR = REPO / "references" / "Honoka"

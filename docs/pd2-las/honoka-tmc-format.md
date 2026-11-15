@@ -236,11 +236,11 @@ instead of Source, Miranda's pipeline reused for retarget/assembly). Output
 of one run (all git-ignored, nothing in `dist/`):
 
 ```
-build/pd2-las/honoka_las.model            6,155,357 B — third-person model
-build/pd2-las/Honoka_LAS/                 installable pack folder
-build/pd2-las/Honoka_LAS.zip              5,740,871 B; .sha256 next to it
-build/pd2-las/honoka_las_report.json      build report (runtime_verified: false)
-build/pd2-las/Honoka_LAS/previews/honoka_4views.png   own render, 4 views
+build/honoka-las/honoka_las.model            6,155,357 B — third-person model
+build/honoka-las/Honoka_LAS/                 installable pack folder
+build/honoka-las/Honoka_LAS.zip              5,740,871 B; .sha256 next to it
+build/honoka-las/honoka_las_report.json      build report (runtime_verified: false)
+build/honoka-las/Honoka_LAS/previews/honoka_4views.png   own render, 4 views
 ```
 
 ### Decisions and evidence

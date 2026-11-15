@@ -10,20 +10,14 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | `Miranda_LAS` — full body and first-person arms | `models/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `Miranda_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 
-`build_honoka_las.py` builds a third, untracked pack — **Honoka (Secret Report)**, the DOAXVV
-costume in `references/Outfit for Honoka-109-1-1-1628020933.zip` (a XNALara-ish TMC, not Source) — into `build/pd2-las/Honoka_LAS/`
-(git-ignored; nothing is installed and `dist/` is untouched). One command:
-
-```sh
-.venv/bin/python tools/pd2-las/build_honoka_las.py   # writes build/pd2-las/Honoka_LAS{,.zip}, honoka_las.model, honoka_las_report.json
-```
-
-What it does: reads the three in-scope meshes from the TMC (`tmc.py`), remaps the per-mesh skin palettes to global node
-indices, merges unmapped helper bones into their nearest mapped ancestor (`tmc_skeleton_map.json`), retargets onto the
-PD2 bind pose (the Miranda fits pipeline), cuts both wrists, encodes the DXT5 textures with full mip chains in PD2's
-layout (alpha = matte gloss; normals X-in-alpha, Y+-in-green, Y inverted), writes the BODY_ONLY registration with the
-glove-adapter companion, its own 4-view render as the icon, and the deterministic zip. `runtime_verified` is `false` —
-nothing has been run inside PAYDAY 2. See `docs/pd2-las/honoka-tmc-format.md`.
+`build_honoka_las.py` builds a third, untracked pack — **Honoka (Secret Report)**, the DOAXVV costume in
+`references/Outfit for Honoka-109-1-1-1628020933.zip` (a XNALara-ish TMC, not Source) — into `build/honoka-las/`
+(git-ignored; nothing installed, `dist/` untouched). It reads the three in-scope meshes from the TMC (`tmc.py`), remaps the
+per-mesh skin palettes to global node indices, merges unmapped helper bones into their nearest mapped ancestor
+(`tmc_skeleton_map.json`), retargets onto the PD2 bind pose (the Miranda fits pipeline), cuts both wrists, encodes the
+DXT5 textures with full mip chains in PD2's layout (alpha = matte gloss; normals X-in-alpha, Y+-in-green, Y inverted), and
+writes the BODY_ONLY registration with the glove-adapter companion, an own 4-view render as the icon, and the deterministic
+zip. One command; `runtime_verified` is `false` — nothing has been run inside PAYDAY 2. See `docs/pd2-las/honoka-tmc-format.md`.
 
 ## Status
 
