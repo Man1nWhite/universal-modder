@@ -219,6 +219,23 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   reproduced the previously delivered bytes exactly, but that check is not wired into `fresh`.
 - **Status:** holds.
 
+### D37 — The tracked Honoka pack was rebuilt with the source-connector filter
+
+- **Decided:** 2026-11-15, by the user ("fix anything you want"), after the renders showed hairline
+  streaks crossing the model (`build/honoka-las/previews-new/diagnostic_front.png`, untracked).
+- **Decision:** `build_honoka_las.py` drops every triangle with an edge over 20 cm
+  (`LONG_THIN_MAX_EDGE_CM`), per slice, after the wrist cut. 26 source strip-break connector
+  triangles were removed; no other geometry changed. `dist/Honoka_LAS.zip` and its sidecar were
+  re-committed; `make honoka` installs the new bytes. The previous bytes stay in git history
+  (`2e49f14`). `runtime_verified` stays `false`; no release, no other publication.
+- **Why:** the streaks are in the source TMC (pairs of slivers with a ~0.2 cm root edge and a far
+  apex), not a decode, winding or normals defect, so nothing in the pipeline could repair them; they
+  had to be dropped. The threshold sits in an empty gap of the edge-length distribution (longest
+  legitimate edge 13.4 cm; smallest stray 23.7 cm), so no real geometry is cut. The pack still cannot
+  be `fresh`-verified (the builder never writes `dist/`, see D36); a double build in a separate output
+  directory reproduced the new bytes exactly.
+- **Status:** holds.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

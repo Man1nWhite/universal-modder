@@ -24,8 +24,10 @@ Neither pack's bytes have been in game.
 
 The Honoka pack (`Honoka_LAS`) is tracked as of 2026-11-15. It is the DOAXVV "Secret Report" costume: built by
 `build_honoka_las.py`, put into `dist/` by the `honoka` make target's copy step, so `fresh` does not verify it and
-`status` reports `make: null` for it, as for the Christie packs. Its bytes have never been in game and no record says
-anyone has run them.
+`status` reports `make: null` for it, as for the Christie packs. Later on 2026-11-15 it was rebuilt with a
+source-connector-triangle filter (26 long thin triangles, up to 146 cm, drawn as hairline streaks from the wrist area)
+and re-committed; the bytes from the first commit stay reachable through git history. Its bytes have never been in
+game and no record says anyone has run them.
 
 ## Seen in game
 

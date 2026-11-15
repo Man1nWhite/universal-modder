@@ -15,3 +15,13 @@ It is the one tracked pack `fresh` does not verify: the builder writes `build/ho
 `dist/` is part of the make target. The pinned-environment rebuild after a sandbox restart reproduced the
 previously delivered bytes exactly (same size, same sha256), confirming the build is byte-reproducible.
 `runtime_verified` is false; nothing has been run inside PAYDAY 2.
+
+## 2026-11-15 — long-thin connector triangles dropped; pack re-committed
+
+The tracked `dist/Honoka_LAS.zip` was rebuilt with the new source-connector filter
+(`drop_long_thin_triangles` in `build_honoka_las.py`, 20 cm edge limit — the gap between the 13.4 cm longest
+legitimate edge and the 23.7 cm smallest stray): 26 triangles removed (6 `WGT_cap2`, 8 `WGT_headdress2`,
+12 `WGT_new_aya_body_decl0`), 50244 -> 50218 triangles per geometry. They drew as hairline streaks (wrist to
+feet) in every preview render. A second build of the same tree in a different output directory reproduced the
+new zip byte for byte; it is tracked with a rewritten sidecar (new size and sha256 — `status` prints them).
+The previous bytes remain in git history (`2e49f14`). `runtime_verified` stays `false`.

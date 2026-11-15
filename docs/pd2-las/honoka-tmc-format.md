@@ -350,5 +350,18 @@ build/honoka-las/Honoka_LAS/previews/honoka_4views.png   own render, 4 views
   full tree was re-committed as `9ade581` (the 2026-11-14 work) and
   `7ad904b` (build driver). Test suite: 600 passed, 8 skipped (before the
   reset and again after re-anchoring). `dist/` was never rebuilt or staged.
+- **Source connector slivers — dropped at build** (2026-11-15). Every mesh
+  in the TMC carries the same artefact: triangle fans from the source's
+  strip-break quads, each pair a long thin sliver (a ~0.2 cm root edge, apex
+  up to 146 cm away in the retargeted frame) joining unrelated body parts
+  (wrist to feet, neck to ankle, head-top to wrist). They drew as hairline
+  streaks in every preview (2026-11-15 renders). Their presence is in the
+  source index data (6 in cap2, 8 in headdress2, 12 in the body), so no
+  decode/winding repair can remove them; the build now drops every triangle
+  with an edge over `LONG_THIN_MAX_EDGE_CM` (20 cm) per slice after the wrist
+  cut. The threshold sits in an empty gap (longest legitimate edge 13.4 cm;
+  smallest stray 23.7 cm). Per geometry: 50,244 → 50,218 triangles; signed
+  volume 181,599 → 188,011 cm³. The pack was rebuilt (byte-reproducible in a
+  second output directory) and re-committed to `dist/`.
 
 `runtime_verified` stays `false` everywhere it appears.
