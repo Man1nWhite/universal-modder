@@ -236,6 +236,25 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   directory reproduced the new bytes exactly.
 - **Status:** holds.
 
+### D38 — In-game menu captures were supplied for Honoka and both Christie packs; the HANDOFF table is the truth for what was in game
+
+- **Decided:** 2026-11-15, by the user, who supplied six in-game screenshots and asked for the repository
+  to be updated.
+- **Decision:** `docs/renders/in-game-2026-11-15/` archives the six captures byte-identically with a
+  `README.md` and a `manifest.json` (dimensions, sizes, SHA-256). They are all the outfit-menu
+  armor-skin preview, not a heist: `Honoka_LAS` (the tracked pack, confirmed by the user),
+  `Christie_LAS_Slim` with the white LAS gloves spawned, and full `Christie_LAS` with Christie's own
+  hands — the Christie build identification is the user's, not hash-measured from the captured bytes.
+  `docs/pd2-las/HANDOFF.md` (*Seen in game*) records all three packs as seen in game on 2026-11-15 and
+  is the authority on what ran. `runtime_verified` in every pack's `BUILD_INFO.json` stays `false`
+  (D31) — the flag is a builder constant, and the tracked pack bytes were not rebuilt or touched.
+  Lobby/heist behaviour, the inner elbow under a rifle, movement, the cuff/glove stack in every pose
+  and the crash logs remain open (`docs/pd2-las/in-game-checklist.md`). No release, no other publication.
+- **Why:** the screenshots are the only in-game evidence that exists; deleting or ignoring them would
+  leave HANDOFF saying "no record" for packs the user just ran. Archiving them with the install state the
+  user reported keeps the record honest without pretending the checklist is done.
+- **Status:** holds.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

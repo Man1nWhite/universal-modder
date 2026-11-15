@@ -25,3 +25,16 @@ legitimate edge and the 23.7 cm smallest stray): 26 triangles removed (6 `WGT_ca
 feet) in every preview render. A second build of the same tree in a different output directory reproduced the
 new zip byte for byte; it is tracked with a rewritten sidecar (new size and sha256 — `status` prints them).
 The previous bytes remain in git history (`2e49f14`). `runtime_verified` stays `false`.
+
+## 2026-11-15 — in-game menu captures archived for Honoka and both Christie packs
+
+The user supplied six in-game screenshots (all the outfit menu armor-skin preview, not a heist):
+`Honoka_LAS` (the tracked pack, user-confirmed), `Christie_LAS_Slim` with the white LAS gloves spawned, and
+full `Christie_LAS` with Christie's own hands (the Christie build identification is the user's, not
+hash-measured from the captured bytes). They are archived byte-identically in
+`docs/renders/in-game-2026-11-15/` with a README and a SHA-256 manifest; `docs/pd2-las/HANDOFF.md`
+(*Seen in game*) now records all three packs as seen in game on 2026-11-15 and is the authority on what ran.
+The tracked pack bytes were not rebuilt or touched; `runtime_verified` in `BUILD_INFO.json` remains `false`
+in every pack (D31) — the HANDOFF table, not the flag, is the record. Lobby/heist behaviour, the inner
+elbow under a rifle, movement, the cuff/glove stack in every pose and the crash logs remain open
+(`docs/pd2-las/in-game-checklist.md`). See D38.

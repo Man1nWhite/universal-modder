@@ -112,6 +112,13 @@ levels are there for motion, and only the game shows motion.
 
 ## Christie LAS — in-game verification (2026-11-14)
 
+> **Update, 2026-11-15.** The packs were in the game outfit menu on 2026-11-15 (user report):
+> `Christie_LAS_Slim` with the white LAS gloves spawned, and full `Christie_LAS` with Christie's own
+> hands. The captures are archived in `docs/renders/in-game-2026-11-15/`. That is item 1's *preview*
+> half for both packs — the list below, the lobby/heist look, the rifle elbow, the cuff/glove stack in
+> every pose and the crash logs, is still open. The installed builds were user-identified, not
+> hash-measured; nothing here changes which bytes are tracked.
+
 Pack to install: `dist/Christie_LAS.zip` → drop `Christie_LAS` into
 `PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS, same as the 2B reference). It is a
 headless LAS outfit (`replace_body`, not `replace_all`): the heister keeps their own head.

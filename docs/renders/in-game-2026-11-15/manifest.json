@@ -1,0 +1,78 @@
+{
+  "supplied_on": "2026-11-15",
+  "coordinate_convention": "Original PNG pixels, origin top-left.",
+  "screenshots": [
+    {
+      "shot": 1,
+      "upload": "image-6.png",
+      "file": "honoka_menu_front.png",
+      "pack": "Honoka_LAS",
+      "view": "Menu / armor-skin preview, front",
+      "width": 539,
+      "height": 1016,
+      "bytes": 917099,
+      "sha256": "c9c4af890278d7313fb7678ccc8be0a62abadc4caa6cb821769f9c440d88e09a",
+      "note": "the Honoka pack as tracked in dist/ (ce1d1c0)"
+    },
+    {
+      "shot": 2,
+      "upload": "image-7.png",
+      "file": "honoka_menu_side.png",
+      "pack": "Honoka_LAS",
+      "view": "Menu / armor-skin preview, side (profile)",
+      "width": 544,
+      "height": 1040,
+      "bytes": 976985,
+      "sha256": "cd587981bc19cf5b48574a30ecb5993938457c98bc9fd7c0b1d4cc01f17398a6",
+      "note": "the Honoka pack as tracked in dist/ (ce1d1c0)"
+    },
+    {
+      "shot": 3,
+      "upload": "image-8.png",
+      "file": "christie_slim_menu_front_white-gloves.png",
+      "pack": "Christie_LAS_Slim",
+      "view": "Menu / armor-skin preview, front, white LAS gloves spawned",
+      "width": 517,
+      "height": 1016,
+      "bytes": 940647,
+      "sha256": "84712ef52d088cb0d7188a05edda87899a335766b804692faf94bac952f20a7b",
+      "note": "user-reported Christie_LAS_Slim with the white LAS glove outfit equipped"
+    },
+    {
+      "shot": 4,
+      "upload": "image-9.png",
+      "file": "christie_slim_menu_side_white-gloves.png",
+      "pack": "Christie_LAS_Slim",
+      "view": "Menu / armor-skin preview, side (profile), white LAS gloves spawned",
+      "width": 516,
+      "height": 1021,
+      "bytes": 935054,
+      "sha256": "3c34befe1c71609148ffa19191a5e37f9c8716110e458d37a6f505322b051900",
+      "note": "user-reported Christie_LAS_Slim with the white LAS glove outfit equipped"
+    },
+    {
+      "shot": 5,
+      "upload": "image-10.png",
+      "file": "christie_menu_front.png",
+      "pack": "Christie_LAS",
+      "view": "Menu / armor-skin preview, front, Christie's own hands",
+      "width": 529,
+      "height": 996,
+      "bytes": 928383,
+      "sha256": "61147299006dce9b89d9e6368d721e558eb812fdcbc63daa8ab79d093f68bb03",
+      "note": "user-reported full Christie_LAS (with hands)"
+    },
+    {
+      "shot": 6,
+      "upload": "image-11.png",
+      "file": "christie_menu_side.png",
+      "pack": "Christie_LAS",
+      "view": "Menu / armor-skin preview, side (profile), Christie's own hands",
+      "width": 548,
+      "height": 1009,
+      "bytes": 977977,
+      "sha256": "88fba6ae73dd75299f937f514ca501e3702a3f1775c149cc6755c9bb71c41f65",
+      "note": "user-reported full Christie_LAS (with hands)"
+    }
+  ]
+}

@@ -17,7 +17,7 @@ The TMC source is a XNALara-ish export, not Source: it reads the three in-scope 
 palettes to global node indices, merges unmapped helper bones into their nearest mapped ancestor (`tmc_skeleton_map.json`),
 retargets onto the PD2 bind pose, cuts both wrists, encodes DXT5 with full mip chains (alpha = matte gloss; normals X-in-alpha,
 Y+-in-green, Y inverted), and writes the BODY_ONLY registration with the glove-adapter companion, an own 4-view render as icon.
-`runtime_verified` is `false` — nothing has been run inside PAYDAY 2. See `docs/pd2-las/honoka-tmc-format.md`.
+`runtime_verified` is `false`; the tracked pack was seen in the in-game outfit menu (captures in `docs/renders/in-game-2026-11-15/`). See `docs/pd2-las/honoka-tmc-format.md`.
 
 ## Status
 
