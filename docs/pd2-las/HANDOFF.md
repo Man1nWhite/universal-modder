@@ -48,11 +48,11 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — the full pack with Christie's own hands; installed hashes not measured |
 | `Christie_LAS_Slim` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — Slim with the white LAS gloves spawned; installed hashes not measured |
 
-The 2026-11-15 captures (all six are the outfit menu, not a heist) are archived in
-[`docs/renders/in-game-2026-11-15/`](../renders/in-game-2026-11-15/README.md). They show the Honoka tracked
-pack with a clean silhouette (no connector-triangle streaks), Christie_LAS_Slim under the spawned white LAS
-gloves, and full Christie_LAS with Christie's own hands. Lobby/heist behaviour, the inner elbow under a rifle,
-movement, the cuff/glove stack in every pose and the crash logs remain unchecked — the
+The 2026-11-15 captures (all six are the outfit menu, not a heist; archived at `da891d7` and removed
+during the `docs/renders/README.md` cleanup) showed the Honoka tracked pack with a clean silhouette
+(no connector-triangle streaks), Christie_LAS_Slim under the spawned white LAS gloves, and full
+Christie_LAS with Christie's own hands. Lobby/heist behaviour, the inner elbow under a rifle, movement,
+the cuff/glove stack in every pose and the crash logs remain unchecked — the
 [checklist](in-game-checklist.md) is still waiting for a person with the game. The exact Christie builds
 installed on 2026-11-15 were identified by the user, not hash-measured from the captured bytes.
 

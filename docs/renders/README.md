@@ -1,0 +1,73 @@
+# Renders — unified directory and naming rules
+
+`docs/renders/` is the **single tracked home** for all renders and in-game captures in this repository.
+Legacy render folders (`docs/previews/`, `docs/pd2-las/renders/`, and loose image dumps under
+`docs/audits/`) are retired; no tracked render lives outside this directory.
+
+- **Scratch / per-build renders stay in `build/` (gitignored):** automated build sheets and ad-hoc
+  diagnostics write to `build/previews/`, `build/pd2-las/previews/`, `build/pd2-las/renders/`,
+  `build/pd2-port/preview/`, `build/pd2-port/shade/`, `build/honoka-las/`, etc. Commit to
+  `docs/renders/` only when curating reviewed reference renders or archiving captures.
+- **Not renders:** repository UI/README branding lives in `docs/media/`, knowledge-base figures live in
+  `knowledge/**/media/`, and example mod assets live in `examples/`.
+
+## Directory layout
+
+```
+docs/renders/
+└── <project>/
+    └── <ext>/
+        └── [<variant-or-scope>/]
+            └── [<YYYY-MM-DD>/]
+                ├── README.md
+                ├── [manifest.json]        # required for in-game/
+                └── <name>_<view>.<img_ext>
+```
+
+1. **Level 1 — `<project>/`:** lowercase-kebab slug of the mod or character project being rendered
+   (e.g. `christie`, `miranda`, `honoka`, `lawson`, `geralt`, or `overview` for multi-project sheets).
+2. **Level 2 — `<ext>/`:** lowercase file extension (without a leading dot) of the **source or asset
+   format being rendered**:
+   - `model/` — compiled Diesel `.model` (the built pack deliverable)
+   - `mdl/` — Source-engine compiled model (`.mdl` + `.vvd` + `.vtx`)
+   - `smd/` — Valve StudioMDL Data (`.smd`)
+   - `obj/` — Wavefront `.obj`
+   - `tmc/` — DOA5 / DOAXVV `.tmc`
+   - `dae/` — COLLADA `.dae`
+   - `glb/` — glTF binary `.glb`
+   - `texture/` / `dds/` / `vtf/` — texture or mip-level renders decoded directly from texture files
+   - `in-game/` — live captures taken inside the running game (no single mesh file extension)
+   - Other source formats use their own lowercase file extension without a leading dot (e.g. `fbx/`,
+     `nif/`). Never combine extensions (`mdl-vvd-vtx/`) or append variants to `<ext>/` (`model-slim/`).
+3. **Level 3+ — `<variant-or-scope>/` and `<YYYY-MM-DD>/` (optional):**
+   - Separate variants, targets, or sub-scopes below `<ext>/` in lowercase-kebab: e.g. `base/`, `slim/`,
+     `busty/`, `tpp/`, `fps/`, `textured/`, `elbow/`, `cuff/`, `mips/`, `over-joy/`, `over-clover/`,
+     `over-bonnie/`, `over-sydney/`, `over-rust/`, `menu/`, `heist/`.
+   - Use `YYYY-MM-DD/` only below `<project>/<ext>/` when archiving dated snapshots or user captures —
+     never at Level 1 or Level 2.
+
+## File naming and output extension
+
+- Use lowercase underscore-separated filenames ending with a view token:
+  `<project>[_<variant>][_<part>]_<view>.<render_ext>`
+- Standard `<view>` tokens: `front`, `side`, `back`, `iso`, `threequarter`, `top`, `bottom`, `sheet`,
+  `before-after`.
+- Use `.png` for lossless software/Cycles renders, diagnostic sheets, and unmodified in-game captures.
+  Use `.jpg`, `.webp`, or `.gif` only when animated or explicitly required.
+
+## Provenance and verification
+
+- Every leaf batch directory (or `<project>/<ext>/` when unsplit) must contain a `README.md` stating the
+  generating command/script, source archive or pack provenance, camera/view conventions, and caveats.
+  Do not quote pack sizes or SHA-256 digests in `AGENT_DOCS` (`make -sC tools/pd2-las status` prints them).
+- `in-game/` batches must archive captures byte-identically (no resizing, recompression, or annotation)
+  with both a `README.md` and a `manifest.json` (dimensions, byte sizes, SHA-256 digests, pack/build
+  identification, and what is/isn't verified).
+- Offline renders never establish runtime verification: `runtime_verified` stays `false` in every pack's
+  `BUILD_INFO.json`, and `docs/pd2-las/HANDOFF.md` records what was actually seen in game.
+
+## Enforcement
+
+`tests/test_render_rules.py` enforces this layout on every CI run (no legacy `docs/previews/` or
+`docs/pd2-las/renders/`, no tracked renders in `docs/` outside `docs/renders/`, and valid
+`<project>/<ext>/...` paths for every file in `docs/renders/`).

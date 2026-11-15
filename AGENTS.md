@@ -1,16 +1,16 @@
 # universal-modder
 
 A game-modding toolkit and knowledge base for AI coding agents, forked from `rehan-remade/universal-modder`.
-The work in this fork is PAYDAY 2: 15 tracked packs in `dist/`, built by three pipelines under `tools/`.
+The work in this fork is PAYDAY 2: 16 tracked packs in `dist/`, built by three pipelines under `tools/`.
 
 ## PAYDAY 2 packs: one command per question
 
 | Question | Run or read |
 |---|---|
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
-| State of the 15 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
+| State of the 16 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build` (Miranda_LAS), `busty`, `lawson` (lawson_las), `heads` (the nine `*_over_*` packs); the two Christie packs are tracked but cannot be rebuilt — their builder was deleted. On 2026-11-14 a from-scratch build with the pre-bridge builder (recovered from `6f26633`) reproduced the **base** bytes (`b65fb27e…` / `9da90dd3…`), not the tracked sleeve-bridge `dist/Christie_LAS.zip` (`1ec1c95a…`) |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build` (Miranda_LAS), `busty`, `lawson` (lawson_las), `honokodae` (Honoko2), `heads` (the nine `*_over_*` packs); the two Christie packs are tracked but cannot be rebuilt — their builder was deleted. On 2026-11-14 a from-scratch build with the pre-bridge builder (recovered from `6f26633`) reproduced the **base** bytes (`b65fb27e…` / `9da90dd3…`), not the tracked sleeve-bridge `dist/Christie_LAS.zip` (`1ec1c95a…`) |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
@@ -44,18 +44,18 @@ The work in this fork is PAYDAY 2: 15 tracked packs in `dist/`, built by three p
   - Never write cheats against other players (aimbots, ESP, speed hacks).
   - Never bypass anti-cheat, DRM or ownership checks.
 - **Saves:** `um backup` saves before modded launches.
-- **What you ship:** never commit or publish game files, extracted assets or decompiled code. Keep
+- **What you ship:** never commit or publish game files, extracted assets or decompiled code; keep
   decompiles outside the repo.
+- **Renders:** tracked renders go in `docs/renders/<project>/<ext>/...` (`docs/renders/README.md`);
+  scratch in `build/`.
 - **Processes:** kill by exact PID (`um win kill`), never by name pattern.
 - **Ask first** before:
-  - driving the user's mouse and keyboard, and never focus a game with an online mode while they're typing;
+  - driving mouse/keyboard, and never focus a game with an online mode while the user types;
   - installing loaders into game folders or changing the registry;
   - publishing anything, PRs included.
-- **Keep a journal:** a `MODLOG.md` in the mod's working folder. It becomes your field note at the end.
-- **Keep the state in a command:** on a long project the next agent should not have to rebuild the state
-  from a journal (`tools/pd2-las/status.py` is the pattern).
-- **Sequence your file edits:** parallel edits to the same file race, and the
-  loser silently clobbers the winner.
+- **Keep a journal:** `MODLOG.md` in the mod's folder; it becomes your field note.
+- **Keep state in a command:** don't make the next agent rebuild state from a journal (`tools/pd2-las/status.py`).
+- **Sequence file edits:** parallel edits to one file race and clobber each other.
 
 ## Working on the toolkit itself
 - **Python:** 3.10+, deps Pillow, numpy and PyYAML. Code lives in `um/`, one module per CLI group, each

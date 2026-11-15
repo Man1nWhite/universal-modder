@@ -2,7 +2,7 @@
 
 **Status: decode complete; an LAS build runs end-to-end offline (2026-11-15).** `runtime_verified` stays `false`
 in `BUILD_INFO.json`. Later on 2026-11-15 the tracked pack was in the outfit menu in game
-(user report; captures in `docs/renders/in-game-2026-11-15/`); read the rest of this page as the pre-game record.
+(user report; archived at `da891d7`, removed in the `docs/renders/` cleanup); read the rest of this page as the pre-game record.
 The build is section
 "2026-11-15 (build): the LAS pack builds" near the end; the sections before it
 are the decode record and are kept as written.
@@ -339,7 +339,7 @@ build/honoka-las/Honoka_LAS/previews/honoka_4views.png   own render, 4 views
   re-distributed; the tile is this model). `build_icon(..., view=3)`
   composites the three-quarter view on a gradient.
 - **In-game checks that still must run** (none of the below is heist-verified; the outfit-menu
-  preview is, as of 2026-11-15 — captures in `docs/renders/in-game-2026-11-15/`, user report):
+  preview is, as of 2026-11-15 — user report; captures archived at `da891d7`, removed in D39):
   gloves spawn at the cut (or hands go skinless); jacket/skirt
   arm silhouette; normal-map strength and Y direction; skirt hem rags
   z-fighting/culling; `g_body_lod1` on/off flicker; contour outline; LAS

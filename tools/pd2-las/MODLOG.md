@@ -38,3 +38,10 @@ The tracked pack bytes were not rebuilt or touched; `runtime_verified` in `BUILD
 in every pack (D31) — the HANDOFF table, not the flag, is the record. Lobby/heist behaviour, the inner
 elbow under a rifle, movement, the cuff/glove stack in every pose and the crash logs remain open
 (`docs/pd2-las/in-game-checklist.md`). See D38.
+
+## 2026-11-15 — unified render rules under `docs/renders/`; old renders deleted
+
+All pre-existing tracked renders (`docs/previews/`, `docs/pd2-las/renders/`,
+`docs/renders/christie-2026-11-14/`, `docs/renders/in-game-2026-11-15/`) were removed at the
+owner's direction (still in git history at `da891d7`). `docs/renders/README.md` defines the single
+layout (`docs/renders/<project>/<ext>/...`), enforced by `tests/test_render_rules.py`. See D39.

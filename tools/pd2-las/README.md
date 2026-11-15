@@ -10,14 +10,11 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | `Miranda_LAS` — full body and first-person arms | `models/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `Miranda_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 | `Honoka_LAS` — the DOAXVV "Secret Report" costume | `references/Outfit for Honoka-109-1-1-1628020933.zip` | `build_honoka_las.py` | `honoka` |
+| `Honoko2` — the same outfit built from `.dae` (6 mats) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
-The Honoka zip is built into `build/honoka-las/` (git-ignored) and `make honoka` copies it into `dist/Honoka_LAS.zip` (tracked
-like the other packs, but `fresh` cannot compare it with the commit — the builder writes `build/honoka-las/` — so `status` reports `make: null`, as for the Christie packs).
-The TMC source is a XNALara-ish export, not Source: it reads the three in-scope meshes (`tmc.py`), remaps the per-mesh skin
-palettes to global node indices, merges unmapped helper bones into their nearest mapped ancestor (`tmc_skeleton_map.json`),
-retargets onto the PD2 bind pose, cuts both wrists, encodes DXT5 with full mip chains (alpha = matte gloss; normals X-in-alpha,
-Y+-in-green, Y inverted), and writes the BODY_ONLY registration with the glove-adapter companion, an own 4-view render as icon.
-`runtime_verified` is `false`; the tracked pack was seen in the in-game outfit menu (captures in `docs/renders/in-game-2026-11-15/`). See `docs/pd2-las/honoka-tmc-format.md`.
+The Honoka TMC zip is built into `build/honoka-las/` and copied to `dist/Honoka_LAS.zip` (`status` reports `make: null` for it); `Honoko2` writes `dist/Honoko2.zip` directly and is verified by `fresh` (`make honokodae`).
+The TMC/DAE builders remap skin palettes (`tmc.py`, `tmc_skeleton_map.json`), cut wrists, encode DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and register BODY_ONLY with glove adapter and 4-view icon.
+`runtime_verified` is `false`; `Honoka_LAS` was seen in the in-game outfit menu (`docs/pd2-las/HANDOFF.md`). See `docs/pd2-las/honoka-tmc-format.md`.
 
 ## Status
 
@@ -32,7 +29,7 @@ and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | heads | all; prints the state of the packs it wrote
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | heads | all; prints the state of the packs it wrote
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -57,7 +54,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_busty_variant.py`, `bust_variant.py` | the chest-morph variant |
-| `build_honoka_las.py` | the Honoka (DOAXVV TMC) LAS pack: palette remap, ancestor-walk merge, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from its own render |
+| `build_honoka_las.py`, `build_honoko2_dae.py` | the Honoka (DOAXVV TMC and Collada `.dae`) LAS packs: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render |
 | `las_outfit_pack.py` | the registration, hook, localization, unit/object XML, zip and the glove-adapter companion shared by body-only LAS packs |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |
@@ -124,7 +121,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 ## Further reading
 
 - The sibling pipelines (`tools/pd2-port/`, `tools/build_joy_head_mods.py`): [`tools/README.md`](../README.md)
-- Why it is built this way: `docs/pd2-las/DECISIONS.md`; dated audits: `docs/audits/`
+- Why it is built this way: `docs/pd2-las/DECISIONS.md`; dated audits: `docs/audits/`; renders: `docs/renders/README.md`
 - The tracked bytes, what was seen in game and when, dead ends: `docs/pd2-las/HANDOFF.md`
 - LAS runtime contract and gotchas: `knowledge/games/payday-2/las-armor-skin-outfit.md`
 - Chest morph: `docs/pd2-las/CHEST-VARIANT.md`; retarget and matrix conventions: the `build_models.py` docstring, `retarget_maps`

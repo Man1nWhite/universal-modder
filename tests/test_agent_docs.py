@@ -39,10 +39,14 @@ def _status():
 
 
 def _tracked() -> set[str]:
-    """Tracked paths and the directories that hold them (every file, where there is no git)."""
+    """Tracked (plus unignored new, minus deleted) paths and the directories that hold them."""
     git = shutil.which("git")
     if git and (REPO / ".git").exists():
-        files = subprocess.run([git, "ls-files", "-z"], cwd=REPO, capture_output=True, check=True).stdout.decode().split("\0")
+        files = subprocess.run(
+            [git, "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+            cwd=REPO, capture_output=True, check=True,
+        ).stdout.decode().split("\0")
+        files = [rel for rel in files if rel and (REPO / rel).exists()]
     else:
         files = [p.relative_to(REPO).as_posix() for p in REPO.rglob("*") if p.is_file() and ".venv" not in p.parts]
     known = {rel for rel in files if rel}

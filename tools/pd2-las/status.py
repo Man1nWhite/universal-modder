@@ -59,6 +59,8 @@ INPUTS = (
     "references/Christie.zip",
     "references/Ada Wong over Joy.7z",
     "references/Heister - FPS Gloves in TPS 2.zip",
+    "references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae",
+    "references/Outfit for Honoka-109-1-1-1628020933.zip",
 )
 
 #: tracked pack (dist/<name>.zip) -> the make target that rebuilds it. The Makefile
@@ -69,6 +71,7 @@ TARGETS = {
     "Miranda_LAS": "build",
     "Miranda_Busty_LAS": "busty",
     "lawson_las": "lawson",
+    "Honoko2": "honokodae",
 }
 HEADS = "heads"
 

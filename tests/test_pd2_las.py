@@ -1308,7 +1308,7 @@ class TestLasScaffold:
             assert float(np.abs(n0[ii][chin] - n1[jj][chin]).max()) < 1e-5, "Under-chin seam has normal mismatch"
 
     def test_geralt_over_rust_package(self):
-        """Verify dist/Geralt_over_Rust.zip geometry, CCW winding, single-atom ALPHA_MASKED mtr_head, textures, and preview."""
+        """Verify dist/Geralt_over_Rust.zip geometry, CCW winding, single-atom ALPHA_MASKED mtr_head, and textures."""
         import io
         import diesel_model as dm
         import numpy as np
@@ -1426,11 +1426,6 @@ class TestLasScaffold:
             neck_band = is_head_v & (verts[:, 2] >= 160.0) & (verts[:, 2] < 164.0) & (verts[:, 1] >= -2.0) & (verts[:, 1] <= 5.0)
             hair_band = is_hair_v & (verts[:, 2] >= 160.0) & (verts[:, 2] < 164.0) & (verts[:, 1] >= -2.0) & (verts[:, 1] <= 5.0)
             assert float(np.abs(verts[neck_band, 0]).max()) + 0.5 < float(np.abs(verts[hair_band, 0]).min())
-
-        prev = REPO / "docs" / "previews" / "11_Geralt_over_Rust.png"
-        assert prev.is_file()
-        with Image.open(prev) as pim:
-            assert pim.size == (1440, 538)
 
     def test_miranda_nostril_shadow_and_upper_lash_liner(self):
         """Regression check: inner nostrils are dark + low-specular across all Miranda packs, and Miranda_LAS has upper lash liner."""
