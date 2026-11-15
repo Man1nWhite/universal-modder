@@ -72,6 +72,8 @@ rules below.
     skills .claude/skills`; a test fails while they differ.
 - **Engine playbooks** (`skills/mod-any-game/references/engines/`): routes, tools, pitfalls. Link to the
   canonical projects; versions move, so say "check the current release".
+- **Renders (`docs/renders/`):** follow `docs/renders/README.md` (`docs/renders/<project>/<ext>/...`);
+  keep scratch and per-build previews under `build/` (gitignored).
 - **Examples (`examples/`):** your own code and assets only. Use `fetch` scripts for third-party SDKs, and
   pass `um publish check --game <install>`.
 

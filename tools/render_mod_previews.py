@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Render high-resolution PNG preview sheets for all 10 PAYDAY 2 Miranda Lawson mods in `dist/`.
+"""Render high-resolution PNG preview sheets for every PAYDAY 2 mod package in `dist/`.
 
-Outputs to `docs/previews/`:
+By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` to emit into
+`docs/renders/<project>/model/...` per `docs/renders/README.md`:
   - `00_all_miranda_mods_overview.png`
   - `01_Miranda_LAS.png`
   - `02_lawson_las.png`
@@ -16,13 +17,21 @@ Outputs to `docs/previews/`:
   - `11_Geralt_over_Rust.png`
   - `12_Miranda_Busty_LAS.png` (chest-morph variant of 01)
   - `13_Miranda_Busty_vs_LAS_chest.png` (before/after chest close-up)
+  - `14_Miranda_Busty_vs_LAS_top_below.png` (overhead/underside chest comparison)
+  - `15_Christie_LAS.png` (DOA5 Christie body-only LAS outfit)
+  - `16_Christie_LAS_Slim.png` (DOA5 Christie Slim body-only LAS outfit)
+  - `17_Honoka_LAS.png` (DOAXVV Honoka Secret Report body-only LAS outfit)
+  - `18_all_dist_mods_overview.png` (4x4 grid of all 16 packs in `dist/`)
+  - `19_Honoko2.png` (DOAXVV Honoka Secret Report DAE body-only LAS outfit)
 
-`00_all_miranda_mods_overview.png` stays the 5x2 grid of the ten head/full-body packs.
+`00_all_miranda_mods_overview.png` stays the 5x2 grid of the ten Miranda head/full-body packs.
 """
 from __future__ import annotations
 
+import argparse
 import io
 import sys
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 
@@ -233,10 +242,10 @@ def add_header_and_badges(
     draw.text((18, 34), subtitle, fill=(165, 180, 205), font=FONT_REG_12)
     if icon_img is not None:
         ic = icon_img.resize((88, 88), Image.Resampling.LANCZOS)
-        bx, by = W - 104, 68
+        bx, by = W - 110, 68
         draw.rectangle([bx - 3, by - 3, bx + 90, by + 90], fill=(14, 16, 22), outline=(80, 140, 220), width=2)
         canvas.paste(ic, (bx, by), ic if ic.mode == "RGBA" else None)
-        draw.text((bx + 2, by + 94), "HUD / Menu Icon", fill=(190, 205, 225), font=FONT_REG_11)
+        draw.text((bx - 2, by + 94), "HUD / Menu Icon", fill=(190, 205, 225), font=FONT_REG_11)
     return canvas
 
 
@@ -338,6 +347,76 @@ def load_miranda_busty_parts() -> tuple[list, list, Image.Image]:
                                   "Miranda_Busty_LAS", "miranda_busty")
 
 
+def _parse_matcfg_diffuse(xml_bytes: bytes) -> dict[str, str]:
+    """Map material name -> diffuse texture asset path from a `.material_config`."""
+    root = ET.fromstring(xml_bytes)
+    out: dict[str, str] = {}
+    for mat in root.findall("material"):
+        name = mat.attrib.get("name")
+        diff = mat.find("diffuse_texture")
+        if name and diff is not None and diff.attrib.get("file"):
+            out[name] = diff.attrib["file"]
+    return out
+
+
+def _parts_from_model_with_matcfg(
+    zf: zipfile.ZipFile,
+    tag: str,
+    mf,
+    mat_to_asset: dict[str, str],
+    tex_cache: dict[str, np.ndarray],
+) -> list:
+    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
+    hmap = {dm.hash64(name): name for name in hl["names"]}
+    tpp = _model_drawables(mf)
+    geo, topo, md = tpp["g_body"]
+    mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
+    mat_names = [
+        hmap.get(dm.decode_material(mf.by_id(mid).payload)["name_hash"], "?")
+        for mid in mg["material_ids"]
+    ]
+    verts = np.asarray(geo["verts"], np.float32)
+    norms = np.asarray(geo["normals"], np.float32)
+    uvs = np.asarray(geo["uv0"], np.float32)
+    tris = np.array(topo["indices"], dtype=np.int32).reshape(-1, 3)
+
+    parts = []
+    for atom in md["atoms"]:
+        bi, tc, mid = atom["base_index"], atom["tri_count"], atom["material_id"]
+        mname = mat_names[mid]
+        asset = mat_to_asset[mname]
+        if asset not in tex_cache:
+            tex_cache[asset] = np.asarray(
+                Image.open(io.BytesIO(zf.read(f"{tag}/assets/{asset}.texture"))).convert("RGBA")
+            )
+        parts.append((verts, norms, tris[bi // 3 : bi // 3 + tc], uvs, tex_cache[asset], False, True))
+    return parts
+
+
+def load_multi_mat_las_parts(
+    zip_path: Path,
+    tag: str,
+    prefix: str,
+    has_fps: bool = True,
+) -> tuple[list, list, Image.Image]:
+    """Load TPP (and optional FPS) multi-material parts + icon from a body-only LAS pack."""
+    unit = f"{tag}/assets/units/{prefix}/skins/{prefix}/"
+    tex_cache: dict[str, np.ndarray] = {}
+    with zipfile.ZipFile(zip_path) as zf:
+        mf_tpp = dm.ModelFile.read(zf.read(unit + f"{prefix}.model"))
+        tpp_mats = _parse_matcfg_diffuse(zf.read(unit + f"{prefix}.material_config"))
+        tpp_parts = _parts_from_model_with_matcfg(zf, tag, mf_tpp, tpp_mats, tex_cache)
+        fps_parts: list = []
+        if has_fps:
+            mf_fps = dm.ModelFile.read(zf.read(unit + f"fps_{prefix}.model"))
+            fps_mats = _parse_matcfg_diffuse(zf.read(unit + f"fps_{prefix}.material_config"))
+            fps_parts = _parts_from_model_with_matcfg(zf, tag, mf_fps, fps_mats, tex_cache)
+        icon_im = Image.open(
+            io.BytesIO(zf.read(f"{tag}/assets/guis/dlcs/{prefix}/armor_skins/{prefix}.texture"))
+        ).convert("RGBA")
+    return tpp_parts, fps_parts, icon_im
+
+
 def load_lawson_las_parts() -> tuple[list, list, Image.Image]:
     """Load TPP and FPS parts + icon from dist/lawson_las.zip."""
     with zipfile.ZipFile(ROOT / "dist" / "lawson_las.zip") as zf:
@@ -405,16 +484,30 @@ def render_las_sheet(
     fps_parts: list,
     icon_im: Image.Image,
     out_path: Path,
+    has_head: bool = True,
 ) -> Image.Image:
     W_col, H_row = 360, 540
     canvas = Image.new("RGB", (W_col * 4, H_row + 58), (18, 22, 30))
 
-    p_front = rasterize_parts(tpp_parts, W_col, H_row, 0, 92.0, 2.75)
-    p_34 = rasterize_parts(tpp_parts, W_col, H_row, 34, 92.0, 2.75)
-    p_back = rasterize_parts(tpp_parts, W_col, H_row, 180, 92.0, 2.75)
+    z_full = 92.0 if has_head else 74.0
+    s_full = 2.75 if has_head else 2.65
+    p_front = rasterize_parts(tpp_parts, W_col, H_row, 0, z_full, s_full)
+    p_34 = rasterize_parts(tpp_parts, W_col, H_row, 34, z_full, s_full)
+    p_back = rasterize_parts(tpp_parts, W_col, H_row, 180, z_full, s_full)
 
-    p_head = rasterize_parts(tpp_parts, W_col, H_row // 2, 18, 166.5, 11.5, z_min_clip=138.0)
-    p_fps = rasterize_parts(fps_parts, W_col, H_row // 2, 20, 129.0, 3.2, pitch_deg=15.0)
+    if has_head:
+        p_top = rasterize_parts(tpp_parts, W_col, H_row // 2, 18, 166.5, 11.5, z_min_clip=138.0)
+        top_lbl = "Close-Up Portrait (18°)"
+    else:
+        p_top = rasterize_parts(tpp_parts, W_col, H_row // 2, 24, 128.0, 4.9, z_min_clip=92.0)
+        top_lbl = "Upper Body 3/4 (24°)"
+
+    if fps_parts:
+        p_bot = rasterize_parts(fps_parts, W_col, H_row // 2, 20, 129.0, 3.2, pitch_deg=15.0)
+        bot_lbl = "First-Person Arms (fps_*.model)"
+    else:
+        p_bot = rasterize_parts(tpp_parts, W_col, H_row // 2, 90, 74.0, 1.40)
+        bot_lbl = "Full-Body Side (90°, TPP only)"
 
     for i, (im, lbl) in enumerate([
         (p_front, "Full-Body Front (0°)"),
@@ -426,21 +519,23 @@ def render_las_sheet(
         d.text((14, H_row - 26), lbl, fill=(230, 235, 245), font=FONT_REG_12)
         canvas.paste(im, (i * W_col, 58))
 
-    d_h = ImageDraw.Draw(p_head)
+    d_h = ImageDraw.Draw(p_top)
     d_h.rectangle([8, H_row // 2 - 30, 225, H_row // 2 - 8], fill=(14, 17, 24))
-    d_h.text((14, H_row // 2 - 26), "Close-Up Portrait (18°)", fill=(230, 235, 245), font=FONT_REG_12)
-    canvas.paste(p_head, (3 * W_col, 58))
+    d_h.text((14, H_row // 2 - 26), top_lbl, fill=(230, 235, 245), font=FONT_REG_12)
+    canvas.paste(p_top, (3 * W_col, 58))
 
-    d_f = ImageDraw.Draw(p_fps)
-    d_f.rectangle([8, H_row // 2 - 30, 240, H_row // 2 - 8], fill=(14, 17, 24))
-    d_f.text((14, H_row // 2 - 26), "First-Person Arms (fps_*.model)", fill=(230, 235, 245), font=FONT_REG_12)
-    canvas.paste(p_fps, (3 * W_col, 58 + H_row // 2))
+    d_f = ImageDraw.Draw(p_bot)
+    d_f.rectangle([8, H_row // 2 - 30, 245, H_row // 2 - 8], fill=(14, 17, 24))
+    d_f.text((14, H_row // 2 - 26), bot_lbl, fill=(230, 235, 245), font=FONT_REG_12)
+    canvas.paste(p_bot, (3 * W_col, 58 + H_row // 2))
 
     add_header_and_badges(canvas, title, subtitle, icon_im)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(out_path)
     print(f"Saved {out_path}")
-    return rasterize_parts(tpp_parts, 360, 480, 24, 147.0, 5.8, z_min_clip=105.0)
+    if has_head:
+        return rasterize_parts(tpp_parts, 360, 480, 24, 147.0, 5.8, z_min_clip=105.0)
+    return rasterize_parts(tpp_parts, 360, 480, 24, 76.0, 2.50)
 
 
 #: Chest close-up views for the busty sheets: (caption, yaw, pitch, scale, centre).
@@ -637,9 +732,44 @@ def render_heister_head_sheet(
     return p_34
 
 
-def main() -> None:
-    out_dir = ROOT / "docs" / "previews"
+UNIFIED_PATHS = {
+    "00_all_miranda_mods_overview.png": "overview/model/all_miranda_mods_sheet.png",
+    "01_Miranda_LAS.png": "miranda/model/las/miranda_las_sheet.png",
+    "02_lawson_las.png": "lawson/model/lawson_las_sheet.png",
+    "03_Miranda_L4D2_over_Joy.png": "miranda/model/over-joy/miranda_l4d2_over_joy_sheet.png",
+    "04_Miranda_Romance_over_Joy.png": "miranda/model/over-joy/miranda_romance_over_joy_sheet.png",
+    "05_Miranda_L4D2_over_Clover.png": "miranda/model/over-clover/miranda_l4d2_over_clover_sheet.png",
+    "06_Miranda_Romance_over_Clover.png": "miranda/model/over-clover/miranda_romance_over_clover_sheet.png",
+    "07_Miranda_L4D2_over_Bonnie.png": "miranda/model/over-bonnie/miranda_l4d2_over_bonnie_sheet.png",
+    "08_Miranda_Romance_over_Bonnie.png": "miranda/model/over-bonnie/miranda_romance_over_bonnie_sheet.png",
+    "09_Miranda_L4D2_over_Sydney.png": "miranda/model/over-sydney/miranda_l4d2_over_sydney_sheet.png",
+    "10_Miranda_Romance_over_Sydney.png": "miranda/model/over-sydney/miranda_romance_over_sydney_sheet.png",
+    "11_Geralt_over_Rust.png": "geralt/model/over-rust/geralt_over_rust_sheet.png",
+    "12_Miranda_Busty_LAS.png": "miranda/model/busty/miranda_busty_las_sheet.png",
+    "13_Miranda_Busty_vs_LAS_chest.png": "miranda/model/busty/miranda_busty_vs_las_chest_before-after.png",
+    "14_Miranda_Busty_vs_LAS_top_below.png": "miranda/model/busty/miranda_busty_vs_las_top_below_before-after.png",
+    "15_Christie_LAS.png": "christie/model/base/christie_las_sheet.png",
+    "16_Christie_LAS_Slim.png": "christie/model/slim/christie_las_slim_sheet.png",
+    "17_Honoka_LAS.png": "honoka/model/honoka_las_sheet.png",
+    "18_all_dist_mods_overview.png": "overview/model/all_dist_mods_sheet.png",
+    "19_Honoko2.png": "honoka/model/dae/honoko2_las_sheet.png",
+}
+
+
+def main(argv: list[str] | None = None) -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--out", type=Path, default=None,
+                    help="output directory (default: build/previews, or docs/renders with --unified)")
+    ap.add_argument("--unified", action="store_true",
+                    help="write sheets into <out>/<project>/model/... per docs/renders/README.md")
+    args = ap.parse_args(argv)
+    out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    def target_for(name: str) -> Path:
+        if args.unified:
+            return out_dir / UNIFIED_PATHS[name]
+        return out_dir / name
 
     thumbs: list[tuple[str, Image.Image]] = []
 
@@ -650,7 +780,7 @@ def main() -> None:
         tpp_mir,
         fps_mir,
         icon_mir,
-        out_dir / "01_Miranda_LAS.png",
+        target_for("01_Miranda_LAS.png"),
     )
     thumbs.append(("Miranda_LAS.zip (Full-Body L4D2)", th_mir))
 
@@ -661,24 +791,76 @@ def main() -> None:
         tpp_law,
         fps_law,
         icon_law,
-        out_dir / "02_lawson_las.png",
+        target_for("02_lawson_las.png"),
     )
     thumbs.append(("lawson_las.zip (Full-Body ME2)", th_law))
 
     tpp_bus, fps_bus, icon_bus = load_miranda_busty_parts()
-    render_las_sheet(
+    th_bus = render_las_sheet(
         "dist/Miranda_Busty_LAS.zip — Full-Body LAS Outfit, chest morph (L4D2 Port)",
         "The 01 outfit with a sculpted chest mass and its own LegendaryArmours.miranda_busty entry"
         " | Source: l4d2_miranda_lawson_1.zip + references/2b.rar",
         tpp_bus,
         fps_bus,
         icon_bus,
-        out_dir / "12_Miranda_Busty_LAS.png",
+        target_for("12_Miranda_Busty_LAS.png"),
     )
     render_busty_compare_sheet(tpp_mir, tpp_bus, icon_bus,
-                               out_dir / "13_Miranda_Busty_vs_LAS_chest.png")
+                               target_for("13_Miranda_Busty_vs_LAS_chest.png"))
     render_busty_polar_sheet(tpp_mir, tpp_bus, icon_bus,
-                             out_dir / "14_Miranda_Busty_vs_LAS_top_below.png")
+                             target_for("14_Miranda_Busty_vs_LAS_top_below.png"))
+
+    tpp_chr, fps_chr, icon_chr = load_multi_mat_las_parts(
+        ROOT / "dist" / "Christie_LAS.zip", "Christie_LAS", "christie", has_fps=True
+    )
+    th_chr = render_las_sheet(
+        "dist/Christie_LAS.zip — Body-Only LAS Outfit (DOA5 Christie)",
+        "Legendary Armour Skins (LAS) headless body-only outfit + first-person arms | Source: DOA5 Christie",
+        tpp_chr,
+        fps_chr,
+        icon_chr,
+        target_for("15_Christie_LAS.png"),
+        has_head=False,
+    )
+
+    tpp_chr_slim, fps_chr_slim, icon_chr_slim = load_multi_mat_las_parts(
+        ROOT / "dist" / "Christie_LAS_Slim.zip", "Christie_LAS_Slim", "christie_slim", has_fps=True
+    )
+    th_chr_slim = render_las_sheet(
+        "dist/Christie_LAS_Slim.zip — Body-Only LAS Outfit, Slim Variant (DOA5 Christie)",
+        "Slim-variant headless body-only LAS outfit + first-person arms + glove adapter | Source: DOA5 Christie",
+        tpp_chr_slim,
+        fps_chr_slim,
+        icon_chr_slim,
+        target_for("16_Christie_LAS_Slim.png"),
+        has_head=False,
+    )
+
+    tpp_hon, fps_hon, icon_hon = load_multi_mat_las_parts(
+        ROOT / "dist" / "Honoka_LAS.zip", "Honoka_LAS", "honoka", has_fps=False
+    )
+    th_hon = render_las_sheet(
+        "dist/Honoka_LAS.zip — Body-Only LAS Outfit (DOAXVV Honoka Secret Report)",
+        "Headless third-person body-only LAS outfit (no fps_unit) + glove adapter | Source: Honoka_DOAXVV_Secret_Report.TMC",
+        tpp_hon,
+        fps_hon,
+        icon_hon,
+        target_for("17_Honoka_LAS.png"),
+        has_head=False,
+    )
+
+    tpp_hon2, fps_hon2, icon_hon2 = load_multi_mat_las_parts(
+        ROOT / "dist" / "Honoko2.zip", "Honoko2", "honoko2", has_fps=False
+    )
+    th_hon2 = render_las_sheet(
+        "dist/Honoko2.zip — Body-Only LAS Outfit (DOAXVV Honoka Secret Report DAE)",
+        "Headless third-person body-only LAS outfit (no fps_unit) + glove adapter | Source: Honoka_DOAXVV_Secret_Reportout.dae",
+        tpp_hon2,
+        fps_hon2,
+        icon_hon2,
+        target_for("19_Honoko2.png"),
+        has_head=False,
+    )
 
     heister_specs = [
         (
@@ -845,7 +1027,7 @@ def main() -> None:
             is_rom,
             title,
             sub,
-            out_dir / out_name,
+            target_for(out_name),
         )
         thumbs.append((short_lbl, th))
 
@@ -875,9 +1057,40 @@ def main() -> None:
         d.text((12, 10), lbl, fill=(240, 245, 255), font=FONT_BOLD_13)
         overview.paste(cell, (col_i * tw, 58 + th_h))
 
-    ov_path = out_dir / "00_all_miranda_mods_overview.png"
+    ov_path = target_for("00_all_miranda_mods_overview.png")
+    ov_path.parent.mkdir(parents=True, exist_ok=True)
     overview.save(ov_path)
     print(f"Saved {ov_path}")
+
+    # Build complete dist/ overview grid (4 columns x 4 rows = all 16 dist/*.zip packages)
+    all_dist_cells = [
+        *[thumbs[i] for i in l4d2_indices],
+        *[thumbs[i] for i in rom_indices],
+        ("Miranda_Busty_LAS.zip", th_bus),
+        ("Christie_LAS.zip", th_chr),
+        ("Christie_LAS_Slim.zip", th_chr_slim),
+        ("Honoka_LAS.zip", th_hon),
+        ("Honoko2.zip", th_hon2),
+        thumbs[10],  # Geralt_over_Rust.zip
+    ]
+    dist_overview = Image.new("RGB", (tw * 4, th_h * 4 + 58), (16, 19, 26))
+    add_header_and_badges(
+        dist_overview,
+        "PAYDAY 2 — All 16 Mod Packages in dist/ (Complete Overview)",
+        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Slim, Honoka TMC, Honoko2 DAE, Geralt",
+    )
+    for idx, (lbl, im) in enumerate(all_dist_cells):
+        row_i, col_i = divmod(idx, 4)
+        cell = im.resize((tw, th_h), Image.Resampling.LANCZOS)
+        d = ImageDraw.Draw(cell)
+        d.rectangle([6, 6, tw - 6, 30], fill=(14, 17, 24))
+        d.text((12, 10), lbl, fill=(240, 245, 255), font=FONT_BOLD_13)
+        dist_overview.paste(cell, (col_i * tw, 58 + row_i * th_h))
+
+    dist_ov_path = target_for("18_all_dist_mods_overview.png")
+    dist_ov_path.parent.mkdir(parents=True, exist_ok=True)
+    dist_overview.save(dist_ov_path)
+    print(f"Saved {dist_ov_path}")
 
 
 if __name__ == "__main__":

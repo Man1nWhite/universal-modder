@@ -22,7 +22,7 @@ Usage (the "before" pack is whatever you last shipped, e.g. from git):
         --pack Christie_LAS --item christie \\
         --before build/before.zip --after dist/Christie_LAS.zip \\
         --templates "<2B>/assets/units/2b/skins/2b" \\
-        --out docs/pd2-las/renders
+        --out build/pd2-las/renders
 
 The pose is the renderer's in-game idle: shoulder (2, 22), elbow on the
 flexion axis (`render_mesh_skeleton.BEND_AXIS`), wrist eased 8 deg.
@@ -171,7 +171,7 @@ def main(argv=None) -> int:
     ap.add_argument("--after", type=Path, required=True)
     ap.add_argument("--templates", type=Path, required=True,
                     help="<2B>/assets/units/2b/skins/2b")
-    ap.add_argument("--out", type=Path, default=REPO / "docs/pd2-las/renders")
+    ap.add_argument("--out", type=Path, default=REPO / "build/pd2-las/renders")
     ap.add_argument("--scratch", type=Path, default=REPO / "build/pd2-las/panels")
     ap.add_argument("--suffix", default=None,
                     help="file-name stem suffix (default: from --item)")

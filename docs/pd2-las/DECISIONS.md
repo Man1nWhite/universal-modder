@@ -253,7 +253,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** the screenshots are the only in-game evidence that exists; deleting or ignoring them would
   leave HANDOFF saying "no record" for packs the user just ran. Archiving them with the install state the
   user reported keeps the record honest without pretending the checklist is done.
-- **Status:** holds.
+- **Status:** holds in part (the HANDOFF record stays); the archived captures were removed by D39
+  (still reachable at `da891d7` in git history).
 
 ## Environment, tests and documents
 
@@ -832,3 +833,20 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   duplicated `docs/audits/` and git history and no longer described the present.
 - **Status:** D22's description of what `HANDOFF.md` keeps is superseded by this entry; the rest of D22
   holds.
+
+### D39 — Unified rules for renders (`docs/renders/<project>/<ext>/...`); old tracked renders deleted
+
+- **Decided:** 2026-11-15, by the user ("unify rules for renders", `docs/renders/<project>/<ext>/...`,
+  and "Delete old" for existing renders).
+- **Decision:** `docs/renders/` is the single tracked home for renders and in-game captures, structured
+  as `docs/renders/<project>/<ext>/[<variant-or-scope>/][<YYYY-MM-DD>/]`, where `<project>` is the mod
+  or character slug and `<ext>` is the source/asset format extension (or `in-game/` for live captures).
+  All pre-existing tracked renders (`docs/previews/`, `docs/pd2-las/renders/`,
+  `docs/renders/christie-2026-11-14/`, and `docs/renders/in-game-2026-11-15/`) were deleted (reachable
+  in git history at `da891d7`). Scratch and per-build previews stay gitignored under `build/`.
+- **Why:** tracked renders had split across `docs/previews/`, `docs/pd2-las/renders/`, and ad-hoc dated
+  subdirectories under `docs/renders/` with inconsistent naming and stale snapshots.
+- **Held to:** `tests/test_render_rules.py` fails on legacy render directories, tracked renders outside
+  `docs/renders/`, or files inside `docs/renders/` that break the `<project>/<ext>/...` layout.
+- **Source:** `docs/renders/README.md`; `tests/test_render_rules.py`.
+- **Status:** holds.

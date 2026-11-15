@@ -226,7 +226,8 @@ Fairing the repaired zone any further than the first valid state does not help e
 gentle rounds (strength 0.2) re-invert a face and the guard reverts them, so the repair stops as soon
 as the winding is legal and leaves the residual 15 normal quirks above.
 
-Rendered evidence, regenerated from this build: `docs/previews/12_Miranda_Busty_LAS.png` (full-body
+Rendered evidence (previously tracked under `docs/previews/`, deleted on 2026-11-15 in D39;
+regenerated into `build/previews/` by `tools/render_mod_previews.py`): `12_Miranda_Busty_LAS.png` (full-body
 four-angle + portrait + FPS arms), `13_Miranda_Busty_vs_LAS_chest.png` (0°/30°/**45°**/60°/**90°**
 close-ups with the framing pulled back as the yaw widens, stock above, variant below) and
 `14_Miranda_Busty_vs_LAS_top_below.png` (58° above and 58° below, at 0° and 30° yaw). The builder's own sheets stay in
@@ -236,7 +237,7 @@ close-ups with the framing pulled back as the yaw widens, stock above, variant b
 ## The placket hem was bowing (2026-11-05, second pass)
 
 The first pass above fixed the folds. Reviewing the chest from **58° above and 58° below** —
-angles no front sheet can reach, now shipped as `docs/previews/14_Miranda_Busty_vs_LAS_top_below.png`
+angles no front sheet can reach, rendered as `14_Miranda_Busty_vs_LAS_top_below.png` —
 — showed a second, smaller defect: the keyhole hem at `z = 146.2`, a straight garment edge in the
 stock mesh, came out **bowed**. The raw field pushes that edge 0.75 cm at the sternum and 2.0 cm at
 the cups, so a 5 cm wide straight edge tilted by 1.25 cm and read as a notch in the overhead view and
@@ -319,7 +320,7 @@ lateral band-limit across the *vertical* side seam (|x| ≈ 8.3, z 131 … 150) 
 below z ≈ 145 where the field is linear in x (curvature < 1e-3 cm): it is folded into the wide hem tap
 instead of shipped as a separate pass that does nothing.
 
-Rendered evidence: `docs/previews/13_…_chest.png` (0°/30°/45°/60°/90°) and
+Rendered evidence (regenerated into `build/previews/` by `tools/render_mod_previews.py`): `13_…_chest.png` (0°/30°/45°/60°/90°) and
 `14_…_top_below.png` (58° above/below); the clay A/B used for the call (committed vs this build,
 front and 25° yaw, 20 px/cm, `center=(5, 18.5, 141.5)`) is reproducible with
 `render_mod_previews.rasterize_parts(..., pitch_deg=0.0)`.

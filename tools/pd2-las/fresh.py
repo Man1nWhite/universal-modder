@@ -50,6 +50,7 @@ BUILDERS = {
     "busty": ["tools/pd2-las/build_busty_variant.py"],
     "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
+    "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"

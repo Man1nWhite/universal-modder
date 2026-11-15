@@ -114,7 +114,7 @@ levels are there for motion, and only the game shows motion.
 
 > **Update, 2026-11-15.** The packs were in the game outfit menu on 2026-11-15 (user report):
 > `Christie_LAS_Slim` with the white LAS gloves spawned, and full `Christie_LAS` with Christie's own
-> hands. The captures are archived in `docs/renders/in-game-2026-11-15/`. That is item 1's *preview*
+> hands (captures archived at `da891d7`, removed in D39). That is item 1's *preview*
 > half for both packs — the list below, the lobby/heist look, the rifle elbow, the cuff/glove stack in
 > every pose and the crash logs, is still open. The installed builds were user-identified, not
 > hash-measured; nothing here changes which bytes are tracked.
