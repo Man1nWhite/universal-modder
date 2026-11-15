@@ -1,8 +1,11 @@
-# Honoka "Secret Report" TMC — decode findings and rigged export (2026-11-14)
+# Honoka "Secret Report" TMC — decode findings, rigged export, LAS build (2026-11-14/15)
 
-**Status: decode complete, export written, nothing game-verified.**
-`runtime_verified` stays `false`. This is a research/decode record, not an
-in-game verification. Nothing here has been run inside PAYDAY 2 or DOAXVV.
+**Status: decode complete; an LAS build runs end-to-end offline (2026-11-15),
+nothing game-verified.** `runtime_verified` stays `false`. This is a research/
+decode record, not an in-game verification. Nothing here has been run inside
+PAYDAY 2 or DOAXVV. The build is section
+"2026-11-15 (build): the LAS pack builds" near the end; the sections before it
+are the decode record and are kept as written.
 
 ## Source
 
@@ -128,20 +131,21 @@ heels).
 
 - "LOS mod" reading: **assumes LAS** (Legendary Armour Skin, the Christie /
   2B template in `tools/pd2-las/`). Unconfirmed.
-- Body has **no head geometry** (neck stump) ✓ LAS-compatible; **hands ARE
-  present** in `WGT_new_aya_body_decl0` and must be cut/retargeted at the
-  wrist for the LAS body (cf. `Christie_Slim`); wrist cut not started.
+- Body has **no head geometry** (neck stump) ✓ LAS-compatible; hands are
+  cut at the wrist by the LAS build (see the 2026-11-15 build section).
 - Whether to keep cap2/headdress2/feather/sweat_chest (jacket, skirt,
-  ribbons, emblem) or body-only; whether accessories are separate LAS atoms
-  or dropped. Owner decision pending.
+  ribbons, emblem) or body-only: the build keeps cap2/headdress2, excludes
+  feather and sweat_chest (owner decision pending).
 - `*T_body_feather` decodes to long sash-like slivers; the OBJ exporter
-  dropped this mesh entirely. Purpose unverified — exclude from any build
+  dropped this mesh entirely. Purpose unverified — excluded from the build
   until reviewed.
-- `MCAPACK` (37 material records) not decoded; texture mapping to
-  `references/Honoka/L_*.dds` unverified (TMCL = textures only).
-- LAS-side bone mapping is manual (`skeleton_map.json` has no MOT* names);
-  the XNALara-ish `MOT*` skeleton → PD2 Diesel 136-bone names is the
-  remaining big task.
+- `MCAPACK` (37 material records): not decoded; string-free records (word6
+  holds small counts, word7 = 0). Texture mapping to `references/Honoka/
+  L_*.dds` rests on render evidence, not on the file — see the build
+  section.
+- LAS-side bone mapping: done — `tools/pd2-las/tmc_skeleton_map.json`
+  (MOT* → PD2 Diesel names; unmapped helpers merge into their nearest
+  mapped ancestor).
 - Nothing in-game checked; `runtime_verified` = false everywhere it
   appears.
 
@@ -223,3 +227,128 @@ glTF exporter, the LAS build) now see normal-consistent winding. The
 stripped-parity code (`_strip_to_tris`) is still what generates the
 triangle list; the alignment is a deterministic post-fix, not a new
 heuristic. `runtime_verified` stays `false`.
+
+## 2026-11-15 (build): the LAS pack builds
+
+`tools/pd2-las/build_honoka_las.py` turns the TMC into a Legendary Armour
+Skins pack (third invocation of the `build_models.py` library; TMC source
+instead of Source, Miranda's pipeline reused for retarget/assembly). Output
+of one run (all git-ignored, nothing in `dist/`):
+
+```
+build/pd2-las/honoka_las.model            6,155,357 B — third-person model
+build/pd2-las/Honoka_LAS/                 installable pack folder
+build/pd2-las/Honoka_LAS.zip              5,740,871 B; .sha256 next to it
+build/pd2-las/honoka_las_report.json      build report (runtime_verified: false)
+build/pd2-las/Honoka_LAS/previews/honoka_4views.png   own render, 4 views
+```
+
+### Decisions and evidence
+
+- **Scope**: `WGT_new_aya_body_decl0` (body, 27,970 v / 38,740 t), `WGT_cap2`
+  (suit jacket, 4,165 v / 6,220 t), `WGT_headdress2` (skirt/trim, 4,963 v /
+  7,560 t). Excluded: decl1 (debug-like 28-bone uniform-weight slab, 280 v),
+  sweat_chest (chest emblem, 51 v — owner decision pending), body_feather
+  (sash slivers — excluded), placeholders. After the wrist cut: **36,464 /
+  6,220 / 7,560 triangles**.
+- **No head** — the body has none; `g_head`/`g_head_lod1` drawables are
+  dropped from the model and the registration flips `replace_all` →
+  `replace_body` (`BODY_ONLY`). First-person: no `fps_unit` is registered —
+  an LAS entry without one behaves better than one pointing at a missing
+  file; LAS keeps the vanilla FPS arms. The pack is **third-person complete**; the first-person
+  view keeps the vanilla arms.
+- **No hands — wrist cut**: both arms are cut at the PD2 wrist joints
+  (`build_models.ARM_JOINTS`: LeftHand/RightHand, used by the Miranda
+  sleeve bridge). First attempt cut with a half-space plane (centred on the
+  wrist, normal along the forearm axis) and **swallowed the lower legs**:
+  in the PD2 bind pose the forearm axis points steeply down-forward, so the
+  plane contains the shins (feet project ~19 cm "beyond" the wrist). The
+  fix is cylindrical: keep a vertex unless it is beyond the wrist
+  (`t > 0.5 cm`) **and** within 28 cm of the forearm axis — only
+  hand/fingers qualify (the fingertip bones' bind positions are exactly
+  there); the leg geometry is ~120 cm off-axis. Result: 2,276 body tris /
+  1,358 verts dropped; cap2/headdress2 drop 0.
+- **The legs are intentionally coarse** below the skirt hem (~2,900 verts
+  under y_s < −60; long low-poly triangles). The earlier "tapering ribbons"
+  seen in probe renders were an artefact of the broken wrist cut, not the
+  source data; with the fix the legs render as a normal (low-poly) column
+  with heels. Barely any vertices exist below mid-shin — the mesh simply
+  ends at the shoes' outline.
+- **Basis change**: TMC (Y-up, cm, +y horizontal forward) → Diesel Z-up cm
+  as `R_x(+90°)` (det = +1): `x→x`, `y→z`, `z→−y`. `GlblMtx` world bind
+  matrices (metres, column-convention 4×4) map as `M·W·Mᵀ` with translation
+  ×100; `build_honoka_las.glbl_to_diesel`. Positions/normals rotated the
+  same way; det +1 everywhere. The built model stands z-up with
+  feet at z ≈ 48 cm and neck stump at ≈ 167 cm.
+- **Winding**: `tmc.load_meshes()` emits normal-aligned outward CCW
+  triangles, so the build passes `transfer_group(..., swap_winding=False)`
+  (the Source-engine default `True` would invert everything). Face vs
+  vertex-normal agreement 99.7% after transfer (skinned-joint blending may
+  shade slightly off — that is fine). `orientation_breaks` reports 102 same-
+  direction shared edges (0.2% of ~48k, body + 6 panels in cap2/headdress2).
+  The flagged faces are predominantly sub-0.01 cm² sliver stitch triangles
+  along UV seams plus a handful of quad panels split inconsistently in the
+  source. They were left as decoded: vertex normals agree with winding
+  1.0000 mesh-wide, and flipping them would create the very holes the
+  metric exists to find. Watch in-game for pin-hole culls there.
+- **Retarget**: `skeleton_map.json` → `tmc_skeleton_map.json` (MOT* → PD2
+  names; breast/skirt/twist/helper bones unmapped and merged into their
+  nearest mapped ancestor via the ancestor walk — e.g. bust → Spine2,
+  skirt helpers → Hips, i.e. a rigid skirt at runtime; LAS has no skirt
+  bones). 171/171 source bones get a fit. `retarget_maps(...,
+  src_worlds=...)` accepts the precomputed Diesel-frame world binds.
+- **Textures**: the 27 `references/Honoka/L_*.dds` are ordinary DXT5 DDS
+  (Pillow-readable). Shipped `.texture` payloads in PD2 packs are plain
+  DXT5 DDS too (verified in `dist/Miranda_LAS.zip` — magic `DDS `, fourcc
+  `DXT5`), so they can be opened/re-encoded one line at a time.
+  Mapping used (provisional, swap the constants in the driver to change):
+
+  | role | diffuse | normal |
+  |---|---|---|
+  | body   | `L_3.dds` | `L_4.dds` |
+  | jacket | `L_7.dds` | `L_8.dds` |
+  | skirt  | `L_9.dds` | `L_11.dds` |
+
+  All six re-encoded as BC3 with **full mip chains** (`bc3_dds_from_levels`;
+  colour averaged in linear light, alpha as stored values, down to 1×1).
+  Mip convention mirrors `build_las.py`. `L_10` (light grey-blue tie/panels)
+  and `L_12` rejected for cap2/headdress2. The skirt assignment is
+  unsettled (`L_17`–`L_26` are lingerie/bra pieces; owner to confirm).
+- **L_3 alpha is not a cutout**. It is a per-texel grayscale detail map
+  (mean ≈ 85; feet/hands/body creases brighter — reads as baked
+  AO/self-shadowing, not a silhouette). The earlier "silhouette mask" note
+  was a misread of a 90-px thumbnail. The body ships with a flat matte
+  gloss alpha (20) like the garments; no alpha-test is used anywhere.
+- **Normal maps**: `L_4`/`L_8` are re-encoded to PD2's layout (X in alpha,
+  Y+ in green, Y inverted for the DirectX-style sources, R 255 / B 0 —
+  `pd2-port/dds.pd2_normal_channels` convention). If the Green channel of
+  the sources turns out to be Y+, lighting will look inverted — that is the
+  single most likely visual bug, and it is a one-line change in
+  `build_textures()`.
+- **Registration**: `LegendaryArmours.honoka`, BODY_ONLY flags, own TPP
+  unit `units/honoka/skins/honoka/honoka`, no FPS unit, `honoka_las.lua` +
+  `honoka_glove_adapter.lua` (restores `default_glove_id = "heist_default"`,
+  re-enables the glove adapter table, un-excludes `las_honoka` — LAS 4.1.9
+  otherwise spawns no hands). `main.xml`, localization, deterministic
+  `BUILD_INFO.json` (`runtime_verified: false`, `models_present: true`),
+  deterministic zip + sha256. `.object` lists `g_body` on, `g_body_lod1`
+  off (LOD1 = same geometry, harmless); `.unit` keeps the ContourExt like
+  Miranda's; materials: `generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:
+  SKINNED_3WEIGHTS` + `shadow_caster`.
+- **Icon**: our own 4-view render of the built model (nothing from DOAXVV
+  re-distributed; the tile is this model). `build_icon(..., view=3)`
+  composites the three-quarter view on a gradient.
+- **In-game checks that still must run** (none of this is verified in
+  PAYDAY 2): gloves spawn at the cut (or hands go skinless); jacket/skirt
+  arm silhouette; normal-map strength and Y direction; skirt hem rags
+  z-fighting/culling; `g_body_lod1` on/off flicker; contour outline; LAS
+  menu shows the tile and the name; the glove adapter keys
+  (`las_honoka` player style) are right for the installed LAS version;
+  gloss=20 matte look on skin.
+- **Process**: the sandbox `.git` was reset to the branch base once
+  (2026-11-15) and the earlier local commit briefly ceased to exist; the
+  full tree was re-committed as `9ade581` (the 2026-11-14 work) and
+  `7ad904b` (build driver). Test suite: 600 passed, 8 skipped (before the
+  reset and again after re-anchoring). `dist/` was never rebuilt or staged.
+
+`runtime_verified` stays `false` everywhere it appears.
