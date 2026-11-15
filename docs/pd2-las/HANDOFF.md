@@ -40,6 +40,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_LAS`, `Miranda_Busty_LAS` | no record | — |
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
+| `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — the full pack with Christie's own hands; installed hashes not measured |
@@ -56,10 +57,11 @@ installed on 2026-11-15 were identified by the user, not hash-measured from the 
 
 - **The Miranda LAS packs** have the checklist `docs/pd2-las/in-game-checklist.md` waiting for a person with
   the game. No tracked bytes of either pack have been in game.
-- **Head packs, coverage.** Clover and Bonnie replace the heist, menu *and* Safe House (`*_chill`) models; Joy
-  and Sydney replace the heist + menu models only, so their Safe House units keep the vanilla head. There is
-  no checklist for the head packs. Until someone looks at a throat again the four L4D2 packs are
-  *offline-verified only*.
+- **Head packs, coverage.** Clover and Bonnie replace the heist, menu *and* Safe House (`*_chill`) models; Joy,
+  Sydney and Hila replace the heist + menu models only, so their Safe House units keep the vanilla head (Hila
+  has no Safe House unit to swap). Hila is also the only heister whose head packs carry the user-supplied
+  `references/EYE_Diff.png` in the eye quadrant (D41). There is no checklist for the head packs. Until someone
+  looks at a throat again the five L4D2 packs are *offline-verified only*.
 
 ## Dead ends — do not retry
 

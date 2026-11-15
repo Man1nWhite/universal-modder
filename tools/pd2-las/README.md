@@ -64,7 +64,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 15 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 17 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and the rounding with a margin; tangent frames from the values the file stores; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 | `pins.txt`, `copies.py` | the two pinned versions, written once (`recover_env.sh`, CI and `status.py` read them); what a merge of two tools is held to: `record`, `compare`, `after` |
 
@@ -115,7 +115,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
    with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the last rebuild of the Miranda packs.
 2. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
    texels at full gloss in `body_df` and `head_df` of the Miranda packs.
-3. The sibling packs: `lawson_las` and the nine head packs have no record of their tracked bytes in game, and
+3. The sibling packs: `lawson_las` and the eleven head packs have no record of their tracked bytes in game, and
    the head packs have no checklist.
 
 ## Further reading

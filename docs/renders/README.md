@@ -42,7 +42,7 @@ docs/renders/
 3. **Level 3+ — `<variant-or-scope>/` and `<YYYY-MM-DD>/` (optional):**
    - Separate variants, targets, or sub-scopes below `<ext>/` in lowercase-kebab: e.g. `base/`, `slim/`,
      `busty/`, `tpp/`, `fps/`, `textured/`, `elbow/`, `cuff/`, `mips/`, `over-joy/`, `over-clover/`,
-     `over-bonnie/`, `over-sydney/`, `over-rust/`, `menu/`, `heist/`.
+     `over-bonnie/`, `over-sydney/`, `over-hila/`, `over-rust/`, `menu/`, `heist/`.
    - Use `YYYY-MM-DD/` only below `<project>/<ext>/` when archiving dated snapshots or user captures —
      never at Level 1 or Level 2.
 

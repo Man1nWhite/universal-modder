@@ -21,9 +21,11 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `15_Christie_LAS.png` (DOA5 Christie body-only LAS outfit)
   - `16_Christie_LAS_Slim.png` (DOA5 Christie Slim body-only LAS outfit)
   - `17_Honoko2.png` (DOAXVV Honoka Secret Report body-only LAS outfit, built from `.dae`)
-  - `18_all_dist_mods_overview.png` (5x3 grid of all 15 packs in `dist/`)
+  - `18_all_dist_mods_overview.png` (6x3 grid of all 17 packs in `dist/`)
+  - `19_Miranda_L4D2_over_Hila.png`
+  - `20_Miranda_Romance_over_Hila.png`
 
-`00_all_miranda_mods_overview.png` stays the 5x2 grid of the ten Miranda head/full-body packs.
+`00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
 from __future__ import annotations
 
@@ -751,6 +753,8 @@ UNIFIED_PATHS = {
     "16_Christie_LAS_Slim.png": "christie/model/slim/christie_las_slim_sheet.png",
     "17_Honoko2.png": "honoka/model/dae/honoko2_las_sheet.png",
     "18_all_dist_mods_overview.png": "overview/model/all_dist_mods_sheet.png",
+    "19_Miranda_L4D2_over_Hila.png": "miranda/model/over-hila/miranda_l4d2_over_hila_sheet.png",
+    "20_Miranda_Romance_over_Hila.png": "miranda/model/over-hila/miranda_romance_over_hila_sheet.png",
 }
 
 
@@ -983,6 +987,36 @@ def main(argv: list[str] | None = None) -> None:
             "Replaces Rust's head, hair & beard (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
             "Geralt_over_Rust.zip",
         ),
+        (
+            "19_Miranda_L4D2_over_Hila.png",
+            "Miranda_L4D2_over_Hila.zip",
+            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
+            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture",
+            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_lashes_df.texture",
+            "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture",
+            "g_head",
+            (66, 60, 56),
+            (48, 42, 40),
+            False,
+            "dist/Miranda_L4D2_over_Hila.zip — Hila Head Replacement (L4D2)",
+            "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
+            "Miranda_L4D2_over_Hila.zip",
+        ),
+        (
+            "20_Miranda_Romance_over_Hila.png",
+            "Miranda_Romance_over_Hila.zip",
+            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
+            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture",
+            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_lashes_df.texture",
+            "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture",
+            "g_head",
+            (66, 60, 56),
+            (48, 42, 40),
+            True,
+            "dist/Miranda_Romance_over_Hila.zip — Hila Head Replacement (ME2 Romance)",
+            "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
+            "Miranda_Romance_over_Hila.zip",
+        ),
     ]
 
     for (
@@ -1016,17 +1050,17 @@ def main(argv: list[str] | None = None) -> None:
         )
         thumbs.append((short_lbl, th))
 
-    # Build master overview grid (5 columns x 2 rows, exact 3:4 aspect ratio)
+    # Build master overview grid (6 columns x 2 rows, exact 3:4 aspect ratio)
     tw, th_h = 330, 440
-    overview = Image.new("RGB", (tw * 5, th_h * 2 + 58), (16, 19, 26))
+    overview = Image.new("RGB", (tw * 6, th_h * 2 + 58), (16, 19, 26))
     add_header_and_badges(
         overview,
-        "PAYDAY 2 — All 10 Miranda Lawson Mod Packages in dist/ (Overview)",
-        "Top row: L4D2 variants (Full-Body LAS, Joy, Clover, Bonnie, Sydney) | Bottom row: ME2 Romance variants",
+        "PAYDAY 2 — All 12 Miranda Lawson Mod Packages in dist/ (Overview)",
+        "Top row: L4D2 variants (Full-Body LAS, Joy, Clover, Bonnie, Sydney, Hila) | Bottom row: ME2 Romance variants",
     )
-    # Order: L4D2 row (0, 2, 4, 6, 8), Romance row (1, 3, 5, 7, 9)
-    l4d2_indices = [0, 2, 4, 6, 8]
-    rom_indices = [1, 3, 5, 7, 9]
+    # Order: L4D2 row (0, 2, 4, 6, 8, Hila), Romance row (1, 3, 5, 7, 9, Hila)
+    l4d2_indices = [0, 2, 4, 6, 8, 11]
+    rom_indices = [1, 3, 5, 7, 9, 12]
     for col_i, idx in enumerate(l4d2_indices):
         lbl, im = thumbs[idx]
         cell = im.resize((tw, th_h), Image.Resampling.LANCZOS)
@@ -1047,7 +1081,7 @@ def main(argv: list[str] | None = None) -> None:
     overview.save(ov_path)
     print(f"Saved {ov_path}")
 
-    # Build complete dist/ overview grid (5 columns x 3 rows = all 15 dist/*.zip packages)
+    # Build complete dist/ overview grid (6 columns x 3 rows = all 17 dist/*.zip packages)
     all_dist_cells = [
         *[thumbs[i] for i in l4d2_indices],
         *[thumbs[i] for i in rom_indices],
@@ -1057,14 +1091,14 @@ def main(argv: list[str] | None = None) -> None:
         ("Honoko2.zip", th_hon2),
         thumbs[10],  # Geralt_over_Rust.zip
     ]
-    dist_overview = Image.new("RGB", (tw * 5, th_h * 3 + 58), (16, 19, 26))
+    dist_overview = Image.new("RGB", (tw * 6, th_h * 3 + 58), (16, 19, 26))
     add_header_and_badges(
         dist_overview,
-        "PAYDAY 2 — All 15 Mod Packages in dist/ (Complete Overview)",
+        "PAYDAY 2 — All 17 Mod Packages in dist/ (Complete Overview)",
         "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Slim, Honoko2, Geralt",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
-        row_i, col_i = divmod(idx, 5)
+        row_i, col_i = divmod(idx, 6)
         cell = im.resize((tw, th_h), Image.Resampling.LANCZOS)
         d = ImageDraw.Draw(cell)
         d.rectangle([6, 6, tw - 6, 30], fill=(14, 17, 24))

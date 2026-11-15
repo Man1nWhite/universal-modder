@@ -279,6 +279,34 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Status:** holds. D36 and D37 are superseded. `runtime_verified` stays `false` in `Honoko2` (D31); the
   outfit-menu captures are the in-game record, not the flag.
 
+### D41 — Hila's head packs are built from her own unit, and only they wear the supplied eye
+
+- **Decided:** 2026-11-15, by the user ("make Miranda over Hila packs, both L4D and Romance version",
+  and, asked which packs the attached `EYE_Diff.png` is for, "eyes of the new Hila packs").
+- **Decision:** `dist/Miranda_L4D2_over_Hila.zip` and `dist/Miranda_Romance_over_Hila.zip` are built by
+  `_emit_hila_packages()` from `references/npc_criminals_ecp_female.7z`, the unit that ships the H3H3
+  collaboration heister (DLC folder `ecp`): `g_head` (two atoms: head, 3D eyelashes) is replaced and the
+  hair drawables `g_hair_mask_off` / `g_hair_mask_on` are collapsed to the hidden triangle and disabled
+  in both object files, as for Sydney. The head material group runs `mtr_head` + the unit's own
+  `mtr_lashes`. The eye quadrant of these two packs is the user's `references/EYE_Diff.png`
+  (`load_hila_eye_texture()`); the ten other head packs keep the synthesised eye and are byte-identical
+  to the 2026-11-14 build.
+- **Why:** Hila is not in `Heister - FPS Gloves in TPS 2.zip` and has no Safe House (`*_chill`) unit, so
+  her heist and menu models come from her own archive and no Safe House swap exists to emit. Her
+  `mtr_head` is authored against a `*_head_gsma` gloss map for her own UVs, which the head atlas does not
+  have, so the material becomes the same plain `DIFFUSE_TEXTURE:NORMALMAP` template the other heisters
+  use and reads gloss from the diffuse alpha. The supplied eye is a 256x256 spherical eyeball map whose
+  iris is 0.062 of the image across, while both pipelines re-project the eyeball as a planar pass over
+  the palpebral opening, so it is magnified 2.8x about its centre to put the iris where the synthesised
+  eye had it (0.174 of the quadrant, an ~11.7 mm iris in a ~30 mm opening).
+- **Carried by:** `references/EYE_Diff.png` and `references/npc_criminals_ecp_female.7z` are tracked, and
+  `references/README.md` describes both.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye`
+  fails if the eyelash atom leaves `mtr_lashes`, if a hair drawable stays enabled, if `mtr_head` regains
+  the GSMA slot, or if the eye quadrant stops being the supplied diffuse.
+- **Source:** the user, 2026-11-15; `references/README.md`.
+- **Status:** holds.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

@@ -28,7 +28,7 @@ endef
 help:       ## list the targets
 	@sed -n 's/^\([a-z]*\):.*## /\1\t/p' $(MAKEFILE_LIST)
 
-status:     ## one JSON object: environment, all 15 tracked packs, the next command (needs no venv)
+status:     ## one JSON object: environment, all 17 tracked packs, the next command (needs no venv)
 	@cd "$(ROOT)" && python3 $(HERE)/status.py
 
 env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
@@ -46,7 +46,7 @@ lawson:     ## lawson_las -> dist/
 honokodae:  ## Honoko2 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
 
-heads:      ## the nine head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_LAS.zip
+heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
 all: build busty lawson honokodae heads  ## every pack that can be rebuilt in this checkout (the two Christie packs' builder is deleted; their tracked zips cannot be rebuilt)
@@ -63,5 +63,5 @@ fresh:      ## every rebuildable pack built again in a copy of the tree and comp
 test:       ## the whole suite, offline
 	cd "$(ROOT)" && $(PY) -m pytest -q tests
 
-green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 17 zips), one line each
+green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 19 zips), one line each
 	@cd "$(ROOT)" && $(PY) tools/pd2-port/check_all.py --full

@@ -1037,7 +1037,7 @@ class TestLasScaffold:
                     assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
 
     def test_tracked_clover_bonnie_sydney_head_replacement_packs(self):
-        """Clover, Bonnie, and Sydney head-replacement mod_overrides packs in dist/ are tracked and valid."""
+        """Clover, Bonnie, Sydney and Hila head-replacement mod_overrides packs in dist/ are tracked and valid."""
         import diesel_model as dm
 
         specs = [
@@ -1083,6 +1083,20 @@ class TestLasScaffold:
                 "g_head",
                 "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
             ),
+            (
+                "Miranda_L4D2_over_Hila.zip",
+                "Miranda L4D2 over Hila",
+                "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
+                "g_head",
+                "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture",
+            ),
+            (
+                "Miranda_Romance_over_Hila.zip",
+                "Miranda Romance over Hila",
+                "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
+                "g_head",
+                "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture",
+            ),
         ]
         for zip_name, prefix, model_rel, head_draw, icon_rel in specs:
             zp = REPO / "dist" / zip_name
@@ -1112,6 +1126,92 @@ class TestLasScaffold:
                 assert geo["vert_count"] > 4000
                 assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
 
+    def test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye(self):
+        """Hila is her own unit: `g_head` on `mtr_head` + `mtr_lashes`, hair collapsed, the supplied eye.
+
+        The ECP heister is not in `Heister - FPS Gloves in TPS 2.zip` (she ships in her own 7z), her
+        head drawable carries *two* atoms whose second material is `mtr_lashes` rather than the other
+        heisters' `mtr_hair`, and `mtr_head` is authored against a GSMA gloss map the atlas does not
+        have. The two Hila packs are also the only packs whose eye quadrant is the user's
+        `references/EYE_Diff.png` instead of the synthesised eye, so both halves are pinned here.
+        """
+        import io
+        import sys as _sys
+
+        import numpy as np
+        from PIL import Image
+
+        import diesel_model as dm
+        _sys.path.insert(0, str(REPO / "tools"))
+        import build_joy_head_mods as bhm
+
+        unit = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female"
+        eye = bhm.load_hila_eye_texture()
+        # the `me2_dir` argument of the synthesiser is unused: the eye is drawn, not read
+        synth_eye = bhm.build_crisp_miranda_eye_texture(REPO / "build" / "head-mods" / "me2_extract")
+        specs = [("Miranda_L4D2_over_Hila.zip", "Miranda L4D2 over Hila"),
+                 ("Miranda_Romance_over_Hila.zip", "Miranda Romance over Hila")]
+        for zip_name, prefix in specs:
+            zp = REPO / "dist" / zip_name
+            assert zp.is_file(), f"missing {zp}"
+            assert (REPO / "dist" / f"{zip_name}.sha256").read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
+            with zipfile.ZipFile(zp) as z:
+                names = set(z.namelist())
+                for stem in ("npc_criminal_ecp_female.model", "npc_criminal_ecp_female_menu.model",
+                             "npc_criminal_ecp_female.object", "npc_criminal_ecp_female_menu.object",
+                             "npc_criminal_ecp_female_head_df.texture", "npc_criminal_ecp_female_head_nm.texture",
+                             "npc_criminal_ecp_female_lashes_df.texture", "npc_criminal_ecp_female_lashes_op.texture"):
+                    assert f"{prefix}/{unit}/{stem}" in names, f"{zip_name}: no {stem}"
+                assert f"{prefix}/{unit}/mtr_criminal_ecp_female.material_config" in names
+                assert f"{prefix}/{unit}/mtr_criminal_ecp_female_cc.material_config" in names
+                # the heist and menu models are the same patched bytes, as in the other head packs
+                assert z.read(f"{prefix}/{unit}/npc_criminal_ecp_female.model") == z.read(
+                    f"{prefix}/{unit}/npc_criminal_ecp_female_menu.model")
+
+                mf = dm.ModelFile.read(z.read(f"{prefix}/{unit}/npc_criminal_ecp_female.model"))
+                md_by_hash = {dm.decode_model_data(s.payload)["name_hash"]: s for s in mf.by_type(dm.MODEL_DATA)}
+                md_head = dm.decode_model_data(md_by_hash[dm.hash64("g_head")].payload)
+                mg = dm.decode_material_group(mf.by_id(md_head["matgroup"]).payload)
+                mats = {dm.decode_material(mf.by_id(i).payload)["name_hash"] for i in mg["material_ids"]}
+                assert mats == {dm.hash64("mtr_head"), dm.hash64("mtr_lashes")}, (
+                    f"{zip_name}: the eyelash atom must run on mtr_lashes, not mtr_hair")
+                assert len(md_head["atoms"]) == 2 and md_head["atoms"][1]["tri_count"] == 224
+                for hair in ("g_hair_mask_off", "g_hair_mask_on"):
+                    md_hair = dm.decode_model_data(md_by_hash[dm.hash64(hair)].payload)
+                    assert [a["tri_count"] for a in md_hair["atoms"]] == [1], f"{zip_name}: {hair} not collapsed"
+
+                # the hair objects must be off in both object files, mask-on included
+                for obj_name in ("npc_criminal_ecp_female.object", "npc_criminal_ecp_female_menu.object"):
+                    obj = z.read(f"{prefix}/{unit}/{obj_name}").decode("utf-8", "ignore")
+                    for hair in ("g_hair_mask_off", "g_hair_mask_on"):
+                        row = [ln for ln in obj.splitlines() if f'name="{hair}"' in ln and "object" in ln]
+                        assert row and all('enabled="false"' in ln for ln in row), f"{zip_name}: {obj_name} keeps {hair} on"
+
+                # mtr_head lost the GSMA slot; mtr_lashes keeps its opacity template and both textures
+                cfg = z.read(f"{prefix}/{unit}/mtr_criminal_ecp_female.material_config").decode()
+                head_block = cfg[cfg.index('name="mtr_head"'):]
+                head_block = head_block[: head_block.index("</material>")]
+                assert "GSMA_TEXTURE" not in head_block and "material_texture" not in head_block
+                assert "DIFFUSE_TEXTURE:NORMALMAP" in head_block
+                lashes_block = cfg[cfg.index('name="mtr_lashes"'):]
+                lashes_block = lashes_block[: lashes_block.index("</material>")]
+                assert "opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS" in lashes_block
+                assert "npc_criminal_ecp_female_lashes_df" in lashes_block
+                assert "npc_criminal_ecp_female_lashes_op" in lashes_block
+
+                head_df = np.asarray(Image.open(io.BytesIO(
+                    z.read(f"{prefix}/{unit}/npc_criminal_ecp_female_head_df.texture"))).convert("RGBA"))
+                assert head_df.shape == (2048, 2048, 4)
+                quad = head_df[1024:2048, 1024:2048].astype(np.int16)
+                # DXT5 between them, so compare the decoded quadrant with the source it was built
+                # from and with the synthesised eye the other eight packs carry
+                off_supplied = float(np.abs(quad - eye.astype(np.int16)).mean())
+                off_synth = float(np.abs(quad - synth_eye.astype(np.int16)).mean())
+                assert off_supplied < 4.0 and off_supplied * 3 < off_synth, (
+                    f"{zip_name}: the eye quadrant is not references/EYE_Diff.png "
+                    f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
+                assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
+
     def test_neck_skirt_is_on_the_l4d2_heads_and_not_on_the_romance_ones(self):
         """The skirt is a L4D2-path change; the Romance path must not carry it.
 
@@ -1137,6 +1237,8 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Clover.zip", 4454, 7070, 148.90),
             ("Miranda_Romance_over_Bonnie.zip", 4454, 7070, 148.90),
             ("Miranda_Romance_over_Sydney.zip", 4454, 7070, 148.90),
+            ("Miranda_L4D2_over_Hila.zip", 4508, 7305, 142.98),
+            ("Miranda_Romance_over_Hila.zip", 4454, 7070, 148.90),
         ]
         for name, verts, tris, min_z in specs:
             zp = REPO / "dist" / name
@@ -1196,6 +1298,7 @@ class TestLasScaffold:
             ("Miranda_L4D2_over_Clover.zip", "Miranda L4D2 over Clover", "units/payday2/characters/shared_textures/clover_head_df.texture"),
             ("Miranda_L4D2_over_Bonnie.zip", "Miranda L4D2 over Bonnie", "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_head_df.texture"),
             ("Miranda_L4D2_over_Sydney.zip", "Miranda L4D2 over Sydney", "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_head_df.texture"),
+            ("Miranda_L4D2_over_Hila.zip", "Miranda L4D2 over Hila", "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture"),
         ]
         for zip_name, prefix, df_rel in specs:
             with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
