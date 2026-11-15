@@ -275,7 +275,6 @@ class TmcFile:
         d = self.data
         out: List[MeshPayload] = []
         mdlgeo = self.sections["MdlGeo"]
-        vtx = self.sections["VtxLay"]
         idxsec = self.sections["IdxLay"]
         mesh_nodes = self.mesh_node_index()
         for objidx, objoffs in enumerate(mdlgeo.offsets):

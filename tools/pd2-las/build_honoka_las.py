@@ -67,12 +67,10 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import io
 import json
 import sys
 import zipfile
-from dataclasses import dataclass
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -152,8 +150,6 @@ def basis_matrix():
 def glbl_to_diesel(glbl_raw) -> list:
     """TMC GlblMtx (metres, Y-up) -> diesel world bind (row-vector dm.Mat, cm)."""
     import numpy as np
-
-    import diesel_model as dm
 
     M = basis_matrix()
     out = []
@@ -768,12 +764,8 @@ def _render_icon_sheet(model_path: Path, textures: dict):
 
 def _fallback_icon() -> bytes:
     """Navy tile with the pack initial — used with --no-previews."""
-    import io
-
     import numpy as np
     from PIL import Image, ImageDraw
-
-    from dds_encode import rgba_to_bc3_dds  # noqa: F401
 
     img = Image.new("RGB", (256, 256), (24, 28, 52))
     d = ImageDraw.Draw(img)
