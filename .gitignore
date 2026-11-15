@@ -20,6 +20,8 @@ dist/*
 !dist/lawson_las.zip.sha256
 !dist/Honoko2.zip
 !dist/Honoko2.zip.sha256
+!dist/Honoko3.zip
+!dist/Honoko3.zip.sha256
 !dist/Christie_LAS.zip
 !dist/Christie_LAS.zip.sha256
 !dist/Christie_LAS_Slim.zip

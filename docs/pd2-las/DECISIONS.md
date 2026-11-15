@@ -307,6 +307,45 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** the user, 2026-11-15; `references/README.md`.
 - **Status:** holds.
 
+### D42 — `Honoko3` is `Honoko2`'s mesh scaled 5% about the rig's bones; both packs ship
+
+- **Decided:** 2026-11-15, by the user ("make Honoko3 zip from dae with a bit smaller model — check
+  screenshots"), who, asked what "smaller" means, chose *slimmer at the same height*, *~5 %*, and
+  *keep both packs*.
+- **Decision:** `tools/pd2-las/build_honoko2_dae.py` is driven by a `PackSpec` and `PACKS =
+  (HONOKO2, HONOKO3)`: one build of the same Collada input, the same six materials, textures,
+  registration, glove adapter and icon, writes `dist/Honoko2.zip` and `dist/Honoko3.zip` (plus
+  sidecars) from one `make -sC tools/pd2-las honokodae`. `HONOKO3.slim = 0.95` is the only difference
+  in geometry. The pass is `_slim_groups()`, after the wrist cut and its caps: every vertex is moved
+  toward the weight-blended rest position of the bones in its palette —
+  `out = anchor + 0.95 * (v - anchor)` — and the outfit is then re-seated so its lowest vertex is back
+  at `z = -0.47`.
+- **Why anchor the offsets instead of scaling the mesh:** the game animates the outfit through the 2B
+  skeleton, so joints must stay where the rig puts them. Scaling in world space (or of the skinned
+  bind pose) would drop the collar off the heister's head, leave the wrist cuts short of the vanilla
+  gloves, move the feet off the floor and change bone lengths. Anchoring per bone, weighted the way
+  the skin weights are, keeps height, joint placement, sleeve and skirt hems in place and shrinks
+  only the distance from the bones: the girth.
+- **Measured (built bytes, `dmodel` on the packed `.model`, both 31 577 vertices):** height
+  167.76 → 167.43 cm, soles at `z = -0.47` in both, bbox depth 41.37 → 39.28 cm (**-5.05 %**, the
+  factor), bbox width 97.46 → 96.60 cm (the arms are anchored at the shoulder and elbow bones, so
+  their span barely moves). Per-slice widths through the torso read -3 to -6 %; the single +9.6 %
+  slice at z = 140 and the -61 % depth at z = 60 are the crude ±1.5 cm windows catching the sleeve
+  cuffs and the skirt hem at different heights, not geometry that grew. `dist/Honoko2.zip` is
+  byte-identical to the tracked pack after the refactor (`c56a76a3…`);
+  `dist/Honoko3.zip` is `e967cea4…`, 5,468,049 B.
+- **Also:** `tools/render_mod_previews.py` renders `18_Honoko3.png` and puts both packs in the 18-cell
+  `dist/` overview; `status.py` maps both names to `honokodae`; the tracked-zip count in the docs, the
+  CI job and the tests goes 19 → 20 (18 packs), and the one-call `status` budget 2 KiB → 2.5 KiB, because a
+  pack costs ~90 bytes of that JSON and the 17-pack output already sat at 2,015 of the 2,048.
+- **Carried by:** `dist/Honoko3.zip{,.sha256}`, `tools/pd2-las/build_honoko2_dae.py`,
+  `docs/renders/honoka/model/dae/honoko3_las_sheet.png`.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko3_is_honoko2_slimmed_about_the_bones`
+  (vertex count unchanged, height within 1 cm, soles at -0.47, palette unchanged, `slim` reported as
+  0.95) and `tests/test_pd2_las_status.py` (both packs, one target).
+- **Source:** the user, 2026-11-15; D40.
+- **Status:** holds. Nothing of `Honoko3` has been in game; the in-game record stays `Honoko2` (D40).
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

@@ -60,3 +60,18 @@ The owner also supplied eight in-game captures made with `Honoko2` (outfit menu,
 three-quarter, side and back on the preview turntable). They are archived byte-identically, with a README
 and a SHA-256 manifest, in `docs/renders/honoka/in-game/2026-11-15/`; `docs/pd2-las/HANDOFF.md` records the
 pack as seen in game. `runtime_verified` stays `false` in the pack (D31). See D40.
+
+## 2026-11-15 — `Honoko3`: the same outfit 5% slimmer, both packs ship
+
+At the owner's request ("make Honoko3 zip from dae with a bit smaller model"): slim, at the same
+height, ~5%, and `Honoko2` untouched. `build_honoko2_dae.py` now takes a `PackSpec`, and one run of
+`make -sC tools/pd2-las honokodae` writes both `dist/Honoko2.zip` (byte-identical to the tracked pack,
+so the refactor is not a rebuild) and `dist/Honoko3.zip` from the same Collada input. The only
+geometric difference is `_slim_groups(factor=0.95)`: every vertex is pulled toward the weight-blended
+rest position of the bones in its palette, `anchor + 0.95 * (v - anchor)`, then the outfit is re-seated
+so its soles are back at `z = -0.47`. Scaling in world space would have dropped the collar off the
+heister's head, left the wrist cuts short of the gloves and shortened the bone lengths; anchoring per
+bone keeps the joints, the sleeve and skirt hems and the height, and shrinks the girth — 5.05% front to
+back, with the same 31,577 vertices, the same palettes and the same six materials. Previews:
+`docs/renders/honoka/model/dae/honoko3_las_sheet.png`; the 18-pack `dist/` overview now carries both.
+Nothing of `Honoko3` has been in game. See D42.

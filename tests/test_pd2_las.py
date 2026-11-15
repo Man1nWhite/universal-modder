@@ -1212,6 +1212,68 @@ class TestLasScaffold:
                     f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
+    def test_honoko3_is_honoko2_slimmed_about_the_bones(self):
+        """`Honoko3` is `Honoko2`'s mesh scaled 5% about the rig's bones, and nothing else (D42).
+
+        The pass moves every vertex toward the weight-blended rest point of its palette bones, so
+        the joints stay where the rig puts them: the pack has to keep its height, keep its soles on
+        the floor, keep its palette bone for bone, and be thinner front to back by the factor. A
+        world-space scale, or a scale of the bind pose, breaks the first three.
+        """
+        import numpy as np
+
+        sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        import dmodel
+
+        def load(tag):
+            stem = tag.lower()
+            with zipfile.ZipFile(REPO / "dist" / f"{tag}.zip") as z:
+                info = json.loads(z.read(f"{tag}/BUILD_INFO.json"))
+                model = dmodel.DieselModel.from_bytes(
+                    z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model"))
+            geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
+                    for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
+            palette = [[model.by_id[oid].obj.name for oid in o.obj.object_ids]
+                       for o in model.by_id.values() if type(o.obj).__name__ == "SkinBones"]
+            return info, geos, palette
+
+        info2, geos2, pal2 = load("Honoko2")
+        info3, geos3, pal3 = load("Honoko3")
+
+        # the same geometry, vertex for vertex: the pass moves vertices, it adds and drops none
+        assert set(geos2) == set(geos3)
+        assert {k: len(v) for k, v in geos2.items()} == {k: len(v) for k, v in geos3.items()}
+        gid = max(geos2, key=lambda k: len(geos2[k]))
+        v2, v3 = geos2[gid], geos3[gid]
+        assert len(v2) == 31577, f"{len(v2)} vertices, expected the whole garment set"
+
+        # both stand on the floor, and the slim pack is not shorter
+        for tag, v in (("Honoko2", v2), ("Honoko3", v3)):
+            assert float(v[:, 2].min()) == pytest.approx(-0.47, abs=0.01), (
+                f"{tag}: lowest vertex z {v[:, 2].min():.3f}, expected -0.47 (soles on the floor)")
+        height2 = float(np.ptp(v2[:, 2]))
+        height3 = float(np.ptp(v3[:, 2]))
+        assert height3 == pytest.approx(height2, abs=1.0), (height2, height3)
+
+        # thinner front to back by the factor, and never wider than the pack it was built from
+        depth2 = float(np.ptp(v2[:, 1]))
+        depth3 = float(np.ptp(v3[:, 1]))
+        assert depth3 / depth2 == pytest.approx(0.95, abs=0.01), (depth2, depth3)
+        assert 0.94 <= float(np.ptp(v3[:, 0])) / float(np.ptp(v2[:, 0])) <= 1.0
+
+        # anchored per bone, so nothing jumps: the largest move is under 2 cm
+        shift = np.linalg.norm(v3 - v2, axis=1)
+        assert float(shift.max()) < 2.0, f"a vertex moved {shift.max():.2f} cm"
+        assert float(shift.mean()) > 0.1, "the mesh barely moved - the slim pass did nothing"
+
+        # the rig is untouched: the same palettes, bone for bone, in the same order
+        assert pal3 == pal2
+
+        # the factor is written into the pack, and `Honoko2` does not claim a slim pass at all
+        assert info3["slim"]["factor"] == pytest.approx(0.95)
+        assert info3["slim"]["vertices_moved"] == info3["slim"]["vertices"]
+        assert "slim" not in info2
+
     def test_neck_skirt_is_on_the_l4d2_heads_and_not_on_the_romance_ones(self):
         """The skirt is a L4D2-path change; the Romance path must not carry it.
 

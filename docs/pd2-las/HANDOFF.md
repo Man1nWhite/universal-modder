@@ -14,7 +14,7 @@ are also tracked, byte for byte, under `build/pd2-las/`.
 Every pack that can be rebuilt reproduces its tracked bytes in the pinned environment on any x86-64 Linux
 machine: each builder writes one fixed timestamp into every zip entry and puts itself on one declared numeric
 code path before it computes anything, so a `.sha256` sidecar is a true build hash. CI builds the rebuildable
-packs on its runner and holds the 17 zips to their tracked hashes, with no tolerance, on runners with AVX-512
+packs on its runner and holds the 18 zips to their tracked hashes, with no tolerance, on runners with AVX-512
 and without. The two Christie packs cannot be rebuilt (their builder was deleted on 2026-11-14); their
 sidecars still hold against the tracked zips. The tracked `Christie_LAS.zip` is the 2026-11-13/14 sleeve-bridge
 build (`1ec1c95a…`, see `docs/audits/2026-11-14-christie-rebuild-redo.md`); on 2026-11-14 the pre-bridge builder
@@ -26,6 +26,12 @@ The DOAXVV "Secret Report" outfit is the `Honoko2` pack, built from the Collada 
 It is one of the packs CI rebuilds, so it is verified byte for byte like the rest. The earlier TMC-only build of the
 same costume was deleted on 2026-11-15 at the user's direction, after the `.dae` pack proved the better one; its
 bytes stay reachable through git history (D40).
+
+`Honoko3` is the second pack of that same outfit and build: identical materials, textures, registration and glove
+adapter, with the mesh scaled 5% about the rig's bones — slimmer through the torso, arms, hips and bust, same
+height, same joint placement, sleeves and skirt hems where they were, soles still on the floor (`_slim_groups`,
+D42). `make -sC tools/pd2-las honokodae` writes both zips in one run and CI verifies both. Only `Honoko2` has
+been in game.
 
 ## Seen in game
 
@@ -43,6 +49,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
+| `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
 | `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — the full pack with Christie's own hands; installed hashes not measured |
 | `Christie_LAS_Slim` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — Slim with the white LAS gloves spawned; installed hashes not measured |
 
