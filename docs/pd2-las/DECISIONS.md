@@ -289,23 +289,26 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   hair drawables `g_hair_mask_off` / `g_hair_mask_on` are collapsed to the hidden triangle and disabled
   in both object files, as for Sydney. The head material group runs `mtr_head` + the unit's own
   `mtr_lashes`. The eye quadrant of these two packs is the user's `references/EYE_Diff.png`
-  (`load_hila_eye_texture()`); the ten other head packs keep the synthesised eye and are byte-identical
-  to the 2026-11-14 build.
+  (`load_hila_eye_texture()`); the nine other head packs do not read that file and stay byte-identical
+  (the eight Miranda ones keep the synthesised eye, Geralt keeps Rust's own).
 - **Why:** Hila is not in `Heister - FPS Gloves in TPS 2.zip` and has no Safe House (`*_chill`) unit, so
   her heist and menu models come from her own archive and no Safe House swap exists to emit. Her
   `mtr_head` is authored against a `*_head_gsma` gloss map for her own UVs, which the head atlas does not
   have, so the material becomes the same plain `DIFFUSE_TEXTURE:NORMALMAP` template the other heisters
   use and reads gloss from the diffuse alpha. The supplied eye is a 256x256 spherical eyeball map whose
-  iris is 0.062 of the image across, while both pipelines re-project the eyeball as a planar pass over
-  the palpebral opening, so it is magnified 2.8x about its centre to put the iris where the synthesised
-  eye had it (0.174 of the quadrant, an ~11.7 mm iris in a ~30 mm opening).
+  iris is small in the frame, while both pipelines re-project the eyeball as a planar pass over the
+  palpebral opening, so it is magnified about its centre by a factor measured off the source - 2.8 for
+  the first diffuse, 2.03 for the same day's repaint, whose iris is drawn 1.38x larger - to put the iris
+  where the synthesised eye had it (r 0.156 of the quadrant in u,v, inside the 0.174 gloss iris disc, an
+  ~11.7 mm iris in a ~30 mm opening; D43).
 - **Carried by:** `references/EYE_Diff.png` and `references/npc_criminals_ecp_female.7z` are tracked, and
   `references/README.md` describes both.
 - **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye`
   fails if the eyelash atom leaves `mtr_lashes`, if a hair drawable stays enabled, if `mtr_head` regains
   the GSMA slot, or if the eye quadrant stops being the supplied diffuse.
 - **Source:** the user, 2026-11-15; `references/README.md`.
-- **Status:** holds.
+- **Status:** holds, as amended by D43: the same day's repaint of the supplied diffuse re-measured the
+  zoom factor, and corrected the count of the other head packs above.
 
 ### D42 — `Honoko3` is `Honoko2`'s mesh scaled 5% about the rig's bones; both packs ship
 
@@ -345,6 +348,30 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   0.95) and `tests/test_pd2_las_status.py` (both packs, one target).
 - **Source:** the user, 2026-11-15; D40.
 - **Status:** holds. Nothing of `Honoko3` has been in game; the in-game record stays `Honoko2` (D40).
+
+### D43 — The supplied eye is repainted; the two Hila packs rebuild at a re-measured zoom
+
+- **Decided:** 2026-11-15, by the user, attaching a 256x256 repaint: "Chance EYE_Diff.png to this one and
+  rebuild Miranda over Hila packs".
+- **Decision:** `references/EYE_Diff.png` becomes the repaint (the first diffuse stays in git history),
+  `HILA_EYE_ZOOM` goes 2.8 -> 2.03, and `dist/Miranda_{L4D2,Romance}_over_Hila.zip` rebuild from it with
+  fresh sidecars. Nothing else reads the file: the nine other head packs come out of the same
+  `make heads` run byte-identical.
+- **Why:** the repaint keeps the veined sclera and redraws the iris - rounder, with a catchlight, and
+  1.38x the area-equivalent radius of the first diffuse (hole-filled blue-plus-limbal mask: r_eq 14.24
+  -> 19.63 px of 256). The zoom is a measurement, not a preference: it exists to land the source iris at
+  the radius the synthesised eye uses in the quadrant (r 0.156 in u,v, inside the 0.174 gloss iris disc).
+  At the old 2.8 the repaint's iris would land at r 0.215 - an iris 1.38x too large in game, spilling out
+  of its gloss disc - so the factor is the old one divided by the measured iris ratio (2.8 / 1.3788),
+  and the in-game eye keeps its calibrated size while wearing the new art.
+- **Carried by:** the swapped `references/EYE_Diff.png`, the `HILA_EYE_ZOOM` comment in
+  `tools/build_joy_head_mods.py`, the rebuilt sidecars, and the renders in
+  `docs/renders/miranda/model/over-hila/`.
+- **Held to:** the D41 test, which rebuilds the expected quadrant from the reference at test time and so
+  pins the new bytes without an edit; `make -sC tools/pd2-las green` rebuilds all 20 tracked zips and
+  holds these two to the new sidecars and the other 18 to the old bytes.
+- **Source:** the user, 2026-11-15.
+- **Status:** holds.
 
 ## Environment, tests and documents
 

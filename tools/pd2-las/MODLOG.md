@@ -75,3 +75,17 @@ bone keeps the joints, the sleeve and skirt hems and the height, and shrinks the
 back, with the same 31,577 vertices, the same palettes and the same six materials. Previews:
 `docs/renders/honoka/model/dae/honoko3_las_sheet.png`; the 18-pack `dist/` overview now carries both.
 Nothing of `Honoko3` has been in game. See D42.
+
+## 2026-11-15 — the supplied eye is repainted; both Hila packs rebuild
+
+The user supplied a second `references/EYE_Diff.png` (same 256x256 frame and veined sclera, the iris
+redrawn rounder, 1.38x the area-equivalent radius and with a catchlight) and asked for the Miranda over
+Hila packs to be rebuilt from it. The file is the repaint now; `HILA_EYE_ZOOM` went 2.8 -> 2.03, because
+the factor is measured off the source iris (hole-filled blue-plus-limbal mask, r_eq 14.24 -> 19.63 px of
+256) and exists to land it at the synthesised eye's quadrant radius (r 0.156 in u,v, inside the 0.174
+gloss disc): at the old factor the new iris would have sat 1.38x too large in game and spilled out of its
+gloss disc. One `make -sC tools/pd2-las heads` run rebuilt the two Hila zips and their sidecars and left
+the other nine head packs byte-identical; the two Hila sheets and both `dist/` overviews were re-rendered
+(`docs/renders/miranda/model/over-hila/`). The hila test rebuilds the expected eye quadrant from the
+reference at test time, so it pins the new bytes without an edit. Nothing of the Hila packs has been in
+game. See D43.

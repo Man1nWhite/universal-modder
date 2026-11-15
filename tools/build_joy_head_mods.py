@@ -77,9 +77,12 @@ HILA_UNIT_STEM = "npc_criminal_ecp_female"
 HILA_UNIT_DIR = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female"
 HILA_ICON_PATH = "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture"
 #: the supplied eyeball diffuse; magnified about its centre so the iris lands at the radius the
-#: synthesized eye uses (0.28 of the quadrant, ~11.7 mm iris in a ~30 mm palpebral opening)
+#: synthesized eye uses (r 0.156 of the quadrant in u,v, inside the 0.174 gloss iris disc, an
+#: ~11.7 mm iris in a ~30 mm palpebral opening). The factor is measured off the source, not
+#: guessed: the 2026-11-15 repaint draws its iris 1.38x larger than the first diffuse, so the
+#: factor went 2.8 -> 2.03 to keep the same iris in game (D43).
 HILA_EYE_SOURCE = "references/EYE_Diff.png"
-HILA_EYE_ZOOM = 2.8
+HILA_EYE_ZOOM = 2.03
 
 
 def ensure_ada_reference(tmp_dir: Path) -> Path:

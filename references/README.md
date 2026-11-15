@@ -14,12 +14,15 @@ This directory contains the reference PAYDAY 2 mod archives used as binary/skele
 
 
 **Supplied textures:** `EYE_Diff.png` — the Miranda Lawson eye diffuse (256×256 RGB: blue iris, veined sclera),
-supplied by the user on 2026-11-15. It is a repaint of `EYE_Diff.png` inside `models/PC _ Computer - Mass
-Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`, kept here as its own input because the
-archives are read in place and not edited. It is the eye texture of the two Hila packs only
-(`dist/Miranda_{L4D2,Romance}_over_Hila.zip`): `load_hila_eye_texture()` in `tools/build_joy_head_mods.py`
-magnifies it about its centre into the head atlas' eye quadrant. The other ten head packs keep the
-synthesised eye (`build_crisp_miranda_eye_texture`).
+supplied by the user on 2026-11-15, and repainted again the same day (rounder iris, 1.38x the first
+repaint's, with a catchlight; the earlier bytes stay in git history). It is a repaint of `EYE_Diff.png`
+inside `models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`,
+kept here as its own input because the archives are read in place and not edited. It is the eye texture
+of the two Hila packs only (`dist/Miranda_{L4D2,Romance}_over_Hila.zip`): `load_hila_eye_texture()` in
+`tools/build_joy_head_mods.py` magnifies it about its centre into the head atlas' eye quadrant, by a
+factor measured off the iris it finds in the source (2.03 since the second repaint, D43). The nine other
+head packs do not read it: the eight Miranda ones keep the synthesised eye
+(`build_crisp_miranda_eye_texture`), Geralt keeps Rust's own.
 
 **Not here:** the Geralt of Rivia L4D2 port archive lives in `models/Geralt.7z` (it was tracked in both
 directories, byte for byte, which is only a way to restore the wrong copy); `tools/build_joy_head_mods.py`
