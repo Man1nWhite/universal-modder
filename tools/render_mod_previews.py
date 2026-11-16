@@ -26,6 +26,8 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `20_Miranda_Romance_over_Hila.png`
   - `21_Honoko3.png` (the same outfit 5% slimmer, scaled about the rig's bones)
   - `22_Honoko4.png` (Honoko3's geometry in the user's alternate suit colourway)
+  - `23_Honoko4_with_Miranda_Romance_over_Hila.png` (Honoko4's body under the Miranda Romance
+    over Hila head pack, the combination as installed)
 
 `00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
@@ -368,11 +370,16 @@ def _parts_from_model_with_matcfg(
     mf,
     mat_to_asset: dict[str, str],
     tex_cache: dict[str, np.ndarray],
+    drawable: str = "g_body",
+    cutout_materials: frozenset = frozenset(),
+    asset_root: str = "assets",
 ) -> list:
     hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
-    hmap = {dm.hash64(name): name for name in hl["names"]}
+    # the matcfg's own names fill any gap in the model's hashlist (the ecp unit's lists no mtr names)
+    hmap = {dm.hash64(name): name for name in mat_to_asset}
+    hmap.update({dm.hash64(name): name for name in hl["names"]})
     tpp = _model_drawables(mf)
-    geo, topo, md = tpp["g_body"]
+    geo, topo, md = tpp[drawable]
     mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
     mat_names = [
         hmap.get(dm.decode_material(mf.by_id(mid).payload)["name_hash"], "?")
@@ -389,11 +396,38 @@ def _parts_from_model_with_matcfg(
         mname = mat_names[mid]
         asset = mat_to_asset[mname]
         if asset not in tex_cache:
+            rel = f"{tag}/{asset_root}/{asset}.texture" if asset_root else f"{tag}/{asset}.texture"
             tex_cache[asset] = np.asarray(
-                Image.open(io.BytesIO(zf.read(f"{tag}/assets/{asset}.texture"))).convert("RGBA")
+                Image.open(io.BytesIO(zf.read(rel))).convert("RGBA")
             )
-        parts.append((verts, norms, tris[bi // 3 : bi // 3 + tc], uvs, tex_cache[asset], False, True))
+        parts.append((verts, norms, tris[bi // 3 : bi // 3 + tc], uvs, tex_cache[asset],
+                      mname in cutout_materials, True))
     return parts
+
+
+def load_outfit_with_head_parts(
+    outfit_zip: str, outfit_tag: str, outfit_prefix: str,
+    head_zip: str, head_tag: str, head_unit: str, head_stem: str,
+) -> tuple[list, Image.Image]:
+    """One figure from two packs: a body-only LAS outfit plus a head pack's `g_head` drawable.
+
+    The combination the game shows when both are installed (the outfit replaces the body, the head
+    pack the head), rendered offline: both packs' models stand in the same character frame - the
+    outfit's neck plug nests inside the head unit's neck by design (D44) - so their parts share one
+    rasterizer call without any transform between them.
+    """
+    tpp_parts, _, icon_im = load_multi_mat_las_parts(
+        ROOT / "dist" / outfit_zip, outfit_tag, outfit_prefix, has_fps=False
+    )
+    with zipfile.ZipFile(ROOT / "dist" / head_zip) as zf:
+        unit = f"{head_tag}/{head_unit}/"
+        mf = dm.ModelFile.read(zf.read(unit + f"{head_stem}.model"))
+        mats = _parse_matcfg_diffuse(zf.read(unit + "mtr_criminal_ecp_female.material_config"))
+        head_parts = _parts_from_model_with_matcfg(
+            zf, head_tag, mf, mats, {}, drawable="g_head",
+            cutout_materials=frozenset({"mtr_lashes"}), asset_root="",
+        )
+    return tpp_parts + head_parts, icon_im
 
 
 def load_multi_mat_las_parts(
@@ -488,6 +522,7 @@ def render_las_sheet(
     icon_im: Image.Image,
     out_path: Path,
     has_head: bool = True,
+    closeup: tuple[float, float, float] = (18.0, 166.5, 11.5),
 ) -> Image.Image:
     W_col, H_row = 360, 540
     canvas = Image.new("RGB", (W_col * 4, H_row + 58), (18, 22, 30))
@@ -499,8 +534,8 @@ def render_las_sheet(
     p_back = rasterize_parts(tpp_parts, W_col, H_row, 180, z_full, s_full)
 
     if has_head:
-        p_top = rasterize_parts(tpp_parts, W_col, H_row // 2, 18, 166.5, 11.5, z_min_clip=138.0)
-        top_lbl = "Close-Up Portrait (18°)"
+        p_top = rasterize_parts(tpp_parts, W_col, H_row // 2, *closeup, z_min_clip=138.0)
+        top_lbl = f"Close-Up Portrait ({closeup[0]:.0f}\u00b0)"
     else:
         p_top = rasterize_parts(tpp_parts, W_col, H_row // 2, 24, 128.0, 4.9, z_min_clip=92.0)
         top_lbl = "Upper Body 3/4 (24°)"
@@ -759,6 +794,8 @@ UNIFIED_PATHS = {
     "20_Miranda_Romance_over_Hila.png": "miranda/model/over-hila/miranda_romance_over_hila_sheet.png",
     "21_Honoko3.png": "honoka/model/dae/honoko3_las_sheet.png",
     "22_Honoko4.png": "honoka/model/dae/honoko4_las_sheet.png",
+    "23_Honoko4_with_Miranda_Romance_over_Hila.png":
+        "honoka/model/dae/honoko4_with_miranda_romance_over_hila_sheet.png",
 }
 
 
@@ -880,6 +917,22 @@ def main(argv: list[str] | None = None) -> None:
         icon_hon4,
         target_for("22_Honoko4.png"),
         has_head=False,
+    )
+
+    combo_parts, icon_h4 = load_outfit_with_head_parts(
+        "Honoko4.zip", "Honoko4", "honoko4",
+        "Miranda_Romance_over_Hila.zip", "Miranda Romance over Hila",
+        "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female", "npc_criminal_ecp_female",
+    )
+    render_las_sheet(
+        "Honoko4 + Miranda Romance over Hila — the combination as installed",
+        "Honoko4's body-only outfit under the Hila head pack's g_head (head + lashes); one character frame, no transform between the packs",
+        combo_parts,
+        [],
+        icon_h4,
+        target_for("23_Honoko4_with_Miranda_Romance_over_Hila.png"),
+        has_head=True,
+        closeup=(18.0, 170.0, 8.0),  # the Miranda head crowns at z 188, above the LAS-sheet default window
     )
 
     heister_specs = [

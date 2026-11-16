@@ -6,6 +6,11 @@
   - `honoko2_las_sheet.png`: Full-body front, 3/4, back, side, upper-body close-up, and 256x256 HUD/menu icon for the 6-material buttoned DOAXVV "Secret Report" LAS outfit (`honoko2_body`, `honoko2_suit`, `honoko2_panties`, `honoko2_bra`, `honoko2_shoes`, `honoko2_jewelry`).
   - `honoko3_las_sheet.png`: the same six views of `Honoko3`, the same outfit with the mesh scaled 5% about the rig's bones (`_slim_groups` in the builder, D42) — slimmer through the torso, arms, hips and bust, with the same height, joint placement, wrist cuts and floor contact.
   - `honoko4_las_sheet.png`: `Honoko4`, `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange shirt) from `references/Honoka/Tex_07(L_7) 2.dds` (D44).
+  - `honoko4_with_miranda_romance_over_hila_sheet.png`: `Honoko4`'s body under the `g_head` drawable of
+    `dist/Miranda_Romance_over_Hila.zip` (head + lashes), i.e. the combination as installed - both packs'
+    models stand in one character frame, so the parts share one rasterizer call with no transform between
+    them. The close-up shows where the outfit's neck plug crosses the head pack's neck skin: one clean
+    crossing curve, visible as a tone step because the two packs carry different skin sources.
 - **Caveats:** Offline software Z-buffer render (`runtime_verified: false`, the builder constant).
   The `Honoko2` pack has since been seen in the game's outfit menu (2026-11-15, user report); the captures are in
   [`../../in-game/2026-11-15/`](../../in-game/2026-11-15/README.md). The headless `BODY_ONLY` outfits wear
