@@ -38,6 +38,9 @@ import threading
 import time
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -70,19 +73,19 @@ GOLDEN = [
     ("mip_audit", ["tools/pd2-las/mip_audit.py"]),
     ("audit_metrics", ["tools/pd2-las/audit_metrics.py"]),
     ("diagnose_mesh", ["tools/pd2-las/diagnose_mesh.py"]),
-    ("elbow_before_after", ["tools/pd2-las/elbow_before_after.py", "--before", "dist/Christie_LAS.zip", "--after", "dist/Christie_LAS.zip",
+    ("elbow_before_after", ["tools/pd2-las/elbow_before_after.py", "--before", "dist/Christie/Christie_LAS.zip", "--after", "dist/Christie/Christie_LAS.zip",
                             "--templates", TEMPLATES, "--out", "{s}/elbow", "--scratch", "{s}/panels"]),
     ("glove_check", ["tools/pd2-las/glove_check.py", "{c}/christie.model", "{s}/glove.png"]),
     ("neck_junction", ["tools/pd2-las/neck_junction.py"]),
-    ("render_mesh_skeleton", ["tools/pd2-las/render_mesh_skeleton.py", "--zip", "dist/Christie_LAS.zip", "--pack", "Christie_LAS",
+    ("render_mesh_skeleton", ["tools/pd2-las/render_mesh_skeleton.py", "--zip", "dist/Christie/Christie_LAS.zip", "--pack", "Christie_LAS",
                               "--item", "christie", "--templates", TEMPLATES, "--out", "{s}/skeleton"]),
     ("uv_check", ["tools/pd2-las/uv_check.py", "--two-b", TEMPLATES, "--ours", "{m}/miranda.model", "--out", "{s}/uv.png"]),
-    ("check_guide_compliance", ["tools/pd2-port/check_guide_compliance.py", "dist/lawson_las.zip"]),
-    ("check_guide_compliance_miranda", ["tools/pd2-port/check_guide_compliance.py", "dist/Miranda_LAS.zip"]),
-    ("check_guide_compliance_christie", ["tools/pd2-port/check_guide_compliance.py", "dist/Christie_LAS.zip"]),
-    ("check_mesh_geometry", ["tools/pd2-port/check_mesh_geometry.py", "dist/lawson_las.zip"]),
-    ("check_mesh_geometry_miranda", ["tools/pd2-port/check_mesh_geometry.py", "dist/Miranda_LAS.zip"]),
-    ("check_mesh_geometry_christie", ["tools/pd2-port/check_mesh_geometry.py", "dist/Christie_LAS.zip"]),
+    ("check_guide_compliance", ["tools/pd2-port/check_guide_compliance.py", "dist/Miranda_Romance/Miranda_Romance_LAS.zip"]),
+    ("check_guide_compliance_miranda", ["tools/pd2-port/check_guide_compliance.py", "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip"]),
+    ("check_guide_compliance_christie", ["tools/pd2-port/check_guide_compliance.py", "dist/Christie/Christie_LAS.zip"]),
+    ("check_mesh_geometry", ["tools/pd2-port/check_mesh_geometry.py", "dist/Miranda_Romance/Miranda_Romance_LAS.zip"]),
+    ("check_mesh_geometry_miranda", ["tools/pd2-port/check_mesh_geometry.py", "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip"]),
+    ("check_mesh_geometry_christie", ["tools/pd2-port/check_mesh_geometry.py", "dist/Christie/Christie_LAS.zip"]),
     ("check_nm_convention", ["tools/pd2-port/check_nm_convention.py"]),
     ("check_test_suite_mutations", ["tools/pd2-port/check_test_suite_mutations.py"]),
     ("check_guide_compliance_self_test", ["tools/pd2-port/check_guide_compliance_self_test.py"]),
@@ -371,7 +374,7 @@ def part_golden(run: int) -> None:
     scratch.mkdir(parents=True)
     fresh.copy_tree(tree)
     for name in ("Miranda_LAS", "Christie_LAS"):
-        with zipfile.ZipFile(tree / "dist" / f"{name}.zip") as z:
+        with zipfile.ZipFile(dist_path(tree, f"{name}.zip")) as z:
             z.extractall(scratch / "packs")
     fill = {"{s}": str(scratch), "{m}": str(scratch / "packs/Miranda_LAS/assets/units/miranda/skins/miranda"),
             "{c}": str(scratch / "packs/Christie_LAS/assets/units/christie/skins/christie")}
@@ -668,6 +671,8 @@ def base_modules() -> dict:
 
 
 def group_of(pack: str) -> str:
+    if pack in {"Miranda_L4D2_LAS", "Miranda_L4D2_Busty_LAS", "Miranda_Romance_LAS"}:
+        return "Miranda"
     for prefix, group in (("Miranda_L4D2", "heads L4D2"), ("Miranda_Romance", "heads Romance"), ("Geralt", "head Geralt"),
                           ("Christie", "Christie"), ("Miranda", "Miranda")):
         if pack.startswith(prefix):
@@ -698,7 +703,7 @@ def corpus() -> tuple:
         if group not in entry["groups"]:
             entry["groups"].append(group)
 
-    for path in sorted((REPO / "dist").glob("*.zip")) + sorted((REPO / "build" / "pd2-las").glob("*.zip")):
+    for path in sorted((REPO / "dist").rglob("*.zip")) + sorted((REPO / "build" / "pd2-las").glob("*.zip")):
         with zipfile.ZipFile(path) as z:
             for name in z.namelist():
                 table = models if name.endswith(".model") else textures if name.endswith(".texture") else None
@@ -1060,7 +1065,7 @@ def compare_writers(mods: dict) -> dict:
     out = {"flags in the code": {"las_pack": list(lp.FLAG_KEYS), "las_outfit_pack": list(lop.FLAG_KEYS),
                                  "build_christie_las": list(chris.FLAG_KEYS) if chris else None},
            "packs": {}, "unit": {}, "zip": {}, "glove": {}, "shape": {}}
-    texts = {name: pack_text(REPO / "dist" / f"{name}.zip") for name in ("Miranda_LAS", "Miranda_Busty_LAS", "Christie_LAS", "Christie_LAS_Slim", "lawson_las")}
+    texts = {name: pack_text(dist_path(REPO, f"{name}.zip")) for name in ("Miranda_LAS", "Miranda_Busty_LAS", "Christie_LAS", "Christie_LAS_Slim", "lawson_las")}
     for name, files in texts.items():
         hook_name = next(n for n in files["hooks"] if "glove" not in n)
         glove_name = next((n for n in files["hooks"] if "glove" in n), None)
@@ -1106,7 +1111,7 @@ def compare_writers(mods: dict) -> dict:
                                   if member.endswith(suffix) and member.rsplit("/", 1)[-1].startswith("fps_") == fps), None))
             if pair[0] and pair[1]:
                 out["shape"][f"{'first-person ' if fps else ''}{suffix}, Christie_LAS against Miranda_LAS with the names taken out"] = verdict(pair[1], pair[0])
-    for path in sorted((REPO / "dist").glob("*.zip")):
+    for path in sorted((REPO / "dist").rglob("*.zip")):
         work = Path(tempfile.mkdtemp(prefix="zip-", dir=OUT))
         try:
             with zipfile.ZipFile(path) as z:

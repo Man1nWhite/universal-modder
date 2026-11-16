@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-call state of the PAYDAY 2 packs: the environment and all 15 tracked packs.
+"""One-call state of the PAYDAY 2 packs: the environment and all 20 tracked packs.
 
     make -sC tools/pd2-las status            # one JSON object on stdout
     python3 tools/pd2-las/status.py          # the same; needs no venv
@@ -45,16 +45,17 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
-import extract_2b  # noqa: E402  (stdlib-only, like this script)
+import extract_2b  # noqa: E402
+from dist_paths import dist_path  # noqa: E402  (stdlib-only, like this script)
 
 #: where references/2b.rar is unpacked: the default of every builder's --templates
 TEMPLATES = extract_2b.TEMPLATES
 
 #: archives the builders read (repo-relative)
 INPUTS = (
-    "models/l4d2_miranda_lawson_1.zip",
-    "models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip",
-    "models/Geralt.7z",
+    "references/l4d2_miranda_lawson_1.zip",
+    "references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip",
+    "references/Geralt.7z",
     "references/2b.rar",
     "references/Christie.zip",
     "references/Ada Wong over Joy.7z",
@@ -65,13 +66,16 @@ INPUTS = (
 
 #: tracked pack (dist/<name>.zip) -> the make target that rebuilds it. The Makefile
 #: is where a target's command is written; a head pack is any `<who>_over_<heister>`.
-#: The two Christie packs are tracked but are not rebuilt: their builder was deleted
-#: on 2026-11-14, so they have no target and `make` is null for them.
+#: Christie_LAS is built from source.
 TARGETS = {
-    "Miranda_LAS": "build",
-    "Miranda_Busty_LAS": "busty",
-    "lawson_las": "lawson",
+    "Miranda_L4D2_LAS": "build",
+    "Miranda_L4D2_Busty_LAS": "busty",
+    "Miranda_Romance_LAS": "lawson",
+    "Christie_LAS": "christie",
     "Honoko2": "honokodae",
+    "Honoko3": "honokodae",
+    "Honoko4": "honokodae",
+    "Honoko5": "honokodae",
 }
 HEADS = "heads"
 
@@ -90,7 +94,7 @@ def target(name: str) -> str | None:
 
 def pack_names() -> list[str]:
     """Every pack with a sidecar in dist/, the rebuildable LAS packs first, as the make targets list them."""
-    found = {path.name[: -len(".zip.sha256")] for path in (REPO / "dist").glob("*.zip.sha256")}
+    found = {path.name[: -len(".zip.sha256")] for path in (REPO / "dist").rglob("*.zip.sha256")}
     return [name for name in TARGETS if name in found] + sorted(found - set(TARGETS))
 
 
@@ -130,9 +134,10 @@ def git(*args: str) -> list[str] | None:
 
 def pack_status(name: str, differs: set[str] | None, full: bool = False) -> dict:
     """`differs`: the tracked paths under dist/ and build/ that are not what the commit holds; None without git."""
-    zips = [f"dist/{name}.zip"]
-    if (REPO / f"build/pd2-las/{name}.zip.sha256").is_file():
-        zips.append(f"build/pd2-las/{name}.zip")
+    zips = [dist_path(REPO, f"{name}.zip").relative_to(REPO).as_posix()]
+    build_name = {"Miranda_L4D2_LAS": "Miranda_LAS", "Miranda_L4D2_Busty_LAS": "Miranda_Busty_LAS"}.get(name, name)
+    if (REPO / f"build/pd2-las/{build_name}.zip.sha256").is_file():
+        zips.append(f"build/pd2-las/{build_name}.zip")
     out: dict = {"is": "missing", "make": target(name)}
     digests = []
     for rel in zips:
@@ -153,7 +158,7 @@ def pack_status(name: str, differs: set[str] | None, full: bool = False) -> dict
 def collect(only: list[str] | None = None, full: bool = False) -> dict:
     want, have = pins(), venv_versions()
     venv = any((REPO / ".venv" / sub).is_file() for sub in ("bin/python", "Scripts/python.exe"))
-    gone = git("ls-files", "-z", "--deleted", "--", *WIPED, "models", "references")
+    gone = git("ls-files", "-z", "--deleted", "--", *WIPED, "references")
     env = {"venv": venv, "pins_ok": venv and all(have.get(k) == v for k, v in want.items()),
            "templates": extract_2b.present(), "inputs": all((REPO / rel).is_file() for rel in INPUTS),
            "tracked_files_missing": len(gone or [])}

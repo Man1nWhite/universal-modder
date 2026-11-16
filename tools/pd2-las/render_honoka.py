@@ -6,14 +6,15 @@ emit into `docs/renders/honoka/<ext>/` per `docs/renders/README.md`:
   - `tmc/`: `honoka_tmc_full_sheet.png`, `honoka_tmc_parts_sheet.png`
   - `dds/`: `honoka_dds_contact_sheet.png`
   - `glb/`: `honoka_glb_sheet.png`
-  - `model/`: `honoka_model_parts_sheet.png` (complements `honoka_las_sheet.png`)
+
+These are the source assets (`.TMC`, the packed `.dds` set, the rigged `.glb`); the
+built `Honoko2` pack is rendered by `tools/render_mod_previews.py`.
 """
 
 from __future__ import annotations
 
 import argparse
 import importlib.util
-import io
 import json
 import struct
 import sys
@@ -28,7 +29,6 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
-import diesel_model as dm  # noqa: E402
 import tmc as tmc_mod  # noqa: E402
 
 FONT_BOLD_15 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
@@ -40,15 +40,23 @@ TMC_ZIP = REPO / "references" / "Outfit for Honoka-109-1-1-1628020933.zip"
 TMC_NAME = "Honoka_DOAXVV_Secret_Report.TMC"
 TEX_DIR = REPO / "references" / "Honoka"
 GLB_PATH = REPO / "references" / "Honoka" / "Honoka_DOAXVV_Secret_Report.rigged.glb"
-DIST_ZIP = REPO / "dist" / "Honoka_LAS.zip"
 
+#: source maps assigned by Honoko2 and the Honoko4/5 alternate suit diffuses
 DDS_ROLE_NOTES = {
-    "L_3.dds": "LAS: honoka_body_df",
-    "L_4.dds": "LAS: honoka_body_nm",
-    "L_7.dds": "LAS: honoka_jacket_df",
-    "L_8.dds": "LAS: honoka_jacket_nm",
-    "L_9.dds": "LAS: honoka_skirt_df",
-    "L_11.dds": "LAS: honoka_skirt_nm",
+    "L_3.dds": "Honoko2: honoko2_body diffuse",
+    "L_4.dds": "Honoko2: honoko2_body normal",
+    "L_7.dds": "Honoko2: honoko2_suit diffuse",
+    "L_8.dds": "Honoko2: honoko2_suit normal",
+    "L_14.dds": "Honoko2: honoko2_panties diffuse",
+    "L_15.dds": "Honoko2: honoko2_panties normal",
+    "L_17.dds": "Honoko2: honoko2_bra diffuse",
+    "L_18.dds": "Honoko2: honoko2_bra normal",
+    "L_20.dds": "Honoko2: honoko2_shoes diffuse",
+    "L_21.dds": "Honoko2: honoko2_shoes normal",
+    "L_23.dds": "Honoko2: honoko2_jewelry diffuse",
+    "L_24.dds": "Honoko2: honoko2_jewelry normal",
+    "Tex_07(L_7) 2.dds": "Honoko4: alternate suit diffuse",
+    "Tex_07(L_7)3.dds": "Honoko5: revised suit diffuse",
 }
 
 
@@ -190,6 +198,7 @@ def render_tmc_sheets(rp, out_dir: Path) -> None:
 
 def render_dds_sheet(out_dir: Path) -> None:
     dds_files = sorted(TEX_DIR.glob("L_*.dds"), key=lambda p: int(p.stem.split("_")[1]))
+    dds_files += [TEX_DIR / name for name in ("Tex_07(L_7) 2.dds", "Tex_07(L_7)3.dds")]
     cols, rows = 6, (len(dds_files) + 5) // 6
     tile_w, tile_h = 240, 278
     canvas = Image.new("RGB", (cols * tile_w, rows * tile_h + 56), (18, 22, 30))
@@ -218,8 +227,8 @@ def render_dds_sheet(out_dir: Path) -> None:
 
     _header(
         canvas,
-        "Honoka Source .DDS Textures — Complete Contact Sheet (L_0.dds – L_26.dds)",
-        f"Source: references/Honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are mapped in build_honoka_las.py",
+        "Honoka Source .DDS Textures — L_0–L_26 and Alternate Suit Diffuses",
+        f"Source: references/Honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are used by the Honoko2, Honoko4 and Honoko5 builds",
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "honoka_dds_contact_sheet.png"
@@ -299,76 +308,6 @@ def render_glb_sheet(rp, out_dir: Path) -> None:
     print(f"Saved {out_path}")
 
 
-def render_model_parts_sheet(rp, out_dir: Path) -> None:
-    unit = "Honoka_LAS/assets/units/honoka/skins/honoka/"
-    with zipfile.ZipFile(DIST_ZIP) as zf:
-        mf = dm.ModelFile.read(zf.read(unit + "honoka.model"))
-        tex = {
-            "honoka_body": np.asarray(Image.open(io.BytesIO(zf.read(unit + "honoka_body_df.texture"))).convert("RGBA")),
-            "honoka_jacket": np.asarray(Image.open(io.BytesIO(zf.read(unit + "honoka_jacket_df.texture"))).convert("RGBA")),
-            "honoka_skirt": np.asarray(Image.open(io.BytesIO(zf.read(unit + "honoka_skirt_df.texture"))).convert("RGBA")),
-        }
-
-    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
-    hmap = {dm.hash64(n): n for n in hl["names"]}
-    drawables = rp._model_drawables(mf)
-
-    def parts_for(dname: str, force_clay: tuple[int, int, int] | None = None) -> dict[str, list]:
-        geo, topo, md = drawables[dname]
-        mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
-        mnames = [hmap.get(dm.decode_material(mf.by_id(mid).payload)["name_hash"], "?") for mid in mg["material_ids"]]
-        verts = np.asarray(geo["verts"], np.float32)
-        norms = np.asarray(geo["normals"], np.float32)
-        uvs = np.asarray(geo["uv0"], np.float32)
-        tris = np.asarray(topo["indices"], np.int32).reshape(-1, 3)
-        by_mat: dict[str, list] = {}
-        for atom in md["atoms"]:
-            bi, tc, mid = atom["base_index"], atom["tri_count"], atom["material_id"]
-            mn = mnames[mid]
-            t = _solid_tex(force_clay) if force_clay else tex.get(mn, _solid_tex((175, 180, 190)))
-            by_mat.setdefault(mn, []).append((verts, norms, tris[bi // 3 : bi // 3 + tc], uvs, t, False, True))
-        return by_mat
-
-    body_mats = parts_for("g_body")
-    clay_mats = parts_for("g_body", force_clay=(192, 198, 208))
-    shadow_mats = parts_for("s_body", force_clay=(150, 158, 170))
-
-    all_tex = [p for plist in body_mats.values() for p in plist]
-    all_clay = [p for plist in clay_mats.values() for p in plist]
-    all_shadow = [p for plist in shadow_mats.values() for p in plist]
-
-    W, H = 360, 460
-    canvas = Image.new("RGB", (W * 4, H * 2 + 56), (18, 22, 30))
-
-    row1 = [
-        (rp.rasterize_parts(body_mats["honoka_body"], W, H, 22.0, 80.0, 2.35), "g_body · honoka_body"),
-        (rp.rasterize_parts(body_mats["honoka_jacket"], W, H, 22.0, 118.0, 5.2), "g_body · honoka_jacket"),
-        (rp.rasterize_parts(body_mats["honoka_skirt"], W, H, 22.0, 90.0, 6.2), "g_body · honoka_skirt"),
-        (rp.rasterize_parts(all_shadow, W, H, 22.0, 80.0, 2.35), "s_body · shadow_caster"),
-    ]
-    row2 = [
-        (rp.rasterize_parts(all_clay, W, H, 28.0, 80.0, 2.35), "Full Clay 3/4 (silhouette/normals)"),
-        (rp.rasterize_parts(all_tex, W, H, 18.0, 112.0, 3.6, z_min_clip=80.0), "Wrist Cut & Cuffs (18°)"),
-        (rp.rasterize_parts(all_tex, W, H, 32.0, 36.0, 4.2), "Skirt Hem, Legs & Heels (32°)"),
-        (rp.rasterize_parts(all_clay, W, H, 180.0, 80.0, 2.35), "Full Clay Back (180°)"),
-    ]
-
-    for col_i, (im, lbl) in enumerate(row1):
-        canvas.paste(_label_tile(im, lbl), (col_i * W, 56))
-    for col_i, (im, lbl) in enumerate(row2):
-        canvas.paste(_label_tile(im, lbl), (col_i * W, 56 + H))
-
-    _header(
-        canvas,
-        "Honoka Compiled .model — Material Isolation, Shadow Caster & Geometry Diagnostics",
-        "Source: dist/Honoka_LAS.zip :: honoka.model | Isolates each atom slice, wrist cut, legs, and clay silhouette",
-    )
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / "honoka_model_parts_sheet.png"
-    canvas.save(out_path)
-    print(f"Saved {out_path}")
-
-
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", type=Path, default=None,
@@ -383,7 +322,6 @@ def main(argv: list[str] | None = None) -> int:
     render_tmc_sheets(rp, root / "tmc")
     render_dds_sheet(root / "dds")
     render_glb_sheet(rp, root / "glb")
-    render_model_parts_sheet(rp, root / "model")
     return 0
 
 

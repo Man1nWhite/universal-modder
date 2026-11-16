@@ -22,7 +22,7 @@ import dds_encode  # noqa: E402
 import mip_audit  # noqa: E402
 
 pytestmark = pytest.mark.skipif(
-    not mip_audit.PACK.is_file() or not (REPO / "models" / "l4d2_miranda_lawson_1.zip").is_file(),
+    not mip_audit.PACK.is_file() or not (REPO / "references" / "l4d2_miranda_lawson_1.zip").is_file(),
     reason="the tracked Miranda_LAS.zip or the source zip is missing; restore them with `git checkout -- dist models`")
 
 

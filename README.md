@@ -10,9 +10,23 @@ of them.
 ## What this fork adds
 
 PAYDAY 2 packs, tracked in `dist/` and rebuilt byte for byte by CI: full-body and body-only Legendary Armour
-Skins outfits (Miranda Lawson, Christie) and head replacements over the vanilla heisters (Miranda, Geralt).
+Skins outfits (Miranda Lawson, Christie, Honoka) and head replacements over the vanilla heisters (Miranda, Geralt).
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share.
+
+## Packs and previews
+
+- Browse the ZIPs and their checksum sidecars in [`dist/`](dist/): [Miranda L4D2](dist/Miranda_L4D2/),
+  [Miranda Romance](dist/Miranda_Romance/), [Christie](dist/Christie/),
+  [Honoka](dist/Honoka/), and [Geralt](dist/Geralt/).
+- See the user-supplied [Christie](docs/renders/christie/in-game/2026-11-15/README.md) and
+  [Honoko5](docs/renders/honoka/in-game/honoko5/2026-11-15/README.md) screenshots,
+  [all packs](docs/renders/overview/model/all_dist_mods_sheet.png), the
+  [Honoko5 and Miranda Romance combination](docs/renders/honoka/model/dae/honoko5_with_miranda_romance_over_hila_sheet.png),
+  or the [render index](docs/renders/README.md). Software renders are not proof of in-game behavior;
+  screenshots do not establish the installed pack hashes.
+- Sources and templates are catalogued in [`references/README.md`](references/README.md). The
+  [handoff](docs/pd2-las/HANDOFF.md) distinguishes in-game observations from offline results.
 
 ## Installing
 
@@ -23,11 +37,6 @@ on this fork, clone it and start the agent inside the clone.
 |---|---|
 | Claude Code 2.1.277 or later, Codex, Cursor, Copilot, OpenCode | `AGENTS.md` |
 | Gemini CLI | `GEMINI.md`, which is the one line `@AGENTS.md` |
-
-There is no `CLAUDE.md`: Claude Code reads `AGENTS.md` where there is none, and Cursor's CLI, VS Code and
-Copilot CLI read a `CLAUDE.md` in addition to `AGENTS.md`. The evidence, and the command that makes each
-harness list what it loaded, is in
-[`docs/audits/2026-11-13-agent-entry.md`](docs/audits/2026-11-13-agent-entry.md).
 
 Skills are in `skills/`, copied to `.agents/skills` and `.claude/skills` where the harnesses look. MCP
 config is in `.mcp.json`, `.codex/config.toml`, `.cursor/mcp.json`, `.vscode/mcp.json`,

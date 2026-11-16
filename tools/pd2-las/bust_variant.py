@@ -3,7 +3,7 @@
 `build_busty_variant.py` rebuilds the Miranda LAS outfit through the untouched
 `build_models.py` pipeline and then runs this pass over the authored mesh
 groups before they are written to Diesel. Nothing here touches the shipped
-`dist/Miranda_LAS.zip` route: the pass is only reachable through the variant
+`dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` route: the pass is only reachable through the variant
 builder, which writes its own pack, unit paths and `dist/` archive.
 
 Sculpt & topology architecture

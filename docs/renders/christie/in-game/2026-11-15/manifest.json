@@ -1,0 +1,39 @@
+{
+  "supplied_on": "2026-11-15",
+  "pack_identification": "User-supplied identification; installed bytes not hash-verified.",
+  "screenshots": [
+    {
+      "upload": "image-13.png",
+      "file": "christie_menu_front.png",
+      "pack": "Christie_LAS",
+      "view": "outfit menu, front",
+      "width": 559,
+      "height": 1018,
+      "bytes": 994866,
+      "sha256": "8fe95759b242acc2f0f33a72c8593bb4c01806f2bc8b4b6c65c07f42c9047527",
+      "note": "User-supplied original PNG; installed archive hash not independently measured."
+    },
+    {
+      "upload": "image-14.png",
+      "file": "christie_menu_side.png",
+      "pack": "Christie_LAS",
+      "view": "outfit menu, side",
+      "width": 538,
+      "height": 1028,
+      "bytes": 975654,
+      "sha256": "9694f0bc2064ae7fa9d75f2e1d1ead21e77b6a8a537c7419233ccc8dc5297079",
+      "note": "User-supplied original PNG; installed archive hash not independently measured."
+    },
+    {
+      "upload": "image-18.png",
+      "file": "christie_lobby_threequarter.png",
+      "pack": "Christie_LAS",
+      "view": "menu/lobby, upper body with rifle",
+      "width": 607,
+      "height": 878,
+      "bytes": 747180,
+      "sha256": "af244f0853ca1d1e0f556fc2057a7e876025dd3ebedc665050ae04d262c1e0b9",
+      "note": "User-supplied original PNG; installed archive hash not independently measured."
+    }
+  ]
+}

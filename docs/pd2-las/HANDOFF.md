@@ -11,24 +11,27 @@ Which bytes are tracked is not written here. `make -sC tools/pd2-las status` pri
 and whether the zip is what git holds; `dist/<name>.zip.sha256` is the hash itself. The two Miranda LAS packs
 are also tracked, byte for byte, under `build/pd2-las/`.
 
-Every pack that can be rebuilt reproduces its tracked bytes in the pinned environment on any x86-64 Linux
-machine: each builder writes one fixed timestamp into every zip entry and puts itself on one declared numeric
-code path before it computes anything, so a `.sha256` sidecar is a true build hash. CI builds the rebuildable
-packs on its runner and holds the 17 zips to their tracked hashes, with no tolerance, on runners with AVX-512
-and without. The two Christie packs cannot be rebuilt (their builder was deleted on 2026-11-14); their
-sidecars still hold against the tracked zips. The tracked `Christie_LAS.zip` is the 2026-11-13/14 sleeve-bridge
-build (`1ec1c95a…`, see `docs/audits/2026-11-14-christie-rebuild-redo.md`); on 2026-11-14 the pre-bridge builder
-(recovered from `6f26633`) was used for a from-scratch build, which reproduces the **base** bytes (`b65fb27e…`),
-not the tracked bridge bytes — it passed all offline gates (`docs/audits/2026-11-14-christie-from-scratch.md`).
-In game for the first time on 2026-11-15 (menu preview; see *Seen in game* below).
+Rebuildable packs use fixed timestamps and a declared numeric code path. The new
+`Christie_LAS.zip` is a source rebuild with head and hands removed and a glove
+adapter; it replaces the earlier `1ec1c95a…` full pack. New user-supplied
+menu captures show the Christie outfit, but the installed bytes were not hash-verified.
+The older `Christie_LAS_Slim.zip` was removed from distribution at the user’s request;
+earlier Christie audit results describe older bytes, not the new pack.
 
-The Honoka pack (`Honoka_LAS`) is tracked as of 2026-11-15. It is the DOAXVV "Secret Report" costume: built by
-`build_honoka_las.py`, put into `dist/` by the `honoka` make target's copy step, so `fresh` does not verify it and
-`status` reports `make: null` for it, as for the Christie packs. Later on 2026-11-15 it was rebuilt with a
-source-connector-triangle filter (26 long thin triangles, up to 146 cm, drawn as hairline streaks from the wrist area)
-and re-committed; the bytes from the first commit stay reachable through git history. In game for the first
-time on 2026-11-15 (menu preview; the user confirmed the captured build is the currently tracked pack — see
-*Seen in game* below).
+The DOAXVV "Secret Report" outfit is the `Honoko2` pack, built from the Collada `.dae` by `build_honoko2_dae.py`.
+It is one of the packs CI rebuilds, so it is verified byte for byte like the rest. The earlier TMC-only build of the
+same costume was deleted on 2026-11-15 at the user's direction, after the `.dae` pack proved the better one; its
+bytes stay reachable through git history (D40).
+
+`Honoko3` is the second pack of that same outfit and build: identical materials, textures, registration and glove
+adapter, with the mesh scaled 5% about the rig's bones — slimmer through the torso, arms, hips and bust, same
+height, same joint placement, sleeves and skirt hems where they were, soles still on the floor (`_slim_groups`,
+D42). `Honoko4` is `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange
+shirt, `references/Honoka/Tex_07(L_7) 2.dds`), and `Honoko3`/`Honoko4` carry the layer-clearance pass and
+the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
+`Honoko5` is the same geometry in the user's revised third colourway (black jacket, light shirt,
+`references/Honoka/Tex_07(L_7)3.dds`, D45). `make -sC tools/pd2-las honokodae` writes all four zips in
+one run and CI verifies all four. User-supplied captures also show `Honoko5`.
 
 ## Seen in game
 
@@ -43,25 +46,35 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_LAS`, `Miranda_Busty_LAS` | no record | — |
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
+| `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
 | `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
-| `Honoka_LAS` | 2026-11-15, menu armor-skin preview, user report | yes — the user confirmed it is the currently tracked pack (ce1d1c0) |
-| `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — the full pack with Christie's own hands; installed hashes not measured |
-| `Christie_LAS_Slim` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — Slim with the white LAS gloves spawned; installed hashes not measured |
+| `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
+| `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
+| `Honoko4` | no record | — (`Honoko3` in the alternate suit colourway, D44; the close-ups that drove D44 were of `Honoko3`, not of this pack) |
+| `Honoko5` | 2026-11-15, user-supplied menu/lobby captures | User identifies the pack; installed hash not measured |
+| `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
+| `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
 
-The 2026-11-15 captures (all six are the outfit menu, not a heist; archived at `da891d7` and removed
-during the `docs/renders/README.md` cleanup) showed the Honoka tracked pack with a clean silhouette
-(no connector-triangle streaks), Christie_LAS_Slim under the spawned white LAS gloves, and full
-Christie_LAS with Christie's own hands. Lobby/heist behaviour, the inner elbow under a rifle, movement,
-the cuff/glove stack in every pose and the crash logs remain unchecked — the
-[checklist](in-game-checklist.md) is still waiting for a person with the game. The exact Christie builds
+New [Christie](../renders/christie/in-game/2026-11-15/README.md) and
+[Honoko5](../renders/honoka/in-game/honoko5/2026-11-15/README.md) menu/lobby captures
+are archived separately; they do not establish installed hashes, first-person behavior or animation.
+
+Eight captures of `Honoko2` on 2026-11-15 (the outfit menu, not a heist) are archived under
+[`docs/renders/honoka/in-game/2026-11-15/`](../renders/honoka/in-game/2026-11-15/README.md): the purple
+"Secret Report" blazer and skirt with the vanilla blue heister gloves over the wrist cut, from the front,
+three-quarter, side and back. An earlier set of six captures (archived at `da891d7`, removed in the
+`docs/renders/README.md` cleanup) showed the deleted TMC-only pack plus both Christie packs. Lobby/heist
+behaviour, the inner elbow under a rifle, movement, the cuff/glove stack in every pose and the crash logs
+remain unchecked — the [checklist](in-game-checklist.md) is still waiting for a person with the game. The builds
 installed on 2026-11-15 were identified by the user, not hash-measured from the captured bytes.
 
 - **The Miranda LAS packs** have the checklist `docs/pd2-las/in-game-checklist.md` waiting for a person with
   the game. No tracked bytes of either pack have been in game.
-- **Head packs, coverage.** Clover and Bonnie replace the heist, menu *and* Safe House (`*_chill`) models; Joy
-  and Sydney replace the heist + menu models only, so their Safe House units keep the vanilla head. There is
-  no checklist for the head packs. Until someone looks at a throat again the four L4D2 packs are
-  *offline-verified only*.
+- **Head packs, coverage.** Clover and Bonnie replace the heist, menu *and* Safe House (`*_chill`) models; Joy,
+  Sydney and Hila replace the heist + menu models only, so their Safe House units keep the vanilla head (Hila
+  has no Safe House unit to swap). Hila is also the only heister whose head packs carry the user-supplied
+  `references/EYE_Diff.png` in the eye quadrant (D41). There is no checklist for the head packs. Until someone
+  looks at a throat again the five L4D2 packs are *offline-verified only*.
 
 ## Dead ends — do not retry
 

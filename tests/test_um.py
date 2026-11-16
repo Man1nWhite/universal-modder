@@ -1052,7 +1052,7 @@ def test_backup_same_second_keeps_every_snapshot(tmp_path, backup_same_second):
     assert backup.snapshots("t") == paths         # latest selection still works after ten collisions
     for i, path in enumerate(paths):
         with backup.zipfile.ZipFile(path) as z:
-            assert z.read("save.dat") == f"version {i}".encode()
+            assert z.read("files/save.dat") == f"version {i}".encode()
         assert backup._manifest(path)["note"] == f"take {i}"
     assert backup.diff("t")["changed"] == []
     make(src, {"save.dat": "modified"})
@@ -1086,7 +1086,7 @@ def test_backup_concurrent_creates_keep_every_snapshot(tmp_path, backup_same_sec
     assert backup.snapshots("t") == sorted(paths)
     for i, path in enumerate(paths):
         with backup.zipfile.ZipFile(path) as z:
-            assert z.read("save.dat") == b"world"
+            assert z.read("files/save.dat") == b"world"
         assert backup._manifest(path)["note"] == str(i)
 
 
@@ -1120,7 +1120,7 @@ def test_backup_repeated_restores_keep_undo_snapshots(tmp_path, backup_same_seco
     assert len(undo) == 2
     for path, state in zip(undo, ("first take", "second take")):
         with backup.zipfile.ZipFile(path) as z:
-            assert z.read("save.dat") == state.encode()
+            assert z.read("files/save.dat") == state.encode()
 
 
 def test_backup_handles_pre_1980_timestamps(tmp_path, monkeypatch):

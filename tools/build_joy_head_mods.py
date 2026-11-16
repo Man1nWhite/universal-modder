@@ -2,17 +2,21 @@
 """Build PAYDAY 2 `mod_overrides` Miranda Lawson head-replacement mods over female heisters:
 
 1. Joy (`npc_criminals_joy_1`):
-   - `dist/Miranda_L4D2_over_Joy.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance_over_Joy.zip` (+ `.sha256`)
+   - `dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance/Miranda_Romance_over_Joy.zip` (+ `.sha256`)
 2. Clover (`npc_criminal_female_1` + Safe House `npc_criminal_female_chill`):
-   - `dist/Miranda_L4D2_over_Clover.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance_over_Clover.zip` (+ `.sha256`)
+   - `dist/Miranda_L4D2/Miranda_L4D2_over_Clover.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance/Miranda_Romance_over_Clover.zip` (+ `.sha256`)
 3. Bonnie (`npc_criminal_bonnie` + Safe House `npc_criminal_bonnie_chill`):
-   - `dist/Miranda_L4D2_over_Bonnie.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance_over_Bonnie.zip` (+ `.sha256`)
+   - `dist/Miranda_L4D2/Miranda_L4D2_over_Bonnie.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance/Miranda_Romance_over_Bonnie.zip` (+ `.sha256`)
 4. Sydney (`npc_criminals_fem_3` / `npc_criminal_sydney`):
-   - `dist/Miranda_L4D2_over_Sydney.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance_over_Sydney.zip` (+ `.sha256`)
+   - `dist/Miranda_L4D2/Miranda_L4D2_over_Sydney.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance/Miranda_Romance_over_Sydney.zip` (+ `.sha256`)
+5. Hila (`npc_criminals_ecp_female`, from `references/npc_criminals_ecp_female.7z`; no Safe House unit):
+   - `dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip` (+ `.sha256`)
+   - `dist/Miranda_Romance/Miranda_Romance_over_Hila.zip` (+ `.sha256`)
+   These two are the only packs whose eye quadrant is the user's `references/EYE_Diff.png`.
 
 All packages use fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
 """
@@ -25,6 +29,9 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 from PIL import Image
@@ -65,6 +72,21 @@ WILD_ICON_PATH = "guis/dlcs/wild/textures/pd2/blackmarket/icons/characters/wild.
 CHILL_UNIT_DIR = "units/pd2_dlc_chill/characters/shared_character"
 FPS_GLOVES_ZIP_PREFIX = "Heister - FPS Gloves in TPS/Heister - FPS Gloves in TPS/"
 
+# Hila (the H3H3 collaboration heister, DLC folder `ecp`) is not one of the units in the FPS-gloves
+# archive: her heist + menu models, objects and material configs ship in her own reference 7z.
+HILA_ARCHIVE = "references/npc_criminals_ecp_female.7z"
+HILA_DIR = "npc_criminals_ecp_female"
+HILA_UNIT_STEM = "npc_criminal_ecp_female"
+HILA_UNIT_DIR = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female"
+HILA_ICON_PATH = "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture"
+#: the supplied eyeball diffuse; magnified about its centre so the iris lands at the radius the
+#: synthesized eye uses (r 0.156 of the quadrant in u,v, inside the 0.174 gloss iris disc, an
+#: ~11.7 mm iris in a ~30 mm palpebral opening). The factor is measured off the source, not
+#: guessed: the 2026-11-15 repaint draws its iris 1.38x larger than the first diffuse, so the
+#: factor went 2.8 -> 2.03 to keep the same iris in game (D43).
+HILA_EYE_SOURCE = "references/EYE_Diff.png"
+HILA_EYE_ZOOM = 2.03
+
 
 def ensure_ada_reference(tmp_dir: Path) -> Path:
     """Extract `Ada Wong over Joy.7z` reference package if not already extracted."""
@@ -90,7 +112,7 @@ def ensure_me2_extracted(tmp_dir: Path) -> Path:
     dae_file = tmp_dir / "Miranda Lawson (Romance) - Adjusted Version.dae"
     if dae_file.exists():
         return tmp_dir
-    archive = ROOT / "models" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+    archive = ROOT / "references" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
     if not archive.exists():
         raise FileNotFoundError(f"Missing ME2 Romance archive: {archive}")
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -105,12 +127,31 @@ def ensure_me2_extracted(tmp_dir: Path) -> Path:
     return tmp_dir
 
 
+def ensure_hila_extracted(tmp_dir: Path) -> Path:
+    """Extract `references/npc_criminals_ecp_female.7z` if not already extracted."""
+    hila_root = tmp_dir / HILA_DIR
+    if (hila_root / f"{HILA_UNIT_STEM}.model").exists():
+        return hila_root
+    archive = ROOT / HILA_ARCHIVE
+    if not archive.exists():
+        raise FileNotFoundError(f"Missing Hila archive: {archive}")
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        import py7zr  # type: ignore
+
+        with py7zr.SevenZipFile(archive, mode="r") as z:
+            z.extractall(path=tmp_dir)
+    except ImportError:
+        subprocess.run(["7z", "x", "-y", f"-o{tmp_dir}", str(archive)], check=True)
+    return hila_root
+
+
 def ensure_geralt_extracted(tmp_dir: Path) -> Path:
-    """Extract `models/Geralt.7z` if not already extracted."""
+    """Extract `references/Geralt.7z` if not already extracted."""
     geralt_root = tmp_dir / "1259069870"
     if (geralt_root / "models" / "survivors" / "survivor_gambler.mdl").exists():
         return geralt_root
-    archive = ROOT / "models" / "Geralt.7z"
+    archive = ROOT / "references" / "Geralt.7z"
     if not archive.exists():
         raise FileNotFoundError(f"Missing Geralt archive: {archive}")
     tmp_dir.mkdir(parents=True, exist_ok=True)
@@ -352,7 +393,7 @@ def extend_neck_skirt(
 
     The head models are cut off at the neck: the neck sheet's outer boundary ends
     across the throat, at z 149.5 on the heister rig. Over the bodies measured so
-    far that rim is already hidden - on `dist/Christie_LAS.zip` **0 of its 98-120
+    far that rim is already hidden - on `dist/Christie/Christie_LAS.zip` **0 of its 98-120
     edges** are the front-most surface, from the front or from behind
     (docs/audits/2026-11-07-christie-slim-diagnosis.md §10.2) - but a rim that
     stops exactly where a collar ends is one wider neckline away from being the
@@ -497,23 +538,9 @@ def repair_skin_and_neck_normals(
             for fi in f_idxs:
                 fn_out[fi] = avg_n
 
-    # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
-    # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
-    ni_tip = int(np.argmax(fp[:, 1]))
-    y_tip, z_tip = float(fp[ni_tip, 1]), float(fp[ni_tip, 2])
-    nost_mask = (
-        (np.abs(fp[:, 0]) >= 0.30)
-        & (np.abs(fp[:, 0]) <= 1.08)
-        & (fp[:, 1] >= y_tip - 1.75)
-        & (fp[:, 1] <= y_tip - 0.30)
-        & (fp[:, 2] >= z_tip - 1.15)
-        & (fp[:, 2] <= z_tip - 0.12)
-    )
-    if nost_mask.any():
-        n_shadow = np.array([0.0, -0.55, -0.83516465], dtype=np.float64)
-        for vi in np.nonzero(nost_mask)[0]:
-            blended_n = fn_out[vi] * 0.15 + n_shadow * 0.85
-            fn_out[vi] = blended_n / max(float(np.linalg.norm(blended_n)), 1e-8)
+    # Keep the repaired source normals around the nostrils. The former broad
+    # downward override affected the visible nose wings and produced dark blotches;
+    # the diffuse and normal-map cavity treatments remain restricted to the UV pockets.
 
     return fn_out.astype(np.float32), sn_out.astype(np.float32)
 
@@ -1049,6 +1076,86 @@ def patch_wild_material_config(xml_bytes: bytes, alpha_ref: str = "0.05") -> byt
     return text.encode("utf-8")
 
 
+def load_hila_eye_texture(size: int = 1024) -> np.ndarray:
+    """Scale `references/EYE_Diff.png` into the head atlas' eye quadrant, gloss in the alpha channel.
+
+    The supplied diffuse is a 256x256 ME2 eyeball map: the iris is a small disc in the middle of a
+    wide sclera field, because the game samples it through the eyeball's own spherical UVs. Both head
+    pipelines here re-project the eyeball as a planar pass across the palpebral opening, so the image
+    is magnified about its centre by `HILA_EYE_ZOOM` to bring its iris to the radius the synthesized
+    eye used. Alpha is PD2 gloss, as in `build_crisp_miranda_eye_texture`: 10 on the iris, 8 on the
+    sclera, 4 in the pupil.
+    """
+    src = np.asarray(Image.open(ROOT / HILA_EYE_SOURCE).convert("RGB"))
+    side = int(round(src.shape[0] / HILA_EYE_ZOOM))
+    lo = src.shape[0] // 2 - side // 2
+    crop = src[lo : lo + side, lo : lo + side]
+    rgb = np.asarray(Image.fromarray(crop).resize((size, size), Image.Resampling.LANCZOS))
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
+    u = (xx + 0.5) / size - 0.5
+    v = (yy + 0.5) / size - 0.5
+    r = np.sqrt(u * u + v * v)
+    rgba = np.dstack([rgb, np.where(r < 0.078, 4, np.where(r < 0.174, 10, 8)).astype(np.uint8)])
+    return rgba
+
+
+
+def match_romance_hila_skin_to_honoka(atlas: np.ndarray) -> np.ndarray:
+    """Warm/lighten the face and scalp skin for Honoko without tinting hair, eyes or gloss.
+
+    Honoko5's exposed upper-neck diffuse samples have median RGB around 204/152/123;
+    Romance-over-Hila's adjacent scalp-skin samples are around 170/134/107. A restrained
+    channel gain moves the two closer. A soft skin-colour mask preserves dark hair, lashes
+    and mouth details; only the face and scalp quadrants are considered. Integer arithmetic
+    makes the output deterministic across numpy and CPU implementations. This changes only
+    the Romance Hila atlas, not the body or the other heister packs.
+    """
+    if atlas.shape != (2048, 2048, 4) or atlas.dtype != np.uint8:
+        raise ValueError("expected a 2048x2048 uint8 RGBA head atlas")
+    out = atlas.copy()
+    gains = np.array([1200, 1140, 1180], dtype=np.int32)
+    for x in (0, 1024):
+        skin = out[:1024, x:x + 1024, :3]
+        rgb = skin.astype(np.int32)
+        red, green, blue = rgb.transpose(2, 0, 1)
+        weight = np.minimum.reduce([
+            np.clip((np.minimum(np.minimum(red, green), blue) - 40) * 255 // 35, 0, 255),
+            np.clip((red - green - 5) * 255 // 10, 0, 255),
+            np.clip((green - blue - 3) * 255 // 10, 0, 255),
+        ])[..., None]
+        target = (rgb * gains + 500) // 1000
+        skin[:] = np.clip((rgb * (255 - weight) + target * weight + 127) // 255, 0, 255).astype(np.uint8)
+    return out
+
+def patch_hila_material_config(xml_bytes: bytes) -> bytes:
+    """Point Hila's `mtr_head` at the atlas and drop the vanilla GSMA gloss map.
+
+    The ECP head material is `generic:CONTOUR:DIFFUSE_TEXTURE:GSMA_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS`
+    over `npc_criminal_ecp_female_head_gsma`, which was authored for Hila's own UVs. Every other
+    heister's `mtr_head` carries gloss in the diffuse alpha instead, so the material becomes the same
+    plain `generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:RL_PLAYERS:SKINNED_3WEIGHTS`. `mtr_lashes` is
+    already `opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS` and keeps its texture slots: the pack writes the
+    shaved ME2 lash diffuse and its opacity map to exactly those two names.
+    """
+    text = xml_bytes.decode("utf-8", errors="ignore")
+    new_head = (
+        '<material name="mtr_head" unique="true" '
+        'render_template="generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:RL_PLAYERS:SKINNED_3WEIGHTS" version="2">\n'
+        f'        <diffuse_texture file="{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_head_df"/>\n'
+        f'        <bump_normal_texture file="{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_head_nm"/>\n'
+        '        <variable value="0 0 0" type="vector3" name="contour_color"/>\n'
+        '        <variable value="0" type="scalar" name="contour_opacity"/>\n'
+        "    </material>"
+    )
+    text = re.sub(
+        r'<material\s+[^>]*name="mtr_head"[^>]*>.*?</material>',
+        new_head,
+        text,
+        flags=re.DOTALL,
+    )
+    return text.encode("utf-8")
+
+
 def make_character_icon_dds(ada_icon_path: Path, portrait_rgb: Image.Image) -> bytes:
     """Create a 128x128 uncompressed BGRA8 DDS character icon in PAYDAY 2 high-contrast B&W style."""
     header = ada_icon_path.read_bytes()[:128]
@@ -1204,13 +1311,13 @@ def prepare_crisp_eyelash_textures(me2_dir: Path) -> tuple[np.ndarray, bytes, by
 
 def find_miranda_las_zip() -> Path:
     for candidate in (
-        ROOT / "dist" / "Miranda_LAS.zip",
+        dist_path(ROOT, "Miranda_LAS.zip"),
         ROOT / "build" / "pd2-las" / "Miranda_LAS.zip",
         ROOT / "Miranda_LAS.zip",
     ):
         if candidate.exists():
             return candidate
-    raise FileNotFoundError("Missing dist/Miranda_LAS.zip (run tools/pd2-las/build_models.py first)")
+    raise FileNotFoundError("Missing dist/Miranda_L4D2/Miranda_L4D2_LAS.zip (run tools/pd2-las/build_models.py first)")
 
 
 def write_deterministic_zip(files: dict[str, bytes], out_zip_paths: list[Path]) -> None:
@@ -1299,7 +1406,7 @@ def _emit_female_heister_packages(
             f"{clover_prefix}/{CLOVER_TEX_DIR}/npc_criminal_female_1_hair_df.texture": sec_df_dds,
             f"{clover_prefix}/{CLOVER_TEX_DIR}/npc_female_hair_1_op.texture": sec_op_dds,
         }
-        write_deterministic_zip(clover_files, [ROOT / "dist" / f"Miranda_{variant_tag}_over_Clover.zip"])
+        write_deterministic_zip(clover_files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Clover.zip")])
 
         # 2. Bonnie (npc_criminal_bonnie + Safe House chill)
         bonnie_heist_model = patch_female_heister_model(
@@ -1348,7 +1455,7 @@ def _emit_female_heister_packages(
             f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_hair_df.texture": sec_df_dds,
             f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_hair_nm.texture": sec_nm_dds,
         }
-        write_deterministic_zip(bonnie_files, [ROOT / "dist" / f"Miranda_{variant_tag}_over_Bonnie.zip"])
+        write_deterministic_zip(bonnie_files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Bonnie.zip")])
 
         # 3. Sydney (npc_criminals_fem_3 / npc_criminal_sydney)
         sydney_hair_objs = ["g_hair_mask_off", "g_hair_mask_on"]
@@ -1395,7 +1502,62 @@ def _emit_female_heister_packages(
             f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_hair_df.texture": sec_df_dds,
             f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_hair_nm.texture": sec_nm_dds,
         }
-        write_deterministic_zip(sydney_files, [ROOT / "dist" / f"Miranda_{variant_tag}_over_Sydney.zip"])
+        write_deterministic_zip(sydney_files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Sydney.zip")])
+
+
+def _emit_hila_packages(
+    variant_tag: str,
+    packed_suit_head: dict,
+    head_df_dds: bytes,
+    head_nm_dds: bytes,
+    sec_df_dds: bytes,
+    sec_op_dds: bytes,
+    icon_dds: bytes,
+) -> None:
+    """Package Miranda over Hila (npc_criminals_ecp_female) from references/npc_criminals_ecp_female.7z.
+
+    Hila's `g_head` carries two atoms (head, 3D eyelashes) on `mtr_head` + `mtr_lashes`, and her hair
+    lives in `g_hair_mask_off` / `g_hair_mask_on`, which are collapsed to the hidden triangle and
+    disabled in both object files exactly like Sydney's. There is no Safe House (`*_chill`) unit for
+    her, so the pack replaces the heist and menu models only.
+    """
+    hila_root = ensure_hila_extracted(EXTRACT_DIR / "ecp_female")
+    hair_objs = ["g_hair_mask_off", "g_hair_mask_on"]
+    model_bytes = patch_female_heister_model(
+        (hila_root / f"{HILA_UNIT_STEM}.model").read_bytes(),
+        head_drawables=["g_head"],
+        collapse_drawables=hair_objs,
+        head_mat_name="mtr_head",
+        hair_mat_name="mtr_lashes",
+        packed_head=packed_suit_head,
+    )
+    obj = disable_objects_in_xml(
+        (hila_root / f"{HILA_UNIT_STEM}.object").read_bytes(), hair_objs
+    )
+    menu_obj = disable_objects_in_xml(
+        (hila_root / f"{HILA_UNIT_STEM}_menu.object").read_bytes(), hair_objs
+    )
+    mtr = patch_hila_material_config(
+        (hila_root / "mtr_criminal_ecp_female.material_config").read_bytes()
+    )
+    mtr_cc = patch_hila_material_config(
+        (hila_root / "mtr_criminal_ecp_female_cc.material_config").read_bytes()
+    )
+    prefix = f"Miranda {variant_tag} over Hila"
+    files = {
+        f"{prefix}/{HILA_ICON_PATH}": icon_dds,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}.model": model_bytes,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_menu.model": model_bytes,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}.object": obj,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_menu.object": menu_obj,
+        f"{prefix}/{HILA_UNIT_DIR}/mtr_criminal_ecp_female.material_config": mtr,
+        f"{prefix}/{HILA_UNIT_DIR}/mtr_criminal_ecp_female_cc.material_config": mtr_cc,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_head_df.texture": head_df_dds,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_head_nm.texture": head_nm_dds,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_lashes_df.texture": sec_df_dds,
+        f"{prefix}/{HILA_UNIT_DIR}/{HILA_UNIT_STEM}_lashes_op.texture": sec_op_dds,
+    }
+    write_deterministic_zip(files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Hila.zip")])
 
 
 def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path], sec_nm_dds: bytes) -> None:
@@ -1588,6 +1750,18 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
         sec_nm_dds=sec_nm_dds,
         icon_dds=icon_dds,
         is_romance=True,
+    )
+
+    hila_atlas_df = atlas_df.copy()
+    hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
+    _emit_hila_packages(
+        variant_tag="L4D2",
+        packed_suit_head=packed_suit_head,
+        head_df_dds=encode_rgba_dds(hila_atlas_df),
+        head_nm_dds=head_nm_dds,
+        sec_df_dds=eyes_df_dds,
+        sec_op_dds=lashes_op_dds,
+        icon_dds=icon_dds,
     )
 
 
@@ -1838,6 +2012,20 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
         sec_nm_dds=sec_nm_dds,
         icon_dds=icon_dds,
         is_romance=True,
+    )
+
+    hila_atlas_df = match_romance_hila_skin_to_honoka(atlas_df)
+    hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
+    hila_portrait = render_head_portrait(atom0_joy, atom1_joy, hila_atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
+    hila_icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, hila_portrait)
+    _emit_hila_packages(
+        variant_tag="Romance",
+        packed_suit_head=packed_suit_head,
+        head_df_dds=encode_rgba_dds(hila_atlas_df),
+        head_nm_dds=head_nm_dds,
+        sec_df_dds=eyes_df_dds,
+        sec_op_dds=lashes_op_dds,
+        icon_dds=hila_icon_dds,
     )
 
 
@@ -2120,19 +2308,19 @@ def main() -> None:
     build_l4d2_joy_mod(
         ada_root,
         me2_dir,
-        [ROOT / "dist" / "Miranda_L4D2_over_Joy.zip"],
+        [dist_path(ROOT, "Miranda_L4D2_over_Joy.zip")],
         sec_nm_dds=sec_nm_dds,
     )
     build_me2_romance_joy_mod(
         ada_root,
         me2_dir,
-        [ROOT / "dist" / "Miranda_Romance_over_Joy.zip"],
+        [dist_path(ROOT, "Miranda_Romance_over_Joy.zip")],
         sec_nm_dds=sec_nm_dds,
     )
     build_geralt_rust_mod(
         ada_root,
         geralt_root,
-        [ROOT / "dist" / "Geralt_over_Rust.zip"],
+        [dist_path(ROOT, "Geralt_over_Rust.zip")],
     )
 
 

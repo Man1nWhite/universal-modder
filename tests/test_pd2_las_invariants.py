@@ -31,6 +31,9 @@ import zipfile
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 import pytest
@@ -58,7 +61,7 @@ def _status():
 #: Written out so that collecting this file opens no archive; the registration test
 #: holds it to each pack's BUILD_INFO.json and to the list `status.py` reports on.
 ITEMS = {"Miranda_LAS": "miranda", "Miranda_Busty_LAS": "miranda_busty",
-         "Christie_LAS": "christie", "Christie_LAS_Slim": "christie_slim"}
+         "Christie_LAS": "christie"}
 PACKS = tuple(ITEMS)
 RESTORE = "a tracked pack is missing; restore it with `git checkout -- dist build`"
 
@@ -102,7 +105,7 @@ class Model:
 
 @functools.lru_cache(maxsize=None)
 def _zip(pack: str) -> zipfile.ZipFile:
-    path = REPO / "dist" / f"{pack}.zip"
+    path = dist_path(REPO, f"{pack}.zip")
     assert path.is_file(), f"{path.relative_to(REPO)}: {RESTORE}"
     return zipfile.ZipFile(path)
 
@@ -188,7 +191,7 @@ each_pack = pytest.mark.parametrize("pack", PACKS)
 @functools.lru_cache(maxsize=None)
 def _source(first_person: bool):
     """The L4D2 model the Miranda packs are built from, as the Source reader decodes it."""
-    arc = VpkArchive.from_zip(str(REPO / "models" / "l4d2_miranda_lawson_1.zip"),
+    arc = VpkArchive.from_zip(str(REPO / "references" / "l4d2_miranda_lawson_1.zip"),
                               "miranda_rochelle.vpk")
     paths = build_las.FPS_MDLS if first_person else build_las.TPP_MDLS
     return load_model(*(arc.read(p) for p in paths))
@@ -742,9 +745,8 @@ def test_registration_follows_the_2b_contract(pack):
     says `Hooks` where its folder is `hooks`, which is one of the defects not to
     copy. `BUILD_INFO.json` says the same as the files.
     """
-    # the tracked LAS packs in dist/ (the two Christie packs are tracked but their builder
-    # is deleted; they are still verified here, from the tracked bytes)
-    las = {"Miranda_LAS", "Miranda_Busty_LAS", "Christie_LAS", "Christie_LAS_Slim"}
+    # The tracked LAS packs in dist/.
+    las = {"Miranda_LAS", "Miranda_Busty_LAS", "Christie_LAS"}
     assert set(ITEMS) == las, "this file no longer covers every tracked LAS pack"
     z = _zip(pack)
     files = {n[len(pack) + 1:] for n in z.namelist() if not n.endswith("/")}
@@ -810,7 +812,7 @@ def test_tracked_bytes_match_their_sidecar_and_build_info(pack):
     carry one fixed timestamp, which is what lets a rebuild reproduce the archive.
     Where a staged copy is tracked under `build/pd2-las/`, it is the same archive.
     """
-    path = REPO / "dist" / f"{pack}.zip"
+    path = dist_path(REPO, f"{pack}.zip")
     raw = path.read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
     sidecar = path.with_name(path.name + ".sha256")

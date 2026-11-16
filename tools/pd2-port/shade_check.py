@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import rig_target  # noqa: E402
 from me2_dae import load_dae  # noqa: E402
 
-SOURCE_ZIP = "models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+SOURCE_ZIP = "references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 DAE = "Miranda Lawson (Romance) - Adjusted Version.dae"
 RIG = Path(__file__).parent / "reference" / "las_rig.json"
 #: where the renders go when no directory is given: inside the checkout and

@@ -280,7 +280,7 @@ def test_a_missing_png_decoder_is_not_reported_as_a_broken_texture(monkeypatch):
 
 
 SOURCE_PACK = (
-    Path(__file__).resolve().parents[1] / "models" / "l4d2_miranda_lawson_1.zip"
+    Path(__file__).resolve().parents[1] / "references" / "l4d2_miranda_lawson_1.zip"
 )
 
 

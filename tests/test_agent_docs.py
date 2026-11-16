@@ -25,10 +25,12 @@ PD2 = REPO / "tools" / "pd2-las"
 AGENT_DOCS = ["AGENTS.md", "GEMINI.md", "README.md", "docs/pd2-las/HANDOFF.md", "tools/README.md",
               "tools/pd2-las/README.md", "tools/pd2-port/README.md", "tools/pd2-port/STATUS.md"]
 #: these also name packs and tools
-OTHER_DOCS = ["CONTRIBUTING.md", "models/README.md", "references/README.md"]
+OTHER_DOCS = ["CONTRIBUTING.md", "references/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session
 START_BUDGET = 5000
-STATUS_BUDGET = 2048
+#: bytes of `make status`, one JSON object an agent reads whole. A tracked pack is ~90 bytes
+#: of it (name, size, 12 hex digits, target); 2,512 leaves room for six more than the 18 there are.
+STATUS_BUDGET = 2560
 
 
 def _status():
@@ -208,9 +210,9 @@ def test_green_runs_what_the_test_workflow_runs():
         r"^\./bin/um kb check --index$": '["-m", "um", "kb", "check", "--index"]',
         r"^\./bin/um publish check \.$": '["-m", "um", "publish", "check", "."]',
         r"fresh\.py check": '"fresh.py"), "check"]',
-        # fresh.py builds this pack in a copy and compares all 17 zips with sha256sum -c
+        # fresh.py builds this pack in a copy and compares all 22 zips with sha256sum -c
         r"^python tools/pd2-port/build_las_pack\.py$": '"fresh.py"), "check"]',
-        r"^(for sha_file in dist/\*\.zip\.sha256 .*; do|sha256sum -c \"\$sha_file\"|done)$": '"fresh.py"), "check"]',
+        r"^(for sha_file in dist/\*/\*\.zip\.sha256 .*; do|sha256sum -c \"\$sha_file\"|done)$": '"fresh.py"), "check"]',
     }
     for command in commands:
         groups = re.match(r"^\./bin/um --help && for g in (.+); do \./bin/um \$g --help > /dev/null; done$", command)

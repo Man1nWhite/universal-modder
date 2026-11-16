@@ -12,7 +12,7 @@ README claimed that was not so is under [Corrections](#corrections).
 
 ## Released and tracked
 
-**There is no release.** The pack is the tracked `dist/lawson_las.zip`, stamped 0.1.2. Its models, textures,
+**There is no release.** The pack is the tracked `dist/Miranda_Romance/Miranda_Romance_LAS.zip`, stamped 0.1.2. Its models, textures,
 unit files, hook and menu strings are those built at `15b0fbe` (2026-10-22). On 2026-11-13 it was built
 again without `CREDITS.txt`, at the owner's direction (`docs/pd2-las/DECISIONS.md`, D34): that file and its
 line in the manifest went, and the other 28 files are byte for byte what they were.
@@ -25,7 +25,7 @@ line in the manifest went, and the other 28 files are byte for byte what they we
   The zip the pre-release served is the one tracked at its commit: `git show 282703f:dist/lawson_las.zip`.
 - **Why the pre-release was stale:** it served the build of `282703f` (`lawson_las.zip`, sha256 `a24f0b7c…`),
   and ten commits after the tag rebuilt the tracked pack, from 2026-10-19 to 2026-10-22
-  (`git log 282703f..15b0fbe -- dist/lawson_las.zip.sha256`). By their subjects: an invisible unit; glossy
+  (git history for the former `lawson_las.zip.sha256` path). By their subjects: an invisible unit; glossy
   textures; the retarget of the hands and fingers, then of the shoulders, upper arms and elbows; the normal
   maps; the seams at the cheek and mouth, with their bone weights and normals; the eyes, lashes and
   nostrils; hair at the throat and on the face; the shoulder pose. None of them moved `VERSION` in
@@ -86,7 +86,7 @@ y = +15.1, behind its foot at 0.9. Left open that day, and not recorded as answe
 
 What this page and the README said until 2026-11-13, and what is so:
 
-- **"The tracked `dist/lawson_las.zip` is therefore exactly what the release serves"**, and "build it
+- **"The tracked pack is therefore exactly what the release serves"**, and "build it
   yourself — the bytes are identical" (the README). The release serves the build of `282703f`; the tracked
   pack is ten rebuilds later. This page gave the tracked pack's size and sha256 in one table with the
   release, and a test kept those two figures current, so the table read as if they were the release's.

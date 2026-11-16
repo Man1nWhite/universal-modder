@@ -17,7 +17,7 @@ offline. Three sources of truth were used, in this order of authority:
 2. A **second implementation**, `sourcepp`'s `vpkpp` (pip wheel), driven against the
    same bytes the tests build, for a machine-checked opinion rather than a reading.
 3. Two real archives already in this repo — the L4D2 `miranda_rochelle.vpk` and
-   `models/Geralt.7z`, which is an **unpacked Garry's Mod workshop addon**
+   `references/Geralt.7z`, which is an **unpacked Garry's Mod workshop addon**
    (`addons`-layout, item `1259069870`: 2 MDLs at v49, 28 VTFs, 27 VMTs).
 
 That third item is the one that changed the verdict. The previous pass validated the
@@ -72,7 +72,7 @@ questions in GMod, and only the second one matters after you install something.
 ### 3. A folder addon could not be inspected (`inspect_textures.py`)
 
 `open_container()` accepted `.gma`, `.vpk`, `.zip` and nothing else. The addon this repo
-actually tracks (`models/Geralt.7z`, extracted to an `addons`-style folder) is the common
+actually tracks (`references/Geralt.7z`, extracted to an `addons`-style folder) is the common
 case, not the exotic one: an unpacked addon, a legacy zip with one wrapper folder, or a
 `.gma`. All three now open through the same interface, and:
 

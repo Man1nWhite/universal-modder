@@ -36,6 +36,19 @@ cd "$REPO"
 
 PY="$REPO/.venv/bin/python"
 
+# The pinned NumPy and Pillow builds require Python 3.11+. The general CLI still
+# supports 3.10 with compatible dependency versions; check the actual interpreter
+# used here before restoring files or installing anything.
+if [ -x "$PY" ]; then
+    CHECK_PY="$PY"
+else
+    CHECK_PY="$(command -v python3 || true)"
+fi
+if [ -z "$CHECK_PY" ] || ! "$CHECK_PY" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
+    echo "recover_env.sh: the pinned PAYDAY 2 build environment needs Python 3.11 or newer; install it and recreate .venv if needed" >&2
+    exit 1
+fi
+
 # ------------------------------------------- 0. tracked files that are missing
 # `git checkout -- dist build node_modules` would also throw away a pack that was
 # rebuilt and not committed. This names the deleted files and restores only those.

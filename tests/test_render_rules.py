@@ -157,3 +157,21 @@ def test_validate_render_tree_catches_invalid_and_accepts_valid(tmp_path):
     assert "2026-11-15" in errors
     assert "manifest.json" in errors
     assert "missing batch README.md" in errors
+
+
+def test_new_ingame_capture_manifests_match_images():
+    """Preserve the user uploads and their declared dimensions and hashes."""
+    import hashlib
+    import json
+    from PIL import Image
+
+    for relative in ("christie/in-game/2026-11-15", "honoka/in-game/honoko5/2026-11-15"):
+        directory = Path(__file__).resolve().parents[1] / "docs" / "renders" / relative
+        manifest = json.loads((directory / "manifest.json").read_text())
+        assert len(manifest["screenshots"]) == 3
+        for shot in manifest["screenshots"]:
+            data = (directory / shot["file"]).read_bytes()
+            assert len(data) == shot["bytes"]
+            assert hashlib.sha256(data).hexdigest() == shot["sha256"]
+            with Image.open(directory / shot["file"]) as image:
+                assert image.size == (shot["width"], shot["height"])

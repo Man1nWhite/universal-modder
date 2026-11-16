@@ -18,6 +18,9 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import pytest
 
@@ -74,7 +77,7 @@ def test_status_cli_prints_one_json_object():
 
 
 def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
-    """All 15 tracked packs of the three pipelines, not the four rebuildable ones of this directory.
+    """All 18 tracked packs of the three pipelines, not the four rebuildable ones of this directory.
 
     `status` used to report four packs; the state of the other ten took three more commands,
     one of which rebuilt nine packs to find out. `is` compares with the commit, because every
@@ -85,30 +88,22 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     the suite is what tells an agent that nothing else needs editing.
     """
     status = _load()
-    sidecars = sorted(path.name[: -len(".zip.sha256")] for path in (REPO / "dist").glob("*.zip.sha256"))
+    sidecars = sorted(path.name[: -len(".zip.sha256")] for path in (REPO / "dist").rglob("*.zip.sha256"))
     if not sidecars:
         pytest.skip("dist/ is absent from this sandbox snapshot")
     short, full = status.collect()["packs"], status.collect(full=True)["packs"]
     assert sorted(short) == sidecars and len(sidecars) >= 14
     for name, pack in full.items():
         assert pack["make"] == status.target(name), name
-        if name not in {"Christie_LAS", "Christie_LAS_Slim", "Honoka_LAS"}:
-            # the two Christie packs are tracked but have no rebuild path: their builder was
-            # deleted on 2026-11-14, so `make` is null for them by design. Honoka_LAS has a
-            # builder and a `make honoka` target, but the builder writes build/honoka-las/ and
-            # the target copies the zip into dist/, so `fresh` cannot compare it with the commit:
-            # it must stay null until the builder writes dist/ itself
-            assert pack["make"], f"{name}: no make target rebuilds it"
-        else:
-            assert pack["make"] is None, f"{name}: make must stay null"
+        assert pack["make"], f"{name}: no make target rebuilds it"
         if pack["is"] == "missing":
             continue    # dist/ can be absent from a sandbox snapshot; test_dist_checksums owns that case
-        path = REPO / "dist" / f"{name}.zip"
+        path = dist_path(REPO, f"{name}.zip")
         assert pack["is"] in {"tracked", "changed", "ok"}, f"{name}: the zip is not its .sha256"
-        assert pack["sha256"] == (REPO / "dist" / f"{name}.zip.sha256").read_text().split()[0], name
+        assert pack["sha256"] == (dist_path(REPO, f"{name}.zip.sha256")).read_text().split()[0], name
         assert short[name]["sha256"] == pack["sha256"][:12] and pack["bytes"] == path.stat().st_size, name
-    one = status.collect(only=["Christie_LAS_Slim"])
-    assert list(one["packs"]) == ["Christie_LAS_Slim"]
+    one = status.collect(only=["Christie_LAS"])
+    assert list(one["packs"]) == ["Christie_LAS"]
     # `note` is there while a pack is `changed`; never the environment, which `only` leaves out
     assert list(one)[0] == "packs" and list(one)[-1] == "next" and set(one) <= {"packs", "note", "next"}, list(one)
 
@@ -123,17 +118,17 @@ def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch)
     if not (REPO / ".git").exists() or not shutil.which("git"):
         pytest.skip("needs the git checkout")
     status = _load()
-    name = "Christie_LAS_Slim"
+    name = "Christie_LAS"
     clone = tmp_path / "clone"
     subprocess.run(["git", "worktree", "add", "--detach", str(clone), "HEAD"], cwd=REPO, check=True, capture_output=True)
     try:
         monkeypatch.setattr(status, "REPO", clone)
         assert status.collect(only=[name])["packs"][name]["is"] == "tracked"
-        with open(clone / "dist" / f"{name}.zip", "ab") as handle:
+        with open(dist_path(clone, f"{name}.zip"), "ab") as handle:
             handle.write(b"\0")
         assert status.collect(only=[name])["packs"][name]["is"] == "broken"
-        digest = __import__("hashlib").sha256((clone / "dist" / f"{name}.zip").read_bytes()).hexdigest()
-        (clone / "dist" / f"{name}.zip.sha256").write_text(f"{digest}  dist/{name}.zip\n")
+        digest = __import__("hashlib").sha256((dist_path(clone, f"{name}.zip")).read_bytes()).hexdigest()
+        (dist_path(clone, f"{name}.zip.sha256")).write_text(f"{digest}  dist/{name}.zip\n")
         result = status.collect(only=[name])
         assert result["packs"][name]["is"] == "changed" and list(result) == ["packs", "note", "next"]
     finally:
@@ -250,7 +245,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     for script in re.findall(r"(?<![\w/)])(tools/[\w./-]+\.py)", makefile):
         assert (REPO / script).is_file(), script
 
-    # one build target per builder, and they are the builders `fresh` runs: twelve of the 15 packs, the two Christie packs and Honoka_LAS excepted
+    # one build target per builder, and they are the builders `fresh` runs: Slim remains tracked-only
     sys.path.insert(0, str(HERE))
     fresh = pytest.importorskip("fresh", reason="fresh.py imports numpy")
     built = {name: command.replace("$(HERE)", "tools/pd2-las")
@@ -402,7 +397,7 @@ def test_the_2b_templates_have_one_home_inside_the_repo():
     code = _code_files()
     entry_docs = [REPO / rel for rel in (
         "AGENTS.md", "README.md", "tools/README.md", "tools/pd2-las/README.md",
-        "tools/pd2-port/README.md", "references/README.md", "models/README.md")]
+        "tools/pd2-port/README.md", "references/README.md")]
     for path in code + entry_docs:
         text = path.read_text(encoding="utf-8", errors="replace")
         for word in old:
@@ -436,7 +431,7 @@ def test_no_tool_or_test_depends_on_a_fixed_tmp_path():
         r"(?<![\w.~$}/-])(?:/var)?" + re.escape(TMP) + r"(?:/[\w.$({-]|[\"'])")
     entry_docs = [REPO / rel for rel in (
         "AGENTS.md", "README.md", "tools/README.md", "tools/pd2-las/README.md",
-        "tools/pd2-port/README.md", "references/README.md", "models/README.md",
+        "tools/pd2-port/README.md", "references/README.md",
         "docs/pd2-las/HANDOFF.md")]
     offenders = []
     for path in _code_files() + entry_docs:

@@ -5,10 +5,9 @@
     python tools/pd2-las/fresh.py matrix [--configs a,b,...] [--builders x,y] [--trace all]
 
 check   builds the packs that have a builder (the Miranda packs, lawson_las and the
-        nine head packs) in build/fresh/tree and compares each of the 17 tracked
-        zips with its tracked .sha256, using `sha256sum -c`. The two Christie packs
-        are compared as the tracked copies: their builder was deleted on
-        2026-11-14, so they cannot be rebuilt and the comparison pins the sidecars.
+        eleven head packs) in build/fresh/tree and compares each of the 21 tracked
+        zips with its tracked .sha256, using `sha256sum -c`. Christie_LAS is
+        rebuilt from source.
         No tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
         one is not; what differs inside it is listed member by member.
 matrix  the same build under other numeric code paths (CONFIGS), two at a time,
@@ -43,14 +42,14 @@ import trace_run  # noqa: E402
 
 #: What builds the rebuildable tracked packs, in the order they depend on each other: the
 #: busty pack reuses what the Miranda build unpacked, and the head packs take
-#: their face from dist/Miranda_LAS.zip. The two Christie packs are not rebuildable:
-#: their builder was deleted on 2026-11-14.
+#: their face from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip. The older Christie Slim pack is tracked only.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
     "busty": ["tools/pd2-las/build_busty_variant.py"],
     "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
+    "christie": ["tools/pd2-las/build_christie_source.py"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"
@@ -77,9 +76,21 @@ class BuildFailed(Exception):
 
 
 def tracked_zips() -> list[str]:
-    """The 17 tracked zips, as paths from the repository root: every one that has a .sha256 beside it."""
-    sidecars = sorted(REPO.glob("dist/*.zip.sha256")) + sorted(REPO.glob("build/pd2-las/*.zip.sha256"))
-    return [str(path.relative_to(REPO))[: -len(".sha256")] for path in sidecars]
+    """Enumerate ZIPs independently of sidecars, and fail on incomplete coverage."""
+    listing = subprocess.run(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "dist", "build/pd2-las"],
+        cwd=REPO, capture_output=True, check=True,
+    ).stdout
+    paths = {os.fsdecode(raw) for raw in listing.split(b"\0") if raw}
+    zips = sorted(p for p in paths if p.endswith(".zip"))
+    sidecars = {p for p in paths if p.endswith(".zip.sha256")}
+    if not zips:
+        raise SystemExit("no tracked ZIPs found")
+    missing = [p for p in zips if not (REPO / p).is_file() or not (REPO / (p + ".sha256")).is_file()]
+    orphan = sorted(p for p in sidecars if p[:-len(".sha256")] not in zips)
+    if missing or orphan:
+        raise SystemExit("incomplete ZIP/checksum inventory: " + ", ".join(missing + orphan))
+    return zips
 
 
 def copy_tree(tree: Path) -> None:
@@ -231,6 +242,7 @@ def note(title: str, text: str, level: str = "notice") -> None:
 
 def check(args) -> int:
     names = args.builders.split(",") if args.builders else list(BUILDERS)
+    zips = tracked_zips()  # fail before the expensive build if any ZIP or sidecar is missing
     tree = REPO / "build" / "fresh" / "tree"
     print(f"machine: {machine()}", flush=True)
     note("runner", machine())
@@ -248,7 +260,6 @@ def check(args) -> int:
         print(text)
         note("fresh build", text, "error")
         return 2
-    zips = tracked_zips()
     different = [rel for rel in zips if not same_as_tracked(tree, rel)]
     for rel in zips:
         print(("DIFFERENT  " if rel in different else "same       ") + rel)
@@ -404,7 +415,7 @@ def matrix(args) -> int:
         off = [Path(rel).name for rel, sha in result["sha256"].items() if sha != tracked[rel] and rel.startswith("dist/")]
         moved = [rel for rel, sha in result["sha256"].items() if sha != ref.get("sha256", {}).get(rel)]
         print(f"`{name}`: {len(moved)} of {len(tracked)} zips differ from `{reference}`; "
-              f"{len(off)} of the 15 packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
+              f"{len(off)} of the 20 packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
         for rel in moved:
             if rel.startswith("build/") and "dist/" + Path(rel).name in moved:
                 continue

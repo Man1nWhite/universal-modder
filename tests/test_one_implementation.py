@@ -12,6 +12,9 @@ import re
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 LAS, PORT = REPO / "tools" / "pd2-las", REPO / "tools" / "pd2-port"
@@ -60,14 +63,14 @@ def test_the_idstring_hash_is_written_once():
 def test_the_hash_is_the_one_the_tracked_models_were_named_with():
     """A model lists its names, and its objects carry the hashes of those names."""
     for name in ("Miranda_LAS",):
-        with zipfile.ZipFile(REPO / "dist" / f"{name}.zip") as z:
+        with zipfile.ZipFile(dist_path(REPO, f"{name}.zip")) as z:
             member = next(n for n in z.namelist() if n.endswith(".model") and "/fps_" not in n)
             model = diesel_model.ModelFile.read(z.read(member))
         listed = {diesel_model.hash64(text) for section in model.by_type(diesel_model.CUSTOM_HASHLIST)
                   for text in diesel_model.decode_custom_hashlist(section.payload)["names"]}
         carried = [diesel_model.decode_object3d(section.payload)["name_hash"] for section in model.by_type(diesel_model.OBJECT3D)]
         assert sum(1 for value in carried if value in listed) >= 100, name
-    with zipfile.ZipFile(REPO / "dist" / "lawson_las.zip") as z:
+    with zipfile.ZipFile(dist_path(REPO, "lawson_las.zip")) as z:
         lawson = dmodel.DieselModel.from_bytes(z.read(next(n for n in z.namelist() if n.endswith("/lawson.model"))))
     assert lawson.find_by_name("Hips"), "the reader of the port no longer finds a bone of its own pack by name"
 
@@ -102,7 +105,7 @@ def _strings(path: Path) -> str:
 
 
 def _pack(name: str) -> dict:
-    with zipfile.ZipFile(REPO / "dist" / f"{name}.zip") as z:
+    with zipfile.ZipFile(dist_path(REPO, f"{name}.zip")) as z:
         return {info.filename: z.read(info) for info in z.infolist()}
 
 
@@ -153,7 +156,7 @@ def test_that_writer_gives_each_tracked_pack_its_files():
         if told.glove_adapter:
             assert writer.render_glove_adapter_lua(told.item_id, name) == text(f"/hooks/{told.item_id}_glove_adapter.lua"), name
     for name in ("Miranda_LAS", "Miranda_L4D2_over_Joy"):
-        assert writer.zip_bytes(_pack(name).items()) == (REPO / "dist" / f"{name}.zip").read_bytes(), name
+        assert writer.zip_bytes(_pack(name).items()) == (dist_path(REPO, f"{name}.zip")).read_bytes(), name
 
 
 def test_the_flag_follows_whether_the_pack_has_a_head():

@@ -76,7 +76,10 @@ import math  # noqa: E402
 import re  # noqa: E402
 import sys  # noqa: E402
 import zipfile  # noqa: E402
-from pathlib import Path  # noqa: E402
+from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402  # noqa: E402
 
 import numpy as np  # noqa: E402
 
@@ -91,7 +94,7 @@ import dds_encode  # noqa: E402
 import diesel_model as dm  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
-PACK = REPO / "dist" / "Miranda_LAS.zip"
+PACK = dist_path(REPO, "Miranda_LAS.zip")
 UNIT = "Miranda_LAS/assets/units/miranda/skins/miranda"
 #: texture role -> the material of `g_head` that shows it
 ROLES = {"face_df": "mtr_face", "eyes": "mtr_eyes"}
@@ -328,8 +331,9 @@ class Head:
             stem = unit.rsplit("/", 1)[1]
             data = z.read(f"{unit}/{stem}.model")
             config = z.read(f"{unit}/{stem}.material_config").decode()
+            pack_root = unit.split("/", 1)[0]
             self.texture_files = {
-                name: z.read(f"{pack.stem}/assets/{file}.texture")
+                name: z.read(f"{pack_root}/assets/{file}.texture")
                 for name, file in re.findall(
                     r'<material\b[^>]*\bname="([^"]+)".*?<diffuse_texture file="([^"]+)"', config, flags=re.S)}
         names = {dm.hash64(name): name for name in self.texture_files}

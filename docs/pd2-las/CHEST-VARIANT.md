@@ -1,8 +1,8 @@
 # Miranda `Miranda_Busty_LAS` — chest-size variant
 
-Deliverable: **`dist/Miranda_Busty_LAS.zip`** (+ `.sha256`), a second PAYDAY 2
+Deliverable: **`dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip`** (+ `.sha256`), a second PAYDAY 2
 Legendary Armour Skins outfit built from the same L4D2 Miranda source as
-`dist/Miranda_LAS.zip`, with a sculpted D-cup chest. It registers its own
+`dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, with a sculpted D-cup chest. It registers its own
 `LegendaryArmours.miranda_busty` entry and ships a distinct 3/4 upper-body
 portrait icon (`miranda_busty.texture`), so **both packs can be installed at
 once** and the stock outfit is never modified.
@@ -116,7 +116,7 @@ Default preset (`cup_gain = 0.382`, `round_gain = 0.046`, `lift = 0.18`,
 | Unselected shadow-slice vertex drift | `0.00 cm` | **`0.00 cm`** (was `1.084 cm`) |
 | Outfit-grid icon (`miranda_busty.texture`) | 2D face UV crop | **Distinct `256×256` 3/4 upper-body portrait (`DXT5`)** |
 
-The base column is measured on the tracked `dist/Miranda_LAS.zip`, not on a fresh retarget, so it
+The base column is measured on the tracked `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, not on a fresh retarget, so it
 describes the pack the variant actually sits beside.
 
 **Runtime status: never loaded in game.** `BUILD_INFO.json` carries
@@ -149,7 +149,7 @@ emits all five sheets by name:
   the edit rim, taut-catsuit cleavage contour, slice containment, open-boundary
   collar-lip pinning during fairing, watertight welded subdivision across seams,
   out-of-repo `_display_path`, and end-to-end regression checks on
-  `dist/Miranda_Busty_LAS.zip` (distinct DDS icon, vertex count, `< 0.05 cm`
+  `dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip` (distinct DDS icon, vertex count, `< 0.05 cm`
   abdominal neutrality, `< 2.0 cm` chest triangle edges, `< 1.80x` global UV/edge
   stretch, spine-side root expansion, exact `BUILD_INFO.json` `front_y_max_cm`
   agreement across all vertices, and unit-length normals in every shipped drawable —
@@ -158,7 +158,7 @@ emits all five sheets by name:
 
 ## The tracked zip is rebuilt (2026-11-05)
 
-The previously tracked `dist/Miranda_Busty_LAS.zip` predated the subdivision-midpoint
+The previously tracked `dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip` predated the subdivision-midpoint
 renormalisation: `bust_variant.subdivide_region` averaged two unit normals into one 0.9867 long, and
 12 vertices at the top of the chest band (`z ≈ 150.8–151.0`, |n| = 0.9867 … 0.9985) shipped that way
 in `g_body`, `g_body_lod1` and `s_body` — 36 non-unit normals per pack. The code was fixed earlier;
@@ -166,7 +166,7 @@ the artifact was not, because the 2B templates were unavailable. It is now rebui
 
 | | before | after |
 |---|---|---|
-| `dist/Miranda_Busty_LAS.zip` | 5,815,039 B, `3043fcba…` | **5,815,197 B, `91dbd3271de478b2cbc76c170de8d81385e0188b59fbece9d79f941758d21a00`** |
+| `dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip` | 5,815,039 B, `3043fcba…` | **5,815,197 B, `91dbd3271de478b2cbc76c170de8d81385e0188b59fbece9d79f941758d21a00`** |
 | non-unit drawable normals | 36 (max \|1−\|n\|| = 1.33 %) | **0** (max \|1−\|n\|| = 2e-8) |
 | `g_body` vertex normals | — | 2,775 changed (morphed band only), plus 2,776 / 2,770 `uvdir_u` / `uvdir_v` |
 | geometry, topology, weights, atoms, UVs | — | byte-identical |
@@ -333,10 +333,10 @@ front and 25° yaw, 20 px/cm, `center=(5, 18.5, 141.5)`) is reproducible with
    that keeps the honeycomb hexes clean, and the shipped build is at 1.756x with only 0.044x of
    headroom. Band-limit the *field* (smooth by construction, no edge lengthened) or leave it alone;
    and check `max_stretch` after every such experiment, because the archive test will.
-1. **Do not re-run the base `Miranda_LAS` build.** `dist/Miranda_LAS.zip` is
+1. **Do not re-run the base `Miranda_LAS` build.** `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` is
    treated as immutable; `build_busty_variant.py` falls back directly to reading
-   `miranda.model` from `dist/Miranda_LAS.zip` when building into a clean `--out`
-   directory, and only updates `dist/Miranda_Busty_LAS.zip` on canonical builds
+   `miranda.model` from `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` when building into a clean `--out`
+   directory, and only updates `dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip` on canonical builds
    (or `--update-dist`).
 2. **Never slice `g_body` into a hollow torso ring for overhead/underbust previews.**
    Clipping `z ∈ [122, 152.2]` without `g_head` or lower body exposes the black

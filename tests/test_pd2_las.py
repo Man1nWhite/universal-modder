@@ -12,11 +12,14 @@ import json
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "references" / "l4d2_miranda_lawson_1.zip"
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 pytestmark = pytest.mark.skipif(
@@ -805,7 +808,7 @@ class TestLasScaffold:
         import build_las
 
         record = json.loads(build_las.RECORD.read_text())
-        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        dist_zip = dist_path(REPO, "Miranda_LAS.zip")
         assert dist_zip.is_file(), f"missing tracked deliverable: {dist_zip}"
         with zipfile.ZipFile(dist_zip) as z:
             embedded = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))["source_inventory"]
@@ -910,7 +913,7 @@ class TestLasScaffold:
         item = identity.item_id
         unit = f"{pack_name}/assets/{identity.unit_base}"
         models = {}
-        with zipfile.ZipFile(REPO / "dist" / f"{pack_name}.zip") as tracked:
+        with zipfile.ZipFile(dist_path(REPO, f"{pack_name}.zip")) as tracked:
             for stem in (item, f"fps_{item}"):
                 models[stem] = tmp_path / f"{stem}.model"
                 models[stem].write_bytes(tracked.read(f"{unit}/{stem}.model"))
@@ -986,9 +989,9 @@ class TestLasScaffold:
     def test_tracked_miranda_las_pack(self):
         """The built Miranda_LAS.zip deliverable is tracked in dist/ and self-consistent."""
         build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
-        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        dist_zip = dist_path(REPO, "Miranda_LAS.zip")
         build_sha = REPO / "build" / "pd2-las" / "Miranda_LAS.zip.sha256"
-        dist_sha = REPO / "dist" / "Miranda_LAS.zip.sha256"
+        dist_sha = dist_path(REPO, "Miranda_LAS.zip.sha256")
         for p in (build_zip, dist_zip, build_sha, dist_sha):
             assert p.is_file(), f"missing tracked deliverable: {p}"
         raw = dist_zip.read_bytes()
@@ -1013,8 +1016,8 @@ class TestLasScaffold:
             ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy"),
             ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy"),
         ):
-            zp = REPO / "dist" / zip_name
-            sp = REPO / "dist" / f"{zip_name}.sha256"
+            zp = dist_path(REPO, zip_name)
+            sp = dist_path(REPO, f"{zip_name}.sha256")
             assert zp.is_file(), f"missing {zp}"
             assert sp.is_file(), f"missing {sp}"
             raw = zp.read_bytes()
@@ -1037,7 +1040,7 @@ class TestLasScaffold:
                     assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
 
     def test_tracked_clover_bonnie_sydney_head_replacement_packs(self):
-        """Clover, Bonnie, and Sydney head-replacement mod_overrides packs in dist/ are tracked and valid."""
+        """Clover, Bonnie, Sydney and Hila head-replacement mod_overrides packs in dist/ are tracked and valid."""
         import diesel_model as dm
 
         specs = [
@@ -1083,10 +1086,24 @@ class TestLasScaffold:
                 "g_head",
                 "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
             ),
+            (
+                "Miranda_L4D2_over_Hila.zip",
+                "Miranda L4D2 over Hila",
+                "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
+                "g_head",
+                "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture",
+            ),
+            (
+                "Miranda_Romance_over_Hila.zip",
+                "Miranda Romance over Hila",
+                "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
+                "g_head",
+                "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture",
+            ),
         ]
         for zip_name, prefix, model_rel, head_draw, icon_rel in specs:
-            zp = REPO / "dist" / zip_name
-            sp = REPO / "dist" / f"{zip_name}.sha256"
+            zp = dist_path(REPO, zip_name)
+            sp = dist_path(REPO, f"{zip_name}.sha256")
             assert zp.is_file(), f"missing {zp}"
             assert sp.is_file(), f"missing {sp}"
             raw = zp.read_bytes()
@@ -1111,6 +1128,260 @@ class TestLasScaffold:
                 assert len(sb["maps"]) == 3
                 assert geo["vert_count"] > 4000
                 assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
+
+    def test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye(self):
+        """Hila is her own unit: `g_head` on `mtr_head` + `mtr_lashes`, hair collapsed, the supplied eye.
+
+        The ECP heister is not in `Heister - FPS Gloves in TPS 2.zip` (she ships in her own 7z), her
+        head drawable carries *two* atoms whose second material is `mtr_lashes` rather than the other
+        heisters' `mtr_hair`, and `mtr_head` is authored against a GSMA gloss map the atlas does not
+        have. The two Hila packs are also the only packs whose eye quadrant is the user's
+        `references/EYE_Diff.png` instead of the synthesised eye, so both halves are pinned here.
+        """
+        import io
+        import sys as _sys
+
+        import numpy as np
+        from PIL import Image
+
+        import diesel_model as dm
+        _sys.path.insert(0, str(REPO / "tools"))
+        import build_joy_head_mods as bhm
+
+        unit = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female"
+        eye = bhm.load_hila_eye_texture()
+        # the `me2_dir` argument of the synthesiser is unused: the eye is drawn, not read
+        synth_eye = bhm.build_crisp_miranda_eye_texture(REPO / "build" / "head-mods" / "me2_extract")
+        specs = [("Miranda_L4D2_over_Hila.zip", "Miranda L4D2 over Hila"),
+                 ("Miranda_Romance_over_Hila.zip", "Miranda Romance over Hila")]
+        for zip_name, prefix in specs:
+            zp = dist_path(REPO, zip_name)
+            assert zp.is_file(), f"missing {zp}"
+            assert (dist_path(REPO, f"{zip_name}.sha256")).read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
+            with zipfile.ZipFile(zp) as z:
+                names = set(z.namelist())
+                for stem in ("npc_criminal_ecp_female.model", "npc_criminal_ecp_female_menu.model",
+                             "npc_criminal_ecp_female.object", "npc_criminal_ecp_female_menu.object",
+                             "npc_criminal_ecp_female_head_df.texture", "npc_criminal_ecp_female_head_nm.texture",
+                             "npc_criminal_ecp_female_lashes_df.texture", "npc_criminal_ecp_female_lashes_op.texture"):
+                    assert f"{prefix}/{unit}/{stem}" in names, f"{zip_name}: no {stem}"
+                assert f"{prefix}/{unit}/mtr_criminal_ecp_female.material_config" in names
+                assert f"{prefix}/{unit}/mtr_criminal_ecp_female_cc.material_config" in names
+                # the heist and menu models are the same patched bytes, as in the other head packs
+                assert z.read(f"{prefix}/{unit}/npc_criminal_ecp_female.model") == z.read(
+                    f"{prefix}/{unit}/npc_criminal_ecp_female_menu.model")
+
+                mf = dm.ModelFile.read(z.read(f"{prefix}/{unit}/npc_criminal_ecp_female.model"))
+                md_by_hash = {dm.decode_model_data(s.payload)["name_hash"]: s for s in mf.by_type(dm.MODEL_DATA)}
+                md_head = dm.decode_model_data(md_by_hash[dm.hash64("g_head")].payload)
+                mg = dm.decode_material_group(mf.by_id(md_head["matgroup"]).payload)
+                mats = {dm.decode_material(mf.by_id(i).payload)["name_hash"] for i in mg["material_ids"]}
+                assert mats == {dm.hash64("mtr_head"), dm.hash64("mtr_lashes")}, (
+                    f"{zip_name}: the eyelash atom must run on mtr_lashes, not mtr_hair")
+                assert len(md_head["atoms"]) == 2 and md_head["atoms"][1]["tri_count"] == 224
+                for hair in ("g_hair_mask_off", "g_hair_mask_on"):
+                    md_hair = dm.decode_model_data(md_by_hash[dm.hash64(hair)].payload)
+                    assert [a["tri_count"] for a in md_hair["atoms"]] == [1], f"{zip_name}: {hair} not collapsed"
+
+                # the hair objects must be off in both object files, mask-on included
+                for obj_name in ("npc_criminal_ecp_female.object", "npc_criminal_ecp_female_menu.object"):
+                    obj = z.read(f"{prefix}/{unit}/{obj_name}").decode("utf-8", "ignore")
+                    for hair in ("g_hair_mask_off", "g_hair_mask_on"):
+                        row = [ln for ln in obj.splitlines() if f'name="{hair}"' in ln and "object" in ln]
+                        assert row and all('enabled="false"' in ln for ln in row), f"{zip_name}: {obj_name} keeps {hair} on"
+
+                # mtr_head lost the GSMA slot; mtr_lashes keeps its opacity template and both textures
+                cfg = z.read(f"{prefix}/{unit}/mtr_criminal_ecp_female.material_config").decode()
+                head_block = cfg[cfg.index('name="mtr_head"'):]
+                head_block = head_block[: head_block.index("</material>")]
+                assert "GSMA_TEXTURE" not in head_block and "material_texture" not in head_block
+                assert "DIFFUSE_TEXTURE:NORMALMAP" in head_block
+                lashes_block = cfg[cfg.index('name="mtr_lashes"'):]
+                lashes_block = lashes_block[: lashes_block.index("</material>")]
+                assert "opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS" in lashes_block
+                assert "npc_criminal_ecp_female_lashes_df" in lashes_block
+                assert "npc_criminal_ecp_female_lashes_op" in lashes_block
+
+                head_df = np.asarray(Image.open(io.BytesIO(
+                    z.read(f"{prefix}/{unit}/npc_criminal_ecp_female_head_df.texture"))).convert("RGBA"))
+                assert head_df.shape == (2048, 2048, 4)
+                quad = head_df[1024:2048, 1024:2048].astype(np.int16)
+                # DXT5 between them, so compare the decoded quadrant with the source it was built
+                # from and with the synthesised eye the other eight packs carry
+                off_supplied = float(np.abs(quad - eye.astype(np.int16)).mean())
+                off_synth = float(np.abs(quad - synth_eye.astype(np.int16)).mean())
+                assert off_supplied < 4.0 and off_supplied * 3 < off_synth, (
+                    f"{zip_name}: the eye quadrant is not references/EYE_Diff.png "
+                    f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
+                assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
+
+    def test_honoko4_and_5_are_honoko3_in_the_alt_suits(self):
+        """`Honoko4`/`Honoko5` are `Honoko3`'s bytes apart from the suit slot: the user's diffuses.
+
+        The packs the user asked for ("aply Tex_07(L_7) 2.dds ... to costume of Honoko3 and make it
+        Honoko4", then the same for `Tex_07(L_7)3.dds` as Honoko5) keep Honoko3's geometry, slim and
+        clearance passes vertex for vertex, and differ only where the colourway enters: the suit
+        slot's diffuse, its icon and the hashes that follow from them (D44, D45).
+        """
+        import hashlib
+        import sys as _sys
+
+        import numpy as np
+
+        _sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        import dmodel
+
+        def load(tag):
+            stem = tag.lower()
+            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
+                info = json.loads(z.read(f"{tag}/BUILD_INFO.json"))
+                model = dmodel.DieselModel.from_bytes(
+                    z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model"))
+            geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
+                    for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
+            return info, geos
+
+        info3, geos3 = load("Honoko3")
+        tex3 = info3["source"]["textures"]
+        assert tex3["honoko3_suit_df"]["source"] == "references/Honoka/L_7.dds"
+        for tag, dds in (("Honoko4", "Tex_07(L_7) 2.dds"), ("Honoko5", "Tex_07(L_7)3.dds")):
+            info, geos = load(tag)
+            stem = tag.lower()
+            assert set(geos3) == set(geos)
+            for gid in geos3:
+                assert np.array_equal(geos3[gid], geos[gid]), f"{tag}: geometry {gid} is not Honoko3's mesh"
+            assert info3["slim"] == info["slim"] and info3["clearance"] == info["clearance"]
+            tex = info["source"]["textures"]
+            suit = tex[f"{stem}_suit_df"]
+            assert suit["source"] == f"references/Honoka/{dds}"
+            alt = (REPO / "references" / "Honoka" / dds).read_bytes()
+            assert suit["source_sha256"] == hashlib.sha256(alt).hexdigest()
+            for slot in ("body", "panties", "bra", "shoes", "jewelry"):
+                assert tex3[f"honoko3_{slot}_df"] == tex[f"{stem}_{slot}_df"], (tag, slot)
+                assert tex3[f"honoko3_{slot}_nm"] == tex[f"{stem}_{slot}_nm"], (tag, slot)
+            assert tex[f"{stem}_suit_nm"] == tex3["honoko3_suit_nm"], f"{tag}: keeps L_8's normals"
+
+    def test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster(self):
+        """The shells the in-game flakes came from stand >= 1 mm apart; the shadow caster drops two (D44).
+
+        Measured on the 2026-11-15 build, the bra shell sat 0.2 mm off the skin and the necklace
+        0.7 mm, and the shadow-caster drawable carried the fully enclosed bra and panties shells,
+        whose shadow-map depth bled through those gaps as angular flakes on the surface above.
+        Honoko3 and Honoko4 are built with the clearance pass and the trimmed caster; Honoko2 keeps
+        both as they were, so its tracked bytes stand.
+        """
+        import sys as _sys
+
+        import numpy as np
+
+        _sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
+        _sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        import diesel_model as dcm
+        import dmodel
+
+        slots = ["body", "suit", "panties", "bra", "shoes", "jewelry"]
+        rng = np.random.default_rng(7)
+
+        def load(tag):
+            stem = tag.lower()
+            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
+                raw = z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model")
+            mf = dcm.ModelFile.read(raw)
+            mds = [dcm.decode_model_data(s.payload) for s in mf.by_type(dcm.MODEL_DATA)]
+            md = next(m for m in mds if m.get("atoms") and m["name_hash"] != dcm.hash64("s_body"))
+            shadow = next(m for m in mds if m.get("atoms") and m["name_hash"] == dcm.hash64("s_body"))
+            bases = [a["base_vertex"] for a in md["atoms"]]
+            m = dmodel.DieselModel.from_bytes(raw)
+            geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
+                    for oid, o in m.by_id.items() if hasattr(o.obj, "positions")}
+            V = geos[max(geos, key=lambda k: len(geos[k]))]
+            ends = bases[1:] + [len(V)]
+            return {s: V[b:e] for s, b, e in zip(slots, bases, ends)}, len(shadow["atoms"])
+
+        for tag, shadow_atoms in (("Honoko3", 4), ("Honoko4", 4), ("Honoko5", 4), ("Honoko2", 6)):
+            S, n_shadow = load(tag)
+            assert n_shadow == shadow_atoms, f"{tag}: the shadow caster carries {n_shadow} shells"
+            if tag == "Honoko2":
+                continue  # its gaps are the tracked bytes; the fix is scoped to Honoko3 and Honoko4
+            # the zones the close-ups showed flaking: the collar against the neck, and the necklace
+            # against the chest. (The bra's buried rim vertices stay sub-millimetre inside the skin
+            # shell by design - hidden behind it - so a raw all-pairs minimum would pin the wrong
+            # number; the facing gaps in these two zones are what the depth test alternates.)
+            neck = lambda P: (P[:, 2] > 140) & (P[:, 2] < 168) & (np.hypot(P[:, 0], P[:, 1]) < 16)
+            chest = lambda P: (P[:, 2] > 118) & (P[:, 2] < 145) & (P[:, 1] > 10) & (np.abs(P[:, 0]) < 20)
+            for a, b, zone, floor in (("body", "suit", neck, 0.40), ("body", "jewelry", chest, 0.50)):
+                A, B = S[a][zone(S[a])], S[b][zone(S[b])]
+                ia = rng.choice(len(A), min(2000, len(A)), replace=False)
+                ib = rng.choice(len(B), min(2000, len(B)), replace=False)
+                d = np.linalg.norm(A[ia][:, None, :] - B[ib][None, :, :], axis=2).min(1)
+                assert d.min() >= floor, f"{tag}: {a}-{b} still {d.min():.2f} cm apart (< {floor})"
+
+    def test_honoko3_is_honoko2_slimmed_about_the_bones(self):
+        """`Honoko3` is `Honoko2`'s mesh scaled 5% about the rig's bones, and nothing else (D42).
+
+        The pass moves every vertex toward the weight-blended rest point of its palette bones, so
+        the joints stay where the rig puts them: the pack has to keep its height, keep its soles on
+        the floor, keep its palette bone for bone, and be thinner front to back by the factor. A
+        world-space scale, or a scale of the bind pose, breaks the first three.
+        """
+        import numpy as np
+
+        sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        import dmodel
+
+        def load(tag):
+            stem = tag.lower()
+            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
+                info = json.loads(z.read(f"{tag}/BUILD_INFO.json"))
+                model = dmodel.DieselModel.from_bytes(
+                    z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model"))
+            geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
+                    for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
+            palette = [[model.by_id[oid].obj.name for oid in o.obj.object_ids]
+                       for o in model.by_id.values() if type(o.obj).__name__ == "SkinBones"]
+            return info, geos, palette
+
+        info2, geos2, pal2 = load("Honoko2")
+        info3, geos3, pal3 = load("Honoko3")
+
+        # the same outfit geometry, vertex for vertex: the passes move vertices, they add and drop
+        # none. The shadow-caster geometry is the one allowed exception: Honoko3's caster drops the
+        # two enclosed shells (D44), so it carries fewer vertices than Honoko2's.
+        assert set(geos2) == set(geos3)
+        gid = max(geos2, key=lambda k: len(geos2[k]))
+        assert len(geos2[gid]) == len(geos3[gid])
+        for k in geos2:
+            if k != gid:
+                assert len(geos3[k]) < len(geos2[k]), f"geometry {k} is not the trimmed shadow caster"
+        v2, v3 = geos2[gid], geos3[gid]
+        assert len(v2) == 31577, f"{len(v2)} vertices, expected the whole garment set"
+
+        # both stand on the floor, and the slim pack is not shorter
+        for tag, v in (("Honoko2", v2), ("Honoko3", v3)):
+            assert float(v[:, 2].min()) == pytest.approx(-0.47, abs=0.01), (
+                f"{tag}: lowest vertex z {v[:, 2].min():.3f}, expected -0.47 (soles on the floor)")
+        height2 = float(np.ptp(v2[:, 2]))
+        height3 = float(np.ptp(v3[:, 2]))
+        assert height3 == pytest.approx(height2, abs=1.0), (height2, height3)
+
+        # thinner front to back by the factor, and never wider than the pack it was built from
+        depth2 = float(np.ptp(v2[:, 1]))
+        depth3 = float(np.ptp(v3[:, 1]))
+        assert depth3 / depth2 == pytest.approx(0.95, abs=0.01), (depth2, depth3)
+        assert 0.94 <= float(np.ptp(v3[:, 0])) / float(np.ptp(v2[:, 0])) <= 1.0
+
+        # anchored per bone, so nothing jumps: the largest move is under 2 cm
+        shift = np.linalg.norm(v3 - v2, axis=1)
+        assert float(shift.max()) < 2.0, f"a vertex moved {shift.max():.2f} cm"
+        assert float(shift.mean()) > 0.1, "the mesh barely moved - the slim pass did nothing"
+
+        # the rig is untouched: the same palettes, bone for bone, in the same order
+        assert pal3 == pal2
+
+        # the factor is written into the pack, and `Honoko2` does not claim a slim pass at all
+        assert info3["slim"]["factor"] == pytest.approx(0.95)
+        assert info3["slim"]["vertices_moved"] == info3["slim"]["vertices"]
+        assert "slim" not in info2
 
     def test_neck_skirt_is_on_the_l4d2_heads_and_not_on_the_romance_ones(self):
         """The skirt is a L4D2-path change; the Romance path must not carry it.
@@ -1137,9 +1408,11 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Clover.zip", 4454, 7070, 148.90),
             ("Miranda_Romance_over_Bonnie.zip", 4454, 7070, 148.90),
             ("Miranda_Romance_over_Sydney.zip", 4454, 7070, 148.90),
+            ("Miranda_L4D2_over_Hila.zip", 4508, 7305, 142.98),
+            ("Miranda_Romance_over_Hila.zip", 4454, 7070, 148.90),
         ]
         for name, verts, tris, min_z in specs:
-            zp = REPO / "dist" / name
+            zp = dist_path(REPO, name)
             assert zp.is_file(), f"missing {zp}"
             v, f = nj._head_mesh(zp)
             assert len(v) == verts, f"{name}: {len(v)} verts, expected {verts}"
@@ -1181,7 +1454,7 @@ class TestLasScaffold:
         import numpy as np
         from PIL import Image
 
-        with zipfile.ZipFile(REPO / "dist" / "Miranda_LAS.zip") as z:
+        with zipfile.ZipFile(dist_path(REPO, "Miranda_LAS.zip")) as z:
             face = np.asarray(
                 Image.open(
                     io.BytesIO(
@@ -1196,9 +1469,10 @@ class TestLasScaffold:
             ("Miranda_L4D2_over_Clover.zip", "Miranda L4D2 over Clover", "units/payday2/characters/shared_textures/clover_head_df.texture"),
             ("Miranda_L4D2_over_Bonnie.zip", "Miranda L4D2 over Bonnie", "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_head_df.texture"),
             ("Miranda_L4D2_over_Sydney.zip", "Miranda L4D2 over Sydney", "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_head_df.texture"),
+            ("Miranda_L4D2_over_Hila.zip", "Miranda L4D2 over Hila", "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture"),
         ]
         for zip_name, prefix, df_rel in specs:
-            with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
+            with zipfile.ZipFile(dist_path(REPO, zip_name)) as z:
                 head = np.asarray(Image.open(io.BytesIO(z.read(f"{prefix}/{df_rel}"))).convert("RGBA"))
             got = head[0:1024, 0:1024, 3].astype(np.float32)
             corr = float(np.corrcoef(got.ravel(), expected.ravel())[0, 1])
@@ -1225,7 +1499,7 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Clover.zip", "Miranda Romance over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
         ]
         for zip_name, prefix, model_rel, df_rel, nm_rel, head_draw in specs:
-            with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
+            with zipfile.ZipFile(dist_path(REPO, zip_name)) as z:
                 mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
                 md_by_hash = {
                     dm.decode_model_data(s.payload)["name_hash"]: s
@@ -1277,7 +1551,7 @@ class TestLasScaffold:
         sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
         import dmodel
 
-        with zipfile.ZipFile(REPO / "dist" / "lawson_las.zip") as z:
+        with zipfile.ZipFile(dist_path(REPO, "lawson_las.zip")) as z:
             m_tpp = dmodel.DieselModel.from_bytes(z.read("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"))
             md_h = m_tpp.by_id[75].obj
             geo_h = m_tpp.by_id[82].obj
@@ -1314,8 +1588,8 @@ class TestLasScaffold:
         import numpy as np
         from PIL import Image
 
-        zp = REPO / "dist" / "Geralt_over_Rust.zip"
-        sp = REPO / "dist" / "Geralt_over_Rust.zip.sha256"
+        zp = dist_path(REPO, "Geralt_over_Rust.zip")
+        sp = dist_path(REPO, "Geralt_over_Rust.zip.sha256")
         assert zp.is_file() and sp.is_file()
         assert sp.read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
 
@@ -1439,7 +1713,7 @@ class TestLasScaffold:
             ("Miranda_L4D2_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
             ("Miranda_Romance_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
         ):
-            zp = REPO / "dist" / zip_name
+            zp = dist_path(REPO, zip_name)
             if not zp.is_file():
                 pytest.skip(f"{zip_name} not built")
             with zipfile.ZipFile(zp) as z:
@@ -1484,7 +1758,7 @@ def test_our_packs_have_an_orthonormal_tangent_basis():
          "assets/units/miranda_busty/skins/miranda_busty/fps_miranda_busty.model"),
     ]
     for zip_name, prefix, model_rel in specs:
-        zp = REPO / "dist" / zip_name
+        zp = dist_path(REPO, zip_name)
         if not zp.is_file():
             pytest.skip(f"{zip_name} not built")
         with zipfile.ZipFile(zp) as z:

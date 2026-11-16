@@ -5,17 +5,17 @@ Builds **Legendary Armour Skins (LAS)** outfit packs for PAYDAY 2 from compiled 
 and written as Diesel `.model` + `.texture` + `.material_config` behind a BeardLib `LegendaryArmours.<id>`
 registration. Pure Python: no Source compile step, no Blender, and no game is needed to build.
 
-| Tracked pack (`dist/<name>.zip`) | Source archive | Builder | `make` target |
+| Tracked pack (`dist/<character>/<name>.zip`) | Source archive | Builder | `make` target |
 | --- | --- | --- | --- |
-| `Miranda_LAS` — full body and first-person arms | `models/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
-| `Miranda_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
-| `Honoka_LAS` — the DOAXVV "Secret Report" costume | `references/Outfit for Honoka-109-1-1-1628020933.zip` | `build_honoka_las.py` | `honoka` |
-| `Honoko2` — the same outfit built from `.dae` (6 mats) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `Miranda_L4D2_LAS` — full body and first-person arms | `references/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
+| `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
+| `Christie_LAS` — no head or hands; glove adapter, TPP and FPS | `references/Christie.zip` | `build_christie_source.py` | `christie` |
+| `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
-The Honoka TMC zip is built into `build/honoka-las/` and copied to `dist/Honoka_LAS.zip` (`status` reports `make: null` for it); `Honoko2` writes `dist/Honoko2.zip` directly and is verified by `fresh` (`make honokodae`).
-The TMC/DAE builders remap skin palettes (`tmc.py`, `tmc_skeleton_map.json`), cut wrists, encode DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and register BODY_ONLY with glove adapter and 4-view icon.
-`runtime_verified` is `false`; `Honoka_LAS` was seen in the in-game outfit menu (`docs/pd2-las/HANDOFF.md`). See `docs/pd2-las/honoka-tmc-format.md`.
-
+`honokodae` writes `dist/Honoka/Honoko2.zip` through `dist/Honoka/Honoko5.zip` directly, and `fresh` verifies all
+four. `Honoko3`–`Honoko5` share the layer-clearance pass and trimmed shadow caster; `Honoko4` and `Honoko5` use alternative suit diffuses.
+The `.dae` builder takes its skinning from the source TMC (`tmc.py`, `tmc_skeleton_map.json`), cuts wrists, encodes DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and registers BODY_ONLY with glove adapter and 4-view icon.
+`runtime_verified` is `false`; the new Christie needs in-game cuff and elbow checks. `Honoko2` was seen in-game (`docs/pd2-las/HANDOFF.md`; `docs/pd2-las/honoka-tmc-format.md`).
 ## Status
 
 Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every
@@ -23,13 +23,15 @@ tracked pack of the three pipelines (size, sha256, `make` target, whether the zi
 
 ## Commands
 
+The general CLI supports Python 3.10+; the pinned PAYDAY 2 build needs **Python 3.11+** (CI uses 3.11). `env` checks the interpreter; recreate an older `.venv` with Python 3.11+ first.
 From the repo root; `make -sC tools/pd2-las` alone lists every target. They cover all three pipelines: `lawson`
-and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`; `honoka` builds the Honoka pack and installs it into `dist/`.
+and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`; `honokodae` builds the
+Honoko2..Honoko5 outfit packs into `dist/` from one Collada input.
 
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | honokodae | heads | all; prints the state of the packs it wrote
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | christie | heads | all; prints the state of the packs it wrote
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -42,7 +44,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
   Linux machine: every builder first puts itself on one declared code path (`determinism.py`). `fresh` checks
-  all 17 zips in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
+  all tracked ZIPs, including the two build copies, in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
 - **Done means:** `green` passes and `status` shows `changed` only for packs you meant to change. No
   document needs an edit; a changed `Miranda_LAS` needs `heads` run again.
 
@@ -54,7 +56,8 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_busty_variant.py`, `bust_variant.py` | the chest-morph variant |
-| `build_honoka_las.py`, `build_honoko2_dae.py` | the Honoka (DOAXVV TMC and Collada `.dae`) LAS packs: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render |
+| `build_honoko2_dae.py`, `tmc_las.py` | the Honoko2..Honoko5 (DOAXVV "Secret Report") LAS packs, built from the Collada `.dae` with the TMC's skinning: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render; `Honoko3` adds the bone-anchored slim pass (`_slim_groups`); `Honoko3`/`Honoko4`/`Honoko5` add the layer-clearance pass and the trimmed shadow caster (`_clearance_pass`, D44); `Honoko4`/`Honoko5` swap the suit diffuse for the user's `Tex_07(L_7) 2.dds` / `Tex_07(L_7)3.dds`; `tmc_las.py` holds the TMC frame map and mesh post-processes |
+| `build_christie_source.py`, `christie_fit_probe.py` | Christie source retarget, wrist cuts and TPP/FPS pack; Slim is unchanged |
 | `las_outfit_pack.py` | the registration, hook, localization, unit/object XML, zip and the glove-adapter companion shared by body-only LAS packs |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |
@@ -64,7 +67,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 15 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py` | the commands above, the state of all 20 packs, environment (`env` runs `recover_env.sh`), and where the 2B pack is unpacked |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and the rounding with a margin; tangent frames from the values the file stores; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 | `pins.txt`, `copies.py` | the two pinned versions, written once (`recover_env.sh`, CI and `status.py` read them); what a merge of two tools is held to: `record`, `compare`, `after` |
 
@@ -115,7 +118,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
    with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the last rebuild of the Miranda packs.
 2. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
    texels at full gloss in `body_df` and `head_df` of the Miranda packs.
-3. The sibling packs: `lawson_las` and the nine head packs have no record of their tracked bytes in game, and
+3. The sibling packs: `lawson_las` and the eleven head packs have no record of their tracked bytes in game, and
    the head packs have no checklist.
 
 ## Further reading

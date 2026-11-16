@@ -16,6 +16,9 @@ from __future__ import annotations
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 import pytest
@@ -33,7 +36,7 @@ def _templates() -> Path:
 
 
 TEMPLATES = _templates()
-PACK = REPO / "dist" / "Christie_LAS.zip"
+PACK = dist_path(REPO, "Christie_LAS.zip")
 
 pytestmark = pytest.mark.skipif(
     not PACK.is_file(),
@@ -68,13 +71,8 @@ def _joints(tpl, worlds):
 
 
 def _authoring_worlds(rms, tpl):
-    """The base pack's encoded 12-degree arm rest plus ordinary body worlds."""
-    pose = {f"{side}Arm": (2, 22) for side in ("Left", "Right")}
-    pose.update({f"{side}ForeArm": (rms.BEND_AXIS, -60)
-                 for side in ("Left", "Right")})
-    pose.update({f"{side}Hand": (rms.BEND_AXIS, -8)
-                 for side in ("Left", "Right")})
-    return rms.posed_worlds(tpl, pose)
+    """The rebuilt Christie body is authored in the template bind pose."""
+    return rms.posed_worlds(tpl, {})
 
 
 def test_authoring_rest_round_trips():

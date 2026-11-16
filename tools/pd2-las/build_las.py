@@ -99,7 +99,7 @@ DF_SPECULAR_FROM_NORMAL = {
 
 
 #: The L4D2 addon the Miranda packs are built from, and the VPK inside it.
-SOURCE_ZIP = HERE.parents[1] / "models" / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = HERE.parents[1] / "references" / "l4d2_miranda_lawson_1.zip"
 VPK_INNER = "miranda_rochelle.vpk"
 
 
@@ -411,7 +411,7 @@ def main(argv: list[str] | None = None) -> int:
     repo = HERE.parents[1]
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--source", default=str(SOURCE_ZIP),
-                    help="the L4D2 source zip (default: models/l4d2_miranda_lawson_1.zip)")
+                    help="the L4D2 source zip (default: references/l4d2_miranda_lawson_1.zip)")
     ap.add_argument("--vpk-inner", default=VPK_INNER,
                     help="VPK member name inside the zip")
     ap.add_argument("--out", default=str(repo / "build" / "pd2-las"),

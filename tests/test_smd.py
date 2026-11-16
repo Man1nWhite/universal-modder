@@ -29,7 +29,7 @@ from source_model import Bone, ModelData, SkinVertex, SubMesh  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
-PACK = REPO / "models" / "l4d2_miranda_lawson_1.zip"
+PACK = REPO / "references" / "l4d2_miranda_lawson_1.zip"
 TPP = (
     "models/survivors/survivor_producer.mdl",
     "models/survivors/survivor_producer.vvd",

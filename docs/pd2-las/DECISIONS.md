@@ -217,7 +217,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** tracking follows the D9 discipline (a sidecar beside every zip) without claiming a rebuild
   path that cannot byte-verify the copy in `dist/`. A pinned-environment rebuild after a sandbox restart
   reproduced the previously delivered bytes exactly, but that check is not wired into `fresh`.
-- **Status:** holds.
+- **Status:** superseded by D40 (2026-11-15): the pack and its builder are deleted.
 
 ### D37 — The tracked Honoka pack was rebuilt with the source-connector filter
 
@@ -234,7 +234,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   legitimate edge 13.4 cm; smallest stray 23.7 cm), so no real geometry is cut. The pack still cannot
   be `fresh`-verified (the builder never writes `dist/`, see D36); a double build in a separate output
   directory reproduced the new bytes exactly.
-- **Status:** holds.
+- **Status:** superseded by D40 (2026-11-15): the pack and its builder are deleted; the connector filter
+  itself lives on in `tools/pd2-las/tmc_las.py`.
 
 ### D38 — In-game menu captures were supplied for Honoka and both Christie packs; the HANDOFF table is the truth for what was in game
 
@@ -256,6 +257,208 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Status:** holds in part (the HANDOFF record stays); the archived captures were removed by D39
   (still reachable at `da891d7` in git history).
 
+### D40 — The TMC-only Honoka pack is deleted; the `.dae` build (`Honoko2`) is the one that stays
+
+- **Decided:** 2026-11-15, by the user: "delete Honoka_LAS.zip ... and tool and references to it.
+  Honoko2.zip is much better — it was built from dae. keep it and upload screenshots that was made with it".
+- **Decision:** `dist/Honoka_LAS.zip`, its `.sha256` sidecar, its builder (`build_honoka_las.py`), the
+  `honoka` make target and that pack's renders and README are deleted; a decision, not a rebuild, so the
+  bytes stay reachable in git history (`ce1d1c0`, and `2e49f14` before it). The handful of helpers the
+  kept `.dae` builder still needs — the TMC frame map and bind matrices, the wrist cut, the long-thin
+  triangle filter and the fallback icon — moved to `tools/pd2-las/tmc_las.py` unchanged, so `Honoko2`
+  keeps its bytes, its `honokodae` target and its `fresh` verification. The eight in-game captures the
+  user made with `Honoko2` are archived byte-identically in `docs/renders/honoka/in-game/2026-11-15/`
+  with a `README.md` and a SHA-256 `manifest.json`; `docs/pd2-las/HANDOFF.md` records the pack as seen in
+  game on 2026-11-15 and remains the authority on what ran.
+- **Why:** the user compared both builds in game and judged the `.dae` one better. It keeps the six
+  material slots the Collada export binds (body, suit, panties, bra, shoes, jewelry) and the buttoned
+  suit, where the TMC build merged the raw meshes into three slots and overlaid the unbuttoned jacket
+  shell on the buttoned one — the overlap that z-fights on the torso and back. Two packs of one costume
+  also meant two builders, two sets of documents and a pack `fresh` could not verify (D36, D37); the
+  worse one went.
+- **Status:** holds. D36 and D37 are superseded. `runtime_verified` stays `false` in `Honoko2` (D31); the
+  outfit-menu captures are the in-game record, not the flag.
+
+### D41 — Hila's head packs are built from her own unit, and only they wear the supplied eye
+
+- **Decided:** 2026-11-15, by the user ("make Miranda over Hila packs, both L4D and Romance version",
+  and, asked which packs the attached `EYE_Diff.png` is for, "eyes of the new Hila packs").
+- **Decision:** `dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip` and `dist/Miranda_Romance/Miranda_Romance_over_Hila.zip` are built by
+  `_emit_hila_packages()` from `references/npc_criminals_ecp_female.7z`, the unit that ships the H3H3
+  collaboration heister (DLC folder `ecp`): `g_head` (two atoms: head, 3D eyelashes) is replaced and the
+  hair drawables `g_hair_mask_off` / `g_hair_mask_on` are collapsed to the hidden triangle and disabled
+  in both object files, as for Sydney. The head material group runs `mtr_head` + the unit's own
+  `mtr_lashes`. The eye quadrant of these two packs is the user's `references/EYE_Diff.png`
+  (`load_hila_eye_texture()`); the nine other head packs do not read that file and stay byte-identical
+  (the eight Miranda ones keep the synthesised eye, Geralt keeps Rust's own).
+- **Why:** Hila is not in `Heister - FPS Gloves in TPS 2.zip` and has no Safe House (`*_chill`) unit, so
+  her heist and menu models come from her own archive and no Safe House swap exists to emit. Her
+  `mtr_head` is authored against a `*_head_gsma` gloss map for her own UVs, which the head atlas does not
+  have, so the material becomes the same plain `DIFFUSE_TEXTURE:NORMALMAP` template the other heisters
+  use and reads gloss from the diffuse alpha. The supplied eye is a 256x256 spherical eyeball map whose
+  iris is small in the frame, while both pipelines re-project the eyeball as a planar pass over the
+  palpebral opening, so it is magnified about its centre by a factor measured off the source - 2.8 for
+  the first diffuse, 2.03 for the same day's repaint, whose iris is drawn 1.38x larger - to put the iris
+  where the synthesised eye had it (r 0.156 of the quadrant in u,v, inside the 0.174 gloss iris disc, an
+  ~11.7 mm iris in a ~30 mm opening; D43).
+- **Carried by:** `references/EYE_Diff.png` and `references/npc_criminals_ecp_female.7z` are tracked, and
+  `references/README.md` describes both.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye`
+  fails if the eyelash atom leaves `mtr_lashes`, if a hair drawable stays enabled, if `mtr_head` regains
+  the GSMA slot, or if the eye quadrant stops being the supplied diffuse.
+- **Source:** the user, 2026-11-15; `references/README.md`.
+- **Status:** holds, as amended by D43: the same day's repaint of the supplied diffuse re-measured the
+  zoom factor, and corrected the count of the other head packs above.
+
+### D42 — `Honoko3` is `Honoko2`'s mesh scaled 5% about the rig's bones; both packs ship
+
+- **Decided:** 2026-11-15, by the user ("make Honoko3 zip from dae with a bit smaller model — check
+  screenshots"), who, asked what "smaller" means, chose *slimmer at the same height*, *~5 %*, and
+  *keep both packs*.
+- **Decision:** `tools/pd2-las/build_honoko2_dae.py` is driven by a `PackSpec` and `PACKS =
+  (HONOKO2, HONOKO3)`: one build of the same Collada input, the same six materials, textures,
+  registration, glove adapter and icon, writes `dist/Honoka/Honoko2.zip` and `dist/Honoka/Honoko3.zip` (plus
+  sidecars) from one `make -sC tools/pd2-las honokodae`. `HONOKO3.slim = 0.95` is the only difference
+  in geometry. The pass is `_slim_groups()`, after the wrist cut and its caps: every vertex is moved
+  toward the weight-blended rest position of the bones in its palette —
+  `out = anchor + 0.95 * (v - anchor)` — and the outfit is then re-seated so its lowest vertex is back
+  at `z = -0.47`.
+- **Why anchor the offsets instead of scaling the mesh:** the game animates the outfit through the 2B
+  skeleton, so joints must stay where the rig puts them. Scaling in world space (or of the skinned
+  bind pose) would drop the collar off the heister's head, leave the wrist cuts short of the vanilla
+  gloves, move the feet off the floor and change bone lengths. Anchoring per bone, weighted the way
+  the skin weights are, keeps height, joint placement, sleeve and skirt hems in place and shrinks
+  only the distance from the bones: the girth.
+- **Measured (built bytes, `dmodel` on the packed `.model`, both 31 577 vertices):** height
+  167.76 → 167.43 cm, soles at `z = -0.47` in both, bbox depth 41.37 → 39.28 cm (**-5.05 %**, the
+  factor), bbox width 97.46 → 96.60 cm (the arms are anchored at the shoulder and elbow bones, so
+  their span barely moves). Per-slice widths through the torso read -3 to -6 %; the single +9.6 %
+  slice at z = 140 and the -61 % depth at z = 60 are the crude ±1.5 cm windows catching the sleeve
+  cuffs and the skirt hem at different heights, not geometry that grew. `dist/Honoka/Honoko2.zip` is
+  byte-identical to the tracked pack after the refactor (`c56a76a3…`);
+  `dist/Honoka/Honoko3.zip` is `e967cea4…`, 5,468,049 B.
+- **Also:** `tools/render_mod_previews.py` renders `18_Honoko3.png` and puts both packs in the 18-cell
+  `dist/` overview; `status.py` maps both names to `honokodae`; the tracked-zip count in the docs, the
+  CI job and the tests goes 19 → 20 (18 packs), and the one-call `status` budget 2 KiB → 2.5 KiB, because a
+  pack costs ~90 bytes of that JSON and the 17-pack output already sat at 2,015 of the 2,048.
+- **Carried by:** `dist/Honoka/Honoko3.zip{,.sha256}`, `tools/pd2-las/build_honoko2_dae.py`,
+  `docs/renders/honoka/model/dae/honoko3_las_sheet.png`.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko3_is_honoko2_slimmed_about_the_bones`
+  (vertex count unchanged, height within 1 cm, soles at -0.47, palette unchanged, `slim` reported as
+  0.95) and `tests/test_pd2_las_status.py` (both packs, one target).
+- **Source:** the user, 2026-11-15; D40.
+- **Status:** holds. Nothing of `Honoko3` has been in game; the in-game record stays `Honoko2` (D40).
+
+### D43 — The supplied eye is repainted; the two Hila packs rebuild at a re-measured zoom
+
+- **Decided:** 2026-11-15, by the user, attaching a 256x256 repaint: "Chance EYE_Diff.png to this one and
+  rebuild Miranda over Hila packs".
+- **Decision:** `references/EYE_Diff.png` becomes the repaint (the first diffuse stays in git history),
+  `HILA_EYE_ZOOM` goes 2.8 -> 2.03, and `dist/Miranda_{L4D2,Romance}_over_Hila.zip` rebuild from it with
+  fresh sidecars. Nothing else reads the file: the nine other head packs come out of the same
+  `make heads` run byte-identical.
+- **Why:** the repaint keeps the veined sclera and redraws the iris - rounder, with a catchlight, and
+  1.38x the area-equivalent radius of the first diffuse (hole-filled blue-plus-limbal mask: r_eq 14.24
+  -> 19.63 px of 256). The zoom is a measurement, not a preference: it exists to land the source iris at
+  the radius the synthesised eye uses in the quadrant (r 0.156 in u,v, inside the 0.174 gloss iris disc).
+  At the old 2.8 the repaint's iris would land at r 0.215 - an iris 1.38x too large in game, spilling out
+  of its gloss disc - so the factor is the old one divided by the measured iris ratio (2.8 / 1.3788),
+  and the in-game eye keeps its calibrated size while wearing the new art.
+- **Carried by:** the swapped `references/EYE_Diff.png`, the `HILA_EYE_ZOOM` comment in
+  `tools/build_joy_head_mods.py`, the rebuilt sidecars, and the renders in
+  `docs/renders/miranda/model/over-hila/`.
+- **Held to:** the D41 test, which rebuilds the expected quadrant from the reference at test time and so
+  pins the new bytes without an edit; `make -sC tools/pd2-las green` rebuilds all 20 tracked zips and
+  holds these two to the new sidecars and the other 18 to the old bytes.
+- **Source:** the user, 2026-11-15.
+- **Status:** holds.
+
+### D44 — Honoko4 is Honoko3 in the user's alternate suit; Honoko3/4 open the layer gaps the
+        close-ups showed
+
+- **Decided:** 2026-11-15, by the user, attaching four in-game close-ups and the texture
+  `references/Honoka/Tex_07(L_7) 2.dds`: "aply Tex_07(L_7) 2.dds texture ... to costume of Honoko3 and
+  make it Honoko4? Also, any recomendations for the neck and nose? those recomendation you can aply to
+  Honoko3 and Honoko4".
+- **Decision:** `honokodae` builds a third pack: `Honoko4` is `Honoko3` vertex for vertex (same slim,
+  same clearance pass) with the suit slot's diffuse read from the supplied alternate colourway (black
+  jacket, orange shirt; `L_8.dds` stays its normal map). `Honoko3` and `Honoko4` are additionally built
+  with `_clearance_pass`: the torso and neck skin sinks 2 mm along its own normals and the bra 0.5 mm,
+  and their shadow-caster drawable drops the bra and panties shells. `Honoko2` keeps the old build, so
+  its tracked bytes stand and the fix is scoped exactly where the user put it.
+- **Why:** measured on the built mesh, the shells the flakes came from stood 0.2 mm (bra to skin),
+  0.7 mm (necklace to skin) and 3.6 mm (collar to skin) apart, and the slim pass pressed each pair
+  together a little more, which is why the close-ups of Honoko3 show what the Honoka captures of
+  2026-11-15 do not. At those gaps the depth test and the shadow map alternate between the two
+  surfaces and the engine draws one shell's unlit inside through the other; the fully enclosed bra and
+  panties shells added nothing to the silhouette but did write shadow-map depth through them. The
+  neck needed no geometry of its own: with the centroid axis measured, the pack's neck plug nests
+  inside the head unit's neck and hair at every height, and the flakes on the throat were the same
+  contact phenomenon at the collar. The nose in the close-ups is the Miranda head unit's, not this
+  pack's: the body ends in a neck plug at z 167 and carries no head geometry, so nothing here can
+  change it (the head packs are the place for that, and the user scoped this work to Honoko3/4).
+- **Carried by:** `dist/Honoka/Honoko4.zip` + sidecar, the `clearance` block of both packs' `BUILD_INFO.json`,
+  `honoko4_las_sheet.png` and the 19-pack `dist/` overview.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko4_is_honoko3_in_the_alt_suit` (the
+  geometry is Honoko3's, the suit diffuse is the supplied file, every other slot is unchanged) and
+  `...test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster` (>= 1 mm at every measured
+  contact, four shells in the trimmed shadow caster, six in Honoko2's).
+- **Source:** the user, 2026-11-15.
+- **Status:** holds.
+
+### D45 — Honoko5: the third colourway of the same slim build
+
+- **Decided:** 2026-11-16, by the user: "Tex_07(L_7)3 - change texture to the costume, make honoko5,
+  render agai with a head".
+- **Decision:** `references/Honoka/Tex_07(L_7)3.dds` (uploaded to `main` as `7ea708e`, carried onto this
+  branch) becomes the suit slot's diffuse of a fourth pack: `Honoko5` is `Honoko3`'s geometry vertex for
+  vertex (same slim, same clearance) in the white-jacket-over-black-shirt colourway, and it is rendered
+  both on its own sheet and combined with `Miranda_Romance_over_Hila`'s `g_head`, as Honoko4 was.
+- **Why:** the same reason as D44: a colourway is a diffuse swap on one slot, not a new build - the
+  geometry, the slim and the clearance passes are shared, and `BUILD_INFO.json` records which source
+  DDS each slot's textures came from, with its sha256, so the pack carries the proof of its colourway.
+- **Carried by:** `dist/Honoka/Honoko5.zip` + sidecar, `honoko5_las_sheet.png`,
+  `honoko5_with_miranda_romance_over_hila_sheet.png`, the 20-pack `dist/` overview.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko4_and_5_are_honoko3_in_the_alt_suits`
+  (both packs' geometry is Honoko3's, each suit diffuse is its supplied file, every other slot is
+  unchanged) and the clearance test, which now covers Honoko5 as well.
+- **Source:** the user, 2026-11-16; `references/Honoka/Tex_07(L_7)3.dds` via `main` @ `7ea708e`.
+- **Status:** amended by D46: the user revised the source and Honoko5 was rebuilt.
+
+### D46 — Revised Honoko5 colourway and Miranda nostril normals
+
+- The user replaced `Tex_07(L_7)3.dds` on `main` at `526480e` and requested Honoko5 be redone.
+  The updated suit diffuse is black jacket over light shirt; Honoko3 geometry and clearance remain unchanged.
+- Nose diagnosis: comparing offline close-ups with the original face diffuse showed the diffuse alone
+  did not remove the dark splotches. The head builder's broad, strongly downward nostril vertex-normal
+  override affected the visible nose wings. Remove that override while retaining the repaired source
+  normals and UV-pocket cavity treatments. Both Miranda variants and their heister packs are rebuilt.
+- Verified in offline frontal and three-quarter renders, not yet in game. The renderer does not simulate
+  PAYDAY 2 normal-map lighting, so in-game appearance still needs checking. The neck remains unchanged.
+
+### D47 — Group shipped packs and consolidate source archives
+
+- The user requested character folders inside `dist/`, including a separate `Geralt/`,
+  and moved the source archives from `models/` into `references/` (superseding D14).
+- The three full-body ZIPs are now `Miranda_L4D2_LAS.zip`,
+  `Miranda_L4D2_Busty_LAS.zip`, and `Miranda_Romance_LAS.zip`; their internal mod
+  folder names and ZIP bytes are unchanged. The builders, status, previews, checksums,
+  CI and release workflow use the new paths. Shared tools remain in `tools/`.
+
+### D48 — Match Romance-over-Hila head skin closer to the Honoko body
+
+- The user asked to bring the head texture colour closer to the body. The active combination is
+  Honoko5 and Miranda Romance over Hila. Their exposed upper-neck texture samples differed markedly;
+  the builder applies a deterministic, skin-colour-masked RGB gain to the face/scalp quadrants of the
+  Romance Hila atlas only. Hair, eyes, gloss alpha, normal maps and all geometry are unchanged; the
+  Hila character icon is regenerated from the adjusted atlas. Other head packs are not changed.
+- The tint is part of the Hila head pack, so it also appears when that head is used with other bodies.
+  The head/body crossing is still geometry, and lighting differs across it: the adjustment reduces
+  a colour mismatch rather than promising a seamless join. The result remains an offline render until
+  the combination is checked in game.
+- `tests/test_hila_skin_tone.py` checks the mask, unchanged eye/gloss and hair, and that sampled neck
+  diffuse colours move closer to the Honoko5 body. `honoko5_head_skin_detail.png` shows two angles.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`
@@ -264,8 +467,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Decision:** source models are in `models/`, reference mods in
   `references/`. One source sits among the references.
 - **Why:** not recorded beyond the commit subject ("organize").
-- **Source:** `94bb4b0`; `models/README.md`, `references/README.md`
-- **Status:** holds.
+- **Source:** `94bb4b0`; the former `models/README.md`, `references/README.md`
+- **Status:** superseded by D47.
 
 ### D15 — The 2B templates are unpacked into `build/pd2-las/2b/`, never committed unpacked
 
@@ -588,7 +791,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D25 — A pack built from another pack is rebuilt with it
 
-- **Decision:** when `dist/Miranda_LAS.zip` changes, the four
+- **Decision:** when `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` changes, the four
   `Miranda_L4D2_over_*` head packs are rebuilt and re-shipped in the same
   change.
 - **Why:** `tools/build_joy_head_mods.py` takes the face, head and body
