@@ -12,8 +12,8 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
 `honokodae` writes `dist/Honoka/Honoko2.zip` through `dist/Honoka/Honoko5.zip` directly, and `fresh` verifies all
-four. `Honoko3` and `Honoko4` are also built with the layer-clearance pass and the trimmed
-shadow caster of D44; `Honoko4`'s suit slot reads `references/Honoka/Tex_07(L_7) 2.dds`.
+four. `Honoko3`, `Honoko4` and `Honoko5` share the layer-clearance pass and trimmed shadow caster of D44;
+`Honoko4` and `Honoko5` use the two user-supplied alternative suit diffuses.
 The `.dae` builder takes its skinning from the source TMC (`tmc.py`, `tmc_skeleton_map.json`), cuts wrists, encodes DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and registers BODY_ONLY with glove adapter and 4-view icon.
 `runtime_verified` is `false`; `Honoko2` was seen in the in-game outfit menu (`docs/pd2-las/HANDOFF.md`). See `docs/pd2-las/honoka-tmc-format.md`.
 
@@ -44,7 +44,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
   Linux machine: every builder first puts itself on one declared code path (`determinism.py`). `fresh` checks
-  all 20 zips in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
+  all tracked ZIPs, including the two build copies, in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
 - **Done means:** `green` passes and `status` shows `changed` only for packs you meant to change. No
   document needs an edit; a changed `Miranda_LAS` needs `heads` run again.
 
@@ -56,7 +56,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_busty_variant.py`, `bust_variant.py` | the chest-morph variant |
-| `build_honoko2_dae.py`, `tmc_las.py` | the Honoko2..Honoko5 (DOAXVV "Secret Report") LAS packs, built from the Collada `.dae` with the TMC's skinning: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render; `Honoko3` adds the bone-anchored slim pass (`_slim_groups`); `Honoko3`/`Honoko4` add the layer-clearance pass and the trimmed shadow caster (`_clearance_pass`, D44); `Honoko4`/`Honoko5` swap the suit diffuse for the user's `Tex_07(L_7) 2.dds` / `Tex_07(L_7)3.dds`; `tmc_las.py` holds the TMC frame map and mesh post-processes |
+| `build_honoko2_dae.py`, `tmc_las.py` | the Honoko2..Honoko5 (DOAXVV "Secret Report") LAS packs, built from the Collada `.dae` with the TMC's skinning: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render; `Honoko3` adds the bone-anchored slim pass (`_slim_groups`); `Honoko3`/`Honoko4`/`Honoko5` add the layer-clearance pass and the trimmed shadow caster (`_clearance_pass`, D44); `Honoko4`/`Honoko5` swap the suit diffuse for the user's `Tex_07(L_7) 2.dds` / `Tex_07(L_7)3.dds`; `tmc_las.py` holds the TMC frame map and mesh post-processes |
 | `las_outfit_pack.py` | the registration, hook, localization, unit/object XML, zip and the glove-adapter companion shared by body-only LAS packs |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |

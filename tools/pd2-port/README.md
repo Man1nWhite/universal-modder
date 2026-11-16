@@ -21,9 +21,8 @@ place.
 from *Mass Effect 2* and builds `dist/Miranda_Romance/Miranda_Romance_LAS.zip`. It is the worked
 example for everything below. Its pack is tracked in git and compared byte for
 byte in CI, and the release workflow publishes it on a tag. Whether there is a
-release, and of which build, is in [`STATUS.md`](STATUS.md). Names such as `me2_dae.py`,
-`lawson_las.zip` and `Lawson_LAS/` still carry the character because tests,
-CI and other tools in the repository refer to them. Wherever this page says
+release, and of which build, is in [`STATUS.md`](STATUS.md). The ZIP's installable root remains `Lawson_LAS/`; its public filename is
+`Miranda_Romance_LAS.zip`. Existing asset IDs and script names remain unchanged. Wherever this page says
 "the shipped port", it means that build.
 
 Earlier attempts at the same character — the character swaps (`lawson_clover`
@@ -314,14 +313,14 @@ release page is).
    ```
 
    The workflow creates the release page if there is none, uploads
-   `lawson_las.zip` and `Miranda_LAS.zip` with their `.sha256` files, and
+   `Miranda_Romance_LAS.zip` and `Miranda_L4D2_LAS.zip` with their `.sha256` files, and
    fails loudly if the tests fail or if the runner's build differs from the
    committed bytes. Do not upload the assets
    from a sandbox yourself: `gh release upload` failed there with EOF
    (recorded on 2026-10-19), and the workflow needs no upload from you.
 
 Every push to `main` also rebuilds the pack and uploads it as an artifact of
-that workflow run, together with the tracked `Miranda_LAS.zip` and the two
+that workflow run, together with the tracked `Miranda_L4D2_LAS.zip` and the two
 head packs over Joy.
 
 ## Status and limits

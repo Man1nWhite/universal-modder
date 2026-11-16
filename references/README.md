@@ -1,6 +1,8 @@
 # Source and Reference Archives
 
-Source character archives and reference PAYDAY 2 mods used by the build pipelines:
+Source character archives and reference PAYDAY 2 mods used by the build pipelines. The older
+`models/` source archives now live here; packaged downloads are grouped under `dist/`. See the
+[render index](../docs/renders/README.md) for previews and their source provenance:
 
 ## Character sources
 

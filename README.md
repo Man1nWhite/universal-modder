@@ -10,9 +10,20 @@ of them.
 ## What this fork adds
 
 PAYDAY 2 packs, tracked in `dist/` and rebuilt byte for byte by CI: full-body and body-only Legendary Armour
-Skins outfits (Miranda Lawson, Christie) and head replacements over the vanilla heisters (Miranda, Geralt).
+Skins outfits (Miranda Lawson, Christie, Honoka) and head replacements over the vanilla heisters (Miranda, Geralt).
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share.
+
+## Packs and previews
+
+- Browse the ZIPs and their checksum sidecars in [`dist/`](dist/): [Miranda L4D2](dist/Miranda_L4D2/),
+  [Miranda Romance](dist/Miranda_Romance/), [Christie](dist/Christie/),
+  [Honoka](dist/Honoka/), and [Geralt](dist/Geralt/).
+- See [all packs](docs/renders/overview/model/all_dist_mods_sheet.png), the
+  [Honoko5 and Miranda Romance combination](docs/renders/honoka/model/dae/honoko5_with_miranda_romance_over_hila_sheet.png),
+  or the [render index](docs/renders/README.md). These are offline previews, not proof of in-game behavior.
+- Sources and templates are catalogued in [`references/README.md`](references/README.md). The
+  [handoff](docs/pd2-las/HANDOFF.md) distinguishes in-game observations from offline results.
 
 ## Installing
 

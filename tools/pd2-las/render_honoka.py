@@ -41,7 +41,7 @@ TMC_NAME = "Honoka_DOAXVV_Secret_Report.TMC"
 TEX_DIR = REPO / "references" / "Honoka"
 GLB_PATH = REPO / "references" / "Honoka" / "Honoka_DOAXVV_Secret_Report.rigged.glb"
 
-#: the twelve source maps the `Honoko2` build assigns, by material slot
+#: source maps assigned by Honoko2 and the Honoko4/5 alternate suit diffuses
 DDS_ROLE_NOTES = {
     "L_3.dds": "Honoko2: honoko2_body diffuse",
     "L_4.dds": "Honoko2: honoko2_body normal",
@@ -55,6 +55,8 @@ DDS_ROLE_NOTES = {
     "L_21.dds": "Honoko2: honoko2_shoes normal",
     "L_23.dds": "Honoko2: honoko2_jewelry diffuse",
     "L_24.dds": "Honoko2: honoko2_jewelry normal",
+    "Tex_07(L_7) 2.dds": "Honoko4: alternate suit diffuse",
+    "Tex_07(L_7)3.dds": "Honoko5: revised suit diffuse",
 }
 
 
@@ -196,6 +198,7 @@ def render_tmc_sheets(rp, out_dir: Path) -> None:
 
 def render_dds_sheet(out_dir: Path) -> None:
     dds_files = sorted(TEX_DIR.glob("L_*.dds"), key=lambda p: int(p.stem.split("_")[1]))
+    dds_files += [TEX_DIR / name for name in ("Tex_07(L_7) 2.dds", "Tex_07(L_7)3.dds")]
     cols, rows = 6, (len(dds_files) + 5) // 6
     tile_w, tile_h = 240, 278
     canvas = Image.new("RGB", (cols * tile_w, rows * tile_h + 56), (18, 22, 30))
@@ -224,8 +227,8 @@ def render_dds_sheet(out_dir: Path) -> None:
 
     _header(
         canvas,
-        "Honoka Source .DDS Textures — Complete Contact Sheet (L_0.dds – L_26.dds)",
-        f"Source: references/Honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are the twelve maps the Honoko2 build assigns",
+        "Honoka Source .DDS Textures — L_0–L_26 and Alternate Suit Diffuses",
+        f"Source: references/Honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are used by the Honoko2, Honoko4 and Honoko5 builds",
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "honoka_dds_contact_sheet.png"
