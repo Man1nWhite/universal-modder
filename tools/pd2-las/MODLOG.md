@@ -107,3 +107,13 @@ hair at every height. The nose in the close-ups is the Miranda head unit's, not 
 pack ends in a neck plug at z 167); nothing here changes it. Counts go 18 -> 19 packs and 20 -> 21
 tracked zips; previews: `honoko4_las_sheet.png` and the 19-pack `dist/` overview. Nothing of Honoko3 or
 Honoko4 has been in game. See D44.
+
+## 2026-11-16 — `Honoko5`: the third colourway, rendered with the head again
+
+The user supplied `references/Honoka/Tex_07(L_7)3.dds` (the suit's UV layout repainted once more: white
+jacket over a black shirt; uploaded to `main` as `7ea708e`) and asked for it as `Honoko5`, rendered again
+with a head. `honokodae` now writes four packs: `Honoko2` byte-identical, `Honoko3`/`Honoko4` untouched,
+`Honoko5` = `Honoko3`'s geometry with the suit slot read from the new diffuse. Previews: `24_Honoko5`
+and, as for Honoko4, the combination with `Miranda_Romance_over_Hila`'s `g_head`
+(`25_Honoko5_with_Miranda_Romance_over_Hila`); the `dist/` overview carries all 20 packs. Counts go
+19 -> 20 packs and 21 -> 22 tracked zips. Nothing of Honoko5 has been in game. See D45.

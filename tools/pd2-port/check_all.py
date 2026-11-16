@@ -20,7 +20,7 @@ constants of their own scripts.
 runs, so "is everything green?" is one command here and not six: the lint, the
 ``um`` command groups, the knowledge base, the publish check, the suite, and
 every tracked pack built again and compared with its sha256
-(tools/pd2-las/fresh.py; 21 zips). The skip budget expects the 2B reference
+(tools/pd2-las/fresh.py; 22 zips). The skip budget expects the 2B reference
 templates under build/pd2-las/2b/ (``make -sC tools/pd2-las env``) and fails
 without them. It holds expected failures (xfail) to a budget as well, and it
 judges the report of the suite stage: the suite runs once. The last line
@@ -89,7 +89,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--full", action="store_true",
                     help="also run everything the test workflow checks: lint, um, knowledge base, "
-                         "publish check, the suite, the skip budget, all 21 zips rebuilt")
+                         "publish check, the suite, the skip budget, all 22 zips rebuilt")
     ap.add_argument("--pack", default=str(ROOT / "dist" / "lawson_las.zip"),
                     help="the pack to check")
     args = ap.parse_args()

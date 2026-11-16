@@ -21,13 +21,15 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `15_Christie_LAS.png` (DOA5 Christie body-only LAS outfit)
   - `16_Christie_LAS_Slim.png` (DOA5 Christie Slim body-only LAS outfit)
   - `17_Honoko2.png` (DOAXVV Honoka Secret Report body-only LAS outfit, built from `.dae`)
-  - `18_all_dist_mods_overview.png` (6x4 grid of all 19 packs in `dist/`)
+  - `18_all_dist_mods_overview.png` (6x4 grid of all 20 packs in `dist/`)
   - `19_Miranda_L4D2_over_Hila.png`
   - `20_Miranda_Romance_over_Hila.png`
   - `21_Honoko3.png` (the same outfit 5% slimmer, scaled about the rig's bones)
   - `22_Honoko4.png` (Honoko3's geometry in the user's alternate suit colourway)
   - `23_Honoko4_with_Miranda_Romance_over_Hila.png` (Honoko4's body under the Miranda Romance
     over Hila head pack, the combination as installed)
+  - `24_Honoko5.png` (Honoko3's geometry in the user's third suit colourway)
+  - `25_Honoko5_with_Miranda_Romance_over_Hila.png` (the same combination for Honoko5)
 
 `00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
@@ -796,6 +798,9 @@ UNIFIED_PATHS = {
     "22_Honoko4.png": "honoka/model/dae/honoko4_las_sheet.png",
     "23_Honoko4_with_Miranda_Romance_over_Hila.png":
         "honoka/model/dae/honoko4_with_miranda_romance_over_hila_sheet.png",
+    "24_Honoko5.png": "honoka/model/dae/honoko5_las_sheet.png",
+    "25_Honoko5_with_Miranda_Romance_over_Hila.png":
+        "honoka/model/dae/honoko5_with_miranda_romance_over_hila_sheet.png",
 }
 
 
@@ -933,6 +938,36 @@ def main(argv: list[str] | None = None) -> None:
         target_for("23_Honoko4_with_Miranda_Romance_over_Hila.png"),
         has_head=True,
         closeup=(18.0, 170.0, 8.0),  # the Miranda head crowns at z 188, above the LAS-sheet default window
+    )
+
+    tpp_hon5, fps_hon5, icon_hon5 = load_multi_mat_las_parts(
+        ROOT / "dist" / "Honoko5.zip", "Honoko5", "honoko5", has_fps=False
+    )
+    th_hon5 = render_las_sheet(
+        "dist/Honoko5.zip — Body-Only LAS Outfit, slim, white suit (DOAXVV Honoka Secret Report DAE)",
+        "Honoko3's geometry in the user's third suit colourway (white jacket, black shirt) | "
+        "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds",
+        tpp_hon5,
+        fps_hon5,
+        icon_hon5,
+        target_for("24_Honoko5.png"),
+        has_head=False,
+    )
+
+    combo5_parts, _ = load_outfit_with_head_parts(
+        "Honoko5.zip", "Honoko5", "honoko5",
+        "Miranda_Romance_over_Hila.zip", "Miranda Romance over Hila",
+        "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female", "npc_criminal_ecp_female",
+    )
+    render_las_sheet(
+        "Honoko5 + Miranda Romance over Hila — the combination as installed",
+        "Honoko5's body-only outfit under the Hila head pack's g_head (head + lashes); one character frame, no transform between the packs",
+        combo5_parts,
+        [],
+        icon_hon5,
+        target_for("25_Honoko5_with_Miranda_Romance_over_Hila.png"),
+        has_head=True,
+        closeup=(18.0, 170.0, 8.0),
     )
 
     heister_specs = [
@@ -1165,7 +1200,7 @@ def main(argv: list[str] | None = None) -> None:
     overview.save(ov_path)
     print(f"Saved {ov_path}")
 
-    # Build complete dist/ overview grid (6 columns x 4 rows = all 19 dist/*.zip packages)
+    # Build complete dist/ overview grid (6 columns x 4 rows = all 20 dist/*.zip packages)
     all_dist_cells = [
         *[thumbs[i] for i in l4d2_indices],
         *[thumbs[i] for i in rom_indices],
@@ -1175,13 +1210,14 @@ def main(argv: list[str] | None = None) -> None:
         ("Honoko2.zip", th_hon2),
         ("Honoko3.zip", th_hon3),
         ("Honoko4.zip", th_hon4),
+        ("Honoko5.zip", th_hon5),
         thumbs[10],  # Geralt_over_Rust.zip
     ]
     dist_overview = Image.new("RGB", (tw * 6, th_h * 4 + 58), (16, 19, 26))
     add_header_and_badges(
         dist_overview,
-        "PAYDAY 2 — All 19 Mod Packages in dist/ (Complete Overview)",
-        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Slim, Honoko2-4, Geralt",
+        "PAYDAY 2 — All 20 Mod Packages in dist/ (Complete Overview)",
+        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Slim, Honoko2-5, Geralt",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

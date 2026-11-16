@@ -24,6 +24,8 @@ dist/*
 !dist/Honoko3.zip.sha256
 !dist/Honoko4.zip
 !dist/Honoko4.zip.sha256
+!dist/Honoko5.zip
+!dist/Honoko5.zip.sha256
 !dist/Christie_LAS.zip
 !dist/Christie_LAS.zip.sha256
 !dist/Christie_LAS_Slim.zip

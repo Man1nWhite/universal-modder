@@ -28,7 +28,7 @@ endef
 help:       ## list the targets
 	@sed -n 's/^\([a-z]*\):.*## /\1\t/p' $(MAKEFILE_LIST)
 
-status:     ## one JSON object: environment, all 19 tracked packs, the next command (needs no venv)
+status:     ## one JSON object: environment, all 20 tracked packs, the next command (needs no venv)
 	@cd "$(ROOT)" && python3 $(HERE)/status.py
 
 env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
@@ -43,7 +43,7 @@ busty:      ## Miranda_Busty_LAS -> dist/ and build/pd2-las/
 lawson:     ## lawson_las -> dist/
 	$(call BUILD,tools/pd2-port/build_las_pack.py)
 
-honokodae:  ## Honoko2 + Honoko3 + Honoko4 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/
+honokodae:  ## Honoko2..Honoko5 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
 
 heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_LAS.zip
@@ -63,5 +63,5 @@ fresh:      ## every rebuildable pack built again in a copy of the tree and comp
 test:       ## the whole suite, offline
 	cd "$(ROOT)" && $(PY) -m pytest -q tests
 
-green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 21 zips), one line each
+green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 22 zips), one line each
 	@cd "$(ROOT)" && $(PY) tools/pd2-port/check_all.py --full

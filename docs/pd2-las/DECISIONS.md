@@ -406,6 +406,25 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** the user, 2026-11-15.
 - **Status:** holds.
 
+### D45 — Honoko5: the third colourway of the same slim build
+
+- **Decided:** 2026-11-16, by the user: "Tex_07(L_7)3 - change texture to the costume, make honoko5,
+  render agai with a head".
+- **Decision:** `references/Honoka/Tex_07(L_7)3.dds` (uploaded to `main` as `7ea708e`, carried onto this
+  branch) becomes the suit slot's diffuse of a fourth pack: `Honoko5` is `Honoko3`'s geometry vertex for
+  vertex (same slim, same clearance) in the white-jacket-over-black-shirt colourway, and it is rendered
+  both on its own sheet and combined with `Miranda_Romance_over_Hila`'s `g_head`, as Honoko4 was.
+- **Why:** the same reason as D44: a colourway is a diffuse swap on one slot, not a new build - the
+  geometry, the slim and the clearance passes are shared, and `BUILD_INFO.json` records which source
+  DDS each slot's textures came from, with its sha256, so the pack carries the proof of its colourway.
+- **Carried by:** `dist/Honoko5.zip` + sidecar, `honoko5_las_sheet.png`,
+  `honoko5_with_miranda_romance_over_hila_sheet.png`, the 20-pack `dist/` overview.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko4_and_5_are_honoko3_in_the_alt_suits`
+  (both packs' geometry is Honoko3's, each suit diffuse is its supplied file, every other slot is
+  unchanged) and the clearance test, which now covers Honoko5 as well.
+- **Source:** the user, 2026-11-16; `references/Honoka/Tex_07(L_7)3.dds` via `main` @ `7ea708e`.
+- **Status:** holds.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the Honoka "Secret Report" `.dae` outfit as PD2 LAS packs: Honoko2/3/4.
+"""Build the Honoka "Secret Report" `.dae` outfit as PD2 LAS packs: Honoko2/3/4/5.
 
 Unlike the earlier TMC-only build (deleted 2026-11-15, D40), which merged the raw
 `.TMC` meshes into 3 material slots and overlaid the unbuttoned `WGT_cap2` jacket
@@ -154,7 +154,23 @@ HONOKO4 = PackSpec(
     tex_override={"suit": "Tex_07(L_7) 2.dds"},
 )
 
-PACKS = (HONOKO2, HONOKO3, HONOKO4)
+#: Honoko3/4's geometry in the user's third colourway: `references/Honoka/Tex_07(L_7)3.dds`
+#: (white jacket over a black shirt), uploaded to `main` as 7ea708e and carried here (D45).
+HONOKO5 = PackSpec(
+    item_id="honoko5",
+    pack_dir="Honoko5",
+    display_name="Honoka (Secret Report DAE, slim, white suit)",
+    description=(
+        "The slim 'Secret Report' build of Honoko3 in the user's third suit colourway (white jacket, "
+        "black shirt): same Collada .dae, same 5% bone-anchored slim and layer clearance, the suit "
+        "slot textured from the supplied third diffuse. Legendary Armour Skins BODY_ONLY outfit."
+    ),
+    slim=0.95,
+    clearance=True,
+    tex_override={"suit": "Tex_07(L_7)3.dds"},
+)
+
+PACKS = (HONOKO2, HONOKO3, HONOKO4, HONOKO5)
 
 # Source garment kinds, in the deterministic order the material slots are emitted in; every DAE
 # submesh maps to exactly one kind, and each pack names its slots `<item_id>_<kind>`.

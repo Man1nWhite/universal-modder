@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-call state of the PAYDAY 2 packs: the environment and all 19 tracked packs.
+"""One-call state of the PAYDAY 2 packs: the environment and all 20 tracked packs.
 
     make -sC tools/pd2-las status            # one JSON object on stdout
     python3 tools/pd2-las/status.py          # the same; needs no venv
@@ -74,6 +74,7 @@ TARGETS = {
     "Honoko2": "honokodae",
     "Honoko3": "honokodae",
     "Honoko4": "honokodae",
+    "Honoko5": "honokodae",
 }
 HEADS = "heads"
 

@@ -1212,13 +1212,13 @@ class TestLasScaffold:
                     f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
-    def test_honoko4_is_honoko3_in_the_alt_suit(self):
-        """`Honoko4` is `Honoko3`'s bytes apart from the suit slot: the user's alternate diffuse (D44).
+    def test_honoko4_and_5_are_honoko3_in_the_alt_suits(self):
+        """`Honoko4`/`Honoko5` are `Honoko3`'s bytes apart from the suit slot: the user's diffuses.
 
-        The pack the user asked for ("aply Tex_07(L_7) 2.dds ... to costume of Honoko3 and make it
-        Honoko4") keeps Honoko3's geometry, slim and clearance passes vertex for vertex, and differs
-        only where the new colourway enters: the suit slot's diffuse, its icon and the hashes that
-        follow from them.
+        The packs the user asked for ("aply Tex_07(L_7) 2.dds ... to costume of Honoko3 and make it
+        Honoko4", then the same for `Tex_07(L_7)3.dds` as Honoko5) keep Honoko3's geometry, slim and
+        clearance passes vertex for vertex, and differ only where the colourway enters: the suit
+        slot's diffuse, its icon and the hashes that follow from them (D44, D45).
         """
         import hashlib
         import sys as _sys
@@ -1239,22 +1239,24 @@ class TestLasScaffold:
             return info, geos
 
         info3, geos3 = load("Honoko3")
-        info4, geos4 = load("Honoko4")
-        assert set(geos3) == set(geos4)
-        for gid in geos3:
-            assert np.array_equal(geos3[gid], geos4[gid]), f"geometry {gid} differs: Honoko4 is not Honoko3's mesh"
-        assert info3["slim"] == info4["slim"] and info3["clearance"] == info4["clearance"]
-
-        tex3, tex4 = info3["source"]["textures"], info4["source"]["textures"]
-        suit4 = tex4["honoko4_suit_df"]
-        assert suit4["source"] == "references/Honoka/Tex_07(L_7) 2.dds"
-        alt = (REPO / "references" / "Honoka" / "Tex_07(L_7) 2.dds").read_bytes()
-        assert suit4["source_sha256"] == hashlib.sha256(alt).hexdigest()
+        tex3 = info3["source"]["textures"]
         assert tex3["honoko3_suit_df"]["source"] == "references/Honoka/L_7.dds"
-        for slot in ("body", "panties", "bra", "shoes", "jewelry"):
-            assert tex3[f"honoko3_{slot}_df"] == tex4[f"honoko4_{slot}_df"], slot
-            assert tex3[f"honoko3_{slot}_nm"] == tex4[f"honoko4_{slot}_nm"], slot
-        assert tex4["honoko4_suit_nm"] == tex3["honoko3_suit_nm"], "the alternate diffuse keeps L_8's normals"
+        for tag, dds in (("Honoko4", "Tex_07(L_7) 2.dds"), ("Honoko5", "Tex_07(L_7)3.dds")):
+            info, geos = load(tag)
+            stem = tag.lower()
+            assert set(geos3) == set(geos)
+            for gid in geos3:
+                assert np.array_equal(geos3[gid], geos[gid]), f"{tag}: geometry {gid} is not Honoko3's mesh"
+            assert info3["slim"] == info["slim"] and info3["clearance"] == info["clearance"]
+            tex = info["source"]["textures"]
+            suit = tex[f"{stem}_suit_df"]
+            assert suit["source"] == f"references/Honoka/{dds}"
+            alt = (REPO / "references" / "Honoka" / dds).read_bytes()
+            assert suit["source_sha256"] == hashlib.sha256(alt).hexdigest()
+            for slot in ("body", "panties", "bra", "shoes", "jewelry"):
+                assert tex3[f"honoko3_{slot}_df"] == tex[f"{stem}_{slot}_df"], (tag, slot)
+                assert tex3[f"honoko3_{slot}_nm"] == tex[f"{stem}_{slot}_nm"], (tag, slot)
+            assert tex[f"{stem}_suit_nm"] == tex3["honoko3_suit_nm"], f"{tag}: keeps L_8's normals"
 
     def test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster(self):
         """The shells the in-game flakes came from stand >= 1 mm apart; the shadow caster drops two (D44).
@@ -1293,7 +1295,7 @@ class TestLasScaffold:
             ends = bases[1:] + [len(V)]
             return {s: V[b:e] for s, b, e in zip(slots, bases, ends)}, len(shadow["atoms"])
 
-        for tag, shadow_atoms in (("Honoko3", 4), ("Honoko4", 4), ("Honoko2", 6)):
+        for tag, shadow_atoms in (("Honoko3", 4), ("Honoko4", 4), ("Honoko5", 4), ("Honoko2", 6)):
             S, n_shadow = load(tag)
             assert n_shadow == shadow_atoms, f"{tag}: the shadow caster carries {n_shadow} shells"
             if tag == "Honoko2":
