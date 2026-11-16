@@ -8,11 +8,14 @@
   - `honoko4_las_sheet.png`: `Honoko4`, `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange shirt) from `references/Honoka/Tex_07(L_7) 2.dds` (D44).
   - `honoko5_las_sheet.png`: `Honoko5`, `Honoko3`'s geometry in the user's revised third suit colourway (black jacket, light shirt) from `references/Honoka/Tex_07(L_7)3.dds` (D45).
   - `honoko5_with_miranda_romance_over_hila_sheet.png`: the same combination as below, for `Honoko5`.
+  - `honoko5_head_skin_detail.png`: front and three-quarter face/neck close-ups of that combination,
+    using the Romance-over-Hila skin tint matched to Honoko5 (D48).
   - `honoko4_with_miranda_romance_over_hila_sheet.png`: `Honoko4`'s body under the `g_head` drawable of
     `dist/Miranda_Romance/Miranda_Romance_over_Hila.zip` (head + lashes), i.e. the combination as installed - both packs'
     models stand in one character frame, so the parts share one rasterizer call with no transform between
     them. The close-up shows where the outfit's neck plug crosses the head pack's neck skin: one clean
-    crossing curve, visible as a tone step because the two packs carry different skin sources.
+    crossing curve; the head diffuse is now tinted closer to the body (D48), but the crossing geometry
+    and its lighting difference are unchanged.
 - **Caveats:** Offline software Z-buffer render (`runtime_verified: false`, the builder constant).
   The `Honoko2` pack has since been seen in the game's outfit menu (2026-11-15, user report); the captures are in
   [`../../in-game/2026-11-15/`](../../in-game/2026-11-15/README.md). The headless `BODY_ONLY` outfits wear

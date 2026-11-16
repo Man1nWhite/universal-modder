@@ -5,4 +5,5 @@
 - **Files:** `miranda_l4d2_over_hila_sheet.png`, `miranda_romance_over_hila_sheet.png` — Portrait Front (`0°`), Collar & Head 3/4 (`32°`), Back Collar & Hair (`180°`), Full Heister Rig (`22°`), and HUD/menu icon.
 - **Eyes:** both packs carry the user-supplied `references/EYE_Diff.png` in the head atlas' eye quadrant (`load_hila_eye_texture()`), so the sclera here is the supplied diffuse rather than the synthesised eye of the other eight Miranda
 head packs (Geralt keeps Rust's).
+- **Skin:** Romance-over-Hila alone uses a warmer, lighter face/scalp-skin diffuse calibrated to Honoko5 (D48); it applies to that head on any body. L4D2 and the other heisters are unchanged.
 - **Caveats:** Suit, gloves, and forearms are rendered with flat placeholder colors to isolate the replaced head, hair, and collar junction; offline renders only. Hila has no Safe House (`*_chill`) unit, so only the heist and menu models are replaced.

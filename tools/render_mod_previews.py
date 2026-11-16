@@ -30,6 +30,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
     over Hila head pack, the combination as installed)
   - `24_Honoko5.png` (Honoko3's geometry in the user's third suit colourway)
   - `25_Honoko5_with_Miranda_Romance_over_Hila.png` (the same combination for Honoko5)
+  - `26_Honoko5_head_skin_detail.png` (front and three-quarter views of the colour match)
 
 `00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
@@ -804,6 +805,7 @@ UNIFIED_PATHS = {
     "24_Honoko5.png": "honoka/model/dae/honoko5_las_sheet.png",
     "25_Honoko5_with_Miranda_Romance_over_Hila.png":
         "honoka/model/dae/honoko5_with_miranda_romance_over_hila_sheet.png",
+    "26_Honoko5_head_skin_detail.png": "honoka/model/dae/honoko5_head_skin_detail.png",
 }
 
 
@@ -972,6 +974,20 @@ def main(argv: list[str] | None = None) -> None:
         has_head=True,
         closeup=(18.0, 170.0, 8.0),
     )
+
+    detail = Image.new("RGB", (1200, 626), (18, 22, 30))
+    draw = ImageDraw.Draw(detail)
+    draw.text((18, 9), "Honoko5 + Miranda Romance over Hila — head/body skin match", font=FONT_BOLD_16,
+              fill=(235, 239, 247))
+    draw.text((18, 33), "Offline render | front and three-quarter views | neck geometry unchanged",
+              font=FONT_REG_12, fill=(170, 188, 212))
+    for i, yaw in enumerate((0.0, 18.0)):
+        image = rasterize_parts(combo5_parts, 600, 570, yaw, 0, 24, center=(0, 5, 170.2))
+        detail.paste(image, (i * 600, 56))
+    detail_path = target_for("26_Honoko5_head_skin_detail.png")
+    detail_path.parent.mkdir(parents=True, exist_ok=True)
+    detail.save(detail_path)
+    print(f"Saved {detail_path}")
 
     heister_specs = [
         (

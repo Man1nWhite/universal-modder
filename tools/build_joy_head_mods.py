@@ -1099,6 +1099,34 @@ def load_hila_eye_texture(size: int = 1024) -> np.ndarray:
     return rgba
 
 
+
+def match_romance_hila_skin_to_honoka(atlas: np.ndarray) -> np.ndarray:
+    """Warm/lighten the face and scalp skin for Honoko without tinting hair, eyes or gloss.
+
+    Honoko5's exposed upper-neck diffuse samples have median RGB around 204/152/123;
+    Romance-over-Hila's adjacent scalp-skin samples are around 170/134/107. A restrained
+    channel gain moves the two closer. A soft skin-colour mask preserves dark hair, lashes
+    and mouth details; only the face and scalp quadrants are considered. Integer arithmetic
+    makes the output deterministic across numpy and CPU implementations. This changes only
+    the Romance Hila atlas, not the body or the other heister packs.
+    """
+    if atlas.shape != (2048, 2048, 4) or atlas.dtype != np.uint8:
+        raise ValueError("expected a 2048x2048 uint8 RGBA head atlas")
+    out = atlas.copy()
+    gains = np.array([1200, 1140, 1180], dtype=np.int32)
+    for x in (0, 1024):
+        skin = out[:1024, x:x + 1024, :3]
+        rgb = skin.astype(np.int32)
+        red, green, blue = rgb.transpose(2, 0, 1)
+        weight = np.minimum.reduce([
+            np.clip((np.minimum(np.minimum(red, green), blue) - 40) * 255 // 35, 0, 255),
+            np.clip((red - green - 5) * 255 // 10, 0, 255),
+            np.clip((green - blue - 3) * 255 // 10, 0, 255),
+        ])[..., None]
+        target = (rgb * gains + 500) // 1000
+        skin[:] = np.clip((rgb * (255 - weight) + target * weight + 127) // 255, 0, 255).astype(np.uint8)
+    return out
+
 def patch_hila_material_config(xml_bytes: bytes) -> bytes:
     """Point Hila's `mtr_head` at the atlas and drop the vanilla GSMA gloss map.
 
@@ -1986,8 +2014,10 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
         is_romance=True,
     )
 
-    hila_atlas_df = atlas_df.copy()
+    hila_atlas_df = match_romance_hila_skin_to_honoka(atlas_df)
     hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
+    hila_portrait = render_head_portrait(atom0_joy, atom1_joy, hila_atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
+    hila_icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, hila_portrait)
     _emit_hila_packages(
         variant_tag="Romance",
         packed_suit_head=packed_suit_head,
@@ -1995,7 +2025,7 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
         head_nm_dds=head_nm_dds,
         sec_df_dds=eyes_df_dds,
         sec_op_dds=lashes_op_dds,
-        icon_dds=icon_dds,
+        icon_dds=hila_icon_dds,
     )
 
 

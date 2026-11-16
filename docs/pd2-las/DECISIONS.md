@@ -445,6 +445,20 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   folder names and ZIP bytes are unchanged. The builders, status, previews, checksums,
   CI and release workflow use the new paths. Shared tools remain in `tools/`.
 
+### D48 — Match Romance-over-Hila head skin closer to the Honoko body
+
+- The user asked to bring the head texture colour closer to the body. The active combination is
+  Honoko5 and Miranda Romance over Hila. Their exposed upper-neck texture samples differed markedly;
+  the builder applies a deterministic, skin-colour-masked RGB gain to the face/scalp quadrants of the
+  Romance Hila atlas only. Hair, eyes, gloss alpha, normal maps and all geometry are unchanged; the
+  Hila character icon is regenerated from the adjusted atlas. Other head packs are not changed.
+- The tint is part of the Hila head pack, so it also appears when that head is used with other bodies.
+  The head/body crossing is still geometry, and lighting differs across it: the adjustment reduces
+  a colour mismatch rather than promising a seamless join. The result remains an offline render until
+  the combination is checked in game.
+- `tests/test_hila_skin_tone.py` checks the mask, unchanged eye/gloss and hair, and that sampled neck
+  diffuse colours move closer to the Honoko5 body. `honoko5_head_skin_detail.png` shows two angles.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

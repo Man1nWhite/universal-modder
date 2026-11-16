@@ -128,3 +128,10 @@ to the dark nostril blotches. Removed it at the head-building source, keeping th
 skin repair and nostril UV treatments. Rebuilt both Miranda variants over each heister, and
 regenerated their previews and the Honoko5-with-head combination. Offline renders improve,
 but normal-map lighting and the still-unmodified neck need an in-game check. See D46.
+
+## Romance-over-Hila skin-tone match for Honoko5
+
+The user requested a head texture colour closer to the body. The Hila Romance face and scalp skin
+are adjusted toward Honoko5's exposed neck diffuse via a deterministic colour mask; the eyes, hair,
+alpha, geometry and other head packs are kept unchanged. The Hila portrait and offline combo views
+are regenerated. The remaining neck crossing and in-game lighting are not addressed by the tint. D48.
