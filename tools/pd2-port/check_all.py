@@ -11,7 +11,7 @@ writes to the repository: the pack is only read, and the mutation stages
 restore it.
 
 The chain is the same for any outfit pack; what it is pointed at is the
-shipped port. ``--pack`` defaults to ``dist/lawson_las.zip`` and reaches the
+shipped port. ``--pack`` defaults to ``dist/Miranda_Romance/Miranda_Romance_LAS.zip`` and reaches the
 checksum, audit and geometry stages; the normal-map, mutation and self-test
 stages always use that port's source archive and tracked pack, through the
 constants of their own scripts.
@@ -35,6 +35,9 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -90,7 +93,7 @@ def main() -> int:
     ap.add_argument("--full", action="store_true",
                     help="also run everything the test workflow checks: lint, um, knowledge base, "
                          "publish check, the suite, the skip budget, all 22 zips rebuilt")
-    ap.add_argument("--pack", default=str(ROOT / "dist" / "lawson_las.zip"),
+    ap.add_argument("--pack", default=str(dist_path(ROOT, "lawson_las.zip")),
                     help="the pack to check")
     args = ap.parse_args()
 

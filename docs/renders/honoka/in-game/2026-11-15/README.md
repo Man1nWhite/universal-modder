@@ -5,11 +5,11 @@ Eight user-supplied PNGs of the `Honoko2` LAS outfit in PAYDAY 2, archived byte-
 heist: the character stands on the preview turntable and the capture is cropped to the figure, with the
 menu's scroll bars and the Russian menu heading visible at the edges.
 
-- **Pack:** `dist/Honoko2.zip` — the DOAXVV "Secret Report" costume built from
+- **Pack:** `dist/Honoka/Honoko2.zip` — the DOAXVV "Secret Report" costume built from
   `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` by `tools/pd2-las/build_honoko2_dae.py`
   (`make -sC tools/pd2-las honokodae`). The user states these captures are of this pack. The slimmer
-  siblings `dist/Honoko3.zip` (same outfit, mesh scaled 5% about the rig's bones, D42) and
-  `dist/Honoko4.zip` / `dist/Honoko5.zip` (Honoko3 in the alternate suit colourways, D44/D45) are
+  siblings `dist/Honoka/Honoko3.zip` (same outfit, mesh scaled 5% about the rig's bones, D42) and
+  `dist/Honoka/Honoko4.zip` / `dist/Honoka/Honoko5.zip` (Honoko3 in the alternate suit colourways, D44/D45) are
   **not** in these
   frames: it was built on 2026-11-15 after them and has not been in game.
 - **Camera/view convention:** the game's preview turntable, seen from the front, three-quarter, side and

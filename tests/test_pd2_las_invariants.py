@@ -31,6 +31,9 @@ import zipfile
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 import pytest
@@ -102,7 +105,7 @@ class Model:
 
 @functools.lru_cache(maxsize=None)
 def _zip(pack: str) -> zipfile.ZipFile:
-    path = REPO / "dist" / f"{pack}.zip"
+    path = dist_path(REPO, f"{pack}.zip")
     assert path.is_file(), f"{path.relative_to(REPO)}: {RESTORE}"
     return zipfile.ZipFile(path)
 
@@ -188,7 +191,7 @@ each_pack = pytest.mark.parametrize("pack", PACKS)
 @functools.lru_cache(maxsize=None)
 def _source(first_person: bool):
     """The L4D2 model the Miranda packs are built from, as the Source reader decodes it."""
-    arc = VpkArchive.from_zip(str(REPO / "models" / "l4d2_miranda_lawson_1.zip"),
+    arc = VpkArchive.from_zip(str(REPO / "references" / "l4d2_miranda_lawson_1.zip"),
                               "miranda_rochelle.vpk")
     paths = build_las.FPS_MDLS if first_person else build_las.TPP_MDLS
     return load_model(*(arc.read(p) for p in paths))
@@ -810,7 +813,7 @@ def test_tracked_bytes_match_their_sidecar_and_build_info(pack):
     carry one fixed timestamp, which is what lets a rebuild reproduce the archive.
     Where a staged copy is tracked under `build/pd2-las/`, it is the same archive.
     """
-    path = REPO / "dist" / f"{pack}.zip"
+    path = dist_path(REPO, f"{pack}.zip")
     raw = path.read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
     sidecar = path.with_name(path.name + ".sha256")

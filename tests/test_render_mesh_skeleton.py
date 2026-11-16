@@ -16,6 +16,9 @@ from __future__ import annotations
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 import pytest
@@ -33,7 +36,7 @@ def _templates() -> Path:
 
 
 TEMPLATES = _templates()
-PACK = REPO / "dist" / "Christie_LAS.zip"
+PACK = dist_path(REPO, "Christie_LAS.zip")
 
 pytestmark = pytest.mark.skipif(
     not PACK.is_file(),

@@ -18,8 +18,8 @@ as exposed and the trailing mesh as winning; see
 comparison here without reading that section.
 
     .venv/bin/python tools/pd2-las/neck_junction.py \\
-        --body dist/Christie_LAS.zip \\
-        --head dist/Miranda_L4D2_over_Joy.zip
+        --body dist/Christie/Christie_LAS.zip \\
+        --head dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip
 
 Reported per head:
 
@@ -43,6 +43,9 @@ import argparse
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 
@@ -51,12 +54,12 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "pd2-port"))
 
-CHRISTIE_BODY = REPO / "dist" / "Christie_LAS.zip"
+CHRISTIE_BODY = dist_path(REPO, "Christie_LAS.zip")
 HEADS = (
-    REPO / "dist" / "Miranda_L4D2_over_Joy.zip",
-    REPO / "dist" / "Miranda_L4D2_over_Clover.zip",
-    REPO / "dist" / "Miranda_L4D2_over_Bonnie.zip",
-    REPO / "dist" / "Miranda_L4D2_over_Sydney.zip",
+    dist_path(REPO, "Miranda_L4D2_over_Joy.zip"),
+    dist_path(REPO, "Miranda_L4D2_over_Clover.zip"),
+    dist_path(REPO, "Miranda_L4D2_over_Bonnie.zip"),
+    dist_path(REPO, "Miranda_L4D2_over_Sydney.zip"),
 )
 
 THROAT = dict(x=(-6.0, 6.0), z=(149.0, 161.0), step=0.25)

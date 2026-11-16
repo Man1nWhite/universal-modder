@@ -283,7 +283,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 - **Decided:** 2026-11-15, by the user ("make Miranda over Hila packs, both L4D and Romance version",
   and, asked which packs the attached `EYE_Diff.png` is for, "eyes of the new Hila packs").
-- **Decision:** `dist/Miranda_L4D2_over_Hila.zip` and `dist/Miranda_Romance_over_Hila.zip` are built by
+- **Decision:** `dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip` and `dist/Miranda_Romance/Miranda_Romance_over_Hila.zip` are built by
   `_emit_hila_packages()` from `references/npc_criminals_ecp_female.7z`, the unit that ships the H3H3
   collaboration heister (DLC folder `ecp`): `g_head` (two atoms: head, 3D eyelashes) is replaced and the
   hair drawables `g_hair_mask_off` / `g_hair_mask_on` are collapsed to the hidden triangle and disabled
@@ -317,7 +317,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   *keep both packs*.
 - **Decision:** `tools/pd2-las/build_honoko2_dae.py` is driven by a `PackSpec` and `PACKS =
   (HONOKO2, HONOKO3)`: one build of the same Collada input, the same six materials, textures,
-  registration, glove adapter and icon, writes `dist/Honoko2.zip` and `dist/Honoko3.zip` (plus
+  registration, glove adapter and icon, writes `dist/Honoka/Honoko2.zip` and `dist/Honoka/Honoko3.zip` (plus
   sidecars) from one `make -sC tools/pd2-las honokodae`. `HONOKO3.slim = 0.95` is the only difference
   in geometry. The pass is `_slim_groups()`, after the wrist cut and its caps: every vertex is moved
   toward the weight-blended rest position of the bones in its palette —
@@ -334,14 +334,14 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   factor), bbox width 97.46 → 96.60 cm (the arms are anchored at the shoulder and elbow bones, so
   their span barely moves). Per-slice widths through the torso read -3 to -6 %; the single +9.6 %
   slice at z = 140 and the -61 % depth at z = 60 are the crude ±1.5 cm windows catching the sleeve
-  cuffs and the skirt hem at different heights, not geometry that grew. `dist/Honoko2.zip` is
+  cuffs and the skirt hem at different heights, not geometry that grew. `dist/Honoka/Honoko2.zip` is
   byte-identical to the tracked pack after the refactor (`c56a76a3…`);
-  `dist/Honoko3.zip` is `e967cea4…`, 5,468,049 B.
+  `dist/Honoka/Honoko3.zip` is `e967cea4…`, 5,468,049 B.
 - **Also:** `tools/render_mod_previews.py` renders `18_Honoko3.png` and puts both packs in the 18-cell
   `dist/` overview; `status.py` maps both names to `honokodae`; the tracked-zip count in the docs, the
   CI job and the tests goes 19 → 20 (18 packs), and the one-call `status` budget 2 KiB → 2.5 KiB, because a
   pack costs ~90 bytes of that JSON and the 17-pack output already sat at 2,015 of the 2,048.
-- **Carried by:** `dist/Honoko3.zip{,.sha256}`, `tools/pd2-las/build_honoko2_dae.py`,
+- **Carried by:** `dist/Honoka/Honoko3.zip{,.sha256}`, `tools/pd2-las/build_honoko2_dae.py`,
   `docs/renders/honoka/model/dae/honoko3_las_sheet.png`.
 - **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko3_is_honoko2_slimmed_about_the_bones`
   (vertex count unchanged, height within 1 cm, soles at -0.47, palette unchanged, `slim` reported as
@@ -397,7 +397,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   contact phenomenon at the collar. The nose in the close-ups is the Miranda head unit's, not this
   pack's: the body ends in a neck plug at z 167 and carries no head geometry, so nothing here can
   change it (the head packs are the place for that, and the user scoped this work to Honoko3/4).
-- **Carried by:** `dist/Honoko4.zip` + sidecar, the `clearance` block of both packs' `BUILD_INFO.json`,
+- **Carried by:** `dist/Honoka/Honoko4.zip` + sidecar, the `clearance` block of both packs' `BUILD_INFO.json`,
   `honoko4_las_sheet.png` and the 19-pack `dist/` overview.
 - **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko4_is_honoko3_in_the_alt_suit` (the
   geometry is Honoko3's, the suit diffuse is the supplied file, every other slot is unchanged) and
@@ -417,7 +417,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Why:** the same reason as D44: a colourway is a diffuse swap on one slot, not a new build - the
   geometry, the slim and the clearance passes are shared, and `BUILD_INFO.json` records which source
   DDS each slot's textures came from, with its sha256, so the pack carries the proof of its colourway.
-- **Carried by:** `dist/Honoko5.zip` + sidecar, `honoko5_las_sheet.png`,
+- **Carried by:** `dist/Honoka/Honoko5.zip` + sidecar, `honoko5_las_sheet.png`,
   `honoko5_with_miranda_romance_over_hila_sheet.png`, the 20-pack `dist/` overview.
 - **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_honoko4_and_5_are_honoko3_in_the_alt_suits`
   (both packs' geometry is Honoko3's, each suit diffuse is its supplied file, every other slot is
@@ -436,6 +436,15 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - Verified in offline frontal and three-quarter renders, not yet in game. The renderer does not simulate
   PAYDAY 2 normal-map lighting, so in-game appearance still needs checking. The neck remains unchanged.
 
+### D47 — Group shipped packs and consolidate source archives
+
+- The user requested character folders inside `dist/`, including a separate `Geralt/`,
+  and moved the source archives from `models/` into `references/` (superseding D14).
+- The three full-body ZIPs are now `Miranda_L4D2_LAS.zip`,
+  `Miranda_L4D2_Busty_LAS.zip`, and `Miranda_Romance_LAS.zip`; their internal mod
+  folder names and ZIP bytes are unchanged. The builders, status, previews, checksums,
+  CI and release workflow use the new paths. Shared tools remain in `tools/`.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`
@@ -444,8 +453,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Decision:** source models are in `models/`, reference mods in
   `references/`. One source sits among the references.
 - **Why:** not recorded beyond the commit subject ("organize").
-- **Source:** `94bb4b0`; `models/README.md`, `references/README.md`
-- **Status:** holds.
+- **Source:** `94bb4b0`; the former `models/README.md`, `references/README.md`
+- **Status:** superseded by D47.
 
 ### D15 — The 2B templates are unpacked into `build/pd2-las/2b/`, never committed unpacked
 
@@ -768,7 +777,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D25 — A pack built from another pack is rebuilt with it
 
-- **Decision:** when `dist/Miranda_LAS.zip` changes, the four
+- **Decision:** when `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` changes, the four
   `Miranda_L4D2_over_*` head packs are rebuilt and re-shipped in the same
   change.
 - **Why:** `tools/build_joy_head_mods.py` takes the face, head and body

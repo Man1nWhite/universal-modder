@@ -28,7 +28,7 @@ field of view and no anisotropic filter.
 
 Install `Miranda_LAS` and `Miranda_Busty_LAS` together; they are separate
 outfits. For the comparisons, the packs as they were are
-`git show 13538a1:dist/Miranda_LAS.zip` and the same for the other five.
+`git show 13538a1:dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` and the same for the other five.
 
 | Step | What to do | Pass | Fail |
 | --- | --- | --- | --- |
@@ -119,11 +119,11 @@ levels are there for motion, and only the game shows motion.
 > every pose and the crash logs, is still open. The installed builds were user-identified, not
 > hash-measured; nothing here changes which bytes are tracked.
 
-Pack to install: `dist/Christie_LAS.zip` → drop `Christie_LAS` into
+Pack to install: `dist/Christie/Christie_LAS.zip` → drop `Christie_LAS` into
 `PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS, same as the 2B reference). It is a
 headless LAS outfit (`replace_body`, not `replace_all`): the heister keeps their own head.
 
-> **Know which bytes you are installing.** `dist/Christie_LAS.zip` is the 2026-11-13/14
+> **Know which bytes you are installing.** `dist/Christie/Christie_LAS.zip` is the 2026-11-13/14
 > sleeve-bridge build, sha256 `1ec1c95a…`, with its `.sha256` sidecar matching (as of the
 > branch state of 2026-11-14). This is **not** the base-commit bytes and not the from-scratch
 > rebuilt base (`b65fb27e…`); the from-scratch build passed every offline gate on this date

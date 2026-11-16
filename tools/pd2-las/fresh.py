@@ -43,7 +43,7 @@ import trace_run  # noqa: E402
 
 #: What builds the rebuildable tracked packs, in the order they depend on each other: the
 #: busty pack reuses what the Miranda build unpacked, and the head packs take
-#: their face from dist/Miranda_LAS.zip. The two Christie packs are not rebuildable:
+#: their face from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip. The two Christie packs are not rebuildable:
 #: their builder was deleted on 2026-11-14.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
@@ -78,7 +78,7 @@ class BuildFailed(Exception):
 
 def tracked_zips() -> list[str]:
     """The 22 tracked zips, as paths from the repository root: every one that has a .sha256 beside it."""
-    sidecars = sorted(REPO.glob("dist/*.zip.sha256")) + sorted(REPO.glob("build/pd2-las/*.zip.sha256"))
+    sidecars = sorted(REPO.glob("dist/*/*.zip.sha256")) + sorted(REPO.glob("build/pd2-las/*.zip.sha256"))
     return [str(path.relative_to(REPO))[: -len(".sha256")] for path in sidecars]
 
 

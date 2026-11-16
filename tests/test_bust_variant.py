@@ -21,6 +21,9 @@ import json
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import pytest
 
@@ -31,8 +34,8 @@ import bust_variant as bv  # noqa: E402
 from extract_2b import MISSING, TEMPLATES  # noqa: E402
 
 DIST = REPO / "dist"
-BASE_ZIP = DIST / "Miranda_LAS.zip"
-VARIANT_ZIP = DIST / "Miranda_Busty_LAS.zip"
+BASE_ZIP = dist_path(REPO, "Miranda_LAS.zip")
+VARIANT_ZIP = dist_path(REPO, "Miranda_Busty_LAS.zip")
 
 
 # ------------------------------------------------------------------ unit: morph
@@ -228,7 +231,7 @@ def test_built_variant_model_matches_the_morph_and_leaves_the_rest_alone():
     import build_models as bm
     import diesel_model as dm
 
-    source = REPO / "models" / "l4d2_miranda_lawson_1.zip"
+    source = REPO / "references" / "l4d2_miranda_lawson_1.zip"
     if not source.is_file():
         pytest.skip("source zip not present")
     from source_model import load_model
@@ -291,7 +294,7 @@ pytestmark_zip = pytest.mark.skipif(
 def test_variant_dist_pack_is_tracked_and_self_consistent():
     build_zip = REPO / "build" / "pd2-las" / "Miranda_Busty_LAS.zip"
     build_sha = REPO / "build" / "pd2-las" / "Miranda_Busty_LAS.zip.sha256"
-    dist_sha = DIST / "Miranda_Busty_LAS.zip.sha256"
+    dist_sha = dist_path(REPO, "Miranda_Busty_LAS.zip.sha256")
     for p in (build_zip, build_sha, dist_sha):
         assert p.is_file(), f"missing tracked deliverable: {p}"
     raw = VARIANT_ZIP.read_bytes()
@@ -711,8 +714,8 @@ def test_shipped_busty_archive_regressions():
     import diesel_model as dm
     import numpy as np
 
-    busty_zip = Path(__file__).resolve().parents[1] / "dist" / "Miranda_Busty_LAS.zip"
-    base_zip = Path(__file__).resolve().parents[1] / "dist" / "Miranda_LAS.zip"
+    busty_zip = dist_path(Path(__file__).resolve().parents[1], "Miranda_Busty_LAS.zip")
+    base_zip = dist_path(Path(__file__).resolve().parents[1], "Miranda_LAS.zip")
     if not busty_zip.is_file() or not base_zip.is_file():
         pytest.skip("dist archives not present")
 

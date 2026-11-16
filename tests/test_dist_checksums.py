@@ -18,7 +18,7 @@ DIST = REPO / "dist"
 
 
 def _checksum_files() -> list[Path]:
-    return sorted(DIST.glob("*.zip.sha256"))
+    return sorted(DIST.rglob("*.zip.sha256"))
 
 
 def test_dist_has_checksum_files():
@@ -33,7 +33,7 @@ def test_published_zip_matches_its_checksum(sha_file: Path):
     digest, name = fields
     target = REPO / name
     if not target.exists():                       # bare-filename convention
-        target = DIST / Path(name).name
+        target = sha_file.parent / Path(name).name
     assert target.exists(), f"{sha_file.name} points at missing {name}"
     assert target.stat().st_size > 1024, f"{target.name} is not a real pack"
     assert hashlib.sha256(target.read_bytes()).hexdigest() == digest, (

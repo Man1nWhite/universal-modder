@@ -42,7 +42,7 @@ Usage (from the repo root):
 --templates is the directory holding 2b.model and fps_2b.model from
 references/2b.rar. It defaults to DEFAULT_TEMPLATES, the place extract_2b.py
 unpacks them to (build/pd2-las/2b/). With the default --out (build/pd2-las) the finished
-zip also replaces the tracked dist/Miranda_LAS.zip; any other --out leaves the
+zip also replaces the tracked dist/Miranda_L4D2/Miranda_L4D2_LAS.zip; any other --out leaves the
 tracked files alone. Previews are written to <out>/previews/.
 """
 
@@ -55,6 +55,7 @@ import math
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from dist_paths import dist_path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -67,7 +68,7 @@ from source_model import ModelData, load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
 REPO = HERE.parents[1]
-SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "references" / "l4d2_miranda_lawson_1.zip"
 #: The default of every builder's --templates: where extract_2b.py unpacks
 #: references/2b.rar. That module is the one place the path is written.
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
@@ -1775,12 +1776,12 @@ def main(argv=None) -> int:
         f"{zip_sha}  build/pd2-las/{zip_path.name}\n"
     )
     if args.out.resolve() == (REPO / "build" / "pd2-las").resolve():
-        dist_dir = REPO / "dist"
+        dist_dir = REPO / "dist" / "Miranda_L4D2"
         dist_dir.mkdir(parents=True, exist_ok=True)
-        dist_zip = dist_dir / zip_path.name
+        dist_zip = dist_path(REPO, zip_path.name)
         shutil.copy2(zip_path, dist_zip)
-        (dist_dir / f"{zip_path.name}.sha256").write_text(
-            f"{zip_sha}  dist/{zip_path.name}\n"
+        (dist_zip.with_name(dist_zip.name + ".sha256")).write_text(
+            f"{zip_sha}  {dist_zip.relative_to(REPO).as_posix()}\n"
         )
     print(f"pack updated: {unit_dir} (+ dist/{zip_path.name}, sha256={zip_sha[:16]}…)")
     return 0

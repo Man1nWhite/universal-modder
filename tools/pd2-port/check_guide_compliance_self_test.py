@@ -21,6 +21,9 @@ import re
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -39,7 +42,7 @@ checker = _load("check_guide_compliance", "check_guide_compliance.py")
 build = _load("build_las_pack", "build_las_pack.py")
 dds = _load("dds_las", "dds.py")
 
-PACK = ROOT / "dist" / "lawson_las.zip"
+PACK = dist_path(ROOT, "lawson_las.zip")
 TPP_CFG = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.material_config"
 FPS_CFG = "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.material_config"
 TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"

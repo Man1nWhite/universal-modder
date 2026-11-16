@@ -27,6 +27,9 @@ import struct
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -34,7 +37,7 @@ sys.path.insert(0, str(HERE))
 
 from dmodel import DieselModel  # noqa: E402
 
-PACK = ROOT / "dist" / "lawson_las.zip"
+PACK = dist_path(ROOT, "lawson_las.zip")
 TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"
 FPS_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"
 

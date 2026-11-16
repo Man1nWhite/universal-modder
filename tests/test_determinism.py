@@ -12,6 +12,9 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 import pytest
@@ -30,7 +33,7 @@ LAS_PACKS = (("Miranda_LAS", "miranda"), ("Miranda_Busty_LAS", "miranda_busty"))
 #: an eight-vertex box in every first-person model, copied from fps_2b.model as it is
 TEMPLATE_BOX = 777890663
 
-pytestmark = pytest.mark.skipif(not (REPO / "dist" / "Miranda_LAS.zip").is_file(),
+pytestmark = pytest.mark.skipif(not (dist_path(REPO, "Miranda_LAS.zip")).is_file(),
                                 reason="pack not built in this checkout")
 
 
@@ -177,7 +180,7 @@ def test_tangent_frames_in_the_tracked_models_follow_from_the_file():
     """
     checked = ruled = 0
     for pack, unit in LAS_PACKS:
-        with zipfile.ZipFile(REPO / "dist" / f"{pack}.zip") as z:
+        with zipfile.ZipFile(dist_path(REPO, f"{pack}.zip")) as z:
             for name in (f"{unit}.model", f"fps_{unit}.model"):
                 for geometry, geo, face_lists in _geometries(z.read(f"{pack}/assets/units/{unit}/skins/{unit}/{name}")):
                     if not geo["uvdir_u"]:

@@ -32,7 +32,7 @@ than it seems to: see "Does a pack depend on the machine that builds it".
 | Legendary Armour Skins, Lua and 34 units | `Vladik268/P2` at `b7c38c1d`, `mod/Legendary Armour Skins` | what LAS does with an outfit unit; what `.object` files look like in units known to work |
 | BeardLib | `simon-wh/PAYDAY-2-BeardLib` at `95eb1c0c` | the function LAS hooks |
 | The 2B pack | `references/2b.rar` | the one LAS pack this pipeline was modelled on |
-| The source addon's VTFs | `models/l4d2_miranda_lawson_1.zip` | the face's own mip levels |
+| The source addon's VTFs | `references/l4d2_miranda_lawson_1.zip` | the face's own mip levels |
 | Block compression (Direct3D 10), BC3 | `MicrosoftDocs/win32` at `129846d6c4f0` | the layout of a DXT5 block |
 
 ## The `.object`

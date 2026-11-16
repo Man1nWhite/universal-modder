@@ -18,7 +18,7 @@ warning states its normal maps' provenance. Auditing another character's pack
 means changing those together with the builder's names.
 
 Usage:
-    python tools/pd2-port/check_guide_compliance.py            # dist/lawson_las.zip
+    python tools/pd2-port/check_guide_compliance.py            # dist/Miranda_Romance/Miranda_Romance_LAS.zip
     python tools/pd2-port/check_guide_compliance.py FILE.zip
     python tools/pd2-port/check_guide_compliance.py --json
 """
@@ -32,6 +32,9 @@ import sys
 import tempfile
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -41,7 +44,7 @@ import dds  # noqa: E402
 from dmodel import DieselModel, hash_str  # noqa: E402
 
 RIG_JSON = HERE / "reference" / "las_rig.json"
-DEFAULT_PACK = ROOT / "dist" / "lawson_las.zip"
+DEFAULT_PACK = dist_path(ROOT, "lawson_las.zip")
 ASSET_DIR = "assets"
 UNIT_DIR = "units/lawson/skins/lawson"
 GUI_DIR = "guis/dlcs/lawson/armor_skins"

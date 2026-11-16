@@ -1,0 +1,31 @@
+"""The public ZIP names and character folders are independent of the installable roots."""
+from pathlib import Path
+import zipfile
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_character_folders_and_renamed_las_packages():
+    dist = ROOT / 'dist'
+    expected = {'Miranda_L4D2', 'Miranda_Romance', 'Christie', 'Honoka', 'Geralt'}
+    assert {p.name for p in dist.iterdir() if p.is_dir()} == expected
+    for group, name, internal in (
+        ('Miranda_L4D2', 'Miranda_L4D2_LAS.zip', 'Miranda_LAS/'),
+        ('Miranda_L4D2', 'Miranda_L4D2_Busty_LAS.zip', 'Miranda_Busty_LAS/'),
+        ('Miranda_Romance', 'Miranda_Romance_LAS.zip', 'Lawson_LAS/'),
+    ):
+        archive = dist / group / name
+        assert archive.is_file()
+        with zipfile.ZipFile(archive) as z:
+            assert z.namelist() and all(n.startswith(internal) for n in z.namelist())
+        assert archive.with_name(name + '.sha256').is_file()
+    assert len(list(dist.rglob('*.zip'))) == 20
+    assert not list(dist.glob('*.zip'))
+
+
+def test_character_archives_live_in_references():
+    refs = ROOT / 'references'
+    for name in ('l4d2_miranda_lawson_1.zip', 'Geralt.7z',
+                 'PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip'):
+        assert (refs / name).is_file()
+    assert not (ROOT / 'models').exists()

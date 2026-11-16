@@ -10,6 +10,9 @@ import struct
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 import pytest
@@ -17,7 +20,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PD2 = ROOT / "tools" / "pd2-port"
 sys.path.insert(0, str(PD2))
-SOURCE_ZIP = ROOT / "models" / ("PC _ Computer - Mass Effect 2 - Non-Playable "
+SOURCE_ZIP = ROOT / "references" / ("PC _ Computer - Mass Effect 2 - Non-Playable "
                      "Characters - Miranda Lawson (Romance).zip")
 
 
@@ -781,7 +784,7 @@ def test_built_pack_passes_the_guide_compliance_check():
     unit, texture format, BeardLib packaging). A FAIL here is a guide
     violation in the pack, not a flake.
     """
-    pack = ROOT / "dist" / "lawson_las.zip"
+    pack = dist_path(ROOT, "lawson_las.zip")
     if not pack.exists():
         pytest.skip("no built pack")
     checker = _load("check_guide_compliance", "check_guide_compliance.py")
@@ -798,7 +801,7 @@ def test_the_compliance_checker_actually_fails_on_broken_packs():
     texture, an unregistered texture, a hook flag switched off, ...) and
     asserts that the matching check fails. It is the checker's own test.
     """
-    pack = ROOT / "dist" / "lawson_las.zip"
+    pack = dist_path(ROOT, "lawson_las.zip")
     if not pack.exists():
         pytest.skip("no built pack")
     selftest = _load("check_guide_compliance_self_test",
@@ -842,7 +845,7 @@ def test_the_built_pack_has_no_inverted_faces():
     and the shading around it is wrong.  The quadruple check found 946 of
     them in pack 0.1.1; the builder now repairs the winding.
     """
-    pack = ROOT / "dist" / "lawson_las.zip"
+    pack = dist_path(ROOT, "lawson_las.zip")
     if not pack.exists():
         pytest.skip("no built pack")
     with zipfile.ZipFile(pack) as z:
@@ -903,7 +906,7 @@ def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
     """
     import re
 
-    sidecar = ROOT / "dist" / "lawson_las.zip.sha256"
+    sidecar = dist_path(ROOT, "lawson_las.zip.sha256")
     if not sidecar.exists():
         pytest.skip("dist/ is absent from this sandbox snapshot")
     status = (PD2 / "STATUS.md").read_text()
@@ -980,7 +983,7 @@ def test_the_tracked_pack_carries_the_builder_version():
     import re
     import zipfile
 
-    pack = ROOT / "dist" / "lawson_las.zip"
+    pack = dist_path(ROOT, "lawson_las.zip")
     if not pack.exists():
         pytest.skip("no built pack")
     with zipfile.ZipFile(pack) as z:
@@ -995,7 +998,7 @@ def test_diffuse_specular_alpha_and_finger_pivots():
     import zipfile
     import numpy as np
 
-    pack = ROOT / "dist" / "lawson_las.zip"
+    pack = dist_path(ROOT, "lawson_las.zip")
     if not pack.exists():
         pytest.skip("no built pack")
     with zipfile.ZipFile(pack) as z:

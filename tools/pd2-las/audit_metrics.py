@@ -167,8 +167,8 @@ def main(argv=None) -> int:
 
     targets = [("2B reference (PD2)",
                 args.template / "2b.model"),
-               ("Christie base", args.dist / "Christie_LAS.zip"),
-               ("Christie slim", args.dist / "Christie_LAS_Slim.zip")]
+               ("Christie base", args.dist / "Christie" / "Christie_LAS.zip"),
+               ("Christie slim", args.dist / "Christie" / "Christie_LAS_Slim.zip")]
 
     head = (f"{'pack':22s} {'verts':>6s} {'tris':>6s} {'area cm2':>9s} "
             f"{'t/1000cm2':>9s} {'texels/cm':>9s} {'bad verts':>16s} "
@@ -195,9 +195,9 @@ def main(argv=None) -> int:
         print("\ndiffuse alpha, whole 1024x1024 texture "
               "(mean / levels / p10 / p50 / p90 / max):")
         for label, zpath, suffix in (
-                ("Christie garment c02_01", args.dist / "Christie_LAS_Slim.zip",
+                ("Christie garment c02_01", args.dist / "Christie" / "Christie_LAS_Slim.zip",
                  "_c02_01_df.texture"),
-                ("Christie body", args.dist / "Christie_LAS_Slim.zip",
+                ("Christie body", args.dist / "Christie" / "Christie_LAS_Slim.zip",
                  "_body_df.texture"),
                 ("Miranda body (shipped)", args.dist / "Miranda_LAS.zip",
                  "_body_df.texture"),

@@ -5,13 +5,13 @@ Builds **Legendary Armour Skins (LAS)** outfit packs for PAYDAY 2 from compiled 
 and written as Diesel `.model` + `.texture` + `.material_config` behind a BeardLib `LegendaryArmours.<id>`
 registration. Pure Python: no Source compile step, no Blender, and no game is needed to build.
 
-| Tracked pack (`dist/<name>.zip`) | Source archive | Builder | `make` target |
+| Tracked pack (`dist/<character>/<name>.zip`) | Source archive | Builder | `make` target |
 | --- | --- | --- | --- |
-| `Miranda_LAS` — full body and first-person arms | `models/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
-| `Miranda_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
+| `Miranda_L4D2_LAS` — full body and first-person arms | `references/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
+| `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 | `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
-`honokodae` writes `dist/Honoko2.zip` through `dist/Honoko5.zip` directly, and `fresh` verifies all
+`honokodae` writes `dist/Honoka/Honoko2.zip` through `dist/Honoka/Honoko5.zip` directly, and `fresh` verifies all
 four. `Honoko3` and `Honoko4` are also built with the layer-clearance pass and the trimmed
 shadow caster of D44; `Honoko4`'s suit slot reads `references/Honoka/Tex_07(L_7) 2.dds`.
 The `.dae` builder takes its skinning from the source TMC (`tmc.py`, `tmc_skeleton_map.json`), cuts wrists, encodes DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and registers BODY_ONLY with glove adapter and 4-view icon.

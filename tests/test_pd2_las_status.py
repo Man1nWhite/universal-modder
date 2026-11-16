@@ -18,6 +18,9 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import pytest
 
@@ -85,7 +88,7 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     the suite is what tells an agent that nothing else needs editing.
     """
     status = _load()
-    sidecars = sorted(path.name[: -len(".zip.sha256")] for path in (REPO / "dist").glob("*.zip.sha256"))
+    sidecars = sorted(path.name[: -len(".zip.sha256")] for path in (REPO / "dist").rglob("*.zip.sha256"))
     if not sidecars:
         pytest.skip("dist/ is absent from this sandbox snapshot")
     short, full = status.collect()["packs"], status.collect(full=True)["packs"]
@@ -100,9 +103,9 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
             assert pack["make"] is None, f"{name}: make must stay null"
         if pack["is"] == "missing":
             continue    # dist/ can be absent from a sandbox snapshot; test_dist_checksums owns that case
-        path = REPO / "dist" / f"{name}.zip"
+        path = dist_path(REPO, f"{name}.zip")
         assert pack["is"] in {"tracked", "changed", "ok"}, f"{name}: the zip is not its .sha256"
-        assert pack["sha256"] == (REPO / "dist" / f"{name}.zip.sha256").read_text().split()[0], name
+        assert pack["sha256"] == (dist_path(REPO, f"{name}.zip.sha256")).read_text().split()[0], name
         assert short[name]["sha256"] == pack["sha256"][:12] and pack["bytes"] == path.stat().st_size, name
     one = status.collect(only=["Christie_LAS_Slim"])
     assert list(one["packs"]) == ["Christie_LAS_Slim"]
@@ -126,11 +129,11 @@ def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch)
     try:
         monkeypatch.setattr(status, "REPO", clone)
         assert status.collect(only=[name])["packs"][name]["is"] == "tracked"
-        with open(clone / "dist" / f"{name}.zip", "ab") as handle:
+        with open(dist_path(clone, f"{name}.zip"), "ab") as handle:
             handle.write(b"\0")
         assert status.collect(only=[name])["packs"][name]["is"] == "broken"
-        digest = __import__("hashlib").sha256((clone / "dist" / f"{name}.zip").read_bytes()).hexdigest()
-        (clone / "dist" / f"{name}.zip.sha256").write_text(f"{digest}  dist/{name}.zip\n")
+        digest = __import__("hashlib").sha256((dist_path(clone, f"{name}.zip")).read_bytes()).hexdigest()
+        (dist_path(clone, f"{name}.zip.sha256")).write_text(f"{digest}  dist/{name}.zip\n")
         result = status.collect(only=[name])
         assert result["packs"][name]["is"] == "changed" and list(result) == ["packs", "note", "next"]
     finally:
@@ -399,7 +402,7 @@ def test_the_2b_templates_have_one_home_inside_the_repo():
     code = _code_files()
     entry_docs = [REPO / rel for rel in (
         "AGENTS.md", "README.md", "tools/README.md", "tools/pd2-las/README.md",
-        "tools/pd2-port/README.md", "references/README.md", "models/README.md")]
+        "tools/pd2-port/README.md", "references/README.md")]
     for path in code + entry_docs:
         text = path.read_text(encoding="utf-8", errors="replace")
         for word in old:
@@ -433,7 +436,7 @@ def test_no_tool_or_test_depends_on_a_fixed_tmp_path():
         r"(?<![\w.~$}/-])(?:/var)?" + re.escape(TMP) + r"(?:/[\w.$({-]|[\"'])")
     entry_docs = [REPO / rel for rel in (
         "AGENTS.md", "README.md", "tools/README.md", "tools/pd2-las/README.md",
-        "tools/pd2-port/README.md", "references/README.md", "models/README.md",
+        "tools/pd2-port/README.md", "references/README.md",
         "docs/pd2-las/HANDOFF.md")]
     offenders = []
     for path in _code_files() + entry_docs:

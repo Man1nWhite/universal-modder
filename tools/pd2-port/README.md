@@ -18,7 +18,7 @@ them. [Porting another character](#porting-another-character) lists every
 place.
 
 **The shipped port.** The configuration in the tree ports **Miranda Lawson**
-from *Mass Effect 2* and builds `dist/lawson_las.zip`. It is the worked
+from *Mass Effect 2* and builds `dist/Miranda_Romance/Miranda_Romance_LAS.zip`. It is the worked
 example for everything below. Its pack is tracked in git and compared byte for
 byte in CI, and the release workflow publishes it on a tag. Whether there is a
 release, and of which build, is in [`STATUS.md`](STATUS.md). Names such as `me2_dae.py`,
@@ -58,10 +58,10 @@ without them. The same stage budgets expected failures: an `xfail` that
 
 | | What the pipeline takes or makes | The shipped port |
 |---|---|---|
-| Source model | a zip archive holding a rigged, skinned COLLADA `.dae` and its PNG textures (the repo keeps sources under `models/`) | `models/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`; of its two `.dae` files the build reads `Miranda Lawson (Romance) - Adjusted Version.dae` |
+| Source model | a zip archive holding a rigged, skinned COLLADA `.dae` and its PNG textures (the repo keeps sources under `references/`) | `references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`; of its two `.dae` files the build reads `Miranda Lawson (Romance) - Adjusted Version.dae` |
 | Rig contract | `reference/las_rig.json` — the PD2 biped skeleton an LAS unit animates on, extracted from the model in `references/2b.rar` by `extract_las_rig.py` (skeleton data only; no 2B art) | the same file — PAYDAY 2's rig does not change with the outfit |
-| Output | a BeardLib pack zip, built deterministically | `dist/lawson_las.zip`, root `Lawson_LAS/` (**tracked in git**) |
-| Checksum | — | `dist/lawson_las.zip.sha256` (tracked; CI refuses to publish a build that differs from it) |
+| Output | a BeardLib pack zip, built deterministically | `dist/Miranda_Romance/Miranda_Romance_LAS.zip`, root `Lawson_LAS/` (**tracked in git**) |
+| Checksum | — | `dist/Miranda_Romance/Miranda_Romance_LAS.zip.sha256` (tracked; CI refuses to publish a build that differs from it) |
 | Release | — | [`STATUS.md`](STATUS.md) says whether there is one and which pack it serves; the body of a release page is `releases/lawson-las-vN.md` |
 
 What a source has to look like for the pipeline as it stands:
@@ -83,7 +83,7 @@ take no character argument: they build and check whatever the configuration
 in the code describes, which is the shipped port.
 
 ```sh
-python tools/pd2-port/build_las_pack.py          # -> dist/lawson_las.zip
+python tools/pd2-port/build_las_pack.py          # -> dist/Miranda_Romance/Miranda_Romance_LAS.zip
 python tools/pd2-port/build_las_pack.py --check  # validate only
 #   --source / --out   another source archive, another output zip; the .dae name,
 #                      the texture slots and the pack's names stay those of the code
@@ -168,7 +168,7 @@ There is one configuration in the tree at a time. The steps below turn it
 into another character's; nothing in this list has been exercised on a second
 character yet, so treat it as a map of what to touch, not as a tested recipe.
 
-1. **Bring the source.** Put the archive in `models/` and set `SOURCE_ZIP`
+1. **Bring the source.** Put the archive in `references/` and set `SOURCE_ZIP`
    and `DAE_NAME` in `build_las_pack.py`. `preview_check.py`,
    `check_nm_convention.py` and `shade_check.py` keep their own copy of the
    archive path (`shade_check.py` also of the `.dae` name).
@@ -267,7 +267,7 @@ closed, move any previous copy of that folder completely out of
 leave both versions active). Select the outfit in the outfit/armor menu with
 Default gloves.
 
-For the shipped port: take `dist/lawson_las.zip` from the checkout, extract
+For the shipped port: take `dist/Miranda_Romance/Miranda_Romance_LAS.zip` from the checkout, extract
 `Lawson_LAS/`, and select **[LAS] Miranda Lawson**. The tracked zip is the
 pack: a release, when there is one, can be of an older build
 ([`STATUS.md`](STATUS.md)).
@@ -282,7 +282,7 @@ This is the release route of the shipped port. The GitHub release is
 tag-driven: on a `lawson-las-v*` tag the
 [`lawson LAS pack` workflow](../../.github/workflows/lawson-las.yml) rebuilds
 the pack, runs the tests and attaches it to the release of that tag. **It
-attaches the tracked `dist/Miranda_LAS.zip` as well**, each zip with its
+attaches the tracked `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` as well**, each zip with its
 `.sha256`.
 Below, `N` is the next release number: one more than the newest
 `releases/lawson-las-v*.md`, and 3 while there is none, because 1 and 2 are
@@ -299,7 +299,7 @@ release page is).
 
    ```sh
    python tools/pd2-port/build_las_pack.py
-   sha256sum dist/lawson_las.zip > dist/lawson_las.zip.sha256
+   sha256sum dist/Miranda_Romance/Miranda_Romance_LAS.zip > dist/Miranda_Romance/Miranda_Romance_LAS.zip.sha256
    ```
 
 3. Record the release under "Released and tracked" in [`STATUS.md`](STATUS.md),

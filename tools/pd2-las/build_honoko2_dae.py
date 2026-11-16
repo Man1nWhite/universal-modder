@@ -25,8 +25,8 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   the 2B PD2 skeleton via `tmc_skeleton_map.json` + `build_models.retarget_maps`.
 * **Third-person BODY_ONLY LAS pack (`LegendaryArmours.honoko2`)** — cuts hands
   at the PD2 wrists for heister gloves (`honoko2_glove_adapter.lua`), drops any
-  long-thin connector triangles, and writes deterministic `dist/Honoko2.zip` +
-  `dist/Honoko2.zip.sha256`.
+  long-thin connector triangles, and writes deterministic `dist/Honoka/Honoko2.zip` +
+  `dist/Honoka/Honoko2.zip.sha256`.
 
 `runtime_verified` stays `false` everywhere; nothing here has been run in
 PAYDAY 2.
@@ -58,7 +58,7 @@ import determinism  # noqa: E402
 import extract_2b  # noqa: E402
 
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
-DEFAULT_OUT = REPO / "dist"
+DEFAULT_OUT = REPO / "dist" / "Honoka"
 DEFAULT_WORK = REPO / "build" / "honoko2"
 DAE_PATH = REPO / "references" / "Honoka" / "Honoka_DOAXVV_Secret_Reportout.dae"
 SOURCE_ZIP = REPO / "references" / "Outfit for Honoka-109-1-1-1628020933.zip"
@@ -938,7 +938,7 @@ def main(argv=None) -> int:
     ap.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES,
                     help="directory containing 2b.model (default: where extract_2b.py unpacks it)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
-                    help="directory for the Honoko*.zip packs + .sha256 (default: dist)")
+                    help="directory for the Honoko*.zip packs + .sha256 (default: dist/Honoka)")
     ap.add_argument("--work-dir", type=Path, default=DEFAULT_WORK,
                     help="working directory for intermediate model/pack tree (default: build/honoko2)")
     ap.add_argument("--dae", type=Path, default=DAE_PATH)

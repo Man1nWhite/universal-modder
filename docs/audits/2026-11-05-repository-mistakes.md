@@ -37,7 +37,7 @@ deliberate choice.
    preview_check,check_guide_compliance*}.py` and four test files, plus `f"…"` strings with no
    placeholders. Cleared (`pyflakes` is clean over `um tools tests`) and **CI now runs it**, so they
    cannot come back.
-6. **`references/Geralt.7z` was a byte-identical duplicate of `models/Geralt.7z`** — 14 MB tracked twice,
+6. **`references/Geralt.7z` was a byte-identical duplicate of `references/Geralt.7z`** — 14 MB tracked twice,
    with `tools/build_joy_head_mods.py` reading the `models/` copy while `references/README.md` claimed the
    archive was in `references/`. Deleted the `references/` copy, documented the archive in
    `models/README.md` (where the code and the other ported sources live) and left a pointer in

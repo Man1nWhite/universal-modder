@@ -26,6 +26,9 @@ import sys
 import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 
@@ -38,8 +41,8 @@ import diesel_model as dm  # noqa: E402
 import render_mesh_skeleton as rms  # noqa: E402
 
 PACKS = {
-    "base": (REPO / "dist" / "Christie_LAS.zip", "Christie_LAS", "christie", -1.0),
-    "slim": (REPO / "dist" / "Christie_LAS_Slim.zip", "Christie_LAS_Slim",
+    "base": (dist_path(REPO, "Christie_LAS.zip"), "Christie_LAS", "christie", -1.0),
+    "slim": (dist_path(REPO, "Christie_LAS_Slim.zip"), "Christie_LAS_Slim",
              "christie_slim", -1.0),
 }
 ROLE = ["mtr_body", "mtr_c02_01", "mtr_c02_02", "mtr_c02_05"]

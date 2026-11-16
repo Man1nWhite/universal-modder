@@ -24,11 +24,6 @@ on this fork, clone it and start the agent inside the clone.
 | Claude Code 2.1.277 or later, Codex, Cursor, Copilot, OpenCode | `AGENTS.md` |
 | Gemini CLI | `GEMINI.md`, which is the one line `@AGENTS.md` |
 
-There is no `CLAUDE.md`: Claude Code reads `AGENTS.md` where there is none, and Cursor's CLI, VS Code and
-Copilot CLI read a `CLAUDE.md` in addition to `AGENTS.md`. The evidence, and the command that makes each
-harness list what it loaded, is in
-[`docs/audits/2026-11-13-agent-entry.md`](docs/audits/2026-11-13-agent-entry.md).
-
 Skills are in `skills/`, copied to `.agents/skills` and `.claude/skills` where the harnesses look. MCP
 config is in `.mcp.json`, `.codex/config.toml`, `.cursor/mcp.json`, `.vscode/mcp.json`,
 `gemini-extension.json` and `opencode.json`.

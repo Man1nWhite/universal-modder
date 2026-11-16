@@ -48,7 +48,7 @@ jobs:
         # a stale tracked pack (or a non-deterministic build) must not slip
         # through on a branch push
         run: |
-          for sha_file in dist/*.zip.sha256 build/pd2-las/Miranda_LAS.zip.sha256; do
+          for sha_file in dist/*/*.zip.sha256 build/pd2-las/Miranda_LAS.zip.sha256; do
             sha256sum -c "$sha_file"
           done
       - name: lint

@@ -34,19 +34,19 @@ status:     ## one JSON object: environment, all 20 tracked packs, the next comm
 env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
 	@cd "$(ROOT)" && bash $(HERE)/recover_env.sh
 
-build:      ## Miranda_LAS -> dist/ and build/pd2-las/
+build:      ## Miranda_L4D2_LAS -> dist/ and build/pd2-las/
 	$(call BUILD,$(HERE)/build_models.py)
 
-busty:      ## Miranda_Busty_LAS -> dist/ and build/pd2-las/
+busty:      ## Miranda_L4D2_Busty_LAS -> dist/ and build/pd2-las/
 	$(call BUILD,$(HERE)/build_busty_variant.py)
 
-lawson:     ## lawson_las -> dist/
+lawson:     ## Miranda_Romance_LAS -> dist/
 	$(call BUILD,tools/pd2-port/build_las_pack.py)
 
 honokodae:  ## Honoko2..Honoko5 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
 
-heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_LAS.zip
+heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
 all: build busty lawson honokodae heads  ## every pack that can be rebuilt in this checkout (the two Christie packs' builder is deleted; their tracked zips cannot be rebuilt)

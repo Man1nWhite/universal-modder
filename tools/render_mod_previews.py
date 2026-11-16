@@ -41,6 +41,9 @@ import sys
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -344,13 +347,13 @@ def load_las_variant_parts(zip_path: Path, tag: str, prefix: str):
 
 
 def load_miranda_las_parts() -> tuple[list, list, Image.Image]:
-    """Load TPP and FPS parts + icon from dist/Miranda_LAS.zip."""
-    return load_las_variant_parts(ROOT / "dist" / "Miranda_LAS.zip", "Miranda_LAS", "miranda")
+    """Load TPP and FPS parts + icon from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip."""
+    return load_las_variant_parts(dist_path(ROOT, "Miranda_LAS.zip"), "Miranda_LAS", "miranda")
 
 
 def load_miranda_busty_parts() -> tuple[list, list, Image.Image]:
-    """Load TPP and FPS parts + icon from dist/Miranda_Busty_LAS.zip."""
-    return load_las_variant_parts(ROOT / "dist" / "Miranda_Busty_LAS.zip",
+    """Load TPP and FPS parts + icon from dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip."""
+    return load_las_variant_parts(dist_path(ROOT, "Miranda_Busty_LAS.zip"),
                                   "Miranda_Busty_LAS", "miranda_busty")
 
 
@@ -419,9 +422,9 @@ def load_outfit_with_head_parts(
     rasterizer call without any transform between them.
     """
     tpp_parts, _, icon_im = load_multi_mat_las_parts(
-        ROOT / "dist" / outfit_zip, outfit_tag, outfit_prefix, has_fps=False
+        dist_path(ROOT, outfit_zip), outfit_tag, outfit_prefix, has_fps=False
     )
-    with zipfile.ZipFile(ROOT / "dist" / head_zip) as zf:
+    with zipfile.ZipFile(dist_path(ROOT, head_zip)) as zf:
         unit = f"{head_tag}/{head_unit}/"
         mf = dm.ModelFile.read(zf.read(unit + f"{head_stem}.model"))
         mats = _parse_matcfg_diffuse(zf.read(unit + "mtr_criminal_ecp_female.material_config"))
@@ -457,8 +460,8 @@ def load_multi_mat_las_parts(
 
 
 def load_lawson_las_parts() -> tuple[list, list, Image.Image]:
-    """Load TPP and FPS parts + icon from dist/lawson_las.zip."""
-    with zipfile.ZipFile(ROOT / "dist" / "lawson_las.zip") as zf:
+    """Load TPP and FPS parts + icon from dist/Miranda_Romance/Miranda_Romance_LAS.zip."""
+    with zipfile.ZipFile(dist_path(ROOT, "lawson_las.zip")) as zf:
         m_tpp = dmodel.DieselModel.from_bytes(zf.read("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"))
         m_fps = dmodel.DieselModel.from_bytes(zf.read("Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"))
         tex = {}
@@ -620,7 +623,7 @@ def render_busty_compare_sheet(
             canvas.paste(img, (col * W, 58 + row * (H + 22)))
     add_header_and_badges(
         canvas,
-        "dist/Miranda_Busty_LAS.zip — Chest Morph (Before / After)",
+        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — Chest Morph (Before / After)",
         "Same outfit, rig and textures; the bust pass grows the chest mass"
         " | chest close-up 0°, 30°, 45°, 60°, 90° (framing widens with the yaw)",
         icon_im,
@@ -659,7 +662,7 @@ def render_busty_polar_sheet(
             canvas.paste(img, (col * W, 58 + row * (H + 22)))
     add_header_and_badges(
         canvas,
-        "dist/Miranda_Busty_LAS.zip — Chest Morph, Overhead & Underside",
+        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — Chest Morph, Overhead & Underside",
         "The same chest read from 58° above and from 58° below — stock above, variant below",
         icon_im,
     )
@@ -683,7 +686,7 @@ def render_heister_head_sheet(
     subtitle: str,
     out_path: Path,
 ) -> Image.Image:
-    zp = ROOT / "dist" / zip_name
+    zp = dist_path(ROOT, zip_name)
     with zipfile.ZipFile(zp) as zf:
         prefix = [n.split("/")[0] for n in zf.namelist()][0]
         mbytes = zf.read(f"{prefix}/{model_rel}")
@@ -823,29 +826,29 @@ def main(argv: list[str] | None = None) -> None:
 
     tpp_mir, fps_mir, icon_mir = load_miranda_las_parts()
     th_mir = render_las_sheet(
-        "dist/Miranda_LAS.zip — Full-Body LAS Outfit (L4D2 Port)",
+        "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip — Full-Body LAS Outfit (L4D2 Port)",
         "Legendary Armour Skins (LAS) full-body outfit + first-person arms | Source: l4d2_miranda_lawson_1.zip",
         tpp_mir,
         fps_mir,
         icon_mir,
         target_for("01_Miranda_LAS.png"),
     )
-    thumbs.append(("Miranda_LAS.zip (Full-Body L4D2)", th_mir))
+    thumbs.append(("Miranda_L4D2_LAS.zip (Full-Body L4D2)", th_mir))
 
     tpp_law, fps_law, icon_law = load_lawson_las_parts()
     th_law = render_las_sheet(
-        "dist/lawson_las.zip — Full-Body LAS Outfit (ME2 Romance Port)",
+        "dist/Miranda_Romance/Miranda_Romance_LAS.zip — Full-Body LAS Outfit (ME2 Romance Port)",
         "Legendary Armour Skins (LAS) full-body outfit + first-person arms | Source: Mass Effect 2 Miranda (Romance)",
         tpp_law,
         fps_law,
         icon_law,
         target_for("02_lawson_las.png"),
     )
-    thumbs.append(("lawson_las.zip (Full-Body ME2)", th_law))
+    thumbs.append(("Miranda_Romance_LAS.zip (Full-Body ME2)", th_law))
 
     tpp_bus, fps_bus, icon_bus = load_miranda_busty_parts()
     th_bus = render_las_sheet(
-        "dist/Miranda_Busty_LAS.zip — Full-Body LAS Outfit, chest morph (L4D2 Port)",
+        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — Full-Body LAS Outfit, chest morph (L4D2 Port)",
         "The 01 outfit with a sculpted chest mass and its own LegendaryArmours.miranda_busty entry"
         " | Source: l4d2_miranda_lawson_1.zip + references/2b.rar",
         tpp_bus,
@@ -859,10 +862,10 @@ def main(argv: list[str] | None = None) -> None:
                              target_for("14_Miranda_Busty_vs_LAS_top_below.png"))
 
     tpp_chr, fps_chr, icon_chr = load_multi_mat_las_parts(
-        ROOT / "dist" / "Christie_LAS.zip", "Christie_LAS", "christie", has_fps=True
+        dist_path(ROOT, "Christie_LAS.zip"), "Christie_LAS", "christie", has_fps=True
     )
     th_chr = render_las_sheet(
-        "dist/Christie_LAS.zip — Body-Only LAS Outfit (DOA5 Christie)",
+        "dist/Christie/Christie_LAS.zip — Body-Only LAS Outfit (DOA5 Christie)",
         "Legendary Armour Skins (LAS) headless body-only outfit + first-person arms | Source: DOA5 Christie",
         tpp_chr,
         fps_chr,
@@ -872,10 +875,10 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     tpp_chr_slim, fps_chr_slim, icon_chr_slim = load_multi_mat_las_parts(
-        ROOT / "dist" / "Christie_LAS_Slim.zip", "Christie_LAS_Slim", "christie_slim", has_fps=True
+        dist_path(ROOT, "Christie_LAS_Slim.zip"), "Christie_LAS_Slim", "christie_slim", has_fps=True
     )
     th_chr_slim = render_las_sheet(
-        "dist/Christie_LAS_Slim.zip — Body-Only LAS Outfit, Slim Variant (DOA5 Christie)",
+        "dist/Christie/Christie_LAS_Slim.zip — Body-Only LAS Outfit, Slim Variant (DOA5 Christie)",
         "Slim-variant headless body-only LAS outfit + first-person arms + glove adapter | Source: DOA5 Christie",
         tpp_chr_slim,
         fps_chr_slim,
@@ -885,10 +888,10 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     tpp_hon2, fps_hon2, icon_hon2 = load_multi_mat_las_parts(
-        ROOT / "dist" / "Honoko2.zip", "Honoko2", "honoko2", has_fps=False
+        dist_path(ROOT, "Honoko2.zip"), "Honoko2", "honoko2", has_fps=False
     )
     th_hon2 = render_las_sheet(
-        "dist/Honoko2.zip — Body-Only LAS Outfit (DOAXVV Honoka Secret Report DAE)",
+        "dist/Honoka/Honoko2.zip — Body-Only LAS Outfit (DOAXVV Honoka Secret Report DAE)",
         "Headless third-person body-only LAS outfit (no fps_unit) + glove adapter | Source: Honoka_DOAXVV_Secret_Reportout.dae",
         tpp_hon2,
         fps_hon2,
@@ -898,10 +901,10 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     tpp_hon3, fps_hon3, icon_hon3 = load_multi_mat_las_parts(
-        ROOT / "dist" / "Honoko3.zip", "Honoko3", "honoko3", has_fps=False
+        dist_path(ROOT, "Honoko3.zip"), "Honoko3", "honoko3", has_fps=False
     )
     th_hon3 = render_las_sheet(
-        "dist/Honoko3.zip — Body-Only LAS Outfit, 5% slimmer (DOAXVV Honoka Secret Report DAE)",
+        "dist/Honoka/Honoko3.zip — Body-Only LAS Outfit, 5% slimmer (DOAXVV Honoka Secret Report DAE)",
         "The same outfit scaled 5% about the rig's bones: same height and joints, slimmer girth | Source: Honoka_DOAXVV_Secret_Reportout.dae",
         tpp_hon3,
         fps_hon3,
@@ -911,10 +914,10 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     tpp_hon4, fps_hon4, icon_hon4 = load_multi_mat_las_parts(
-        ROOT / "dist" / "Honoko4.zip", "Honoko4", "honoko4", has_fps=False
+        dist_path(ROOT, "Honoko4.zip"), "Honoko4", "honoko4", has_fps=False
     )
     th_hon4 = render_las_sheet(
-        "dist/Honoko4.zip — Body-Only LAS Outfit, slim, alternate suit (DOAXVV Honoka Secret Report DAE)",
+        "dist/Honoka/Honoko4.zip — Body-Only LAS Outfit, slim, alternate suit (DOAXVV Honoka Secret Report DAE)",
         "Honoko3's geometry in the user's alternate suit colourway (black jacket, orange shirt) | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7) 2.dds",
         tpp_hon4,
@@ -941,10 +944,10 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     tpp_hon5, fps_hon5, icon_hon5 = load_multi_mat_las_parts(
-        ROOT / "dist" / "Honoko5.zip", "Honoko5", "honoko5", has_fps=False
+        dist_path(ROOT, "Honoko5.zip"), "Honoko5", "honoko5", has_fps=False
     )
     th_hon5 = render_las_sheet(
-        "dist/Honoko5.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
+        "dist/Honoka/Honoko5.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
         "Honoko3's geometry in the user's revised third suit colourway (black jacket, light shirt) | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds",
         tpp_hon5,
@@ -982,7 +985,7 @@ def main(argv: list[str] | None = None) -> None:
             (62, 70, 88),
             (45, 48, 55),
             False,
-            "dist/Miranda_L4D2_over_Joy.zip — Joy Head Replacement (L4D2)",
+            "dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip — Joy Head Replacement (L4D2)",
             "Replaces Joy's head & hair (npc_criminal_joy_1.model + _menu.model) and character icon",
             "Miranda_L4D2_over_Joy.zip",
         ),
@@ -997,7 +1000,7 @@ def main(argv: list[str] | None = None) -> None:
             (62, 70, 88),
             (45, 48, 55),
             True,
-            "dist/Miranda_Romance_over_Joy.zip — Joy Head Replacement (ME2 Romance)",
+            "dist/Miranda_Romance/Miranda_Romance_over_Joy.zip — Joy Head Replacement (ME2 Romance)",
             "Replaces Joy's head & hair with ME2 Romance head + alpha-masked eyelashes and character icon",
             "Miranda_Romance_over_Joy.zip",
         ),
@@ -1012,7 +1015,7 @@ def main(argv: list[str] | None = None) -> None:
             (58, 66, 64),
             (70, 125, 185),
             False,
-            "dist/Miranda_L4D2_over_Clover.zip — Clover Head Replacement (L4D2)",
+            "dist/Miranda_L4D2/Miranda_L4D2_over_Clover.zip — Clover Head Replacement (L4D2)",
             "Replaces Clover's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
             "Miranda_L4D2_over_Clover.zip",
         ),
@@ -1027,7 +1030,7 @@ def main(argv: list[str] | None = None) -> None:
             (58, 66, 64),
             (70, 125, 185),
             True,
-            "dist/Miranda_Romance_over_Clover.zip — Clover Head Replacement (ME2 Romance)",
+            "dist/Miranda_Romance/Miranda_Romance_over_Clover.zip — Clover Head Replacement (ME2 Romance)",
             "Replaces Clover's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
             "Miranda_Romance_over_Clover.zip",
         ),
@@ -1042,7 +1045,7 @@ def main(argv: list[str] | None = None) -> None:
             (64, 72, 86),
             (70, 125, 185),
             False,
-            "dist/Miranda_L4D2_over_Bonnie.zip — Bonnie Head Replacement (L4D2)",
+            "dist/Miranda_L4D2/Miranda_L4D2_over_Bonnie.zip — Bonnie Head Replacement (L4D2)",
             "Replaces Bonnie's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
             "Miranda_L4D2_over_Bonnie.zip",
         ),
@@ -1057,7 +1060,7 @@ def main(argv: list[str] | None = None) -> None:
             (64, 72, 86),
             (70, 125, 185),
             True,
-            "dist/Miranda_Romance_over_Bonnie.zip — Bonnie Head Replacement (ME2 Romance)",
+            "dist/Miranda_Romance/Miranda_Romance_over_Bonnie.zip — Bonnie Head Replacement (ME2 Romance)",
             "Replaces Bonnie's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
             "Miranda_Romance_over_Bonnie.zip",
         ),
@@ -1072,7 +1075,7 @@ def main(argv: list[str] | None = None) -> None:
             (52, 62, 82),
             (70, 125, 185),
             False,
-            "dist/Miranda_L4D2_over_Sydney.zip — Sydney Head Replacement (L4D2)",
+            "dist/Miranda_L4D2/Miranda_L4D2_over_Sydney.zip — Sydney Head Replacement (L4D2)",
             "Replaces Sydney's head & hair (heist & menu) + FPS gloves in TPS + character icon",
             "Miranda_L4D2_over_Sydney.zip",
         ),
@@ -1087,7 +1090,7 @@ def main(argv: list[str] | None = None) -> None:
             (52, 62, 82),
             (70, 125, 185),
             True,
-            "dist/Miranda_Romance_over_Sydney.zip — Sydney Head Replacement (ME2 Romance)",
+            "dist/Miranda_Romance/Miranda_Romance_over_Sydney.zip — Sydney Head Replacement (ME2 Romance)",
             "Replaces Sydney's head & hair (heist & menu) + FPS gloves in TPS + character icon",
             "Miranda_Romance_over_Sydney.zip",
         ),
@@ -1102,7 +1105,7 @@ def main(argv: list[str] | None = None) -> None:
             (64, 58, 52),
             (48, 44, 42),
             True,
-            "dist/Geralt_over_Rust.zip — Rust Head Replacement (Witcher 3 Geralt of Rivia)",
+            "dist/Geralt/Geralt_over_Rust.zip — Rust Head Replacement (Witcher 3 Geralt of Rivia)",
             "Replaces Rust's head, hair & beard (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
             "Geralt_over_Rust.zip",
         ),
@@ -1117,7 +1120,7 @@ def main(argv: list[str] | None = None) -> None:
             (66, 60, 56),
             (48, 42, 40),
             False,
-            "dist/Miranda_L4D2_over_Hila.zip — Hila Head Replacement (L4D2)",
+            "dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip — Hila Head Replacement (L4D2)",
             "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
             "Miranda_L4D2_over_Hila.zip",
         ),
@@ -1132,7 +1135,7 @@ def main(argv: list[str] | None = None) -> None:
             (66, 60, 56),
             (48, 42, 40),
             True,
-            "dist/Miranda_Romance_over_Hila.zip — Hila Head Replacement (ME2 Romance)",
+            "dist/Miranda_Romance/Miranda_Romance_over_Hila.zip — Hila Head Replacement (ME2 Romance)",
             "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
             "Miranda_Romance_over_Hila.zip",
         ),
@@ -1204,7 +1207,7 @@ def main(argv: list[str] | None = None) -> None:
     all_dist_cells = [
         *[thumbs[i] for i in l4d2_indices],
         *[thumbs[i] for i in rom_indices],
-        ("Miranda_Busty_LAS.zip", th_bus),
+        ("Miranda_L4D2_Busty_LAS.zip", th_bus),
         ("Christie_LAS.zip", th_chr),
         ("Christie_LAS_Slim.zip", th_chr_slim),
         ("Honoko2.zip", th_hon2),

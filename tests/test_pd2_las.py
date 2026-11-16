@@ -12,11 +12,14 @@ import json
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SOURCE_ZIP = REPO / "models" / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "references" / "l4d2_miranda_lawson_1.zip"
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 pytestmark = pytest.mark.skipif(
@@ -805,7 +808,7 @@ class TestLasScaffold:
         import build_las
 
         record = json.loads(build_las.RECORD.read_text())
-        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        dist_zip = dist_path(REPO, "Miranda_LAS.zip")
         assert dist_zip.is_file(), f"missing tracked deliverable: {dist_zip}"
         with zipfile.ZipFile(dist_zip) as z:
             embedded = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))["source_inventory"]
@@ -910,7 +913,7 @@ class TestLasScaffold:
         item = identity.item_id
         unit = f"{pack_name}/assets/{identity.unit_base}"
         models = {}
-        with zipfile.ZipFile(REPO / "dist" / f"{pack_name}.zip") as tracked:
+        with zipfile.ZipFile(dist_path(REPO, f"{pack_name}.zip")) as tracked:
             for stem in (item, f"fps_{item}"):
                 models[stem] = tmp_path / f"{stem}.model"
                 models[stem].write_bytes(tracked.read(f"{unit}/{stem}.model"))
@@ -986,9 +989,9 @@ class TestLasScaffold:
     def test_tracked_miranda_las_pack(self):
         """The built Miranda_LAS.zip deliverable is tracked in dist/ and self-consistent."""
         build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
-        dist_zip = REPO / "dist" / "Miranda_LAS.zip"
+        dist_zip = dist_path(REPO, "Miranda_LAS.zip")
         build_sha = REPO / "build" / "pd2-las" / "Miranda_LAS.zip.sha256"
-        dist_sha = REPO / "dist" / "Miranda_LAS.zip.sha256"
+        dist_sha = dist_path(REPO, "Miranda_LAS.zip.sha256")
         for p in (build_zip, dist_zip, build_sha, dist_sha):
             assert p.is_file(), f"missing tracked deliverable: {p}"
         raw = dist_zip.read_bytes()
@@ -1013,8 +1016,8 @@ class TestLasScaffold:
             ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy"),
             ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy"),
         ):
-            zp = REPO / "dist" / zip_name
-            sp = REPO / "dist" / f"{zip_name}.sha256"
+            zp = dist_path(REPO, zip_name)
+            sp = dist_path(REPO, f"{zip_name}.sha256")
             assert zp.is_file(), f"missing {zp}"
             assert sp.is_file(), f"missing {sp}"
             raw = zp.read_bytes()
@@ -1099,8 +1102,8 @@ class TestLasScaffold:
             ),
         ]
         for zip_name, prefix, model_rel, head_draw, icon_rel in specs:
-            zp = REPO / "dist" / zip_name
-            sp = REPO / "dist" / f"{zip_name}.sha256"
+            zp = dist_path(REPO, zip_name)
+            sp = dist_path(REPO, f"{zip_name}.sha256")
             assert zp.is_file(), f"missing {zp}"
             assert sp.is_file(), f"missing {sp}"
             raw = zp.read_bytes()
@@ -1152,9 +1155,9 @@ class TestLasScaffold:
         specs = [("Miranda_L4D2_over_Hila.zip", "Miranda L4D2 over Hila"),
                  ("Miranda_Romance_over_Hila.zip", "Miranda Romance over Hila")]
         for zip_name, prefix in specs:
-            zp = REPO / "dist" / zip_name
+            zp = dist_path(REPO, zip_name)
             assert zp.is_file(), f"missing {zp}"
-            assert (REPO / "dist" / f"{zip_name}.sha256").read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
+            assert (dist_path(REPO, f"{zip_name}.sha256")).read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
             with zipfile.ZipFile(zp) as z:
                 names = set(z.namelist())
                 for stem in ("npc_criminal_ecp_female.model", "npc_criminal_ecp_female_menu.model",
@@ -1230,7 +1233,7 @@ class TestLasScaffold:
 
         def load(tag):
             stem = tag.lower()
-            with zipfile.ZipFile(REPO / "dist" / f"{tag}.zip") as z:
+            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
                 info = json.loads(z.read(f"{tag}/BUILD_INFO.json"))
                 model = dmodel.DieselModel.from_bytes(
                     z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model"))
@@ -1281,7 +1284,7 @@ class TestLasScaffold:
 
         def load(tag):
             stem = tag.lower()
-            with zipfile.ZipFile(REPO / "dist" / f"{tag}.zip") as z:
+            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
                 raw = z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model")
             mf = dcm.ModelFile.read(raw)
             mds = [dcm.decode_model_data(s.payload) for s in mf.by_type(dcm.MODEL_DATA)]
@@ -1328,7 +1331,7 @@ class TestLasScaffold:
 
         def load(tag):
             stem = tag.lower()
-            with zipfile.ZipFile(REPO / "dist" / f"{tag}.zip") as z:
+            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
                 info = json.loads(z.read(f"{tag}/BUILD_INFO.json"))
                 model = dmodel.DieselModel.from_bytes(
                     z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model"))
@@ -1409,7 +1412,7 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Hila.zip", 4454, 7070, 148.90),
         ]
         for name, verts, tris, min_z in specs:
-            zp = REPO / "dist" / name
+            zp = dist_path(REPO, name)
             assert zp.is_file(), f"missing {zp}"
             v, f = nj._head_mesh(zp)
             assert len(v) == verts, f"{name}: {len(v)} verts, expected {verts}"
@@ -1451,7 +1454,7 @@ class TestLasScaffold:
         import numpy as np
         from PIL import Image
 
-        with zipfile.ZipFile(REPO / "dist" / "Miranda_LAS.zip") as z:
+        with zipfile.ZipFile(dist_path(REPO, "Miranda_LAS.zip")) as z:
             face = np.asarray(
                 Image.open(
                     io.BytesIO(
@@ -1469,7 +1472,7 @@ class TestLasScaffold:
             ("Miranda_L4D2_over_Hila.zip", "Miranda L4D2 over Hila", "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture"),
         ]
         for zip_name, prefix, df_rel in specs:
-            with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
+            with zipfile.ZipFile(dist_path(REPO, zip_name)) as z:
                 head = np.asarray(Image.open(io.BytesIO(z.read(f"{prefix}/{df_rel}"))).convert("RGBA"))
             got = head[0:1024, 0:1024, 3].astype(np.float32)
             corr = float(np.corrcoef(got.ravel(), expected.ravel())[0, 1])
@@ -1496,7 +1499,7 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Clover.zip", "Miranda Romance over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
         ]
         for zip_name, prefix, model_rel, df_rel, nm_rel, head_draw in specs:
-            with zipfile.ZipFile(REPO / "dist" / zip_name) as z:
+            with zipfile.ZipFile(dist_path(REPO, zip_name)) as z:
                 mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
                 md_by_hash = {
                     dm.decode_model_data(s.payload)["name_hash"]: s
@@ -1548,7 +1551,7 @@ class TestLasScaffold:
         sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
         import dmodel
 
-        with zipfile.ZipFile(REPO / "dist" / "lawson_las.zip") as z:
+        with zipfile.ZipFile(dist_path(REPO, "lawson_las.zip")) as z:
             m_tpp = dmodel.DieselModel.from_bytes(z.read("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"))
             md_h = m_tpp.by_id[75].obj
             geo_h = m_tpp.by_id[82].obj
@@ -1585,8 +1588,8 @@ class TestLasScaffold:
         import numpy as np
         from PIL import Image
 
-        zp = REPO / "dist" / "Geralt_over_Rust.zip"
-        sp = REPO / "dist" / "Geralt_over_Rust.zip.sha256"
+        zp = dist_path(REPO, "Geralt_over_Rust.zip")
+        sp = dist_path(REPO, "Geralt_over_Rust.zip.sha256")
         assert zp.is_file() and sp.is_file()
         assert sp.read_text().split()[0] == hashlib.sha256(zp.read_bytes()).hexdigest()
 
@@ -1710,7 +1713,7 @@ class TestLasScaffold:
             ("Miranda_L4D2_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
             ("Miranda_Romance_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
         ):
-            zp = REPO / "dist" / zip_name
+            zp = dist_path(REPO, zip_name)
             if not zp.is_file():
                 pytest.skip(f"{zip_name} not built")
             with zipfile.ZipFile(zp) as z:
@@ -1755,7 +1758,7 @@ def test_our_packs_have_an_orthonormal_tangent_basis():
          "assets/units/miranda_busty/skins/miranda_busty/fps_miranda_busty.model"),
     ]
     for zip_name, prefix, model_rel in specs:
-        zp = REPO / "dist" / zip_name
+        zp = dist_path(REPO, zip_name)
         if not zp.is_file():
             pytest.skip(f"{zip_name} not built")
         with zipfile.ZipFile(zp) as z:

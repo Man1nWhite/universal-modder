@@ -6,7 +6,7 @@ difference is a chest-mass morph (`bust_variant.ChestMorph`) applied to the
 authored third-person groups between `build_models.transfer_group` and
 `build_models.assemble_model`. The result is a *separate* LAS pack with its own
 `LegendaryArmours.miranda_busty` id, unit paths and `mod_overrides` folder name,
-so it installs side by side with `dist/Miranda_LAS.zip` instead of replacing it.
+so it installs side by side with `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` instead of replacing it.
 
 Usage (from the repo root):
 
@@ -19,7 +19,7 @@ Usage (from the repo root):
 Outputs:
   build/pd2-las/Miranda_Busty_LAS/         pack folder (installable)
   build/pd2-las/Miranda_Busty_LAS.zip      + .sha256
-  dist/Miranda_Busty_LAS.zip               + .sha256 (when --out is default)
+  dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip               + .sha256 (when --out is default)
   build/pd2-las/busty_variant_report.json  morph parameters + measured gains
   build/pd2-las/previews/busty_*.png       before/after preview sheets
 """
@@ -34,6 +34,9 @@ import shutil
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
 
@@ -115,10 +118,10 @@ def _rasterizer():
 
 
 def _load_base_model_bytes(base_model_path: Path | None) -> bytes:
-    """Read the base Miranda `.model` from disk or `dist/Miranda_LAS.zip`."""
+    """Read the base Miranda `.model` from disk or `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`."""
     if base_model_path is not None and Path(base_model_path).is_file():
         return Path(base_model_path).read_bytes()
-    dist_base = REPO / "dist" / "Miranda_LAS.zip"
+    dist_base = dist_path(REPO, "Miranda_LAS.zip")
     if dist_base.is_file():
         with zipfile.ZipFile(dist_base) as zf:
             return zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
@@ -411,7 +414,7 @@ def build(args) -> int:
     body_after = tpp_groups["body"].verts
     measured = _measure(before["body"], body_after, morph)
     report["measured"] = measured
-    report["reference"] = {"base_pack": "dist/Miranda_LAS.zip",
+    report["reference"] = {"base_pack": "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip",
                            "base_chest": _measure(before["body"], before["body"], morph)}
     print(f"[bust] front reach {measured.get('front_y_max_cm')} cm, "
           f"depth gain {measured.get('depth_gain_cm')} cm")
@@ -454,12 +457,12 @@ def build(args) -> int:
         f"{zip_sha}  {_display_path(zip_path)}\n")
 
     if out_root == DEFAULT_OUT or args.update_dist:
-        dist_dir = REPO / "dist"
+        dist_dir = REPO / "dist" / "Miranda_L4D2"
         dist_dir.mkdir(parents=True, exist_ok=True)
-        dist_zip = dist_dir / zip_path.name
+        dist_zip = dist_path(REPO, zip_path.name)
         shutil.copy2(zip_path, dist_zip)
-        (dist_dir / f"{zip_path.name}.sha256").write_text(
-            f"{zip_sha}  dist/{zip_path.name}\n")
+        dist_zip.with_name(dist_zip.name + ".sha256").write_text(
+            f"{zip_sha}  {dist_zip.relative_to(REPO).as_posix()}\n")
         print(f"dist: {dist_zip} (sha256={zip_sha[:16]}…)")
 
     # --- previews + report -------------------------------------------------

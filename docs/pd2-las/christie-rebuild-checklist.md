@@ -1,7 +1,7 @@
 # Christie rebuild — pre-registered verification checklist (2026-11-14)
 
 Written before the rebuild, so the pass/fail criteria are fixed before the new
-bytes exist. The rebuild this governs: **`dist/Christie_LAS.zip` only**, built
+bytes exist. The rebuild this governs: **`dist/Christie/Christie_LAS.zip` only**, built
 from `references/Christie.zip`. `Christie_LAS_Slim`, the head packs and the
 Miranda packs are out of scope. If a gate turns out to be unmeasurable offline,
 that is recorded in the report as unmeasured — not waived.
@@ -127,7 +127,7 @@ in motion).
 
 - The 12° custom rest pose stays (every tracked byte assumes it).
 - The Slim pack is not rebuilt in this slice.
-- On a gates-pass, the new zip + sidecar **replace** `dist/Christie_LAS.zip`;
+- On a gates-pass, the new zip + sidecar **replace** `dist/Christie/Christie_LAS.zip`;
   `Christie_LAS_Slim.zip` is not touched. *(2026-11-14 outcome: the rebuilt zip is
   byte-identical to the tracked one — `1ec1c95a…` — so `dist/` needed no change;
   the sidecar already matches the rebuilt bytes.)*
@@ -172,7 +172,7 @@ caveat is recorded under G3.
   stays `false`; the in-game steps are in `docs/pd2-las/in-game-checklist.md` ("Christie LAS").
 
 > **Postscript (2026-11-14, later) — workspace re-created at `6f26633` three times; all local
-> commits died each time.** At one point `dist/Christie_LAS.zip` showed the base bytes
+> commits died each time.** At one point `dist/Christie/Christie_LAS.zip` showed the base bytes
 > (`b65fb27e…`) and the `1ec1c95a…` sleeve-bridge build looked unrecoverable. On push, the remote
 > already carried `8dd498b..0383a7a`; the merge of 2026-11-14 restores the bridge build in
 > `dist/` (`Christie_LAS.zip` `1ec1c95a…`, `Christie_LAS_Slim.zip` `ebe44af7…`, sidecars match).

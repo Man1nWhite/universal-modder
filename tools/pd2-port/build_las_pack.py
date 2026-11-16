@@ -22,9 +22,9 @@ workspace: everything is derived from the tracked source archive and the
 tracked rig contract. Nothing here is game-verified.
 
 The shipped port. The values in this file port Miranda Lawson from Mass
-Effect 2: source ``models/PC _ Computer - Mass Effect 2 - Non-Playable
+Effect 2: source ``references/PC _ Computer - Mass Effect 2 - Non-Playable
 Characters - Miranda Lawson (Romance).zip`` (rigged COLLADA + textures),
-``<id>`` = ``lawson``, output ``dist/lawson_las.zip`` with root
+``<id>`` = ``lawson``, output ``dist/Miranda_Romance/Miranda_Romance_LAS.zip`` with root
 ``Lawson_LAS/``. That pack is tracked in git, compared byte for byte in CI
 and published by the ``lawson-las-v*`` release tags, so every literal below
 that reaches the pack is pinned.
@@ -52,7 +52,7 @@ the set of constants and helpers in this file plus the joint map in
 ``README.md`` next to this file has the full checklist.
 
 Usage:
-    python tools/pd2-port/build_las_pack.py            # -> dist/lawson_las.zip
+    python tools/pd2-port/build_las_pack.py            # -> dist/Miranda_Romance/Miranda_Romance_LAS.zip
     python tools/pd2-port/build_las_pack.py --check    # validate only
 
 The build is deterministic: same source + same tool code -> same zip bytes.
@@ -68,6 +68,9 @@ import json
 import sys
 import zipfile
 from pathlib import Path
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -85,9 +88,9 @@ from me2_dae import load_dae  # noqa: E402
 
 # The source archive (a rigged COLLADA file plus its PNG textures), the
 # default output path and the .dae to read inside the archive.
-SOURCE_ZIP = ROOT / "models" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+SOURCE_ZIP = ROOT / "references" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 RIG_JSON = HERE / "reference" / "las_rig.json"
-DEFAULT_OUT = ROOT / "dist" / "lawson_las.zip"
+DEFAULT_OUT = dist_path(ROOT, "lawson_las.zip")
 DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"
 
 # Pack identity: where the units and the menu icon live inside the pack, the

@@ -63,7 +63,9 @@ def _reencode_object3d(p):
     return dm.encode_object3d(obj) + p[obj["tail_off"]:]
 
 
-DIST = REPO / "dist"
+import sys as _dist_sys
+_dist_sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
+from dist_paths import dist_path  # noqa: E402
 SHIPPED_MODELS = [
     (
         "Miranda_L4D2_over_Bonnie.zip",
@@ -86,12 +88,12 @@ class TestShippedHeisterModels:
     `ValueError: unsupported geometry channel 8`, so no shipped pack could be
     verified end to end."""
 
-    @pytest.mark.skipif(not (DIST / SHIPPED_MODELS[0][0]).exists(), reason="dist packs not built")
+    @pytest.mark.skipif(not (dist_path(REPO, SHIPPED_MODELS[0][0])).exists(), reason="dist packs not built")
     @pytest.mark.parametrize("zip_name,prefix,model_rel", SHIPPED_MODELS, ids=["bonnie", "clover"])
     def test_every_geometry_section_round_trips(self, zip_name, prefix, model_rel):
         import zipfile
 
-        with zipfile.ZipFile(DIST / zip_name) as z:
+        with zipfile.ZipFile(dist_path(REPO, zip_name)) as z:
             mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
         geoms = mf.by_type(dm.GEOMETRY)
         assert geoms, "no geometry sections"
@@ -99,12 +101,12 @@ class TestShippedHeisterModels:
             g = dm.decode_geometry(s.payload)
             assert dm.encode_geometry(g) == s.payload, f"geometry section {s.id} does not round-trip"
 
-    @pytest.mark.skipif(not (DIST / SHIPPED_MODELS[0][0]).exists(), reason="dist packs not built")
+    @pytest.mark.skipif(not (dist_path(REPO, SHIPPED_MODELS[0][0])).exists(), reason="dist packs not built")
     def test_second_and_third_uv_sets_decode(self):
         import zipfile
 
         zip_name, prefix, model_rel = SHIPPED_MODELS[0]
-        with zipfile.ZipFile(DIST / zip_name) as z:
+        with zipfile.ZipFile(dist_path(REPO, zip_name)) as z:
             mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
         md_by_hash = {dm.decode_model_data(s.payload)["name_hash"]: s for s in mf.by_type(dm.MODEL_DATA)}
         md = dm.decode_model_data(md_by_hash[dm.hash64("g_armorbag")].payload)
