@@ -5,9 +5,9 @@
     python tools/pd2-las/fresh.py matrix [--configs a,b,...] [--builders x,y] [--trace all]
 
 check   builds the packs that have a builder (the Miranda packs, lawson_las and the
-        eleven head packs) in build/fresh/tree and compares each of the 22 tracked
+        eleven head packs) in build/fresh/tree and compares each of the 21 tracked
         zips with its tracked .sha256, using `sha256sum -c`. Christie_LAS is
-        rebuilt from source; Christie_LAS_Slim is compared as a tracked copy.
+        rebuilt from source.
         No tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
         one is not; what differs inside it is listed member by member.
 matrix  the same build under other numeric code paths (CONFIGS), two at a time,

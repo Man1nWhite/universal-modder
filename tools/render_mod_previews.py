@@ -19,9 +19,8 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `13_Miranda_Busty_vs_LAS_chest.png` (before/after chest close-up)
   - `14_Miranda_Busty_vs_LAS_top_below.png` (overhead/underside chest comparison)
   - `15_Christie_LAS.png` (DOA5 Christie body-only LAS outfit)
-  - `16_Christie_LAS_Slim.png` (DOA5 Christie Slim body-only LAS outfit)
   - `17_Honoko2.png` (DOAXVV Honoka Secret Report body-only LAS outfit, built from `.dae`)
-  - `18_all_dist_mods_overview.png` (6x4 grid of all 20 packs in `dist/`)
+  - `18_all_dist_mods_overview.png` (6x4 grid of all 19 packs in `dist/`)
   - `19_Miranda_L4D2_over_Hila.png`
   - `20_Miranda_Romance_over_Hila.png`
   - `21_Honoko3.png` (the same outfit 5% slimmer, scaled about the rig's bones)
@@ -793,7 +792,6 @@ UNIFIED_PATHS = {
     "13_Miranda_Busty_vs_LAS_chest.png": "miranda/model/busty/miranda_busty_vs_las_chest_before-after.png",
     "14_Miranda_Busty_vs_LAS_top_below.png": "miranda/model/busty/miranda_busty_vs_las_top_below_before-after.png",
     "15_Christie_LAS.png": "christie/model/base/christie_las_sheet.png",
-    "16_Christie_LAS_Slim.png": "christie/model/slim/christie_las_slim_sheet.png",
     "17_Honoko2.png": "honoka/model/dae/honoko2_las_sheet.png",
     "18_all_dist_mods_overview.png": "overview/model/all_dist_mods_sheet.png",
     "19_Miranda_L4D2_over_Hila.png": "miranda/model/over-hila/miranda_l4d2_over_hila_sheet.png",
@@ -873,19 +871,6 @@ def main(argv: list[str] | None = None) -> None:
         fps_chr,
         icon_chr,
         target_for("15_Christie_LAS.png"),
-        has_head=False,
-    )
-
-    tpp_chr_slim, fps_chr_slim, icon_chr_slim = load_multi_mat_las_parts(
-        dist_path(ROOT, "Christie_LAS_Slim.zip"), "Christie_LAS_Slim", "christie_slim", has_fps=True
-    )
-    th_chr_slim = render_las_sheet(
-        "dist/Christie/Christie_LAS_Slim.zip — Body-Only LAS Outfit, Slim Variant (DOA5 Christie)",
-        "Slim-variant headless body-only LAS outfit + first-person arms + glove adapter | Source: DOA5 Christie",
-        tpp_chr_slim,
-        fps_chr_slim,
-        icon_chr_slim,
-        target_for("16_Christie_LAS_Slim.png"),
         has_head=False,
     )
 
@@ -1219,13 +1204,12 @@ def main(argv: list[str] | None = None) -> None:
     overview.save(ov_path)
     print(f"Saved {ov_path}")
 
-    # Build complete dist/ overview grid (6 columns x 4 rows = all 20 dist/*.zip packages)
+    # Build complete dist/ overview grid (6 columns x 4 rows = all 19 dist/*.zip packages)
     all_dist_cells = [
         *[thumbs[i] for i in l4d2_indices],
         *[thumbs[i] for i in rom_indices],
         ("Miranda_L4D2_Busty_LAS.zip", th_bus),
         ("Christie_LAS.zip", th_chr),
-        ("Christie_LAS_Slim.zip", th_chr_slim),
         ("Honoko2.zip", th_hon2),
         ("Honoko3.zip", th_hon3),
         ("Honoko4.zip", th_hon4),
@@ -1235,8 +1219,8 @@ def main(argv: list[str] | None = None) -> None:
     dist_overview = Image.new("RGB", (tw * 6, th_h * 4 + 58), (16, 19, 26))
     add_header_and_badges(
         dist_overview,
-        "PAYDAY 2 — All 20 Mod Packages in dist/ (Complete Overview)",
-        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Slim, Honoko2-5, Geralt",
+        "PAYDAY 2 — All 19 Mod Packages in dist/ (Complete Overview)",
+        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Honoko2-5, Geralt",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

@@ -19,9 +19,12 @@ pack is installed and what the pipelines share.
 - Browse the ZIPs and their checksum sidecars in [`dist/`](dist/): [Miranda L4D2](dist/Miranda_L4D2/),
   [Miranda Romance](dist/Miranda_Romance/), [Christie](dist/Christie/),
   [Honoka](dist/Honoka/), and [Geralt](dist/Geralt/).
-- See [all packs](docs/renders/overview/model/all_dist_mods_sheet.png), the
+- See the user-supplied [Christie](docs/renders/christie/in-game/2026-11-15/README.md) and
+  [Honoko5](docs/renders/honoka/in-game/honoko5/2026-11-15/README.md) screenshots,
+  [all packs](docs/renders/overview/model/all_dist_mods_sheet.png), the
   [Honoko5 and Miranda Romance combination](docs/renders/honoka/model/dae/honoko5_with_miranda_romance_over_hila_sheet.png),
-  or the [render index](docs/renders/README.md). These are offline previews, not proof of in-game behavior.
+  or the [render index](docs/renders/README.md). Software renders are not proof of in-game behavior;
+  screenshots do not establish the installed pack hashes.
 - Sources and templates are catalogued in [`references/README.md`](references/README.md). The
   [handoff](docs/pd2-las/HANDOFF.md) distinguishes in-game observations from offline results.
 

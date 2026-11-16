@@ -95,19 +95,15 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     assert sorted(short) == sidecars and len(sidecars) >= 14
     for name, pack in full.items():
         assert pack["make"] == status.target(name), name
-        if name != "Christie_LAS_Slim":
-            # Only the old Christie Slim pack has no rebuild path.
-            assert pack["make"], f"{name}: no make target rebuilds it"
-        else:
-            assert pack["make"] is None, f"{name}: make must stay null"
+        assert pack["make"], f"{name}: no make target rebuilds it"
         if pack["is"] == "missing":
             continue    # dist/ can be absent from a sandbox snapshot; test_dist_checksums owns that case
         path = dist_path(REPO, f"{name}.zip")
         assert pack["is"] in {"tracked", "changed", "ok"}, f"{name}: the zip is not its .sha256"
         assert pack["sha256"] == (dist_path(REPO, f"{name}.zip.sha256")).read_text().split()[0], name
         assert short[name]["sha256"] == pack["sha256"][:12] and pack["bytes"] == path.stat().st_size, name
-    one = status.collect(only=["Christie_LAS_Slim"])
-    assert list(one["packs"]) == ["Christie_LAS_Slim"]
+    one = status.collect(only=["Christie_LAS"])
+    assert list(one["packs"]) == ["Christie_LAS"]
     # `note` is there while a pack is `changed`; never the environment, which `only` leaves out
     assert list(one)[0] == "packs" and list(one)[-1] == "next" and set(one) <= {"packs", "note", "next"}, list(one)
 
@@ -122,7 +118,7 @@ def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch)
     if not (REPO / ".git").exists() or not shutil.which("git"):
         pytest.skip("needs the git checkout")
     status = _load()
-    name = "Christie_LAS_Slim"
+    name = "Christie_LAS"
     clone = tmp_path / "clone"
     subprocess.run(["git", "worktree", "add", "--detach", str(clone), "HEAD"], cwd=REPO, check=True, capture_output=True)
     try:

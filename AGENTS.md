@@ -1,7 +1,7 @@
 # universal-modder
 
 A game-modding toolkit and knowledge base for AI coding agents, forked from `rehan-remade/universal-modder`.
-The work in this fork is PAYDAY 2: 20 tracked packs in `dist/`, built by three pipelines under `tools/`.
+The work in this fork is PAYDAY 2: 19 tracked packs in `dist/`, built by three pipelines under `tools/`.
 
 ## PAYDAY 2 packs: one command per question
 

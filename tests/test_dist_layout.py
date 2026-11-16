@@ -19,7 +19,9 @@ def test_character_folders_and_renamed_las_packages():
         with zipfile.ZipFile(archive) as z:
             assert z.namelist() and all(n.startswith(internal) for n in z.namelist())
         assert archive.with_name(name + '.sha256').is_file()
-    assert len(list(dist.rglob('*.zip'))) == 20
+    assert len(list(dist.rglob('*.zip'))) == 19
+    assert not (dist / 'Christie' / 'Christie_LAS_Slim.zip').exists()
+    assert not (dist / 'Christie' / 'Christie_LAS_Slim.zip.sha256').exists()
     assert not list(dist.glob('*.zip'))
 
 

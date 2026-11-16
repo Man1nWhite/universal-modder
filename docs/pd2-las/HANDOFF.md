@@ -13,10 +13,10 @@ are also tracked, byte for byte, under `build/pd2-las/`.
 
 Rebuildable packs use fixed timestamps and a declared numeric code path. The new
 `Christie_LAS.zip` is a source rebuild with head and hands removed and a glove
-adapter; it replaces the earlier `1ec1c95a…` full pack. Its new bytes have
-not been seen in game. The older `Christie_LAS_Slim.zip` is unchanged and
-has no builder in this checkout. Earlier Christie audit results describe the
-older bytes, not the new pack.
+adapter; it replaces the earlier `1ec1c95a…` full pack. New user-supplied
+menu captures show the Christie outfit, but the installed bytes were not hash-verified.
+The older `Christie_LAS_Slim.zip` was removed from distribution at the user’s request;
+earlier Christie audit results describe older bytes, not the new pack.
 
 The DOAXVV "Secret Report" outfit is the `Honoko2` pack, built from the Collada `.dae` by `build_honoko2_dae.py`.
 It is one of the packs CI rebuilds, so it is verified byte for byte like the rest. The earlier TMC-only build of the
@@ -31,8 +31,7 @@ shirt, `references/Honoka/Tex_07(L_7) 2.dds`), and `Honoko3`/`Honoko4` carry the
 the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
 `Honoko5` is the same geometry in the user's revised third colourway (black jacket, light shirt,
 `references/Honoka/Tex_07(L_7)3.dds`, D45). `make -sC tools/pd2-las honokodae` writes all four zips in
-one run and CI verifies all four. Only `Honoko2` has
-been in game.
+one run and CI verifies all four. User-supplied captures also show `Honoko5`.
 
 ## Seen in game
 
@@ -52,9 +51,13 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
 | `Honoko4` | no record | — (`Honoko3` in the alternate suit colourway, D44; the close-ups that drove D44 were of `Honoko3`, not of this pack) |
-| `Honoko5` | no record | — (`Honoko3` in the third suit colourway, D45) |
-| `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | no — that was the prior full pack with authored hands, not the new rebuild |
-| `Christie_LAS_Slim` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — Slim with the white LAS gloves spawned; installed hashes not measured |
+| `Honoko5` | 2026-11-15, user-supplied menu/lobby captures | User identifies the pack; installed hash not measured |
+| `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
+| `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
+
+New [Christie](../renders/christie/in-game/2026-11-15/README.md) and
+[Honoko5](../renders/honoka/in-game/honoko5/2026-11-15/README.md) menu/lobby captures
+are archived separately; they do not establish installed hashes, first-person behavior or animation.
 
 Eight captures of `Honoko2` on 2026-11-15 (the outfit menu, not a heist) are archived under
 [`docs/renders/honoka/in-game/2026-11-15/`](../renders/honoka/in-game/2026-11-15/README.md): the purple

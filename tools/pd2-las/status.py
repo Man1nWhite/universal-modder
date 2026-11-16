@@ -66,7 +66,7 @@ INPUTS = (
 
 #: tracked pack (dist/<name>.zip) -> the make target that rebuilds it. The Makefile
 #: is where a target's command is written; a head pack is any `<who>_over_<heister>`.
-#: Christie_LAS is built from source; the older Slim pack is tracked only.
+#: Christie_LAS is built from source.
 TARGETS = {
     "Miranda_L4D2_LAS": "build",
     "Miranda_L4D2_Busty_LAS": "busty",

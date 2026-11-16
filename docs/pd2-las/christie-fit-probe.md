@@ -6,7 +6,7 @@ first-person models, no head drawables, and no authored hands or bare wrist
 skin at the cuff. LAS uses `replace_body`, not `replace_all`, and the included
 glove adapter is intended to restore the heister's default/changeable gloves.
 The heister's head and gloves are supplied by the game or other mods.
-`Christie_LAS_Slim.zip` was not changed. To install the new base outfit, extract
+`Christie_LAS_Slim.zip` was later removed from distribution at the user’s request. To install the new base outfit, extract
 its `Christie_LAS` folder to `PAYDAY 2/assets/mod_overrides/` with SuperBLT,
 BeardLib and Legendary Armour Skins installed. Remove an older `Christie_LAS`
 folder first so the files do not mix; keep any backup outside that directory.

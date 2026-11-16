@@ -61,7 +61,7 @@ def _status():
 #: Written out so that collecting this file opens no archive; the registration test
 #: holds it to each pack's BUILD_INFO.json and to the list `status.py` reports on.
 ITEMS = {"Miranda_LAS": "miranda", "Miranda_Busty_LAS": "miranda_busty",
-         "Christie_LAS": "christie", "Christie_LAS_Slim": "christie_slim"}
+         "Christie_LAS": "christie"}
 PACKS = tuple(ITEMS)
 RESTORE = "a tracked pack is missing; restore it with `git checkout -- dist build`"
 
@@ -745,9 +745,8 @@ def test_registration_follows_the_2b_contract(pack):
     says `Hooks` where its folder is `hooks`, which is one of the defects not to
     copy. `BUILD_INFO.json` says the same as the files.
     """
-    # the tracked LAS packs in dist/ (the two Christie packs are tracked but their builder
-    # is deleted; they are still verified here, from the tracked bytes)
-    las = {"Miranda_LAS", "Miranda_Busty_LAS", "Christie_LAS", "Christie_LAS_Slim"}
+    # The tracked LAS packs in dist/.
+    las = {"Miranda_LAS", "Miranda_Busty_LAS", "Christie_LAS"}
     assert set(ITEMS) == las, "this file no longer covers every tracked LAS pack"
     z = _zip(pack)
     files = {n[len(pack) + 1:] for n in z.namelist() if not n.endswith("/")}

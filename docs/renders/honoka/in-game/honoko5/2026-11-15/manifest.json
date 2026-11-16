@@ -1,0 +1,39 @@
+{
+  "supplied_on": "2026-11-15",
+  "pack_identification": "User-supplied identification; installed bytes not hash-verified.",
+  "screenshots": [
+    {
+      "upload": "image-15.png",
+      "file": "honoko5_menu_front.png",
+      "pack": "Honoko5",
+      "view": "outfit menu, front",
+      "width": 554,
+      "height": 1018,
+      "bytes": 933637,
+      "sha256": "7368090f226076f2d46b709f7bc7d7e8e7e9e921feced3bc233548a603e90eab",
+      "note": "User-supplied original PNG; installed archive hash not independently measured."
+    },
+    {
+      "upload": "image-16.png",
+      "file": "honoko5_menu_side.png",
+      "pack": "Honoko5",
+      "view": "outfit menu, side",
+      "width": 529,
+      "height": 1014,
+      "bytes": 918633,
+      "sha256": "f8c8e3349a34f848bf2a993658e1a98a0c4c6a489104070781d86596b4a11b7a",
+      "note": "User-supplied original PNG; installed archive hash not independently measured."
+    },
+    {
+      "upload": "image-17.png",
+      "file": "honoko5_lobby_threequarter.png",
+      "pack": "Honoko5",
+      "view": "menu/lobby, upper body with rifle",
+      "width": 547,
+      "height": 1062,
+      "bytes": 743687,
+      "sha256": "5aa093c15ae57c34b0e4df816464f0a83d35196543f69dbffa6b7f6651076e94",
+      "note": "User-supplied original PNG; installed archive hash not independently measured."
+    }
+  ]
+}
