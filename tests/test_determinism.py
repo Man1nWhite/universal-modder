@@ -248,4 +248,4 @@ def test_two_traces_are_compared_by_function(tmp_path):
     lines = fresh.compare_traces(tmp_path / "one.log", tmp_path / "other.log")
     assert lines[0].startswith("first value that differs: return of a.f#1 (float64 only)")
     assert lines[1:] == ["exact: return of a.g#1"]
-    assert len(fresh.tracked_zips()) == 22 and list(fresh.BUILDERS) == ["miranda", "busty", "lawson", "heads", "honokodae"]
+    assert len(fresh.tracked_zips()) == 22 and list(fresh.BUILDERS) == ["miranda", "busty", "lawson", "heads", "honokodae", "christie"]

@@ -95,9 +95,8 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     assert sorted(short) == sidecars and len(sidecars) >= 14
     for name, pack in full.items():
         assert pack["make"] == status.target(name), name
-        if name not in {"Christie_LAS", "Christie_LAS_Slim"}:
-            # the two Christie packs are tracked but have no rebuild path: their builder was
-            # deleted on 2026-11-14, so `make` is null for them by design
+        if name != "Christie_LAS_Slim":
+            # Only the old Christie Slim pack has no rebuild path.
             assert pack["make"], f"{name}: no make target rebuilds it"
         else:
             assert pack["make"] is None, f"{name}: make must stay null"
@@ -250,7 +249,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     for script in re.findall(r"(?<![\w/)])(tools/[\w./-]+\.py)", makefile):
         assert (REPO / script).is_file(), script
 
-    # one build target per builder, and they are the builders `fresh` runs: eighteen of the 20 packs, the two Christie packs excepted
+    # one build target per builder, and they are the builders `fresh` runs: Slim remains tracked-only
     sys.path.insert(0, str(HERE))
     fresh = pytest.importorskip("fresh", reason="fresh.py imports numpy")
     built = {name: command.replace("$(HERE)", "tools/pd2-las")

@@ -6,9 +6,8 @@
 
 check   builds the packs that have a builder (the Miranda packs, lawson_las and the
         eleven head packs) in build/fresh/tree and compares each of the 22 tracked
-        zips with its tracked .sha256, using `sha256sum -c`. The two Christie packs
-        are compared as the tracked copies: their builder was deleted on
-        2026-11-14, so they cannot be rebuilt and the comparison pins the sidecars.
+        zips with its tracked .sha256, using `sha256sum -c`. Christie_LAS is
+        rebuilt from source; Christie_LAS_Slim is compared as a tracked copy.
         No tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
         one is not; what differs inside it is listed member by member.
 matrix  the same build under other numeric code paths (CONFIGS), two at a time,
@@ -43,14 +42,14 @@ import trace_run  # noqa: E402
 
 #: What builds the rebuildable tracked packs, in the order they depend on each other: the
 #: busty pack reuses what the Miranda build unpacked, and the head packs take
-#: their face from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip. The two Christie packs are not rebuildable:
-#: their builder was deleted on 2026-11-14.
+#: their face from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip. The older Christie Slim pack is tracked only.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
     "busty": ["tools/pd2-las/build_busty_variant.py"],
     "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
+    "christie": ["tools/pd2-las/build_christie_source.py"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"

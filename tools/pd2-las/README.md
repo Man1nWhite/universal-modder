@@ -9,14 +9,13 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | --- | --- | --- | --- |
 | `Miranda_L4D2_LAS` — full body and first-person arms | `references/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
+| `Christie_LAS` — no head or hands; glove adapter, TPP and FPS | `references/Christie.zip` | `build_christie_source.py` | `christie` |
 | `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
 `honokodae` writes `dist/Honoka/Honoko2.zip` through `dist/Honoka/Honoko5.zip` directly, and `fresh` verifies all
-four. `Honoko3`, `Honoko4` and `Honoko5` share the layer-clearance pass and trimmed shadow caster of D44;
-`Honoko4` and `Honoko5` use the two user-supplied alternative suit diffuses.
+four. `Honoko3`–`Honoko5` share the layer-clearance pass and trimmed shadow caster; `Honoko4` and `Honoko5` use alternative suit diffuses.
 The `.dae` builder takes its skinning from the source TMC (`tmc.py`, `tmc_skeleton_map.json`), cuts wrists, encodes DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and registers BODY_ONLY with glove adapter and 4-view icon.
-`runtime_verified` is `false`; `Honoko2` was seen in the in-game outfit menu (`docs/pd2-las/HANDOFF.md`). See `docs/pd2-las/honoka-tmc-format.md`.
-
+`runtime_verified` is `false`; the new Christie needs in-game cuff and elbow checks. `Honoko2` was seen in-game (`docs/pd2-las/HANDOFF.md`; `docs/pd2-las/honoka-tmc-format.md`).
 ## Status
 
 Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every
@@ -32,7 +31,7 @@ Honoko2..Honoko5 outfit packs into `dist/` from one Collada input.
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | honokodae | heads | all; prints the state of the packs it wrote
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | christie | heads | all; prints the state of the packs it wrote
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -58,6 +57,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_busty_variant.py`, `bust_variant.py` | the chest-morph variant |
 | `build_honoko2_dae.py`, `tmc_las.py` | the Honoko2..Honoko5 (DOAXVV "Secret Report") LAS packs, built from the Collada `.dae` with the TMC's skinning: palette remap, wrist cut, DXT5 textures, BODY_ONLY registration + glove adapter, icon from own render; `Honoko3` adds the bone-anchored slim pass (`_slim_groups`); `Honoko3`/`Honoko4`/`Honoko5` add the layer-clearance pass and the trimmed shadow caster (`_clearance_pass`, D44); `Honoko4`/`Honoko5` swap the suit diffuse for the user's `Tex_07(L_7) 2.dds` / `Tex_07(L_7)3.dds`; `tmc_las.py` holds the TMC frame map and mesh post-processes |
+| `build_christie_source.py`, `christie_fit_probe.py` | Christie source retarget, wrist cuts and TPP/FPS pack; Slim is unchanged |
 | `las_outfit_pack.py` | the registration, hook, localization, unit/object XML, zip and the glove-adapter companion shared by body-only LAS packs |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |

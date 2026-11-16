@@ -1,5 +1,7 @@
 # Christie rebuild — pre-registered verification checklist (2026-11-14)
 
+> Historical checklist for the previous full-hands bytes; it does not verify the new headless, handless source build. See `christie-fit-probe.md`.
+
 Written before the rebuild, so the pass/fail criteria are fixed before the new
 bytes exist. The rebuild this governs: **`dist/Christie/Christie_LAS.zip` only**, built
 from `references/Christie.zip`. `Christie_LAS_Slim`, the head packs and the

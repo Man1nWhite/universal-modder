@@ -868,7 +868,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     th_chr = render_las_sheet(
         "dist/Christie/Christie_LAS.zip — Body-Only LAS Outfit (DOA5 Christie)",
-        "Legendary Armour Skins (LAS) headless body-only outfit + first-person arms | Source: DOA5 Christie",
+        "Headless, handless outfit + first-person sleeves + glove adapter | Source: DOA5 Christie",
         tpp_chr,
         fps_chr,
         icon_chr,

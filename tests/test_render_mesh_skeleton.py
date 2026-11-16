@@ -71,13 +71,8 @@ def _joints(tpl, worlds):
 
 
 def _authoring_worlds(rms, tpl):
-    """The base pack's encoded 12-degree arm rest plus ordinary body worlds."""
-    pose = {f"{side}Arm": (2, 22) for side in ("Left", "Right")}
-    pose.update({f"{side}ForeArm": (rms.BEND_AXIS, -60)
-                 for side in ("Left", "Right")})
-    pose.update({f"{side}Hand": (rms.BEND_AXIS, -8)
-                 for side in ("Left", "Right")})
-    return rms.posed_worlds(tpl, pose)
+    """The rebuilt Christie body is authored in the template bind pose."""
+    return rms.posed_worlds(tpl, {})
 
 
 def test_authoring_rest_round_trips():

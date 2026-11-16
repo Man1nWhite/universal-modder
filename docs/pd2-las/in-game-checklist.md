@@ -123,14 +123,11 @@ Pack to install: `dist/Christie/Christie_LAS.zip` → drop `Christie_LAS` into
 `PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS, same as the 2B reference). It is a
 headless LAS outfit (`replace_body`, not `replace_all`): the heister keeps their own head.
 
-> **Know which bytes you are installing.** `dist/Christie/Christie_LAS.zip` is the 2026-11-13/14
-> sleeve-bridge build, sha256 `1ec1c95a…`, with its `.sha256` sidecar matching (as of the
-> branch state of 2026-11-14). This is **not** the base-commit bytes and not the from-scratch
-> rebuilt base (`b65fb27e…`); the from-scratch build passed every offline gate on this date
-> (`docs/audits/2026-11-14-christie-from-scratch.md`) but its bytes are the **pre-bridge** pack.
-> See `docs/audits/2026-11-14-christie-rebuild-redo.md` for the bridge-era verification record.
-> `runtime_verified` is `false`; only this list settles it. Write down resolution, FOV,
-> texture quality and anisotropic filter first.
+The current base ZIP is the new source rebuild with no head or authored hands;
+check its `.sha256` sidecar to identify the installed bytes. The user-reported
+menu preview above was of the older hand-bearing pack and does not verify this
+one. `runtime_verified` remains `false`. Write down resolution, FOV, texture
+quality and anisotropic filter first.
 
 1. **It loads** — menu outfits list "Christie (DOA5)"; the preview shows the body (open neck by
    design). A crash or a script error fails this item.
@@ -140,10 +137,9 @@ headless LAS outfit (`replace_body`, not `replace_all`): the heister keeps their
    crash.
 4. **The inner elbow, rifle vs no rifle** — the same heister, pose, camera and lighting: (a) arms
    down (idle), (b) rifle shouldered. In (b) look at the inside of the elbow from the off side.
-   Fail: a hard flat edge or a bright flap that was not there in (a). This is the offline-open
-   defect; the offline render shows a sliver there that is consistent with the authored crease.
-   If it shows, say so with a screenshot — the recorded fix direction is a targeted normal repair
-   on the crease strip, not another geometry pass.
+   Fail: a hard flat edge or a bright flap that was not there in (a). The earlier build had a
+   reported elbow issue; the new build has not been tested in-game. If it shows, capture both
+   views and the installed hash before deciding on a repair.
 5. **The throat, head on vs head off** — equip Christie, then equip the vanilla heister, same
    spot, same light. Fail: a band across the throat only with Christie on. (The pack ships no
    head; offline work cannot assign this between the body and the head rim.)

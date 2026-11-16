@@ -10,7 +10,7 @@ The work in this fork is PAYDAY 2: 20 tracked packs in `dist/`, built by three p
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
 | State of the 19 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build` (Miranda_LAS), `busty`, `lawson` (lawson_las), `honokodae` (Honoko2..Honoko5), `heads` (the eleven `*_over_*` packs); the two Christie packs are tracked but cannot be rebuilt — their builder was deleted. On 2026-11-14 a from-scratch build with the pre-bridge builder (recovered from `6f26633`) reproduced the **base** bytes (`b65fb27e…` / `9da90dd3…`), not the tracked sleeve-bridge `dist/Christie/Christie_LAS.zip` (`1ec1c95a…`) |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `christie`, or `heads`; the older Christie Slim ZIP remains tracked-only |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |

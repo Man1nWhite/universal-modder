@@ -66,12 +66,12 @@ INPUTS = (
 
 #: tracked pack (dist/<name>.zip) -> the make target that rebuilds it. The Makefile
 #: is where a target's command is written; a head pack is any `<who>_over_<heister>`.
-#: The two Christie packs are tracked but are not rebuilt: their builder was deleted
-#: on 2026-11-14, so they have no target and `make` is null for them.
+#: Christie_LAS is built from source; the older Slim pack is tracked only.
 TARGETS = {
     "Miranda_L4D2_LAS": "build",
     "Miranda_L4D2_Busty_LAS": "busty",
     "Miranda_Romance_LAS": "lawson",
+    "Christie_LAS": "christie",
     "Honoko2": "honokodae",
     "Honoko3": "honokodae",
     "Honoko4": "honokodae",

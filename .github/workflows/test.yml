@@ -64,9 +64,9 @@ jobs:
       - name: every tracked pack must equal a fresh build, byte for byte
         # The rebuildable packs are built again in a copy of the checkout, on
         # this runner, and each of the 22 tracked zips is compared with its
-        # tracked .sha256 by sha256sum -c (the two Christie packs cannot be
-        # rebuilt: their builder was deleted on 2026-11-14, so they are compared
-        # as the tracked copies). No tolerance. `env` makes the pinned .venv
+        # tracked .sha256 by sha256sum -c (the Christie Slim pack cannot be
+        # rebuilt: its builder was deleted in 2026, so it is compared
+        # as a tracked copy). No tolerance. `env` makes the pinned .venv
         # and unpacks the 2B templates first (node and npm, for node-unrar-js).
         # The builders put themselves on the declared code path
         # (tools/pd2-las/determinism.py), which is why a runner with AVX-512 and

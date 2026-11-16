@@ -11,16 +11,12 @@ Which bytes are tracked is not written here. `make -sC tools/pd2-las status` pri
 and whether the zip is what git holds; `dist/<name>.zip.sha256` is the hash itself. The two Miranda LAS packs
 are also tracked, byte for byte, under `build/pd2-las/`.
 
-Every pack that can be rebuilt reproduces its tracked bytes in the pinned environment on any x86-64 Linux
-machine: each builder writes one fixed timestamp into every zip entry and puts itself on one declared numeric
-code path before it computes anything, so a `.sha256` sidecar is a true build hash. CI builds the rebuildable
-packs on its runner and holds the 18 zips to their tracked hashes, with no tolerance, on runners with AVX-512
-and without. The two Christie packs cannot be rebuilt (their builder was deleted on 2026-11-14); their
-sidecars still hold against the tracked zips. The tracked `Christie_LAS.zip` is the 2026-11-13/14 sleeve-bridge
-build (`1ec1c95a…`, see `docs/audits/2026-11-14-christie-rebuild-redo.md`); on 2026-11-14 the pre-bridge builder
-(recovered from `6f26633`) was used for a from-scratch build, which reproduces the **base** bytes (`b65fb27e…`),
-not the tracked bridge bytes — it passed all offline gates (`docs/audits/2026-11-14-christie-from-scratch.md`).
-In game for the first time on 2026-11-15 (menu preview; see *Seen in game* below).
+Rebuildable packs use fixed timestamps and a declared numeric code path. The new
+`Christie_LAS.zip` is a source rebuild with head and hands removed and a glove
+adapter; it replaces the earlier `1ec1c95a…` full pack. Its new bytes have
+not been seen in game. The older `Christie_LAS_Slim.zip` is unchanged and
+has no builder in this checkout. Earlier Christie audit results describe the
+older bytes, not the new pack.
 
 The DOAXVV "Secret Report" outfit is the `Honoko2` pack, built from the Collada `.dae` by `build_honoko2_dae.py`.
 It is one of the packs CI rebuilds, so it is verified byte for byte like the rest. The earlier TMC-only build of the
@@ -57,7 +53,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
 | `Honoko4` | no record | — (`Honoko3` in the alternate suit colourway, D44; the close-ups that drove D44 were of `Honoko3`, not of this pack) |
 | `Honoko5` | no record | — (`Honoko3` in the third suit colourway, D45) |
-| `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — the full pack with Christie's own hands; installed hashes not measured |
+| `Christie_LAS` | 2026-11-15, menu armor-skin preview, user report | no — that was the prior full pack with authored hands, not the new rebuild |
 | `Christie_LAS_Slim` | 2026-11-15, menu armor-skin preview, user report | yes (user identification) — Slim with the white LAS gloves spawned; installed hashes not measured |
 
 Eight captures of `Honoko2` on 2026-11-15 (the outfit menu, not a heist) are archived under
