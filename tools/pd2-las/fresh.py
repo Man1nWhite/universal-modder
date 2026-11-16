@@ -77,9 +77,21 @@ class BuildFailed(Exception):
 
 
 def tracked_zips() -> list[str]:
-    """The 22 tracked zips, as paths from the repository root: every one that has a .sha256 beside it."""
-    sidecars = sorted(REPO.glob("dist/*/*.zip.sha256")) + sorted(REPO.glob("build/pd2-las/*.zip.sha256"))
-    return [str(path.relative_to(REPO))[: -len(".sha256")] for path in sidecars]
+    """Enumerate ZIPs independently of sidecars, and fail on incomplete coverage."""
+    listing = subprocess.run(
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "dist", "build/pd2-las"],
+        cwd=REPO, capture_output=True, check=True,
+    ).stdout
+    paths = {os.fsdecode(raw) for raw in listing.split(b"\0") if raw}
+    zips = sorted(p for p in paths if p.endswith(".zip"))
+    sidecars = {p for p in paths if p.endswith(".zip.sha256")}
+    if not zips:
+        raise SystemExit("no tracked ZIPs found")
+    missing = [p for p in zips if not (REPO / p).is_file() or not (REPO / (p + ".sha256")).is_file()]
+    orphan = sorted(p for p in sidecars if p[:-len(".sha256")] not in zips)
+    if missing or orphan:
+        raise SystemExit("incomplete ZIP/checksum inventory: " + ", ".join(missing + orphan))
+    return zips
 
 
 def copy_tree(tree: Path) -> None:
@@ -231,6 +243,7 @@ def note(title: str, text: str, level: str = "notice") -> None:
 
 def check(args) -> int:
     names = args.builders.split(",") if args.builders else list(BUILDERS)
+    zips = tracked_zips()  # fail before the expensive build if any ZIP or sidecar is missing
     tree = REPO / "build" / "fresh" / "tree"
     print(f"machine: {machine()}", flush=True)
     note("runner", machine())
@@ -248,7 +261,6 @@ def check(args) -> int:
         print(text)
         note("fresh build", text, "error")
         return 2
-    zips = tracked_zips()
     different = [rel for rel in zips if not same_as_tracked(tree, rel)]
     for rel in zips:
         print(("DIFFERENT  " if rel in different else "same       ") + rel)

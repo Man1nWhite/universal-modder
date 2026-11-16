@@ -25,6 +25,13 @@ def test_dist_has_checksum_files():
     assert _checksum_files(), "no dist/*.zip.sha256 files found"
 
 
+def test_every_dist_zip_has_its_own_sidecar():
+    zips = sorted(DIST.rglob("*.zip"))
+    assert zips, "no dist ZIPs found"
+    missing = [str(p.relative_to(REPO)) for p in zips if not Path(str(p) + ".sha256").is_file()]
+    assert not missing, f"ZIPs missing checksum sidecars: {missing}"
+
+
 @pytest.mark.parametrize("sha_file", _checksum_files(),
                          ids=lambda p: p.name)
 def test_published_zip_matches_its_checksum(sha_file: Path):
@@ -35,6 +42,7 @@ def test_published_zip_matches_its_checksum(sha_file: Path):
     if not target.exists():                       # bare-filename convention
         target = sha_file.parent / Path(name).name
     assert target.exists(), f"{sha_file.name} points at missing {name}"
+    assert target.resolve() == Path(str(sha_file)[:-len(".sha256")]).resolve(), f"{sha_file.name} points at another ZIP"
     assert target.stat().st_size > 1024, f"{target.name} is not a real pack"
     assert hashlib.sha256(target.read_bytes()).hexdigest() == digest, (
         f"{sha_file.name} is stale — regenerate it from {target.name}")

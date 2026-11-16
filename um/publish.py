@@ -103,11 +103,13 @@ def check(mod: str, game: str | None = None) -> int:
                     break
     for f in files:
         rel = f.relative_to(root).as_posix()        # same report on every OS (Windows would print src\Mod.cs)
-        if f.name == ".env" or f.name.endswith(".env"):
+        name = f.name.lower()
+        is_dotenv = name == ".env" or name.startswith(".env.") or name.endswith(".env") or ".env." in name
+        if is_dotenv:
             fails.append(f"env file (secrets?): {rel}")
         if f.suffix.lower() in ARCHIVE_EXT and f.stat().st_size > 5 << 20:
             warns.append(f"large engine archive ({f.stat().st_size >> 20} MB): {rel} - make sure it holds only your own assets")
-        if f.suffix.lower() in TEXT_EXT or f.name in (".env",):
+        if f.suffix.lower() in TEXT_EXT or is_dotenv:
             try:
                 txt = f.read_text(errors="replace")
             except OSError:

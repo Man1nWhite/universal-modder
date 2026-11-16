@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 uv.lock
 .env
+.env.*
+*.env
+*.env.*
 # intermediate build outputs (extracted VPKs, textures, previews, unpacked trees)
 build/*
 !build/pd2-las/

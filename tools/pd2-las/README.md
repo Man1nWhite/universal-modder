@@ -24,6 +24,7 @@ tracked pack of the three pipelines (size, sha256, `make` target, whether the zi
 
 ## Commands
 
+The general CLI supports Python 3.10+; the pinned PAYDAY 2 build needs **Python 3.11+** (CI uses 3.11). `env` checks the interpreter; recreate an older `.venv` with Python 3.11+ first.
 From the repo root; `make -sC tools/pd2-las` alone lists every target. They cover all three pipelines: `lawson`
 and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`; `honokodae` builds the
 Honoko2..Honoko5 outfit packs into `dist/` from one Collada input.
