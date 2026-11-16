@@ -535,23 +535,9 @@ def repair_skin_and_neck_normals(
             for fi in f_idxs:
                 fn_out[fi] = avg_n
 
-    # Tilt inner nostril cavity vertex normals downward/backward so frontal/overhead
-    # lobby lights in PAYDAY 2 do not produce bright diffuse/specular spots inside the nostrils.
-    ni_tip = int(np.argmax(fp[:, 1]))
-    y_tip, z_tip = float(fp[ni_tip, 1]), float(fp[ni_tip, 2])
-    nost_mask = (
-        (np.abs(fp[:, 0]) >= 0.30)
-        & (np.abs(fp[:, 0]) <= 1.08)
-        & (fp[:, 1] >= y_tip - 1.75)
-        & (fp[:, 1] <= y_tip - 0.30)
-        & (fp[:, 2] >= z_tip - 1.15)
-        & (fp[:, 2] <= z_tip - 0.12)
-    )
-    if nost_mask.any():
-        n_shadow = np.array([0.0, -0.55, -0.83516465], dtype=np.float64)
-        for vi in np.nonzero(nost_mask)[0]:
-            blended_n = fn_out[vi] * 0.15 + n_shadow * 0.85
-            fn_out[vi] = blended_n / max(float(np.linalg.norm(blended_n)), 1e-8)
+    # Keep the repaired source normals around the nostrils. The former broad
+    # downward override affected the visible nose wings and produced dark blotches;
+    # the diffuse and normal-map cavity treatments remain restricted to the UV pockets.
 
     return fn_out.astype(np.float32), sn_out.astype(np.float32)
 

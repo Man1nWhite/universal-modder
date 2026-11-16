@@ -33,7 +33,7 @@ height, same joint placement, sleeves and skirt hems where they were, soles stil
 D42). `Honoko4` is `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange
 shirt, `references/Honoka/Tex_07(L_7) 2.dds`), and `Honoko3`/`Honoko4` carry the layer-clearance pass and
 the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
-`Honoko5` is the same geometry in the user's third colourway (white jacket, black shirt,
+`Honoko5` is the same geometry in the user's revised third colourway (black jacket, light shirt,
 `references/Honoka/Tex_07(L_7)3.dds`, D45). `make -sC tools/pd2-las honokodae` writes all four zips in
 one run and CI verifies all four. Only `Honoko2` has
 been in game.

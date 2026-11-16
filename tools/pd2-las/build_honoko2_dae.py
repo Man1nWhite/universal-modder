@@ -155,14 +155,14 @@ HONOKO4 = PackSpec(
 )
 
 #: Honoko3/4's geometry in the user's third colourway: `references/Honoka/Tex_07(L_7)3.dds`
-#: (white jacket over a black shirt), uploaded to `main` as 7ea708e and carried here (D45).
+#: (revised black jacket and light shirt), updated by the user at `main` 526480e (D45/D46).
 HONOKO5 = PackSpec(
     item_id="honoko5",
     pack_dir="Honoko5",
-    display_name="Honoka (Secret Report DAE, slim, white suit)",
+    display_name="Honoka (Secret Report DAE, slim, black suit)",
     description=(
-        "The slim 'Secret Report' build of Honoko3 in the user's third suit colourway (white jacket, "
-        "black shirt): same Collada .dae, same 5% bone-anchored slim and layer clearance, the suit "
+        "The slim 'Secret Report' build of Honoko3 in the user's third suit colourway (black jacket, "
+        "light shirt): same Collada .dae, same 5% bone-anchored slim and layer clearance, the suit "
         "slot textured from the supplied third diffuse. Legendary Armour Skins BODY_ONLY outfit."
     ),
     slim=0.95,

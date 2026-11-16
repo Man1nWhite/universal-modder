@@ -117,3 +117,14 @@ with a head. `honokodae` now writes four packs: `Honoko2` byte-identical, `Honok
 and, as for Honoko4, the combination with `Miranda_Romance_over_Hila`'s `g_head`
 (`25_Honoko5_with_Miranda_Romance_over_Hila`); the `dist/` overview carries all 20 packs. Counts go
 19 -> 20 packs and 21 -> 22 tracked zips. Nothing of Honoko5 has been in game. See D45.
+
+## Honoko5 revised texture and Miranda nose-normal cleanup
+
+The user revised `references/Honoka/Tex_07(L_7)3.dds` (main `526480e`): rebuild
+Honoko5 with the revised black jacket and light shirt, preserving its mesh and clearance.
+The older colourway described in the preceding entry is superseded. A close-up diagnosis
+of the Miranda head isolated a broad downward vertex-normal override as a major contributor
+to the dark nostril blotches. Removed it at the head-building source, keeping the original
+skin repair and nostril UV treatments. Rebuilt both Miranda variants over each heister, and
+regenerated their previews and the Honoko5-with-head combination. Offline renders improve,
+but normal-map lighting and the still-unmodified neck need an in-game check. See D46.

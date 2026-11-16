@@ -6,7 +6,7 @@
   - `honoko2_las_sheet.png`: Full-body front, 3/4, back, side, upper-body close-up, and 256x256 HUD/menu icon for the 6-material buttoned DOAXVV "Secret Report" LAS outfit (`honoko2_body`, `honoko2_suit`, `honoko2_panties`, `honoko2_bra`, `honoko2_shoes`, `honoko2_jewelry`).
   - `honoko3_las_sheet.png`: the same six views of `Honoko3`, the same outfit with the mesh scaled 5% about the rig's bones (`_slim_groups` in the builder, D42) — slimmer through the torso, arms, hips and bust, with the same height, joint placement, wrist cuts and floor contact.
   - `honoko4_las_sheet.png`: `Honoko4`, `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange shirt) from `references/Honoka/Tex_07(L_7) 2.dds` (D44).
-  - `honoko5_las_sheet.png`: `Honoko5`, `Honoko3`'s geometry in the user's third suit colourway (white jacket, black shirt) from `references/Honoka/Tex_07(L_7)3.dds` (D45).
+  - `honoko5_las_sheet.png`: `Honoko5`, `Honoko3`'s geometry in the user's revised third suit colourway (black jacket, light shirt) from `references/Honoka/Tex_07(L_7)3.dds` (D45).
   - `honoko5_with_miranda_romance_over_hila_sheet.png`: the same combination as below, for `Honoko5`.
   - `honoko4_with_miranda_romance_over_hila_sheet.png`: `Honoko4`'s body under the `g_head` drawable of
     `dist/Miranda_Romance_over_Hila.zip` (head + lashes), i.e. the combination as installed - both packs'

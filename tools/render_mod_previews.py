@@ -944,8 +944,8 @@ def main(argv: list[str] | None = None) -> None:
         ROOT / "dist" / "Honoko5.zip", "Honoko5", "honoko5", has_fps=False
     )
     th_hon5 = render_las_sheet(
-        "dist/Honoko5.zip — Body-Only LAS Outfit, slim, white suit (DOAXVV Honoka Secret Report DAE)",
-        "Honoko3's geometry in the user's third suit colourway (white jacket, black shirt) | "
+        "dist/Honoko5.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
+        "Honoko3's geometry in the user's revised third suit colourway (black jacket, light shirt) | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds",
         tpp_hon5,
         fps_hon5,

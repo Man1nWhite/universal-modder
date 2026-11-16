@@ -423,7 +423,18 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   (both packs' geometry is Honoko3's, each suit diffuse is its supplied file, every other slot is
   unchanged) and the clearance test, which now covers Honoko5 as well.
 - **Source:** the user, 2026-11-16; `references/Honoka/Tex_07(L_7)3.dds` via `main` @ `7ea708e`.
-- **Status:** holds.
+- **Status:** amended by D46: the user revised the source and Honoko5 was rebuilt.
+
+### D46 — Revised Honoko5 colourway and Miranda nostril normals
+
+- The user replaced `Tex_07(L_7)3.dds` on `main` at `526480e` and requested Honoko5 be redone.
+  The updated suit diffuse is black jacket over light shirt; Honoko3 geometry and clearance remain unchanged.
+- Nose diagnosis: comparing offline close-ups with the original face diffuse showed the diffuse alone
+  did not remove the dark splotches. The head builder's broad, strongly downward nostril vertex-normal
+  override affected the visible nose wings. Remove that override while retaining the repaired source
+  normals and UV-pocket cavity treatments. Both Miranda variants and their heister packs are rebuilt.
+- Verified in offline frontal and three-quarter renders, not yet in game. The renderer does not simulate
+  PAYDAY 2 normal-map lighting, so in-game appearance still needs checking. The neck remains unchanged.
 
 ## Environment, tests and documents
 
