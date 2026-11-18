@@ -14,8 +14,10 @@ sys.path.insert(0, str(ROOT / 'tools/pd2-las'))
 import clover_christie_glb as source  # noqa: E402
 import build_clover_christie as builder  # noqa: E402
 import build_models as bm  # noqa: E402
+from extract_2b import MISSING  # noqa: E402
 
 
+@pytest.mark.skipif(not source.TEMPLATE.is_file(), reason=MISSING)
 def test_intake_selects_only_christie_and_resolves_weighted_bones():
     report = source.inspect(source.SOURCE, source.TEMPLATE)
     assert report['mesh'] == source.MESH
@@ -47,6 +49,7 @@ def test_glb_interleaved_and_normalized_accessor():
     assert np.allclose(source.Glb(data).accessor(0), [[0, 1], [128 / 255, 64 / 255]])
 
 
+@pytest.mark.skipif(not source.TEMPLATE.is_file(), reason=MISSING)
 def test_geometry_uses_only_christie_materials_and_three_weights():
     with zipfile.ZipFile(source.SOURCE) as z:
         glb = source.Glb(z.read(source.MEMBER))
