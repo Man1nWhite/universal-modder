@@ -20,8 +20,7 @@ REPORT = """\
 =========================== short test summary info ============================
 SKIPPED [2] tests/test_gma.py:31: sourcepp is an optional extra
 SKIPPED [1] tests/test_um.py:900: needs ffmpeg
-SKIPPED [13] tests/test_render_mesh_skeleton.py:39: Christie_LAS.zip is not in dist/ in this checkout
-800 passed, 16 skipped in 120.00s
+800 passed, 3 skipped in 120.00s
 """
 
 
@@ -32,21 +31,20 @@ def _budget():
     return module
 
 
-def test_a_report_within_the_budget_passes_and_the_left_out_file_is_left_out():
+def test_a_report_within_the_budget_passes():
     budget = _budget()
     said, failures = budget.judge(REPORT)
     assert failures == [], failures
     assert said[-1].strip() == (f"OK: 3 budgeted skip(s) across {len(budget.ALLOWED)} reason(s), "
                                 "0 expected failure(s) within budget."), said[-1]
-    # the tool's own run passes --ignore for this file; in a report of the whole suite its lines are dropped
-    assert budget.IGNORED == ("tests/test_render_mesh_skeleton.py",)
+    assert budget.IGNORED == ()
 
 
 def test_what_has_no_budget_fails():
     """The reason below is real. On 2026-11-13 a test skipped with it while a pack was rebuilt and not
     committed, and `green` would have failed in the one state where `status` names it as the next command."""
     budget = _budget()
-    reason = "Christie_LAS_Slim is not the tracked zip in this checkout"
+    reason = "Christie_LAS is not the tracked zip in this checkout"
     _, failures = budget.judge(REPORT + f"SKIPPED [1] tests/test_pd2_las_status.py:114: {reason}\n")
     assert failures == [f"unbudgeted skip reason: {reason!r} (1x)"]
 
@@ -58,6 +56,11 @@ def test_what_has_no_budget_fails():
 
     _, failures = budget.judge(REPORT + "SKIPPED [4] tests/test_pd2_las.py:20: 2B templates not extracted: run make env\n")
     assert failures == ["skip reason over budget: '2B templates not extracted' (4x, budget 0x)"]
+
+    _, failures = budget.judge(
+        REPORT + "SKIPPED [13] tests/test_render_mesh_skeleton.py:39: Christie_LAS.zip is not in dist/ in this checkout\n"
+    )
+    assert failures == ["skip reason over budget: 'Christie_LAS.zip is not in dist/ in this checkout' (13x, budget 0x)"]
 
 
 def test_no_budget_is_kept_for_a_reason_nothing_skips_with():

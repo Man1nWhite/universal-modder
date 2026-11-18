@@ -19,7 +19,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-sys.path.insert(0, str(HERE.parent / 'pd2-port'))
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 
 import numpy as np
 from PIL import Image
@@ -122,7 +123,10 @@ def textures(glb):
                 else:
                     arr[..., 3] = 20
             else:
-                arr = np.stack((np.full(arr.shape[:2], 255, np.uint8), 255-arr[..., 1],
+                # glTF 2.0 normalTexture is already OpenGL Y+ (verified against
+                # Christie.zip's DirectX VTF: R corr +0.9998, G corr -0.9999),
+                # so keep G as-is instead of double-inverting it.
+                arr = np.stack((np.full(arr.shape[:2], 255, np.uint8), arr[..., 1],
                                 np.zeros(arr.shape[:2], np.uint8), arr[..., 0]), axis=-1)
             result[f'{slot}_{kind}.texture'] = dds_encode.bc3_dds_from_levels(_full_mip_levels(arr, colour=kind == 'df'))
     return result
@@ -185,9 +189,17 @@ def build(src: Path, template_path: Path, output: Path):
         f'assets/{UNIT}/{ITEM}.material_config': material_config().encode(),
         **{f'assets/{UNIT}/{name}': data for name, data in maps.items()},
     }
-    info = {'pack': PACK, 'source_glb_sha256': intake['glb_sha256'], 'source_mesh': source.MESH,
-            'runtime_verified': False, 'fps_available': False, 'fit': fit,
-            'payload_sha256': {name: hashlib.sha256(data).hexdigest() for name, data in sorted(files.items())}}
+    info = {
+        'pack': PACK, 'item_id': ITEM, 'models_present': True,
+        'source_glb_sha256': intake['glb_sha256'], 'source_mesh': source.MESH,
+        'runtime_verified': False, 'fps_available': False, 'fit': fit,
+        'registration': {
+            'flags': list(reg.flags), 'table': f'LegendaryArmours.{ITEM}',
+            'unit': reg.unit, 'fps_unit': reg.fps_unit,
+            'glove_adapter': reg.glove_adapter, 'hook_source': lop.HOOK_SOURCE,
+        },
+        'payload_sha256': {name: hashlib.sha256(data).hexdigest() for name, data in sorted(files.items())},
+    }
     files['BUILD_INFO.json'] = (json.dumps(info, indent=2, sort_keys=True) + '\n').encode()
     archive = lop.zip_bytes((f'{PACK}/{name}', data) for name, data in sorted(files.items()))
     output.parent.mkdir(parents=True, exist_ok=True)

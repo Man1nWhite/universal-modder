@@ -6,9 +6,9 @@ pack: `references/README.md`. ZIPs are grouped by character in `dist/`; their in
 folders remain the installable names. The Hila Romance head's skin diffuse is matched to Honoko's
 body and therefore changes with that head on other bodies too.
 
-| | `tools/pd2-port/` — COLLADA → LAS | `tools/pd2-las/` — Source MDL / COLLADA → LAS | `tools/build_joy_head_mods.py` — heister head mods |
+| | `tools/pd2-port/` — COLLADA → LAS | `tools/pd2-las/` — Source MDL / COLLADA / GLB → LAS | `tools/build_joy_head_mods.py` — heister head mods |
 | --- | --- | --- | --- |
-| Builds | a full-body LAS outfit from a rigged COLLADA character. Not tied to one character; the port it ships is Miranda Lawson from the Mass Effect 2 *Romance* archive, `Miranda_Romance_LAS` | LAS outfits re-authored onto the 2B template skeleton, from compiled Source-engine models (MDL/VVD/VTX): `Miranda_L4D2_LAS`, its larger-chest variant `Miranda_L4D2_Busty_LAS` (its own `LegendaryArmours.miranda_busty` entry), the body-only `Christie_LAS` and `Christie_LAS_Slim`, plus the Honoko2–5 body-only outfits from COLLADA with TMC skinning | eleven head replacements over the vanilla heisters, modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`: Miranda (L4D2 and ME2 Romance heads) over Joy, Clover, Bonnie, Sydney and Hila, and Geralt over Rust. It takes the L4D2 face from `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, so it runs after that pack |
+| Builds | a full-body LAS outfit from a rigged COLLADA character. Not tied to one character; the port it ships is Miranda Lawson from the Mass Effect 2 *Romance* archive, `Miranda_Romance_LAS` | LAS outfits re-authored onto the 2B template skeleton: `Miranda_L4D2_LAS`, its larger-chest variant `Miranda_L4D2_Busty_LAS` (its own `LegendaryArmours.miranda_busty` entry), the body-only `Christie_LAS` (Source MDL/VVD/VTX), the experimental body-only `Christie_Clover_LAS` (rigged GLB), plus the `Honoko2`–`Honoko5` body-only outfits from COLLADA with TMC skinning | eleven head replacements over the vanilla heisters, modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`: Miranda (L4D2 and ME2 Romance heads) over Joy, Clover, Bonnie, Sydney and Hila, and Geralt over Rust. It takes the L4D2 face from `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, so it runs after that pack |
 | Start at | `tools/pd2-port/README.md`; the dated state of the shipped port is `tools/pd2-port/STATUS.md` | `tools/pd2-las/README.md`; the dated record is `docs/pd2-las/HANDOFF.md` | the docstring of `tools/build_joy_head_mods.py`. Tracked renders: `docs/renders/README.md`; scratch preview sheets: `build/previews/` (`tools/render_mod_previews.py`) |
 | Pack layout | `Lawson_LAS/assets/units/…` | `Miranda_LAS/assets/units/…` and the like | `{Miranda …, Geralt} over {Joy,Clover,Bonnie,Sydney,Hila,Rust}/units/…`; Geralt is two atoms, `mtr_head` and an `ALPHA_MASKED` `mtr_hair` |
 | Install | extract into `PAYDAY 2\assets\mod_overrides\`; needs SuperBLT + BeardLib + Legendary Armour Skins | the same | extract into `PAYDAY 2\assets\mod_overrides\` (a vanilla heister head replacement) |
@@ -42,7 +42,7 @@ A pipeline's own invariants, and the tests that enforce them, are in its README.
 
 Two tools that do one job may be merged only if no byte of a tracked pack changes. What was merged, what was
 left apart and why, with the measurements: `docs/audits/2026-11-12-tool-merge.md`. A merge is held to
-`.venv/bin/python tools/pd2-las/copies.py after` and to `tests/test_one_implementation.py`.
+`make -sC tools/pd2-las green` and to `tests/test_one_implementation.py`.
 
 - The two `.model` dialects in the table stay two writers: each is byte-exact to its own contract.
 - `tools/pd2-port/` is released from hardcoded paths by `.github/workflows/lawson-las.yml`, with the notes

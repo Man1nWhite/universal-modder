@@ -5,7 +5,7 @@ suite: 1 failed, 785 passed, 29 skipped, 2 xfailed, 1 warning in 262.11s (0:04:2
    skipped 4: needs ffmpeg
    skipped 2: sourcepp is an optional extra
    skipped 2: the Skyrim source archive was intentionally removed after cancellation
-   skipped 2: nifly not built: /home/user/universal-modder/tools/skyrim-nif/build/libniflywrap.so not found — run `bash tool
+   skipped 2: nifly not built: <repo>/tools/skyrim-nif/build/libniflywrap.so not found — run `bash tool
    skipped 1: lupa (LuaJIT) not installed
    skipped 1: Git Bash / MSYS only
 trace: 16 of 16 zips the tracked bytes; 16 of 16 zips the tracked bytes

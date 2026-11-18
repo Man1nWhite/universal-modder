@@ -459,6 +459,40 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - `tests/test_hila_skin_tone.py` checks the mask, unchanged eye/gloss and hair, and that sampled neck
   diffuse colours move closer to the Honoko5 body. `honoko5_head_skin_detail.png` shows two angles.
 
+### D49 — Christie is rebuilt from source without head or hands; `Christie_LAS_Slim` is removed
+
+- **Decided:** 2026-11-15/16 (`6f10770`, `632e25d`)
+- **Decision:** `tools/pd2-las/build_christie_source.py` (`make -sC tools/pd2-las christie`) rebuilds
+  `dist/Christie/Christie_LAS.zip` deterministically from `references/Christie.zip` onto the 2B PD2
+  skeleton (`christie_fit_probe.py`, `christie_sleeve_gloss.py`) with head and authored hands cut off,
+  registering `BODY_ONLY` + `glove_adapter.lua` alongside both third-person and first-person arm units.
+  `dist/Christie/Christie_LAS_Slim.zip` (and its orphan model render) is removed at the user's request;
+  its bytes remain reachable in git history.
+- **Status:** holds.
+
+### D50 — `Honoko5` fit/jewelry updates, `Christie_Clover_LAS` GLB outfit, and archived menu captures
+
+- **Decided:** 2026-11-16..18 (`632e25d`, `d791361`)
+- **Decision:** `Honoko5` adds targeted waist/hip/cuff clearance adjustments plus `Tex_07(L_7)3.dds`
+  (suit) and `Tex_23(L_23)2.dds` (jewelry) diffuses (`build_honoko2_dae.py`), while
+  `tools/pd2-las/build_clover_christie.py` (`clover_christie_glb.py`) builds an experimental TPP-only
+  `BODY_ONLY` outfit `dist/Christie/Christie_Clover_LAS.zip` from the Christie primitives in
+  `references/Clover-Christie.zip`, preserving glTF's OpenGL Y+ normal-map green channel (`corr > +0.99`
+  against `Christie_LAS`) and full `BUILD_INFO.json` registration metadata. Offline model sheets for all
+  20 packs live under `tools/render_mod_previews.py --unified`. User-supplied menu/lobby captures of
+  `Christie_LAS` and pre-jewelry `Honoko5` are archived under `docs/renders/christie/in-game/2026-11-15/`
+  and `docs/renders/honoka/in-game/honoko5/2026-11-15/`. `runtime_verified` stays `false` (D31).
+- **Status:** holds.
+
+### D51 — `dist/` is the sole tracked home for built zips; duplicate `build/pd2-las/*.zip` copies removed
+
+- **Decided:** 2026-11-16 ("clean everything")
+- **Decision:** the duplicate force-tracked archives `build/pd2-las/Miranda_LAS.zip` and
+  `build/pd2-las/Miranda_Busty_LAS.zip` (and their `.sha256` sidecars), which duplicated
+  `dist/Miranda_L4D2/Miranda_L4D2_{LAS,Busty_LAS}.zip` byte for byte inside gitignored `build/`, are
+  untracked and removed. `dist/` holds all 20 tracked packs and sidecars; `build/*` is purely scratch.
+- **Status:** holds.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

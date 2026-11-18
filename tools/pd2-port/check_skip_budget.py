@@ -20,6 +20,11 @@ Reasons for fixtures that are present in this checkout (e.g. the extracted 2B
 templates) are listed at count 0 so that their reappearance — a regression to
 a 59-skip state — fails immediately.
 
+The budget must hold in both environments the suite runs in: a dev checkout
+made by `recover_env.sh --extras` (lupa and sourcepp present, so those tests
+run) and the CI runner, which installs neither. Each such reason therefore has
+room for its CI count, not its dev count.
+
 Expected failures are budgeted the same way. An `xfail` marker switches off the
 verdict of a test that still runs, so one line can hide a defect just as a skip
 can: each test allowed to fail is named in `ALLOWED_XFAIL` with a maximum count,
@@ -47,26 +52,27 @@ ALLOWED: dict[str, int] = {
     # Present-by-design skips (fixtures absent by design, not regressed):
     "needs ffmpeg": 4,
     "sourcepp is an optional extra": 2,
-    "lupa (LuaJIT) not installed": 1,
+    # Two tests need lupa: the harness module skips once when it is collected,
+    # and tests/test_christie_source_pack.py imports that same module through
+    # `importorskip`, whose skip is reported against the importing file. CI
+    # installs neither lupa nor sourcepp, so both skips are expected there.
+    "lupa (LuaJIT) not installed": 2,
     "Git Bash / MSYS only": 1,
-    # Regression to watch for: the fixture is extracted, so this must be 0. Every
-    # test that needs the 2B templates skips with tools/pd2-las/extract_2b.MISSING,
-    # which starts with this prefix; any other wording is unbudgeted and fails too.
+    # Regression to watch for: the fixture and tracked packs are present, so these
+    # must be 0. Every test that needs the 2B templates skips with
+    # tools/pd2-las/extract_2b.MISSING; any other wording is unbudgeted and fails.
     "2B templates not extracted": 0,
+    "Christie_LAS.zip is not in dist/ in this checkout": 0,
 }
 
 #: Maximum number of expected failures (xfail) per test, by node-id prefix.
 #: These are known defects that are recorded where the marker is, not tests
-#: that somebody wanted out of the way. Empty since 2026-11-13: the two slim
-#: sleeve cases (KNOWN_SLEEVE_LEAK_CM2, once in tests/test_christie_las.py)
-#: closed when the slit bridge stopped being dropped by _insert_faces; there
-#: is no expected failure left.
+#: that somebody wanted out of the way. Empty since 2026-11-13: there is no
+#: expected failure left.
 ALLOWED_XFAIL: dict[str, int] = {}
 
-#: Not judged. Its one skip reason, a checkout without the Christie pack, has no
-#: budget; the tool's own run leaves the file out, and a saved report of the
-#: whole suite has its lines dropped.
-IGNORED = ("tests/test_render_mesh_skeleton.py",)
+#: Files left out of budget judging (empty: every test file in tests/ is judged).
+IGNORED = ()
 
 _SKIP = re.compile(r"^SKIPPED \[(\d+)\] (.*?): (.+)$")
 _XFAIL = re.compile(r"^(?:XFAIL|XPASS) (\S+)")

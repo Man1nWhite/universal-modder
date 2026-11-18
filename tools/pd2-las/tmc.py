@@ -179,7 +179,8 @@ _LAYOUTS = {
 class TmcFile:
     def __init__(self, path: str):
         self.path = path
-        self.data = open(path, "rb").read()
+        with open(path, "rb") as fh:
+            self.data = fh.read()
         d = self.data
         if d[:3] != b"TMC":
             raise ValueError(f"not a TMC file: {path}")

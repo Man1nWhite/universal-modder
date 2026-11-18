@@ -77,7 +77,7 @@ def test_status_cli_prints_one_json_object():
 
 
 def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
-    """All 18 tracked packs of the three pipelines, not the four rebuildable ones of this directory.
+    """All 20 tracked packs of the three pipelines, not only the ones in this directory.
 
     `status` used to report four packs; the state of the other ten took three more commands,
     one of which rebuilt nine packs to find out. `is` compares with the commit, because every
@@ -245,7 +245,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     for script in re.findall(r"(?<![\w/)])(tools/[\w./-]+\.py)", makefile):
         assert (REPO / script).is_file(), script
 
-    # one build target per builder, and they are the builders `fresh` runs: Slim remains tracked-only
+    # one build target per builder, and they are the builders `fresh` runs
     sys.path.insert(0, str(HERE))
     fresh = pytest.importorskip("fresh", reason="fresh.py imports numpy")
     built = {name: command.replace("$(HERE)", "tools/pd2-las")

@@ -1,7 +1,7 @@
-"""Deep-diagnose the Christie LAS packs from the shipped `.model` alone.
+"""Deep-diagnose the Christie LAS pack from the shipped `.model` alone.
 
 The screenshot audits describe *symptoms* (a notch, a sliver, a band). This
-script answers the structural questions behind them, on either pack:
+script answers the structural questions behind them:
 
 - how many shells the mesh is made of, and which of its borders are free
   garment edges instead of accidental holes;
@@ -12,8 +12,7 @@ script answers the structural questions behind them, on either pack:
 - whether each sleeve is a *closed* tube, or still open along its lengthwise
   seam (needs the arm bone chain, hence `--templates`).
 
-    .venv/bin/python tools/pd2-las/diagnose_mesh.py            # both packs
-    .venv/bin/python tools/pd2-las/diagnose_mesh.py --pack slim
+    .venv/bin/python tools/pd2-las/diagnose_mesh.py
     .venv/bin/python tools/pd2-las/diagnose_mesh.py \
         --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b"   # + slit
 
@@ -42,8 +41,6 @@ import render_mesh_skeleton as rms  # noqa: E402
 
 PACKS = {
     "base": (dist_path(REPO, "Christie_LAS.zip"), "Christie_LAS", "christie", -1.0),
-    "slim": (dist_path(REPO, "Christie_LAS_Slim.zip"), "Christie_LAS_Slim",
-             "christie_slim", -1.0),
 }
 ROLE = ["mtr_body", "mtr_c02_01", "mtr_c02_02", "mtr_c02_05"]
 

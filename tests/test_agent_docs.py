@@ -29,7 +29,7 @@ OTHER_DOCS = ["CONTRIBUTING.md", "references/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session
 START_BUDGET = 5000
 #: bytes of `make status`, one JSON object an agent reads whole. A tracked pack is ~90 bytes
-#: of it (name, size, 12 hex digits, target); 2,512 leaves room for six more than the 18 there are.
+#: of it (name, size, 12 hex digits, target); 2,560 leaves room above the 20 tracked packs.
 STATUS_BUDGET = 2560
 
 
@@ -202,17 +202,21 @@ def test_green_runs_what_the_test_workflow_runs():
                 for line in str(step.get("run", "")).splitlines() if line.strip()]
     assert len(commands) >= 12, commands
 
-    setup = re.compile(r"^(sudo |python -m pip install --upgrade pip |make -sC tools/pd2-las env$)")
+    setup = re.compile(
+        r"^(sudo |python -m pip install --upgrade pip |make -sC tools/pd2-las env$"
+        r"|python tools/pd2-las/extract_2b\.py$|set -o pipefail$|mkdir -p build$)"
+    )
     checks = {      # a command of the workflow -> what in check_all.py runs the same check
         r"pyflakes um tools tests$": '["-m", "pyflakes", "um", "tools", "tests"]',
         # -rsxX adds lines to the report and changes no test: the skip budget reads them, so the suite runs once
-        r"^python -m pytest -q tests$": '["-m", "pytest", "-q", "-rsxX", "tests"]',
+        r"^python -m pytest -q(?: -rsxX)? tests(?:\s*\|.*)?$": '["-m", "pytest", "-q", "-rsxX", "tests"]',
+        r"^python tools/pd2-port/check_skip_budget\.py --report ": 'check_skip_budget.py"), "--report"',
         r"^\./bin/um kb check --index$": '["-m", "um", "kb", "check", "--index"]',
         r"^\./bin/um publish check \.$": '["-m", "um", "publish", "check", "."]',
         r"fresh\.py check": '"fresh.py"), "check"]',
-        # fresh.py builds this pack in a copy and compares all 22 zips with sha256sum -c
+        # fresh.py builds this pack in a copy and compares all 20 zips with sha256sum -c
         r"^python tools/pd2-port/build_las_pack\.py$": '"fresh.py"), "check"]',
-        r"^(for sha_file in dist/\*/\*\.zip\.sha256 .*; do|sha256sum -c \"\$sha_file\"|done)$": '"fresh.py"), "check"]',
+        r"^(for sha_file in dist/\*/\*\.zip\.sha256; do|sha256sum -c \"\$sha_file\"|done)$": '"fresh.py"), "check"]',
     }
     for command in commands:
         groups = re.match(r"^\./bin/um --help && for g in (.+); do \./bin/um \$g --help > /dev/null; done$", command)

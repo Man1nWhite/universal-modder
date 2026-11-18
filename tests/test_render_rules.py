@@ -160,18 +160,35 @@ def test_validate_render_tree_catches_invalid_and_accepts_valid(tmp_path):
 
 
 def test_new_ingame_capture_manifests_match_images():
-    """Preserve the user uploads and their declared dimensions and hashes."""
+    """Every in-game capture batch's manifest.json matches the archived PNGs' dimensions, sizes, and SHA-256."""
     import hashlib
     import json
     from PIL import Image
 
-    for relative in ("christie/in-game/2026-11-15", "honoka/in-game/honoko5/2026-11-15"):
-        directory = Path(__file__).resolve().parents[1] / "docs" / "renders" / relative
-        manifest = json.loads((directory / "manifest.json").read_text())
-        assert len(manifest["screenshots"]) == 3
-        for shot in manifest["screenshots"]:
-            data = (directory / shot["file"]).read_bytes()
-            assert len(data) == shot["bytes"]
-            assert hashlib.sha256(data).hexdigest() == shot["sha256"]
-            with Image.open(directory / shot["file"]) as image:
-                assert image.size == (shot["width"], shot["height"])
+    manifests = sorted(RENDERS.rglob("manifest.json"))
+    assert len(manifests) >= 3, manifests
+    for manifest_path in manifests:
+        directory = manifest_path.parent
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        entries = manifest.get("screenshots") or manifest.get("captures") or manifest.get("files")
+        assert entries, f"{manifest_path}: no capture entries"
+        for shot in entries:
+            fname = shot.get("file") or shot.get("archived") or shot.get("name")
+            data = (directory / fname).read_bytes()
+            assert len(data) == shot["bytes"], fname
+            assert hashlib.sha256(data).hexdigest() == shot["sha256"], fname
+            with Image.open(directory / fname) as image:
+                if "width" in shot and "height" in shot:
+                    assert image.size == (shot["width"], shot["height"]), fname
+
+
+def test_every_tracked_model_render_sheet_belongs_to_render_mod_previews():
+    """Prevent orphan model renders (like the removed Christie_LAS_Slim sheet) or split render wrappers."""
+    render_tools = (REPO / "tools" / "render_mod_previews.py").read_text(encoding="utf-8")
+    assert not (REPO / "tools" / "render_clover_honoko.py").exists()
+    for rel_path in _tracked_under("docs/renders"):
+        rel = rel_path.as_posix() if hasattr(rel_path, "as_posix") else str(rel_path)
+        parts = rel.split("/")
+        if len(parts) >= 4 and parts[2] == "model" and rel.endswith(".png"):
+            sub = "/".join(parts[1:])
+            assert sub in render_tools, f"{rel} is not in tools/render_mod_previews.py UNIFIED_PATHS"

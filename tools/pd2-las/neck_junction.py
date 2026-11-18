@@ -1,7 +1,7 @@
 """Measure the head <-> body neck junction of a LAS body with a heister head.
 
 The LAS packs are *headless*: they replace the heister's body and keep whatever
-head the heister has, including the nine head-replacement packs in
+head the heister has, including the eleven head-replacement packs in
 `tools/build_joy_head_mods.py`. Nothing in either pack knows about the other, so
 the throat is where the two meshes have to agree on their own. This tool puts
 the body and the head in one space, ray-casts the throat from the front and from
@@ -13,9 +13,8 @@ y-maximum and the back of the hair its wide y-minimum, and that is the side
 convention, so the front-most surface is the **largest** y: a body surface
 covers a head border edge when its y is larger, not smaller. Getting that
 backwards is what the first version of this tool did - it reported covered edge
-as exposed and the trailing mesh as winning; see
-``docs/audits/2026-11-07-christie-slim-diagnosis.md`` §10.1. Do not "fix" a
-comparison here without reading that section.
+as exposed and the trailing mesh as winning; see ``tools/pd2-las/MODLOG.md``
+(2026-11-07). Do not "fix" a comparison here without reading that entry.
 
     .venv/bin/python tools/pd2-las/neck_junction.py \\
         --body dist/Christie/Christie_LAS.zip \\
@@ -60,6 +59,7 @@ HEADS = (
     dist_path(REPO, "Miranda_L4D2_over_Clover.zip"),
     dist_path(REPO, "Miranda_L4D2_over_Bonnie.zip"),
     dist_path(REPO, "Miranda_L4D2_over_Sydney.zip"),
+    dist_path(REPO, "Miranda_L4D2_over_Hila.zip"),
 )
 
 THROAT = dict(x=(-6.0, 6.0), z=(149.0, 161.0), step=0.25)
@@ -222,7 +222,7 @@ def border_exposure(head_verts, head_faces, body_verts, body_faces,
     camera sits at large ``+y`` and the front-most surface is the largest y
     (``front_depth``). The earlier version of this function compared the two
     the wrong way round and counted covered edges as exposed; see
-    ``docs/audits/2026-11-07-christie-slim-diagnosis.md`` §10.
+    ``tools/pd2-las/MODLOG.md`` (2026-11-07).
     """
     edges = neck_rim_edges(head_verts, head_faces, max_z=max_z)
     if not len(edges):

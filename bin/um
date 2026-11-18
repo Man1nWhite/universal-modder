@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # universal-modder CLI launcher. Works from a clone, a Claude Code plugin install, or a PATH symlink.
 #   um scan --list | um fal sprite "..." | um sprite cutout in.png out.png | um video compile edl.json out.mp4 ...
-# Uses uv when available (it creates the project's .venv with Pillow + numpy on first run);
-# otherwise the system python3, which then needs `pip install pillow numpy`.
+# Uses uv when available (it creates the project's .venv with Pillow, numpy, and PyYAML on first run);
+# otherwise falls back to $ROOT/.venv/bin/python or the system python3.
 set -euo pipefail
 SRC="${BASH_SOURCE[0]}"
 while [ -L "$SRC" ]; do
@@ -14,5 +14,9 @@ ROOT="$(cd -P "$(dirname "$SRC")/.." && pwd)"
 if command -v uv >/dev/null 2>&1 && [ -z "${UM_NO_UV:-}" ]; then
   exec uv run --quiet --project "$ROOT" python -m um "$@"
 fi
-PY="$(command -v python3 || command -v python)"
+if [ -x "$ROOT/.venv/bin/python" ]; then
+  PY="$ROOT/.venv/bin/python"
+else
+  PY="$(command -v python3 || command -v python)"
+fi
 PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}" exec "$PY" -m um "$@"

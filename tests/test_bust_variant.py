@@ -7,7 +7,7 @@ Two layers, like the sibling suites:
   testable on hand-built vertices without any game asset.
 * **Integration** — the variant pack reuses the base pack's registration
   contract with a different identity. Those tests read the tracked
-  `dist/Miranda_Busty_LAS.zip` and the base `dist/Miranda_LAS.zip`, so they run
+  `dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip` and the base `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, so they run
   offline from a checkout with no extracted templates.
 
 The full geometry run needs the 2B templates (`extract_2b.TEMPLATES`, see
@@ -292,15 +292,11 @@ pytestmark_zip = pytest.mark.skipif(
 
 @pytestmark_zip
 def test_variant_dist_pack_is_tracked_and_self_consistent():
-    build_zip = REPO / "build" / "pd2-las" / "Miranda_Busty_LAS.zip"
-    build_sha = REPO / "build" / "pd2-las" / "Miranda_Busty_LAS.zip.sha256"
-    dist_sha = dist_path(REPO, "Miranda_Busty_LAS.zip.sha256")
-    for p in (build_zip, build_sha, dist_sha):
+    dist_sha = dist_path(REPO, "Miranda_L4D2_Busty_LAS.zip.sha256")
+    for p in (VARIANT_ZIP, dist_sha):
         assert p.is_file(), f"missing tracked deliverable: {p}"
     raw = VARIANT_ZIP.read_bytes()
-    assert build_zip.read_bytes() == raw
     digest = hashlib.sha256(raw).hexdigest()
-    assert build_sha.read_text().split()[0] == digest
     assert dist_sha.read_text().split()[0] == digest
 
     with zipfile.ZipFile(VARIANT_ZIP) as z:
@@ -571,7 +567,7 @@ def _lip_grid(n=7, step=0.25):
 def test_inverted_faces_reports_winding_not_shading():
     """The fold test has to look at geometry: the stock pack ships normal-only quirks.
 
-    `dist/Miranda_LAS.zip` already has seven faces whose stored normals disagree with
+    `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` already has seven faces whose stored normals disagree with
     their winding and twelve "normal opposes all three neighbours" faces on coincident
     shells. Neither is a fold — the surface never turns through itself — so the repair
     must not fire on them, or it would drag clean topology around for nothing.
@@ -625,6 +621,19 @@ def test_unfold_region_is_deterministic_and_leaves_a_clean_patch_alone():
     assert results[0] == results[1], "the repair has to be byte-stable across runs"
 
 
+def _open_edges(group) -> list[tuple]:
+    """Edges used by exactly one face, on position-welded topology."""
+    from collections import defaultdict
+
+    weld = bv._weld_keys(group.verts)
+    count: dict[tuple[int, int], int] = defaultdict(int)
+    for a, b, c in group.faces:
+        for e in ((a, b), (b, c), (c, a)):
+            x, y = weld[e[0]], weld[e[1]]
+            count[(min(x, y), max(x, y))] += 1
+    return [e for e, n in count.items() if n == 1]
+
+
 def test_subdivision_keeps_the_chest_watertight():
     """The local split must not leave a single open edge in the chest band.
 
@@ -637,16 +646,16 @@ def test_subdivision_keeps_the_chest_watertight():
     for seam_x in (None, 8.0, 4.0, 0.0):
         verts, faces, normals = _closed_chest_fixture(seam_x)
         g = _fixture_group(verts, faces, normals)
-        assert not bv._open_edges(g), f"the fixture itself must be closed ({seam_x})"
+        assert not _open_edges(g), f"the fixture itself must be closed ({seam_x})"
         origin = list(g.verts)
         bv.subdivide_region(g, morph, levels=1)
         assert len(g.verts) > len(origin), f"split has to reach the panel ({seam_x})"
-        assert not bv._open_edges(g), f"subdivision opened the surface ({seam_x})"
+        assert not _open_edges(g), f"subdivision opened the surface ({seam_x})"
         subdivided_origin = list(g.verts)
         morph.displace(g)
         bv.smooth_region(g, morph, 3, 0.32, origin=subdivided_origin)
         bv.keep_copies_together(g, subdivided_origin)
-        assert not bv._open_edges(g), f"the morph opened the surface ({seam_x})"
+        assert not _open_edges(g), f"the morph opened the surface ({seam_x})"
 
 
 def test_subdivision_renormalises_the_midpoint_normals():

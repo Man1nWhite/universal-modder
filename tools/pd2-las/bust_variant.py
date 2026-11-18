@@ -1160,16 +1160,3 @@ def morph_groups(groups: dict, morph: ChestMorph | None = None,
         }
         log(f"[bust] group {name}: {moved} of {len(group.verts)} vertices moved")
     return report
-
-
-def _open_edges(group) -> list[tuple]:
-    """Edges used by exactly one face, on position-welded topology."""
-    from collections import defaultdict
-
-    weld = _weld_keys(group.verts)
-    count: dict[tuple[int, int], int] = defaultdict(int)
-    for a, b, c in group.faces:
-        for e in ((a, b), (b, c), (c, a)):
-            x, y = weld[e[0]], weld[e[1]]
-            count[(min(x, y), max(x, y))] += 1
-    return [e for e, n in count.items() if n == 1]

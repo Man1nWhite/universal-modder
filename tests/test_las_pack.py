@@ -564,9 +564,9 @@ def test_dxt5_decodes_4color_when_c0_lt_c1():
     bits = 0                                     # all pixels index 0
     block = bytes([255, 255]) + b"\x00" * 6 + struct.pack("<HH", c0, c1) \
         + bits.to_bytes(4, "little")
-    px = dds._decode_block(block)
-    assert all(p[3] == 255 for p in px)          # alpha comes only from alpha block
-    assert all(p[:3] == (0, 0, 0) for p in px)   # endpoint 0, not a black hole
+    px = dds.decode_dxt5(block, 4, 4).reshape(-1, 4)
+    assert (px[:, 3] == 255).all()               # alpha comes only from alpha block
+    assert (px[:, :3] == 0).all()                # endpoint 0, not a black hole
 
 
 def test_dxt5_roundtrip_and_validate():

@@ -10,26 +10,29 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   buttoned suit + skirt (`WGT_headdress2_0..5`) together with all body, bra,
   high-heel, and gold-jewelry submeshes (`WGT_new_aya_body_1..8`), avoiding the
   overlapping `WGT_cap2` shell that z-fights on the torso and back.
-* **6 proper material slots** parsed from the `.dae` bindings and paired with
-  their source normal maps (`references/Honoka/L_*.dds`):
-  - `honoko2_body`: `L_3.dds` / `L_4.dds`
-  - `honoko2_suit`: `L_7.dds` / `L_8.dds`
-  - `honoko2_panties`: `L_14.dds` / `L_15.dds`
-  - `honoko2_bra`: `L_17.dds` / `L_18.dds`
-  - `honoko2_shoes`: `L_20.dds` / `L_21.dds`
-  - `honoko2_jewelry`: `L_23.dds` / `L_24.dds`
+* **6 proper material slots per pack** parsed from the `.dae` bindings and paired
+  with their source normal maps (`references/Honoka/L_*.dds`, plus `Tex_07(L_7) 2.dds`
+  and `Tex_07(L_7)3.dds` for `Honoko4` and `Honoko5`):
+  - `<id>_body`: `L_3.dds` / `L_4.dds`
+  - `<id>_suit`: `L_7.dds` (or variant `Tex_07`) / `L_8.dds`
+  - `<id>_panties`: `L_14.dds` / `L_15.dds`
+  - `<id>_bra`: `L_17.dds` / `L_18.dds`
+  - `<id>_shoes`: `L_20.dds` / `L_21.dds`
+  - `<id>_jewelry`: `L_23.dds` / `L_24.dds`
 * **Skinning transfer from `.TMC`** — the Noesis `.dae` export omits
   `<library_controllers>`, while every `.dae` vertex matches its corresponding
   vertex in `Honoka_DOAXVV_Secret_Report.TMC` to ~0.0001 cm. Exact 4-weight +
   palette-remapped influences are transferred from the TMC, then retargeted onto
   the 2B PD2 skeleton via `tmc_skeleton_map.json` + `build_models.retarget_maps`.
-* **Third-person BODY_ONLY LAS pack (`LegendaryArmours.honoko2`)** — cuts hands
-  at the PD2 wrists for heister gloves (`honoko2_glove_adapter.lua`), drops any
-  long-thin connector triangles, and writes deterministic `dist/Honoka/Honoko2.zip` +
-  `dist/Honoka/Honoko2.zip.sha256`.
+* **Four third-person BODY_ONLY LAS packs (`LegendaryArmours.honoko2..5`)** —
+  `Honoko2` (base proportions), `Honoko3` (mildly slimmed thighs/bust), `Honoko4`
+  (`Tex_07(L_7) 2.dds` suit texture), and `Honoko5` (`Tex_07(L_7)3.dds` suit
+  texture + waist/hip/cuff fit adjustments), cutting hands at the PD2 wrists for
+  heister gloves (`glove_adapter.lua`) and writing deterministic `dist/Honoka/Honoko2..5.zip`
+  + `.sha256`.
 
-`runtime_verified` stays `false` everywhere; nothing here has been run in
-PAYDAY 2.
+`Honoko2..5` have been inspected in game (`docs/renders/honoka/in-game/2026-11-15/`);
+`BUILD_INFO.json` records `runtime_verified: false` to keep archive bytes fixed.
 
 Usage:
   make -sC tools/pd2-las env

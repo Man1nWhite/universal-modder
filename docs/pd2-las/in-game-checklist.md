@@ -1,8 +1,7 @@
 # Miranda LAS — in-game verification checklist
 
-Pack to install: `build/pd2-las/Miranda_LAS` (or the zipped copy
-`build/pd2-las/Miranda_LAS.zip`) → drop the `Miranda_LAS` folder into
-`PAYDAY 2\assets\mod_overrides\`. Requires BeardLib + the LegendaryArmours
+Pack to install: `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` → extract the `Miranda_LAS`
+folder into `PAYDAY 2\assets\mod_overrides\`. Requires BeardLib + the LegendaryArmours
 (LAS) framework, exactly like the 2B reference pack (`2b.rar`), which
 installs the same way (its `main.xml` + `hooks/` are loaded by BeardLib's
 AddFramework from `assets/mod_overrides/`).
@@ -18,17 +17,17 @@ Report failures with the item number and a screenshot.
 > the packs as they are tracked now. The one place that could look different is how a surface without texture
 > area shades: a few hair cards of Miranda.
 
-Six packs were rebuilt that day: `Miranda_LAS`, `Miranda_Busty_LAS` and the four
-`Miranda_L4D2_over_*` head packs. What changed, and what was measured offline,
+Six packs were rebuilt that day: `Miranda_L4D2_LAS`, `Miranda_L4D2_Busty_LAS` and the four
+`Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` head packs. What changed, and what was measured offline,
 is in `docs/audits/2026-11-11-miranda-mips-and-object.md`. None of it has been
 seen in the game. These five steps are what would settle it. Write down the
 resolution, the FOV setting, the texture quality and the anisotropic filter
 before you start: the offline figures assume 1080p or 2160p, the game's default
 field of view and no anisotropic filter.
 
-Install `Miranda_LAS` and `Miranda_Busty_LAS` together; they are separate
+Install `Miranda_L4D2_LAS.zip` (`Miranda_LAS/`) and `Miranda_L4D2_Busty_LAS.zip` (`Miranda_Busty_LAS/`) together; they are separate
 outfits. For the comparisons, the packs as they were are
-`git show 13538a1:dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` and the same for the other five.
+`git show 13538a1:dist/Miranda_LAS.zip` and the same for the other five.
 
 | Step | What to do | Pass | Fail |
 | --- | --- | --- | --- |
@@ -112,27 +111,25 @@ levels are there for motion, and only the game shows motion.
 
 ## Christie LAS — in-game verification (2026-11-14)
 
-> **Update, 2026-11-15.** The packs were in the game outfit menu on 2026-11-15 (user report):
-> `Christie_LAS_Slim` with the white LAS gloves spawned, and full `Christie_LAS` with Christie's own
-> hands (captures archived at `da891d7`, removed in D39). That is item 1's *preview*
-> half for both packs — the list below, the lobby/heist look, the rifle elbow, the cuff/glove stack in
-> every pose and the crash logs, is still open. The installed builds were user-identified, not
-> hash-measured; nothing here changes which bytes are tracked.
+> **Update, 2026-11-15.** Earlier packs were in the game outfit menu on 2026-11-15 (user report:
+> removed `Christie_LAS_Slim` and the older full `Christie_LAS`, captures archived at `da891d7` and
+> removed in D39), and later menu/lobby captures of the rebuilt `Christie_LAS` are archived under
+> `docs/renders/christie/in-game/2026-11-15/`. The heist look, first-person arms, rifle elbow,
+> cuff/glove stack across poses and crash logs remain open, and installed hashes were not measured.
 
 Pack to install: `dist/Christie/Christie_LAS.zip` → drop `Christie_LAS` into
 `PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS, same as the 2B reference). It is a
-headless LAS outfit (`replace_body`, not `replace_all`): the heister keeps their own head.
+headless and handless LAS outfit (`replace_body`, not `replace_all`, with `glove_adapter.lua`): the
+heister keeps their own head and spawns their LAS/vanilla gloves over the wrist cut.
 
-The current base ZIP is the new source rebuild with no head or authored hands;
-check its `.sha256` sidecar to identify the installed bytes. The user-reported
-menu preview above was of the older hand-bearing pack and does not verify this
-one. `runtime_verified` remains `false`. Write down resolution, FOV, texture
-quality and anisotropic filter first.
+The current `Christie_LAS.zip` is the source rebuild (`build_christie_source.py`) with no head or
+authored hands; check its `.sha256` sidecar to identify the installed bytes. `runtime_verified`
+remains `false`. Write down resolution, FOV, texture quality and anisotropic filter first.
 
 1. **It loads** — menu outfits list "Christie (DOA5)"; the preview shows the body (open neck by
    design). A crash or a script error fails this item.
-2. **Third person** — full body in lobby preview and in game: blazer, shirt, trousers, hands,
-   shoes; no missing groups; the neckline is the designed open collar.
+2. **Third person** — full body in lobby preview and in game: blazer, shirt, trousers, spawned
+   gloves over the wrist cut, shoes; no missing groups; the neckline is the designed open collar.
 3. **First person** — heist with a weapon out: arms present and moving; reload and interact; no
    crash.
 4. **The inner elbow, rifle vs no rifle** — the same heister, pose, camera and lighting: (a) arms
@@ -154,3 +151,49 @@ quality and anisotropic filter first.
 
 Afterwards check the game's crash logs and BLT log for anything naming `christie`,
 `fps_christie` or `LegendaryArmours.christie`.
+
+## Christie Clover LAS — in-game verification (2026-11-18)
+
+Pack to install: `dist/Christie/Christie_Clover_LAS.zip` → drop `Christie_Clover_LAS` into
+`PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS). It is an experimental, third-person-only
+`BODY_ONLY` outfit built from the Christie primitives in `references/Clover-Christie.zip`
+(`build_clover_christie.py`), registered as `LegendaryArmours.clover_christie`. **Nothing of this pack
+has been in game**, `runtime_verified` is `false`, and there is no `fps_unit`: the arms stay the
+heister's own in first person, which is by design and not a defect.
+
+Check its `.sha256` sidecar to identify the installed bytes. Write down resolution, FOV, texture
+quality and anisotropic filter before starting.
+
+1. **It loads** — the menu outfits list a Clover/Christie entry; the preview shows the body. A crash
+   or a script error fails this item.
+2. **Bind pose and fit** — the jacket, trousers and heels in lobby and in game: no collapsed or
+   inside-out groups, shoulders and hips not torn, soles on the floor. Offline bind-joint positions
+   differ from the LAS template by up to 5 cm, so this is the item that decides whether the direct
+   bind holds in animation.
+3. **Normal maps (the fixed green channel)** — light a shoulder and a thigh from the side. The lit
+   side should look raised, not sunken. This pack inverts nothing now and measures `corr > +0.99`
+   against `Christie_LAS`'s `christie_c02_01_nm.texture`; the item exists because an earlier build
+   inverted the green channel twice, which reads as dents where there should be ridges.
+4. **The lace cutout** — the skirt slit. Offline it is an approximated alpha test and its shadow is
+   opaque. Fail: a hard rectangular edge, fringe, or a shadow that still shows the cut-out piece.
+5. **First person** — heist with a weapon out: the arms are the heister's own and move normally
+   (there is no `fps_unit` and nothing should be missing or doubled).
+6. **Movement** — sprint, crouch, interact: no popping, elbows bend cleanly, the shadow follows.
+
+Afterwards check the game's crash logs and BLT log for anything naming `clover_christie` or
+`LegendaryArmours.clover_christie`.
+
+## Honoko5 — the jewelry diffuse (2026-11-18)
+
+Pack to install: `dist/Honoka/Honoko5.zip` → drop `Honoko5` into `PAYDAY 2\assets\mod_overrides\`.
+Only the jewelry diffuse changed (`references/Honoka/Tex_23(L_23)2.dds`, D50); the geometry, the
+suit and the registration are the same as the build the 2026-11-15 captures show, so a difference
+seen here and nowhere else belongs to `L_23`.
+
+1. **The jewelry reads correctly** — necklace, chain and brooch sit on the jacket with no seam
+   across the collar and no wrong-chroma patch where the old diffuse's UV island was.
+2. **It matches the suit** — the jewelry and the black jacket are lit by the same light without the
+   jewelry looking like a separate cut-out pasted on top.
+
+Everything else for this pack is covered by the 2026-11-15 sections of the render pages; the
+captures there predate this texture and cannot be used to judge it.

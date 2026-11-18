@@ -226,11 +226,11 @@ Fairing the repaired zone any further than the first valid state does not help e
 gentle rounds (strength 0.2) re-invert a face and the guard reverts them, so the repair stops as soon
 as the winding is legal and leaves the residual 15 normal quirks above.
 
-Rendered evidence (previously tracked under `docs/previews/`, deleted on 2026-11-15 in D39;
-regenerated into `build/previews/` by `tools/render_mod_previews.py`): `12_Miranda_Busty_LAS.png` (full-body
-four-angle + portrait + FPS arms), `13_Miranda_Busty_vs_LAS_chest.png` (0°/30°/**45°**/60°/**90°**
+Rendered evidence (tracked under `docs/renders/miranda/model/busty/` via `tools/render_mod_previews.py --unified`,
+or written to `build/previews/` by default): `miranda_busty_las_sheet.png` (`12_Miranda_Busty_LAS.png`, full-body
+four-angle + portrait + FPS arms), `miranda_busty_vs_las_chest.png` (`13_Miranda_Busty_vs_LAS_chest.png`, 0°/30°/**45°**/60°/**90°**
 close-ups with the framing pulled back as the yaw widens, stock above, variant below) and
-`14_Miranda_Busty_vs_LAS_top_below.png` (58° above and 58° below, at 0° and 30° yaw). The builder's own sheets stay in
+`miranda_busty_vs_las_top_below.png` (`14_Miranda_Busty_vs_LAS_top_below.png`, 58° above and 58° below, at 0° and 30° yaw). The builder's own sheets stay in
 `build/pd2-las/previews/` (`busty_compare_chest.png`, `busty_compare_top_bottom.png`,
 `busty_sculpt_clay.png`).
 

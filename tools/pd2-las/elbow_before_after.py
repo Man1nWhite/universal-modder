@@ -184,8 +184,7 @@ def main(argv=None) -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     args.scratch.mkdir(parents=True, exist_ok=True)
     stem = args.suffix or args.item
-    slim = "slim" in (args.pack + args.item).lower()
-    name = f"Christie {'slim ' if slim else ''}"
+    name = "Christie "
     shipped = ("before = previously shipped pack (left). after = this build "
                "(right). Same row = same crop, scale and depth band")
     if args.mode == "elbow":
@@ -195,7 +194,6 @@ def main(argv=None) -> int:
         panels, labels = build_panels(args, template, rows)
         compose(panels, labels, [
             shipped + " (window = union of both panels).",
-            "after = 12 deg authoring rest + seam-welded Taubin relaxation.",
             *args.note,
         ], args.out / f"{stem}_elbow_bend_before_after.png",
             f"{name}elbow: shipped (left) vs current build (right)")
@@ -218,10 +216,6 @@ def main(argv=None) -> int:
         panels, labels = build_panels(args, template, rows)
         compose(panels, labels, [
             shipped + " (window = union of both panels).",
-            "after = cuff taper: radial 1 - 0.28 on the outer shell over the "
-            "last 9 cm, floor 3 cm, 0.5 cm clearance to the hand.",
-            "the mouth keeps its axial position, so the in-game glove spawn "
-            "is unchanged.",
             *args.note,
         ], args.out / f"{stem}_cuff_before_after.png",
             f"{name}cuff: shipped (left) vs current build (right)")

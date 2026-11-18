@@ -987,17 +987,13 @@ class TestLasScaffold:
             assert zipfile.is_zipfile(ref) is False
 
     def test_tracked_miranda_las_pack(self):
-        """The built Miranda_LAS.zip deliverable is tracked in dist/ and self-consistent."""
-        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
-        dist_zip = dist_path(REPO, "Miranda_LAS.zip")
-        build_sha = REPO / "build" / "pd2-las" / "Miranda_LAS.zip.sha256"
-        dist_sha = dist_path(REPO, "Miranda_LAS.zip.sha256")
-        for p in (build_zip, dist_zip, build_sha, dist_sha):
+        """The built Miranda_L4D2_LAS.zip deliverable is tracked in dist/ and self-consistent."""
+        dist_zip = dist_path(REPO, "Miranda_L4D2_LAS.zip")
+        dist_sha = dist_path(REPO, "Miranda_L4D2_LAS.zip.sha256")
+        for p in (dist_zip, dist_sha):
             assert p.is_file(), f"missing tracked deliverable: {p}"
         raw = dist_zip.read_bytes()
-        assert build_zip.read_bytes() == raw
         digest = hashlib.sha256(raw).hexdigest()
-        assert build_sha.read_text().split()[0] == digest
         assert dist_sha.read_text().split()[0] == digest
         with zipfile.ZipFile(dist_zip) as z:
             info = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))
@@ -1430,8 +1426,8 @@ class TestLasScaffold:
         """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""
         import numpy as np
 
-        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
-        with zipfile.ZipFile(build_zip) as z:
+        dist_zip = dist_path(REPO, "Miranda_L4D2_LAS.zip")
+        with zipfile.ZipFile(dist_zip) as z:
             for stem in ("miranda_body_df", "miranda_face_df", "miranda_head_df", "miranda_eyes"):
                 raw = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{stem}.texture")
                 blocks = np.frombuffer(raw[128:], dtype=np.uint8).reshape(-1, 16)
@@ -1448,7 +1444,7 @@ class TestLasScaffold:
                 assert int(blocks[:, 0].max()) - int(blocks[:, 1].min()) > 16, f"{stem} alpha flat"
 
     def test_l4d2_head_diffuse_alpha_follows_the_las_face(self):
-        """The four L4D2 head packs build `*_head_df.texture` from dist/Miranda_LAS.zip's face diffuse:
+        """The L4D2 head packs build `*_head_df.texture` from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip's face diffuse:
         face-quadrant alpha = min(source alpha, 18), i.e. an attenuated specular mask (PD2 reads diffuse
         alpha as specular). The packs once shipped a *scrambled* alpha plane (a face quadrant whose values
         had the right distribution but no spatial relation to the source: correlation +0.03), because they

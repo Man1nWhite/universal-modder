@@ -42,7 +42,7 @@ checker = _load("check_guide_compliance", "check_guide_compliance.py")
 build = _load("build_las_pack", "build_las_pack.py")
 dds = _load("dds_las", "dds.py")
 
-PACK = dist_path(ROOT, "lawson_las.zip")
+PACK = dist_path(ROOT, "Miranda_Romance_LAS.zip")
 TPP_CFG = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.material_config"
 FPS_CFG = "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.material_config"
 TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"

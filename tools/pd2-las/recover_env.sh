@@ -50,13 +50,13 @@ if [ -z "$CHECK_PY" ] || ! "$CHECK_PY" -c 'import sys; sys.exit(sys.version_info
 fi
 
 # ------------------------------------------- 0. tracked files that are missing
-# `git checkout -- dist build node_modules` would also throw away a pack that was
+# `git checkout -- dist node_modules` would also throw away a pack that was
 # rebuilt and not committed. This names the deleted files and restores only those.
 if git rev-parse --show-toplevel >/dev/null 2>&1; then
-    MISSING="$(git ls-files --deleted -- dist build node_modules | wc -l | tr -d ' ')"
+    MISSING="$(git ls-files --deleted -- dist node_modules | wc -l | tr -d ' ')"
     if [ "$MISSING" != 0 ]; then
-        echo "== restoring $MISSING tracked files missing from dist/, build/ and node_modules/"
-        git ls-files -z --deleted -- dist build node_modules | xargs -0 git checkout --
+        echo "== restoring $MISSING tracked files missing from dist/ and node_modules/"
+        git ls-files -z --deleted -- dist node_modules | xargs -0 git checkout --
     fi
 fi
 
