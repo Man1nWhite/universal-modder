@@ -20,6 +20,11 @@ Reasons for fixtures that are present in this checkout (e.g. the extracted 2B
 templates) are listed at count 0 so that their reappearance — a regression to
 a 59-skip state — fails immediately.
 
+The budget must hold in both environments the suite runs in: a dev checkout
+made by `recover_env.sh --extras` (lupa and sourcepp present, so those tests
+run) and the CI runner, which installs neither. Each such reason therefore has
+room for its CI count, not its dev count.
+
 Expected failures are budgeted the same way. An `xfail` marker switches off the
 verdict of a test that still runs, so one line can hide a defect just as a skip
 can: each test allowed to fail is named in `ALLOWED_XFAIL` with a maximum count,
@@ -47,7 +52,11 @@ ALLOWED: dict[str, int] = {
     # Present-by-design skips (fixtures absent by design, not regressed):
     "needs ffmpeg": 4,
     "sourcepp is an optional extra": 2,
-    "lupa (LuaJIT) not installed": 1,
+    # Two tests need lupa: the harness module skips once when it is collected,
+    # and tests/test_christie_source_pack.py imports that same module through
+    # `importorskip`, whose skip is reported against the importing file. CI
+    # installs neither lupa nor sourcepp, so both skips are expected there.
+    "lupa (LuaJIT) not installed": 2,
     "Git Bash / MSYS only": 1,
     # Regression to watch for: the fixture and tracked packs are present, so these
     # must be 0. Every test that needs the 2B templates skips with
