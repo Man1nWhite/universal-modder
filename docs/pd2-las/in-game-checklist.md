@@ -151,3 +151,49 @@ remains `false`. Write down resolution, FOV, texture quality and anisotropic fil
 
 Afterwards check the game's crash logs and BLT log for anything naming `christie`,
 `fps_christie` or `LegendaryArmours.christie`.
+
+## Christie Clover LAS — in-game verification (2026-11-18)
+
+Pack to install: `dist/Christie/Christie_Clover_LAS.zip` → drop `Christie_Clover_LAS` into
+`PAYDAY 2\assets\mod_overrides\` (SuperBLT + BeardLib + LAS). It is an experimental, third-person-only
+`BODY_ONLY` outfit built from the Christie primitives in `references/Clover-Christie.zip`
+(`build_clover_christie.py`), registered as `LegendaryArmours.clover_christie`. **Nothing of this pack
+has been in game**, `runtime_verified` is `false`, and there is no `fps_unit`: the arms stay the
+heister's own in first person, which is by design and not a defect.
+
+Check its `.sha256` sidecar to identify the installed bytes. Write down resolution, FOV, texture
+quality and anisotropic filter before starting.
+
+1. **It loads** — the menu outfits list a Clover/Christie entry; the preview shows the body. A crash
+   or a script error fails this item.
+2. **Bind pose and fit** — the jacket, trousers and heels in lobby and in game: no collapsed or
+   inside-out groups, shoulders and hips not torn, soles on the floor. Offline bind-joint positions
+   differ from the LAS template by up to 5 cm, so this is the item that decides whether the direct
+   bind holds in animation.
+3. **Normal maps (the fixed green channel)** — light a shoulder and a thigh from the side. The lit
+   side should look raised, not sunken. This pack inverts nothing now and measures `corr > +0.99`
+   against `Christie_LAS`'s `christie_c02_01_nm.texture`; the item exists because an earlier build
+   inverted the green channel twice, which reads as dents where there should be ridges.
+4. **The lace cutout** — the skirt slit. Offline it is an approximated alpha test and its shadow is
+   opaque. Fail: a hard rectangular edge, fringe, or a shadow that still shows the cut-out piece.
+5. **First person** — heist with a weapon out: the arms are the heister's own and move normally
+   (there is no `fps_unit` and nothing should be missing or doubled).
+6. **Movement** — sprint, crouch, interact: no popping, elbows bend cleanly, the shadow follows.
+
+Afterwards check the game's crash logs and BLT log for anything naming `clover_christie` or
+`LegendaryArmours.clover_christie`.
+
+## Honoko5 — the jewelry diffuse (2026-11-18)
+
+Pack to install: `dist/Honoka/Honoko5.zip` → drop `Honoko5` into `PAYDAY 2\assets\mod_overrides\`.
+Only the jewelry diffuse changed (`references/Honoka/Tex_23(L_23)2.dds`, D50); the geometry, the
+suit and the registration are the same as the build the 2026-11-15 captures show, so a difference
+seen here and nowhere else belongs to `L_23`.
+
+1. **The jewelry reads correctly** — necklace, chain and brooch sit on the jacket with no seam
+   across the collar and no wrong-chroma patch where the old diffuse's UV island was.
+2. **It matches the suit** — the jewelry and the black jacket are lit by the same light without the
+   jewelry looking like a separate cut-out pasted on top.
+
+Everything else for this pack is covered by the 2026-11-15 sections of the render pages; the
+captures there predate this texture and cannot be used to judge it.

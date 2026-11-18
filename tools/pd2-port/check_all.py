@@ -20,7 +20,7 @@ constants of their own scripts.
 runs, so "is everything green?" is one command here and not six: the lint, the
 ``um`` command groups, the knowledge base, the publish check, the suite, and
 every tracked pack built again and compared with its sha256
-(tools/pd2-las/fresh.py; 19 zips). The skip budget expects the 2B reference
+(tools/pd2-las/fresh.py; 20 zips). The skip budget expects the 2B reference
 templates under build/pd2-las/2b/ (``make -sC tools/pd2-las env``) and fails
 without them. It holds expected failures (xfail) to a budget as well, and it
 judges the report of the suite stage: the suite runs once. The last line

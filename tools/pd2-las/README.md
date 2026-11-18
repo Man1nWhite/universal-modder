@@ -112,12 +112,14 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 
 ## Next
 
-1. In-game verification with `docs/pd2-las/in-game-checklist.md` (written for `Miranda_L4D2_LAS` and `Christie_LAS`); it needs a human
-   with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the last rebuild of the Miranda packs.
-2. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`):
-   texels at full gloss in `body_df` and `head_df` of the Miranda packs.
-3. The sibling packs: `Miranda_Romance_LAS` and the eleven head packs have no record of their tracked bytes in game, and
-   the head packs have no checklist.
+1. In-game verification with `docs/pd2-las/in-game-checklist.md` (sections for `Miranda_L4D2_LAS`,
+   `Christie_LAS`, `Christie_Clover_LAS` and the `Honoko5` jewelry swap); it needs a human
+   with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the Miranda rebuild.
+2. `Christie_Clover_LAS` and `Honoko5`'s `Tex_23(L_23)2.dds` jewelry are the newest unverified bytes:
+   neither has been seen in game, and every archived capture predates both.
+3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): texels at
+   full gloss in `body_df` and `head_df` of the Miranda packs. `Miranda_Romance_LAS` and the eleven
+   head packs have no record of their tracked bytes in game, and the head packs have no checklist.
 
 ## Further reading
 
