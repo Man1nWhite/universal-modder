@@ -50,6 +50,7 @@ BUILDERS = {
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
     "christie": ["tools/pd2-las/build_christie_source.py"],
+    "cloverchristie": ["tools/pd2-las/build_clover_christie.py"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"

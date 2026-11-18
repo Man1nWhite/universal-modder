@@ -10,17 +10,18 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | `Miranda_L4D2_LAS` — full body and first-person arms | `references/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 | `Christie_LAS` — no head or hands; glove adapter, TPP and FPS | `references/Christie.zip` | `build_christie_source.py` | `christie` |
+| `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
 | `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
 `honokodae` writes `dist/Honoka/Honoko2.zip` through `dist/Honoka/Honoko5.zip` directly, and `fresh` verifies all
 four. `Honoko3`–`Honoko5` share the layer-clearance pass and trimmed shadow caster; `Honoko4` and `Honoko5` use alternative suit diffuses.
 The `.dae` builder takes its skinning from the source TMC (`tmc.py`, `tmc_skeleton_map.json`), cuts wrists, encodes DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and registers BODY_ONLY with glove adapter and 4-view icon.
+The experimental Clover-Christie builder selects only Christie primitives; its direct bind, cuffs, cutout and shadows need in-game checks. There is no custom FPS unit. See `MODLOG.md`; `clover_christie_glb.py` prints the intake report.
 `runtime_verified` is `false`; the new Christie needs in-game cuff and elbow checks. `Honoko2` was seen in-game (`docs/pd2-las/HANDOFF.md`; `docs/pd2-las/honoka-tmc-format.md`).
 ## Status
 
 Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every
 tracked pack of the three pipelines (size, sha256, `make` target, whether the zip `is` what git tracks), the next command.
-
 ## Commands
 
 The general CLI supports Python 3.10+; the pinned PAYDAY 2 build needs **Python 3.11+** (CI uses 3.11). `env` checks the interpreter; recreate an older `.venv` with Python 3.11+ first.
@@ -47,7 +48,6 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
   all tracked ZIPs, including the two build copies, in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
 - **Done means:** `green` passes and `status` shows `changed` only for packs you meant to change. No
   document needs an edit; a changed `Miranda_LAS` needs `heads` run again.
-
 ## File map
 
 | Path (`tools/pd2-las/`) | Role |

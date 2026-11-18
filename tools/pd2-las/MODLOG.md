@@ -135,3 +135,31 @@ The user requested a head texture colour closer to the body. The Hila Romance fa
 are adjusted toward Honoko5's exposed neck diffuse via a deterministic colour mask; the eyes, hair,
 alpha, geometry and other head packs are kept unchanged. The Hila portrait and offline combo views
 are regenerated. The remaining neck crossing and in-game lighting are not addressed by the tint. D48.
+
+## Honoko5 jewelry texture update
+
+Rebuilt Honoko5 with `references/Honoka/Tex_23(L_23)2.dds` in the jewelry diffuse slot,
+retaining its existing suit diffuse, geometry, and jewelry normal map. Honoko2–4 reproduce their
+previous tracked bytes. The updated Honoko5 pack has not been verified in game; earlier screenshots
+were taken before this change.
+
+## Clover-Christie LAS intake
+
+The user chose a selectable LAS outfit for `references/Clover-Christie.zip`. The archive
+contains `PD2/Clover.glb` and `PD2/Clover.blend`, not an installable pack. The GLB contains
+a skinned mesh named `6021834874957821078` with four `cri_*` material primitives and embedded
+PNG textures, alongside numerous other meshes with numeric material names. The existing LAS
+builders do not accept GLB; a source-specific importer, rig mapping, mesh selection and validation
+are needed. No Clover-Christie pack has been built or tested. Avoid shipping the unrelated
+numerically named meshes without establishing their provenance.
+
+## Clover-Christie experimental LAS builder
+
+Added a narrow GLB importer and a deterministic BODY_ONLY TPP LAS builder. The skinned
+Christie mesh's weighted joints all resolve to the LAS template by Diesel hash; bind-joint
+positions differ by at most 5 cm, so this is a direct bind rather than a pose retarget.
+Only Christie material primitives and their embedded textures are used. Wrists are cut,
+the heister supplies head and gloves, and there is no custom first-person unit. Blended
+material is approximated with alpha test; its shadow is opaque. The source model, fit,
+normal-map convention and runtime animation are not verified in game. An offline bind-pose
+render was inspected; in-game cuffs, deformation, transparency and shadows need review.
