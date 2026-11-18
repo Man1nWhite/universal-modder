@@ -477,9 +477,11 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   (suit) and `Tex_23(L_23)2.dds` (jewelry) diffuses (`build_honoko2_dae.py`), while
   `tools/pd2-las/build_clover_christie.py` (`clover_christie_glb.py`) builds an experimental TPP-only
   `BODY_ONLY` outfit `dist/Christie/Christie_Clover_LAS.zip` from the Christie primitives in
-  `references/Clover-Christie.zip`. User-supplied menu/lobby captures of `Christie_LAS` and pre-jewelry
-  `Honoko5` are archived under `docs/renders/christie/in-game/2026-11-15/` and
-  `docs/renders/honoka/in-game/honoko5/2026-11-15/`. `runtime_verified` stays `false` (D31).
+  `references/Clover-Christie.zip`, preserving glTF's OpenGL Y+ normal-map green channel (`corr > +0.99`
+  against `Christie_LAS`) and full `BUILD_INFO.json` registration metadata. Offline model sheets for all
+  20 packs live under `tools/render_mod_previews.py --unified`. User-supplied menu/lobby captures of
+  `Christie_LAS` and pre-jewelry `Honoko5` are archived under `docs/renders/christie/in-game/2026-11-15/`
+  and `docs/renders/honoka/in-game/honoko5/2026-11-15/`. `runtime_verified` stays `false` (D31).
 - **Status:** holds.
 
 ### D51 — `dist/` is the sole tracked home for built zips; duplicate `build/pd2-las/*.zip` copies removed

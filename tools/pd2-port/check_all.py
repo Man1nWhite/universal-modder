@@ -92,7 +92,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--full", action="store_true",
                     help="also run everything the test workflow checks: lint, um, knowledge base, "
-                         "publish check, the suite, the skip budget, all 19 zips rebuilt")
+                         "publish check, the suite, the skip budget, all 20 zips rebuilt")
     ap.add_argument("--pack", default=str(dist_path(ROOT, "Miranda_Romance_LAS.zip")),
                     help="the pack to check")
     args = ap.parse_args()

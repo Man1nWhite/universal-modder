@@ -856,8 +856,7 @@ def test_tracked_bytes_match_their_sidecar_and_build_info(pack):
     assert {i.date_time for i in entries} == {(2020, 1, 1, 0, 0, 0)}, "a timestamp that is not fixed"
 
     info = _info(pack)
-    if "models_present" in info:
-        assert info["models_present"] is True
+    assert info["models_present"] is True
     payload = info["payload_sha256"]
     shipped = {i.filename[len(pack) + 1:] for i in entries} - {"BUILD_INFO.json"}
     assert set(payload) == shipped, (sorted(set(payload) ^ shipped))

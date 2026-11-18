@@ -2,7 +2,7 @@
 
 Original PNG uploads, archived without alteration. Outfit-menu front and side views and a menu/lobby upper-body view with a rifle.
 
-Pack: `dist/Honoka/Honoko5.zip`. The installed bytes were not hash-verified; the captures alone cannot prove which build was installed. The head and blue gloves are supplied at runtime.
+Pack: `dist/Honoka/Honoko5.zip` (pre-`Tex_23(L_23)2.dds` jewelry diffuse update; see D50 and `tools/pd2-las/MODLOG.md`). The installed bytes were not hash-verified; the captures alone cannot prove which build was installed, and they predate the later `Tex_23(L_23)2.dds` jewelry swap. The head and blue gloves are supplied at runtime.
 
 | Upload | Capture | View |
 | --- | --- | --- |

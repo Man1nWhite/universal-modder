@@ -68,6 +68,9 @@ def test_pack_registration_and_hashes():
         prefix = builder.PACK + '/'
         info = json.loads(z.read(prefix + 'BUILD_INFO.json'))
         assert not info['runtime_verified'] and not info['fps_available']
+        assert info['item_id'] == builder.ITEM and info['models_present'] is True
+        assert info['registration']['table'] == f'LegendaryArmours.{builder.ITEM}'
+        assert info['registration']['glove_adapter'] is True
         assert info['source_mesh'] == source.MESH
         for name, digest in info['payload_sha256'].items():
             assert hashlib.sha256(z.read(prefix + name)).hexdigest() == digest
@@ -78,3 +81,20 @@ def test_pack_registration_and_hashes():
             assert f'{builder.UNIT}/{slot}' in main
         xml = z.read(prefix + f'assets/{builder.UNIT}/{builder.ITEM}.material_config').decode()
         assert 'ALPHA_MASKED' in xml and 'alpha_ref' in xml
+
+
+def test_normal_map_green_matches_opengl_christie_convention():
+    """glTF normalTexture is already OpenGL Y+; the builder must not double-invert green."""
+    import io
+    from PIL import Image
+
+    with zipfile.ZipFile(ROOT / 'dist/Christie/Christie_LAS.zip') as z1, \
+         zipfile.ZipFile(ROOT / 'dist/Christie/Christie_Clover_LAS.zip') as z2:
+        ref = np.asarray(Image.open(io.BytesIO(
+            z1.read('Christie_LAS/assets/units/christie/skins/christie/christie_c02_01_nm.texture')
+        )).convert('RGBA'))
+        ours = np.asarray(Image.open(io.BytesIO(
+            z2.read(f'{builder.PACK}/assets/{builder.UNIT}/{builder.ITEM}_0_nm.texture')
+        )).convert('RGBA'))
+    corr = float(np.corrcoef(ref[..., 1].ravel(), ours[..., 1].ravel())[0, 1])
+    assert corr > 0.99, f'normal-map green channel disagrees with OpenGL Y+ Christie_LAS: corr={corr:.4f}'

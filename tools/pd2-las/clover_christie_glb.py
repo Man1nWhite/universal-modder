@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Inspect the Christie mesh in Clover-Christie.zip without extracting Clover assets.
 
-This is the intake stage of an LAS builder, not yet an LAS pack builder. It
-reads the embedded glTF buffers, validates the selected skinned primitives,
-resolves Diesel-hashed joint names against the LAS template, and emits a JSON
-report. No extracted source data or game assets are written to the repository.
+Intake and validation module consumed by `build_clover_christie.py`. It reads
+the embedded glTF buffers, validates the selected skinned primitives, resolves
+Diesel-hashed joint names against the LAS template, and emits a JSON report. No
+extracted source data or game assets are written to the repository.
 
     .venv/bin/python tools/pd2-las/clover_christie_glb.py
     .venv/bin/python tools/pd2-las/clover_christie_glb.py --source archive.zip
@@ -15,15 +15,20 @@ import argparse
 import hashlib
 import json
 import struct
+import sys
 import zipfile
 from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
 
 import numpy as np
 import build_models as bm
 import diesel_model as dm
 import extract_2b
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = HERE.parents[1]
 SOURCE = ROOT / 'references/Clover-Christie.zip'
 TEMPLATE = extract_2b.TEMPLATES / '2b.model'
 MEMBER = 'PD2/Clover.glb'
@@ -156,7 +161,7 @@ def inspect(source: Path, template_path: Path) -> dict:
     return {'source': str(source), 'glb_sha256': hashlib.sha256(data).hexdigest(),
             'mesh': MESH, 'skin_joints': len(joints), 'mapped_joints': sum(x is not None for x in mapping),
             'joint_mapping': dict(zip(joints, mapping)), 'primitives': results,
-            'status': 'intake_only_not_an_installable_pack'}
+            'status': 'intake_validated'}
 
 
 def main():

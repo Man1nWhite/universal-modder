@@ -183,14 +183,12 @@ def test_new_ingame_capture_manifests_match_images():
 
 
 def test_every_tracked_model_render_sheet_belongs_to_render_mod_previews():
-    """Prevent orphan model renders (like the removed Christie_LAS_Slim sheet) from lingering after a pack is deleted."""
+    """Prevent orphan model renders (like the removed Christie_LAS_Slim sheet) or split render wrappers."""
     render_tools = (REPO / "tools" / "render_mod_previews.py").read_text(encoding="utf-8")
-    extra_tool = REPO / "tools" / "render_clover_honoko.py"
-    if extra_tool.is_file():
-        render_tools += "\n" + extra_tool.read_text(encoding="utf-8")
+    assert not (REPO / "tools" / "render_clover_honoko.py").exists()
     for rel_path in _tracked_under("docs/renders"):
         rel = rel_path.as_posix() if hasattr(rel_path, "as_posix") else str(rel_path)
         parts = rel.split("/")
         if len(parts) >= 4 and parts[2] == "model" and rel.endswith(".png"):
             sub = "/".join(parts[1:])
-            assert sub in render_tools, f"{rel} is not produced by any render tool under tools/"
+            assert sub in render_tools, f"{rel} is not in tools/render_mod_previews.py UNIFIED_PATHS"

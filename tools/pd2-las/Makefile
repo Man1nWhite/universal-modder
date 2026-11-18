@@ -69,5 +69,5 @@ fresh:      ## every tracked pack built again in a copy of the tree and compared
 test:       ## the whole suite, offline
 	cd "$(ROOT)" && $(PY) -m pytest -q tests
 
-green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 19 zips), one line each
+green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 20 zips), one line each
 	@cd "$(ROOT)" && $(PY) tools/pd2-port/check_all.py --full
