@@ -13,7 +13,11 @@ on:
 jobs:
   test:
     runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
-    timeout-minutes: 20
+    # 20 minutes cut the fresh build of the 20th pack off mid-step (2026-11-18:
+    # the job reached the last step at 19m50s and was cancelled). `main` took
+    # 18m42s with 19 packs; the step rebuilds every pack from scratch, so the
+    # cap has to leave room for one more pack and a slow runner.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
