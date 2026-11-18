@@ -1216,12 +1216,10 @@ class TestLasScaffold:
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
     def test_honoko4_and_5_are_honoko3_in_the_alt_suits(self):
-        """`Honoko4`/`Honoko5` are `Honoko3`'s bytes apart from the suit slot: the user's diffuses.
+        """Honoko4 and Honoko5 retain Honoko3's geometry and use the supplied diffuses.
 
-        The packs the user asked for ("aply Tex_07(L_7) 2.dds ... to costume of Honoko3 and make it
-        Honoko4", then the same for `Tex_07(L_7)3.dds` as Honoko5) keep Honoko3's geometry, slim and
-        clearance passes vertex for vertex, and differ only where the colourway enters: the suit
-        slot's diffuse, its icon and the hashes that follow from them (D44, D45).
+        Honoko4 replaces the suit diffuse; Honoko5 replaces both the suit and jewelry diffuses.
+        Their original normal maps, slim pass and clearance remain unchanged.
         """
         import hashlib
         import sys as _sys
@@ -1257,7 +1255,13 @@ class TestLasScaffold:
             alt = (REPO / "references" / "Honoka" / dds).read_bytes()
             assert suit["source_sha256"] == hashlib.sha256(alt).hexdigest()
             for slot in ("body", "panties", "bra", "shoes", "jewelry"):
-                assert tex3[f"honoko3_{slot}_df"] == tex[f"{stem}_{slot}_df"], (tag, slot)
+                if tag == "Honoko5" and slot == "jewelry":
+                    jewelry = tex[f"{stem}_jewelry_df"]
+                    source = REPO / "references/Honoka/Tex_23(L_23)2.dds"
+                    assert jewelry["source"] == "references/Honoka/Tex_23(L_23)2.dds"
+                    assert jewelry["source_sha256"] == hashlib.sha256(source.read_bytes()).hexdigest()
+                else:
+                    assert tex3[f"honoko3_{slot}_df"] == tex[f"{stem}_{slot}_df"], (tag, slot)
                 assert tex3[f"honoko3_{slot}_nm"] == tex[f"{stem}_{slot}_nm"], (tag, slot)
             assert tex[f"{stem}_suit_nm"] == tex3["honoko3_suit_nm"], f"{tag}: keeps L_8's normals"
 

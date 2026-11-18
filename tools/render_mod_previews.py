@@ -440,6 +440,7 @@ def load_multi_mat_las_parts(
     tag: str,
     prefix: str,
     has_fps: bool = True,
+    cutout_materials: frozenset = frozenset(),
 ) -> tuple[list, list, Image.Image]:
     """Load TPP (and optional FPS) multi-material parts + icon from a body-only LAS pack."""
     unit = f"{tag}/assets/units/{prefix}/skins/{prefix}/"
@@ -447,7 +448,8 @@ def load_multi_mat_las_parts(
     with zipfile.ZipFile(zip_path) as zf:
         mf_tpp = dm.ModelFile.read(zf.read(unit + f"{prefix}.model"))
         tpp_mats = _parse_matcfg_diffuse(zf.read(unit + f"{prefix}.material_config"))
-        tpp_parts = _parts_from_model_with_matcfg(zf, tag, mf_tpp, tpp_mats, tex_cache)
+        tpp_parts = _parts_from_model_with_matcfg(zf, tag, mf_tpp, tpp_mats, tex_cache,
+                                                   cutout_materials=cutout_materials)
         fps_parts: list = []
         if has_fps:
             mf_fps = dm.ModelFile.read(zf.read(unit + f"fps_{prefix}.model"))

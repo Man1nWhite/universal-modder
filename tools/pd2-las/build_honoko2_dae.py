@@ -167,7 +167,7 @@ HONOKO5 = PackSpec(
     ),
     slim=0.95,
     clearance=True,
-    tex_override={"suit": "Tex_07(L_7)3.dds"},
+    tex_override={"suit": "Tex_07(L_7)3.dds", "jewelry": "Tex_23(L_23)2.dds"},
 )
 
 PACKS = (HONOKO2, HONOKO3, HONOKO4, HONOKO5)
