@@ -227,7 +227,8 @@ class TargetRig:
 
 def load_target_rig(path) -> TargetRig:
     import json
-    data = json.load(open(path))
+    with open(path, encoding="utf-8") as fh:
+        data = json.load(fh)
     # main tree only: the reference file also carries a duplicated 10000+ tree
     entries = [b for b in data["bones"] if b["id"] < 10000]
     by_name = {b["name"]: b for b in entries if b["name"]}

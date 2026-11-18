@@ -59,11 +59,16 @@ jobs:
         run: |
           diff -u dist/Miranda_Romance/Miranda_Romance_LAS.zip.sha256 <(sha256sum dist/Miranda_Romance/Miranda_Romance_LAS.zip)
           diff -u dist/Miranda_L4D2/Miranda_L4D2_LAS.zip.sha256 <(sha256sum dist/Miranda_L4D2/Miranda_L4D2_LAS.zip)
-          diff -u build/pd2-las/Miranda_LAS.zip.sha256 <(sha256sum build/pd2-las/Miranda_LAS.zip)
           diff -u dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip.sha256 <(sha256sum dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip)
           diff -u dist/Miranda_Romance/Miranda_Romance_over_Joy.zip.sha256 <(sha256sum dist/Miranda_Romance/Miranda_Romance_over_Joy.zip)
-      - name: tests
-        run: python -m pytest -q tests
+      - name: unpack 2B templates
+        run: python tools/pd2-las/extract_2b.py
+      - name: tests and skip budget
+        run: |
+          set -o pipefail
+          mkdir -p build
+          python -m pytest -q -rsxX tests | tee build/pytest-rsxX.txt
+          python tools/pd2-port/check_skip_budget.py --report build/pytest-rsxX.txt
       - name: upload artifact
         uses: actions/upload-artifact@v4
         with:

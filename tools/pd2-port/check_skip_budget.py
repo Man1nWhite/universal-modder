@@ -49,24 +49,21 @@ ALLOWED: dict[str, int] = {
     "sourcepp is an optional extra": 2,
     "lupa (LuaJIT) not installed": 1,
     "Git Bash / MSYS only": 1,
-    # Regression to watch for: the fixture is extracted, so this must be 0. Every
-    # test that needs the 2B templates skips with tools/pd2-las/extract_2b.MISSING,
-    # which starts with this prefix; any other wording is unbudgeted and fails too.
+    # Regression to watch for: the fixture and tracked packs are present, so these
+    # must be 0. Every test that needs the 2B templates skips with
+    # tools/pd2-las/extract_2b.MISSING; any other wording is unbudgeted and fails.
     "2B templates not extracted": 0,
+    "Christie_LAS.zip is not in dist/ in this checkout": 0,
 }
 
 #: Maximum number of expected failures (xfail) per test, by node-id prefix.
 #: These are known defects that are recorded where the marker is, not tests
-#: that somebody wanted out of the way. Empty since 2026-11-13: the two slim
-#: sleeve cases (KNOWN_SLEEVE_LEAK_CM2, once in tests/test_christie_las.py)
-#: closed when the slit bridge stopped being dropped by _insert_faces; there
-#: is no expected failure left.
+#: that somebody wanted out of the way. Empty since 2026-11-13: there is no
+#: expected failure left.
 ALLOWED_XFAIL: dict[str, int] = {}
 
-#: Not judged. Its one skip reason, a checkout without the Christie pack, has no
-#: budget; the tool's own run leaves the file out, and a saved report of the
-#: whole suite has its lines dropped.
-IGNORED = ("tests/test_render_mesh_skeleton.py",)
+#: Files left out of budget judging (empty: every test file in tests/ is judged).
+IGNORED = ()
 
 _SKIP = re.compile(r"^SKIPPED \[(\d+)\] (.*?): (.+)$")
 _XFAIL = re.compile(r"^(?:XFAIL|XPASS) (\S+)")

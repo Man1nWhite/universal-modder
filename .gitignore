@@ -8,12 +8,6 @@ uv.lock
 *.env.*
 # intermediate build outputs (extracted VPKs, textures, previews, unpacked trees)
 build/*
-!build/pd2-las/
-build/pd2-las/*
-!build/pd2-las/Miranda_Busty_LAS.zip
-!build/pd2-las/Miranda_LAS.zip
-!build/pd2-las/Miranda_LAS.zip.sha256
-!build/pd2-las/Miranda_Busty_LAS.zip.sha256
 # Shipped ZIPs and their checksum sidecars under the character folders.
 dist/*
 !dist/Miranda_L4D2/

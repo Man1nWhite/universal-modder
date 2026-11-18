@@ -42,8 +42,6 @@ class BR:
         self.d = data; self.p = 0
     def u32(self):
         v = struct.unpack_from('<I', self.d, self.p)[0]; self.p += 4; return v
-    def i32(self):
-        v = struct.unpack_from('<i', self.d, self.p)[0]; self.p += 4; return v
     def u64(self):
         v = struct.unpack_from('<Q', self.d, self.p)[0]; self.p += 8; return v
     def u16(self):

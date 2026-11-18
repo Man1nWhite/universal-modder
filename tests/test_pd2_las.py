@@ -987,17 +987,13 @@ class TestLasScaffold:
             assert zipfile.is_zipfile(ref) is False
 
     def test_tracked_miranda_las_pack(self):
-        """The built Miranda_LAS.zip deliverable is tracked in dist/ and self-consistent."""
-        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
-        dist_zip = dist_path(REPO, "Miranda_LAS.zip")
-        build_sha = REPO / "build" / "pd2-las" / "Miranda_LAS.zip.sha256"
-        dist_sha = dist_path(REPO, "Miranda_LAS.zip.sha256")
-        for p in (build_zip, dist_zip, build_sha, dist_sha):
+        """The built Miranda_L4D2_LAS.zip deliverable is tracked in dist/ and self-consistent."""
+        dist_zip = dist_path(REPO, "Miranda_L4D2_LAS.zip")
+        dist_sha = dist_path(REPO, "Miranda_L4D2_LAS.zip.sha256")
+        for p in (dist_zip, dist_sha):
             assert p.is_file(), f"missing tracked deliverable: {p}"
         raw = dist_zip.read_bytes()
-        assert build_zip.read_bytes() == raw
         digest = hashlib.sha256(raw).hexdigest()
-        assert build_sha.read_text().split()[0] == digest
         assert dist_sha.read_text().split()[0] == digest
         with zipfile.ZipFile(dist_zip) as z:
             info = json.loads(z.read("Miranda_LAS/BUILD_INFO.json"))
@@ -1216,12 +1212,10 @@ class TestLasScaffold:
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
     def test_honoko4_and_5_are_honoko3_in_the_alt_suits(self):
-        """`Honoko4`/`Honoko5` are `Honoko3`'s bytes apart from the suit slot: the user's diffuses.
+        """Honoko4 and Honoko5 retain Honoko3's geometry and use the supplied diffuses.
 
-        The packs the user asked for ("aply Tex_07(L_7) 2.dds ... to costume of Honoko3 and make it
-        Honoko4", then the same for `Tex_07(L_7)3.dds` as Honoko5) keep Honoko3's geometry, slim and
-        clearance passes vertex for vertex, and differ only where the colourway enters: the suit
-        slot's diffuse, its icon and the hashes that follow from them (D44, D45).
+        Honoko4 replaces the suit diffuse; Honoko5 replaces both the suit and jewelry diffuses.
+        Their original normal maps, slim pass and clearance remain unchanged.
         """
         import hashlib
         import sys as _sys
@@ -1257,7 +1251,13 @@ class TestLasScaffold:
             alt = (REPO / "references" / "Honoka" / dds).read_bytes()
             assert suit["source_sha256"] == hashlib.sha256(alt).hexdigest()
             for slot in ("body", "panties", "bra", "shoes", "jewelry"):
-                assert tex3[f"honoko3_{slot}_df"] == tex[f"{stem}_{slot}_df"], (tag, slot)
+                if tag == "Honoko5" and slot == "jewelry":
+                    jewelry = tex[f"{stem}_jewelry_df"]
+                    source = REPO / "references/Honoka/Tex_23(L_23)2.dds"
+                    assert jewelry["source"] == "references/Honoka/Tex_23(L_23)2.dds"
+                    assert jewelry["source_sha256"] == hashlib.sha256(source.read_bytes()).hexdigest()
+                else:
+                    assert tex3[f"honoko3_{slot}_df"] == tex[f"{stem}_{slot}_df"], (tag, slot)
                 assert tex3[f"honoko3_{slot}_nm"] == tex[f"{stem}_{slot}_nm"], (tag, slot)
             assert tex[f"{stem}_suit_nm"] == tex3["honoko3_suit_nm"], f"{tag}: keeps L_8's normals"
 
@@ -1426,8 +1426,8 @@ class TestLasScaffold:
         """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""
         import numpy as np
 
-        build_zip = REPO / "build" / "pd2-las" / "Miranda_LAS.zip"
-        with zipfile.ZipFile(build_zip) as z:
+        dist_zip = dist_path(REPO, "Miranda_L4D2_LAS.zip")
+        with zipfile.ZipFile(dist_zip) as z:
             for stem in ("miranda_body_df", "miranda_face_df", "miranda_head_df", "miranda_eyes"):
                 raw = z.read(f"Miranda_LAS/assets/units/miranda/skins/miranda/{stem}.texture")
                 blocks = np.frombuffer(raw[128:], dtype=np.uint8).reshape(-1, 16)
@@ -1444,7 +1444,7 @@ class TestLasScaffold:
                 assert int(blocks[:, 0].max()) - int(blocks[:, 1].min()) > 16, f"{stem} alpha flat"
 
     def test_l4d2_head_diffuse_alpha_follows_the_las_face(self):
-        """The four L4D2 head packs build `*_head_df.texture` from dist/Miranda_LAS.zip's face diffuse:
+        """The L4D2 head packs build `*_head_df.texture` from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip's face diffuse:
         face-quadrant alpha = min(source alpha, 18), i.e. an attenuated specular mask (PD2 reads diffuse
         alpha as specular). The packs once shipped a *scrambled* alpha plane (a face quadrant whose values
         had the right distribution but no spatial relation to the source: correlation +0.03), because they

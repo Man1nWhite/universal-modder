@@ -1,25 +1,25 @@
 # universal-modder
 
 A game-modding toolkit and knowledge base for AI coding agents, forked from `rehan-remade/universal-modder`.
-The work in this fork is PAYDAY 2: 19 tracked packs in `dist/`, built by three pipelines under `tools/`.
+The work in this fork is PAYDAY 2: 20 tracked packs in `dist/`, built by three pipelines under `tools/`.
 
 ## PAYDAY 2 packs: one command per question
 
 | Question | Run or read |
 |---|---|
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
-| State of the 19 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
+| State of the 20 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `christie`, or `heads`; the older Christie Slim ZIP remains tracked-only |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `christie`, `cloverchristie`, or `heads` |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
 
 - Take sizes, hashes and test counts from `status` and `green`, not from a document.
-- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. For `lawson_las` you write
+- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. For `Miranda_Romance_LAS` you write
   the `.sha256` yourself ("Publish a release" in `tools/pd2-port/README.md`).
 - A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
-  `git checkout -- dist build`: both discard work that was never pushed. First `git status` and
+  `git checkout -- dist`: both discard work that was never pushed. First `git status` and
   `git log origin/<branch>..HEAD` must show nothing local that the remote lacks.
 
 ## Modding any other game
@@ -31,7 +31,7 @@ The work in this fork is PAYDAY 2: 19 tracked packs in `dist/`, built by three p
 
 ## Tools
 - `bin/um` is the Python CLI; `bin/um --help` lists its command groups and every group has `--help`. It runs
-  through `uv`. Where there is no `uv`: `.venv/bin/python -m um ...`.
+  through `uv`, falling back to `.venv/bin/python` or `python3` when `uv` is absent.
 - The fal MCP server is configured for every agent and needs `FAL_KEY` in the agent's environment. Without
   MCP, `um fal` does the same over REST (`skills/fal-assets`).
 - Skills: edit `skills/`, then copy it over `.agents/skills` and `.claude/skills`; a test fails while the

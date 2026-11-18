@@ -31,8 +31,8 @@ run "1  a CLAUDE.md that is a copy of AGENTS.md"
 printf '@AGENTS.md\n' > CLAUDE.md
 run "1b a CLAUDE.md that is the one line @AGENTS.md"
 
-size=$(python3 -c "import os; print(f\"{os.path.getsize('dist/Christie_LAS_Slim.zip'):,}\")")
-echo "\`dist/Christie_LAS_Slim.zip\` is $size B." >> README.md
+size=$(python3 -c "import os; print(f\"{os.path.getsize('dist/Christie/Christie_LAS.zip'):,}\")")
+echo "\`dist/Christie/Christie_LAS.zip\` is $size B." >> README.md
 run "2  the size of a pack in README.md"
 
 echo "The suite has 800 tests." >> tools/README.md
@@ -53,11 +53,11 @@ run "4  700 bytes more in AGENTS.md"
 printf '      - run: python tools/some_new_check.py\n' >> .github/workflows/test.yml
 run "5  a step added to the test workflow that green does not run"
 
-sed -i 's/`slim`, `lawson` (lawson_las)/`slimm`, `lawson` (lawson_las)/' AGENTS.md
+sed -i 's/`christie`, `cloverchristie`/`christie`, `cloverchristiee`/' AGENTS.md
 git diff --quiet -- AGENTS.md && echo "(6 did not apply: the row of build targets in AGENTS.md reads otherwise now)"
 run "6  a build target misspelt in AGENTS.md"
 
-sed -i '/^| State of the 14 packs/d' AGENTS.md
+sed -i '/^| State of the 20 packs/d' AGENTS.md
 git diff --quiet -- AGENTS.md && echo "(6b did not apply: the status row in AGENTS.md reads otherwise now)"
 run "6b the row for status removed from AGENTS.md"
 
@@ -71,8 +71,8 @@ sed -i 's/ pytest scipy$/ pytest/' .github/workflows/lawson-las.yml
 git diff --quiet -- .github/workflows/lawson-las.yml && echo "(7 did not apply: the install line of lawson-las.yml reads otherwise now)"
 run "7  scipy taken out of what the lawson workflow installs" tests/test_pd2_las_status.py
 
-# The release of lawson_las was deleted on 2026-11-13 with its notes: the tree says "There is no release".
-tracked=$(cut -d' ' -f1 dist/lawson_las.zip.sha256)
+# The release of Miranda_Romance_LAS was deleted on 2026-11-13 with its notes: the tree says "There is no release".
+tracked=$(cut -d' ' -f1 dist/Miranda_Romance/Miranda_Romance_LAS.zip.sha256)
 notes() {  # $1: the release number; $2: the sha256 the notes give
     mkdir -p tools/pd2-port/releases
     printf '<!-- pack_version: 0.1.2 -->\n\n**sha256:** `%s`\n' "$2" > "tools/pd2-port/releases/lawson-las-v$1.md"
@@ -107,12 +107,12 @@ run "8f the same release recorded as it should be: this one passes" "$status_tes
     "tests/test_las_pack.py::test_a_release_number_is_not_used_twice" \
     "tests/test_las_pack.py::test_the_builder_version_matches_the_latest_release_notes"
 
-size=$(python3 -c "import os; print(f\"{os.path.getsize('dist/lawson_las.zip'):,}\")")
+size=$(python3 -c "import os; print(f\"{os.path.getsize('dist/Miranda_Romance/Miranda_Romance_LAS.zip'):,}\")")
 echo "The tracked pack is $size B." >> tools/pd2-port/STATUS.md
-run "9  the tracked size of lawson_las in STATUS.md"
+run "9  the tracked size of Miranda_Romance_LAS in STATUS.md"
 
 echo "sha256 \`$tracked\`" >> tools/pd2-port/STATUS.md
-run "9b the tracked sha256 of lawson_las in STATUS.md"
+run "9b the tracked sha256 of Miranda_Romance_LAS in STATUS.md"
 
 echo "The audit: 38 pass, 1 warn, 0 fail." >> tools/pd2-port/STATUS.md
 run "9c the audit's result in STATUS.md"
@@ -129,9 +129,8 @@ run "10 a script that does not exist, in tools/pd2-port/README.md"
 echo
 echo "what was deleted on 2026-11-13 stays out, and the tests that were kept still catch their defect"
 
-sleeves="tests/test_build_models.py::test_extend_sleeves_moves_no_material_that_is_not_named"
 run "nothing changed" tests/test_agent_docs.py tests/test_pd2_las_status.py tests/test_skip_budget.py \
-    tests/test_las_outfit_pack.py tests/test_glove_adapter.py "$sleeves"
+    tests/test_las_outfit_pack.py tests/test_glove_adapter.py
 
 printf '| `build_skyrim_outfit.py`, `skin_texture.py` | Skyrim outfit route: cancelled |\n' >> tools/pd2-las/README.md
 run "11 a row for the deleted Skyrim tools in tools/pd2-las/README.md" tests/test_agent_docs.py tests/test_pd2_las_status.py
@@ -151,10 +150,6 @@ run "13b a unit path without its file stem in main.xml" tests/test_las_outfit_pa
 sed -i 's|<df_nm path="{base}"/>|<df_nm path="{base}_df"/>|' tools/pd2-las/las_outfit_pack.py
 git diff --quiet -- tools/pd2-las/las_outfit_pack.py && echo "(13c did not apply: the df_nm line in las_outfit_pack.py reads otherwise now)"
 run "13c a texture pair named with its _df suffix in main.xml" tests/test_las_outfit_pack.py
-
-sed -i 's/^    targets = dict(mats)$/    targets = {"jacket": -2.5, "skin": -2.2, **mats}/' tools/pd2-las/build_models.py
-git diff --quiet -- tools/pd2-las/build_models.py && echo "(14 did not apply: extend_sleeves_to_wrist reads otherwise now)"
-run "14 default sleeve targets for the materials of the cancelled outfit, back in extend_sleeves_to_wrist" "$sleeves"
 
 sed -i 's|^    files\[f"{ROOT_DIR}/main.xml"\] = main_xml().encode()$|&\n    files[f"{ROOT_DIR}/CREDITS.txt"] = b"credits"|' tools/pd2-port/build_las_pack.py
 git diff --quiet -- tools/pd2-port/build_las_pack.py && echo "(15 did not apply: assemble in build_las_pack.py reads otherwise now)"

@@ -9,7 +9,6 @@ files are put under line coverage (coverage.py, in every Python process a comman
 
   suite   the whole test suite runs,
   builds  every tracked pack is built again (`fresh.py check`, what `make fresh` and CI run),
-  tools   each of the tools `copies.py` holds to a recorded output is started, in a copy of the tree,
   start   each FILE is started on its own, with no argument and with `--help`.
 
 Then every function of each FILE is listed with the phases that ran a line of its body. A function
@@ -17,12 +16,12 @@ that is in no phase was not run by anything this repository can start, and its l
 other code writes its name. A name like `render` is always written somewhere; a function that
 nothing ran and no other code names can only be reached from a prompt. About 15 minutes.
 
-Files after `--also` are measured in the first three phases and not started: starting a builder
+Files after `--also` are measured in the first two phases and not started: starting a builder
 with no argument builds a pack. For those files "run by nothing" means less. A command that only a
-person starts, and no test, is in none of the three phases and is not dead.
+person starts, and no test, is in neither phase and is not dead.
 
 Nothing here touches the pinned environment: coverage is installed under build/reach/ and reaches
-the measured processes through PYTHONPATH, as in `tools/pd2-las/copies.py`.
+the measured processes through PYTHONPATH.
 """
 from __future__ import annotations
 
@@ -31,14 +30,13 @@ import os
 import shutil
 import subprocess
 import sys
-import zipfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
 PY = REPO / ".venv" / "bin" / "python"
 OUT = REPO / "build" / "reach"
 SITE = OUT / "site"
-PHASES = ("suite", "builds", "tools", "start")
+PHASES = ("suite", "builds", "start")
 HOOK = "try:\n    import coverage\n    coverage.process_startup()\nexcept Exception:\n    pass\n"
 
 
@@ -161,22 +159,9 @@ def main(argv: list[str]) -> int:
     run("fresh.py check", [str(PY), "tools/pd2-las/fresh.py", "check"], REPO, env_for("builds", files))
 
     sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
-    import copies
     import fresh
-    tree, scratch = OUT / "tree", OUT / "scratch"
-    scratch.mkdir()
+    tree = OUT / "tree"
     fresh.copy_tree(tree)
-    for name in ("Miranda_LAS", "Christie_LAS"):
-        with zipfile.ZipFile(tree / "dist" / f"{name}.zip") as z:
-            z.extractall(scratch / "packs")
-    fill = {"{s}": str(scratch), "{m}": str(scratch / "packs/Miranda_LAS/assets/units/miranda/skins/miranda"),
-            "{c}": str(scratch / "packs/Christie_LAS/assets/units/christie/skins/christie")}
-    print(f"tools ({len(copies.GOLDEN)})")
-    env = env_for("tools", files)
-    for name, args in copies.GOLDEN:
-        for token, value in fill.items():
-            args = [arg.replace(token, value) for arg in args]
-        run(name, [str(PY), *args], tree, env, timeout=600)
     print("start")
     env = env_for("start", files)
     for rel in files[:started]:

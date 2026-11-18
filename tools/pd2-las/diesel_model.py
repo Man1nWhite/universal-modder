@@ -249,7 +249,8 @@ class ModelFile:
 
     @classmethod
     def read_path(cls, path) -> "ModelFile":
-        return cls.read(open(path, "rb").read())
+        with open(path, "rb") as fh:
+            return cls.read(fh.read())
 
     def write(self) -> bytes:
         body = bytearray()

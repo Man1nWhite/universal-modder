@@ -826,76 +826,6 @@ ARM_JOINTS = {
 }
 
 
-def extend_sleeves_to_wrist(g: Group, mats: dict,
-                            t_knee: float = 13.0, perp_max: float = 7.5) -> dict:
-    """Stretch the layers on the arm down the forearm until they overlap the glove.
-
-    For a pack without hands. A source that is worn *with hands* ends every
-    layer on the arm short of the wrist, so that its own hand mesh covers the
-    junction. PD2 spawns the heister's glove *at* the hand joint, so in game the
-    sleeve, the arm and the glove never meet: the glove floats, with a gap of
-    empty space between it and the sleeve.
-
-    This pass redistributes the last ``t_knee`` cm of the arm along the forearm
-    axis (a pure rank-1 stretch, so the cross-section -- and therefore the cuff
-    radius -- is untouched) until the shortest layer reaches its target past the
-    hand joint. The sleeve mouth then sits *inside* the glove cuff and the
-    glove appears to come out of the sleeve. Weights, UVs and topology are
-    unchanged, so the pose, the seam weld and the texture all survive.
-
-    ``mats`` names the layers by source material, each with its target in cm.
-    ``t`` is measured from the PD2 hand joint towards the elbow, so a negative
-    target ends the layer past the wrist. Give each layer its own: the outer
-    sleeve deepest inside the glove, the bare arm just behind it, so that it
-    fills the sleeve mouth and leaves no dark ring. A material that is not
-    named is not moved.
-    """
-    targets = dict(mats)
-    import numpy as np
-
-    report = {"moved": 0, "materials": {}, "reaches": {}}
-    for side in (-1, 1):
-        wrist, elbow = (np.array(v, dtype=np.float64) for v in ARM_JOINTS[side])
-        d = elbow - wrist
-        d /= np.linalg.norm(d)
-        for mat, base_v, _bi, _tris, nverts in g.slices:
-            if mat not in targets:
-                continue
-            target = targets[mat]
-            idx = []
-            ts = []
-            for i in range(base_v, base_v + nverts):
-                p = np.asarray(g.verts[i], dtype=np.float64)
-                if side * p[0] <= 0.0:
-                    continue
-                rel = p - wrist
-                t = float(rel @ d)
-                if not (-8.0 <= t <= t_knee):
-                    continue
-                if float(np.linalg.norm(rel - t * d)) > perp_max:
-                    continue
-                idx.append(i)
-                ts.append(t)
-            if len(idx) < 8:
-                continue
-            t_min = min(ts)
-            if t_min <= target:
-                continue
-            k = (t_knee - target) / max(t_knee - t_min, 1e-6)
-            for i, t in zip(idx, ts):
-                p = np.asarray(g.verts[i], dtype=np.float64)
-                rel = p - wrist
-                radial = rel - float(rel @ d) * d
-                t2 = t_knee - (t_knee - t) * k
-                q = wrist + t2 * d + radial
-                g.verts[i] = (float(q[0]), float(q[1]), float(q[2]))
-                report["moved"] += 1
-            key = f"{mat}.{'L' if side < 0 else 'R'}"
-            report["materials"][key] = len(idx)
-            report["reaches"][key] = (round(t_min, 2), round(target, 2))
-    return report
-
-
 def repair_skin_boundary_normals(g: Group) -> None:
     """Repair corrupted boundary normals along the face/neck seam and mouth corners,
     and recenter eyeball planar UVs on the visible eyelid opening (palpebral fissure).
@@ -1036,47 +966,6 @@ def repair_skin_boundary_normals(g: Group) -> None:
                     float(blended_n[1] / ln),
                     float(blended_n[2] / ln),
                 )
-
-
-def boundary_loops(faces) -> list[list[int]]:
-    """Directed loops of edges used by exactly one face, largest first.
-
-    Direction matters: the cap that closes a loop has to traverse each edge the
-    opposite way its single owner does, or the cap is inside-out relative to the
-    surface around it. Each loop repeats its first index at the end.
-    """
-    counts: dict[tuple[int, int], int] = {}
-    directed: dict[tuple[int, int], int] = {}
-    for a, b, c in faces:
-        for x, y in ((a, b), (b, c), (c, a)):
-            key = (x, y) if x < y else (y, x)
-            counts[key] = counts.get(key, 0) + 1
-            directed[(x, y)] = directed.get((x, y), 0) + 1
-    boundary = [(x, y) for (x, y) in directed
-                if counts[(x, y) if x < y else (y, x)] == 1]
-    if not boundary:
-        return []
-    nxt: dict[int, list[int]] = {}
-    for x, y in boundary:
-        nxt.setdefault(x, []).append(y)
-    seen: set[tuple[int, int]] = set()
-    loops: list[list[int]] = []
-    for x, y in boundary:
-        if (x, y) in seen:
-            continue
-        loop = [x]
-        cur = (x, y)
-        while cur not in seen:
-            seen.add(cur)
-            loop.append(cur[1])
-            candidates = [v for v in nxt.get(cur[1], []) if (cur[1], v) not in seen]
-            if not candidates:
-                break
-            cur = (cur[1], candidates[0])
-        if len(loop) >= 4 and loop[0] == loop[-1]:
-            loops.append(loop)
-    loops.sort(key=len, reverse=True)
-    return loops
 
 
 def winding_agreement(verts, faces, normals) -> float:

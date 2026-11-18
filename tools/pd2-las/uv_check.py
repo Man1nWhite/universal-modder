@@ -87,13 +87,13 @@ def main(argv=None) -> int:
     ap.add_argument("--two-b", type=Path, required=True,
                     help="directory with the 2B templates (2b.model + base_df.texture)")
     ap.add_argument("--ours", type=Path, required=True, help="our miranda.model")
-    ap.add_argument("--textures", type=Path,
-                    default=HERE.parents[1] / "build/pd2-las/Miranda_LAS/assets/units/miranda/skins/miranda",
-                    help="directory with our .texture files")
+    ap.add_argument("--textures", type=Path, default=None,
+                    help="directory with our .texture files (default: same folder as --ours)")
     ap.add_argument("--out", type=Path,
                     default=HERE.parents[1] / "build/pd2-las/previews")
     ap.add_argument("--size", type=int, default=640)
     args = ap.parse_args(argv)
+    tex_dir = args.textures if args.textures is not None else args.ours.parent
     args.out.mkdir(parents=True, exist_ok=True)
 
     atlas = _tex(args.two_b / "base_df.texture")
@@ -119,7 +119,7 @@ def main(argv=None) -> int:
             if not mfaces:
                 print(f"  (skip {dname}/{mn}: no faces)")
                 continue
-            tex = _tex(args.textures / MAT_TEX[mn])
+            tex = _tex(tex_dir / MAT_TEX[mn])
             for view in ("front", "iso"):
                 out = args.out / f"uvcheck_ours_{dname}_{mn}_{view}.png"
                 preview.render_textured(verts, mfaces, uvs, tex, out, view=view, size=args.size)

@@ -345,9 +345,10 @@ class Recorder:
                 t_audio = time.time()
         self.t_video = time.time()
         self.log = Path(to_posix(self.base + ".ffmpeg.log"))
-        self.video = subprocess.Popen([ff, "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", _source(self.exe, self.hwnd, self.title, crop=self.crop),
-                                       "-vf", ",".join(vf), *codec, "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_range", "tv", "-flush_packets", "1", self.base + ".mkv"],
-                                      stdin=subprocess.PIPE, stderr=open(self.log, "w"))
+        with open(self.log, "w", encoding="utf-8") as log_fh:
+            self.video = subprocess.Popen([ff, "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", _source(self.exe, self.hwnd, self.title, crop=self.crop),
+                                           "-vf", ",".join(vf), *codec, "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_range", "tv", "-flush_packets", "1", self.base + ".mkv"],
+                                          stdin=subprocess.PIPE, stderr=log_fh)
         self.t_audio = t_audio
         return self
 

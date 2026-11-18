@@ -2,7 +2,7 @@
 
 What runs here:
 
-1. an outfit registration matching the shape of a pack that ships no hands (the hook that fills ``LegendaryArmours``; until 2026-11-14 the one in the tracked ``Christie_LAS_Slim``);
+1. an outfit registration matching the shape of a pack that ships no hands (the hook that fills ``LegendaryArmours``, as in ``Christie_LAS`` and ``Honoko2``..``Honoko5``);
 2. the real LAS 4.1.9 init hook, verbatim from
    ``tests/fixtures/las_loader_4.1.9.lua``;
 3. the real BeardLib glove code paths — table.merge, get_glove_value,
@@ -11,9 +11,8 @@ What runs here:
 5. vanilla suits, to show the adapter restores stock vanilla behaviour
    instead of just "having gloves".
 
-Until 2026-11-14 the same harness ran against the tracked Christie packs; both
-Christie builders were deleted on 2026-11-14. The registration below is the same
-shape those packs produced: a BODY_ONLY outfit with no hands in the model, with a
+The registration below exercises the exact ``BODY_ONLY`` + ``glove_adapter``
+contract shared by ``Christie_LAS`` and ``Honoko2``..``Honoko5``, using a
 synthetic ``nohands`` stand-in pack id.
 """
 

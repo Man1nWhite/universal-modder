@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae christie heads all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae christie cloverchristie heads all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -34,25 +34,28 @@ status:     ## one JSON object: environment, all 20 tracked packs, the next comm
 env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
 	@cd "$(ROOT)" && bash $(HERE)/recover_env.sh
 
-build:      ## Miranda_L4D2_LAS -> dist/ and build/pd2-las/
+build:      ## Miranda_L4D2_LAS -> dist/Miranda_L4D2/
 	$(call BUILD,$(HERE)/build_models.py)
 
-busty:      ## Miranda_L4D2_Busty_LAS -> dist/ and build/pd2-las/
+busty:      ## Miranda_L4D2_Busty_LAS -> dist/Miranda_L4D2/
 	$(call BUILD,$(HERE)/build_busty_variant.py)
 
-lawson:     ## Miranda_Romance_LAS -> dist/
+lawson:     ## Miranda_Romance_LAS -> dist/Miranda_Romance/
 	$(call BUILD,tools/pd2-port/build_las_pack.py)
 
-honokodae:  ## Honoko2..Honoko5 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/
+honokodae:  ## Honoko2..Honoko5 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/Honoka/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
 
 christie:   ## headless and handless Christie LAS, TPP and FPS -> dist/Christie/
 	$(call BUILD,$(HERE)/build_christie_source.py)
 
+cloverchristie:  ## Christie GLB body-only LAS (experimental, TPP only) -> dist/Christie/
+	$(call BUILD,$(HERE)/build_clover_christie.py)
+
 heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
-all: build busty lawson honokodae christie heads  ## every rebuildable pack; Christie Slim remains tracked-only
+all: build busty lawson honokodae christie cloverchristie heads  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)
@@ -60,11 +63,11 @@ inventory:  ## what the source archive contains -> tools/pd2-las/source_inventor
 audit:      ## the mip levels of the face and eye textures against the pictures they stand for (Markdown on stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/mip_audit.py
 
-fresh:      ## every rebuildable pack built again in a copy of the tree and compared with its tracked sha256, no tolerance
+fresh:      ## every tracked pack built again in a copy of the tree and compared with its tracked sha256, no tolerance
 	cd "$(ROOT)" && $(PY) $(HERE)/fresh.py check
 
 test:       ## the whole suite, offline
 	cd "$(ROOT)" && $(PY) -m pytest -q tests
 
-green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 22 zips), one line each
+green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 19 zips), one line each
 	@cd "$(ROOT)" && $(PY) tools/pd2-port/check_all.py --full

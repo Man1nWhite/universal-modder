@@ -31,7 +31,7 @@ jobs:
       # ffmpeg is only for test_compile_small_edl. Without recommends apt skips mesa, VA/VDPAU drivers and
       # pocketsphinx-en-us (about half the download), and with man-db's auto-update off dpkg skips the man-page
       # reindex that can take minutes on the runner. When the Ubuntu mirror crawls (it has, at ~150 KB/s), the step
-      # gives up after 8 minutes and the run goes on: that one test skips without ffmpeg instead of failing the build.
+      # gives up after 3 minutes and the run goes on: that one test skips without ffmpeg instead of failing the build.
       - name: ffmpeg
         timeout-minutes: 3
         continue-on-error: true
@@ -39,6 +39,8 @@ jobs:
           sudo rm -f /var/lib/man-db/auto-update
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 update
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 install -y --no-install-recommends ffmpeg
+      - name: unpack 2B templates
+        run: python tools/pd2-las/extract_2b.py
       - name: build the LAS pack
         # the guide-compliance audit and its mutation self-test read the built
         # pack; without it those two tests silently skip, and a checker that
@@ -48,30 +50,33 @@ jobs:
         # a stale tracked pack (or a non-deterministic build) must not slip
         # through on a branch push
         run: |
-          for sha_file in dist/*/*.zip.sha256 build/pd2-las/Miranda_LAS.zip.sha256; do
+          for sha_file in dist/*/*.zip.sha256; do
             sha256sum -c "$sha_file"
           done
       - name: lint
         # unused imports and dead locals accumulate silently otherwise; this is the whole check
         run: python -m pip install --quiet pyflakes && python -m pyflakes um tools tests
 
-      - run: python -m pytest -q tests
+      - name: tests and skip budget
+        run: |
+          set -o pipefail
+          mkdir -p build
+          python -m pytest -q -rsxX tests | tee build/pytest-rsxX.txt
+          python tools/pd2-port/check_skip_budget.py --report build/pytest-rsxX.txt
       - run: ./bin/um --help && for g in scan fal comfy sprite render3d video win backup publish kb; do ./bin/um $g --help > /dev/null; done
       - name: knowledge base
         run: ./bin/um kb check --index
       - name: nothing that shouldn't ship
         run: ./bin/um publish check .
       - name: every tracked pack must equal a fresh build, byte for byte
-        # The rebuildable packs are built again in a copy of the checkout, on
-        # this runner, and each of the 21 tracked zips is compared with its
-        # tracked .sha256 by sha256sum -c (the Christie Slim pack cannot be
-        # rebuilt: its builder was deleted in 2026, so it is compared
-        # as a tracked copy). No tolerance. `env` makes the pinned .venv
-        # and unpacks the 2B templates first (node and npm, for node-unrar-js).
-        # The builders put themselves on the declared code path
-        # (tools/pd2-las/determinism.py), which is why a runner with AVX-512 and
-        # one without build the same bytes. Before 2026-11-12 they did not:
-        # docs/audits/2026-11-12-cpu-independence.md.
+        # All 19 tracked packs are built again in a copy of the checkout, on
+        # this runner, and each of the 19 tracked zips in dist/ is compared
+        # with its tracked .sha256 by sha256sum -c. No tolerance. `env` makes
+        # the pinned .venv and unpacks the 2B templates first (node and npm,
+        # for node-unrar-js). The builders put themselves on the declared code
+        # path (tools/pd2-las/determinism.py), which is why a runner with
+        # AVX-512 and one without build the same bytes. Before 2026-11-12 they
+        # did not: docs/audits/2026-11-12-cpu-independence.md.
         # The runner's CPU, the code path and the result are also written as
         # notices: annotations are the one part of a run the GitHub API serves,
         # so a tool that cannot open the log can still read what happened.

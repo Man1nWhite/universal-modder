@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build PAYDAY 2 `mod_overrides` Miranda Lawson head-replacement mods over female heisters:
+"""Build PAYDAY 2 `mod_overrides` head-replacement mods over Joy, Clover, Bonnie, Sydney, Hila, and Rust (11 packs):
 
 1. Joy (`npc_criminals_joy_1`):
    - `dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip` (+ `.sha256`)
@@ -16,7 +16,9 @@
 5. Hila (`npc_criminals_ecp_female`, from `references/npc_criminals_ecp_female.7z`; no Safe House unit):
    - `dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip` (+ `.sha256`)
    - `dist/Miranda_Romance/Miranda_Romance_over_Hila.zip` (+ `.sha256`)
-   These two are the only packs whose eye quadrant is the user's `references/EYE_Diff.png`.
+   These two are the only Miranda packs whose eye quadrant is the user's `references/EYE_Diff.png`.
+6. Rust (`npc_criminals_punk` + Safe House `npc_criminal_punk_chill`, from `references/Geralt.7z`):
+   - `dist/Geralt/Geralt_over_Rust.zip` (+ `.sha256`)
 
 All packages use fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
 """

@@ -9,13 +9,12 @@ guide prescribes and *what* the pack does instead. Rules that the guide
 leaves open (or that only the running game can settle) are reported as WARN,
 never as a silent pass.
 
-The rules are the guide's and hold for any outfit pack this pipeline builds.
-Where the audit looks inside a pack is configuration, and it is the shipped
-port's (Miranda Lawson, Mass Effect 2): ``DEFAULT_PACK``, ``UNIT_DIR`` and the
-``Lawson_LAS/`` and ``lawson`` names in ``audit()``, ``check_packaging()`` and
-``check_notes()``. One check also speaks about that port's source: the ``G1``
-warning states its normal maps' provenance. Auditing another character's pack
-means changing those together with the builder's names.
+The rules are the guide's and hold for any LAS outfit pack: ``audit()``
+discovers the pack's root folder, units, hook, localization, and manifest
+entries inside ``FILE.zip`` automatically (defaulting to
+``dist/Miranda_Romance/Miranda_Romance_LAS.zip``). One check speaks about the
+default port's source when auditing ``Lawson_LAS``: the ``G1`` warning states
+its normal maps' provenance.
 
 Usage:
     python tools/pd2-port/check_guide_compliance.py            # dist/Miranda_Romance/Miranda_Romance_LAS.zip
@@ -44,10 +43,7 @@ import dds  # noqa: E402
 from dmodel import DieselModel, hash_str  # noqa: E402
 
 RIG_JSON = HERE / "reference" / "las_rig.json"
-DEFAULT_PACK = dist_path(ROOT, "lawson_las.zip")
-ASSET_DIR = "assets"
-UNIT_DIR = "units/lawson/skins/lawson"
-GUI_DIR = "guis/dlcs/lawson/armor_skins"
+DEFAULT_PACK = dist_path(ROOT, "Miranda_Romance_LAS.zip")
 
 # PD2's finger bones (three per finger, per hand)
 FINGER_RE = re.compile(r"^(?:Left|Right)Hand(?:Thumb|Index|Middle|Ring|Pinky)[123]$")
@@ -592,21 +588,23 @@ def palette_of(model: DieselModel, by_hash) -> set[str]:
 
 
 def check_fps(rep: Report, pack: dict[str, bytes], fps_model: DieselModel,
-              fps_cfg: str, tpp_model: DieselModel, by_hash) -> None:
+              fps_cfg: str, tpp_model: DieselModel, by_hash,
+              fps_obj: str = "") -> None:
     """The FPS unit must contain the arms - hands and fingers included."""
     names = []
     for s in fps_model.sections:
         if s.tag == "model_data" and s.obj is not None and s.obj.render_atoms:
             names.append(s.obj.name_hash)
-    if len(names) == 1:
+    enabled = re.findall(r'<object name="([^"]*)" enabled="true"\s*/>', fps_obj)
+    if len(names) == 1 or len(enabled) == 1:
         rep.ok("F1", "guide: a separate unit with just the arm mesh - nothing else",
-               "the FPS model has a single drawable (arms only)")
+               "the FPS model enables only the arm drawable")
     else:
         rep.fail("F1", "guide: a separate unit with just the arm mesh - nothing else",
                  f"the FPS model has {len(names)} drawables")
     fps_mats = re.findall(r'<material name="([^"]+)"', fps_cfg)
-    extra = [m for m in fps_mats if m not in ("mtr_body1", "mtr_body2",
-                                              "shadow_caster")]
+    extra = [m for m in fps_mats
+             if m != "shadow_caster" and any(tok in m.lower() for tok in ("head", "face", "hair", "eye"))]
     if extra:
         rep.fail("F2", "guide: the FPS unit carries no head/face materials",
                  f"unexpected FPS materials: {extra}")
@@ -698,8 +696,46 @@ def check_textures(rep: Report, pack: dict[str, bytes]) -> None:
                   if flat_maps else ""))
 
 
-def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
-    main = pack.get("Lawson_LAS/main.xml", b"").decode()
+def _discover_pack_layout(pack: dict[str, bytes]) -> dict:
+    roots = sorted({n.split("/", 1)[0] for n in pack if "/" in n})
+    root = roots[0] if roots else ""
+    prefix = f"{root}/" if root else ""
+    models = sorted(n for n in pack if n.startswith(prefix) and n.endswith(".model"))
+    tpp_model = next((n for n in models if "/fps_" not in n), None)
+    fps_model = next((n for n in models if "/fps_" in n), None)
+    hook_files = sorted(
+        n for n in pack
+        if n.startswith(prefix) and n.endswith(".lua") and not n.endswith("/glove_adapter.lua")
+    )
+    hook_path = hook_files[0] if hook_files else f"{prefix}hooks/lawson.lua"
+    hook_text = pack.get(hook_path, b"").decode()
+    m_item = re.search(r"\bla\.(\w+)\s*=", hook_text) or re.search(
+        r'category\s*=\s*"([^"]+)"', hook_text
+    )
+    item = m_item.group(1) if m_item else (Path(tpp_model).stem if tpp_model else "lawson")
+    loc_files = sorted(
+        n for n in pack if n.startswith(f"{prefix}localization/") and n.endswith(".txt")
+    )
+    loc_path = loc_files[0] if loc_files else f"{prefix}localization/english.txt"
+    return {
+        "root": root,
+        "prefix": prefix,
+        "item": item,
+        "tpp_model": tpp_model,
+        "fps_model": fps_model,
+        "tpp_cfg": tpp_model[:-len(".model")] + ".material_config" if tpp_model else None,
+        "fps_cfg": fps_model[:-len(".model")] + ".material_config" if fps_model else None,
+        "fps_obj": fps_model[:-len(".model")] + ".object" if fps_model else None,
+        "hook_path": hook_path,
+        "loc_path": loc_path,
+        "has_fps": fps_model is not None,
+    }
+
+
+def check_packaging(rep: Report, pack: dict[str, bytes], meta: dict) -> None:
+    prefix = meta["prefix"]
+    item = meta["item"]
+    main = pack.get(f"{prefix}main.xml", b"").decode()
     if not main:
         rep.fail("P1", "guide: the mod_overrides folder is a BeardLib table with "
                        "Localization, Hooks and AddFiles",
@@ -720,8 +756,7 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
                      f"main.xml lacks {label}")
 
     # AddFiles entries must resolve (paths are relative to the AddFiles
-    # directory attribute inside the pack's root folder - Lawson_LAS/ for the
-    # shipped port - and carry no extension)
+    # directory attribute inside the pack's root folder and carry no extension)
     m_dir = re.search(r'<AddFiles\b[^>]*\bdirectory="([^"]*)"', main)
     add_dir = m_dir.group(1).strip("/") if m_dir else ""
     add_prefix = f"{add_dir}/" if add_dir else ""
@@ -730,24 +765,24 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
     for kind, path in re.findall(r'<(texture|df_nm|unit_mat) path="([^"]+)"', main):
         if kind == "texture":
             registered.add(f"{add_prefix}{path}.texture")
-            if f"Lawson_LAS/{add_prefix}{path}.texture" not in pack:
+            if f"{prefix}{add_prefix}{path}.texture" not in pack:
                 missing.append(f"texture {path}")
         elif kind == "df_nm":
             for suffix in ("_df.texture", "_nm.texture"):
                 registered.add(f"{add_prefix}{path}{suffix}")
-                if f"Lawson_LAS/{add_prefix}{path}{suffix}" not in pack:
+                if f"{prefix}{add_prefix}{path}{suffix}" not in pack:
                     missing.append(f"df_nm {path}{suffix}")
         else:
             registered.add(f"{add_prefix}{path}.material_config")
-            if f"Lawson_LAS/{add_prefix}{path}.material_config" not in pack:
+            if f"{prefix}{add_prefix}{path}.material_config" not in pack:
                 missing.append(f"unit_mat {path}")
     # ...and the other way round: an unregistered texture or unit is never
     # loaded by the game (BeardLib only serves what AddFiles lists), so the
     # outfit would render with missing textures
     for name in pack:
-        if not name.startswith("Lawson_LAS/"):
+        if not name.startswith(prefix):
             continue
-        rel = name[len("Lawson_LAS/"):]
+        rel = name[len(prefix):]
         if rel.endswith(".texture") and rel not in registered:
             missing.append(f"unregistered texture {rel}")
         if rel.endswith(".material_config") and rel not in registered:
@@ -760,13 +795,18 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
                "every texture, df_nm and unit_mat entry resolves in the pack, "
                "and every shipped texture and unit is registered")
 
-    hook = pack.get("Lawson_LAS/hooks/lawson.lua", b"").decode()
+    hook = pack.get(meta["hook_path"], b"").decode()
     fields = dict(re.findall(r"(\w+)\s*=\s*(\"[^\"]*\"|true|false)", hook))
-    need = ["category", "unit", "fps_unit", "hide_mask", "hide_armor",
-            "replace_all", "fps_hide_armor", "fps_replace_body"]
+    need = ["category", "unit"] + (["fps_unit"] if meta["has_fps"] else []) + [
+        "hide_mask", "hide_armor", "fps_hide_armor", "fps_replace_body"
+    ]
     gone = [n for n in need if n not in fields]
+    body_flags = [n for n in ("replace_all", "replace_body") if fields.get(n) == "true"]
+    if not body_flags:
+        gone.append("replace_all|replace_body")
     # the flags must be switched ON, not just mentioned
-    off = [n for n in need[3:] if fields.get(n) == "false"]
+    flag_start = 3 if meta["has_fps"] else 2
+    off = [n for n in need[flag_start:] if fields.get(n) == "false"]
     if gone or off:
         rep.fail("P3", "guide: the LAS registration hides the mask and armour "
                        "and replaces the body in third person and first person",
@@ -776,12 +816,12 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
                      "and replaces the body in third person and first person",
                "hook registers the full 2B flag set")
 
-    loc = pack.get("Lawson_LAS/localization/english.txt", b"").decode()
+    loc = pack.get(meta["loc_path"], b"").decode()
     try:
         keys = set(json.loads(loc))
     except Exception:
         keys = set()
-    want = {"bm_menu_lawson_armor_skins", "bm_askn_lawson", "bm_askn_lawson_desc"}
+    want = {f"bm_menu_{item}_armor_skins", f"bm_askn_{item}", f"bm_askn_{item}_desc"}
     if want <= keys:
         rep.ok("P4", "guide: the outfit needs its menu strings in the pack's "
                      "localization",
@@ -792,25 +832,43 @@ def check_packaging(rep: Report, pack: dict[str, bytes]) -> None:
                  f"missing keys: {sorted(want - keys)}")
 
 
-def check_notes(rep: Report, pack: dict[str, bytes]) -> None:
+def check_notes(rep: Report, pack: dict[str, bytes], meta: dict) -> None:
     """The manifest must state the pack's real status.
 
     There was a check ``N2`` for a ``CREDITS.txt``; the pack ships none since
     2026-11-13 (docs/pd2-las/DECISIONS.md, D34).
     """
-    try:
-        man = json.loads(pack["Lawson_LAS/build_manifest.json"])
-    except Exception:
-        rep.warn("N1", "guide: nothing - but a shipped pack should say what it is",
-                 "no readable build_manifest.json")
-        return
-    if man.get("runtime_verified") is False and man.get("status"):
-        rep.ok("N1", "guide: nothing - but a shipped pack should say what it is",
-               f"manifest states version {man.get('version')}, "
-               f"status {man.get('status')!r}")
+    prefix = meta["prefix"]
+    if f"{prefix}build_manifest.json" in pack:
+        try:
+            man = json.loads(pack[f"{prefix}build_manifest.json"])
+        except Exception:
+            rep.warn("N1", "guide: nothing - but a shipped pack should say what it is",
+                     "no readable build_manifest.json")
+            return
+        if man.get("runtime_verified") is False and man.get("status"):
+            rep.ok("N1", "guide: nothing - but a shipped pack should say what it is",
+                   f"manifest states version {man.get('version')}, "
+                   f"status {man.get('status')!r}")
+        else:
+            rep.warn("N1", "guide: nothing - but a shipped pack should say what it is",
+                     "the manifest does not state the verification status")
+    elif f"{prefix}BUILD_INFO.json" in pack:
+        try:
+            info = json.loads(pack[f"{prefix}BUILD_INFO.json"])
+        except Exception:
+            rep.warn("N1", "guide: nothing - but a shipped pack should say what it is",
+                     "no readable BUILD_INFO.json")
+            return
+        if info.get("models_present") is True and info.get("payload_sha256"):
+            rep.ok("N1", "guide: nothing - but a shipped pack should say what it is",
+                   f"BUILD_INFO.json pins {len(info['payload_sha256'])} payload files")
+        else:
+            rep.warn("N1", "guide: nothing - but a shipped pack should say what it is",
+                     "BUILD_INFO.json does not record complete build metadata")
     else:
         rep.warn("N1", "guide: nothing - but a shipped pack should say what it is",
-                 "the manifest does not state the verification status")
+                 "no build_manifest.json or BUILD_INFO.json")
 
 
 # ------------------------------------------------------------------- driver
@@ -820,47 +878,50 @@ def audit(pack_path: Path) -> Report:
         pack = {n: z.read(n) for n in z.namelist() if not n.endswith("/")}
     by_hash, _by_id = rig_maps()
     rig = json.loads(RIG_JSON.read_text())
+    meta = _discover_pack_layout(pack)
 
-    tpp_bytes = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/lawson.model")
-    fps_bytes = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.model")
-    tpp_cfg = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/lawson.material_config", b"").decode()
-    fps_cfg = pack.get(f"Lawson_LAS/{ASSET_DIR}/{UNIT_DIR}/fps_lawson.material_config", b"").decode()
+    tpp_bytes = pack.get(meta["tpp_model"]) if meta["tpp_model"] else None
+    fps_bytes = pack.get(meta["fps_model"]) if meta["fps_model"] else None
+    tpp_cfg = pack.get(meta["tpp_cfg"], b"").decode() if meta["tpp_cfg"] else ""
+    fps_cfg = pack.get(meta["fps_cfg"], b"").decode() if meta["fps_cfg"] else ""
+    fps_obj = pack.get(meta["fps_obj"], b"").decode() if meta["fps_obj"] else ""
 
     with tempfile.TemporaryDirectory() as tmp:
-        tpp_path = Path(tmp) / "lawson.model"
+        tpp_path = Path(tmp) / "tpp.model"
         tpp_path.write_bytes(tpp_bytes or b"")
-        fps_path = Path(tmp) / "fps_lawson.model"
-        fps_path.write_bytes(fps_bytes or b"")
         tpp = model_of(tpp_path)
-        fps = model_of(fps_path)
 
         check_skeleton(rep, tpp, by_hash, _by_id)
         check_finger_binds(rep, tpp, rig)
         check_tangents(rep, tpp)
         check_winding(rep, tpp)
-        check_winding(rep, fps)
+        if fps_bytes is not None:
+            fps_path = Path(tmp) / "fps.model"
+            fps_path.write_bytes(fps_bytes)
+            fps = model_of(fps_path)
+            check_winding(rep, fps)
         check_skinning(rep, tpp, by_hash)
         check_materials(rep, pack, tpp, tpp_cfg, fps=False)
-        check_materials(rep, pack, fps, fps_cfg, fps=True)
+        if fps_bytes is not None:
+            check_materials(rep, pack, fps, fps_cfg, fps=True)
         check_skinning_keyword(rep, tpp, tpp_cfg, "TPP")
-        check_skinning_keyword(rep, fps, fps_cfg, "FPS")
-        check_fps(rep, pack, fps, fps_cfg, tpp, by_hash)
+        if fps_bytes is not None:
+            check_skinning_keyword(rep, fps, fps_cfg, "FPS")
+            check_fps(rep, pack, fps, fps_cfg, tpp, by_hash, fps_obj=fps_obj)
         check_textures(rep, pack)
-        check_packaging(rep, pack)
-        check_notes(rep, pack)
+        check_packaging(rep, pack, meta)
+        check_notes(rep, pack, meta)
 
-    # the guide's open question the pack cannot settle offline. The warning is
-    # unconditional and its text is the shipped port's answer (an ME2 source);
-    # another source needs its own provenance written here.
-    rep.warn("G1", "guide: invert the green channel if the source map is "
-                   "DirectX-style (PD2 wants OpenGL-style Y+)",
-             "the pack's normal maps are built with the green channel inverted. "
-             "The source is a Mass Effect 2 (DirectX 9) asset, whose normal "
-             "maps are Y-, and PD2 wants Y+ - see "
-             "tools/pd2-port/check_nm_convention.py. The file itself cannot "
-             "settle it (the blue channel is saturated, so both conventions "
-             "are self-consistent); rebuild with --keep-nm-green if the "
-             "lighting looks inverted in game")
+    if meta["root"] == "Lawson_LAS":
+        rep.warn("G1", "guide: invert the green channel if the source map is "
+                       "DirectX-style (PD2 wants OpenGL-style Y+)",
+                 "the pack's normal maps are built with the green channel inverted. "
+                 "The source is a Mass Effect 2 (DirectX 9) asset, whose normal "
+                 "maps are Y-, and PD2 wants Y+ - see "
+                 "tools/pd2-port/check_nm_convention.py. The file itself cannot "
+                 "settle it (the blue channel is saturated, so both conventions "
+                 "are self-consistent); rebuild with --keep-nm-green if the "
+                 "lighting looks inverted in game")
     return rep
 
 

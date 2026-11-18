@@ -14,10 +14,9 @@ one looks at the shape itself:
 
     python tools/pd2-port/check_mesh_geometry.py [pack.zip]
 
-The analysis works on any Diesel model this pipeline writes. Which models it
-opens is configuration: ``PACK``, ``TPP_MODEL`` and ``FPS_MODEL`` below name
-the shipped port's pack and the unit paths inside it, so reading another
-character's pack means changing those paths as well as passing its zip.
+The analysis works on any Diesel model pack zip: it discovers the third-person
+and optional first-person ``.model`` entries inside the archive automatically
+(defaulting to ``dist/Miranda_Romance/Miranda_Romance_LAS.zip``).
 """
 from __future__ import annotations
 
@@ -25,21 +24,21 @@ import argparse
 import math
 import struct
 import sys
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 import sys as _dist_sys
 _dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
+import diesel_model  # noqa: E402
 from dist_paths import dist_path  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
-from dmodel import DieselModel  # noqa: E402
+from dmodel import DieselModel, hash_str  # noqa: E402
 
-PACK = dist_path(ROOT, "lawson_las.zip")
-TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"
-FPS_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"
+PACK = dist_path(ROOT, "Miranda_Romance_LAS.zip")
 
 
 # ------------------------------------------------------------------ helpers
@@ -89,36 +88,52 @@ class Geometry:
                     off += 12
             elif ity == 7:
                 for _ in range(n):
-                    u, v = struct.unpack_from("<2e", d, off)
+                    if isz == 2:
+                        u, v = struct.unpack_from("<2f", d, off)
+                        off += 8
+                    else:
+                        u, v = struct.unpack_from("<2e", d, off)
+                        off += 4
                     self.uv.append((u, -v))
-                    off += 4
-            elif ity == 17:
-                off += 8 * n
-            elif ity == 19:
-                off += 12 * n
             elif ity == 2:
                 for _ in range(n):
-                    self.nrm.append(packed_vec(d[off:off + 4]))
-                    off += 4
-            elif ity == 22:
+                    if isz == 3:
+                        self.nrm.append(struct.unpack_from("<3f", d, off))
+                        off += 12
+                    else:
+                        self.nrm.append(packed_vec(d[off:off + 4]))
+                        off += 4
+            elif ity in (20, 22):
                 for _ in range(n):
-                    self.bitangent.append(packed_vec(d[off:off + 4]))
-                    off += 4
-            elif ity == 23:
+                    if isz == 3:
+                        self.bitangent.append(struct.unpack_from("<3f", d, off))
+                        off += 12
+                    else:
+                        self.bitangent.append(packed_vec(d[off:off + 4]))
+                        off += 4
+            elif ity in (21, 23):
                 for _ in range(n):
-                    self.tangent.append(packed_vec(d[off:off + 4]))
-                    off += 4
+                    if isz == 3:
+                        self.tangent.append(struct.unpack_from("<3f", d, off))
+                        off += 12
+                    else:
+                        self.tangent.append(packed_vec(d[off:off + 4]))
+                        off += 4
+            elif 0 < isz < len(diesel_model.PAYDAY_ITEM_SIZES):
+                off += diesel_model.PAYDAY_ITEM_SIZES[isz] * n
             else:
-                raise ValueError(f"unexpected channel type {ity}")
+                raise ValueError(f"unexpected channel size code {isz} (type {ity})")
 
 
-def meshes_of(model: DieselModel, raw: bytes):
-    """Yield (name, Geometry, triangles) for every drawable of a model."""
+def meshes_of(model: DieselModel, raw: bytes, enabled_hashes: set[int] | None = None):
+    """Yield (Geometry, triangles) for every enabled drawable of a model."""
     out = []
     for s in model.sections:
         if s.tag != "model_data" or s.obj is None:
             continue
         md = s.obj
+        if enabled_hashes and getattr(md, "name_hash", None) not in enabled_hashes:
+            continue
         if not hasattr(md, "passthrough_id"):
             continue
         pt = model.by_id.get(md.passthrough_id)
@@ -129,6 +144,8 @@ def meshes_of(model: DieselModel, raw: bytes):
         if geo_sec is None or top_sec is None:
             continue
         g = Geometry(raw, geo_sec)
+        if not (g.nrm and g.uv and g.tangent and g.bitangent):
+            continue
         faces = top_sec.obj.faces
         tris = []
         for atom in md.render_atoms:
@@ -221,15 +238,36 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     with zipfile.ZipFile(args.pack) as z:
-        raw_tpp = z.read(TPP_MODEL)
-        raw_fps = z.read(FPS_MODEL)
+        names = set(z.namelist())
+        models = sorted(n for n in names if n.endswith(".model"))
+        if not models:
+            raise SystemExit(f"no .model files in {args.pack}")
+
+        def _enabled_for(model_entry: str) -> set[int] | None:
+            obj_entry = model_entry[:-len(".model")] + ".object"
+            if obj_entry not in names:
+                return None
+            root = ET.fromstring(z.read(obj_entry))
+            hashes = {
+                hash_str(el.attrib["name"])
+                for el in root.findall(".//graphics//object")
+                if el.attrib.get("enabled") == "true" and "name" in el.attrib
+            }
+            return hashes or None
+
+        tpp_models = [(("third person" if len([m for m in models if "/fps_" not in m]) == 1 else f"third person ({Path(n).stem})"),
+                       z.read(n), _enabled_for(n))
+                      for n in models if "/fps_" not in n]
+        fps_models = [(("first person" if len([m for m in models if "/fps_" in m]) == 1 else f"first person ({Path(n).stem})"),
+                       z.read(n), _enabled_for(n))
+                      for n in models if "/fps_" in n]
+        entries = tpp_models + fps_models
 
     flipped = degenerate = tris_total = 0
-    for label, raw, key in (("third person", raw_tpp, TPP_MODEL),
-                            ("first person", raw_fps, FPS_MODEL)):
+    for label, raw, enabled_hashes in entries:
         model = DieselModel.from_bytes(raw)
         print(f"=== {label} unit")
-        for i, (g, tris) in enumerate(meshes_of(model, raw)):
+        for i, (g, tris) in enumerate(meshes_of(model, raw, enabled_hashes)):
             r = analyse(f"mesh {i}", g, tris)
             flipped += r["flipped"]
             degenerate += r["degenerate"]

@@ -1033,7 +1033,7 @@
    ],
    [
     2,
-    "tests/test_skyrim_nif.py:453: nifly not built: /home/user/universal-modder/tools/skyrim-nif/build/libniflywrap.so not found \u2014 run `bash tools/skyrim-nif/build_nifly.sh` first (or point NIFLY_WRAP at a built libniflywrap."
+    "tests/test_skyrim_nif.py:453: nifly not built: <repo>/tools/skyrim-nif/build/libniflywrap.so not found \u2014 run `bash tools/skyrim-nif/build_nifly.sh` first (or point NIFLY_WRAP at a built libniflywrap."
    ],
    [
     1,

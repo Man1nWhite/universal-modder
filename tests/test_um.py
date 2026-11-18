@@ -628,7 +628,9 @@ def test_cutout_keeps_interior_white():
 def test_fit_and_hard_alpha():
     f = sprite.fit(sprite.cutout(sprite_on_white()), 10, 10, anchor="bottom")
     assert f.size == (10, 10) and f.getbbox()[3] == 10
-    assert set(sprite.hard_alpha(f).getchannel("A").getdata()) <= {0, 255}
+    alpha_ch = sprite.hard_alpha(f).getchannel("A")
+    vals = alpha_ch.get_flattened_data() if hasattr(alpha_ch, "get_flattened_data") else alpha_ch.getdata()
+    assert set(vals) <= {0, 255}
 
 
 def test_sheet_slice_roundtrip():
@@ -1221,6 +1223,7 @@ def fake_comfy():
     state["url"] = f"http://127.0.0.1:{srv.server_address[1]}"
     yield state
     srv.shutdown()
+    srv.server_close()
 
 
 def test_comfy_image_sprite(fake_comfy, tmp_path, monkeypatch):
@@ -1232,9 +1235,10 @@ def test_comfy_image_sprite(fake_comfy, tmp_path, monkeypatch):
     assert wf["4"]["inputs"]["ckpt_name"] == "sd15.safetensors"               # the first checkpoint listed
     assert (wf["5"]["inputs"]["width"], wf["3"]["inputs"]["seed"]) == (512, 7)  # SD 1.5 size, the given seed
     assert "plain flat white background" in wf["6"]["inputs"]["text"]
-    assert Image.open(out / "a_red_potion.png").size == (16, 16)
-    cut = Image.open(out / "a_red_potion_cut.png")                           # cut out and trimmed locally
-    assert cut.size == (8, 8) and cut.getpixel((0, 0)) == (200, 30, 30, 255)
+    with Image.open(out / "a_red_potion.png") as raw_im:
+        assert raw_im.size == (16, 16)
+    with Image.open(out / "a_red_potion_cut.png") as cut:                     # cut out and trimmed locally
+        assert cut.size == (8, 8) and cut.getpixel((0, 0)) == (200, 30, 30, 255)
     rec = json.loads((out / "comfy_manifest.jsonl").read_text().splitlines()[-1])
     assert rec["prompt_id"] == "p1" and rec["seed"] == 7 and rec["workflow"]["9"]["class_type"] == "SaveImage"
 

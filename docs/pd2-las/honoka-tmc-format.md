@@ -1,9 +1,9 @@
 # Honoka "Secret Report" TMC — decode findings and rigged export (2026-11-14/15)
 
-**Status: decode complete; the rigged export is tracked.** This page is the record of the source file. The outfit
-that ships is `Honoko2`, built from the Collada export and using this TMC only for its skin weights and joint world
-binds (`docs/pd2-las/DECISIONS.md`, D40); the TMC-only pack built here in 2026-11-15 was deleted the same day. Read
-the decode sections as written; the last section says what the shipped build takes from this file.
+**Status: decode complete; the rigged export is tracked.** This page is the record of the source file. The outfits
+that ship are `Honoko2`..`Honoko5`, built from the Collada export and using this TMC only for their skin weights and
+joint world binds (`docs/pd2-las/DECISIONS.md`, D40–D46, D50); the TMC-only pack built here in 2026-11-15 was deleted
+the same day. Read the decode sections as written; the last section says what the shipped build takes from this file.
 
 ## Source
 
@@ -125,26 +125,22 @@ range; triangle totals match the decoder; positions point-in-time render
 matches the OBJ silhouette (headless body, jacket, skirt, ribbons, hands,
 heels).
 
-## Open items
+## Resolved items
 
-- "LOS mod" reading: **assumes LAS** (Legendary Armour Skin, the Christie /
-  2B template in `tools/pd2-las/`). Unconfirmed.
+- **Target format:** Legendary Armour Skin (`LAS`, `BODY_ONLY` + `glove_adapter.lua` in `tools/pd2-las/`).
 - Body has **no head geometry** (neck stump) ✓ LAS-compatible; the shipped
   build cuts the hands at the wrist (`tmc_las.cut_group_at_wrists`).
-- Whether to keep cap2/headdress2/feather/sweat_chest (jacket, skirt,
-  ribbons, emblem) or body-only: the shipped `.dae` build takes the body
-  and the buttoned suit submeshes and excludes feather and sweat_chest.
-- `*T_body_feather` decodes to long sash-like slivers; the OBJ exporter
-  dropped this mesh entirely. Purpose unverified — excluded from the build
-  until reviewed.
-- `MCAPACK` (37 material records): not decoded; string-free records (word6
-  holds small counts, word7 = 0). The shipped build takes its texture
+- Garment selection: the shipped `.dae` build takes the body
+  and the buttoned suit submeshes and excludes `WGT_cap2`, `feather` and `sweat_chest`.
+- `*T_body_feather` decodes to long sash-like slivers; excluded from the build.
+- `MCAPACK` (37 material records): not decoded; the shipped build takes its texture
   assignment from the `.dae` material bindings, not from this file.
-- LAS-side bone mapping: done — `tools/pd2-las/tmc_skeleton_map.json`
+- LAS-side bone mapping: `tools/pd2-las/tmc_skeleton_map.json`
   (MOT* → PD2 Diesel names; unmapped helpers merge into their nearest
   mapped ancestor).
-- Nothing in-game checked; `runtime_verified` = false everywhere it
-  appears.
+- In-game menu/lobby captures of `Honoko2` and `Honoko5` are archived under
+  `docs/renders/honoka/in-game/` (`docs/pd2-las/HANDOFF.md`); `runtime_verified`
+  stays `false` as a builder constant (D31).
 
 ## 2026-11-15: skin-palette indirection in `NodeLay` (corrects the skinning note above)
 
@@ -228,11 +224,11 @@ heuristic. `runtime_verified` stays `false`.
 
 ## The outfit ships from the `.dae` (2026-11-15)
 
-`Honoko2` is built by `tools/pd2-las/build_honoko2_dae.py` from
+`Honoko2`..`Honoko5` are built by `tools/pd2-las/build_honoko2_dae.py` from
 `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`, which carries the six material slots the source binds and
 the buttoned suit. The TMC-only pack this page used to describe — three merged material slots over the raw TMC
 meshes, the unbuttoned `WGT_cap2` jacket laid over the buttoned `WGT_headdress2` suit — was deleted on 2026-11-15
-at the owner's direction; its bytes stay in git history (`ce1d1c0`, `2e49f14`). See D40.
+at the owner's direction; its bytes stay in git history (`ce1d1c0`, `2e49f14`). See D40–D46, D50.
 
 What the shipped build still takes from this file:
 
@@ -244,5 +240,5 @@ What the shipped build still takes from this file:
 - **Mesh post-processes.** `tmc_las.cut_group_at_wrists()` for the glove cut and
   `tmc_las.drop_long_thin_triangles()` for the source's strip-break connector slivers.
 
-`runtime_verified` stays `false` in the pack; the outfit-menu captures of 2026-11-15 are the in-game record
-(`docs/pd2-las/HANDOFF.md`).
+`runtime_verified` stays `false` in the packs; the outfit-menu and lobby captures of 2026-11-15 (`Honoko2` and
+`Honoko5`) are the in-game record (`docs/pd2-las/HANDOFF.md`).

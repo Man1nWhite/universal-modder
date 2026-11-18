@@ -8,8 +8,7 @@
 ## Tracked packs
 
 Which bytes are tracked is not written here. `make -sC tools/pd2-las status` prints each pack's size and sha256
-and whether the zip is what git holds; `dist/<name>.zip.sha256` is the hash itself. The two Miranda LAS packs
-are also tracked, byte for byte, under `build/pd2-las/`.
+and whether the zip is what git holds; `dist/<character>/<name>.zip.sha256` is the hash itself.
 
 Rebuildable packs use fixed timestamps and a declared numeric code path. The new
 `Christie_LAS.zip` is a source rebuild with head and hands removed and a glove
@@ -18,8 +17,8 @@ menu captures show the Christie outfit, but the installed bytes were not hash-ve
 The older `Christie_LAS_Slim.zip` was removed from distribution at the user’s request;
 earlier Christie audit results describe older bytes, not the new pack.
 
-The DOAXVV "Secret Report" outfit is the `Honoko2` pack, built from the Collada `.dae` by `build_honoko2_dae.py`.
-It is one of the packs CI rebuilds, so it is verified byte for byte like the rest. The earlier TMC-only build of the
+The DOAXVV "Secret Report" outfit is built from the Collada `.dae` by `build_honoko2_dae.py` into four packs
+(`Honoko2`..`Honoko5`). CI rebuilds and verifies all four byte for byte. The earlier TMC-only build of the
 same costume was deleted on 2026-11-15 at the user's direction, after the `.dae` pack proved the better one; its
 bytes stay reachable through git history (D40).
 
@@ -29,9 +28,12 @@ height, same joint placement, sleeves and skirt hems where they were, soles stil
 D42). `Honoko4` is `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange
 shirt, `references/Honoka/Tex_07(L_7) 2.dds`), and `Honoko3`/`Honoko4` carry the layer-clearance pass and
 the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
-`Honoko5` is the same geometry in the user's revised third colourway (black jacket, light shirt,
-`references/Honoka/Tex_07(L_7)3.dds`, D45). `make -sC tools/pd2-las honokodae` writes all four zips in
-one run and CI verifies all four. User-supplied captures also show `Honoko5`.
+`Honoko5` applies the user's revised third colourway (black jacket, light shirt,
+`references/Honoka/Tex_07(L_7)3.dds`, D45/D46), updated jewelry diffuse (`references/Honoka/Tex_23(L_23)2.dds`),
+and waist/hip/cuff fit adjustments (D50). `make -sC tools/pd2-las honokodae`
+writes all four zips in one run and CI verifies all four. Earlier user-supplied captures show `Honoko5` prior to
+the jewelry texture update. `Christie_Clover_LAS` (`build_clover_christie.py`, `references/Clover-Christie.zip`)
+is an experimental TPP-only `BODY_ONLY` GLB outfit and has not been seen in game.
 
 ## Seen in game
 
@@ -43,16 +45,17 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 
 | Pack | Last seen in game | Were those the tracked bytes? |
 | --- | --- | --- |
-| `Miranda_LAS`, `Miranda_Busty_LAS` | no record | — |
+| `Miranda_L4D2_LAS`, `Miranda_L4D2_Busty_LAS` | no record | — |
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
-| `lawson_las` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
+| `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
 | `Honoko4` | no record | — (`Honoko3` in the alternate suit colourway, D44; the close-ups that drove D44 were of `Honoko3`, not of this pack) |
-| `Honoko5` | 2026-11-15, user-supplied menu/lobby captures | User identifies the pack; installed hash not measured |
+| `Honoko5` | 2026-11-15, user-supplied menu/lobby captures | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild; installed hash not measured |
 | `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
+| `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
 
 New [Christie](../renders/christie/in-game/2026-11-15/README.md) and

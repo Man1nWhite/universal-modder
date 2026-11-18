@@ -21,11 +21,12 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 
 # LAS armor-skin outfits in PAYDAY 2 from a Source-engine character mod
 
-> **Status 2026-10-19:** the standalone LAS pack is built and offline-verified
+> **Status:** the standalone LAS pack (`dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`,
+> internal folder `Miranda_LAS/`) is built and offline-verified
 > end to end — Diesel `.model` authoring (verified codec + divergence-filter
 > retarget onto the 2B skeleton), guide-compliant `material_config`s, textures,
-> reproducible `Miranda_LAS.zip`, 192 tests. Four verification passes and a
-> structural diff vs the 2B reference are in
+> and byte-reproducible zip (`make -sC tools/pd2-las test` prints the current suite count).
+> Four verification passes and a structural diff vs the 2B reference are in
 > `docs/audits/2026-10-19-las-guide-compliance.md`. What remains: the user-side
 > in-game checklist (`docs/pd2-las/in-game-checklist.md`). The
 > redistribution-rights gate this note used to name here was dropped on
@@ -35,11 +36,11 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 
 ## Setup
 
-- Source material: `l4d2_miranda_lawson_1.zip` (GameMaps.com "Miranda Lawson"
+- Source material: `references/l4d2_miranda_lawson_1.zip` (GameMaps.com "Miranda Lawson"
   L4D2 addon; a single-file VPK replacing Rochelle: third-person
   `survivor_producer.{mdl,vvd,phy,dx80/dx90/sw.vtx}`, first-person
   `v_arms_producer_new.*`, 8 VTF + 6 VMT materials). User-supplied private input.
-- Product-contract reference: `2b.rar` (2B LAS pack: `LegendaryArmours.twobee`
+- Product-contract reference: `references/2b.rar` (2B LAS pack: `LegendaryArmours.twobee`
   hook on `lib/tweak_data/armorskinstweakdata`, unit + fps_unit, hide_mask /
   hide_armor / replace_all / fps flags, BeardLib `main.xml` + `unit_mat`
   registration). Studied as text/binary, not installed.
@@ -104,10 +105,11 @@ python -m pytest -q tests/
 
 `build_las.py` (extract / inventory / textures / scaffold stages) feeds the
 pack scaffold; `build_models.py` builds the models and auto-creates the
-scaffold if missing, then zips. Output goes to `build/pd2-las/` (gitignored):
+scaffold if missing, then zips. Scratch output goes to `build/pd2-las/` (gitignored):
 `miranda.model`, `fps_miranda.model`, `Miranda_LAS/` (installable pack) and
 `Miranda_LAS.zip` (reproducible, fixed timestamps), plus `previews/`,
-`textures/`, `source_inventory.json`. That inventory (what the source archive
+`textures/`, `source_inventory.json`; with the default `--out`, the built zip
+and sidecar also update tracked `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`. That inventory (what the source archive
 contains: bones, meshes, triangle counts, texture formats) is the same whatever
 stage wrote it, and a copy is tracked as `tools/pd2-las/source_inventory.json`,
 so the source can be looked up without building. Provenance (payload hashes,
@@ -183,8 +185,9 @@ source zip hash, 2B template input hashes) lives in
     The reset is only right when everything local is already on the remote
     (`git log origin/<branch>..HEAD` empty, `git status` clean of real edits):
     it discards whatever was never pushed. A later kind of restart keeps the
-    commits and drops `.venv`, `dist/` and `build/` instead; for that one,
-    `git checkout -- dist build node_modules` and `make -sC tools/pd2-las env`.
+    commits and drops `.venv` and `dist/` instead; for that one,
+    `make -sC tools/pd2-las env` restores missing tracked files under `dist/`
+    and `node_modules/` and rebuilds `.venv` + the 2B templates.
 11. **Symptom:** API friction. **Cause:** convenience wrappers differ from
     stdlib guesses. **Fix:** `VpkArchive.from_zip(path_str, name)` takes a
     path not a `ZipFile`; `ModelFile.read(data)` not `read_bytes`;
@@ -254,8 +257,9 @@ materials).
 1. **In-game verification ladder** (menu preview → offline heist →
    animations, mask/armor hiding, FPS alignment) — the only remaining
    engineering unknown. Checklist: `docs/pd2-las/in-game-checklist.md`.
-   Watch items: normal-map OpenGL Y+ (flip green if lighting inverts),
-   contour silhouette, boot-sole ground clip (~12 cm).
+   Watch items: normal-map OpenGL Y+ (flip green if lighting inverts) and
+   contour silhouette (the earlier boot-sole ground clip was resolved; lowest
+   vertex sits at z = −0.75 cm).
 2. **Redistribution rights** for ME2-derived assets: closed on 2026-11-13.
    This note called it a release gate ("private experimental use only until
    resolved; never a public release"); the owner says no pack has that

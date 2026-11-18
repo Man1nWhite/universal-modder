@@ -43,48 +43,6 @@ def mip_count_for(size: int) -> int:
     return size.bit_length()
 
 
-def _expand565(v):
-    return (
-        ((v >> 11) & 31) * 255 // 31,
-        ((v >> 5) & 63) * 255 // 63,
-        (v & 31) * 255 // 31,
-    )
-
-
-def _decode_block(block: bytes, force_4color: bool = True) -> list[tuple[int, int, int, int]]:
-    """Decode one DXT5 block to 16 RGBA tuples (row-major 4x4).
-
-    DXT5 (BC3) has a separate alpha block and its RGB part is **always** the
-    4-colour palette — unlike BC1 there is no 3-colour + transparent mode, so
-    c0 < c1 is not a corrupt block. ``force_4color`` is kept for call
-    compatibility and ignored.
-    """
-    a0, a1 = block[0], block[1]
-    a_bits = int.from_bytes(block[2:8], "little")
-    if a0 > a1:
-        pal_a = [a0, a1] + [((7 - i) * a0 + i * a1) // 7 for i in range(1, 7)]
-    else:
-        pal_a = [a0, a1] + [((5 - i) * a0 + i * a1) // 5 for i in range(1, 5)] + [0, 255]
-    c0, c1 = struct.unpack_from("<HH", block, 8)
-    c_bits = int.from_bytes(block[12:16], "little")
-    e0 = _expand565(c0)
-    e1 = _expand565(c1)
-    pal_c = [
-        e0,
-        e1,
-        tuple((2 * e0[i] + e1[i]) // 3 for i in range(3)),
-        tuple((e0[i] + 2 * e1[i]) // 3 for i in range(3)),
-    ]
-    out = []
-    for px in range(16):
-        ai = (a_bits >> (3 * px)) & 7
-        ci = (c_bits >> (2 * px)) & 3
-        col = pal_c[ci]
-        alpha = pal_a[ai]
-        out.append((col[0], col[1], col[2], alpha))
-    return out
-
-
 def pd2_normal_channels(arr, invert_y: bool = True):
     """Repack a standard RGB normal map into PAYDAY 2's packed layout.
 

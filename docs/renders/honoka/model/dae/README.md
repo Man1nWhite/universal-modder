@@ -17,8 +17,9 @@
     crossing curve; the head diffuse is now tinted closer to the body (D48), but the crossing geometry
     and its lighting difference are unchanged.
 - **Caveats:** Offline software Z-buffer render (`runtime_verified: false`, the builder constant).
-  The `Honoko2` pack has since been seen in the game's outfit menu (2026-11-15, user report); the captures are in
-  [`../../in-game/2026-11-15/`](../../in-game/2026-11-15/README.md). The headless `BODY_ONLY` outfits wear
-  the vanilla PAYDAY 2 heister gloves through `honoko2_glove_adapter.lua` / `honoko3_glove_adapter.lua`.
-  Nothing of `Honoko3`, `Honoko4` or `Honoko5` has been in game: they are offline-only renders. The 2026-11-15
-  close-ups the layer-clearance pass of D44 answers were taken of `Honoko3` with a Miranda head pack.
+  `Honoko2` and `Honoko5` have been seen in the game's outfit menu and lobby (user-supplied captures in
+  [`../../in-game/2026-11-15/`](../../in-game/2026-11-15/README.md) and
+  [`../../in-game/honoko5/2026-11-15/`](../../in-game/honoko5/2026-11-15/README.md)); `Honoko3` and
+  `Honoko4` remain offline-only renders (though the 2026-11-15 close-ups that drove D44 were taken of
+  `Honoko3` with a Miranda head pack). All four headless `BODY_ONLY` outfits wear the vanilla PAYDAY 2
+  heister gloves through `glove_adapter.lua` (`honoko2`..`honoko5`).

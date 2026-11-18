@@ -4,10 +4,10 @@
     python tools/pd2-las/fresh.py check
     python tools/pd2-las/fresh.py matrix [--configs a,b,...] [--builders x,y] [--trace all]
 
-check   builds the packs that have a builder (the Miranda packs, lawson_las and the
-        eleven head packs) in build/fresh/tree and compares each of the 21 tracked
-        zips with its tracked .sha256, using `sha256sum -c`. Christie_LAS is
-        rebuilt from source.
+check   builds all 20 tracked packs (the Miranda L4D2 and Romance LAS packs,
+        Christie_LAS, Christie_Clover_LAS, Honoko2..5, and the eleven head packs) in build/fresh/tree
+        and compares each of the 20 tracked zips in dist/ with its tracked
+        .sha256, using `sha256sum -c`.
         No tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
         one is not; what differs inside it is listed member by member.
 matrix  the same build under other numeric code paths (CONFIGS), two at a time,
@@ -40,9 +40,9 @@ sys.path.insert(0, str(HERE))
 import determinism  # noqa: E402
 import trace_run  # noqa: E402
 
-#: What builds the rebuildable tracked packs, in the order they depend on each other: the
+#: What builds the tracked packs, in the order they depend on each other: the
 #: busty pack reuses what the Miranda build unpacked, and the head packs take
-#: their face from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip. The older Christie Slim pack is tracked only.
+#: their face from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
     "busty": ["tools/pd2-las/build_busty_variant.py"],
@@ -50,6 +50,7 @@ BUILDERS = {
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
     "christie": ["tools/pd2-las/build_christie_source.py"],
+    "cloverchristie": ["tools/pd2-las/build_clover_christie.py"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"
@@ -78,7 +79,7 @@ class BuildFailed(Exception):
 def tracked_zips() -> list[str]:
     """Enumerate ZIPs independently of sidecars, and fail on incomplete coverage."""
     listing = subprocess.run(
-        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "dist", "build/pd2-las"],
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "dist"],
         cwd=REPO, capture_output=True, check=True,
     ).stdout
     paths = {os.fsdecode(raw) for raw in listing.split(b"\0") if raw}
@@ -415,7 +416,7 @@ def matrix(args) -> int:
         off = [Path(rel).name for rel, sha in result["sha256"].items() if sha != tracked[rel] and rel.startswith("dist/")]
         moved = [rel for rel, sha in result["sha256"].items() if sha != ref.get("sha256", {}).get(rel)]
         print(f"`{name}`: {len(moved)} of {len(tracked)} zips differ from `{reference}`; "
-              f"{len(off)} of the 20 packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
+              f"{len(off)} of the {len(tracked)} packs differ from the tracked bytes" + (f" ({', '.join(off)})" if off else ""))
         for rel in moved:
             if rel.startswith("build/") and "dist/" + Path(rel).name in moved:
                 continue

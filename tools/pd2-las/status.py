@@ -24,8 +24,6 @@ used to quote and get wrong:
     ``missing``  the zip or its ``.sha256`` is not there
   Every builder but lawson's writes the ``.sha256`` itself, so only the
   comparison with the commit says that a rebuild reproduced the tracked bytes.
-  The two Miranda packs are also tracked under ``build/pd2-las/``; ``is``
-  covers both copies.
 - ``next``:  the command to run now.
 
 Whether a pack was seen in game is not in a zip: docs/pd2-las/HANDOFF.md.
@@ -51,16 +49,22 @@ from dist_paths import dist_path  # noqa: E402  (stdlib-only, like this script)
 #: where references/2b.rar is unpacked: the default of every builder's --templates
 TEMPLATES = extract_2b.TEMPLATES
 
-#: archives the builders read (repo-relative)
+#: archives and inputs the builders read (repo-relative)
 INPUTS = (
     "references/l4d2_miranda_lawson_1.zip",
     "references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip",
     "references/Geralt.7z",
+    "references/npc_criminals_ecp_female.7z",
+    "references/EYE_Diff.png",
     "references/2b.rar",
     "references/Christie.zip",
+    "references/Clover-Christie.zip",
     "references/Ada Wong over Joy.7z",
     "references/Heister - FPS Gloves in TPS 2.zip",
     "references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae",
+    "references/Honoka/Tex_07(L_7) 2.dds",
+    "references/Honoka/Tex_07(L_7)3.dds",
+    "references/Honoka/Tex_23(L_23)2.dds",
     "references/Outfit for Honoka-109-1-1-1628020933.zip",
 )
 
@@ -72,6 +76,7 @@ TARGETS = {
     "Miranda_L4D2_Busty_LAS": "busty",
     "Miranda_Romance_LAS": "lawson",
     "Christie_LAS": "christie",
+    "Christie_Clover_LAS": "cloverchristie",
     "Honoko2": "honokodae",
     "Honoko3": "honokodae",
     "Honoko4": "honokodae",
@@ -85,7 +90,7 @@ GREEN = f"{MAKE} green"
 #: the packages whose versions decide the bytes of the built zips
 PINNED = ("pillow", "numpy")
 #: tracked directories a restarted sandbox comes back without
-WIPED = ("dist", "build", "node_modules")
+WIPED = ("dist", "node_modules")
 
 
 def target(name: str) -> str | None:
@@ -133,25 +138,20 @@ def git(*args: str) -> list[str] | None:
 
 
 def pack_status(name: str, differs: set[str] | None, full: bool = False) -> dict:
-    """`differs`: the tracked paths under dist/ and build/ that are not what the commit holds; None without git."""
-    zips = [dist_path(REPO, f"{name}.zip").relative_to(REPO).as_posix()]
-    build_name = {"Miranda_L4D2_LAS": "Miranda_LAS", "Miranda_L4D2_Busty_LAS": "Miranda_Busty_LAS"}.get(name, name)
-    if (REPO / f"build/pd2-las/{build_name}.zip.sha256").is_file():
-        zips.append(f"build/pd2-las/{build_name}.zip")
+    """`differs`: the tracked paths under dist/ that are not what the commit holds; None without git."""
+    rel = dist_path(REPO, f"{name}.zip").relative_to(REPO).as_posix()
     out: dict = {"is": "missing", "make": target(name)}
-    digests = []
-    for rel in zips:
-        path, sidecar = REPO / rel, REPO / (rel + ".sha256")
-        if not (path.is_file() and sidecar.is_file()):
-            return out
-        digests.append(hashlib.sha256(path.read_bytes()).hexdigest())
-        if sidecar.read_text(encoding="utf-8").split()[:1] != digests[-1:]:
-            out["is"] = "broken"
-    if out["is"] != "broken":
-        paths = {rel for rel in zips} | {rel + ".sha256" for rel in zips}
+    path, sidecar = REPO / rel, REPO / (rel + ".sha256")
+    if not (path.is_file() and sidecar.is_file()):
+        return out
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if sidecar.read_text(encoding="utf-8").split()[:1] != [digest]:
+        out["is"] = "broken"
+    else:
+        paths = {rel, rel + ".sha256"}
         out["is"] = "ok" if differs is None else "changed" if paths & differs else "tracked"
-    out["bytes"] = (REPO / zips[0]).stat().st_size
-    out["sha256"] = digests[0] if full else digests[0][:12]
+    out["bytes"] = path.stat().st_size
+    out["sha256"] = digest if full else digest[:12]
     return {key: out[key] for key in ("is", "bytes", "sha256", "make")}
 
 
@@ -164,7 +164,7 @@ def collect(only: list[str] | None = None, full: bool = False) -> dict:
            "tracked_files_missing": len(gone or [])}
     if venv and not env["pins_ok"]:
         env.update(pinned=want, installed=have)
-    changed = git("diff", "-z", "--name-only", "HEAD", "--", "dist", "build")
+    changed = git("diff", "-z", "--name-only", "HEAD", "--", "dist")
     differs = None if changed is None else set(changed)
     names = pack_names()
     if only:
@@ -172,7 +172,7 @@ def collect(only: list[str] | None = None, full: bool = False) -> dict:
     packs = {name: pack_status(name, differs, full) for name in names}
     states = {pack["is"] for pack in packs.values()}
 
-    hint = "git status --short dist build" if states & {"missing", "broken"} else None
+    hint = "git status --short dist" if states & {"missing", "broken"} else None
     if only:
         status = {"packs": packs}
     else:
@@ -181,7 +181,7 @@ def collect(only: list[str] | None = None, full: bool = False) -> dict:
         status = {"ready": hint is None, "hint": hint, "env": env, "packs": packs}
     if "changed" in states and not hint:
         status["note"] = ("changed: new bytes, not committed. Meant: commit the zip with its .sha256. "
-                          "Not meant: git checkout -- dist build")
+                          "Not meant: git checkout -- dist")
     status["next"] = hint or GREEN
     return status
 
