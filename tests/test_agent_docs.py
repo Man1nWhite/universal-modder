@@ -29,7 +29,7 @@ OTHER_DOCS = ["CONTRIBUTING.md", "references/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session
 START_BUDGET = 5000
 #: bytes of `make status`, one JSON object an agent reads whole. A tracked pack is ~90 bytes
-#: of it (name, size, 12 hex digits, target); 2,560 leaves room above the 20 tracked packs.
+#: of it (name, size, 12 hex digits, target); 2,560 leaves room above the current tracked packs.
 STATUS_BUDGET = 2560
 
 
@@ -214,9 +214,7 @@ def test_green_runs_what_the_test_workflow_runs():
         r"^\./bin/um kb check --index$": '["-m", "um", "kb", "check", "--index"]',
         r"^\./bin/um publish check \.$": '["-m", "um", "publish", "check", "."]',
         r"fresh\.py check": '"fresh.py"), "check"]',
-        # fresh.py builds this pack in a copy and compares all 20 zips with sha256sum -c
-        r"^python tools/pd2-port/build_las_pack\.py$": '"fresh.py"), "check"]',
-        r"^(for sha_file in dist/\*/\*\.zip\.sha256; do|sha256sum -c \"\$sha_file\"|done)$": '"fresh.py"), "check"]',
+        r"^python tools/pd2-las/pack_checksum\.py$": '"pack_checksum.py")]',
     }
     for command in commands:
         groups = re.match(r"^\./bin/um --help && for g in (.+); do \./bin/um \$g --help > /dev/null; done$", command)

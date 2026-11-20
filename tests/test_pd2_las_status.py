@@ -21,6 +21,7 @@ from pathlib import Path
 import sys as _dist_sys
 _dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd2-las"))
 from dist_paths import dist_path  # noqa: E402
+from pack_checksum import sidecar_path, write_checksum  # noqa: E402
 
 import pytest
 
@@ -77,7 +78,7 @@ def test_status_cli_prints_one_json_object():
 
 
 def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
-    """All 20 tracked packs of the three pipelines, not only the ones in this directory.
+    """All tracked packs of the three pipelines, not only the ones in this directory.
 
     `status` used to report four packs; the state of the other ten took three more commands,
     one of which rebuilt nine packs to find out. `is` compares with the commit, because every
@@ -108,31 +109,51 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     assert list(one)[0] == "packs" and list(one)[-1] == "next" and set(one) <= {"packs", "note", "next"}, list(one)
 
 
-def test_status_tells_a_rebuilt_pack_from_the_tracked_one(tmp_path, monkeypatch):
-    """`changed` is a zip that equals its sidecar and not the commit; `broken` one that does not equal its sidecar.
-
-    It runs in a checkout of HEAD of its own and reads nothing from this one. It used to skip while this
-    checkout's pack was rebuilt and not committed: the skip budget has no room for that reason, so `green`
-    failed in the one state where `status` names it as the next command.
-    """
-    if not (REPO / ".git").exists() or not shutil.which("git"):
-        pytest.skip("needs the git checkout")
+@pytest.fixture
+def status_checkout(tmp_path, monkeypatch):
     status = _load()
-    name = "Christie_LAS"
-    clone = tmp_path / "clone"
-    subprocess.run(["git", "worktree", "add", "--detach", str(clone), "HEAD"], cwd=REPO, check=True, capture_output=True)
-    try:
-        monkeypatch.setattr(status, "REPO", clone)
-        assert status.collect(only=[name])["packs"][name]["is"] == "tracked"
-        with open(dist_path(clone, f"{name}.zip"), "ab") as handle:
-            handle.write(b"\0")
-        assert status.collect(only=[name])["packs"][name]["is"] == "broken"
-        digest = __import__("hashlib").sha256((dist_path(clone, f"{name}.zip")).read_bytes()).hexdigest()
-        (dist_path(clone, f"{name}.zip.sha256")).write_text(f"{digest}  dist/{name}.zip\n")
-        result = status.collect(only=[name])
-        assert result["packs"][name]["is"] == "changed" and list(result) == ["packs", "note", "next"]
-    finally:
-        subprocess.run(["git", "worktree", "remove", "--force", str(clone)], cwd=REPO, capture_output=True)
+    monkeypatch.setattr(status, "REPO", tmp_path)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    pack = dist_path(tmp_path, "Christie_LAS.zip")
+    pack.parent.mkdir(parents=True)
+    pack.write_bytes(b"first build")
+    write_checksum(pack, root=tmp_path)
+    subprocess.run(["git", "add", "dist"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
+                    "-c", "commit.gpgsign=false", "commit", "-qm", "test baseline"], cwd=tmp_path, check=True)
+    return status, pack
+
+
+def test_status_tells_a_rebuilt_pack_from_the_tracked_one(status_checkout):
+    status, pack = status_checkout
+    name = pack.stem
+    assert status.collect(only=[name])["packs"][name]["is"] == "tracked"
+    pack.write_bytes(b"second build")
+    assert status.collect(only=[name])["packs"][name]["is"] == "broken"
+    write_checksum(pack, root=status.REPO)
+    result = status.collect(only=[name])
+    assert result["packs"][name]["is"] == "changed" and list(result) == ["packs", "note", "next"]
+
+
+def test_status_keeps_incomplete_and_deleted_pairs_in_target_inventory(status_checkout):
+    status, pack = status_checkout
+    sidecar_path(pack).unlink()
+    result = status.collect(only=["christie"])
+    assert result == {"packs": {pack.stem: {"is": "missing", "make": "christie"}}, "next": "git status --short dist"}
+    # Even if both deletions have been staged, HEAD still records this pair.
+    pack.unlink()
+    subprocess.run(["git", "add", "-u"], cwd=status.REPO, check=True)
+    assert status.collect(only=["christie"]) == result
+    assert status.main([pack.stem]) == 0
+
+
+def test_status_does_not_credit_an_untracked_pair_as_a_rebuild(status_checkout):
+    status, pack = status_checkout
+    probe = pack.with_name("Christie_Probe.zip")
+    probe.write_bytes(pack.read_bytes())
+    write_checksum(probe, root=status.REPO)
+    assert status.collect(only=[probe.stem])["packs"][probe.stem]["is"] == "changed"
+    assert status.collect(only=[pack.stem])["packs"][pack.stem]["is"] == "tracked"
 
 
 def test_the_pins_are_written_once():
@@ -160,13 +181,7 @@ def test_the_pins_are_written_once():
 
 
 def test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs():
-    """The suite imports scipy, and the release workflow ran the suite without installing it.
-
-    `lawson LAS pack` failed in its `tests` step on every run from 2026-11-12 on, and would
-    have on a release tag: no release could be published. The `test` workflow runs on every
-    push, so its install line is known to carry the suite. Any other workflow that runs
-    pytest has to install at least those packages.
-    """
+    """Both workflows install the same required Python dependencies before pytest."""
     yaml = pytest.importorskip("yaml")
 
     def lines(path: Path) -> list[str]:
@@ -182,7 +197,7 @@ def test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs
 
     workflows = REPO / ".github" / "workflows"
     reference = [installed(line) for line in lines(workflows / "test.yml") if "pip install" in line and "pytest" in line]
-    assert len(reference) == 1 and {"pytest", "scipy"} <= reference[0], reference
+    assert len(reference) == 1 and {"pytest", "pyyaml", "pillow", "numpy"} <= reference[0], reference
     runs_the_suite = [path for path in sorted(workflows.glob("*.yml")) if any("-m pytest" in line for line in lines(path))]
     assert [path.name for path in runs_the_suite] == ["lawson-las.yml", "test.yml"], runs_the_suite
     for path in runs_the_suite:
@@ -479,3 +494,38 @@ def test_env_scripts_do_not_trust_a_venv_without_pip():
         assert "bin/pip" not in code, f"{rel} calls a pip script; use `python -m pip`"
         assert "-m pip --version" in code, f"{rel} does not ask the venv whether it has pip"
         assert "python3 -m venv --clear .venv" in code, f"{rel} does not start a venv without pip again"
+
+
+def test_parallel_make_orders_base_before_its_consumers(tmp_path):
+    scratch = tmp_path / "tools/pd2-las"
+    scratch.mkdir(parents=True)
+    shutil.copyfile(HERE / "Makefile", scratch / "Makefile")
+    (scratch / "status.py").write_text("pass\n")
+    builder = """\
+import sys, time
+from pathlib import Path
+marker = Path('base-ready')
+if Path(sys.argv[0]).stem == 'build_models':
+    time.sleep(0.25)
+    marker.touch()
+    Path('base-was-run').touch()
+elif Path(sys.argv[0]).stem in ('build_busty_variant', 'build_joy_head_mods'):
+    assert marker.is_file(), 'started before the base finished'
+"""
+    for argv in importlib.import_module("fresh").BUILDERS.values():
+        path = tmp_path / argv[0]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(builder)
+
+    def run(*targets):
+        proc = subprocess.run(["make", "-s", "-j7", "-C", str(scratch), f"PY={sys.executable}", *targets],
+                              capture_output=True, text=True)
+        assert proc.returncode == 0, proc.stdout + proc.stderr
+
+    run("all")
+    (tmp_path / "base-was-run").unlink()
+    run("heads")
+    assert not (tmp_path / "base-was-run").exists(), "standalone heads should reuse the base ZIP"
+    (tmp_path / "base-ready").unlink()
+    run("heads", "busty", "build")
+    assert (tmp_path / "base-was-run").exists()

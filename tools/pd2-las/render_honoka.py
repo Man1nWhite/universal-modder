@@ -30,6 +30,7 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 
 import tmc as tmc_mod  # noqa: E402
+from build_honoko2_dae import MAT_TEXTURE_SOURCES, PACKS  # noqa: E402
 
 FONT_BOLD_15 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
 FONT_BOLD_12 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
@@ -41,23 +42,14 @@ TMC_NAME = "Honoka_DOAXVV_Secret_Report.TMC"
 TEX_DIR = REPO / "references" / "Honoka"
 GLB_PATH = REPO / "references" / "Honoka" / "Honoka_DOAXVV_Secret_Report.rigged.glb"
 
-#: source maps assigned by Honoko2 and the Honoko4/5 alternate suit diffuses
+# Use the same material and variant mapping that the packs actually build.
+ALT_DIFFUSES = {name: f"{spec.pack_dir}: {kind} diffuse override"
+                for spec in PACKS for kind, name in spec.tex_override.items()}
 DDS_ROLE_NOTES = {
-    "L_3.dds": "Honoko2: honoko2_body diffuse",
-    "L_4.dds": "Honoko2: honoko2_body normal",
-    "L_7.dds": "Honoko2: honoko2_suit diffuse",
-    "L_8.dds": "Honoko2: honoko2_suit normal",
-    "L_14.dds": "Honoko2: honoko2_panties diffuse",
-    "L_15.dds": "Honoko2: honoko2_panties normal",
-    "L_17.dds": "Honoko2: honoko2_bra diffuse",
-    "L_18.dds": "Honoko2: honoko2_bra normal",
-    "L_20.dds": "Honoko2: honoko2_shoes diffuse",
-    "L_21.dds": "Honoko2: honoko2_shoes normal",
-    "L_23.dds": "Honoko2: honoko2_jewelry diffuse",
-    "L_24.dds": "Honoko2: honoko2_jewelry normal",
-    "Tex_07(L_7) 2.dds": "Honoko4: alternate suit diffuse",
-    "Tex_07(L_7)3.dds": "Honoko5: revised suit diffuse",
-}
+    name: f"{PACKS[0].pack_dir}: {kind} {role}"
+    for kind, sources in MAT_TEXTURE_SOURCES.items()
+    for name, role in zip(sources, ("diffuse", "normal"))
+} | ALT_DIFFUSES
 
 
 def _load_rasterizer():
@@ -198,7 +190,7 @@ def render_tmc_sheets(rp, out_dir: Path) -> None:
 
 def render_dds_sheet(out_dir: Path) -> None:
     dds_files = sorted(TEX_DIR.glob("L_*.dds"), key=lambda p: int(p.stem.split("_")[1]))
-    dds_files += [TEX_DIR / name for name in ("Tex_07(L_7) 2.dds", "Tex_07(L_7)3.dds")]
+    dds_files += [TEX_DIR / name for name in ALT_DIFFUSES]
     cols, rows = 6, (len(dds_files) + 5) // 6
     tile_w, tile_h = 240, 278
     canvas = Image.new("RGB", (cols * tile_w, rows * tile_h + 56), (18, 22, 30))
@@ -227,8 +219,8 @@ def render_dds_sheet(out_dir: Path) -> None:
 
     _header(
         canvas,
-        "Honoka Source .DDS Textures — L_0–L_26 and Alternate Suit Diffuses",
-        f"Source: references/Honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are used by the Honoko2, Honoko4 and Honoko5 builds",
+        "Honoka Source .DDS Textures — L_0–L_26 and Variant Diffuses",
+        f"Source: references/Honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are used by the Honoko builds",
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "honoka_dds_contact_sheet.png"

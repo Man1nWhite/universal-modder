@@ -30,6 +30,7 @@ import dds_encode
 import determinism
 import diesel_model as dm
 import las_outfit_pack as lop
+from pack_checksum import write_pack_checksum
 import preview_textured as preview
 import tmc_las
 from build_honoko2_dae import _full_mip_levels
@@ -152,6 +153,7 @@ def material_config():
 
 def build(src: Path, template_path: Path, output: Path):
     determinism.enter(__file__)
+    bm.require_templates(template_path.parent, (template_path.name,))
     intake = source.inspect(src, template_path)
     with zipfile.ZipFile(src) as z:
         glb = source.Glb(z.read(source.MEMBER))
@@ -204,11 +206,7 @@ def build(src: Path, template_path: Path, output: Path):
     archive = lop.zip_bytes((f'{PACK}/{name}', data) for name, data in sorted(files.items()))
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes(archive)
-    try:
-        rel = output.resolve().relative_to(ROOT).as_posix()
-    except ValueError:
-        rel = output.name
-    output.with_name(output.name + '.sha256').write_text(f'{hashlib.sha256(archive).hexdigest()}  {rel}\n')
+    write_pack_checksum(output, ROOT)
     print(f'wrote {output} ({len(archive)} bytes); not tested in game')
 
 

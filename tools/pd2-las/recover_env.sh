@@ -76,8 +76,8 @@ echo "== installing dependencies"
 # The versions of pillow and numpy are in pins.txt, the one place they are
 # written: the tracked zips only rebuild byte for byte with them. Both CI
 # workflows install with the same file, and status.py reads it.
-"$PY" -m pip install -q -c tools/pd2-las/pins.txt pytest pillow numpy pyyaml pyflakes py7zr scipy
-"$PY" -c "import pytest, PIL, numpy, yaml, py7zr, scipy" && echo "   deps ok"
+"$PY" -m pip install -q -c tools/pd2-las/pins.txt pytest pillow numpy pyyaml pyflakes py7zr
+"$PY" -c "import pytest, PIL, numpy, yaml, py7zr" && echo "   deps ok"
 if [ "$EXTRAS" = 1 ]; then
     # Not needed to build. lupa runs the Lua of the hook and of the glove adapter
     # in tests/test_glove_behavior_lua.py; sourcepp is a reader of Source files
@@ -93,7 +93,7 @@ fi
 # ------------------------------------------------------------ 2. the templates
 # references/2b.rar (RAR5) -> build/pd2-las/2b/. extract_2b.py owns both the
 # location and the unpacking (node-unrar-js; there is no system unrar/7z/bsdtar
-# in the sandbox), and does nothing when the templates are already there.
+# in the sandbox), and reuses the cache only when the archive and extracted files still match.
 echo "== 2B templates"
 "$PY" tools/pd2-las/extract_2b.py | sed 's/^/   /'
 

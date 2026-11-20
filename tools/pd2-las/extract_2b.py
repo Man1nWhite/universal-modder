@@ -14,11 +14,16 @@ default, ``status.py``, the diagnostics and the tests all import it from here, s
 nothing else spells the path. ``PD2_2B_TEMPLATES`` overrides it, for a worktree or
 a second checkout that should share one extraction.
 
-The archive is RAR5 and is unpacked with node-unrar-js, so ``node`` is needed.
+The archive is RAR5 and is unpacked with node-unrar-js, so ``node`` is needed
+when the managed cache is missing or stale. The cache records the archive and
+all extracted files by SHA-256; changed inputs and partial extractions are
+rebuilt in a clean directory.
 The repo carries that package at its root (``node_modules/``, tracked), which a
 script anywhere below the root resolves; where that copy is missing it is
-installed with ``npm`` next to the script. Any other RAR5 extractor pointed at
-``build/pd2-las/2b/`` produces the same tree. The extractor runs from a script
+installed with ``npm`` next to the script. For a manual extraction with any
+other RAR5 extractor, point ``PD2_2B_TEMPLATES`` at the resulting unit folder.
+An explicit override is not repaired or checked against the managed archive.
+The extractor runs from a script
 file because under ``node -e`` the wasm sidecar cannot be found (``__dirname`` is
 empty) and the process dies inside emscripten.
 
@@ -32,6 +37,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import archive_cache
+
 REPO = Path(__file__).resolve().parents[2]
 RAR = REPO / "references" / "2b.rar"
 #: where the archive is unpacked
@@ -41,7 +48,7 @@ UNIT = Path("2B - LAS") / "assets" / "units" / "2b" / "skins" / "2b"
 TEMPLATE_FILES = ("2b.model", "fps_2b.model")
 ENV = "PD2_2B_TEMPLATES"
 #: the directory that holds TEMPLATE_FILES
-TEMPLATES = Path(os.environ[ENV]).expanduser() if os.environ.get(ENV) else OUT / UNIT
+TEMPLATES = Path(os.environ[ENV]).expanduser().resolve() if os.environ.get(ENV) else OUT / UNIT
 #: the command that fills TEMPLATES (it also builds the venv)
 RECOVER = "bash tools/pd2-las/recover_env.sh"
 #: one wording for "the templates are not there": skip reasons, errors, hints
@@ -66,6 +73,23 @@ def present(directory: Path | None = None) -> bool:
     return all((directory / name).is_file() for name in TEMPLATE_FILES)
 
 
+REQUIRED = (*TEMPLATE_FILES, "base_df.texture", "base_nm.texture")
+
+
+def managed(directory: Path) -> bool:
+    return directory.resolve() == (OUT / UNIT).resolve()
+
+
+def ready(directory: Path | None = None) -> bool:
+    """Check managed templates against the archive; trust an explicit override."""
+    directory = TEMPLATES if directory is None else Path(directory)
+    if not present(directory):
+        return False
+    if not managed(directory):
+        return True
+    return all((directory / name).is_file() for name in REQUIRED) and archive_cache.current(RAR, OUT)
+
+
 def shown(path: Path) -> str:
     """``path`` relative to the repo when it is inside it, for messages."""
     try:
@@ -76,56 +100,54 @@ def shown(path: Path) -> str:
 
 def _fail(message: str) -> int:
     print(message, file=sys.stderr)
-    print(f"Any RAR5 extractor works instead: unpack {shown(RAR)} into {shown(OUT)}/",
+    print(f"Or unpack {shown(RAR)} with another RAR5 extractor and set {ENV} to its unit folder",
           file=sys.stderr)
     return 1
 
 
-def main() -> int:
-    if present():
-        print(f"templates already extracted: {shown(TEMPLATES)}")
-        return 0
-    if os.environ.get(ENV):
-        print(f"{ENV} points at {TEMPLATES}, which does not hold "
-              f"{' and '.join(TEMPLATE_FILES)}; unset it, or unpack {shown(RAR)} there",
-              file=sys.stderr)
-        return 1
-    if not RAR.is_file():
-        print(f"missing {shown(RAR)} (git checkout -- references)", file=sys.stderr)
-        return 1
-    node = shutil.which("node")
-    if not node:
-        return _fail("node is needed to unpack the archive with node-unrar-js")
-
-    # The script sits next to the extraction, inside the repo: `require` then finds
-    # the repo's own node_modules by walking up, and nothing is written elsewhere.
-    OUT.mkdir(parents=True, exist_ok=True)
-    scratch = OUT / ".unrar-js"
-    scratch.mkdir(exist_ok=True)
+def _unpack(node: str, output: Path) -> None:
+    # The script is inside the repo so require() finds the root's node_modules.
+    # Its npm fallback and WASM loader never become part of the cached payload.
+    scratch = output.parent / "unrar-js"
+    scratch.mkdir()
     script = scratch / "extract_2b.js"
     script.write_text(_JS, encoding="utf-8")
     if not (REPO / "node_modules" / "node-unrar-js" / "package.json").is_file():
         npm = shutil.which("npm")
         if not npm:
-            return _fail("node-unrar-js is not in the repo's node_modules/ "
-                         "(git checkout -- node_modules) and there is no npm to install it")
-        # a package.json of its own, so npm installs here and not into the repo
-        # root's project (`npm init -y` would name the package after the folder
-        # and reject the leading dot)
+            raise ValueError("node-unrar-js is not in the repo's node_modules/ and npm is unavailable")
         (scratch / "package.json").write_text(
             '{"name": "unrar-js-scratch", "private": true}\n', encoding="utf-8")
-        r = subprocess.run([npm, "install", "--no-audit", "--no-fund", "node-unrar-js"],
-                           cwd=scratch, capture_output=True, text=True)
-        if r.returncode != 0:
-            return _fail(f"`npm install node-unrar-js` failed in {shown(scratch)}:\n{r.stderr}")
-    r = subprocess.run([node, str(script), str(RAR), str(OUT)], capture_output=True, text=True)
-    if r.returncode != 0:
-        return _fail(f"node-unrar-js failed:\n{r.stderr}")
-    print(r.stdout.strip())
-    if not present():
-        return _fail(f"the archive unpacked, but {shown(TEMPLATES)} holds no "
-                     f"{' and '.join(TEMPLATE_FILES)}")
-    shutil.rmtree(scratch, ignore_errors=True)
+        result = subprocess.run([npm, "install", "--no-audit", "--no-fund", "node-unrar-js"],
+                                cwd=scratch, capture_output=True, text=True)
+        if result.returncode:
+            raise ValueError(f"npm could not install node-unrar-js:\n{result.stderr}")
+    result = subprocess.run([node, str(script), str(RAR), str(output)], capture_output=True, text=True)
+    if result.returncode:
+        raise ValueError(f"node-unrar-js failed:\n{result.stderr}")
+    print(result.stdout.strip())
+
+
+def main() -> int:
+    if ready():
+        print(f"templates already extracted: {shown(TEMPLATES)}")
+        return 0
+    if not managed(TEMPLATES):
+        print(f"{ENV} points at {TEMPLATES}, which does not hold "
+              f"{' and '.join(TEMPLATE_FILES)}; unset it, or unpack {shown(RAR)} there",
+              file=sys.stderr)
+        return 1
+    if not RAR.is_file():
+        print(f"missing {shown(RAR)} (restore the tracked reference archive)", file=sys.stderr)
+        return 1
+    node = shutil.which("node")
+    if not node:
+        return _fail("node is needed to unpack the archive with node-unrar-js")
+    try:
+        archive_cache.refresh(RAR, OUT, lambda output: _unpack(node, output),
+                              (UNIT / name for name in REQUIRED))
+    except (ValueError, OSError) as error:
+        return _fail(str(error))
     print(f"templates ok: {shown(TEMPLATES)}")
     return 0
 

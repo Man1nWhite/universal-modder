@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     # 20 minutes cancelled the last step mid-build (2026-11-18, this branch): it
     # started at 3m20s and was still rebuilding the packs when the cap hit. That
-    # step rebuilds all 20 packs from scratch and is the only long one, so the
+    # step rebuilds all packs from scratch and is the only long one, so the
     # cap has to cover it plus the ~3m the rest of the job takes; `main` with 19
     # packs finished the whole job in 18m42s, i.e. with no margin left.
     timeout-minutes: 35
@@ -29,14 +29,12 @@ jobs:
         with:
           python-version: "3.11"
       - name: install deps
-        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy "pyyaml>=6" pytest scipy
+        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy "pyyaml>=6" pytest
         # The versions of pillow and numpy are those of tools/pd2-las/pins.txt.
-        # scipy is kept in the install line: the release workflow keeps the
-        # same set, and a test holds the two install lines equal.
-      # ffmpeg is only for test_compile_small_edl. Without recommends apt skips mesa, VA/VDPAU drivers and
+      # ffmpeg enables the optional video and encoding tests. Without recommends apt skips mesa, VA/VDPAU drivers and
       # pocketsphinx-en-us (about half the download), and with man-db's auto-update off dpkg skips the man-page
       # reindex that can take minutes on the runner. When the Ubuntu mirror crawls (it has, at ~150 KB/s), the step
-      # gives up after 3 minutes and the run goes on: that one test skips without ffmpeg instead of failing the build.
+      # gives up after 3 minutes and the run goes on: those tests skip without ffmpeg instead of failing the build.
       - name: ffmpeg
         timeout-minutes: 3
         continue-on-error: true
@@ -46,18 +44,10 @@ jobs:
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 install -y --no-install-recommends ffmpeg
       - name: unpack 2B templates
         run: python tools/pd2-las/extract_2b.py
-      - name: build the LAS pack
-        # the guide-compliance audit and its mutation self-test read the built
-        # pack; without it those two tests silently skip, and a checker that
-        # only runs on release tags is not a check
-        run: python tools/pd2-port/build_las_pack.py
-      - name: the tracked pack must equal a fresh build
-        # a stale tracked pack (or a non-deterministic build) must not slip
-        # through on a branch push
-        run: |
-          for sha_file in dist/*/*.zip.sha256; do
-            sha256sum -c "$sha_file"
-          done
+      - name: verify the checked-in pack checksums
+        # The suite reads the original artifacts. The independent rebuild
+        # below writes only inside build/fresh/.
+        run: python tools/pd2-las/pack_checksum.py
       - name: lint
         # unused imports and dead locals accumulate silently otherwise; this is the whole check
         run: python -m pip install --quiet pyflakes && python -m pyflakes um tools tests
@@ -75,8 +65,8 @@ jobs:
         run: ./bin/um publish check .
       - name: every tracked pack must equal a fresh build, byte for byte
         # All 20 tracked packs are built again in a copy of the checkout, on
-        # this runner, and each of the 20 tracked zips in dist/ is compared
-        # with its tracked .sha256 by sha256sum -c. No tolerance. `env` makes
+        # this runner, and each generated ZIP is compared to the verified byte
+        # digest of the original. No copied outputs can count. `env` makes
         # the pinned .venv and unpacks the 2B templates first (node and npm,
         # for node-unrar-js). The builders put themselves on the declared code
         # path (tools/pd2-las/determinism.py), which is why a runner with

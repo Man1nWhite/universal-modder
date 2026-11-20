@@ -12,7 +12,7 @@ Run from the repo root:
 The tool runs `pytest -rsxX` itself, groups skip reasons by prefix match against
 `ALLOWED`, and multiplies by the `[N]` repeat count shown by `-rs`. A reason
 not starting with any ALLOWED key, or one exceeding its count, is a failure.
-With `--report` it judges a saved `pytest -q -rsxX tests` report instead:
+With `--report` it requires a completed, successful `pytest -q -rsxX tests` report instead:
 `check_all.py --full` hands it the report of the suite it has just run, so the
 suite runs once there and not twice.
 
@@ -58,6 +58,7 @@ ALLOWED: dict[str, int] = {
     # installs neither lupa nor sourcepp, so both skips are expected there.
     "lupa (LuaJIT) not installed": 2,
     "Git Bash / MSYS only": 1,
+    "declared code path requires x86-64 Linux": 1,
     # Regression to watch for: the fixture and tracked packs are present, so these
     # must be 0. Every test that needs the 2B templates skips with
     # tools/pd2-las/extract_2b.MISSING; any other wording is unbudgeted and fails.
@@ -78,14 +79,40 @@ _SKIP = re.compile(r"^SKIPPED \[(\d+)\] (.*?): (.+)$")
 _XFAIL = re.compile(r"^(?:XFAIL|XPASS) (\S+)")
 
 
-def run_suite() -> str:
-    """What `pytest -rsxX` prints for the suite, without the files of IGNORED."""
-    proc = subprocess.run(
+def run_suite() -> subprocess.CompletedProcess[str]:
+    """Run pytest once; callers must check its status before judging skips."""
+    return subprocess.run(
         [PY, "-m", "pytest", "-q", "-rsxX", "tests", "--ignore=examples",
          *(f"--ignore={path}" for path in IGNORED)],
         cwd=REPO, capture_output=True, text=True,
     )
-    return proc.stdout + proc.stderr
+
+
+_SUMMARY = re.compile(r"^(?:=+\s+)?(\d+ [a-z]+(?:, \d+ [a-z]+)*) in \d+(?:\.\d+)?s"
+                      r"(?: \([0-9:]+\))?(?:\s+=+)?$")
+_ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def validate_report(report: str) -> str | None:
+    """Reject a missing/failed summary and incomplete skip or xfail details."""
+    lines = report.rstrip().splitlines()
+    summary = _SUMMARY.fullmatch(lines[-1].strip()) if lines else None
+    if not summary:
+        return "no completed pytest summary (use pytest -q -rsxX tests)"
+    counts = {label: int(n) for n, label in re.findall(r"(\d+) ([a-z]+)", summary[1])}
+    if counts.get("failed") or counts.get("error") or counts.get("errors"):
+        return "pytest did not pass"
+    results = ("passed", "skipped", "xfailed", "xpassed")
+    if counts.keys() - {*results, "warning", "warnings"}:
+        return "pytest did not run the full suite"
+    if not any(counts.get(label) for label in results):
+        return "pytest reported no test results"
+    skips = sum(int(m[1]) for line in lines if (m := _SKIP.match(line.strip())))
+    xfails = sum(1 for line in lines if _XFAIL.match(line.strip()))
+    if (skips != counts.get("skipped", 0)
+            or xfails != counts.get("xfailed", 0) + counts.get("xpassed", 0)):
+        return "pytest skip/xfail details do not match the summary (use -rsxX)"
+    return None
 
 
 def judge(report: str) -> tuple[list[str], list[str]]:
@@ -159,7 +186,24 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--report", type=Path,
                     help="a saved `pytest -q -rsxX tests` report to judge, instead of running the suite")
     args = ap.parse_args(argv)
-    said, failures = judge(args.report.read_text() if args.report else run_suite())
+    if args.report:
+        try:
+            report = args.report.read_text(encoding="utf-8")
+        except (OSError, ValueError) as error:
+            print(f"FAIL: cannot read pytest report: {error}", file=sys.stderr)
+            return 1
+    else:
+        result = run_suite()
+        report = result.stdout + result.stderr
+        if result.returncode:
+            print(report, end="")
+            print(f"FAIL: pytest exited with status {result.returncode}", file=sys.stderr)
+            return 1
+    report = _ANSI.sub("", report)
+    if error := validate_report(report):
+        print(f"FAIL: {error}", file=sys.stderr)
+        return 1
+    said, failures = judge(report)
     print("\n".join(said))
     if failures:
         print()

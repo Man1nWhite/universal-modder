@@ -5,31 +5,30 @@ broken pack.  This proves the other half: that the pytest wrappers around it
 really fail (and do not silently skip) when the pack is broken.  A test that
 skips, or that asserts nothing, is worse than no test at all.
 
-For every mutation the shipped pack is broken in a way the test is supposed
-to notice, the matching test is run, and the run must FAIL.  A test that
-passes or skips is a hole in the suite.
+For every mutation, the matching test must pass on the unmodified Romance
+pack and fail with the intended assertion on a scratch ZIP. A skip, missing
+node, collection error, or unrelated exception is not a caught mutation.
+The tracked pack is never written.
 
     python tools/pd2-port/check_test_suite_mutations.py
-
-The method carries over to any pack; the wiring is the shipped port's. ``PACK``
-is its tracked zip (mutated in place and restored after every run),
-``TPP_MODEL`` and the ``Lawson_LAS/`` paths in the mutations are its layout,
-and ``MUTATIONS`` names the tests that pin it. A second character's pack
-brings its own paths and its own tests.
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
+import tempfile
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 import sys as _dist_sys
 _dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
 from dist_paths import dist_path  # noqa: E402
 
-HERE = Path(__file__).parent
+HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 PACK = dist_path(ROOT, "lawson_las.zip")
+TEST_PACK_ENV = "PD2_TEST_LAWSON_PACK"
 TPP_MODEL = "Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"
 
 sys.path.insert(0, str(HERE))
@@ -105,53 +104,80 @@ def m_no_tangent_channels(files: dict[str, bytes]) -> dict[str, bytes]:
 
 MUTATIONS = [
     (m_inverted_triangle, "tests/test_las_pack.py::test_the_built_pack_has_no_inverted_faces",
-     "triangle wound inside out"),
+     "triangle wound inside out", "triangles are inverted"),
     (m_inverted_triangle, "tests/test_las_pack.py::test_built_pack_passes_the_guide_compliance_check",
-     "triangle wound inside out (the audit must notice)"),
+     "triangle wound inside out (the audit must notice)", "N3:"),
     (m_no_fps_unit, "tests/test_las_pack.py::test_built_pack_passes_the_guide_compliance_check",
-     "FPS unit not registered"),
+     "FPS unit not registered", "P2:"),
     (m_no_localization, "tests/test_las_pack.py::test_built_pack_passes_the_guide_compliance_check",
-     "localization emptied"),
+     "localization emptied", "P4:"),
     (m_no_tangent_channels, "tests/test_las_pack.py::test_built_pack_passes_the_guide_compliance_check",
-     "tangent channels removed from the geometry"),
+     "tangent channels removed from the geometry", "S7:"),
 ]
 
 
+def run_test(test: str, pack: Path, report: Path, expect: str | None = None) -> str | None:
+    """Run exactly one pytest node and require a pass or the specified assertion."""
+    report.unlink(missing_ok=True)
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-m", "pytest", "-q", "--junitxml", str(report), test],
+            cwd=ROOT, capture_output=True, text=True,
+            env={**os.environ, TEST_PACK_ENV: str(pack)},
+        )
+    except OSError as error:
+        return f"could not run pytest: {error}"
+    wanted = 0 if expect is None else 1   # pytest.ExitCode.OK or TESTS_FAILED
+    if proc.returncode != wanted:
+        return f"pytest exit {proc.returncode}, expected {wanted}: {(proc.stderr or proc.stdout).strip()[-450:]}"
+    try:
+        cases = list(ET.parse(report).iter("testcase"))
+    except (OSError, ET.ParseError) as error:
+        return f"no readable pytest results: {error}"
+    if len(cases) != 1 or cases[0].get("name") != test.rsplit("::", 1)[1]:
+        return f"expected one result for {test}"
+    case = cases[0]
+    if case.find("skipped") is not None or case.find("error") is not None:
+        return f"{test} was skipped or errored"
+    failure = case.find("failure")
+    if expect is None and failure is None:
+        return None
+    if expect is not None and failure is not None:
+        message = failure.get("message", "")
+        if message.startswith(("AssertionError:", "assert ")) and expect in message:
+            return None
+        return f"wrong failure: {message[:450]}"
+    return f"unexpected pytest result for {test}"
+
+
 def main() -> int:
-    if not PACK.exists():
+    if not PACK.is_file():
         print("no built pack - run build_las_pack.py first")
         return 1
     base = _read()
-    backup = PACK.read_bytes()
-    misses = []
-    for mutate, test, label in MUTATIONS:
+    with tempfile.TemporaryDirectory(prefix="lawson-mutations-") as scratch:
+        mutated = Path(scratch) / PACK.name
+        report = Path(scratch) / "pytest.xml"
+        for test in dict.fromkeys(test for _, test, _, _ in MUTATIONS):
+            if error := run_test(test, PACK, report):
+                print(f"FAIL clean baseline {test}: {error}")
+                return 1
+        misses = 0
+        for mutate, test, label, expected in MUTATIONS:
             files = dict(base)
             mutate(files)
-            _write(files, PACK)
-            proc = subprocess.run(
-                [sys.executable, "-m", "pytest", "-q", test],
-                cwd=ROOT, capture_output=True, text=True)
-            PACK.write_bytes(backup)
-            out = proc.stdout + proc.stderr
-            skipped = "skipped" in out and proc.returncode == 0
-            if proc.returncode == 0:
-                misses.append(f"{label} -> {test} did not fail")
-                state = "PASSED (not caught!)"
-            elif skipped:
-                misses.append(f"{label} -> {test} skipped instead of failing")
-                state = "SKIPPED"
+            if files == base:
+                error = "mutation did not modify the pack"
             else:
-                state = "failed as expected"
-            print(f"  {'ok  ' if state == 'failed as expected' else 'MISS'} "
-                  f"{label:<44} {state}")
-    print()
-    if misses:
-        print(f"{len(misses)} of {len(MUTATIONS)} mutations slipped through:")
-        for m in misses:
-            print(f"  - {m}")
-        return 1
-    print(f"{len(MUTATIONS)}/{len(MUTATIONS)} pack-level test mutations caught")
-    return 0
+                _write(files, mutated)
+                error = run_test(test, mutated, report, expected)
+            if error:
+                misses += 1
+                print(f"  MISS {label}: {error}")
+            else:
+                print(f"  ok   {label}: failed as expected")
+    print(f"\n{len(MUTATIONS) - misses}/{len(MUTATIONS)} pack-level test mutations caught")
+    return int(bool(misses))
 
 
 if __name__ == "__main__":

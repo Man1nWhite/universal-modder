@@ -1,16 +1,16 @@
 # universal-modder
 
 A game-modding toolkit and knowledge base for AI coding agents, forked from `rehan-remade/universal-modder`.
-The work in this fork is PAYDAY 2: 20 tracked packs in `dist/`, built by three pipelines under `tools/`.
+The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipelines under `tools/`.
 
 ## PAYDAY 2 packs: one command per question
 
 | Question | Run or read |
 |---|---|
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
-| State of the 20 packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
+| State of the packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `christie`, `cloverchristie`, or `heads` |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `christie`, `cloverchristie`, `heads`, or `hila` |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |

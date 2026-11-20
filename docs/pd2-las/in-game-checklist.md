@@ -59,8 +59,8 @@ levels are there for motion, and only the game shows motion.
 4. **Texture orientation** — **pre-verified offline** against the 2B
    reference: `tools/pd2-las/uv_check.py` renders our UVs and the known-good
    2B UVs with an identical sampler; the results match (see
-   `build/pd2-las/previews/uvcheck_*` — face/outfit/eyes all land
-   anatomically). The stored convention is the p2mt GLTF import
+   `build/pd2-las/previews/uvcheck_*` — face/outfit/eyes land anatomically). The probe
+   reads the tracked ZIP and its textures by default. The stored convention is the p2mt GLTF import
    `v = 1 − v_src`, same as 2B. Still confirm in game; if it ever reads
    flipped, it is a single sign flip in `build_models.py`
    (`transfer_group`, the `g.uvs` append) plus the same flip in
@@ -100,14 +100,13 @@ levels are there for motion, and only the game shows motion.
 
 ## Guide watch items (ModWorkshop LAS/MOOG guide)
 
-16. **Normal-map orientation** — PD2 expects OpenGL-style (Y+) normal maps;
-    the L4D/Source normals should already match. If bumps light up inverted
-    (creases look like ridges), flip the green channel of the `*_nm.texture`
-    files (guide: "To format a DirectX-style normal map for PAYDAY 2").
-17. **Contour outline** — stand the character behind a wall: the four TPP
-    skin materials carry `CONTOUR` + contour variables per the guide, so a
-    colored silhouette should show through geometry. No outline = the
-    contour variables need different values.
+16. **Normal-map orientation** — check that bumps and creases light correctly. The builder
+    swizzles the L4D2 Miranda source channels and inverts source Y when encoding PD2's Y+ maps.
+    If the shipped textures look inverted, report the material and lighting; don't edit the
+    textures during a check of the shipped bytes.
+17. **Contour outline** — the four TPP materials support `CONTOUR` but the shipped configs set
+    `contour_opacity=0`. Standing behind a wall alone is not a positive outline test. Only expect
+    an outline when testing a game effect that explicitly turns it on.
 
 ## Christie LAS — in-game verification (2026-11-14)
 
@@ -170,10 +169,9 @@ quality and anisotropic filter before starting.
    inside-out groups, shoulders and hips not torn, soles on the floor. Offline bind-joint positions
    differ from the LAS template by up to 5 cm, so this is the item that decides whether the direct
    bind holds in animation.
-3. **Normal maps (the fixed green channel)** — light a shoulder and a thigh from the side. The lit
-   side should look raised, not sunken. This pack inverts nothing now and measures `corr > +0.99`
-   against `Christie_LAS`'s `christie_c02_01_nm.texture`; the item exists because an earlier build
-   inverted the green channel twice, which reads as dents where there should be ridges.
+3. **Normal maps** — light a shoulder and a thigh from the side. The builder preserves the glTF
+   normal maps' Y+ orientation; this is not the raw Source normal-map path. Check for dents where
+   the materials should look raised. Offline channel agreement is not an in-game result.
 4. **The lace cutout** — the skirt slit. Offline it is an approximated alpha test and its shadow is
    opaque. Fail: a hard rectangular edge, fringe, or a shadow that still shows the cut-out piece.
 5. **First person** — heist with a weapon out: the arms are the heister's own and move normally
@@ -197,3 +195,17 @@ seen here and nowhere else belongs to `L_23`.
 
 Everything else for this pack is covered by the 2026-11-15 sections of the render pages; the
 captures there predate this texture and cannot be used to judge it.
+
+## Native Hila body + head override (no LAS)
+
+Install only `dist/Honoka/Honoko5_Miranda_Romance_over_Hila.zip` for Hila, following the
+[install notes](../renders/honoka/model/over-hila/README.md). Select Hila's default outfit and gloves.
+The ZIP was checked offline; these steps still need the game:
+
+1. In the lobby/menu, rotate Hila: Honoko5's black jacket, light shirt and jewelry, and Miranda's
+   Romance head should all show together, with no pink materials or missing triangles.
+2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
+   neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
+   still be Hila's.
+3. Mask up and check the mask, a heavier vest, and a carried deployable. These use the original
+   Hila attachments; check that the fit is acceptable. Alternate outfits/gloves are not the target.

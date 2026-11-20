@@ -9,23 +9,27 @@ vertically relative to 2B, flip the v sign in build_models.transfer_group.
 Outputs textured PNGs into build/pd2-las/previews/uvcheck_* for side-by-side
 comparison.
 
-Usage:
-    python tools/pd2-las/uv_check.py \
-        --two-b "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b" \
-        --ours build/pd2-las/miranda.model \
-        --out build/pd2-las/previews
+From the repo root after `make -sC tools/pd2-las env`:
+    .venv/bin/python tools/pd2-las/uv_check.py
+
+By default this reads the tracked L4D2 Miranda ZIP and its own textures. To
+inspect a loose authored .model, use --ours PATH and, if needed, --textures DIR.
 """
 
 from __future__ import annotations
 
 import argparse
+import io
 import sys
-from pathlib import Path
+import zipfile
+from pathlib import Path, PurePosixPath
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 import diesel_model as dm  # noqa: E402
+import extract_2b  # noqa: E402
+from dist_paths import dist_path  # noqa: E402
 import preview  # noqa: E402
 
 # authored material name -> pack diffuse texture file name
@@ -74,7 +78,7 @@ def drawable_geometry(mf: dm.ModelFile, name: str):
     return verts, uvs, faces, per_mat
 
 
-def _tex(path: Path):
+def _tex(path: Path | io.BytesIO):
     from PIL import Image
 
     im = Image.open(path)
@@ -82,24 +86,49 @@ def _tex(path: Path):
     return im
 
 
+def _ours(path: Path, textures: Path | None):
+    names = sorted(set(MAT_TEX.values()))
+    if path.suffix.lower() == ".zip":
+        with zipfile.ZipFile(path) as pack:
+            models = [PurePosixPath(name) for name in pack.namelist()
+                      if PurePosixPath(name).name == "miranda.model"]
+            if len(models) != 1:
+                raise ValueError(f"{path}: expected one miranda.model")
+            raw = pack.read(str(models[0]))
+            if textures is None:
+                return dm.ModelFile.read(raw), {name: _tex(io.BytesIO(pack.read(str(models[0].parent / name))))
+                                                for name in names}
+    else:
+        raw = path.read_bytes()
+    if textures is None:
+        textures = path.parent
+        if not all((textures / name).is_file() for name in names):
+            # build_models.py writes the raw models beside the textures/ stage.
+            textures = path.parent / "textures"
+    return dm.ModelFile.read(raw), {name: _tex(textures / name) for name in names}
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--two-b", type=Path, required=True,
-                    help="directory with the 2B templates (2b.model + base_df.texture)")
-    ap.add_argument("--ours", type=Path, required=True, help="our miranda.model")
-    ap.add_argument("--textures", type=Path, default=None,
-                    help="directory with our .texture files (default: same folder as --ours)")
-    ap.add_argument("--out", type=Path,
-                    default=HERE.parents[1] / "build/pd2-las/previews")
+    ap.add_argument("--two-b", type=Path, default=extract_2b.TEMPLATES,
+                    help="directory with 2b.model and base_df.texture (default: extracted templates)")
+    ap.add_argument("--ours", type=Path, default=dist_path(HERE.parents[1], "Miranda_L4D2_LAS.zip"),
+                    help="a L4D2 Miranda ZIP or a loose miranda.model (default: tracked ZIP)")
+    ap.add_argument("--textures", type=Path,
+                    help="override our texture directory (otherwise read the ZIP or use the loose model's neighbours)")
+    ap.add_argument("--out", type=Path, default=HERE.parents[1] / "build/pd2-las/previews")
     ap.add_argument("--size", type=int, default=640)
     args = ap.parse_args(argv)
-    tex_dir = args.textures if args.textures is not None else args.ours.parent
+    try:
+        atlas = _tex(args.two_b / "base_df.texture")
+        mf2 = dm.ModelFile.read_path(args.two_b / "2b.model")
+        mf, textures = _ours(args.ours, args.textures)
+    except (OSError, ValueError, KeyError, zipfile.BadZipFile) as error:
+        ap.exit(1, f"uv_check: {error}\nFor loose models pass --textures DIR; run make env for the 2B reference.\n")
     args.out.mkdir(parents=True, exist_ok=True)
 
-    atlas = _tex(args.two_b / "base_df.texture")
     print(f"2B atlas: {atlas.size}")
 
-    mf2 = dm.ModelFile.read_path(args.two_b / "2b.model")
     for dname in ("g_head", "g_body"):
         verts, uvs, faces, _ = drawable_geometry(mf2, dname)
         for view in ("front", "iso"):
@@ -107,7 +136,6 @@ def main(argv=None) -> int:
             preview.render_textured(verts, faces, uvs, atlas, out, view=view, size=args.size)
             print(f"wrote {out.name} ({dname}: {len(faces)} tris)")
 
-    mf = dm.ModelFile.read_path(args.ours)
     ours = {
         "g_body": ["mtr_body"],
         "g_head": ["mtr_face", "mtr_head", "mtr_hair", "mtr_eyes"],
@@ -119,7 +147,7 @@ def main(argv=None) -> int:
             if not mfaces:
                 print(f"  (skip {dname}/{mn}: no faces)")
                 continue
-            tex = _tex(tex_dir / MAT_TEX[mn])
+            tex = textures[MAT_TEX[mn]]
             for view in ("front", "iso"):
                 out = args.out / f"uvcheck_ours_{dname}_{mn}_{view}.png"
                 preview.render_textured(verts, mfaces, uvs, tex, out, view=view, size=args.size)

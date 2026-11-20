@@ -24,7 +24,6 @@ All packages use fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-r
 """
 from __future__ import annotations
 
-import hashlib
 import io
 import re
 import subprocess
@@ -39,19 +38,20 @@ import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-#: Where the three input archives are unpacked, once, and reused by later runs:
-#: inside the checkout and gitignored (``build/*``), so it is found again on any
-#: platform and never committed. Delete it to force a fresh extraction.
+#: Derived archive trees under build/ are reused only while the input archive
+#: and all previously extracted files still match their recorded hashes.
 EXTRACT_DIR = ROOT / "build" / "head-mods"
 sys.path.insert(0, str(ROOT / "tools" / "pd2-port"))
 sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 
+import archive_cache  # noqa: E402
 import dds  # noqa: E402
 import determinism  # noqa: E402
 import diesel_model as dm  # noqa: E402
 import las_outfit_pack  # noqa: E402
 import me2_dae  # noqa: E402
 import source_model as sm  # noqa: E402
+from pack_checksum import write_pack_checksum  # noqa: E402
 import vtf as vtf_mod  # noqa: E402
 
 
@@ -90,81 +90,58 @@ HILA_EYE_SOURCE = "references/EYE_Diff.png"
 HILA_EYE_ZOOM = 2.03
 
 
-def ensure_ada_reference(tmp_dir: Path) -> Path:
-    """Extract `Ada Wong over Joy.7z` reference package if not already extracted."""
-    ada_root = tmp_dir / "Ada Wong over Joy"
-    if (ada_root / JOY_UNIT_DIR / "npc_criminal_joy_1.model").exists():
-        return ada_root
-    archive = ROOT / "references" / "Ada Wong over Joy.7z"
-    if not archive.exists():
-        raise FileNotFoundError(f"Missing reference archive: {archive}")
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    try:
-        import py7zr  # type: ignore
+def _ensure_7z(cache: Path, archive: Path, model: Path) -> None:
+    if (cache / model).is_file() and archive_cache.current(archive, cache):
+        return
 
-        with py7zr.SevenZipFile(archive, mode="r") as z:
-            z.extractall(path=tmp_dir)
-    except ImportError:
-        subprocess.run(["7z", "x", "-y", f"-o{tmp_dir}", str(archive)], check=True)
-    return ada_root
+    def unpack(path: Path) -> None:
+        try:
+            import py7zr
+        except ImportError:
+            subprocess.run(["7z", "x", "-y", f"-o{path}", str(archive)], check=True)
+        else:
+            with py7zr.SevenZipFile(archive, mode="r") as z:
+                z.extractall(path=path)
+
+    archive_cache.refresh(archive, cache, unpack, (model,))
+
+
+def ensure_ada_reference(tmp_dir: Path) -> Path:
+    ada = Path("Ada Wong over Joy")
+    _ensure_7z(tmp_dir, ROOT / "references" / "Ada Wong over Joy.7z",
+               ada / JOY_UNIT_DIR / "npc_criminal_joy_1.model")
+    return tmp_dir / ada
 
 
 def ensure_me2_extracted(tmp_dir: Path) -> Path:
-    """Extract the ME2 Romance zip if not already extracted."""
-    dae_file = tmp_dir / "Miranda Lawson (Romance) - Adjusted Version.dae"
-    if dae_file.exists():
-        return tmp_dir
     archive = ROOT / "references" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
-    if not archive.exists():
-        raise FileNotFoundError(f"Missing ME2 Romance archive: {archive}")
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(archive) as zf:
-        zf.extractall(tmp_dir)
-    nested = tmp_dir / "Miranda Lawson (Romance)"
-    if nested.exists():
-        for p in nested.iterdir():
-            target = tmp_dir / p.name
-            if not target.exists():
-                p.rename(target)
+    dae = "Miranda Lawson (Romance) - Adjusted Version.dae"
+    if (tmp_dir / dae).is_file() and archive_cache.current(archive, tmp_dir):
+        return tmp_dir
+
+    def unpack(path: Path) -> None:
+        with zipfile.ZipFile(archive) as source:
+            source.extractall(path)
+        nested = path / "Miranda Lawson (Romance)"
+        if nested.is_dir():
+            for member in nested.iterdir():
+                target = path / member.name
+                if not target.exists():
+                    member.rename(target)
+
+    archive_cache.refresh(archive, tmp_dir, unpack, (dae,))
     return tmp_dir
 
 
 def ensure_hila_extracted(tmp_dir: Path) -> Path:
-    """Extract `references/npc_criminals_ecp_female.7z` if not already extracted."""
-    hila_root = tmp_dir / HILA_DIR
-    if (hila_root / f"{HILA_UNIT_STEM}.model").exists():
-        return hila_root
-    archive = ROOT / HILA_ARCHIVE
-    if not archive.exists():
-        raise FileNotFoundError(f"Missing Hila archive: {archive}")
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    try:
-        import py7zr  # type: ignore
-
-        with py7zr.SevenZipFile(archive, mode="r") as z:
-            z.extractall(path=tmp_dir)
-    except ImportError:
-        subprocess.run(["7z", "x", "-y", f"-o{tmp_dir}", str(archive)], check=True)
-    return hila_root
+    _ensure_7z(tmp_dir, ROOT / HILA_ARCHIVE, Path(HILA_DIR) / f"{HILA_UNIT_STEM}.model")
+    return tmp_dir / HILA_DIR
 
 
 def ensure_geralt_extracted(tmp_dir: Path) -> Path:
-    """Extract `references/Geralt.7z` if not already extracted."""
-    geralt_root = tmp_dir / "1259069870"
-    if (geralt_root / "models" / "survivors" / "survivor_gambler.mdl").exists():
-        return geralt_root
-    archive = ROOT / "references" / "Geralt.7z"
-    if not archive.exists():
-        raise FileNotFoundError(f"Missing Geralt archive: {archive}")
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    try:
-        import py7zr  # type: ignore
-
-        with py7zr.SevenZipFile(archive, mode="r") as z:
-            z.extractall(path=tmp_dir)
-    except ImportError:
-        subprocess.run(["7z", "x", "-y", f"-o{tmp_dir}", str(archive)], check=True)
-    return geralt_root
+    geralt = Path("1259069870")
+    _ensure_7z(tmp_dir, ROOT / "references" / "Geralt.7z", geralt / "models/survivors/survivor_gambler.mdl")
+    return tmp_dir / geralt
 
 
 def smoothstep(t: np.ndarray) -> np.ndarray:
@@ -1324,12 +1301,10 @@ def find_miranda_las_zip() -> Path:
 
 def write_deterministic_zip(files: dict[str, bytes], out_zip_paths: list[Path]) -> None:
     raw = las_outfit_pack.zip_bytes((name, files[name]) for name in sorted(files))
-    sha = hashlib.sha256(raw).hexdigest()
     for zp in out_zip_paths:
         zp.parent.mkdir(parents=True, exist_ok=True)
         zp.write_bytes(raw)
-        rel = zp.relative_to(ROOT) if zp.is_relative_to(ROOT) else zp
-        zp.with_name(f"{zp.name}.sha256").write_text(f"{sha}  {rel.as_posix()}\n", encoding="utf-8")
+        sha = write_pack_checksum(zp, ROOT)
         print(f"Wrote {zp} ({len(raw):,} bytes, sha256={sha[:16]}…)")
 
 

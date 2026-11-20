@@ -759,10 +759,10 @@ def test_registration_follows_the_2b_contract(pack):
     says `Hooks` where its folder is `hooks`, which is one of the defects not to
     copy. `BUILD_INFO.json` says the same as the files.
     """
-    # Every LAS outfit pack built by tools/pd2-las (status.TARGETS minus pd2-port's lawson).
+    # Every LAS outfit pack built by tools/pd2-las; the DODB Lawson pack has its own checks.
     status = _status()
     pack_folder = {"Miranda_L4D2_LAS": "Miranda_LAS", "Miranda_L4D2_Busty_LAS": "Miranda_Busty_LAS"}
-    las = {pack_folder.get(name, name) for name, tgt in status.TARGETS.items() if tgt != "lawson"}
+    las = {pack_folder.get(name, name) for name, tgt in status.LAS_TARGETS.items() if tgt != "lawson"}
     assert set(ITEMS) == las, "this file no longer covers every tracked tools/pd2-las LAS pack"
     z = _zip(pack)
     files = {n[len(pack) + 1:] for n in z.namelist() if not n.endswith("/")}

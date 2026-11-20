@@ -49,6 +49,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
+| `Honoko5_Miranda_Romance_over_Hila` | no record | — (native body and head override; its render is from the single replacement ZIP) |
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
@@ -86,7 +87,8 @@ installed on 2026-11-15 were identified by the user, not hash-measured from the 
   `retarget_maps` as-is.
 - One shared fit across both legs (`FIT_MIN_PAIRS` pair-count inheritance)
   → thighs collapse onto one point. Leg fits stay local/mirrored.
-- Surgical replacement of shipped heister models — retired route, dead.
+- Speculative whole-heister retargeting and replacing the stock rig — retired route, dead. The native Hila
+  pack instead keeps her rig and object/physics contract and uses the already authored body and head (D52).
 - `z.write()` for reproducible zips (embeds mtimes) — `las_pack.zip_pack`
   already solves this.
 - Seam repair by *merging coincident vertex indices* → the two rims carry

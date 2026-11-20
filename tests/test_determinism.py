@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import platform
+import runpy
 import subprocess
 import sys
 import zipfile
@@ -208,11 +209,29 @@ def _plain_env(**extra) -> dict:
     return {**env, **extra}
 
 
-def test_every_builder_enters_the_declared_code_path():
-    for rel in ("tools/pd2-las/build_models.py", "tools/pd2-las/build_busty_variant.py", "tools/pd2-las/build_las.py",
-                "tools/build_joy_head_mods.py"):
-        main = (REPO / rel).read_text(encoding="utf-8").split("\ndef main(", 1)[1]
-        assert "    determinism.enter(__file__)\n" in main[:main.index("\n\n\n") if "\n\n\n" in main else len(main)], rel
+# Romance is the DODB pipeline and deliberately has no code-path guard.
+ENTRY_POINTS = [cmd[0] for name, cmd in fresh.BUILDERS.items() if name != "lawson"]
+ENTRY_POINTS.append("tools/pd2-las/build_las.py")  # also a standalone scaffold tool
+
+
+@pytest.mark.parametrize("entry_point", ENTRY_POINTS)
+def test_every_builder_enters_the_declared_code_path(entry_point, monkeypatch):
+    class Entered(Exception):
+        pass
+
+    def entered(script):
+        assert Path(script).resolve() == REPO / entry_point
+        raise Entered
+
+    script = REPO / entry_point
+    monkeypatch.syspath_prepend(str(script.parent))
+    monkeypatch.setattr(sys, "argv", [str(script)])
+    monkeypatch.setattr(determinism, "enter", entered)
+    with pytest.raises(Entered):
+        runpy.run_path(str(script), run_name="__main__")
+
+
+def test_code_path_definition():
     assert determinism.CODE_PATH == {
         "OPENBLAS_CORETYPE": "Nehalem", "OPENBLAS_NUM_THREADS": "1",
         "NPY_DISABLE_CPU_FEATURES": "X86_V3 X86_V4 AVX512_ICL AVX512_SPR", "GLIBC_TUNABLES": "glibc.cpu.hwcaps=-AVX2,-FMA"}
@@ -221,7 +240,7 @@ def test_every_builder_enters_the_declared_code_path():
 def test_the_declared_code_path_is_what_gets_loaded():
     """Started with nothing set, determinism.py starts again with the code path and reports what was loaded."""
     if platform.machine() != "x86_64" or not sys.platform.startswith("linux"):
-        return                                                    # the declared code path is an x86-64 Linux one
+        pytest.skip("declared code path requires x86-64 Linux")
     script = str(REPO / "tools" / "pd2-las" / "determinism.py")
     declared = subprocess.run([sys.executable, script], env=_plain_env(), capture_output=True, text=True)
     assert declared.returncode == 0, declared.stderr
@@ -248,4 +267,5 @@ def test_two_traces_are_compared_by_function(tmp_path):
     lines = fresh.compare_traces(tmp_path / "one.log", tmp_path / "other.log")
     assert lines[0].startswith("first value that differs: return of a.f#1 (float64 only)")
     assert lines[1:] == ["exact: return of a.g#1"]
-    assert len(fresh.tracked_zips()) == 20 and list(fresh.BUILDERS) == ["miranda", "busty", "lawson", "heads", "honokodae", "christie", "cloverchristie"]
+    assert len(fresh.tracked_zips()) == 21
+    assert list(fresh.BUILDERS) == ["miranda", "busty", "lawson", "heads", "honokodae", "christie", "cloverchristie", "hila"]

@@ -18,7 +18,7 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   - `<id>_panties`: `L_14.dds` / `L_15.dds`
   - `<id>_bra`: `L_17.dds` / `L_18.dds`
   - `<id>_shoes`: `L_20.dds` / `L_21.dds`
-  - `<id>_jewelry`: `L_23.dds` / `L_24.dds`
+  - `<id>_jewelry`: `L_23.dds` (or `Tex_23(L_23)2.dds` in Honoko5) / `L_24.dds`
 * **Skinning transfer from `.TMC`** — the Noesis `.dae` export omits
   `<library_controllers>`, while every `.dae` vertex matches its corresponding
   vertex in `Honoka_DOAXVV_Secret_Report.TMC` to ~0.0001 cm. Exact 4-weight +
@@ -26,13 +26,13 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   the 2B PD2 skeleton via `tmc_skeleton_map.json` + `build_models.retarget_maps`.
 * **Four third-person BODY_ONLY LAS packs (`LegendaryArmours.honoko2..5`)** —
   `Honoko2` (base proportions), `Honoko3` (mildly slimmed thighs/bust), `Honoko4`
-  (`Tex_07(L_7) 2.dds` suit texture), and `Honoko5` (`Tex_07(L_7)3.dds` suit
-  texture + waist/hip/cuff fit adjustments), cutting hands at the PD2 wrists for
+  (alternate suit diffuse), and `Honoko5` (alternate suit and jewelry diffuses
+  plus waist/hip/cuff fit adjustments), cutting hands at the PD2 wrists for
   heister gloves (`glove_adapter.lua`) and writing deterministic `dist/Honoka/Honoko2..5.zip`
   + `.sha256`.
 
-`Honoko2..5` have been inspected in game (`docs/renders/honoka/in-game/2026-11-15/`);
-`BUILD_INFO.json` records `runtime_verified: false` to keep archive bytes fixed.
+Earlier builds were inspected in game (`docs/renders/honoka/in-game/`).
+The latest Honoko5 jewelry is not verified in game; see `docs/pd2-las/HANDOFF.md`.
 
 Usage:
   make -sC tools/pd2-las env
@@ -59,6 +59,7 @@ sys.path.insert(0, str(HERE))
 
 import determinism  # noqa: E402
 import extract_2b  # noqa: E402
+from pack_checksum import write_pack_checksum  # noqa: E402
 
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
 DEFAULT_OUT = REPO / "dist" / "Honoka"
@@ -909,9 +910,8 @@ def build_pack(
     built_zip = lop.zip_pack(pack)
     if built_zip != zip_out:
         shutil.copy2(built_zip, zip_out)
-    zip_sha256 = _hl.sha256(zip_out.read_bytes()).hexdigest()
+    zip_sha256 = write_pack_checksum(zip_out, REPO)
     sha_rel = zip_out.relative_to(REPO).as_posix() if zip_out.is_relative_to(REPO) else zip_out.name
-    (zip_out.parent / f"{zip_out.name}.sha256").write_text(f"{zip_sha256}  {sha_rel}\n", encoding="utf-8")
 
     report = {
         "runtime_verified": False,
@@ -957,9 +957,7 @@ def main(argv=None) -> int:
     import tmc as tmc_mod
     import tmc_las
 
-    require = args.templates / "2b.model"
-    if not require.is_file():
-        raise SystemExit(f"{require} missing: {extract_2b.MISSING}")
+    require = bm.require_templates(args.templates, ("2b.model",)) / "2b.model"
     if not args.dae.is_file():
         raise SystemExit(f"missing Collada input: {args.dae}")
     if not args.source_zip.is_file():
