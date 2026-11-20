@@ -4,10 +4,10 @@
     python tools/pd2-las/fresh.py check
     python tools/pd2-las/fresh.py matrix [--configs a,b,...] [--builders x,y] [--trace all]
 
-check   builds all 20 tracked packs (the Miranda L4D2 and Romance LAS packs,
-        Christie_LAS, Christie_Clover_LAS, Honoko2..5, and the eleven head packs) in build/fresh/tree
-        and compares each of the 20 tracked zips in dist/ with its tracked
-        .sha256, using `sha256sum -c`.
+check   builds every distribution pack in build/fresh/tree, including the
+        native Hila replacement after its body and head donors
+        and compares generated ZIPs to the verified digests of the original
+        ZIPs. A copied pack does not count as a rebuild.
         No tolerance: a zip is the tracked bytes or it is not. Exit status 1 when
         one is not; what differs inside it is listed member by member.
 matrix  the same build under other numeric code paths (CONFIGS), two at a time,
@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
-import hashlib
 import json
 import os
 import platform
@@ -38,11 +37,13 @@ PY = REPO / ".venv" / "bin" / "python"
 sys.path.insert(0, str(HERE))
 
 import determinism  # noqa: E402
+import extract_2b  # noqa: E402
+from pack_checksum import distribution_zips, sha256_file, verify_checksum  # noqa: E402
+from status import target as make_target  # noqa: E402
 import trace_run  # noqa: E402
 
-#: What builds the tracked packs, in the order they depend on each other: the
-#: busty pack reuses what the Miranda build unpacked, and the head packs take
-#: their face from dist/Miranda_L4D2/Miranda_L4D2_LAS.zip.
+#: What builds the tracked packs, in dependency order. Miranda and busty share
+#: a texture staging directory; the head packs consume the base Miranda ZIP.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
     "busty": ["tools/pd2-las/build_busty_variant.py"],
@@ -51,6 +52,7 @@ BUILDERS = {
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
     "christie": ["tools/pd2-las/build_christie_source.py"],
     "cloverchristie": ["tools/pd2-las/build_clover_christie.py"],
+    "hila": ["tools/build_hila_body_mod.py"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"
@@ -78,46 +80,75 @@ class BuildFailed(Exception):
 
 def tracked_zips() -> list[str]:
     """Enumerate ZIPs independently of sidecars, and fail on incomplete coverage."""
-    listing = subprocess.run(
-        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "dist"],
-        cwd=REPO, capture_output=True, check=True,
-    ).stdout
-    paths = {os.fsdecode(raw) for raw in listing.split(b"\0") if raw}
-    zips = sorted(p for p in paths if p.endswith(".zip"))
-    sidecars = {p for p in paths if p.endswith(".zip.sha256")}
-    if not zips:
-        raise SystemExit("no tracked ZIPs found")
-    missing = [p for p in zips if not (REPO / p).is_file() or not (REPO / (p + ".sha256")).is_file()]
-    orphan = sorted(p for p in sidecars if p[:-len(".sha256")] not in zips)
-    if missing or orphan:
-        raise SystemExit("incomplete ZIP/checksum inventory: " + ", ".join(missing + orphan))
-    return zips
+    paths = set()
+    for command in (["ls-files", "-z", "--", "dist"], ["ls-tree", "-rz", "--name-only", "HEAD", "--", "dist"]):
+        listing = subprocess.run(["git", *command], cwd=REPO, capture_output=True)
+        if listing.returncode and command[0] == "ls-files":
+            raise SystemExit(f"cannot list build inputs: {os.fsdecode(listing.stderr).strip()}")
+        paths.update(os.fsdecode(raw) for raw in listing.stdout.split(b"\0") if raw)
+    try:
+        return distribution_zips(REPO, paths)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
 
 
-def copy_tree(tree: Path) -> None:
-    """The working tree as git sees it (tracked files and new ones, nothing ignored), plus the 2B templates."""
+def build_plan(requested: str, zips: list[str]) -> dict[str, list[str]]:
+    """Order builders by dependencies and identify every output they owe."""
+    names = set(requested.split(",")) if requested else set(BUILDERS)
+    if unknown := names - BUILDERS.keys():
+        raise SystemExit(f"unknown builders: {', '.join(sorted(unknown))}")
+    outputs = {name: [] for name in BUILDERS}
+    for rel in zips:
+        owner = make_target(Path(rel).stem)
+        owner = "miranda" if owner == "build" else owner
+        if owner not in outputs:
+            raise SystemExit(f"no builder for {rel}")
+        outputs[owner].append(rel)
+    plan = {name: owned for name, owned in outputs.items() if name in names}
+    if empty := [name for name, owned in plan.items() if not owned]:
+        raise SystemExit(f"no distribution ZIPs assigned to builders: {', '.join(empty)}")
+    return plan
+
+
+def verified_checksums(zips: list[str]) -> dict[str, str]:
+    """Verify original artifacts before any builder can replace them."""
+    try:
+        return {rel: verify_checksum(REPO / rel, REPO) for rel in zips}
+    except (OSError, ValueError) as error:
+        raise SystemExit(f"original distribution: {error}") from error
+
+
+def copy_tree(tree: Path, outputs: list[str]) -> None:
+    """Copy the working tree as git sees it, omitting the outputs we will verify."""
     if tree.exists():
         shutil.rmtree(tree)
+    omit = set(outputs) | {rel + ".sha256" for rel in outputs}
     listing = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
                              cwd=REPO, capture_output=True, check=True).stdout
     for raw in listing.split(b"\0"):
-        source = REPO / os.fsdecode(raw)
-        if raw and source.is_file():
-            target = tree / os.fsdecode(raw)
+        rel = os.fsdecode(raw)
+        source = REPO / rel
+        if raw and rel not in omit and source.is_file():
+            target = tree / rel
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
-    templates = REPO / "build" / "pd2-las" / "2b"
-    if not templates.is_dir() or not PY.is_file():
-        raise SystemExit("no .venv or no 2B templates: run `make -sC tools/pd2-las env` first")
-    (tree / "build" / "pd2-las").mkdir(parents=True, exist_ok=True)
-    os.symlink(templates, tree / "build" / "pd2-las" / "2b")
+    (tree / "build").mkdir(parents=True, exist_ok=True)
 
 
-def run_builders(tree: Path, extra: dict, names: list[str], trace_dir: Path | None = None) -> None:
+def require_env(plan: dict[str, list[str]]) -> None:
+    if not PY.is_file() or (plan.keys() - {"lawson", "heads", "hila"} and not extract_2b.ready()):
+        raise SystemExit("no .venv or no current 2B templates: run `make -sC tools/pd2-las env` first")
+
+
+def run_builders(tree: Path, extra: dict, plan: dict[str, list[str]], trace_dir: Path | None = None) -> None:
     logs = tree.parent / "log"
     logs.mkdir(exist_ok=True)
-    env = {**os.environ, **extra}
-    for name in names:
+    env = {**os.environ, **extra, extract_2b.ENV: str(extract_2b.TEMPLATES.resolve())}
+    for name, outputs in plan.items():
+        occupied = [rel for zip_rel in outputs for rel in (zip_rel, zip_rel + ".sha256")
+                    if (tree / rel).exists() or (tree / rel).is_symlink()]
+        if occupied:
+            raise BuildFailed(name, 1, ["outputs already present before building: " + ", ".join(occupied)])
         command = [str(PY)]
         if trace_dir is not None:
             trace_dir.mkdir(parents=True, exist_ok=True)
@@ -128,13 +159,15 @@ def run_builders(tree: Path, extra: dict, names: list[str], trace_dir: Path | No
         if status:
             tail = (logs / f"{name}.log").read_text(errors="replace").splitlines()[-6:]
             raise BuildFailed(name, status, tail)
-
-
-def same_as_tracked(tree: Path, rel: str) -> bool:
-    """`sha256sum -c` on the zip in the copy, against the hash in the tracked sidecar."""
-    want = (REPO / (rel + ".sha256")).read_text().split()[0]
-    done = subprocess.run(["sha256sum", "-c", "--status", "-"], cwd=tree, input=f"{want}  {rel}\n".encode())
-    return done.returncode == 0
+        missing = [rel for rel in outputs if not (tree / rel).is_file()]
+        if missing:
+            raise BuildFailed(name, 1, ["did not produce: " + ", ".join(missing)])
+        if name != "lawson":  # Romance's distributed sidecar is written at promotion time.
+            for rel in outputs:
+                try:
+                    verify_checksum(tree / rel, tree)
+                except (OSError, ValueError) as error:
+                    raise BuildFailed(name, 1, [str(error)]) from error
 
 
 # ------------------------------------------------------------ what differs
@@ -242,8 +275,10 @@ def note(title: str, text: str, level: str = "notice") -> None:
 
 
 def check(args) -> int:
-    names = args.builders.split(",") if args.builders else list(BUILDERS)
-    zips = tracked_zips()  # fail before the expensive build if any ZIP or sidecar is missing
+    original = verified_checksums(tracked_zips())
+    plan = build_plan(args.builders, list(original))
+    zips = sorted(rel for owned in plan.values() for rel in owned)
+    require_env(plan)
     tree = REPO / "build" / "fresh" / "tree"
     print(f"machine: {machine()}", flush=True)
     note("runner", machine())
@@ -253,28 +288,30 @@ def check(args) -> int:
     path = ("left to the machine: " if args.free else "declared: ") + path
     print(f"code path {path}", flush=True)
     note("code path", path)
-    copy_tree(tree)
+    copy_tree(tree, zips)
     try:
-        run_builders(tree, {"PD2_CODEPATH": "free"} if args.free else {}, names)
+        run_builders(tree, {"PD2_CODEPATH": "free"} if args.free else {}, plan)
     except BuildFailed as failed:
         text = f"{failed.name} did not build (exit {failed.status}): " + " | ".join(failed.tail)
         print(text)
         note("fresh build", text, "error")
         return 2
-    different = [rel for rel in zips if not same_as_tracked(tree, rel)]
+    different = [rel for rel in zips if sha256_file(tree / rel) != original[rel]]
     for rel in zips:
         print(("DIFFERENT  " if rel in different else "same       ") + rel)
     details = []
     for rel in different:
-        if rel.startswith("build/") and "dist/" + Path(rel).name in different:
-            continue                                    # the second copy of a Miranda pack: the same build
-        for line in explain(REPO / rel, tree / rel):
+        try:
+            explanations = explain(REPO / rel, tree / rel)
+        except zipfile.BadZipFile as error:
+            explanations = [f"not a readable ZIP: {error}"]
+        for line in explanations:
             details.append(f"{Path(rel).name}: {line}")
     for line in details:
         print("    " + line)
     summary = f"{len(zips) - len(different)} of {len(zips)} tracked zips are the tracked bytes after a fresh build"
     if args.builders:
-        summary += f" (rebuilt: {args.builders})"
+        summary += f" (selected builders: {', '.join(plan)})"
     if different:
         summary += "; different: " + ", ".join(Path(rel).name for rel in different if rel.startswith("dist/"))
     print(summary)
@@ -322,22 +359,23 @@ print(json.dumps(out))
 '''
 
 
-def one_config(name: str, builders: list[str], traced: bool) -> dict:
+def one_config(name: str, plan: dict[str, list[str]], traced: bool) -> dict:
     base = REPO / "build" / "vary" / name
     extra = dict(CONFIGS.get(name) or {})
     if name != "declared":
         extra["PD2_CODEPATH"] = "free"
     result = {"config": name, "env": extra}
     try:
-        copy_tree(base / "tree")
+        zips = [rel for owned in plan.values() for rel in owned]
+        copy_tree(base / "tree", zips)
         told = {**os.environ, **extra, **(determinism.CODE_PATH if name == "declared" else {})}
         probe = subprocess.run([str(PY), "-c", PROBE], env=told, capture_output=True, text=True)
         result["probe"] = (json.loads(probe.stdout) if probe.returncode == 0 and probe.stdout.strip()
                            else {"numpy": "probe failed", "blas": probe.stderr.strip()[-200:]})
         started = time.time()
-        run_builders(base / "tree", extra, builders, base / "trace" if traced else None)
+        run_builders(base / "tree", extra, plan, base / "trace" if traced else None)
         result["seconds"] = round(time.time() - started)
-        result["sha256"] = {rel: hashlib.sha256((base / "tree" / rel).read_bytes()).hexdigest() for rel in tracked_zips()}
+        result["sha256"] = {rel: sha256_file(base / "tree" / rel) for rel in zips}
     except BuildFailed as failed:
         result["failed"] = f"{failed.name} (exit {failed.status}): " + " | ".join(failed.tail)
     (base / "result.json").write_text(json.dumps(result, indent=1))
@@ -390,14 +428,16 @@ def compare_traces(reference: Path, other: Path, limit: int = 8) -> list[str]:
 
 def matrix(args) -> int:
     names = args.configs.split(",")
-    builders = args.builders.split(",") if args.builders else list(BUILDERS)
+    original = verified_checksums(tracked_zips())
+    plan = build_plan(args.builders, list(original))
+    require_env(plan)
     traced = set(names) if args.trace == "all" else set(filter(None, args.trace.split(",")))
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        results = dict(zip(names, pool.map(lambda name: one_config(name, builders, name in traced), names)))
+        results = dict(zip(names, pool.map(lambda name: one_config(name, plan, name in traced), names)))
     reference = names[0]
     ref = results[reference]
-    tracked = {rel: (REPO / (rel + ".sha256")).read_text().split()[0] for rel in tracked_zips()}
-    print(f"machine: {machine()}\nbuilders: {', '.join(builders)}\n")
+    tracked = {rel: original[rel] for owned in plan.values() for rel in owned}
+    print(f"machine: {machine()}\nbuilders: {', '.join(plan)}\n")
     print(f"| configuration | numpy | OpenBLAS | seconds | functions whose results differ from `{reference}` |")
     print("| --- | --- | --- | --- | --- |")
     for name in names:
@@ -423,7 +463,7 @@ def matrix(args) -> int:
             for line in explain(REPO / "build" / "vary" / reference / "tree" / rel, REPO / "build" / "vary" / name / "tree" / rel):
                 print(f"    {Path(rel).name}: {line}")
         if name != reference and name in traced and reference in traced:
-            for builder in builders:
+            for builder in plan:
                 a = REPO / "build" / "vary" / reference / "trace" / f"{builder}.log"
                 b = REPO / "build" / "vary" / name / "trace" / f"{builder}.log"
                 if a.exists() and b.exists():
@@ -436,7 +476,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="command", required=True)
     one = sub.add_parser("check")
-    one.add_argument("--builders", default="", help="build only these (comma separated); the other zips are the copied ones")
+    one.add_argument("--builders", default="", help="compare only these builders (comma separated); other ZIPs are inputs only")
     one.add_argument("--free", action="store_true", help="do not hold the builders to the declared code path")
     many = sub.add_parser("matrix")
     many.add_argument("--configs", default="declared,as-is,avx2,sse42,threads-1,threads-4,libm-plain")

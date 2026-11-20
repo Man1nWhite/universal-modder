@@ -64,7 +64,10 @@ rules below.
 - **Tools (`um/`):**
   - one module per CLI group, with a docstring that doubles as `--help`;
   - add a test in `tests/`;
-  - `uv run --with pytest pytest -q tests` must pass.
+  - For the full suite, use Python 3.11+, run `make -sC tools/pd2-las env` to install the pinned dependencies
+    and unpack the 2B fixtures, then run `make -sC tools/pd2-las test`. Running pytest alone in a fresh
+    `uv` environment leaves the template-dependent tests skipped. Use `make -sC tools/pd2-las green`
+    for the full verification workflow on x86-64 Linux.
 - **Skills (`skills/`):** the Agent Skills format (`SKILL.md` with `name` + `description`). Keep them
   agent-neutral: say "the agent", not a specific product. Put deep material in `references/`.
   - Edit `skills/` only. `.agents/skills` and `.claude/skills` are copies (no symlinks, so Windows clones

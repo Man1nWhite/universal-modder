@@ -6,6 +6,7 @@ source zip (skipped when absent).
 """
 import importlib.util
 import json
+import os
 import struct
 import sys
 import zipfile
@@ -776,7 +777,16 @@ class TestSourceIntegration:
             assert sep < 2.0, f"{src.name}: twins separated by {sep:.2f} cm"
 
 
-def test_built_pack_passes_the_guide_compliance_check():
+@pytest.fixture
+def lawson_audit_pack() -> Path:
+    """Allow the mutation runner to address a scratch pack, never overwrite dist/."""
+    pack = Path(os.environ["PD2_TEST_LAWSON_PACK"]) if "PD2_TEST_LAWSON_PACK" in os.environ else dist_path(ROOT, "lawson_las.zip")
+    if not pack.is_file():
+        pytest.skip("no built pack")
+    return pack
+
+
+def test_built_pack_passes_the_guide_compliance_check(lawson_audit_pack):
     """The shipped pack must satisfy the ModWorkshop LAS/MOOG guide.
 
     `check_guide_compliance.py` re-reads the built zip and checks it against
@@ -784,11 +794,8 @@ def test_built_pack_passes_the_guide_compliance_check():
     unit, texture format, BeardLib packaging). A FAIL here is a guide
     violation in the pack, not a flake.
     """
-    pack = dist_path(ROOT, "lawson_las.zip")
-    if not pack.exists():
-        pytest.skip("no built pack")
     checker = _load("check_guide_compliance", "check_guide_compliance.py")
-    report = checker.audit(pack)
+    report = checker.audit(lawson_audit_pack)
     fails = [c for c in report.checks if c["status"] == "FAIL"]
     assert not fails, "; ".join(f"{c['id']}: {c['detail']}" for c in fails)
 
@@ -838,17 +845,14 @@ def test_repair_winding_reverses_only_the_folded_triangles():
     assert flipped2 == 0
 
 
-def test_the_built_pack_has_no_inverted_faces():
+def test_the_built_pack_has_no_inverted_faces(lawson_audit_pack):
     """Every triangle of the shipped pack must face the same way as its normals.
 
     An inverted triangle is culled by the game: it leaves a hole in the skin
     and the shading around it is wrong.  The quadruple check found 946 of
     them in pack 0.1.1; the builder now repairs the winding.
     """
-    pack = dist_path(ROOT, "lawson_las.zip")
-    if not pack.exists():
-        pytest.skip("no built pack")
-    with zipfile.ZipFile(pack) as z:
+    with zipfile.ZipFile(lawson_audit_pack) as z:
         for name in ("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model",
                      "Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"):
             raw = z.read(name)

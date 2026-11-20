@@ -9,12 +9,11 @@ guide prescribes and *what* the pack does instead. Rules that the guide
 leaves open (or that only the running game can settle) are reported as WARN,
 never as a silent pass.
 
-The rules are the guide's and hold for any LAS outfit pack: ``audit()``
-discovers the pack's root folder, units, hook, localization, and manifest
-entries inside ``FILE.zip`` automatically (defaulting to
-``dist/Miranda_Romance/Miranda_Romance_LAS.zip``). One check speaks about the
-default port's source when auditing ``Lawson_LAS``: the ``G1`` warning states
-its normal maps' provenance.
+This auditor checks the DODB outfits built by tools/pd2-port. It discovers
+unit and material paths inside the ZIP, but does not apply its DODB channel
+and split-mesh rules to the 2B legacy model format. For those packs use
+check_all.py --pack FILE.zip for common checks and tests/test_pd2_las_invariants.py
+for the template-pipeline checks. G1 describes Lawson_LAS's source normals only.
 
 Usage:
     python tools/pd2-port/check_guide_compliance.py            # dist/Miranda_Romance/Miranda_Romance_LAS.zip
@@ -29,6 +28,7 @@ import re
 import struct
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 import sys as _dist_sys
@@ -431,30 +431,30 @@ def check_skinning(rep: Report, model: DieselModel, by_hash) -> None:
 def check_materials(rep: Report, pack: dict[str, bytes],
                     model: DieselModel, cfg: str, fps: bool) -> None:
     """material_config against the guide's rules."""
-    mats = re.findall(r"<material\b([^>]*)>", cfg)
-    if not mats:
-        rep.fail("M1", "guide: .material_config declares one material per mesh material",
-                 f"{cfg}: no <material> entries")
+    try:
+        root = ET.fromstring(cfg)
+    except ET.ParseError as error:
+        rep.fail("M1", "guide: material_config must be XML", str(error))
         return
-    attrs = [dict(re.findall(r'(\w+)="([^"]*)"', a)) for a in mats]
+    mats = root.findall("material")
+    if root.tag != "materials" or not mats:
+        rep.fail("M1", "guide: .material_config declares one material per mesh material",
+                 "no <materials> root with <material> entries")
+        return
+    attrs = [mat.attrib for mat in mats]
 
-    if 'version="3"' in cfg.split(">")[0]:
-        rep.ok("M1", "guide: header <materials version=\"3\" group=\"...\">",
-               "version 3 header with a group attribute")
+    if root.get("version") == "3":
+        rep.ok("M1", "guide: header <materials version=\"3\" group=\"...\">", "version 3 header")
     else:
         rep.fail("M1", "guide: header <materials version=\"3\" group=\"...\">",
                  "missing version=\"3\" in the materials header")
-    if 'group="' in cfg.split(">")[0]:
-        group = re.search(r'group="([^"]*)"', cfg.split(">")[0]).group(1)
-        if fps and not group.startswith("fps"):
-            rep.fail("M2", "guide: the FPS config uses a fps_* group",
-                     f"FPS group is {group!r}")
-        else:
-            rep.ok("M2", "guide: each config has its own group= attribute",
-                   f"group={group!r}")
+    group = root.get("group")
+    if not group:
+        rep.fail("M2", "guide: each config has its own group= attribute", "no group on the materials header")
+    elif fps and not group.startswith("fps"):
+        rep.fail("M2", "guide: the FPS config uses a fps_* group", f"FPS group is {group!r}")
     else:
-        rep.fail("M2", "guide: each config has its own group= attribute",
-                 "no group attribute on the materials header")
+        rep.ok("M2", "guide: each config has its own group= attribute", f"group={group!r}")
 
     # names must match the model's materials (hash comparison)
     model_hashes = {s.obj.name_hash for s in model.sections
@@ -464,14 +464,14 @@ def check_materials(rep: Report, pack: dict[str, bytes],
         rep.ok("M3", "guide: material names must match the model's material names",
                f"{len(cfg_hashes)} material(s), names match the model exactly")
     else:
-        only_cfg = {a.get("name") for a in attrs} - {
-            n for n in ("",) }
+        only_cfg = [a.get("name", "") for a in attrs if hash_str(a.get("name", "")) not in model_hashes]
         rep.fail("M3", "guide: material names must match the model's material names",
                  f"config has {len(cfg_hashes)} materials, model has "
-                 f"{len(model_hashes)}; unmatched: {sorted(only_cfg)}")
+                 f"{len(model_hashes)}; unmatched config names: {sorted(only_cfg)}, "
+                 f"unmatched model hashes: {sorted(hex(h) for h in model_hashes - cfg_hashes)}")
 
     # render templates
-    bad = [a.get("render_template") for a in attrs
+    bad = [a.get("render_template", "<missing>") for a in attrs
            if a.get("render_template") not in TEMPLATES]
     if bad:
         rep.fail("M4", "guide: only attested render templates - invented keyword "
@@ -484,15 +484,15 @@ def check_materials(rep: Report, pack: dict[str, bytes],
 
     # contour rules
     contour_bad = []
-    for a in attrs:
-        t = a.get("render_template", "")
-        if "CONTOUR" in t:
-            if a.get("unique") != "true":
-                contour_bad.append(f"{a.get('name')}: missing unique=\"true\"")
-            if 'name="contour_color"' not in cfg:
-                contour_bad.append(f"{a.get('name')}: no contour_color variable")
-            if 'name="contour_opacity"' not in cfg:
-                contour_bad.append(f"{a.get('name')}: no contour_opacity variable")
+    for mat in mats:
+        if "CONTOUR" in mat.get("render_template", "").split(":"):
+            name = mat.get("name")
+            if mat.get("unique") != "true":
+                contour_bad.append(f"{name}: missing unique=\"true\"")
+            variables = {node.get("name") for node in mat.findall("variable")}
+            for required in ("contour_color", "contour_opacity"):
+                if required not in variables:
+                    contour_bad.append(f"{name}: no {required} variable")
     if contour_bad:
         rep.fail("M5", "guide: CONTOUR needs unique=\"true\" plus contour_color "
                        "and contour_opacity variables",
@@ -514,7 +514,7 @@ def check_materials(rep: Report, pack: dict[str, bytes],
 
     # texture paths: no extension, and they must resolve inside the pack
     unresolved = []
-    for path in re.findall(r'file="([^"]+)"', cfg):
+    for path in (node.attrib["file"] for node in root.iter() if "file" in node.attrib):
         if "." in path.rsplit("/", 1)[-1]:
             unresolved.append(f"{path}: file extension in the path")
             continue
@@ -882,6 +882,13 @@ def audit(pack_path: Path) -> Report:
 
     tpp_bytes = pack.get(meta["tpp_model"]) if meta["tpp_model"] else None
     fps_bytes = pack.get(meta["fps_model"]) if meta["fps_model"] else None
+    if tpp_bytes is None:
+        rep.fail("FORMAT", "expected a DODB LAS pack", "no third-person model found")
+        return rep
+    if not tpp_bytes.startswith(b"DODB") or (fps_bytes is not None and not fps_bytes.startswith(b"DODB")):
+        rep.fail("FORMAT", "expected DODB models from tools/pd2-port",
+                 "use check_all.py --pack for checksum and geometry of a legacy/2B pack")
+        return rep
     tpp_cfg = pack.get(meta["tpp_cfg"], b"").decode() if meta["tpp_cfg"] else ""
     fps_cfg = pack.get(meta["fps_cfg"], b"").decode() if meta["fps_cfg"] else ""
     fps_obj = pack.get(meta["fps_obj"], b"").decode() if meta["fps_obj"] else ""

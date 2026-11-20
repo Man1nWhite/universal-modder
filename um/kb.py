@@ -321,6 +321,17 @@ def build_index(root: Path) -> tuple[str, list[dict]]:
     return "\n".join(lines), rows
 
 
+def index_files(root: Path) -> dict[Path, str]:
+    markdown, rows = build_index(root)
+    return {root / "INDEX.md": markdown,
+            root / "index.json": json.dumps(rows, indent=1, default=str) + "\n"}
+
+
+def write_index(root: Path) -> None:
+    for path, content in index_files(root).items():
+        path.write_text(content, **TEXT)
+
+
 # --------------------------------------------------------------------------- new / pr
 
 def new_note(root: Path, game: str | None, title: str, kind: str = "game", from_scan: str | None = None,
@@ -401,9 +412,7 @@ def open_pr(path: Path, yes: bool):
         return
     if not shutil.which("gh"):
         die("needs the GitHub CLI (gh) logged in; or push a branch and open the PR on github.com")
-    idx, rows = build_index(root)
-    (root / "INDEX.md").write_text(idx, **TEXT)
-    (root / "index.json").write_text(json.dumps(rows, indent=1, default=str) + "\n", **TEXT)
+    write_index(root)
     for c in cmds:
         if c[:3] == ["um", "kb", "index"]:
             continue
@@ -460,7 +469,9 @@ def main(a):
         return
     if c == "check":
         root = Path(a.root) if a.root else local_root()
-        paths = [Path(x) for x in a.paths] or ([p for p, _, _ in notes(root)] if root else [])
+        if (not a.paths or a.index) and (root is None or not root.is_dir()):
+            die("no local knowledge/ folder (or pass --root)")
+        paths = [Path(x) for x in a.paths] or [p for p, _, _ in notes(root)]
         bad = 0
         for p in paths:
             fails, warns = check_note(p, root)
@@ -469,21 +480,23 @@ def main(a):
             for w in warns:
                 print(f"WARN {p}: {w}")
             bad += bool(fails)
-        if root and a.index and not a.paths:
-            idx, _ = build_index(root)
-            if not (root / "INDEX.md").exists() or (root / "INDEX.md").read_text(encoding="utf-8") != idx:
-                print("FAIL knowledge/INDEX.md is out of date: run `um kb index`")
-                bad += 1
+        if a.index:
+            for path, content in index_files(root).items():
+                try:
+                    current = path.read_text(encoding="utf-8")
+                except (OSError, UnicodeError):
+                    current = None
+                if current != content:
+                    print(f"FAIL {path} is missing or out of date: run `um kb index`")
+                    bad += 1
         print(f"{'FAIL' if bad else 'PASS'}: {len(paths)} notes checked")
         raise SystemExit(1 if bad else 0)
     if c == "index":
         root = Path(a.root) if a.root else local_root()
         if not root:
             die("no local knowledge/ folder")
-        idx, rows = build_index(root)
-        (root / "INDEX.md").write_text(idx, **TEXT)
-        (root / "index.json").write_text(json.dumps(rows, indent=1, default=str) + "\n", **TEXT)
-        print(f"{root / 'INDEX.md'}: {len(rows)} notes")
+        write_index(root)
+        print(f"updated {root / 'INDEX.md'} and {root / 'index.json'}")
         return
     if c == "pr":
         open_pr(Path(a.note), a.yes)
@@ -522,7 +535,7 @@ def register(sub):
     q.set_defaults(func=main)
     q = cs.add_parser("check", help="validate notes (all, or the given paths)")
     q.add_argument("paths", nargs="*")
-    q.add_argument("--index", action="store_true", help="also fail if INDEX.md is stale")
+    q.add_argument("--index", action="store_true", help="also fail if INDEX.md or index.json is stale")
     q.add_argument("--root")
     q.set_defaults(func=main)
     q = cs.add_parser("index", help="regenerate knowledge/INDEX.md and index.json")

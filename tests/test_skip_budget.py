@@ -10,7 +10,10 @@ failure nobody named, and the one file the budget leaves out.
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 from pathlib import Path
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 TOOL = REPO / "tools" / "pd2-port" / "check_skip_budget.py"
@@ -84,9 +87,35 @@ def test_a_saved_report_is_judged_without_running_the_suite(tmp_path, capsys):
     saved.write_text(REPORT)
     assert budget.main(["--report", str(saved)]) == 0
     assert "OK: 3 budgeted skip(s)" in capsys.readouterr().out
-    saved.write_text(REPORT + "SKIPPED [1] tests/test_x.py:1: a reason nobody budgeted\n")
+    saved.write_text(REPORT.replace("800 passed, 3 skipped",
+                                    "SKIPPED [1] tests/test_x.py:1: a reason nobody budgeted\n800 passed, 4 skipped"))
     assert budget.main(["--report", str(saved)]) == 1
     assert "unbudgeted skip reason: 'a reason nobody budgeted' (1x)" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("text", [
+    "",
+    "ERROR: file or directory not found: tests\n\nno tests ran in 0.00s\n",
+    "1 error in 0.09s\n",
+    "1 failed, 25 passed in 1.00s\n",
+    "2 passed, 1 skipped in 0.00s\n",  # no -rs details
+    "1 passed, 700 deselected in 0.00s\n",
+    "2 passed in 0.00s\nERROR: interrupted second run\n",
+])
+def test_report_cannot_pass_without_success_and_skip_details(text, tmp_path, capsys):
+    report = tmp_path / "pytest.txt"
+    report.write_text(text)
+    assert _budget().main(["--report", str(report)]) == 1
+    assert "FAIL:" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("exit_code", [1, 2, 4, 5])
+def test_standalone_budget_honors_the_pytest_exit_status(exit_code, capsys, monkeypatch):
+    budget = _budget()
+    monkeypatch.setattr(budget, "run_suite", lambda: subprocess.CompletedProcess(
+        ["pytest"], exit_code, stdout=REPORT, stderr=""))
+    assert budget.main([]) == 1
+    assert f"pytest exited with status {exit_code}" in capsys.readouterr().err
 
 
 def test_green_runs_the_suite_once():

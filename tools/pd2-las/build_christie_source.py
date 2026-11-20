@@ -11,7 +11,6 @@ import argparse
 import hashlib
 import io
 import json
-import os
 import re
 import sys
 import tempfile
@@ -32,6 +31,7 @@ import dds_encode as enc  # noqa: E402
 import determinism  # noqa: E402
 import las_outfit_pack as lop  # noqa: E402
 import preview_textured as preview  # noqa: E402
+from pack_checksum import write_pack_checksum  # noqa: E402
 from vtf import parse_vtf, to_dds  # noqa: E402
 
 PACK = 'Christie_LAS'
@@ -183,8 +183,7 @@ def build(dist: Path):
     dist.mkdir(parents=True, exist_ok=True)
     path = dist / f'{PACK}.zip'
     path.write_bytes(archive)
-    rel = os.path.relpath(path.resolve(), ROOT)
-    (dist / f'{PACK}.zip.sha256').write_text(f'{hashlib.sha256(archive).hexdigest()}  {rel}\n')
+    write_pack_checksum(path, ROOT)
     print(f'Wrote {path} ({len(archive)} bytes)')
 
 

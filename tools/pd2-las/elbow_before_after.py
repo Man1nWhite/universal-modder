@@ -184,7 +184,7 @@ def main(argv=None) -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     args.scratch.mkdir(parents=True, exist_ok=True)
     stem = args.suffix or args.item
-    name = "Christie "
+    name = f"{args.pack} "
     shipped = ("before = previously shipped pack (left). after = this build "
                "(right). Same row = same crop, scale and depth band")
     if args.mode == "elbow":

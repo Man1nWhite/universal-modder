@@ -40,17 +40,21 @@ it. Both are written about that one port, but what they record about the
 PAYDAY 2 side — the rig contract, the guide's rules — holds for any
 character. What is open is under [Status and limits](#status-and-limits).
 
-One command tells you whether this pack is sound, and one whether the whole repository is:
+One command checks the Romance outfit offline, and one checks the whole repository:
 
 ```sh
 .venv/bin/python tools/pd2-port/check_all.py   # pack checksum, audit, winding, nm, mutations
 make -sC tools/pd2-las green                   # check_all.py --full: + everything the test workflow checks
+.venv/bin/python tools/pd2-port/check_all.py --pack dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 ```
 
+With `--pack`, only the selected ZIP's checksum and geometry are checked. The DODB guide audit,
+source normal-map checks and mutation tests above are not a verdict on another pipeline. For the
+legacy 2B pipeline, run `tests/test_pd2_las_invariants.py` as well.
+
 `--full` judges the whole repository, not only this directory. Its
-skip-budget stage expects the 2B reference templates to be extracted to
-`build/pd2-las/2b/` (`make -sC tools/pd2-las env` does that) and fails
-without them. The same stage budgets expected failures: an `xfail` that
+skip-budget stage expects the 2B reference templates (`make -sC tools/pd2-las env`, or share an
+extraction with `PD2_2B_TEMPLATES`) and fails without them. The same stage budgets expected failures: an `xfail` that
 `check_skip_budget.py` does not name fails it.
 
 ## Inputs and outputs
@@ -210,8 +214,8 @@ character yet, so treat it as a map of what to touch, not as a tested recipe.
    `material_config()`, `encode_textures()` (the icon's file name),
    `assemble()` and `validate()`. Then the same names where the checks
    look for them: `check_guide_compliance.py` and its self-test,
-   `check_mesh_geometry.py`, `check_test_suite_mutations.py` and the `--pack`
-   default of `check_all.py`.
+   `check_mesh_geometry.py`, `check_test_suite_mutations.py` and `DEFAULT_PACK`
+   in `check_all.py`.
 8. **Verify offline, then in game.** `build_las_pack.py --check`, the guide
    audit, `check_mesh_geometry.py`, `shade_check.py` — then the install steps
    below, menu preview first.
@@ -226,7 +230,7 @@ own.
 
 ## Guide compliance
 
-Packs built here follow the [ModWorkshop LAS/MOOG outfit guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide)
+DODB packs built by `pd2-port` follow the [ModWorkshop LAS/MOOG outfit guide](https://wiki.modworkshop.net/books/payday-2-mod-creation/page/legendary-armor-skinslasmoogoutfit-module-guide)
 (Columbus). `check_guide_compliance.py` re-reads the built zip and checks it
 against the guide's rules, each check citing the rule it enforces:
 
@@ -313,9 +317,10 @@ release page is).
    ```
 
    The workflow creates the release page if there is none, uploads
-   `Miranda_Romance_LAS.zip` and `Miranda_L4D2_LAS.zip` with their `.sha256` files, and
-   fails loudly if the tests fail or if the runner's build differs from the
-   committed bytes. Do not upload the assets
+   `Miranda_Romance_LAS.zip` and `Miranda_L4D2_LAS.zip` with their `.sha256` files. It checks
+   the committed ZIPs before building a separate Romance ZIP, and fails if the bytes differ.
+   A tag needs valid version notes even if its release page already exists. Verify downloaded
+   release assets with `sha256sum -c *.zip.sha256` from the download directory. Do not upload the assets
    from a sandbox yourself: `gh release upload` failed there with EOF
    (recorded on 2026-10-19), and the workflow needs no upload from you.
 

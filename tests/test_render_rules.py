@@ -10,6 +10,7 @@ Enforces `docs/renders/README.md`:
 
 from __future__ import annotations
 
+import ast
 import re
 import shutil
 import subprocess
@@ -182,13 +183,27 @@ def test_new_ingame_capture_manifests_match_images():
                     assert image.size == (shot["width"], shot["height"]), fname
 
 
+def _unmapped_model_renders(paths: list[Path], root: Path, mapped: set[str]) -> set[str]:
+    renders = set()
+    for path in paths:
+        rel = path.relative_to(root)
+        if len(rel.parts) >= 3 and rel.parts[1] == "model" and rel.suffix.lower() in RENDER_OUTPUT_EXTS:
+            renders.add(rel.as_posix())
+    return renders - mapped
+
+
 def test_every_tracked_model_render_sheet_belongs_to_render_mod_previews():
-    """Prevent orphan model renders (like the removed Christie_LAS_Slim sheet) or split render wrappers."""
-    render_tools = (REPO / "tools" / "render_mod_previews.py").read_text(encoding="utf-8")
+    """Check exact unified paths relative to docs/renders, not absolute paths."""
+    script = REPO / "tools" / "render_mod_previews.py"
+    assignments = ast.parse(script.read_text(encoding="utf-8")).body
+    mapping = next(ast.literal_eval(node.value) for node in assignments if isinstance(node, ast.Assign)
+                   and any(isinstance(name, ast.Name) and name.id == "UNIFIED_PATHS" for name in node.targets))
     assert not (REPO / "tools" / "render_clover_honoko.py").exists()
-    for rel_path in _tracked_under("docs/renders"):
-        rel = rel_path.as_posix() if hasattr(rel_path, "as_posix") else str(rel_path)
-        parts = rel.split("/")
-        if len(parts) >= 4 and parts[2] == "model" and rel.endswith(".png"):
-            sub = "/".join(parts[1:])
-            assert sub in render_tools, f"{rel} is not in tools/render_mod_previews.py UNIFIED_PATHS"
+    paths = _tracked_under("docs/renders")
+    assert any(path.relative_to(RENDERS).parts[1:2] == ("model",) for path in paths)
+    assert not (unmapped := _unmapped_model_renders(paths, RENDERS, set(mapping.values()))), sorted(unmapped)
+
+
+def test_orphan_model_render_is_detected_from_an_absolute_path(tmp_path):
+    paths = [tmp_path / "demo/model/orphan.png", tmp_path / "demo/in-game/capture.png"]
+    assert _unmapped_model_renders(paths, tmp_path, {"demo/model/other.png"}) == {"demo/model/orphan.png"}

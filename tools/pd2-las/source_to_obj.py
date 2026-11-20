@@ -2,9 +2,9 @@
 """Export the DOA5 source model (MDL/VVD/VTX) as OBJ/MTL.
 
 This is the *source* end of the Christie pipeline: the exact bytes in
-``references/Christie.zip`` (``models/plasmid/doa5/christie_c2.{mdl,vvd,dx90.vtx}``,
-sha256 of the zip is tracked in ``references/README.md``). It is the complement
-to the pack-level OBJ question — what the game is *supposed* to be looking at,
+``references/Christie.zip`` (``models/plasmid/doa5/christie_c2.{mdl,vvd,dx90.vtx}``).
+The exporter records the three member SHA-256 digests in the OBJ header. This is
+the complement to the pack-level OBJ question — what the game is *supposed* to be looking at,
 straight from the Visual Studio model, with no re-authoring, no retarget and
 no pack bytes involved.
 

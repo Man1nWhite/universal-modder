@@ -1,9 +1,10 @@
-# pd2-las — Source-engine characters as PAYDAY 2 LAS outfits
+# pd2-las — 2B-template outfits for PAYDAY 2
 
-Builds **Legendary Armour Skins (LAS)** outfit packs for PAYDAY 2 from compiled Source-engine models
-(`.mdl`/`.vvd`/`.vtx` + `.vtf`): each mesh is re-skinned onto the PD2 player skeleton of the `2b.rar` reference pack
-and written as Diesel `.model` + `.texture` + `.material_config` behind a BeardLib `LegendaryArmours.<id>`
-registration. Pure Python: no Source compile step, no Blender, and no game is needed to build.
+Builds **Legendary Armour Skins (LAS)** outfits from compiled Source models (`.mdl`/`.vvd`/`.vtx` + `.vtf`),
+rigged GLB, and COLLADA with TMC skinning. Each mesh is re-skinned onto the PD2 player skeleton from `2b.rar`
+and written as Diesel `.model`, `.texture`, and `.material_config` behind a BeardLib `LegendaryArmours.<id>`
+registration. After unpacking the templates, the builders run in Python; no Source compile step, Blender,
+or running game is needed.
 
 | Tracked pack (`dist/<character>/<name>.zip`) | Source archive | Builder | `make` target |
 | --- | --- | --- | --- |
@@ -11,40 +12,39 @@ registration. Pure Python: no Source compile step, no Blender, and no game is ne
 | `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 | `Christie_LAS` — no head or hands; glove adapter, TPP and FPS | `references/Christie.zip` | `build_christie_source.py` | `christie` |
 | `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
-| `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways (plus a jewelry diffuse override in `Honoko5`) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
-`honokodae` writes `dist/Honoka/Honoko2.zip` through `dist/Honoka/Honoko5.zip` directly, and `fresh` verifies all
-four. `Honoko3`–`Honoko5` share the layer-clearance pass and trimmed shadow caster; `Honoko4` and `Honoko5` use alternative suit diffuses.
-The `.dae` builder takes its skinning from the source TMC (`tmc.py`, `tmc_skeleton_map.json`), cuts wrists, encodes DXT5 mips (matte gloss; X-in-alpha, Y+-in-green normals), and registers BODY_ONLY with glove adapter and 4-view icon.
-The experimental Clover-Christie builder selects only Christie primitives (`MODLOG.md`; `clover_christie_glb.py` prints the intake report); `runtime_verified` is `false` across all packs (`docs/pd2-las/HANDOFF.md`; `docs/pd2-las/honoka-tmc-format.md`).
+See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status
 
 Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every
 tracked pack of the three pipelines (size, sha256, `make` target, whether the zip `is` what git tracks), the next command.
 ## Commands
 
-The general CLI supports Python 3.10+; the pinned PAYDAY 2 build needs **Python 3.11+** (CI uses 3.11). `env` checks the interpreter; recreate an older `.venv` with Python 3.11+ first.
-From the repo root; `make -sC tools/pd2-las` alone lists every target. They cover all three pipelines: `lawson`
-and `heads` build the packs of `tools/pd2-port/` and `tools/build_joy_head_mods.py`; `honokodae` builds the
-Honoko2..Honoko5 outfit packs into `dist/` from one Collada input.
+The general CLI supports Python 3.10+; `env` requires **Python 3.11+** (CI uses 3.11).
+From the repo root, `make -sC tools/pd2-las` alone lists the targets for all three pipelines.
 
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | honokodae | christie | cloverchristie | heads | all
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | christie | cloverchristie | heads | hila | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
 ```
 
 - `make -n <target>` prints what a target runs. Without `-s`, make wraps the JSON in "Entering directory" lines.
-- `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored); the builders default `--templates` to
-  it, and only `extract_2b.py` writes that path. Of tracked files it restores only missing ones.
-- A build **overwrites the tracked zips** in `dist/` and writes their `.sha256`, so only
+- `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored), or refreshes an incomplete or stale
+  extraction. `PD2_2B_TEMPLATES` can point setup, builds, and `fresh` at an explicitly shared unit folder.
+  `extract_2b.py` manages only the default cache. Of tracked files, `env` restores only missing ones.
+- A build **overwrites the tracked zips** in `dist/` (the Romance sidecar is updated separately), so only
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
-  Linux machine: every builder first puts itself on one declared code path (`determinism.py`). `fresh` checks
-  all 20 tracked ZIPs in a copy and touches no tracked file; nor does a builder run with `--out build/x`.
+  Linux machine: the template and head builders use the declared `determinism.py` code path. `fresh` verifies
+  original checksums before building in a copy; `fresh.py check --builders NAME` limits what it rebuilds.
+  A custom Miranda `--out` does not promote to `dist/`; verify its sidecar from the output directory.
+- Parallel `all` runs `build` before `busty` and `heads`, and `heads` and `honokodae` before `hila`.
+  Standalone `hila` uses the existing donors and builds a [native override](../../docs/renders/honoka/model/over-hila/README.md), not LAS.
 - **Done means:** `green` passes and `status` shows `changed` only for packs you meant to change. No
   document needs an edit; a changed `Miranda_L4D2_LAS` needs `heads` run again.
 ## File map
@@ -66,7 +66,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of all 20 packs, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the pinned Pillow/NumPy versions |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of the distribution packs, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the pinned Pillow/NumPy versions |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and rounding margin; tangent frames from stored values; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 
 ## Invariants
@@ -99,8 +99,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 - Do not judge by eye how a mesh sits on the skeleton: `segment_fit.py`
   measures it.
 - Do not retry the approaches under "Dead ends" in `docs/pd2-las/HANDOFF.md`.
-- Do not go back to swapping whole heister models in place; that route is
-  retired (`docs/audits/2026-10-18-route-change-audit.md`).
+- Do not revive the speculative whole-heister retarget (`docs/audits/2026-10-18-route-change-audit.md`).
 - Do not silence a failing test with a skip or an `xfail`: both are budgeted
   by `tools/pd2-port/check_skip_budget.py`. The one exception: [Next](#next).
 - Do not cut a computed value off with `astype(np.uint8)`, and do not decide on a number that is zero up to
@@ -115,9 +114,10 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 1. In-game verification with `docs/pd2-las/in-game-checklist.md` (sections for `Miranda_L4D2_LAS`,
    `Christie_LAS`, `Christie_Clover_LAS` and the `Honoko5` jewelry swap); it needs a human
    with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the Miranda rebuild.
-2. `Christie_Clover_LAS` and `Honoko5`'s `Tex_23(L_23)2.dds` jewelry are the newest unverified bytes:
+2. The native Hila body/head pack awaits its own [in-game check](../../docs/pd2-las/in-game-checklist.md#native-hila-body--head-override-no-las); it needs neither LAS nor BeardLib.
+3. `Christie_Clover_LAS` and `Honoko5`'s `Tex_23(L_23)2.dds` jewelry are the newest unverified bytes:
    neither has been seen in game, and every archived capture predates both.
-3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): texels at
+4. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): texels at
    full gloss in `body_df` and `head_df` of the Miranda packs. `Miranda_Romance_LAS` and the eleven
    head packs have no record of their tracked bytes in game, and the head packs have no checklist.
 

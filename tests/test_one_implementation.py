@@ -98,6 +98,7 @@ WRITERS = [
     LAS / "build_christie_source.py",
     LAS / "build_clover_christie.py",
     REPO / "tools" / "build_joy_head_mods.py",
+    REPO / "tools" / "build_hila_body_mod.py",
 ]
 
 
@@ -195,7 +196,8 @@ def test_that_writer_gives_each_tracked_pack_its_files():
         if told.glove_adapter:
             label = name if name in ("Christie_LAS", "Christie_Clover_LAS") else told.display_name
             assert writer.render_glove_adapter_lua(told.item_id, label) == text(f"/hooks/{told.item_id}_glove_adapter.lua"), name
-    for name in ("Miranda_LAS", "Christie_LAS", "Christie_Clover_LAS", "Honoko2", "Miranda_L4D2_over_Joy"):
+    for name in ("Miranda_LAS", "Christie_LAS", "Christie_Clover_LAS", "Honoko2", "Miranda_L4D2_over_Joy",
+                 "Honoko5_Miranda_Romance_over_Hila"):
         assert writer.zip_bytes(_pack(name).items()) == (dist_path(REPO, f"{name}.zip")).read_bytes(), name
 
 

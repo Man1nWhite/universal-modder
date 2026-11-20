@@ -493,6 +493,26 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   untracked and removed. `dist/` holds all 20 tracked packs and sidecars; `build/*` is purely scratch.
 - **Status:** holds.
 
+### D52 — Honoko5 and Miranda Romance directly replace Hila
+
+- **Decided:** 2026-11-18, by the user (body and head over Hila, explicitly not LAS).
+- **Decision:** `dist/Honoka/Honoko5_Miranda_Romance_over_Hila.zip` is built by
+  `tools/build_hila_body_mod.py` from the assembled `Honoko5` and `Miranda_Romance_over_Hila` ZIPs.
+  Only `g_body` and `s_body` mesh blocks change on the Romance Hila model. The head, native hands,
+  root, bones, attachments, and both object definitions are unchanged. There is no FPS or unit override.
+- **Fit:** every weighted donor bone is resolved by hash on Hila's skeleton. Her knees sit ~2.4 cm
+  farther back than the donor bind; the mesh follows that offset locally. A roughly 4 cm gap at the
+  bare wrist cut required a tapered extension. The rim overlaps the unchanged gloves and follows
+  the same hand bone so it doesn't pull apart when the hand rotates. The trimmed body caster gains
+  the solid head and glove silhouettes on the existing one-weight shadow shader.
+- **Why native:** `hila_texture_atlas.py` packs the six diffuse/normal pairs into Hila's existing
+  `*_suite_df`/`*_suite_nm` slots. It preserves the wrapped UV islands and copies the donor BC3 blocks
+  while the atlas gutters align. No new texture registration, Lua, LAS, or BeardLib is needed. Both
+  material configs use the outfit's diffuse/normal shader on `mtr_suite_body`, not the old suit GSMA.
+- **Held to:** `tests/test_hila_body_override.py` checks the ZIP and fit; `fresh.py` rebuilds this pack
+  after its donors. The [compiled-model preview](../renders/honoka/model/over-hila/README.md) is offline;
+  masks, armor, animation and performance are still unverified in the game.
+
 ## Environment, tests and documents
 
 ### D14 — Inputs live in `models/` and `references/`

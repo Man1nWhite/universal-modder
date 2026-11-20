@@ -7,10 +7,12 @@ one looks at the shape itself:
 * triangle winding - if the faces are wound inside-out the engine culls the
   visible side and the character renders as holes;
 * the UV frame (the two "duv" streams PD2 uses for the tangent frame) - a
-  frame that disagrees with the UVs mirrors the normal map's lighting;
-* the source normal map's green channel - correlated against the geometric
-  tangent-space normal it claims to encode, which decides the DirectX vs
-  OpenGL question the guide leaves to the reader.
+  frame that disagrees with the UVs mirrors the normal map's lighting.
+
+Missing enabled drawables and units with no analyzable triangles fail the check.
+Drawables without the needed streams (for example legacy shadow meshes) are
+reported as uncovered. Tangent agreement is a diagnostic, not a pass threshold.
+Source normal-map channel checks are separate (check_nm_convention.py).
 
     python tools/pd2-port/check_mesh_geometry.py [pack.zip]
 
@@ -125,40 +127,50 @@ class Geometry:
                 raise ValueError(f"unexpected channel size code {isz} (type {ity})")
 
 
-def meshes_of(model: DieselModel, raw: bytes, enabled_hashes: set[int] | None = None):
-    """Yield (Geometry, triangles) for every enabled drawable of a model."""
-    out = []
-    for s in model.sections:
-        if s.tag != "model_data" or s.obj is None:
+def meshes_of(model: DieselModel, enabled: dict[int, str] | None):
+    """Return checked drawables and explicit gaps in geometry coverage."""
+    pending = dict(enabled or {})
+    meshes, uncovered = [], []
+    for sec in model.sections:
+        if sec.tag != "model_data" or sec.obj is None:
             continue
-        md = s.obj
-        if enabled_hashes and getattr(md, "name_hash", None) not in enabled_hashes:
+        md = sec.obj
+        key = getattr(md, "name_hash", None)
+        if enabled is not None and key not in enabled:
             continue
-        if not hasattr(md, "passthrough_id"):
+        name = enabled[key] if enabled is not None else f"section {sec.id}"
+        # Runtime objects and placeholder/collision sections may have no render atoms.
+        atoms = [a for a in getattr(md, "render_atoms", []) if a["tri_count"]]
+        if not atoms:
             continue
+        pending.pop(key, None)
         pt = model.by_id.get(md.passthrough_id)
         if pt is None or pt.obj is None:
-            continue
+            raise ValueError(f"{name}: no geometry passthrough")
         geo_sec = model.by_id.get(pt.obj.geometry_id)
         top_sec = model.by_id.get(pt.obj.topology_id)
-        if geo_sec is None or top_sec is None:
-            continue
-        g = Geometry(raw, geo_sec)
-        if not (g.nrm and g.uv and g.tangent and g.bitangent):
-            continue
+        if geo_sec is None or top_sec is None or top_sec.obj is None:
+            raise ValueError(f"{name}: missing geometry or topology section")
+        g = Geometry(model.data, geo_sec)
         faces = top_sec.obj.faces
         tris = []
-        for atom in md.render_atoms:
-            # the parser names the atom fields
-            # (base_vertex, tri_count, base_index, slice_len, material_id);
-            # base_index counts *indices*, so it is three per triangle
-            base_index = atom["base_index"] // 3
-            tri_count = atom["tri_count"]
-            for f in faces[base_index:base_index + tri_count]:
-                # the topology's indices are absolute into the geometry buffer
-                tris.append((f[0], f[1], f[2]))
-        out.append((g, tris))
-    return out
+        for atom in atoms:
+            # Indices are absolute into the geometry buffer, and a range starts on a triangle.
+            start, rem = divmod(atom["base_index"], 3)
+            end = start + atom["tri_count"]
+            if rem or start < 0 or end <= start or end > len(faces):
+                raise ValueError(f"{name}: render atom points outside its triangle list")
+            tris.extend(faces[start:end])
+        if any(v < 0 or v >= g.n for face in tris for v in face):
+            raise ValueError(f"{name}: triangle index outside the vertex buffer")
+        gaps = [label for stream, label in ((g.pos, "positions"), (g.nrm, "normals"), (g.uv, "UVs"),
+                                            (g.tangent, "tangents"), (g.bitangent, "bitangents"))
+                if len(stream) != g.n]
+        if gaps:
+            uncovered.append(f"{name}: {len(tris)} triangles not analyzed (missing {', '.join(gaps)})")
+        else:
+            meshes.append((name, g, tris))
+    return meshes, uncovered, sorted(pending.values())
 
 
 def analyse(name: str, g: Geometry, tris) -> dict:
@@ -212,6 +224,8 @@ def analyse(name: str, g: Geometry, tris) -> dict:
             t = norm((e1[0] * dv2 - e2[0] * dv1,
                       e1[1] * dv2 - e2[1] * dv1,
                       e1[2] * dv2 - e2[2] * dv1))
+            if det < 0:  # normalization drops |det|, not its sign on mirrored UVs
+                t = (-t[0], -t[1], -t[2])
             for v in (a, b, c):
                 t_sign.append(dot(t, g.tangent[v]))
                 nn, tt, bb = g.nrm[v], g.tangent[v], g.bitangent[v]
@@ -232,60 +246,69 @@ def analyse(name: str, g: Geometry, tris) -> dict:
     }
 
 
-def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("pack", nargs="?", default=str(PACK))
-    args = ap.parse_args(argv)
+def _enabled_for(z: zipfile.ZipFile, model_entry: str, names: set[str]) -> dict[int, str] | None:
+    obj_entry = model_entry.removesuffix(".model") + ".object"
+    if obj_entry not in names:
+        return None
+    root = ET.fromstring(z.read(obj_entry))
+    enabled = {}
+    for el in root.findall(".//graphics//object"):
+        if el.get("enabled") == "true":
+            name = el.get("name")
+            if not name:
+                raise ValueError(f"{obj_entry}: unnamed enabled drawable")
+            enabled[hash_str(name)] = name
+    return enabled
 
-    with zipfile.ZipFile(args.pack) as z:
+
+def check_pack(path: Path) -> int:
+    flipped = degenerate = tris_total = 0
+    incomplete = False
+    with zipfile.ZipFile(path) as z:
         names = set(z.namelist())
         models = sorted(n for n in names if n.endswith(".model"))
         if not models:
-            raise SystemExit(f"no .model files in {args.pack}")
-
-        def _enabled_for(model_entry: str) -> set[int] | None:
-            obj_entry = model_entry[:-len(".model")] + ".object"
-            if obj_entry not in names:
-                return None
-            root = ET.fromstring(z.read(obj_entry))
-            hashes = {
-                hash_str(el.attrib["name"])
-                for el in root.findall(".//graphics//object")
-                if el.attrib.get("enabled") == "true" and "name" in el.attrib
-            }
-            return hashes or None
-
-        tpp_models = [(("third person" if len([m for m in models if "/fps_" not in m]) == 1 else f"third person ({Path(n).stem})"),
-                       z.read(n), _enabled_for(n))
-                      for n in models if "/fps_" not in n]
-        fps_models = [(("first person" if len([m for m in models if "/fps_" in m]) == 1 else f"first person ({Path(n).stem})"),
-                       z.read(n), _enabled_for(n))
-                      for n in models if "/fps_" in n]
-        entries = tpp_models + fps_models
-
-    flipped = degenerate = tris_total = 0
-    for label, raw, enabled_hashes in entries:
-        model = DieselModel.from_bytes(raw)
-        print(f"=== {label} unit")
-        for i, (g, tris) in enumerate(meshes_of(model, raw, enabled_hashes)):
-            r = analyse(f"mesh {i}", g, tris)
-            flipped += r["flipped"]
-            degenerate += r["degenerate"]
-            tris_total += r["tris"]
-            print(f"  mesh {i}: {r['tris']} triangles")
-            print(f"    winding: {r['flipped']} flipped, {r['degenerate']} degenerate"
-                  f"  (signed volume {r['volume'] / 1000:.1f} cm3)")
-            print(f"    UV frame: {r['tangent_agree'] * 100:.1f}% of the stored "
-                  f"tangents agree with the UVs; handedness "
-                  f"{r['frame_hand']:+.3f}; "
-                  f"{r['zero_tangent']}/{r['verts']} vertices have no UV frame")
-    print()
-    print(f"summary: {tris_total} triangles, {flipped} inverted, "
-          f"{degenerate} degenerate")
-    return 1 if flipped else 0
+            raise ValueError("no .model files")
+        for entry in models:
+            stem = Path(entry).stem
+            label = f"{'first' if stem.startswith('fps_') else 'third'} person ({stem})"
+            print(f"=== {label} unit")
+            enabled = _enabled_for(z, entry, names)
+            if enabled is None:
+                print("  NOTE: no companion .object; checking all model drawables with render atoms")
+            meshes, uncovered, missing = meshes_of(DieselModel.from_bytes(z.read(entry)), enabled)
+            for note in uncovered:
+                print(f"  WARN: {note}")
+            if missing:
+                print(f"ERROR: enabled drawables missing geometry in {label}: {', '.join(missing)}")
+                incomplete = True
+            if not meshes:
+                print(f"ERROR: no analyzable triangles in {label} unit (check drawables and geometry streams)")
+                incomplete = True
+            for name, g, tris in meshes:
+                r = analyse(name, g, tris)
+                flipped += r["flipped"]
+                degenerate += r["degenerate"]
+                tris_total += r["tris"]
+                print(f"  {name}: {r['tris']} triangles")
+                print(f"    winding: {r['flipped']} flipped, {r['degenerate']} degenerate"
+                      f"  (signed volume {r['volume'] / 1000:.1f} cm3)")
+                print(f"    UV frame: {r['tangent_agree'] * 100:.1f}% of the stored "
+                      f"tangents agree with the UVs; handedness {r['frame_hand']:+.3f}; "
+                      f"{r['zero_tangent']}/{r['verts']} vertices have no UV frame")
+    print(f"\nsummary: {tris_total} triangles, {flipped} inverted, {degenerate} degenerate")
+    return int(bool(flipped or degenerate or incomplete))
 
 
-
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("pack", nargs="?", type=Path, default=PACK)
+    args = ap.parse_args(argv)
+    try:
+        return check_pack(args.pack)
+    except (OSError, ValueError, KeyError, IndexError, struct.error, ET.ParseError, zipfile.BadZipFile) as error:
+        print(f"ERROR: {args.pack}: {error}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

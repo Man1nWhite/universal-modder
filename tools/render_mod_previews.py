@@ -20,7 +20,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `14_Miranda_Busty_vs_LAS_top_below.png` (overhead/underside chest comparison)
   - `15_Christie_LAS.png` (DOA5 Christie body-only LAS outfit)
   - `17_Honoko2.png` (DOAXVV Honoka Secret Report body-only LAS outfit, built from `.dae`)
-  - `18_all_dist_mods_overview.png` (6x4 grid of all 20 packs in `dist/`)
+  - `18_all_dist_mods_overview.png` (6x4 grid of the packs in `dist/`)
   - `19_Miranda_L4D2_over_Hila.png`
   - `20_Miranda_Romance_over_Hila.png`
   - `21_Honoko3.png` (the same outfit 5% slimmer, scaled about the rig's bones)
@@ -31,6 +31,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `25_Honoko5_with_Miranda_Romance_over_Hila.png` (the same combination for Honoko5)
   - `26_Honoko5_head_skin_detail.png` (front and three-quarter views of the colour match)
   - `27_Christie_Clover_LAS.png` (Clover-Christie GLB body-only LAS outfit)
+  - `28_Honoko5_Miranda_Romance_over_Hila.png` (native Hila body and head override)
 
 `00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
@@ -531,12 +532,12 @@ def render_las_sheet(
     out_path: Path,
     has_head: bool = True,
     closeup: tuple[float, float, float] = (18.0, 166.5, 11.5),
+    full_view: tuple[float, float] | None = None,
 ) -> Image.Image:
     W_col, H_row = 360, 540
     canvas = Image.new("RGB", (W_col * 4, H_row + 58), (18, 22, 30))
 
-    z_full = 92.0 if has_head else 74.0
-    s_full = 2.75 if has_head else 2.65
+    z_full, s_full = full_view or ((92.0, 2.75) if has_head else (74.0, 2.65))
     p_front = rasterize_parts(tpp_parts, W_col, H_row, 0, z_full, s_full)
     p_34 = rasterize_parts(tpp_parts, W_col, H_row, 34, z_full, s_full)
     p_back = rasterize_parts(tpp_parts, W_col, H_row, 180, z_full, s_full)
@@ -552,7 +553,8 @@ def render_las_sheet(
         p_bot = rasterize_parts(fps_parts, W_col, H_row // 2, 20, 129.0, 3.2, pitch_deg=15.0)
         bot_lbl = "First-Person Arms (fps_*.model)"
     else:
-        p_bot = rasterize_parts(tpp_parts, W_col, H_row // 2, 90, 74.0, 1.40)
+        side_center, side_scale = (z_full, s_full / 2) if full_view else (74.0, 1.40)
+        p_bot = rasterize_parts(tpp_parts, W_col, H_row // 2, 90, side_center, side_scale)
         bot_lbl = "Full-Body Side (90°, TPP only)"
 
     for i, (im, lbl) in enumerate([
@@ -778,6 +780,28 @@ def render_heister_head_sheet(
     return p_34
 
 
+def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Image.Image:
+    """Read the actual replacement ZIP, not the pre-fit overlay of LAS and head donors."""
+    from build_hila_body_mod import INSTALL, MATERIAL, PACK, UNIT
+    from build_joy_head_mods import HILA_ICON_PATH
+
+    with zipfile.ZipFile(zip_path or dist_path(ROOT, PACK)) as zf:
+        model = dm.ModelFile.read(zf.read(f"{INSTALL}/{UNIT}.model"))
+        mats = _parse_matcfg_diffuse(zf.read(f"{INSTALL}/{MATERIAL}.material_config"))
+        # g_hands looks up the game's unmodified shared glove texture, which
+        # the pack deliberately does not ship. Render its actual mesh flat.
+        cache = {mats["mtr_hands"]: np.full((1, 1, 4), [48, 43, 42, 255], dtype=np.uint8)}
+        parts = [p for draw in ("g_body", "g_head", "g_hands") for p in _parts_from_model_with_matcfg(
+            zf, INSTALL, model, mats, cache, drawable=draw,
+            cutout_materials=frozenset({"mtr_lashes"}), asset_root="",
+        )]
+        icon = decode_bgra_icon(zf.read(f"{INSTALL}/{HILA_ICON_PATH}"))
+    return render_las_sheet(
+        "Honoko5 + Miranda Romance over Hila", "Native body and head replacement | Offline render | Hila's gloves shown in flat color",
+        parts, [], icon, out_path, closeup=(18.0, 171.5, 7.4), full_view=(94.0, 2.48),
+    )
+
+
 UNIFIED_PATHS = {
     "00_all_miranda_mods_overview.png": "overview/model/all_miranda_mods_sheet.png",
     "01_Miranda_LAS.png": "miranda/model/las/miranda_las_sheet.png",
@@ -808,6 +832,7 @@ UNIFIED_PATHS = {
         "honoka/model/dae/honoko5_with_miranda_romance_over_hila_sheet.png",
     "26_Honoko5_head_skin_detail.png": "honoka/model/dae/honoko5_head_skin_detail.png",
     "27_Christie_Clover_LAS.png": "christie/model/clover/christie_clover_las_sheet.png",
+    "28_Honoko5_Miranda_Romance_over_Hila.png": "honoka/model/over-hila/honoko5_miranda_romance_over_hila_sheet.png",
 }
 
 
@@ -817,6 +842,7 @@ def main(argv: list[str] | None = None) -> None:
                     help="output directory (default: build/previews, or docs/renders with --unified)")
     ap.add_argument("--unified", action="store_true",
                     help="write sheets into <out>/<project>/model/... per docs/renders/README.md")
+    ap.add_argument("--only-hila", action="store_true", help="render only the native Hila replacement")
     args = ap.parse_args(argv)
     out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -825,6 +851,10 @@ def main(argv: list[str] | None = None) -> None:
         if args.unified:
             return out_dir / UNIFIED_PATHS[name]
         return out_dir / name
+
+    hila_thumb = render_native_hila_sheet(target_for("28_Honoko5_Miranda_Romance_over_Hila.png"))
+    if args.only_hila:
+        return
 
     thumbs: list[tuple[str, Image.Image]] = []
 
@@ -1225,7 +1255,7 @@ def main(argv: list[str] | None = None) -> None:
     overview.save(ov_path)
     print(f"Saved {ov_path}")
 
-    # Build complete dist/ overview grid (6 columns x 4 rows = all 20 dist/*.zip packages)
+    # Build complete dist/ overview grid (6 columns x 4 rows)
     all_dist_cells = [
         *[thumbs[i] for i in l4d2_indices],
         *[thumbs[i] for i in rom_indices],
@@ -1237,12 +1267,13 @@ def main(argv: list[str] | None = None) -> None:
         ("Honoko4.zip", th_hon4),
         ("Honoko5.zip", th_hon5),
         thumbs[10],  # Geralt_over_Rust.zip
+        ("Honoko5 + Miranda over Hila (native)", hila_thumb),
     ]
     dist_overview = Image.new("RGB", (tw * 6, th_h * 4 + 58), (16, 19, 26))
     add_header_and_badges(
         dist_overview,
-        "PAYDAY 2 — All 20 Mod Packages in dist/ (Complete Overview)",
-        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, Honoko2-5, Geralt",
+        f"PAYDAY 2 — All {len(all_dist_cells)} Mod Packages in dist/ (Complete Overview)",
+        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, Honoko2-5, Geralt, native Hila",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

@@ -17,9 +17,9 @@ Definitions (all on the ``g_body`` drawable, bind pose, model units = cm):
 - **verts / tris** — geometry vertex count and triangle count.
 - **area** — summed triangle area in cm^2.
 - **tris/1000cm^2** — triangle density.
-- **texels/cm** — 1024 / sqrt(area): texel pitch of a 1024x1024 atlas stretched
-  over that surface. Comparable across packs because every pack ships 1024^2
-  body textures (the 2B reference included).
+- **texels/cm** — sqrt(diffuse width × height / area), using each pack's actual
+  body texture dimensions. This is a nominal whole-atlas density, not a local
+  measurement of UV stretching.
 - **bad verts** — vertices that have at least one incident face whose normal is
   more than 90 degrees off the vertex's own stored normal. Accumulate with a
   union over *all* corners: ``bad[f[:, k]] |= ...`` under-counts when an index
@@ -32,7 +32,7 @@ Definitions (all on the ``g_body`` drawable, bind pose, model units = cm):
   always sum to the *diverged* column (the review's four ad-hoc bins summed to
   384 of the 480 that column held at the time).
 - **diffuse alpha** (`--alpha`) — alpha-channel statistics of the diffuse
-  textures, measured over the **whole** 1024x1024 texel grid: the review quoted
+  textures, measured over the **whole** texel grid: the review quoted
   these numbers without saying which texels they covered.
 """
 from __future__ import annotations
@@ -45,6 +45,7 @@ import zipfile
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -80,7 +81,7 @@ def _model_bytes(path: Path) -> bytes:
     return path.read_bytes()
 
 
-def measure(model_bytes: bytes) -> dict:
+def measure(model_bytes: bytes, diffuse_size: tuple[int, int]) -> dict:
     geo, top = _drawable(model_bytes)
     verts = np.asarray(geo["verts"], float)
     normals = np.asarray(geo["normals"], float)
@@ -113,7 +114,7 @@ def measure(model_bytes: bytes) -> dict:
     return {
         "verts": len(verts), "tris": len(faces), "area": area,
         "tris_per_1000cm2": len(faces) / area * 1000,
-        "texels_per_cm": 1024 / np.sqrt(area),
+        "texels_per_cm": np.sqrt(math.prod(diffuse_size) / area),
         "bad_verts": len(bad), "bad_pct": len(bad) / len(verts) * 100,
         "dup_pairs": sum(len(g) * (len(g) - 1) // 2 for g in pairs),
         "diverged": diverged,
@@ -137,8 +138,6 @@ def z_histogram(values, lo: float = -20.0, step: float = 20.0) -> list[tuple[str
 
 def alpha_stats(blob: bytes) -> dict:
     """Alpha statistics of a packed `.texture` over the whole texel grid."""
-    from PIL import Image
-
     a = np.asarray(Image.open(io.BytesIO(blob)).convert("RGBA"))[..., 3]
     level = np.unique(a)
     return {"size": a.shape, "mean": float(a.mean()), "levels": int(level.size),
@@ -166,19 +165,28 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     targets = [("2B reference (PD2)",
-                args.template / "2b.model"),
-               ("Christie", args.dist / "Christie" / "Christie_LAS.zip")]
+                args.template / "2b.model", "base_df.texture"),
+               ("Christie", args.dist / "Christie" / "Christie_LAS.zip", "_body_df.texture")]
 
     head = (f"{'pack':22s} {'verts':>6s} {'tris':>6s} {'area cm2':>9s} "
             f"{'t/1000cm2':>9s} {'texels/cm':>9s} {'bad verts':>16s} "
             f"{'dup pairs':>10s} {'diverged':>14s}")
     print(head)
     print("-" * len(head))
-    for label, path in targets:
-        if not Path(path).is_file():
+    for label, path, diffuse in targets:
+        if not path.is_file():
             print(f"{label:22s} missing: {path}")
             continue
-        m = measure(_model_bytes(Path(path)))
+        if path.suffix == ".zip":
+            blob = _texture(path, diffuse)
+        else:
+            texture = path.with_name(diffuse)
+            blob = texture.read_bytes() if texture.is_file() else None
+        if blob is None:
+            print(f"{label:22s} missing body diffuse: {diffuse}")
+            continue
+        with Image.open(io.BytesIO(blob)) as tex:
+            m = measure(_model_bytes(path), tex.size)
         print(f"{label:22s} {m['verts']:6d} {m['tris']:6d} {m['area']:9.0f} "
               f"{m['tris_per_1000cm2']:9.0f} {m['texels_per_cm']:9.2f} "
               f"{m['bad_verts']:5d} ({m['bad_pct']:4.1f}%) "
@@ -191,7 +199,7 @@ def main(argv=None) -> int:
             for bucket, count in hist:
                 print(f"    {bucket}: {count}")
     if args.alpha:
-        print("\ndiffuse alpha, whole 1024x1024 texture "
+        print("\ndiffuse alpha, whole texture "
               "(mean / levels / p10 / p50 / p90 / max):")
         for label, zpath, suffix in (
                 ("Christie garment c02_01", args.dist / "Christie" / "Christie_LAS.zip",

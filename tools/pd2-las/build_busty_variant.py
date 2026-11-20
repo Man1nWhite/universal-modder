@@ -37,6 +37,7 @@ from pathlib import Path
 import sys as _dist_sys
 _dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
 from dist_paths import dist_path  # noqa: E402
+from pack_checksum import write_pack_checksum  # noqa: E402
 
 import numpy as np
 
@@ -452,17 +453,14 @@ def build(args) -> int:
         source_zip_sha256=hashlib.sha256(args.source_zip.read_bytes()).hexdigest(),
     )
     zip_path = las_outfit_pack.zip_pack(pack)
-    zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
-    (zip_path.parent / f"{zip_path.name}.sha256").write_text(
-        f"{zip_sha}  {_display_path(zip_path)}\n")
+    zip_sha = write_pack_checksum(zip_path, REPO)
 
     if out_root == DEFAULT_OUT or args.update_dist:
         dist_dir = REPO / "dist" / "Miranda_L4D2"
         dist_dir.mkdir(parents=True, exist_ok=True)
         dist_zip = dist_path(REPO, zip_path.name)
         shutil.copy2(zip_path, dist_zip)
-        dist_zip.with_name(dist_zip.name + ".sha256").write_text(
-            f"{zip_sha}  {dist_zip.relative_to(REPO).as_posix()}\n")
+        write_pack_checksum(dist_zip, REPO)
         print(f"dist: {dist_zip} (sha256={zip_sha[:16]}…)")
 
     # --- previews + report -------------------------------------------------

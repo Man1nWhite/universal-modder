@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae christie cloverchristie heads all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae christie cloverchristie heads hila all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -28,7 +28,7 @@ endef
 help:       ## list the targets
 	@sed -n 's/^\([a-z]*\):.*## /\1\t/p' $(MAKEFILE_LIST)
 
-status:     ## one JSON object: environment, all 20 tracked packs, the next command (needs no venv)
+status:     ## one JSON object: environment, all tracked packs, the next command (needs no venv)
 	@cd "$(ROOT)" && python3 $(HERE)/status.py
 
 env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
@@ -55,7 +55,24 @@ cloverchristie:  ## Christie GLB body-only LAS (experimental, TPP only) -> dist/
 heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
-all: build busty lawson honokodae christie cloverchristie heads  ## every tracked pack
+hila:       ## Honoko5 + Miranda Romance over Hila (native body and head, no LAS) -> dist/Honoka/
+	$(call BUILD,tools/build_hila_body_mod.py)
+
+# These consumers share base build files or read the base ZIP. Order them when
+# both goals are requested, but don't rebuild an existing base for `make heads`.
+ifneq ($(filter all build,$(MAKECMDGOALS)),)
+busty heads: build
+endif
+
+# The direct Hila pack consumes the two assembled donors, not 2B templates.
+ifneq ($(filter all honokodae,$(MAKECMDGOALS)),)
+hila: honokodae
+endif
+ifneq ($(filter all heads,$(MAKECMDGOALS)),)
+hila: heads
+endif
+
+all: build busty lawson honokodae christie cloverchristie heads hila  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)
@@ -69,5 +86,5 @@ fresh:      ## every tracked pack built again in a copy of the tree and compared
 test:       ## the whole suite, offline
 	cd "$(ROOT)" && $(PY) -m pytest -q tests
 
-green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all 20 zips), one line each
+green:      ## everything the test workflow checks (lint, suite, um, knowledge base, publish check, all distribution ZIPs), one line each
 	@cd "$(ROOT)" && $(PY) tools/pd2-port/check_all.py --full

@@ -6,7 +6,8 @@ the exact versions that worked, the route, what the engine really does, how it w
 the **gotchas** (symptom → cause → fix). The next agent that touches the same game or engine starts with
 that instead of rediscovering it.
 
-- [`INDEX.md`](INDEX.md) lists every note (`index.json` is the same data for tools).
+- [`INDEX.md`](INDEX.md) lists every note (`index.json` is the machine-readable index). `um kb index`
+  regenerates both; `um kb check --index` verifies both.
 - `games/<game>/<note>.md` holds one project each. Mashups live under the host game.
 - `techniques/<note>.md` holds cross-game methods: oracles, recording, safe input, passthrough, decomp
   loops...

@@ -56,6 +56,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from dist_paths import dist_path
+from pack_checksum import write_pack_checksum
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -1574,7 +1575,11 @@ def require_templates(path: Path, names=("2b.model", "fps_2b.model")) -> Path:
             f"2B templates not found in {extract_2b.shown(Path(path))} "
             f"(missing: {', '.join(missing)}). Run `{extract_2b.RECOVER}` to unpack "
             "references/2b.rar, or pass --templates DIR.")
-    return Path(path)
+    path = Path(path)
+    if extract_2b.managed(path) and not extract_2b.ready(path):
+        raise SystemExit(f"2B template cache is stale in {extract_2b.shown(path)}. "
+                         f"Run `{extract_2b.RECOVER}` to refresh it.")
+    return path
 
 
 def main(argv=None) -> int:
@@ -1660,19 +1665,15 @@ def main(argv=None) -> int:
     })
     import las_outfit_pack
     zip_path = las_outfit_pack.zip_pack(pack_dir)
-    zip_sha = hashlib.sha256(zip_path.read_bytes()).hexdigest()
-    (zip_path.parent / f"{zip_path.name}.sha256").write_text(
-        f"{zip_sha}  build/pd2-las/{zip_path.name}\n"
-    )
-    if args.out.resolve() == (REPO / "build" / "pd2-las").resolve():
-        dist_dir = REPO / "dist" / "Miranda_L4D2"
-        dist_dir.mkdir(parents=True, exist_ok=True)
+    default_out = args.out.resolve() == (REPO / "build" / "pd2-las").resolve()
+    zip_sha = write_pack_checksum(zip_path, REPO)
+    print(f"pack updated: {zip_path} (sha256={zip_sha[:16]}…)")
+    if default_out:
         dist_zip = dist_path(REPO, zip_path.name)
+        dist_zip.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(zip_path, dist_zip)
-        (dist_zip.with_name(dist_zip.name + ".sha256")).write_text(
-            f"{zip_sha}  {dist_zip.relative_to(REPO).as_posix()}\n"
-        )
-    print(f"pack updated: {unit_dir} (+ dist/{zip_path.name}, sha256={zip_sha[:16]}…)")
+        write_pack_checksum(dist_zip, REPO)
+        print(f"dist: {dist_zip}")
     return 0
 
 

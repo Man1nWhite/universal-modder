@@ -91,10 +91,10 @@ def m_no_unique(files):
 
 
 def m_no_contour_var(files):
-    """M5: contour without the contour_opacity variable."""
+    """M5: one material lacks contour_opacity; its siblings still have it."""
     cfg = files[TPP_CFG].decode()
     files[TPP_CFG] = re.sub(r'\s*<variable value="0" type="scalar" name="contour_opacity"/>',
-                             "", cfg).encode()
+                             "", cfg, count=1).encode()
     return files
 
 
