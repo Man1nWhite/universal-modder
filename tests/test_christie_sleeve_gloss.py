@@ -14,6 +14,7 @@ sys.path[:0] = [str(ROOT / 'tools/pd2-las'), str(ROOT / 'tools/pd2-port')]
 import christie_sleeve_gloss as gloss  # noqa: E402
 import dds as dds  # noqa: E402
 import dds_encode as enc  # noqa: E402
+from extract_2b import MISSING  # noqa: E402
 
 
 def uvs(points):
@@ -109,8 +110,10 @@ def test_real_pack_changes_only_safe_mip0_blocks_and_matches_its_report():
     archive = ROOT / 'dist/Christie/Christie_LAS.zip'
     source = ROOT / 'references/Christie.zip'
     import build_models as bm
-    if not archive.is_file() or not source.is_file() or not (bm.DEFAULT_TEMPLATES / '2b.model').is_file():
-        pytest.skip('Christie pack, source and 2B templates are required')
+    assert archive.is_file(), 'tracked Christie pack is missing'
+    assert source.is_file(), 'tracked Christie source is missing'
+    if not (bm.DEFAULT_TEMPLATES / '2b.model').is_file():
+        pytest.skip(MISSING)
     import build_christie_source as builder
     import christie_fit_probe as fit
 

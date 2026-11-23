@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Experimental Christie source retarget and wrist-cut probe; does not build a mod.
+"""Christie source retarget and wrist-cut geometry used by the LAS builder.
 
-Writes two diagnostic Diesel models and fit metrics under build/. The
+Run standalone, writes two diagnostic Diesel models and fit metrics under build/. The
 retarget and cuff/glove fit have not been checked in game. This deliberately does not write to dist/.
 
 Run after `make -sC tools/pd2-las env`:
@@ -204,7 +204,7 @@ def build():
             raise RuntimeError('\n'.join(problems))
         report['models'][name] = bm.segment_fit_report(path, tpl)
     (OUT / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
-    print(f'Experimental models and measurements: {OUT}')
+    print(f'Diagnostic models and measurements: {OUT}')
 
 
 if __name__ == '__main__':

@@ -149,7 +149,7 @@ is removed, and `test_pd2_las_has_one_entry_point` no longer asserts that `CLAUD
 `AGENTS.md`.
 
 Each new test fails when the defect is put back, and no other test of the file does
-([`mutations.sh`](2026-11-13-agent-entry/mutations.sh), [`after/mutations.txt`](2026-11-13-agent-entry/after/mutations.txt)):
+([`after/mutations.txt`](2026-11-13-agent-entry/after/mutations.txt)):
 
 | Put back | Fails |
 | --- | --- |
@@ -199,7 +199,7 @@ Each new test fails when the defect is put back, and no other test of the file d
 ## Not checked, and who has to
 
 - **A model on the eight tasks.** The walk replays the route the documents give. Whether a model takes that
-  route, I could not run. [`TASKS.md`](2026-11-13-agent-entry/TASKS.md) is the protocol: a fresh session per
+  route, I could not run. `TASKS.md` (the retired protocol) is the protocol: a fresh session per
   task on each commit, calls counted from the transcript. For whoever has a harness with an account; a
   different model is better.
 - **Cursor (editor and CLI), Copilot in VS Code, the Copilot cloud agent, OpenCode.** Cited, not run. The
@@ -296,7 +296,7 @@ page with its evidence; no route of the walk reads any of them.
   `HANDOFF.md` of `df3fe8c` gives 4,582 again.
 
 **Tests of the fixes.** Each fails when its defect is put back, on `b47635d`
-([`mutations.sh`](2026-11-13-agent-entry/mutations.sh), [`fixes/mutations.txt`](2026-11-13-agent-entry/fixes/mutations.txt)); the eleven cases
+([`fixes/mutations.txt`](2026-11-13-agent-entry/fixes/mutations.txt)); the eleven cases
 of the table under "What changed" still fail theirs.
 
 | Put back | Fails |
@@ -496,7 +496,7 @@ gone, and `test_pack_layout_matches_2b_contract` fails on a pack that has one.
 **Are the ten functions used?** The list in the section above came from a search for names. That cannot see
 a call whose name is put together at run time, and it says nothing about a file that is started instead of
 imported, which is what the owner asked. So the five files were measured before anything was deleted
-(`4e15ed6`), with a new tool, [`reach.py`](2026-11-13-agent-entry/reach.py): line coverage in every Python
+(`4e15ed6`), with a new tool, `reach.py` (since removed): line coverage in every Python
 process that a command starts.
 
 | What could use them | How it was looked at | Result |
@@ -581,26 +581,3 @@ Checked on that tree ([`answers/after-confirmation/`](2026-11-13-agent-entry/ans
 
 Not checked: nothing in game, as before. Of the 131 functions that the second measurement saw in no phase,
 two were this function and the one inside it; the other 129 were not gone through.
-
-## Run it again
-
-```sh
-# for the figures of "Fixed after the report", use b47635d in place of df3fe8c; for the last section, b3b6966
-git worktree add --detach ../wt-before 19ca55a && git worktree add --detach ../wt-after df3fe8c
-M=docs/audits/2026-11-13-agent-entry/measure.py           # with tiktoken installed it also counts tokens
-python3 $M walk --tree ../wt-before --routes before        # about 8 minutes; it builds packs
-python3 $M walk --tree ../wt-after --routes after          # about 10 minutes
-python3 $M key --tree ../wt-after                          # the answer key, from the artefacts
-bash docs/audits/2026-11-13-agent-entry/mutations.sh       # the table of defects put back
-
-# which functions of a file does nothing run: about 15 minutes; a file after --also is measured and not started
-.venv/bin/python docs/audits/2026-11-13-agent-entry/reach.py tools/pd2-las/diesel_model.py --also tools/pd2-las/build_models.py
-
-# the --source mode, which no test runs: its five christie_source_*.png against docs/pd2-las/renders/
-.venv/bin/python tools/pd2-las/render_mesh_skeleton.py --source references/Christie.zip --zip dist/Christie_LAS.zip \
-    --pack Christie_LAS --item christie --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b" --out /tmp/source
-for f in /tmp/source/*.png; do cmp "$f" "docs/pd2-las/renders/$(basename "$f")" && echo "same: $(basename "$f")"; done
-
-mkdir ../harness && (cd ../harness && npm install @anthropic-ai/claude-code @openai/codex @google/gemini-cli @github/copilot)
-bash docs/audits/2026-11-13-agent-entry/probe_harness.sh ../wt-after ../harness/node_modules/.bin
-```

@@ -1714,8 +1714,6 @@ class TestLasScaffold:
             ("Miranda_Romance_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
         ):
             zp = dist_path(REPO, zip_name)
-            if not zp.is_file():
-                pytest.skip(f"{zip_name} not built")
             with zipfile.ZipFile(zp) as z:
                 entry = next(n for n in z.namelist() if n.endswith(tex_suffix))
                 arr = np.asarray(Image.open(io.BytesIO(z.read(entry))).convert("RGBA"))
@@ -1759,8 +1757,6 @@ def test_our_packs_have_an_orthonormal_tangent_basis():
     ]
     for zip_name, prefix, model_rel in specs:
         zp = dist_path(REPO, zip_name)
-        if not zp.is_file():
-            pytest.skip(f"{zip_name} not built")
         with zipfile.ZipFile(zp) as z:
             mf = dm.ModelFile.read(z.read(f"{prefix}/{model_rel}"))
         for si, sec in enumerate(mf.by_type(dm.GEOMETRY)):
