@@ -15,6 +15,7 @@ dist/*
 !dist/Christie/
 !dist/Honoka/
 !dist/Geralt/
+!dist/Hila/
 *.egg-info/
 # captures and scratch
 *.mkv
