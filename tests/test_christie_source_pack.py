@@ -14,11 +14,11 @@ sys.path[:0] = [str(ROOT / 'tools/pd2-las'), str(ROOT / 'tools/pd2-port')]
 import build_models as bm  # noqa: E402
 import dds as pd2_dds  # noqa: E402
 import diesel_model as dm  # noqa: E402
+from extract_2b import MISSING  # noqa: E402
 import test_pd2_las_invariants as invariant  # noqa: E402
 
 ZIP = ROOT / 'dist/Christie/Christie_LAS.zip'
 BASE = 'Christie_LAS/'
-pytestmark = pytest.mark.skipif(not ZIP.is_file(), reason='Christie LAS ZIP is absent')
 
 
 def test_package_registration_textures_and_payload():
@@ -126,7 +126,7 @@ def test_real_pack_hooks_with_las_loader():
 def test_elbow_pose_sweep_has_bounded_edge_growth(degrees):
     # A numeric smoke test, not a visual or in-game clearance test.
     if not all((bm.DEFAULT_TEMPLATES / name).is_file() for name in ('2b.model', 'fps_2b.model')):
-        pytest.skip('2B templates are required to pose the model')
+        pytest.skip(MISSING)
     import test_render_mesh_skeleton as posing
     rms, tpl, geo, skin = posing._fixtures()
     initial = np.array(geo['verts'])

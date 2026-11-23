@@ -1,7 +1,7 @@
 """Measure the head <-> body neck junction of a LAS body with a heister head.
 
-The LAS packs are *headless*: they replace the heister's body and keep whatever
-head the heister has, including the eleven head-replacement packs in
+Body-only LAS packs replace the heister's body and keep whatever head the
+heister has, including the eleven head-replacement packs in
 `tools/build_joy_head_mods.py`. Nothing in either pack knows about the other, so
 the throat is where the two meshes have to agree on their own. This tool puts
 the body and the head in one space, ray-casts the throat from the front and from

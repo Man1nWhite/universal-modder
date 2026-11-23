@@ -101,7 +101,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 - Do not retry the approaches under "Dead ends" in `docs/pd2-las/HANDOFF.md`.
 - Do not revive the speculative whole-heister retarget (`docs/audits/2026-10-18-route-change-audit.md`).
 - Do not silence a failing test with a skip or an `xfail`: both are budgeted
-  by `tools/pd2-port/check_skip_budget.py`. The one exception: [Next](#next).
+  by `tools/pd2-port/check_skip_budget.py`.
 - Do not cut a computed value off with `astype(np.uint8)`, and do not decide on a number that is zero up to
   rounding: `determinism.floor8`, `rounded` and `above` stop the build at a boundary; a tie needs a rule (D26).
 - Do not put dates or measurements in this file (`HANDOFF.md`, `MODLOG.md`, the packs' `BUILD_INFO.json`),
@@ -119,7 +119,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
    neither has been seen in game, and every archived capture predates both.
 4. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): texels at
    full gloss in `body_df` and `head_df` of the Miranda packs. `Miranda_Romance_LAS` and the eleven
-   head packs have no record of their tracked bytes in game, and the head packs have no checklist.
+   head packs have no record of their tracked bytes in game.
 
 ## Further reading
 

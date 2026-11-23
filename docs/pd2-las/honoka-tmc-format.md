@@ -17,7 +17,7 @@ the same day. Read the decode sections as written; the last section says what th
 ## What the file is
 
 A Dead or Alive Xtreme Venus Vacation (DOAXVV) costume TMC for the custom
-character Honoka. Sections (`tmc_dump.py`): `MdlGeo` (7 ObjGeo) → `VtxLay`
+character Honoka. Sections: `MdlGeo` (7 ObjGeo) → `VtxLay`
 (11 buffers) + `IdxLay` (8 strips) + `MtrCol` (19) + `MdlInfo` (7) +
 `HieLay` (171 nodes, hierarchy) + `NodeLay` (171 node records) + `GlblMtx`
 (171 world bind matrices, offset table at `+HSize`) + `BnOfsMtx` (171) +
@@ -39,8 +39,7 @@ Tools: `tools/pd2-las/tmc.py` (reader), `tools/pd2-las/tmc_export.py`
 - Positions are **metres**; ×100 reproduces the OBJ `v` coordinates for
   27,970/27,970 body vertices (the OBJ is a different vertex order — a
   permutation was built and used only for cross-checks).
-- Weights: normalized by 255 on export. 62 all-zero rows exist (60 in the
-  feather group + 0 elsewhere… see "Open items"); those are placeholder rows,
+- Weights: normalized by 255 on export. 62 all-zero rows exist; those are placeholder rows,
   rewritten to joint 0 / weight 1.0 and tagged `__unweighted_placeholder`.
 - Normals/tangents are unit length; float `1.0` at @44 is a handedness
   constant (tangent.w in the export).
@@ -115,8 +114,7 @@ by the reader. Total decoded: 38,550 verts / 54,286 tris.
 ## Export
 
 `references/Honoka/Honoka_DOAXVV_Secret_Report.rigged.glb` (~2.9 MB,
-glTF 2.0 binary; 171-joint skin, identity scene = bind pose). Validation
-(`build/honoka-analysis/check_glb.py`, rebuilds everything from the file):
+glTF 2.0 binary; 171-joint skin, identity scene = bind pose). Recorded export validation:
 container/views in bounds; scene lists only `[Hips_root, mesh nodes]`;
 171/171 joints reachable; `W·IBM ≈ I` ≤ 5e-06 per joint; glTF world
 matrices == TMC GlblMtx ≤ 5e-06; all weight rows sum to 1.0; indices in

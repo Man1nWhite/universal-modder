@@ -1,4 +1,4 @@
-"""Exercise the experimental Christie probe against real source and templates."""
+"""Exercise the Christie geometry and diagnostic command against real inputs."""
 import json
 import subprocess
 import sys
@@ -10,15 +10,17 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools' / 'pd2-las'))
 import build_models as bm  # noqa: E402
+from extract_2b import MISSING  # noqa: E402
 import las_outfit_pack as lop  # noqa: E402
 import diesel_model as dm  # noqa: E402
 
 
 def test_source_probe_cuts_both_models_without_touching_dist():
-    if not (ROOT / 'references/Christie.zip').is_file() or not all(
+    assert (ROOT / 'references/Christie.zip').is_file(), 'tracked Christie source is missing'
+    if not all(
         (bm.DEFAULT_TEMPLATES / n).is_file() for n in ('2b.model', 'fps_2b.model')
     ):
-        pytest.skip('Christie source and unpacked 2B templates are required')
+        pytest.skip(MISSING)
     subprocess.run([sys.executable, str(ROOT / 'tools/pd2-las/christie_fit_probe.py')],
                    cwd=ROOT, check=True, capture_output=True, text=True)
     out = ROOT / 'build/christie-fit-probe'
