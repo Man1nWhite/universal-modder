@@ -186,3 +186,24 @@ test duplicated or empty, but three references had outlived what they named:
 two packs whose bytes are newest and unverified — `Christie_Clover_LAS` and the `Honoko5` jewelry diffuse —
 had no checklist to be checked against. Both now have one, numbered in the page's existing style, and
 `tools/pd2-las/README.md`'s "Next" lists them.
+
+## 2026-11-22 — OfficeSuite gains a first-person arms unit
+
+At the owner's request ("make FPS model for hands" for OfficeSuite.zip), `OfficeSuite` now ships
+`fps_officesuite.model`: the same slimmed, cleared outfit arms as the third-person body, cut at the
+wrist with the heister gloves spawning on top, registered with an `fps_unit`, `DEPTH_SCALING`
+materials, no head drawables and no authored hands. The third-person body is untouched and
+`Honoko2`..`Honoko4` reproduce their previous tracked bytes. The in-game first-person check is the
+third item in the OfficeSuite section of `docs/pd2-las/in-game-checklist.md`. The
+`runtime_verified` flag stays `false`; the unit is new tracked bytes, unseen in game. See D53.
+
+## 2026-11-22 — Honoko5 is renamed OfficeSuite
+
+At the owner's request ("change the name of Honoka5.zip to OfficeSuite. And change description to
+'OfficeSuit [LAS]'"), the pack is renamed end to end: the ZIP (`OfficeSuite.zip`), the registration
+(`officesuite`), the hooks, the unit paths, the material slots, the localizations
+(`bm_askn_officesuite`, description `OfficeSuite [LAS]`, menu name `OfficeSuite`), and the native
+Hila override it feeds (`OfficeSuite_Miranda_Romance_over_Hila.zip`). The recorded renders and
+captures are renamed along with it. The third-person geometry, slim, clearance and colourway bytes
+are the same as the pre-rename build. The in-game first-person check stays the third item in the
+OfficeSuite section of `docs/pd2-las/in-game-checklist.md`. See D54.

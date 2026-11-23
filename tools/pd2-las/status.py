@@ -77,10 +77,10 @@ LAS_TARGETS = {
     "Honoko2": "honokodae",
     "Honoko3": "honokodae",
     "Honoko4": "honokodae",
-    "Honoko5": "honokodae",
+    "OfficeSuite": "honokodae",
 }
 # Native full replacements go here; other *_over_* packs are head-only.
-TARGETS = {**LAS_TARGETS, "Honoko5_Miranda_Romance_over_Hila": "hila"}
+TARGETS = {**LAS_TARGETS, "OfficeSuite_Miranda_Romance_over_Hila": "hila"}
 HEADS = "heads"
 
 MAKE = "make -sC tools/pd2-las"

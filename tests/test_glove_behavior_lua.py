@@ -2,7 +2,7 @@
 
 What runs here:
 
-1. an outfit registration matching the shape of a pack that ships no hands (the hook that fills ``LegendaryArmours``, as in ``Christie_LAS`` and ``Honoko2``..``Honoko5``);
+1. an outfit registration matching the shape of a pack that ships no hands (the hook that fills ``LegendaryArmours``, as in ``Christie_LAS`` and ``Honoko2``..``OfficeSuite``);
 2. the real LAS 4.1.9 init hook, verbatim from
    ``tests/fixtures/las_loader_4.1.9.lua``;
 3. the real BeardLib glove code paths — table.merge, get_glove_value,
@@ -12,7 +12,7 @@ What runs here:
    instead of just "having gloves".
 
 The registration below exercises the exact ``BODY_ONLY`` + ``glove_adapter``
-contract shared by ``Christie_LAS`` and ``Honoko2``..``Honoko5``, using a
+contract shared by ``Christie_LAS`` and ``Honoko2``..``OfficeSuite``, using a
 synthetic ``nohands`` stand-in pack id.
 """
 

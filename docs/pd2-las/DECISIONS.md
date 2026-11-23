@@ -1107,3 +1107,39 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `docs/renders/`, or files inside `docs/renders/` that break the `<project>/<ext>/...` layout.
 - **Source:** `docs/renders/README.md`; `tests/test_render_rules.py`.
 - **Status:** holds.
+
+### D53 — `OfficeSuite` ships a first-person arms unit
+
+- **Decided:** 2026-11-22, by the user ("make FPS model for hands" for `OfficeSuite.zip`)
+- **Decision:** `OfficeSuite` alone (the other three packs stay byte-identical) additionally ships
+  `fps_officesuite.model` from the same slimmed, cleared outfit arms, cut at the wrist with the heister
+  gloves spawning on top (`glove_adapter.lua` unchanged), registered with an `fps_unit`,
+  `DEPTH_SCALING` materials and no head, the Christie pattern. The third-person body, the jewelry pass
+  and the registration flags are unchanged; `Honoko2`..`Honoko4` reproduce their previous bytes.
+- **Why:** the pack had `fps_replace_body` with no `fps_unit`, so LAS first-person had nothing of the
+  outfit: the first-person view kept the heister's vanilla arms, not the outfit's sleeves. The
+  slot list of the arms is the arm-weighted jewelry (the cuff) and bra straps, not the chest jewelry.
+- **Held to:** the invariants (`tests/test_pd2_las_invariants.py`, `_stems`) read the `fps_officesuite`
+  model; `fresh` rebuilds and compares the tracked bytes.
+- **Source:** `tools/pd2-las/build_honoko2_dae.py`
+- **Status:** holds.
+
+### D54 — `Honoko5` is renamed to `OfficeSuite`
+
+- **Decided:** 2026-11-22, by the user ("change the name of Honoka5.zip to OfficeSuite. And change
+  description to 'OfficeSuit \[LAS\]'", later confirmed as "OfficeSuite everywhere")
+- **Decision:** the pack is renamed end to end — the ZIP (`OfficeSuite.zip`), the registration id
+  (`LegendaryArmours.officesuite`), the hooks (`officesuite_las.lua`,
+  `officesuite_glove_adapter.lua`), the unit paths (`units/officesuite/skins/officesuite/`), the
+  material slots (`officesuite_<kind>`) and the fps stems (`fps_officesuite`), the localization keys and
+  strings (`bm_askn_officesuite`, description `OfficeSuite [LAS]`, menu name `OfficeSuite`), and the
+  native Hila override it feeds (`OfficeSuite_Miranda_Romance_over_Hila.zip`, the body donor it reads).
+  The tracked zips are rebuilt, so the 2026-11-18 jewelry/colors/clearance bytes are the same.
+  The third-person geometry, scale and clearance are untouched; only the identity moved.
+- **Why:** the costume's name is no longer useful for the mod; the new name describes what the pack is.
+- **Held to:** `tests/test_pd2_las_invariants.py` (`ITEMS`, `_stems`) and the invariants suite;
+  `status.py` tracks `OfficeSuite` and `OfficeSuite_Miranda_Romance_over_Hila`; `fresh` rebuilds and
+  compares the tracked bytes.
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`OFFICE_SUITE`), `tools/pd2-las/status.py`,
+  `tools/pd2-las/dist_paths.py`
+- **Status:** holds.

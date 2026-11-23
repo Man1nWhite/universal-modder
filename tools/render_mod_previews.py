@@ -27,11 +27,11 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `22_Honoko4.png` (Honoko3's geometry in the user's alternate suit colourway)
   - `23_Honoko4_with_Miranda_Romance_over_Hila.png` (Honoko4's body under the Miranda Romance
     over Hila head pack, the combination as installed)
-  - `24_Honoko5.png` (Honoko3's geometry in the user's third suit & jewelry colourway)
-  - `25_Honoko5_with_Miranda_Romance_over_Hila.png` (the same combination for Honoko5)
-  - `26_Honoko5_head_skin_detail.png` (front and three-quarter views of the colour match)
+  - `24_OfficeSuite.png` (Honoko3's geometry in the user's third suit & jewelry colourway, plus the first-person arms panel)
+  - `25_OfficeSuite_with_Miranda_Romance_over_Hila.png` (the same combination for OfficeSuite)
+  - `26_OfficeSuite_head_skin_detail.png` (front and three-quarter views of the colour match)
   - `27_Christie_Clover_LAS.png` (Clover-Christie GLB body-only LAS outfit)
-  - `28_Honoko5_Miranda_Romance_over_Hila.png` (native Hila body and head override)
+  - `28_OfficeSuite_Miranda_Romance_over_Hila.png` (native Hila body and head override)
 
 `00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
@@ -797,7 +797,7 @@ def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Im
         )]
         icon = decode_bgra_icon(zf.read(f"{INSTALL}/{HILA_ICON_PATH}"))
     return render_las_sheet(
-        "Honoko5 + Miranda Romance over Hila", "Native body and head replacement | Offline render | Hila's gloves shown in flat color",
+        "OfficeSuite + Miranda Romance over Hila", "Native body and head replacement | Offline render | Hila's gloves shown in flat color",
         parts, [], icon, out_path, closeup=(18.0, 171.5, 7.4), full_view=(94.0, 2.48),
     )
 
@@ -827,12 +827,12 @@ UNIFIED_PATHS = {
     "22_Honoko4.png": "honoka/model/dae/honoko4_las_sheet.png",
     "23_Honoko4_with_Miranda_Romance_over_Hila.png":
         "honoka/model/dae/honoko4_with_miranda_romance_over_hila_sheet.png",
-    "24_Honoko5.png": "honoka/model/dae/honoko5_las_sheet.png",
-    "25_Honoko5_with_Miranda_Romance_over_Hila.png":
-        "honoka/model/dae/honoko5_with_miranda_romance_over_hila_sheet.png",
-    "26_Honoko5_head_skin_detail.png": "honoka/model/dae/honoko5_head_skin_detail.png",
+    "24_OfficeSuite.png": "honoka/model/dae/officesuite_las_sheet.png",
+    "25_OfficeSuite_with_Miranda_Romance_over_Hila.png":
+        "honoka/model/dae/officesuite_with_miranda_romance_over_hila_sheet.png",
+    "26_OfficeSuite_head_skin_detail.png": "honoka/model/dae/officesuite_head_skin_detail.png",
     "27_Christie_Clover_LAS.png": "christie/model/clover/christie_clover_las_sheet.png",
-    "28_Honoko5_Miranda_Romance_over_Hila.png": "honoka/model/over-hila/honoko5_miranda_romance_over_hila_sheet.png",
+    "28_OfficeSuite_Miranda_Romance_over_Hila.png": "honoka/model/over-hila/officesuite_miranda_romance_over_hila_sheet.png",
 }
 
 
@@ -843,6 +843,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--unified", action="store_true",
                     help="write sheets into <out>/<project>/model/... per docs/renders/README.md")
     ap.add_argument("--only-hila", action="store_true", help="render only the native Hila replacement")
+    ap.add_argument("--only-officesuite", action="store_true",
+                    help="render only the OfficeSuite LAS sheet, with its FPS arms panel")
     args = ap.parse_args(argv)
     out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -852,7 +854,23 @@ def main(argv: list[str] | None = None) -> None:
             return out_dir / UNIFIED_PATHS[name]
         return out_dir / name
 
-    hila_thumb = render_native_hila_sheet(target_for("28_Honoko5_Miranda_Romance_over_Hila.png"))
+    if args.only_officesuite:
+        tpp_os, fps_os, icon_os = load_multi_mat_las_parts(
+            dist_path(ROOT, "OfficeSuite.zip"), "OfficeSuite", "officesuite", has_fps=True
+        )
+        th_os = render_las_sheet(
+            "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
+            "Honoko3's geometry in the user's revised third suit & jewelry colourway | First-person arms unit (fps_officesuite.model) | "
+            "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
+            tpp_os,
+            fps_os,
+            icon_os,
+            target_for("24_OfficeSuite.png"),
+            has_head=False,
+        )
+        return
+
+    hila_thumb = render_native_hila_sheet(target_for("28_OfficeSuite_Miranda_Romance_over_Hila.png"))
     if args.only_hila:
         return
 
@@ -981,46 +999,46 @@ def main(argv: list[str] | None = None) -> None:
         closeup=(18.0, 170.0, 8.0),  # the Miranda head crowns at z 188, above the LAS-sheet default window
     )
 
-    tpp_hon5, fps_hon5, icon_hon5 = load_multi_mat_las_parts(
-        dist_path(ROOT, "Honoko5.zip"), "Honoko5", "honoko5", has_fps=False
+    tpp_os, fps_os, icon_os = load_multi_mat_las_parts(
+        dist_path(ROOT, "OfficeSuite.zip"), "OfficeSuite", "officesuite", has_fps=True
     )
-    th_hon5 = render_las_sheet(
-        "dist/Honoka/Honoko5.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
-        "Honoko3's geometry in the user's revised third suit & jewelry colourway | "
+    th_os = render_las_sheet(
+        "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
+        "Honoko3's geometry in the user's revised third suit & jewelry colourway | First-person arms unit | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
-        tpp_hon5,
-        fps_hon5,
-        icon_hon5,
-        target_for("24_Honoko5.png"),
+        tpp_os,
+        fps_os,
+        icon_os,
+        target_for("24_OfficeSuite.png"),
         has_head=False,
     )
 
     combo5_parts, _ = load_outfit_with_head_parts(
-        "Honoko5.zip", "Honoko5", "honoko5",
+        "OfficeSuite.zip", "OfficeSuite", "officesuite",
         "Miranda_Romance_over_Hila.zip", "Miranda Romance over Hila",
         "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female", "npc_criminal_ecp_female",
     )
     render_las_sheet(
-        "Honoko5 + Miranda Romance over Hila — the combination as installed",
-        "Honoko5's body-only outfit under the Hila head pack's g_head (head + lashes); one character frame, no transform between the packs",
+        "OfficeSuite + Miranda Romance over Hila — the combination as installed",
+        "OfficeSuite's body-only outfit under the Hila head pack's g_head (head + lashes); one character frame, no transform between the packs",
         combo5_parts,
         [],
-        icon_hon5,
-        target_for("25_Honoko5_with_Miranda_Romance_over_Hila.png"),
+        icon_os,
+        target_for("25_OfficeSuite_with_Miranda_Romance_over_Hila.png"),
         has_head=True,
         closeup=(18.0, 170.0, 8.0),
     )
 
     detail = Image.new("RGB", (1200, 626), (18, 22, 30))
     draw = ImageDraw.Draw(detail)
-    draw.text((18, 9), "Honoko5 + Miranda Romance over Hila — head/body skin match", font=FONT_BOLD_16,
+    draw.text((18, 9), "OfficeSuite + Miranda Romance over Hila — head/body skin match", font=FONT_BOLD_16,
               fill=(235, 239, 247))
     draw.text((18, 33), "Offline render | front and three-quarter views | neck geometry unchanged",
               font=FONT_REG_12, fill=(170, 188, 212))
     for i, yaw in enumerate((0.0, 18.0)):
         image = rasterize_parts(combo5_parts, 600, 570, yaw, 0, 24, center=(0, 5, 170.2))
         detail.paste(image, (i * 600, 56))
-    detail_path = target_for("26_Honoko5_head_skin_detail.png")
+    detail_path = target_for("26_OfficeSuite_head_skin_detail.png")
     detail_path.parent.mkdir(parents=True, exist_ok=True)
     detail.save(detail_path)
     print(f"Saved {detail_path}")
@@ -1265,15 +1283,15 @@ def main(argv: list[str] | None = None) -> None:
         ("Honoko2.zip", th_hon2),
         ("Honoko3.zip", th_hon3),
         ("Honoko4.zip", th_hon4),
-        ("Honoko5.zip", th_hon5),
+        ("OfficeSuite.zip", th_os),
         thumbs[10],  # Geralt_over_Rust.zip
-        ("Honoko5 + Miranda over Hila (native)", hila_thumb),
+        ("OfficeSuite + Miranda over Hila (native)", hila_thumb),
     ]
     dist_overview = Image.new("RGB", (tw * 6, th_h * 4 + 58), (16, 19, 26))
     add_header_and_badges(
         dist_overview,
         f"PAYDAY 2 — All {len(all_dist_cells)} Mod Packages in dist/ (Complete Overview)",
-        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, Honoko2-5, Geralt, native Hila",
+        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, Honoko2-4, OfficeSuite, Geralt, native Hila",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

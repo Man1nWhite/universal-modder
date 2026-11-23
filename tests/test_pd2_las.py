@@ -1211,10 +1211,10 @@ class TestLasScaffold:
                     f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
-    def test_honoko4_and_5_are_honoko3_in_the_alt_suits(self):
-        """Honoko4 and Honoko5 retain Honoko3's geometry and use the supplied diffuses.
+    def test_honoko4_and_officesuite_are_honoko3_in_the_alt_suits(self):
+        """Honoko4 and OfficeSuite retain Honoko3's geometry and use the supplied diffuses.
 
-        Honoko4 replaces the suit diffuse; Honoko5 replaces both the suit and jewelry diffuses.
+        Honoko4 replaces the suit diffuse; OfficeSuite replaces both the suit and jewelry diffuses.
         Their original normal maps, slim pass and clearance remain unchanged.
         """
         import hashlib
@@ -1238,7 +1238,7 @@ class TestLasScaffold:
         info3, geos3 = load("Honoko3")
         tex3 = info3["source"]["textures"]
         assert tex3["honoko3_suit_df"]["source"] == "references/Honoka/L_7.dds"
-        for tag, dds in (("Honoko4", "Tex_07(L_7) 2.dds"), ("Honoko5", "Tex_07(L_7)3.dds")):
+        for tag, dds in (("Honoko4", "Tex_07(L_7) 2.dds"), ("OfficeSuite", "Tex_07(L_7)3.dds")):
             info, geos = load(tag)
             stem = tag.lower()
             assert set(geos3) == set(geos)
@@ -1251,7 +1251,7 @@ class TestLasScaffold:
             alt = (REPO / "references" / "Honoka" / dds).read_bytes()
             assert suit["source_sha256"] == hashlib.sha256(alt).hexdigest()
             for slot in ("body", "panties", "bra", "shoes", "jewelry"):
-                if tag == "Honoko5" and slot == "jewelry":
+                if tag == "OfficeSuite" and slot == "jewelry":
                     jewelry = tex[f"{stem}_jewelry_df"]
                     source = REPO / "references/Honoka/Tex_23(L_23)2.dds"
                     assert jewelry["source"] == "references/Honoka/Tex_23(L_23)2.dds"
@@ -1298,7 +1298,7 @@ class TestLasScaffold:
             ends = bases[1:] + [len(V)]
             return {s: V[b:e] for s, b, e in zip(slots, bases, ends)}, len(shadow["atoms"])
 
-        for tag, shadow_atoms in (("Honoko3", 4), ("Honoko4", 4), ("Honoko5", 4), ("Honoko2", 6)):
+        for tag, shadow_atoms in (("Honoko3", 4), ("Honoko4", 4), ("OfficeSuite", 4), ("Honoko2", 6)):
             S, n_shadow = load(tag)
             assert n_shadow == shadow_atoms, f"{tag}: the shadow caster carries {n_shadow} shells"
             if tag == "Honoko2":

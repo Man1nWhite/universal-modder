@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the native Honoko5 + Miranda Romance replacement for Hila (no LAS)."""
+"""Build the native OfficeSuite + Miranda Romance replacement for Hila (no LAS)."""
 from __future__ import annotations
 
 import argparse
@@ -18,16 +18,16 @@ import diesel_model as dm
 from dist_paths import dist_path
 from hila_texture_atlas import TILES, atlas_uvs, make_atlas
 
-PACK = "Honoko5_Miranda_Romance_over_Hila.zip"
-INSTALL = "Honoko5 and Miranda Romance over Hila"
+PACK = "OfficeSuite_Miranda_Romance_over_Hila.zip"
+INSTALL = "OfficeSuite and Miranda Romance over Hila"
 HEAD_ROOT = "Miranda Romance over Hila/"
-OUTFIT_DIR = "units/honoko5/skins/honoko5"
+OUTFIT_DIR = "units/officesuite/skins/officesuite"
 UNIT = f"{HILA_UNIT_DIR}/{HILA_UNIT_STEM}"
 MATERIAL = f"{HILA_UNIT_DIR}/mtr_criminal_ecp_female"
 SUIT_SHADER = "generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
 ATLAS_ASSETS = {"diffuse_texture": f"{UNIT}_suite_df", "bump_normal_texture": f"{UNIT}_suite_nm"}
 
-INSTALL_NOTE = f"""Honoko5 + Miranda Romance over Hila
+INSTALL_NOTE = f"""OfficeSuite + Miranda Romance over Hila
 
 Extract the '{INSTALL}' folder into PAYDAY 2/assets/mod_overrides/.
 Remove other Hila body/head overrides first, including the standalone Miranda over Hila mods.
@@ -272,10 +272,10 @@ def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> bytes:
         source = np.asarray(dw[knee][12:15])
         knees.append((source, np.asarray(nw[rebind[knee]][12:15]) - source))
 
-    slots_by_hash = {dm.hash64(f"honoko5_{slot}"): slot for slot in TILES}
+    slots_by_hash = {dm.hash64(f"officesuite_{slot}"): slot for slot in TILES}
     slots = [slots_by_hash[h] for h in body.material_hashes(honoko)]
     if sorted(slots) != sorted(TILES):
-        raise ValueError("expected the six Honoko5 material slots")
+        raise ValueError("expected the six OfficeSuite material slots")
     skin_atom, = (a for a in body.data["atoms"] if slots[a["material_id"]] == "body")
     cuffs = [_measure_cuff(body, skin_atom, hands, side, names, nw) for side in ("Left", "Right")]
     ids, weights = _skin_streams(body, rebind, dw)
@@ -327,7 +327,7 @@ def _material_config(xml: bytes) -> bytes:
         if material.find(slot).get("file") != path:
             raise ValueError(f"unexpected Hila suit {slot} texture path")
     material.set("render_template", SUIT_SHADER)
-    # Hila's old GSMA is painted for another UV layout. Honoko5 uses gloss in
+    # Hila's old GSMA is painted for another UV layout. OfficeSuite uses gloss in
     # the diffuse alpha and a DXT5nm normal map; leave every other slot alone.
     material.remove(material.find("material_texture"))
     return ET.tostring(root, encoding="utf-8", xml_declaration=True) + b"\n"
@@ -339,7 +339,7 @@ def build(honoko_zip: Path, head_zip: Path, out: Path) -> None:
                  if not info.is_dir() and info.filename.startswith(HEAD_ROOT)}
     with ZipFile(honoko_zip) as src:
         def outfit(path: str) -> bytes:
-            return src.read(f"Honoko5/assets/{OUTFIT_DIR}/honoko5{path}")
+            return src.read(f"OfficeSuite/assets/{OUTFIT_DIR}/officesuite{path}")
 
         model = dm.ModelFile.read(outfit(".model"))
         for channel, suffix in (("diffuse_texture", "df"), ("bump_normal_texture", "nm")):
@@ -358,7 +358,7 @@ def build(honoko_zip: Path, head_zip: Path, out: Path) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--honoko", type=Path, default=dist_path(ROOT, "Honoko5.zip"), help="Honoko5 body donor ZIP")
+    parser.add_argument("--honoko", type=Path, default=dist_path(ROOT, "OfficeSuite.zip"), help="OfficeSuite body donor ZIP")
     parser.add_argument("--head", type=Path, default=dist_path(ROOT, "Miranda_Romance_over_Hila.zip"), help="Hila head donor ZIP")
     parser.add_argument("--out", type=Path, default=dist_path(ROOT, PACK), help="output ZIP (plus SHA-256 sidecar)")
     args = parser.parse_args(argv)

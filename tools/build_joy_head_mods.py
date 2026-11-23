@@ -1082,7 +1082,7 @@ def load_hila_eye_texture(size: int = 1024) -> np.ndarray:
 def match_romance_hila_skin_to_honoka(atlas: np.ndarray) -> np.ndarray:
     """Warm/lighten the face and scalp skin for Honoko without tinting hair, eyes or gloss.
 
-    Honoko5's exposed upper-neck diffuse samples have median RGB around 204/152/123;
+    OfficeSuite's exposed upper-neck diffuse samples have median RGB around 204/152/123;
     Romance-over-Hila's adjacent scalp-skin samples are around 170/134/107. A restrained
     channel gain moves the two closer. A soft skin-colour mask preserves dark hair, lashes
     and mouth details; only the face and scalp quadrants are considered. Integer arithmetic

@@ -34,7 +34,7 @@ def test_skin_tint_preserves_dark_details_other_quadrants_and_gloss():
 def test_hila_neck_diffuse_is_closer_to_honoko_than_untinted_romance():
     """Compare RGB medians on the same sampled upper-neck mesh, before and after tint."""
     parts, _ = previews.load_outfit_with_head_parts(
-        'Honoko5.zip', 'Honoko5', 'honoko5',
+        'OfficeSuite.zip', 'OfficeSuite', 'officesuite',
         'Miranda_Romance_over_Hila.zip', 'Miranda Romance over Hila',
         'units/pd2_dlc_ecp/characters/npc_criminals_ecp_female', 'npc_criminal_ecp_female')
     with zipfile.ZipFile(dist_path(ROOT, 'Miranda_Romance_over_Joy.zip')) as z:

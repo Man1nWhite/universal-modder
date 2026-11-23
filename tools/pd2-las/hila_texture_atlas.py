@@ -1,4 +1,4 @@
-"""Fit Honoko5's six BC3 texture pairs into Hila's existing suit texture slots.
+"""Fit OfficeSuite's six BC3 texture pairs into Hila's existing suit texture slots.
 
 Native mod_overrides can replace existing resources; it cannot register twelve
 new texture names. Both atlases have the same layout, and the diffuse tiles
@@ -48,7 +48,7 @@ def _double_blocks(tile: np.ndarray) -> np.ndarray:
 
 def make_atlas(textures: dict[str, bytes], *, normal: bool) -> bytes:
     if textures.keys() != TILES.keys():
-        raise ValueError("atlas needs one texture for each Honoko5 material")
+        raise ValueError("atlas needs one texture for each OfficeSuite material")
     # Empty space is neutral; none of it falls in a mapped UV island.
     empty = (255, 128, 0, 128) if normal else (0, 0, 0, 0)
     bg = dds.encode_bc3_texels(np.full((1, 16, 4), empty, dtype=np.uint8))[0]
@@ -88,7 +88,7 @@ def make_atlas(textures: dict[str, bytes], *, normal: bool) -> bytes:
 def atlas_uvs(uv: np.ndarray, faces: np.ndarray, slot: str) -> np.ndarray:
     """Affinely map a donor atom's UV islands into one atlas tile.
 
-    Honoko5's V can be outside [0, 1], but each triangle stays inside one
+    OfficeSuite's V can be outside [0, 1], but each triangle stays inside one
     repeat. Reject a donor that straddles repeats: applying modulo to *that*
     triangle's vertices would paint a stripe across it instead of wrapping.
     The codec negates V on disk; tile placement is in disk/sampler coordinates.
