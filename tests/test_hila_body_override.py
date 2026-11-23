@@ -20,10 +20,10 @@ import fresh  # noqa: E402
 from dist_paths import dist_path  # noqa: E402
 from hila_texture_atlas import BLOCK_LEVELS, GUTTER, HEIGHT, TILES, WIDTH, atlas_uvs  # noqa: E402
 
-PACK = dist_path(ROOT, "Honoko5_Miranda_Romance_over_Hila.zip")
-BODY = dist_path(ROOT, "Honoko5.zip")
+PACK = dist_path(ROOT, "OfficeSuite_Miranda_Romance_over_Hila.zip")
+BODY = dist_path(ROOT, "OfficeSuite.zip")
 HEAD = dist_path(ROOT, "Miranda_Romance_over_Hila.zip")
-DONOR_UNIT = f"Honoko5/assets/{hila.OUTFIT_DIR}/honoko5"
+DONOR_UNIT = f"OfficeSuite/assets/{hila.OUTFIT_DIR}/officesuite"
 
 
 def _read(path, prefix):
@@ -138,7 +138,7 @@ def test_skin_rim_reaches_inside_the_stock_glove_and_follows_that_hand(models, s
     orig = hila.Drawable.read(donor, "g_body")
     objs, worlds = bm._resolve_worlds(output)
     names = {obj["name_hash"]: sid for sid, obj in objs.items()}
-    donor_skin = next(a for a in orig.data["atoms"] if orig.material_hashes(donor)[a["material_id"]] == dm.hash64("honoko5_body"))
+    donor_skin = next(a for a in orig.data["atoms"] if orig.material_hashes(donor)[a["material_id"]] == dm.hash64("officesuite_body"))
     cuff = hila._measure_cuff(orig, donor_skin, hands, side, names, worlds)
     wrist = worlds[cuff.hand][12:15]
     raw_rim = hila._rim(orig, np.array(wrist), cuff.axis, -3.4, -1.9, hila._atom_faces(orig, donor_skin))
@@ -182,7 +182,7 @@ def test_atom_uvs_sample_the_same_texels_on_the_new_atlas(models):
     body = hila.Drawable.read(output, "g_body")
     orig = hila.Drawable.read(donor, "g_body")
     mats = orig.material_hashes(donor)
-    slots_by_hash = {dm.hash64(f"honoko5_{slot}"): slot for slot in TILES}
+    slots_by_hash = {dm.hash64(f"officesuite_{slot}"): slot for slot in TILES}
     new_uv = np.asarray(body.geo["uv0"]) * (WIDTH, -HEIGHT)
     old_uv = (np.asarray(orig.geo["uv0"]) * (1, -1)) % 1
     for old_atom, new_atom in zip(orig.data["atoms"], body.data["atoms"], strict=True):

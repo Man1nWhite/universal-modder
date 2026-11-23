@@ -67,7 +67,7 @@ ITEMS = {
     "Honoko2": "honoko2",
     "Honoko3": "honoko3",
     "Honoko4": "honoko4",
-    "Honoko5": "honoko5",
+    "OfficeSuite": "officesuite",
 }
 PACKS = tuple(ITEMS)
 RESTORE = "a tracked pack is missing; restore it with `make -sC tools/pd2-las env`"
@@ -184,6 +184,8 @@ def _model(pack: str, stem: str) -> Model:
 
 def _stems(pack: str) -> tuple:
     """The models of a pack: third person, plus first person when the pack ships one."""
+    if pack == "OfficeSuite":
+        return (ITEMS[pack], f"fps_{ITEMS[pack]}")
     if pack.startswith("Honoko") or pack == "Christie_Clover_LAS":
         return (ITEMS[pack],)
     return (ITEMS[pack], f"fps_{ITEMS[pack]}")

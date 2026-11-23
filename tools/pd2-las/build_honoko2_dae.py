@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the Honoka "Secret Report" `.dae` outfit as PD2 LAS packs: Honoko2/3/4/5.
+"""Build the Honoka "Secret Report" `.dae` outfit as PD2 LAS packs: Honoko2/3/4 and OfficeSuite.
 
 Unlike the earlier TMC-only build (deleted 2026-11-15, D40), which merged the raw
 `.TMC` meshes into 3 material slots and overlaid the unbuttoned `WGT_cap2` jacket
@@ -12,27 +12,30 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   overlapping `WGT_cap2` shell that z-fights on the torso and back.
 * **6 proper material slots per pack** parsed from the `.dae` bindings and paired
   with their source normal maps (`references/Honoka/L_*.dds`, plus `Tex_07(L_7) 2.dds`
-  and `Tex_07(L_7)3.dds` for `Honoko4` and `Honoko5`):
+  and `Tex_07(L_7)3.dds` for `Honoko4` and `OfficeSuite`):
   - `<id>_body`: `L_3.dds` / `L_4.dds`
   - `<id>_suit`: `L_7.dds` (or variant `Tex_07`) / `L_8.dds`
   - `<id>_panties`: `L_14.dds` / `L_15.dds`
   - `<id>_bra`: `L_17.dds` / `L_18.dds`
   - `<id>_shoes`: `L_20.dds` / `L_21.dds`
-  - `<id>_jewelry`: `L_23.dds` (or `Tex_23(L_23)2.dds` in Honoko5) / `L_24.dds`
+  - `<id>_jewelry`: `L_23.dds` (or `Tex_23(L_23)2.dds` in OfficeSuite) / `L_24.dds`
 * **Skinning transfer from `.TMC`** — the Noesis `.dae` export omits
   `<library_controllers>`, while every `.dae` vertex matches its corresponding
   vertex in `Honoka_DOAXVV_Secret_Report.TMC` to ~0.0001 cm. Exact 4-weight +
   palette-remapped influences are transferred from the TMC, then retargeted onto
   the 2B PD2 skeleton via `tmc_skeleton_map.json` + `build_models.retarget_maps`.
-* **Four third-person BODY_ONLY LAS packs (`LegendaryArmours.honoko2..5`)** —
+* **Four third-person BODY_ONLY LAS packs (`LegendaryArmours.honoko2..4`, `officesuite`)** —
   `Honoko2` (base proportions), `Honoko3` (mildly slimmed thighs/bust), `Honoko4`
-  (alternate suit diffuse), and `Honoko5` (alternate suit and jewelry diffuses
+  (alternate suit diffuse), and `OfficeSuite` (alternate suit and jewelry diffuses
   plus waist/hip/cuff fit adjustments), cutting hands at the PD2 wrists for
-  heister gloves (`glove_adapter.lua`) and writing deterministic `dist/Honoka/Honoko2..5.zip`
-  + `.sha256`.
+  heister gloves (`glove_adapter.lua`) and writing deterministic `dist/Honoka/` zips
+  + `.sha256`. `OfficeSuite` additionally ships the first-person arms unit
+  (`fps_officesuite.model`) from the same slim/cleared arms, registered with
+  `fps_unit`, DEPTH_SCALING materials, no head and no authored hands: the
+  sleeves end at the wrist cut with the heister gloves spawning on top.
 
 Earlier builds were inspected in game (`docs/renders/honoka/in-game/`).
-The latest Honoko5 jewelry is not verified in game; see `docs/pd2-las/HANDOFF.md`.
+The latest OfficeSuite jewelry is not verified in game; see `docs/pd2-las/HANDOFF.md`.
 
 Usage:
   make -sC tools/pd2-las env
@@ -85,6 +88,9 @@ class PackSpec:
     slim: float = 1.0
     clearance: bool = False
     tex_override: dict = field(default_factory=dict)  # garment kind -> diffuse DDS name
+    # ships a first-person arms unit (the outfit's sleeves down to the wrist cut,
+    # gloves spawning on top, DEPTH_SCALING materials); the TPP body is unchanged
+    fps: bool = False
 
     @property
     def unit_base(self) -> str:
@@ -97,6 +103,14 @@ class PackSpec:
     @property
     def tpp_unit(self) -> str:
         return f"{self.unit_base}/{self.item_id}"
+
+    @property
+    def fps_unit(self) -> str | None:
+        return f"{self.unit_base}/fps_{self.item_id}" if self.fps else None
+
+    @property
+    def fps_stem(self) -> str | None:
+        return f"fps_{self.item_id}" if self.fps else None
 
     def slot(self, kind: str) -> str:
         """Material slot (and texture stem) for one source garment kind."""
@@ -160,21 +174,18 @@ HONOKO4 = PackSpec(
 
 #: Honoko3/4's geometry in the user's third colourway: `references/Honoka/Tex_07(L_7)3.dds`
 #: (revised black jacket and light shirt), updated by the user at `main` 526480e (D45/D46).
-HONOKO5 = PackSpec(
-    item_id="honoko5",
-    pack_dir="Honoko5",
-    display_name="Honoka (Secret Report DAE, slim, black suit)",
-    description=(
-        "The slim 'Secret Report' build of Honoko3 in the user's third suit colourway (black jacket, "
-        "light shirt): same Collada .dae, same 5% bone-anchored slim and layer clearance, the suit "
-        "slot textured from the supplied third diffuse. Legendary Armour Skins BODY_ONLY outfit."
-    ),
+OFFICE_SUITE = PackSpec(
+    item_id="officesuite",
+    pack_dir="OfficeSuite",
+    display_name="OfficeSuite",
+    description="OfficeSuite [LAS]",
     slim=0.95,
     clearance=True,
     tex_override={"suit": "Tex_07(L_7)3.dds", "jewelry": "Tex_23(L_23)2.dds"},
+    fps=True,
 )
 
-PACKS = (HONOKO2, HONOKO3, HONOKO4, HONOKO5)
+PACKS = (HONOKO2, HONOKO3, HONOKO4, OFFICE_SUITE)
 
 # Source garment kinds, in the deterministic order the material slots are emitted in; every DAE
 # submesh maps to exactly one kind, and each pack names its slots `<item_id>_<kind>`.
@@ -607,6 +618,25 @@ def render_material_config(spec: "PackSpec") -> str:
     return "".join(parts)
 
 
+def render_fps_material_config(spec: "PackSpec", slots: list[str]) -> str:
+    """The first-person unit's material config: DEPTH_SCALING, no contour, no unique."""
+    def fps_mat(slot: str) -> str:
+        return (
+            f'    <material name="{slot}" version="2"\n'
+            '              render_template="generic:DEPTH_SCALING:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS">\n'
+            f'        <diffuse_texture file="{spec.unit_base}/{slot}_df"/>\n'
+            f'        <bump_normal_texture file="{spec.unit_base}/{slot}_nm"/>\n'
+            "    </material>\n"
+        )
+
+    parts = [f'<materials version="3" group="{spec.fps_stem}">\n\n']
+    for slot in slots:
+        parts.append(fps_mat(slot) + "\n")
+    parts.append('    <material name="shadow_caster" render_template="shadow_caster_only:SKINNED_1WEIGHT" version="2"/>\n')
+    parts.append("</materials>")
+    return "".join(parts)
+
+
 def registration(spec: "PackSpec"):
     import las_outfit_pack as lop
 
@@ -616,7 +646,7 @@ def registration(spec: "PackSpec"):
         description=spec.description,
         unit=spec.tpp_unit,
         flags=lop.BODY_ONLY,
-        fps_unit=None,
+        fps_unit=spec.fps_unit,
         category=spec.item_id,
         icon=f"{spec.gui_base}/{spec.item_id}",
         hook_file=f"{spec.item_id}_las.lua",
@@ -781,6 +811,7 @@ def build_pack(
     out: Path,
     no_previews: bool,
     source: dict,
+    fps_template=None,
 ) -> Path:
     """Transfer the shared source model into `spec`'s skeleton, package it, and write its zip."""
     import hashlib as _hl
@@ -829,9 +860,38 @@ def build_pack(
 
     tpp_mf = bm.assemble_model(template, groups, share, drop_drawables=("g_head", "g_head_lod1"))
 
+    # The first-person unit: the same slimmed, cleared outfit arms as the
+    # third-person body (the FPS skeleton shares the PD2 bind pose, so the same
+    # geometry lands where the viewmodel skeleton expects it), the hands cut at
+    # the wrist with the heister gloves spawning on top. No head drawables.
+    fps: dict = {}
+    if spec.fps:
+        if fps_template is None:
+            raise SystemExit("a pack with fps=True needs the fps 2B template (--templates)")
+        arms = bm.extract_bones(groups["outfit"], bm.is_fps_arm_bone, "arms")
+        arm_shadow = bm.extract_bones(groups["shadow"], bm.is_fps_arm_bone, "arm_shadow")
+        fps_mf = bm.assemble_model(
+            fps_template,
+            {"arms": arms, "shadow": arm_shadow},
+            {"g_body": "arms", "g_body_lod1": "arms", "s_body": "shadow"},
+            drop_drawables=("g_head", "g_head_lod1"),
+        )
+        fps = {"arms": arms, "shadow": arm_shadow, "mf": fps_mf}
+        work.mkdir(parents=True, exist_ok=True)
+        work_tmp = work / f".{spec.item_id}_fps_audit_tmp.model"
+        work_tmp.write_bytes(fps_mf.write())
+        fps["audit"] = bm.audit_model(work_tmp)
+        work_tmp.unlink()
+
     work.mkdir(parents=True, exist_ok=True)
     tpp_path = work / f"{spec.item_id}.model"
     tpp_path.write_bytes(tpp_mf.write())
+    fps_path = None
+    if spec.fps:
+        if fps["audit"]:
+            raise ValueError(f"{spec.item_id} fps model fails the audit: {fps['audit']}")
+        fps_path = work / f"fps_{spec.item_id}.model"
+        fps_path.write_bytes(fps["mf"].write())
 
     textures, tex_report = build_textures(spec)
     reg = registration(spec)
@@ -871,6 +931,22 @@ def build_pack(
         render_material_config(spec).encode("utf-8")
     )
 
+    if spec.fps:
+        assert fps_path is not None
+        fps_stem = spec.fps_stem
+        fps_unit = spec.fps_unit
+        fps_bytes = fps_path.read_bytes()
+        fps_drawables = lop.model_drawables(fps_bytes)
+        fps_slots = sorted(set(fps["arms"].mat_slots))
+        (unit_dir / f"{fps_stem}.model").write_bytes(fps_bytes)
+        (unit_dir / f"{fps_stem}.unit").write_bytes(lop.render_unit_xml(fps_unit).encode("utf-8"))
+        (unit_dir / f"{fps_stem}.object").write_bytes(
+            lop.render_object_xml(fps_unit, fps_drawables).encode("utf-8")
+        )
+        (unit_dir / f"{fps_stem}.material_config").write_bytes(
+            render_fps_material_config(spec, fps_slots).encode("utf-8")
+        )
+
     payload = {
         path.relative_to(pack).as_posix(): _hl.sha256(path.read_bytes()).hexdigest()
         for path in sorted(pack.rglob("*"))
@@ -884,7 +960,7 @@ def build_pack(
             "table": f"LegendaryArmours.{spec.item_id}",
             "flags": list(lop.BODY_ONLY),
             "unit": spec.tpp_unit,
-            "fps_unit": None,
+            "fps_unit": spec.fps_unit,
             "glove_adapter": True,
         },
         "models_present": True,
@@ -897,6 +973,15 @@ def build_pack(
         },
         "payload_sha256": payload,
     }
+    if spec.fps:
+        build_info["fps"] = {
+            "model": f"{spec.fps_stem}.model",
+            "unit": spec.fps_stem,
+            "drawables": lop.model_drawables(fps_path.read_bytes()),
+            "slots": sorted(set(fps["arms"].mat_slots)),
+            "arms": {"verts": len(fps["arms"].verts), "tris": len(fps["arms"].faces)},
+            "shadow": {"verts": len(fps["shadow"].verts), "tris": len(fps["shadow"].faces)},
+        }
     if slim_report is not None:
         build_info["slim"] = slim_report
     if clear_report is not None:
@@ -920,6 +1005,12 @@ def build_pack(
         "zip_sha256": zip_sha256,
         "drawables": drawables,
         "cut": cut_report,
+        "fps": ({
+            "drawables": lop.model_drawables(fps_path.read_bytes()),
+            "arms": {"verts": len(fps["arms"].verts), "tris": len(fps["arms"].faces)},
+            "shadow": {"verts": len(fps["shadow"].verts), "tris": len(fps["shadow"].faces)},
+            "slots": sorted(set(fps["arms"].mat_slots)),
+        } if spec.fps else None),
         "groups": {
             gname: {"verts": len(g.verts), "tris": len(g.faces), "palette": list(g.palette)}
             for gname, g in groups.items()
@@ -957,12 +1048,16 @@ def main(argv=None) -> int:
     import tmc as tmc_mod
     import tmc_las
 
-    require = bm.require_templates(args.templates, ("2b.model",)) / "2b.model"
+    need_fps = any(spec.fps for spec in PACKS)
+    require = bm.require_templates(
+        args.templates, ("2b.model", "fps_2b.model") if need_fps else ("2b.model",)
+    ) / "2b.model"
     if not args.dae.is_file():
         raise SystemExit(f"missing Collada input: {args.dae}")
     if not args.source_zip.is_file():
         raise SystemExit(f"missing TMC archive: {args.source_zip}")
     template = bm.load_template(require)
+    fps_template = bm.load_template(args.templates / "fps_2b.model") if need_fps else None
 
     dae_bytes = args.dae.read_bytes()
     dae_sha = _hl.sha256(dae_bytes).hexdigest()
@@ -1005,6 +1100,7 @@ def main(argv=None) -> int:
             args.out,
             args.no_previews,
             source,
+            fps_template=fps_template,
         )
     return 0
 

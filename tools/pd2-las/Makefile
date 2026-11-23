@@ -43,7 +43,7 @@ busty:      ## Miranda_L4D2_Busty_LAS -> dist/Miranda_L4D2/
 lawson:     ## Miranda_Romance_LAS -> dist/Miranda_Romance/
 	$(call BUILD,tools/pd2-port/build_las_pack.py)
 
-honokodae:  ## Honoko2..Honoko5 (DOAXVV 'Secret Report' from .dae, TPP-only) -> dist/Honoka/
+honokodae:  ## Honoko2..OfficeSuite (DOAXVV 'Secret Report' from .dae; OfficeSuite also ships the FPS arms unit) -> dist/Honoka/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
 
 christie:   ## headless and handless Christie LAS, TPP and FPS -> dist/Christie/
@@ -55,7 +55,7 @@ cloverchristie:  ## Christie GLB body-only LAS (experimental, TPP only) -> dist/
 heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
-hila:       ## Honoko5 + Miranda Romance over Hila (native body and head, no LAS) -> dist/Honoka/
+hila:       ## OfficeSuite + Miranda Romance over Hila (native body and head, no LAS) -> dist/Honoka/
 	$(call BUILD,tools/build_hila_body_mod.py)
 
 # These consumers share base build files or read the base ZIP. Order them when

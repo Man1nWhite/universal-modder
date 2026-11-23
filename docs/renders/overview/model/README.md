@@ -4,5 +4,5 @@
 - **Source packs:** All mod packages in `dist/`.
 - **Files:**
   - [`all_miranda_mods_sheet.png`](all_miranda_mods_sheet.png): 6x2 comparison grid of the 12 core Miranda Lawson packages (top row: L4D2 Full-Body LAS, Joy, Clover, Bonnie, Sydney, Hila; bottom row: ME2 Romance Full-Body LAS, Joy, Clover, Bonnie, Sydney, Hila).
-  - [`all_dist_mods_sheet.png`](all_dist_mods_sheet.png): 6x4 complete overview grid covering every `.zip` package in `dist/` (adds `Miranda_L4D2_Busty_LAS.zip`, `Christie_LAS.zip`, `Christie_Clover_LAS.zip`, `Honoko2.zip`, `Honoko3.zip`, `Honoko4.zip`, `Honoko5.zip`, `Geralt_over_Rust.zip`, and `Honoko5_Miranda_Romance_over_Hila.zip`).
+  - [`all_dist_mods_sheet.png`](all_dist_mods_sheet.png): 6x4 complete overview grid covering every `.zip` package in `dist/` (adds `Miranda_L4D2_Busty_LAS.zip`, `Christie_LAS.zip`, `Christie_Clover_LAS.zip`, `Honoko2.zip`, `Honoko3.zip`, `Honoko4.zip`, `OfficeSuite.zip`, `Geralt_over_Rust.zip`, and `OfficeSuite_Miranda_Romance_over_Hila.zip`).
 - **Caveats:** Offline software Z-buffer renders; see each project's leaf folder under `docs/renders/<project>/model/` for individual multi-angle sheets and pack-specific notes.

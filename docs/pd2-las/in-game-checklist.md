@@ -181,28 +181,34 @@ quality and anisotropic filter before starting.
 Afterwards check the game's crash logs and BLT log for anything naming `clover_christie` or
 `LegendaryArmours.clover_christie`.
 
-## Honoko5 — the jewelry diffuse (2026-11-18)
+## OfficeSuite — the jewelry diffuse (2026-11-18)
 
-Pack to install: `dist/Honoka/Honoko5.zip` → drop `Honoko5` into `PAYDAY 2\assets\mod_overrides\`.
+Pack to install: `dist/Honoka/OfficeSuite.zip` → drop `OfficeSuite` into `PAYDAY 2\assets\mod_overrides\`.
 Only the jewelry diffuse changed (`references/Honoka/Tex_23(L_23)2.dds`, D50); the geometry, the
 suit and the registration are the same as the build the 2026-11-15 captures show, so a difference
-seen here and nowhere else belongs to `L_23`.
+seen here and nowhere else belongs to `L_23`. The pack also ships a first-person arms unit now
+(D53): the third-person body is untouched, but the first-person check below is new.
 
 1. **The jewelry reads correctly** — necklace, chain and brooch sit on the jacket with no seam
    across the collar and no wrong-chroma patch where the old diffuse's UV island was.
 2. **It matches the suit** — the jewelry and the black jacket are lit by the same light without the
    jewelry looking like a separate cut-out pasted on top.
+3. **First person** — a heist with a weapon out, reload and interact once: the outfit's sleeves show
+   from the wrists to the hands, the jewelry cuff and the bra straps read as part of the outfit, the
+   heister's vanilla gloves spawn at the wrist cut, and nothing is missing, duplicated or clipped.
+   The cuff and straps are arm-weighted geometry by construction; the hands stay the heister's.
 
 Everything else for this pack is covered by the 2026-11-15 sections of the render pages; the
-captures there predate this texture and cannot be used to judge it.
+captures there predate this texture and cannot be used to judge the jewelry, and predate the
+first-person unit entirely.
 
 ## Native Hila body + head override (no LAS)
 
-Install only `dist/Honoka/Honoko5_Miranda_Romance_over_Hila.zip` for Hila, following the
+Install only `dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip` for Hila, following the
 [install notes](../renders/honoka/model/over-hila/README.md). Select Hila's default outfit and gloves.
 The ZIP was checked offline; these steps still need the game:
 
-1. In the lobby/menu, rotate Hila: Honoko5's black jacket, light shirt and jewelry, and Miranda's
+1. In the lobby/menu, rotate Hila: OfficeSuite's black jacket, light shirt and jewelry, and Miranda's
    Romance head should all show together, with no pink materials or missing triangles.
 2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
    neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should

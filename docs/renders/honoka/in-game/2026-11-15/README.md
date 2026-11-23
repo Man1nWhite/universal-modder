@@ -9,9 +9,9 @@ menu's scroll bars and the Russian menu heading visible at the edges.
   `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` by `tools/pd2-las/build_honoko2_dae.py`
   (`make -sC tools/pd2-las honokodae`). The user states these captures are of this pack. The slimmer
   siblings `dist/Honoka/Honoko3.zip` (same outfit, mesh scaled 5% about the rig's bones, D42) and
-  `dist/Honoka/Honoko4.zip` / `dist/Honoka/Honoko5.zip` (alternate suit colourways, D44–D46, D50) are
-  **not** in these frames (`Honoko5`'s own menu/lobby captures are archived separately under
-  [`../honoko5/2026-11-15/`](../honoko5/2026-11-15/README.md)).
+  `dist/Honoka/Honoko4.zip` / `dist/Honoka/OfficeSuite.zip` (alternate suit colourways, D44–D46, D50) are
+  **not** in these frames (`OfficeSuite`'s own menu/lobby captures are archived separately under
+  [`../officesuite/2026-11-15/`](../officesuite/2026-11-15/README.md)).
 - **Camera/view convention:** the game's preview turntable, seen from the front, three-quarter, side and
   back as the player rotates the character. No fixed camera: the eight frames are the rotations the user
   captured, not eight renders of one camera.

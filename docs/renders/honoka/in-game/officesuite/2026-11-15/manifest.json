@@ -4,8 +4,8 @@
   "screenshots": [
     {
       "upload": "image-15.png",
-      "file": "honoko5_menu_front.png",
-      "pack": "Honoko5",
+      "file": "officesuite_menu_front.png",
+      "pack": "OfficeSuite",
       "view": "outfit menu, front",
       "width": 554,
       "height": 1018,
@@ -15,8 +15,8 @@
     },
     {
       "upload": "image-16.png",
-      "file": "honoko5_menu_side.png",
-      "pack": "Honoko5",
+      "file": "officesuite_menu_side.png",
+      "pack": "OfficeSuite",
       "view": "outfit menu, side",
       "width": 529,
       "height": 1014,
@@ -26,8 +26,8 @@
     },
     {
       "upload": "image-17.png",
-      "file": "honoko5_lobby_threequarter.png",
-      "pack": "Honoko5",
+      "file": "officesuite_lobby_threequarter.png",
+      "pack": "OfficeSuite",
       "view": "menu/lobby, upper body with rifle",
       "width": 547,
       "height": 1062,

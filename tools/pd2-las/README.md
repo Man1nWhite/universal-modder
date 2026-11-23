@@ -12,7 +12,7 @@ or running game is needed.
 | `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 | `Christie_LAS` — no head or hands; glove adapter, TPP and FPS | `references/Christie.zip` | `build_christie_source.py` | `christie` |
 | `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
-| `Honoko2`..`Honoko5` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`Honoko5` are `Honoko3` in the user's alternate suit colourways (plus a jewelry diffuse override in `Honoko5`) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `Honoko2`..`OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`OfficeSuite` are `Honoko3` in the user's alternate suit colourways (plus a jewelry diffuse override in `OfficeSuite`); only `OfficeSuite` ships a first-person arms unit (`fps_officesuite.model`, glove adapter unchanged) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status
@@ -55,7 +55,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_busty_variant.py`, `bust_variant.py` | the chest-morph variant |
-| `build_honoko2_dae.py`, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the Honoko2..Honoko5 LAS packs built from the Collada `.dae` with the TMC's skinning, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
+| `build_honoko2_dae.py`, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the Honoko2..OfficeSuite LAS packs built from the Collada `.dae` with the TMC's skinning, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
 | `build_christie_source.py`, `christie_fit_probe.py`, `christie_sleeve_gloss.py`, `build_clover_christie.py`, `clover_christie_glb.py` | Christie Source retarget + TPP/FPS pack, and experimental Clover-Christie GLB intake + TPP pack |
 | `las_outfit_pack.py`, `dist_paths.py` | shared registration, hook, localization, unit/object XML, zip, glove-adapter companion, and canonical `dist/` path map |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
@@ -112,10 +112,10 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 ## Next
 
 1. In-game verification with `docs/pd2-las/in-game-checklist.md` (sections for `Miranda_L4D2_LAS`,
-   `Christie_LAS`, `Christie_Clover_LAS` and the `Honoko5` jewelry swap); it needs a human
+   `Christie_LAS`, `Christie_Clover_LAS` and the `OfficeSuite` jewelry swap); it needs a human
    with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the Miranda rebuild.
 2. The native Hila body/head pack awaits its own [in-game check](../../docs/pd2-las/in-game-checklist.md#native-hila-body--head-override-no-las); it needs neither LAS nor BeardLib.
-3. `Christie_Clover_LAS` and `Honoko5`'s `Tex_23(L_23)2.dds` jewelry are the newest unverified bytes:
+3. `Christie_Clover_LAS` and `OfficeSuite`'s `Tex_23(L_23)2.dds` jewelry are the newest unverified bytes:
    neither has been seen in game, and every archived capture predates both.
 4. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): texels at
    full gloss in `body_df` and `head_df` of the Miranda packs. `Miranda_Romance_LAS` and the eleven
