@@ -1,0 +1,888 @@
+hila_id,hila_speech,hila_category,miranda_suggested_text,miranda_file_hint,match_type
+712675,"(pained) You, hey!",Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+1149328,On your feet!,Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+1806387,"Last chance motherfucker, down.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+1884286,On me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+2425875,On me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+2643233,"Hey, Sokol!",Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+3358066,Move it!,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+3439862,You gotta help me!,Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+3809559,Bonnie.,Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+4646339,Sokol.,Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+4733345,The drill is jammed.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+5406681,"Hey, Hoxton!",Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+5884207,The drill is fucking jammed!,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+6352252,I'm so fucked up here!,Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+6497207,Down!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+7591312,Help me with these cuffs.,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+7874395,Fire in the hole!,Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+8173908,Wolf.,Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+8208111,"Down, hit the floor!",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+9204524,"If you try to make a phone call, it would be your last.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+9493679,Follow.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+9639198,Follow me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+9726729,Just stay down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+10767856,"Talk, fucker!",Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+11336755,Something's wrong with the computer.,Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+12352202,Come with me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+12651471,Pick my cuffs.,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+12840920,"I'm in bad shape, this is not good!",Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+12917222,Jiro!,Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+13450280,This is it.,Here,This is it. Here. This is the place. — Sanctuary is a lie. Stay away.,cithub_tp_miranda_a / bchlml_villagefirst_d,semantic: location
+13565624,Tony.,Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+13663504,Come with me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+14192205,Help me get these cuffs off.,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+14916926,Down the stairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+15069966,"Hey, Bodhi.",Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+15477016,"Come on, I wanna get back in the fight.",Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+16113018,"Medic bag here, guys!",Deploy medic bag,"Medic bag here, guys! — You are hurt bad. You will be okay. I will fix you up.",norvx_loyalty_01_h / norvx_relationship_00_h,tone: healing
+16456601,This should be easy.,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+17072196,"Yeah, I thought I saw a fire, but it's nothing.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+17150976,Come with me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+17436170,"Hey, Bonnie.",Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+17975779,Shield!,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+18442008,Watch that camera.,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+18633009,I killed the taser!,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+18765061,Rust!,Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+19403899,Follow me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+19464577,Dozer.,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+20422574,Help me get these cuffs off!,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+20669691,Careful.,Careful,Careful. Be careful now. — This radiation is causing serious problems...,horcr1 / profre,tone: hazard warning
+21348768,"Hey, Bonnie.",Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+21831033,Hit the floor.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+21951798,Hands up!,Cop intimidate,My job. Wilson betrayed us all. — Wilson execution,procer_vixen_intro_d / cspcr2_bodies_a,tone: authoritative kill
+22620499,Time to leave.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+22945418,Jiro!,Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+23671359,A taser!,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+23771464,"Fix it, please?",Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+24201607,We have to fix it!,Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+25015608,Come with me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+25179200,Help me with these cuffs.,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+25223303,Dragan.,Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+25227191,"(pained) That's better, thanks.",Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+25869127,Sniper got it!,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+25898405,The computer is fucking stuck!,Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+25981636,Run!,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+27791329,"Hey, Jiro!",Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+28653028,Hold on!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+28862520,The cloaker is dead!,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+28880249,"Uh… I thought there was something going on, but ther-there's nothing.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+29263470,Clover.,Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+29320553,"It's fucking payday, guys!",Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+29342489,"Hey, Chains.",Call Chains,Chains! — Shepard chain of command,procer,
+29476265,On me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+29656571,"(pained) Thanks, I feel better now.",Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+29989176,A sniper.,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+30240564,To the right.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+30285069,"It's dead here, nothing happening.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+31488955,We're drilling!,Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+31514573,Motherfuckers are pulling back!,Cops leaving,Motherfuckers are pulling back! — They are running away!,pronor / procer,tone: retreat
+31565714,Clover!,Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+31595544,A turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+32799900,"(pained) Hey, you!",Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+33079031,"Look out, guard!",Mark guard,"It is a guard. — Remember, you do not wanna be on CCTV.",cithub / norcva,tone: stealth spot
+34260111,What the...,Unknown,What the... This is gonna hurt. — I do not have that fire you have...,bchlml_epilogue_h / norvx_relationship_00_h,tone: confusion
+35750267,Don't move.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+35804455,Jacket!,Call Jacket,Jacket! — Jacob (jacket approx Jacob),procer,
+36726963,This is gonna hurt.,Unknown,What the... This is gonna hurt. — I do not have that fire you have...,bchlml_epilogue_h / norvx_relationship_00_h,tone: confusion
+36727215,On me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+36882393,Hang tight.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+37865430,"Five stars guys, five stars.",Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+38061287,Faster.,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+38122979,"Dozer is down, baby!",Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+38154759,Rust.,Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+38194864,"(pained) Medic bag, please!",Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+38255886,(pained) I need help!,Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+38674220,I'm in bad shape here!,Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+38675368,That was great!,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+39349334,"(pained) Ah, hey!",Request for help while downed,"My father hurt me, but he did not break me. I am my own person. — vulnerable call",horcr1 / bchlml_villagefirst_d,tone: call for help
+39454845,Jiro.,Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+40199905,This will be fun.,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+40427227,"Hey, Dallas!",Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+41252363,Follow me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+41522521,"Fuck it, control. Just leave me alone, okay?",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+42020235,Follow me!,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+43001300,Help me get these cuffs off.,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+46133662,Duke!,Call Duke,Duke! — The Illusive Man. (duke=magnate),pronor_illusive_c,tone: authority
+46229853,Clover.,Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+46330127,Follow.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+46948660,Follow me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+47568290,"I thought I saw something strange, but it was nothing. All good.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+48422921,Hoxton.,Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+48700578,Follow.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+48870786,Kneel.,Cop intimidate,My job. Wilson betrayed us all. — Wilson execution,procer_vixen_intro_d / cspcr2_bodies_a,tone: authoritative kill
+49788282,Stick 'em up!,Cop intimidate,My job. Wilson betrayed us all. — Wilson execution,procer_vixen_intro_d / cspcr2_bodies_a,tone: authoritative kill
+50447831,Follow.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+50730555,"Hey, Jimmy!",Call Jimmy,Jimmy! — Shepard,norvx,
+50775744,It's a shield!,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+51172570,"Sorry control, I was just dreaming about vacations.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+51486768,Answer me now!,Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+51500457,"Come on, this way.",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+53109029,Pick my cuffs!,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+53200928,Why's this taking so long?,Complaining,Why is this taking so long? — I do not have that fire you have...,twrvxl_oldfriend_d / norvx,tone: impatience
+53477525,Fucking tear gas!,Tear gas,Fucking tear gas! — This radiation... (hazard),horcr1 / endgm2_warnings_a,tone: environmental hazard
+55114421,"Ummm I wasn't sleeping, honest.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+56065099,Hey Sydney!,Call Sydney,Sydney! — Oriana (female ally),twrvxl,
+57048755,Help me with these cuffs.,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+57175721,"Out, get out!",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+57249869,Chains!,Call Chains,Chains! — Shepard chain of command,procer,
+57837082,It's a dozer.,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+59054985,Got it!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+60039454,Follow me.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+60096046,Medic is gone.,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+60133243,"Oh, shit!",Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+60171458,Watch the cloaker!,Mark cloaker,Watch the cloaker! — We are not alone here.,cithub_first_time_d / n7,tone: stealth
+62129805,Answer!,Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+63199875,Where is my fucking medic bag?,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+63349578,"Hey control, um... I had this strange dream last night. I was some kind of a YouTube star. It's- It was weird, pretty cringey.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+64053990,Houston.,Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+64714247,Get up!,Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+64872191,We gotta get it fixed.,Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+65094768,Jimmy!,Call Jimmy,Jimmy! — Shepard,norvx,
+65707289,What's going on here anyway?,Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+65952437,Dozer!,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+66233421,This way!,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+66270605,"Stick 'em up, motherfucker!",Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+67131743,"Hey, Sydney.",Call Sydney,Sydney! — Oriana (female ally),twrvxl,
+67770398,Now you have to talk!,Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+67793031,Computer is down.,Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+67918619,Watch the cameras,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+68496372,"Stay down, or I'll fucking kill you!",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+69257662,They got a captain!,Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+70810198,Ethan!,Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+71632553,"Drop your gun, now!",Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+71979512,Get down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+72538971,"Hey, Sokol!",Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+72938199,Hey Tony.,Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+73306592,Sangres.,Call Sangres,Sangres. — krohub/kroprl,krohub,
+73478115,"Hey, Jimmy.",Call Jimmy,Jimmy! — Shepard,norvx,
+73612626,It's a shield.,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+74193580,Sangres.,Call Sangres,Sangres. — krohub/kroprl,krohub,
+74283047,Down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+74323576,You wanna (live/leave?) don't you?,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+75649716,Something's wrong with the computer.,Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+76083230,"Hey, Tony.",Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+76166528,Shield is gone.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+77789407,Go up.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+77931645,Duke.,Call Duke,Duke! — The Illusive Man. (duke=magnate),pronor_illusive_c,tone: authority
+78485353,Wick.,Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+78512648,Turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+80374011,I said down!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+80410541,I can't see!,Flashbanged,I cannot see! Flashbang! — I cannot see through the smoke!,endgm2_warnings_a,tone: sensory loss
+81580957,This is not good.,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+81740689,(pained) They got me!,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+82684468,"It'd be easier for me to shoot you, so don't try me.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+83072968,"Hey, wanna go shoot some (?) after we get off work?",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+83379609,Not much ammo left!,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+83688756,"Shield is down, baby!",Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+84461972,We gotta fix this shit.,Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+84531155,This looks really bad.,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+85071354,"Down, motherfucker!",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+85865199,I dropped a body bag case.,Deploy body bag case,I dropped a body bag case. — handling bodies (cspcr2_bodies is literally bodies),cspcr2_bodies,tone: body handling
+86465451,"Come on, let's fix it.",Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+86537177,"There's nothing happening here, control.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+87107871,"Thanks, you got here just in time.",Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+87233072,"Hey, Sokol.",Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+87277211,I'm low on ammo.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+87374911,Let's go.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+87556193,Jacket.,Call Jacket,Jacket! — Jacob (jacket approx Jacob),procer,
+88087986,A medic!,Mark medic,They got a medic! — support target,omggra / omgpra,tone: support
+88149280,"Hey, Houston.",Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+90339926,Ethan.,Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+91403409,"Hey, Bodhi!",Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+91594349,"Fucking talk, now!",Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+91611063,Put those cuffs on.,Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+91765018,Come on.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+92229830,"I've killed many people like you before, don't fuck with me.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+92652955,Watch that camera.,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+93272676,"Hey, Sydney!",Call Sydney,Sydney! — Oriana (female ally),twrvxl,
+93274119,Sniper.,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+94270922,Shield.,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+94894296,"Hey, Jiro.",Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+94915891,Sniper!,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+95955618,"Watch out, a captain!",Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+96005975,Just stay quiet and I won't kill you.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+96100490,"Stop being so nervous over there, nothing's going on.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+96179233,"Hey, Ethan!",Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+97042443,I got you.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+97113610,Something's wrong with the drill.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+97284969,We're untouchable!,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+97968730,Ethan.,Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+99069140,"Hey, Houston!",Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+99778908,Need a medic bag.,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+99807660,Help me with these fucking cuffs.,Request for help while cuffed,Pick my cuffs. — Cerberus has kept her safe. Until now.,bchlml / twrvxl_aboutaboy_h,tone: restrained
+100412034,"Hey, Jacket.",Call Jacket,Jacket! — Jacob (jacket approx Jacob),procer,
+101151328,"Nothing is on fire. I repeat, nothing is on fire.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+101271003,Stay with me now.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+101611732,They got a sniper.,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+101639907,Careful now.,Careful,Careful. Be careful now. — This radiation is causing serious problems...,horcr1 / profre,tone: hazard warning
+103439689,Fucking get up.,Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+103668556,"Hey, control I... I just accidentally tripped my radio, it's fine.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+105461661,Stay off your phones if you wanna (live/leave?),Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+105962157,Tear gas!,Tear gas,Fucking tear gas! — This radiation... (hazard),horcr1 / endgm2_warnings_a,tone: environmental hazard
+106075211,They're pulling back.,Cops leaving,Motherfuckers are pulling back! — They are running away!,pronor / procer,tone: retreat
+106479821,Turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+106860196,"Relax, man. You guys are so tense up there.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+106937455,"Hey, wolf!",Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+107211812,Down!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+107668707,Get in.,Inside,Get inside. — I have cleared the engine room. I will be there in 5 minutes.,norvx_starter_h / norcvc,tone: interior move
+108233147,Don't think I won't kill you.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+108414273,"Watch it, grenade.",Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+108802057,"Hey, chains.",Call Chains,Chains! — Shepard chain of command,procer,
+109991197,"Shit, they shot me.",Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+111866469,They got a dozer.,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+112261018,That was perfect.,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+112605938,They're running away!,Cops leaving,Motherfuckers are pulling back! — They are running away!,pronor / procer,tone: retreat
+112780582,Holy shit.,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+113267085,Move it.,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+113313295,"Hey, Clover.",Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+113530814,The cops are coming.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+114013197,"Get down, now.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+114222846,Dallas!,Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+116834972,I got the sniper.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+117530395,"Hey, Chains.",Call Chains,Chains! — Shepard chain of command,procer,
+120078764,"Hey, Bodhi!",Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+120562467,Cops incoming.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+120638084,Jump down here.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+120864113,"Shit, the drill is jammed.",Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+120990697,Over there.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+121232196,Let's get out of here.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+122140721,You'll be fine.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+122197228,What the fuuck?,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+122647751,Taser is gone.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+123133230,"Okay, on my way!",Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+123908190,"Hey, Sokol.",Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+124521265,It's a dozer!,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+124587299,Hang on!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+124587299,I dropped an ammo bag.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+125866102,Jimmy.,Call Jimmy,Jimmy! — Shepard,norvx,
+125973272,I got the drill working.,Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+126299091,Watch the shield.,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+126439259,The shield is dead.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+130493548,Rust.,Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+130720407,"Nothing to worry about here, control. I got this covered.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+130811711,Someone get me a medic bag.,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+130859193,It's a cloaker.,Mark cloaker,Watch the cloaker! — We are not alone here.,cithub_first_time_d / n7,tone: stealth
+132551829,"Hey, Sangres.",Call Sangres,Sangres. — krohub/kroprl,krohub,
+134605380,"Hey, Hoxton.",Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+134605380,Out.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+135239856,I'm low on ammo.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+135278368,"Down, down.",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+135346911,This the wrong way.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+135641862,"Down, get down!",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+136512045,"Okay, let's do this.",Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+137252366,It's stuck.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+137850560,Jimmy.,Call Jimmy,Jimmy! — Shepard,norvx,
+137880362,Right.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+138424177,"Hey, Dragan.",Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+138738562,Straight ahead.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+138909262,I got the cloaker.,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+139329478,It's a medic!,Mark medic,They got a medic! — support target,omggra / omgpra,tone: support
+140409813,Move.,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+140883476,I'm gonna fucking kill you.,Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+141438519,Hold on.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+142299276,Wick.,Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+143235036,A taser!,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+143717224,I got the taser.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+144430074,Down.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+145631441,The drill is fucking jammed.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+146534951,They got a shield.,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+146791506,The shield got it.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+147066633,"Hey control, uh... we should start streaming on the job, right? Just to show the world how boring it is?",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+147601729,Come on!,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+148316428,Straight ahead.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+148654663,Move.,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+148667655,Get ready to kill them.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+150238217,Be careful now.,Careful,Careful. Be careful now. — This radiation is causing serious problems...,horcr1 / profre,tone: hazard warning
+151204021,Chains.,Call Chains,Chains! — Shepard chain of command,procer,
+151275512,"Die, assholes!",Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+151983472,"Fucking drill, shit.",Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+152693469,Fuck!,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+153253285,Bodhi!,Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+153297963,They got a taser.,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+153349992,Down the stairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+154070709,Left.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+155404682,It's tear gas!,Tear gas,Fucking tear gas! — This radiation... (hazard),horcr1 / endgm2_warnings_a,tone: environmental hazard
+155941628,Ready to rumble.,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+156054794,It's a captain.,Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+157218705,And stay there.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+157308488,Stay still.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+158742829,Dallas.,Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+159825962,"If you talk, you die.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+160735974,You look like shit.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+161197672,Down.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+161709394,Run.,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+161846212,"Yeah, I've set the drill up!",Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+163666886,Bonnie.,Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+164278810,Come on.,Follow,Follow me. / Come with me.,norvx_starter_h_S_INT / pronor,semantic: identical verb
+164377190,It's a turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+165206730,"Come on, faster!",Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+165650032,"Get ready, pigs incoming.",Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+165880624,"Nothing happening here, nope. Nothing.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+165950540,"Hey, Houston.",Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+166385533,"Hey, Ethan.",Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+166437134,We showed those fuckers!,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+166718975,Flashbang!,Flashbanged,I cannot see! Flashbang! — I cannot see through the smoke!,endgm2_warnings_a,tone: sensory loss
+168075996,"Watch out, it's a camera.",Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+168644482,You can't go down again.,Reviving (last down),You cannot go down again. Next time you are finished.,endgm2_warnings_a / endgm2_team_c_fail_c,tone: last-chance
+169513614,"Let's go, guys.",Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+171614543,"Hey, Wolf.",Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+171623921,"Hey, Bodhi.",Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+173181437,"Uh... I thought I misplaced my gun, but I found it. It's all good.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+174322045,Be right there.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+174707640,"Hey, Wick.",Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+175302272,Sangres.,Call Sangres,Sangres. — krohub/kroprl,krohub,
+175927349,Stay down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+176613229,Jacket.,Call Jacket,Jacket! — Jacob (jacket approx Jacob),procer,
+178196989,"Hey, Clover.",Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+178944284,Get down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+179163471,Let's go.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+179717450,Hoxton.,Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+180008979,Make sure they behave.,Watch the civillians,"I am still human, Shepard. I make mistakes — like everyone else. — generic vulnerable",norvx_relationship (generic fallback),fallback
+180206718,"Hurry up, guys.",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+182483678,"Get down, asshole.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+183245596,Hoxton.,Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+183761559,Jimmy.,Call Jimmy,Jimmy! — Shepard,norvx,
+183881230,Sokol!,Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+184360773,I got the taser.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+185565868,"Hey, Tony.",Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+185702489,Ammo bag here.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+186294121,Watch that camera.,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+187568327,I dropped a body bag case.,Deploy body bag case,I dropped a body bag case. — handling bodies (cspcr2_bodies is literally bodies),cspcr2_bodies,tone: body handling
+188069214,I said down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+189759294,Fuck you!,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+190339578,"Hey, Rust.",Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+191339565,On my way.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+191726614,The medic is dead.,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+191733893,Dragan.,Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+191786442,Bonnie.,Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+192513693,We're drilling.,Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+193567327,Dozer is gone.,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+194144547,Sokol.,Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+195239764,"Speak up, now!",Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+195479092,Cloaker is dead.,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+195776709,This is it,This is the place,This is the place. — Sanctuary is a lie. Stay away.,bchlml_villagefirst_d / cithub,semantic: place confirm
+197046340,"Okay, secured.",Gage package,"It is secured. Okay, secured. — We have it secured.",cspcr2 / endgm2,tone: secure
+197344844,You can't go down like this again.,Reviving (last down),You cannot go down again. Next time you are finished.,endgm2_warnings_a / endgm2_team_c_fail_c,tone: last-chance
+197975793,They got a dozer.,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+199417180,It's a sniper.,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+200748758,Okay.,Got it,"Got it. Okay. — I got it. Okay, lets do this.",norvx_starter_h / procer_cover_tutorial_a,semantic: acknowledge
+201117291,Wolf.,Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+201428224,"You don't wanna mess with me, you're not gonna like it.",Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+201792539,"Camera, there.",Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+202945309,Grenade!,Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+203326203,"Hey, Jacket.",Call Jacket,Jacket! — Jacob (jacket approx Jacob),procer,
+203920730,They got a sniper.,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+204760317,We gotta get this fixed.,Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+206309940,"Dozer is down, baby!",Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+208465641,"Hey, Sydney.",Call Sydney,Sydney! — Oriana (female ally),twrvxl,
+209090262,Chains.,Call Chains,Chains! — Shepard chain of command,procer,
+209477805,Wolf.,Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+209792435,I'm not sure you'll make it.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+210434210,Wolf!,Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+212169879,And stay down!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+213469675,There's a guard there.,Mark guard,"It is a guard. — Remember, you do not wanna be on CCTV.",cithub / norcva,tone: stealth spot
+213724598,"Talk, motherfucker!",Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+213835843,They got a taser.,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+214936466,You'll be okay.,Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+214984592,Camera.,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+215056467,"Hey, Duke.",Call Duke,Duke! — The Illusive Man. (duke=magnate),pronor_illusive_c,tone: authority
+217223942,"Cloaker is down, baby!",Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+217694504,We good to go yet?,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+218260537,"Hey, Jacket!",Call Jacket,Jacket! — Jacob (jacket approx Jacob),procer,
+218567506,A fucking captain.,Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+220807506,I got you.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+221567123,Hila will save you.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+221721081,Almost out of ammo.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+221910023,Ethan.,Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+221921609,"Yeah, that's the way to do it.",Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+223507290,Oh shit.,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+224196270,Straight on.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+224620993,Tony.,Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+226873037,"No, fuck!",Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+226987217,"Get down, now.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+227041204,The dozer got it.,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+227715826,Are you done yet?,Unknown,What the... This is gonna hurt. — I do not have that fire you have...,bchlml_epilogue_h / norvx_relationship_00_h,tone: confusion
+229031743,"Come on, guys.",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+229665819,Dropped a first aid kit.,Deploy first aid kit,Dropped a first aid kit! — same as medic,norvx,tone: healing
+229762148,There.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+230563670,Don't move!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+230604447,That was the perfect crime.,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+232366092,"Hey, Wick!",Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+232693516,Left.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+232836185,Tony.,Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+232887839,The medic got it.,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+233720555,Hold on!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+233837757,Go down.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+234213065,Sniper is dead.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+234291616,I'm running out of ammo.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+234371426,"Hey, Bonnie.",Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+234763697,This is taking too long.,Complaining,Why is this taking so long? — I do not have that fire you have...,twrvxl_oldfriend_d / norvx,tone: impatience
+235248491,Move!,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+237853546,"Hey control, there's some really interesting spiders here. I'll show you a photo later.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+238057031,Stay down and stay quiet.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+238190789,It's jammed.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+241409516,Sniper is down.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+241666771,Killed the taser.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+241802335,"Time to go, come on!",Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+242159822,Jump down.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+242249243,Holy shit.,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+243103183,"Shit, a turret.",Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+243464593,You talk or you die!,Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+244077832,Fire in the hole.,Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+245462380,Wait 'till the smoke clears!,Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
+246326296,I dropped a medic bag.,Deploy medic bag,"Medic bag here, guys! — You are hurt bad. You will be okay. I will fix you up.",norvx_loyalty_01_h / norvx_relationship_00_h,tone: healing
+246922862,Taser!,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+247891200,"A quiet hostage is a survivor, remember that.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+248096016,The fucking drill is jammed.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+248470875,You're gonna be okay.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+250073154,What tha hell?,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+252347288,"Stay down, fucking baby.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+252440010,Ammo bag please.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+252561897,They never knew what hit them.,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+253300849,Be right there.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+253712795,This computer is a piece of shit.,Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+256692301,I killed the dozer.,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+256840580,"Nothing, control. Just dropped my radio.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+256857993,Up.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+257706439,Stay put!,Stay,Stay. Stay put! — Stay down. Stay still.,procer_vixen_shuttle_d / bchlml,tone: hold position
+258714659,It's secured.,Gage package,"It is secured. Okay, secured. — We have it secured.",cspcr2 / endgm2,tone: secure
+260170061,Tony.,Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+260346549,"Hey, Wick.",Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+260918556,They got a medic.,Mark medic,They got a medic! — support target,omggra / omgpra,tone: support
+261047341,"Hey, Hoxton.",Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+262642471,"Come on, hurry up.",Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+266650384,"Hey, Duke.",Call Duke,Duke! — The Illusive Man. (duke=magnate),pronor_illusive_c,tone: authority
+267904550,And stay down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+268733336,Jiro.,Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+269111937,Just kill the fucks!,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+269114652,Finally some action.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+269175478,Get up and fight!,Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+270099262,"Sorry, control. Just zoned out for a bit.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+272546978,The drill is working.,Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+274179976,Perfect score.,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+275673952,Rust.,Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+275797261,Got it.,Got it,"Got it. Okay. — I got it. Okay, lets do this.",norvx_starter_h / procer_cover_tutorial_a,semantic: acknowledge
+276378330,"Oh shit, it's the cops.",Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+277629280,I dropped a medic bag here.,Deploy medic bag,"Medic bag here, guys! — You are hurt bad. You will be okay. I will fix you up.",norvx_loyalty_01_h / norvx_relationship_00_h,tone: healing
+277805206,Jump down.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+282714011,Down.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+283011197,Hang tight.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+283251835,It's stuck.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+283448227,Bodhi.,Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+284022890,Something's wrong with the computer.,Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+284106102,Bombs away!,Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+285050332,"Thanks, I thought I was gone.",Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+285562613,"Uh... I thought there was something wrong with my radio. All good now, though.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+286809095,Finally some action.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+287895833,Get up.,Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+288115525,"Hey, Sangres.",Call Sangres,Sangres. — krohub/kroprl,krohub,
+288173111,It's a taser!,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+288584219,I'll help you!,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+288740889,A captain!,Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+289727490,Catch this.,Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+292392831,Hang on.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+293400143,It's gonna be hard to top that one.,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+293418070,Can someone fix it?,Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+294322928,"Hey, Tony.",Call Scarface,"Tony. Hey, Tony. — Henry. My father. / Illusive Man. (boss)",pronor_illusive_c,tone: boss call
+294530470,There's a guard.,Mark guard,"It is a guard. — Remember, you do not wanna be on CCTV.",cithub / norcva,tone: stealth spot
+295178733,"Here, jump down.",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+295889439,"Hey, Dragan.",Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+296647770,"Hey, control. My boyfriend uses adult diapers and it's kinda grossing me out. Do you think that's sexist?",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+298035204,"Hey, Jimmy.",Call Jimmy,Jimmy! — Shepard,norvx,
+299701935,Drop your weapon.,Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+300802813,"Shit, tear gas!",Tear gas,Fucking tear gas! — This radiation... (hazard),horcr1 / endgm2_warnings_a,tone: environmental hazard
+301592523,They shot me.,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+304861566,I'll fix you up.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+304990667,Move.,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+309121594,I killed the medic.,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+309893279,"Come on, let's get outta here.",Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+309893552,The cloaker got it.,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+311356263,It's a sniper!,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+311745845,Dallas.,Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+312195319,Duke.,Call Duke,Duke! — The Illusive Man. (duke=magnate),pronor_illusive_c,tone: authority
+314040527,"Watch out, grenade!",Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+317420406,Watch with the fucking drill.,Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+318681474,Get ready to kill some motherfuckers.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+319581967,Bodhi.,Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+319712703,Cloaker.,Mark cloaker,Watch the cloaker! — We are not alone here.,cithub_first_time_d / n7,tone: stealth
+320021097,Dragan!,Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+320058935,Don't die now.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+320478599,"Hey, Jiro!",Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+321272692,"Come on, get up!",Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+322419892,The medic is dead.,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+322572569,Let's get out.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+324143036,Don't fuck with me now if you wanna (leave/live?),Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+324394484,Houston!,Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+324400985,It's a guard.,Mark guard,"It is a guard. — Remember, you do not wanna be on CCTV.",cithub / norcva,tone: stealth spot
+324865574,Let's steal some shit.,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+325140795,"Oh yeah, we did it!",Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+326101393,"Kneel, asshole.",Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+327548561,This is the place.,This is the place,This is the place. — Sanctuary is a lie. Stay away.,bchlml_villagefirst_d / cithub,semantic: place confirm
+329738971,On your fuckin' knees.,Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+329960406,I killed the shield.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+332580980,They have a medic!,Mark medic,They got a medic! — support target,omggra / omgpra,tone: support
+334461628,Who's got an ammo bag?,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+334984034,"Hey, Rust.",Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+335050314,"Hey, Ethan.",Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+336150807,I killed the shield.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+336929007,This doesn't look good.,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+338541936,"Hey, Dallas.",Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+341455364,Time to go.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+342025694,"Hey, control. We need to talk; I don't think you understand what your job is.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+342759590,"Quiet and compliant, that's right.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+343817333,Watch the sniper!,Mark sniper,They got a sniper! — Take your best shot.,norgta / norcva,tone: ranged
+344281795,Sniper is gone.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+344978029,"Hey, Sangres.",Call Sangres,Sangres. — krohub/kroprl,krohub,
+348644644,Straight on.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+349638833,Squeak and I'll fucking kill you.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+350472624,I got the dozer.,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+350583635,Move it.,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+351107635,"Hey, Wolf.",Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+353348303,"Don't fuck with me, down.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+354026747,And stay down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+354353421,Oh my god.,Complaining,Why is this taking so long? — I do not have that fire you have...,twrvxl_oldfriend_d / norvx,tone: impatience
+354725859,"(pained) Ah, I'm hit.",Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+360192217,Get up!,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+360212887,Get up and fight!,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+363332505,You - down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+363341056,Get down!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+367121922,Up!,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+367844222,They got a turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+367896263,Down on your knees.,Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+368435520,"Flashbang, I can't see!",Flashbanged,I cannot see! Flashbang! — I cannot see through the smoke!,endgm2_warnings_a,tone: sensory loss
+369464771,Just give me an aspirin.,Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+369916102,Taser is dead.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+371279776,Up!,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+373282599,Use the cable ties.,Watch the civillians,"I am still human, Shepard. I make mistakes — like everyone else. — generic vulnerable",norvx_relationship (generic fallback),fallback
+374050932,"Hey, Wolf.",Call Wolf,Wolf. — Jacob Taylor (both heavy),procer / norvx,tone: heavy
+375261727,Get the fuck down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+377964926,Can this go any faster?,Complaining,Why is this taking so long? — I do not have that fire you have...,twrvxl_oldfriend_d / norvx,tone: impatience
+378357184,Don't move.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+379255040,Hang tight.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+380599965,Right on!,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+381683978,"Hey, Dallas.",Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+382316543,"This is it, last chance.",Unknown,What the... This is gonna hurt. — I do not have that fire you have...,bchlml_epilogue_h / norvx_relationship_00_h,tone: confusion
+383831196,I killed the dozer.,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+384114804,Dropped a medic bag here.,Deploy medic bag,"Medic bag here, guys! — You are hurt bad. You will be okay. I will fix you up.",norvx_loyalty_01_h / norvx_relationship_00_h,tone: healing
+384158668,We got it secured.,Gage package,"It is secured. Okay, secured. — We have it secured.",cspcr2 / endgm2,tone: secure
+385815264,Sydney!,Call Sydney,Sydney! — Oriana (female ally),twrvxl,
+386692695,"The drill is running, guys.",Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+388394052,"Shit, I'm blinded!",Flashbanged,I cannot see! Flashbang! — I cannot see through the smoke!,endgm2_warnings_a,tone: sensory loss
+388901144,It's coming.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+388951061,I got the medic.,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+389326660,The taser got it.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+391068138,A fucking dozer!,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+391398970,"Come on, get up!",Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+391405397,"There's no action here, control. I wish some clowns would show up or something.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+391846174,"Hey, control. It's kinda boring standing watch here. I mean, nothing's happening.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+392134484,Talk!,Taxman intimidate,You talk or you die! — Horizon father hunt: My father is still hunting her.,bchlml_fatherfinal_d / prscva,tone: interrogation
+392146405,Houston.,Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+393204881,I'm low on ammo.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+395725229,Keep the civillians in check.,Watch the civillians,"I am still human, Shepard. I make mistakes — like everyone else. — generic vulnerable",norvx_relationship (generic fallback),fallback
+396652326,"Watch out, it's a camera.",Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+399002153,Here they come.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+399323312,Down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+399854050,Sydney.,Call Sydney,Sydney! — Oriana (female ally),twrvxl,
+400715189,Bonnie.,Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+401122076,I dropped an ammo bag.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+404327409,It's fucking jammed.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+405739105,This the wrong way.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+405745039,They can't handle us!,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+406522973,Drop your gun!,Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+406879784,Up.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+407113624,Just shut the fuck up and lie still.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+407710018,Just stay calm.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+407814348,"Hey, Jimmy.",Call Jimmy,Jimmy! — Shepard,norvx,
+409721748,"Let's go, that's my shit. Been waiting for this.",Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+413371446,There's an ammo bag here.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+414830910,Get inside.,Inside,Get inside. — I have cleared the engine room. I will be there in 5 minutes.,norvx_starter_h / norcvc,tone: interior move
+416031068,"Cuffs on, now.",Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+419538427,Coming.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+422210784,"Hey, Ethan.",Call Ethan,"Ethan! — Oriana (sister, Ethan is Hila's brother equivalent)",bchlml_fatherfinal_d / twrvxl_aboutaboy_h,"tone: family — Hila/Ethan siblings, Miranda/Oriana sisters"
+422804169,"Hey, Jiro.",Call Jiro,"Jiro! — Miranda calls Garrus? No, but calls Shepard",norvx,tone: distant ally
+423538719,Okay!,Got it,"Got it. Okay. — I got it. Okay, lets do this.",norvx_starter_h / procer_cover_tutorial_a,semantic: acknowledge
+425462213,"Hands up, asshole!",Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+426380444,There.,This is the place,This is the place. — Sanctuary is a lie. Stay away.,bchlml_villagefirst_d / cithub,semantic: place confirm
+429772799,Turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+430685651,"Hey, Clover!",Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+430914905,Stay down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+433064792,"Fuck it, now we gotta kill them.",Gone loud,"Fuck it, now we gotta kill them. — Or what? You will replace me next? Consider this my resignation.",endgm2_crewrescue_c / procer,tone: escalation
+433437576,Let's roast them.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+437536225,"Get down, now!",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+439037097,Right.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+439192620,This is the place.,This is the place,This is the place. — Sanctuary is a lie. Stay away.,bchlml_villagefirst_d / cithub,semantic: place confirm
+439425193,Right on.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+443395643,Taser is gone.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+443492507,Hands where I can see 'em.,Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+444483965,Body bag case here.,Deploy body bag case,I dropped a body bag case. — handling bodies (cspcr2_bodies is literally bodies),cspcr2_bodies,tone: body handling
+447719148,A shield.,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+449915269,We could tie them up.,Watch the civillians,"I am still human, Shepard. I make mistakes — like everyone else. — generic vulnerable",norvx_relationship (generic fallback),fallback
+450602732,They got a shield!,Mark shield,Watch the shield! — I will destroy you! generic mark,cspcr2_platform_approach_h / twrvxl_uptospeed_h,tone: enemy callout
+451633360,I need a fucking ammo bag.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+452024420,Sniper is dead.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+452221416,Drop your weapon.,Intimidate cop,Consider this my resignation. — to Illusive Man,endgm2_crewrescue_c / pronor_illusive_c,tone: defiance
+455523676,No one fucks with us!,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+455796360,Jacket.,Call Jacket,Jacket! — Jacob (jacket approx Jacob),procer,
+456734101,"Hey, Rust.",Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+456749780,A turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+457123364,What the fuck?,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+458220519,"Hey, Chains!",Call Chains,Chains! — Shepard chain of command,procer,
+459079525,Let's get inside.,Inside,Get inside. — I have cleared the engine room. I will be there in 5 minutes.,norvx_starter_h / norcvc,tone: interior move
+459932360,"Hey, the computer is lookin' weird.",Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+460106078,Sniper is down.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+460980325,This gonna take all day?,Complaining,Why is this taking so long? — I do not have that fire you have...,twrvxl_oldfriend_d / norvx,tone: impatience
+461416857,Fucking cops are coming.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+462133823,Up the stairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+462562884,"The cloaker is down, and gone.",Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+463164676,Downstairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+464829317,Go left!,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+465649241,Dropped a first aid kit!,Deploy first aid kit,Dropped a first aid kit! — same as medic,norvx,tone: healing
+466684770,And stay down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+467121303,"Hey, Dallas.",Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+468655691,I dropped an ammo bag.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+468818626,"Shield is down, baby!",Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+471026130,No one fucking moves.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+472606849,Duke.,Call Duke,Duke! — The Illusive Man. (duke=magnate),pronor_illusive_c,tone: authority
+474888182,To the left.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+475171720,Hoxton.,Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+476442215,"Come on, run!",Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+477026688,This is like the worst I've ever seen!,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+478405239,Careful,Careful,Careful. Be careful now. — This radiation is causing serious problems...,horcr1 / profre,tone: hazard warning
+478843020,Smoke grenade!,Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
+479048204,Incoming - get your guns ready.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+479939084,A cloaker!,Mark cloaker,Watch the cloaker! — We are not alone here.,cithub_first_time_d / n7,tone: stealth
+480206207,Wick!,Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+480540444,Need a medic bag!,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+480863489,"Please don't die, okay?",Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+481565704,"Hey, control. Um... I'm thinking about switching jobs, what do you think I should do?",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+481584178,Got an ammo bag here.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+488475479,Wait till it clears!,Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
+489286856,"Awesome, gang! Aweesome!",Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+489439120,"Come on, let's get outta here.",Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+490549145,Let's hope you're lucky here!,Unknown,What the... This is gonna hurt. — I do not have that fire you have...,bchlml_epilogue_h / norvx_relationship_00_h,tone: confusion
+490984009,"Cloaker is down, baby!",Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+494249054,Bodhi!,Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+494479527,"Uh... what? No, I was just watching some videos here. Shit, there's so much crap around.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+495631288,This the wrong way!,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+495650186,Watch the camera.,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+495922302,I said get down - now.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+496418207,Tie them up if you have to.,Watch the civillians,"I am still human, Shepard. I make mistakes — like everyone else. — generic vulnerable",norvx_relationship (generic fallback),fallback
+500189845,"Hey, Houston!",Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+500837386,Body bag case here.,Deploy body bag case,I dropped a body bag case. — handling bodies (cspcr2_bodies is literally bodies),cspcr2_bodies,tone: body handling
+503280546,You can't take another hit like this.,Reviving (last down),You cannot go down again. Next time you are finished.,endgm2_warnings_a / endgm2_team_c_fail_c,tone: last-chance
+504230052,I killed the cloaker.,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+508593709,Sangres.,Call Sangres,Sangres. — krohub/kroprl,krohub,
+508876262,We're drilling.,Place drill,"We are drilling! — This should be easy. Okay, lets do this.",procer_vixen_intro_d / norvx_starter_h,tone: mission start
+509970905,You're on your last legs.,Reviving (last down),You cannot go down again. Next time you are finished.,endgm2_warnings_a / endgm2_team_c_fail_c,tone: last-chance
+512029441,"Down, on the ground!",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+513444483,Run faster!,Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+513639447,Almost out of ammo.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+516724286,Bodhi.,Call Bodhi,Bodhi! — Grunt? norkga,norkga,
+519660594,First aid kit - here!,Deploy first aid kit,Dropped a first aid kit! — same as medic,norvx,tone: healing
+520677644,The dozer is dead.,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+522101569,It's a cloaker!,Mark cloaker,Watch the cloaker! — We are not alone here.,cithub_first_time_d / n7,tone: stealth
+523651810,It's a guard.,Mark guard,"It is a guard. — Remember, you do not wanna be on CCTV.",cithub / norcva,tone: stealth spot
+524751436,"Come on, faster!",Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+526927228,Let's go.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+527282782,On your knees!,Cop intimidate,My job. Wilson betrayed us all. — Wilson execution,procer_vixen_intro_d / cspcr2_bodies_a,tone: authoritative kill
+534458151,"Hey, Hoxton.",Call Hoxton,"Hey, Hoxton. — Jacob. / Shepard.",pronor / norvx,tone: male teammate
+535025887,This thing is jammed!,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+535212922,First aid kit here.,Deploy first aid kit,Dropped a first aid kit! — same as medic,norvx,tone: healing
+536597253,Anyone got an ammo bag?,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+537112995,Grenade.,Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+537913996,"Aight, I'm coming for you.",Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+538251563,"Cuff yourself, motherfucker.",Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+539666314,"Cuffs on, motherfucker!",Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+540488538,"Okay, watch this.",Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+541330673,Got a medic bag here.,Deploy medic bag,"Medic bag here, guys! — You are hurt bad. You will be okay. I will fix you up.",norvx_loyalty_01_h / norvx_relationship_00_h,tone: healing
+542502707,Someone's gotta fix it.,Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+545177398,Wrong way.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+546641723,Anyone got an ammo bag?,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+548178235,No one can stop us!,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+550973938,The taser got it.,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+553339070,"Be quiet, or be dead.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+554652682,Wick!,Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+555820154,"Shit's gonna hurt, better get ready.",Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+556334489,Fucking excellent!,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+558517510,Shield is dead.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+559916036,It's secured.,Gage package,"It is secured. Okay, secured. — We have it secured.",cspcr2 / endgm2,tone: secure
+561981031,You can't go down again.,Reviving (last down),You cannot go down again. Next time you are finished.,endgm2_warnings_a / endgm2_team_c_fail_c,tone: last-chance
+562154452,"Fuck, I'm hit.",Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+562377594,Got an ammo bag here.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+562650315,"Oh, fuck.",Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+562677931,"Hey, Clover!",Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+562709345,"(pained) Ah, I need a medic bag.",Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+563813970,Stay off the camera.,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+565117173,"Up, up!",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+566814113,Dallas.,Call Dallas,Dallas! — Shepard (leader),pronor,tone: leader
+567392391,I got you.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+568110854,Over there.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+568203887,I dropped a first aid kit!,Deploy first aid kit,Dropped a first aid kit! — same as medic,norvx,tone: healing
+568302690,They had no idea what was coming.,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+569861874,This way.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+570704320,Put your cuffs on!,Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+571340296,"Shit, smoke bomb!",Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
+571360487,Get ready guys.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+572646998,Oh fuck - it's the cops,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+574741367,"Hey, Rust!",Call Rust,Rust! — Garrus? Miranda calls Shepard neutral,norvx,
+578203602,It's fucking jammed.,Drill jam,The drill is jammed! — Something is wrong with the computer.,twrvxl_main_contact_d / horcr1,semantic: jam approx computer stuck
+578477068,Drop your gun!,Cop intimidate,My job. Wilson betrayed us all. — Wilson execution,procer_vixen_intro_d / cspcr2_bodies_a,tone: authoritative kill
+579654373,It's a taser!,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+579793803,I'm running out of ammo!,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+582411158,Medic is gone!,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+584608475,We're like ninjas.,Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+585641286,"Okay, I'm on my way.",Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+588692121,Someone get me a medic bag.,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+592198284,Cloaker!,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+595559381,Time to do this the hard way.,Gone loud,"Fuck it, now we gotta kill them. — Or what? You will replace me next? Consider this my resignation.",endgm2_crewrescue_c / procer,tone: escalation
+595724960,"Cuffs on, now.",Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+598121556,Woah.,Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+598455420,I got the shield!,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+598550257,"Uh... it's nothing, it was nothing.",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+598750928,Dozer is so gone!,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+603367705,You really look like shit.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+605349182,"Oh, thanks.",Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+607360219,Sokol!,Call Sokol,"Hey, Sokol! — Oriana. She is as smart as I am... (personal call, Miranda only calls Oriana/Shepard by name: Shepard. It is so good to finally see you.)",twrvxl_aboutaboy_h / twrvxl_uptospeed_h,tone: calling ally
+608403873,"Shit, a turret!",Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+610081633,Hey Bonnie!,Call Bonnie,"Hey, Bonnie. — Oriana (sister) is closest to female ally",twrvxl / norvx,tone: female teammate
+610454750,"Come on, hurry up.",Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+611761996,The pigs are retreating!,Cops leaving,Motherfuckers are pulling back! — They are running away!,pronor / procer,tone: retreat
+614468840,"Uh... just checking again. If I see someone, I shoot right?",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+615445658,A cloaker!,Mark cloaker,Watch the cloaker! — We are not alone here.,cithub_first_time_d / n7,tone: stealth
+617787624,"Stay down, and stay quiet - or I'll fucking kill you!",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+619494009,"Hey, Dragan.",Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+623338779,"Come on, move.",Inspire,"We are all hoping you can do the impossible, Shepard. No pressure.",pronor_illusive_c / norvx_culmination_h,tone: hype
+624041560,I need a medic bag.,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+624531892,It's a captain!,Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+625749737,"Hands up, asshole!",Cop intimidate,My job. Wilson betrayed us all. — Wilson execution,procer_vixen_intro_d / cspcr2_bodies_a,tone: authoritative kill
+628090649,"Hey, Dragan!",Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+634155321,"Yeah, we're getting good at this!",Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+634323553,Something's wrong.,Drill jam/hack pause followup,"Fix it, please? We have to fix it! — We have to do it, Shepard.",twrvxl_oldfriend_d / profre,tone: urgent fix
+643109388,They got a cloaker.,Mark cloaker,Watch the cloaker! — We are not alone here.,cithub_first_time_d / n7,tone: stealth
+644329162,It's a turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+645681081,"Hey, you know... I'm gonna need you to leave me alone for a bit, 'kay?",Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+647014110,Tie yourself up.,Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+647020116,On your feet.,Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+647665008,Wait for it.,Wait for it,"Wait for it. Okay, get ready. — Wait for it. Get ready.",endgm2_longwalk_a / endgm1_huddle_01c_d,semantic: identical
+648546553,"Okay, get ready.",Wait for it,"Wait for it. Okay, get ready. — Wait for it. Get ready.",endgm2_longwalk_a / endgm1_huddle_01c_d,semantic: identical
+649219742,Anyone got a medic bag?,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+650301953,Medic bag here.,Deploy medic bag,"Medic bag here, guys! — You are hurt bad. You will be okay. I will fix you up.",norvx_loyalty_01_h / norvx_relationship_00_h,tone: healing
+651098269,Stay off the cameras.,Mark camera,"Watch that camera. — Remember, you do not wanna be on CCTV. (identical)",cithub_first_time_d_S_INT.072.ogg,semantic: identical CCTV
+651243456,Taser.,Mark taser,It is a taser! — Someone reprogrammed these mechs to attack on sight.,profre / profre_veetor_door_d,tone: tech
+652982357,They're going down!,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+658571177,I said get down!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+659408216,There's literally nothing happening here. It's soo boring.,Pager response,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge. — confident cover",cithub_tp_miranda_a / twrvxl_main_contact_d,tone: dry humor cover
+665161635,They got a captain.,Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+668650291,Kill 'em all!,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+669341923,Shield is gone.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+671848077,Out.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+672852511,(pained) I'm wounded!,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+672951354,"Got the dozer, who's next?",Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+675006401,Kill these assholes!,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+675589112,Cloaker is gone.,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+676473111,"Hey, Duke.",Call Duke,Duke! — The Illusive Man. (duke=magnate),pronor_illusive_c,tone: authority
+684759174,They better fear Hila!,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+685968434,You're hurt bad.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+689817322,"Kneel, asshole!",Cop intimidate,My job. Wilson betrayed us all. — Wilson execution,procer_vixen_intro_d / cspcr2_bodies_a,tone: authoritative kill
+690602822,You're really bleeding!,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+694755249,Fucking stop bleeding!,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+696052113,You're really fucked up!,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+704727336,Next time you're finished.,Reviving (last down),You cannot go down again. Next time you are finished.,endgm2_warnings_a / endgm2_team_c_fail_c,tone: last-chance
+715665708,Dragan!,Call Dragan,Dragan. — Jack (jnkkga) (rival call),jnkkga,tone: rival
+719002915,Coming!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+719564905,"Oh, thanks.",Revived,"Thanks, you got here just in time. — gratitude",norvx_loyalty_02_h / bchlml_epilogue_h,tone: gratitude
+719870860,"Time to die, assholes!",Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+722117908,"Hey, Sangres.",Call Sangres,Sangres. — krohub/kroprl,krohub,
+723467394,"Cuffs on, asshole.",Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+724475702,Cuffs on!,Intimidate cop final,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",norvx_loyalty_02_h / bchlml_villagefirst_d,tone: final warning
+725240412,Chains.,Call Chains,Chains! — Shepard chain of command,procer,
+726039706,On air.,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+726470812,Clover!,Call Clover,Clover. — Jack: You are a spoiled rich girl! — Victim! (female rival),jnkkga,tone: female rival
+727661840,Smoke!,Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
+727907714,A fucking medic.,Mark medic,They got a medic! — support target,omggra / omgpra,tone: support
+728693097,The shield got it.,Killed shield,"Shield is down, baby! — I will destroy you!",cspcr2 / endgm2_boss_fight_a,tone: shield break
+736423257,"Oh no, fuck.",Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+741035152,"If you shit yourself, I got baby wipes now stay down.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+746759378,Up the stairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+749357881,Hang tight.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+750434665,"Remember, you don't wanna be on CCTV.",Stealth dialogue,"Remember, you do not wanna be on CCTV. — identical",cithub_first_time_d_S_INT.072.ogg,semantic: identical stealth line
+751528169,"We wiped them out, guys!",Victory,"We are untouchable! — We have to do it, Shepard. We had no choice.",endgm2_longwalk_a / norvx_culmination_h,tone: win
+753516722,Killed the sniper.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+755895073,Time to die!,Grenade,Fire in the hole! / I will destroy you! You will not survive!,SFXGame.pcc / endgm2_boss_fight_a,semantic: AoE
+757753608,Get ready.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+758277076,You look so bad.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+758295804,A captain.,Mark captain,They got a captain! — Or what? You will replace me next?,pronor_illusive_c / endgm1_warship_c,tone: officer
+759463727,Don't go into the smoke!,Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
+762205162,Downstairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+769001338,"Oh shit, that's the cops.",Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+769372715,Dozer is gone.,Killed dozer,"Dozer is down, baby! — Its dead.",endgm2_team_c_a / endgm2_boss_fight_a,tone: heavy kill
+769420386,They got a medic!,Mark medic,They got a medic! — support target,omggra / omgpra,tone: support
+770137780,You're really hurt.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+773690095,Watch it - a guard.,Mark guard,"It is a guard. — Remember, you do not wanna be on CCTV.",cithub / norcva,tone: stealth spot
+775739450,"Incoming, get your guns ready.",Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+776893315,This should be easy.,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+780968219,"Guys, what's with the computer now?",Hack paused,Something is wrong with the computer. — Someone reprogrammed these mechs...,cithub_avina_middle_d / gthgtl_amb_core_h,semantic: tech failure
+784324218,"This way, here!",Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+785908211,"Stay down, or I'll blow your brains out.",Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+790495467,"Hey, Wick!",Call Wick,Wick. — Illusive Man (calculating boss),pronor_illusive_c,tone: cool professional
+791306479,"They're coming, get ready.",Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+792535391,I killed the cloaker!,Killed cloaker,"Cloaker is down, baby! — We are not alone here — now we are.",juncvl / jnkkga,tone: stealth kill
+793209321,"Okay, let's do this.",Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+797412389,I need a fucking ammo bag.,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+809728410,Be right there!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+814815156,They got a dozer.,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+815328029,A dozer.,Mark dozer,It is a dozer! — Reaper forces incoming!,endgm2_longwalk_a / cspcr2_bodies_h,tone: heavy
+815918763,The medic got it.,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+819412796,The taser is dead!,Killed taser,The taser got it! — Mechanized threat neutralized.,endgm2_tech_culmination_c / profre,tone: tech kill
+828468886,Watch out!,Watch out,"Watch out! — Watch out, it is a camera.",cithub_first_time_d / cspcr2_tubereveal_h,tone: warning
+834821755,Guard.,Mark guard,"It is a guard. — Remember, you do not wanna be on CCTV.",cithub / norcva,tone: stealth spot
+836198869,Inside.,Inside,Get inside. — I have cleared the engine room. I will be there in 5 minutes.,norvx_starter_h / norcvc,tone: interior move
+837348811,I got the medic,Killed medic,Medic is gone! — Wilson betrayed us all. My job.,procer / endgm2,tone: support kill
+839279510,Houston!,Call Houston,Houston. — pilot call (Houston = Joker? endgm1_warship),endgm1_warship_c,tone: pilot
+841728126,It's a medic.,Mark medic,They got a medic! — support target,omggra / omgpra,tone: support
+842356879,Sydney!,Call Sydney,Sydney! — Oriana (female ally),twrvxl,
+848268101,"Ammo bag, please!",Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+848454731,Who's got an ammo bag?,Low ammo,Almost out of ammo. Who has an ammo bag? — Miranda tactical resource,cspcr2_bodies / profre_veetor_door_d,tone: resource call
+860981202,Just stay calm!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+861919055,"Let's go, motherfuckers.",Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+872254048,And don't move.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+876009515,Dropped a first aid kit.,Deploy first aid kit,Dropped a first aid kit! — same as medic,norvx,tone: healing
+878145374,Upstairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+882630061,Turn right.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+886077902,"(pained) Oh fuck, I'm wounded!",Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+888387188,What the fuck did they do to you?,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+896795696,It's killing time!,Mask up,"This should be easy. Okay, lets do this. Ready to rumble. — My reflexes, my strength... designed to give me an edge. I settle for nothing but the best.",procer_vixen_briefing_d / pronor_illusive_c,semantic: pre-mission confidence
+898366043,"Hey, watch it!",Watch out,"Watch out! — Watch out, it is a camera.",cithub_first_time_d / cspcr2_tubereveal_h,tone: warning
+899784302,Let's go.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+900495465,I need some meds!,Low health,This radiation is causing serious problems for my shields. / (pained) They got me!,horcr1 / endgm2_biotic_fail_c,semantic: shield/health low
+900588469,And don't move!,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+911373116,"Oh no, shit!",Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+916206534,Hang on.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+917137089,Let's go.,Let's go,We have to get out of here. Let's go. — Sanctuary escape,endgm2_escape_h / procer_vixen_shuttle_d,semantic: evacuation
+919311946,"Here, get up.",Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+922363103,I got ya.,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+926797561,I killed that sniper!,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+927549723,On my way.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+931348216,Get up.,Inspire revive,Get up! You are going to be okay. — reviving,norvx_relationship_00..04_h / endgm2_team_c,tone: supportive revive
+943768999,Get ready.,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+944191559,Upstairs.,Direction,Come with me. Follow me. This way. — Normandy escort,pronor_ / procer_cover_tutorial_a / norvx_starter_h,semantic: direct match
+948619005,They got a turret.,Mark turret,They got a turret! — Sanctuary is a lie. Stay away.,norcvc / gthgtl_amb_core_h,tone: emplacement
+954346150,There's an ammo bag here.,Deploy ammo bag,I dropped an ammo bag! — Cerberus has kept her safe. (supply=protection),pronor / norvx,tone: support drop
+954551150,I got your back.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+957940090,"Here they come, get ready.",Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+959015414,Can't see through the smoke!,Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
+961943608,On my way!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+983982773,Hang on.,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+988136139,Sniper is soo gone.,Killed sniper,Sniper is dead! — Take your best shot. Goodbye Niket...,norgta / twrvxl,tone: precision kill
+991305314,"This is insane, dude!",Curse,"Oh, shit! Fuck! — Damn, I am not very good at this. Bit of a disaster, really.",bchlml_epilogue_h / endgm1,tone: Miranda rarely curses
+1001973360,"Shit, you don't look good.",Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+1008024854,On my way!,Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+1012341788,Down.,Hostage intimidate,Take your best shot. — Enyala confrontation (loyalty),procer_vixen_briefing_d / bchlml_fatherfinal_d,tone: cold professional threat
+1021664295,The cops are pulling back!,Cops leaving,Motherfuckers are pulling back! — They are running away!,pronor / procer,tone: retreat
+1029679628,I got you!,Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+1036631734,"Okay, I'm on my way.",Coming,Be right there. Coming! On my way! — I will be there in 5 minutes. I settle for nothing but the best.,endgm2_longwalk_a / cithub_tp_miranda_a,tone: en-route promise
+1041037974,"Wow, you're in bad shape.",Reviving,"Please do not die, okay? You are really hurt.",norvx_loyalty_01_h / norvx_relationship_03_h,tone: tender revive
+1067107433,I'll pop their asses!,Cops arriving,"Oh shit, it is the cops. Cops incoming. — Get ready, pigs incoming.",pronor_illusive_c / procer_cover_tutorial_a,semantic: enemy wave
+1068286906,You can't go down again.,Reviving (last down),You cannot go down again. Next time you are finished.,endgm2_warnings_a / endgm2_team_c_fail_c,tone: last-chance
+1070243495,Smoke bomb!,Smoke,Smoke! Wait till the smoke clears! — radiation line,omghub / omggra,tone: smoke cover
