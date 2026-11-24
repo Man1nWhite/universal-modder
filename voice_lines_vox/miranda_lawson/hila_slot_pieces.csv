@@ -1,5 +1,5 @@
 slot,cut_line,source_ogg,piece,t_start,t_end,duration_s,splits
-ammo.low,Low ammo.,endgm1_oculus_hints_a_S_INT.003.ogg,0,0.000,1.330,1.330,
+ammo.low,Low ammo.,procer_shooting_tutorial_a_S_INT.004.ogg,0,0.000,0.980,0.980,
 assault.incoming,Cops incoming.,endgm2_longwalk_a_S_INT.063.ogg,0,0.000,0.630,0.630,
 assault.ready,Get ready.,endgm2_longwalk_a_S_INT.065.ogg,0,0.000,0.700,0.700,
 assault.retreat,They are pulling back.,horcr1_collector_retreat_c_S_INT.010.ogg,0,0.000,0.690,0.690,
