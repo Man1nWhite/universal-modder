@@ -1,0 +1,79 @@
+slot,cut_line,uses,score,clip_text,t_start,t_end,source_ogg,full_transcript
+downed.need_help,I need help.,8,1.88,Requesting aid!,0.000,0.994,endgm2_leaderbarks_a_S_INT.029.ogg,Requesting aid!
+inspire.get_up,On your feet.,12,1.70,Let's go finish this.,1.220,2.460,endgm2_huddle_03b_d_S_INT.002.ogg,Well said. Let's go finish this.
+civ.down,Down. Now.,46,1.80,"Keep your head down, Shepard.",0.000,1.218,procer_cover_tutorial_a_S_INT.011.ogg,"Keep your head down, Shepard. Shield yourself from the blast."
+move.on_me,On me.,4,1.96,Shepard.,0.000,0.429,endgm2_tech_culmination_c_S_INT.021.ogg,Shepard. You need to see this.
+call_teammate.on_me,On me.,158,1.72,"Shepard, you take point.",0.000,2.230,profre_cover_tutorial_a_S_INT.002.ogg,"We'll take cover by the doors. Shepard, you take point."
+inspire.move,Move.,8,1.64,"Shepard, we need to move!",0.000,1.189,endgm2_biotic_success_c_S_INT.006.ogg,"Shepard, we need to move! Fast!"
+tech.drill_jam,Drill jammed.,6,1.00,There must be some other explanation.,0.716,1.764,cspcr2_bridge_trap_d_S_INT.024.ogg,"No, the command is right. There must be some other explanation."
+cuffed.pick,Pick these cuffs.,9,1.40,I can't fight back like this.,0.000,1.264,endgm2_longwalk_a_S_INT.064.ogg,I can't fight back like this. Taking cover. Tell me when you're ready to move out.
+nade.grenade,Grenade.,6,1.64,Use the Grenade Launcher Shepard.,0.000,1.530,procer_grenades_tutorial_a_S_INT.001.ogg,Use the Grenade Launcher Shepard.
+civ.nophone,No calls.,1,1.10,"There's nothing we can do, Shepard.",0.000,1.800,endgm1_dogfight_c_S_INT.057.ogg,"There's nothing we can do, Shepard. Not when those things are still after us. I'm sorry."
+move.follow,Follow me.,10,1.70,"Try to stay close, Commander.",0.831,2.110,endgm2_longwalk_a_S_INT.060.ogg,"Moving out. Try to stay close, Commander."
+civ.talk,Talk.,9,1.88,What happened?,0.000,0.628,twrvxl_main_contact_d_S_INT.037.ogg,What happened? Is Oriana alright?
+tech.comp,Computer is down.,5,1.70,Activate the console to unlock the door,0.000,2.018,procer_storm_tutorial_a_S_INT.002.ogg,"Activate the console to unlock the door, then run through before it closes."
+move.this_way,This way.,15,1.88,Come on.,1.884,2.270,procer_vixen_intro_d_S_INT.043.ogg,or two in your case. Come on.
+move.generic,With me.,43,1.64,"Come on, we should go.",0.000,1.381,twrvxl_meeting_h_S_INT.012.ogg,"Come on, we should go."
+move.up,Up.,11,1.00,Let me know when you're ready to move up.,0.000,0.563,endgm2_longwalk_a_S_INT.005.ogg,All clear. Let me know when you're ready to move up.
+downed.want_fight,Get me up.,1,1.30,your scars aren't healed but I need you to get moving,0.580,4.210,procer_wakeup_a_S_INT.002.ogg,"Shepard, your scars aren't healed but I need you to get moving, this facility is under attack."
+drop.medic,Medic bag here.,6,1.50,healing,1.080,1.400,procer_cover_tutorial_a_S_INT.010.ogg,Your armor has automated healing functions...
+mask.go,Let us begin.,13,1.88,Let's go!,0.000,0.730,twrvxl_negotiation_d_S_INT.018.ogg,Let's go!
+pager.clear,Nothing here. All clear.,32,1.88,"Understood, Commander.",0.000,1.200,endgm1_huddle_01c_d_S_INT.046.ogg,"Understood, Commander."
+mark.shield,Shield.,8,1.64,Shield yourself from the blast.,1.448,3.000,procer_cover_tutorial_a_S_INT.011.ogg,"Keep your head down, Shepard. Shield yourself from the blast."
+mark.camera,Camera.,9,1.00,Obviously security has tightened since you were last here.,0.000,2.630,cithub_first_time_d_S_INT.072.ogg,Obviously security has tightened since you were last here.
+kill.taser,Taser down.,10,1.80,They got Grunt.,0.000,0.790,endgm1_warship_c_S_INT.002.ogg,They got Grunt.
+mark.dozer,Dozer.,9,1.72,Use your heavy weapon.,0.000,1.092,procer_grenades_tutorial_a_S_INT.002.ogg,Use your heavy weapon. One grenade will take out the lot.
+caution.watch,Careful.,6,1.88,Look out.,0.000,0.470,cspcr2_platform_approach_h_S_INT.020.ogg,Look out. We've got company.
+cop.hands,Hands up.,5,1.20,We'll cover you!,0.661,1.510,endgm2_tech_culmination_c_S_INT.082.ogg,Go! We'll cover you!
+move.go,Go.,15,1.80,"Let's go, Commander.",0.000,0.900,endgm2_longwalk_a_S_INT.062.ogg,"Let's go, Commander."
+mark.taser,Taser.,8,1.10,This is gonna be one tough son of a bitch to take down.,0.000,2.500,profre_mech_intro_c_S_INT.001.ogg,This is gonna be one tough son of a bitch to take down.
+tech.fix,Fix it.,6,1.40,I can't override the security lock on the door remotely.,0.000,2.499,procer_storm_tutorial_a_S_INT.001.ogg,I can't override the security lock on the door remotely. You'll have to do it.
+revived.thanks,Thank you.,8,1.96,Thanks.,1.205,1.610,norvx_relationship_03_h_S_INT.088.ogg,You too Shepard. Thanks.
+kill.sniper,Sniper down.,10,1.80,They got Kasumi.,0.000,0.920,endgm1_warship_c_S_INT.003.ogg,They got Kasumi.
+inspire.run,Run.,4,1.80,Get to the door! Run!,0.606,1.860,procer_storm_tutorial_a_S_INT.004.ogg,Hurry! Get to the door! Run!
+move.hold,Hold.,11,1.88,Take cover.,2.670,3.410,procer_cover_tutorial_a_S_INT.017.ogg,"Shepard, security mechs are closing in on your position. Take cover."
+kill.cloaker,Cloaker down.,11,1.80,They got Samara!,0.000,0.960,endgm1_warship_c_S_INT.005.ogg,They got Samara!
+mark.sniper,Sniper.,8,1.50,"Hostiles, dead ahead.",0.000,1.700,endgm2_longwalk_a_S_INT.066.ogg,"Hostiles, dead ahead."
+move.right,Right.,9,1.96,Right.,0.000,0.382,twrvxl_aboutaboy_h_S_INT.025.ogg,Right.
+tech.generic,Something is wrong.,15,1.88,Something's wrong.,1.355,2.150,procer_wakeup_c_S_INT.016.ogg,There. On the monitor. Something's wrong.
+assault.retreat,They are pulling back.,4,1.80,They're pulling out.,0.000,0.690,horcr1_collector_retreat_c_S_INT.010.ogg,They're pulling out.
+mark.turret,Turret.,11,1.80,On the platform.,0.914,1.637,cspcr2_bridge_h_S_INT.012.ogg,There. On the platform. Looks like some kind of control panel.
+mark.guard,Guard.,7,1.30,Patrols like that are a little much against this bunch.,0.000,2.300,bchlml_ambientmaster_a_S_INT.033.ogg,Patrols like that are a little much against this bunch.
+spot.generic,There.,7,1.96,There.,0.000,0.291,cspcr2_bridge_h_S_INT.012.ogg,There. On the platform. Looks like some kind of control panel.
+civ.dontmove,Do not move.,8,1.40,Those canisters by the door are going to blow! Get behind cover now!,0.000,3.460,procer_cover_tutorial_a_S_INT.003.ogg,Those canisters by the door are going to blow! Get behind cover now!
+win.generic,Clean work.,21,1.96,Excellent.,0.000,0.506,omgpra_end_puzzle_a_S_INT.007.ogg,Excellent. The cure is in place. Now we need to reactivate the fans.
+inspire.faster,Faster.,5,1.96,Hurry!,0.000,1.190,procer_cover_tutorial_a_S_INT.006.ogg,Hurry! Find some cover!
+kill.dozer,Dozer down.,11,1.80,They got Jack!,0.000,0.830,endgm1_warship_c_S_INT.006.ogg,They got Jack!
+hurt.medic,Need a medic bag.,9,1.50,I don't know how much more I can take.,0.000,1.950,endgm2_longwalk_a_S_INT.071.ogg,I don't know how much more I can take.
+cop.kneel,On your knees.,6,1.50,Hold,1.082,1.350,endgm2_tech_culmination_c_S_INT.022.ogg,Suppressing fire! Hold the door!
+cop.drop,Drop it.,7,1.00,Shoot the injection tubes!,0.000,1.420,endgm2_boss_fight_a_S_INT.032.ogg,Shoot the injection tubes!
+curse.slow,Too slow.,2,1.96,Hurry!,0.000,0.357,procer_storm_tutorial_a_S_INT.004.ogg,Hurry! Get to the door! Run!
+nade.tear,Tear gas.,4,1.30,Shield yourself from the blast.,1.448,3.000,procer_cover_tutorial_a_S_INT.011.ogg,"Keep your head down, Shepard. Shield yourself from the blast."
+kill.medic,Medic down.,9,1.80,They got Garrus!,0.000,1.010,endgm1_warship_c_S_INT.007.ogg,They got Garrus!
+curse.shit,Damn it.,21,1.88,Damn it.,0.000,0.690,norvx_relationship_04_h_S_INT.030.ogg,Damn it.
+mark.cloaker,Cloaker.,7,1.88,Look out!,0.000,0.610,endgm2_illusive_d_S_INT.057.ogg,Look out!
+pager.cover,False alarm. All clear.,1,1.88,"Understood, Commander.",0.000,0.928,profre_shuttle_d_S_INT.014.ogg,"Understood, Commander. With luck we'll find something that was missed at the other colonies."
+mark.generic,Mark that.,2,1.88,Acquiring target.,0.000,0.932,endgm2_leaderbarks_a_S_INT.035.ogg,Acquiring target.
+civ.killthreat,Stay down.,7,1.50,Now let's finish you off!,0.000,2.000,endgm2_leaderbarks_a_S_INT.032.ogg,Now let's finish you off!
+mark.captain,Captain.,8,1.40,Captain,1.520,1.860,twrvxl_theswitch_h_S_INT.011.ogg,and then I'll have a word with this Captain Anyala.
+kill.shield,Shield down.,11,1.80,They got fined.,0.000,0.970,endgm1_warship_c_S_INT.008.ogg,They got fined.
+nade.generic,Fire in the hole.,10,2.00,Grab some more grenades.,0.000,1.180,procer_grenades_tutorial_a_S_INT.004.ogg,Grab some more grenades.
+hurt.hit,I am hit.,8,1.50,"We're getting slaughtered up here, Shepard.",0.000,1.663,endgm2_team_c06_c_S_INT.026.ogg,"We're getting slaughtered up here, Shepard. Damn it! Where the hell are you?"
+ammo.low,Low ammo.,16,1.64,Grab some more heavy ammo.,0.000,1.330,endgm1_oculus_hints_a_S_INT.003.ogg,Grab some more heavy ammo.
+drop.body,Body bags here.,4,1.72,"Those bodies, they're human.",0.000,0.894,cspcr2_bodies_a_S_INT.026.ogg,"Those bodies, they're human."
+mark.medic,Medic.,7,1.70,It's a med,0.000,0.680,procer_cover_tutorial_a_S_INT.001.ogg,"It's a med bay. We'll get you a clip from, damn it."
+cop.cuffs,Cuffs. Now.,8,1.20,hold,1.180,1.500,norcva_debrief_d_S_INT.011.ogg,Do I need to put her in the holding cells? Just to be safe.
+revive.hold,I have you.,29,1.70,I won't let you down.,0.000,1.050,endgm1_huddle_01c_d_S_INT.047.ogg,"I won't let you down, Shepard."
+move.in,Inside.,4,1.00,"Let's get in, do what we need to do and get out fast.",0.000,0.663,krohub_tp_miranda_a_S_INT.001.ogg,"Let's get in, do what we need to do and get out fast."
+assault.incoming,Cops incoming.,11,1.96,Incoming.,0.000,0.630,endgm2_longwalk_a_S_INT.063.ogg,Incoming.
+drop.ammo,Ammo here.,8,1.64,Grab some more heavy ammo.,0.000,1.330,endgm1_oculus_hints_a_S_INT.003.ogg,Grab some more heavy ammo.
+tech.drilling,Drilling.,6,1.30,we can cut down through the cargo line.,0.000,1.810,twrvxl_ambients_h_S_INT.003.ogg,we can cut down through the cargo line.
+assault.ready,Get ready.,18,1.88,"Ready, Commander?",0.000,0.738,endgm2_longwalk_a_S_INT.065.ogg,"Ready, Commander? Moving out."
+move.left,Left.,4,1.20,left,1.620,1.950,omggra_attack_c_S_INT.021.ogg,Archangel doesn't have much time left.
+civ.ties,Tie them.,5,0.90,Everyone else can bunker down here and cover your back.,0.000,3.960,endgm2_huddle_03a_d_S_INT.030.ogg,"Pick a team to go with you, Shepard. Everyone else can bunker down here and cover your back."
+loot.secured,Secured.,4,1.20,we've stored it,3.374,4.550,norgta_debrief_h_S_INT.029.ogg,I think we need to discuss the unique piece of salvage we recovered. For now we've stored it in ED's AI Core.
+revive.critical,Stay with me.,4,1.80,So don't die.,2.507,3.563,norvx_relationship_04_h_S_INT.029.ogg,"Yeah, I do. So don't die. You promise me, damn it."
+drop.fak,First aid here.,6,1.50,healing,1.080,1.400,procer_cover_tutorial_a_S_INT.010.ogg,"Your armor has automated healing functions, but it only works when you're out of the line of enemy fire."
+nade.smoke,Smoke.,7,1.10,Hostile fire.,0.000,0.825,endgm2_longwalk_a_S_INT.067.ogg,Hostile fire. Moving to cover. Tell me when you're ready to move.
+spot.place,This is it.,3,1.80,There it is.,0.000,0.748,endgm1_warship_c_S_INT.037.ogg,"There it is, the Collector Base."
+caution.wait,Wait.,2,1.80,"Shepard, wait",0.000,0.878,norvx_relationship_03_h_S_INT.045.ogg,"Shepard, wait, I need to think about this."

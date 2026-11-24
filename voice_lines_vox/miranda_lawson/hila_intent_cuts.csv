@@ -1,0 +1,888 @@
+hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_original,old_miranda_core,old_fit_grade
+712675,"(pained) You, hey!",Request for help while downed,downed_help,downed.need_help,I need help.,3,0.333,"My father hurt me, but he did not break me. I am my own person.",weak
+1149328,On your feet!,Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,1.000,Get up! You are going to be okay.,weak
+1806387,"Last chance motherfucker, down.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.216,Take your best shot.,weak
+1884286,On me.,Follow,squad_move,move.on_me,On me.,2,1.000,Follow me. / Come with me.,weak
+2425875,On me.,Follow,squad_move,move.on_me,On me.,2,1.000,Follow me. / Come with me.,weak
+2643233,"Hey, Sokol!",Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.143,"Hey, Sokol!",ok
+3358066,Move it!,Inspire,inspire,inspire.move,Move.,1,0.727,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+3439862,You gotta help me!,Request for help while downed,downed_help,downed.need_help,I need help.,3,0.429,"My father hurt me, but he did not break me. I am my own person.",weak
+3809559,Bonnie.,Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.545,"Hey, Bonnie.",ok
+4646339,Sokol.,Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.200,"Hey, Sokol!",ok
+4733345,The drill is jammed.,Drill jam,objective_tech,tech.drill_jam,Drill jammed.,2,0.444,The drill is jammed!,good
+5406681,"Hey, Hoxton!",Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.267,"Hey, Hoxton.",ok
+5884207,The drill is fucking jammed!,Drill jam,objective_tech,tech.drill_jam,Drill jammed.,2,0.457,The drill is jammed!,good
+6352252,I'm so fucked up here!,Request for help while downed,downed_help,downed.need_help,I need help.,3,0.438,"My father hurt me, but he did not break me. I am my own person.",weak
+6497207,Down!,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.667,Take your best shot.,weak
+7591312,Help me with these cuffs.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.700,Pick my cuffs.,weak
+7874395,Fire in the hole!,Grenade,throwable,nade.grenade,Grenade.,1,0.348,Fire in the hole! / I will destroy you! You will not survive!,ok
+8173908,Wolf.,Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.222,Wolf.,ok
+8208111,"Down, hit the floor!",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.462,Take your best shot.,weak
+9204524,"If you try to make a phone call, it would be your last.",Hostage intimidate,intimidate_civilian,civ.nophone,No calls.,2,0.230,Take your best shot.,weak
+9493679,Follow.,Follow,squad_move,move.follow,Follow me.,2,0.800,Follow me. / Come with me.,ok
+9639198,Follow me.,Follow,squad_move,move.follow,Follow me.,2,1.000,Follow me. / Come with me.,good
+9726729,Just stay down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.364,Take your best shot.,weak
+10767856,"Talk, fucker!",Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,0.533,You talk or you die!,weak
+11336755,Something's wrong with the computer.,Hack paused,objective_tech,tech.comp,Computer is down.,3,0.314,Something is wrong with the computer.,good
+12352202,Come with me.,Follow,squad_move,move.this_way,This way.,2,0.300,Follow me. / Come with me.,good
+12651471,Pick my cuffs.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.759,Pick my cuffs.,ok
+12840920,"I'm in bad shape, this is not good!",Request for help while downed,downed_help,downed.need_help,I need help.,3,0.182,"My father hurt me, but he did not break me. I am my own person.",weak
+12917222,Jiro!,Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.222,Jiro!,ok
+13450280,This is it.,Here,squad_move,move.generic,With me.,2,0.235,This is it. Here. This is the place.,weak
+13565624,Tony.,Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.444,"Tony. Hey, Tony.",ok
+13663504,Come with me.,Follow,squad_move,move.this_way,This way.,2,0.300,Follow me. / Come with me.,good
+14192205,Help me get these cuffs off.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.605,Pick my cuffs.,weak
+14916926,Down the stairs.,Direction,squad_move,move.up,Up.,1,0.000,Come with me. Follow me. This way.,weak
+15069966,"Hey, Bodhi.",Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.143,Bodhi!,weak
+15477016,"Come on, I wanna get back in the fight.",Request for help while downed,downed_help,downed.want_fight,Get me up.,3,0.261,"My father hurt me, but he did not break me. I am my own person.",weak
+16113018,"Medic bag here, guys!",Deploy medic bag,deploy_equip,drop.medic,Medic bag here.,3,0.848,"Medic bag here, guys!",ok
+16456601,This should be easy.,Mask up,mask_up,mask.go,Let us begin.,3,0.258,"This should be easy. Okay, lets do this. Ready to rumble.",ok
+17072196,"Yeah, I thought I saw a fire, but it's nothing.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.212,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+17150976,Come with me.,Follow,squad_move,move.this_way,This way.,2,0.300,Follow me. / Come with me.,good
+17436170,"Hey, Bonnie.",Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.400,"Hey, Bonnie.",ok
+17975779,Shield!,Mark shield,mark_special,mark.shield,Shield.,1,1.000,Watch the shield!,weak
+18442008,Watch that camera.,Mark camera,mark_special,mark.camera,Camera.,1,0.522,Watch that camera.,good
+18633009,I killed the taser!,Killed taser,killed_special,kill.taser,Taser down.,2,0.357,The taser got it!,weak
+18765061,Rust!,Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.000,Rust!,weak
+19403899,Follow me.,Follow,squad_move,move.follow,Follow me.,2,1.000,Follow me. / Come with me.,good
+19464577,Dozer.,Mark dozer,mark_special,mark.dozer,Dozer.,1,1.000,It is a dozer!,ok
+20422574,Help me get these cuffs off!,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.605,Pick my cuffs.,weak
+20669691,Careful.,Careful,caution,caution.watch,Careful.,1,1.000,Careful. Be careful now.,weak
+21348768,"Hey, Bonnie.",Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.400,"Hey, Bonnie.",ok
+21831033,Hit the floor.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.190,Take your best shot.,weak
+21951798,Hands up!,Cop intimidate,intimidate_cop,cop.hands,Hands up.,2,1.000,My job. Wilson betrayed us all.,weak
+22620499,Time to leave.,Let's go,squad_move,move.go,Go.,1,0.133,We have to get out of here. Let's go.,weak
+22945418,Jiro!,Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.222,Jiro!,ok
+23671359,A taser!,Mark taser,mark_special,mark.taser,Taser.,1,0.833,It is a taser!,ok
+23771464,"Fix it, please?",Drill jam/hack pause followup,objective_tech,tech.fix,Fix it.,2,0.667,"Fix it, please? We have to fix it!",weak
+24201607,We have to fix it!,Drill jam/hack pause followup,objective_tech,tech.fix,Fix it.,2,0.522,"Fix it, please? We have to fix it!",ok
+25015608,Come with me.,Follow,squad_move,move.this_way,This way.,2,0.300,Follow me. / Come with me.,good
+25179200,Help me with these cuffs.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.700,Pick my cuffs.,weak
+25223303,Dragan.,Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.182,Dragan.,ok
+25227191,"(pained) That's better, thanks.",Revived,revived,revived.thanks,Thank you.,2,0.345,"Thanks, you got here just in time.",weak
+25869127,Sniper got it!,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.667,Sniper is dead!,weak
+25898405,The computer is fucking stuck!,Hack paused,objective_tech,tech.comp,Computer is down.,3,0.578,Something is wrong with the computer.,ok
+25981636,Run!,Inspire,inspire,inspire.run,Run.,1,1.000,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+27791329,"Hey, Jiro!",Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.154,Jiro!,ok
+28653028,Hold on!,Coming,squad_move,move.hold,Hold.,1,0.727,Be right there. Coming! On my way!,weak
+28862520,The cloaker is dead!,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.581,"Cloaker is down, baby!",weak
+28880249,"Uh… I thought there was something going on, but ther-there's nothing.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.159,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+29263470,Clover.,Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.364,Clover.,ok
+29320553,"It's fucking payday, guys!",Mask up,mask_up,mask.go,Let us begin.,3,0.278,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+29342489,"Hey, Chains.",Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.133,Chains!,weak
+29476265,On me.,Follow,squad_move,move.on_me,On me.,2,1.000,Follow me. / Come with me.,weak
+29656571,"(pained) Thanks, I feel better now.",Revived,revived,revived.thanks,Thank you.,2,0.424,"Thanks, you got here just in time.",weak
+29989176,A sniper.,Mark sniper,mark_special,mark.sniper,Sniper.,1,0.857,They got a sniper!,weak
+30240564,To the right.,Direction,squad_move,move.right,Right.,1,0.588,Come with me. Follow me. This way.,weak
+30285069,"It's dead here, nothing happening.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.370,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+31488955,We're drilling!,Place drill,objective_tech,tech.generic,Something is wrong.,3,0.250,We are drilling!,weak
+31514573,Motherfuckers are pulling back!,Cops leaving,assault_state,assault.retreat,They are pulling back.,4,0.784,Motherfuckers are pulling back!,ok
+31565714,Clover!,Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.364,Clover.,ok
+31595544,A turret.,Mark turret,mark_special,mark.turret,Turret.,1,0.857,They got a turret!,weak
+32799900,"(pained) Hey, you!",Request for help while downed,downed_help,downed.need_help,I need help.,3,0.222,"My father hurt me, but he did not break me. I am my own person.",weak
+33079031,"Look out, guard!",Mark guard,mark_special,mark.guard,Guard.,1,0.526,It is a guard.,weak
+34260111,What the...,Unknown,spot_comment,spot.generic,There.,1,0.462,What the... This is gonna hurt.,weak
+35750267,Don't move.,Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.857,Take your best shot.,weak
+35804455,Jacket!,Call Jacket,call_teammate,call_teammate.on_me,On me.,2,0.182,Jacket!,weak
+36726963,This is gonna hurt.,Unknown,spot_comment,spot.generic,There.,1,0.261,What the... This is gonna hurt.,weak
+36727215,On me.,Follow,squad_move,move.on_me,On me.,2,1.000,Follow me. / Come with me.,weak
+36882393,Hang tight.,Coming,squad_move,move.hold,Hold.,1,0.143,Be right there. Coming! On my way!,weak
+37865430,"Five stars guys, five stars.",Victory,victory,win.generic,Clean work.,2,0.222,We are untouchable!,weak
+38061287,Faster.,Inspire,inspire,inspire.faster,Faster.,1,1.000,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+38122979,"Dozer is down, baby!",Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.714,"Dozer is down, baby!",ok
+38154759,Rust.,Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.000,Rust!,weak
+38194864,"(pained) Medic bag, please!",Low health,low_health,hurt.medic,Need a medic bag.,4,0.562,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+38255886,(pained) I need help!,Request for help while downed,downed_help,downed.need_help,I need help.,3,1.000,"My father hurt me, but he did not break me. I am my own person.",weak
+38674220,I'm in bad shape here!,Request for help while downed,downed_help,downed.need_help,I need help.,3,0.438,"My father hurt me, but he did not break me. I am my own person.",weak
+38675368,That was great!,Victory,victory,win.generic,Clean work.,2,0.167,We are untouchable!,weak
+39349334,"(pained) Ah, hey!",Request for help while downed,downed_help,downed.need_help,I need help.,3,0.353,"My father hurt me, but he did not break me. I am my own person.",weak
+39454845,Jiro.,Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.222,Jiro!,ok
+40199905,This will be fun.,Mask up,mask_up,mask.go,Let us begin.,3,0.357,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+40427227,"Hey, Dallas!",Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.133,Dallas!,ok
+41252363,Follow me.,Follow,squad_move,move.follow,Follow me.,2,1.000,Follow me. / Come with me.,good
+41522521,"Fuck it, control. Just leave me alone, okay?",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.355,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+42020235,Follow me!,Follow,squad_move,move.follow,Follow me.,2,1.000,Follow me. / Come with me.,good
+43001300,Help me get these cuffs off.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.605,Pick my cuffs.,weak
+46133662,Duke!,Call Duke,call_teammate,call_teammate.on_me,On me.,2,0.222,Duke!,ok
+46229853,Clover.,Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.364,Clover.,ok
+46330127,Follow.,Follow,squad_move,move.follow,Follow me.,2,0.800,Follow me. / Come with me.,ok
+46948660,Follow me.,Follow,squad_move,move.follow,Follow me.,2,1.000,Follow me. / Come with me.,good
+47568290,"I thought I saw something strange, but it was nothing. All good.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.289,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+48422921,Hoxton.,Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.364,"Hey, Hoxton.",ok
+48700578,Follow.,Follow,squad_move,move.follow,Follow me.,2,0.800,Follow me. / Come with me.,ok
+48870786,Kneel.,Cop intimidate,intimidate_cop,cop.kneel,On your knees.,3,0.444,My job. Wilson betrayed us all.,weak
+49788282,Stick 'em up!,Cop intimidate,intimidate_cop,cop.drop,Drop it.,2,0.105,My job. Wilson betrayed us all.,weak
+50447831,Follow.,Follow,squad_move,move.follow,Follow me.,2,0.800,Follow me. / Come with me.,ok
+50730555,"Hey, Jimmy!",Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.286,Jimmy!,weak
+50775744,It's a shield!,Mark shield,mark_special,mark.shield,Shield.,1,0.632,Watch the shield!,weak
+51172570,"Sorry control, I was just dreaming about vacations.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.310,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+51486768,Answer me now!,Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,0.118,You talk or you die!,weak
+51500457,"Come on, this way.",Direction,squad_move,move.this_way,This way.,2,0.667,Come with me. Follow me. This way.,good
+53109029,Pick my cuffs!,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.759,Pick my cuffs.,ok
+53200928,Why's this taking so long?,Complaining,curse,curse.slow,Too slow.,2,0.303,Why is this taking so long?,ok
+53477525,Fucking tear gas!,Tear gas,throwable,nade.tear,Tear gas.,2,0.667,Fucking tear gas!,ok
+55114421,"Ummm I wasn't sleeping, honest.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.314,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+56065099,Hey Sydney!,Call Sydney,call_teammate,call_teammate.on_me,On me.,2,0.267,Sydney!,weak
+57048755,Help me with these cuffs.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.700,Pick my cuffs.,weak
+57175721,"Out, get out!",Direction,squad_move,move.go,Go.,1,0.308,Come with me. Follow me. This way.,weak
+57249869,Chains!,Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.182,Chains!,weak
+57837082,It's a dozer.,Mark dozer,mark_special,mark.dozer,Dozer.,1,0.588,It is a dozer!,ok
+59054985,Got it!,Coming,squad_move,move.generic,With me.,2,0.308,Be right there. Coming! On my way!,weak
+60039454,Follow me.,Follow,squad_move,move.follow,Follow me.,2,1.000,Follow me. / Come with me.,good
+60096046,Medic is gone.,Killed medic,killed_special,kill.medic,Medic down.,2,0.696,Medic is gone!,ok
+60133243,"Oh, shit!",Curse,curse,curse.shit,Damn it.,2,0.429,"Oh, shit! Fuck!",weak
+60171458,Watch the cloaker!,Mark cloaker,mark_special,mark.cloaker,Cloaker.,1,0.583,Watch the cloaker!,ok
+62129805,Answer!,Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,0.200,You talk or you die!,weak
+63199875,Where is my fucking medic bag?,Low health,low_health,hurt.medic,Need a medic bag.,4,0.489,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+63349578,"Hey control, um... I had this strange dream last night. I was some kind of a YouTube star. It's- It was weird, pretty cringey.",Pager response,pager,pager.cover,False alarm. All clear.,4,0.188,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+64053990,Houston.,Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.333,Houston.,ok
+64714247,Get up!,Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.222,Get up! You are going to be okay.,weak
+64872191,We gotta get it fixed.,Drill jam/hack pause followup,objective_tech,tech.generic,Something is wrong.,3,0.308,"Fix it, please? We have to fix it!",weak
+65094768,Jimmy!,Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.200,Jimmy!,weak
+65707289,What's going on here anyway?,Pager response,pager,pager.clear,Nothing here. All clear.,4,0.490,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+65952437,Dozer!,Mark dozer,mark_special,mark.dozer,Dozer.,1,1.000,It is a dozer!,ok
+66233421,This way!,Direction,squad_move,move.this_way,This way.,2,1.000,Come with me. Follow me. This way.,ok
+66270605,"Stick 'em up, motherfucker!",Intimidate cop,intimidate_cop,cop.drop,Drop it.,2,0.188,Consider this my resignation.,weak
+67131743,"Hey, Sydney.",Call Sydney,call_teammate,call_teammate.on_me,On me.,2,0.267,Sydney!,weak
+67770398,Now you have to talk!,Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,0.333,You talk or you die!,weak
+67793031,Computer is down.,Hack paused,objective_tech,tech.comp,Computer is down.,3,1.000,Something is wrong with the computer.,ok
+67918619,Watch the cameras,Mark camera,mark_special,mark.generic,Mark that.,2,0.385,Watch that camera.,good
+68496372,"Stay down, or I'll fucking kill you!",Hostage intimidate,intimidate_civilian,civ.killthreat,Stay down.,2,0.419,Take your best shot.,weak
+69257662,They got a captain!,Mark captain,mark_special,mark.captain,Captain.,1,0.560,They got a captain!,ok
+70810198,Ethan!,Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.200,Ethan!,ok
+71632553,"Drop your gun, now!",Intimidate cop,intimidate_cop,cop.drop,Drop it.,2,0.417,Consider this my resignation.,weak
+71979512,Get down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.500,Take your best shot.,weak
+72538971,"Hey, Sokol!",Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.143,"Hey, Sokol!",ok
+72938199,Hey Tony.,Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.308,"Tony. Hey, Tony.",ok
+73306592,Sangres.,Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.333,Sangres.,weak
+73478115,"Hey, Jimmy.",Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.286,Jimmy!,weak
+73612626,It's a shield.,Mark shield,mark_special,mark.shield,Shield.,1,0.632,Watch the shield!,weak
+74193580,Sangres.,Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.333,Sangres.,weak
+74283047,Down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.667,Take your best shot.,weak
+74323576,You wanna (live/leave?) don't you?,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.370,Take your best shot.,weak
+75649716,Something's wrong with the computer.,Hack paused,objective_tech,tech.comp,Computer is down.,3,0.314,Something is wrong with the computer.,good
+76083230,"Hey, Tony.",Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.308,"Tony. Hey, Tony.",ok
+76166528,Shield is gone.,Killed shield,killed_special,kill.shield,Shield down.,2,0.720,"Shield is down, baby!",weak
+77789407,Go up.,Direction,squad_move,move.up,Up.,1,0.571,Come with me. Follow me. This way.,weak
+77931645,Duke.,Call Duke,call_teammate,call_teammate.on_me,On me.,2,0.222,Duke!,ok
+78485353,Wick.,Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.000,Wick.,ok
+78512648,Turret.,Mark turret,mark_special,mark.turret,Turret.,1,1.000,They got a turret!,weak
+80374011,I said down!,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.421,Take your best shot.,weak
+80410541,I can't see!,Flashbanged,throwable,nade.generic,Fire in the hole.,4,0.222,I cannot see! Flashbang!,weak
+81580957,This is not good.,Curse,curse,curse.shit,Damn it.,2,0.261,"Oh, shit! Fuck!",weak
+81740689,(pained) They got me!,Low health,low_health,hurt.hit,I am hit.,3,0.211,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+82684468,"It'd be easier for me to shoot you, so don't try me.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.138,Take your best shot.,weak
+83072968,"Hey, wanna go shoot some (?) after we get off work?",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.299,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+83379609,Not much ammo left!,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.462,Almost out of ammo. Who has an ammo bag?,weak
+83688756,"Shield is down, baby!",Killed shield,killed_special,kill.shield,Shield down.,2,0.733,"Shield is down, baby!",ok
+84461972,We gotta fix this shit.,Drill jam/hack pause followup,objective_tech,tech.fix,Fix it.,2,0.429,"Fix it, please? We have to fix it!",weak
+84531155,This looks really bad.,Curse,curse,curse.shit,Damn it.,2,0.071,"Oh, shit! Fuck!",weak
+85071354,"Down, motherfucker!",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.480,Take your best shot.,weak
+85865199,I dropped a body bag case.,Deploy body bag case,deploy_equip,drop.body,Body bags here.,3,0.513,I dropped a body bag case.,ok
+86465451,"Come on, let's fix it.",Drill jam/hack pause followup,objective_tech,tech.fix,Fix it.,2,0.462,"Fix it, please? We have to fix it!",weak
+86537177,"There's nothing happening here, control.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.467,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+87107871,"Thanks, you got here just in time.",Revived,revived,revived.thanks,Thank you.,2,0.439,"Thanks, you got here just in time.",ok
+87233072,"Hey, Sokol.",Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.143,"Hey, Sokol!",ok
+87277211,I'm low on ammo.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.696,Almost out of ammo. Who has an ammo bag?,weak
+87374911,Let's go.,Let's go,squad_move,move.go,Go.,1,0.500,We have to get out of here. Let's go.,ok
+87556193,Jacket.,Call Jacket,call_teammate,call_teammate.on_me,On me.,2,0.182,Jacket!,weak
+88087986,A medic!,Mark medic,mark_special,mark.medic,Medic.,1,0.833,They got a medic!,weak
+88149280,"Hey, Houston.",Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.250,Houston.,ok
+90339926,Ethan.,Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.200,Ethan!,ok
+91403409,"Hey, Bodhi!",Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.143,Bodhi!,weak
+91594349,"Fucking talk, now!",Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,0.400,You talk or you die!,weak
+91611063,Put those cuffs on.,Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.519,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+91765018,Come on.,Direction,squad_move,move.this_way,This way.,2,0.133,Come with me. Follow me. This way.,ok
+92229830,"I've killed many people like you before, don't fuck with me.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.121,Take your best shot.,weak
+92652955,Watch that camera.,Mark camera,mark_special,mark.camera,Camera.,1,0.522,Watch that camera.,good
+93272676,"Hey, Sydney!",Call Sydney,call_teammate,call_teammate.on_me,On me.,2,0.267,Sydney!,weak
+93274119,Sniper.,Mark sniper,mark_special,mark.sniper,Sniper.,1,1.000,They got a sniper!,weak
+94270922,Shield.,Mark shield,mark_special,mark.shield,Shield.,1,1.000,Watch the shield!,weak
+94894296,"Hey, Jiro.",Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.154,Jiro!,ok
+94915891,Sniper!,Mark sniper,mark_special,mark.sniper,Sniper.,1,1.000,They got a sniper!,weak
+95955618,"Watch out, a captain!",Mark captain,mark_special,mark.captain,Captain.,1,0.538,They got a captain!,weak
+96005975,Just stay quiet and I won't kill you.,Hostage intimidate,intimidate_civilian,civ.killthreat,Stay down.,2,0.356,Take your best shot.,weak
+96100490,"Stop being so nervous over there, nothing's going on.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.247,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+96179233,"Hey, Ethan!",Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.143,Ethan!,ok
+97042443,I got you.,Coming,squad_move,move.generic,With me.,2,0.375,Be right there. Coming! On my way!,weak
+97113610,Something's wrong with the drill.,Drill jam,objective_tech,tech.drill_jam,Drill jammed.,2,0.227,The drill is jammed!,ok
+97284969,We're untouchable!,Victory,victory,win.generic,Clean work.,2,0.222,We are untouchable!,weak
+97968730,Ethan.,Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.200,Ethan!,ok
+99069140,"Hey, Houston!",Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.250,Houston.,ok
+99778908,Need a medic bag.,Low health,low_health,hurt.medic,Need a medic bag.,4,1.000,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+99807660,Help me with these fucking cuffs.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.583,Pick my cuffs.,weak
+100412034,"Hey, Jacket.",Call Jacket,call_teammate,call_teammate.on_me,On me.,2,0.267,Jacket!,weak
+101151328,"Nothing is on fire. I repeat, nothing is on fire.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.441,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+101271003,Stay with me now.,Reviving,reviving,revive.hold,I have you.,3,0.385,"Please do not die, okay? You are really hurt.",weak
+101611732,They got a sniper.,Mark sniper,mark_special,mark.sniper,Sniper.,1,0.522,They got a sniper!,ok
+101639907,Careful now.,Careful,caution,caution.watch,Careful.,1,0.778,Careful. Be careful now.,ok
+103439689,Fucking get up.,Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.308,Get up! You are going to be okay.,weak
+103668556,"Hey, control I... I just accidentally tripped my radio, it's fine.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.244,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+105461661,Stay off your phones if you wanna (live/leave?),Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.227,Take your best shot.,weak
+105962157,Tear gas!,Tear gas,throwable,nade.tear,Tear gas.,2,1.000,Fucking tear gas!,weak
+106075211,They're pulling back.,Cops leaving,assault_state,assault.retreat,They are pulling back.,4,0.927,Motherfuckers are pulling back!,weak
+106479821,Turret.,Mark turret,mark_special,mark.turret,Turret.,1,1.000,They got a turret!,weak
+106860196,"Relax, man. You guys are so tense up there.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.290,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+106937455,"Hey, wolf!",Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.154,Wolf.,ok
+107211812,Down!,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.667,Take your best shot.,weak
+107668707,Get in.,Inside,squad_move,move.in,Inside.,1,0.333,Get inside.,weak
+108233147,Don't think I won't kill you.,Hostage intimidate,intimidate_civilian,civ.killthreat,Stay down.,2,0.216,Take your best shot.,weak
+108414273,"Watch it, grenade.",Grenade,throwable,nade.grenade,Grenade.,1,0.609,Fire in the hole! / I will destroy you! You will not survive!,weak
+108802057,"Hey, chains.",Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.133,Chains!,weak
+109991197,"Shit, they shot me.",Low health,low_health,hurt.hit,I am hit.,3,0.240,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+111866469,They got a dozer.,Mark dozer,mark_special,mark.dozer,Dozer.,1,0.476,It is a dozer!,weak
+112261018,That was perfect.,Victory,victory,win.generic,Clean work.,2,0.308,We are untouchable!,weak
+112605938,They're running away!,Cops leaving,assault_state,assault.retreat,They are pulling back.,4,0.634,Motherfuckers are pulling back!,weak
+112780582,Holy shit.,Curse,curse,curse.shit,Damn it.,2,0.375,"Oh, shit! Fuck!",weak
+113267085,Move it.,Inspire,inspire,inspire.move,Move.,1,0.727,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+113313295,"Hey, Clover.",Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.267,Clover.,ok
+113530814,The cops are coming.,Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.688,"Oh shit, it is the cops. Cops incoming.",ok
+114013197,"Get down, now.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.800,Take your best shot.,weak
+114222846,Dallas!,Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.000,Dallas!,ok
+116834972,I got the sniper.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.444,Sniper is dead!,weak
+117530395,"Hey, Chains.",Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.133,Chains!,weak
+120078764,"Hey, Bodhi!",Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.143,Bodhi!,weak
+120562467,Cops incoming.,Cops arriving,assault_state,assault.incoming,Cops incoming.,2,1.000,"Oh shit, it is the cops. Cops incoming.",good
+120638084,Jump down here.,Direction,squad_move,move.generic,With me.,2,0.286,Come with me. Follow me. This way.,weak
+120864113,"Shit, the drill is jammed.",Drill jam,objective_tech,tech.drill_jam,Drill jammed.,2,0.375,The drill is jammed!,good
+120990697,Over there.,Direction,squad_move,move.generic,With me.,2,0.353,Come with me. Follow me. This way.,weak
+121232196,Let's get out of here.,Let's go,squad_move,move.go,Go.,1,0.174,We have to get out of here. Let's go.,good
+122140721,You'll be fine.,Reviving,reviving,revive.hold,I have you.,3,0.250,"Please do not die, okay? You are really hurt.",weak
+122197228,What the fuuck?,Curse,curse,curse.shit,Damn it.,2,0.286,"Oh, shit! Fuck!",weak
+122647751,Taser is gone.,Killed taser,killed_special,kill.taser,Taser down.,2,0.696,The taser got it!,weak
+123133230,"Okay, on my way!",Coming,squad_move,move.generic,With me.,2,0.190,Be right there. Coming! On my way!,weak
+123908190,"Hey, Sokol.",Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.143,"Hey, Sokol!",ok
+124521265,It's a dozer!,Mark dozer,mark_special,mark.dozer,Dozer.,1,0.588,It is a dozer!,ok
+124587299,Hang on!,Coming,squad_move,move.hold,Hold.,1,0.364,I dropped an ammo bag!,weak
+124587299,I dropped an ammo bag.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.333,I dropped an ammo bag!,ok
+125866102,Jimmy.,Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.200,Jimmy!,weak
+125973272,I got the drill working.,Place drill,objective_tech,tech.drilling,Drilling.,1,0.516,We are drilling!,weak
+126299091,Watch the shield.,Mark shield,mark_special,mark.shield,Shield.,1,0.545,Watch the shield!,ok
+126439259,The shield is dead.,Killed shield,killed_special,kill.shield,Shield down.,2,0.552,"Shield is down, baby!",weak
+130493548,Rust.,Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.000,Rust!,weak
+130720407,"Nothing to worry about here, control. I got this covered.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.474,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+130811711,Someone get me a medic bag.,Low health,low_health,hurt.medic,Need a medic bag.,4,0.714,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+130859193,It's a cloaker.,Mark cloaker,mark_special,mark.cloaker,Cloaker.,1,0.667,Watch the cloaker!,weak
+132551829,"Hey, Sangres.",Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.250,Sangres.,weak
+134605380,"Hey, Hoxton.",Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.267,Come with me. Follow me. This way.,weak
+134605380,Out.,Direction,squad_move,move.go,Go.,1,0.400,Come with me. Follow me. This way.,weak
+135239856,I'm low on ammo.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.696,Almost out of ammo. Who has an ammo bag?,weak
+135278368,"Down, down.",Direction,squad_move,move.generic,With me.,2,0.250,Come with me. Follow me. This way.,weak
+135346911,This the wrong way.,Direction,squad_move,move.generic,With me.,2,0.320,Come with me. Follow me. This way.,ok
+135641862,"Down, get down!",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.667,Take your best shot.,weak
+136512045,"Okay, let's do this.",Mask up,mask_up,mask.go,Let us begin.,3,0.400,"This should be easy. Okay, lets do this. Ready to rumble.",ok
+137252366,It's stuck.,Drill jam,objective_tech,tech.generic,Something is wrong.,3,0.214,The drill is jammed!,weak
+137850560,Jimmy.,Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.200,Jimmy!,weak
+137880362,Right.,Direction,squad_move,move.right,Right.,1,1.000,Come with me. Follow me. This way.,weak
+138424177,"Hey, Dragan.",Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.133,Dragan.,ok
+138738562,Straight ahead.,Direction,squad_move,move.generic,With me.,2,0.381,Come with me. Follow me. This way.,weak
+138909262,I got the cloaker.,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.483,"Cloaker is down, baby!",weak
+139329478,It's a medic!,Mark medic,mark_special,mark.medic,Medic.,1,0.588,They got a medic!,weak
+140409813,Move.,Inspire,inspire,inspire.move,Move.,1,1.000,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+140883476,I'm gonna fucking kill you.,Taxman intimidate,intimidate_civilian,civ.killthreat,Stay down.,2,0.171,You talk or you die!,weak
+141438519,Hold on.,Coming,squad_move,move.hold,Hold.,1,0.727,Be right there. Coming! On my way!,weak
+142299276,Wick.,Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.000,Wick.,ok
+143235036,A taser!,Mark taser,mark_special,mark.taser,Taser.,1,0.833,It is a taser!,ok
+143717224,I got the taser.,Killed taser,killed_special,kill.taser,Taser down.,2,0.400,The taser got it!,ok
+144430074,Down.,Direction,squad_move,move.generic,With me.,2,0.182,Come with me. Follow me. This way.,weak
+145631441,The drill is fucking jammed.,Drill jam,objective_tech,tech.drill_jam,Drill jammed.,2,0.457,The drill is jammed!,good
+146534951,They got a shield.,Mark shield,mark_special,mark.shield,Shield.,1,0.522,Watch the shield!,weak
+146791506,The shield got it.,Killed shield,killed_special,kill.shield,Shield down.,2,0.571,"Shield is down, baby!",weak
+147066633,"Hey control, uh... we should start streaming on the job, right? Just to show the world how boring it is?",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.252,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+147601729,Come on!,Follow,squad_move,move.this_way,This way.,2,0.133,Follow me. / Come with me.,ok
+148316428,Straight ahead.,Direction,squad_move,move.generic,With me.,2,0.381,Come with me. Follow me. This way.,weak
+148654663,Move.,Inspire,inspire,inspire.move,Move.,1,1.000,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+148667655,Get ready to kill them.,Cops arriving,assault_state,assault.ready,Get ready.,2,0.581,"Oh shit, it is the cops. Cops incoming.",weak
+150238217,Be careful now.,Careful,caution,caution.watch,Careful.,1,0.667,Careful. Be careful now.,ok
+151204021,Chains.,Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.182,Chains!,weak
+151275512,"Die, assholes!",Grenade,throwable,nade.generic,Fire in the hole.,4,0.500,Fire in the hole! / I will destroy you! You will not survive!,weak
+151983472,"Fucking drill, shit.",Drill jam,objective_tech,tech.drilling,Drilling.,1,0.462,The drill is jammed!,ok
+152693469,Fuck!,Curse,curse,curse.shit,Damn it.,2,0.000,"Oh, shit! Fuck!",weak
+153253285,Bodhi!,Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.200,Bodhi!,weak
+153297963,They got a taser.,Mark taser,mark_special,mark.taser,Taser.,1,0.476,It is a taser!,weak
+153349992,Down the stairs.,Direction,squad_move,move.up,Up.,1,0.000,Come with me. Follow me. This way.,weak
+154070709,Left.,Direction,squad_move,move.left,Left.,1,1.000,Come with me. Follow me. This way.,weak
+155404682,It's tear gas!,Tear gas,throwable,nade.tear,Tear gas.,2,0.762,Fucking tear gas!,weak
+155941628,Ready to rumble.,Mask up,mask_up,mask.go,Let us begin.,3,0.148,"This should be easy. Okay, lets do this. Ready to rumble.",ok
+156054794,It's a captain.,Mark captain,mark_special,mark.captain,Captain.,1,0.667,They got a captain!,weak
+157218705,And stay there.,Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.400,Take your best shot.,weak
+157308488,Stay still.,Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.190,Take your best shot.,weak
+158742829,Dallas.,Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.000,Dallas!,ok
+159825962,"If you talk, you die.",Hostage intimidate,intimidate_civilian,civ.talk,Talk.,1,0.348,Take your best shot.,weak
+160735974,You look like shit.,Reviving,reviving,revive.hold,I have you.,3,0.214,"Please do not die, okay? You are really hurt.",weak
+161197672,Down.,Direction,squad_move,move.generic,With me.,2,0.182,Come with me. Follow me. This way.,weak
+161709394,Run.,Inspire,inspire,inspire.run,Run.,1,1.000,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+161846212,"Yeah, I've set the drill up!",Place drill,objective_tech,tech.drilling,Drilling.,1,0.294,We are drilling!,weak
+163666886,Bonnie.,Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.545,"Hey, Bonnie.",ok
+164278810,Come on.,Follow,squad_move,move.this_way,This way.,2,0.133,Follow me. / Come with me.,ok
+164377190,It's a turret.,Mark turret,mark_special,mark.turret,Turret.,1,0.632,They got a turret!,weak
+165206730,"Come on, faster!",Inspire,inspire,inspire.faster,Faster.,1,0.600,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+165650032,"Get ready, pigs incoming.",Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.611,"Oh shit, it is the cops. Cops incoming.",ok
+165880624,"Nothing happening here, nope. Nothing.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.491,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+165950540,"Hey, Houston.",Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.250,Houston.,ok
+166385533,"Hey, Ethan.",Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.143,Ethan!,ok
+166437134,We showed those fuckers!,Victory,victory,win.generic,Clean work.,2,0.182,We are untouchable!,weak
+166718975,Flashbang!,Flashbanged,throwable,nade.generic,Fire in the hole.,4,0.160,I cannot see! Flashbang!,weak
+168075996,"Watch out, it's a camera.",Mark camera,mark_special,mark.camera,Camera.,1,0.414,Watch that camera.,good
+168644482,You can't go down again.,Reviving (last down),reviving,revive.hold,I have you.,3,0.182,You cannot go down again. Next time you are finished.,weak
+169513614,"Let's go, guys.",Let's go,squad_move,move.go,Go.,1,0.333,We have to get out of here. Let's go.,weak
+171614543,"Hey, Wolf.",Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.154,Wolf.,ok
+171623921,"Hey, Bodhi.",Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.143,Bodhi!,weak
+173181437,"Uh... I thought I misplaced my gun, but I found it. It's all good.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.244,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+174322045,Be right there.,Coming,squad_move,move.right,Right.,1,0.526,Be right there. Coming! On my way!,weak
+174707640,"Hey, Wick.",Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.154,Wick.,ok
+175302272,Sangres.,Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.333,Sangres.,weak
+175927349,Stay down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.471,Take your best shot.,weak
+176613229,Jacket.,Call Jacket,call_teammate,call_teammate.on_me,On me.,2,0.182,Jacket!,weak
+178196989,"Hey, Clover.",Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.267,Clover.,ok
+178944284,Get down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.500,Take your best shot.,weak
+179163471,Let's go.,Let's go,squad_move,move.go,Go.,1,0.500,We have to get out of here. Let's go.,ok
+179717450,Hoxton.,Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.364,"Hey, Hoxton.",ok
+180008979,Make sure they behave.,Watch the civillians,watch_civs,civ.ties,Tie them.,2,0.345,"I am still human, Shepard. I make mistakes",weak
+180206718,"Hurry up, guys.",Direction,squad_move,move.up,Up.,1,0.333,Come with me. Follow me. This way.,weak
+182483678,"Get down, asshole.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.500,Take your best shot.,weak
+183245596,Hoxton.,Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.364,"Hey, Hoxton.",ok
+183761559,Jimmy.,Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.200,Jimmy!,weak
+183881230,Sokol!,Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.200,"Hey, Sokol!",ok
+184360773,I got the taser.,Killed taser,killed_special,kill.taser,Taser down.,2,0.400,The taser got it!,ok
+185565868,"Hey, Tony.",Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.308,"Tony. Hey, Tony.",ok
+185702489,Ammo bag here.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.818,I dropped an ammo bag!,weak
+186294121,Watch that camera.,Mark camera,mark_special,mark.camera,Camera.,1,0.522,Watch that camera.,good
+187568327,I dropped a body bag case.,Deploy body bag case,deploy_equip,drop.body,Body bags here.,3,0.513,I dropped a body bag case.,ok
+188069214,I said down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.421,Take your best shot.,weak
+189759294,Fuck you!,Curse,curse,curse.shit,Damn it.,2,0.133,"Oh, shit! Fuck!",weak
+190339578,"Hey, Rust.",Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.154,Rust!,weak
+191339565,On my way.,Coming,squad_move,move.generic,With me.,2,0.250,Be right there. Coming! On my way!,weak
+191726614,The medic is dead.,Killed medic,killed_special,kill.medic,Medic down.,2,0.519,Medic is gone!,weak
+191733893,Dragan.,Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.182,Dragan.,ok
+191786442,Bonnie.,Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.545,"Hey, Bonnie.",ok
+192513693,We're drilling.,Place drill,objective_tech,tech.generic,Something is wrong.,3,0.250,We are drilling!,weak
+193567327,Dozer is gone.,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.696,"Dozer is down, baby!",weak
+194144547,Sokol.,Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.200,"Hey, Sokol!",ok
+195239764,"Speak up, now!",Taxman intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.400,You talk or you die!,weak
+195479092,Cloaker is dead.,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.667,"Cloaker is down, baby!",weak
+195776709,This is it,This is the place,spot_comment,spot.generic,There.,1,0.267,This is the place.,weak
+197046340,"Okay, secured.",Gage package,pickup,loot.secured,Secured.,1,0.737,"It is secured. Okay, secured.",ok
+197344844,You can't go down like this again.,Reviving (last down),reviving,revive.hold,I have you.,3,0.140,You cannot go down again. Next time you are finished.,weak
+197975793,They got a dozer.,Mark dozer,mark_special,mark.dozer,Dozer.,1,0.476,It is a dozer!,weak
+199417180,It's a sniper.,Mark sniper,mark_special,mark.sniper,Sniper.,1,0.632,They got a sniper!,weak
+200748758,Okay.,Got it,squad_move,move.generic,With me.,2,0.000,Got it. Okay.,ok
+201117291,Wolf.,Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.222,Wolf.,ok
+201428224,"You don't wanna mess with me, you're not gonna like it.",Taxman intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.230,You talk or you die!,weak
+201792539,"Camera, there.",Mark camera,mark_special,mark.camera,Camera.,1,0.667,Watch that camera.,ok
+202945309,Grenade!,Grenade,throwable,nade.grenade,Grenade.,1,1.000,Fire in the hole! / I will destroy you! You will not survive!,weak
+203326203,"Hey, Jacket.",Call Jacket,call_teammate,call_teammate.on_me,On me.,2,0.267,Jacket!,weak
+203920730,They got a sniper.,Mark sniper,mark_special,mark.sniper,Sniper.,1,0.522,They got a sniper!,ok
+204760317,We gotta get this fixed.,Drill jam/hack pause followup,objective_tech,tech.generic,Something is wrong.,3,0.341,"Fix it, please? We have to fix it!",weak
+206309940,"Dozer is down, baby!",Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.714,"Dozer is down, baby!",ok
+208465641,"Hey, Sydney.",Call Sydney,call_teammate,call_teammate.on_me,On me.,2,0.267,Sydney!,weak
+209090262,Chains.,Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.182,Chains!,weak
+209477805,Wolf.,Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.222,Wolf.,ok
+209792435,I'm not sure you'll make it.,Reviving,reviving,revive.critical,Stay with me.,3,0.256,"Please do not die, okay? You are really hurt.",weak
+210434210,Wolf!,Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.222,Wolf.,ok
+212169879,And stay down!,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.381,Take your best shot.,weak
+213469675,There's a guard there.,Mark guard,mark_special,mark.guard,Guard.,1,0.385,It is a guard.,weak
+213724598,"Talk, motherfucker!",Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,0.500,You talk or you die!,weak
+213835843,They got a taser.,Mark taser,mark_special,mark.taser,Taser.,1,0.476,It is a taser!,weak
+214936466,You'll be okay.,Revived,revived,revived.thanks,Thank you.,2,0.261,"Thanks, you got here just in time.",weak
+214984592,Camera.,Mark camera,mark_special,mark.camera,Camera.,1,1.000,Watch that camera.,ok
+215056467,"Hey, Duke.",Call Duke,call_teammate,call_teammate.on_me,On me.,2,0.308,Duke!,ok
+217223942,"Cloaker is down, baby!",Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.750,"Cloaker is down, baby!",ok
+217694504,We good to go yet?,Let's go,squad_move,move.go,Go.,1,0.211,We have to get out of here. Let's go.,weak
+218260537,"Hey, Jacket!",Call Jacket,call_teammate,call_teammate.on_me,On me.,2,0.267,Jacket!,weak
+218567506,A fucking captain.,Mark captain,mark_special,mark.captain,Captain.,1,0.583,They got a captain!,weak
+220807506,I got you.,Reviving,reviving,revive.hold,I have you.,3,0.632,"Please do not die, okay? You are really hurt.",weak
+221567123,Hila will save you.,Reviving,reviving,revive.hold,I have you.,3,0.643,"Please do not die, okay? You are really hurt.",weak
+221721081,Almost out of ammo.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.538,Almost out of ammo. Who has an ammo bag?,weak
+221910023,Ethan.,Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.200,Ethan!,ok
+221921609,"Yeah, that's the way to do it.",Victory,victory,win.generic,Clean work.,2,0.263,We are untouchable!,weak
+223507290,Oh shit.,Curse,curse,curse.shit,Damn it.,2,0.429,"Oh, shit! Fuck!",weak
+224196270,Straight on.,Direction,squad_move,move.generic,With me.,2,0.333,Come with me. Follow me. This way.,weak
+224620993,Tony.,Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.444,"Tony. Hey, Tony.",ok
+226873037,"No, fuck!",Curse,curse,curse.shit,Damn it.,2,0.286,"Oh, shit! Fuck!",weak
+226987217,"Get down, now.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.800,Take your best shot.,weak
+227041204,The dozer got it.,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.538,"Dozer is down, baby!",weak
+227715826,Are you done yet?,Unknown,spot_comment,spot.generic,There.,1,0.190,What the... This is gonna hurt.,weak
+229031743,"Come on, guys.",Direction,squad_move,move.this_way,This way.,2,0.100,Come with me. Follow me. This way.,ok
+229665819,Dropped a first aid kit.,Deploy first aid kit,deploy_equip,drop.fak,First aid here.,3,0.541,Dropped a first aid kit!,ok
+229762148,There.,Direction,squad_move,move.generic,With me.,2,0.500,Come with me. Follow me. This way.,weak
+230563670,Don't move!,Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.857,Take your best shot.,weak
+230604447,That was the perfect crime.,Victory,victory,win.generic,Clean work.,2,0.222,We are untouchable!,weak
+232366092,"Hey, Wick!",Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.154,Wick.,ok
+232693516,Left.,Direction,squad_move,move.left,Left.,1,1.000,Come with me. Follow me. This way.,weak
+232836185,Tony.,Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.444,"Tony. Hey, Tony.",ok
+232887839,The medic got it.,Killed medic,killed_special,kill.medic,Medic down.,2,0.538,Medic is gone!,weak
+233720555,Hold on!,Coming,squad_move,move.hold,Hold.,1,0.727,Be right there. Coming! On my way!,weak
+233837757,Go down.,Direction,squad_move,move.go,Go.,1,0.500,Come with me. Follow me. This way.,weak
+234213065,Sniper is dead.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.640,Sniper is dead!,ok
+234291616,I'm running out of ammo.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.387,Almost out of ammo. Who has an ammo bag?,weak
+234371426,"Hey, Bonnie.",Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.400,"Hey, Bonnie.",ok
+234763697,This is taking too long.,Complaining,curse,curse.slow,Too slow.,2,0.387,Why is this taking so long?,weak
+235248491,Move!,Inspire,inspire,inspire.move,Move.,1,1.000,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+237853546,"Hey control, there's some really interesting spiders here. I'll show you a photo later.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.358,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+238057031,Stay down and stay quiet.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.375,Take your best shot.,weak
+238190789,It's jammed.,Drill jam,objective_tech,tech.generic,Something is wrong.,3,0.207,The drill is jammed!,ok
+241409516,Sniper is down.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.880,Sniper is dead!,weak
+241666771,Killed the taser.,Killed taser,killed_special,kill.taser,Taser down.,2,0.385,The taser got it!,weak
+241802335,"Time to go, come on!",Let's go,squad_move,move.this_way,This way.,2,0.231,We have to get out of here. Let's go.,weak
+242159822,Jump down.,Direction,squad_move,move.generic,With me.,2,0.125,Come with me. Follow me. This way.,weak
+242249243,Holy shit.,Curse,curse,curse.shit,Damn it.,2,0.375,"Oh, shit! Fuck!",weak
+243103183,"Shit, a turret.",Mark turret,mark_special,mark.turret,Turret.,1,0.632,They got a turret!,weak
+243464593,You talk or you die!,Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,0.348,You talk or you die!,ok
+244077832,Fire in the hole.,Grenade,throwable,nade.grenade,Grenade.,1,0.348,Fire in the hole! / I will destroy you! You will not survive!,ok
+245462380,Wait 'till the smoke clears!,Smoke,throwable,nade.smoke,Smoke.,1,0.312,Smoke! Wait till the smoke clears!,ok
+246326296,I dropped a medic bag.,Deploy medic bag,deploy_equip,drop.medic,Medic bag here.,3,0.514,"Medic bag here, guys!",weak
+246922862,Taser!,Mark taser,mark_special,mark.taser,Taser.,1,1.000,It is a taser!,ok
+247891200,"A quiet hostage is a survivor, remember that.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.118,Take your best shot.,weak
+248096016,The fucking drill is jammed.,Drill jam,objective_tech,tech.drill_jam,Drill jammed.,2,0.343,The drill is jammed!,good
+248470875,You're gonna be okay.,Reviving,reviving,revive.hold,I have you.,3,0.200,"Please do not die, okay? You are really hurt.",weak
+250073154,What tha hell?,Curse,curse,curse.shit,Damn it.,2,0.300,"Oh, shit! Fuck!",weak
+252347288,"Stay down, fucking baby.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.400,Take your best shot.,weak
+252440010,Ammo bag please.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.348,Almost out of ammo. Who has an ammo bag?,weak
+252561897,They never knew what hit them.,Victory,victory,win.generic,Clean work.,2,0.205,We are untouchable!,weak
+253300849,Be right there.,Coming,squad_move,move.right,Right.,1,0.526,Be right there. Coming! On my way!,weak
+253712795,This computer is a piece of shit.,Hack paused,objective_tech,tech.generic,Something is wrong.,3,0.320,Something is wrong with the computer.,weak
+256692301,I killed the dozer.,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.357,"Dozer is down, baby!",weak
+256840580,"Nothing, control. Just dropped my radio.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.441,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+256857993,Up.,Direction,squad_move,move.up,Up.,1,1.000,Come with me. Follow me. This way.,weak
+257706439,Stay put!,Stay,squad_move,move.generic,With me.,2,0.267,Stay. Stay put!,ok
+258714659,It's secured.,Gage package,pickup,loot.secured,Secured.,1,0.737,"It is secured. Okay, secured.",weak
+260170061,Tony.,Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.444,"Tony. Hey, Tony.",ok
+260346549,"Hey, Wick.",Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.154,Wick.,ok
+260918556,They got a medic.,Mark medic,mark_special,mark.medic,Medic.,1,0.476,They got a medic!,ok
+261047341,"Hey, Hoxton.",Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.267,"Hey, Hoxton.",ok
+262642471,"Come on, hurry up.",Inspire,inspire,inspire.faster,Faster.,1,0.182,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+266650384,"Hey, Duke.",Call Duke,call_teammate,call_teammate.on_me,On me.,2,0.308,Duke!,ok
+267904550,And stay down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.381,Take your best shot.,weak
+268733336,Jiro.,Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.222,Jiro!,ok
+269111937,Just kill the fucks!,Cops arriving,assault_state,assault.ready,Get ready.,2,0.214,"Oh shit, it is the cops. Cops incoming.",weak
+269114652,Finally some action.,Cops arriving,assault_state,assault.ready,Get ready.,2,0.143,"Oh shit, it is the cops. Cops incoming.",weak
+269175478,Get up and fight!,Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.286,Get up! You are going to be okay.,weak
+270099262,"Sorry, control. Just zoned out for a bit.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.300,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+272546978,The drill is working.,Place drill,objective_tech,tech.drilling,Drilling.,1,0.571,We are drilling!,weak
+274179976,Perfect score.,Victory,victory,win.generic,Clean work.,2,0.348,We are untouchable!,weak
+275673952,Rust.,Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.000,Rust!,weak
+275797261,Got it.,Got it,squad_move,move.generic,With me.,2,0.308,Got it. Okay.,good
+276378330,"Oh shit, it's the cops.",Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.235,"Oh shit, it is the cops. Cops incoming.",good
+277629280,I dropped a medic bag here.,Deploy medic bag,deploy_equip,drop.medic,Medic bag here.,3,0.700,"Medic bag here, guys!",weak
+277805206,Jump down.,Direction,squad_move,move.generic,With me.,2,0.125,Come with me. Follow me. This way.,weak
+282714011,Down.,Direction,squad_move,move.generic,With me.,2,0.182,Come with me. Follow me. This way.,weak
+283011197,Hang tight.,Coming,squad_move,move.hold,Hold.,1,0.143,Be right there. Coming! On my way!,weak
+283251835,It's stuck.,Drill jam,objective_tech,tech.generic,Something is wrong.,3,0.214,The drill is jammed!,weak
+283448227,Bodhi.,Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.200,Bodhi!,weak
+284022890,Something's wrong with the computer.,Hack paused,objective_tech,tech.comp,Computer is down.,3,0.314,Something is wrong with the computer.,good
+284106102,Bombs away!,Grenade,throwable,nade.generic,Fire in the hole.,4,0.077,Fire in the hole! / I will destroy you! You will not survive!,weak
+285050332,"Thanks, I thought I was gone.",Revived,revived,revived.thanks,Thank you.,2,0.444,"Thanks, you got here just in time.",weak
+285562613,"Uh... I thought there was something wrong with my radio. All good now, though.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.298,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+286809095,Finally some action.,Cops arriving,assault_state,assault.ready,Get ready.,2,0.143,"Oh shit, it is the cops. Cops incoming.",weak
+287895833,Get up.,Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.222,Get up! You are going to be okay.,weak
+288115525,"Hey, Sangres.",Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.250,Sangres.,weak
+288173111,It's a taser!,Mark taser,mark_special,mark.taser,Taser.,1,0.588,It is a taser!,ok
+288584219,I'll help you!,Reviving,reviving,revive.hold,I have you.,3,0.696,"Please do not die, okay? You are really hurt.",weak
+288740889,A captain!,Mark captain,mark_special,mark.captain,Captain.,1,0.875,They got a captain!,weak
+289727490,Catch this.,Grenade,throwable,nade.generic,Fire in the hole.,4,0.231,Fire in the hole! / I will destroy you! You will not survive!,weak
+292392831,Hang on.,Coming,squad_move,move.hold,Hold.,1,0.364,Be right there. Coming! On my way!,weak
+293400143,It's gonna be hard to top that one.,Victory,victory,win.generic,Clean work.,2,0.136,We are untouchable!,weak
+293418070,Can someone fix it?,Drill jam/hack pause followup,objective_tech,tech.fix,Fix it.,2,0.500,"Fix it, please? We have to fix it!",weak
+294322928,"Hey, Tony.",Call Scarface,call_teammate,call_teammate.on_me,On me.,2,0.308,"Tony. Hey, Tony.",ok
+294530470,There's a guard.,Mark guard,mark_special,mark.guard,Guard.,1,0.500,It is a guard.,weak
+295178733,"Here, jump down.",Direction,squad_move,move.generic,With me.,2,0.095,Come with me. Follow me. This way.,weak
+295889439,"Hey, Dragan.",Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.133,Dragan.,ok
+296647770,"Hey, control. My boyfriend uses adult diapers and it's kinda grossing me out. Do you think that's sexist?",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.146,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+298035204,"Hey, Jimmy.",Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.286,Jimmy!,weak
+299701935,Drop your weapon.,Intimidate cop,intimidate_cop,cop.drop,Drop it.,2,0.435,Consider this my resignation.,weak
+300802813,"Shit, tear gas!",Tear gas,throwable,nade.tear,Tear gas.,2,0.762,Fucking tear gas!,weak
+301592523,They shot me.,Low health,low_health,hurt.hit,I am hit.,3,0.200,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+304861566,I'll fix you up.,Reviving,reviving,revive.hold,I have you.,3,0.480,"Please do not die, okay? You are really hurt.",weak
+304990667,Move.,Inspire,inspire,inspire.move,Move.,1,1.000,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+309121594,I killed the medic.,Killed medic,killed_special,kill.medic,Medic down.,2,0.357,Medic is gone!,weak
+309893279,"Come on, let's get outta here.",Let's go,squad_move,move.this_way,This way.,2,0.222,We have to get out of here. Let's go.,ok
+309893552,The cloaker got it.,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.600,"Cloaker is down, baby!",weak
+311356263,It's a sniper!,Mark sniper,mark_special,mark.sniper,Sniper.,1,0.632,They got a sniper!,weak
+311745845,Dallas.,Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.000,Dallas!,ok
+312195319,Duke.,Call Duke,call_teammate,call_teammate.on_me,On me.,2,0.222,Duke!,ok
+314040527,"Watch out, grenade!",Grenade,throwable,nade.grenade,Grenade.,1,0.583,Fire in the hole! / I will destroy you! You will not survive!,weak
+317420406,Watch with the fucking drill.,Place drill,objective_tech,tech.drilling,Drilling.,1,0.278,We are drilling!,weak
+318681474,Get ready to kill some motherfuckers.,Cops arriving,assault_state,assault.ready,Get ready.,2,0.400,"Oh shit, it is the cops. Cops incoming.",weak
+319581967,Bodhi.,Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.200,Bodhi!,weak
+319712703,Cloaker.,Mark cloaker,mark_special,mark.cloaker,Cloaker.,1,1.000,Watch the cloaker!,weak
+320021097,Dragan!,Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.182,Dragan.,ok
+320058935,Don't die now.,Reviving,reviving,revive.critical,Stay with me.,3,0.240,"Please do not die, okay? You are really hurt.",weak
+320478599,"Hey, Jiro!",Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.154,Jiro!,ok
+321272692,"Come on, get up!",Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.385,Get up! You are going to be okay.,weak
+322419892,The medic is dead.,Killed medic,killed_special,kill.medic,Medic down.,2,0.519,Medic is gone!,weak
+322572569,Let's get out.,Let's go,squad_move,move.go,Go.,1,0.267,We have to get out of here. Let's go.,ok
+324143036,Don't fuck with me now if you wanna (leave/live?),Taxman intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.326,You talk or you die!,weak
+324394484,Houston!,Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.333,Houston.,ok
+324400985,It's a guard.,Mark guard,mark_special,mark.guard,Guard.,1,0.588,It is a guard.,ok
+324865574,Let's steal some shit.,Mask up,mask_up,mask.go,Let us begin.,3,0.424,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+325140795,"Oh yeah, we did it!",Victory,victory,win.generic,Clean work.,2,0.296,We are untouchable!,weak
+326101393,"Kneel, asshole.",Intimidate cop,intimidate_cop,cop.kneel,On your knees.,3,0.385,Consider this my resignation.,weak
+327548561,This is the place.,This is the place,spot_comment,spot.place,This is it.,3,0.667,This is the place.,good
+329738971,On your fuckin' knees.,Intimidate cop,intimidate_cop,cop.kneel,On your knees.,3,0.765,Consider this my resignation.,weak
+329960406,I killed the shield.,Killed shield,killed_special,kill.shield,Shield down.,2,0.400,"Shield is down, baby!",weak
+332580980,They have a medic!,Mark medic,mark_special,mark.medic,Medic.,1,0.455,They got a medic!,weak
+334461628,Who's got an ammo bag?,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.414,Almost out of ammo. Who has an ammo bag?,weak
+334984034,"Hey, Rust.",Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.154,Rust!,weak
+335050314,"Hey, Ethan.",Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.143,Ethan!,ok
+336150807,I killed the shield.,Killed shield,killed_special,kill.shield,Shield down.,2,0.400,"Shield is down, baby!",weak
+336929007,This doesn't look good.,Curse,curse,curse.shit,Damn it.,2,0.207,"Oh, shit! Fuck!",weak
+338541936,"Hey, Dallas.",Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.133,Dallas!,ok
+341455364,Time to go.,Let's go,squad_move,move.go,Go.,1,0.333,We have to get out of here. Let's go.,weak
+342025694,"Hey, control. We need to talk; I don't think you understand what your job is.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.274,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+342759590,"Quiet and compliant, that's right.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.200,Take your best shot.,weak
+343817333,Watch the sniper!,Mark sniper,mark_special,mark.sniper,Sniper.,1,0.545,They got a sniper!,weak
+344281795,Sniper is gone.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.720,Sniper is dead!,weak
+344978029,"Hey, Sangres.",Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.250,Sangres.,weak
+348644644,Straight on.,Direction,squad_move,move.generic,With me.,2,0.333,Come with me. Follow me. This way.,weak
+349638833,Squeak and I'll fucking kill you.,Hostage intimidate,intimidate_civilian,civ.killthreat,Stay down.,2,0.195,Take your best shot.,weak
+350472624,I got the dozer.,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.400,"Dozer is down, baby!",weak
+350583635,Move it.,Inspire,inspire,inspire.move,Move.,1,0.727,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+351107635,"Hey, Wolf.",Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.154,Wolf.,ok
+353348303,"Don't fuck with me, down.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.258,Take your best shot.,weak
+354026747,And stay down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.381,Take your best shot.,weak
+354353421,Oh my god.,Complaining,curse,curse.shit,Damn it.,2,0.125,Why is this taking so long?,weak
+354725859,"(pained) Ah, I'm hit.",Low health,low_health,hurt.hit,I am hit.,3,0.667,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+360192217,Get up!,Inspire,inspire,inspire.get_up,On your feet.,3,0.222,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+360212887,Get up and fight!,Inspire,inspire,inspire.get_up,On your feet.,3,0.286,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+363332505,You - down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.500,Take your best shot.,weak
+363341056,Get down!,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.500,Take your best shot.,weak
+367121922,Up!,Direction,squad_move,move.up,Up.,1,1.000,Come with me. Follow me. This way.,weak
+367844222,They got a turret.,Mark turret,mark_special,mark.turret,Turret.,1,0.522,They got a turret!,ok
+367896263,Down on your knees.,Intimidate cop,intimidate_cop,cop.kneel,On your knees.,3,0.839,Consider this my resignation.,weak
+368435520,"Flashbang, I can't see!",Flashbanged,throwable,nade.generic,Fire in the hole.,4,0.378,I cannot see! Flashbang!,weak
+369464771,Just give me an aspirin.,Revived,revived,revived.thanks,Thank you.,2,0.250,"Thanks, you got here just in time.",weak
+369916102,Taser is dead.,Killed taser,killed_special,kill.taser,Taser down.,2,0.609,The taser got it!,weak
+371279776,Up!,Direction,squad_move,move.up,Up.,1,1.000,Come with me. Follow me. This way.,weak
+373282599,Use the cable ties.,Watch the civillians,watch_civs,civ.ties,Tie them.,2,0.385,"I am still human, Shepard. I make mistakes",weak
+374050932,"Hey, Wolf.",Call Wolf,call_teammate,call_teammate.on_me,On me.,2,0.154,Wolf.,ok
+375261727,Get the fuck down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.320,Take your best shot.,weak
+377964926,Can this go any faster?,Complaining,curse,curse.shit,Damn it.,2,0.345,Why is this taking so long?,weak
+378357184,Don't move.,Coming,squad_move,move.generic,With me.,2,0.471,Be right there. Coming! On my way!,weak
+379255040,Hang tight.,Coming,squad_move,move.hold,Hold.,1,0.143,Be right there. Coming! On my way!,weak
+380599965,Right on!,Direction,squad_move,move.right,Right.,1,0.769,Come with me. Follow me. This way.,weak
+381683978,"Hey, Dallas.",Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.133,Dallas!,ok
+382316543,"This is it, last chance.",Unknown,spot_comment,spot.generic,There.,1,0.222,What the... This is gonna hurt.,weak
+383831196,I killed the dozer.,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.357,"Dozer is down, baby!",weak
+384114804,Dropped a medic bag here.,Deploy medic bag,deploy_equip,drop.medic,Medic bag here.,3,0.737,"Medic bag here, guys!",weak
+384158668,We got it secured.,Gage package,pickup,loot.secured,Secured.,1,0.583,"It is secured. Okay, secured.",weak
+385815264,Sydney!,Call Sydney,call_teammate,call_teammate.on_me,On me.,2,0.364,Sydney!,weak
+386692695,"The drill is running, guys.",Place drill,objective_tech,tech.drilling,Drilling.,1,0.485,We are drilling!,weak
+388394052,"Shit, I'm blinded!",Flashbanged,throwable,nade.generic,Fire in the hole.,4,0.312,I cannot see! Flashbang!,weak
+388901144,It's coming.,Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.667,"Oh shit, it is the cops. Cops incoming.",weak
+388951061,I got the medic.,Killed medic,killed_special,kill.medic,Medic down.,2,0.400,Medic is gone!,weak
+389326660,The taser got it.,Killed taser,killed_special,kill.taser,Taser down.,2,0.538,The taser got it!,ok
+391068138,A fucking dozer!,Mark dozer,mark_special,mark.dozer,Dozer.,1,0.500,It is a dozer!,weak
+391398970,"Come on, get up!",Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.385,Get up! You are going to be okay.,weak
+391405397,"There's no action here, control. I wish some clowns would show up or something.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.327,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+391846174,"Hey, control. It's kinda boring standing watch here. I mean, nothing's happening.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.204,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+392134484,Talk!,Taxman intimidate,intimidate_civilian,civ.talk,Talk.,1,1.000,You talk or you die!,weak
+392146405,Houston.,Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.333,Houston.,ok
+393204881,I'm low on ammo.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.696,Almost out of ammo. Who has an ammo bag?,weak
+395725229,Keep the civillians in check.,Watch the civillians,watch_civs,civ.ties,Tie them.,2,0.278,"I am still human, Shepard. I make mistakes",weak
+396652326,"Watch out, it's a camera.",Mark camera,mark_special,mark.camera,Camera.,1,0.414,Watch that camera.,good
+399002153,Here they come.,Cops arriving,assault_state,assault.ready,Get ready.,2,0.348,"Oh shit, it is the cops. Cops incoming.",weak
+399323312,Down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.667,Take your best shot.,weak
+399854050,Sydney.,Call Sydney,call_teammate,call_teammate.on_me,On me.,2,0.364,Sydney!,weak
+400715189,Bonnie.,Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.545,"Hey, Bonnie.",ok
+401122076,I dropped an ammo bag.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.333,I dropped an ammo bag!,ok
+404327409,It's fucking jammed.,Drill jam,objective_tech,tech.generic,Something is wrong.,3,0.270,The drill is jammed!,ok
+405739105,This the wrong way.,Direction,squad_move,move.generic,With me.,2,0.320,Come with me. Follow me. This way.,ok
+405745039,They can't handle us!,Victory,victory,win.generic,Clean work.,2,0.267,We are untouchable!,weak
+406522973,Drop your gun!,Intimidate cop,intimidate_cop,cop.drop,Drop it.,2,0.500,Consider this my resignation.,weak
+406879784,Up.,Direction,squad_move,move.up,Up.,1,1.000,Come with me. Follow me. This way.,weak
+407113624,Just shut the fuck up and lie still.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.093,Take your best shot.,weak
+407710018,Just stay calm.,Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.240,Take your best shot.,weak
+407814348,"Hey, Jimmy.",Call Jimmy,call_teammate,call_teammate.on_me,On me.,2,0.286,Jimmy!,weak
+409721748,"Let's go, that's my shit. Been waiting for this.",Victory,victory,win.generic,Clean work.,2,0.291,We are untouchable!,weak
+413371446,There's an ammo bag here.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.545,I dropped an ammo bag!,weak
+414830910,Get inside.,Inside,squad_move,move.in,Inside.,1,0.750,Get inside.,ok
+416031068,"Cuffs on, now.",Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.857,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+419538427,Coming.,Coming,squad_move,move.generic,With me.,2,0.154,Be right there. Coming! On my way!,weak
+422210784,"Hey, Ethan.",Call Ethan,call_teammate,call_teammate.on_me,On me.,2,0.143,Ethan!,ok
+422804169,"Hey, Jiro.",Call Jiro,call_teammate,call_teammate.on_me,On me.,2,0.154,Jiro!,ok
+423538719,Okay!,Got it,squad_move,move.generic,With me.,2,0.000,Got it. Okay.,ok
+425462213,"Hands up, asshole!",Intimidate cop,intimidate_cop,cop.hands,Hands up.,2,0.667,Consider this my resignation.,weak
+426380444,There.,This is the place,spot_comment,spot.place,This is it.,3,0.267,This is the place.,weak
+429772799,Turret.,Mark turret,mark_special,mark.turret,Turret.,1,1.000,They got a turret!,weak
+430685651,"Hey, Clover!",Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.267,Clover.,ok
+430914905,Stay down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.471,Take your best shot.,weak
+433064792,"Fuck it, now we gotta kill them.",Gone loud,assault_state,assault.ready,Get ready.,2,0.205,"Fuck it, now we gotta kill them.",ok
+433437576,Let's roast them.,Cops arriving,assault_state,assault.ready,Get ready.,2,0.400,"Oh shit, it is the cops. Cops incoming.",weak
+437536225,"Get down, now!",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.800,Take your best shot.,weak
+439037097,Right.,Direction,squad_move,move.right,Right.,1,1.000,Come with me. Follow me. This way.,weak
+439192620,This is the place.,This is the place,spot_comment,spot.place,This is it.,3,0.667,This is the place.,good
+439425193,Right on.,Direction,squad_move,move.right,Right.,1,0.769,Come with me. Follow me. This way.,weak
+443395643,Taser is gone.,Killed taser,killed_special,kill.taser,Taser down.,2,0.696,The taser got it!,weak
+443492507,Hands where I can see 'em.,Intimidate cop,intimidate_cop,cop.hands,Hands up.,2,0.364,Consider this my resignation.,weak
+444483965,Body bag case here.,Deploy body bag case,deploy_equip,drop.body,Body bags here.,3,0.875,I dropped a body bag case.,weak
+447719148,A shield.,Mark shield,mark_special,mark.shield,Shield.,1,0.857,Watch the shield!,weak
+449915269,We could tie them up.,Watch the civillians,watch_civs,civ.ties,Tie them.,2,0.571,"I am still human, Shepard. I make mistakes",weak
+450602732,They got a shield!,Mark shield,mark_special,mark.shield,Shield.,1,0.522,Watch the shield!,weak
+451633360,I need a fucking ammo bag.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.303,Almost out of ammo. Who has an ammo bag?,weak
+452024420,Sniper is dead.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.640,Sniper is dead!,ok
+452221416,Drop your weapon.,Intimidate cop,intimidate_cop,cop.drop,Drop it.,2,0.435,Consider this my resignation.,weak
+455523676,No one fucks with us!,Victory,victory,win.generic,Clean work.,2,0.200,We are untouchable!,weak
+455796360,Jacket.,Call Jacket,call_teammate,call_teammate.on_me,On me.,2,0.182,Jacket!,weak
+456734101,"Hey, Rust.",Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.154,Rust!,weak
+456749780,A turret.,Mark turret,mark_special,mark.turret,Turret.,1,0.857,They got a turret!,weak
+457123364,What the fuck?,Curse,curse,curse.shit,Damn it.,2,0.300,"Oh, shit! Fuck!",weak
+458220519,"Hey, Chains!",Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.133,Chains!,weak
+459079525,Let's get inside.,Inside,squad_move,move.in,Inside.,1,0.545,Get inside.,ok
+459932360,"Hey, the computer is lookin' weird.",Hack paused,objective_tech,tech.generic,Something is wrong.,3,0.353,Something is wrong with the computer.,weak
+460106078,Sniper is down.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.880,Sniper is dead!,weak
+460980325,This gonna take all day?,Complaining,curse,curse.shit,Damn it.,2,0.133,Why is this taking so long?,weak
+461416857,Fucking cops are coming.,Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.611,"Oh shit, it is the cops. Cops incoming.",ok
+462133823,Up the stairs.,Direction,squad_move,move.up,Up.,1,0.333,Come with me. Follow me. This way.,weak
+462562884,"The cloaker is down, and gone.",Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.600,"Cloaker is down, baby!",weak
+463164676,Downstairs.,Direction,squad_move,move.generic,With me.,2,0.235,Come with me. Follow me. This way.,weak
+464829317,Go left!,Direction,squad_move,move.left,Left.,1,0.727,Come with me. Follow me. This way.,weak
+465649241,Dropped a first aid kit!,Deploy first aid kit,deploy_equip,drop.fak,First aid here.,3,0.541,Dropped a first aid kit!,ok
+466684770,And stay down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.381,Take your best shot.,weak
+467121303,"Hey, Dallas.",Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.133,Dallas!,ok
+468655691,I dropped an ammo bag.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.333,I dropped an ammo bag!,ok
+468818626,"Shield is down, baby!",Killed shield,killed_special,kill.shield,Shield down.,2,0.733,"Shield is down, baby!",ok
+471026130,No one fucking moves.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.143,Take your best shot.,weak
+472606849,Duke.,Call Duke,call_teammate,call_teammate.on_me,On me.,2,0.222,Duke!,ok
+474888182,To the left.,Direction,squad_move,move.left,Left.,1,0.533,Come with me. Follow me. This way.,weak
+475171720,Hoxton.,Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.364,"Hey, Hoxton.",ok
+476442215,"Come on, run!",Inspire,inspire,inspire.run,Run.,1,0.429,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+477026688,This is like the worst I've ever seen!,Reviving,reviving,revive.hold,I have you.,3,0.255,"Please do not die, okay? You are really hurt.",weak
+478405239,Careful,Careful,caution,caution.watch,Careful.,1,1.000,Careful. Be careful now.,weak
+478843020,Smoke grenade!,Smoke,throwable,nade.smoke,Smoke.,1,0.556,Smoke! Wait till the smoke clears!,weak
+479048204,Incoming - get your guns ready.,Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.390,"Oh shit, it is the cops. Cops incoming.",weak
+479939084,A cloaker!,Mark cloaker,mark_special,mark.cloaker,Cloaker.,1,0.875,Watch the cloaker!,weak
+480206207,Wick!,Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.000,Wick.,ok
+480540444,Need a medic bag!,Low health,low_health,hurt.medic,Need a medic bag.,4,1.000,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+480863489,"Please don't die, okay?",Reviving,reviving,revive.critical,Stay with me.,3,0.242,"Please do not die, okay? You are really hurt.",weak
+481565704,"Hey, control. Um... I'm thinking about switching jobs, what do you think I should do?",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.240,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+481584178,Got an ammo bag here.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.621,I dropped an ammo bag!,weak
+488475479,Wait till it clears!,Smoke,throwable,nade.generic,Fire in the hole.,4,0.343,Smoke! Wait till the smoke clears!,ok
+489286856,"Awesome, gang! Aweesome!",Victory,victory,win.generic,Clean work.,2,0.387,We are untouchable!,weak
+489439120,"Come on, let's get outta here.",Let's go,squad_move,move.this_way,This way.,2,0.222,We have to get out of here. Let's go.,ok
+490549145,Let's hope you're lucky here!,Unknown,spot_comment,spot.generic,There.,1,0.303,What the... This is gonna hurt.,weak
+490984009,"Cloaker is down, baby!",Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.750,"Cloaker is down, baby!",ok
+494249054,Bodhi!,Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.200,Bodhi!,weak
+494479527,"Uh... what? No, I was just watching some videos here. Shit, there's so much crap around.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.333,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+495631288,This the wrong way!,Direction,squad_move,move.generic,With me.,2,0.320,Come with me. Follow me. This way.,ok
+495650186,Watch the camera.,Mark camera,mark_special,mark.camera,Camera.,1,0.545,Watch that camera.,good
+495922302,I said get down - now.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.593,Take your best shot.,weak
+496418207,Tie them up if you have to.,Watch the civillians,watch_civs,civ.ties,Tie them.,2,0.471,"I am still human, Shepard. I make mistakes",weak
+500189845,"Hey, Houston!",Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.250,Houston.,ok
+500837386,Body bag case here.,Deploy body bag case,deploy_equip,drop.body,Body bags here.,3,0.875,I dropped a body bag case.,weak
+503280546,You can't take another hit like this.,Reviving (last down),reviving,revive.hold,I have you.,3,0.130,You cannot go down again. Next time you are finished.,weak
+504230052,I killed the cloaker.,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.438,"Cloaker is down, baby!",weak
+508593709,Sangres.,Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.333,Sangres.,weak
+508876262,We're drilling.,Place drill,objective_tech,tech.generic,Something is wrong.,3,0.250,We are drilling!,weak
+509970905,You're on your last legs.,Reviving (last down),reviving,revive.critical,Stay with me.,3,0.222,You cannot go down again. Next time you are finished.,weak
+512029441,"Down, on the ground!",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.538,Take your best shot.,weak
+513444483,Run faster!,Inspire,inspire,inspire.run,Run.,1,0.500,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+513639447,Almost out of ammo.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.538,Almost out of ammo. Who has an ammo bag?,weak
+516724286,Bodhi.,Call Bodhi,call_teammate,call_teammate.on_me,On me.,2,0.200,Bodhi!,weak
+519660594,First aid kit - here!,Deploy first aid kit,deploy_equip,drop.fak,First aid here.,3,0.875,Dropped a first aid kit!,weak
+520677644,The dozer is dead.,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.519,"Dozer is down, baby!",weak
+522101569,It's a cloaker!,Mark cloaker,mark_special,mark.cloaker,Cloaker.,1,0.667,Watch the cloaker!,weak
+523651810,It's a guard.,Mark guard,mark_special,mark.guard,Guard.,1,0.588,It is a guard.,ok
+524751436,"Come on, faster!",Inspire,inspire,inspire.faster,Faster.,1,0.600,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+526927228,Let's go.,Let's go,squad_move,move.go,Go.,1,0.500,We have to get out of here. Let's go.,ok
+527282782,On your knees!,Cop intimidate,intimidate_cop,cop.kneel,On your knees.,3,1.000,My job. Wilson betrayed us all.,weak
+534458151,"Hey, Hoxton.",Call Hoxton,call_teammate,call_teammate.on_me,On me.,2,0.267,"Hey, Hoxton.",ok
+535025887,This thing is jammed!,Drill jam,objective_tech,tech.generic,Something is wrong.,3,0.526,The drill is jammed!,ok
+535212922,First aid kit here.,Deploy first aid kit,deploy_equip,drop.fak,First aid here.,3,0.875,Dropped a first aid kit!,weak
+536597253,Anyone got an ammo bag?,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.400,Almost out of ammo. Who has an ammo bag?,weak
+537112995,Grenade.,Grenade,throwable,nade.grenade,Grenade.,1,1.000,Fire in the hole! / I will destroy you! You will not survive!,weak
+537913996,"Aight, I'm coming for you.",Coming,squad_move,move.generic,With me.,2,0.258,Be right there. Coming! On my way!,weak
+538251563,"Cuff yourself, motherfucker.",Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.400,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+539666314,"Cuffs on, motherfucker!",Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.533,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+540488538,"Okay, watch this.",Mask up,mask_up,mask.go,Let us begin.,3,0.222,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+541330673,Got a medic bag here.,Deploy medic bag,deploy_equip,drop.medic,Medic bag here.,3,0.824,"Medic bag here, guys!",weak
+542502707,Someone's gotta fix it.,Drill jam/hack pause followup,objective_tech,tech.fix,Fix it.,2,0.500,"Fix it, please? We have to fix it!",weak
+545177398,Wrong way.,Direction,squad_move,move.generic,With me.,2,0.250,Come with me. Follow me. This way.,weak
+546641723,Anyone got an ammo bag?,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.400,Almost out of ammo. Who has an ammo bag?,weak
+548178235,No one can stop us!,Victory,victory,win.generic,Clean work.,2,0.357,We are untouchable!,weak
+550973938,The taser got it.,Killed taser,killed_special,kill.taser,Taser down.,2,0.538,The taser got it!,ok
+553339070,"Be quiet, or be dead.",Hostage intimidate,intimidate_civilian,civ.killthreat,Stay down.,2,0.214,Take your best shot.,weak
+554652682,Wick!,Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.000,Wick.,ok
+555820154,"Shit's gonna hurt, better get ready.",Reviving,reviving,revive.hold,I have you.,3,0.227,"Please do not die, okay? You are really hurt.",weak
+556334489,Fucking excellent!,Victory,victory,win.generic,Clean work.,2,0.296,We are untouchable!,weak
+558517510,Shield is dead.,Killed shield,killed_special,kill.shield,Shield down.,2,0.640,"Shield is down, baby!",weak
+559916036,It's secured.,Gage package,pickup,loot.secured,Secured.,1,0.737,"It is secured. Okay, secured.",weak
+561981031,You can't go down again.,Reviving (last down),reviving,revive.hold,I have you.,3,0.182,You cannot go down again. Next time you are finished.,weak
+562154452,"Fuck, I'm hit.",Low health,low_health,hurt.hit,I am hit.,3,0.600,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+562377594,Got an ammo bag here.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.621,I dropped an ammo bag!,weak
+562650315,"Oh, fuck.",Curse,curse,curse.shit,Damn it.,2,0.143,"Oh, shit! Fuck!",weak
+562677931,"Hey, Clover!",Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.267,Clover.,ok
+562709345,"(pained) Ah, I need a medic bag.",Low health,low_health,hurt.medic,Need a medic bag.,4,0.865,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+563813970,Stay off the camera.,Mark camera,mark_special,mark.camera,Camera.,1,0.480,Watch that camera.,ok
+565117173,"Up, up!",Direction,squad_move,move.up,Up.,1,1.000,Come with me. Follow me. This way.,weak
+566814113,Dallas.,Call Dallas,call_teammate,call_teammate.on_me,On me.,2,0.000,Dallas!,ok
+567392391,I got you.,Reviving,reviving,revive.hold,I have you.,3,0.632,"Please do not die, okay? You are really hurt.",weak
+568110854,Over there.,Direction,squad_move,move.generic,With me.,2,0.353,Come with me. Follow me. This way.,weak
+568203887,I dropped a first aid kit!,Deploy first aid kit,deploy_equip,drop.fak,First aid here.,3,0.513,Dropped a first aid kit!,ok
+568302690,They had no idea what was coming.,Victory,victory,win.generic,Clean work.,2,0.238,We are untouchable!,weak
+569861874,This way.,Direction,squad_move,move.this_way,This way.,2,1.000,Come with me. Follow me. This way.,ok
+570704320,Put your cuffs on!,Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.538,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+571340296,"Shit, smoke bomb!",Smoke,throwable,nade.smoke,Smoke.,1,0.500,Smoke! Wait till the smoke clears!,weak
+571360487,Get ready guys.,Cops arriving,assault_state,assault.ready,Get ready.,2,0.783,"Oh shit, it is the cops. Cops incoming.",weak
+572646998,Oh fuck - it's the cops,Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.235,"Oh shit, it is the cops. Cops incoming.",ok
+574741367,"Hey, Rust!",Call Rust,call_teammate,call_teammate.on_me,On me.,2,0.154,Rust!,weak
+578203602,It's fucking jammed.,Drill jam,objective_tech,tech.generic,Something is wrong.,3,0.270,The drill is jammed!,ok
+578477068,Drop your gun!,Cop intimidate,intimidate_cop,cop.drop,Drop it.,2,0.500,My job. Wilson betrayed us all.,weak
+579654373,It's a taser!,Mark taser,mark_special,mark.taser,Taser.,1,0.588,It is a taser!,ok
+579793803,I'm running out of ammo!,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.387,Almost out of ammo. Who has an ammo bag?,weak
+582411158,Medic is gone!,Killed medic,killed_special,kill.medic,Medic down.,2,0.696,Medic is gone!,ok
+584608475,We're like ninjas.,Victory,victory,win.generic,Clean work.,2,0.222,We are untouchable!,weak
+585641286,"Okay, I'm on my way.",Coming,squad_move,move.generic,With me.,2,0.240,Be right there. Coming! On my way!,weak
+588692121,Someone get me a medic bag.,Low health,low_health,hurt.medic,Need a medic bag.,4,0.714,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+592198284,Cloaker!,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.737,"Cloaker is down, baby!",weak
+595559381,Time to do this the hard way.,Gone loud,assault_state,assault.ready,Get ready.,2,0.324,"Fuck it, now we gotta kill them.",weak
+595724960,"Cuffs on, now.",Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.857,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+598121556,Woah.,Curse,curse,curse.shit,Damn it.,2,0.182,"Oh, shit! Fuck!",weak
+598455420,I got the shield!,Killed shield,killed_special,kill.shield,Shield down.,2,0.444,"Shield is down, baby!",weak
+598550257,"Uh... it's nothing, it was nothing.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.346,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+598750928,Dozer is so gone!,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.615,"Dozer is down, baby!",weak
+603367705,You really look like shit.,Reviving,reviving,revive.hold,I have you.,3,0.171,"Please do not die, okay? You are really hurt.",weak
+605349182,"Oh, thanks.",Revived,revived,revived.thanks,Thank you.,2,0.556,"Thanks, you got here just in time.",weak
+607360219,Sokol!,Call Sokol,call_teammate,call_teammate.on_me,On me.,2,0.200,"Hey, Sokol!",ok
+608403873,"Shit, a turret!",Mark turret,mark_special,mark.turret,Turret.,1,0.632,They got a turret!,weak
+610081633,Hey Bonnie!,Call Bonnie,call_teammate,call_teammate.on_me,On me.,2,0.400,"Hey, Bonnie.",ok
+610454750,"Come on, hurry up.",Inspire,inspire,inspire.faster,Faster.,1,0.182,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+611761996,The pigs are retreating!,Cops leaving,assault_state,assault.ready,Get ready.,2,0.375,Motherfuckers are pulling back!,weak
+614468840,"Uh... just checking again. If I see someone, I shoot right?",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.293,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+615445658,A cloaker!,Mark cloaker,mark_special,mark.cloaker,Cloaker.,1,0.875,Watch the cloaker!,weak
+617787624,"Stay down, and stay quiet - or I'll fucking kill you!",Hostage intimidate,intimidate_civilian,civ.killthreat,Stay down.,2,0.310,Take your best shot.,weak
+619494009,"Hey, Dragan.",Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.133,Dragan.,ok
+623338779,"Come on, move.",Inspire,inspire,inspire.move,Move.,1,0.500,"We are all hoping you can do the impossible, Shepard. No pressure.",weak
+624041560,I need a medic bag.,Low health,low_health,hurt.medic,Need a medic bag.,4,0.941,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+624531892,It's a captain!,Mark captain,mark_special,mark.captain,Captain.,1,0.667,They got a captain!,weak
+625749737,"Hands up, asshole!",Cop intimidate,intimidate_cop,cop.hands,Hands up.,2,0.667,My job. Wilson betrayed us all.,weak
+628090649,"Hey, Dragan!",Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.133,Dragan.,ok
+634155321,"Yeah, we're getting good at this!",Victory,victory,win.generic,Clean work.,2,0.244,We are untouchable!,weak
+634323553,Something's wrong.,Drill jam/hack pause followup,objective_tech,tech.generic,Something is wrong.,3,0.914,"Fix it, please? We have to fix it!",weak
+643109388,They got a cloaker.,Mark cloaker,mark_special,mark.cloaker,Cloaker.,1,0.560,Watch the cloaker!,weak
+644329162,It's a turret.,Mark turret,mark_special,mark.turret,Turret.,1,0.632,They got a turret!,weak
+645681081,"Hey, you know... I'm gonna need you to leave me alone for a bit, 'kay?",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.256,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+647014110,Tie yourself up.,Intimidate cop final,intimidate_cop,cop.hands,Hands up.,2,0.348,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+647020116,On your feet.,Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,1.000,Get up! You are going to be okay.,weak
+647665008,Wait for it.,Wait for it,caution,caution.wait,Wait.,1,0.533,"Wait for it. Okay, get ready.",ok
+648546553,"Okay, get ready.",Wait for it,caution,caution.wait,Wait.,1,0.222,"Wait for it. Okay, get ready.",good
+649219742,Anyone got a medic bag?,Low health,low_health,hurt.medic,Need a medic bag.,4,0.737,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+650301953,Medic bag here.,Deploy medic bag,deploy_equip,drop.medic,Medic bag here.,3,1.000,"Medic bag here, guys!",ok
+651098269,Stay off the cameras.,Mark camera,mark_special,mark.generic,Mark that.,2,0.345,Watch that camera.,ok
+651243456,Taser.,Mark taser,mark_special,mark.taser,Taser.,1,1.000,It is a taser!,ok
+652982357,They're going down!,Cops arriving,assault_state,assault.ready,Get ready.,2,0.296,"Oh shit, it is the cops. Cops incoming.",weak
+658571177,I said get down!,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.348,Take your best shot.,weak
+659408216,There's literally nothing happening here. It's soo boring.,Pager response,pager,pager.clear,Nothing here. All clear.,4,0.385,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
+665161635,They got a captain.,Mark captain,mark_special,mark.captain,Captain.,1,0.560,They got a captain!,ok
+668650291,Kill 'em all!,Cops arriving,assault_state,assault.ready,Get ready.,2,0.286,"Oh shit, it is the cops. Cops incoming.",weak
+669341923,Shield is gone.,Killed shield,killed_special,kill.shield,Shield down.,2,0.720,"Shield is down, baby!",weak
+671848077,Out.,Direction,squad_move,move.go,Go.,1,0.400,Come with me. Follow me. This way.,weak
+672852511,(pained) I'm wounded!,Low health,low_health,hurt.hit,I am hit.,3,0.316,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+672951354,"Got the dozer, who's next?",Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.471,"Dozer is down, baby!",weak
+675006401,Kill these assholes!,Cops arriving,assault_state,assault.ready,Get ready.,2,0.214,"Oh shit, it is the cops. Cops incoming.",weak
+675589112,Cloaker is gone.,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.741,"Cloaker is down, baby!",weak
+676473111,"Hey, Duke.",Call Duke,call_teammate,call_teammate.on_me,On me.,2,0.308,Duke!,ok
+684759174,They better fear Hila!,Mask up,mask_up,mask.go,Let us begin.,3,0.303,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+685968434,You're hurt bad.,Reviving,reviving,revive.hold,I have you.,3,0.240,"Please do not die, okay? You are really hurt.",weak
+689817322,"Kneel, asshole!",Cop intimidate,intimidate_cop,cop.kneel,On your knees.,3,0.385,My job. Wilson betrayed us all.,weak
+690602822,You're really bleeding!,Reviving,reviving,revive.hold,I have you.,3,0.188,"Please do not die, okay? You are really hurt.",weak
+694755249,Fucking stop bleeding!,Reviving,reviving,revive.hold,I have you.,3,0.194,"Please do not die, okay? You are really hurt.",weak
+696052113,You're really fucked up!,Reviving,reviving,revive.hold,I have you.,3,0.182,"Please do not die, okay? You are really hurt.",weak
+704727336,Next time you're finished.,Reviving (last down),reviving,revive.hold,I have you.,3,0.343,You cannot go down again. Next time you are finished.,weak
+715665708,Dragan!,Call Dragan,call_teammate,call_teammate.on_me,On me.,2,0.182,Dragan.,ok
+719002915,Coming!,Coming,squad_move,move.generic,With me.,2,0.154,Be right there. Coming! On my way!,weak
+719564905,"Oh, thanks.",Revived,revived,revived.thanks,Thank you.,2,0.556,"Thanks, you got here just in time.",weak
+719870860,"Time to die, assholes!",Grenade,throwable,nade.generic,Fire in the hole.,4,0.556,Fire in the hole! / I will destroy you! You will not survive!,weak
+722117908,"Hey, Sangres.",Call Sangres,call_teammate,call_teammate.on_me,On me.,2,0.250,Sangres.,weak
+723467394,"Cuffs on, asshole.",Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.640,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+724475702,Cuffs on!,Intimidate cop final,intimidate_cop,cop.cuffs,Cuffs. Now.,2,0.824,"Goodbye Niket, I am going to miss you... figuratively speaking. *bang*",weak
+725240412,Chains.,Call Chains,call_teammate,call_teammate.on_me,On me.,2,0.182,Chains!,weak
+726039706,On air.,Mask up,mask_up,mask.go,Let us begin.,3,0.222,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+726470812,Clover!,Call Clover,call_teammate,call_teammate.on_me,On me.,2,0.364,Clover.,ok
+727661840,Smoke!,Smoke,throwable,nade.smoke,Smoke.,1,1.000,Smoke! Wait till the smoke clears!,weak
+727907714,A fucking medic.,Mark medic,mark_special,mark.medic,Medic.,1,0.500,They got a medic!,weak
+728693097,The shield got it.,Killed shield,killed_special,kill.shield,Shield down.,2,0.571,"Shield is down, baby!",weak
+736423257,"Oh no, fuck.",Curse,curse,curse.shit,Damn it.,2,0.235,"Oh, shit! Fuck!",weak
+741035152,"If you shit yourself, I got baby wipes now stay down.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.182,Take your best shot.,weak
+746759378,Up the stairs.,Direction,squad_move,move.up,Up.,1,0.333,Come with me. Follow me. This way.,weak
+749357881,Hang tight.,Coming,squad_move,move.hold,Hold.,1,0.143,Be right there. Coming! On my way!,weak
+750434665,"Remember, you don't wanna be on CCTV.",Stealth dialogue,spot_comment,spot.generic,There.,1,0.150,"Remember, you do not wanna be on CCTV.",good
+751528169,"We wiped them out, guys!",Victory,victory,win.generic,Clean work.,2,0.250,We are untouchable!,weak
+753516722,Killed the sniper.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.429,Sniper is dead!,weak
+755895073,Time to die!,Grenade,throwable,nade.generic,Fire in the hole.,4,0.370,Fire in the hole! / I will destroy you! You will not survive!,weak
+757753608,Get ready.,Cops arriving,assault_state,assault.ready,Get ready.,2,1.000,"Oh shit, it is the cops. Cops incoming.",weak
+758277076,You look so bad.,Reviving,reviving,revive.hold,I have you.,3,0.240,"Please do not die, okay? You are really hurt.",weak
+758295804,A captain.,Mark captain,mark_special,mark.captain,Captain.,1,0.875,They got a captain!,weak
+759463727,Don't go into the smoke!,Smoke,throwable,nade.smoke,Smoke.,1,0.357,Smoke! Wait till the smoke clears!,weak
+762205162,Downstairs.,Direction,squad_move,move.generic,With me.,2,0.235,Come with me. Follow me. This way.,weak
+769001338,"Oh shit, that's the cops.",Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.222,"Oh shit, it is the cops. Cops incoming.",good
+769372715,Dozer is gone.,Killed dozer,killed_special,kill.dozer,Dozer down.,2,0.696,"Dozer is down, baby!",weak
+769420386,They got a medic!,Mark medic,mark_special,mark.medic,Medic.,1,0.476,They got a medic!,ok
+770137780,You're really hurt.,Reviving,reviving,revive.hold,I have you.,3,0.214,"Please do not die, okay? You are really hurt.",weak
+773690095,Watch it - a guard.,Mark guard,mark_special,mark.guard,Guard.,1,0.476,It is a guard.,weak
+775739450,"Incoming, get your guns ready.",Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.390,"Oh shit, it is the cops. Cops incoming.",weak
+776893315,This should be easy.,Mask up,mask_up,mask.go,Let us begin.,3,0.258,"This should be easy. Okay, lets do this. Ready to rumble.",ok
+780968219,"Guys, what's with the computer now?",Hack paused,objective_tech,tech.generic,Something is wrong.,3,0.235,Something is wrong with the computer.,ok
+784324218,"This way, here!",Direction,squad_move,move.this_way,This way.,2,0.762,Come with me. Follow me. This way.,ok
+785908211,"Stay down, or I'll blow your brains out.",Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.304,Take your best shot.,weak
+790495467,"Hey, Wick!",Call Wick,call_teammate,call_teammate.on_me,On me.,2,0.154,Wick.,ok
+791306479,"They're coming, get ready.",Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.378,"Oh shit, it is the cops. Cops incoming.",weak
+792535391,I killed the cloaker!,Killed cloaker,killed_special,kill.cloaker,Cloaker down.,2,0.438,"Cloaker is down, baby!",weak
+793209321,"Okay, let's do this.",Mask up,mask_up,mask.go,Let us begin.,3,0.400,"This should be easy. Okay, lets do this. Ready to rumble.",ok
+797412389,I need a fucking ammo bag.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.303,Almost out of ammo. Who has an ammo bag?,weak
+809728410,Be right there!,Coming,squad_move,move.right,Right.,1,0.526,Be right there. Coming! On my way!,weak
+814815156,They got a dozer.,Mark dozer,mark_special,mark.dozer,Dozer.,1,0.476,It is a dozer!,weak
+815328029,A dozer.,Mark dozer,mark_special,mark.dozer,Dozer.,1,0.833,It is a dozer!,ok
+815918763,The medic got it.,Killed medic,killed_special,kill.medic,Medic down.,2,0.538,Medic is gone!,weak
+819412796,The taser is dead!,Killed taser,killed_special,kill.taser,Taser down.,2,0.519,The taser got it!,weak
+828468886,Watch out!,Watch out,caution,caution.watch,Careful.,1,0.250,Watch out!,ok
+834821755,Guard.,Mark guard,mark_special,mark.guard,Guard.,1,1.000,It is a guard.,ok
+836198869,Inside.,Inside,squad_move,move.in,Inside.,1,1.000,Get inside.,weak
+837348811,I got the medic,Killed medic,killed_special,kill.medic,Medic down.,2,0.400,Medic is gone!,weak
+839279510,Houston!,Call Houston,call_teammate,call_teammate.on_me,On me.,2,0.333,Houston.,ok
+841728126,It's a medic.,Mark medic,mark_special,mark.medic,Medic.,1,0.588,They got a medic!,weak
+842356879,Sydney!,Call Sydney,call_teammate,call_teammate.on_me,On me.,2,0.364,Sydney!,weak
+848268101,"Ammo bag, please!",Low ammo,low_ammo,ammo.low,Low ammo.,2,0.348,Almost out of ammo. Who has an ammo bag?,weak
+848454731,Who's got an ammo bag?,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.414,Almost out of ammo. Who has an ammo bag?,weak
+860981202,Just stay calm!,Coming,squad_move,move.generic,With me.,2,0.286,Be right there. Coming! On my way!,weak
+861919055,"Let's go, motherfuckers.",Mask up,mask_up,mask.go,Let us begin.,3,0.353,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+872254048,And don't move.,Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.720,Take your best shot.,weak
+876009515,Dropped a first aid kit.,Deploy first aid kit,deploy_equip,drop.fak,First aid here.,3,0.541,Dropped a first aid kit!,ok
+878145374,Upstairs.,Direction,squad_move,move.generic,With me.,2,0.133,Come with me. Follow me. This way.,weak
+882630061,Turn right.,Direction,squad_move,move.right,Right.,1,0.667,Come with me. Follow me. This way.,weak
+886077902,"(pained) Oh fuck, I'm wounded!",Low health,low_health,hurt.hit,I am hit.,3,0.222,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+888387188,What the fuck did they do to you?,Reviving,reviving,revive.hold,I have you.,3,0.333,"Please do not die, okay? You are really hurt.",weak
+896795696,It's killing time!,Mask up,mask_up,mask.go,Let us begin.,3,0.345,"This should be easy. Okay, lets do this. Ready to rumble.",weak
+898366043,"Hey, watch it!",Watch out,caution,caution.watch,Careful.,1,0.105,Watch out!,weak
+899784302,Let's go.,Let's go,squad_move,move.go,Go.,1,0.500,We have to get out of here. Let's go.,ok
+900495465,I need some meds!,Low health,low_health,hurt.hit,I am hit.,3,0.333,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
+900588469,And don't move!,Hostage intimidate,intimidate_civilian,civ.dontmove,Do not move.,3,0.720,Take your best shot.,weak
+911373116,"Oh no, shit!",Curse,curse,curse.shit,Damn it.,2,0.471,"Oh, shit! Fuck!",weak
+916206534,Hang on.,Coming,squad_move,move.hold,Hold.,1,0.364,Be right there. Coming! On my way!,weak
+917137089,Let's go.,Let's go,squad_move,move.go,Go.,1,0.500,We have to get out of here. Let's go.,ok
+919311946,"Here, get up.",Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.261,Get up! You are going to be okay.,weak
+922363103,I got ya.,Reviving,reviving,revive.hold,I have you.,3,0.444,"Please do not die, okay? You are really hurt.",weak
+926797561,I killed that sniper!,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.387,Sniper is dead!,weak
+927549723,On my way.,Coming,squad_move,move.generic,With me.,2,0.250,Be right there. Coming! On my way!,weak
+931348216,Get up.,Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.222,Get up! You are going to be okay.,weak
+943768999,Get ready.,Cops arriving,assault_state,assault.ready,Get ready.,2,1.000,"Oh shit, it is the cops. Cops incoming.",weak
+944191559,Upstairs.,Direction,squad_move,move.generic,With me.,2,0.133,Come with me. Follow me. This way.,weak
+948619005,They got a turret.,Mark turret,mark_special,mark.turret,Turret.,1,0.522,They got a turret!,ok
+954346150,There's an ammo bag here.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.545,I dropped an ammo bag!,weak
+954551150,I got your back.,Coming,squad_move,move.generic,With me.,2,0.273,Be right there. Coming! On my way!,weak
+957940090,"Here they come, get ready.",Cops arriving,assault_state,assault.ready,Get ready.,2,0.545,"Oh shit, it is the cops. Cops incoming.",weak
+959015414,Can't see through the smoke!,Smoke,throwable,nade.smoke,Smoke.,1,0.312,Smoke! Wait till the smoke clears!,weak
+961943608,On my way!,Coming,squad_move,move.generic,With me.,2,0.250,Be right there. Coming! On my way!,weak
+983982773,Hang on.,Coming,squad_move,move.hold,Hold.,1,0.364,Be right there. Coming! On my way!,weak
+988136139,Sniper is soo gone.,Killed sniper,killed_special,kill.sniper,Sniper down.,2,0.621,Sniper is dead!,weak
+991305314,"This is insane, dude!",Curse,curse,curse.shit,Damn it.,2,0.154,"Oh, shit! Fuck!",weak
+1001973360,"Shit, you don't look good.",Reviving,reviving,revive.hold,I have you.,3,0.294,"Please do not die, okay? You are really hurt.",weak
+1008024854,On my way!,Coming,squad_move,move.generic,With me.,2,0.250,Be right there. Coming! On my way!,weak
+1012341788,Down.,Hostage intimidate,intimidate_civilian,civ.down,Down. Now.,2,0.667,Take your best shot.,weak
+1021664295,The cops are pulling back!,Cops leaving,assault_state,assault.retreat,They are pulling back.,4,0.870,Motherfuckers are pulling back!,weak
+1029679628,I got you!,Reviving,reviving,revive.hold,I have you.,3,0.632,"Please do not die, okay? You are really hurt.",weak
+1036631734,"Okay, I'm on my way.",Coming,squad_move,move.generic,With me.,2,0.240,Be right there. Coming! On my way!,weak
+1041037974,"Wow, you're in bad shape.",Reviving,reviving,revive.hold,I have you.,3,0.242,"Please do not die, okay? You are really hurt.",weak
+1067107433,I'll pop their asses!,Cops arriving,assault_state,assault.ready,Get ready.,2,0.207,"Oh shit, it is the cops. Cops incoming.",weak
+1068286906,You can't go down again.,Reviving (last down),reviving,revive.hold,I have you.,3,0.182,You cannot go down again. Next time you are finished.,weak
+1070243495,Smoke bomb!,Smoke,throwable,nade.smoke,Smoke.,1,0.667,Smoke! Wait till the smoke clears!,weak
