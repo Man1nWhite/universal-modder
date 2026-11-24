@@ -32,12 +32,29 @@ python3 tools/fit_hila_intents.py        # hila_intent_fit.csv + hila_slot_piece
 python3 tools/build_hila_voice_mod.py    # mod zip (needs py7zr + ffmpeg)
 ```
 
+## Package & install
+
+The zip is a BeardLib **SoundsModule** mod: `mods/Miranda Lawson VO over Hila/` with `main.xml`
+(prefix `rb21`), `mod.txt`, `README.txt` and `sounds/*.ogg`. SuperBLT (for the XAudio OGG API) and
+BeardLib 5.x are hard requirements - see
+[`docs/pd2-voice-mod-install.md`](../docs/pd2-voice-mod-install.md) for the full packaging contract,
+install/uninstall steps and the in-game verification recipe (BeardLib's *Log Sounds* option).
+
+> **Open issue (id key space).** `main.xml` is currently keyed on PD2's numeric voice-line ids
+> (`712675`, `1149328`, …). PD2 posts heister barks by **event name** (`f11e_plu`, `g18`,
+> `f30x_any`, …) with the speaker chosen by the `robber` switch (`rb21` = Hila), so as built the pack
+> loads but will not replace anything until the ids are re-keyed. Everything else about the package
+> (layout, module, prefix, OGG paths, stop ids) is correct; the re-key is a build-side mapping change
+> only. See section 4 of the install doc.
+
 ## Rules the tools enforce
 
 - **No names.** No replacement clip may say "Shepard", "Commander" or "Commando" - `fit_hila_intents.py`
   filters those transcripts out and every `slot_picks.csv` window is trimmed before the name.
 - **Level matching.** Each bark is peak-matched to -1.5 dBFS (max +12 dB boost) so quiet takes
   such as "Captain" are not swallowed next to loud ones; `slot_to_ogg.csv` records the gain applied.
+- **Reproducible builds.** Every ffmpeg encode runs with `-fflags +bitexact`, so the same picks
+  always produce the same clip bytes and the same `dist/Hila/*.sha256`.
 - **Cuts land on silence.** Windows come from `silencedetect` breakpoints plus syllable-rate
   estimates, so a trim takes the pause that surrounds the dropped word. `splits` in
   `slot_picks.csv` splices two ranges when the unwanted word sits mid-phrase (e.g. tech.drilling

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import re
-import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -273,12 +272,10 @@ def main():
             chosen = pool[0]
         picks[slot] = (cut, chosen)
 
-    # leftover short combat barks for unmatched slots (still better than silence)
-    FALLBACK_ORDER = [
-        "assault.incoming", "caution.watch", "inspire.faster", "move.go",
-        "call_teammate.hey_you", "curse.shit", "assault.ready", "mask.go",
-        "win.generic", "pager.clear",
-    ]
+    # leftover short combat barks for unmatched slots (still better than silence);
+    # the slots themselves are walked in `slots` order below, and every one of them
+    # is pinned in voice_lines_vox/miranda_lawson/slot_picks.csv, so this is a
+    # last-resort fill only.
     extras = []
     for r in trans:
         full = (r["corrected_transcript"] or "").strip()
@@ -312,7 +309,9 @@ def main():
         fw.writerow(["slot", "cut_line", "uses", "score", "clip_text", "t_start", "t_end",
                      "source_ogg", "full_transcript"])
         n_ok = 0
-        for slot, cut in slots:
+        # sorted, so a rebuild after `tools/build_hila_voice_mod.py` (which writes the
+        # same pieces sorted) leaves no reorder-only diff in the tracked CSV
+        for slot, cut in sorted(slots):
             if slot in pinned:
                 pk = pinned[slot]
                 cut = pk["cut_line"] or cut

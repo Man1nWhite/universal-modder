@@ -14,6 +14,7 @@ or running game is needed.
 | `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses and the outfit's own hands (no wrist cut, no glove adapter), in TPP and FPS | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 | `OfficeSuite_Head` — `OfficeSuite`'s body and hands with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
+| `Miranda_Lawson_VO_over_Hila` — audio, not a model: Miranda's barks over Hila's `rb21` voice lines as a BeardLib `SoundsModule` pack (`main.xml` + 78 oggs, prefix `rb21`) | `references/Голос Лоусон.7z` | `tools/build_hila_voice_mod.py` | `voices` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status
@@ -28,7 +29,7 @@ From the repo root, `make -sC tools/pd2-las` alone lists the targets for all thr
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | honokodae | honokodae_head | christie | cloverchristie | heads | hila | all
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | honokodae_head | christie | cloverchristie | heads | hila | voices | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -41,12 +42,10 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 - A build **overwrites the tracked zips** in `dist/` (the Romance sidecar is updated separately), so only
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
-  Linux machine: the template and head builders use the declared `determinism.py` code path. `fresh`
-  verifies original checksums before building in a copy; `check --builders NAME` limits what it rebuilds.
-  A custom Miranda `--out` does not promote to `dist/`; verify its sidecar from there.
-- Order: `build` before `busty` and `heads`; `heads`, `honokodae` and then `honokodae_head` before `hila`,
-  whose pack holds the head. Standalone `hila` builds a [native override](../../docs/renders/honoka/model/over-hila/README.md), not LAS.
-- **Done means:** `green` passes and `status` shows `changed` only for the packs you meant to change.
+  Linux machine: every builder uses the declared `determinism.py` code path. `fresh` verifies original
+  checksums before building in a copy; `check --builders NAME` limits what it rebuilds. A custom Miranda
+  `--out` does not promote to `dist/`; verify its sidecar from there.
+- Order: `build` before `busty` and `heads`; `heads`, `honokodae` and then `honokodae_head` before `hila`, whose pack holds the head. Standalone `hila` builds a [native override](../../docs/renders/honoka/model/over-hila/README.md), not LAS. **Done means:** `green` passes and `status` shows `changed` only for the packs you meant to change.
 ## File map
 
 | Path (`tools/pd2-las/`) | Role |

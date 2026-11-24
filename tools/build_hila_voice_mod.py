@@ -11,16 +11,18 @@ import argparse
 import csv
 import hashlib
 import io
-import os
 import re
 import subprocess
 import sys
+import tempfile
 import zipfile
 from collections import defaultdict
 from pathlib import Path
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
+import determinism  # noqa: E402  (the pinned numeric code path every builder enters)
 CUTS = ROOT / "voice_lines_vox/miranda_lawson/hila_intent_cuts.csv"
 MAP = ROOT / "voice_lines_vox/miranda_lawson/hila_to_miranda_mapping.csv"
 ARCHIVE = ROOT / "references/Голос Лоусон.7z"
@@ -118,12 +120,14 @@ INTENT_STEMS: dict[str, tuple[str, ...]] = {
 }
 
 
-def _need_py7zr():
+def import_py7zr():
+    """py7zr, with the one-line fix in the message if it is missing."""
     try:
-        import py7zr  # noqa: F401
+        import py7zr
     except ImportError:
-        sys.stderr.write("need py7zr: python3 -m venv /tmp/voxvenv && /tmp/voxvenv/bin/pip install py7zr\n")
+        sys.stderr.write("need py7zr: python3 -m venv .venv && .venv/bin/pip install py7zr\n")
         raise
+    return py7zr
 
 
 def load_cuts():
@@ -304,7 +308,7 @@ def cut_ogg(src: Path, start: float, end: float, dest: Path, ff: str):
     dur = max(0.10, end - start)
     subprocess.run(
         [ff, "-y", "-ss", f"{start:.3f}", "-t", f"{dur:.3f}", "-i", str(src),
-         "-c:a", "libvorbis", "-q:a", "5", str(dest)],
+         "-fflags", "+bitexact", "-c:a", "libvorbis", "-q:a", "5", str(dest)],
         check=True, capture_output=True,
     )
 
@@ -332,7 +336,7 @@ def match_level(path: Path, ff: str) -> float:
     tmp = path.with_suffix(".norm.ogg")
     subprocess.run(
         [ff, "-y", "-i", str(path), "-af", f"volume={gain:.2f}dB",
-         "-c:a", "libvorbis", "-q:a", "5", str(tmp)],
+         "-fflags", "+bitexact", "-c:a", "libvorbis", "-q:a", "5", str(tmp)],
         check=True, capture_output=True,
     )
     tmp.replace(path)
@@ -349,7 +353,7 @@ def cut_ogg_ranges(src: Path, ranges: list[tuple[float, float]], dest: Path, ff:
     graph = ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(ranges)}:v=0:a=1[out]"
     subprocess.run(
         [ff, "-y", "-i", str(src), "-filter_complex", graph, "-map", "[out]",
-         "-c:a", "libvorbis", "-q:a", "5", str(dest)],
+         "-fflags", "+bitexact", "-c:a", "libvorbis", "-q:a", "5", str(dest)],
         check=True, capture_output=True,
     )
 
@@ -363,20 +367,14 @@ def parse_splits(spec: str) -> list[tuple[float, float]]:
     return out
 
 
-def extract_selected(paths: set[str]) -> dict[str, bytes]:
-    import py7zr
-    data = {}
+def extract_selected(paths: set[str], dest: Path) -> dict[str, Path]:
+    """Unpack the oggs this build touches; returns archive path -> extracted file."""
+    py7zr = import_py7zr()
+    dest.mkdir(parents=True, exist_ok=True)
     with py7zr.SevenZipFile(ARCHIVE) as z:
         targets = [p for p in z.getnames() if p in paths]
-        bio = io.BytesIO()
-        # extract to memory via temp
-        import tempfile
-        with tempfile.TemporaryDirectory() as td:
-            z.extract(targets=targets, path=td)
-            for p in targets:
-                fp = Path(td) / p
-                data[p] = fp.read_bytes()
-    return data
+        z.extract(targets=targets, path=dest)
+    return {p: dest / p for p in targets}
 
 
 def build_xml(rows, slot_file: dict[str, str]) -> str:
@@ -403,17 +401,67 @@ def build_xml(rows, slot_file: dict[str, str]) -> str:
 def readme(n_ids: int, n_clips: int) -> str:
     return f"""{INSTALL}
 
-Requires SuperBLT + BeardLib. Extract the '{INSTALL}' folder into
-PAYDAY 2/mods/  (or assets/mod_overrides/ if BeardLib loads overrides).
+WHAT IT IS
+Replaces Hila's heister barks (voice switch "{PREFIX}") with {n_clips} short Miranda Lawson
+clips from Mass Effect, mapped by intent onto {n_ids} PD2 voice-line ids.
 
-Replaces Hila's heister barks (voice prefix {PREFIX}) with {n_clips} short
-Miranda Lawson clips from Mass Effect, mapped by intent onto {n_ids} PD2 sound IDs.
+REQUIRES (both are hard requirements, the pack is silent without them)
+  * SuperBLT with the built-in XAudio API  - https://modworkshop.net/mod/58342
+  * BeardLib 5.x                           - https://modworkshop.net/mod/14924
+BeardLib's Sounds module aborts with "Sounds module requires the XAudio API!"
+on plain BLT/BLT4, so SuperBLT really is needed.
 
-Source archive: references/Голос Лоусон.7z
+INSTALL
+  1. Close PAYDAY 2.
+  2. Copy the whole folder "{INSTALL}" into
+       ...\\Steam\\steamapps\\common\\PAYDAY 2\\mods\\
+     Final check: PAYDAY 2\\mods\\{INSTALL}\\main.xml must exist.
+     Do not nest it twice (mods\\{INSTALL}\\{INSTALL}\\main.xml is wrong).
+  3. Start the game. Main menu -> Mods: this pack and BeardLib are both listed.
+     Nothing needs to be toggled - BeardLib picks the pack up from main.xml.
+  4. Play a heist with Hila (as your heister, or as an AI teammate).
+
+UNINSTALL
+Delete this folder, or untick the pack in the main-menu Mods list.
+Only one Hila voice pack should be installed at a time - two packs claiming the
+same (id, prefix) pair means the one that loads later wins.
+
+IF YOU HEAR NO CHANGE
+Enable BeardLib's "Log Sounds" option (Mods -> BeardLib options), play once, then
+open the newest payday2_win32_release_*.log and read the
+"Incoming sound check: ID ... Prefixes ..." lines. Hila's own barks carry the
+prefix rb21. This build is keyed on PD2's numeric voice-line ids; if the log shows
+bark event names (g18, f11e_plu, f30x_any, ...) instead, the pack needs re-keying -
+see docs/pd2-voice-mod-install.md in the source repository.
+
+CONTENTS
+  main.xml                             BeardLib Sounds module config (prefix {PREFIX})
+  sounds/                              {n_clips} ogg clips, peak-matched to -1.5 dBFS
+  slot_to_ogg.csv, hila_slot_pieces.csv  build manifest (not read by the game)
+
+Source archive: references/\u0413\u043e\u043b\u043e\u0441 \u041b\u043e\u0443\u0441\u043e\u043d.7z
 Mapping: voice_lines_vox/miranda_lawson/hila_intent_cuts.csv
-
-Does not replace music, radio, or other heisters. Remove the folder to uninstall.
+Nothing outside this folder is touched: music, radio, other heisters and all
+vanilla files stay as they are.
 """
+
+
+def mod_txt() -> str:
+    """BLT metadata: makes the pack show up (and toggle) in the main-menu mod list.
+
+    BeardLib does not need this file - main.xml is what makes it load the folder -
+    but BLT's own manager only lists mods that carry a mod.txt.
+    """
+    return (
+        "{\n"
+        f"\t\"name\" : \"{INSTALL}\",\n"
+        "\t\"description\" : \"Replaces Hila's (rb21) heister barks with short "
+        "Miranda Lawson clips from Mass Effect.\",\n"
+        "\t\"author\" : \"universal-modder\",\n"
+        "\t\"version\" : \"1.0\",\n"
+        "\t\"priority\" : 0\n"
+        "}\n"
+    )
 
 
 def write_zip(out: Path, files: dict[str, bytes]):
@@ -428,7 +476,13 @@ def write_zip(out: Path, files: dict[str, bytes]):
     data = buf.getvalue()
     out.write_bytes(data)
     sha = hashlib.sha256(data).hexdigest()
-    out.with_suffix(out.suffix + ".sha256").write_text(sha + "  " + out.name + "\n", encoding="utf-8")
+    # The sidecar must name the zip relative to the repo root (tools/pd2-las/status.py
+    # validates that path), and fall back to the bare file name outside the repo.
+    try:
+        name = out.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        name = out.name
+    out.with_suffix(out.suffix + ".sha256").write_text(sha + "  " + name + "\n", encoding="utf-8")
     return len(data), sha
 
 
@@ -438,10 +492,12 @@ def main(argv=None):
     p.add_argument("--no-cut", action="store_true", help="use whole oggs, no phrase splits")
     p.add_argument("--no-normalize", action="store_true",
                    help="skip per-clip level matching to -1.5 dBFS peak")
-    p.add_argument("--source-dir", type=Path, default=Path("/tmp/lawson_all"),
-                   help="extracted Голос Лоусон folder for ffmpeg cuts")
+    p.add_argument("--source-dir", type=Path, default=None,
+                   help="optional already-extracted Голос Лоусон folder; "
+                        "without it the archive is unpacked into a temporary directory")
     args = p.parse_args(argv)
-    _need_py7zr()
+    determinism.enter(__file__)
+    import_py7zr()
     if not ARCHIVE.is_file():
         raise SystemExit(f"missing {ARCHIVE}")
     rows = load_cuts()
@@ -491,6 +547,7 @@ def main(argv=None):
     install = INSTALL + "/"
     files = {
         install + "README.txt": readme(len(rows), len(slot_file)).encode("utf-8"),
+        install + "mod.txt": mod_txt().encode("utf-8"),
     }
     map_buf = io.StringIO()
     w = csv.writer(map_buf)
@@ -501,8 +558,10 @@ def main(argv=None):
     pw.writerow(["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s", "splits"])
 
     need_paths = {slot_piece[s][0] for s in slot_piece}
-    extracted = extract_selected(need_paths)
-    src_root = args.source_dir
+    work = tempfile.TemporaryDirectory(prefix="hila_vo_")
+    src_root = args.source_dir or Path(work.name)
+    extracted = extract_selected(need_paths, Path(work.name))
+    pieces_dir = Path(work.name) / "pieces"
     out_sounds = {}
 
     def locate(path: str, base: str) -> Path | None:
@@ -525,7 +584,7 @@ def main(argv=None):
         gain = 0.0
         if ranges and ff is not None and src is not None:
             fname = f"{Path(base).stem}_cut{len(ranges)}.ogg"
-            dest = Path("/tmp/hila_pieces") / fname
+            dest = pieces_dir / fname
             cut_ogg_ranges(src, ranges, dest, ff)
             if not args.no_normalize:
                 gain = match_level(dest, ff)
@@ -534,16 +593,16 @@ def main(argv=None):
             dur = sum(e - s_ for s_, e in ranges)
         elif b is None or ff is None:
             fname = base
-            audio = extracted[path]
+            audio = extracted[path].read_bytes()
             t0, t1, dur = 0.0, 0.0, 0.0
         else:
             fname = f"{Path(base).stem}_p{idx}_{a:.2f}-{b:.2f}.ogg"
             if src is None or not src.is_file():
                 fname = base
-                audio = extracted[path]
+                audio = extracted[path].read_bytes()
                 t0, t1, dur = a, b, b - a
             else:
-                dest = Path("/tmp/hila_pieces") / fname
+                dest = pieces_dir / fname
                 cut_ogg(src, a, b, dest, ff)
                 if not args.no_normalize:
                     gain = match_level(dest, ff)

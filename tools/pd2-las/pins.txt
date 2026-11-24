@@ -4,3 +4,5 @@
 # (pip install -c tools/pd2-las/pins.txt ...), and status.py reads it.
 pillow==13.0.0
 numpy==2.4.6
+imageio-ffmpeg==0.8.1
+py7zr==1.1.4

@@ -73,10 +73,10 @@ else
 fi
 
 echo "== installing dependencies"
-# The versions of pillow and numpy are in pins.txt, the one place they are
+# The versions of the pinned packages are in pins.txt, the one place they are
 # written: the tracked zips only rebuild byte for byte with them. Both CI
 # workflows install with the same file, and status.py reads it.
-"$PY" -m pip install -q -c tools/pd2-las/pins.txt pytest pillow numpy pyyaml pyflakes py7zr
+"$PY" -m pip install -q -c tools/pd2-las/pins.txt pytest pillow numpy pyyaml pyflakes py7zr imageio-ffmpeg
 "$PY" -c "import pytest, PIL, numpy, yaml, py7zr" && echo "   deps ok"
 if [ "$EXTRAS" = 1 ]; then
     # Not needed to build. lupa runs the Lua of the hook and of the glove adapter

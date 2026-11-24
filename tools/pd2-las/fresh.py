@@ -53,6 +53,7 @@ BUILDERS = {
     "christie": ["tools/pd2-las/build_christie_source.py"],
     "cloverchristie": ["tools/pd2-las/build_clover_christie.py"],
     "hila": ["tools/build_hila_body_mod.py"],
+    "voices": ["tools/build_hila_voice_mod.py"],
     # Reads dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip for its head, so
     # it runs after `hila`. `--only` keeps OfficeSuite and Honoko2..4 out of it.
     "honokodae_head": ["tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"],
@@ -139,7 +140,7 @@ def copy_tree(tree: Path, outputs: list[str]) -> None:
 
 
 def require_env(plan: dict[str, list[str]]) -> None:
-    if not PY.is_file() or (plan.keys() - {"lawson", "heads", "hila"} and not extract_2b.ready()):
+    if not PY.is_file() or (plan.keys() - {"lawson", "heads", "hila", "voices"} and not extract_2b.ready()):
         raise SystemExit("no .venv or no current 2B templates: run `make -sC tools/pd2-las env` first")
 
 
