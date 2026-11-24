@@ -182,9 +182,7 @@ def _model(pack: str, stem: str) -> Model:
 
 def _stems(pack: str) -> tuple:
     """The models of a pack: third person, plus first person when the pack ships one."""
-    if pack == "OfficeSuite":
-        return (ITEMS[pack], f"fps_{ITEMS[pack]}")
-    if pack in ("Christie_Clover_LAS", "OfficeSuite_Head"):
+    if pack == "Christie_Clover_LAS":
         return (ITEMS[pack],)
     return (ITEMS[pack], f"fps_{ITEMS[pack]}")
 
@@ -1041,7 +1039,14 @@ def test_whole_character_packs_bring_their_own_head():
 
     model = _model(pack, item)
     assert {"g_body", "g_head"} <= set(model.drawables), sorted(model.drawables)
-    assert not any(name.startswith("fps_") for name in _zip(pack).namelist()), "no first-person unit"
+    # The pack ships its own first-person arms unit: a whole-character pack
+    # replaces the FP arms too, so without one the first-person view is handless.
+    fps_names = [n for n in _zip(pack).namelist() if n.rsplit("/", 1)[-1].startswith("fps_")]
+    assert fps_names, "no first-person unit"
+    assert info["registration"]["fps_unit"], "the first-person unit is not registered"
+    fps = _model(pack, f"fps_{item}")
+    assert fps.drawables, sorted(fps.drawables)
+    assert not any(name == "g_head" for name in fps.drawables), "the FP arms carry a head"
 
     # The head is weighted to the head end of the rig. The donor palette is in
     # its own order (Hips first), and `Group.weights` indexes the *pack's*

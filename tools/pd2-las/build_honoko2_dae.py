@@ -178,6 +178,8 @@ OFFICE_SUITE = PackSpec(
 #: OfficeSuite plus the Miranda Romance head, as one whole-character LAS pack: the
 #: skin brings its own head and registers `replace_all`, so the heister's head and
 #: the mask are out of the picture (D56). Its body is OfficeSuite's, hands included.
+#: Like OfficeSuite it ships its first-person arms unit (D53/D55): a whole-character
+#: pack replaces the FP arms too, so without one the first-person view has no hands.
 OFFICE_SUITE_HEAD = PackSpec(
     item_id="officesuite_head",
     pack_dir="OfficeSuite_Head",
@@ -191,6 +193,7 @@ OFFICE_SUITE_HEAD = PackSpec(
     clearance=True,
     hands=True,
     head=True,
+    fps=True,
     tex_override={"suit": "Tex_07(L_7)3.dds", "jewelry": "Tex_23(L_23)2.dds"},
 )
 
