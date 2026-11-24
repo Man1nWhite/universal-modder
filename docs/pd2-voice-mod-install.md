@@ -25,7 +25,7 @@ PAYDAY 2/
       ├─ main.xml                     ← REQUIRED: this is what makes BeardLib load the folder
       ├─ README.txt
       └─ sounds/
-         ├─ <clip>.ogg                ← 78 clips
+         ├─ <clip>.ogg                ← 78 clips, 176 bark events
          └─ …
 ```
 
@@ -34,11 +34,13 @@ PAYDAY 2/
 ```xml
 <table name="Miranda Lawson VO over Hila">
   <Sounds directory="sounds" prefix="rb21" load_on_play="true">
-    <sound id="…" path="<clip>.ogg" stop_id="…_stop"/>
+    <sound id="g18" path="<clip>.ogg" stop_id="g18_stop"/>
     …
   </Sounds>
 </table>
 ```
+
+`id` is a PD2 bark event name (see §4); several `<sound>` entries may point at the same `path`.
 
 - `directory` is resolved **relative to the mod folder**; each `path` is resolved relative to that
   `directory` (`SoundsModule:ReadSounds` → `full_path = Path:Combine(dir, v.path)`).
@@ -118,29 +120,36 @@ speaker with the Wwise switch **`robber`**, which `PlayerSound:set_voice` sets f
 3. Every posted event shows up as `Incoming sound check: ID <id> Prefixes <…>`. The prefix list for
    Hila's own barks contains `rb21`; the ids are the ones to key `main.xml` on.
 
-### Known gap: the shipped ids are voice-line ids, not posted event names
+### The id key space (this is where the pack used to be wrong)
 
-The 887 ids in `voice_lines_vox/miranda_lawson/hila_intent_cuts.csv` are **PD2 voice-line / stream
-ids** (the numeric names of the audio files, e.g. `712675`, `1149328`). PD2 never posts those
-numbers: `PlayerSound:say` and `CopSound:say` pass the bark **event name** (`f11e_plu`, `g18`,
-`v15`, `s08x_sin`, …), and the networked `UnitNetworkHandler:say(unit, event_id)` path converts that
-name with `SoundDevice:string_to_id(name)` — BeardLib maps the float back through `GetFloat`, which
-is keyed on the same registered id string.
+`<sound id="…">` is compared against **what the game posts**, so the id has to be a bark event name,
+not a voice-line/stream number. The first build of this pack was keyed on the 887 numeric ids of
+`voice_lines_vox/miranda_lawson/hila_intent_cuts.csv` (PD2's voice-line / stream ids, e.g. `712675`,
+`1149328`). PD2 never posts those: `PlayerSound:say` and `CopSound:say` pass the event name
+(`g18`, `f11e_plu`, `f30x_any`, `s08x_sin`, …), and the networked `UnitNetworkHandler:say(unit,
+event_id)` path converts that name with `SoundDevice:string_to_id(name)`, which BeardLib maps back
+through `GetFloat` — keyed on the same registered id string. A pack keyed on the numbers therefore
+loads cleanly and replaces nothing.
 
-Consequences for this build:
+The shipped pack is now keyed on **176 real bark events**, one `<sound>` each, in
+`voice_lines_vox/miranda_lawson/slot_event_ids.csv` (slot → `|`-separated event names → why):
 
-- Everything structural is right: layout, module, XAudio, `prefix="rb21"`, OGG paths, stop ids.
-- The ids are not: `<sound id="712675" …>` matches only a post_event of `712675`, which the game
-  never posts for a Hila bark. Expect the mod to load cleanly and replace **nothing** until the ids
-  are re-keyed.
-- Fix direction: key on the callout names from the community *Heister Voice IDs* sheet
-  (`g01`…`g92`, `p01`…`, `v01`…`, `f11a_sin`/`f11e_plu`/`f30x_any`/`f36x_any`/`f38_any`/`f39_any`,
-  `l01x_sin`…, `d01x_sin`…, `s08x_sin`…, `g80x_plu`, `g81x_plu`, …) — i.e. one `<sound>` per real
-  event name, still with `prefix="rb21"`. Use Log Sounds to confirm the exact spelling the build
-  posts (`_sin`/`_plu`/`_any` suffixes matter).
-- Until then `voice_lines_vox/README.md` keeps the "known gaps" note; no other part of the mod needs
-  to change to adopt the re-key — `main.xml` is generated from `slot_picks.csv` +
-  `hila_intent_cuts.csv`, so the switch is a build-side mapping table, not a new pack.
+| Where the names come from | Event names |
+| --- | --- |
+| `playerstandard.lua` `_start_action_intimidate` (the interact commands) | `f02x_sin`/`f02x_plu`/`f02b_sin`, `f03a_sin`/`f03a_plu`/`f03b_any`, `l01x`/`l02x`/`l03x` + `_sin`/`_plu`, `f21<code>_sin`, `f36x_any`, `f38_any`, `f40_any`, `f41_sin`/`f41_plu`/`f41_any`, `f44x_any`, `f39_any`, `f48x_any`, `g18` |
+| `playerstandard.lua` mark shots (`priority_shout .. "x_any"`, quiet `.. "y_any"`) | `f30x_any`…`f34x_any`, `f47x_any` (+ the `y` variants) |
+| `playerarrested.lua` `call_teammate(line)` — `line .. ssuffix .. "_sin"` | `f11<code>_sin`, `f13<code>_sin` for all 22 heister codes (`a c b l m d n o p q r s t u v w x y z ac aa ab`) |
+| `playerequipment.lua`, `playerdamage.lua`, `playertased.lua`, `playerbleedout.lua` | `s01x_plu`, `s02x_plu`, `s12`, `s13`, `s05x_sin`, `s05b_sin`, `s07x_sin`, `s08x_sin`, `f11e_plu`, `g43`, `g80x_plu`, `g81x_plu` |
+| `groupaistatebase.lua`, `groupaitweakdata.lua` | `g90`, `g40x_any`, `g41x_any`, `g42x_any` |
+| community *Heister Voice IDs* sheet (the `g`/`p`/`v` callouts heist scripts post) | `g01`–`g92`, `p01`–`p28`, `v04`/`v08`/`v23`/`v32`, `d01x_sin`…`d05`, `r02a_sin`, `s05a_sin`, `dsp_radio_checking_1`, `dsp_stop_all`, `whistling_attention`, `bri_14`, `bri_29` |
+
+Two guards in `tools/build_hila_voice_mod.py` keep it honest: a slot without an event id fails the
+build, and an event claimed by two slots fails it too (one clip has to win, and an accidental overlap
+would silently pick whichever entry came later).
+
+Adding a bark that was missed is a one-line edit in `slot_event_ids.csv` plus `make -sC tools/pd2-las
+voices` — no code change. Use Log Sounds to see the exact spelling the game posts (`_sin`/`_plu`/
+`_any` suffixes matter, and the `x`/`y` in the mark shouts is literal).
 
 ## 5. Things that do **not** apply to this mod
 

@@ -14,7 +14,7 @@ or running game is needed.
 | `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses and the outfit's own hands (no wrist cut, no glove adapter), in TPP and FPS | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 | `OfficeSuite_Head` — `OfficeSuite`'s body and hands with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
-| `Miranda_Lawson_VO_over_Hila` — audio, not a model: Miranda's barks over Hila's `rb21` voice lines as a BeardLib `SoundsModule` pack (`main.xml` + 78 oggs, prefix `rb21`) | `references/Голос Лоусон.7z` | `tools/build_hila_voice_mod.py` | `voices` |
+| `Miranda_Lawson_VO_over_Hila` — audio, not a model: Miranda's barks over Hila's `rb21` voice lines as a BeardLib `SoundsModule` pack (`main.xml` keyed on 176 PD2 bark events + 78 oggs) | `references/Голос Лоусон.7z` | `tools/build_hila_voice_mod.py` | `voices` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status

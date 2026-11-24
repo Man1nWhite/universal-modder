@@ -16,7 +16,6 @@ import subprocess
 import sys
 import tempfile
 import zipfile
-from collections import defaultdict
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -29,6 +28,7 @@ ARCHIVE = ROOT / "references/Голос Лоусон.7z"
 SPLITS = ROOT / "voice_lines_vox/miranda_lawson/ogg_phrase_splits.csv"
 PIECES = ROOT / "voice_lines_vox/miranda_lawson/hila_slot_pieces.csv"
 PICKS = ROOT / "voice_lines_vox/miranda_lawson/slot_picks.csv"
+EVENTS = ROOT / "voice_lines_vox/miranda_lawson/slot_event_ids.csv"
 DEFAULT_OUT = ROOT / "dist/Hila/Miranda_Lawson_VO_over_Hila.zip"
 INSTALL = "Miranda Lawson VO over Hila"
 PREFIX = "rb21"
@@ -133,6 +133,18 @@ def import_py7zr():
 def load_cuts():
     with CUTS.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
+
+
+def load_events() -> dict[str, list[str]]:
+    """slot -> the PD2 bark event names that slot's clip answers (see the CSV's notes).
+
+    The ids are what PD2 actually posts (`PlayerSound:say(name)`), not the numeric
+    voice-line ids of hila_intent_cuts.csv: `<Sounds>` matches on the posted id, and
+    the heister is chosen by the `robber` switch (rb21 = Hila), i.e. our prefix.
+    """
+    with EVENTS.open(newline="", encoding="utf-8") as f:
+        return {r["slot"]: [e for e in r["event_ids"].split("|") if e]
+                for r in csv.DictReader(f)}
 
 
 def load_hints():
@@ -377,19 +389,24 @@ def extract_selected(paths: set[str], dest: Path) -> dict[str, Path]:
     return {p: dest / p for p in targets}
 
 
-def build_xml(rows, slot_file: dict[str, str]) -> str:
+def build_xml(slot_file: dict[str, str], events: dict[str, list[str]]) -> str:
+    """One <sound> per PD2 event name; several events may share one clip."""
     lines = [
         '<?xml version="1.0" encoding="utf-8"?>',
         f'<table name="{escape(INSTALL)}">',
         f'  <Sounds directory="sounds" prefix="{PREFIX}" load_on_play="true">',
     ]
-    for r in rows:
-        hid = r["hila_id"]
-        slot = r["slot"]
+    owner: dict[str, str] = {}
+    for slot in sorted(slot_file):
+        ids = events.get(slot) or []
+        if not ids:
+            raise SystemExit(f"slot without a PD2 event id: {slot} (voice_lines_vox/miranda_lawson/slot_event_ids.csv)")
         fname = Path(slot_file[slot]).name
-        lines.append(
-            f'    <sound id="{escape(hid)}" path="{escape(fname)}" stop_id="{escape(hid)}_stop"/>'
-        )
+        for ev in ids:
+            if ev in owner:
+                raise SystemExit(f"event id {ev} claimed by both {owner[ev]} and {slot}: one clip must win")
+            owner[ev] = slot
+            lines.append(f'    <sound id="{escape(ev)}" path="{escape(fname)}" stop_id="{escape(ev)}_stop"/>')
     lines += [
         "  </Sounds>",
         "</table>",
@@ -398,12 +415,14 @@ def build_xml(rows, slot_file: dict[str, str]) -> str:
     return "\n".join(lines)
 
 
-def readme(n_ids: int, n_clips: int) -> str:
+def readme(n_events: int, n_clips: int) -> str:
     return f"""{INSTALL}
 
 WHAT IT IS
 Replaces Hila's heister barks (voice switch "{PREFIX}") with {n_clips} short Miranda Lawson
-clips from Mass Effect, mapped by intent onto {n_ids} PD2 voice-line ids.
+clips from Mass Effect, mapped by intent onto {n_events} PD2 bark events.
+The <Sounds> node is prefixed rb21 - Hila's voice switch - so only her own barks
+change and every other heister keeps their lines.
 
 REQUIRES (both are hard requirements, the pack is silent without them)
   * SuperBLT with the built-in XAudio API  - https://modworkshop.net/mod/58342
@@ -429,10 +448,10 @@ same (id, prefix) pair means the one that loads later wins.
 IF YOU HEAR NO CHANGE
 Enable BeardLib's "Log Sounds" option (Mods -> BeardLib options), play once, then
 open the newest payday2_win32_release_*.log and read the
-"Incoming sound check: ID ... Prefixes ..." lines. Hila's own barks carry the
-prefix rb21. This build is keyed on PD2's numeric voice-line ids; if the log shows
-bark event names (g18, f11e_plu, f30x_any, ...) instead, the pack needs re-keying -
-see docs/pd2-voice-mod-install.md in the source repository.
+"Incoming sound check: ID ... Prefixes ..." lines. This build is keyed on PD2's bark
+event names (g18, f11e_plu, f30x_any, ...); if the log shows an id that should have
+been replaced but was not, add it to slot_event_ids.csv in the source repository -
+see docs/pd2-voice-mod-install.md.
 
 CONTENTS
   main.xml                             BeardLib Sounds module config (prefix {PREFIX})
@@ -501,13 +520,12 @@ def main(argv=None):
     if not ARCHIVE.is_file():
         raise SystemExit(f"missing {ARCHIVE}")
     rows = load_cuts()
+    events = load_events()
     hints = load_hints()
     oggs = list_archive_oggs()
     splits = {} if args.no_cut else load_splits()
     slot_hint = {}
-    slot_ids = defaultdict(list)
     for r in rows:
-        slot_ids[r["slot"]].append(r["hila_id"])
         if r["slot"] not in slot_hint:
             slot_hint[r["slot"]] = hints.get(r["hila_id"], "")
     used = set()
@@ -528,7 +546,6 @@ def main(argv=None):
         else:
             slot_piece[slot] = (path, 0, float(pk["t_start"]), float(pk["t_end"]), None)
         slot_file[slot] = path
-        slot_ids.setdefault(slot, [])
         used.add(path)
     ff = None if args.no_cut else ffmpeg_bin()
     for slot, hint in sorted(slot_hint.items()):
@@ -546,13 +563,14 @@ def main(argv=None):
             slot_file[slot] = path
     install = INSTALL + "/"
     files = {
-        install + "README.txt": readme(len(rows), len(slot_file)).encode("utf-8"),
+        install + "README.txt": readme(len({e for ids in events.values() for e in ids}),
+                                       len(slot_file)).encode("utf-8"),
         install + "mod.txt": mod_txt().encode("utf-8"),
     }
     map_buf = io.StringIO()
     w = csv.writer(map_buf)
     w.writerow(["slot", "cut_line", "archive_file", "piece_index", "t_start", "t_end",
-                "duration_s", "score", "uses", "example_ids", "gain_db"])
+                "duration_s", "score", "event_ids", "gain_db"])
     piece_csv = io.StringIO()
     pw = csv.writer(piece_csv)
     pw.writerow(["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s", "splits"])
@@ -573,7 +591,7 @@ def main(argv=None):
 
     for slot in sorted(slot_file):
         path, idx, a, b, sc = slot_piece[slot]
-        ids = slot_ids[slot]
+        evs = events.get(slot, [])
         cut = next(r["cut_line"] for r in rows if r["slot"] == slot)
         pk = picks.get(slot)
         ranges = parse_splits(pk.get("splits", "")) if pk else []
@@ -611,18 +629,19 @@ def main(argv=None):
         out_sounds[fname] = audio
         slot_file[slot] = fname
         w.writerow([slot, cut, base, idx, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}",
-                    f"{sc:.3f}" if isinstance(sc, float) else "", len(ids), "|".join(ids[:4]),
+                    f"{sc:.3f}" if isinstance(sc, float) else "", "|".join(evs),
                     f"{gain:+.1f}"])
         pw.writerow([slot, cut, base, idx, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}",
                      pk.get("splits", "") if pk else ""])
         files[install + "sounds/" + fname] = audio
-    files[install + "main.xml"] = build_xml(rows, slot_file).encode("utf-8")
+    files[install + "main.xml"] = build_xml(slot_file, events).encode("utf-8")
     files[install + "slot_to_ogg.csv"] = map_buf.getvalue().encode("utf-8")
     PIECES.parent.mkdir(parents=True, exist_ok=True)
     PIECES.write_text(piece_csv.getvalue(), encoding="utf-8")
     files[install + "hila_slot_pieces.csv"] = piece_csv.getvalue().encode("utf-8")
     size, sha = write_zip(args.out, files)
-    print(f"wrote {args.out} ({size} bytes) sha256={sha[:12]}… clips={len(slot_file)} ids={len(rows)}")
+    print(f"wrote {args.out} ({size} bytes) sha256={sha[:12]}… clips={len(slot_file)} "
+          f"events={len({e for ids in events.values() for e in ids})}")
 
 
 if __name__ == "__main__":
