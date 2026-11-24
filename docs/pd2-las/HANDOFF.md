@@ -17,24 +17,32 @@ menu captures show the Christie outfit, but the installed bytes were not hash-ve
 The older `Christie_LAS_Slim.zip` was removed from distribution at the user’s request;
 earlier Christie audit results describe older bytes, not the new pack.
 
-The DOAXVV "Secret Report" outfit is built from the Collada `.dae` by `build_honoko2_dae.py` into four packs
-(`Honoko2`..`OfficeSuite`). CI rebuilds and verifies all four byte for byte. The earlier TMC-only build of the
-same costume was deleted on 2026-11-15 at the user's direction, after the `.dae` pack proved the better one; its
-bytes stay reachable through git history (D40).
+The DOAXVV "Secret Report" outfit is built from the Collada `.dae` by `build_honoko2_dae.py` into
+**one** pack, `OfficeSuite`. CI rebuilds it and verifies its bytes. Two earlier builds of the same source
+were removed at the user's direction and stay reachable through git history: the TMC-only build, dropped
+once the `.dae` pack proved the better one (D40), and `Honoko2`, `Honoko3` and `Honoko4` — the base,
+5%-slim and alternate-suit siblings — dropped so that only `OfficeSuite` is worked on from then on (D57).
+The in-game captures of 2026-11-15 are of `Honoko2`; they are kept as the record of that build and of what
+the outfit looked like before the fit and colourway changes below.
 
-`Honoko3` is the second pack of that same outfit and build: identical materials, textures, registration and glove
-adapter, with the mesh scaled 5% about the rig's bones — slimmer through the torso, arms, hips and bust, same
-height, same joint placement, sleeves and skirt hems where they were, soles still on the floor (`_slim_groups`,
-D42). `Honoko4` is `Honoko3`'s geometry in the user's alternate suit colourway (black jacket, orange
-shirt, `references/Honoka/Tex_07(L_7) 2.dds`), and `Honoko3`/`Honoko4` carry the layer-clearance pass and
-the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
 `OfficeSuite` applies the user's revised third colourway (black jacket, light shirt,
 `references/Honoka/Tex_07(L_7)3.dds`, D45/D46), updated jewelry diffuse (`references/Honoka/Tex_23(L_23)2.dds`),
-and waist/hip/cuff fit adjustments (D50). `make -sC tools/pd2-las honokodae`
-writes all four zips in one run and CI verifies all four. Earlier user-supplied captures show `OfficeSuite` prior to
-the jewelry texture update. `OfficeSuite` alone also ships a first-person arms unit (D53): the same slim/cleared arms,
-cut at the wrist with the heister gloves spawning on top, registered with an `fps_unit` and depth-scaled materials,
-with no head and no authored hands. It has not been seen in game; the 2026-11-15 captures predate it. `Christie_Clover_LAS` (`build_clover_christie.py`, `references/Clover-Christie.zip`)
+and waist/hip/cuff fit adjustments (D50). It carries the 5% bone-anchored slim (`_slim_groups`, D42) and the
+layer-clearance pass with the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
+Earlier user-supplied captures show `OfficeSuite` prior to the jewelry texture update. It also ships a
+first-person arms unit (D53): the same slim/cleared arms, registered with an `fps_unit` and depth-scaled
+materials, and no head. It keeps the outfit's own palms, fingers and bracelet on the PD2 hand and finger
+bones — in the third-person body, the shadow caster and the first-person arms — and registers no glove
+adapter (D55). Its wrists therefore show the outfit's skin and cuff, not the vanilla blue gloves. The
+first-person arms have not been seen in game; the 2026-11-15 captures predate both the arms unit and the
+hands.
+
+`OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body, hands and arms unit
+with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
+packed in one `WHOLE_CHARACTER` unit. Its registration is `replace_all` with `hide_mask`, so the game
+swaps the heister's head and the mask cannot be put back on; the pack's own eyes and teeth are Hila's stock
+ones. It has not been seen in game; its lashes are the donation's `opacity:` shader with a real alpha cutout,
+which is the one thing the offline checks cannot confirm. `Christie_Clover_LAS` (`build_clover_christie.py`, `references/Clover-Christie.zip`)
 is an experimental TPP-only `BODY_ONLY` GLB outfit and has not been seen in game.
 
 ## Seen in game
@@ -51,12 +59,11 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
-| `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body and head override; its render is from the single replacement ZIP) |
+| `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, hands and head override; its render is from the single replacement ZIP) |
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
-| `Honoko2` | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
-| `Honoko3` | no record | — (built 2026-11-15 after the captures; the slim sibling of `Honoko2`, D42) |
-| `Honoko4` | no record | — (`Honoko3` in the alternate suit colourway, D44; the close-ups that drove D44 were of `Honoko3`, not of this pack) |
-| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild; installed hash not measured |
+| `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
+| `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |
+| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild and the 2026-11-23 hands (D55); installed hash not measured |
 | `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
@@ -65,7 +72,8 @@ New [Christie](../renders/christie/in-game/2026-11-15/README.md) and
 [OfficeSuite](../renders/honoka/in-game/officesuite/2026-11-15/README.md) menu/lobby captures
 are archived separately; they do not establish installed hashes, first-person behavior or animation.
 
-Eight captures of `Honoko2` on 2026-11-15 (the outfit menu, not a heist) are archived under
+Eight captures of `Honoko2` (no longer a tracked pack, D57) on 2026-11-15 — the outfit menu, not a
+heist — are archived under
 [`docs/renders/honoka/in-game/2026-11-15/`](../renders/honoka/in-game/2026-11-15/README.md): the purple
 "Secret Report" blazer and skirt with the vanilla blue heister gloves over the wrist cut, from the front,
 three-quarter, side and back. An earlier set of six captures (archived at `da891d7`, removed in the

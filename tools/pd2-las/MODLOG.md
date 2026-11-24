@@ -207,3 +207,57 @@ Hila override it feeds (`OfficeSuite_Miranda_Romance_over_Hila.zip`). The record
 captures are renamed along with it. The third-person geometry, slim, clearance and colourway bytes
 are the same as the pre-rename build. The in-game first-person check stays the third item in the
 OfficeSuite section of `docs/pd2-las/in-game-checklist.md`. See D54.
+
+## 2026-11-23 — OfficeSuite and the Hila override wear the outfit's own hands
+
+At the owner's request ("can you change vanila hands in Hila?", "Office Suite LAS too. Office suit
+donor hands. you just need to remove vanila wrist skin"), `OfficeSuite` stops cutting the source at the
+PD2 wrists: `PackSpec.hands=True` skips `cut_group_at_wrists`/`_cap_wrist_cuts` for it, so the donor's
+palms, fingers and bracelet stay in the third-person body, the shadow caster and `fps_officesuite`, on
+the PD2 `Hand` and finger bones the template's own `g_body` already uses. The pack registers no
+`glove_adapter.lua` any more; `Honoko2`..`Honoko4` keep the cut and the adapter and reproduce their
+previous tracked bytes. The native Hila override inherits that body, turns Hila's stock `g_hands` off,
+deletes the glove block from her unit model, and loses the cuff tuck (`Cuff`, `_measure_cuff`,
+`_pull_weights`) that used to push the cut rim inside the glove lip. `build_models.template()` exposes
+the `Template` view of a model already in memory, which the override uses for that deletion. The
+renders of both packs are regenerated; the wrists now show the outfit's skin and sleeve cuff where the
+vanilla blue gloves were. `runtime_verified` stays `false` and the wrists are the first thing on the
+Hila and OfficeSuite in-game checklist items. See D55.
+
+## 2026-11-23 — `OfficeSuite_Head`, then `Honoko2`..`Honoko4` removed
+
+Two changes of the same day. First `OfficeSuite_Head` (`LegendaryArmours.officesuite_head`) joined
+`OfficeSuite`: the same body, hands and first-person arms with the ME2 Romance head and lashes from
+the Hila override, in one `WHOLE_CHARACTER` unit, `replace_all` with `hide_mask` (D56). Building it
+found two bugs worth keeping in mind: the donor head's palette order is its own, so a head re-skinned
+by enumerating the donor's influence indices binds to `Hips` and rides the hips — `las_head.load` maps
+each influence through `HEAD_BONES.index(name)`, and an invariant now fails if a head vertex lands on
+the hips bone; and `BUILD_INFO` recorded the head donor as an absolute path, which made the tracked zip
+impossible to reproduce from another tree (that is what `fresh` builds) until it was recorded
+repo-relative like `dae` and `skin_archive`.
+
+Then the user removed the three earlier builds of the same source: `Honoko2` (base proportions),
+`Honoko3` (5% slim) and `Honoko4` (slim, alternate suit). `PACKS` is `OfficeSuite` alone, so
+`make honokodae` writes one zip. The zips and sidecars are deleted; their bytes remain in git history.
+The slim and clearance passes and `SHADOW_DROPS` stay, because `OfficeSuite` is built with them, and
+the three tests that compared the variants now assert the same properties on `OfficeSuite`'s own
+tracked bytes rather than against a sibling that is gone. `OfficeSuite`'s bytes did not change. See D57.
+
+## 2026-11-23 — an outfit with its own hands stops relying on LAS's glove bug
+
+The user's rule: "For office suit with head LAS - I don't want to use vanilla gloves. Only hands
+from the model", scoped to every pack this builder produces, with a deliberately equipped glove
+still allowed to win (D58). Both OfficeSuite packs already behaved that way, but only because LAS
+4.1.9 reads `default_glove_id` off a fresh table and so leaves it `false` — an upstream bug. That
+is not something a pack should depend on silently, so each pack with `PackSpec.hands` now ships
+`<item id>_own_hands.lua`: `default_glove_id = false` on purpose, and `body_replacement.hands`
+kept true so the stock hands stay hidden behind the modelled ones. The `hands = false` line is the
+*adapter* hook's, for packs with no hands; copying it here would show the heister's bare hands
+beside the outfit's.
+
+`tests/test_glove_behavior_lua.py` now runs the own-hands hook against the real loader in four
+combinations, including the one that matters: a LAS that reads the outfit's own field (patched
+fixture) with no hook spawns a real glove over the modelled hands, and with the hook it does not.
+Installing `lupa` for it is worth it — that suite had been skipped in this sandbox all along.
+`OfficeSuite`'s and `OfficeSuite_Head`'s geometry and textures are unchanged; the zips gain the one
+hook and the `main.xml`/`BUILD_INFO` lines that name it.

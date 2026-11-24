@@ -53,6 +53,9 @@ BUILDERS = {
     "christie": ["tools/pd2-las/build_christie_source.py"],
     "cloverchristie": ["tools/pd2-las/build_clover_christie.py"],
     "hila": ["tools/build_hila_body_mod.py"],
+    # Reads dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip for its head, so
+    # it runs after `hila`. `--only` keeps OfficeSuite and Honoko2..4 out of it.
+    "honokodae_head": ["tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"

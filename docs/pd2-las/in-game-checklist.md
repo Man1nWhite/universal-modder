@@ -212,6 +212,37 @@ The ZIP was checked offline; these steps still need the game:
    Romance head should all show together, with no pink materials or missing triangles.
 2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
    neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
-   still be Hila's.
+   still be Hila's. **The wrists are the new bytes (D55):** the Hila override now shows the outfit's
+   own skin and black sleeve cuff where the vanilla blue gloves used to be, and the LAS pack does the
+   same under `LegendaryArmours.officesuite`. Check both from the front, the side and while the hand
+   closes on a weapon: no blue glove, no bare wrist band, no gap where the cuff meets the hand.
 3. Mask up and check the mask, a heavier vest, and a carried deployable. These use the original
    Hila attachments; check that the fit is acceptable. Alternate outfits/gloves are not the target.
+
+## OfficeSuite_Head — whole character with the Romance head (D56)
+
+Install `dist/Honoka/OfficeSuite_Head.zip`, then pick `OfficeSuite + Miranda Head` under
+`LegendaryArmours.officesuite_head` on any heister. This pack is `replace_all`: it brings the
+body **and** the head, and hides the mask. The checks that the offline build cannot make:
+
+1. **The head is the Romance one, on the body.** Face, hair and skin tone should match
+   `OfficeSuite_Miranda_Romance_over_Hila.zip`'s Hila; the eyes and teeth are Hila's stock ones, so
+   they should not be missing or doubled.
+2. **The lashes (the open risk).** The donor's lashes are one diffuse whose alpha is the cutout,
+   drawn with `opacity:`. Look at the eyes up close and at an angle: the lashes should read as
+   lashes, not as solid black quads and not as a hole in the face. This is the one thing no render
+   here settles.
+3. **No second head, no floating mask.** The heister's stock head must not show through or beside
+   the pack's, and the mask must not appear on the face. Swap to another heister and back.
+4. **The neck.** Rotate the head in the lobby and reload in a heist: no gap or stretched skin where
+   the pack's head meets OfficeSuite's collar, and no head that follows the hips instead of the head.
+5. **No vanilla glove, and not the stock hands (D58).** With gloves on "Default" in the blackmarket,
+   the wrists must show the outfit's own hands — no `hnd_glv_heistwrinkled` band at the cuff, and no
+   bare heister hands beside the modelled ones (that would be the stock hands failing to hide).
+   Both packs ship `*_own_hands.lua` for this. Then equip a named glove (Bone Mittens): it must
+   spawn over the hands, because a chosen glove is allowed to win.
+6. **The body is unchanged.** Wrists read as D55 (the outfit's own skin and cuff, no blue glove);
+   jewellery, suit colourway and the first-person arms match `OfficeSuite`'s own checks above.
+
+`OfficeSuite` itself is unchanged by this pack: it keeps the stock head and its `BODY_ONLY`
+registration, so both entries should sit in the menu and both be selectable.

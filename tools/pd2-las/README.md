@@ -12,7 +12,8 @@ or running game is needed.
 | `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 | `Christie_LAS` — no head or hands; glove adapter, TPP and FPS | `references/Christie.zip` | `build_christie_source.py` | `christie` |
 | `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
-| `Honoko2`..`OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats); `Honoko3` is the same mesh 5% slimmer; `Honoko4`/`OfficeSuite` are `Honoko3` in the user's alternate suit colourways (plus a jewelry diffuse override in `OfficeSuite`); only `OfficeSuite` ships a first-person arms unit (`fps_officesuite.model`, glove adapter unchanged) | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses and the outfit's own hands (no wrist cut, no glove adapter), in TPP and FPS | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `OfficeSuite_Head` — `OfficeSuite`'s body and hands with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status
@@ -27,26 +28,25 @@ From the repo root, `make -sC tools/pd2-las` alone lists the targets for all thr
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | honokodae | christie | cloverchristie | heads | hila | all
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | honokodae_head | christie | cloverchristie | heads | hila | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
 ```
 
 - `make -n <target>` prints what a target runs. Without `-s`, make wraps the JSON in "Entering directory" lines.
-- `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored), or refreshes an incomplete or stale
-  extraction. `PD2_2B_TEMPLATES` can point setup, builds, and `fresh` at an explicitly shared unit folder.
-  `extract_2b.py` manages only the default cache. Of tracked files, `env` restores only missing ones.
+- `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored) or refreshes a stale one.
+  `PD2_2B_TEMPLATES` points setup, builds and `fresh` at a shared unit folder; `extract_2b.py` manages
+  only the default cache. Of tracked files, `env` restores only missing ones.
 - A build **overwrites the tracked zips** in `dist/` (the Romance sidecar is updated separately), so only
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
-  Linux machine: the template and head builders use the declared `determinism.py` code path. `fresh` verifies
-  original checksums before building in a copy; `fresh.py check --builders NAME` limits what it rebuilds.
-  A custom Miranda `--out` does not promote to `dist/`; verify its sidecar from the output directory.
-- Parallel `all` runs `build` before `busty` and `heads`, and `heads` and `honokodae` before `hila`.
-  Standalone `hila` uses the existing donors and builds a [native override](../../docs/renders/honoka/model/over-hila/README.md), not LAS.
-- **Done means:** `green` passes and `status` shows `changed` only for packs you meant to change. No
-  document needs an edit; a changed `Miranda_L4D2_LAS` needs `heads` run again.
+  Linux machine: the template and head builders use the declared `determinism.py` code path. `fresh`
+  verifies original checksums before building in a copy; `check --builders NAME` limits what it rebuilds.
+  A custom Miranda `--out` does not promote to `dist/`; verify its sidecar from there.
+- Order: `build` before `busty` and `heads`; `heads`, `honokodae` and then `honokodae_head` before `hila`,
+  whose pack holds the head. Standalone `hila` builds a [native override](../../docs/renders/honoka/model/over-hila/README.md), not LAS.
+- **Done means:** `green` passes and `status` shows `changed` only for the packs you meant to change.
 ## File map
 
 | Path (`tools/pd2-las/`) | Role |
@@ -55,7 +55,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_busty_variant.py`, `bust_variant.py` | the chest-morph variant |
-| `build_honoko2_dae.py`, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the Honoko2..OfficeSuite LAS packs built from the Collada `.dae` with the TMC's skinning, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
+| `build_honoko2_dae.py`, `las_head.py`, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the OfficeSuite LAS packs built from the Collada `.dae` with the TMC's skinning, the donor head re-skin, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
 | `build_christie_source.py`, `christie_fit_probe.py`, `christie_sleeve_gloss.py`, `build_clover_christie.py`, `clover_christie_glb.py` | Christie Source retarget + TPP/FPS pack, and experimental Clover-Christie GLB intake + TPP pack |
 | `las_outfit_pack.py`, `dist_paths.py` | shared registration, hook, localization, unit/object XML, zip, glove-adapter companion, and canonical `dist/` path map |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
@@ -88,6 +88,8 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 | **Registration** follows the 2B contract: a hook on `lib/tweak_data/armorskinstweakdata` that creates `LegendaryArmours.<id>`, BeardLib `main.xml` AddFiles, menu locales | `test_registration_follows_the_2b_contract` |
 | **Tracked bytes:** every zip equals its `.sha256` sidecar, and its `BUILD_INFO.json` hashes its own payload | `test_tracked_bytes_match_their_sidecar_and_build_info` |
 | **Variants** change only what they claim: the busty pack is the base pack plus the chest, with the same head, arms and textures | `test_variants_change_only_what_they_claim` |
+| **Own hands:** a pack that models hands keeps "Default" gloves from spawning over them, and ships no no-hands adapter | `test_own_hands_packs_never_draw_a_default_glove` |
+| **Whole character:** a pack with its own head registers `replace_all`, hides the mask and binds that head to the head end of the rig, not the hips | `test_whole_character_packs_bring_their_own_head` |
 
 ## Do not
 
@@ -111,15 +113,13 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 
 ## Next
 
-1. In-game verification with `docs/pd2-las/in-game-checklist.md` (sections for `Miranda_L4D2_LAS`,
-   `Christie_LAS`, `Christie_Clover_LAS` and the `OfficeSuite` jewelry swap); it needs a human
-   with PAYDAY 2, SuperBLT, BeardLib and LAS. It opens with a ten-minute check of the Miranda rebuild.
+1. In-game verification (`docs/pd2-las/in-game-checklist.md`), which needs a human with PAYDAY 2, SuperBLT,
+   BeardLib and LAS: `Miranda_L4D2_LAS`, `Christie_LAS`, `Christie_Clover_LAS`, `OfficeSuite_Head`, jewelry swap.
 2. The native Hila body/head pack awaits its own [in-game check](../../docs/pd2-las/in-game-checklist.md#native-hila-body--head-override-no-las); it needs neither LAS nor BeardLib.
-3. `Christie_Clover_LAS` and `OfficeSuite`'s `Tex_23(L_23)2.dds` jewelry are the newest unverified bytes:
-   neither has been seen in game, and every archived capture predates both.
-4. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): texels at
-   full gloss in `body_df` and `head_df` of the Miranda packs. `Miranda_Romance_LAS` and the eleven
-   head packs have no record of their tracked bytes in game.
+3. `Christie_Clover_LAS`, `OfficeSuite`'s jewelry diffuse and the outfit's own hands (D55, in both
+   packs) are the newest unverified bytes: no capture shows any of them.
+4. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
+   the Miranda packs' `body_df`/`head_df`; no in-game record of `Miranda_Romance_LAS` or the eleven head packs.
 
 ## Further reading
 

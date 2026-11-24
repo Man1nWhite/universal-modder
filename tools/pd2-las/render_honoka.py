@@ -8,7 +8,7 @@ emit into `docs/renders/honoka/<ext>/` per `docs/renders/README.md`:
   - `glb/`: `honoka_glb_sheet.png`
 
 These are the source assets (`.TMC`, the packed `.dds` set, the rigged `.glb`); the
-built `Honoko2` pack is rendered by `tools/render_mod_previews.py`.
+built `OfficeSuite` pack — and `OfficeSuite_Head` — is rendered by `tools/render_mod_previews.py`.
 """
 
 from __future__ import annotations

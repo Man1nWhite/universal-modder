@@ -74,10 +74,8 @@ LAS_TARGETS = {
     "Miranda_Romance_LAS": "lawson",
     "Christie_LAS": "christie",
     "Christie_Clover_LAS": "cloverchristie",
-    "Honoko2": "honokodae",
-    "Honoko3": "honokodae",
-    "Honoko4": "honokodae",
     "OfficeSuite": "honokodae",
+    "OfficeSuite_Head": "honokodae_head",
 }
 # Native full replacements go here; other *_over_* packs are head-only.
 TARGETS = {**LAS_TARGETS, "OfficeSuite_Miranda_Romance_over_Hila": "hila"}

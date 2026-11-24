@@ -64,10 +64,8 @@ ITEMS = {
     "Miranda_Busty_LAS": "miranda_busty",
     "Christie_LAS": "christie",
     "Christie_Clover_LAS": "clover_christie",
-    "Honoko2": "honoko2",
-    "Honoko3": "honoko3",
-    "Honoko4": "honoko4",
     "OfficeSuite": "officesuite",
+    "OfficeSuite_Head": "officesuite_head",
 }
 PACKS = tuple(ITEMS)
 RESTORE = "a tracked pack is missing; restore it with `make -sC tools/pd2-las env`"
@@ -186,7 +184,7 @@ def _stems(pack: str) -> tuple:
     """The models of a pack: third person, plus first person when the pack ships one."""
     if pack == "OfficeSuite":
         return (ITEMS[pack], f"fps_{ITEMS[pack]}")
-    if pack.startswith("Honoko") or pack == "Christie_Clover_LAS":
+    if pack in ("Christie_Clover_LAS", "OfficeSuite_Head"):
         return (ITEMS[pack],)
     return (ITEMS[pack], f"fps_{ITEMS[pack]}")
 
@@ -572,6 +570,13 @@ def test_materials_are_the_ones_the_material_config_declares(pack, stem):
     assert drawn and "shadow_caster" not in drawn, sorted(drawn)
     for name in sorted(drawn):
         material = declared[name]
+        if name.endswith("_lashes") or name.endswith("lashes"):
+            # The lashes are cut out by their diffuse alpha, which is what
+            # `opacity:` does; the donor's own `mtr_lashes` used the same shader.
+            assert material["template"][0] == "opacity", name
+            assert list(material["textures"]) == ["diffuse_texture"], (
+                f"{name}: the lashes carry only a diffuse")
+            continue
         assert material["template"][0] == "generic" and "DIFFUSE_TEXTURE" in material["template"], name
         assert "diffuse_texture" in material["textures"], f"{name}: no diffuse texture"
         if model.first_person:
@@ -687,6 +692,12 @@ def test_textures_keep_gloss_low_and_normals_in_the_diesel_layout(pack):
         assert not (c0 < c1).any(), f"{role}: {int((c0 < c1).sum())} blocks with c0 < c1"
 
         alpha = texture.alpha()
+        if role.endswith("lashes"):
+            # This diffuse's alpha is the opacity cutout (measured: mean 53.7 of
+            # 255), not gloss. The pack's lashes material is `opacity:`, so the
+            # shader never reads it as gloss; the RGB below still has to be a
+            # real diffuse.
+            continue
         if role in diffuse:
             # measured, over all levels: mean 3.5 to 29.5 of 255; at most 0.77 % of
             # a level above 128
@@ -948,3 +959,101 @@ def test_variants_change_only_what_they_claim():
         return _zip(pack).read(f"{pack}/assets/guis/dlcs/{item}/armor_skins/{item}.texture")
 
     assert icon(base, base_id) != icon(busty, busty_id), "the variant has the base pack's icon"
+
+
+@each_pack
+def test_own_hands_packs_never_draw_a_default_glove(pack):
+    """**Own hands.** An outfit that models its hands shows them, not a default glove (D58).
+
+    The rule is the user's: no vanilla glove over the modelled hands, in either
+    OfficeSuite pack. A glove the player picks by hand is still allowed to win,
+    so this checks the *default* is stated, not that gloves are taken away.
+
+    Without the hook the pack depended on an upstream LAS bug to get this right:
+    LAS 4.1.9 sets ``default_glove_id = false`` through a fresh-table read, which
+    happens to suppress the default glove. The hook sets the same value on
+    purpose, and keeps ``body_replacement.hands`` true so the stock hands stay
+    hidden behind the modelled ones. Removing either line makes the hook wrong,
+    and `tests/test_glove_behavior_lua.py` runs both against the real loader.
+
+    The two hook kinds are opposites and must never both ship: the adapter hook
+    exists for packs with **no** hands, this one for packs with their own.
+    ``BUILD_INFO.registration`` records which.
+    """
+    info = _info(pack)
+    registration = info.get("registration") or {}
+    files = {n[len(pack) + 1:] for n in _zip(pack).namelist() if not n.endswith("/")}
+    main = _zip(pack).read(f"{pack}/main.xml").decode()
+    hooks = dict(re.findall(r'<hook file="([^"]+)" source_file="([^"]+)"', main))
+    hooks_dir = re.search(r'<Hooks\b[^>]*\bdirectory="([^"]*)"', main).group(1)
+    own = [name for name in hooks if name.endswith("_own_hands.lua")]
+    adapter = [name for name in hooks if name.endswith("_glove_adapter.lua")]
+
+    if not registration.get("own_hands"):
+        # A pack that does not model hands must not ship this hook: the adapter
+        # hook is the route for those, and a "default glove = none" rule on a
+        # handed-off pack would be a claim the pack cannot keep.
+        assert not own, f"{pack}: an own-hands hook on a pack that models no hands: {own}"
+        assert not info.get("hands") is True, f"{pack}: records modelled hands but no hook"
+        return
+    assert "hands" in info, "the pack is registered as owning hands but models none"
+    assert len(own) == 1, f"{pack}: modelled hands without an own-hands hook: {hooks}"
+    assert f"{hooks_dir}/{own[0]}" in files, f"main.xml hooks {own[0]}, which is not in the pack"
+    assert hooks[own[0]] == "lib/tweak_data/blackmarkettweakdata", hooks[own[0]]
+    assert not adapter, (
+        f"{pack}: both an own-hands and a glove-adapter hook. The adapter exists so a "
+        "pack with NO hands gets the heister's gloves back; shipping it beside modelled "
+        "hands is the double-hands case")
+
+    lua = _zip(pack).read(f"{pack}/{hooks_dir}/{own[0]}").decode()
+    assert re.search(r"^Hooks:PostHook\(BlackMarketTweakData, \"init\",", lua, flags=re.M), own[0]
+    # the style the hook touches is this pack's own registration key
+    assert f'las_{ITEMS[pack]}' in lua, f"{own[0]} does not name las_{ITEMS[pack]}"
+    assert re.search(r"^\tps\.default_glove_id = false$", lua, flags=re.M), (
+        f"{own[0]} does not suppress the default glove")
+    assert not re.search(r"glove_adapter", lua), f"{own[0]} touches the glove adapter"
+    for flag in ("third_body_replacement", "body_replacement"):
+        assert re.search(rf"if ps\.{flag} then ps\.{flag}\.hands = true end", lua), (
+            f"{own[0]} does not keep the stock hands hidden in {flag}")
+
+
+def test_whole_character_packs_bring_their_own_head():
+    """**Whole character.** A pack that brings its own head, as Office Suite + Miranda Head does.
+
+    The pack is OfficeSuite's body and hands with the Miranda Romance head from
+    the Hila override, in one unit: both drawables are drawn from one model, and
+    the registration says whole character rather than body skin, so the game
+    swaps the heister's head too and hides the mask that is no longer reachable.
+    `OfficeSuite` itself is a body skin over the heister's stock head, and the two
+    packs must not be confused: the body-only pack keeps `replace_body` and no
+    head drawable. The head also has to be weighted to the head end of the rig.
+    """
+    pack, item = "OfficeSuite_Head", ITEMS["OfficeSuite_Head"]
+    info = _info(pack)
+    flags = info["registration"]["flags"]
+    assert "replace_all" in flags and "hide_mask" in flags, flags
+    assert "replace_body" not in flags, f"{pack} registers as a body skin: {flags}"
+    assert info["registration"]["glove_adapter"] is False, (
+        "the pack brings authored hands, so the glove adapter would double them")
+
+    body_flags = _info("OfficeSuite")["registration"]["flags"]
+    assert "replace_all" not in body_flags and "replace_body" in body_flags, body_flags
+
+    model = _model(pack, item)
+    assert {"g_body", "g_head"} <= set(model.drawables), sorted(model.drawables)
+    assert not any(name.startswith("fps_") for name in _zip(pack).namelist()), "no first-person unit"
+
+    # The head is weighted to the head end of the rig. The donor palette is in
+    # its own order (Hips first), and `Group.weights` indexes the *pack's*
+    # palette, so this is the check that the two orders were not confused: a
+    # mis-indexed head binds to Hips and travels with the hips.
+    head = model.drawables["g_head"]
+    owner = head.indices[np.arange(len(head.verts)), head.weights.argmax(axis=1)]
+    rest = np.asarray(head.rest)[owner]
+    hips = min(range(len(head.rest)), key=lambda i: head.rest[i][2])
+    assert not (owner == hips).any(), (
+        f"{int((owner == hips).sum())} head vertices are bound to the hips bone")
+    assert (rest[:, 2] > 140.0).mean() > 0.85, (
+        f"{float((rest[:, 2] <= 140.0).mean()):.1%} of the head is bound below the collar")
+    reach = np.linalg.norm(head.verts - rest, axis=1)
+    assert reach.max() < 30.0, f"a head vertex sits {reach.max():.1f} cm from its bone"

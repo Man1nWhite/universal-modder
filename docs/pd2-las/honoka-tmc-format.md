@@ -1,7 +1,7 @@
 # Honoka "Secret Report" TMC — decode findings and rigged export (2026-11-14/15)
 
 **Status: decode complete; the rigged export is tracked.** This page is the record of the source file. The outfits
-that ship are `Honoko2`..`OfficeSuite`, built from the Collada export and using this TMC only for their skin weights and
+that ship are `OfficeSuite` (and `OfficeSuite_Head`), built from the Collada export and using this TMC only for their skin weights and
 joint world binds (`docs/pd2-las/DECISIONS.md`, D40–D46, D50); the TMC-only pack built here in 2026-11-15 was deleted
 the same day. Read the decode sections as written; the last section says what the shipped build takes from this file.
 
@@ -136,7 +136,7 @@ heels).
 - LAS-side bone mapping: `tools/pd2-las/tmc_skeleton_map.json`
   (MOT* → PD2 Diesel names; unmapped helpers merge into their nearest
   mapped ancestor).
-- In-game menu/lobby captures of `Honoko2` and `OfficeSuite` are archived under
+- In-game menu/lobby captures of `OfficeSuite` (and, from the removed `Honoko2` build, D57) are archived under
   `docs/renders/honoka/in-game/` (`docs/pd2-las/HANDOFF.md`); `runtime_verified`
   stays `false` as a builder constant (D31).
 
@@ -222,7 +222,7 @@ heuristic. `runtime_verified` stays `false`.
 
 ## The outfit ships from the `.dae` (2026-11-15)
 
-`Honoko2`..`OfficeSuite` are built by `tools/pd2-las/build_honoko2_dae.py` from
+`OfficeSuite` and `OfficeSuite_Head` are built by `tools/pd2-las/build_honoko2_dae.py` from
 `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`, which carries the six material slots the source binds and
 the buttoned suit. The TMC-only pack this page used to describe — three merged material slots over the raw TMC
 meshes, the unbuttoned `WGT_cap2` jacket laid over the buttoned `WGT_headdress2` suit — was deleted on 2026-11-15
