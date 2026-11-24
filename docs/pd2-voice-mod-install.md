@@ -95,70 +95,86 @@ Uninstall / disable:
 - Only one mod should claim the same `(id, prefix)` pair. `AddBuffer` drops a previously registered
   matching buffer, so with two Hila packs installed the one that loads later wins.
 
-## 4. How an id is matched (and the one thing to check first)
+## 4. What existing PAYDAY 2 voice mods do
 
-`SoundSource:post_event(event, …)` is hooked. For a heister line PD2 posts the **bark event name**
-(`PlayerSound:say` → `post_event(name)`, e.g. `f11e_plu`, `g18`, `f30x_any`), and PD2 picks the
-speaker with the Wwise switch **`robber`**, which `PlayerSound:set_voice` sets from
-`tweak_data.criminals.characters[...].static_data.voice`. Hila is `rb21`
-(`characters.ecp_female`), so:
+Two routes exist. Both are used by published mods; they key on different things, and picking the
+wrong one is what made the first build of this pack inert.
 
-- `BeardLibSoundManager:CheckSoundID(id, source)` compares, for each registered `<sound>`:
-  `data.id == id` **and** `table.contains_any(data.prefixes, source:get_prefixes())`
-  (`ComparePrefixes`), where `get_prefixes()` returns all switch values of that source
-  (`robber` = `rb21`, `int_ext` = `first`/`third`, …).
-- Therefore: `prefix="rb21"` restricts the replacement to Hila's own sources — other heisters keep
-  their vanilla lines even though they post the very same event names.
+### 4a. The standard route: `.stream` overrides (what most voice packs ship)
 
-**Verification recipe (also the fastest way to debug "I hear nothing"):**
+From the ModWorkshop wiki, *Voice Over Modding* — the canonical guide:
 
-1. Main menu → **Mods** → BeardLib options → enable **Log Sounds** (`LogSounds` in BeardLib's
-   `main.xml`, default `false`). This turns on the `Incoming sound check: ID %s Prefixes %s` line in
-   `SoundManager:CheckSoundID`.
-2. Load a heist, let Hila bark a few times, quit, and open the newest
-   `payday2_win32_release_*.log`.
-3. Every posted event shows up as `Incoming sound check: ID <id> Prefixes <…>`. The prefix list for
-   Hila's own barks contains `rb21`; the ids are the ones to key `main.xml` on.
+- Path: `<mod>/soundbanks/streamed/<bank>/<id>.stream`, with `<bank>` = `char_<heister>` for the
+  newer characters, `robbers_mission_gen` for mission chatter, `safehouse_vo` for the safe house,
+  and `regular_vox` for the original crew (Dallas, Hoxton, Wolf, Chains, Houston, Clover, Wick).
+  Under `mods/` this works because BeardLib's `FindOverrides` registers `soundbanks/` from any mod
+  folder; the classic form is `assets/mod_overrides/<mod>/soundbanks/...`.
+- **The file name is only the numeric sound id** — `712675.stream`, not `712675.english`, not
+  `712675.1`.
+- The audio must be Wwise IMA ADPCM: `wwise_ima_adpcm -e in.wav out.stream` (or the *Convert loose
+  files* tool in Hoppip's Soundbank Editor). The guide is emphatic that renaming `.wav`/`.ogg` to
+  `.stream` produces silence.
+- Known hole, stated on the same page: some lines — AI warcries, special-marking in the control
+  phase, "more for characters older than Bodhi" — are **OGG-encoded** streams that
+  `wwise_ima_adpcm` cannot produce, so packs cannot replace them this way at all.
 
-### The id key space (this is where the pack used to be wrong)
+Those numeric ids are exactly what `voice_lines_vox/miranda_lawson/hila_intent_cuts.csv` carries
+(`712675`, `1149328`, …): they are stream/sound ids, i.e. **file names**. That is why the first build
+looked plausible and did nothing.
 
-`<sound id="…">` is compared against **what the game posts**, so the id has to be a bark event name,
-not a voice-line/stream number. The first build of this pack was keyed on the 887 numeric ids of
-`voice_lines_vox/miranda_lawson/hila_intent_cuts.csv` (PD2's voice-line / stream ids, e.g. `712675`,
-`1149328`). PD2 never posts those: `PlayerSound:say` and `CopSound:say` pass the event name
-(`g18`, `f11e_plu`, `f30x_any`, `s08x_sin`, …), and the networked `UnitNetworkHandler:say(unit,
-event_id)` path converts that name with `SoundDevice:string_to_id(name)`, which BeardLib maps back
-through `GetFloat` — keyed on the same registered id string. A pack keyed on the numbers therefore
-loads cleanly and replaces nothing.
+### 4b. The route this pack uses: BeardLib `<Sounds>` over OGG
 
-The shipped pack is now keyed on **176 real bark events**, one `<sound>` each, in
-`voice_lines_vox/miranda_lawson/slot_event_ids.csv` (slot → `|`-separated event names → why):
+`<Sounds prefix="rb21">` registers OGG buffers with SuperBLT's XAudio API and intercepts
+`SoundSource:post_event`, i.e. it replaces at the **event** the game posts, before Wwise is
+involved. It is the documented heister-voice mechanism — the BeardLib Sounds page describes
+`prefix` as "Some sounds in Payday 2 are separated by a prefix, this lets you have multiple voices
+for heisters and many more things" — and it is the only route that can play OGG, so it also covers
+the OGG-encoded lines §4a cannot touch. Published packs mix the two for exactly that reason: the
+2025-26 *PAYDAY 3 Joy Voicelines* ships a `mod_overrides` tree and states that camera marks, guard
+marks and special-enemy lines "require Beardlib to function".
 
-| Where the names come from | Event names |
-| --- | --- |
-| `playerstandard.lua` `_start_action_intimidate` (the interact commands) | `f02x_sin`/`f02x_plu`/`f02b_sin`, `f03a_sin`/`f03a_plu`/`f03b_any`, `l01x`/`l02x`/`l03x` + `_sin`/`_plu`, `f21<code>_sin`, `f36x_any`, `f38_any`, `f40_any`, `f41_sin`/`f41_plu`/`f41_any`, `f44x_any`, `f39_any`, `f48x_any`, `g18` |
-| `playerstandard.lua` mark shots (`priority_shout .. "x_any"`, quiet `.. "y_any"`) | `f30x_any`…`f34x_any`, `f47x_any` (+ the `y` variants) |
-| `playerarrested.lua` `call_teammate(line)` — `line .. ssuffix .. "_sin"` | `f11<code>_sin`, `f13<code>_sin` for all 22 heister codes (`a c b l m d n o p q r s t u v w x y z ac aa ab`) |
-| `playerequipment.lua`, `playerdamage.lua`, `playertased.lua`, `playerbleedout.lua` | `s01x_plu`, `s02x_plu`, `s12`, `s13`, `s05x_sin`, `s05b_sin`, `s07x_sin`, `s08x_sin`, `f11e_plu`, `g43`, `g80x_plu`, `g81x_plu` |
-| `groupaistatebase.lua`, `groupaitweakdata.lua` | `g90`, `g40x_any`, `g41x_any`, `g42x_any` |
-| community *Heister Voice IDs* sheet (the `g`/`p`/`v` callouts heist scripts post) | `g01`–`g92`, `p01`–`p28`, `v04`/`v08`/`v23`/`v32`, `d01x_sin`…`d05`, `r02a_sin`, `s05a_sin`, `dsp_radio_checking_1`, `dsp_stop_all`, `whistling_attention`, `bri_14`, `bri_29` |
+This pack is BeardLib-only, for three reasons: no Wwise encoder exists in this repo (a Windows
+binary; the pipeline here is ffmpeg on Linux), the clips are OGG, and the BeardLib route needs no
+game-file extraction at all.
 
-Two guards in `tools/build_hila_voice_mod.py` keep it honest: a slot without an event id fails the
-build, and an event claimed by two slots fails it too (one clip has to win, and an accidental overlap
-would silently pick whichever entry came later).
+### 4c. Why the ids here are bark event names (evidence, not a guess)
 
-Adding a bark that was missed is a one-line edit in `slot_event_ids.csv` plus `make -sC tools/pd2-las
-voices` — no code change. Use Log Sounds to see the exact spelling the game posts (`_sin`/`_plu`/
-`_any` suffixes matter, and the `x`/`y` in the mark shouts is literal).
+- PD2's own Lua posts these strings. `playerstandard.lua` builds `f02x_`/`f03a_` + `sin`/`plu`,
+  `l01x`–`l03x`, `f21<ssuffix>_sin`, `f36x_any`, `f38_any`, `f40_any`, `f41_*`, `f44x_any`,
+  `f39_any`, `f48x_any`, `g18`; `playerarrested.lua` builds `f11<ssuffix>_sin` / `f13<ssuffix>_sin`;
+  `playerequipment.lua`, `playerdamage.lua`, `playertased.lua`, `groupaistatebase.lua` post
+  `s01x_plu`, `s02x_plu`, `s12`, `s13`, `s05x_sin`, `s07x_sin`, `s08x_sin`, `g43`, `g80x_plu`,
+  `g81x_plu`, `g90`, `g40x_any`, `g41x_any`, `g42x_any`.
+- The community *Heister Voice IDs* sheet is that same call path: its ids are typed into PocoRose and
+  played in game via `sound():say(id)`, the function PD2 itself uses.
+- The speaker is a Wwise switch, not part of the name: `tweak_data.criminals.characters[*]
+  .static_data.voice`, Hila = `rb21` (`ecp_female`, `PlayerSound:set_voice`). BeardLib's
+  `CheckSoundID` compares `data.id == posted_id` **and** `contains_any(data.prefixes,
+  source:get_prefixes())`, so `prefix="rb21"` is what keeps other heisters on their vanilla lines.
+
+| Where the 176 ids come from | Ids | Examples of slots they feed |
+| --- | --- | --- |
+| `playerstandard.lua` `_start_action_intimidate` (the interact commands) | `f02x_sin`/`f02x_plu`/`f02b_sin`, `f03a_sin`/`f03a_plu`/`f03b_any`, `l01x`–`l03x` + `_sin`/`_plu`, `f36x_any`, `f38_any`, `f40_any`, `f41_sin`/`f41_plu`/`f41_any`, `f44x_any`, `f39_any`, `f48x_any`, `g18` | `civ.dontmove`, `civ.down`, `cop.hands`, `cop.kneel`, `cop.cuffs`, `inspire.faster`, `inspire.get_up`, `move.on_me`, `civ.talk`, `move.this_way`, `mark.turret`, `mark.camera`, `caution.wait` |
+| `playerstandard.lua` mark shouts (`priority_shout .. "x_any"`, quiet `.. "y_any"`) | `f30x_any`–`f34x_any`, `f47x_any` (+ the `y` variants) | `mark.dozer`, `mark.shield`, `mark.taser`, `mark.cloaker`, `mark.sniper`, `mark.medic` |
+| `playerarrested.lua` `call_teammate(line)` → `line .. ssuffix .. "_sin"` | `f21<code>_sin`, `f11<code>_sin`, `f13<code>_sin` for all 22 heister codes (`a c b l m d n o p q r s t u v w x y z ac aa ab`) | `move.follow`, `downed.need_help`, `cuffed.pick` |
+| `playerequipment.lua`, `playerdamage.lua`, `playertased.lua`, `playerbleedout.lua`, `groupaistatebase.lua` | `s01x_plu`, `s02x_plu`, `s12`, `s13`, `s05x_sin`, `s05b_sin`, `s07x_sin`, `s08x_sin`, `f11e_plu`, `g43`, `g80x_plu`, `g81x_plu`, `g90`, `g40x_any`, `g41x_any`, `g42x_any` | `drop.*`, `revived.thanks`, `hurt.*`, `revive.*`, `downed.need_help`, `nade.*`, `ammo.low` |
+| community *Heister Voice IDs* sheet (the callouts heist scripts post) | `g01`–`g92`, `p01`–`p28`, `v04`/`v08`/`v23`/`v32`, `d01x_sin`…`d05`, `r02a_sin`, `s05a_sin`, `dsp_radio_checking_1`, `dsp_stop_all`, `whistling_attention`, `bri_14`, `bri_29` | `move.left`/`right`/`up`/`in`/`go`, `spot.*`, `tech.*`, `kill.*`, `win.generic`, `mask.go`, `loot.secured`, `pager.*`, `call_teammate.hey_you` |
+
+### 4d. What the *Log Sounds* option is for
+
+Not discovery: it is BeardLib's `LogSounds` option (Mods → BeardLib options), which prints
+`Incoming sound check: ID %s Prefixes %s` from `SoundManager:CheckSoundID`. Use it only to see a bark
+this pack deliberately leaves alone or spells differently — the heist-scripted callouts that need
+heist-specific text (`p33`–`p47`, most of `v01`–`v58`, `g61`–`g68`) and the `_sin`/`_plu`/`_any` or
+`x`/`y` variants. Adding one is a line in `voice_lines_vox/miranda_lawson/slot_event_ids.csv` plus
+`make -sC tools/pd2-las voices`.
 
 ## 5. Things that do **not** apply to this mod
 
-- No `assets/mod_overrides/` copy: that root only helps raw bundle overrides (`soundbanks/`, `.stream`
-  files, textures, units). Our replacement audio is OGG and must go through `SoundsModule`.
-- No `.stream`/`.wem`/soundbank conversion: `.stream` replacement is the native route for vanilla
-  lines, but it needs Wwise-encoded audio (PD2 Soundbank Editor / Wwise), which cannot be produced
-  from the OGG cutter in `tools/build_hila_voice_mod.py`. Sticking to `SoundsModule` keeps the pack
-  buildable from source in this repo.
+- No `assets/mod_overrides/` copy: that root is for the §4a `.stream` route (and raw bundle
+  overrides). Our replacement audio is OGG and must go through `SoundsModule`.
+- No `.stream`/`.wem`/soundbank conversion: it needs Wwise IMA ADPCM (§4a), which the OGG cutter in
+  `tools/build_hila_voice_mod.py` cannot produce.
 - No load-order/priority requirement: BeardLib loads mods through its own frameworks after its own
   `init`, and our mod has no Lua that must run before/after anything. `mod.txt` priority is only for
   the BLT list's ordering.

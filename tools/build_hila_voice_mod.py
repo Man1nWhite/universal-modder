@@ -445,13 +445,18 @@ Delete this folder, or untick the pack in the main-menu Mods list.
 Only one Hila voice pack should be installed at a time - two packs claiming the
 same (id, prefix) pair means the one that loads later wins.
 
-IF YOU HEAR NO CHANGE
-Enable BeardLib's "Log Sounds" option (Mods -> BeardLib options), play once, then
-open the newest payday2_win32_release_*.log and read the
-"Incoming sound check: ID ... Prefixes ..." lines. This build is keyed on PD2's bark
-event names (g18, f11e_plu, f30x_any, ...); if the log shows an id that should have
-been replaced but was not, add it to slot_event_ids.csv in the source repository -
-see docs/pd2-voice-mod-install.md.
+HOW IT REPLACES LINES
+Classic voice packs ship soundbanks/streamed/<bank>/<id>.stream files (Wwise ADPCM,
+numeric file names). This pack instead uses BeardLib's Sounds module: SuperBLT plays the
+OGG clips and BeardLib swaps them in at the bark event the game posts (g18, f11e_plu,
+f30x_any, ...), keeping only Hila's own voice via the rb21 prefix. That needs no game
+file extraction and also covers the OGG-encoded lines the .stream route cannot replace.
+
+IF A BARK STAYS VANILLA
+Heist-scripted callouts with heist-specific text are left alone on purpose. To cover a
+missed one, enable BeardLib's "Log Sounds" (Mods -> BeardLib options), read the
+"Incoming sound check: ID ..." line, and add that id to slot_event_ids.csv in the source
+repository - see docs/pd2-voice-mod-install.md.
 
 CONTENTS
   main.xml                             BeardLib Sounds module config (prefix {PREFIX})
