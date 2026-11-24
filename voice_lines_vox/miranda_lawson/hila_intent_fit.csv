@@ -59,7 +59,7 @@ mark.captain,Captain.,8,pinned,Captain,1.520,1.860,twrvxl_theswitch_h_S_INT.011.
 kill.shield,Shield down.,11,pinned,Not bad.,0.000,0.610,twrasa_pinnacle_assassin_d_S_INT.098.ogg,"was ""They got fined."""
 nade.generic,Heads up!,10,pinned,Heads up!,0.000,0.360,omggra_2nd_intermission_d_S_INT.035.ogg,shorter grenade throw bark
 hurt.hit,I am hit.,8,pinned,"We're getting slaughtered up here,",0.000,1.450,endgm2_team_c06_c_S_INT.026.ogg,"trimmed ""Shepard."""
-ammo.low,Low ammo.,16,pinned,Find a thermal clip,0.000,0.980,procer_shooting_tutorial_a_S_INT.004.ogg,"request for ammo instead of the old ""Grab some more heavy ammo."" hint"
+ammo.low,Low ammo.,16,pinned,I'm out,2.240,2.660,norvx_loyalty_01_h_S_INT.023.ogg,"""I'm out"" cut clean out of ""but I'm out of options"" (silence both sides)"
 drop.body,Bag,4,pinned,"Those bodies,",0.000,0.880,cspcr2_bodies_a_S_INT.026.ogg,"no ""bag"" line in the pack; keeps ""Those bodies,"""
 mark.medic,Medic.,7,pinned,It's a med,0.000,0.680,procer_cover_tutorial_a_S_INT.001.ogg,unchanged from previous fit
 cop.cuffs,Cuffs. Now.,8,pinned,hold,1.180,1.500,norcva_debrief_d_S_INT.011.ogg,unchanged from previous fit
