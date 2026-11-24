@@ -36,6 +36,8 @@ python3 tools/build_hila_voice_mod.py    # mod zip (needs py7zr + ffmpeg)
 
 - **No names.** No replacement clip may say "Shepard", "Commander" or "Commando" - `fit_hila_intents.py`
   filters those transcripts out and every `slot_picks.csv` window is trimmed before the name.
+- **Level matching.** Each bark is peak-matched to -1.5 dBFS (max +12 dB boost) so quiet takes
+  such as "Captain" are not swallowed next to loud ones; `slot_to_ogg.csv` records the gain applied.
 - **Cuts land on silence.** Windows come from `silencedetect` breakpoints plus syllable-rate
   estimates, so a trim takes the pause that surrounds the dropped word. `splits` in
   `slot_picks.csv` splices two ranges when the unwanted word sits mid-phrase (e.g. tech.drilling

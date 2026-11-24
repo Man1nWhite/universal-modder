@@ -16,7 +16,7 @@ move.this_way,This way.,15,pinned,Come on.,1.884,2.270,procer_vixen_intro_d_S_IN
 move.generic,With me.,43,pinned,"Come on, we should go.",0.000,1.381,twrvxl_meeting_h_S_INT.012.ogg,unchanged from previous fit
 move.up,Up.,11,pinned,up,1.880,2.100,endgm2_longwalk_a_S_INT.005.ogg,last word of the line only
 downed.want_fight,I need you,1,pinned,I need you,1.480,2.100,procer_wakeup_a_S_INT.002.ogg,"trimmed to the ask, dropped ""Shepard,"""
-drop.medic,Medic bag here.,6,pinned,healing,1.080,1.400,procer_cover_tutorial_a_S_INT.010.ogg,unchanged from previous fit
+drop.medic,Medic bag here.,6,pinned,healing,1.320,1.640,procer_cover_tutorial_a_S_INT.010.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 mask.go,Let us begin.,13,pinned,Let's go!,0.000,0.730,twrvxl_negotiation_d_S_INT.018.ogg,unchanged from previous fit
 pager.clear,Nothing here. All clear.,32,pinned,"Understood,",0.000,0.500,endgm1_huddle_01c_d_S_INT.046.ogg,"trimmed ""Commander."""
 mark.shield,Shield.,8,pinned,Shield,1.450,1.800,procer_cover_tutorial_a_S_INT.011.ogg,first word of the line only
@@ -38,14 +38,14 @@ move.right,Right.,9,pinned,Right.,0.000,0.382,twrvxl_aboutaboy_h_S_INT.025.ogg,u
 tech.generic,Something is wrong.,15,pinned,Something's wrong.,1.355,2.150,procer_wakeup_c_S_INT.016.ogg,unchanged from previous fit
 assault.retreat,They are pulling back.,4,pinned,They're pulling out.,0.000,0.690,horcr1_collector_retreat_c_S_INT.010.ogg,unchanged from previous fit
 mark.turret,Turret.,11,pinned,"Mechs advancing,",0.020,0.930,procer_shooting_tutorial_a_S_INT.001.ogg,moved here from mark.dozer
-mark.guard,Guard.,7,pinned,Patrols like that are a little much against this bunch.,0.000,2.300,bchlml_ambientmaster_a_S_INT.033.ogg,unchanged from previous fit
+mark.guard,Guard.,7,pinned,Patrols,0.030,0.470,bchlml_ambientmaster_a_S_INT.033.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 spot.generic,There.,7,pinned,There.,0.000,0.291,cspcr2_bridge_h_S_INT.012.ogg,unchanged from previous fit
 civ.dontmove,Do not move.,8,pinned,don't try to move.,0.920,1.670,procer_wakeup_c_S_INT.002.ogg,"literally ""don't move"", trimmed ""Shepard,"""
 win.generic,Clean work.,21,pinned,Excellent.,0.000,0.506,omgpra_end_puzzle_a_S_INT.007.ogg,unchanged from previous fit
-inspire.faster,Faster.,5,pinned,Hurry!,0.000,1.190,procer_cover_tutorial_a_S_INT.006.ogg,unchanged from previous fit
+inspire.faster,Faster.,5,pinned,Hurry!,0.030,0.360,procer_cover_tutorial_a_S_INT.006.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 kill.dozer,Dozer down.,11,pinned,"Nice work,",0.000,0.620,procer_cover_tutorial_a_S_INT.014.ogg,"was ""They got Jack!"""
 hurt.medic,Need a medic bag.,9,pinned,I don't know how much more I can take.,0.000,1.950,endgm2_longwalk_a_S_INT.071.ogg,unchanged from previous fit
-cop.kneel,On your knees.,6,pinned,Hold,1.082,1.350,endgm2_tech_culmination_c_S_INT.022.ogg,unchanged from previous fit
+cop.kneel,On your knees.,6,pinned,Hold,1.060,1.310,endgm2_tech_culmination_c_S_INT.022.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 cop.drop,Don't.,7,pinned,Don't,0.000,0.260,norvx_relationship_03_h_S_INT.005.ogg,"intimidation; no ""drop it"" line exists"
 curse.slow,Too slow.,2,pinned,Hurry!,0.000,0.357,procer_storm_tutorial_a_S_INT.004.ogg,unchanged from previous fit
 nade.tear,Tear gas.,4,pinned,Shield yourself from the blast.,1.448,3.000,procer_cover_tutorial_a_S_INT.011.ogg,unchanged from previous fit
@@ -55,7 +55,7 @@ mark.cloaker,Cloaker.,7,pinned,Look out!,0.000,0.610,endgm2_illusive_d_S_INT.057
 pager.cover,False alarm. All clear.,1,pinned,"Understood,",0.000,0.860,profre_shuttle_d_S_INT.014.ogg,"trimmed ""Commander."""
 mark.generic,Mark that.,2,pinned,Acquiring target.,0.000,0.932,endgm2_leaderbarks_a_S_INT.035.ogg,unchanged from previous fit
 civ.killthreat,Bunker down,7,pinned,bunker down,2.160,2.720,endgm2_huddle_03a_d_S_INT.030.ogg,stay-on-the-ground intimidation
-mark.captain,Captain.,8,pinned,Captain,1.520,1.860,twrvxl_theswitch_h_S_INT.011.ogg,unchanged from previous fit
+mark.captain,Captain.,8,pinned,Captain,1.335,1.590,twrvxl_theswitch_h_S_INT.011.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 kill.shield,Shield down.,11,pinned,Not bad.,0.000,0.610,twrasa_pinnacle_assassin_d_S_INT.098.ogg,"was ""They got fined."""
 nade.generic,Heads up!,10,pinned,Heads up!,0.000,0.360,omggra_2nd_intermission_d_S_INT.035.ogg,shorter grenade throw bark
 hurt.hit,I am hit.,8,pinned,"We're getting slaughtered up here,",0.000,1.450,endgm2_team_c06_c_S_INT.026.ogg,"trimmed ""Shepard."""
@@ -69,11 +69,11 @@ assault.incoming,Cops incoming.,11,pinned,Incoming.,0.000,0.630,endgm2_longwalk_
 drop.ammo,Ammo here.,8,pinned,Grab some more heavy ammo.,0.000,1.330,endgm1_oculus_hints_a_S_INT.003.ogg,unchanged from previous fit
 tech.drilling,We can cut through,6,pinned,we can cut through,0.000,1.150,twrvxl_ambients_h_S_INT.003.ogg,"spliced around the word ""down"""
 assault.ready,Get ready.,18,pinned,"Ready,",0.000,0.700,endgm2_longwalk_a_S_INT.065.ogg,"trimmed ""Commander?"""
-move.left,Left.,4,pinned,left,1.620,1.950,omggra_attack_c_S_INT.021.ogg,unchanged from previous fit
+move.left,Left.,4,pinned,left,1.335,1.665,omggra_attack_c_S_INT.021.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 civ.ties,Tie them.,5,pinned,"Just lie still,",0.000,0.900,procer_wakeup_c_S_INT.009.ogg,restraint tone
 loot.secured,Secured.,4,pinned,we've stored it,3.374,4.550,norgta_debrief_h_S_INT.029.ogg,unchanged from previous fit
 revive.critical,Stay with me.,4,pinned,So don't die.,2.507,3.563,norvx_relationship_04_h_S_INT.029.ogg,unchanged from previous fit
-drop.fak,First aid here.,6,pinned,healing,1.080,1.400,procer_cover_tutorial_a_S_INT.010.ogg,unchanged from previous fit
+drop.fak,First aid here.,6,pinned,healing,1.320,1.640,procer_cover_tutorial_a_S_INT.010.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 nade.smoke,Smoke.,7,pinned,Hostile fire.,0.000,0.825,endgm2_longwalk_a_S_INT.067.ogg,unchanged from previous fit
 spot.place,This is it.,3,pinned,There it is.,0.000,0.748,endgm1_warship_c_S_INT.037.ogg,unchanged from previous fit
 caution.wait,Wait.,2,pinned,"wait,",0.560,0.780,norvx_relationship_03_h_S_INT.045.ogg,"trimmed ""Shepard,"" + tail"

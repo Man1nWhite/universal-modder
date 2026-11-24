@@ -12,6 +12,7 @@ import csv
 import hashlib
 import io
 import os
+import re
 import subprocess
 import sys
 import zipfile
@@ -308,6 +309,36 @@ def cut_ogg(src: Path, start: float, end: float, dest: Path, ff: str):
     )
 
 
+TARGET_PEAK = -1.5   # dBFS every bark is matched to
+MAX_GAIN = 12.0      # never boost more than this (noise floor)
+
+
+def peak_db(path: Path, ff: str) -> float | None:
+    out = subprocess.run(
+        [ff, "-hide_banner", "-i", str(path), "-af", "volumedetect", "-f", "null", "-"],
+        capture_output=True, text=True).stderr
+    m = re.search(r"max_volume: ([\-\d.]+) dB", out)
+    return float(m.group(1)) if m else None
+
+
+def match_level(path: Path, ff: str) -> float:
+    """Bark-to-bark level match: bring the clip's peak to TARGET_PEAK (bounded)."""
+    peak = peak_db(path, ff)
+    if peak is None:
+        return 0.0
+    gain = max(-9.0, min(MAX_GAIN, TARGET_PEAK - peak))
+    if abs(gain) < 0.5:
+        return 0.0
+    tmp = path.with_suffix(".norm.ogg")
+    subprocess.run(
+        [ff, "-y", "-i", str(path), "-af", f"volume={gain:.2f}dB",
+         "-c:a", "libvorbis", "-q:a", "5", str(tmp)],
+        check=True, capture_output=True,
+    )
+    tmp.replace(path)
+    return gain
+
+
 def cut_ogg_ranges(src: Path, ranges: list[tuple[float, float]], dest: Path, ff: str):
     """Concatenate several sub-ranges of one ogg (used to drop a single word)."""
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -405,6 +436,8 @@ def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("--out", type=Path, default=DEFAULT_OUT)
     p.add_argument("--no-cut", action="store_true", help="use whole oggs, no phrase splits")
+    p.add_argument("--no-normalize", action="store_true",
+                   help="skip per-clip level matching to -1.5 dBFS peak")
     p.add_argument("--source-dir", type=Path, default=Path("/tmp/lawson_all"),
                    help="extracted Голос Лоусон folder for ffmpeg cuts")
     args = p.parse_args(argv)
@@ -462,7 +495,7 @@ def main(argv=None):
     map_buf = io.StringIO()
     w = csv.writer(map_buf)
     w.writerow(["slot", "cut_line", "archive_file", "piece_index", "t_start", "t_end",
-                "duration_s", "score", "uses", "example_ids"])
+                "duration_s", "score", "uses", "example_ids", "gain_db"])
     piece_csv = io.StringIO()
     pw = csv.writer(piece_csv)
     pw.writerow(["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s", "splits"])
@@ -489,10 +522,13 @@ def main(argv=None):
             cut = pk["cut_line"]
         base = Path(path).name
         src = locate(path, base)
+        gain = 0.0
         if ranges and ff is not None and src is not None:
             fname = f"{Path(base).stem}_cut{len(ranges)}.ogg"
             dest = Path("/tmp/hila_pieces") / fname
             cut_ogg_ranges(src, ranges, dest, ff)
+            if not args.no_normalize:
+                gain = match_level(dest, ff)
             audio = dest.read_bytes()
             t0, t1 = ranges[0][0], ranges[-1][1]
             dur = sum(e - s_ for s_, e in ranges)
@@ -509,12 +545,15 @@ def main(argv=None):
             else:
                 dest = Path("/tmp/hila_pieces") / fname
                 cut_ogg(src, a, b, dest, ff)
+                if not args.no_normalize:
+                    gain = match_level(dest, ff)
                 audio = dest.read_bytes()
                 t0, t1, dur = a, b, b - a
         out_sounds[fname] = audio
         slot_file[slot] = fname
         w.writerow([slot, cut, base, idx, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}",
-                    f"{sc:.3f}" if isinstance(sc, float) else "", len(ids), "|".join(ids[:4])])
+                    f"{sc:.3f}" if isinstance(sc, float) else "", len(ids), "|".join(ids[:4]),
+                    f"{gain:+.1f}"])
         pw.writerow([slot, cut, base, idx, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}",
                      pk.get("splits", "") if pk else ""])
         files[install + "sounds/" + fname] = audio
