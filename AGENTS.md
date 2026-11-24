@@ -10,7 +10,7 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
 | State of the packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `honokodae_head`, `christie`, `cloverchristie`, `heads`, or `hila` |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `honokodae_head`, `christie`, `cloverchristie`, `heads`, `hila`, or `voices` |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
@@ -20,7 +20,9 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
   the `.sha256` yourself ("Publish a release" in `tools/pd2-port/README.md`).
 - A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
   `git checkout -- dist`: both discard work that was never pushed. First `git status` and
-  `git log origin/<branch>..HEAD` must show nothing local that the remote lacks.
+  `git log origin/<branch>..HEAD` must show nothing local that the remote lacks. Once both are empty,
+  `git fetch` then `git reset --hard origin/<branch>` is the way back: a restarted sandbox re-clones at an
+  older commit, which leaves `dist/` on the base bytes and `status` calling packs `broken` for no reason.
 
 ## Modding any other game
 1. Read `skills/mod-any-game/SKILL.md` and follow its loop: intake → recon → route → lab (backups) →

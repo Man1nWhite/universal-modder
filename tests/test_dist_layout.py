@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_character_folders_and_renamed_las_packages():
     dist = ROOT / 'dist'
-    expected = {'Miranda_L4D2', 'Miranda_Romance', 'Christie', 'Honoka', 'Geralt'}
+    expected = {'Miranda_L4D2', 'Miranda_Romance', 'Christie', 'Honoka', 'Geralt', 'Hila'}
     assert {p.name for p in dist.iterdir() if p.is_dir()} == expected
     for group, name, internal in (
         ('Miranda_L4D2', 'Miranda_L4D2_LAS.zip', 'Miranda_LAS/'),
@@ -19,7 +19,7 @@ def test_character_folders_and_renamed_las_packages():
         with zipfile.ZipFile(archive) as z:
             assert z.namelist() and all(n.startswith(internal) for n in z.namelist())
         assert archive.with_name(name + '.sha256').is_file()
-    assert len(list(dist.rglob('*.zip'))) == 19
+    assert len(list(dist.rglob('*.zip'))) == 20
     assert not (dist / 'Christie' / 'Christie_LAS_Slim.zip').exists()
     assert not (dist / 'Christie' / 'Christie_LAS_Slim.zip.sha256').exists()
     assert not list(dist.glob('*.zip'))

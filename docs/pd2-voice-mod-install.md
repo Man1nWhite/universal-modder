@@ -1,0 +1,186 @@
+# Packaging & installing the Hila VO mod (PAYDAY 2 · SuperBLT + BeardLib)
+
+This is the packaging contract for `dist/Hila/Miranda_Lawson_VO_over_Hila.zip` — how the folder
+must look, what the game/loader actually reads, how to install it, and how to check that every bark
+it should answer is answered.
+
+Everything below was checked against the real loaders, not from memory:
+
+- **BeardLib 5.2.0** (`diesel-modding/PAYDAY-2-BeardLib`, default branch `master`):
+  `Core.lua`, `Classes/ModCore.lua`, `Classes/Frameworks.lua`, `Classes/ModuleBase.lua`,
+  `Classes/Managers/SoundManager.lua`, `Modules/Utils/SoundsModule.lua`, `main.xml`, `mod.txt`.
+- **SuperBLT XAudio manual** (`diesel-modding/PAYDAY2-SuperBLT-Lua`, `XAudio Users Manual.md`).
+- **PAYDAY 2 Lua** (`steam-test1/Payday-2-LuaJIT-Complete`): `lib/units/beings/player/playersound.lua`,
+  `lib/units/enemies/cop/copsound.lua`, `lib/units/player_team/teamaisound.lua`,
+  `lib/tweak_data/tweakdata.lua`, `lib/managers/group_ai_states/groupaistatebase.lua`.
+
+---
+
+## 1. Required layout
+
+```
+PAYDAY 2/
+└─ mods/
+   └─ Miranda Lawson VO over Hila/     ← exactly one folder, this name is free-form
+      ├─ mod.txt                      ← optional for the loader, required for the in-game mod list
+      ├─ main.xml                     ← REQUIRED: this is what makes BeardLib load the folder
+      ├─ README.txt
+      ├─ slot_to_ogg.csv              ← build manifest (slot, clip, event ids, gain, peak)
+      ├─ hila_slot_pieces.csv         ← build manifest (cut ranges the clips came from)
+      └─ sounds/
+         ├─ <clip>.ogg                ← 78 clips, 176 bark events
+         └─ …
+```
+
+The two CSVs are for whoever has to answer "where did this bark come from": the game reads neither.
+
+`main.xml` (root node free-form; `<table name="…">` mirrors BeardLib's own file):
+
+```xml
+<table name="Miranda Lawson VO over Hila">
+  <Sounds directory="sounds" prefix="rb21" load_on_play="true">
+    <sound id="g18" path="<clip>.ogg" stop_id="g18_stop"/>
+    …
+  </Sounds>
+</table>
+```
+
+`id` is a PD2 bark event name (see §4); several `<sound>` entries may point at the same `path`.
+
+- `directory` is resolved **relative to the mod folder**; each `path` is resolved relative to that
+  `directory` (`SoundsModule:ReadSounds` → `full_path = Path:Combine(dir, v.path)`).
+- `path` is optional — it defaults to `<id>.ogg`. We write it explicitly because several ids share
+  one clip.
+- `stop_id` is optional — it defaults to `<id>_stop`. We write it explicitly for the same reason.
+- `prefix` (or a `<prefixes>` list) is inherited by every child `<sound>` and is **load-bearing**, see §4.
+
+## 2. Why this layout (what the loaders actually do)
+
+| Loader step | Behaviour |
+| --- | --- |
+| `Frameworks.lua` → `FrameworkBase:FindMods()` | Scans **one level** of `BLTModManager.Constants.mods_directory` (`mods/`) for folders, and loads a folder only if `mods/<folder>/main.xml` exists. No recursion, no other search roots. |
+| `ModCore:new(main.xml, …)` | `Name = config.name or <folder name>`. Every child element of the root is instantiated as a BeardLib *module* by name (`<Sounds>` → `SoundsModule`, `<Hooks>` → `HooksModule`, …). Unknown element names log `Unable to find module with key`. |
+| `SoundsModule:init` | Calls `BeardLib.Utils:SetupXAudio()` and then reads the config **immediately** (`auto_load = false` only skips the generic module loader). If `XAudio` is nil it errors `Sounds module requires the XAudio API!` and replaces nothing. |
+| `SoundManager:AddBuffer` | One shared OpenAL/OpenALSoft buffer per OGG (cached and shared between sources). `load_on_play` defers loading until the id is first posted — good default for a 78-file pack. |
+| `SoundManager:CheckSoundID` | Called from the `SoundSource:post_event` hook for **every** sound the game posts, with `(event_id, engine_source)`. It resolves the id, compares `id` **and** prefixes, and plays the mod buffer instead of the vanilla event. |
+| `FrameworkBase:FindOverrides` | Additionally registers raw override folders inside a mod (`soundbanks/`, `units/`, `gamedata/`, `strings/`, …). Not used by us: our clips are OGG, which only the XAudio route can play. |
+
+Notes:
+
+- `mods/` is the documented and only scanned mod root. `assets/mod_overrides/<folder>/main.xml` also
+  works in practice because BeardLib's `AddFramework` walks `mod_overrides` the same way, but it is
+  the *legacy overrides* root: mods there do not appear in the BLT mod list, cannot be toggled, and
+  the "one folder per mod" rule is easy to get wrong. Ship `mods/`.
+- `mod.txt` is **not** what makes BeardLib load the mod (that is `main.xml`), but BLT's own mod
+  manager needs it to list/disable the mod in the main menu. Ship it.
+- Folder names with spaces are fine (`Path:Combine`-joined everywhere). The classic failure is
+  double nesting (`mods/Miranda Lawson VO over Hila/Miranda Lawson VO over Hila/main.xml`).
+
+## 3. Requirements and install steps
+
+Prerequisites (both are hard requirements — the mod is silent without them):
+
+1. **SuperBLT** (any 64-bit build that exposes `blt.xaudio`). The XAudio API is what plays the OGGs;
+   vanilla BLT/BLT4 has no `blt.xaudio`, so `SoundsModule` aborts with
+   `Sounds module requires the XAudio API!`.
+2. **BeardLib 5.x** (5.1.0+ is the Diesel 3.0 / 64-bit line) installed as `mods/BeardLib/`.
+
+Install:
+
+1. Unzip `Miranda_Lawson_VO_over_Hila.zip` **into `PAYDAY 2/mods/`** so that
+   `PAYDAY 2/mods/Miranda Lawson VO over Hila/main.xml` exists.
+2. Launch the game. Main menu → **Mods**: the mod is listed (from `mod.txt`), BeardLib is listed
+   below it. Nothing else to enable.
+3. Play any heist as **Hila** (or with Hila as an AI teammate).
+
+Uninstall / disable:
+
+- Remove the `Miranda Lawson VO over Hila` folder (cleanest), or toggle it off in the main-menu mod
+  list. Nothing is written outside the mod folder, so both are complete removals.
+- Only one mod should claim the same `(id, prefix)` pair. `AddBuffer` drops a previously registered
+  matching buffer, so with two Hila packs installed the one that loads later wins.
+
+## 4. What existing PAYDAY 2 voice mods do
+
+Two routes exist. Both are used by published mods; they key on different things, and picking the
+wrong one is what made the first build of this pack inert.
+
+### 4a. The standard route: `.stream` overrides (what most voice packs ship)
+
+From the ModWorkshop wiki, *Voice Over Modding* — the canonical guide:
+
+- Path: `<mod>/soundbanks/streamed/<bank>/<id>.stream`, with `<bank>` = `char_<heister>` for the
+  newer characters, `robbers_mission_gen` for mission chatter, `safehouse_vo` for the safe house,
+  and `regular_vox` for the original crew (Dallas, Hoxton, Wolf, Chains, Houston, Clover, Wick).
+  Under `mods/` this works because BeardLib's `FindOverrides` registers `soundbanks/` from any mod
+  folder; the classic form is `assets/mod_overrides/<mod>/soundbanks/...`.
+- **The file name is only the numeric sound id** — `712675.stream`, not `712675.english`, not
+  `712675.1`.
+- The audio must be Wwise IMA ADPCM: `wwise_ima_adpcm -e in.wav out.stream` (or the *Convert loose
+  files* tool in Hoppip's Soundbank Editor). The guide is emphatic that renaming `.wav`/`.ogg` to
+  `.stream` produces silence.
+- Known hole, stated on the same page: some lines — AI warcries, special-marking in the control
+  phase, "more for characters older than Bodhi" — are **OGG-encoded** streams that
+  `wwise_ima_adpcm` cannot produce, so packs cannot replace them this way at all.
+
+Those numeric ids are exactly what `voice_lines_vox/miranda_lawson/hila_intent_cuts.csv` carries
+(`712675`, `1149328`, …): they are stream/sound ids, i.e. **file names**. That is why the first build
+looked plausible and did nothing.
+
+### 4b. The route this pack uses: BeardLib `<Sounds>` over OGG
+
+`<Sounds prefix="rb21">` registers OGG buffers with SuperBLT's XAudio API and intercepts
+`SoundSource:post_event`, i.e. it replaces at the **event** the game posts, before Wwise is
+involved. It is the documented heister-voice mechanism — the BeardLib Sounds page describes
+`prefix` as "Some sounds in Payday 2 are separated by a prefix, this lets you have multiple voices
+for heisters and many more things" — and it is the only route that can play OGG, so it also covers
+the OGG-encoded lines §4a cannot touch. Published packs mix the two for exactly that reason: the
+2025-26 *PAYDAY 3 Joy Voicelines* ships a `mod_overrides` tree and states that camera marks, guard
+marks and special-enemy lines "require Beardlib to function".
+
+This pack is BeardLib-only, for three reasons: no Wwise encoder exists in this repo (a Windows
+binary; the pipeline here is ffmpeg on Linux), the clips are OGG, and the BeardLib route needs no
+game-file extraction at all.
+
+### 4c. Why the ids here are bark event names (evidence, not a guess)
+
+- PD2's own Lua posts these strings. `playerstandard.lua` builds `f02x_`/`f03a_` + `sin`/`plu`,
+  `l01x`–`l03x`, `f21<ssuffix>_sin`, `f36x_any`, `f38_any`, `f40_any`, `f41_*`, `f44x_any`,
+  `f39_any`, `f48x_any`, `g18`; `playerarrested.lua` builds `f11<ssuffix>_sin` / `f13<ssuffix>_sin`;
+  `playerequipment.lua`, `playerdamage.lua`, `playertased.lua`, `groupaistatebase.lua` post
+  `s01x_plu`, `s02x_plu`, `s12`, `s13`, `s05x_sin`, `s07x_sin`, `s08x_sin`, `g43`, `g80x_plu`,
+  `g81x_plu`, `g90`, `g40x_any`, `g41x_any`, `g42x_any`.
+- The community *Heister Voice IDs* sheet is that same call path: its ids are typed into PocoRose and
+  played in game via `sound():say(id)`, the function PD2 itself uses.
+- The speaker is a Wwise switch, not part of the name: `tweak_data.criminals.characters[*]
+  .static_data.voice`, Hila = `rb21` (`ecp_female`, `PlayerSound:set_voice`). BeardLib's
+  `CheckSoundID` compares `data.id == posted_id` **and** `contains_any(data.prefixes,
+  source:get_prefixes())`, so `prefix="rb21"` is what keeps other heisters on their vanilla lines.
+
+| Where the 176 ids come from | Ids | Examples of slots they feed |
+| --- | --- | --- |
+| `playerstandard.lua` `_start_action_intimidate` (the interact commands) | `f02x_sin`/`f02x_plu`/`f02b_sin`, `f03a_sin`/`f03a_plu`/`f03b_any`, `l01x`–`l03x` + `_sin`/`_plu`, `f36x_any`, `f38_any`, `f40_any`, `f41_sin`/`f41_plu`/`f41_any`, `f44x_any`, `f39_any`, `f48x_any`, `g18` | `civ.dontmove`, `civ.down`, `cop.hands`, `cop.kneel`, `cop.cuffs`, `inspire.faster`, `inspire.get_up`, `move.on_me`, `civ.talk`, `move.this_way`, `mark.turret`, `mark.camera`, `caution.wait` |
+| `playerstandard.lua` mark shouts (`priority_shout .. "x_any"`, quiet `.. "y_any"`) | `f30x_any`–`f34x_any`, `f47x_any` (+ the `y` variants) | `mark.dozer`, `mark.shield`, `mark.taser`, `mark.cloaker`, `mark.sniper`, `mark.medic` |
+| `playerarrested.lua` `call_teammate(line)` → `line .. ssuffix .. "_sin"` | `f21<code>_sin`, `f11<code>_sin`, `f13<code>_sin` for all 22 heister codes (`a c b l m d n o p q r s t u v w x y z ac aa ab`) | `move.follow`, `downed.need_help`, `cuffed.pick` |
+| `playerequipment.lua`, `playerdamage.lua`, `playertased.lua`, `playerbleedout.lua`, `groupaistatebase.lua` | `s01x_plu`, `s02x_plu`, `s12`, `s13`, `s05x_sin`, `s05b_sin`, `s07x_sin`, `s08x_sin`, `f11e_plu`, `g43`, `g80x_plu`, `g81x_plu`, `g90`, `g40x_any`, `g41x_any`, `g42x_any` | `drop.*`, `revived.thanks`, `hurt.*`, `revive.*`, `downed.need_help`, `nade.*`, `ammo.low` |
+| community *Heister Voice IDs* sheet (the callouts heist scripts post) | `g01`–`g92`, `p01`–`p28`, `v04`/`v08`/`v23`/`v32`, `d01x_sin`…`d05`, `r02a_sin`, `s05a_sin`, `dsp_radio_checking_1`, `dsp_stop_all`, `whistling_attention`, `bri_14`, `bri_29` | `move.left`/`right`/`up`/`in`/`go`, `spot.*`, `tech.*`, `kill.*`, `win.generic`, `mask.go`, `loot.secured`, `pager.*`, `call_teammate.hey_you` |
+
+### 4d. What the *Log Sounds* option is for
+
+Not discovery: it is BeardLib's `LogSounds` option (Mods → BeardLib options), which prints
+`Incoming sound check: ID %s Prefixes %s` from `SoundManager:CheckSoundID`. Use it only to see a bark
+this pack deliberately leaves alone or spells differently — the heist-scripted callouts that need
+heist-specific text (`p33`–`p47`, most of `v01`–`v58`, `g61`–`g68`) and the `_sin`/`_plu`/`_any` or
+`x`/`y` variants. Adding one is a line in `voice_lines_vox/miranda_lawson/slot_event_ids.csv` plus
+`make -sC tools/pd2-las voices`.
+
+## 5. Things that do **not** apply to this mod
+
+- No `assets/mod_overrides/` copy: that root is for the §4a `.stream` route (and raw bundle
+  overrides). Our replacement audio is OGG and must go through `SoundsModule`.
+- No `.stream`/`.wem`/soundbank conversion: it needs Wwise IMA ADPCM (§4a), which the OGG cutter in
+  `tools/build_hila_voice_mod.py` cannot produce.
+- No load-order/priority requirement: BeardLib loads mods through its own frameworks after its own
+  `init`, and our mod has no Lua that must run before/after anything. `mod.txt` priority is only for
+  the BLT list's ordering.
+- No localization/strings work: the clips are audio only; they do not add subtitles.

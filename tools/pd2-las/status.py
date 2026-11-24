@@ -12,7 +12,7 @@ used to quote and get wrong:
 
 - ``ready``: are the required inputs, pinned environment, and intact ZIP pairs
   present? ``hint`` suggests what to do if not. Use ``fresh`` to prove a rebuild.
-- ``env``:   is there a ``.venv`` with the pillow/numpy versions of ``pins.txt``,
+- ``env``:   is there a ``.venv`` with the pinned versions of ``pins.txt``,
   are the 2B templates unpacked (``extract_2b.TEMPLATES``), are the source
   archives there, and how many tracked files are missing from the checkout (a
   restarted sandbox deletes ``dist/``, ``build/`` and ``node_modules/``).
@@ -78,14 +78,15 @@ LAS_TARGETS = {
     "OfficeSuite_Head": "honokodae_head",
 }
 # Native full replacements go here; other *_over_* packs are head-only.
-TARGETS = {**LAS_TARGETS, "OfficeSuite_Miranda_Romance_over_Hila": "hila"}
+TARGETS = {**LAS_TARGETS, "OfficeSuite_Miranda_Romance_over_Hila": "hila",
+           "Miranda_Lawson_VO_over_Hila": "voices"}
 HEADS = "heads"
 
 MAKE = "make -sC tools/pd2-las"
 ENV = f"{MAKE} env"
 GREEN = f"{MAKE} green"
 #: the packages whose versions decide the bytes of the built zips
-PINNED = ("pillow", "numpy")
+PINNED = ("pillow", "numpy", "imageio-ffmpeg", "py7zr")
 #: tracked directories a restarted sandbox comes back without
 WIPED = ("dist", "node_modules")
 
@@ -123,8 +124,9 @@ def venv_versions() -> dict[str, str]:
             REPO / ".venv" / "Lib" / "site-packages"]:
         for info in site.glob("*.dist-info"):
             name, _, version = info.name[:-len(".dist-info")].partition("-")
-            if name.lower() in PINNED:
-                found[name.lower()] = version
+            name = name.lower().replace("_", "-")   # dist-info spells imageio_ffmpeg
+            if name in PINNED:
+                found[name] = version
     return found
 
 

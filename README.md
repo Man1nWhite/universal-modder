@@ -10,8 +10,10 @@ of them.
 ## What this fork adds
 
 PAYDAY 2 packs, tracked in `dist/` and rebuilt byte for byte by CI: full-body and body-only Legendary Armour
-Skins outfits (Miranda Lawson, Christie, Honoka), head replacements (Miranda, Geralt), and a native
-OfficeSuite + Miranda Romance body-and-head replacement for Hila.
+Skins outfits (Miranda Lawson, Christie, Honoka), head replacements (Miranda, Geralt), a native
+OfficeSuite + Miranda Romance body-and-head replacement for Hila, and the fork's one audio pack —
+Miranda Lawson's barks over Hila's `rb21` voice lines as a BeardLib `SoundsModule` mod
+([packaging and install contract](docs/pd2-voice-mod-install.md)).
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share.
 

@@ -1,0 +1,79 @@
+slot,cut_line,source_ogg,t_start,t_end,splits,clip_text,note
+ammo.low,Low ammo.,norvx_loyalty_01_h_S_INT.023.ogg,2.240,2.660,,I'm out,"""I'm out"" cut clean out of ""but I'm out of options"" (silence both sides)"
+assault.incoming,Cops incoming.,endgm2_longwalk_a_S_INT.063.ogg,0.000,0.630,,Incoming.,unchanged from previous fit
+assault.ready,Get ready.,endgm2_longwalk_a_S_INT.065.ogg,0.000,0.700,,"Ready,","trimmed ""Commander?"""
+assault.retreat,They are pulling back.,horcr1_collector_retreat_c_S_INT.010.ogg,0.000,0.690,,They're pulling out.,unchanged from previous fit
+call_teammate.hey_you,"Hey, you.",profre_cover_tutorial_a_S_INT.002.ogg,1.310,2.180,,you take point.,"trimmed ""Shepard,"" off the front"
+caution.wait,Wait.,norvx_relationship_03_h_S_INT.045.ogg,0.560,0.780,,"wait,","trimmed ""Shepard,"" + tail"
+caution.watch,Careful.,cspcr2_platform_approach_h_S_INT.020.ogg,0.000,0.470,,Look out.,unchanged from previous fit
+civ.dontmove,Do not move.,procer_wakeup_c_S_INT.002.ogg,0.920,1.670,,don't try to move.,"literally ""don't move"", trimmed ""Shepard,"""
+civ.down,Down. Now.,procer_cover_tutorial_a_S_INT.011.ogg,0.020,1.020,,"Keep your head down,","trimmed ""Shepard."""
+civ.killthreat,Bunker down,endgm2_huddle_03a_d_S_INT.030.ogg,2.160,2.720,,bunker down,stay-on-the-ground intimidation
+civ.nophone,No calls.,endgm1_dogfight_c_S_INT.057.ogg,0.000,1.220,,"There's nothing we can do,","trimmed ""Shepard."""
+civ.talk,Talk.,twrvxl_main_contact_d_S_INT.037.ogg,0.000,0.628,,What happened?,unchanged from previous fit
+civ.ties,Tie them.,procer_wakeup_c_S_INT.009.ogg,0.000,0.900,,"Just lie still,",restraint tone
+cop.cuffs,Cuffs. Now.,norcva_debrief_d_S_INT.011.ogg,1.180,1.500,,hold,unchanged from previous fit
+cop.drop,Don't.,norvx_relationship_03_h_S_INT.005.ogg,0.000,0.260,,Don't,"intimidation; no ""drop it"" line exists"
+cop.hands,Stop.,norvx_relationship_03_h_S_INT.037.ogg,0.420,0.650,,stop,"intimidation; no ""hands up"" line exists"
+cop.kneel,On your knees.,endgm2_tech_culmination_c_S_INT.022.ogg,1.060,1.310,,Hold,re-cut to the exact word (silence/energy-verified boundaries)
+cuffed.pick,Pick these cuffs.,endgm2_longwalk_a_S_INT.064.ogg,0.000,1.264,,I can't fight back like this.,unchanged from previous fit
+curse.shit,Damn it.,norvx_relationship_04_h_S_INT.030.ogg,0.000,0.690,,Damn it.,unchanged from previous fit
+curse.slow,Too slow.,procer_storm_tutorial_a_S_INT.004.ogg,0.000,0.357,,Hurry!,unchanged from previous fit
+downed.need_help,I need help.,endgm2_leaderbarks_a_S_INT.029.ogg,0.000,0.994,,Requesting aid!,unchanged from previous fit
+downed.want_fight,I need you,procer_wakeup_a_S_INT.002.ogg,1.480,2.100,,I need you,"trimmed to the ask, dropped ""Shepard,"""
+drop.ammo,Ammo here.,endgm1_oculus_hints_a_S_INT.003.ogg,0.000,1.330,,Grab some more heavy ammo.,unchanged from previous fit
+drop.body,Bag,cspcr2_bodies_a_S_INT.026.ogg,0.000,0.880,,"Those bodies,","no ""bag"" line in the pack; keeps ""Those bodies,"""
+drop.fak,First aid here.,procer_cover_tutorial_a_S_INT.010.ogg,1.320,1.640,,healing,re-cut to the exact word (silence/energy-verified boundaries)
+drop.medic,Medic bag here.,procer_cover_tutorial_a_S_INT.010.ogg,1.320,1.640,,healing,re-cut to the exact word (silence/energy-verified boundaries)
+hurt.hit,I am hit.,endgm2_team_c06_c_S_INT.026.ogg,0.000,1.450,,"We're getting slaughtered up here,","trimmed ""Shepard."""
+hurt.medic,Need a medic bag.,endgm2_longwalk_a_S_INT.071.ogg,0.000,1.950,,I don't know how much more I can take.,unchanged from previous fit
+inspire.faster,Faster.,procer_cover_tutorial_a_S_INT.006.ogg,0.030,0.360,,Hurry!,re-cut to the exact word (silence/energy-verified boundaries)
+inspire.get_up,On your feet.,endgm2_huddle_03b_d_S_INT.002.ogg,1.220,2.460,,Let's go finish this.,unchanged from previous fit
+inspire.move,Move.,endgm2_biotic_success_c_S_INT.006.ogg,0.240,1.020,,we need to move!,"trimmed ""Shepard,"""
+inspire.run,Run.,procer_storm_tutorial_a_S_INT.004.ogg,1.360,1.760,,Run!,last word of the line only
+kill.cloaker,Cloaker down.,procer_vixen_intro_d_S_INT.001.ogg,0.000,0.400,,Dead.,"was ""They got Samara!"""
+kill.dozer,Dozer down.,procer_cover_tutorial_a_S_INT.014.ogg,0.000,0.620,,"Nice work,","was ""They got Jack!"""
+kill.medic,Medic down.,procer_vixen_intro_d_S_INT.063.ogg,0.000,1.000,,Not anymore.,"was ""They got Garrus!"""
+kill.shield,Shield down.,twrasa_pinnacle_assassin_d_S_INT.098.ogg,0.000,0.610,,Not bad.,"was ""They got fined."""
+kill.sniper,Sniper down.,n7_hench_we_did_it_S_INT.012.ogg,0.000,0.510,,That did it.,"was ""They got Kasumi."""
+kill.taser,Taser down.,endgm2_leaderbarks_a_S_INT.034.ogg,0.060,0.680,,Nice shot!,"was ""They got Grunt."""
+loot.secured,Secured.,norgta_debrief_h_S_INT.029.ogg,3.374,4.550,,we've stored it,unchanged from previous fit
+mark.camera,Security has tightened,cithub_first_time_d_S_INT.072.ogg,0.660,1.750,,security has tightened,"trimmed ""Obviously"" + ""since you were last here"""
+mark.captain,Captain.,twrvxl_theswitch_h_S_INT.011.ogg,1.335,1.590,,Captain,re-cut to the exact word (silence/energy-verified boundaries)
+mark.cloaker,Cloaker.,endgm2_illusive_d_S_INT.057.ogg,0.000,0.610,,Look out!,unchanged from previous fit
+mark.dozer,Take out the armor,profre_heavy_arm_tut_a_S_INT.004.ogg,0.000,1.340,,Take out the armor,armour call for the heavy unit
+mark.generic,Mark that.,endgm2_leaderbarks_a_S_INT.035.ogg,0.000,0.932,,Acquiring target.,unchanged from previous fit
+mark.guard,Guard.,bchlml_ambientmaster_a_S_INT.033.ogg,0.030,0.470,,Patrols,re-cut to the exact word (silence/energy-verified boundaries)
+mark.medic,Medic.,procer_cover_tutorial_a_S_INT.001.ogg,0.000,0.680,,It's a med,unchanged from previous fit
+mark.shield,Shield.,procer_cover_tutorial_a_S_INT.011.ogg,1.450,1.800,,Shield,first word of the line only
+mark.sniper,Sniper.,endgm2_longwalk_a_S_INT.066.ogg,0.000,1.700,,"Hostiles, dead ahead.",unchanged from previous fit
+mark.taser,Taser.,profre_mech_intro_c_S_INT.001.ogg,1.000,1.960,,one tough son of a bitch,shortened from 2.50s
+mark.turret,Turret.,procer_shooting_tutorial_a_S_INT.001.ogg,0.020,0.930,,"Mechs advancing,",moved here from mark.dozer
+mask.go,Let us begin.,twrvxl_negotiation_d_S_INT.018.ogg,0.000,0.730,,Let's go!,unchanged from previous fit
+move.follow,"Try to stay close,",endgm2_longwalk_a_S_INT.060.ogg,0.831,1.530,,"Try to stay close,","trimmed ""Commander."""
+move.generic,With me.,twrvxl_meeting_h_S_INT.012.ogg,0.000,1.381,,"Come on, we should go.",unchanged from previous fit
+move.go,Go.,endgm2_longwalk_a_S_INT.062.ogg,0.050,0.550,,"Let's go,","trimmed ""Commander."""
+move.hold,Hold.,procer_cover_tutorial_a_S_INT.017.ogg,2.670,3.410,,Take cover.,unchanged from previous fit
+move.in,Inside.,krohub_tp_miranda_a_S_INT.001.ogg,0.000,0.663,,"Let's get in, do what we need to do and get out fast.",unchanged from previous fit
+move.left,Left.,omggra_attack_c_S_INT.021.ogg,1.335,1.665,,left,re-cut to the exact word (silence/energy-verified boundaries)
+move.on_me,On me.,endgm2_longwalk_a_S_INT.068.ogg,0.000,0.620,,Moving out.,"old clip was the word ""Shepard."""
+move.right,Right.,twrvxl_aboutaboy_h_S_INT.025.ogg,0.000,0.382,,Right.,unchanged from previous fit
+move.this_way,This way.,procer_vixen_intro_d_S_INT.043.ogg,1.884,2.270,,Come on.,unchanged from previous fit
+move.up,Up.,endgm2_longwalk_a_S_INT.005.ogg,1.880,2.100,,up,last word of the line only
+nade.generic,Heads up!,omggra_2nd_intermission_d_S_INT.035.ogg,0.000,0.360,,Heads up!,shorter grenade throw bark
+nade.grenade,Grenade.,procer_grenades_tutorial_a_S_INT.004.ogg,0.800,1.180,,grenades,"tail word only, shorter"
+nade.smoke,Smoke.,endgm2_longwalk_a_S_INT.067.ogg,0.000,0.825,,Hostile fire.,unchanged from previous fit
+nade.tear,Tear gas.,procer_cover_tutorial_a_S_INT.011.ogg,1.448,3.000,,Shield yourself from the blast.,unchanged from previous fit
+pager.clear,Nothing here. All clear.,endgm1_huddle_01c_d_S_INT.046.ogg,0.000,0.500,,"Understood,","trimmed ""Commander."""
+pager.cover,False alarm. All clear.,profre_shuttle_d_S_INT.014.ogg,0.000,0.860,,"Understood,","trimmed ""Commander."""
+revive.critical,Stay with me.,norvx_relationship_04_h_S_INT.029.ogg,2.507,3.563,,So don't die.,unchanged from previous fit
+revive.hold,I have you.,endgm1_huddle_01c_d_S_INT.047.ogg,0.000,1.050,,I won't let you down.,unchanged from previous fit
+revived.thanks,Thank you.,norvx_relationship_03_h_S_INT.088.ogg,1.205,1.610,,Thanks.,unchanged from previous fit
+spot.generic,There.,cspcr2_bridge_h_S_INT.012.ogg,0.000,0.291,,There.,unchanged from previous fit
+spot.place,This is it.,endgm1_warship_c_S_INT.037.ogg,0.000,0.748,,There it is.,unchanged from previous fit
+tech.comp,Activate the console,procer_storm_tutorial_a_S_INT.002.ogg,0.180,1.500,,Activate the console,"trimmed ""to unlock the door"""
+tech.drill_jam,Drill jammed.,cspcr2_bridge_trap_d_S_INT.024.ogg,0.716,1.764,,There must be some other explanation.,unchanged from previous fit
+tech.drilling,We can cut through,twrvxl_ambients_h_S_INT.003.ogg,0.000,0.000,0.000-0.520|0.800-1.150,we can cut through,"spliced around the word ""down"""
+tech.fix,Fix it.,procer_storm_tutorial_a_S_INT.001.ogg,2.900,3.620,,You'll have to do it.,"closest line to ""Fix it"""
+tech.generic,Something is wrong.,procer_wakeup_c_S_INT.016.ogg,1.355,2.150,,Something's wrong.,unchanged from previous fit
+win.generic,Clean work.,omgpra_end_puzzle_a_S_INT.007.ogg,0.000,0.506,,Excellent.,unchanged from previous fit

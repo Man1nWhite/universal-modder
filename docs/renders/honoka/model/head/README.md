@@ -11,5 +11,5 @@
     There is no transform between the two drawables: they are in one model and one character frame.
 - **Caveats:** offline software Z-buffer render (`runtime_verified: false`). The head, its fit and the
   lashes have not been seen in game; the `opacity:` lashes are the open risk, and
-  [`in-game-checklist.md`](../../../pd2-las/in-game-checklist.md#officesuite_head--whole-character-with-the-romance-head-d56)
+  [`in-game-checklist.md`](../../../../pd2-las/in-game-checklist.md#officesuite_head--whole-character-with-the-romance-head-d56)
   is what settles them. The eyes and teeth are Hila's stock ones underneath, not part of this pack.

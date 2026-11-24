@@ -246,3 +246,24 @@ body **and** the head, and hides the mask. The checks that the offline build can
 
 `OfficeSuite` itself is unchanged by this pack: it keeps the stock head and its `BODY_ONLY`
 registration, so both entries should sit in the menu and both be selectable.
+
+## `Miranda_Lawson_VO_over_Hila` — audio only (2026-11-24)
+
+No LAS, no head pack: SuperBLT + BeardLib 5.1.0+ and the pack folder in `mods/`. Nothing of it has
+been heard in game; the packaging contract is [`docs/pd2-voice-mod-install.md`](../pd2-voice-mod-install.md).
+
+1. **The mod list.** BeardLib's Mods menu lists *Miranda Lawson VO over Hila*, enabled, no red error line.
+2. **It replaces at all.** Play Hila in any heist: the interaction and movement barks ("On me.", "Follow
+   me.", "Get ready.") are Miranda, not Hila. If Hila still talks, the pack loaded but matched nothing —
+   run the next step before touching any file.
+3. **Only Hila's lines change.** With a second heister in the crew, their copies of the same barks
+   (`On me.`, `Get ready.`) stay vanilla. That is what `prefix="rb21"` buys.
+4. **Coverage, with `Log Sounds` on** (Mods → BeardLib options, default off): every bark you hear as
+   vanilla and would expect to be replaced shows an `Incoming sound check: ID … Prefixes …` line in
+   `payday2_win32_release_*.log`. A `Prefixes` list containing `rb21` is Hila's; the install doc §4d says
+   what to do with an id you want answered.
+5. **The deliberate gaps stay vanilla.** The heist-scripted callouts with heist-specific text (`p33`–`p47`,
+   most of `v01`–`v58`, `g61`–`g68`) are left alone on purpose; hearing Hila there is not a bug. §4d of
+   the install doc lists them.
+6. **Bleed-over absences.** No subtitle, no lip movement: the clips are audio only, so a subtitle that
+   still says Hila's line is expected and not fixable from the pack.

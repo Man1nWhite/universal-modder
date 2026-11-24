@@ -67,6 +67,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
+| `Miranda_Lawson_VO_over_Hila` (audio/BeardLib) | no record | — (nothing has been heard in game yet; keyed on PD2 bark events since the re-key; packaging contract in [`docs/pd2-voice-mod-install.md`](../pd2-voice-mod-install.md)) |
 
 New [Christie](../renders/christie/in-game/2026-11-15/README.md) and
 [OfficeSuite](../renders/honoka/in-game/officesuite/2026-11-15/README.md) menu/lobby captures

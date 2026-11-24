@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import re
-import subprocess
 from collections import defaultdict
 from pathlib import Path
 
@@ -14,6 +13,11 @@ TR = ROOT / "voice_lines_vox/miranda_lawson/miranda_transcripts_corrected.csv"
 SPLITS = ROOT / "voice_lines_vox/miranda_lawson/ogg_phrase_splits.csv"
 OUT = ROOT / "voice_lines_vox/miranda_lawson/hila_slot_pieces.csv"
 FIT = ROOT / "voice_lines_vox/miranda_lawson/hila_intent_fit.csv"
+PICKS = ROOT / "voice_lines_vox/miranda_lawson/slot_picks.csv"
+
+# The player is not Shepard, so no replacement clip may contain a name/rank address.
+NAMES = re.compile(r"\b(shepard|commander|commando)\b", re.I)
+
 
 # slot -> (cut_line leftover, list of (regex, weight, max_words))
 # Higher weight = better intent. Short matching lines preferred in scoring.
@@ -25,7 +29,10 @@ PATTERNS: dict[str, list[tuple[str, float]]] = {
     ],
     "assault.ready": [r"\b(get ready|i'?m ready|let'?s finish|ready,? commander)\b"],
     "assault.retreat": [r"\b(pulling (out|back)|retreat|falling back)\b"],
-    "call_teammate.on_me": [r"^(shepard|commander)[.!]?$", r"\b(with me|on me|take point)\b"],
+    # Call (rb21 CH_Name) = summon a teammate by name, so the line is a generic
+    # "Hey, you." bark. "On me." belongs to move.on_me (rb21 Follow) instead.
+    "call_teammate.hey_you": [r"^(hey|hi)[,.! ]*(you|there)?[.!]?$", r"\b(hey|hello|you there)\b",
+                              r"^(shepard|commander)[.!]?$"],
     "caution.wait": [r"^(wait|hold on|hang on)[.!]?$", r"\b(wait here|hold on,? i)\b"],
     "caution.watch": [r"\b(look out|watch (out|it|what)|careful|don'?t take any chances)\b"],
     "civ.dontmove": [r"\b(don'?t move|hold still|stay where)\b"],
@@ -150,6 +157,19 @@ def score_text(slot: str, text: str) -> float:
     return sc
 
 
+def load_picks() -> dict[str, dict]:
+    """Hand-curated clips (slot_picks.csv) win over the heuristic matcher."""
+    out: dict[str, dict] = {}
+    if not PICKS.is_file():
+        return out
+    with PICKS.open(newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if not r.get("slot"):
+                continue
+            out[r["slot"]] = r
+    return out
+
+
 def load_splits():
     out = {}
     with SPLITS.open(newline="", encoding="utf-8") as f:
@@ -228,6 +248,8 @@ def main():
         dur, ph = splits.get(fn, (float(r["duration_s"] or 0), []))
         for sent in sentences(full) + ([full] if full not in sentences(full) else []):
             for slot, _cut in slots:
+                if NAMES.search(sent):
+                    continue
                 sc = score_text(slot, sent)
                 if sc <= 0:
                     continue
@@ -250,16 +272,15 @@ def main():
             chosen = pool[0]
         picks[slot] = (cut, chosen)
 
-    # leftover short combat barks for unmatched slots (still better than silence)
-    FALLBACK_ORDER = [
-        "assault.incoming", "caution.watch", "inspire.faster", "move.go",
-        "call_teammate.on_me", "curse.shit", "assault.ready", "mask.go",
-        "win.generic", "pager.clear",
-    ]
+    # leftover short combat barks for unmatched slots (still better than silence);
+    # the slots themselves are walked in `slots` order below, and every one of them
+    # is pinned in voice_lines_vox/miranda_lawson/slot_picks.csv, so this is a
+    # last-resort fill only.
     extras = []
     for r in trans:
         full = (r["corrected_transcript"] or "").strip()
-        if 1 <= len(full.split()) <= 5 and not re.search(r"\b(oriana|niket|father|cerberus|illusive)\b", full, re.I):
+        if (1 <= len(full.split()) <= 5 and not NAMES.search(full)
+                and not re.search(r"\b(oriana|niket|father|cerberus|illusive)\b", full, re.I)):
             fn = r["filename"]
             dur, ph = splits.get(fn, (float(r["duration_s"] or 0), []))
             t0, t1 = (ph[0] if ph else (0.0, min(dur, 1.4)))
@@ -279,23 +300,43 @@ def main():
             picks[slot] = (cut, (0.35, len(sent.split()), fn, sent, t0, t1, full, dur))
             break
 
+    pinned = load_picks()
     # write pieces + fit
     with OUT.open("w", newline="", encoding="utf-8") as f, FIT.open("w", newline="", encoding="utf-8") as g:
         pw = csv.writer(f)
         fw = csv.writer(g)
-        pw.writerow(["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s"])
+        pw.writerow(["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s", "splits"])
         fw.writerow(["slot", "cut_line", "uses", "score", "clip_text", "t_start", "t_end",
                      "source_ogg", "full_transcript"])
         n_ok = 0
-        for slot, cut in slots:
+        # sorted, so a rebuild after `tools/build_hila_voice_mod.py` (which writes the
+        # same pieces sorted) leaves no reorder-only diff in the tracked CSV
+        for slot, cut in sorted(slots):
+            if slot in pinned:
+                pk = pinned[slot]
+                cut = pk["cut_line"] or cut
+                spec = pk.get("splits") or ""
+                ranges = [tuple(float(x) for x in bit.split("-", 1)) for bit in spec.split("|") if "-" in bit]
+                t0, t1 = float(pk["t_start"]), float(pk["t_end"])
+                dur = t1 - t0
+                if ranges:
+                    t0, t1 = ranges[0][0], ranges[-1][1]
+                    dur = sum(b - a for a, b in ranges)
+                pw.writerow([slot, cut, pk["source_ogg"], 0, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}",
+                             spec])
+                fw.writerow([slot, cut, uses[slot], "pinned", pk["clip_text"], f"{t0:.3f}", f"{t1:.3f}",
+                             pk["source_ogg"], pk["note"]])
+                n_ok += 1
+                print(f"PIN  {slot:22} [{t0:.2f}-{t1:.2f}] {pk['clip_text'][:60]}")
+                continue
             chosen = picks[slot][1]
             if not chosen:
-                pw.writerow([slot, cut, "", 0, 0, 0, 0])
+                pw.writerow([slot, cut, "", 0, 0, 0, 0, ""])
                 fw.writerow([slot, cut, uses[slot], 0, "", 0, 0, "", ""])
                 print("NO MATCH", slot)
                 continue
             sc, nw, fn, sent, t0, t1, full, dur = chosen
-            pw.writerow([slot, cut, fn, 0, f"{t0:.3f}", f"{t1:.3f}", f"{t1-t0:.3f}"])
+            pw.writerow([slot, cut, fn, 0, f"{t0:.3f}", f"{t1:.3f}", f"{t1-t0:.3f}", ""])
             fw.writerow([slot, cut, uses[slot], f"{sc:.2f}", sent, f"{t0:.3f}", f"{t1:.3f}", fn, full])
             n_ok += 1
             print(f"{sc:4.2f} {slot:22} [{t0:.2f}-{t1:.2f}] {sent[:70]}")

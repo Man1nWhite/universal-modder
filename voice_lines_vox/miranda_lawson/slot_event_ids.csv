@@ -1,0 +1,79 @@
+slot,event_ids,note
+ammo.low,g81x_plu,sheet: g81x_plu Need Ammo Bag!
+assault.incoming,p22|g70|p05,sheet: Police assault incoming / Cops just got here (g70 = third person)
+assault.ready,g50|p23,sheet: Get ready for action (g50 third person)
+assault.retreat,p24,"sheet: Alright, back to work (police assault over)"
+call_teammate.hey_you,whistling_attention|f41_any,sheet: Whistle Command; f41_any = wake up / point (Lua: escort)
+caution.wait,f48x_any,"Lua playerstandard: ai_stay = f48x_any (Stop, Halt, Wait)"
+caution.watch,g10,sheet: g10 Careful
+civ.dontmove,f02x_sin|f02x_plu,"Lua playerstandard: stop/down yell, f02x_ + sin/plu"
+civ.down,f03a_sin|f03a_plu,"Lua playerstandard: down_stay, f03a_ + sin/plu"
+civ.killthreat,g27,sheet: g27 Watch the Civilians
+civ.nophone,f03b_any,Lua playerstandard: repeated stay-down yell (And don't move!)
+civ.talk,f40_any,Lua playerstandard: escort_keep/escort_go = f40_any (Get Moving!)
+civ.ties,g26|s32x_sin,sheet: g26 Use Cable Ties / s32x_sin That was my Last Cable Tie
+cop.cuffs,l03x_sin|l03x_plu,"Lua playerstandard: cuff_cop, l03x_ + sin/plu"
+cop.drop,f02b_sin,Lua playerstandard: repeat yell at the same target (I told you to get down)
+cop.hands,l01x_sin|l01x_plu,"Lua playerstandard: stop_cop, l01x_ + sin/plu"
+cop.kneel,l02x_sin|l02x_plu,"Lua playerstandard: down_cop, l02x_ + sin/plu"
+cuffed.pick,f13a_sin|f13c_sin|f13b_sin|f13l_sin|f13m_sin|f13d_sin|f13n_sin|f13o_sin|f13p_sin|f13q_sin|f13r_sin|f13s_sin|f13t_sin|f13u_sin|f13v_sin|f13w_sin|f13x_sin|f13y_sin|f13z_sin|f13ac_sin|f13aa_sin|f13ab_sin,"Lua playerarrested: call_teammate(line) -> line..ssuffix.._sin, all 22 heister codes"
+curse.shit,g29|g60,sheet: g29 FUCK! / g60 SHIT!
+curse.slow,g67,sheet: g67 Any Second Now (impatience)
+downed.need_help,f11a_sin|f11c_sin|f11b_sin|f11l_sin|f11m_sin|f11d_sin|f11n_sin|f11o_sin|f11p_sin|f11q_sin|f11r_sin|f11s_sin|f11t_sin|f11u_sin|f11v_sin|f11w_sin|f11x_sin|f11y_sin|f11z_sin|f11ac_sin|f11aa_sin|f11ab_sin|f11e_plu,Lua playerbleedout/playerfatal: call_teammate(f11) per code; f11e_plu is the literal crew-help line
+downed.want_fight,s05a_sin,"sheet: s05a_sin (I feel terrible, c'mon heal me)"
+drop.ammo,s01x_plu,Lua playerequipment: s01x_plu (I placed ammo bag)
+drop.body,s13,Lua playerequipment: s13 (bodybag case placed)
+drop.fak,s12,Lua playerequipment: s12 (placed first aid kit)
+drop.medic,s02x_plu,Lua playerequipment: s02x_plu (I placed doctor bag)
+hurt.hit,s07x_sin,Lua playertased: s07x_sin
+hurt.medic,g80x_plu,sheet: g80x_plu Need Medic Bag!
+inspire.faster,g18,Lua playerstandard: boost = g18 (inspire go faster)
+inspire.get_up,f36x_any,Lua playerstandard: revive = f36x_any (Inspire Revive)
+inspire.move,p14|p16,sheet: p14 MOVE IT! / p16 MOVE
+inspire.run,g09,sheet: g09 Hurry
+kill.cloaker,g33x_any,sheet: g33x_any Cloaker Killed (Delayed)
+kill.dozer,g30x_any,sheet: g30x_any BullDozer Killed (Delayed)
+kill.medic,g36x_any,sheet: g36x_any Medic Killed
+kill.shield,g31x_any,sheet: g31x_any Shield Killed (Delayed)
+kill.sniper,g35x_any,sheet: g35x_any Sniper Killed
+kill.taser,g32x_any,sheet: g32x_any Tazer Killed (Delayed)
+loot.secured,p27|p28,sheet: p27 Loot Bag Secured / p28 That's all the loot bags
+mark.camera,f39_any,Lua playerstandard: mark_camera = f39_any
+mark.captain,bri_14|bri_29,heist-specific callouts (Brooklyn Bank bridge codewords) - closest thing to an address bark
+mark.cloaker,f33x_any|f33y_any,"Lua playerstandard: priority_shout..x_any, quiet variant ..y_any"
+mark.dozer,f30x_any|f30y_any,"Lua playerstandard: priority_shout..x_any, quiet variant ..y_any"
+mark.generic,f42_any|f45x_any,sheet: f42_any Look Out! / f45x_any Watch out! (generic shout)
+mark.guard,f37_any,sheet: f37_any Mark Guard Line
+mark.medic,f47x_any,sheet: f47x_any There's a Medic!
+mark.shield,f31x_any|f31y_any,"Lua playerstandard: priority_shout..x_any, quiet variant ..y_any"
+mark.sniper,f34x_any|f34y_any,"Lua playerstandard: priority_shout..x_any, quiet variant ..y_any"
+mark.taser,f32x_any|f32y_any,"Lua playerstandard: priority_shout..x_any, quiet variant ..y_any"
+mark.turret,f44x_any,Lua playerstandard: mark_turret = f44x_any
+mask.go,a01x_any|p01,"sheet: a01x_any (mask on, Let's do this) / p01 Alright, let's do this"
+move.follow,f21a_sin|f21c_sin|f21b_sin|f21l_sin|f21m_sin|f21d_sin|f21n_sin|f21o_sin|f21p_sin|f21q_sin|f21r_sin|f21s_sin|f21t_sin|f21u_sin|f21v_sin|f21w_sin|f21x_sin|f21y_sin|f21z_sin|f21ac_sin|f21aa_sin|f21ab_sin,"Lua playerstandard: come = f21..ssuffix.._sin, all 22 heister codes"
+move.generic,g12|g19,sheet: g12 Right Way / g19 Go Straight
+move.go,g13|g17,sheet: g13 Let's Go / g17 Time to Go
+move.hold,g16,sheet: g16 Keep Defending
+move.in,g08,sheet: g08 Get Inside
+move.left,g03,sheet: g03 Left
+move.on_me,f38_any,"Lua playerstandard: come fallback = f38_any (Follow me, generic)"
+move.right,g04,sheet: g04 Right
+move.this_way,f41_sin|f41_plu,Lua playerstandard: escort = f41_ + sin/plu
+move.up,g02|g05,sheet: g02 Upstairs / g05 Go Up
+nade.generic,g41x_any,sheet: g41x_any FLASHBANG!
+nade.grenade,g43,"Lua playerequipment: throw shout, g43"
+nade.smoke,g40x_any,sheet: g40x_any SMOKE!
+nade.tear,g42x_any,sheet: g42x_any TEARGAS!
+pager.clear,dsp_radio_checking_1,sheet: dsp_radio_checking_1 Player pager answering lines
+pager.cover,dsp_stop_all,sheet: dsp_stop_all Stop radio static
+revive.critical,s08x_sin,"sheet: s08x_sin Hang on, I'm reviving you"
+revive.hold,r02a_sin,sheet: r02a_sin I'm on my way! (bot rescue response)
+revived.thanks,s05x_sin|s05b_sin,"Lua playerdamage: s05x_sin (thanks, helped up) / s05b_sin"
+spot.generic,g15|v32,sheet: g15 There! (Look) / v32 There it is
+spot.place,g14|g92|v04,"sheet: g14 This is the place / g92 Found it / v04 Found it, It's here"
+tech.comp,d03_plu|d04_plu,sheet: d03_plu Hear a Jammed Computer / d04_plu Computer Jammed Again
+tech.drill_jam,d01x_sin|d02x_sin,sheet: d01x_sin Hear a Drill Jammed / d02x_sin Drill Jammed again
+tech.drilling,g21|v23,sheet: g21 Drill Mounted / v23 The Drill is done
+tech.fix,g22|d04_sin,sheet: g22 POS drill (post drill repair) / d04_sin Thermal Lance Jammed Again
+tech.generic,d05,sheet: d05 Generic Shit's broke
+win.generic,g24|v08,"sheet: g24 Mission Success Lines / v08 DONE, We're done"
