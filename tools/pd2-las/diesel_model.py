@@ -7,8 +7,12 @@ every vanilla PD2 unit use.
 
 Key format facts encoded here (see docs/audits/2026-10-18-route-change-audit.md):
 - container: u32 0xFFFFFFFF, u32 filesize, u32 section_count, then
-  {u32 type, u32 id, u32 size, payload[size]} per section. DODB variant exists
-  (magic 0x42444F44 "DODB") but is not used for game units.
+  {u32 type, u32 id, u32 size, payload[size]} per section. DODB variant
+  (magic "DODB", u32 version=1, u32 filesize, u32 count) is what fresh game
+  extracts ship (e.g. npc_criminals_suit_1.model); its section stream is
+  identical and reads back the same. `write()` always emits the legacy header:
+  the game accepts legacy .model in mod_overrides (whole modding ecosystem
+  does), so patched DODB inputs are saved as legacy.
 - legacy geometry channel types are shifted -2 above TEXCOORD7 on disk
   (p2mt: `if (legacy && itemType > TEXCOORD7) itemType += 2` on read).
 - BLENDINDICES0 (enum 17, disk 15) = 4x u16 palette indices per vertex.
@@ -228,9 +232,10 @@ class ModelFile:
     @classmethod
     def read(cls, data: bytes) -> "ModelFile":
         magic = struct.unpack_from("<I", data, 0)[0]
-        if magic == 0x42444F44:
-            raise ValueError("DODB container not supported (game units are legacy)")
-        if magic == 0xFFFFFFFF:
+        if magic == 0x42444F44:  # "DODB": magic, version, filesize, count
+            _magic, _version, filesize, count = struct.unpack_from("<4sIII", data, 0)
+            off = 16
+        elif magic == 0xFFFFFFFF:
             filesize, count = struct.unpack_from("<II", data, 4)
             off = 12
         else:
@@ -408,6 +413,37 @@ def encode_skinbones(sb: dict) -> bytes:
     return bytes(out)
 
 
+def _channel_kind(item_size: int, disk_type: int) -> tuple[int, str]:
+    """(item-size index, stored type) -> (canonical enum, decode format).
+
+    Legacy sections store p2mt *disk* types (to_enum_type shifts the ones above
+    LEGACY_TYPE_SHIFT_ABOVE) with float-packed channels. Cooked game units (DODB,
+    e.g. a fresh npc_criminals_suit_1.model) store the *enum* types with packed
+    channels: UByte4N normals and UV directions (item 8) and Half2 UVs (item 9).
+    Type 17 is BLENDINDICES0 as a cooked enum (item 7) or BLENDWEIGHT0 as a
+    legacy disk type (items 2-4); the item size disambiguates.
+    """
+    if (item_size, disk_type) == (3, 1):
+        return POSITION0, "f32x3"
+    if (item_size, disk_type) in ((3, 2), (8, 2)):
+        return NORMAL0, "f32x3" if item_size == 3 else "u8n4"
+    if (item_size, disk_type) in ((2, 7), (9, 7)):
+        return TEXCOORD0, "f32x2" if item_size == 2 else "half2"
+    if (item_size, disk_type) in ((2, 8), (9, 8)):
+        return TEXCOORD1, "f32x2" if item_size == 2 else "half2"
+    if (item_size, disk_type) in ((2, 9), (9, 9)):
+        return TEXCOORD2, "f32x2" if item_size == 2 else "half2"
+    if (item_size, disk_type) in ((7, 15), (7, 17)):
+        return BLENDINDICES0, "u16x4"
+    if disk_type in (17, 19) and item_size in (2, 3, 4):
+        return BLENDWEIGHT0, f"f32x{item_size}"
+    if (item_size, disk_type) in ((3, 20), (8, 22)):
+        return UV_DIRECTION_V0, "f32x3" if item_size == 3 else "u8n4"
+    if (item_size, disk_type) in ((3, 21), (8, 23)):
+        return UV_DIRECTION_U0, "f32x3" if item_size == 3 else "u8n4"
+    return to_enum_type(disk_type), "?"
+
+
 def decode_geometry(payload: bytes) -> dict:
     vert_count, header_count = struct.unpack_from("<II", payload, 0)
     off = 8
@@ -415,34 +451,56 @@ def decode_geometry(payload: bytes) -> dict:
     for _ in range(header_count):
         item_size, disk_type = struct.unpack_from("<II", payload, off)
         off += 8
-        headers.append({"item_size": item_size, "enum_type": to_enum_type(disk_type)})
+        et, fmt = _channel_kind(item_size, disk_type)
+        headers.append({"item_size": item_size, "enum_type": et,
+                        "disk_type": disk_type, "fmt": fmt})
     chan = {"verts": [], "normals": [], "uv0": [], "uv1": [], "uv2": [],
             "blendindices": [], "blendweights": [], "uvdir_v": [], "uvdir_u": []}
     for head in headers:
         et = head["enum_type"]
         isz = head["item_size"]
+        fmt = head["fmt"]
+        if fmt == "?":
+            raise ValueError(f"unsupported geometry channel {et} (item size {isz})")
         if et == POSITION0:
             for _ in range(vert_count):
                 chan["verts"].append(struct.unpack_from("<fff", payload, off)); off += 12
         elif et == NORMAL0:
-            for _ in range(vert_count):
-                chan["normals"].append(struct.unpack_from("<fff", payload, off)); off += 12
+            if fmt == "f32x3":
+                for _ in range(vert_count):
+                    chan["normals"].append(struct.unpack_from("<fff", payload, off)); off += 12
+            else:  # cooked UByte4N -> decode into the float domain
+                for _ in range(vert_count):
+                    b = struct.unpack_from("<4B", payload, off); off += 4
+                    chan["normals"].append((b[0] / 127.5 - 1.0, b[1] / 127.5 - 1.0, b[2] / 127.5 - 1.0))
         elif et == TEXCOORD0:
-            for _ in range(vert_count):
-                u, v = struct.unpack_from("<ff", payload, off); off += 8
-                chan["uv0"].append((u, -v))  # internal V = -disk V (p2mt)
+            if fmt == "f32x2":
+                for _ in range(vert_count):
+                    u, v = struct.unpack_from("<ff", payload, off); off += 8
+                    chan["uv0"].append((u, -v))  # internal V = -disk V (p2mt)
+            else:  # cooked Half2
+                for _ in range(vert_count):
+                    u, v = struct.unpack_from("<ee", payload, off); off += 4
+                    chan["uv0"].append((u, -v))
         elif et in (TEXCOORD1, TEXCOORD2):
-            # Extra UV sets are not used by this pipeline; keep the raw disk
+            # Extra UV sets are not used by this pipeline; keep the decoded
             # values so the section still round-trips byte for byte.
             key = "uv1" if et == TEXCOORD1 else "uv2"
-            for _ in range(vert_count):
-                chan[key].append(struct.unpack_from("<ff", payload, off)); off += 8
-        elif et == UV_DIRECTION_V0:
-            for _ in range(vert_count):
-                chan["uvdir_v"].append(struct.unpack_from("<fff", payload, off)); off += 12
-        elif et == UV_DIRECTION_U0:
-            for _ in range(vert_count):
-                chan["uvdir_u"].append(struct.unpack_from("<fff", payload, off)); off += 12
+            if fmt == "f32x2":
+                for _ in range(vert_count):
+                    chan[key].append(struct.unpack_from("<ff", payload, off)); off += 8
+            else:  # cooked Half2
+                for _ in range(vert_count):
+                    chan[key].append(struct.unpack_from("<ee", payload, off)); off += 4
+        elif et in (UV_DIRECTION_V0, UV_DIRECTION_U0):
+            vkey = "uvdir_v" if et == UV_DIRECTION_V0 else "uvdir_u"
+            if fmt == "f32x3":
+                for _ in range(vert_count):
+                    chan[vkey].append(struct.unpack_from("<fff", payload, off)); off += 12
+            else:  # cooked UByte4N -> decode into the float domain
+                for _ in range(vert_count):
+                    b = struct.unpack_from("<4B", payload, off); off += 4
+                    chan[vkey].append((b[0] / 127.5 - 1.0, b[1] / 127.5 - 1.0, b[2] / 127.5 - 1.0))
         elif et == BLENDINDICES0:
             for _ in range(vert_count):
                 chan["blendindices"].append(struct.unpack_from("<4H", payload, off)); off += 8
@@ -461,12 +519,22 @@ def decode_geometry(payload: bytes) -> dict:
 
 
 def encode_geometry(g: dict) -> bytes:
-    """Write a legacy geometry section (channel types shifted as p2mt expects)."""
+    """Write a legacy geometry section (channel types shifted as p2mt expects).
+
+    Channels are always written float-packed (the legacy style); headers that
+    came from a cooked game unit keep their meaning but are re-stated with the
+    float item sizes so the declaration matches the bytes.
+    """
     vert_count = g["vert_count"]
     out = bytearray()
     out += struct.pack("<II", vert_count, len(g["headers"]))
     for head in g["headers"]:
-        out += struct.pack("<II", head["item_size"], to_disk_type(head["enum_type"]))
+        isz, et = head["item_size"], head["enum_type"]
+        if isz == 8 and et in (NORMAL0, UV_DIRECTION_V0, UV_DIRECTION_U0):
+            isz = 3
+        elif isz == 9 and et in (TEXCOORD0, TEXCOORD1, TEXCOORD2):
+            isz = 2
+        out += struct.pack("<II", isz, to_disk_type(et))
     for head in g["headers"]:
         et = head["enum_type"]
         isz = head["item_size"]

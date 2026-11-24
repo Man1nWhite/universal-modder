@@ -25,15 +25,17 @@ Source character archives and reference PAYDAY 2 mods used by the build pipeline
 | `Ada Wong over Joy.7z` | Reference Joy `mod_overrides` package (`units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model`) | `tools/build_joy_head_mods.py` |
 | `Heister - FPS Gloves in TPS 2.zip` | Reference heister third-person & Safe House `.model` templates (`npc_criminal_female_1.model`, `npc_criminal_bonnie.model`, `npc_criminal_sydney.model`, `npc_criminal_female_chill.model`, `npc_criminal_bonnie_chill.model`, plus the Joy, Wild and Max units) | `tools/build_joy_head_mods.py` |
 | `npc_criminals_ecp_female.7z` | Reference Hila `mod_overrides` unit (H3H3 collaboration heister, DLC folder `ecp`): `npc_criminal_ecp_female.model` / `_menu.model`, both `.object` files and `mtr_criminal_ecp_female[_cc].material_config`; her hair is `g_hair_mask_off` / `g_hair_mask_on` and her head `g_head` carries two atoms (head, 3D eyelashes) on `mtr_head` + `mtr_lashes` | `tools/build_joy_head_mods.py` (`_emit_hila_packages`) |
+| `npc_criminals_suit_1.7z` | Vanilla Old Hoxton shared-suit unit folder (user game extract 2026-11-24, DieselBundleViewer): cooked DODB `npc_criminals_suit_1.model`, `npc_criminals_suit_menu_1.model` (byte-identical), `.object`s, `mtr_old_hoxton[_cc].material_config`, per-heister `.unit`s | `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) -> `dist/Arivus/Arivus_over_Hoxton.zip` |
 | `Hoxier Hoxton V2.zip` | Old Hoxton `mod_overrides` texture mod ("Hox's Mask No Burns"): proves the Old Hoxton texture override paths and the icon DDS format, carries no models | reference for `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) |
 
-**Pending game input (Old Hoxton / Arivus head pack):** `dist/Arivus/Arivus_over_Hoxton.zip` replaces the
-`g_head_old_hoxton` drawable of the **shared suit model**, so the builder also needs the vanilla
-`units/payday2/characters/npc_criminals_suit_1/` folder (`npc_criminals_suit_1.model`,
-`npc_criminals_suit_1_menu.model`, the `.object`s and `mtr_old_hoxton[_cc].material_config`) extracted
-from the game's `assets/bundle_db_blb` with DieselBundleViewer. Drop the folder (zipped or bare) under
-`references/`; `ensure_suit_reference` in `tools/build_joy_head_mods.py` finds it. Until then
-`make -sC tools/pd2-las heads` skips the pack with a note and the other eleven head packs build as usual.
+**Game input (Old Hoxton / Arivus head pack):** `dist/Arivus/Arivus_over_Hoxton.zip` replaces the
+`g_head_old_hoxton` drawable of the **shared suit model**, built from `npc_criminals_suit_1.7z` — the
+vanilla `units/payday2/characters/npc_criminals_suit_1/` folder (`npc_criminals_suit_1.model` = cooked
+DODB container, `npc_criminals_suit_menu_1.model` (byte-identical to the heist one), the `.object`s and
+`mtr_old_hoxton[_cc].material_config`), user-extracted from `assets/bundle_db_blb` with DieselBundleViewer
+and supplied on 2026-11-24. `tools/pd2-las/diesel_model.py` reads DODB containers and cooked geometry
+channels (packed UByte4N normals/UV directions, Half2 UVs); the patched models are written back in the
+legacy container the modding ecosystem ships.
 
 
 **Supplied textures:** `EYE_Diff.png` — the Miranda Lawson eye diffuse (256×256 RGB: blue iris, veined sclera),

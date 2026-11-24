@@ -76,6 +76,8 @@ CHILL_UNIT_DIR = "units/pd2_dlc_chill/characters/shared_character"
 FPS_GLOVES_ZIP_PREFIX = "Heister - FPS Gloves in TPS/Heister - FPS Gloves in TPS/"
 SUIT_UNIT_DIR = "units/payday2/characters/npc_criminals_suit_1"
 SUIT_UNIT_STEM = "npc_criminals_suit_1"
+#: the menu model's stem is its own (npc_criminals_suit_menu_1), not <stem>_menu
+SUIT_MENU_STEM = "npc_criminals_suit_menu_1"
 OLD_HOXTON_ICON_PATH = "guis/textures/pd2/blackmarket/icons/characters/old_hoxton.texture"
 OLD_HOXTON_TEX_DIR = "units/payday2/characters/shared_textures"
 ARIVUS_ARCHIVE = "1581859199_135363.rar"
@@ -198,7 +200,7 @@ def ensure_suit_reference(tmp_dir: Path) -> Path:
                     unpack_names = z.getnames()
         except Exception:
             continue
-        hit = [n for n in unpack_names if n.replace("\\", "/").endswith(f"characters/{SUIT_UNIT_STEM}/{want}")]
+        hit = [n for n in unpack_names if n.replace("\\", "/").endswith((f"characters/{SUIT_UNIT_STEM}/{want}", f"{SUIT_UNIT_STEM}/{want}"))]
         if not hit:
             continue
         marker = Path(hit[0])
@@ -2497,7 +2499,7 @@ def build_arivus_hoxton_mod(
         return p.read_bytes()
 
     suit_model = patch_suit_model(suit_bytes(f"{SUIT_UNIT_STEM}.model"))
-    suit_menu_model = patch_suit_model(suit_bytes(f"{SUIT_UNIT_STEM}_menu.model"))
+    suit_menu_model = patch_suit_model(suit_bytes(f"{SUIT_MENU_STEM}.model"))
 
     fps_zip = ROOT / "references" / "Heister - FPS Gloves in TPS 2.zip"
     with zipfile.ZipFile(fps_zip) as zf:
@@ -2512,13 +2514,13 @@ def build_arivus_hoxton_mod(
     files: dict[str, bytes] = {
         f"{prefix}/{OLD_HOXTON_ICON_PATH}": icon_dds,
         f"{prefix}/{SUIT_UNIT_DIR}/{SUIT_UNIT_STEM}.model": suit_model,
-        f"{prefix}/{SUIT_UNIT_DIR}/{SUIT_UNIT_STEM}_menu.model": suit_menu_model,
+        f"{prefix}/{SUIT_UNIT_DIR}/{SUIT_MENU_STEM}.model": suit_menu_model,
         f"{prefix}/{CHILL_UNIT_DIR}/npc_criminals_suit_chill.model": chill_model,
         f"{prefix}/{CHILL_UNIT_DIR}/mtr_old_hoxton.material_config": chill_mtr,
     }
     for cfg in sorted(suit_unit_dir.rglob("mtr_old_hoxton*.material_config")):
         files[f"{prefix}/{SUIT_UNIT_DIR}/{cfg.name}"] = patch_old_hoxton_material_config(cfg.read_bytes())
-    for obj_name in (f"{SUIT_UNIT_STEM}.object", f"{SUIT_UNIT_STEM}_menu.object"):
+    for obj_name in (f"{SUIT_UNIT_STEM}.object", f"{SUIT_MENU_STEM}.object"):
         obj = _find_named(suit_unit_dir, obj_name)
         if obj is not None:
             files[f"{prefix}/{SUIT_UNIT_DIR}/{obj_name}"] = obj.read_bytes()
