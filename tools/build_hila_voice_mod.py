@@ -2,8 +2,11 @@
 """Pack Miranda Lawson oggs from references/Голос Лоусон.7z over Hila (rb21).
 
 Reads voice_lines_vox/miranda_lawson/hila_intent_cuts.csv and the original
-file-hint column, picks the shortest matching .ogg per intent slot, and writes
-a BeardLib SoundsModule zip (OGG, prefix rb21, sound id = PD2 ID).
+file-hint column, picks the shortest matching .ogg per intent slot (the hand
+picks in slot_picks.csv win over that heuristic), and writes a BeardLib
+SoundsModule zip: OGG clips, prefix rb21, and one <sound> per PD2 bark event
+name from slot_event_ids.csv - the name the game posts, not the numeric
+voice-line id.
 """
 from __future__ import annotations
 

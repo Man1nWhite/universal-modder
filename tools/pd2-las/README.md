@@ -113,11 +113,11 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 ## Next
 
 1. In-game verification (`docs/pd2-las/in-game-checklist.md`), which needs a human with PAYDAY 2, SuperBLT,
-   BeardLib and LAS: `Miranda_L4D2_LAS`, `Christie_LAS`, `Christie_Clover_LAS`, `OfficeSuite_Head`, jewelry swap.
+   BeardLib and LAS: `Miranda_L4D2_LAS`, `Christie_LAS`, `Christie_Clover_LAS`, `OfficeSuite_Head`, jewelry swap,
+   the D55 hands in both packs, and — audio, no LAS — `Miranda_Lawson_VO_over_Hila`: no bark has been heard in
+   game yet, and the checklist's Log Sounds step is how a missed one shows up.
 2. The native Hila body/head pack awaits its own [in-game check](../../docs/pd2-las/in-game-checklist.md#native-hila-body--head-override-no-las); it needs neither LAS nor BeardLib.
-3. `Christie_Clover_LAS`, `OfficeSuite`'s jewelry diffuse and the outfit's own hands (D55, in both
-   packs) are the newest unverified bytes: no capture shows any of them.
-4. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
+3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
    the Miranda packs' `body_df`/`head_df`; no in-game record of `Miranda_Romance_LAS` or the eleven head packs.
 
 ## Further reading

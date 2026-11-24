@@ -1,7 +1,8 @@
 # Packaging & installing the Hila VO mod (PAYDAY 2 · SuperBLT + BeardLib)
 
 This is the packaging contract for `dist/Hila/Miranda_Lawson_VO_over_Hila.zip` — how the folder
-must look, what the game/loader actually reads, how to install it, and how to verify it in game.
+must look, what the game/loader actually reads, how to install it, and how to check that every bark
+it should answer is answered.
 
 Everything below was checked against the real loaders, not from memory:
 
@@ -24,10 +25,14 @@ PAYDAY 2/
       ├─ mod.txt                      ← optional for the loader, required for the in-game mod list
       ├─ main.xml                     ← REQUIRED: this is what makes BeardLib load the folder
       ├─ README.txt
+      ├─ slot_to_ogg.csv              ← build manifest (slot, clip, event ids, gain, peak)
+      ├─ hila_slot_pieces.csv         ← build manifest (cut ranges the clips came from)
       └─ sounds/
          ├─ <clip>.ogg                ← 78 clips, 176 bark events
          └─ …
 ```
+
+The two CSVs are for whoever has to answer "where did this bark come from": the game reads neither.
 
 `main.xml` (root node free-form; `<table name="…">` mirrors BeardLib's own file):
 
