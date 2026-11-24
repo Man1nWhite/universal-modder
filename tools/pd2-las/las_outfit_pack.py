@@ -73,6 +73,10 @@ class Registration:
     pairs: tuple = ()
     textures: tuple = ()            # textures registered on their own, by full name
     glove_adapter: bool = False     # the pack ships <item id>_glove_adapter.lua
+    # <item id>_own_hands.lua: default gloves resolve to no unit, so the hands
+    # modelled into the outfit are the ones that show. A glove the player picks
+    # by hand still spawns and wins (the user's rule, D58).
+    own_hands: bool = False
 
 
 def hook_lua(told: Registration) -> str:
@@ -112,6 +116,9 @@ def main_xml(told: Registration) -> str:
     hooks = [f'\t\t<hook file="{hook_file}" source_file="{HOOK_SOURCE}"/>']
     if told.glove_adapter:
         hooks.append(f'\t\t<hook file="{told.item_id}_glove_adapter.lua" '
+                     f'source_file="{GLOVE_HOOK_SOURCE}"/>')
+    if told.own_hands:
+        hooks.append(f'\t\t<hook file="{told.item_id}_own_hands.lua" '
                      f'source_file="{GLOVE_HOOK_SOURCE}"/>')
     hook_lines = "\n".join(hooks)
     pairs = "\n".join(f'\t\t\t\t<df_nm path="{base}"/>' for base in told.pairs)
@@ -216,6 +223,65 @@ end)
 """
 
 
+def render_own_hands_lua(item_id: str, label: str) -> str:
+    """Hook that makes an outfit's own modelled hands the default, never a glove.
+
+    The rule (D58): an outfit that models hands into its unit shows those hands,
+    and no vanilla glove is drawn over them — unless the player deliberately
+    equips a glove, which still spawns and wins, the way the game normally
+    treats a chosen glove.
+
+    What this pins, and why it needs saying at all:
+
+    * LAS 4.1.9's loader sets ``default_glove_id = false`` on every outfit it
+      registers (a fresh-table read, ``las_loader_4.1.9.lua:30``), and
+      BeardLib's ``get_glove_value`` returns ``false`` for "Default" gloves when
+      that field is ``false``. So "Default" already resolves to no unit and the
+      outfit's own hands show — but that is an *upstream bug* that this pack
+      depends on, not a promise from the pack. If LAS ever fixes the fresh-table
+      read, ``default_glove_id`` would pick up a real glove
+      (``heist_default``), a glove unit would spawn over the modelled hands, and
+      nothing in this pack would say so.
+    * Setting it to ``false`` *here*, after LAS has run, makes that the pack's
+      stated default: no glove unit for "Default", whatever LAS does now or
+      later.
+    * ``body_replacement.hands`` stays **true**, as LAS sets it for
+      ``replace_all``/``replace_body``. That is not a detail: BeardLib treats
+      ``get_glove_value() == false`` as "no glove unit", and the stock hands are
+      hidden only while ``hands`` is true - so the outfit's own hands are the
+      only hands. Setting ``hands = false`` here (the opposite of the
+      no-hands adapter hook) would reveal the heister's bare stock hands on a
+      replaced body next to the modelled ones, which is exactly the double-hands
+      failure the adapter hook warns about.
+
+    What it deliberately does **not** do: it does not touch the glove
+    *exclude* list, the ``glove_adapter`` entry, or the glove entries
+    themselves. A named glove (``bonemittens`` and the like) still resolves to
+    its unit and replaces the hands - the player's explicit choice wins.
+
+    ``item_id`` names the outfit; ``label`` is the pack in the file's first line.
+    """
+    key = f"las_{item_id}"
+    return f"""-- {label} LAS: the outfit's own modelled hands, never a default glove.
+-- D58. "Default" gloves must resolve to no glove unit, so the hands this pack
+-- models are the ones that show. A glove the player picks by hand still spawns
+-- and wins. See las_outfit_pack.render_own_hands_lua for the full rationale.
+Hooks:PostHook(BlackMarketTweakData, "init", "{item_id}_OwnHands", function(self)
+\tlocal ps = self.player_styles and self.player_styles["{key}"]
+\tif not ps then return end
+
+\t-- No glove unit for "Default". BeardLib reads this value, and `false`
+\t-- means "spawn nothing"; the modelled hands stay.
+\tps.default_glove_id = false
+
+\t-- The body still replaces the stock hands. This is what makes the modelled
+\t-- hands the only ones: with the stock hands visible there would be doubles.
+\tif ps.third_body_replacement then ps.third_body_replacement.hands = true end
+\tif ps.body_replacement then ps.body_replacement.hands = true end
+end)
+"""
+
+
 def render_unit_xml(unit_base: str) -> str:
     return (
         '<?xml version="1.0"?>\n'
@@ -248,7 +314,7 @@ def model_drawables(model: bytes) -> list[str]:
     return [n for n in out if n]
 
 
-def render_object_xml(unit_base: str, drawables: list[str]) -> str:
+def render_object_xml(unit_base: str, drawables: list[str], also_visible: tuple = ()) -> str:
     """An object file that lists exactly what the model has.
 
     Listing an object the model does not contain is at best noise in the log
@@ -256,13 +322,16 @@ def render_object_xml(unit_base: str, drawables: list[str]) -> str:
     rather than hard-coded. `g_body` (or the first drawable) is the visible
     one; LODs stay off, and `g_head` is only declared when a head exists —
     LAS supplies the heister's own head when the outfit hides the mask.
+    `also_visible` names further drawables to switch on, for the whole-character
+    packs that ship a head of their own.
     """
     lines = []
     primary = "g_body" if "g_body" in drawables else (drawables[0] if drawables else "")
+    visible = {primary, *also_visible}
     for name in drawables:
         if name.startswith("s_") or name.startswith("c_"):
             continue                       # shadow meshes and colliders are engine-owned
-        enabled = "true" if name == primary else "false"
+        enabled = "true" if name in visible else "false"
         lines.append(f'\t\t\t<object name="{name}" enabled="{enabled}" />\n')
     return (
         '<?xml version="1.0"?>\n'

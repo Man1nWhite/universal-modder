@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Build the native OfficeSuite + Miranda Romance replacement for Hila (no LAS)."""
+"""Build the native OfficeSuite + Miranda Romance replacement for Hila (no LAS).
+
+Replaces Hila's body drawable with the OfficeSuite outfit body, hands included,
+turns her stock glove drawable off and deletes it, and keeps her head drawable
+replaced by the Miranda Romance head. No wrist cut, no cuff tuck: the donor's own
+forearm, wrist and hand geometry seals the suit cuff. The shadow caster is the
+outfit caster plus the solid head, one dominant bone per vertex.
+"""
 from __future__ import annotations
 
 import argparse
+import re
 from dataclasses import dataclass
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -33,8 +41,9 @@ Extract the '{INSTALL}' folder into PAYDAY 2/assets/mod_overrides/.
 Remove other Hila body/head overrides first, including the standalone Miranda over Hila mods.
 Select Hila and her default outfit. Neither donor ZIP, LAS, SuperBLT nor BeardLib is required.
 
-This replaces Hila's default third-person body and head in heists and the menu/lobby.
-Hila's hands, first-person arms, equipment, mask and armor behavior are not replaced.
+This replaces Hila's default third-person body, hands and head in heists and the menu/lobby.
+The outfit's own hands replace Hila's stock gloves, so no vanilla gloves show at the wrist.
+Hila's first-person arms, equipment, mask and armor behavior are not replaced.
 Alternate outfits/armor mods can hide or clip through the replacement. The build has been
 checked offline, not in the running game. Remove this folder to uninstall.
 """
@@ -157,61 +166,9 @@ def _warp(geo: dict[str, np.ndarray], where: np.ndarray, axis: np.ndarray, delta
         geo[key][where] = values / np.where(length == 0, 1, length)
 
 
-def _pull_weights(ids: np.ndarray, weights: np.ndarray, slots: np.ndarray, hand: int, mix: np.ndarray) -> None:
-    for i, f in zip(slots, mix):
-        influences = {int(k): float(w) * (1-f) for k, w in zip(ids[i], weights[i]) if w > 0}
-        influences[hand] = influences.get(hand, 0.0) + f
-        keep = sorted(influences.items(), key=lambda kw: (-kw[1], kw[0]))[:3]
-        total = sum(w for _, w in keep)
-        ids[i, :len(keep)] = [k for k, _ in keep]
-        weights[i] = [w / total for _, w in keep] + [0.0] * (3-len(keep))
-
-
-@dataclass(frozen=True)
-class Cuff:
-    hand: int
-    axis: np.ndarray
-    center: np.ndarray
-    end: float
-    shift: np.ndarray
-
-
-def _measure_cuff(body: Drawable, skin_atom: dict, hands: Drawable, side: str,
-                  names: dict[int, int], worlds: dict) -> Cuff:
-    hand = names[dm.hash64(side + "Hand")]
-    wrist = np.array(worlds[hand][12:15])
-    axis = wrist - worlds[names[dm.hash64(side + "ForeArm")]][12:15]
-    axis /= np.linalg.norm(axis)
-    lip = _rim(hands, wrist, axis, 0.8, 1.81, hands.faces)
-    bare = _rim(body, wrist, axis, -3.4, -1.9, _atom_faces(body, skin_atom))
-    center = bare.mean(axis=0)
-    # Tuck the cut inside the glove, rather than just touching the near edge.
-    shift = lip.mean(axis=0) + 1.35 * axis - center
-    if not 4 < shift @ axis < 7:
-        raise ValueError(f"{side} cuff: unexpected measured wrist gap")
-    return Cuff(hand, axis, center, float(((bare - center) @ axis).min()), shift)
-
-
-def _fit(draw: Drawable, cuffs: list[Cuff], knees: list[tuple[np.ndarray, np.ndarray]],
-         ids: np.ndarray, weights: np.ndarray) -> dict[str, np.ndarray]:
+def _fit(draw: Drawable, knees: list[tuple[np.ndarray, np.ndarray]]) -> dict[str, np.ndarray]:
     geo = {key: np.asarray(draw.geo[key], dtype=np.float64) for key in ("verts", "normals", "uvdir_v", "uvdir_u")}
     v = geo["verts"]
-    for cuff in cuffs:
-        disp = v - cuff.center
-        t = disp @ cuff.axis
-        radial = disp - t[:, None] * cuff.axis
-        # Same smooth warp for skin, cuffs and bracelet, so their contact gaps
-        # survive. It is local to the last ~10cm of the forearm.
-        slots = np.flatnonzero((np.linalg.norm(radial, axis=1) < 9) & (t > cuff.end - 10) & (t < 1))
-        if not len(slots):
-            raise ValueError("cuff fit found no forearm vertices")
-        frac, slope = _smoothstep(1 + (t[slots] - cuff.end) / 10)
-        shrink = 0.20
-        _warp(geo, slots, cuff.axis, cuff.shift - shrink * radial[slots], frac, slope/10, shrink)
-        # Hila's glove lip follows Hand. The new skin rim must too or it
-        # opens up again when the wrist twists independently of ForeArm.
-        mix, _ = _smoothstep(1 + (t[slots] - cuff.end) / 7)
-        _pull_weights(ids, weights, slots, cuff.hand, mix)
     for source, shift in knees:
         span = 20.0
         z = v[:, 2] - source[2]
@@ -246,14 +203,15 @@ def _replace(draw: Drawable, streams: dict, faces: np.ndarray, atoms: list[dict]
                                                   "bounding_radius": np.linalg.norm(verts, axis=1).max()})
 
 
-def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> bytes:
+def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> dm.ModelFile:
+    """Hila's unit with the outfit body, the trimmed caster and no stock gloves."""
     if len({s.id for s in hila.sections}) != len(hila.sections):
         raise ValueError("duplicate section IDs in native Hila model")
     nt, nw = bm._resolve_worlds(hila)
     dt, dw = bm._resolve_worlds(honoko)
     names = {o["name_hash"]: sid for sid, o in nt.items()}
     body, shadow = [Drawable.read(honoko, name) for name in ("g_body", "s_body")]
-    target_body, target_shadow, head, hands = [Drawable.read(hila, name) for name in ("g_body", "s_body", "g_head", "g_hands")]
+    target_body, target_shadow, head = [Drawable.read(hila, name) for name in ("g_body", "s_body", "g_head")]
     for d in (target_body, target_shadow):
         _exclusive(hila, d)
     for draw, expected in ((target_body, "mtr_suite_body"), (target_shadow, "shadow_caster")):
@@ -273,13 +231,11 @@ def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> bytes:
         knees.append((source, np.asarray(nw[rebind[knee]][12:15]) - source))
 
     slots_by_hash = {dm.hash64(f"officesuite_{slot}"): slot for slot in TILES}
-    slots = [slots_by_hash[h] for h in body.material_hashes(honoko)]
-    if sorted(slots) != sorted(TILES):
+    slots = [slots_by_hash.get(h) for h in body.material_hashes(honoko)]
+    if any(slot is None for slot in slots) or sorted(slots) != sorted(TILES):
         raise ValueError("expected the six OfficeSuite material slots")
-    skin_atom, = (a for a in body.data["atoms"] if slots[a["material_id"]] == "body")
-    cuffs = [_measure_cuff(body, skin_atom, hands, side, names, nw) for side in ("Left", "Right")]
     ids, weights = _skin_streams(body, rebind, dw)
-    body_geo = _fit(body, cuffs, knees, ids, weights)
+    body_geo = _fit(body, knees)
     uv = np.asarray(body.geo["uv0"])
     body_geo["uv0"] = uv.copy()
     for atom in body.data["atoms"]:
@@ -292,16 +248,15 @@ def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> bytes:
     atoms = [{**a, "material_id": 0} for a in body.data["atoms"]]
     _replace(target_body, body_geo, body.faces, atoms, ids, weights, nw)
 
-    # Keep the trimmed outfit caster, plus the solid head and gloves, not the
-    # stale Hila suit/hair silhouette. The native shadow shader is one-weight.
+    # Keep the outfit caster (hands included, so the shadow has fingers), plus
+    # the solid head, not the stale Hila suit/hair or glove silhouette. The
+    # native shadow shader is one-weight, so each part keeps its dominant bone.
     shadow_ids, shadow_weights = _skin_streams(shadow, rebind, dw)
-    shadow_geo = _fit(shadow, cuffs, knees, shadow_ids, shadow_weights)
+    shadow_geo = _fit(shadow, knees)
     parts = [(shadow_geo, shadow.faces, shadow_ids, shadow_weights)]
     solid, = (a for a in head.data["atoms"] if head.material_hashes(hila)[a["material_id"]] == dm.hash64("mtr_head"))
-    for draw, faces in ((head, _atom_faces(head, solid)), (hands, hands.faces)):
-        local = {i: i for i in draw.bind["objects"]}
-        bid, w = _skin_streams(draw, local, nw)
-        parts.append((draw.geo, faces, bid, w))
+    local = {i: i for i in head.bind["objects"]}
+    parts.append((head.geo, _atom_faces(head, solid), *_skin_streams(head, local, nw)))
     verts, normals, faces, dominant = [], [], [], []
     base = 0
     for geo, triangles, bid, w in parts:
@@ -317,7 +272,26 @@ def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> bytes:
     _replace(target_shadow, shadow_geo, topology, atoms,
              np.column_stack((np.concatenate(dominant), np.zeros((base, 2), dtype=int))),
              np.tile([1., 0., 0.], (base, 1)), nw)
-    return hila.write()
+    # The stock glove mesh is vanilla Hila's; the outfit body carries her hands now.
+    return _drop_hands(hila)
+
+
+GLOVE = "g_hands"
+
+
+def _object(xml: bytes) -> bytes:
+    """Turn the stock glove drawable off: the body carries the outfit's own hands."""
+    text = xml.decode("utf-8")
+    pattern = re.compile(rf'[ \t]*<object name="{GLOVE}"[ \t\r\n]*enabled="true"[ \t]*/>\r?\n?')
+    text, count = pattern.subn("", text)
+    if count != 1:
+        raise ValueError(f"expected one enabled {GLOVE} node, patched {count}")
+    return text.encode("utf-8")
+
+
+def _drop_hands(model: dm.ModelFile) -> dm.ModelFile:
+    """Delete Hila's stock glove drawable instead of shipping unused geometry."""
+    return bm.assemble_model(bm.template(model), {}, {}, drop_drawables=(GLOVE,))
 
 
 def _material_config(xml: bytes) -> bytes:
@@ -347,11 +321,15 @@ def build(honoko_zip: Path, head_zip: Path, out: Path) -> None:
                 {slot: outfit(f"_{slot}_{suffix}.texture") for slot in TILES}, normal=(suffix == "nm"))
     base = files[UNIT + ".model"]
     menu = files[UNIT + "_menu.model"]
-    files[UNIT + ".model"] = _fit_unit(dm.ModelFile.read(base), model)
-    files[UNIT + "_menu.model"] = files[UNIT + ".model"] if menu == base else _fit_unit(dm.ModelFile.read(menu), model)
+    files[UNIT + ".model"] = _fit_unit(dm.ModelFile.read(base), model).write()
+    files[UNIT + "_menu.model"] = (files[UNIT + ".model"] if menu == base
+                                   else _fit_unit(dm.ModelFile.read(menu), model).write())
     for suffix in ("", "_cc"):
         path = MATERIAL + suffix + ".material_config"
         files[path] = _material_config(files[path])
+    for suffix in ("", "_menu"):
+        path = UNIT + suffix + ".object"
+        files[path] = _object(files[path])
     files["README.txt"] = INSTALL_NOTE.encode("utf-8")
     write_deterministic_zip({f"{INSTALL}/{name}": data for name, data in files.items()}, [out])
 

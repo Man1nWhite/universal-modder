@@ -414,3 +414,79 @@ def test_adapter_table_merge_does_not_crash(lua):
     lua.execute(f"bm.player_styles['{KEY}'].glove_adapter = true")
     with pytest.raises(Exception):
         lua.eval(f"simulate_visual_state('{KEY}', 'default', false, 'female_1')")
+
+
+# ------------------------------------------------- an outfit with its own hands
+
+OWN_HANDS = las_outfit_pack.Registration(
+    item_id="ownhands", display_name="Own Hands (test outfit)",
+    description="a LAS outfit that models its hands into its own unit",
+    unit="units/ownhands/skins/ownhands/ownhands",
+    flags=las_outfit_pack.WHOLE_CHARACTER,
+    glove_adapter=False, own_hands=True)
+OWN_KEY = f"las_{OWN_HANDS.item_id}"
+
+
+def _own_hands_state(*, with_hook: bool, fixed_las: bool, glove: str = "default",
+                     is_local: bool = False):
+    """Run the own-hands registration through LAS and report what would spawn.
+
+    ``fixed_las`` patches the one line of the fixture that this decision rests
+    on: LAS 4.1.9 reads ``output.default_glove_id`` off the fresh table, so it is
+    always ``false``. A LAS that read the outfit's own field would leave the
+    key unset here and let BeardLib's ``suit_default_gloves`` supply a real
+    glove - which is the regression the hook exists to prevent.
+    """
+    lua = _runtime()
+    lua.execute(LUA_HOST)
+    lua.execute("register_beardlib_init_gloves()")
+    lua.execute(las_outfit_pack.hook_lua(OWN_HANDS))
+    loader = FIXTURE.read_text()
+    if fixed_las:
+        loader = loader.replace(
+            "output.default_glove_id = output.default_glove_id or false",
+            'output.default_glove_id = data.default_glove_id or "heist_default"')
+        assert "data.default_glove_id" in loader, "the fixture's default_glove_id line moved"
+    lua.execute(loader)
+    if with_hook:
+        lua.execute(las_outfit_pack.render_own_hands_lua(OWN_HANDS.item_id, "ownhands"))
+    lua.execute("bm = build_blackmarket()")
+    lua.execute("Hooks:run_init(bm)")
+    call = (f"simulate_visual_state('{OWN_KEY}', '{glove}', "
+            f"{str(is_local).lower()}, 'female_1')")
+    state = lua.eval(call)
+    return {"unit": state.gloves_unit_name, "hands_replace": state.var_hands_replace,
+            "stock_hands_visible": lua.eval(f"visible_hands({call})")}
+
+
+@pytest.mark.parametrize("is_local", [True, False])
+def test_own_hands_outfit_shows_its_modelled_hands_and_no_glove(is_local):
+    """The rule (D58): "Default" resolves to no glove unit, so the pack's hands are the hands.
+
+    ``visible_hands`` is the *no-hands* pack's predicate (it asks whether the
+    stock hands survive to stand in for a missing glove). An outfit that models
+    its hands is the opposite case: what it needs is no glove unit **and** the
+    stock hands hidden, so that the modelled hands are the only ones on screen.
+    Both are asserted here, in third person and in first.
+    """
+    state = _own_hands_state(with_hook=True, fixed_las=False, is_local=is_local)
+    assert state["unit"] is False, f"a glove unit spawned over the modelled hands: {state['unit']}"
+    assert state["hands_replace"] == 1, "the stock hands would show beside the modelled ones"
+
+
+def test_the_hook_is_what_keeps_a_fixed_las_from_gloving_the_hands():
+    """Without the hook, a LAS that read the outfit's field spawns a real glove (the regression)."""
+    unguarded = _own_hands_state(with_hook=False, fixed_las=True)
+    assert unguarded["unit"], (
+        "the harness no longer reproduces the regression: with a fixed LAS and no hook, "
+        "'Default' should resolve to a real glove unit over the modelled hands")
+    guarded = _own_hands_state(with_hook=True, fixed_las=True)
+    assert guarded["unit"] is False, f"the hook did not stop {guarded['unit']}"
+    assert guarded["hands_replace"] == 1
+
+
+def test_a_deliberately_chosen_glove_still_wins_on_an_own_hands_outfit():
+    """The user's rule: a glove the player picks by hand spawns and replaces the modelled hands."""
+    state = _own_hands_state(with_hook=True, fixed_las=False, glove="bonemittens")
+    assert state["unit"] and state["unit"].endswith("hnd_glv_bonemittens"), state
+    assert state["hands_replace"] == 1, "a spawned glove replaces the hands, so it must hide them"

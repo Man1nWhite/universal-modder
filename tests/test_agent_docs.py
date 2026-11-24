@@ -28,9 +28,10 @@ AGENT_DOCS = ["AGENTS.md", "GEMINI.md", "README.md", "docs/pd2-las/HANDOFF.md", 
 OTHER_DOCS = ["CONTRIBUTING.md", "references/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session
 START_BUDGET = 5000
-#: bytes of `make status`, one JSON object an agent reads whole. A tracked pack is ~90 bytes
-#: of it (name, size, 12 hex digits, target); 2,560 leaves room above the current tracked packs.
-STATUS_BUDGET = 2560
+#: bytes of `make status`, one JSON object an agent reads whole. A tracked pack is ~90 bytes of it
+#: (name, size, 12 hex digits, target), so the budget is raised when a pack is added, not squeezed
+#: onto: 2,720 leaves room for another pack above the ones that are tracked now.
+STATUS_BUDGET = 2720
 
 
 def _status():
@@ -59,7 +60,7 @@ def _tracked() -> set[str]:
 
 
 def _targets() -> set[str]:
-    return set(re.findall(r"^([a-z]+):", (PD2 / "Makefile").read_text(), flags=re.M))
+    return set(re.findall(r"^([a-z_]+):", (PD2 / "Makefile").read_text(), flags=re.M))
 
 
 def test_the_instruction_file_is_written_once():
@@ -181,7 +182,7 @@ def test_agents_md_answers_each_question_with_one_command():
         assert len(rows) == 1, f"AGENTS.md should answer one question with `make -sC tools/pd2-las {target}`"
     status = _status()
     row = next(line for line in agents.splitlines() if "make -sC tools/pd2-las <target>" in line)
-    named = set(re.findall(r"`([a-z]+)`", row.split("<target>`", 1)[1]))
+    named = set(re.findall(r"`([a-z_]+)`", row.split("<target>`", 1)[1]))
     assert named == set(status.TARGETS.values()) | {status.HEADS}, (
         f"AGENTS.md names the build targets {sorted(named)}; status.py has {sorted(set(status.TARGETS.values()) | {status.HEADS})}")
     assert named <= _targets()

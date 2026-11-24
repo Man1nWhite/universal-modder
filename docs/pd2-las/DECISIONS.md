@@ -1143,3 +1143,142 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `tools/pd2-las/build_honoko2_dae.py` (`OFFICE_SUITE`), `tools/pd2-las/status.py`,
   `tools/pd2-las/dist_paths.py`
 - **Status:** holds.
+
+### D55 — `OfficeSuite` ships the outfit's own hands; the Hila override drops the stock gloves
+
+- **Decided:** 2026-11-23, by the user ("can you change vanila hands in Hila?", then
+  "Office Suite LAS too. Office suit donor hands. you just need to remove vanila wrist skin")
+- **Decision:** `OfficeSuite` alone (`PackSpec.hands=True`; `Honoko2`..`Honoko4` stay byte-identical)
+  no longer cuts the source at the PD2 wrists. The donor's palms, fingers and the outfit's bracelet
+  stay in the body and shadow drawables on the PD2 `Hand` and finger bones, the `fps_officesuite`
+  arms keep them too, and the pack registers **no** `glove_adapter.lua` (the adapter exists to give a
+  handless pack the heister's handlers and changeable gloves back). The native Hila override inherits
+  that body, turns Hila's stock `g_hands` node off and deletes the glove block from her unit model,
+  and loses the cuff tuck (`Cuff`, `_measure_cuff`, `_pull_weights`): with hands in the mesh there is
+  no cut rim to push inside a glove lip, and the donor's forearm seals the suit cuff itself.
+- **Why:** the cut deleted the hands, so the wrists showed the heister's vanilla blue gloves with the
+  donor's bare cuff rim poking out above them: the "vanilla wrist skin" in the screenshots. The
+  source mesh already has complete hands; keeping them is cheaper and truer than retexturing a glove.
+- **Also:** the pack's HUD/menu icon is a render of its own mesh, so it now shows the hands at the
+  sleeve ends instead of the cut stubs; it changes with the geometry by construction, not by hand.
+- **Held to:** `tests/test_pd2_las.py::…are_honoko3_in_the_alt_suits` (same vertex set plus the hands,
+  `glove_adapter` false for `OfficeSuite` only); `tests/test_hila_body_override.py` (no glove sections
+  survive, the hands reach the finger joints, both `.object`s have no `g_hands` node);
+  `tests/test_one_implementation.py` (the writer emits no adapter for a pack that ships hands).
+- **Rejected:** retexturing Hila's glove mesh to skin, and Miranda's black gloves (offered, not chosen);
+  authoring new hand geometry (the donor's own hands are kept instead).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PackSpec.hands`, `build_pack`, `registration`),
+  `tools/build_hila_body_mod.py` (`_fit_unit`, `_drop_hands`, `_object`),
+  `tools/pd2-las/build_models.py` (`template`)
+- **Status:** holds; `runtime_verified` stays `false` — the new wrists are checked offline only.
+
+### D56 — `OfficeSuite_Head` is a separate whole-character pack, not a change to `OfficeSuite`
+
+- **Decided:** 2026-11-23, by the user ("Let's make office suite plus Miranda Head as a single LAS",
+  then, asked which head and which scope, the ME2 Romance head and a new separate pack)
+- **Decision:** a new tracked pack, `dist/Honoka/OfficeSuite_Head.zip`, registering
+  `LegendaryArmours.officesuite_head`. It is the `OfficeSuite` body, hands and FPS unit plus the
+  ME2 "Romance" head (`mtr_head` + `mtr_lashes`) that the Hila override already carries, both cut
+  from the PD2 rig, in **one** `WHOLE_CHARACTER` unit: one model, `g_body` and `g_head` both enabled.
+  `OfficeSuite.zip` and `Honoko2`..`Honoko4` are not touched.
+- **Why whole character:** the registration says `replace_all` and `hide_mask`, so the game swaps
+  the heister's head for the pack's and hides the mask that would otherwise sit over the new face.
+  A `BODY_ONLY` registration (`OfficeSuite`'s own) would keep the stock head and give the outfit two
+  faces' worth of geometry. The shape follows `Miranda_Romance_LAS.zip`: one unit, body and head,
+  `WHOLE_CHARACTER`.
+- **Why a separate pack:** the head is a second character, not a fix to the first. Folding it into
+  `OfficeSuite` would change the bytes of a tracked pack and take the stock-head variant away; two
+  packs in the menu let both exist. It also keeps `Honoko2`..`Honoko4` out of it by construction.
+- **The head comes from the Hila override, not the full LAS-head port:** its own eyes and teeth stay
+  Hila's (they are part of her stock head, which the pack does not replace), so no new eyeball or
+  teeth work is in this pack.
+- **The palette had to be mapped, not re-ordered:** the donor head's palette is its own order
+  (`Hips`, `Spine2`, `Neck`, `Head`) and `Group.weights` indexes the *pack's* palette. Building the
+  weights by enumerating the donor's influences bound the whole head to `Hips`, which travels with
+  the hips; `las_head.load` now maps each donor influence to `HEAD_BONES.index(name)`.
+- **Lashes** keep the donor's `opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS`, a single diffuse whose
+  alpha is the cutout. The pack's material and gloss invariants name that shader explicitly instead
+  of assuming every skin slot is a `generic` diffuse+normal pair.
+- **Held to:** `tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head`
+  (`replace_all` and `hide_mask` set, `replace_body` not, no glove adapter, `g_body` and `g_head` in
+  one model, the head bound above the collar and never to the hips, no FPS unit); the per-pack
+  invariants now run over `OfficeSuite_Head` too.
+- **Rejected:** adding the head to `OfficeSuite` (offered; the user chose a separate pack); the full
+  LAS-head port (offered; the user chose the existing Hila-override head); keeping the mask usable.
+- **Status:** holds; `runtime_verified` stays `false` — the head fit is checked offline only.
+
+### D57 — `Honoko2`, `Honoko3` and `Honoko4` are removed; `OfficeSuite` is the working pack
+
+- **Decided:** 2026-11-23, by the user ("I want you to remove Honoko2.zip - Honoko4.zip. Only
+  OfficeSuite.zip will be worked on from now on")
+- **Decision:** the three packs stop being tracked and stop being built. `PACKS` is
+  `(OFFICE_SUITE,)`, so `make -sC tools/pd2-las honokodae` writes one zip and CI has one to verify.
+  `dist/Honoka/Honoko2.zip`, `Honoko3.zip` and `Honoko4.zip` and their `.sha256` sidecars are gone
+  from the tree; their bytes stay in git history from the commits before this one. `OFFICE_SUITE`
+  itself is untouched — same spec, same passes, same bytes.
+- **Why:** the three were variants of the outfit the user no longer wants to carry: the base
+  proportions, the 5% slim, and the alternate suit colourway. Work from here is on `OfficeSuite`
+  alone (and its `OfficeSuite_Head` sibling), so keeping three near-identical zips means three
+  rebuilds, three checksum entries and three sets of stale in-game records for pack nobody will use.
+- **What was kept, because `OfficeSuite` uses it:** `SHADOW_DROPS`, the `slim` and `clearance` passes
+  and the `PackSpec` fields they read. They were written for `Honoko3`/`Honoko4` but they are what
+  builds `OfficeSuite`, so they stay and their comments now say so.
+- **What moved rather than went:** the three tests that compared `Honoko4` and `OfficeSuite` against
+  `Honoko3` (`test_honoko4_and_officesuite_are_honoko3_in_the_alt_suits`,
+  `test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster`,
+  `test_honoko3_is_honoko2_slimmed_about_the_bones`) are now
+  `test_officesuite_carries_the_alt_suits_and_its_own_hands`,
+  `test_officesuite_opens_the_layer_gaps_and_trims_the_shadow_caster` and
+  `test_officesuite_slims_about_the_bones_and_stays_on_the_floor`. They assert the same properties —
+  the override diffuses and their source hashes, the hands and the absent glove adapter, four shadow
+  shells, the measured neck and chest gaps, the 5% factor, the soles on the floor and the height —
+  against `OfficeSuite`'s own tracked bytes instead of against a sibling that no longer exists.
+- **Held to:** `tests/test_pd2_las.py` (the three tests above); the pack registry
+  (`tests/test_pd2_las_invariants.py` `ITEMS`, `tools/pd2-las/status.py` `LAS_TARGETS`) and the
+  tracked-zip counts in `tests/test_dist_layout.py` and `tests/test_determinism.py`.
+- **Rejected:** keeping the three as unbuilt-but-tracked files (they would go stale and fail
+  `fresh`), and folding them into `OfficeSuite` as alternate colourways behind one registration.
+- **Record kept:** the 2026-11-15 in-game captures are of `Honoko2`, so their folder and manifest
+  keep that name; `HANDOFF.md` labels the packs as removed rather than deleting the evidence.
+- **Status:** holds; nothing about `OfficeSuite`'s bytes changed with this decision.
+
+### D58 — An outfit with its own modelled hands never draws a default glove
+
+- **Decided:** 2026-11-23, by the user ("For office suit with head LAS - I don't want to use
+  vanilla gloves. Only hands from the model"), scoped by them to **every** pack this builder
+  produces, with a deliberately equipped glove still allowed to win.
+- **Decision:** a pack that models hands into its unit (`PackSpec.hands`, i.e. both `OfficeSuite`
+  and `OfficeSuite_Head`) ships an `<item id>_own_hands.lua` hook on
+  `lib/tweak_data/blackmarkettweakdata`. It sets the outfit's `default_glove_id = false`, so
+  "Default" gloves resolve to no glove unit, and keeps `body_replacement.hands` and
+  `third_body_replacement.hands` **true**, so the heister's stock hands stay hidden. The modelled
+  hands are therefore the only hands on screen. A glove the player picks by name (`bonemittens`
+  and the like) still resolves to its unit and replaces them.
+- **Why a hook at all, when it already works:** it works *by accident*. LAS 4.1.9's loader sets
+  `output.default_glove_id = output.default_glove_id or false` off the fresh output table
+  (`tests/fixtures/las_loader_4.1.9.lua:30`), and BeardLib's `get_glove_value` returns `false`
+  for "Default" gloves when that field is `false` — so no glove unit spawns today. That is an
+  upstream bug the pack was relying on silently. If LAS ever reads the outfit's own field, the
+  default becomes `heist_default`, a real glove unit spawns over the modelled hands, and nothing
+  in the pack would have said otherwise. `tests/test_glove_behavior_lua.py` runs both cases
+  against the real loader: with a *fixed* LAS and no hook, a glove spawns (the regression, pinned
+  as a test); with the hook, it does not.
+- **Why `hands = true` and not `false`:** BeardLib hides the stock hands while that flag is true
+  and spawns nothing when no glove unit resolves — which is exactly the wanted state. The
+  `hands = false` line belongs to the *adapter* hook, where the pack has no hands and the stock
+  ones are the fallback. Copying that line here would put the heister's bare stock hands beside the
+  modelled ones: the double-hands failure the adapter hook warns about.
+- **The two hooks are opposites and must never both ship.** The adapter hook exists so a pack with
+  **no** hands gets the heister's gloves back; this one exists so a pack with hands keeps them.
+  `BUILD_INFO.registration.own_hands` records which, and the invariant fails if both are present.
+- **What is deliberately not done:** gloves are not removed from the menu for these outfits, the
+  glove exclude list is not touched, and the glove entries are not edited. The user's rule is about
+  the *default*, not about taking the choice away.
+- **Held to:** `tests/test_pd2_las_invariants.py::test_own_hands_packs_never_draw_a_default_glove`
+  (hook present and wired, `default_glove_id = false`, `hands = true` in both replacements, no
+  adapter hook, the hook names its own style); `tests/test_glove_behavior_lua.py` (the behaviour
+  against the real LAS loader, including the fixed-LAS regression and the chosen-glove case).
+- **Rejected:** removing the glove option for these outfits (offered; the user chose to let a
+  chosen glove win); leaving the guarantee implicit in LAS's bug.
+- **Status:** holds; `runtime_verified` stays `false` — this is modelled against the verbatim LAS
+  loader and the ported BeardLib logic, not seen in the game. The in-game checklist has the step.

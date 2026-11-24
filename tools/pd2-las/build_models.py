@@ -604,7 +604,11 @@ def _resolve_worlds(mf: dm.ModelFile) -> tuple[dict[int, dict], dict[int, dm.Mat
 
 
 def load_template(path: Path) -> Template:
-    mf = dm.ModelFile.read_path(path)
+    return template(dm.ModelFile.read_path(path))
+
+
+def template(mf: dm.ModelFile) -> Template:
+    """A decoded model file as a `Template`, for a unit already in memory."""
     hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
     names = {dm.hash64(n): n for n in hl["names"]}
     objs, worlds = _resolve_worlds(mf)

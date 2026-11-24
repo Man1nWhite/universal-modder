@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae christie cloverchristie heads hila all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -43,8 +43,11 @@ busty:      ## Miranda_L4D2_Busty_LAS -> dist/Miranda_L4D2/
 lawson:     ## Miranda_Romance_LAS -> dist/Miranda_Romance/
 	$(call BUILD,tools/pd2-port/build_las_pack.py)
 
-honokodae:  ## Honoko2..OfficeSuite (DOAXVV 'Secret Report' from .dae; OfficeSuite also ships the FPS arms unit) -> dist/Honoka/
+honokodae:  ## OfficeSuite (DOAXVV 'Secret Report' from .dae; ships the FPS arms unit) -> dist/Honoka/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
+
+honokodae_head:  ## OfficeSuite_Head: OfficeSuite + the Miranda Romance head as one whole-character LAS -> dist/Honoka/
+	$(call BUILD,$(HERE)/build_honoko2_dae.py --only officesuite_head)
 
 christie:   ## headless and handless Christie LAS, TPP and FPS -> dist/Christie/
 	$(call BUILD,$(HERE)/build_christie_source.py)
@@ -68,11 +71,14 @@ endif
 ifneq ($(filter all honokodae,$(MAKECMDGOALS)),)
 hila: honokodae
 endif
+ifeq ($(filter honokodae_head,$(MAKECMDGOALS)),honokodae_head)
+honokodae_head: hila
+endif
 ifneq ($(filter all heads,$(MAKECMDGOALS)),)
 hila: heads
 endif
 
-all: build busty lawson honokodae christie cloverchristie heads hila  ## every tracked pack
+all: build busty lawson honokodae honokodae_head christie cloverchristie heads hila  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

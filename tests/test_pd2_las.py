@@ -29,6 +29,14 @@ pytestmark = pytest.mark.skipif(
 VPK_INNER = "miranda_rochelle.vpk"
 
 
+def _sys_path(*, pd2_las: bool = False) -> None:
+    """Put the pack decoders on the path: `pd2-port/dmodel.py` is the one that reads DODB models."""
+    for folder in (("tools", "pd2-las"), ("tools", "pd2-port")) if pd2_las else (("tools", "pd2-port"),):
+        path = str(REPO.joinpath(*folder))
+        if path not in sys.path:
+            sys.path.insert(0, path)
+
+
 @pytest.fixture(scope="module")
 def arc():
     from vpk import VpkArchive
@@ -1211,177 +1219,131 @@ class TestLasScaffold:
                     f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
-    def test_honoko4_and_officesuite_are_honoko3_in_the_alt_suits(self):
-        """Honoko4 and OfficeSuite retain Honoko3's geometry and use the supplied diffuses.
+    def test_officesuite_carries_the_alt_suits_and_its_own_hands(self):
+        """OfficeSuite replaces the suit and jewelry diffuses and keeps the source's hands.
 
-        Honoko4 replaces the suit diffuse; OfficeSuite replaces both the suit and jewelry diffuses.
-        Their original normal maps, slim pass and clearance remain unchanged.
+        OfficeSuite is the only pack of this source that is not cut at the wrists, so its
+        body drawable carries the palms and fingers the gloves used to cover, and it
+        registers no glove adapter. Its other five diffuse/normal pairs are the source's
+        own, its slim factor is the 5% the outfit was fit with, and its clearance report
+        is the trimmed shadow caster (D44, D55).
         """
         import hashlib
-        import sys as _sys
 
         import numpy as np
 
-        _sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        _sys_path()
         import dmodel
 
-        def load(tag):
-            stem = tag.lower()
-            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
-                info = json.loads(z.read(f"{tag}/BUILD_INFO.json"))
-                model = dmodel.DieselModel.from_bytes(
-                    z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model"))
-            geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
-                    for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
-            return info, geos
+        stem = "officesuite"
+        with zipfile.ZipFile(dist_path(REPO, "OfficeSuite.zip")) as z:
+            info = json.loads(z.read("OfficeSuite/BUILD_INFO.json"))
+            model = dmodel.DieselModel.from_bytes(
+                z.read(f"OfficeSuite/assets/units/{stem}/skins/{stem}/{stem}.model"))
+        geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
+                for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
+        body = max(geos, key=lambda k: len(geos[k]))
+        # the whole garment set, hands included; the handless builds of this source cut
+        # ~1.36k vertices at the wrists, which is why this one keeps the adapter off
+        assert len(geos[body]) == 32933, f"{len(geos[body])} vertices in the body drawable"
+        assert info["slim"]["vertices"] == 64059
 
-        info3, geos3 = load("Honoko3")
-        tex3 = info3["source"]["textures"]
-        assert tex3["honoko3_suit_df"]["source"] == "references/Honoka/L_7.dds"
-        for tag, dds in (("Honoko4", "Tex_07(L_7) 2.dds"), ("OfficeSuite", "Tex_07(L_7)3.dds")):
-            info, geos = load(tag)
-            stem = tag.lower()
-            assert set(geos3) == set(geos)
-            for gid in geos3:
-                assert np.array_equal(geos3[gid], geos[gid]), f"{tag}: geometry {gid} is not Honoko3's mesh"
-            assert info3["slim"] == info["slim"] and info3["clearance"] == info["clearance"]
-            tex = info["source"]["textures"]
-            suit = tex[f"{stem}_suit_df"]
-            assert suit["source"] == f"references/Honoka/{dds}"
-            alt = (REPO / "references" / "Honoka" / dds).read_bytes()
-            assert suit["source_sha256"] == hashlib.sha256(alt).hexdigest()
-            for slot in ("body", "panties", "bra", "shoes", "jewelry"):
-                if tag == "OfficeSuite" and slot == "jewelry":
-                    jewelry = tex[f"{stem}_jewelry_df"]
-                    source = REPO / "references/Honoka/Tex_23(L_23)2.dds"
-                    assert jewelry["source"] == "references/Honoka/Tex_23(L_23)2.dds"
-                    assert jewelry["source_sha256"] == hashlib.sha256(source.read_bytes()).hexdigest()
-                else:
-                    assert tex3[f"honoko3_{slot}_df"] == tex[f"{stem}_{slot}_df"], (tag, slot)
-                assert tex3[f"honoko3_{slot}_nm"] == tex[f"{stem}_{slot}_nm"], (tag, slot)
-            assert tex[f"{stem}_suit_nm"] == tex3["honoko3_suit_nm"], f"{tag}: keeps L_8's normals"
+        assert info["registration"]["glove_adapter"] is False
+        assert "replace_all" not in info["registration"]["flags"]
+        assert info["slim"]["factor"] == pytest.approx(0.95)
+        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 64059
+        assert info["clearance"]["shadow_caster_drops"] == ["bra", "panties"]
 
-    def test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster(self):
+        tex = info["source"]["textures"]
+        for slot, dds in (("suit", "Tex_07(L_7)3.dds"), ("jewelry", "Tex_23(L_23)2.dds")):
+            entry = tex[f"{stem}_{slot}_df"]
+            assert entry["source"] == f"references/Honoka/{dds}", slot
+            source = REPO / "references" / "Honoka" / dds
+            assert entry["source_sha256"] == hashlib.sha256(source.read_bytes()).hexdigest(), slot
+        for slot, dds in (("body", "L_3.dds"), ("panties", "L_14.dds"),
+                          ("bra", "L_17.dds"), ("shoes", "L_20.dds")):
+            assert tex[f"{stem}_{slot}_df"]["source"] == f"references/Honoka/{dds}", slot
+        assert tex[f"{stem}_suit_nm"]["source"] == "references/Honoka/L_8.dds"
+
+    def test_officesuite_opens_the_layer_gaps_and_trims_the_shadow_caster(self):
         """The shells the in-game flakes came from stand >= 1 mm apart; the shadow caster drops two (D44).
 
         Measured on the 2026-11-15 build, the bra shell sat 0.2 mm off the skin and the necklace
         0.7 mm, and the shadow-caster drawable carried the fully enclosed bra and panties shells,
         whose shadow-map depth bled through those gaps as angular flakes on the surface above.
-        Honoko3 and Honoko4 are built with the clearance pass and the trimmed caster; Honoko2 keeps
-        both as they were, so its tracked bytes stand.
+        OfficeSuite is built with the clearance pass and the trimmed caster: four shadow shells
+        instead of six, and the facing gaps in the two zones the close-ups showed.
         """
-        import sys as _sys
-
         import numpy as np
 
-        _sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
-        _sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        _sys_path(pd2_las=True)
         import diesel_model as dcm
         import dmodel
 
         slots = ["body", "suit", "panties", "bra", "shoes", "jewelry"]
         rng = np.random.default_rng(7)
+        stem = "officesuite"
+        with zipfile.ZipFile(dist_path(REPO, "OfficeSuite.zip")) as z:
+            raw = z.read(f"OfficeSuite/assets/units/{stem}/skins/{stem}/{stem}.model")
+        mf = dcm.ModelFile.read(raw)
+        mds = [dcm.decode_model_data(s.payload) for s in mf.by_type(dcm.MODEL_DATA)]
+        md = next(m for m in mds if m.get("atoms") and m["name_hash"] != dcm.hash64("s_body"))
+        shadow = next(m for m in mds if m.get("atoms") and m["name_hash"] == dcm.hash64("s_body"))
+        bases = [a["base_vertex"] for a in md["atoms"]]
+        m = dmodel.DieselModel.from_bytes(raw)
+        geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
+                for oid, o in m.by_id.items() if hasattr(o.obj, "positions")}
+        V = geos[max(geos, key=lambda k: len(geos[k]))]
+        ends = bases[1:] + [len(V)]
+        S = {s: V[b:e] for s, b, e in zip(slots, bases, ends)}
+        assert len(shadow["atoms"]) == 4, "the shadow caster carries the bra and panties shells"
 
-        def load(tag):
-            stem = tag.lower()
-            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
-                raw = z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model")
-            mf = dcm.ModelFile.read(raw)
-            mds = [dcm.decode_model_data(s.payload) for s in mf.by_type(dcm.MODEL_DATA)]
-            md = next(m for m in mds if m.get("atoms") and m["name_hash"] != dcm.hash64("s_body"))
-            shadow = next(m for m in mds if m.get("atoms") and m["name_hash"] == dcm.hash64("s_body"))
-            bases = [a["base_vertex"] for a in md["atoms"]]
-            m = dmodel.DieselModel.from_bytes(raw)
-            geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
-                    for oid, o in m.by_id.items() if hasattr(o.obj, "positions")}
-            V = geos[max(geos, key=lambda k: len(geos[k]))]
-            ends = bases[1:] + [len(V)]
-            return {s: V[b:e] for s, b, e in zip(slots, bases, ends)}, len(shadow["atoms"])
+        # the zones the close-ups showed flaking: the collar against the neck, and the necklace
+        # against the chest. (The bra's buried rim vertices stay sub-millimetre inside the skin
+        # shell by design - hidden behind it - so a raw all-pairs minimum would pin the wrong
+        # number; the facing gaps in these two zones are what the depth test alternates.)
+        neck = lambda P: (P[:, 2] > 140) & (P[:, 2] < 168) & (np.hypot(P[:, 0], P[:, 1]) < 16)
+        chest = lambda P: (P[:, 2] > 118) & (P[:, 2] < 145) & (P[:, 1] > 10) & (np.abs(P[:, 0]) < 20)
+        for a, b, zone, floor in (("body", "suit", neck, 0.40), ("body", "jewelry", chest, 0.50)):
+            A, B = S[a][zone(S[a])], S[b][zone(S[b])]
+            ia = rng.choice(len(A), min(2000, len(A)), replace=False)
+            ib = rng.choice(len(B), min(2000, len(B)), replace=False)
+            d = np.linalg.norm(A[ia][:, None, :] - B[ib][None, :, :], axis=2).min(1)
+            assert d.min() >= floor, f"{a}-{b} still {d.min():.2f} cm apart (< {floor})"
 
-        for tag, shadow_atoms in (("Honoko3", 4), ("Honoko4", 4), ("OfficeSuite", 4), ("Honoko2", 6)):
-            S, n_shadow = load(tag)
-            assert n_shadow == shadow_atoms, f"{tag}: the shadow caster carries {n_shadow} shells"
-            if tag == "Honoko2":
-                continue  # its gaps are the tracked bytes; the fix is scoped to Honoko3 and Honoko4
-            # the zones the close-ups showed flaking: the collar against the neck, and the necklace
-            # against the chest. (The bra's buried rim vertices stay sub-millimetre inside the skin
-            # shell by design - hidden behind it - so a raw all-pairs minimum would pin the wrong
-            # number; the facing gaps in these two zones are what the depth test alternates.)
-            neck = lambda P: (P[:, 2] > 140) & (P[:, 2] < 168) & (np.hypot(P[:, 0], P[:, 1]) < 16)
-            chest = lambda P: (P[:, 2] > 118) & (P[:, 2] < 145) & (P[:, 1] > 10) & (np.abs(P[:, 0]) < 20)
-            for a, b, zone, floor in (("body", "suit", neck, 0.40), ("body", "jewelry", chest, 0.50)):
-                A, B = S[a][zone(S[a])], S[b][zone(S[b])]
-                ia = rng.choice(len(A), min(2000, len(A)), replace=False)
-                ib = rng.choice(len(B), min(2000, len(B)), replace=False)
-                d = np.linalg.norm(A[ia][:, None, :] - B[ib][None, :, :], axis=2).min(1)
-                assert d.min() >= floor, f"{tag}: {a}-{b} still {d.min():.2f} cm apart (< {floor})"
+    def test_officesuite_slims_about_the_bones_and_stays_on_the_floor(self):
+        """The 5% slim is anchored per bone, so the joints, the height and the soles stay put (D42).
 
-    def test_honoko3_is_honoko2_slimmed_about_the_bones(self):
-        """`Honoko3` is `Honoko2`'s mesh scaled 5% about the rig's bones, and nothing else (D42).
-
-        The pass moves every vertex toward the weight-blended rest point of its palette bones, so
-        the joints stay where the rig puts them: the pack has to keep its height, keep its soles on
-        the floor, keep its palette bone for bone, and be thinner front to back by the factor. A
-        world-space scale, or a scale of the bind pose, breaks the first three.
+        The pass moves every vertex toward the weight-blended rest point of its palette bones,
+        so the joints stay where the rig puts them: the pack has to keep its height, keep its
+        soles on the floor, keep its palette bone for bone, and be thinner front to back by the
+        factor. A world-space scale, or a scale of the bind pose, breaks the first three.
         """
         import numpy as np
 
-        sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
+        _sys_path()
         import dmodel
 
-        def load(tag):
-            stem = tag.lower()
-            with zipfile.ZipFile(dist_path(REPO, f"{tag}.zip")) as z:
-                info = json.loads(z.read(f"{tag}/BUILD_INFO.json"))
-                model = dmodel.DieselModel.from_bytes(
-                    z.read(f"{tag}/assets/units/{stem}/skins/{stem}/{stem}.model"))
-            geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
-                    for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
-            palette = [[model.by_id[oid].obj.name for oid in o.obj.object_ids]
-                       for o in model.by_id.values() if type(o.obj).__name__ == "SkinBones"]
-            return info, geos, palette
+        stem = "officesuite"
+        with zipfile.ZipFile(dist_path(REPO, "OfficeSuite.zip")) as z:
+            info = json.loads(z.read("OfficeSuite/BUILD_INFO.json"))
+            model = dmodel.DieselModel.from_bytes(
+                z.read(f"OfficeSuite/assets/units/{stem}/skins/{stem}/{stem}.model"))
+        geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
+                for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
+        v = geos[max(geos, key=lambda k: len(geos[k]))]
 
-        info2, geos2, pal2 = load("Honoko2")
-        info3, geos3, pal3 = load("Honoko3")
+        # soles on the floor, and the same character height the rig puts there
+        assert float(v[:, 2].min()) == pytest.approx(-0.47, abs=0.01), (
+            f"lowest vertex z {v[:, 2].min():.3f}, expected -0.47 (soles on the floor)")
+        # the garment set from the soles to the collar; measured on the tracked pack
+        assert float(np.ptp(v[:, 2])) == pytest.approx(167.4, abs=1.0)
 
-        # the same outfit geometry, vertex for vertex: the passes move vertices, they add and drop
-        # none. The shadow-caster geometry is the one allowed exception: Honoko3's caster drops the
-        # two enclosed shells (D44), so it carries fewer vertices than Honoko2's.
-        assert set(geos2) == set(geos3)
-        gid = max(geos2, key=lambda k: len(geos2[k]))
-        assert len(geos2[gid]) == len(geos3[gid])
-        for k in geos2:
-            if k != gid:
-                assert len(geos3[k]) < len(geos2[k]), f"geometry {k} is not the trimmed shadow caster"
-        v2, v3 = geos2[gid], geos3[gid]
-        assert len(v2) == 31577, f"{len(v2)} vertices, expected the whole garment set"
-
-        # both stand on the floor, and the slim pack is not shorter
-        for tag, v in (("Honoko2", v2), ("Honoko3", v3)):
-            assert float(v[:, 2].min()) == pytest.approx(-0.47, abs=0.01), (
-                f"{tag}: lowest vertex z {v[:, 2].min():.3f}, expected -0.47 (soles on the floor)")
-        height2 = float(np.ptp(v2[:, 2]))
-        height3 = float(np.ptp(v3[:, 2]))
-        assert height3 == pytest.approx(height2, abs=1.0), (height2, height3)
-
-        # thinner front to back by the factor, and never wider than the pack it was built from
-        depth2 = float(np.ptp(v2[:, 1]))
-        depth3 = float(np.ptp(v3[:, 1]))
-        assert depth3 / depth2 == pytest.approx(0.95, abs=0.01), (depth2, depth3)
-        assert 0.94 <= float(np.ptp(v3[:, 0])) / float(np.ptp(v2[:, 0])) <= 1.0
-
-        # anchored per bone, so nothing jumps: the largest move is under 2 cm
-        shift = np.linalg.norm(v3 - v2, axis=1)
-        assert float(shift.max()) < 2.0, f"a vertex moved {shift.max():.2f} cm"
-        assert float(shift.mean()) > 0.1, "the mesh barely moved - the slim pass did nothing"
-
-        # the rig is untouched: the same palettes, bone for bone, in the same order
-        assert pal3 == pal2
-
-        # the factor is written into the pack, and `Honoko2` does not claim a slim pass at all
-        assert info3["slim"]["factor"] == pytest.approx(0.95)
-        assert info3["slim"]["vertices_moved"] == info3["slim"]["vertices"]
-        assert "slim" not in info2
+        # the pass reports every vertex moved by the factor, and no vertex jumped
+        assert info["slim"]["factor"] == pytest.approx(0.95)
+        assert info["slim"]["vertices_moved"] == info["slim"]["vertices"]
+        assert float(info["slim"]["max_shift_cm"]) < 2.0
+        assert float(info["slim"]["floor_shift_cm"]) == pytest.approx(-0.1192, abs=0.01)
 
     def test_neck_skirt_is_on_the_l4d2_heads_and_not_on_the_romance_ones(self):
         """The skirt is a L4D2-path change; the Romance path must not carry it.
