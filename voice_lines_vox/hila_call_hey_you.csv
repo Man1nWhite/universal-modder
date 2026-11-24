@@ -4,19 +4,19 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 1806387,"Last chance motherfucker, down.",Hostage intimidate,"Last chance motherfucker, down.",
 1884286,On me.,Follow,On me.,
 2425875,On me.,Follow,On me.,
-2643233,"Hey, Sokol!",Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
+2643233,"Hey, Sokol!",Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
 3358066,Move it!,Inspire,Move it!,
 3439862,You gotta help me!,Request for help while downed,You gotta help me!,
-3809559,Bonnie.,Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
-4646339,Sokol.,Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
+3809559,Bonnie.,Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
+4646339,Sokol.,Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
 4733345,The drill is jammed.,Drill jam,The drill is jammed.,
-5406681,"Hey, Hoxton!",Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
+5406681,"Hey, Hoxton!",Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
 5884207,The drill is fucking jammed!,Drill jam,The drill is fucking jammed!,
 6352252,I'm so fucked up here!,Request for help while downed,I'm so fucked up here!,
 6497207,Down!,Hostage intimidate,Down!,
 7591312,Help me with these cuffs.,Request for help while cuffed,Help me with these cuffs.,
 7874395,Fire in the hole!,Grenade,Fire in the hole!,
-8173908,Wolf.,Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
+8173908,Wolf.,Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
 8208111,"Down, hit the floor!",Hostage intimidate,"Down, hit the floor!",
 9204524,"If you try to make a phone call, it would be your last.",Hostage intimidate,"If you try to make a phone call, it would be your last.",
 9493679,Follow.,Follow,Follow.,
@@ -27,49 +27,49 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 12352202,Come with me.,Follow,Come with me.,
 12651471,Pick my cuffs.,Request for help while cuffed,Pick my cuffs.,
 12840920,"I'm in bad shape, this is not good!",Request for help while downed,"I'm in bad shape, this is not good!",
-12917222,Jiro!,Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+12917222,Jiro!,Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 13450280,This is it.,Here,This is it.,
-13565624,Tony.,Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
+13565624,Tony.,Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
 13663504,Come with me.,Follow,Come with me.,
 14192205,Help me get these cuffs off.,Request for help while cuffed,Help me get these cuffs off.,
 14916926,Down the stairs.,Direction,Down the stairs.,
-15069966,"Hey, Bodhi.",Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+15069966,"Hey, Bodhi.",Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 15477016,"Come on, I wanna get back in the fight.",Request for help while downed,"Come on, I wanna get back in the fight.",
 16113018,"Medic bag here, guys!",Deploy medic bag,"Medic bag here, guys!",
 16456601,This should be easy.,Mask up,This should be easy.,
 17072196,"Yeah, I thought I saw a fire, but it's nothing.",Pager response,"Yeah, I thought I saw a fire, but it's nothing.",
 17150976,Come with me.,Follow,Come with me.,
-17436170,"Hey, Bonnie.",Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
+17436170,"Hey, Bonnie.",Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
 17975779,Shield!,Mark shield,Shield!,
 18442008,Watch that camera.,Mark camera,Watch that camera.,
 18633009,I killed the taser!,Killed taser,I killed the taser!,
-18765061,Rust!,Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
+18765061,Rust!,Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
 19403899,Follow me.,Follow,Follow me.,
 19464577,Dozer.,Mark dozer,Dozer.,
 20422574,Help me get these cuffs off!,Request for help while cuffed,Help me get these cuffs off!,
 20669691,Careful.,Careful,Careful.,
-21348768,"Hey, Bonnie.",Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
+21348768,"Hey, Bonnie.",Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
 21831033,Hit the floor.,Hostage intimidate,Hit the floor.,
 21951798,Hands up!,Cop intimidate,Hands up!,
 22620499,Time to leave.,Let's go,Time to leave.,
-22945418,Jiro!,Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+22945418,Jiro!,Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 23671359,A taser!,Mark taser,A taser!,
 23771464,"Fix it, please?",Drill jam/hack pause followup,"Fix it, please?",
 24201607,We have to fix it!,Drill jam/hack pause followup,We have to fix it!,
 25015608,Come with me.,Follow,Come with me.,
 25179200,Help me with these cuffs.,Request for help while cuffed,Help me with these cuffs.,
-25223303,Dragan.,Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+25223303,Dragan.,Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
 25227191,"(pained) That's better, thanks.",Revived,"(pained) That's better, thanks.",
 25869127,Sniper got it!,Killed sniper,Sniper got it!,
 25898405,The computer is fucking stuck!,Hack paused,The computer is fucking stuck!,
 25981636,Run!,Inspire,Run!,
-27791329,"Hey, Jiro!",Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+27791329,"Hey, Jiro!",Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 28653028,Hold on!,Coming,Hold on!,
 28862520,The cloaker is dead!,Killed cloaker,The cloaker is dead!,
 28880249,"Uh… I thought there was something going on, but ther-there's nothing.",Pager response,"Uh… I thought there was something going on, but ther-there's nothing.",
-29263470,Clover.,Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+29263470,Clover.,Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 29320553,"It's fucking payday, guys!",Mask up,"It's fucking payday, guys!",
-29342489,"Hey, Chains.",Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
+29342489,"Hey, Chains.",Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
 29476265,On me.,Follow,On me.,
 29656571,"(pained) Thanks, I feel better now.",Revived,"(pained) Thanks, I feel better now.",
 29989176,A sniper.,Mark sniper,A sniper.,
@@ -77,43 +77,43 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 30285069,"It's dead here, nothing happening.",Pager response,"It's dead here, nothing happening.",
 31488955,We're drilling!,Place drill,We're drilling!,
 31514573,Motherfuckers are pulling back!,Cops leaving,Motherfuckers are pulling back!,
-31565714,Clover!,Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+31565714,Clover!,Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 31595544,A turret.,Mark turret,A turret.,
 32799900,"(pained) Hey, you!",Request for help while downed,"(pained) Hey, you!",
 33079031,"Look out, guard!",Mark guard,"Look out, guard!",
 34260111,What the...,Unknown,What the...,
 35750267,Don't move.,Hostage intimidate,Don't move.,
-35804455,Jacket!,Call Jacket,On me.,"generic ""On me."" for Call (rb21 Follow)"
+35804455,Jacket!,Call Jacket,"Hey, you.","generic ""Hey, you."" for Call"
 36726963,This is gonna hurt.,Unknown,This is gonna hurt.,
 36727215,On me.,Follow,On me.,
 36882393,Hang tight.,Coming,Hang tight.,
 37865430,"Five stars guys, five stars.",Victory,"Five stars guys, five stars.",
 38061287,Faster.,Inspire,Faster.,
 38122979,"Dozer is down, baby!",Killed dozer,"Dozer is down, baby!",
-38154759,Rust.,Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
+38154759,Rust.,Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
 38194864,"(pained) Medic bag, please!",Low health,"(pained) Medic bag, please!",
 38255886,(pained) I need help!,Request for help while downed,(pained) I need help!,
 38674220,I'm in bad shape here!,Request for help while downed,I'm in bad shape here!,
 38675368,That was great!,Victory,That was great!,
 39349334,"(pained) Ah, hey!",Request for help while downed,"(pained) Ah, hey!",
-39454845,Jiro.,Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+39454845,Jiro.,Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 40199905,This will be fun.,Mask up,This will be fun.,
-40427227,"Hey, Dallas!",Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
+40427227,"Hey, Dallas!",Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
 41252363,Follow me.,Follow,Follow me.,
 41522521,"Fuck it, control. Just leave me alone, okay?",Pager response,"Fuck it, control. Just leave me alone, okay?",
 42020235,Follow me!,Follow,Follow me!,
 43001300,Help me get these cuffs off.,Request for help while cuffed,Help me get these cuffs off.,
-46133662,Duke!,Call Duke,On me.,"generic ""On me."" for Call (rb21 Follow)"
-46229853,Clover.,Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+46133662,Duke!,Call Duke,"Hey, you.","generic ""Hey, you."" for Call"
+46229853,Clover.,Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 46330127,Follow.,Follow,Follow.,
 46948660,Follow me.,Follow,Follow me.,
 47568290,"I thought I saw something strange, but it was nothing. All good.",Pager response,"I thought I saw something strange, but it was nothing. All good.",
-48422921,Hoxton.,Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
+48422921,Hoxton.,Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
 48700578,Follow.,Follow,Follow.,
 48870786,Kneel.,Cop intimidate,Kneel.,
 49788282,Stick 'em up!,Cop intimidate,Stick 'em up!,
 50447831,Follow.,Follow,Follow.,
-50730555,"Hey, Jimmy!",Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
+50730555,"Hey, Jimmy!",Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
 50775744,It's a shield!,Mark shield,It's a shield!,
 51172570,"Sorry control, I was just dreaming about vacations.",Pager response,"Sorry control, I was just dreaming about vacations.",
 51486768,Answer me now!,Taxman intimidate,Answer me now!,
@@ -122,10 +122,10 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 53200928,Why's this taking so long?,Complaining,Why's this taking so long?,
 53477525,Fucking tear gas!,Tear gas,Fucking tear gas!,
 55114421,"Ummm I wasn't sleeping, honest.",Pager response,"Ummm I wasn't sleeping, honest.",
-56065099,Hey Sydney!,Call Sydney,On me.,"generic ""On me."" for Call (rb21 Follow)"
+56065099,Hey Sydney!,Call Sydney,"Hey, you.","generic ""Hey, you."" for Call"
 57048755,Help me with these cuffs.,Request for help while cuffed,Help me with these cuffs.,
 57175721,"Out, get out!",Direction,"Out, get out!",
-57249869,Chains!,Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
+57249869,Chains!,Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
 57837082,It's a dozer.,Mark dozer,It's a dozer.,
 59054985,Got it!,Coming,Got it!,
 60039454,Follow me.,Follow,Follow me.,
@@ -135,37 +135,37 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 62129805,Answer!,Taxman intimidate,Answer!,
 63199875,Where is my fucking medic bag?,Low health,Where is my fucking medic bag?,
 63349578,"Hey control, um... I had this strange dream last night. I was some kind of a YouTube star. It's- It was weird, pretty cringey.",Pager response,"Hey control, um... I had this strange dream last night. I was some kind of a YouTube star. It's- It was weird, pretty cringey.",
-64053990,Houston.,Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
+64053990,Houston.,Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
 64714247,Get up!,Inspire revive,Get up!,
 64872191,We gotta get it fixed.,Drill jam/hack pause followup,We gotta get it fixed.,
-65094768,Jimmy!,Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
+65094768,Jimmy!,Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
 65707289,What's going on here anyway?,Pager response,What's going on here anyway?,
 65952437,Dozer!,Mark dozer,Dozer!,
 66233421,This way!,Direction,This way!,
 66270605,"Stick 'em up, motherfucker!",Intimidate cop,"Stick 'em up, motherfucker!",
-67131743,"Hey, Sydney.",Call Sydney,On me.,"generic ""On me."" for Call (rb21 Follow)"
+67131743,"Hey, Sydney.",Call Sydney,"Hey, you.","generic ""Hey, you."" for Call"
 67770398,Now you have to talk!,Taxman intimidate,Now you have to talk!,
 67793031,Computer is down.,Hack paused,Computer is down.,
 67918619,Watch the cameras,Mark camera,Watch the cameras,
 68496372,"Stay down, or I'll fucking kill you!",Hostage intimidate,"Stay down, or I'll fucking kill you!",
 69257662,They got a captain!,Mark captain,They got a captain!,
-70810198,Ethan!,Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+70810198,Ethan!,Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
 71632553,"Drop your gun, now!",Intimidate cop,"Drop your gun, now!",
 71979512,Get down.,Hostage intimidate,Get down.,
-72538971,"Hey, Sokol!",Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
-72938199,Hey Tony.,Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
-73306592,Sangres.,Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
-73478115,"Hey, Jimmy.",Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
+72538971,"Hey, Sokol!",Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
+72938199,Hey Tony.,Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
+73306592,Sangres.,Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
+73478115,"Hey, Jimmy.",Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
 73612626,It's a shield.,Mark shield,It's a shield.,
-74193580,Sangres.,Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
+74193580,Sangres.,Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
 74283047,Down.,Hostage intimidate,Down.,
 74323576,You wanna (live/leave?) don't you?,Hostage intimidate,You wanna (live/leave?) don't you?,
 75649716,Something's wrong with the computer.,Hack paused,Something's wrong with the computer.,
-76083230,"Hey, Tony.",Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
+76083230,"Hey, Tony.",Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
 76166528,Shield is gone.,Killed shield,Shield is gone.,
 77789407,Go up.,Direction,Go up.,
-77931645,Duke.,Call Duke,On me.,"generic ""On me."" for Call (rb21 Follow)"
-78485353,Wick.,Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
+77931645,Duke.,Call Duke,"Hey, you.","generic ""Hey, you."" for Call"
+78485353,Wick.,Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
 78512648,Turret.,Mark turret,Turret.,
 80374011,I said down!,Hostage intimidate,I said down!,
 80410541,I can't see!,Flashbanged,I can't see!,
@@ -182,36 +182,36 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 86465451,"Come on, let's fix it.",Drill jam/hack pause followup,"Come on, let's fix it.",
 86537177,"There's nothing happening here, control.",Pager response,"There's nothing happening here, control.",
 87107871,"Thanks, you got here just in time.",Revived,"Thanks, you got here just in time.",
-87233072,"Hey, Sokol.",Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
+87233072,"Hey, Sokol.",Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
 87277211,I'm low on ammo.,Low ammo,I'm low on ammo.,
 87374911,Let's go.,Let's go,Let's go.,
-87556193,Jacket.,Call Jacket,On me.,"generic ""On me."" for Call (rb21 Follow)"
+87556193,Jacket.,Call Jacket,"Hey, you.","generic ""Hey, you."" for Call"
 88087986,A medic!,Mark medic,A medic!,
-88149280,"Hey, Houston.",Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
-90339926,Ethan.,Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
-91403409,"Hey, Bodhi!",Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+88149280,"Hey, Houston.",Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
+90339926,Ethan.,Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
+91403409,"Hey, Bodhi!",Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 91594349,"Fucking talk, now!",Taxman intimidate,"Fucking talk, now!",
 91611063,Put those cuffs on.,Intimidate cop final,Put those cuffs on.,
 91765018,Come on.,Direction,Come on.,
 92229830,"I've killed many people like you before, don't fuck with me.",Hostage intimidate,"I've killed many people like you before, don't fuck with me.",
 92652955,Watch that camera.,Mark camera,Watch that camera.,
-93272676,"Hey, Sydney!",Call Sydney,On me.,"generic ""On me."" for Call (rb21 Follow)"
+93272676,"Hey, Sydney!",Call Sydney,"Hey, you.","generic ""Hey, you."" for Call"
 93274119,Sniper.,Mark sniper,Sniper.,
 94270922,Shield.,Mark shield,Shield.,
-94894296,"Hey, Jiro.",Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+94894296,"Hey, Jiro.",Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 94915891,Sniper!,Mark sniper,Sniper!,
 95955618,"Watch out, a captain!",Mark captain,"Watch out, a captain!",
 96005975,Just stay quiet and I won't kill you.,Hostage intimidate,Just stay quiet and I won't kill you.,
 96100490,"Stop being so nervous over there, nothing's going on.",Pager response,"Stop being so nervous over there, nothing's going on.",
-96179233,"Hey, Ethan!",Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+96179233,"Hey, Ethan!",Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
 97042443,I got you.,Coming,I got you.,
 97113610,Something's wrong with the drill.,Drill jam,Something's wrong with the drill.,
 97284969,We're untouchable!,Victory,We're untouchable!,
-97968730,Ethan.,Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
-99069140,"Hey, Houston!",Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
+97968730,Ethan.,Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
+99069140,"Hey, Houston!",Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
 99778908,Need a medic bag.,Low health,Need a medic bag.,
 99807660,Help me with these fucking cuffs.,Request for help while cuffed,Help me with these fucking cuffs.,
-100412034,"Hey, Jacket.",Call Jacket,On me.,"generic ""On me."" for Call (rb21 Follow)"
+100412034,"Hey, Jacket.",Call Jacket,"Hey, you.","generic ""Hey, you."" for Call"
 101151328,"Nothing is on fire. I repeat, nothing is on fire.",Pager response,"Nothing is on fire. I repeat, nothing is on fire.",
 101271003,Stay with me now.,Reviving,Stay with me now.,
 101611732,They got a sniper.,Mark sniper,They got a sniper.,
@@ -223,25 +223,25 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 106075211,They're pulling back.,Cops leaving,They're pulling back.,
 106479821,Turret.,Mark turret,Turret.,
 106860196,"Relax, man. You guys are so tense up there.",Pager response,"Relax, man. You guys are so tense up there.",
-106937455,"Hey, wolf!",Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
+106937455,"Hey, wolf!",Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
 107211812,Down!,Hostage intimidate,Down!,
 107668707,Get in.,Inside,Get in.,
 108233147,Don't think I won't kill you.,Hostage intimidate,Don't think I won't kill you.,
 108414273,"Watch it, grenade.",Grenade,"Watch it, grenade.",
-108802057,"Hey, chains.",Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
+108802057,"Hey, chains.",Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
 109991197,"Shit, they shot me.",Low health,"Shit, they shot me.",
 111866469,They got a dozer.,Mark dozer,They got a dozer.,
 112261018,That was perfect.,Victory,That was perfect.,
 112605938,They're running away!,Cops leaving,They're running away!,
 112780582,Holy shit.,Curse,Holy shit.,
 113267085,Move it.,Inspire,Move it.,
-113313295,"Hey, Clover.",Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+113313295,"Hey, Clover.",Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 113530814,The cops are coming.,Cops arriving,The cops are coming.,
 114013197,"Get down, now.",Hostage intimidate,"Get down, now.",
-114222846,Dallas!,Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
+114222846,Dallas!,Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
 116834972,I got the sniper.,Killed sniper,I got the sniper.,
-117530395,"Hey, Chains.",Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
-120078764,"Hey, Bodhi!",Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+117530395,"Hey, Chains.",Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
+120078764,"Hey, Bodhi!",Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 120562467,Cops incoming.,Cops arriving,Cops incoming.,
 120638084,Jump down here.,Direction,Jump down here.,
 120864113,"Shit, the drill is jammed.",Drill jam,"Shit, the drill is jammed.",
@@ -251,20 +251,20 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 122197228,What the fuuck?,Curse,What the fuuck?,
 122647751,Taser is gone.,Killed taser,Taser is gone.,
 123133230,"Okay, on my way!",Coming,"Okay, on my way!",
-123908190,"Hey, Sokol.",Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
+123908190,"Hey, Sokol.",Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
 124521265,It's a dozer!,Mark dozer,It's a dozer!,
 124587299,Hang on!,Coming,Hang on!,
 124587299,I dropped an ammo bag.,Deploy ammo bag,I dropped an ammo bag.,
-125866102,Jimmy.,Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
+125866102,Jimmy.,Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
 125973272,I got the drill working.,Place drill,I got the drill working.,
 126299091,Watch the shield.,Mark shield,Watch the shield.,
 126439259,The shield is dead.,Killed shield,The shield is dead.,
-130493548,Rust.,Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
+130493548,Rust.,Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
 130720407,"Nothing to worry about here, control. I got this covered.",Pager response,"Nothing to worry about here, control. I got this covered.",
 130811711,Someone get me a medic bag.,Low health,Someone get me a medic bag.,
 130859193,It's a cloaker.,Mark cloaker,It's a cloaker.,
-132551829,"Hey, Sangres.",Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
-134605380,"Hey, Hoxton.",Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
+132551829,"Hey, Sangres.",Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
+134605380,"Hey, Hoxton.",Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
 134605380,Out.,Direction,Out.,
 135239856,I'm low on ammo.,Low ammo,I'm low on ammo.,
 135278368,"Down, down.",Direction,"Down, down.",
@@ -272,16 +272,16 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 135641862,"Down, get down!",Hostage intimidate,"Down, get down!",
 136512045,"Okay, let's do this.",Mask up,"Okay, let's do this.",
 137252366,It's stuck.,Drill jam,It's stuck.,
-137850560,Jimmy.,Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
+137850560,Jimmy.,Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
 137880362,Right.,Direction,Right.,
-138424177,"Hey, Dragan.",Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+138424177,"Hey, Dragan.",Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
 138738562,Straight ahead.,Direction,Straight ahead.,
 138909262,I got the cloaker.,Killed cloaker,I got the cloaker.,
 139329478,It's a medic!,Mark medic,It's a medic!,
 140409813,Move.,Inspire,Move.,
 140883476,I'm gonna fucking kill you.,Taxman intimidate,I'm gonna fucking kill you.,
 141438519,Hold on.,Coming,Hold on.,
-142299276,Wick.,Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
+142299276,Wick.,Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
 143235036,A taser!,Mark taser,A taser!,
 143717224,I got the taser.,Killed taser,I got the taser.,
 144430074,Down.,Direction,Down.,
@@ -294,11 +294,11 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 148654663,Move.,Inspire,Move.,
 148667655,Get ready to kill them.,Cops arriving,Get ready to kill them.,
 150238217,Be careful now.,Careful,Be careful now.,
-151204021,Chains.,Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
+151204021,Chains.,Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
 151275512,"Die, assholes!",Grenade,"Die, assholes!",
 151983472,"Fucking drill, shit.",Drill jam,"Fucking drill, shit.",
 152693469,Fuck!,Curse,Fuck!,
-153253285,Bodhi!,Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+153253285,Bodhi!,Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 153297963,They got a taser.,Mark taser,They got a taser.,
 153349992,Down the stairs.,Direction,Down the stairs.,
 154070709,Left.,Direction,Left.,
@@ -307,58 +307,58 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 156054794,It's a captain.,Mark captain,It's a captain.,
 157218705,And stay there.,Hostage intimidate,And stay there.,
 157308488,Stay still.,Hostage intimidate,Stay still.,
-158742829,Dallas.,Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
+158742829,Dallas.,Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
 159825962,"If you talk, you die.",Hostage intimidate,"If you talk, you die.",
 160735974,You look like shit.,Reviving,You look like shit.,
 161197672,Down.,Direction,Down.,
 161709394,Run.,Inspire,Run.,
 161846212,"Yeah, I've set the drill up!",Place drill,"Yeah, I've set the drill up!",
-163666886,Bonnie.,Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
+163666886,Bonnie.,Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
 164278810,Come on.,Follow,Come on.,
 164377190,It's a turret.,Mark turret,It's a turret.,
 165206730,"Come on, faster!",Inspire,"Come on, faster!",
 165650032,"Get ready, pigs incoming.",Cops arriving,"Get ready, pigs incoming.",
 165880624,"Nothing happening here, nope. Nothing.",Pager response,"Nothing happening here, nope. Nothing.",
-165950540,"Hey, Houston.",Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
-166385533,"Hey, Ethan.",Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+165950540,"Hey, Houston.",Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
+166385533,"Hey, Ethan.",Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
 166437134,We showed those fuckers!,Victory,We showed those fuckers!,
 166718975,Flashbang!,Flashbanged,Flashbang!,
 168075996,"Watch out, it's a camera.",Mark camera,"Watch out, it's a camera.",
 168644482,You can't go down again.,Reviving (last down),You can't go down again.,
 169513614,"Let's go, guys.",Let's go,"Let's go, guys.",
-171614543,"Hey, Wolf.",Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
-171623921,"Hey, Bodhi.",Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+171614543,"Hey, Wolf.",Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
+171623921,"Hey, Bodhi.",Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 173181437,"Uh... I thought I misplaced my gun, but I found it. It's all good.",Pager response,"Uh... I thought I misplaced my gun, but I found it. It's all good.",
 174322045,Be right there.,Coming,Be right there.,
-174707640,"Hey, Wick.",Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
-175302272,Sangres.,Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
+174707640,"Hey, Wick.",Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
+175302272,Sangres.,Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
 175927349,Stay down.,Hostage intimidate,Stay down.,
-176613229,Jacket.,Call Jacket,On me.,"generic ""On me."" for Call (rb21 Follow)"
-178196989,"Hey, Clover.",Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+176613229,Jacket.,Call Jacket,"Hey, you.","generic ""Hey, you."" for Call"
+178196989,"Hey, Clover.",Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 178944284,Get down.,Hostage intimidate,Get down.,
 179163471,Let's go.,Let's go,Let's go.,
-179717450,Hoxton.,Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
+179717450,Hoxton.,Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
 180008979,Make sure they behave.,Watch the civillians,Make sure they behave.,
 180206718,"Hurry up, guys.",Direction,"Hurry up, guys.",
 182483678,"Get down, asshole.",Hostage intimidate,"Get down, asshole.",
-183245596,Hoxton.,Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
-183761559,Jimmy.,Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
-183881230,Sokol!,Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
+183245596,Hoxton.,Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
+183761559,Jimmy.,Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
+183881230,Sokol!,Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
 184360773,I got the taser.,Killed taser,I got the taser.,
-185565868,"Hey, Tony.",Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
+185565868,"Hey, Tony.",Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
 185702489,Ammo bag here.,Deploy ammo bag,Ammo bag here.,
 186294121,Watch that camera.,Mark camera,Watch that camera.,
 187568327,I dropped a body bag case.,Deploy body bag case,I dropped a body bag case.,
 188069214,I said down.,Hostage intimidate,I said down.,
 189759294,Fuck you!,Curse,Fuck you!,
-190339578,"Hey, Rust.",Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
+190339578,"Hey, Rust.",Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
 191339565,On my way.,Coming,On my way.,
 191726614,The medic is dead.,Killed medic,The medic is dead.,
-191733893,Dragan.,Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
-191786442,Bonnie.,Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
+191733893,Dragan.,Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
+191786442,Bonnie.,Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
 192513693,We're drilling.,Place drill,We're drilling.,
 193567327,Dozer is gone.,Killed dozer,Dozer is gone.,
-194144547,Sokol.,Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
+194144547,Sokol.,Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
 195239764,"Speak up, now!",Taxman intimidate,"Speak up, now!",
 195479092,Cloaker is dead.,Killed cloaker,Cloaker is dead.,
 195776709,This is it,This is the place,This is it,
@@ -367,38 +367,38 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 197975793,They got a dozer.,Mark dozer,They got a dozer.,
 199417180,It's a sniper.,Mark sniper,It's a sniper.,
 200748758,Okay.,Got it,Okay.,
-201117291,Wolf.,Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
+201117291,Wolf.,Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
 201428224,"You don't wanna mess with me, you're not gonna like it.",Taxman intimidate,"You don't wanna mess with me, you're not gonna like it.",
 201792539,"Camera, there.",Mark camera,"Camera, there.",
 202945309,Grenade!,Grenade,Grenade!,
-203326203,"Hey, Jacket.",Call Jacket,On me.,"generic ""On me."" for Call (rb21 Follow)"
+203326203,"Hey, Jacket.",Call Jacket,"Hey, you.","generic ""Hey, you."" for Call"
 203920730,They got a sniper.,Mark sniper,They got a sniper.,
 204760317,We gotta get this fixed.,Drill jam/hack pause followup,We gotta get this fixed.,
 206309940,"Dozer is down, baby!",Killed dozer,"Dozer is down, baby!",
-208465641,"Hey, Sydney.",Call Sydney,On me.,"generic ""On me."" for Call (rb21 Follow)"
-209090262,Chains.,Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
-209477805,Wolf.,Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
+208465641,"Hey, Sydney.",Call Sydney,"Hey, you.","generic ""Hey, you."" for Call"
+209090262,Chains.,Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
+209477805,Wolf.,Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
 209792435,I'm not sure you'll make it.,Reviving,I'm not sure you'll make it.,
-210434210,Wolf!,Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
+210434210,Wolf!,Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
 212169879,And stay down!,Hostage intimidate,And stay down!,
 213469675,There's a guard there.,Mark guard,There's a guard there.,
 213724598,"Talk, motherfucker!",Taxman intimidate,"Talk, motherfucker!",
 213835843,They got a taser.,Mark taser,They got a taser.,
 214936466,You'll be okay.,Revived,You'll be okay.,
 214984592,Camera.,Mark camera,Camera.,
-215056467,"Hey, Duke.",Call Duke,On me.,"generic ""On me."" for Call (rb21 Follow)"
+215056467,"Hey, Duke.",Call Duke,"Hey, you.","generic ""Hey, you."" for Call"
 217223942,"Cloaker is down, baby!",Killed cloaker,"Cloaker is down, baby!",
 217694504,We good to go yet?,Let's go,We good to go yet?,
-218260537,"Hey, Jacket!",Call Jacket,On me.,"generic ""On me."" for Call (rb21 Follow)"
+218260537,"Hey, Jacket!",Call Jacket,"Hey, you.","generic ""Hey, you."" for Call"
 218567506,A fucking captain.,Mark captain,A fucking captain.,
 220807506,I got you.,Reviving,I got you.,
 221567123,Hila will save you.,Reviving,Hila will save you.,
 221721081,Almost out of ammo.,Low ammo,Almost out of ammo.,
-221910023,Ethan.,Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+221910023,Ethan.,Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
 221921609,"Yeah, that's the way to do it.",Victory,"Yeah, that's the way to do it.",
 223507290,Oh shit.,Curse,Oh shit.,
 224196270,Straight on.,Direction,Straight on.,
-224620993,Tony.,Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
+224620993,Tony.,Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
 226873037,"No, fuck!",Curse,"No, fuck!",
 226987217,"Get down, now.",Hostage intimidate,"Get down, now.",
 227041204,The dozer got it.,Killed dozer,The dozer got it.,
@@ -408,15 +408,15 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 229762148,There.,Direction,There.,
 230563670,Don't move!,Hostage intimidate,Don't move!,
 230604447,That was the perfect crime.,Victory,That was the perfect crime.,
-232366092,"Hey, Wick!",Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
+232366092,"Hey, Wick!",Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
 232693516,Left.,Direction,Left.,
-232836185,Tony.,Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
+232836185,Tony.,Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
 232887839,The medic got it.,Killed medic,The medic got it.,
 233720555,Hold on!,Coming,Hold on!,
 233837757,Go down.,Direction,Go down.,
 234213065,Sniper is dead.,Killed sniper,Sniper is dead.,
 234291616,I'm running out of ammo.,Low ammo,I'm running out of ammo.,
-234371426,"Hey, Bonnie.",Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
+234371426,"Hey, Bonnie.",Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
 234763697,This is taking too long.,Complaining,This is taking too long.,
 235248491,Move!,Inspire,Move!,
 237853546,"Hey control, there's some really interesting spiders here. I'll show you a photo later.",Pager response,"Hey control, there's some really interesting spiders here. I'll show you a photo later.",
@@ -447,21 +447,21 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 256857993,Up.,Direction,Up.,
 257706439,Stay put!,Stay,Stay put!,
 258714659,It's secured.,Gage package,It's secured.,
-260170061,Tony.,Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
-260346549,"Hey, Wick.",Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
+260170061,Tony.,Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
+260346549,"Hey, Wick.",Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
 260918556,They got a medic.,Mark medic,They got a medic.,
-261047341,"Hey, Hoxton.",Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
+261047341,"Hey, Hoxton.",Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
 262642471,"Come on, hurry up.",Inspire,"Come on, hurry up.",
-266650384,"Hey, Duke.",Call Duke,On me.,"generic ""On me."" for Call (rb21 Follow)"
+266650384,"Hey, Duke.",Call Duke,"Hey, you.","generic ""Hey, you."" for Call"
 267904550,And stay down.,Hostage intimidate,And stay down.,
-268733336,Jiro.,Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+268733336,Jiro.,Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 269111937,Just kill the fucks!,Cops arriving,Just kill the fucks!,
 269114652,Finally some action.,Cops arriving,Finally some action.,
 269175478,Get up and fight!,Inspire revive,Get up and fight!,
 270099262,"Sorry, control. Just zoned out for a bit.",Pager response,"Sorry, control. Just zoned out for a bit.",
 272546978,The drill is working.,Place drill,The drill is working.,
 274179976,Perfect score.,Victory,Perfect score.,
-275673952,Rust.,Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
+275673952,Rust.,Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
 275797261,Got it.,Got it,Got it.,
 276378330,"Oh shit, it's the cops.",Cops arriving,"Oh shit, it's the cops.",
 277629280,I dropped a medic bag here.,Deploy medic bag,I dropped a medic bag here.,
@@ -469,14 +469,14 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 282714011,Down.,Direction,Down.,
 283011197,Hang tight.,Coming,Hang tight.,
 283251835,It's stuck.,Drill jam,It's stuck.,
-283448227,Bodhi.,Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+283448227,Bodhi.,Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 284022890,Something's wrong with the computer.,Hack paused,Something's wrong with the computer.,
 284106102,Bombs away!,Grenade,Bombs away!,
 285050332,"Thanks, I thought I was gone.",Revived,"Thanks, I thought I was gone.",
 285562613,"Uh... I thought there was something wrong with my radio. All good now, though.",Pager response,"Uh... I thought there was something wrong with my radio. All good now, though.",
 286809095,Finally some action.,Cops arriving,Finally some action.,
 287895833,Get up.,Inspire revive,Get up.,
-288115525,"Hey, Sangres.",Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
+288115525,"Hey, Sangres.",Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
 288173111,It's a taser!,Mark taser,It's a taser!,
 288584219,I'll help you!,Reviving,I'll help you!,
 288740889,A captain!,Mark captain,A captain!,
@@ -484,12 +484,12 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 292392831,Hang on.,Coming,Hang on.,
 293400143,It's gonna be hard to top that one.,Victory,It's gonna be hard to top that one.,
 293418070,Can someone fix it?,Drill jam/hack pause followup,Can someone fix it?,
-294322928,"Hey, Tony.",Call Scarface,On me.,"generic ""On me."" for Call (rb21 Follow)"
+294322928,"Hey, Tony.",Call Scarface,"Hey, you.","generic ""Hey, you."" for Call"
 294530470,There's a guard.,Mark guard,There's a guard.,
 295178733,"Here, jump down.",Direction,"Here, jump down.",
-295889439,"Hey, Dragan.",Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+295889439,"Hey, Dragan.",Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
 296647770,"Hey, control. My boyfriend uses adult diapers and it's kinda grossing me out. Do you think that's sexist?",Pager response,"Hey, control. My boyfriend uses adult diapers and it's kinda grossing me out. Do you think that's sexist?",
-298035204,"Hey, Jimmy.",Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
+298035204,"Hey, Jimmy.",Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
 299701935,Drop your weapon.,Intimidate cop,Drop your weapon.,
 300802813,"Shit, tear gas!",Tear gas,"Shit, tear gas!",
 301592523,They shot me.,Low health,They shot me.,
@@ -499,21 +499,21 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 309893279,"Come on, let's get outta here.",Let's go,"Come on, let's get outta here.",
 309893552,The cloaker got it.,Killed cloaker,The cloaker got it.,
 311356263,It's a sniper!,Mark sniper,It's a sniper!,
-311745845,Dallas.,Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
-312195319,Duke.,Call Duke,On me.,"generic ""On me."" for Call (rb21 Follow)"
+311745845,Dallas.,Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
+312195319,Duke.,Call Duke,"Hey, you.","generic ""Hey, you."" for Call"
 314040527,"Watch out, grenade!",Grenade,"Watch out, grenade!",
 317420406,Watch with the fucking drill.,Place drill,Watch with the fucking drill.,
 318681474,Get ready to kill some motherfuckers.,Cops arriving,Get ready to kill some motherfuckers.,
-319581967,Bodhi.,Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+319581967,Bodhi.,Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 319712703,Cloaker.,Mark cloaker,Cloaker.,
-320021097,Dragan!,Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+320021097,Dragan!,Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
 320058935,Don't die now.,Reviving,Don't die now.,
-320478599,"Hey, Jiro!",Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+320478599,"Hey, Jiro!",Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 321272692,"Come on, get up!",Inspire revive,"Come on, get up!",
 322419892,The medic is dead.,Killed medic,The medic is dead.,
 322572569,Let's get out.,Let's go,Let's get out.,
 324143036,Don't fuck with me now if you wanna (leave/live?),Taxman intimidate,Don't fuck with me now if you wanna (leave/live?),
-324394484,Houston!,Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
+324394484,Houston!,Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
 324400985,It's a guard.,Mark guard,It's a guard.,
 324865574,Let's steal some shit.,Mask up,Let's steal some shit.,
 325140795,"Oh yeah, we did it!",Victory,"Oh yeah, we did it!",
@@ -523,22 +523,22 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 329960406,I killed the shield.,Killed shield,I killed the shield.,
 332580980,They have a medic!,Mark medic,They have a medic!,
 334461628,Who's got an ammo bag?,Low ammo,Who's got an ammo bag?,
-334984034,"Hey, Rust.",Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
-335050314,"Hey, Ethan.",Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+334984034,"Hey, Rust.",Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
+335050314,"Hey, Ethan.",Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
 336150807,I killed the shield.,Killed shield,I killed the shield.,
 336929007,This doesn't look good.,Curse,This doesn't look good.,
-338541936,"Hey, Dallas.",Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
+338541936,"Hey, Dallas.",Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
 341455364,Time to go.,Let's go,Time to go.,
 342025694,"Hey, control. We need to talk; I don't think you understand what your job is.",Pager response,"Hey, control. We need to talk; I don't think you understand what your job is.",
 342759590,"Quiet and compliant, that's right.",Hostage intimidate,"Quiet and compliant, that's right.",
 343817333,Watch the sniper!,Mark sniper,Watch the sniper!,
 344281795,Sniper is gone.,Killed sniper,Sniper is gone.,
-344978029,"Hey, Sangres.",Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
+344978029,"Hey, Sangres.",Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
 348644644,Straight on.,Direction,Straight on.,
 349638833,Squeak and I'll fucking kill you.,Hostage intimidate,Squeak and I'll fucking kill you.,
 350472624,I got the dozer.,Killed dozer,I got the dozer.,
 350583635,Move it.,Inspire,Move it.,
-351107635,"Hey, Wolf.",Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
+351107635,"Hey, Wolf.",Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
 353348303,"Don't fuck with me, down.",Hostage intimidate,"Don't fuck with me, down.",
 354026747,And stay down.,Hostage intimidate,And stay down.,
 354353421,Oh my god.,Complaining,Oh my god.,
@@ -555,18 +555,18 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 369916102,Taser is dead.,Killed taser,Taser is dead.,
 371279776,Up!,Direction,Up!,
 373282599,Use the cable ties.,Watch the civillians,Use the cable ties.,
-374050932,"Hey, Wolf.",Call Wolf,On me.,"generic ""On me."" for Call (rb21 Follow)"
+374050932,"Hey, Wolf.",Call Wolf,"Hey, you.","generic ""Hey, you."" for Call"
 375261727,Get the fuck down.,Hostage intimidate,Get the fuck down.,
 377964926,Can this go any faster?,Complaining,Can this go any faster?,
 378357184,Don't move.,Coming,Don't move.,
 379255040,Hang tight.,Coming,Hang tight.,
 380599965,Right on!,Direction,Right on!,
-381683978,"Hey, Dallas.",Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
+381683978,"Hey, Dallas.",Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
 382316543,"This is it, last chance.",Unknown,"This is it, last chance.",
 383831196,I killed the dozer.,Killed dozer,I killed the dozer.,
 384114804,Dropped a medic bag here.,Deploy medic bag,Dropped a medic bag here.,
 384158668,We got it secured.,Gage package,We got it secured.,
-385815264,Sydney!,Call Sydney,On me.,"generic ""On me."" for Call (rb21 Follow)"
+385815264,Sydney!,Call Sydney,"Hey, you.","generic ""Hey, you."" for Call"
 386692695,"The drill is running, guys.",Place drill,"The drill is running, guys.",
 388394052,"Shit, I'm blinded!",Flashbanged,"Shit, I'm blinded!",
 388901144,It's coming.,Cops arriving,It's coming.,
@@ -577,14 +577,14 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 391405397,"There's no action here, control. I wish some clowns would show up or something.",Pager response,"There's no action here, control. I wish some clowns would show up or something.",
 391846174,"Hey, control. It's kinda boring standing watch here. I mean, nothing's happening.",Pager response,"Hey, control. It's kinda boring standing watch here. I mean, nothing's happening.",
 392134484,Talk!,Taxman intimidate,Talk!,
-392146405,Houston.,Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
+392146405,Houston.,Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
 393204881,I'm low on ammo.,Low ammo,I'm low on ammo.,
 395725229,Keep the civillians in check.,Watch the civillians,Keep the civillians in check.,
 396652326,"Watch out, it's a camera.",Mark camera,"Watch out, it's a camera.",
 399002153,Here they come.,Cops arriving,Here they come.,
 399323312,Down.,Hostage intimidate,Down.,
-399854050,Sydney.,Call Sydney,On me.,"generic ""On me."" for Call (rb21 Follow)"
-400715189,Bonnie.,Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
+399854050,Sydney.,Call Sydney,"Hey, you.","generic ""Hey, you."" for Call"
+400715189,Bonnie.,Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
 401122076,I dropped an ammo bag.,Deploy ammo bag,I dropped an ammo bag.,
 404327409,It's fucking jammed.,Drill jam,It's fucking jammed.,
 405739105,This the wrong way.,Direction,This the wrong way.,
@@ -593,19 +593,19 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 406879784,Up.,Direction,Up.,
 407113624,Just shut the fuck up and lie still.,Hostage intimidate,Just shut the fuck up and lie still.,
 407710018,Just stay calm.,Hostage intimidate,Just stay calm.,
-407814348,"Hey, Jimmy.",Call Jimmy,On me.,"generic ""On me."" for Call (rb21 Follow)"
+407814348,"Hey, Jimmy.",Call Jimmy,"Hey, you.","generic ""Hey, you."" for Call"
 409721748,"Let's go, that's my shit. Been waiting for this.",Victory,"Let's go, that's my shit. Been waiting for this.",
 413371446,There's an ammo bag here.,Deploy ammo bag,There's an ammo bag here.,
 414830910,Get inside.,Inside,Get inside.,
 416031068,"Cuffs on, now.",Intimidate cop final,"Cuffs on, now.",
 419538427,Coming.,Coming,Coming.,
-422210784,"Hey, Ethan.",Call Ethan,On me.,"generic ""On me."" for Call (rb21 Follow)"
-422804169,"Hey, Jiro.",Call Jiro,On me.,"generic ""On me."" for Call (rb21 Follow)"
+422210784,"Hey, Ethan.",Call Ethan,"Hey, you.","generic ""Hey, you."" for Call"
+422804169,"Hey, Jiro.",Call Jiro,"Hey, you.","generic ""Hey, you."" for Call"
 423538719,Okay!,Got it,Okay!,
 425462213,"Hands up, asshole!",Intimidate cop,"Hands up, asshole!",
 426380444,There.,This is the place,There.,
 429772799,Turret.,Mark turret,Turret.,
-430685651,"Hey, Clover!",Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+430685651,"Hey, Clover!",Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 430914905,Stay down.,Hostage intimidate,Stay down.,
 433064792,"Fuck it, now we gotta kill them.",Gone loud,"Fuck it, now we gotta kill them.",
 433437576,Let's roast them.,Cops arriving,Let's roast them.,
@@ -623,11 +623,11 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 452024420,Sniper is dead.,Killed sniper,Sniper is dead.,
 452221416,Drop your weapon.,Intimidate cop,Drop your weapon.,
 455523676,No one fucks with us!,Victory,No one fucks with us!,
-455796360,Jacket.,Call Jacket,On me.,"generic ""On me."" for Call (rb21 Follow)"
-456734101,"Hey, Rust.",Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
+455796360,Jacket.,Call Jacket,"Hey, you.","generic ""Hey, you."" for Call"
+456734101,"Hey, Rust.",Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
 456749780,A turret.,Mark turret,A turret.,
 457123364,What the fuck?,Curse,What the fuck?,
-458220519,"Hey, Chains!",Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
+458220519,"Hey, Chains!",Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
 459079525,Let's get inside.,Inside,Let's get inside.,
 459932360,"Hey, the computer is lookin' weird.",Hack paused,"Hey, the computer is lookin' weird.",
 460106078,Sniper is down.,Killed sniper,Sniper is down.,
@@ -639,20 +639,20 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 464829317,Go left!,Direction,Go left!,
 465649241,Dropped a first aid kit!,Deploy first aid kit,Dropped a first aid kit!,
 466684770,And stay down.,Hostage intimidate,And stay down.,
-467121303,"Hey, Dallas.",Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
+467121303,"Hey, Dallas.",Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
 468655691,I dropped an ammo bag.,Deploy ammo bag,I dropped an ammo bag.,
 468818626,"Shield is down, baby!",Killed shield,"Shield is down, baby!",
 471026130,No one fucking moves.,Hostage intimidate,No one fucking moves.,
-472606849,Duke.,Call Duke,On me.,"generic ""On me."" for Call (rb21 Follow)"
+472606849,Duke.,Call Duke,"Hey, you.","generic ""Hey, you."" for Call"
 474888182,To the left.,Direction,To the left.,
-475171720,Hoxton.,Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
+475171720,Hoxton.,Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
 476442215,"Come on, run!",Inspire,"Come on, run!",
 477026688,This is like the worst I've ever seen!,Reviving,This is like the worst I've ever seen!,
 478405239,Careful,Careful,Careful,
 478843020,Smoke grenade!,Smoke,Smoke grenade!,
 479048204,Incoming - get your guns ready.,Cops arriving,Incoming - get your guns ready.,
 479939084,A cloaker!,Mark cloaker,A cloaker!,
-480206207,Wick!,Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
+480206207,Wick!,Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
 480540444,Need a medic bag!,Low health,Need a medic bag!,
 480863489,"Please don't die, okay?",Reviving,"Please don't die, okay?",
 481565704,"Hey, control. Um... I'm thinking about switching jobs, what do you think I should do?",Pager response,"Hey, control. Um... I'm thinking about switching jobs, what do you think I should do?",
@@ -662,23 +662,23 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 489439120,"Come on, let's get outta here.",Let's go,"Come on, let's get outta here.",
 490549145,Let's hope you're lucky here!,Unknown,Let's hope you're lucky here!,
 490984009,"Cloaker is down, baby!",Killed cloaker,"Cloaker is down, baby!",
-494249054,Bodhi!,Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+494249054,Bodhi!,Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 494479527,"Uh... what? No, I was just watching some videos here. Shit, there's so much crap around.",Pager response,"Uh... what? No, I was just watching some videos here. Shit, there's so much crap around.",
 495631288,This the wrong way!,Direction,This the wrong way!,
 495650186,Watch the camera.,Mark camera,Watch the camera.,
 495922302,I said get down - now.,Hostage intimidate,I said get down - now.,
 496418207,Tie them up if you have to.,Watch the civillians,Tie them up if you have to.,
-500189845,"Hey, Houston!",Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
+500189845,"Hey, Houston!",Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
 500837386,Body bag case here.,Deploy body bag case,Body bag case here.,
 503280546,You can't take another hit like this.,Reviving (last down),You can't take another hit like this.,
 504230052,I killed the cloaker.,Killed cloaker,I killed the cloaker.,
-508593709,Sangres.,Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
+508593709,Sangres.,Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
 508876262,We're drilling.,Place drill,We're drilling.,
 509970905,You're on your last legs.,Reviving (last down),You're on your last legs.,
 512029441,"Down, on the ground!",Hostage intimidate,"Down, on the ground!",
 513444483,Run faster!,Inspire,Run faster!,
 513639447,Almost out of ammo.,Low ammo,Almost out of ammo.,
-516724286,Bodhi.,Call Bodhi,On me.,"generic ""On me."" for Call (rb21 Follow)"
+516724286,Bodhi.,Call Bodhi,"Hey, you.","generic ""Hey, you."" for Call"
 519660594,First aid kit - here!,Deploy first aid kit,First aid kit - here!,
 520677644,The dozer is dead.,Killed dozer,The dozer is dead.,
 522101569,It's a cloaker!,Mark cloaker,It's a cloaker!,
@@ -686,7 +686,7 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 524751436,"Come on, faster!",Inspire,"Come on, faster!",
 526927228,Let's go.,Let's go,Let's go.,
 527282782,On your knees!,Cop intimidate,On your knees!,
-534458151,"Hey, Hoxton.",Call Hoxton,On me.,"generic ""On me."" for Call (rb21 Follow)"
+534458151,"Hey, Hoxton.",Call Hoxton,"Hey, you.","generic ""Hey, you."" for Call"
 535025887,This thing is jammed!,Drill jam,This thing is jammed!,
 535212922,First aid kit here.,Deploy first aid kit,First aid kit here.,
 536597253,Anyone got an ammo bag?,Low ammo,Anyone got an ammo bag?,
@@ -702,7 +702,7 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 548178235,No one can stop us!,Victory,No one can stop us!,
 550973938,The taser got it.,Killed taser,The taser got it.,
 553339070,"Be quiet, or be dead.",Hostage intimidate,"Be quiet, or be dead.",
-554652682,Wick!,Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
+554652682,Wick!,Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
 555820154,"Shit's gonna hurt, better get ready.",Reviving,"Shit's gonna hurt, better get ready.",
 556334489,Fucking excellent!,Victory,Fucking excellent!,
 558517510,Shield is dead.,Killed shield,Shield is dead.,
@@ -711,11 +711,11 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 562154452,"Fuck, I'm hit.",Low health,"Fuck, I'm hit.",
 562377594,Got an ammo bag here.,Deploy ammo bag,Got an ammo bag here.,
 562650315,"Oh, fuck.",Curse,"Oh, fuck.",
-562677931,"Hey, Clover!",Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+562677931,"Hey, Clover!",Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 562709345,"(pained) Ah, I need a medic bag.",Low health,"(pained) Ah, I need a medic bag.",
 563813970,Stay off the camera.,Mark camera,Stay off the camera.,
 565117173,"Up, up!",Direction,"Up, up!",
-566814113,Dallas.,Call Dallas,On me.,"generic ""On me."" for Call (rb21 Follow)"
+566814113,Dallas.,Call Dallas,"Hey, you.","generic ""Hey, you."" for Call"
 567392391,I got you.,Reviving,I got you.,
 568110854,Over there.,Direction,Over there.,
 568203887,I dropped a first aid kit!,Deploy first aid kit,I dropped a first aid kit!,
@@ -725,7 +725,7 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 571340296,"Shit, smoke bomb!",Smoke,"Shit, smoke bomb!",
 571360487,Get ready guys.,Cops arriving,Get ready guys.,
 572646998,Oh fuck - it's the cops,Cops arriving,Oh fuck - it's the cops,
-574741367,"Hey, Rust!",Call Rust,On me.,"generic ""On me."" for Call (rb21 Follow)"
+574741367,"Hey, Rust!",Call Rust,"Hey, you.","generic ""Hey, you."" for Call"
 578203602,It's fucking jammed.,Drill jam,It's fucking jammed.,
 578477068,Drop your gun!,Cop intimidate,Drop your gun!,
 579654373,It's a taser!,Mark taser,It's a taser!,
@@ -743,20 +743,20 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 598750928,Dozer is so gone!,Killed dozer,Dozer is so gone!,
 603367705,You really look like shit.,Reviving,You really look like shit.,
 605349182,"Oh, thanks.",Revived,"Oh, thanks.",
-607360219,Sokol!,Call Sokol,On me.,"generic ""On me."" for Call (rb21 Follow)"
+607360219,Sokol!,Call Sokol,"Hey, you.","generic ""Hey, you."" for Call"
 608403873,"Shit, a turret!",Mark turret,"Shit, a turret!",
-610081633,Hey Bonnie!,Call Bonnie,On me.,"generic ""On me."" for Call (rb21 Follow)"
+610081633,Hey Bonnie!,Call Bonnie,"Hey, you.","generic ""Hey, you."" for Call"
 610454750,"Come on, hurry up.",Inspire,"Come on, hurry up.",
 611761996,The pigs are retreating!,Cops leaving,The pigs are retreating!,
 614468840,"Uh... just checking again. If I see someone, I shoot right?",Pager response,"Uh... just checking again. If I see someone, I shoot right?",
 615445658,A cloaker!,Mark cloaker,A cloaker!,
 617787624,"Stay down, and stay quiet - or I'll fucking kill you!",Hostage intimidate,"Stay down, and stay quiet - or I'll fucking kill you!",
-619494009,"Hey, Dragan.",Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+619494009,"Hey, Dragan.",Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
 623338779,"Come on, move.",Inspire,"Come on, move.",
 624041560,I need a medic bag.,Low health,I need a medic bag.,
 624531892,It's a captain!,Mark captain,It's a captain!,
 625749737,"Hands up, asshole!",Cop intimidate,"Hands up, asshole!",
-628090649,"Hey, Dragan!",Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+628090649,"Hey, Dragan!",Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
 634155321,"Yeah, we're getting good at this!",Victory,"Yeah, we're getting good at this!",
 634323553,Something's wrong.,Drill jam/hack pause followup,Something's wrong.,
 643109388,They got a cloaker.,Mark cloaker,They got a cloaker.,
@@ -781,7 +781,7 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 672951354,"Got the dozer, who's next?",Killed dozer,"Got the dozer, who's next?",
 675006401,Kill these assholes!,Cops arriving,Kill these assholes!,
 675589112,Cloaker is gone.,Killed cloaker,Cloaker is gone.,
-676473111,"Hey, Duke.",Call Duke,On me.,"generic ""On me."" for Call (rb21 Follow)"
+676473111,"Hey, Duke.",Call Duke,"Hey, you.","generic ""Hey, you."" for Call"
 684759174,They better fear Hila!,Mask up,They better fear Hila!,
 685968434,You're hurt bad.,Reviving,You're hurt bad.,
 689817322,"Kneel, asshole!",Cop intimidate,"Kneel, asshole!",
@@ -789,16 +789,16 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 694755249,Fucking stop bleeding!,Reviving,Fucking stop bleeding!,
 696052113,You're really fucked up!,Reviving,You're really fucked up!,
 704727336,Next time you're finished.,Reviving (last down),Next time you're finished.,
-715665708,Dragan!,Call Dragan,On me.,"generic ""On me."" for Call (rb21 Follow)"
+715665708,Dragan!,Call Dragan,"Hey, you.","generic ""Hey, you."" for Call"
 719002915,Coming!,Coming,Coming!,
 719564905,"Oh, thanks.",Revived,"Oh, thanks.",
 719870860,"Time to die, assholes!",Grenade,"Time to die, assholes!",
-722117908,"Hey, Sangres.",Call Sangres,On me.,"generic ""On me."" for Call (rb21 Follow)"
+722117908,"Hey, Sangres.",Call Sangres,"Hey, you.","generic ""Hey, you."" for Call"
 723467394,"Cuffs on, asshole.",Intimidate cop final,"Cuffs on, asshole.",
 724475702,Cuffs on!,Intimidate cop final,Cuffs on!,
-725240412,Chains.,Call Chains,On me.,"generic ""On me."" for Call (rb21 Follow)"
+725240412,Chains.,Call Chains,"Hey, you.","generic ""Hey, you."" for Call"
 726039706,On air.,Mask up,On air.,
-726470812,Clover!,Call Clover,On me.,"generic ""On me."" for Call (rb21 Follow)"
+726470812,Clover!,Call Clover,"Hey, you.","generic ""Hey, you."" for Call"
 727661840,Smoke!,Smoke,Smoke!,
 727907714,A fucking medic.,Mark medic,A fucking medic.,
 728693097,The shield got it.,Killed shield,The shield got it.,
@@ -825,7 +825,7 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 780968219,"Guys, what's with the computer now?",Hack paused,"Guys, what's with the computer now?",
 784324218,"This way, here!",Direction,"This way, here!",
 785908211,"Stay down, or I'll blow your brains out.",Hostage intimidate,"Stay down, or I'll blow your brains out.",
-790495467,"Hey, Wick!",Call Wick,On me.,"generic ""On me."" for Call (rb21 Follow)"
+790495467,"Hey, Wick!",Call Wick,"Hey, you.","generic ""Hey, you."" for Call"
 791306479,"They're coming, get ready.",Cops arriving,"They're coming, get ready.",
 792535391,I killed the cloaker!,Killed cloaker,I killed the cloaker!,
 793209321,"Okay, let's do this.",Mask up,"Okay, let's do this.",
@@ -839,9 +839,9 @@ PD2 ID,Original Speech,Original Category,New Speech,Notes
 834821755,Guard.,Mark guard,Guard.,
 836198869,Inside.,Inside,Inside.,
 837348811,I got the medic,Killed medic,I got the medic,
-839279510,Houston!,Call Houston,On me.,"generic ""On me."" for Call (rb21 Follow)"
+839279510,Houston!,Call Houston,"Hey, you.","generic ""Hey, you."" for Call"
 841728126,It's a medic.,Mark medic,It's a medic.,
-842356879,Sydney!,Call Sydney,On me.,"generic ""On me."" for Call (rb21 Follow)"
+842356879,Sydney!,Call Sydney,"Hey, you.","generic ""Hey, you."" for Call"
 848268101,"Ammo bag, please!",Low ammo,"Ammo bag, please!",
 848454731,Who's got an ammo bag?,Low ammo,Who's got an ammo bag?,
 860981202,Just stay calm!,Coming,Just stay calm!,

@@ -3,7 +3,7 @@ downed.need_help,I need help.,endgm2_leaderbarks_a_S_INT.029.ogg,0,0.000,0.994,0
 inspire.get_up,On your feet.,endgm2_huddle_03b_d_S_INT.002.ogg,1,1.220,2.460,1.240
 civ.down,Down. Now.,procer_cover_tutorial_a_S_INT.011.ogg,0,0.000,1.218,1.218
 move.on_me,On me.,endgm2_tech_culmination_c_S_INT.021.ogg,0,0.000,0.429,0.429
-call_teammate.on_me,On me.,profre_cover_tutorial_a_S_INT.002.ogg,0,0.000,2.230,2.230
+call_teammate.hey_you,"Hey, you.",profre_cover_tutorial_a_S_INT.002.ogg,0,0.000,2.230,2.230
 inspire.move,Move.,endgm2_biotic_success_c_S_INT.006.ogg,0,0.000,1.189,1.189
 tech.drill_jam,Drill jammed.,cspcr2_bridge_trap_d_S_INT.024.ogg,0,0.716,1.764,1.048
 cuffed.pick,Pick these cuffs.,endgm2_longwalk_a_S_INT.064.ogg,0,0.000,1.264,1.264

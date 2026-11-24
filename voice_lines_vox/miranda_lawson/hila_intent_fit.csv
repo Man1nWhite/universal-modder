@@ -3,7 +3,7 @@ downed.need_help,I need help.,8,1.88,Requesting aid!,0.000,0.994,endgm2_leaderba
 inspire.get_up,On your feet.,12,1.70,Let's go finish this.,1.220,2.460,endgm2_huddle_03b_d_S_INT.002.ogg,Well said. Let's go finish this.
 civ.down,Down. Now.,46,1.80,"Keep your head down, Shepard.",0.000,1.218,procer_cover_tutorial_a_S_INT.011.ogg,"Keep your head down, Shepard. Shield yourself from the blast."
 move.on_me,On me.,4,1.96,Shepard.,0.000,0.429,endgm2_tech_culmination_c_S_INT.021.ogg,Shepard. You need to see this.
-call_teammate.on_me,On me.,158,1.72,"Shepard, you take point.",0.000,2.230,profre_cover_tutorial_a_S_INT.002.ogg,"We'll take cover by the doors. Shepard, you take point."
+call_teammate.hey_you,"Hey, you.",158,1.72,"Shepard, you take point.",0.000,2.230,profre_cover_tutorial_a_S_INT.002.ogg,"We'll take cover by the doors. Shepard, you take point."
 inspire.move,Move.,8,1.64,"Shepard, we need to move!",0.000,1.189,endgm2_biotic_success_c_S_INT.006.ogg,"Shepard, we need to move! Fast!"
 tech.drill_jam,Drill jammed.,6,1.00,There must be some other explanation.,0.716,1.764,cspcr2_bridge_trap_d_S_INT.024.ogg,"No, the command is right. There must be some other explanation."
 cuffed.pick,Pick these cuffs.,9,1.40,I can't fight back like this.,0.000,1.264,endgm2_longwalk_a_S_INT.064.ogg,I can't fight back like this. Taking cover. Tell me when you're ready to move out.

@@ -25,7 +25,10 @@ PATTERNS: dict[str, list[tuple[str, float]]] = {
     ],
     "assault.ready": [r"\b(get ready|i'?m ready|let'?s finish|ready,? commander)\b"],
     "assault.retreat": [r"\b(pulling (out|back)|retreat|falling back)\b"],
-    "call_teammate.on_me": [r"^(shepard|commander)[.!]?$", r"\b(with me|on me|take point)\b"],
+    # Call (rb21 CH_Name) = summon a teammate by name, so the line is a generic
+    # "Hey, you." bark. "On me." belongs to move.on_me (rb21 Follow) instead.
+    "call_teammate.hey_you": [r"^(hey|hi)[,.! ]*(you|there)?[.!]?$", r"\b(hey|hello|you there)\b",
+                              r"^(shepard|commander)[.!]?$"],
     "caution.wait": [r"^(wait|hold on|hang on)[.!]?$", r"\b(wait here|hold on,? i)\b"],
     "caution.watch": [r"\b(look out|watch (out|it|what)|careful|don'?t take any chances)\b"],
     "civ.dontmove": [r"\b(don'?t move|hold still|stay where)\b"],
@@ -253,7 +256,7 @@ def main():
     # leftover short combat barks for unmatched slots (still better than silence)
     FALLBACK_ORDER = [
         "assault.incoming", "caution.watch", "inspire.faster", "move.go",
-        "call_teammate.on_me", "curse.shit", "assault.ready", "mask.go",
+        "call_teammate.hey_you", "curse.shit", "assault.ready", "mask.go",
         "win.generic", "pager.clear",
     ]
     extras = []

@@ -39,7 +39,7 @@ INTENT_STEMS: dict[str, tuple[str, ...]] = {
     "assault.incoming": ("endgm2_warnings", "endgm2_leaderbarks", "horcr1_collector", "cspcr2_platform"),
     "assault.ready": ("endgm2_warnings", "endgm2_leaderbarks", "procer_cover_tutorial"),
     "assault.retreat": ("horcr1_collector_retreat", "endgm2_warnings", "cspcr2_escape"),
-    "call_teammate.on_me": ("norvx_starter", "pronor_illusive", "procer_cover_tutorial"),
+    "call_teammate.hey_you": ("norvx_starter", "pronor_illusive", "procer_cover_tutorial"),
     "caution.wait": ("procer_cover_tutorial", "endgm2_warnings", "norvx_starter"),
     "caution.watch": ("endgm2_warnings", "procer_cover_tutorial", "horcr1_ash"),
     "civ.dontmove": ("procer_vixen_briefing", "procer_vixen_intro", "bchlml_fatherfinal"),
