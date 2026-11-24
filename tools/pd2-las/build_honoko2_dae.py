@@ -915,7 +915,8 @@ def build_pack(
     kinds = list(MAT_TEXTURE_SOURCES)
     # the bra and panties shells are fully enclosed by the suit and the body: keeping them in the
     # shadow caster adds no silhouette, only shadow-map acne through the sub-millimetre gaps (D44).
-    # Honoko2 (clearance=False) keeps the old shadow caster so its tracked bytes stand.
+    # Honoko2 (clearance=False) kept the old shadow caster so its bytes in git history stand;
+    # the clearance flag and this branch survive D57 for OfficeSuite's passes.
     shadow_kinds = [k for k in kinds if k not in SHADOW_DROPS] if spec.clearance else kinds
     pack_specs = {
         "outfit": {

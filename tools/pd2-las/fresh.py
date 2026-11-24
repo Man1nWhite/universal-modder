@@ -55,7 +55,7 @@ BUILDERS = {
     "hila": ["tools/build_hila_body_mod.py"],
     "voices": ["tools/build_hila_voice_mod.py"],
     # Reads dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip for its head, so
-    # it runs after `hila`. `--only` keeps OfficeSuite and Honoko2..4 out of it.
+    # it runs after `hila`. `--only` keeps the OfficeSuite body pack out of it.
     "honokodae_head": ["tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"],
 }
 
