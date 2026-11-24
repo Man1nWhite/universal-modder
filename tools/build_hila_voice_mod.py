@@ -25,6 +25,7 @@ MAP = ROOT / "voice_lines_vox/miranda_lawson/hila_to_miranda_mapping.csv"
 ARCHIVE = ROOT / "references/Голос Лоусон.7z"
 SPLITS = ROOT / "voice_lines_vox/miranda_lawson/ogg_phrase_splits.csv"
 PIECES = ROOT / "voice_lines_vox/miranda_lawson/hila_slot_pieces.csv"
+PICKS = ROOT / "voice_lines_vox/miranda_lawson/slot_picks.csv"
 DEFAULT_OUT = ROOT / "dist/Hila/Miranda_Lawson_VO_over_Hila.zip"
 INSTALL = "Miranda Lawson VO over Hila"
 PREFIX = "rb21"
@@ -174,6 +175,18 @@ def pick_file_for_slot(slot: str, hint: str, oggs, used: set[str]) -> str:
     return pool[0][1]
 
 
+def load_picks() -> dict[str, dict]:
+    """Curated slot -> clip overrides (slot_picks.csv); these beat the stem heuristic."""
+    out: dict[str, dict] = {}
+    if not PICKS.is_file():
+        return out
+    with PICKS.open(newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r.get("slot"):
+                out[r["slot"]] = r
+    return out
+
+
 def load_splits():
     """file -> list of (start, end) phrases. Missing files treated as one piece."""
     out = {}
@@ -287,12 +300,36 @@ def pick_piece_for_slot(slot, hint, oggs, splits, used_keys):
 
 def cut_ogg(src: Path, start: float, end: float, dest: Path, ff: str):
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dur = max(0.2, end - start)
+    dur = max(0.10, end - start)
     subprocess.run(
         [ff, "-y", "-ss", f"{start:.3f}", "-t", f"{dur:.3f}", "-i", str(src),
          "-c:a", "libvorbis", "-q:a", "5", str(dest)],
         check=True, capture_output=True,
     )
+
+
+def cut_ogg_ranges(src: Path, ranges: list[tuple[float, float]], dest: Path, ff: str):
+    """Concatenate several sub-ranges of one ogg (used to drop a single word)."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    parts, labels = [], []
+    for i, (a, b) in enumerate(ranges):
+        parts.append(f"[0:a]atrim=start={a:.3f}:end={b:.3f},asetpts=N/SR/TB[p{i}]")
+        labels.append(f"[p{i}]")
+    graph = ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(ranges)}:v=0:a=1[out]"
+    subprocess.run(
+        [ff, "-y", "-i", str(src), "-filter_complex", graph, "-map", "[out]",
+         "-c:a", "libvorbis", "-q:a", "5", str(dest)],
+        check=True, capture_output=True,
+    )
+
+
+def parse_splits(spec: str) -> list[tuple[float, float]]:
+    out = []
+    for bit in (spec or "").split("|"):
+        if "-" in bit:
+            a, b = bit.split("-", 1)
+            out.append((float(a), float(b)))
+    return out
 
 
 def extract_selected(paths: set[str]) -> dict[str, bytes]:
@@ -387,8 +424,27 @@ def main(argv=None):
     used = set()
     slot_file = {}
     slot_piece = {}
+    picks = load_picks()
+    by_base = {base: path for _size, base, path in oggs}
+    for slot in sorted(picks):
+        pk = picks[slot]
+        base = pk["source_ogg"]
+        path = by_base.get(base)
+        if path is None:
+            print(f"WARN pick source not in archive: {slot} -> {base}")
+            continue
+        ranges = parse_splits(pk.get("splits", ""))
+        if ranges:
+            slot_piece[slot] = (path, 0, ranges[0][0], ranges[-1][1], None)
+        else:
+            slot_piece[slot] = (path, 0, float(pk["t_start"]), float(pk["t_end"]), None)
+        slot_file[slot] = path
+        slot_ids.setdefault(slot, [])
+        used.add(path)
     ff = None if args.no_cut else ffmpeg_bin()
     for slot, hint in sorted(slot_hint.items()):
+        if slot in picks:
+            continue
         if args.no_cut or not splits:
             path = pick_file_for_slot(slot, hint, oggs, used)
             used.add(path)
@@ -409,28 +465,43 @@ def main(argv=None):
                 "duration_s", "score", "uses", "example_ids"])
     piece_csv = io.StringIO()
     pw = csv.writer(piece_csv)
-    pw.writerow(["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s"])
+    pw.writerow(["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s", "splits"])
 
     need_paths = {slot_piece[s][0] for s in slot_piece}
     extracted = extract_selected(need_paths)
     src_root = args.source_dir
     out_sounds = {}
+
+    def locate(path: str, base: str) -> Path | None:
+        src = src_root / path
+        if src.is_file():
+            return src
+        hits = list(src_root.rglob(base))  # 7z layout: folder/file
+        return hits[0] if hits else None
+
     for slot in sorted(slot_file):
         path, idx, a, b, sc = slot_piece[slot]
         ids = slot_ids[slot]
         cut = next(r["cut_line"] for r in rows if r["slot"] == slot)
+        pk = picks.get(slot)
+        ranges = parse_splits(pk.get("splits", "")) if pk else []
+        if pk and pk.get("cut_line"):
+            cut = pk["cut_line"]
         base = Path(path).name
-        if b is None or ff is None:
+        src = locate(path, base)
+        if ranges and ff is not None and src is not None:
+            fname = f"{Path(base).stem}_cut{len(ranges)}.ogg"
+            dest = Path("/tmp/hila_pieces") / fname
+            cut_ogg_ranges(src, ranges, dest, ff)
+            audio = dest.read_bytes()
+            t0, t1 = ranges[0][0], ranges[-1][1]
+            dur = sum(e - s_ for s_, e in ranges)
+        elif b is None or ff is None:
             fname = base
             audio = extracted[path]
             t0, t1, dur = 0.0, 0.0, 0.0
         else:
             fname = f"{Path(base).stem}_p{idx}_{a:.2f}-{b:.2f}.ogg"
-            src = src_root / path
-            if not src.is_file():
-                # 7z layout: folder/file
-                hits = list(src_root.rglob(base))
-                src = hits[0] if hits else None
             if src is None or not src.is_file():
                 fname = base
                 audio = extracted[path]
@@ -444,7 +515,8 @@ def main(argv=None):
         slot_file[slot] = fname
         w.writerow([slot, cut, base, idx, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}",
                     f"{sc:.3f}" if isinstance(sc, float) else "", len(ids), "|".join(ids[:4])])
-        pw.writerow([slot, cut, base, idx, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}"])
+        pw.writerow([slot, cut, base, idx, f"{t0:.3f}", f"{t1:.3f}", f"{dur:.3f}",
+                     pk.get("splits", "") if pk else ""])
         files[install + "sounds/" + fname] = audio
     files[install + "main.xml"] = build_xml(rows, slot_file).encode("utf-8")
     files[install + "slot_to_ogg.csv"] = map_buf.getvalue().encode("utf-8")
