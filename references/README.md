@@ -11,6 +11,7 @@ Source character archives and reference PAYDAY 2 mods used by the build pipeline
 | `l4d2_miranda_lawson_1.zip` | Left 4 Dead 2 `miranda_rochelle.vpk` (`.mdl` / `.vvd` / `.vtx` / `.vtf`) | `tools/pd2-las/build_models.py`, `tools/pd2-las/build_las.py`, `tools/pd2-las/build_busty_variant.py`, `tools/build_joy_head_mods.py` | `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, `dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip`, `dist/Miranda_L4D2/Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney,Hila}.zip` |
 | `PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip` | Mass Effect 2 COLLADA `.dae` (`Miranda Lawson (Romance) - Adjusted Version.dae`) + `.png` textures | `tools/pd2-port/build_las_pack.py`, `tools/build_joy_head_mods.py` | `dist/Miranda_Romance/Miranda_Romance_LAS.zip`, `dist/Miranda_Romance/Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney,Hila}.zip` |
 | `Geralt.7z` | Witcher 3 Geralt of Rivia L4D2 port archive (a subscribed Garry's Mod addon: `.mdl`/`.vvd`/`.vtx`/`.vtf`, LZMA `.gma` layout) | `tools/build_joy_head_mods.py` | `dist/Geralt/Geralt_over_Rust.zip` |
+| `1581859199_135363.rar` | GTA San Andreas RenderWare 3.6 ped (LibertyCity "Random4" CJ replacement: `Random4.dff` model + `Random4.txd` textures, 19,727 tris, 7-material body) | `tools/build_joy_head_mods.py` (via `tools/pd2-las/rw_dff.py`) | `dist/Arivus/Arivus_over_Hoxton.zip` (head materials 5 "head" + 6 "hair" only) |
 
 ## Templates and other references
 
@@ -24,6 +25,15 @@ Source character archives and reference PAYDAY 2 mods used by the build pipeline
 | `Ada Wong over Joy.7z` | Reference Joy `mod_overrides` package (`units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model`) | `tools/build_joy_head_mods.py` |
 | `Heister - FPS Gloves in TPS 2.zip` | Reference heister third-person & Safe House `.model` templates (`npc_criminal_female_1.model`, `npc_criminal_bonnie.model`, `npc_criminal_sydney.model`, `npc_criminal_female_chill.model`, `npc_criminal_bonnie_chill.model`, plus the Joy, Wild and Max units) | `tools/build_joy_head_mods.py` |
 | `npc_criminals_ecp_female.7z` | Reference Hila `mod_overrides` unit (H3H3 collaboration heister, DLC folder `ecp`): `npc_criminal_ecp_female.model` / `_menu.model`, both `.object` files and `mtr_criminal_ecp_female[_cc].material_config`; her hair is `g_hair_mask_off` / `g_hair_mask_on` and her head `g_head` carries two atoms (head, 3D eyelashes) on `mtr_head` + `mtr_lashes` | `tools/build_joy_head_mods.py` (`_emit_hila_packages`) |
+| `Hoxier Hoxton V2.zip` | Old Hoxton `mod_overrides` texture mod ("Hox's Mask No Burns"): proves the Old Hoxton texture override paths and the icon DDS format, carries no models | reference for `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) |
+
+**Pending game input (Old Hoxton / Arivus head pack):** `dist/Arivus/Arivus_over_Hoxton.zip` replaces the
+`g_head_old_hoxton` drawable of the **shared suit model**, so the builder also needs the vanilla
+`units/payday2/characters/npc_criminals_suit_1/` folder (`npc_criminals_suit_1.model`,
+`npc_criminals_suit_1_menu.model`, the `.object`s and `mtr_old_hoxton[_cc].material_config`) extracted
+from the game's `assets/bundle_db_blb` with DieselBundleViewer. Drop the folder (zipped or bare) under
+`references/`; `ensure_suit_reference` in `tools/build_joy_head_mods.py` finds it. Until then
+`make -sC tools/pd2-las heads` skips the pack with a note and the other eleven head packs build as usual.
 
 
 **Supplied textures:** `EYE_Diff.png` — the Miranda Lawson eye diffuse (256×256 RGB: blue iris, veined sclera),

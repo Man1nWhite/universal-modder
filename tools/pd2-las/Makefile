@@ -55,7 +55,7 @@ christie:   ## headless and handless Christie LAS, TPP and FPS -> dist/Christie/
 cloverchristie:  ## Christie GLB body-only LAS (experimental, TPP only) -> dist/Christie/
 	$(call BUILD,$(HERE)/build_clover_christie.py)
 
-heads:      ## the eleven head packs (Miranda_*_over_*, Geralt_over_Rust) -> dist/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
+heads:      ## the head packs (Miranda_*_over_*, Geralt_over_Rust, Arivus_over_Hoxton) -> dist/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
 hila:       ## OfficeSuite + Miranda Romance over Hila (native body and head, no LAS) -> dist/Honoka/

@@ -436,7 +436,7 @@ def _decode_bc(raw: bytes, width: int, height: int, mode: str) -> np.ndarray:
 # ---------------------------------------------------------------- CLI
 
 
-def _extract_rar(rar: Path, out: Path) -> Path:
+def extract_rar(rar: Path, out: Path) -> Path:
     import subprocess
     script = out.parent / "unrar-js" / "extract.js"
     script.parent.mkdir(parents=True, exist_ok=True)
@@ -470,7 +470,7 @@ def main(argv: list[str]) -> int:
     if src.is_dir():
         folder = src
     else:
-        folder = _extract_rar(src, Path("build") / "rw_dff" / src.stem)
+        folder = extract_rar(src, Path("build") / "rw_dff" / src.stem)
     dff_path = next(folder.glob("*.dff"))
     txd_path = next(folder.glob("*.txd"))
     dff = read_dff(dff_path.read_bytes())

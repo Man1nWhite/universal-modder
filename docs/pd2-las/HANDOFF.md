@@ -45,6 +45,17 @@ ones. It has not been seen in game; its lashes are the donation's `opacity:` sha
 which is the one thing the offline checks cannot confirm. `Christie_Clover_LAS` (`build_clover_christie.py`, `references/Clover-Christie.zip`)
 is an experimental TPP-only `BODY_ONLY` GLB outfit and has not been seen in game.
 
+`Arivus_over_Hoxton` (`build_arivus_hoxton_mod`, `references/1581859199_135363.rar`) replaces Old Hoxton's
+head — the `g_head_old_hoxton` drawable inside the shared suit model (`npc_criminals_suit_1.model` +
+`_menu.model`, plus `npc_criminals_suit_chill.model` for the Safe House) — with the head and hair of the
+GTA SA "Random4" RenderWare ped (materials 5 `head` + 6 `hair`; the necklace and shirt stay out). It
+overrides the four `shared_textures/old_hoxton_head[_p_]df/_nm` textures with one 2048 atlas (opaque skin
+top half, cutout hair bottom half) and rewrites `mtr_head` to `ALPHA_MASKED` + `alpha_ref 0.05`. **Pending:**
+the vanilla `npc_criminals_suit_1` unit folder must be user-extracted from `assets/bundle_db_blb`
+(DieselBundleViewer) into `references/` before the zip builds; until then `make heads` skips the pack and
+the Arivus family (and its `test_dist_layout.py` pin) does not exist in `dist`. Fit constants (Head-bone anchors,
+scale 83.25) are derived against the Rust male rig and proven offline (`build/arivus-solo-*.png`).
+
 ## Seen in game
 
 What a person has reported from the game, by date. Only the user has run the game; the screenshots are the
@@ -57,7 +68,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | --- | --- | --- |
 | `Miranda_L4D2_LAS`, `Miranda_L4D2_Busty_LAS` | no record | — |
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
-| `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
+| `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust`, `Arivus_over_Hoxton` | no record | — |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
 | `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, hands and head override; its render is from the single replacement ZIP) |
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
