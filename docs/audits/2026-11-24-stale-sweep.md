@@ -1,9 +1,9 @@
 # Stale tools, docs and tests — sweep (2026-11-24)
 
 Request 2026-11-24: "search for stale tools, documentations, tests". This is the report: what was
-checked, what came back stale, and what the sweep deliberately left alone. Scope is the PAYDAY 2
-pipelines in `tools/` and the documents that describe them — the voice pack first, because it is the
-newest artifact and the one that actually shipped wrong once.
+checked, what came back stale, and what the sweep deliberately left alone. Two passes: the PAYDAY 2
+pipelines in `tools/` and the documents that describe them first — the voice pack is the newest artifact
+and the one that actually shipped wrong once — then the whole checkout (second half).
 
 **Outcome in one line:** no orphan tool, no broken path reference and no unreproducible byte turned
 up; the staleness was all *prose and coverage* — three documents still described the pre-re-key pack,
@@ -78,6 +78,62 @@ no test at all for the invariant whose absence shipped a silent pack.
   "Hey, you." while the clip actually says "you take point." (the README documents that under known
   gaps), and `slot_picks.csv` notes quote the trimmed names ("trimmed `Commander?`"), which is why the
   new name check reads only `cut_line`/`clip_text`.
+
+## Whole repository, same day
+
+The second pass widened the sweep from the PAYDAY 2 pipelines to the whole checkout: 421 Markdown files,
+`um/`, `tools/`, `tests/`, `skills/` and its two copies, `.github/workflows/`, and the manifests
+(`plugin.json`, `gemini-extension.json`, `mcp.json`, `.mcp.json`, `opencode.json`, `.codex/`,
+`.cursor/`, `.vscode/`, `.agents/plugins/marketplace.json`).
+
+| Sweep | Method | Result |
+| --- | --- | --- |
+| Markdown links | every relative `[..](path)` in 421 files resolved from the linking file | 2 broken, both fixed (below). The 3 remaining hits are a literal `...` and a code token, not links. |
+| Anchors | every `#fragment` in a link matched to a heading slug | none broken (the one flag was my slugger collapsing `+`; GitHub keeps `--`) |
+| File references | `tools/…`, `um/…`, `tests/…`, `bin/…` paths named in `.md`/`.yml`/`.json`/`.toml` | 39 do not resolve; all are history (audits and `MODLOG.md` naming files that existed when written) or knowledge notes naming the scripts of *the mods they describe*, not this checkout |
+| Orphan documents | every `.md` searched for an inbound mention | 6: `SECURITY.md` and `.github/pull_request_template.md` (GitHub reads them), `agents/*.md` (auto-discovered role files), and `docs/pd2-las/christie-fit-probe.md` — the only genuinely unreachable doc, now linked |
+| Orphan tools | `tools/**/*.py` searched for by name | none |
+| Knowledge base | `um kb check --index` | `PASS: 247 notes checked`, `INDEX.md`/`index.json` current |
+| Skill copies | `diff -rq skills .agents/skills` and `.claude/skills` | identical |
+| Manifests | every path named in the plugin/extension/MCP configs | all exist; `mcp.json` (plugin schema, `streamable-http`) and `.mcp.json` (Claude Code, `http`) are two formats on purpose |
+| Marketplace | `.agents/plugins/marketplace.json` | points at **upstream**; the root README says so explicitly ("installs upstream, which has none of the above") |
+| Vacuous tests | AST scan: `test_*` functions with no assert, no `raises`, no `fail()` | 2, both intentional raise-only checks (`test_las_pack.py::test_all_weighted_joints_mapped`, `::test_validation_passes`) |
+| Distribution | `pack_checksum.py` | 20 ZIPs match their sidecars |
+
+### Fixed in the whole-repo pass
+
+- **`docs/renders/honoka/model/head/README.md`** linked `../../../pd2-las/in-game-checklist.md`, which
+  resolves to `docs/renders/pd2-las/…` and does not exist. Four levels up is right.
+- **`docs/audits/2026-11-11-miranda-mips-and-object.md`** embedded
+  `../pd2-las/renders/miranda_mips_before_after.png`. No commit of this fork ever carried that PNG — the
+  `docs/pd2-las/renders/` dump the render-consolidation removed is where it was meant to live. The section now
+  says the figure is missing and gives the command that redraws it (`mip_audit.py --before … --sheet …`).
+- **`README.md`** listed every pack except the fork's only audio pack; the voice pack and its install
+  contract are in "What this fork adds" now.
+- **`docs/pd2-las/christie-fit-probe.md`** had no inbound link from anywhere; it is accurate (its claims
+  check out against `Christie_LAS/BUILD_INFO.json`: `runtime_verified: false`, the `sleeve_gloss` block
+  counts), so it is linked from the Christie render README rather than deleted.
+- **`AGENTS.md`** — the "strange git state" rule said what not to do, not what to do. It now names the
+  restart symptom (`dist/` back on the base commit, `status` calling packs `broken`) and the way back.
+
+### Found and left alone
+
+- `tools/pd2-port/releases/` does not exist. That is by design: release notes are written per tag, and
+  `lawson-las.yml` fails a tag build with `Missing notes for tag` when they are absent.
+- `agents/*.md` are unreferenced by any document because the harness discovers the folder; they are live.
+- Two `dist/` packs are named in `tools/pd2-las/README.md` only through group rows ("the eleven head packs"),
+  which is why a naive per-file check reports them missing. They are described.
+
+### A trap worth knowing (hit during this sweep)
+
+The sandbox re-cloned the repository mid-session, leaving local `HEAD` at the base commit with the pushed
+work only on the remote. The working tree still looked right, so `make -sC tools/pd2-las status` was the
+first thing to complain — it called `Miranda_Lawson_VO_over_Hila` `broken`, because a fresh checkout had
+written the **base** zip and sidecar (813029 B, `0f00354c…`, sidecar naming the file without `dist/Hila/`)
+over the rebuilt ones, and `pack_checksum.py` failed on the sidecar's path. Nothing was wrong with the
+repo: after confirming `git log origin/<branch>..HEAD` was empty and that no working-tree file differed
+from the remote, `git reset --hard origin/<branch>` restored `8e8e47b1…` and `pack_checksum.py` passed
+20/20. Hence the `AGENTS.md` line above.
 
 ## Verification after the edits
 

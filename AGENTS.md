@@ -20,7 +20,9 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
   the `.sha256` yourself ("Publish a release" in `tools/pd2-port/README.md`).
 - A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
   `git checkout -- dist`: both discard work that was never pushed. First `git status` and
-  `git log origin/<branch>..HEAD` must show nothing local that the remote lacks.
+  `git log origin/<branch>..HEAD` must show nothing local that the remote lacks. Once both are empty,
+  `git fetch` then `git reset --hard origin/<branch>` is the way back: a restarted sandbox re-clones at an
+  older commit, which leaves `dist/` on the base bytes and `status` calling packs `broken` for no reason.
 
 ## Modding any other game
 1. Read `skills/mod-any-game/SKILL.md` and follow its loop: intake → recon → route → lab (backups) →

@@ -287,7 +287,9 @@ them can be one step lower than in the game. The encoder picks the nearest real 
 
 ### The render
 
-![before and after](../pd2-las/renders/miranda_mips_before_after.png)
+The sheet below was drawn to `docs/pd2-las/renders/`, a scratch dump since dropped (renders live in
+`docs/renders/`), so the figure is missing rather than shown: no commit of this fork ever carried the PNG.
+`tools/pd2-las/mip_audit.py --before <earlier Miranda_LAS.zip> --sheet OUT.png` redraws it.
 
 The head from the front, unlit, at the pixel sizes of 1 to 16 m at 1080p, each tile enlarged. Top: the ideal
 picture, level 0 sampled so densely that no texel is skipped, averaged as light. Middle: the pack before.
