@@ -45,7 +45,7 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 18633009,I killed the taser!,Killed taser,killed_special,kill.taser,Taser down.,2,0.357,The taser got it!,weak
 18765061,Rust!,Call Rust,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.000,Rust!,weak
 19403899,Follow me.,Follow,squad_move,move.follow,"Try to stay close,",2,1.000,Follow me. / Come with me.,good
-19464577,Dozer.,Mark dozer,mark_special,mark.dozer,Heavy.,1,1.000,It is a dozer!,ok
+19464577,Dozer.,Mark dozer,mark_special,mark.dozer,Take out the armor,1,1.000,It is a dozer!,ok
 20422574,Help me get these cuffs off!,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.605,Pick my cuffs.,weak
 20669691,Careful.,Careful,caution,caution.watch,Careful.,1,1.000,Careful. Be careful now.,weak
 21348768,"Hey, Bonnie.",Call Bonnie,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.400,"Hey, Bonnie.",ok
@@ -126,7 +126,7 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 57048755,Help me with these cuffs.,Request for help while cuffed,cuffed_help,cuffed.pick,Pick these cuffs.,3,0.700,Pick my cuffs.,weak
 57175721,"Out, get out!",Direction,squad_move,move.go,Go.,1,0.308,Come with me. Follow me. This way.,weak
 57249869,Chains!,Call Chains,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.182,Chains!,weak
-57837082,It's a dozer.,Mark dozer,mark_special,mark.dozer,Heavy.,1,0.588,It is a dozer!,ok
+57837082,It's a dozer.,Mark dozer,mark_special,mark.dozer,Take out the armor,1,0.588,It is a dozer!,ok
 59054985,Got it!,Coming,squad_move,move.generic,With me.,2,0.308,Be right there. Coming! On my way!,weak
 60039454,Follow me.,Follow,squad_move,move.follow,"Try to stay close,",2,1.000,Follow me. / Come with me.,good
 60096046,Medic is gone.,Killed medic,killed_special,kill.medic,Medic down.,2,0.696,Medic is gone!,ok
@@ -140,7 +140,7 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 64872191,We gotta get it fixed.,Drill jam/hack pause followup,objective_tech,tech.generic,Something is wrong.,3,0.308,"Fix it, please? We have to fix it!",weak
 65094768,Jimmy!,Call Jimmy,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.200,Jimmy!,weak
 65707289,What's going on here anyway?,Pager response,pager,pager.clear,Nothing here. All clear.,4,0.490,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
-65952437,Dozer!,Mark dozer,mark_special,mark.dozer,Heavy.,1,1.000,It is a dozer!,ok
+65952437,Dozer!,Mark dozer,mark_special,mark.dozer,Take out the armor,1,1.000,It is a dozer!,ok
 66233421,This way!,Direction,squad_move,move.this_way,This way.,2,1.000,Come with me. Follow me. This way.,ok
 66270605,"Stick 'em up, motherfucker!",Intimidate cop,intimidate_cop,cop.drop,Don't.,2,0.188,Consider this my resignation.,weak
 67131743,"Hey, Sydney.",Call Sydney,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.267,Sydney!,weak
@@ -230,7 +230,7 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 108414273,"Watch it, grenade.",Grenade,throwable,nade.grenade,Grenade.,1,0.609,Fire in the hole! / I will destroy you! You will not survive!,weak
 108802057,"Hey, chains.",Call Chains,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.133,Chains!,weak
 109991197,"Shit, they shot me.",Low health,low_health,hurt.hit,I am hit.,3,0.240,This radiation is causing serious problems for my shields. / (pained) They got me!,weak
-111866469,They got a dozer.,Mark dozer,mark_special,mark.dozer,Heavy.,1,0.476,It is a dozer!,weak
+111866469,They got a dozer.,Mark dozer,mark_special,mark.dozer,Take out the armor,1,0.476,It is a dozer!,weak
 112261018,That was perfect.,Victory,victory,win.generic,Clean work.,2,0.308,We are untouchable!,weak
 112605938,They're running away!,Cops leaving,assault_state,assault.retreat,They are pulling back.,4,0.634,Motherfuckers are pulling back!,weak
 112780582,Holy shit.,Curse,curse,curse.shit,Damn it.,2,0.375,"Oh, shit! Fuck!",weak
@@ -252,7 +252,7 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 122647751,Taser is gone.,Killed taser,killed_special,kill.taser,Taser down.,2,0.696,The taser got it!,weak
 123133230,"Okay, on my way!",Coming,squad_move,move.generic,With me.,2,0.190,Be right there. Coming! On my way!,weak
 123908190,"Hey, Sokol.",Call Sokol,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.143,"Hey, Sokol!",ok
-124521265,It's a dozer!,Mark dozer,mark_special,mark.dozer,Heavy.,1,0.588,It is a dozer!,ok
+124521265,It's a dozer!,Mark dozer,mark_special,mark.dozer,Take out the armor,1,0.588,It is a dozer!,ok
 124587299,Hang on!,Coming,squad_move,move.hold,Hold.,1,0.364,I dropped an ammo bag!,weak
 124587299,I dropped an ammo bag.,Deploy ammo bag,deploy_equip,drop.ammo,Ammo here.,2,0.333,I dropped an ammo bag!,ok
 125866102,Jimmy.,Call Jimmy,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.200,Jimmy!,weak
@@ -364,7 +364,7 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 195776709,This is it,This is the place,spot_comment,spot.generic,There.,1,0.267,This is the place.,weak
 197046340,"Okay, secured.",Gage package,pickup,loot.secured,Secured.,1,0.737,"It is secured. Okay, secured.",ok
 197344844,You can't go down like this again.,Reviving (last down),reviving,revive.hold,I have you.,3,0.140,You cannot go down again. Next time you are finished.,weak
-197975793,They got a dozer.,Mark dozer,mark_special,mark.dozer,Heavy.,1,0.476,It is a dozer!,weak
+197975793,They got a dozer.,Mark dozer,mark_special,mark.dozer,Take out the armor,1,0.476,It is a dozer!,weak
 199417180,It's a sniper.,Mark sniper,mark_special,mark.sniper,Sniper.,1,0.632,They got a sniper!,weak
 200748758,Okay.,Got it,squad_move,move.generic,With me.,2,0.000,Got it. Okay.,ok
 201117291,Wolf.,Call Wolf,call_teammate,call_teammate.hey_you,"Hey, you.",2,0.222,Wolf.,ok
@@ -572,7 +572,7 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 388901144,It's coming.,Cops arriving,assault_state,assault.incoming,Cops incoming.,2,0.667,"Oh shit, it is the cops. Cops incoming.",weak
 388951061,I got the medic.,Killed medic,killed_special,kill.medic,Medic down.,2,0.400,Medic is gone!,weak
 389326660,The taser got it.,Killed taser,killed_special,kill.taser,Taser down.,2,0.538,The taser got it!,ok
-391068138,A fucking dozer!,Mark dozer,mark_special,mark.dozer,Heavy.,1,0.500,It is a dozer!,weak
+391068138,A fucking dozer!,Mark dozer,mark_special,mark.dozer,Take out the armor,1,0.500,It is a dozer!,weak
 391398970,"Come on, get up!",Inspire revive,inspire_revive,inspire.get_up,On your feet.,3,0.385,Get up! You are going to be okay.,weak
 391405397,"There's no action here, control. I wish some clowns would show up or something.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.327,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
 391846174,"Hey, control. It's kinda boring standing watch here. I mean, nothing's happening.",Pager response,pager,pager.clear,Nothing here. All clear.,4,0.204,"I am very good at just about anything I choose to do. My reflexes, my strength... designed to give me an edge.",weak
@@ -831,8 +831,8 @@ hila_id,hila_speech,hila_category,intent,slot,cut_line,words,overlap_with_origin
 793209321,"Okay, let's do this.",Mask up,mask_up,mask.go,Let us begin.,3,0.400,"This should be easy. Okay, lets do this. Ready to rumble.",ok
 797412389,I need a fucking ammo bag.,Low ammo,low_ammo,ammo.low,Low ammo.,2,0.303,Almost out of ammo. Who has an ammo bag?,weak
 809728410,Be right there!,Coming,squad_move,move.right,Right.,1,0.526,Be right there. Coming! On my way!,weak
-814815156,They got a dozer.,Mark dozer,mark_special,mark.dozer,Heavy.,1,0.476,It is a dozer!,weak
-815328029,A dozer.,Mark dozer,mark_special,mark.dozer,Heavy.,1,0.833,It is a dozer!,ok
+814815156,They got a dozer.,Mark dozer,mark_special,mark.dozer,Take out the armor,1,0.476,It is a dozer!,weak
+815328029,A dozer.,Mark dozer,mark_special,mark.dozer,Take out the armor,1,0.833,It is a dozer!,ok
 815918763,The medic got it.,Killed medic,killed_special,kill.medic,Medic down.,2,0.538,Medic is gone!,weak
 819412796,The taser is dead!,Killed taser,killed_special,kill.taser,Taser down.,2,0.519,The taser got it!,weak
 828468886,Watch out!,Watch out,caution,caution.watch,Careful.,1,0.250,Watch out!,ok

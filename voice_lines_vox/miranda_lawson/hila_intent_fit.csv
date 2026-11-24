@@ -22,7 +22,7 @@ pager.clear,Nothing here. All clear.,32,pinned,"Understood,",0.000,0.500,endgm1_
 mark.shield,Shield.,8,pinned,Shield,1.450,1.800,procer_cover_tutorial_a_S_INT.011.ogg,first word of the line only
 mark.camera,Security has tightened,9,pinned,security has tightened,0.660,1.750,cithub_first_time_d_S_INT.072.ogg,"trimmed ""Obviously"" + ""since you were last here"""
 kill.taser,Taser down.,10,pinned,Nice shot!,0.060,0.680,endgm2_leaderbarks_a_S_INT.034.ogg,"was ""They got Grunt."""
-mark.dozer,Heavy.,9,pinned,"Mechs advancing,",0.020,0.930,procer_shooting_tutorial_a_S_INT.001.ogg,"heavy-unit call, trimmed ""Shepard."""
+mark.dozer,Take out the armor,9,pinned,Take out the armor,0.000,1.340,profre_heavy_arm_tut_a_S_INT.004.ogg,armour call for the heavy unit
 caution.watch,Careful.,6,pinned,Look out.,0.000,0.470,cspcr2_platform_approach_h_S_INT.020.ogg,unchanged from previous fit
 cop.hands,Stop.,5,pinned,stop,0.420,0.650,norvx_relationship_03_h_S_INT.037.ogg,"intimidation; no ""hands up"" line exists"
 move.go,Go.,15,pinned,"Let's go,",0.050,0.550,endgm2_longwalk_a_S_INT.062.ogg,"trimmed ""Commander."""
@@ -37,7 +37,7 @@ mark.sniper,Sniper.,8,pinned,"Hostiles, dead ahead.",0.000,1.700,endgm2_longwalk
 move.right,Right.,9,pinned,Right.,0.000,0.382,twrvxl_aboutaboy_h_S_INT.025.ogg,unchanged from previous fit
 tech.generic,Something is wrong.,15,pinned,Something's wrong.,1.355,2.150,procer_wakeup_c_S_INT.016.ogg,unchanged from previous fit
 assault.retreat,They are pulling back.,4,pinned,They're pulling out.,0.000,0.690,horcr1_collector_retreat_c_S_INT.010.ogg,unchanged from previous fit
-mark.turret,Turret.,11,pinned,On the platform.,0.914,1.637,cspcr2_bridge_h_S_INT.012.ogg,unchanged from previous fit
+mark.turret,Turret.,11,pinned,"Mechs advancing,",0.020,0.930,procer_shooting_tutorial_a_S_INT.001.ogg,moved here from mark.dozer
 mark.guard,Guard.,7,pinned,Patrols like that are a little much against this bunch.,0.000,2.300,bchlml_ambientmaster_a_S_INT.033.ogg,unchanged from previous fit
 spot.generic,There.,7,pinned,There.,0.000,0.291,cspcr2_bridge_h_S_INT.012.ogg,unchanged from previous fit
 civ.dontmove,Do not move.,8,pinned,don't try to move.,0.920,1.670,procer_wakeup_c_S_INT.002.ogg,"literally ""don't move"", trimmed ""Shepard,"""
@@ -56,7 +56,7 @@ pager.cover,False alarm. All clear.,1,pinned,"Understood,",0.000,0.860,profre_sh
 mark.generic,Mark that.,2,pinned,Acquiring target.,0.000,0.932,endgm2_leaderbarks_a_S_INT.035.ogg,unchanged from previous fit
 civ.killthreat,Bunker down,7,pinned,bunker down,2.160,2.720,endgm2_huddle_03a_d_S_INT.030.ogg,stay-on-the-ground intimidation
 mark.captain,Captain.,8,pinned,Captain,1.520,1.860,twrvxl_theswitch_h_S_INT.011.ogg,unchanged from previous fit
-kill.shield,Shield down.,11,pinned,They got fined.,0.000,0.970,endgm1_warship_c_S_INT.008.ogg,unchanged from previous fit
+kill.shield,Shield down.,11,pinned,Not bad.,0.000,0.610,twrasa_pinnacle_assassin_d_S_INT.098.ogg,"was ""They got fined."""
 nade.generic,Heads up!,10,pinned,Heads up!,0.000,0.360,omggra_2nd_intermission_d_S_INT.035.ogg,shorter grenade throw bark
 hurt.hit,I am hit.,8,pinned,"We're getting slaughtered up here,",0.000,1.450,endgm2_team_c06_c_S_INT.026.ogg,"trimmed ""Shepard."""
 ammo.low,Low ammo.,16,pinned,Grab some more heavy ammo.,0.000,1.330,endgm1_oculus_hints_a_S_INT.003.ogg,unchanged from previous fit
