@@ -1,8 +1,23 @@
-# Packaging & installing the Hila VO mod (PAYDAY 2 · SuperBLT + BeardLib)
+# Packaging & installing the Hila VO mod (PAYDAY 2 · any BLT / SuperBLT)
 
-This is the packaging contract for `dist/Hila/Miranda_Lawson_VO_over_Hila.zip` — how the folder
-must look, what the game/loader actually reads, how to install it, and how to check that every bark
-it should answer is answered.
+One pack ships Miranda Lawson's clips over Hila, and this page is its contract:
+
+| Pack | Route | Needs | Contract |
+|---|---|---|---|
+| `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` | one Wwise ADPCM `.stream` per voice-line id, in `soundbanks/streamed/regular_vox/` | any BLT / SuperBLT | **§7** |
+
+It is the route the game itself uses — it is how the reference voice pack
+`references/Tokoyami Hila.7z` is built, dissected in
+[`tokoyami-hila-voice-mod-analysis.md`](tokoyami-hila-voice-mod-analysis.md) — and it is the only
+one of the two that was heard working in game (2026-11-25).
+
+> **§1–§6 are the record of the route that was dropped.** A second pack,
+> `Miranda_Lawson_VO_over_Hila.zip`, keyed BeardLib `<Sounds>` on the bark *event* name and shipped
+> OGG clips. It was installed on 2026-11-24 and vanilla Hila still played; the keying was
+> re-verified against the loaders and was right, but the route never produced a line in game. It was
+> removed from `dist/` on 2026-11-25 (D61) and its builder with it. What follows is kept because the
+> reasoning is the record for that decision, and because a future pack on this route would start
+> here — not because anything below ships.
 
 Everything below was checked against the real loaders, not from memory:
 
@@ -77,6 +92,9 @@ Notes:
   double nesting (`mods/Miranda Lawson VO over Hila/Miranda Lawson VO over Hila/main.xml`).
 
 ## 3. Requirements and install steps
+
+*Dropped route (D61): nothing below ships — the pack these steps install is no longer built. See the
+note at the top of this page.*
 
 Prerequisites (both are hard requirements — the mod is silent without them):
 
@@ -178,8 +196,8 @@ heist-specific text (`p33`–`p47`, most of `v01`–`v58`, `g61`–`g68`) and th
 
 - No `assets/mod_overrides/` copy: that root is for the §4a `.stream` route (and raw bundle
   overrides). Our replacement audio is OGG and must go through `SoundsModule`.
-- No `.stream`/`.wem`/soundbank conversion: it needs Wwise IMA ADPCM (§4a), which the OGG cutter in
-  `tools/build_hila_voice_mod.py` cannot produce.
+- No `.stream`/`.wem`/soundbank conversion *in this pack*: it needs Wwise IMA ADPCM (§4a), which an
+  OGG cutter does not produce. The pack that ships does write it — `tools/pd2-las/wwise_ima.py`, §7.
 - No load-order/priority requirement: BeardLib loads mods through its own frameworks after its own
   `init`, and our mod has no Lua that must run before/after anything. `mod.txt` priority is only for
   the BLT list's ordering.
@@ -188,7 +206,7 @@ heist-specific text (`p33`–`p47`, most of `v01`–`v58`, `g61`–`g68`) and th
 ## 6. When nothing is replaced (troubleshooting)
 
 A 2026-11-24 report ("unpacked in mods, still hear Hila") was re-verified against the loaders and
-the game Lua, and the pack's keying is right: `tweak_data.criminals.characters.ecp_female`
+the game Lua, and the dropped pack's keying was right: `tweak_data.criminals.characters.ecp_female`
 `static_data.voice = "rb21"` (`tweakdata.lua`) and the AI teammate path agrees
 (`CharacterTweakData:_init_team_ai` sets `ecp_female.speech_prefix = "rb21"`,
 `TeamAISound:init`/`set_voice` put it in the `robber` switch). BeardLib's
@@ -212,3 +230,70 @@ replaces barks and a silent one is environmental. Check, in order:
    the source (report it — that would be a new loader fact); no line at all means step 2 failed.
    The heist-scripted callouts §4d lists are deliberately not covered, so some vanilla lines
    between replaced ones are expected.
+
+## 7. The stream pack (`Miranda_Lawson_VO_over_Hila_Stream.zip`)
+
+The id-keyed route: the game streams `soundbanks/streamed/regular_vox/<voice-line id>.stream`, so the
+file *is* the replacement. No event names, no Lua, no BeardLib, no XAudio API.
+
+### 7.1 Layout
+
+```
+PAYDAY 2/
+└─ mods/
+   └─ Miranda Lawson VO over Hila Stream/     ← folder name is free-form
+      ├─ main.xml                             ← <mod name="…"> and nothing else to configure
+      ├─ mod.txt                              ← BLT mod-list metadata
+      ├─ README.txt
+      ├─ hila_stream_map.csv                  ← build manifest: id → slot → clip
+      └─ soundbanks/streamed/regular_vox/
+         ├─ 712675.stream                     ← 858 files, one per voice-line id
+         └─ …
+```
+
+`main.xml` carries no `<Sounds>` and no `<Hooks>`: BLT serves the files and the game reads them by id,
+so nothing has to be registered. `mod.txt` only makes the folder appear in the main-menu mod list.
+
+### 7.2 The file format
+
+RIFF, 64-byte header, then Wwise IMA ADPCM in 36-byte mono / 72-byte stereo blocks of 64 samples
+(4-byte block header: `int16` predictor, `uint8` step index, reserved byte; then 32 bytes of nibbles
+= 63 coded samples and one padding nibble). The byte rate is `(rate // 64) * block_align` — 24 804
+for mono 44.1 kHz — and the six-byte `fmt` tail is `00 00 04 00 00 00` for mono. Both details are
+read off real files and pinned by `tests/test_wwise_ima.py`; the full derivation, and why the encoder
+picks a start index per block, is in
+[`tokoyami-hila-voice-mod-analysis.md`](tokoyami-hila-voice-mod-analysis.md).
+
+### 7.3 Coverage
+
+| | |
+|---|---|
+| Voice-line ids in the mapping | 885 (`voice_lines_vox/miranda_lawson/hila_intent_cuts.csv`) |
+| `.stream` files written | 858 — 665 s of audio, 14.9 MB zipped |
+| Ids left vanilla | 27 (`hila_vorbis_ids.csv`): the vanilla bank streams those as Wwise Vorbis (`fmt` tag `0xFFFF`), which only the Wwise encoder writes. ADPCM under such an id is not the audio the bank expects, so it is not written. |
+| Not covered by design | the `robbers_mission_gen` bank (heist-scripted NPC lines with their own text) and music/radio |
+
+### 7.4 Install and check
+
+1. Unzip into `PAYDAY 2/mods/` so that `mods/Miranda Lawson VO over Hila Stream/main.xml` exists —
+   one folder deep, like §3.
+2. Start the game, play a heist with Hila (as your heister or as an AI teammate).
+3. Nothing in `mods/logs/` is expected: this pack has no Lua and no loader API to fail. If a line
+   still sounds like Hila, it is one of the 27 Vorbis ids (§7.3), or another Hila voice pack is
+   loaded after this one and writes the same ids.
+
+Rebuild and verify offline:
+
+```bash
+make -sC tools/pd2-las voices_stream      # rebuilds the zip + .sha256, prints `tracked`
+unzip -p dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip \
+  "Miranda Lawson VO over Hila Stream/soundbanks/streamed/regular_vox/712675.stream" > /tmp/712675.stream
+python tools/pd2-las/wwise_ima.py /tmp/712675.stream --wav /tmp/712675.wav   # header, duration, audio
+.venv/bin/python -m pytest -q tests/test_wwise_ima.py tests/test_hila_stream_pack.py
+```
+
+Heard in game on 2026-11-25: the user installed this pack and reported that it works (the BeardLib
+route did not, on 2026-11-24). The report also named two clips cut inside a word, `civ.down` and
+`call_teammate.hey_you`; both edges were moved onto the gaps around the wanted words and pinned by
+`tests/test_hila_cut_edges.py`, so the tracked bytes are newer than what was heard
+(`docs/pd2-las/in-game-checklist.md`). Nothing else of it has been listened to line by line.

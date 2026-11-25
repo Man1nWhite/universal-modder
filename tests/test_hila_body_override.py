@@ -21,6 +21,9 @@ from dist_paths import dist_path  # noqa: E402
 from hila_texture_atlas import BLOCK_LEVELS, GUTTER, HEIGHT, TILES, WIDTH, atlas_uvs  # noqa: E402
 
 PACK = dist_path(ROOT, "OfficeSuite_Miranda_Romance_over_Hila.zip")
+#: every bone a palm or a finger can be weighted to, by rig name
+PALM_AND_FINGERS = tuple(f"Hand{finger}{joint}" for finger in ("Thumb", "Index", "Middle", "Ring", "Pinky")
+                         for joint in (1, 2, 3))
 BODY = dist_path(ROOT, "OfficeSuite.zip")
 HEAD = dist_path(ROOT, "Miranda_Romance_over_Hila.zip")
 DONOR_UNIT = f"OfficeSuite/assets/{hila.OUTFIT_DIR}/officesuite"
@@ -54,18 +57,20 @@ def test_native_install_paths_and_material_contract(files):
     assert new.keys() - old.keys() == atlas_paths | {"README.txt"}
     assert not any(k.endswith((".lua", ".unit")) or k.startswith("assets/") for k in new)
     changed = {k for k in old if new[k] != old[k]}
+    # The two models and the two material configs change; the `.object`s are the
+    # game's own now, because the glove drawable they switch on stays in use (D59).
     assert changed == ({hila.UNIT + s + ".model" for s in ("", "_menu")}
-                       | {hila.UNIT + s + ".object" for s in ("", "_menu")}
                        | {hila.MATERIAL + s + ".material_config" for s in ("", "_cc")})
+    assert all(new[hila.UNIT + s + ".object"] == old[hila.UNIT + s + ".object"] for s in ("", "_menu"))
     for suffix in ("", "_menu"):
         obj = ET.fromstring(new[hila.UNIT + suffix + ".object"])
         assert obj.find("diesel").get("materials") == hila.MATERIAL
         enabled = {elem.get("name"): elem for elem in obj.findall(".//graphics//object") if elem.get("enabled") == "true"}
-        assert set(enabled) == {"g_body", "g_head", "s_body"}
+        # The glove drawable is load-bearing now: the outfit's hands are cut where
+        # the palms begin (D59), so Hila's stock gloves are the hands that show.
+        assert set(enabled) == {"g_body", "g_head", "s_body", hila.GLOVE}
         assert enabled["s_body"].get("shadow_caster") == "true"
-        # Hila's stock glove drawable is deleted outright, so no vanilla glove
-        # can be re-enabled by another mod or by a leftover default.
-        assert not any(elem.get("name") == hila.GLOVE for elem in obj.iter("object"))
+        assert [elem.get("name") for elem in obj.iter("object")].count(hila.GLOVE) == 1
     for suffix in ("", "_cc"):
         name = hila.MATERIAL + suffix + ".material_config"
         mats = ET.fromstring(new[name])
@@ -87,13 +92,13 @@ def _draws(m):
     return {name: hila.Drawable.read(m, name) for name in ("g_body", "s_body", "g_head")}
 
 
-def test_only_the_two_mesh_blocks_change_and_the_gloves_go(models):
+def test_only_the_two_mesh_blocks_change_and_the_gloves_stay(models):
     output, native, donor = models
-    # Everything else survives untouched; the stock glove block is deleted.
-    gone = _glove_block(native)
+    # Every section of the native unit survives, the stock glove block included:
+    # it is the hand the pack now relies on (D59).
     assert len({s.id for s in output.sections}) == len(output.sections)
-    assert [s.id for s in output.sections] == [s.id for s in native.sections
-                                               if s.id not in gone | _orphans(native, gone)]
+    assert [s.id for s in output.sections] == [s.id for s in native.sections]
+    assert _glove_block(native) <= {s.id for s in output.sections}
     changed = {s.id for s in output.sections if s.payload != native.by_id(s.id).payload}
     new, old = _draws(output), _draws(native)
     assert changed == {s.id for name in ("g_body", "s_body") for s in
@@ -101,7 +106,7 @@ def test_only_the_two_mesh_blocks_change_and_the_gloves_go(models):
     authored = hila.Drawable.read(donor, "g_body")
     assert new["g_body"].geo["vert_count"] == authored.geo["vert_count"]
     assert new["g_body"].top["indices"] == authored.top["indices"]
-    # The caster includes the padded donor body, hands included, and the solid head.
+    # The caster is the donor's cut caster (no palms, D59) plus the solid head.
     shadow_tris = len(hila.Drawable.read(donor, "s_body").faces)
     assert len(new["s_body"].faces) == shadow_tris + old["g_head"].data["atoms"][0]["tri_count"]
     for name, part in new.items():
@@ -162,37 +167,59 @@ def _glove_block(model):
 
 
 @pytest.mark.parametrize("side", ["Left", "Right"])
-def test_the_outfits_own_hands_fill_the_wrist_the_glove_used_to(models, side):
-    """The donor's palm and fingers are in the body mesh where the stock glove used to be."""
+def test_the_outfits_hands_end_where_the_palm_begins(models, side):
+    """No hand or finger survives in the body, and the cut is past the palm line.
+
+    The plane is `build_models.palm_planes`: through the rig's `Hand` joint, along
+    the axis to the four knuckles. Since D62 the cut sits `PALM_EXTEND_CM` past it
+    (1.25 cm since D65), inside the wrist, so the arm ends inside the heister's glove;
+    the body inherits that cut from `dist/Honoka/OfficeSuite.zip`.
+    """
     output, native, _ = models
     body = hila.Drawable.read(output, "g_body")
     objs, worlds = bm._resolve_worlds(output)
     names = {obj["name_hash"]: sid for sid, obj in objs.items()}
     hand = names[dm.hash64(side + "Hand")]
-    wrist = np.asarray(worlds[hand][12:15])
-    tips = [names[dm.hash64(side + joint)] for joint in
-            ("HandThumb3", "HandIndex3", "HandMiddle3", "HandRing3", "HandPinky3")]
-    bone = np.asarray(body.bind["objects"])[np.asarray(body.geo["blendindices"])]
-    rows = np.flatnonzero(np.isin(bone, [hand, *tips]).any(axis=1))
-    # A whole hand, not a wrist stub: ~1.9k vertices, and the palm passes the
-    # wrist plane while the fingers reach out to the last finger joints.
-    assert len(rows) > 500
-    verts = np.asarray(body.geo["verts"])[rows]
-    axis = wrist - np.asarray(worlds[names[dm.hash64(side + "ForeArm")]][12:15])
+    fingers = [names[dm.hash64(side + joint)] for joint in PALM_AND_FINGERS]
+    palette = np.asarray(body.bind["objects"])
+    indices = np.asarray(body.geo["blendindices"])
+    weights = np.asarray(body.geo["blendweights"])
+    dominant = palette[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
+    # Not one vertex is *dominated* by the hand or a finger: at 1.25 cm the cut is still
+    # inside the wrist, so no hand geometry survives at all (D63). The rim may still
+    # carry a hand bone as a minor influence, which is why this looks at the dominant
+    # weight and not at any influence.
+    assert not np.isin(dominant, [hand, *fingers]).any()
+
+    wrist = np.asarray(worlds[hand][12:15], dtype=np.float64)
+    knuckles = np.mean([np.asarray(worlds[names[dm.hash64(side + k)]][12:15], dtype=np.float64)
+                        for k in bm.PALM_KNUCKLES], axis=0)
+    axis = knuckles - wrist
     axis /= np.linalg.norm(axis)
-    axial = (verts - wrist) @ axis
-    fingertip = max((np.asarray(worlds[b][12:15]) - wrist) @ axis for b in tips)
-    assert axial.min() > -6 and axial.max() > 0.85 * fingertip
+    verts = np.asarray(body.geo["verts"], dtype=np.float64)
+    rel = verts - wrist
+    axial = rel @ axis
+    perp = np.linalg.norm(rel - np.outer(axial, axis), axis=1)
+    near = perp < 28.0
+    assert near.any()
+    # The mesh reaches past the palm line by the extension, less what the slim pulls
+    # back, and no further.
+    assert axial[near].max() <= 1.25, "geometry survives past the palm extension"
+    # ... and it does not stop at the crease, leaving the glove in mid-air; the vanilla
+    # glove's rim is 0.42 cm past the crease (D63).
+    assert axial[near].max() > 0.45, "the mesh stops short of the palm extension"
 
 
-def test_no_vanilla_glove_geometry_is_shipped(models, files):
-    """Not one section of Hila's stock glove block survives, and the node is gone from both `.object`s."""
+def test_the_stock_gloves_are_shipped_and_enabled(models, files):
+    """Hila's glove block survives and its node stays enabled: it is the hand that shows now."""
     pack, _ = files
     output, native, _ = models
-    assert not _glove_block(native) & {s.id for s in output.sections}
+    glove = _glove_block(native)
+    assert glove <= {s.id for s in output.sections}
+    assert hila.Drawable.read(output, hila.GLOVE).faces.size > 0
     for suffix in ("", "_menu"):
         text = pack[(hila.UNIT + suffix + ".object")].decode("utf-8")
-        assert f'name="{hila.GLOVE}"' not in text
+        assert f'name="{hila.GLOVE}"' in text
         graphic_group = ET.fromstring(text).find(".//graphic_group")
         assert graphic_group.get("culling_object") == "g_body"
 

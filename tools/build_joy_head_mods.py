@@ -27,6 +27,7 @@ from __future__ import annotations
 import io
 import re
 import subprocess
+from collections import deque
 import sys
 import zipfile
 from pathlib import Path
@@ -35,7 +36,7 @@ _dist_sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "pd
 from dist_paths import dist_path  # noqa: E402
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 #: Derived archive trees under build/ are reused only while the input archive
@@ -2391,6 +2392,295 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     write_deterministic_zip(files, out_zip_paths)
 
 
+#: Clean-skin patches of the Random4 head raster, used for its tone and its detail
+ARIVUS_SKIN_PATCHES = ((112, 150, 200, 320), (196, 216, 178, 225),
+                       (196, 216, 300, 347), (300, 330, 190, 232))
+#: The cleanest patch of the same raster: the structure the fill borrows (D64)
+ARIVUS_DETAIL_PATCH = (118, 150, 196, 330)
+#: The rows the painted mouth occupies on the same raster (`y 252..288`): a column's lip
+#: span is clipped to them so the chin hair under the lower lip cannot join the lips.
+LIP_ROWS = slice(252, 289)
+
+
+def _blur(arr: np.ndarray, radius: float) -> np.ndarray:
+    """Gaussian blur of a 2-D float array, in the raster's own 8-bit space."""
+    im = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
+    return np.asarray(im.filter(ImageFilter.GaussianBlur(radius)), dtype=np.float32)
+
+
+def _smooth_mask(mask: np.ndarray, radius: float) -> np.ndarray:
+    """A 0..1 version of a boolean mask, blurred: the ramp used to feather an edge."""
+    im = Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(radius))
+    return np.asarray(im, dtype=np.float32) / 255.0
+
+
+def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
+    """Erase the Random4 ped's painted beard, moustache and sideburns from its head raster.
+
+    The ped has no beard geometry: the hair is painted into `head_diff_000_a_whi`
+    as one dark blob that runs from the temples down around the jaw. A clean-shave
+    look therefore means inpainting that U-shaped region with skin taken from
+    around it.
+
+    Four passes, in this order (D64):
+
+    * **Grow the mask along the beard.** The geometric U is only the core of it: the
+      painted edge is soft, and a mask that stops at the U leaves stubble behind as a
+      reddish stipple. The mask is grown from the U through pixels darker than 90% of
+      this raster's own skin level, which follows the stubble to where it fades and
+      stops at the ear's lighter rim instead of at an ellipse.
+    * **Harmonic fill** of the masked pixels: a Laplace relaxation from the clean
+      skin ring around them, started flat from the skin tone, so the jaw picks up the
+      real shading of its surroundings rather than a patch of one colour.
+    * **Tone and detail.** The fill is then matched to the mean of the clean skin just
+      outside it (a gain of at most ±15%, so it cannot invent shading), and given the
+      high-frequency structure of a clean patch of the same raster - pores, freckles,
+      the fine grain of the source - mirrored and tiled so it does not repeat as a grid.
+    * **Feather.** The filled result is blended into the untouched raster over a couple
+      of pixels, so the mask's outline is not an edge.
+
+    Lips, nostrils, ears and eyebrows are protected and pasted back verbatim. Fixed
+    512x512 layout, no randomness: the same raster always produces the same bytes.
+    """
+    rgb = cell[:, :, :3].astype(np.float32)
+    H, W = rgb.shape[:2]
+    if (H, W) != (512, 512):
+        raise ValueError(f"Random4 head atlas is 512x512, got {W}x{H}")
+    lum = rgb @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    yy, xx = np.mgrid[0:H, 0:W]
+
+    samples = [rgb[y0:y1, x0:x1].reshape(-1, 3) for y0, y1, x0, x1 in ARIVUS_SKIN_PATCHES]
+    lums = [lum[y0:y1, x0:x1].ravel() for y0, y1, x0, x1 in ARIVUS_SKIN_PATCHES]
+    skin = np.median(np.concatenate(samples), axis=0)
+    skin_lum = float(np.median(np.concatenate(lums)))
+
+    # --- pixels that belong to the face itself and must survive the paint-out ---
+    protect = np.zeros((H, W), dtype=bool)
+    feature = np.zeros((H, W), dtype=bool)
+    for cx, cy, rx, ry in ((110, 210, 21, 34), (419, 210, 21, 34)):  # ears
+        protect |= ((xx - cx) / rx) ** 2 + ((yy - cy) / ry) ** 2 <= 1.0
+    for cx, cy, r in ((244, 230, 6), (266, 230, 6)):  # nostril openings
+        protect |= (xx - cx) ** 2 + (yy - cy) ** 2 <= r * r
+    # lips: the painted mouth. Measured, not guessed: on this raster the lip-coloured
+    # pixels (redness 52..64 against the moustache's ~35) fill x 210..298, y 252..292.
+    # Those pixels alone would leave the mouth slit - the dark line between the two
+    # lips - to be painted over, and a ring of beard around them to be pasted back, so
+    # each column keeps the span from its top lip pixel to its bottom one (that span is
+    # the slit) and the result grows by one pixel for the lip's own antialiased outline.
+    redness = rgb[:, :, 0] - (rgb[:, :, 1] + rgb[:, :, 2]) / 2.0
+    mouth_oval = ((xx - 254) / 44.0) ** 2 + ((yy - 270) / 18.0) ** 2 <= 1.0
+    lip_core = mouth_oval & (redness > 48.0) & (lum > 66.0)
+    lip = np.zeros((H, W), dtype=bool)
+    for col in np.nonzero(mouth_oval.any(axis=0))[0]:
+        # the span is clipped to the mouth's own rows: the shadow under the lower lip is
+        # reddish and bright enough to pass the lip test, and letting a column's bottom
+        # follow it pastes the chin hairs back on (which is what the portrait showed)
+        rows = np.nonzero(lip_core[LIP_ROWS, col])[0]
+        if rows.size:
+            lip[rows.min() + LIP_ROWS.start:rows.max() + LIP_ROWS.start + 1, col] = True
+    lip &= mouth_oval
+    # The ped paints sparse hairs straight onto the skin under the lower lip, and a few of
+    # them are reddish enough to pass the lip test and join the protected set - which pastes
+    # a "soul patch" back on a clean-shaven face. Below the mouth slit they are given back to
+    # the mask; the slit itself (above this line) stays protected with the lips.
+    if lip.any():
+        under_lip = yy > 276
+        scars = under_lip & (lum < 0.70 * skin_lum)
+        lip &= ~scars
+    protect |= lip
+    feature |= protect
+    # eyebrows: the dark blobs that sit above the eye line
+    seen = np.zeros((H, W), dtype=bool)
+    brow = np.zeros((H, W), dtype=bool)
+    for y0 in range(140, 200):
+        for x0 in range(150, 370):
+            if lum[y0, x0] >= 128 or seen[y0, x0]:
+                continue
+            stack = [(y0, x0)]
+            seen[y0, x0] = True
+            pts = []
+            while stack:
+                cy, cx = stack.pop()
+                pts.append((cy, cx))
+                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    ny, nx = cy + dy, cx + dx
+                    if 140 <= ny < 200 and 150 <= nx < 370 and not seen[ny, nx] and lum[ny, nx] < 128:
+                        seen[ny, nx] = True
+                        stack.append((ny, nx))
+            ys = [p[0] for p in pts]
+            xs = [p[1] for p in pts]
+            # A brow is a wide, flat arc; a sideburn can touch the same scan band
+            # but is tall and narrow, so keep it out of the protected set.
+            if len(pts) > 600 and min(ys) < 172 and (max(xs) - min(xs)) > 55 and (max(ys) - min(ys)) < 55:
+                for py, px in pts:
+                    brow[py, px] = True
+    brow = np.asarray(
+        Image.fromarray((brow * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(3))
+    ) > 127
+    protect |= brow
+
+    # --- the beard: everything under the U-shaped hairline, minus the features ---
+    anchors = [
+        (135, 148), (152, 165), (168, 195), (184, 220), (200, 230), (220, 235),
+        (262, 237), (305, 235), (325, 230), (340, 220), (356, 195), (372, 165), (390, 148),
+    ]
+    y_top = np.interp(np.arange(W), [a[0] for a in anchors], [a[1] for a in anchors])
+    # The boxes have to reach the ears: the painted sideburn runs all the way to the ear's rim,
+    # and a box that stops short leaves a dark strip of hair in front of it - which is what the
+    # 3/4 render of 2026-11-25 showed as a band down the jaw by the ear. The ear is in
+    # `protect`, so the mask stops at its edge by itself, and the boxes are mirrored about
+    # x = 266 (the raster's centreline between the two ears).
+    sideburns = ((xx >= 118) & (xx <= 206) | (xx >= 318) & (xx <= 414)) & (yy >= 140) & (yy <= 344)
+    mask = (((yy >= y_top[None, :]) & (yy <= 344) & (xx >= 133) & (xx <= 392) | sideburns)
+            & ~protect)
+    # Ring the mouth, nose and ears with inpainted skin as well: the pixels just
+    # outside them carry the beard's shading, and keeping that ring would leave a
+    # dark halo around the restored features.
+    ring = np.asarray(
+        Image.fromarray((feature * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(17))
+    ) > 127
+    mask |= ring & ~protect
+    mask = np.asarray(
+        Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(3))
+    ) > 127
+    mask &= ~protect
+
+    # --- grow along the stubble: the painted edge is soft, the mask must not be ---
+    # The growth is a *rim* around the geometric beard, not a search over the face: this
+    # raster's whole face is darker than its own skin level (cheeks, the nose's flank, the
+    # eye sockets), so a dark-pixel flood from the beard runs straight through it and
+    # repaints the entire face - which is exactly what the first D64 build did, and what
+    # the washed-out rectangle in its portrait was. Eight pixels is wider than the painted
+    # edge and far narrower than a cheek.
+    rim_ok = np.asarray(
+        Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(21))
+    ) > 127
+    dark = ((lum < 0.92 * skin_lum) & rim_ok & (yy >= 130) & (yy <= 352)
+            & (xx >= 112) & (xx <= 412) & ~protect)
+    queue = deque(map(tuple, np.argwhere(mask)))
+    while queue:
+        cy, cx = queue.popleft()
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ny, nx = cy + dy, cx + dx
+            if 0 <= ny < H and 0 <= nx < W and dark[ny, nx] and not mask[ny, nx]:
+                mask[ny, nx] = True
+                queue.append((ny, nx))
+    mask = np.asarray(
+        Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(3))
+    ) > 127
+    mask &= ~protect
+
+    # --- harmonic fill from clean skin only ---
+    # Relaxation over the masked pixels, starting from the skin tone. The
+    # protected features are kept out of the boundary (weight 0) so the lips'
+    # dark shading does not bleed into the jaw as a halo: the fill takes its
+    # shading from the clean cheeks and neck around the beard.
+    out = rgb.copy()
+    out[mask] = skin
+    y0, y1, x0, x1 = 126, 356, 108, 416
+    sub = out[y0:y1, x0:x1]
+    mm = mask[y0:y1, x0:x1]
+    hgt, wid = sub.shape[:2]
+    wgt = (~protect[y0:y1, x0:x1]).astype(np.float32)
+    pw = np.pad(wgt, 1, mode="constant")
+    # the 8-neighbourhood as (row offset, column offset) slices into the padded box
+    offsets = ((0, 0), (0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1), (2, 2))
+    w_slices = [pw[a:a + hgt, b:b + wid] for a, b in offsets]
+    for _ in range(900):
+        pad = np.pad(sub, ((1, 1), (1, 1), (0, 0)), mode="edge")
+        num = np.zeros_like(sub)
+        den = np.zeros((hgt, wid), np.float32)
+        for (a, b), wsl in zip(offsets, w_slices):
+            num += pad[a:a + hgt, b:b + wid] * wsl[:, :, None]
+            den += wsl
+        good = mm & (den > 0)
+        sub[good] = num[good] / den[good][:, None]
+
+    # --- sweep the specks the growth could not reach ---
+    # A painted edge that thins into single hairs leaves them stranded where the rim stops,
+    # and a hair on a flat cheek reads as a freckle. Anything inside the filled area (plus a
+    # two-pixel skirt) that is much darker than the fill around it becomes that fill.
+    filled = np.clip(np.rint(sub), 0, 255).astype(np.uint8)
+    local = np.stack(
+        [_blur(filled[:, :, c].astype(np.float32), 3.0) for c in range(3)], axis=2
+    )
+    band = np.asarray(
+        Image.fromarray((mm * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(5))
+    ) > 127
+    filled_lum = filled.astype(np.float32) @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    local_lum = local @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    specks = band & (filled_lum < 0.80 * local_lum)
+    sub[specks] = local[specks]
+
+    # --- the fill takes the level of the clean skin just outside it ---
+    ring_w = np.clip(_smooth_mask(mask, 6.0) - _smooth_mask(mask, 1.5), 0.0, 1.0)
+    ring_sel = (ring_w > 0.25) & ~mask
+    for c in range(3):
+        ref = float(rgb[:, :, c][ring_sel].mean()) if ring_sel.any() else float(skin[c])
+        got = float(sub[:, :, c][mm].mean())
+        if got > 1e-3 and ref > 1e-3:
+            sub[:, :, c][mm] *= float(np.clip(ref / got, 0.85, 1.15))
+
+    # --- and the structure of real skin, from a clean patch of the same raster ---
+    sy0, sy1, sx0, sx1 = ARIVUS_DETAIL_PATCH
+    patch = rgb[sy0:sy1, sx0:sx1]
+    high = patch - np.stack([_blur(patch[:, :, c], 2.0) for c in range(3)], axis=2)
+    # mirrored in both axes before tiling, so the patch's own edges do not read as a grid
+    tile = np.concatenate([high, high[::-1]], axis=0)
+    tile = np.concatenate([tile, tile[:, ::-1]], axis=1)
+    reps = (int(np.ceil(hgt / tile.shape[0])) + 1, int(np.ceil(wid / tile.shape[1])) + 1)
+    detail = np.tile(tile, (reps[0], reps[1], 1))[:hgt, :wid]
+    sub[mm] = np.clip(sub[mm] + 1.10 * detail[mm], 0, 255)
+
+    # --- one even skin field over the shaved area ---
+    # This ped paints its stubble in two layers: a reddish one under the hairs, and the hairs
+    # over it. The fill takes the hairs away, but the rim can only follow the painted edge so
+    # far, and the detail pass above adds the clean patch's grain at 1.1x - between them the
+    # cheek and the jaw still read as soot in the 2026-11-25 portrait ("still need work on
+    # textures"). So the shaved area is flattened into one field: its own low-frequency
+    # shading, this raster's own skin chroma (so no red mottle survives), and a third of its
+    # detail, which keeps it skin rather than a mannequin's cheek.
+    own_lum = sub @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    # The chroma reference is the clean skin *around this mask*, not the whole-raster median:
+    # that median is the pale forehead, and using it left the jaw a shade cooler than the
+    # cheeks it meets - which is what makes an inpainted patch read as a patch.
+    near = np.clip(_smooth_mask(mask, 9.0) - _smooth_mask(mask, 4.0), 0.0, 1.0) > 0.12
+    near &= ~mask
+    ref_col = (np.median(rgb[near], axis=0) if near.any() else skin).astype(np.float32)
+    ref_lum = float(ref_col @ np.array([0.299, 0.587, 0.114], dtype=np.float32))
+    skin_unit = ref_col / max(ref_lum, 1e-3)
+    toned = skin_unit[None, None, :] * own_lum[..., None]
+    # Its own luminance (so every wrinkle and shadow stays) on that chroma (so the stubble's
+    # red cast is gone), keeping a third of the original colour so the field is not one
+    # airbrushed tone - a fully flattened cheek reads as a grey mask against the untouched
+    # skin around it, which the first attempt at this showed. The mix is *faded* outward from
+    # the mask over ~9 px instead of stamped over a grown zone: a binary zone leaves a soft
+    # rectangle of its own, which is the same failure by another route.
+    fade = np.clip(_smooth_mask(mask, 9.0), 0.0, 1.0)[y0:y1, x0:x1]
+    fade = (fade * (~protect[y0:y1, x0:x1]).astype(np.float32))[..., None]
+    sub = sub * (1.0 - fade) + (0.68 * toned + 0.32 * sub) * fade
+    # ... and its level back to the clean skin just outside it: a field that is a shade
+    # lighter than the cheeks reads as a mask even when no hair is left in it. Same fade.
+    ring_w = np.clip(_smooth_mask(mask, 7.0) - _smooth_mask(mask, 4.0), 0.0, 1.0)
+    ring_sel = (ring_w > 0.3) & ~mask
+    if ring_sel.any():
+        for c in range(3):
+            ref = float(rgb[:, :, c][ring_sel].mean())
+            got = float((sub[:, :, c] * fade[..., 0]).sum() / max(float(fade.sum()), 1e-6))
+            if got > 1e-3 and ref > 1e-3:
+                gain = float(np.clip(ref / got, 0.90, 1.10))
+                sub[:, :, c] *= 1.0 + (gain - 1.0) * fade[..., 0]
+    out[y0:y1, x0:x1] = sub
+
+    # --- feather the mask's outline into the untouched raster ---
+    alpha = _smooth_mask(mask, 5.0)[:, :, None]
+    out = out * alpha + rgb * (1.0 - alpha)
+    out[protect] = rgb[protect]
+    cleaned = cell.copy()
+    cleaned[:, :, :3] = np.clip(np.rint(out), 0, 255).astype(np.uint8)
+    return cleaned
+
+
 def build_arivus_hoxton_mod(
     ada_root: Path, arivus_root: Path, suit_unit_dir: Path, out_zip_paths: list[Path]
 ) -> None:
@@ -2427,8 +2717,10 @@ def build_arivus_hoxton_mod(
         u_tile = np.floor(uv_raw[:, :, 0].mean(axis=1, keepdims=True))
         v_tile = np.floor(uv_raw[:, :, 1].mean(axis=1, keepdims=True))
         u_img = np.clip(uv_raw[:, :, 0] - u_tile, 0.002, 0.998).ravel()
-        # source v = 1.0 is the texture top; v_img counts image rows from the top
-        v_img = np.clip(1.0 - (uv_raw[:, :, 1] - v_tile), 0.002, 0.998).ravel()
+        # Random4's UVs put v = 0 at the texture top (DirectX order): the
+        # fractional v already counts image rows downwards. Flipping it here puts
+        # the beard on the forehead and the eye quads on the chin.
+        v_img = np.clip(uv_raw[:, :, 1] - v_tile, 0.002, 0.998).ravel()
         p = (_rot(p_raw) - a_rot) * ARIVUS_SCALE + dst_anchor
         n = _rot(n_raw)
         u_atlas = u_off + u_scale * u_img
@@ -2444,15 +2736,19 @@ def build_arivus_hoxton_mod(
 
     # Unified 2048x2048 atlas: top half is opaque skin (gloss alpha 18),
     # bottom half is the alpha-cutout hair (0 / 24, ALPHA_MASKED alpha_ref 0.05).
-    def upscale_cell(name: str) -> np.ndarray:
-        im = Image.fromarray(rasters[name].rgba)
+    def upscale_cell(name: str, rgba: np.ndarray | None = None) -> np.ndarray:
+        im = Image.fromarray(rasters[name].rgba if rgba is None else rgba)
         rgb = np.asarray(im.convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS))
         alpha = np.asarray(im.getchannel("A").resize((1024, 1024), Image.Resampling.LANCZOS))
         return np.dstack([rgb, alpha]).copy()
 
     head_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_df_atlas[0:1024, 0:2048, 3] = 18
-    head_cell = upscale_cell("head_diff_000_a_whi")
+    # The ped's beard is painted, not modelled: clean-shave the raster before it
+    # is upscaled into the atlas.
+    head_cell = upscale_cell(
+        "head_diff_000_a_whi", shave_arivus_face(rasters["head_diff_000_a_whi"].rgba)
+    )
     head_cell[:, :, 3] = 18
     head_df_atlas[0:1024, 0:1024] = head_cell
     hair_cell = upscale_cell("hair_diff_001_a_uni")

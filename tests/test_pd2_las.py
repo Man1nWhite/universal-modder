@@ -1219,14 +1219,17 @@ class TestLasScaffold:
                     f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
-    def test_officesuite_carries_the_alt_suits_and_its_own_hands(self):
-        """OfficeSuite replaces the suit and jewelry diffuses and keeps the source's hands.
+    def test_officesuite_carries_the_alt_suits_and_cuts_the_palms(self):
+        """OfficeSuite replaces the suit and jewelry diffuses and cuts the hands at the palms.
 
-        OfficeSuite is the only pack of this source that is not cut at the wrists, so its
-        body drawable carries the palms and fingers the gloves used to cover, and it
-        registers no glove adapter. Its other five diffuse/normal pairs are the source's
-        own, its slim factor is the 5% the outfit was fit with, and its clearance report
-        is the trimmed shadow caster (D44, D55).
+        OfficeSuite cuts the palms exactly where they begin - on the plane through the rig's
+        `Hand` joint, perpendicular to the palm - so the body carries no palm or finger
+        geometry and stops dead on the crease (D59/D60; the palms were the outfit's own from
+        D55 until then). It registers `own_hands`, not the glove adapter: no default glove
+        and no vanilla bare-forearm piece, so the player's own glove choice is what puts a
+        hand on the character. Its other five diffuse/normal pairs are the source's own, its
+        slim factor is the 5% the outfit was fit with, and its clearance report is the
+        trimmed shadow caster (D44).
         """
         import hashlib
 
@@ -1243,15 +1246,20 @@ class TestLasScaffold:
         geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
                 for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
         body = max(geos, key=lambda k: len(geos[k]))
-        # the whole garment set, hands included; the handless builds of this source cut
-        # ~1.36k vertices at the wrists, which is why this one keeps the adapter off
-        assert len(geos[body]) == 32933, f"{len(geos[body])} vertices in the body drawable"
-        assert info["slim"]["vertices"] == 64059
+        # the whole garment set with the fingers cut away and the arm kept 1.25 cm into
+        # the palm (D62/D65), plus the 70 vertices the clip adds where its triangles
+        # cross that line
+        assert len(geos[body]) == 31666, f"{len(geos[body])} vertices in the body drawable"
+        assert info["slim"]["vertices"] == 61525
 
         assert info["registration"]["glove_adapter"] is False
+        assert info["registration"]["own_hands"] is True
+        assert info["hands"] == "palm_cut"
+        assert info["palm_cut"]["exact"] is True
+        assert info["palm_cut"]["plane"]["left"]["clipped_to_cm"] == 1.25
         assert "replace_all" not in info["registration"]["flags"]
         assert info["slim"]["factor"] == pytest.approx(0.95)
-        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 64059
+        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 61525
         assert info["clearance"]["shadow_caster_drops"] == ["bra", "panties"]
 
         tex = info["source"]["textures"]

@@ -28,14 +28,18 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   alternate suit and jewelry diffuses plus waist/hip/cuff fit adjustments, and a
   deterministic `dist/Honoka/OfficeSuite.zip` + `.sha256`. `Honoko2`..`Honoko4`, the
   earlier base/slim/alternate-suit builds of this same source, are no longer tracked
-  (D57); their bytes are in git history. `OfficeSuite` ships the source's own hands
-  (`PackSpec.hands`): the palm, fingers and the outfit's bracelet stay in the mesh on
-  the PD2 hand and finger bones, there is no wrist cut and no glove-adapter hook, so
-  it wears its own hands and no vanilla gloves. It additionally ships the first-person
-  arms unit (`fps_officesuite.model`) from the same slim/cleared arms, registered with
-  `fps_unit`, DEPTH_SCALING materials, no head, and the same hands.
+  (D57); their bytes are in git history. `OfficeSuite` cuts the hands where the palms
+  begin (`PackSpec.hands="palm_cut"`, D59/D60): the plane is perpendicular to the palm,
+  through the rig's `Hand` joint, and the mesh is clipped *on* it rather than at the
+  last wholly-proximal triangle, so the palm and fingers go, the sleeve cuff and the
+  outfit's bracelet stay, and no wrist is left standing above the cut. The rim is
+  capped. The pack registers `own_hands` - no default glove unit, no stock hands, and
+  no bare-forearm adapter - so the outfit's body simply has no hands and a glove the
+  player picks is what puts hands on the character (D60). It additionally ships the
+  first-person arms unit (`fps_officesuite.model`) from the same slim/cleared arms,
+  registered with `fps_unit`, DEPTH_SCALING materials, no head, and the same palm cut.
 * **One whole-character pack (`LegendaryArmours.officesuite_head`, D56)** — that same
-  body and hands with the Miranda Romance head, built by `--only officesuite_head`.
+  body and palm cut with the Miranda Romance head, built by `--only officesuite_head`.
 
 Earlier builds were inspected in game (`docs/renders/honoka/in-game/`).
 The latest OfficeSuite jewelry is not verified in game; see `docs/pd2-las/HANDOFF.md`.
@@ -91,9 +95,10 @@ class PackSpec:
     description: str
     slim: float = 1.0
     clearance: bool = False
-    # ships the source's own hands on the PD2 hand and finger bones; False cuts
-    # them at the wrist and leaves the heister's gloves to cover the rim
-    hands: bool = False
+    # "own" keeps the source's palms and fingers on the PD2 hand and finger bones;
+    # "palm_cut" clips them off exactly where the palm begins (D59/D60), so the
+    # outfit's body has no hands and the player's gloves are the hands on screen
+    hands: str = "own"
     tex_override: dict = field(default_factory=dict)  # garment kind -> diffuse DDS name
     # ships a first-person arms unit (the outfit's sleeves down to the wrist cut,
     # gloves spawning on top, DEPTH_SCALING materials); the TPP body is unchanged
@@ -155,9 +160,28 @@ class PackSpec:
 #: and the body, so they add no silhouette (D44)
 SHADOW_DROPS = {"bra", "panties"}
 
+#: How far past the palm line the arm is kept, along the palm axis, in cm (D62/D63).
+#: D60 cut exactly on the crease and the game then showed a gap: the heister's glove cuff
+#: starts below where the outline of a hand would be, so the arm ended in mid-air, capped,
+#: with nothing between it and the glove (user screenshots, 2026-11-25). Keeping some of
+#: the palm continues the arm down into the glove instead.
+#:
+#: The amount is set by the glove's own geometry (D63) and then by what the game showed (D65).
+#: The vanilla `g_hands` glove that the game draws starts 0.42 cm past the crease and is 3.5 cm
+#: in radius there, widening to 4.0 at 2 cm and 4.3 at 3 cm; this outfit's wrist is 3.46 cm and
+#: its palm passes the glove at about 2 cm. D63 tucked the arm 1.5 cm into the glove - a
+#: centimetre inside the rim - and the in-game screenshots of 2026-11-25 still showed a wedge of
+#: skin coming through the darker glove's cuff at the wrist bend: the arm is still growing
+#: (3.46 cm at the crease, 4.4 at 2 cm) where the glove's cuff is narrow, and the last
+#: half-centimetre of it is the fattest part. Cutting a little more takes that back - 1.25 cm,
+#: which after the 5% slim still reaches 0.6 cm, comfortably past the glove's 0.42 cm rim, so
+#: the D60 gap does not return.
+PALM_EXTEND_CM = 1.25
+
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
 #: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by
-#: the user at `main` 526480e (D45/D46), with the outfit's own hands (D55).
+#: the user at `main` 526480e (D45/D46), hands cut where the palms begin (D59, clipped on the
+#: plane since D60; they were the outfit's own from D55 until then).
 #:
 #: `Honoko2` (base proportions), `Honoko3` (5% slim) and `Honoko4` (slim, alternate suit)
 #: were built from this same source until D57; their last bytes stay reachable through git
@@ -170,14 +194,14 @@ OFFICE_SUITE = PackSpec(
     description="OfficeSuite [LAS]",
     slim=0.95,
     clearance=True,
-    hands=True,
+    hands="palm_cut",
     tex_override={"suit": "Tex_07(L_7)3.dds", "jewelry": "Tex_23(L_23)2.dds"},
     fps=True,
 )
 
 #: OfficeSuite plus the Miranda Romance head, as one whole-character LAS pack: the
 #: skin brings its own head and registers `replace_all`, so the heister's head and
-#: the mask are out of the picture (D56). Its body is OfficeSuite's, hands included.
+#: the mask are out of the picture (D56). Its body is OfficeSuite's, palm cut included.
 #: Like OfficeSuite it ships its first-person arms unit (D53/D55): a whole-character
 #: pack replaces the FP arms too, so without one the first-person view has no hands.
 OFFICE_SUITE_HEAD = PackSpec(
@@ -191,7 +215,7 @@ OFFICE_SUITE_HEAD = PackSpec(
     ),
     slim=0.95,
     clearance=True,
-    hands=True,
+    hands="palm_cut",
     head=True,
     fps=True,
     tex_override={"suit": "Tex_07(L_7)3.dds", "jewelry": "Tex_23(L_23)2.dds"},
@@ -397,8 +421,34 @@ def _scale_leg_fits_to_floor(fits: dict, model, skel_map: dict, template, target
     return k
 
 
-def _cap_wrist_cuts(g, arm_joints, margin: float = 0.5) -> int:
-    """Cap open wrist-cut rims on `honoko2_body` inside its slice block."""
+def _dominant_bones(weights, palette, vertex_ids) -> dict[str, int]:
+    """How many of the given vertices each bone dominates: what a cut removed, by bone."""
+    counts: dict[str, int] = {}
+    for vi in vertex_ids:
+        infl = weights[vi]
+        if not infl:
+            continue
+        name = palette[max(infl, key=lambda kv: kv[1])[0]]
+        counts[name] = counts.get(name, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _last_kept_cm(g, palm, r_max: float = 28.0) -> float:
+    """How far past the palm plane the surviving geometry reaches (cm, along the axis)."""
+    import numpy as np
+
+    verts = np.asarray(g.verts, dtype=np.float64)
+    origin = np.asarray(palm["origin"], dtype=np.float64)
+    axis = np.asarray(palm["axis"], dtype=np.float64)
+    rel = verts - origin
+    axial = rel @ axis
+    perp = np.linalg.norm(rel - np.outer(axial, axis), axis=1)
+    near = perp < r_max
+    return round(float(axial[near].max()), 2) if near.any() else 0.0
+
+
+def _cap_cut_rims(g, planes, margin: float = 0.0) -> int:
+    """Cap the open rim a palm-base cut leaves on `honoko2_body`, inside its slice block."""
     import numpy as np
 
     if not g.slices or g.slices[0][0] != "body":
@@ -419,25 +469,22 @@ def _cap_wrist_cuts(g, arm_joints, margin: float = 0.5) -> int:
     if not bedges:
         return 0
 
-    wrist_l, elbow_l = (np.array(v, dtype=np.float64) for v in arm_joints[-1])
-    wrist_r, elbow_r = (np.array(v, dtype=np.float64) for v in arm_joints[1])
-
     added_verts = []
     added_normals = []
     added_uvs = []
     added_weights = []
     added_faces = []
 
-    for wrist, elbow in ((wrist_l, elbow_l), (wrist_r, elbow_r)):
-        axis = wrist - elbow
-        axis /= np.linalg.norm(axis)
+    for origin, axis in planes:
+        origin = np.asarray(origin, dtype=np.float64)
+        axis = np.asarray(axis, dtype=np.float64)
         rim_edges = []
         for x, y in bedges:
             mid = 0.5 * (verts[x] + verts[y])
-            rel = mid - wrist
+            rel = mid - origin
             t = float(rel @ axis)
             perp = float(np.linalg.norm(rel - t * axis))
-            if -1.5 <= t <= margin + 0.5 and perp < 10.0:
+            if margin - 1.5 <= t <= margin + 0.5 and perp < 10.0:
                 rim_edges.append((x, y))
         if len(rim_edges) < 4:
             continue
@@ -696,14 +743,16 @@ def registration(spec: "PackSpec"):
         # The head's lashes sample a diffuse whose cutout lives in its alpha, so
         # that one travels as a single texture next to the df/nm pairs.
         textures=tuple(f"{spec.unit_base}/{slot}" for slot in spec.head_textures) if spec.head else (),
-        # An outfit that ships its own hands registers none: the adapter hook
-        # exists so that a handless cut of the outfit gets the heister's stock
-        # hands and changeable gloves back (see render_glove_adapter_lua).
-        glove_adapter=not spec.hands,
-        # An outfit that models its own hands shows them: no default glove over
-        # them, and no stock hands beside them (D58). A glove the player picks
-        # by hand still wins.
-        own_hands=spec.hands,
+        # No default glove for either mode, and no stock hands beside the outfit's
+        # own body (D58/D60). A glove the player picks by hand still spawns and
+        # wins, which is the whole point of a pack with no hands in it.
+        #
+        # The glove *adapter* stays off: it spawns the vanilla bare-forearm piece
+        # (`hnd_forearms`) to bridge a glove cuff and a short sleeve, and on this
+        # outfit that piece is a second, vanilla skin at the wrist - the thing the
+        # user rejected twice (D59's adapter, then D60).
+        glove_adapter=False,
+        own_hands=True,
     )
 
 
@@ -935,31 +984,74 @@ def build_pack(
         },
     }
 
+    # Where each palm begins: the rig's Hand joint and the axis to its knuckles (D59).
+    # It is a property of the skeleton, not of this outfit, so it is measured once.
+    palms = bm.palm_planes(template) if spec.hands != "own" else None
+    palm_planes = ([(palms[side]["origin"], palms[side]["axis"]) for side in (-1, 1)]
+                   if palms else [])
+
     groups = {}
     share = {}
     cut_report = {}
     for gname, gspec in pack_specs.items():
         g = bm.transfer_group(model, gspec, skel_map, template, gname, fits=fits, swap_winding=False)
         cut = {}
-        if not spec.hands:
-            cut = tmc_las.cut_group_at_wrists(g, bm.ARM_JOINTS)
+        if palms is not None:
+            # Before the cut, so the report can say what it took away by bone.
+            weights, palette = list(g.weights), list(g.palette)
+            cut = tmc_las.clip_group_at_palm_bases(g, palms, margin=PALM_EXTEND_CM)
+            cut["removed_bones"] = _dominant_bones(weights, palette, cut["removed_vertex_ids"])
+            del cut["removed_vertex_ids"]
+            # The only vertices a palm cut may take are hand and finger ones and, if
+            # the plane sits near the crease, forearm ones. Cutting `PALM_EXTEND_CM`
+            # into the palm takes none of the forearm's; anything that is neither a
+            # hand, a finger nor an arm bone means the plane is wrong - a leg inside
+            # the 28 cm cone, say.
+            stray = sorted(b for b in cut["removed_bones"] if not bm.is_fps_arm_bone(b))
+            if stray:
+                raise SystemExit(f"[{gname}] the palm cut took geometry off {stray}, "
+                                 "which is not a hand, finger or arm bone")
+            cut["palm_base"] = {("left" if side < 0 else "right"): {
+                "origin_cm": [round(v, 3) for v in palms[side]["origin"]],
+                "axis": [round(v, 4) for v in palms[side]["axis"]],
+                "deg_from_forearm": round(palms[side]["deg_from_forearm"], 2),
+            } for side in (-1, 1)}
         thin = tmc_las.drop_long_thin_triangles(g)
-        # A pack that ships the source's own hands keeps the wrist rims and the
-        # stock-glove cover: the heister's glove spawns over the palm, so the
-        # outfit's cuff is sealed by geometry, not by a cap.
-        cap_tris = 0 if spec.hands else _cap_wrist_cuts(g, bm.ARM_JOINTS)
+        # The rim a palm cut leaves is capped: with no hands in the pack the cut end
+        # is what the game draws until a glove spawns, and an open rim would show the
+        # inside of the sleeve in first person and in the shadow map. The rim is
+        # `PALM_EXTEND_CM` past the crease, inside the palm, so the cap looks for it
+        # there rather than at the plane.
+        cap_tris = _cap_cut_rims(g, palm_planes, PALM_EXTEND_CM) if palms is not None else 0
         cut["long_thin"] = thin
-        cut["wrist_cap_tris"] = cap_tris
+        cut["rim_cap_tris"] = cap_tris
         cut["leg_floor_scale"] = leg_floor_scale
-        if spec.hands:
-            cut["hands"] = "authored"
+        cut["hands"] = spec.hands
         cut_report[gname] = cut
         groups[gname] = g
         for d in gspec["drawables"]:
             share[d] = gname
 
+    if palms is not None:
+        # Straight after the cut, before the slim and the clearance pass: how far
+        # the surviving surface reaches past the palm line. A clip lands on the plane
+        # it was given - `PALM_EXTEND_CM` (4.00) into the palm since D62; the D60 clip
+        # landed on the crease itself (0.00), and the drop it replaced at -2.22/-2.27.
+        for side, key in ((-1, "left"), (1, "right")):
+            cut_report["outfit"]["palm_base"][key]["clipped_to_cm"] = _last_kept_cm(
+                groups["outfit"], palms[side])
+
     slim_report = _slim_groups(groups, template, spec.slim) if spec.slim != 1.0 else None
     clear_report = _clearance_pass(groups, spec) if spec.clearance else None
+
+    if palms is not None:
+        # Where the shipped mesh ends, after slim and clearance: the most distal
+        # vertex left within the 28 cm radius, measured from the palm plane. The cut
+        # itself is on the plane (`clipped_to_cm`, 0.00); the 5% slim then pulls the
+        # whole arm in towards its bones, so the rim ends a few millimetres
+        # proximal of it. This is the number "where the palm begins" resolves to.
+        for side, key in ((-1, "left"), (1, "right")):
+            cut_report["outfit"]["palm_base"][key]["kept_to_cm"] = _last_kept_cm(groups["outfit"], palms[side])
 
     head = None
     if spec.head:
@@ -985,8 +1077,8 @@ def build_pack(
 
     # The first-person unit: the same slimmed, cleared outfit arms as the
     # third-person body (the FPS skeleton shares the PD2 bind pose, so the same
-    # geometry lands where the viewmodel skeleton expects it), hands included
-    # when the pack ships them and cut at the wrist when it does not. No head
+    # geometry lands where the viewmodel skeleton expects it), with the same palm
+    # cut, so the heister's own glove shows in the viewmodel too. No head
     # drawables.
     fps: dict = {}
     if spec.fps:
@@ -1038,7 +1130,7 @@ def build_pack(
 
     (pack / "main.xml").write_bytes(lop.main_xml(reg).encode("utf-8"))
     (pack / "hooks" / f"{spec.item_id}_las.lua").write_bytes(lop.hook_lua(reg).encode("utf-8"))
-    if not spec.hands:
+    if reg.glove_adapter:
         (pack / "hooks" / f"{spec.item_id}_glove_adapter.lua").write_bytes(
             lop.render_glove_adapter_lua(spec.item_id, spec.display_name).encode("utf-8")
         )
@@ -1097,7 +1189,7 @@ def build_pack(
             "flags": list(reg.flags),
             "unit": spec.tpp_unit,
             "fps_unit": spec.fps_unit,
-            "glove_adapter": not spec.hands,
+            "glove_adapter": reg.glove_adapter,
             "own_hands": reg.own_hands,
         },
         "models_present": True,
@@ -1119,10 +1211,23 @@ def build_pack(
             "arms": {"verts": len(fps["arms"].verts), "tris": len(fps["arms"].faces)},
             "shadow": {"verts": len(fps["shadow"].verts), "tris": len(fps["shadow"].faces)},
         }
-    # Only the pack that ships the source's own hands says so; the others keep
-    # their tracked bytes, which carry no such key.
-    if spec.hands:
-        build_info["hands"] = "authored"
+    # How the hands were treated, and - for a cut - the plane it was made on, so
+    # "where the palm begins" is a number in the pack and not a claim in a doc.
+    build_info["hands"] = spec.hands
+    if palms is not None:
+        body_cut = cut_report.get("outfit", {})
+        build_info["palm_cut"] = {
+            "plane": body_cut.get("palm_base"),
+            "margin_cm": PALM_EXTEND_CM,
+            "extend_cm": PALM_EXTEND_CM,
+            # the cut splits the triangles it crosses instead of dropping them whole
+            "exact": True,
+            "tris_split": body_cut.get("tris_split"),
+            "verts_added": body_cut.get("verts_added"),
+            "removed_tris": body_cut.get("tris_dropped"),
+            "removed_bones": body_cut.get("removed_bones"),
+            "rim_cap_tris": body_cut.get("rim_cap_tris"),
+        }
     if slim_report is not None:
         build_info["slim"] = slim_report
     if clear_report is not None:

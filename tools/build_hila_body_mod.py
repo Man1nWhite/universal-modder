@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Build the native OfficeSuite + Miranda Romance replacement for Hila (no LAS).
 
-Replaces Hila's body drawable with the OfficeSuite outfit body, hands included,
-turns her stock glove drawable off and deletes it, and keeps her head drawable
-replaced by the Miranda Romance head. No wrist cut, no cuff tuck: the donor's own
-forearm, wrist and hand geometry seals the suit cuff. The shadow caster is the
-outfit caster plus the solid head, one dominant bone per vertex.
+Replaces Hila's body drawable with the OfficeSuite outfit body and her head
+drawable with the Miranda Romance head. The outfit's hands are cut where the palms
+begin, so Hila's own stock gloves - drawable, `.object` node and all - stay exactly
+as the game ships them and are what shows at the sleeve ends. The donor's forearm
+seals the suit cuff, so no cuff tuck is needed. The shadow caster is the outfit
+caster plus the solid head, one dominant bone per vertex.
 """
 from __future__ import annotations
 
 import argparse
-import re
 from dataclasses import dataclass
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -35,14 +35,19 @@ MATERIAL = f"{HILA_UNIT_DIR}/mtr_criminal_ecp_female"
 SUIT_SHADER = "generic:CONTOUR:DIFFUSE_TEXTURE:NORMALMAP:SKINNED_3WEIGHTS"
 ATLAS_ASSETS = {"diffuse_texture": f"{UNIT}_suite_df", "bump_normal_texture": f"{UNIT}_suite_nm"}
 
+#: Hila's stock glove drawable. The pack ships it exactly as the game has it: with
+#: the outfit's palms cut away (D59) it is the hand the wearer sees.
+GLOVE = "g_hands"
+
 INSTALL_NOTE = f"""OfficeSuite + Miranda Romance over Hila
 
 Extract the '{INSTALL}' folder into PAYDAY 2/assets/mod_overrides/.
 Remove other Hila body/head overrides first, including the standalone Miranda over Hila mods.
 Select Hila and her default outfit. Neither donor ZIP, LAS, SuperBLT nor BeardLib is required.
 
-This replaces Hila's default third-person body, hands and head in heists and the menu/lobby.
-The outfit's own hands replace Hila's stock gloves, so no vanilla gloves show at the wrist.
+This replaces Hila's default third-person body and head in heists and the menu/lobby.
+Her stock gloves - hand, glove and its skin - are untouched and show at the sleeve ends,
+where the outfit's own palms used to be.
 Hila's first-person arms, equipment, mask and armor behavior are not replaced.
 Alternate outfits/armor mods can hide or clip through the replacement. The build has been
 checked offline, not in the running game. Remove this folder to uninstall.
@@ -204,7 +209,7 @@ def _replace(draw: Drawable, streams: dict, faces: np.ndarray, atoms: list[dict]
 
 
 def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> dm.ModelFile:
-    """Hila's unit with the outfit body, the trimmed caster and no stock gloves."""
+    """Hila's unit with the outfit body and the trimmed caster; her gloves stay as shipped."""
     if len({s.id for s in hila.sections}) != len(hila.sections):
         raise ValueError("duplicate section IDs in native Hila model")
     nt, nw = bm._resolve_worlds(hila)
@@ -272,26 +277,9 @@ def _fit_unit(hila: dm.ModelFile, honoko: dm.ModelFile) -> dm.ModelFile:
     _replace(target_shadow, shadow_geo, topology, atoms,
              np.column_stack((np.concatenate(dominant), np.zeros((base, 2), dtype=int))),
              np.tile([1., 0., 0.], (base, 1)), nw)
-    # The stock glove mesh is vanilla Hila's; the outfit body carries her hands now.
-    return _drop_hands(hila)
-
-
-GLOVE = "g_hands"
-
-
-def _object(xml: bytes) -> bytes:
-    """Turn the stock glove drawable off: the body carries the outfit's own hands."""
-    text = xml.decode("utf-8")
-    pattern = re.compile(rf'[ \t]*<object name="{GLOVE}"[ \t\r\n]*enabled="true"[ \t]*/>\r?\n?')
-    text, count = pattern.subn("", text)
-    if count != 1:
-        raise ValueError(f"expected one enabled {GLOVE} node, patched {count}")
-    return text.encode("utf-8")
-
-
-def _drop_hands(model: dm.ModelFile) -> dm.ModelFile:
-    """Delete Hila's stock glove drawable instead of shipping unused geometry."""
-    return bm.assemble_model(bm.template(model), {}, {}, drop_drawables=(GLOVE,))
+    # Hila's stock glove drawable is what covers the palm cut: it stays in the
+    # model exactly as the game ships it, and so does its `.object` node (D59).
+    return hila
 
 
 def _material_config(xml: bytes) -> bytes:
@@ -327,9 +315,6 @@ def build(honoko_zip: Path, head_zip: Path, out: Path) -> None:
     for suffix in ("", "_cc"):
         path = MATERIAL + suffix + ".material_config"
         files[path] = _material_config(files[path])
-    for suffix in ("", "_menu"):
-        path = UNIT + suffix + ".object"
-        files[path] = _object(files[path])
     files["README.txt"] = INSTALL_NOTE.encode("utf-8")
     write_deterministic_zip({f"{INSTALL}/{name}": data for name, data in files.items()}, [out])
 

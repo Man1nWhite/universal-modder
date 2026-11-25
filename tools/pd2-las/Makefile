@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -61,8 +61,9 @@ heads:      ## the head packs (Miranda_*_over_*, Geralt_over_Rust, Arivus_over_H
 hila:       ## OfficeSuite + Miranda Romance over Hila (native body and head, no LAS) -> dist/Honoka/
 	$(call BUILD,tools/build_hila_body_mod.py)
 
-voices:     ## Miranda_Lawson_VO_over_Hila: Miranda barks over Hila's rb21 lines (BeardLib SoundsModule) -> dist/Hila/
-	$(call BUILD,tools/build_hila_voice_mod.py)
+
+voices_stream:  ## Miranda_Lawson_VO_over_Hila_Stream: the same clips as one Wwise ADPCM .stream per Hila voice-line id, no BeardLib -> dist/Hila/
+	$(call BUILD,tools/build_hila_stream_mod.py)
 
 # These consumers share base build files or read the base ZIP. Order them when
 # both goals are requested, but don't rebuild an existing base for `make heads`.
@@ -81,7 +82,7 @@ ifneq ($(filter all heads,$(MAKECMDGOALS)),)
 hila: heads
 endif
 
-all: build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices  ## every tracked pack
+all: build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

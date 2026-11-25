@@ -11,9 +11,11 @@ of them.
 
 PAYDAY 2 packs, tracked in `dist/` and rebuilt byte for byte by CI: full-body and body-only Legendary Armour
 Skins outfits (Miranda Lawson, Christie, Honoka), head replacements (Miranda, Geralt), a native
-OfficeSuite + Miranda Romance body-and-head replacement for Hila, and the fork's one audio pack —
-Miranda Lawson's barks over Hila's `rb21` voice lines as a BeardLib `SoundsModule` mod
-([packaging and install contract](docs/pd2-voice-mod-install.md)).
+OfficeSuite + Miranda Romance body-and-head replacement for Hila, and the fork's audio — Miranda
+Lawson's barks over Hila's `rb21` voice lines, as one Wwise IMA ADPCM `.stream` per voice-line id
+(`Miranda_Lawson_VO_over_Hila_Stream`, no BeardLib: [packaging and install
+contract](docs/pd2-voice-mod-install.md), and the route dissected in
+[`docs/tokoyami-hila-voice-mod-analysis.md`](docs/tokoyami-hila-voice-mod-analysis.md)).
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share.
 
@@ -21,12 +23,13 @@ pack is installed and what the pipelines share.
 
 - Browse the ZIPs and their checksum sidecars in [`dist/`](dist/): [Miranda L4D2](dist/Miranda_L4D2/),
   [Miranda Romance](dist/Miranda_Romance/), [Christie](dist/Christie/),
-  [Honoka](dist/Honoka/), and [Geralt](dist/Geralt/).
+  [Honoka](dist/Honoka/), [Geralt](dist/Geralt/) and [Arivus](dist/Arivus/).
 - [OfficeSuite + Miranda Romance over Hila](dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip) is the standalone
   native override (no LAS); see the [install notes and preview](docs/renders/honoka/model/over-hila/README.md).
 - See the user-supplied [Christie](docs/renders/christie/in-game/2026-11-15/README.md) and
   [OfficeSuite](docs/renders/honoka/in-game/officesuite/2026-11-15/README.md) screenshots,
-  [all packs](docs/renders/overview/model/all_dist_mods_sheet.png), the
+  [all packs](docs/renders/overview/model/all_dist_mods_sheet.png),
+  [Arivus over Old Hoxton](docs/renders/arivus/model/over-hoxton/README.md), the
   [older two-pack OfficeSuite and Miranda Romance preview](docs/renders/honoka/model/dae/officesuite_with_miranda_romance_over_hila_sheet.png),
   or the [render index](docs/renders/README.md). Software renders are not proof of in-game behavior;
   screenshots do not establish the installed pack hashes.

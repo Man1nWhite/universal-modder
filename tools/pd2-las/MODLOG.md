@@ -261,3 +261,346 @@ fixture) with no hook spawns a real glove over the modelled hands, and with the 
 Installing `lupa` for it is worth it — that suite had been skipped in this sandbox all along.
 `OfficeSuite`'s and `OfficeSuite_Head`'s geometry and textures are unchanged; the zips gain the one
 hook and the `main.xml`/`BUILD_INFO` lines that name it.
+
+## 2026-11-25 — the palms come off, and where the palm begins is a number
+
+The user reversed D55: "remove the palms from the OfficeSuite packages and make explicit where the
+palm begins", scoped to `OfficeSuite`, `OfficeSuite_Head` and the native Hila override (D59). The
+boundary is the palm's starting line, not the wrist joint.
+
+`build_models.palm_planes` defines it on the rig: origin = the `Hand` joint (the same point
+`ARM_JOINTS` calls the wrist), axis = mean of `Hand{Index,Middle,Ring,Pinky}1` minus that joint. On
+the 2B bind pose that axis is 3.98° off the forearm axis — the heel of the hand, which is what a
+wrist-plane cut leaves on the sleeve. `tmc_las.cut_group_at_planes` is the generalised cut (the old
+`cut_group_at_wrists` is now a wrapper over it, same cone radius of 28 cm, same rim behaviour);
+`cut_group_at_palm_bases` is the palm wrapper — and the wrist wrapper drops the new
+`removed_vertex_ids` key from its report, because the two Christie packs persist that report in
+their `BUILD_INFO.json` and their tracked bytes must not move (they rebuilt byte-identically). `PackSpec.hands` became a mode, `"own"` or
+`"palm_cut"`, and both OfficeSuite specs are `"palm_cut"`.
+
+`BUILD_INFO.json` now carries what "where the palm begins" resolves to, per side: `origin_cm`,
+`axis`, `deg_from_forearm`, `kept_to_cm` (how far short of the plane the shipped mesh ends, measured
+after the slim and clearance passes), plus `removed_tris`, `rim_cap_tris` and the vertex count per
+bone the cut took. On the tracked bytes: 2,276 triangles removed, 25 cap triangles, 2.22 cm / 2.27 cm
+short of the plane, 31,577 body vertices (61,347 after the 5% slim). The build now fails if the cut
+would remove geometry dominated by anything but a hand or the forearm edge.
+
+Registration went back to the adapter: `glove_adapter = true`, `own_hands = false`, and the packs
+ship `officesuite_glove_adapter.lua` / `officesuite_head_glove_adapter.lua` instead of
+`*_own_hands.lua`. `build_hila_body_mod.py` lost the glove deletion: her `g_hands` node stays
+enabled in both `.object` files, her glove block stays in the unit model, and no `.object` is
+patched at all any more — there is nothing to gate, because her gloves are the hands now.
+
+Tests: new `tests/test_palm_cut.py` pins the landmark to the rig, the record to the mesh and the
+mesh to the landmark; the OfficeSuite tests in `tests/test_pd2_las.py` and the whole-character
+invariant in `tests/test_pd2_las_invariants.py` follow the new facts (31,577 vertices, the adapter
+back, no hand-dominated vertex). `tests/test_hila_body_override.py` inverted its glove assertions:
+the two models and the two material configs are the only changed files, the glove block and its
+node survive, the hands are gone from the body. The render sheets were re-rendered; the native-Hila
+sheet draws her stock gloves flat-shaded, because their material samples a vanilla glove texture
+that a replacement pack does not ship.
+
+`runtime_verified` stays `false` in both packs; the wrist and glove steps are in
+`docs/pd2-las/in-game-checklist.md`.
+
+## 2026-11-25 — the palm cut moves onto the plane, and the vanilla wrist skin comes off
+
+The D59 build was seen in game. The user's screenshot showed, from the sleeve down: bare forearm, a
+salmon band with a seam in it, then the black glove. That band is `hnd_forearms`, the vanilla *bare
+forearm* the glove adapter spawns between a glove cuff and a short sleeve — a second, vanilla skin at
+the wrist, drawn outside the outfit and impossible to hide with our material or geometry. Their
+instruction: *"Forbid using previous method. Go back to previous version. AND ONLY REMOVE the palm
+and fingers. So the standard skin should have no hands. You should remove exactly where palm begins.
+But choosing another gloves would give those gloves."* (D60.)
+
+Two changes, one per half of that:
+
+- **The cut is made on the plane.** `tmc_las.clip_group_at_planes` splits a straddling triangle where
+  its edges cross the plane, interpolates position, normal, UV and skin weights at the crossing,
+  drops the distal part and keeps the proximal one; crossing points are cached per *edge*, so
+  neighbouring triangles share them and the rim stays one watertight loop for `_cap_cut_rims`.
+  `cut_group_at_planes` is untouched, so the two Christie packs still rebuild byte-identically.
+  `cut_group_at_palm_bases` stays as the coarse form; the build now calls
+  `clip_group_at_palm_bases`. On the tracked bytes: `clipped_to_cm` 0.00 both sides (was 2.22/2.27
+  short), 64 triangles split, 66 vertices added, 2,276 triangles removed, 68 cap triangles,
+  31,643 body vertices (61,479 after the 5% slim) and `kept_to_cm` −0.76/−0.79 — the last two
+  hundredths of that are the slim pulling the arm in, not the cut.
+- **Registration goes back to D58's hook.** `glove_adapter = false`, `own_hands = true`: no default
+  glove unit spawns and the stock hands stay hidden, so the pack's own body — hands cut off — is
+  what shows, and a glove the player picks by name is the only thing that puts hands on the
+  character. `render_own_hands_lua`'s docstring and file header now say so, and say why the adapter
+  is not the answer. The Hila override keeps its `g_hands` drawable and glove block, unchanged from
+  D59, because a chosen glove needs somewhere to land.
+
+`BUILD_INFO.palm_cut` gained `exact`, `tris_split`, `verts_added` and per-side `clipped_to_cm`;
+`registration` flipped both flags. Tests: `tests/test_palm_cut.py` gained a box test that shows the
+difference in one place (the clip ends exactly on the plane with one closed rim loop of eight edges;
+the whole-triangle drop keeps nothing above the plane's last full face) and the pack tests now pin
+`exact`/`clipped_to_cm`/`kept_to_cm` and the flipped registration;
+`tests/test_pd2_las.py::test_officesuite_carries_the_alt_suits_and_cuts_the_palms` carries the new
+vertex counts (31,643 / 61,479) and the flipped flags;
+`tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head` carries them for
+the head pack. All five render sheets of these packs were re-rendered, and the native-Hila caption no
+longer claims her gloves cover the cut in game.
+
+`runtime_verified` stays `false`: D59's bytes are the ones that were seen, these have not been.
+
+## 2026-11-25 — only the streamed voice pack ships
+
+The user asked for `dist/Hila/Miranda_Lawson_VO_over_Hila.zip` to go, keeping only the `_Stream`
+pack (D61). The BeardLib pack was the route that was installed on 2026-11-24 and never played a
+line; the id-keyed `.stream` pack was heard working on 2026-11-25. So: the zip and its `.sha256` are
+deleted, and everything that would have built it back is deleted with it — the `voices` make target,
+the `voices` stage in `fresh.py`, and `status.TARGETS`' entry for the pack.
+
+`tools/build_hila_voice_mod.py` was the BeardLib builder *and* the clip library the stream pack
+imports, so it is now `tools/hila_voice_clips.py`: the archive listing, the picks and splits, the
+cutters, `match_level` at `-1.5 dBFS` and the stem heuristic stay, the `<Sounds>` XML, the README and
+`mod.txt` text, the zip writer and the packaging `main()` go. `main()` now only refreshes the tracked
+`hila_slot_pieces.csv` build manifest (run it directly; it has no make target, since it builds no pack),
+which is what `fit_hila_intents.py` also writes. `tests/test_hila_voice_pack.py` became
+`tests/test_hila_voice_picks.py`: the route-independent half is kept (a pick for every slot, no name
+in the text that is supposed to be cut out, real windows), the `<Sounds>` keying tests go with the
+route, and a new test pins the packaging — no BeardLib zip in `dist/Hila`, no target or `fresh` stage
+that builds one, no builder file. `tests/test_hila_cut_edges.py` follows the rename.
+
+Docs: `docs/pd2-voice-mod-install.md` now opens on the one pack that ships, with §1–§6 marked as the
+record of the dropped route; `voice_lines_vox/README.md`, `tools/README.md`, `tools/pd2-las/README.md`
+and the in-game checklist follow; `HANDOFF.md`'s row records the pack as dropped rather than as an
+install-environment failure.
+
+## 2026-11-25 — the streamed voice pack is heard in game; two clips are cut again
+
+The user installed `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` and reported that it **works**:
+Hila's barks are Miranda's through the id-keyed route, which the BeardLib pack did not manage on
+2026-11-24. The same report named two clips whose cuts land inside a word:
+
+- `civ.down` — `procer_cover_tutorial_a_S_INT.011.ogg` 0.020–1.020, heard as "keep you head down,
+  Shep". The 1.020 edge is 0.2 s inside "Shepard": the name's "sh" starts at 0.82 s (4–9 kHz is
+  65–84% of the energy from there) and runs to 1.20 s, so the clip ended mid-name.
+- `call_teammate.hey_you` — `profre_cover_tutorial_a_S_INT.002.ogg` 1.310–2.180, heard as "just
+  you". The 1.310 edge is on the "-ard" of "Shepard," and 2.180 is inside the next word's fricative,
+  so the clip carried a fragment at each end around "you take point".
+
+Both edges are now measured rather than eyeballed, on the same acoustic reading: level per 20 ms
+plus the share of energy between 4 and 9 kHz, which separates a fricative ("sh", "t") from the
+nasal and vowel tails around it. `civ.down` is **0.020–0.810** (ends in the 0.78–0.80 gap, 0% high
+band, with the "sh" of the name at 0.82 untouched) and `call_teammate.hey_you` is
+**1.450–2.105** (the `-ard` behind the start, the closing fricative after the end, the plosive
+closure of "point" inside). Clips: 0.79 s and 0.66 s instead of 1.00 s and 0.87 s, so the stream
+zip is 13.9 MB rather than 14.9 MB and 204 ids carry the shorter audio.
+
+`slot_picks.csv` and `hila_intent_fit.csv` carry the new windows and say what the edges were moved
+onto; `tools/build_hila_voice_mod.py` regenerated `hila_slot_pieces.csv` from them on the rebuild.
+Both packs were rebuilt (`voices`, `voices_stream`) — the BeardLib twin ships the same two clips as
+OGG.
+
+`tests/test_hila_cut_edges.py` decodes the two source oggs out of the tracked archive (with the
+pinned `py7zr` and `imageio-ffmpeg`, no skip) and pins the edges: the `civ.down` cut ends on a 0%
+high-band tail with 80%-high-band speech starting at the edge, and the `hey_you` clip is gap to gap
+with the "t" burst and the "point" closure inside it. It is the test that would have caught the
+clip the user heard.
+
+Nothing else was listened to line by line; the other picks have not moved. `runtime_verified` stays
+`false` in both packs, and `HANDOFF.md` records the 2026-11-25 report as a *partial* — the route is
+confirmed, the tracked bytes are not what was heard.
+
+## 2026-11-25 — the arm is cut 4 cm past the palm line, so it ends inside the glove
+
+The D60 build was seen in game, at the wrist. Two screenshots from the user showed what the cut had
+done: the arm ended in a flat cap in mid-air, with the heister's black glove cuff below it and a
+visible gap between the two. Their instruction: *"you need to extend forearms a bit"* (D62).
+
+The cut was in the right place and the wrong one at once. D60 put it exactly where the palm begins,
+which is the right landmark for "no hands", but a PD2 glove is modelled around a hand, so its cuff
+starts below the outline of one and never meets a cut made on the crease. The fix is to extend the
+arm into the glove, not to add anything: `PALM_EXTEND_CM = 4.0` in `build_honoko2_dae.py` is passed
+as `margin=` to `tmc_las.clip_group_at_palm_bases`, so the split plane moves 4 cm along the palm's own
+normal, into the palm, and `_cap_cut_rims` caps the ring in a window of `margin − 1.5 .. margin + 0.5`
+cm instead of around the plane. No spawned piece, no adapter, no vanilla skin: D60's registration
+stands exactly as it was.
+
+Four centimetres is under two thirds of a palm's length, so no finger geometry comes back: the cut
+now takes no forearm-dominated vertex at all (the `ForeArm` entries left `removed_bones`), and what
+survives at the rim is `Hand` (152/153 vertices) plus the thumb's *base* — the thenar, 15 vertices a
+side — which is the palm's own proximal few centimetres and what makes the end continuous with the
+wrist. On the tracked bytes: `clipped_to_cm` 4.00 both sides, `kept_to_cm` 3.97/3.99 (the slim
+pulling the arm in, again), 76 triangles split, 78 vertices added, 2,070 triangles removed, 88 cap
+triangles, 31,804 body vertices (61,801 after the 5% slim). Packs: `OfficeSuite` 5,766,633 B,
+`OfficeSuite_Head` 10,384,852 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,855,124 B.
+
+`BUILD_INFO.palm_cut` records `margin_cm` (the plane the split used) and `extend_cm` (what the module
+asked for), so a build cannot drift from the source number without saying so. Tests: the pack tests
+in `tests/test_palm_cut.py` pin both fields at 4.0, the shipped mesh reaching 3.8–4.0 cm past the
+palm line and no further, and the thenar as the only finger bone left; the stray-bone assertion is
+now `[]` rather than `["LeftForeArm", "RightForeArm"]`, and the whole-triangle rim expectation follows
+the moved window. `tests/test_pd2_las.py` carries the new vertex counts and `clipped_to_cm`, and
+`tests/test_hila_body_override.py::test_the_outfits_hands_end_where_the_palm_begins` follows the
+override's body into the palm instead of stopping it at the crease. The
+sheets under `docs/renders/honoka/model/` were re-rendered.
+
+`runtime_verified` stays `false`: the D60 bytes are the ones that were seen, these have not been. The
+in-game checklist's wrist step now asks that the cap sit inside the glove with no gap above it.
+
+## 2026-11-25 — the extension is 1.5 cm, not 4: the glove is only so big inside
+
+The D62 build was seen in game at the wrist, and the user's answer was three words long:
+*"Too much."* Two screenshots showed the arm reaching the glove and coming out of it — the palm's
+surface showing through and around it. The gap was closed; the fix overshot.
+
+Where the limit is can be measured, because the glove is in the repository. The game draws
+`g_hands`, and `references/npc_criminals_ecp_female.7z` carries one on the same rig: its `Hand`
+joint sits at `[-45.98, 18.69, 124.47]` where this body's palm origin is at
+`[-45.99, 18.70, 124.47]`. Measured along this body's palm axis, that glove starts **0.42 cm past
+the crease** and is **3.5 cm in radius at its rim**, 4.0 at 2 cm, 4.3 at 3 cm. This outfit's wrist
+is 3.46 cm in radius, its palm 4.4 at 2 cm and 5.6 at 3. So there is about a centimetre and a half
+of glove the arm fits inside, and past that the palm is wider than the glove and comes through it.
+
+`PALM_EXTEND_CM` is 1.5. Renders of the same body cut at 1.0, 1.5, 2.0 and 2.5 cm, with that glove
+composited over it (flat-shaded, three angles), were compared before choosing: 1.0 leaves the
+slim-pulled end at 0.27–0.33 cm, short of the 0.42 cm rim; 2.0 and 2.5 show the silhouette breaking
+at the cuff. On the tracked bytes: `clipped_to_cm` 1.50 both sides, `kept_to_cm` 0.90/0.83 (the 5%
+slim pulls the end back about half a centimetre at this depth), 67 triangles split, 69 vertices
+added, 2,224 removed, 71 cap triangles, 31,674 body vertices (61,541 after the slim). At 1.5 cm the
+cut is still inside the wrist, so **no vertex of the shipped body is dominated by a hand or finger
+bone at all** — D62's kept thenar is gone with the rest of the palm, and only the rim carries a
+handful of forearm-dominated ones. Packs: `OfficeSuite` 5,739,451 B, `OfficeSuite_Head`
+10,357,873 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,830,470 B.
+
+`BUILD_INFO` records 1.5 in both `margin_cm` and `extend_cm`. Tests: `tests/test_palm_cut.py` pins
+the reach to 0.6–1.5 cm **and** past the glove's 0.42 cm rim, drops the thenar allowance and lets
+the rim take a handful of `ForeArm` vertices; `tests/test_pd2_las.py` carries 31,674 / 61,541 and
+`clipped_to_cm` 1.5; `tests/test_hila_body_override.py` carries the same body and cut. The sheets
+and their captions were re-rendered at the new depth.
+
+`runtime_verified` stays `false`: D60 and D62 are the builds that were seen, this is the third
+answer to the same wrist, and the checklist's wrist step is what settles it.
+
+## 2026-11-25 — two barks are picked again: "No calls." and "Stop."
+
+The user listened to the stream pack in game and named two lines (D61's route, so these are the
+shipped clips):
+
+- **`civ.nophone`** was "There's nothing we can do," — despair, not the warning the bark is: Hila's
+  line for it is *"If you try to make a phone call, it would be your last."* The pack has no phone
+  line at all (no "phone", "call", "police" or "cops" anywhere in the 866 transcripts), so the pick
+  is now the one take that reads as *don't do that*: **"I'd rather we didn't."** —
+  `norvx_starter_h_S_INT.006.ogg`, `0.000-0.960` (the whole file: the line to 0.82, the "didn't"
+  release to 0.95, then the gap).
+- **`cop.hands`** played as a chopped "smi". It was cut `0.420-0.650` of
+  `norvx_relationship_03_h_S_INT.037.ogg` = *"and stop smiling, dammit."*, and 0.42 is where the
+  **next** word starts. Measured on the source: "and" runs to 0.08, the `/s/` of "stop" is
+  0.10-0.17, the `/t/` closure 0.19-0.22, the `/ɑ/` 0.22-0.32, the `/p/` decays by 0.34, then
+  silence to 0.40 — and 0.42 is a 53%-high-band fricative, the `/s/` of "smiling". The pick is now
+  `0.090-0.360`: the word itself, from its own `/s/` to the gap after the `/p/`.
+
+Both are edge measurements, not guesses, and `tests/test_hila_cut_edges.py` now measures them
+again: the `cop.hands` test asserts a fricative in the head of the clip, a high-band-free vowel in
+the middle, a gap at the end, and — so the diagnosis cannot go stale — that 0.420 s is still the
+fricative it was mistaken for; the `civ.nophone` test asserts the take is whole, from its first
+sound to the gap after it. `voice_lines_vox/README.md`'s "known gaps" list says the same in one
+line each.
+
+`slot_picks.csv` carries the two rows with their reasoning, `hila_intent_fit.csv` and
+`hila_slot_pieces.csv` were regenerated by `tools/fit_hila_intents.py`, and
+`dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` was rebuilt: 13,926,249 B against 13,926,657.
+`runtime_verified` stays `false` for the pack; the two new clips are unheard, and the checklist's
+voice step is what settles them.
+
+## 2026-11-25 — the Arivus face is shaved properly (D64)
+
+"And improve Arivus more", on the evidence of the offline portrait, which showed a black crescent
+around each ear, a straight seam down each side of the face and across the jaw, and a flat lower
+face. All three came from `shave_arivus_face`:
+
+- The crescent was the ear protect ellipse being smaller than the sideburn painted over it, with a
+  `MaxFilter(9)` "ring" that inpainted *around* the ellipse instead of over the beard outside it.
+- The seam was the harmonic fill's box (`y 130:356, x 128:400`) ending in a hard edge.
+- The flat jaw was one median skin tone (`lum 146.8` against the chin's `98.5`) relaxing across the
+  whole U, and a mask that stopped at the geometric hairline while the painted beard edge is soft —
+  which also left a reddish stipple at 30–40% coverage.
+
+The mask now grows along the beard (every pixel darker than 90% of this raster's own skin level,
+stopping at the ear's lighter rim), the fill is relaxed from the clean skin ring around it and then
+tone-matched to that ring at a ±15% gain, the raster's own pore-and-freckle structure is added at
+1.10x from a clean patch, and the result is feathered into the untouched skin over 2.5 px. The lips
+are measured rather than boxed (redness 52..64 against the moustache's 35, `x 210..298, y
+252..292`), the mouth slit is kept by taking each column's span between its top and bottom lip
+pixel, and nothing is dilated past the lip — one pixel of dilation is enough to paste a dark lip
+liner back on.
+
+Measured: dark pixels in the beard box fall from 73.0% to 0.48%; the jaw's high-pass structure is
+6.40 against the clean cheek's 9.62 (0.67 of it, and zero before); the mask's bottom row steps no
+more than the rows inside the face; ears, brows and lips change by at most four pixels; the alpha
+channel and the 512x512 layout are untouched. `tests/test_arivus_shave.py` holds all of it, plus
+that two runs are byte-identical. Sheets re-rendered with `--unified`; the pack is 8,436,333 B
+(`7056d2476ab5`) against 8,281,629.
+
+`runtime_verified` stays `false`: the portrait is a software Z-buffer with diffuse textures, and
+the in-game checklist's Arivus step is what settles whether the shave reads as skin.
+
+## 2026-11-25 — the wrist cut a little shorter, the shave only on the beard
+
+Two reports from the game, both actionable.
+
+**`OfficeSuite_Head` (D65).** *"Pretty close, just need to cut a bit more."* The hands are off and
+the cuff covers the wrist, but the in-game screenshots show a wedge of skin through the glove's cuff
+at the wrist bend. `PALM_EXTEND_CM` goes 1.5 → **1.25**: the last half-centimetre of the arm is its
+fattest (4.0 cm in radius against the glove's cuff at 3.5–3.9) and that is the part finding its way
+through. Measured: `kept_to_cm` 0.61 / 0.53 after the slim, both still past the glove's 0.42 cm rim,
+`g_body` 31,666 vertices (61,525 slimmed), no hand-dominated vertex. Packs: `OfficeSuite`
+5,737,727 B, `OfficeSuite_Head` 10,356,127 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,828,794 B.
+
+**Arivus (D66).** *"Still need work on textures."* The portrait showed it: D64's mask grew from the
+beard through every pixel darker than 90% of the raster's own skin level, and on this raster that is
+the *whole face* - so the flood repainted the cheeks, the nose's flank and the eye sockets, and its
+bounding box left a soft rectangle. The growth is now a rim of 8 px around the geometric beard
+(`MaxFilter(17)`); the face keeps its own shading. Two follow-ons: below the mouth slit, pixels
+darker than 70% of skin go back to the mask (the ped paints hairs onto the skin under the lower lip
+and a few passed the lip test, which is what pasted a "soul patch" on), and stranded single hairs
+inside the filled area are swept into the local fill. The shave now changes 18.9% of the raster
+instead of repainting the face; the chin patch goes from luminance 94.3 to 123.4. Pack 8,433,226 B
+(`6b356c19e0d8`).
+
+`tests/test_arivus_shave.py` holds the new behaviour (including the chin patch and the unchanged
+lips), and the sheets were re-rendered. `runtime_verified` stays `false` for every pack involved.
+
+## 2026-11-25 — `call_teammate.hey_you` is one shouted "You"
+
+The user heard the re-picked three-word clip ("you take point", 0.667 s) as just "you" and said what
+they wanted: *"She just needs to shout 'you'."* The pack's own bytes were not the problem — decoded
+from the shipped `.stream`, the clip is 0.29 s of three syllables — so the conclusion is that the
+game stops these lines earlier than ours run, and the answer is a line that is *one word*.
+
+The pick is now the **"You" of "You don't know what my father wants for her."**
+(`twrvxl_oldfriend_d_S_INT.043.ogg`, `0.000-0.300`): the /j/ onset at 0.06, the stressed /u/ peaking
+-9.6 dBFS at 0.16-0.20, and the decay into the /d/ closure at 0.29-0.31, which is where the cut ends
+— "don't" starts at 0.33, so nothing of it is in the clip. It is the most emphatic bare "you" in the
+866 transcripts: no /l/ of "you'll", no following word. Level-matched to -1.4 dBFS peak like every
+other bark, and short enough (0.289 s) that a third of it cannot be all the game plays.
+
+`tests/test_hila_cut_edges.py` measures it again — silence at the head, the vowel within 3 dB of the
+clip's loudest point, the tail inside the closure, and the next word still where the cut assumes it
+is — and `slot_picks.csv`, `hila_intent_fit.csv` and `hila_slot_pieces.csv` carry the new row. The
+stream pack is rebuilt: 12,608,121 B (`6b7d827dfe93`) against 13,926,249.
+
+## 2026-11-25 — Arivus takes its skin tone from the jaw it meets
+
+**Arivus, the colour (D69).** *"Work more on Arivus texture - check renders."* The portrait from D66
+still showed a grey mask over the jaw. The tone match was using the raster's global skin patches
+(172,134,123), which are the **forehead**, not the jaw's skin: measured around the beard, the clean ring
+is ≈ (148,105,90), a much warmer value. Using the pale median as the reference desaturates the fill into
+soot — the numbers can be made to agree with the forehead and it still looks wrong, because it is chroma,
+not level, that reads as a mask. The fill now keeps its own luminance and is pulled 68% toward the
+**local** ring's chroma, level-matched to that ring within ±10%, feathered 5 px, with the ring selection
+widened to `clip(smooth(9) − smooth(4)) > 0.12` so it is a thin band just outside the mask rather than a
+box. Final field (136.9, 101.1, 89.5) against the jaw ring's own (148, 105, 90) and the pale
+(172, 132, 123) the old code had been matching; jaw luminance 110.5 ± 6.1 where it was 64.8 ± 41.4. Two
+pins in `tests/test_arivus_shave.py` were rewritten to the new, deliberate behaviour: the beard is gone
+in the sense that matters — 73% of the box was stubble-dark and 12% is now dark at all, but the hair's
+strokes are what has to go, so the test also pins the box's high-pass energy at 18.2 → 7.0 (< 55% of
+before) — and the lower lip lifts by 18 rather than 29, because the fill keeps its own light instead of
+being flattened. Then the sheet changed the code twice more: the blend is faded outward over ~9 px
+rather than stamped on a grown zone (a binary zone leaves a soft rectangle of its own), and the
+sideburn boxes were widened to the ears, where the old ones stopped 18 px short and left a strip of
+painted stubble in front of them. Pack: 8,420,283 B (`55cc0fc55b35`).

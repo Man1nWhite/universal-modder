@@ -73,9 +73,10 @@ class Registration:
     pairs: tuple = ()
     textures: tuple = ()            # textures registered on their own, by full name
     glove_adapter: bool = False     # the pack ships <item id>_glove_adapter.lua
-    # <item id>_own_hands.lua: default gloves resolve to no unit, so the hands
-    # modelled into the outfit are the ones that show. A glove the player picks
-    # by hand still spawns and wins (the user's rule, D58).
+    # <item id>_own_hands.lua: default gloves resolve to no unit and the stock hands
+    # stay hidden, so the outfit's own body is what shows - its modelled hands, or
+    # the cut where they would be. A glove the player picks by hand still spawns and
+    # wins (the user's rule, D58/D60).
     own_hands: bool = False
 
 
@@ -224,12 +225,14 @@ end)
 
 
 def render_own_hands_lua(item_id: str, label: str) -> str:
-    """Hook that makes an outfit's own modelled hands the default, never a glove.
+    """Hook that gives an outfit no default glove, so nothing is drawn over it.
 
-    The rule (D58): an outfit that models hands into its unit shows those hands,
-    and no vanilla glove is drawn over them — unless the player deliberately
-    equips a glove, which still spawns and wins, the way the game normally
-    treats a chosen glove.
+    The rule (D58, extended by D60): the outfit's own body is what shows on the
+    arms. An outfit that models hands into its unit shows those hands; an outfit
+    whose hands are cut off shows the cut - and in neither case does the game
+    spawn a glove the player did not ask for. A glove the player deliberately
+    equips still spawns and wins, the way the game normally treats a chosen
+    glove, and that is the only thing that puts a hand on a handless outfit.
 
     What this pins, and why it needs saying at all:
 
@@ -248,10 +251,11 @@ def render_own_hands_lua(item_id: str, label: str) -> str:
     * ``body_replacement.hands`` stays **true**, as LAS sets it for
       ``replace_all``/``replace_body``. That is not a detail: BeardLib treats
       ``get_glove_value() == false`` as "no glove unit", and the stock hands are
-      hidden only while ``hands`` is true - so the outfit's own hands are the
-      only hands. Setting ``hands = false`` here (the opposite of the
-      no-hands adapter hook) would reveal the heister's bare stock hands on a
-      replaced body next to the modelled ones, which is exactly the double-hands
+      hidden only while ``hands`` is true - so what the outfit's own body has on
+      its arms is all there is. Setting ``hands = false`` here (the opposite of
+      the adapter hook) would reveal the heister's bare stock hands next to the
+      modelled ones, and on a cut-handed outfit it would leave a strip of vanilla
+      wrist skin between the sleeve and the cut, which is the double-hands
       failure the adapter hook warns about.
 
     What it deliberately does **not** do: it does not touch the glove
@@ -259,23 +263,32 @@ def render_own_hands_lua(item_id: str, label: str) -> str:
     themselves. A named glove (``bonemittens`` and the like) still resolves to
     its unit and replaces the hands - the player's explicit choice wins.
 
+    In particular it does **not** re-enable the bare-forearm adapter the way
+    :func:`render_glove_adapter_lua` does. That adapter spawns ``hnd_forearms``,
+    a vanilla bare forearm, to bridge a glove cuff and a short sleeve; on an
+    outfit whose sleeve ends mid-forearm it draws a second, vanilla skin band at
+    the wrist, above the glove and below the sleeve. That is D59's mistake and
+    the reason this hook is the one the OfficeSuite packs ship (D60).
+
     ``item_id`` names the outfit; ``label`` is the pack in the file's first line.
     """
     key = f"las_{item_id}"
-    return f"""-- {label} LAS: the outfit's own modelled hands, never a default glove.
--- D58. "Default" gloves must resolve to no glove unit, so the hands this pack
--- models are the ones that show. A glove the player picks by hand still spawns
--- and wins. See las_outfit_pack.render_own_hands_lua for the full rationale.
+    return f"""-- {label} LAS: no default glove over the outfit's own body, hands or no hands.
+-- D58/D60. "Default" gloves must resolve to no glove unit, so what this pack
+-- models on the arms is what shows - and this pack models no hands. A glove the
+-- player picks by hand still spawns and wins. No bare-forearm adapter: it would
+-- put a vanilla skin band at the wrist. See render_own_hands_lua for the rest.
 Hooks:PostHook(BlackMarketTweakData, "init", "{item_id}_OwnHands", function(self)
 \tlocal ps = self.player_styles and self.player_styles["{key}"]
 \tif not ps then return end
 
 \t-- No glove unit for "Default". BeardLib reads this value, and `false`
-\t-- means "spawn nothing"; the modelled hands stay.
+\t-- means "spawn nothing"; the outfit's own body stays as built.
 \tps.default_glove_id = false
 
-\t-- The body still replaces the stock hands. This is what makes the modelled
-\t-- hands the only ones: with the stock hands visible there would be doubles.
+\t-- The body still replaces the stock hands. This is what makes the outfit's
+\t-- own body the only thing on the arms: with the stock hands visible there
+\t-- would be doubles, and on a cut-handed outfit a strip of vanilla skin.
 \tif ps.third_body_replacement then ps.third_body_replacement.hands = true end
 \tif ps.body_replacement then ps.body_replacement.hands = true end
 end)

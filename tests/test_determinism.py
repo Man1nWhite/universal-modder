@@ -270,4 +270,4 @@ def test_two_traces_are_compared_by_function(tmp_path):
     assert len(fresh.tracked_zips()) == 21
     assert list(fresh.BUILDERS) == [
         "miranda", "busty", "lawson", "heads", "honokodae", "christie", "cloverchristie", "hila",
-        "voices", "honokodae_head"]
+        "voices_stream", "honokodae_head"]

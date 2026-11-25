@@ -1122,7 +1122,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Held to:** the invariants (`tests/test_pd2_las_invariants.py`, `_stems`) read the `fps_officesuite`
   model; `fresh` rebuilds and compares the tracked bytes.
 - **Source:** `tools/pd2-las/build_honoko2_dae.py`
-- **Status:** holds.
+- **Status:** holds, except where the cut is named: the arms unit is cut where the palm begins since
+  D59 (not at the wrist as written above), and it registers the adapter again.
 
 ### D54 — `Honoko5` is renamed to `OfficeSuite`
 
@@ -1170,7 +1171,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PackSpec.hands`, `build_pack`, `registration`),
   `tools/build_hila_body_mod.py` (`_fit_unit`, `_drop_hands`, `_object`),
   `tools/pd2-las/build_models.py` (`template`)
-- **Status:** holds; `runtime_verified` stays `false` — the new wrists are checked offline only.
+- **Status:** superseded by D59 (2026-11-25): the palms are cut again, at the palm's starting
+  line rather than at the wrist joint, both LAS packs register the glove adapter again, and the
+  Hila override keeps her stock `g_hands`. `runtime_verified` was never claimed.
 
 ### D56 — `OfficeSuite_Head` is a separate whole-character pack, not a change to `OfficeSuite`
 
@@ -1200,9 +1203,10 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   alpha is the cutout. The pack's material and gloss invariants name that shader explicitly instead
   of assuming every skin slot is a `generic` diffuse+normal pair.
 - **Held to:** `tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head`
-  (`replace_all` and `hide_mask` set, `replace_body` not, no glove adapter, `g_body` and `g_head` in
+  (`replace_all` and `hide_mask` set, `replace_body` not, `g_body` and `g_head` in
   one model, the head bound above the collar and never to the hips, no FPS unit); the per-pack
-  invariants now run over `OfficeSuite_Head` too.
+  invariants now run over `OfficeSuite_Head` too. D59 put the glove adapter back on both packs: the
+  body ships no hands for the adapter to double.
 - **Rejected:** adding the head to `OfficeSuite` (offered; the user chose a separate pack); the full
   LAS-head port (offered; the user chose the existing Hila-override head); keeping the mask usable.
 - **Status:** holds; `runtime_verified` stays `false` — the head fit is checked offline only.
@@ -1227,7 +1231,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `Honoko3` (`test_honoko4_and_officesuite_are_honoko3_in_the_alt_suits`,
   `test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster`,
   `test_honoko3_is_honoko2_slimmed_about_the_bones`) are now
-  `test_officesuite_carries_the_alt_suits_and_its_own_hands`,
+  `test_officesuite_carries_the_alt_suits_and_its_own_hands` (renamed
+  `test_officesuite_carries_the_alt_suits_and_cuts_the_palms` by D59),
   `test_officesuite_opens_the_layer_gaps_and_trims_the_shadow_caster` and
   `test_officesuite_slims_about_the_bones_and_stays_on_the_floor`. They assert the same properties —
   the override diffuses and their source hashes, the hands and the absent glove adapter, four shadow
@@ -1280,5 +1285,452 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   against the real LAS loader, including the fixed-LAS regression and the chosen-glove case).
 - **Rejected:** removing the glove option for these outfits (offered; the user chose to let a
   chosen glove win); leaving the guarantee implicit in LAS's bug.
-- **Status:** holds; `runtime_verified` stays `false` — this is modelled against the verbatim LAS
-  loader and the ported BeardLib logic, not seen in the game. The in-game checklist has the step.
+- **Status:** holds, and since D60 it is the hook the handless packs ship too: `default_glove_id =
+  false` plus stock hands hidden is exactly what an outfit with no hands in its mesh wants, and it
+  is what `OfficeSuite` and `OfficeSuite_Head` register. `runtime_verified` stays `false` — this is
+  modelled against the verbatim LAS loader and the ported BeardLib logic, not seen in the game. The
+  in-game checklist has the step.
+
+### D59 — The OfficeSuite packs cut the hands where the palm begins, not at the wrist
+
+> **Superseded in part by D60 (2026-11-25).** The plane, its landmark on the rig and the 28 cm
+> radius stand. What does not: the whole-triangle drop (it stopped 2.2 cm short of the plane), the
+> `kept_to_cm` numbers below, and the glove-adapter registration, which produced a vanilla bare
+> forearm at the wrist in game.
+
+- **Decided:** 2026-11-25, by the user ("remove the palms from the OfficeSuite packages and make
+  explicit where the palm begins"), scoped by them to `OfficeSuite`, `OfficeSuite_Head` and the
+  native Hila override.
+- **Decision:** `PackSpec.hands` is a mode, not a flag: `"own"` (the D55 build, kept for a future
+  pack) or `"palm_cut"`. Both `OfficeSuite` and `OfficeSuite_Head` are `"palm_cut"`, and the native
+  override inherits that body. The cut plane is defined on the PD2 rig and per side: **origin** =
+  the `Hand` joint (`ARM_JOINTS`' wrist, the pivot the game animates), **axis** = the mean of the
+  four knuckle bases (`Hand{Index,Middle,Ring,Pinky}1`) minus that joint, normalised, pointing from
+  the wrist towards the fingers. A triangle goes if any of its vertices is distal to the plane,
+  inside a 28 cm radius of the axis (the radius is what stops the half-space from also cutting the
+  legs — see D55's dead end), and the rim is capped. On the 2B rig that axis is **3.98°** off the
+  forearm axis: that wedge is the heel of the hand, i.e. exactly the geometry a wrist-plane cut
+  leaves behind. The plane, the margin, the removed triangle count, the rim cap count, the vertices
+  removed per bone and how far short of the plane the shipped mesh now ends are all written into
+  `BUILD_INFO.json` under `palm_cut` (per side: origin cm, axis, `deg_from_forearm`, `kept_to_cm`).
+- **Why the palm line and not the wrist joint:** the user's earlier complaint (D55) was the vanilla
+  blue glove showing under a bare cuff rim. Cutting at the wrist joint leaves the palm's own heel
+  on the sleeve, so the sleeve end is neither a cuff nor a hand; cutting where the palm begins makes
+  the sleeve end exactly a sleeve, and the heister's own glove — which the game sizes to a hand —
+  covers the capped rim. It also gets the outfit's bracelet and cuff back to being jewellery rather
+  than part of a modelled hand.
+- **Why the register flips back to the adapter:** with no hands in the mesh, the pack needs the
+  `_glove_adapter.lua` hook (`default_glove_id`, `hands = false`) that gives the heister the stock
+  hands and changeable gloves, which is the opposite of D58's `_own_hands.lua`. `registration.own_hands`
+  is `false` and `registration.glove_adapter` is `true` again, and the "never both" invariant covers
+  this direction too.
+- **The Hila override is a replacement, not a LAS pack,** so it has no hook to flip: it keeps Hila's
+  stock `g_hands` drawable, its node enabled in both `.object` files, and its glove block in the
+  unit model, all byte-identical to the game's. `build_hila_body_mod.py` no longer deletes that node
+  or those sections, and the cuff tuck that D55 removed stays removed (with a capped rim inside a
+  glove there is nothing to tuck).
+- **Measured, not asserted:** the shipped `g_body` of both LAS packs has 31,577 vertices (61,347
+  after the 5% slim); the cut removes 2,276 triangles and adds 25 rim-cap triangles; the removed
+  vertices are dominated by `Left`/`RightHand` (209/211) and by every finger segment, with 17 per
+  side on the forearm edge. What survives ends 2.22 cm (left) and 2.27 cm (right) **short** of the
+  plane, because a triangle that straddles the crease goes with the palm; the cap closes the ring
+  that is left. The Hila override's `g_body` carries the same cut, and Hila's own glove covers it.
+- **Held to:** `tests/test_palm_cut.py` (the landmark is the `Hand` joint and the knuckle axis, the
+  recorded plane is the rig's plane, both packs record `removed_tris`/`rim_cap_tris`/`kept_to_cm`,
+  the shipped body has no vertex dominated by a hand bone and none distal to the plane, the Hila
+  override carries the same cut with `g_hands` present and enabled);
+  `tests/test_pd2_las.py::TestLasScaffold::test_officesuite_carries_the_alt_suits_and_cuts_the_palms`;
+  `tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head`;
+  `tests/test_hila_body_override.py` (the two models and two material configs are the only changed
+  files, the glove block survives, the hands are absent from the body).
+- **Rejected:** cutting at the wrist joint (D55's earlier geometry — leaves the palm heel and takes
+  the bracelet); a bare half-space without the radius limit (it cuts the legs); retexturing Hila's
+  glove mesh to skin, and Miranda's black gloves (offered under D55, not chosen); deleting Hila's
+  glove drawable and letting the sleeves end bare.
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PackSpec.hands`, `_last_kept_cm`,
+  `_cap_cut_rims`, `_dominant_bones`, the build loop's cut and its stray-bone guard),
+  `tools/pd2-las/build_models.py` (`PALM_KNUCKLES`, `palm_planes`, `is_hand_bone`),
+  `tools/pd2-las/tmc_las.py` (`cut_group_at_planes`, `cut_group_at_palm_bases`),
+  `tools/build_hila_body_mod.py` (`GLOVE`, `_fit_unit`)
+- **Status:** superseded in part by D60: the plane and the measured landmark hold, the whole-triangle
+  drop and the `BUILD_INFO` numbers do not, and the glove-adapter registration was wrong in game (a
+  vanilla bare-forearm piece at the wrist). `runtime_verified` stays `false` — the cut is checked
+  offline (renders and the shipped bytes) only. The in-game checklist has the wrist and glove steps.
+
+### D60 — The palm cut is made on the plane, and a handless outfit spawns no glove and no forearm
+
+> **Amended by D62 (2026-11-25).** The registration half stands unchanged: no glove adapter, no
+> default glove, a chosen glove still spawns. What moves is where the cut sits — 4 cm *past* the palm
+> line, inside the palm — because the game showed the capped end stopping short of the heister's glove
+> cuff. The `clipped_to_cm: 0.0` / `kept_to_cm` / vertex-count numbers below describe the D60 bytes.
+
+- **Decided:** 2026-11-25, by the user, after the first D59 build was seen in game: *"Forbid using
+  the previous method. Go back to previous version. AND ONLY REMOVE the palm and fingers. So the
+  standard skin should have no hands. You should remove exactly where palm begins. But choosing
+  another gloves would give those gloves."*
+- **What was wrong in game.** A third-person screenshot of the D59 build showed, from the sleeve
+  down: bare forearm, then a salmon-pink band with a seam in it that the outfit does not have, then
+  the black heister glove. That band is `hnd_forearms` — the vanilla *bare forearm* the glove
+  adapter spawns to bridge a glove cuff and a short sleeve. It is a second, vanilla skin at the
+  wrist, spawned by the `_glove_adapter.lua` hook D59 added, and no material or geometry of ours can
+  hide it because it is drawn outside the outfit. The same screenshot also showed the cut itself
+  leaving a ring: the D59 drop took a whole triangle as soon as one vertex was distal, so the sleeve
+  stopped 2.22 cm (left) / 2.27 cm (right) short of the crease, i.e. the cut was near the palm line
+  but not on it.
+- **Decision, geometry:** the same plane as D59 (through the `Hand` joint, perpendicular to the palm,
+  3.98° off the forearm axis, 28 cm radius), cut *on* the plane. `tmc_las.clip_group_at_planes`
+  splits a straddling triangle where its edges cross, interpolates position, normal, UV and skin
+  weights at the crossing, drops the distal part and leaves the proximal one. Crossing points are
+  cached per *edge*, so neighbouring triangles share them and the rim stays one watertight loop,
+  which is what lets the existing rim cap close it. `cut_group_at_planes` (whole-triangle drop) stays
+  for the Christie builds, whose tracked bytes reproduce unchanged.
+- **Decision, registration:** the packs go back to D58's `_own_hands.lua` and drop the adapter hook:
+  `default_glove_id = false` and `body_replacement.hands = true`, so the game spawns no glove unit
+  and hides the stock hands, and what the pack models is all there is on the arm. A glove the player
+  picks by name still spawns and replaces the hands - that is the "choosing another gloves would give
+  those gloves" half of the rule, and it is why the Hila override keeps its stock `g_hands` drawable
+  and glove block: a chosen glove needs something to land on.
+- **Why not keep the adapter off but still spawn a default glove:** it would put a vanilla glove
+  hand on a pack whose whole point is that the outfit models no hands; "the standard skin should
+  have no hands" is the default, not the fallback.
+- **Measured, not asserted:** `BUILD_INFO.palm_cut` now records `exact: true`, `clipped_to_cm: 0.0`
+  per side (the cut lands on the plane), `tris_split` 64 and `verts_added` 66 (crossing points that
+  are shared between the triangles either side of an edge), `removed_tris` 2,276 and `rim_cap_tris`
+  68. The shipped `g_body` has 31,643 vertices (61,479 after the 5% slim) - D59's 31,577 plus the 66
+  the clip adds - and its most distal vertex is 0.76 cm (left) / 0.79 cm (right) **proximal** of the
+  plane, which is the slim pulling the arm in towards its bones, not the cut: without the slim the
+  number is 0.00.
+- **Held to:** `tests/test_palm_cut.py` (the box test pins split-on-the-plane against
+  drop-a-whole-face: crossing vertices exactly on the plane, one watertight rim loop, slice blocks
+  intact; the pack tests pin `exact`/`clipped_to_cm`/`kept_to_cm` and that no hand bone survives);
+  `tests/test_pd2_las.py::TestLasScaffold::test_officesuite_carries_the_alt_suits_and_cuts_the_palms`
+  (vertex counts, `glove_adapter false`, `own_hands true`);
+  `tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head` and
+  `::test_own_hands_packs_never_draw_a_default_glove` (no adapter hook beside an own-hands hook, the
+  hook's own body); `tests/test_glove_behavior_lua.py` (a chosen glove still spawns).
+- **Rejected:** the glove adapter (the `hnd_forearms` band); a default glove unit on the handless
+  outfit; keeping the whole-triangle drop and calling the 2.2 cm stop "the palm line"; adding a
+  sleeve extension or a substitute wrist material to cover the seam - the user has rejected invented
+  wrist geometry twice, and with the cut on the plane and no adapter there is nothing left to cover.
+- **Source:** `tools/pd2-las/tmc_las.py` (`clip_group_at_planes`, `clip_group_at_palm_bases`,
+  `_plane_distances`), `tools/pd2-las/build_honoko2_dae.py` (`registration`, the build loop,
+  `_last_kept_cm`), `tools/pd2-las/las_outfit_pack.py` (`render_own_hands_lua`),
+  `tools/render_mod_previews.py` (the sheets' captions).
+- **Status:** holds; `runtime_verified` stays `false` - the D59 build is the one that was seen, and
+  these bytes have not. The in-game checklist's hand step now asks for three things: no vanilla skin
+  at the wrist, no glove by default, and the player's glove choice appearing when one is equipped.
+
+### D61 — Only the id-keyed stream pack ships; the BeardLib voice pack is dropped
+
+- **Decided:** 2026-11-25, by the user: *"remove the BeardLib voice pack from dist, keep only the
+  stream one."*
+- **Why:** the BeardLib `SoundsModule` pack (`dist/Hila/Miranda_Lawson_VO_over_Hila.zip`) was
+  installed on 2026-11-24 and vanilla Hila still played. Its keying was then re-verified against
+  BeardLib's `SoundManager`/`SoundsModule` and the game Lua (`ecp_female` is `rb21` in both the
+  player and the team-AI path, and `<Sounds prefix="rb21">` is what `ComparePrefixes` matches), so
+  the packing was right and the route still did not produce a line. The id-keyed `.stream` pack
+  (`..._Stream.zip`) was built on the same picks the next day, installed, and reported working. Two
+  routes, one of them verified in game: ship that one.
+- **Decision:** `dist/Hila/` holds `Miranda_Lawson_VO_over_Hila_Stream.zip` and nothing else. The
+  `voices` make target, the `voices` stage in `fresh.py`, `status.TARGETS`' entry and the builder
+  itself are gone; `tools/build_hila_voice_mod.py` became `tools/hila_voice_clips.py`, which keeps
+  the half the stream pack *does* use — archive listing, picks and splits, `cut_ogg`/`cut_ogg_ranges`,
+  `match_level` at `-1.5 dBFS` — and whose `main()` now only refreshes the tracked
+  `hila_slot_pieces.csv` build manifest (`python tools/hila_voice_clips.py`; it builds no pack, so it
+  has no make target of its own).
+- **What stays, and why:** `slot_picks.csv`, `hila_intent_cuts.csv`, `ogg_phrase_splits.csv` and
+  `slot_event_ids.csv` are the picks and the intent table the stream pack cuts from — the event table
+  no longer keys anything, but it is the record of which PD2 bark each slot stands for.
+  `docs/pd2-voice-mod-install.md` §1–§6 stay as the record of the dropped route (marked as such),
+  because a future pack on that route would start there.
+- **Held to:** `tests/test_hila_voice_picks.py` (the pick table is complete and clean for every slot,
+  the packs' window/splits are real, `dist/Hila` holds no BeardLib zip, no make target or `fresh`
+  stage builds one, and the builder file is gone); `tests/test_hila_cut_edges.py` (the re-cut edges,
+  now importing `hila_voice_clips`); `tests/test_hila_stream_pack.py` (the packed ids and bytes).
+- **Rejected:** keeping both packs "just in case" (the user asked for one, and a route that has never
+  played a line is not a fallback); keeping the builder as dead code behind an unused target.
+- **Source:** `tools/hila_voice_clips.py`, `tools/build_hila_stream_mod.py`,
+  `tools/pd2-las/Makefile`, `tools/pd2-las/fresh.py`, `tools/pd2-las/status.py`,
+  `docs/pd2-voice-mod-install.md`, `voice_lines_vox/README.md`.
+- **Status:** holds; the stream pack is the one whose clips were heard in game, and the two re-cut
+  clips still await a listen (see the in-game checklist).
+
+### D62 — The palms are cut 4 cm past the palm line, so the arm ends inside the glove
+
+> **Amended by D63 (2026-11-25): the extension is 1.5 cm, not 4.** Everything else here stands
+> — the plane, the margin mechanism, `extend_cm` in the record, the no-adapter registration.
+> The 4 cm number was answered by the game the same day: it put the palm through the glove. The
+> `clipped_to_cm` / vertex-count numbers below describe those bytes.
+
+- **Decided:** 2026-11-25, by the user, after looking at the D60 build in game: two wrist
+  screenshots showing the capped end of the arm sitting in mid-air, above the heister's black glove
+  cuff, with a gap between them. Their instruction: *"you need to extend forearms a bit"*.
+- **What was wrong.** D60 cut exactly where the palm begins, which is the right *landmark* and the
+  wrong *place for a glove*. A PD2 glove is modelled around a hand, so its cuff starts below the
+  outline of one — the sleeve's cap and the glove's rim do not meet, and the arm visibly stops before
+  the glove. The geometry was correct and the wrist was still broken.
+- **Decision, geometry:** keep D60's plane (through the `Hand` joint, along the knuckle axis, 3.98°
+  off the forearm, 28 cm radius) and push the cut `PALM_EXTEND_CM = 4.0` cm along its own normal,
+  into the palm: `tmc_las.clip_group_at_palm_bases(..., margin=PALM_EXTEND_CM)` splits where the edges
+  cross *that* plane, and the rim cap runs in a window of `margin − 1.5 .. margin + 0.5` cm. The arm
+  therefore continues down into the glove instead of ending above it. `BUILD_INFO.palm_cut` records
+  it twice: `margin_cm` (the plane the split used) and `extend_cm` (what the module asked for), both
+  4.0, so a build cannot silently drift from the number in the source.
+- **Why 4 cm.** It is under two thirds of a palm's length, so no finger geometry comes back and the
+  cut stays inside hand territory; it overlaps a glove cuff by a centimetre or two at worst, i.e. the
+  cap is hidden, not merely close; and it is short enough that the fist still reads as a fist under a
+  glove made for a full hand. Nothing was added to the mesh — the same arm, cut later.
+- **What the extension changes about the *bones*.** At 0 cm the cut took 17 forearm-dominated
+  vertices per side along the sleeve rim; at 4 cm it takes none (the `ForeArm` entries are gone from
+  `removed_bones`), because the whole cut is now inside the hand. What survives at the rim is
+  `Hand` (152/153 vertices) and the thumb's base — the thenar, `Thumb1`, 15 vertices per side — which
+  is the palm's own proximal few centimetres and is exactly what makes the end continuous with the
+  wrist. The thumb's phalanges and every finger segment are still gone.
+- **Measured, not asserted:** `BUILD_INFO.palm_cut` has `exact: true`, `margin_cm`/`extend_cm` 4.0,
+  `clipped_to_cm` 4.0 per side, `kept_to_cm` 3.97 (left) and 3.99 (right), `tris_split` 76,
+  `verts_added` 78, `removed_tris` 2,070 and `rim_cap_tris` 88. The shipped `g_body` has 31,804
+  vertices (61,801 after the 5% slim). Packs: `OfficeSuite` 5,766,633 B, `OfficeSuite_Head`
+  10,384,852 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,855,124 B.
+- **Held to:** `tests/test_palm_cut.py` (both packs record `margin_cm == extend_cm == 4.0`, the
+  shipped mesh reaches 3.8–4.0 cm past the palm line and no further, the only hand-dominated
+  vertices left are `Hand` and the thenar, and the Hila override carries the same body and cut);
+  `tests/test_hila_body_override.py::test_the_outfits_hands_end_where_the_palm_begins` (the override's
+  body reaches 3.8–4.0 cm into the palm, keeps `Hand` and the thenar, and no finger);
+  `tests/test_pd2_las.py::TestLasScaffold::test_officesuite_carries_the_alt_suits_and_cuts_the_palms`
+  (vertex counts and `clipped_to_cm`). D60's registration tests are untouched: an own-hands pack still
+  draws no default glove and still has no adapter hook.
+- **Rejected:** reverting to the D55 modelled hands or the D59 glove adapter to make the wrist meet
+  the glove (both were rejected by the user once already); lengthening the sleeve or the cuff instead
+  of the arm (that is invented wrist geometry, rejected twice); a smaller extension (2–3 cm still
+  leaves the cap above the cuff); a per-arm margin (the two planes are mirrored, and the game's glove
+  is the same on both hands).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM`, the clip call, `_cap_cut_rims`,
+  the `palm_cut` record), `tools/pd2-las/tmc_las.py` (`clip_group_at_palm_bases`'s `margin`),
+  `tests/test_palm_cut.py`, `tests/test_pd2_las.py`.
+- **Status:** holds; `runtime_verified` stays `false`. The D60 build is the one that was seen in game,
+  and this is the answer to what it showed — the in-game checklist's wrist step now asks that the cap
+  sit inside the glove with no gap above it, and re-cutting is measured against that, not against the
+  crease.
+
+### D63 — The extension is 1.5 cm: as far into the glove as its own geometry allows
+
+- **Decided:** 2026-11-25, by the user, after looking at the D62 build in game. Two wrist
+  screenshots, and three words: *"Too much."* The arm now reached the glove, but it also came out
+  of it — the palm's surface showed through and around the black glove at the wrist.
+- **Why 4 cm was too much, measured.** The glove the game draws is `g_hands`, and it is in the
+  same rig space as this body (its `Hand` joint is at `[-45.98, 18.69, 124.47]`, the body's palm
+  origin at `[-45.99, 18.70, 124.47]`). Measured along this body's palm axis, that glove **starts
+  0.42 cm past the crease** and is **3.5 cm in radius at its rim**, widening to 4.0 at 2 cm and
+  4.3 at 3 cm. This outfit's wrist is 3.46 cm in radius and its palm passes 4.4 cm at 2 cm and
+  5.6 at 3. So the arm can be tucked in until the palm meets the glove's interior, and no
+  further: at 4 cm the rim sat 3.5 cm inside the glove, in territory the glove does not have room
+  for, and the surface came through it. Renders of the same body at 1.0, 1.5, 2.0 and 2.5 cm with
+  the glove composited over it show the silhouette breaking between 1.5 and 2.0.
+- **Decision:** `PALM_EXTEND_CM = 1.5`. That is a centimetre past the glove's rim after the slim,
+  which is what closes the gap, and it is the largest whole step that stays inside the glove.
+- **Measured, not asserted:** `palm_cut` has `margin_cm`/`extend_cm` 1.5, `clipped_to_cm` 1.5 per
+  side, `kept_to_cm` 0.90 (left) and 0.83 (right) — the 5% slim pulls the arm's end back about
+  half a centimetre here, which is why the shipped numbers are not 1.5 — `tris_split` 67,
+  `verts_added` 69, `removed_tris` 2,224 and `rim_cap_tris` 71. Both are still past the glove's
+  0.42 cm rim, so the cap is inside the glove. The shipped `g_body` has 31,674 vertices (61,541
+  after the slim) and **no vertex dominated by a hand or finger bone at all**: 1.5 cm into the
+  wrist is still arm territory, so D62's kept thenar is gone with the rest of the palm. Packs:
+  `OfficeSuite` 5,739,451 B, `OfficeSuite_Head` 10,357,873 B,
+  `OfficeSuite_Miranda_Romance_over_Hila` 14,830,470 B.
+- **Held to:** `tests/test_palm_cut.py` (1.5 cm in the record, `kept_to_cm` between 0.6 and 1.5
+  **and past the glove's 0.42 cm rim**, the mesh reaching 0.6–1.5 cm and no further, no
+  hand-dominated vertex, the rim allowed to take a handful of forearm-dominated ones);
+  `tests/test_pd2_las.py` (31,674 / 61,541 vertices, `clipped_to_cm` 1.5);
+  `tests/test_hila_body_override.py` (the same cut on the override's body).
+- **Rejected:** keeping 4 cm and shrinking the palm so it fits inside the glove (invented
+  geometry at a place the user can see, and it would have to be tuned against a glove the pack
+  does not ship); 2.0 cm (the render shows the palm through the glove); 1.0 cm and below (the
+  slim pulls the mesh back to 0.27–0.33 cm, short of the glove's 0.42 cm rim — the D60 gap
+  returns); a per-heister margin (every glove is authored on the same hands and the same rig).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM` and the measurements in its
+  comment), `tests/test_palm_cut.py`, `tests/test_hila_body_override.py`.
+- **Status:** holds; `runtime_verified` stays `false`. D60 and D62 are what was seen in game; this
+  is the third answer to the same wrist. The glove measurements above come from
+  `references/npc_criminals_ecp_female.7z` (`g_hands`), which is the glove this rig draws, not a
+  photograph of the user's session — so the in-game checklist still decides.
+
+### D64 — The Arivus shave fills from grown beard, matched skin and real structure — no ring, no seam, no flat panel
+
+- **Decided:** 2026-11-25, by the user: *"And improve Arivus more."* The evidence base is the
+  offline portrait (`docs/renders/arivus/model/over-hoxton/`), which showed three things reading
+  wrong on a clean-shaven ped: a **black crescent around each ear**, a **straight seam** down each
+  side of the face and across the jaw, and a **flat, slightly too-bright lower face**.
+- **Why they were there, measured on the source raster.** (1) The ear ellipses `(110,210,21,34)` /
+  `(419,210,21,34)` are smaller than the painted sideburn over them, and the "ring" pass inpainted a
+  band *around* the protected ellipse with `MaxFilter(9)` — so the beard between ellipse and cheek
+  stayed dark on a flat skin field. (2) The Laplace relaxation ran only inside `y 130:356, x 128:400`
+  and started from **one** median skin tone (`lum 146.8` against the chin's `98.5`), so it ended in a
+  hard rectangle and the jaw came out as a single shade. (3) The mask stopped at the geometric
+  U-shaped hairline while the painted beard edge is soft, which left a reddish stipple at 30–40%
+  coverage across the jaw: the "5 o'clock shadow" a clean shave must not have.
+- **Decision:** grow the mask along the beard, then fill it and give it skin.
+  `shave_arivus_face` now (a) grows the geometric U through every pixel darker than **90%** of this
+  raster's own skin level (`0.90 x 143.5`), limited to the face box and never through a protected
+  feature, so the mask follows the stubble to where it fades and stops at the ear's lighter rim
+  instead of at an ellipse; (b) relaxes a harmonic fill over that region from the clean skin ring
+  around it; (c) matches the fill's level to the mean of that ring, **capped at ±15% gain** so it
+  cannot invent shading; (d) adds the high-frequency structure of the raster's cleanest skin patch
+  (forehead, mirrored on both axes before tiling so it does not repeat as a grid) at 1.10x; and
+  (e) blends the result into the untouched raster over 2.5 px. Lips, nostrils, ears and eyebrows
+  are pasted back byte for byte, and the lips are found by measurement, not by a box: the lip
+  colour is `redness 52..64` against the moustache's `~35`, occupying `x 210..298, y 252..292`,
+  so each column keeps the span from its top lip pixel to its bottom one — lips, mouth slit and
+  corners together — with **no dilation**, because one pixel of dilation pasted a dark lip liner
+  back on.
+- **Measured, not asserted.** In the beard box (`y 250..340, x 145..385`, mouth excluded), pixels
+  darker than 72% of skin fall from **73.0%** to **0.48%**. The jaw's high-pass structure is
+  **6.40** against the clean cheek's **9.62** (0.67 of it, where before it was zero) and the
+  untouched beard's 19.1. The seam check at the mask's bottom row (344) steps **no more than the
+  rows inside the face**. The shaved raster is `1a4fa5b16ee25e58` and is identical across runs; the
+  pack is **8,436,333 B**, `7056d2476ab5`.
+- **Held to:** `tests/test_arivus_shave.py` — the source really is 73% dark in that box, less than
+  2% is left after the shave, the jaw keeps 0.4–1.4 of the cheek's structure, the boundary row
+  steps no more than twice the interior, the ears, brows and lips change by at most four pixels, the
+  alpha channel and the 512x512 layout are untouched, and two runs are byte-identical.
+- **Rejected:** the `MaxFilter(9)` ring around the protected ellipses (it rings the feature instead
+  of covering the beard outside it); a relaxation confined to a smaller box (the seam moves, it does
+  not go); one median tone for the whole U (that *is* the flat jaw); a colour flood fill from the
+  mouth's centre (the chin beard matches the lips' redness and `lum 55..165`, so it leaked and
+  pasted a goatee back); row-span fills through the mouth oval (they carried the under-lip stubble
+  with them); dilating the lip mask (a one-pixel beard ring reads as a drawn outline around the
+  mouth); and the closing/opening variants tried between them, which all trade a pale mouth for a
+  dark one.
+- **Source:** `tools/build_joy_head_mods.py` (`shave_arivus_face`, `ARIVUS_SKIN_PATCHES`,
+  `ARIVUS_DETAIL_PATCH`), `tests/test_arivus_shave.py`,
+  `docs/renders/arivus/model/over-hoxton/`.
+- **Status:** holds offline only. `runtime_verified` stays `false`; the offline render is a software
+  Z-buffer with diffuse textures and no lighting rig, so the checklist's Arivus step is what settles
+  whether the shave reads as skin in game.
+
+### D65 — The palm cut goes back to 1.25 cm: the arm's fattest half-centimetre was still in the glove's cuff
+
+- **Decided:** 2026-11-25, by the user, looking at `OfficeSuite_Head` in game (two first-person
+  screenshots with the black FPS-gloves glove): *"pretty close, just need to cut a bit more."*
+  The hand was gone and the cuff covered the wrist, but a wedge of skin still showed through the
+  glove's cuff at the wrist bend.
+- **Why.** D63's 1.5 cm kept a centimetre and a half of the palm, which is where the arm is still
+  growing: 3.46 cm in radius at the crease, 4.0 at 1.25, 4.4 at 2.0. The glove's cuff is 3.5 cm at
+  its rim and widens more slowly, so the last half-centimetre of the arm is the fattest part of it
+  and the part that finds its way through the cuff. Cutting a little more takes that back.
+- **Decision:** `PALM_EXTEND_CM = 1.25`.
+- **Measured, not asserted:** `clipped_to_cm` 1.25 per side, `kept_to_cm` **0.61** (left) and
+  **0.53** (right) after the 5% slim - both still past the glove's 0.42 cm rim, so D60's gap does
+  not return - `tris_split` 68, `verts_added` 70, `removed_tris` 2,242, `rim_cap_tris` 74. The
+  shipped `g_body` is 31,666 vertices (61,525 after the slim), still with no hand-dominated vertex.
+  Packs: `OfficeSuite` 5,737,727 B `d9438879522d`, `OfficeSuite_Head` 10,356,127 B `b21084a4c8d3`,
+  `OfficeSuite_Miranda_Romance_over_Hila` 14,828,794 B `77082170d623`.
+- **Held to:** `tests/test_palm_cut.py` (1.25 in the record, `kept_to_cm` between 0.45 and 1.25
+  **and past 0.42**, the mesh reaching 0.45–1.25 cm, no hand-dominated vertex);
+  `tests/test_pd2_las.py` (31,666 / 61,525, `clipped_to_cm` 1.25);
+  `tests/test_hila_body_override.py` (the same cut on the override's body).
+- **Rejected:** 1.0 cm and below (the slim pulls the mesh back to 0.27–0.33 cm, short of the
+  glove's 0.42 cm rim: D60's gap returns); going back to D63's 1.5 (that is the build the user is
+  looking at); sliming the wrist itself (inventing geometry at the one place the user can see, and
+  the outfit's arm is the donor's).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM`), `tests/test_palm_cut.py`.
+- **Status:** holds offline only; `runtime_verified` stays `false`. The next lever, if a wedge of
+  skin is still visible, is the arm's radius at the cut rather than the cut's depth.
+
+### D66 — The shave fills the beard, not the face
+
+- **Decided:** 2026-11-25, by the user, from the in-game portrait: *"Arivus still need work on
+  textures."* The face read washed out and flat, with a faint rectangle around it.
+- **Why.** D64's mask grew from the beard through every pixel darker than 90% of this raster's own
+  skin level. That raster's *whole face* is darker than its own skin level - cheeks, the nose's
+  flank, the eye sockets - so the flood ran straight through the face and repainted all of it: the
+  nose lost its shading, the cheeks their structure, and the growth's bounding box left a soft
+  rectangle from temple to jaw. The fill itself was never the problem; the mask was.
+- **Decision:** the growth is a **rim**, not a search: `dark` pixels only within 8 px
+  (`MaxFilter(17)`) of the geometric beard - wider than the painted edge, far narrower than a
+  cheek. Two consequences were then handled explicitly: (a) the hairs the ped paints onto the skin
+  under the lower lip are reddish enough to pass the lip test and were being pasted back as a
+  "soul patch", so below the mouth slit (`y > 276`) any pixel darker than 70% of skin is returned
+  to the mask; (b) single hairs stranded by the rim limit are swept: inside the filled area (plus a
+  2 px skirt), a pixel darker than 80% of the local fill becomes that fill.
+- **Measured, not asserted:** the shave now changes 18.9% of the raster instead of 100% of the
+  face, the nose and eye sockets keep their original shading, the chin's hair patch goes from
+  luminance **94.3 to 123.4**, and the lips/upper-lip/slit pixels are unchanged (≤4). The pack is
+  8,433,226 B `6b356c19e0d8`.
+- **Held to:** `tests/test_arivus_shave.py` (beard gone, jaw structure, no seam, features intact,
+  the chin patch brightened, alpha and layout untouched, reproducible).
+- **Rejected:** keeping the face-wide growth and fixing the tone afterwards (the shading it
+  destroys cannot be put back); protecting the whole mouth oval as D64 did (it pasted the hair
+  under the lip on with it); a red-channel test to separate lip from chin hair (this raster's
+  skin sits at redness 44–50 against the lips' 50–64 - too close to threshold).
+- **Source:** `tools/build_joy_head_mods.py` (`shave_arivus_face`, `LIP_ROWS`),
+  `tests/test_arivus_shave.py`.
+- **Status:** holds offline only. Known and left alone: the hairline is the hair mesh's own alpha
+  edge, which no texture here can soften, and the ped's painted skin carries compression mottling
+  on the cheeks.
+
+## D67 — `call_teammate.hey_you` is one shouted word, not a phrase
+
+- **Decided:** 2026-11-25, by the user, after hearing the re-picked line: *"She just needs to
+  shout 'you'."* The slot had shipped 0.667 s of "you take point" and the report heard "just you".
+- **Why.** The clip was not cut short — decoded out of the shipped `.stream` it is 0.29 s with three
+  syllables intact — so the game is stopping the line well before the file ends, and any line longer
+  than a word will be heard as its first word. The slot is a call-out (*Call* summons a teammate), so
+  one emphatic "You" is the whole correct answer, and a short one cannot be truncated into anything
+  else. The pack has no "hey" in its 866 transcripts (`hila_call_hey_you.csv`, README), so "Hey, you."
+  was never available as such.
+- **Decision:** the pick is the **"You" of "You don't know what my father wants for her."** -
+  `twrvxl_oldfriend_d_S_INT.043.ogg`, `0.000-0.300` - measured at 10 ms: the /j/ onset at 0.06, the
+  stressed /u/ within 3 dB of the file's peak at 0.16-0.20, and the decay into the /d/ closure at
+  0.29-0.31, which is where the cut ends ("don't" starts at 0.33). Chosen over "You'll die for that,
+  bitch!" (same delivery, but the /l/ is audible) and over "You ass." (the word is 60 ms there, too
+  short to be a call).
+- **Measured, not asserted:** the shipped clip is **0.289 s at -1.4 dBFS peak**; the pack rebuilds to
+  12,608,121 B `6b7d827dfe93` (was 13,926,249). 158 ids carry it.
+- **Held to:** `tests/test_hila_cut_edges.py::test_the_hey_you_line_is_one_shouted_word` (silent head,
+  the vowel at the loudest point, the tail inside the closure, "don't" still at 0.33 s, 0.20-0.40 s).
+- **Rejected:** keeping three words and trusting the game to play more of it (it does not);
+  synthesising a "you" (the pack is one voice, unprocessed); skewing the clip's length (a shorter file
+  does not make the game play more of it).
+- **Source:** `voice_lines_vox/miranda_lawson/slot_picks.csv`, `tools/fit_hila_intents.py`,
+  `tools/build_hila_stream_mod.py`.
+- **Status:** holds offline only; heard by the user only after the next in-game pass.
+
+## D69 — Arivus: the shaved area takes the skin's chroma, not a new one
+
+- **Decided:** 2026-11-25, by the user, from the offline portrait: *"Work more on Arivus texture - check
+  renders."* D66 removed the beard, and the portrait still read as soot on the cheeks and jaw.
+- **Why.** Two things were still in there. (1) The fill's chroma came from `ARIVUS_SKIN_PATCHES`, whose
+  median is the *pale forehead* — (172, 134, 123) — while the clean skin the jaw meets is
+  (148, 105, 90): a meter of red that reads as grey next to its neighbours. (2) The rim could only
+  follow the painted edge, and the mirrored detail pass re-added the clean patch's grain at 1.1×, so
+  what survived of the stubble read as dirt rather than as a shadow.
+- **Decision:** the shaved area keeps its own luminance — every wrinkle, every shadow — and is pulled
+  **68% of the way to this raster's own skin chroma**, measured from a ring of clean skin just outside
+  the mask rather than from the whole-face patches. The level is then matched to that same ring
+  (±10%), and the mask is feathered over 5 px rather than 2.5. The first attempt flattened the field
+  instead and the result was worse: a grey, airbrushed rectangle against untouched skin, which the
+  portrait showed immediately — so the flattening was reverted to this blend.
+- **Measured, not asserted:** jaw patch luminance **64.8 ± 41.4 → 110.5 ± 6.1**, its redness
+  **31.1 → 41.6** (the clean ring's own is ~40), and the shaved field's mean colour
+  **(136.9, 101.1, 89.5)** against the jaw ring's measured **(148, 105, 90)** and the pale patch
+  **(172, 132, 123)** the D66 code had been matching — one skin, not a patch, and nine points under
+  the pale one rather than a flood of it. The lips, brows, nostrils and ears are pasted back verbatim.
+- **Held to:** the twelve tests in `tests/test_arivus_shave.py` (beard gone, jaw structure, no seam,
+  features intact, chin brighter than the beard, alpha and layout untouched, reproducible).
+- **Rejected:** flattening the field to one tone (grey rectangle); keeping D66's whole-face skin median
+  as the chroma (a shade cooler than the cheeks); a global blur (it takes the wrinkle structure with
+  it).
+- **Source:** `tools/build_joy_head_mods.py` (`shave_arivus_face`, the "one even skin field" pass).
+- **Amended the same day, from the render.** Three follow-ons, each from looking at the sheet rather
+  than at the numbers. (1) The blend is **faded** outward from the mask over ~9 px instead of stamped
+  on a mask grown by `MaxFilter(9)`: the grown zone is binary, so it leaves a soft rectangle of its own
+  — the same failure by another route. (2) The sideburn boxes (`xx 318..396`) stopped short of the ear,
+  which left a strip of painted stubble in front of it; they now reach the ear (`318..414`, mirrored on
+  the other side to `118`, `yy 140..344`) and rely on `protect` to stop at the ear's rim. (3) The dark
+  band that is *still* in front of the ear on the 3/4 view is **not** texture: the ped's hair half of
+  the atlas carries 5,952 triangles whose vertices reach down to z ≈ 169.5, i.e. modelled sideburn
+  cards, and the shave only touches the painted beard. They stay — the user's rule for this pack is
+  texture, not mesh.
+- **Status:** holds offline; the in-game face check is still the user's call. Known and left alone: the
+  hairline is the hair mesh's own alpha edge, the forehead's shadow band is the hair mesh's shadow, and
+  the sideburn cards in front of the ears are geometry.

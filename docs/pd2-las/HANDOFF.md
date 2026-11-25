@@ -31,14 +31,21 @@ and waist/hip/cuff fit adjustments (D50). It carries the 5% bone-anchored slim (
 layer-clearance pass with the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
 Earlier user-supplied captures show `OfficeSuite` prior to the jewelry texture update. It also ships a
 first-person arms unit (D53): the same slim/cleared arms, registered with an `fps_unit` and depth-scaled
-materials, and no head. It keeps the outfit's own palms, fingers and bracelet on the PD2 hand and finger
-bones — in the third-person body, the shadow caster and the first-person arms — and registers no glove
-adapter (D55). Its wrists therefore show the outfit's skin and cuff, not the vanilla blue gloves. The
-first-person arms have not been seen in game; the 2026-11-15 captures predate both the arms unit and the
-hands.
+materials, and no head. Its hands are cut on the plane where the palm begins — through the PD2 `Hand` joint,
+perpendicular to the palm, 3.98° off the forearm axis — in the third-person body, the shadow caster and the
+first-person arms; the triangles that cross it are split rather than dropped, the rim is capped, and since
+D62/D63/D65 the plane itself sits **1.25 cm further out, inside the wrist** (`PALM_EXTEND_CM`,
+`palm_cut.extend_cm`), so the arm runs on into the heister's glove instead of ending above it, and
+stays inside it rather than through it (D59/D60/D62/D63). It registers `own_hands`,
+not the glove adapter: no default glove unit spawns, so the outfit's body has no hands by default, and a
+glove the player picks by name is what puts hands on it (D60). The adapter D59 registered is what put a
+vanilla bare-forearm band at the wrist in game, and the cut on the crease is what left a capped end in
+mid-air above the glove. Its sleeve ends read as sleeve, cuff and jewellery cuff; the 2026-11-15 captures
+predate both the arms unit and the cut, the D59 and D60 builds are the ones that were seen, and the
+first-person arms have not been seen in game.
 
-`OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body, hands and arms unit
-with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
+`OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body (palms cut, D60/D62) and
+arms unit with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
 packed in one `WHOLE_CHARACTER` unit. Its registration is `replace_all` with `hide_mask`, so the game
 swaps the heister's head and the mask cannot be put back on; the pack's own eyes and teeth are Hila's stock
 ones. It has not been seen in game; its lashes are the donation's `opacity:` shader with a real alpha cutout,
@@ -54,7 +61,15 @@ shirt stay out). It overrides the four `shared_textures/old_hoxton_head[_p_]df/_
 `alpha_ref 0.05`. The vanilla unit is the user's 2026-11-24 game extract (`npc_criminals_suit_1.7z`,
 cooked DODB containers; `diesel_model.py` reads those and the packed channel formats). Fit constants
 (Head-bone anchors, scale 83.25) are derived against the Rust male rig and proven offline
-(`build/arivus-solo-*.png`). Not seen in game.
+(`build/arivus-solo-*.png`). The ped has no beard geometry — the beard, moustache and sideburns are
+painted into `head_diff_000_a_whi` — so the build inpaints them away (D64/D66: a mask grown 8 px
+along the stubble from the geometric beard, a harmonic fill from the clean skin ring, feathered;
+lips, nostrils, ears and brows pasted back), and the pack is clean-shaven by construction rather than
+by texture choice. D69 is the colour: the fill keeps its own luminance and takes the hue of the
+**local** clean ring round the beard (the jaw's own ≈ 148,105,90) rather than the raster's global skin
+median, which is the pale forehead — that median is what made the shaved field grey in the 2026-11-25
+portrait. Seen in game on 2026-11-25, which is why D66 exists: D64's mask had grown through the whole
+face and washed it out. Not seen since D69.
 
 ## Seen in game
 
@@ -70,15 +85,16 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust`, `Arivus_over_Hoxton` | no record | — |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
-| `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, hands and head override; its render is from the single replacement ZIP) |
+| `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, palms cut 4 cm into the palm and head override, over Hila's stock gloves, which a chosen glove can replace; its render is from the single replacement ZIP) |
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |
-| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild and the 2026-11-23 hands (D55); installed hash not measured |
+| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures; 2026-11-25, user-supplied wrist screenshots of the D60 and D62 builds (a **partial** — the wrist, not the whole outfit) | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and every hand build (D55's own hands, D59's palm cut, D60's cut on the plane with no default glove, D62's extension into the glove, D63's 1.5 cm that stays inside it); installed hash not measured |
 | `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
-| `Miranda_Lawson_VO_over_Hila` (audio/BeardLib) | 2026-11-24, user installed in `mods/` and reported vanilla Hila still playing | unknown — the pack's keying was re-verified against BeardLib's SoundManager and the game Lua (`rb21` in both the player and team-AI paths; see `docs/pd2-voice-mod-install.md` §6), so the report is treated as an install-environment failure until a SuperBLT log or a BeardLib `Log Sounds` line says otherwise |
+| `Miranda_Lawson_VO_over_Hila` (audio/BeardLib, **dropped 2026-11-25, D61**) | 2026-11-24, user installed in `mods/` and reported vanilla Hila still playing | **no** — the keying was re-verified against BeardLib's SoundManager and the game Lua (`rb21` in both the player and team-AI paths) and still nothing played, so the pack is out of `dist/` and its builder with it; the reasoning stays in `docs/pd2-voice-mod-install.md` §1–§6 |
+| `Miranda_Lawson_VO_over_Hila_Stream` (audio, id-keyed) | 2026-11-25, user installed in `mods/` and reported it **works** | **partly** — the report hears Miranda on Hila's barks through this route (the BeardLib pack of 2026-11-24 did not), and names two clips cut inside a word: `civ.down` ("keep you head down, Shep") and `call_teammate.hey_you` ("just you"). All were re-cut right after the report, and `hey_you` again once more — it is now a single shouted "You" (0.289 s, D67) — so the tracked bytes have not been heard; see [the checklist](in-game-checklist.md#miranda_lawson_vo_over_hila_stream--audio-only-2026-11-25) |
 
 New [Christie](../renders/christie/in-game/2026-11-15/README.md) and
 [OfficeSuite](../renders/honoka/in-game/officesuite/2026-11-15/README.md) menu/lobby captures

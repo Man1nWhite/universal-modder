@@ -830,6 +830,52 @@ ARM_JOINTS = {
     1: ((45.99, 18.70, 124.47), (39.50, -0.99, 133.29)),
 }
 
+#: The four knuckle bases of a hand, in the 2B rig's names. Together with the
+#: ``Hand`` joint they give a palm its own axis, which is *not* the forearm's.
+PALM_KNUCKLES = ("HandIndex1", "HandMiddle1", "HandRing1", "HandPinky1")
+
+
+def palm_planes(template: Template) -> dict[int, dict]:
+    """Where each palm begins: ``{side: {"origin", "axis", "deg_from_forearm"}}``.
+
+    Side -1 is the left hand and 1 the right, the keys of `ARM_JOINTS`. The
+    origin is the rig's ``Hand`` joint - the wrist crease, which is the line the
+    palm starts at - and the axis runs from it to the mean of the four knuckle
+    bases (`PALM_KNUCKLES`), so the plane is perpendicular to the palm and not
+    to the forearm. On the 2B bind pose the two axes differ by about 5 degrees,
+    and that wedge is exactly what a forearm-plane cut leaves of a palm: the
+    heel of the hand. Cutting on the palm's own axis is what "where the palm
+    begins" means here.
+
+    Nothing is measured off the mesh, so the landmark is the same for every
+    outfit retargeted onto this rig; the caller records the numbers it used.
+    """
+    import numpy as np
+
+    def at(name: str) -> np.ndarray:
+        return np.asarray(template.worlds[template.name_id[name]][12:15], dtype=np.float64)
+
+    out: dict[int, dict] = {}
+    for side, key in ((-1, "Left"), (1, "Right")):
+        wrist = at(key + "Hand")
+        knuckles = np.mean([at(key + k) for k in PALM_KNUCKLES], axis=0)
+        axis = knuckles - wrist
+        axis /= np.linalg.norm(axis)
+        forearm = at(key + "Hand") - at(key + "ForeArm")
+        forearm /= np.linalg.norm(forearm)
+        out[side] = {
+            "origin": tuple(float(v) for v in wrist),
+            "axis": tuple(float(v) for v in axis),
+            "deg_from_forearm": float(np.degrees(np.arccos(float(np.clip(axis @ forearm, -1.0, 1.0))))),
+        }
+    return out
+
+
+#: Bones a palm and its fingers sit on: the hand joint and the finger chains,
+#: nothing else. What a palm-base cut removes has to be dominated by these.
+def is_hand_bone(name: str) -> bool:
+    return name.startswith(("LeftHand", "RightHand"))
+
 
 def repair_skin_boundary_normals(g: Group) -> None:
     """Repair corrupted boundary normals along the face/neck seam and mouth corners,

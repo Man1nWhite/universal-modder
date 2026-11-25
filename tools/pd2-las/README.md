@@ -12,9 +12,9 @@ or running game is needed.
 | `Miranda_L4D2_Busty_LAS` — the same with a larger chest, its own LAS id | same | `build_busty_variant.py` | `busty` |
 | `Christie_LAS` — no head or hands; glove adapter, TPP and FPS | `references/Christie.zip` | `build_christie_source.py` | `christie` |
 | `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
-| `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses and the outfit's own hands (no wrist cut, no glove adapter), in TPP and FPS | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
-| `OfficeSuite_Head` — `OfficeSuite`'s body and hands with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
-| `Miranda_Lawson_VO_over_Hila` — audio, not a model: Miranda's barks over Hila's `rb21` voice lines as a BeardLib `SoundsModule` pack (`main.xml` keyed on 176 PD2 bark events + 78 oggs) | `references/Голос Лоусон.7z` | `tools/build_hila_voice_mod.py` | `voices` |
+| `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses, palms cut *on* the line where they begin and 4 cm past it, into the palm, so the arm ends inside the glove (`palm_cut`, `extend_cm`/`clipped_to_cm: 4.0` in `BUILD_INFO.json`, D62; no default glove, a chosen one wins), in TPP and FPS | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `OfficeSuite_Head` — `OfficeSuite`'s palm-cut body with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
+| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 858 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | `references/Голос Лоусон.7z` (clips), `references/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status
@@ -87,7 +87,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 | **Registration** follows the 2B contract: a hook on `lib/tweak_data/armorskinstweakdata` that creates `LegendaryArmours.<id>`, BeardLib `main.xml` AddFiles, menu locales | `test_registration_follows_the_2b_contract` |
 | **Tracked bytes:** every zip equals its `.sha256` sidecar, and its `BUILD_INFO.json` hashes its own payload | `test_tracked_bytes_match_their_sidecar_and_build_info` |
 | **Variants** change only what they claim: the busty pack is the base pack plus the chest, with the same head, arms and textures | `test_variants_change_only_what_they_claim` |
-| **Own hands:** a pack that models hands keeps "Default" gloves from spawning over them, and ships no no-hands adapter | `test_own_hands_packs_never_draw_a_default_glove` |
+| **Own hands:** a pack keeps "Default" gloves from spawning over its own arms — its modelled hands, or the cut where a `palm_cut` pack removed them (both OfficeSuite packs, 4 cm into the palm since D62) — and ships no bare-forearm adapter | `test_own_hands_packs_never_draw_a_default_glove` |
 | **Whole character:** a pack with its own head registers `replace_all`, hides the mask and binds that head to the head end of the rig, not the hips | `test_whole_character_packs_bring_their_own_head` |
 
 ## Do not
@@ -114,8 +114,8 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 
 1. In-game verification (`docs/pd2-las/in-game-checklist.md`), which needs a human with PAYDAY 2, SuperBLT,
    BeardLib and LAS: `Miranda_L4D2_LAS`, `Christie_LAS`, `Christie_Clover_LAS`, `OfficeSuite_Head`, jewelry swap,
-   the D55 hands in both packs, and — audio, no LAS — `Miranda_Lawson_VO_over_Hila`: no bark has been heard in
-   game yet, and the checklist's Log Sounds step is how a missed one shows up.
+   the D60 palm cut (no vanilla skin at the wrist, no glove by default, a chosen glove winning) in both packs, and — audio, no LAS — `Miranda_Lawson_VO_over_Hila`:
+   no bark has been heard in game yet, and the checklist's Log Sounds step is how a missed one shows up.
 2. The native Hila body/head pack awaits its own [in-game check](../../docs/pd2-las/in-game-checklist.md#native-hila-body--head-override-no-las); it needs neither LAS nor BeardLib.
 3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
    the Miranda packs' `body_df`/`head_df`; no in-game record of `Miranda_Romance_LAS` or the eleven head packs.
