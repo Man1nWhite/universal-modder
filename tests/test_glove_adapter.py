@@ -24,9 +24,10 @@ pack shipped this way rendered NO HANDS in game until the contract was fixed):
   replaces them, and where the spawn fails the suit still has hands.
 
 `tests/test_glove_behavior_lua.py` runs the same hook against the real LAS
-loader in LuaJIT. The two outfits below are synthetic stand-ins for a pack
-with and without hands; until 2026-11-14 both files also ran against the
-tracked Christie packs (deleted with their builder on 2026-11-14).
+loader in LuaJIT. The two outfits below are synthetic stand-ins for packs
+with and without hands, so this contract stays independent of which specific
+outfits are currently distributed. `tests/test_christie_source_pack.py` and
+the tracked-pack invariant suite separately check the real Christie archives.
 """
 
 from __future__ import annotations
@@ -71,8 +72,8 @@ def test_compat_hook_enables_adapter_with_a_table_not_a_boolean():
     lua = _adapter_lua()
     # an empty table keeps the default hnd_forearms adapter; a boolean true
     # would make BeardLib's table.merge call pairs(true) and crash
-    assert "ps.glove_adapter = {}" in lua
-    assert "ps.glove_adapter = true" not in lua
+    assert "style.glove_adapter = {}" in lua
+    assert "style.glove_adapter = true" not in lua
 
 
 def test_compat_hook_targets_the_las_player_style():
@@ -89,8 +90,8 @@ def test_compat_hook_restores_a_real_default_glove():
     restore that, or the character has no hands (the in-game bug this pins).
     """
     lua = _adapter_lua()
-    assert 'ps.default_glove_id = "heist_default"' in lua
-    assert "ps.default_glove_id = false" not in lua
+    assert 'style.default_glove_id = "heist_default"' in lua
+    assert "style.default_glove_id = false" not in lua
 
 
 def test_compat_hook_clears_the_exclude_list_and_keeps_stock_hands_fallback():
@@ -101,10 +102,10 @@ def test_compat_hook_clears_the_exclude_list_and_keeps_stock_hands_fallback():
     # a glove unit that does spawn replaces them via var_hands_replace = 1, so
     # there are no double hands. Hiding them (the old approach) left the suit
     # handless whenever the glove spawn failed in-game.
-    assert "ps.body_replacement.hands = false" in lua
-    assert "ps.third_body_replacement.hands = false" in lua
-    assert "ps.body_replacement.hands = true" not in lua
-    assert "ps.third_body_replacement.hands = true" not in lua
+    assert "style.body_replacement.hands = false" in lua
+    assert "style.third_body_replacement.hands = false" in lua
+    assert "style.body_replacement.hands = true" not in lua
+    assert "style.third_body_replacement.hands = true" not in lua
 
 
 def test_main_xml_registers_compat_hook_on_blackmarket_only_for_adapter():

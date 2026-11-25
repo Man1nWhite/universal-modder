@@ -27,7 +27,11 @@ VALID_NOTES = "Notes for the release\n\n<!-- pack_version: 0.1.2 -->\n"
 
 @pytest.fixture
 def release_checkout(tmp_path):
-    steps = yaml.safe_load((REPO / ".github/workflows/lawson-las.yml").read_text())["jobs"]["build"]["steps"]
+    workflow = yaml.load((REPO / ".github/workflows/lawson-las.yml").read_text(), Loader=yaml.BaseLoader)
+    steps = workflow["jobs"]["build"]["steps"]
+    assert workflow["on"]["push"]["tags"] == ["lawson-las-v*"]
+    publish_condition = next(step["if"] for step in steps if step.get("name") == PUBLISH)
+    assert publish_condition == "startsWith(github.ref, 'refs/tags/lawson-las-v')"
     for rel in (ROMANCE, L4D2):
         pack = tmp_path / rel
         pack.parent.mkdir(parents=True)
@@ -63,17 +67,22 @@ if args[1] == 'view':
     sys.exit(0 if os.environ.get('MOCK_EXISTING') == 'yes' else 1)
 if args[1] == 'create':
     assert Path(args[args.index('--notes-file') + 1]).is_file()
+if args[1] == 'upload' and os.environ.get('MOCK_FAIL') == 'yes':
+    sys.exit(1)
 """)
     gh.chmod(0o755)
 
-    def run(*, ref_name=TAG, tag=True, existing=False):
+    def run(*, ref_name=TAG, tag=True, existing=False, fail_upload=False):
         env = {**os.environ, "PATH": os.pathsep.join((str(gh.parent), str(Path(sys.executable).parent), os.environ["PATH"])),
                "GITHUB_REF": f"refs/{'tags' if tag else 'heads'}/{ref_name}", "GITHUB_REF_NAME": ref_name,
                "NOTES": f"tools/pd2-port/releases/{ref_name}.md", "MOCK_ROOT": str(tmp_path),
-               "MOCK_EXISTING": "yes" if existing else "no"}
+               "MOCK_EXISTING": "yes" if existing else "no",
+               "MOCK_FAIL": "yes" if fail_upload else "no"}
         for step in steps:
             name = step.get("name")
-            if name not in {VERIFY, BUILD, COMPARE, PUBLISH} or (name == PUBLISH and not tag):
+            condition_prefix = publish_condition.split("'", 2)[1]
+            publish_ref = env["GITHUB_REF"].startswith(condition_prefix)
+            if name not in {VERIFY, BUILD, COMPARE, PUBLISH} or (name == PUBLISH and not publish_ref):
                 continue
             proc = subprocess.run(["bash", "-e", "-o", "pipefail", "-c", step["run"]],
                                   cwd=tmp_path / step.get("working-directory", "."), env=env,
@@ -136,3 +145,35 @@ def test_release_downloads_verify_next_to_their_zips(release_checkout, existing)
     proc = subprocess.run(["sha256sum", "-c", *(p.name for p in detached.glob("*.sha256"))],
                           cwd=detached, capture_output=True, text=True)
     assert proc.returncode == 0, proc.stderr
+
+
+def test_a_github_upload_failure_fails_the_publish_step(release_checkout):
+    root, run = release_checkout
+    (root / f"tools/pd2-port/releases/{TAG}.md").write_text(VALID_NOTES)
+    result = run(existing=True, fail_upload=True)
+    assert result is not None
+    name, proc = result
+    assert name == PUBLISH and proc.returncode != 0
+    calls = [json.loads(line) for line in (root / "gh-args.jsonl").read_text().splitlines()]
+    assert [call[1] for call in calls] == ["view", "upload"]
+
+
+@pytest.mark.parametrize("ref_name", ["v1.0", "lawson-las-v2", "lawson-las-v2.0.0", "lawson-las-v3.0.0"])
+def test_tag_outside_the_release_version_shape_does_not_publish(release_checkout, ref_name):
+    root, run = release_checkout
+    if ref_name.startswith("lawson-las-v"):
+        (root / f"tools/pd2-port/releases/{ref_name}.md").write_text(VALID_NOTES)
+    result = run(ref_name=ref_name, tag=True)
+    if ref_name.startswith("lawson-las-v"):
+        assert result is not None and result[0] == BUILD
+        assert "Tag must be lawson-las-vN with N >= 3" in result[1].stderr
+    else:
+        assert result is None, (result[0], result[1].stderr) if result else None
+    assert not (root / "gh-args.jsonl").exists()
+
+
+def test_branch_named_like_a_release_tag_does_not_publish(release_checkout):
+    root, run = release_checkout
+    result = run(ref_name=TAG, tag=False)
+    assert result is None, (result[0], result[1].stderr) if result else None
+    assert not (root / "gh-args.jsonl").exists()

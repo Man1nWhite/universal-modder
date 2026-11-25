@@ -5,8 +5,8 @@ What runs here:
 1. an outfit registration matching the shape of a pack that ships no hands (the hook that fills ``LegendaryArmours``, as in ``Christie_LAS`` and ``Christie_Clover_LAS``; the removed ``Honoko2``..``Honoko4`` and the pre-D55 ``OfficeSuite`` shared it before they had hands);
 2. the real LAS 4.1.9 init hook, verbatim from
    ``tests/fixtures/las_loader_4.1.9.lua``;
-3. the real BeardLib glove code paths — table.merge, get_glove_value,
-   GloveBlackMarketFix, the player-style exclude list — ported verbatim;
+3. the real BeardLib glove code paths — including the blackmarket and glove
+   tweak-data branches — executed verbatim;
 4. the generated ``*_glove_adapter.lua`` (the companion hook);
 5. vanilla suits, to show the adapter restores stock vanilla behaviour
    instead of just "having gloves".
@@ -114,53 +114,6 @@ function BlackMarketTweakData:get_suit_variation_value(player_style, material_va
     return tweak_value
 end
 
--- BeardLib override, verbatim logic: PlayerStyleGloveHooks.lua "glovestweakdata"
-function BlackMarketTweakData:get_glove_value(glove_id, character_name, key, player_style, material_variation)
-    if key == nil then return end
-    glove_id = glove_id or "default"
-    if glove_id == "default" then
-        glove_id = tweak_data.blackmarket:get_suit_variation_value(player_style, material_variation, character_name, "default_glove_id")
-        if glove_id == nil then
-            glove_id = tweak_data.blackmarket:get_player_style_value(player_style, character_name, "default_glove_id")
-        end
-        if glove_id == false then return false end
-    end
-    local data = self.gloves[glove_id or "default"]
-    if data == nil then return nil end
-    character_name = CriminalsManager.convert_old_to_new_character_workname(character_name)
-    local character_value = data.characters and data.characters[character_name] and data.characters[character_name][key]
-    if character_value ~= nil then return character_value end
-    local tweak_value = data and data[key]
-    return tweak_value
-end
-
--- BeardLib override, verbatim logic: PlayerStyleGloveHooks.lua
-function BlackMarketTweakData:get_glove_variation_value(glove_id, glove_variation, character_name, key, player_style, material_variation)
-    if key == nil then return end
-    glove_id = glove_id or "default"
-    glove_variation = glove_variation or "default"
-    if glove_id == "default" then
-        glove_id = tweak_data.blackmarket:get_suit_variation_value(player_style, material_variation, character_name, "default_glove_id")
-        if glove_id == nil then
-            glove_id = tweak_data.blackmarket:get_player_style_value(player_style, character_name, "default_glove_id")
-        end
-        glove_variation = tweak_data.blackmarket:get_suit_variation_value(player_style, material_variation, character_name, "default_glove_variation")
-        if glove_variation == nil then
-            glove_variation = tweak_data.blackmarket:get_player_style_value(player_style, character_name, "default_glove_variation") or "default"
-        end
-        if glove_id == false then return false end
-    end
-    local data = self.gloves[glove_id or "default"]
-    local variation_data = data and data.variations and data.variations[glove_variation]
-    if variation_data == nil then return nil end
-    character_name = CriminalsManager.convert_old_to_new_character_workname(character_name)
-    local character_variations = data.characters and data.characters[character_name] and data.characters[character_name].variations
-    local character_value = character_variations and character_variations[glove_variation] and character_variations[glove_variation][key]
-    if character_value ~= nil then return character_value end
-    local tweak_value = variation_data and variation_data[key]
-    return tweak_value
-end
-
 function build_blackmarket()
     local bm = {}
     for k, v in pairs(BlackMarketTweakData) do bm[k] = v end
@@ -194,24 +147,9 @@ function build_blackmarket()
     return bm
 end
 
--- BeardLibInitGloves, verbatim logic: PlayerStyleGloveHooks.lua
--- "blackmarkettweakdata" branch (registered first — BeardLib loads first).
-function register_beardlib_init_gloves()
-    Hooks:PostHook(BlackMarketTweakData, "init", "BeardLibInitGloves", function(self, tweak_data)
-        for player_style_id, glove_id in pairs(self.suit_default_gloves) do
-            local player_style_td = self.player_styles[player_style_id]
-            local glove_td = self.gloves[glove_id]
-            if player_style_td and glove_td then
-                player_style_td.default_glove_id = player_style_td.default_glove_id or glove_id
-            end
-        end
-        for index, player_style_id in pairs(self.glove_adapter.player_style_exclude_list) do
-            local player_style_td = self.player_styles[player_style_id]
-            if player_style_td then
-                player_style_td.glove_adapter = false
-            end
-        end
-    end)
+function load_beardlib(script)
+    RequiredScript = script
+    dofile_beardlib_fixture()
 end
 
 -- Faithful port of the glove/adapter decision block of BeardLib's
@@ -298,21 +236,44 @@ def _runtime():
     return lupa.LuaRuntime(unpack_returned_tuples=True)
 
 
-def _setup(lua, *, with_compat_hook: bool):
-    """Run the real registration chain; return the blackmarket table."""
+def _load_beardlib(lua):
+    """Execute BeardLib's real blackmarket and glove tweak-data hook branches."""
+    lua.execute(r'''
+function string:split(sep)
+    local out = {}
+    for piece in (self .. sep):gmatch("(.-)" .. sep) do table.insert(out, piece) end
+    return out
+end
+function dofile_beardlib_fixture()
+    local src = assert(io.open(BEARDLIB_FIXTURE_PATH, "r")):read("*a")
+    assert(loadstring(src))()
+end
+BEARDLIB_FIXTURE_PATH = "tests/fixtures/PlayerStyleGloveHooks.lua"
+''')
+    lua.execute("RequiredScript = 'lib/tweak_data/blackmarkettweakdata'; dofile_beardlib_fixture()")
+    lua.execute("RequiredScript = 'lib/tweak_data/glovestweakdata'; dofile_beardlib_fixture()")
+
+
+def _setup_with(lua, *extra_lua_before_loader, with_compat_hook=True):
+    """Run registrations around the real loader; extras run before LAS loads."""
     lua.execute(LUA_HOST)
-    lua.execute("register_beardlib_init_gloves()")
+    _load_beardlib(lua)
     # the pack's outfit registration (runs at file load, before init)
     lua.execute(las_outfit_pack.hook_lua(NO_HANDS))
+    for chunk in extra_lua_before_loader:
+        lua.execute(chunk)
     # the REAL LAS 4.1.9 loader, verbatim
     lua.execute(FIXTURE.read_text())
     if with_compat_hook:
         lua.execute(las_outfit_pack.render_glove_adapter_lua(NO_HANDS.item_id, "nohands"))
-    # hooks register at file-load time but run at init time against the built
-    # table — exactly the game's sequence
     lua.execute("bm = build_blackmarket()")
     lua.execute("Hooks:run_init(bm)")
     return lua.eval("bm")
+
+
+def _setup(lua, *, with_compat_hook: bool):
+    """Run the real registration chain; return the blackmarket table."""
+    return _setup_with(lua, with_compat_hook=with_compat_hook)
 
 
 @pytest.fixture()
@@ -351,6 +312,58 @@ def test_default_gloves_spawn_real_hands(lua, is_local):
     assert state["char_glove_adapter"] == ADAPTER_UNIT
     assert state["var_hands_replace"] == 1  # gloves replace stock hands
     assert lua.eval(f"visible_hands(simulate_visual_state('{KEY}', 'default', {flag}, 'female_1'))") is True
+
+
+@pytest.mark.parametrize("is_local", [True, False], ids=["fps", "tpp"])
+def test_a_character_override_still_gets_the_default_glove(lua, is_local):
+    """LAS remaps each character override with its own false defaults."""
+    _setup_with(lua, 'LegendaryArmours.nohands.character_override = '
+                '{female_1 = {unit = "units/nohands/female_1"}}')
+    state = lua.eval(f"simulate_visual_state('{KEY}', 'default', {str(is_local).lower()}, 'female_1')")
+    assert state["char_gloves"] == HEIST_UNIT
+    assert state["char_glove_adapter"] == ADAPTER_UNIT
+    # An un-overridden character still uses the style-level defaults.
+    other = lua.eval(f"simulate_visual_state('{KEY}', 'default', {str(is_local).lower()}, 'dallas')")
+    assert other["char_gloves"] == HEIST_UNIT
+
+
+def test_the_exclude_list_is_cleared_of_every_character_override_copy(lua):
+    """A replace_body character adds a duplicate exclude-list entry in LAS."""
+    _setup_with(lua, 'LegendaryArmours.nohands.character_override = '
+                '{female_1 = {unit = "units/nohands/female_1", replace_body = true}}')
+    keys = lua.eval("(function() local n = 0 "
+                    f"for _, v in ipairs(bm.glove_adapter.player_style_exclude_list) "
+                    f"do if v == '{KEY}' then n = n + 1 end end return n end)()")
+    assert keys == 0
+
+
+def test_compat_hook_does_not_change_a_different_las_style():
+    other = las_outfit_pack.Registration(
+        item_id="other_body", display_name="Other body", description="control outfit",
+        unit="units/other/skins/other/other", flags=las_outfit_pack.BODY_ONLY)
+    other_key = f"las_{other.item_id}"
+    lua = _runtime()
+    _setup_with(lua, las_outfit_pack.hook_lua(other))
+    style = lua.eval(f"bm.player_styles['{other_key}']")
+    assert style["default_glove_id"] is False
+    assert style["glove_adapter"] is False
+    keys = lua.eval("(function() local t = {} "
+                    "for _, v in ipairs(bm.glove_adapter.player_style_exclude_list) do "
+                    "table.insert(t, v) end return table.concat(t, ',') end)()")
+    assert keys.find(other_key) >= 0
+    assert keys.find(KEY) < 0
+
+
+def test_glove_adapter_hook_must_run_after_the_las_loader(lua):
+    """The harness observes the documented PostHook ordering dependency."""
+    early = las_outfit_pack.render_glove_adapter_lua(NO_HANDS.item_id, "nohands")
+    _setup_with(lua, early, with_compat_hook=False)
+    state = lua.eval(f"simulate_visual_state('{KEY}', 'default', false, 'female_1')")
+    assert state["gloves_unit_name"] is False
+    assert state["char_gloves"] is None
+    assert state["char_glove_adapter"] is None
+    assert state["var_hands_replace"] == 1
+    assert lua.eval(f"visible_hands(simulate_visual_state('{KEY}', 'default', false, 'female_1'))") is False
 
 
 @pytest.mark.parametrize("is_local", [True, False], ids=["fps", "tpp"])
@@ -439,7 +452,20 @@ def _own_hands_state(*, with_hook: bool, fixed_las: bool, glove: str = "default"
     """
     lua = _runtime()
     lua.execute(LUA_HOST)
-    lua.execute("register_beardlib_init_gloves()")
+    lua.execute(r'''
+function string:split(sep)
+    local out = {}
+    for piece in (self .. sep):gmatch("(.-)" .. sep) do table.insert(out, piece) end
+    return out
+end
+function dofile_beardlib_fixture()
+    local src = assert(io.open(BEARDLIB_FIXTURE_PATH, "r")):read("*a")
+    assert(loadstring(src))()
+end
+BEARDLIB_FIXTURE_PATH = "tests/fixtures/PlayerStyleGloveHooks.lua"
+''')
+    lua.execute("load_beardlib('lib/tweak_data/blackmarkettweakdata')")
+    lua.execute("load_beardlib('lib/tweak_data/glovestweakdata')")
     lua.execute(las_outfit_pack.hook_lua(OWN_HANDS))
     loader = FIXTURE.read_text()
     if fixed_las:

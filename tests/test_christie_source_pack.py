@@ -36,8 +36,8 @@ def test_package_registration_textures_and_payload():
         main = ET.fromstring(z.read(BASE + 'main.xml'))
         assert 'replace_body = true' in hook and 'replace_all' not in hook
         assert 'fps_replace_body = true' in hook and 'fps_christie' in hook
-        assert 'ps.glove_adapter = {}' in adapter
-        assert 'ps.body_replacement.hands = false' in adapter
+        assert 'style.glove_adapter = {}' in adapter
+        assert 'style.body_replacement.hands = false' in adapter
         assert any(e.attrib.get('file') == 'christie_glove_adapter.lua'
                    and e.attrib.get('source_file') == 'lib/tweak_data/blackmarkettweakdata'
                    for e in main.iter('hook'))
@@ -104,7 +104,7 @@ def test_real_pack_hooks_with_las_loader():
     harness = pytest.importorskip('test_glove_behavior_lua')
     lua = harness._runtime()
     lua.execute(harness.LUA_HOST)
-    lua.execute('register_beardlib_init_gloves()')
+    harness._load_beardlib(lua)
     with zipfile.ZipFile(ZIP) as z:
         lua.execute(z.read(BASE + 'hooks/christie_las.lua').decode())
         lua.execute(harness.FIXTURE.read_text())

@@ -2,7 +2,7 @@ name: lawson LAS pack
 
 # Builds dist/Miranda_Romance/Miranda_Romance_LAS.zip from the tracked ME2 source and publishes it:
 #  - every push to main: a workflow artifact with the pack;
-#  - every lawson-las-v* tag: the pack as the asset of that GitHub release.
+#  - every lawson-las-vN tag (N >= 3): the pack as the asset of that GitHub release.
 on:
   push:
     branches: [main]
@@ -30,7 +30,7 @@ jobs:
         # pack, pyyaml is needed by the um/kb tests, and pytest runs them.
         # The versions are pinned, in tools/pd2-las/pins.txt: the tracked pack is compared byte for byte,
         # and a different Pillow/numpy or zlib changes the deflate output.
-        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy py7zr imageio-ffmpeg "pyyaml>=6" pytest
+        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy py7zr imageio-ffmpeg "pyyaml>=6" pytest hypothesis
       - name: verify the checked-in pack checksums
         run: python tools/pd2-las/pack_checksum.py
       - name: build the pack
@@ -41,6 +41,7 @@ jobs:
         run: |
           args=()
           if [[ "${GITHUB_REF}" == refs/tags/lawson-las-v* ]]; then
+            [[ "${GITHUB_REF_NAME}" =~ ^lawson-las-v([0-9]+)$ ]] && (( 10#${BASH_REMATCH[1]} >= 3 )) || { echo "Tag must be lawson-las-vN with N >= 3: ${GITHUB_REF_NAME}" >&2; exit 1; }
             test -f "${NOTES}" || { echo "Missing notes for tag: ${NOTES}" >&2; exit 1; }
             VERSION=$(sed -nE '/<!--[[:space:]]*pack_version[[:space:]]*:/ {s/^[[:space:]]*<!--[[:space:]]*pack_version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*-->[[:space:]]*$/\1/; p;}' "${NOTES}")
             [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Expected one pack_version in ${NOTES}" >&2; exit 1; }

@@ -120,6 +120,8 @@ def parse_vtf(data: bytes) -> VtfImage:
     if ver_major != 7 or ver_minor < 2:
         raise VtfError(f"unsupported VTF version {ver_major}.{ver_minor}")
     header_size, = struct.unpack_from("<I", data, 12)
+    if header_size < 65 or header_size > len(data):
+        raise VtfError(f"invalid VTF header size {header_size} for {len(data)} bytes")
     width, height = struct.unpack_from("<HH", data, 16)
     flags, = struct.unpack_from("<I", data, 20)
     frames, _first = struct.unpack_from("<HH", data, 24)

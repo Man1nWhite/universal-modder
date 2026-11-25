@@ -25,3 +25,5 @@ dist/*
 # the parent repo ignores bin/ (build output); the CLI launcher lives here
 !bin/
 preview_tmp/
+
+.hypothesis/

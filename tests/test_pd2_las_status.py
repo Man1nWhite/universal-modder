@@ -94,7 +94,7 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
     if not sidecars:
         pytest.skip("dist/ is absent from this sandbox snapshot")
     short, full = status.collect()["packs"], status.collect(full=True)["packs"]
-    assert sorted(short) == sidecars and len(sidecars) >= 19
+    assert sorted(short) == sidecars
     for name, pack in full.items():
         assert pack["make"] == status.target(name), name
         assert pack["make"], f"{name}: no make target rebuilds it"

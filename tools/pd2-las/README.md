@@ -29,7 +29,7 @@ From the repo root, `make -sC tools/pd2-las` alone lists the targets for all thr
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | honokodae | honokodae_head | christie | cloverchristie | heads | hila | voices | all
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | honokodae_head | christie | cloverchristie | heads | hila | voices_stream | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -112,10 +112,10 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 
 ## Next
 
-1. In-game verification (`docs/pd2-las/in-game-checklist.md`), which needs a human with PAYDAY 2, SuperBLT,
-   BeardLib and LAS: `Miranda_L4D2_LAS`, `Christie_LAS`, `Christie_Clover_LAS`, `OfficeSuite_Head`, jewelry swap,
-   the D60 palm cut (no vanilla skin at the wrist, no glove by default, a chosen glove winning) in both packs, and — audio, no LAS — `Miranda_Lawson_VO_over_Hila`:
-   no bark has been heard in game yet, and the checklist's Log Sounds step is how a missed one shows up.
+1. In-game checks (`docs/pd2-las/in-game-checklist.md`) still need a human with PAYDAY 2: `Miranda_L4D2_LAS`,
+   `Christie_LAS`, `Christie_Clover_LAS`, `OfficeSuite_Head`, jewelry swap, and the OfficeSuite palm cut/glove behavior.
+   The Hila stream voice pack was reported working, but its latest tracked clips have not been heard;
+   the checklist records the remaining re-cut checks. It needs SuperBLT, not BeardLib.
 2. The native Hila body/head pack awaits its own [in-game check](../../docs/pd2-las/in-game-checklist.md#native-hila-body--head-override-no-las); it needs neither LAS nor BeardLib.
 3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
    the Miranda packs' `body_df`/`head_df`; no in-game record of `Miranda_Romance_LAS` or the eleven head packs.

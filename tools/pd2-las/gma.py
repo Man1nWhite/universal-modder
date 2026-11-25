@@ -98,7 +98,9 @@ def unwrap_lzma(data: bytes) -> bytes:
     for fmt in (lzma.FORMAT_XZ, lzma.FORMAT_ALONE, lzma.FORMAT_AUTO):
         try:
             out = lzma.decompress(data, format=fmt)
-        except lzma.LZMAError:
+        except (lzma.LZMAError, MemoryError, ValueError, EOFError):
+            # Corrupt LZMA-alone headers can advertise an absurd dictionary and
+            # make the stdlib decoder raise MemoryError instead of LZMAError.
             continue
         if out[:4] == GMA_MAGIC:
             return out

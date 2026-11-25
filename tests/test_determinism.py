@@ -27,6 +27,7 @@ import build_las  # noqa: E402
 import determinism  # noqa: E402
 import diesel_model as dm  # noqa: E402
 import fresh  # noqa: E402
+import status  # noqa: E402
 import tangents  # noqa: E402
 
 LAS_PACKS = (("Miranda_LAS", "miranda"), ("Miranda_Busty_LAS", "miranda_busty"))
@@ -210,7 +211,7 @@ def _plain_env(**extra) -> dict:
 
 
 # Romance is the DODB pipeline and deliberately has no code-path guard.
-ENTRY_POINTS = [cmd[0] for name, cmd in fresh.BUILDERS.items() if name != "lawson"]
+ENTRY_POINTS = [cmd[0] for tgt, cmd in fresh.BUILDERS.items() if tgt != "lawson"]
 ENTRY_POINTS.append("tools/pd2-las/build_las.py")  # also a standalone scaffold tool
 
 
@@ -267,7 +268,7 @@ def test_two_traces_are_compared_by_function(tmp_path):
     lines = fresh.compare_traces(tmp_path / "one.log", tmp_path / "other.log")
     assert lines[0].startswith("first value that differs: return of a.f#1 (float64 only)")
     assert lines[1:] == ["exact: return of a.g#1"]
-    assert len(fresh.tracked_zips()) == 21
+    assert {Path(path).stem for path in fresh.tracked_zips()} == set(status.pack_names())
     assert list(fresh.BUILDERS) == [
         "miranda", "busty", "lawson", "heads", "honokodae", "christie", "cloverchristie", "hila",
         "voices_stream", "honokodae_head"]

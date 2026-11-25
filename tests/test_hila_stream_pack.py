@@ -30,6 +30,14 @@ FOLDER = pack.INSTALL + "/"
 BANK = pack.BANK + "/"
 
 
+def test_generated_readme_describes_the_single_shipped_route():
+    """The install notes inside the zip must not advertise the removed BeardLib pack."""
+    readme = pack.readme(858, 885, 27, 665)
+    assert "This stream pack leaves those lines vanilla" in readme
+    assert "unless the BeardLib pack" not in readme
+    assert "the other zip" not in readme
+
+
 def test_every_voice_line_id_is_numeric_and_answers_exactly_one_slot():
     ids = pack.load_ids()
     assert len(ids) == 885
@@ -118,3 +126,5 @@ def test_the_folder_says_what_it_is_to_the_loader_and_to_blt():
         readme = z.read(FOLDER + "README.txt").decode("utf-8")
     assert "soundbanks/streamed/regular_vox/" in readme
     assert "BeardLib" in readme, "the README has to say it needs no BeardLib"
+    assert "This stream pack leaves those lines vanilla" in readme
+    assert "unless the BeardLib pack" not in readme

@@ -64,6 +64,7 @@ ALLOWED: dict[str, int] = {
     # tools/pd2-las/extract_2b.MISSING; any other wording is unbudgeted and fails.
     "2B templates not extracted": 0,
     "Christie_LAS.zip is not in dist/ in this checkout": 0,
+    "Tokoyami Hila reference archive is absent": 1,
 }
 
 #: Maximum number of expected failures (xfail) per test, by node-id prefix.
