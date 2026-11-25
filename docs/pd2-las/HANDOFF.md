@@ -79,6 +79,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
 | `Miranda_Lawson_VO_over_Hila` (audio/BeardLib) | 2026-11-24, user installed in `mods/` and reported vanilla Hila still playing | unknown — the pack's keying was re-verified against BeardLib's SoundManager and the game Lua (`rb21` in both the player and team-AI paths; see `docs/pd2-voice-mod-install.md` §6), so the report is treated as an install-environment failure until a SuperBLT log or a BeardLib `Log Sounds` line says otherwise |
+| `Miranda_Lawson_VO_over_Hila_Stream` (audio, id-keyed) | no record | — (built 2026-11-25: 858 `.stream` files, format checked against `references/Tokoyami Hila.7z` and pinned by `tests/test_wwise_ima.py`; nothing heard in game, see [the checklist](in-game-checklist.md#miranda_lawson_vo_over_hila_stream--audio-only-2026-11-25)) |
 
 New [Christie](../renders/christie/in-game/2026-11-15/README.md) and
 [OfficeSuite](../renders/honoka/in-game/officesuite/2026-11-15/README.md) menu/lobby captures

@@ -7,6 +7,7 @@
   - [`all_dist_mods_sheet.png`](all_dist_mods_sheet.png): complete overview grid covering all 20
     `.zip` model packages in `dist/` (adds `Miranda_L4D2_Busty_LAS.zip`, `Christie_LAS.zip`,
     `Christie_Clover_LAS.zip`, `OfficeSuite.zip`, `OfficeSuite_Head.zip`, `Geralt_over_Rust.zip`,
-    `Arivus_over_Hoxton.zip`, and `OfficeSuite_Miranda_Romance_over_Hila.zip`). The one audio-only
-    pack, `Miranda_Lawson_VO_over_Hila.zip` (BeardLib `SoundsModule`), has no model and no sheet.
+    `Arivus_over_Hoxton.zip`, and `OfficeSuite_Miranda_Romance_over_Hila.zip`). The two audio-only packs,
+    `Miranda_Lawson_VO_over_Hila_Stream.zip` (id-keyed `.stream` files) and
+    `Miranda_Lawson_VO_over_Hila.zip` (BeardLib `SoundsModule`), have no model and no sheet.
 - **Caveats:** Offline software Z-buffer renders; see each project's leaf folder under `docs/renders/<project>/model/` for individual multi-angle sheets and pack-specific notes.

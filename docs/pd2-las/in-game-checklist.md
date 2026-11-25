@@ -267,3 +267,23 @@ been heard in game; the packaging contract is [`docs/pd2-voice-mod-install.md`](
    the install doc lists them.
 6. **Bleed-over absences.** No subtitle, no lip movement: the clips are audio only, so a subtitle that
    still says Hila's line is expected and not fixable from the pack.
+
+## `Miranda_Lawson_VO_over_Hila_Stream` — audio only (2026-11-25)
+
+The id-keyed twin of the pack above: SuperBLT and nothing else, no BeardLib, no `mods/logs` line to
+expect. 858 `.stream` files named after Hila's voice-line ids, 27 ids left vanilla (Wwise Vorbis in
+the vanilla bank). Nothing of it has been heard in game either; the format is checked against real
+files and the id table only (`docs/pd2-voice-mod-install.md` §7).
+
+1. **It replaces at all.** Play Hila in any heist with the stream pack as the *only* Hila voice pack
+   installed: the movement and interaction barks are Miranda. This is the check the BeardLib pack
+   failed on 2026-11-24 — the same report now says something about the route rather than the install.
+2. **No loader noise.** `mods/logs/` should show the mod folder loaded and no error from it: the pack
+   has no Lua, no hooks and no XML to parse beyond `<mod name=…>`.
+3. **Line-by-line, not event-by-event.** A heist-scripted line Hila speaks as an NPC keeps Hila's
+   voice (the `robbers_mission_gen` bank); a heister bark that is still Hila's is either one of the 27
+   Vorbis ids (`voice_lines_vox/miranda_lawson/hila_vorbis_ids.csv`) or a second pack writing the same
+   ids after this one.
+4. **Length.** A replacement keeps its clip length (0.22–1.95 s), so a replaced line can be shorter or
+   longer than the vanilla one. No subtitle changes: those still show Hila's line.
+5. **First person.** Nothing to check — audio only.

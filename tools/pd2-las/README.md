@@ -15,6 +15,7 @@ or running game is needed.
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses and the outfit's own hands (no wrist cut, no glove adapter), in TPP and FPS | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 | `OfficeSuite_Head` — `OfficeSuite`'s body and hands with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
 | `Miranda_Lawson_VO_over_Hila` — audio, not a model: Miranda's barks over Hila's `rb21` voice lines as a BeardLib `SoundsModule` pack (`main.xml` keyed on 176 PD2 bark events + 78 oggs) | `references/Голос Лоусон.7z` | `tools/build_hila_voice_mod.py` | `voices` |
+| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 858 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | `references/Голос Лоусон.7z` (clips), `references/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status
