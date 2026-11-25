@@ -51,6 +51,50 @@ def test_a_header_is_sixty_four_bytes_and_declares_the_whole_file():
     assert blob[56:60] == b"data"  # 64-byte header, then the first block
 
 
+def test_silence_encodes_and_decodes_to_exact_zero():
+    source = np.zeros(128, dtype=np.int16)
+    decoded = w.decode_file(w.encode(source, 1))[1]
+    assert np.array_equal(decoded[:, 0], source)
+
+
+def test_int16_square_wave_extremes_mid_block_keep_their_sign():
+    # The sign changes at frame 20 and 44, not at a block header. Each stable
+    # plateau is long enough for the predictor to settle before it is checked.
+    source = np.full(128, -32768, dtype=np.int16)
+    source[20:44] = 32767
+    source[44:84] = -32768
+    source[84:108] = 32767
+    source[108:] = -32768
+    decoded = w.decode_file(w.encode(source, 1))[1][:, 0]
+    assert decoded.min() >= -32768 and decoded.max() <= 32767
+    for index in (35, 60, 95, 120):
+        assert np.sign(decoded[index]) == np.sign(source[index]), (index, decoded[index])
+
+
+def test_decoding_a_vanilla_stream_reencodes_the_same_wwise_header(tmp_path):
+    import pytest
+    py7zr = pytest.importorskip("py7zr")
+    source = ROOT / "references" / "Tokoyami Hila.7z"
+    if not source.is_file():
+        pytest.skip("Tokoyami Hila reference archive is absent")
+    with py7zr.SevenZipFile(source) as archive:
+        member = next((name for name in archive.getnames()
+                       if name.endswith("soundbanks/streamed/regular_vox/100412034.stream")), None)
+        assert member is not None, "the pinned vanilla sample is missing from the reference pack"
+        archive.extract(path=tmp_path, targets=[member])
+    blob = (tmp_path / member).read_bytes()
+    channels, rate, data = w.read(blob)
+    original_decoded = w.decode(data, channels)
+    rebuilt = w.encode(original_decoded, channels)
+    rebuilt_channels, rebuilt_rate, rebuilt_data = w.read(rebuilt)
+    assert (rebuilt_channels, rebuilt_rate) == (channels, rate)
+    redecoded = w.decode(rebuilt_data, channels)
+    n = min(len(original_decoded), len(redecoded))
+    error = np.abs(original_decoded[:n].astype(np.int32) - redecoded[:n].astype(np.int32))
+    assert np.quantile(error, 0.99) <= 2048
+    assert error.max() <= 8192
+
+
 def test_the_byte_rate_is_the_integer_blocks_per_second_the_game_writes():
     # 44100 / 64 = 689 blocks a second, times 36 bytes; not rate * align / 64 = 24806.
     assert struct.unpack("<I", w.header(1, 36)[28:32])[0] == 689 * 36

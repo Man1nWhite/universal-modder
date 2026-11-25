@@ -111,6 +111,12 @@ def parse_smd(text: str, name: str = "model") -> SmdModel:
     pending_tri: list[SmdVertex] = []
     frame_times: list[int] = []
 
+    def number(token: str, convert, context: str):
+        try:
+            return convert(token)
+        except (ValueError, OverflowError) as error:
+            raise SmdError(f"{name}: invalid {context}: {token!r}") from error
+
     def flush() -> None:
         nonlocal pending_material, pending_tri
         if pending_material is None:
@@ -145,18 +151,22 @@ def parse_smd(text: str, name: str = "model") -> SmdModel:
         if block == "nodes":
             if len(parts) != 3:
                 raise SmdError(f"nodes line needs id name parent: {line!r}")
-            model.nodes.append((parts[1].strip('"'), int(parts[2])))
+            model.nodes.append((parts[1].strip('"'), number(parts[2], int, "node parent id")))
         elif block == "skeleton":
             if head == "time":
-                frame_times.append(int(parts[1]))
+                if len(parts) != 2:
+                    raise SmdError(f"skeleton time line needs one frame number: {line!r}")
+                frame_times.append(number(parts[1], int, "skeleton frame number"))
             else:
                 if len(parts) != 7:
                     raise SmdError(f"skeleton line needs 7 fields: {line!r}")
                 model.skeleton.append(
                     (
-                        int(parts[0]),
-                        (float(parts[1]), float(parts[2]), float(parts[3])),
-                        (float(parts[4]), float(parts[5]), float(parts[6])),
+                        number(parts[0], int, "bone id"),
+                        (number(parts[1], float, "bone position"), number(parts[2], float, "bone position"),
+                         number(parts[3], float, "bone position")),
+                        (number(parts[4], float, "bone rotation"), number(parts[5], float, "bone rotation"),
+                         number(parts[6], float, "bone rotation")),
                     )
                 )
         elif block == "triangles":
@@ -166,10 +176,10 @@ def parse_smd(text: str, name: str = "model") -> SmdModel:
                 continue
             if len(parts) < 9:
                 raise SmdError(f"vertex needs at least 9 fields: {line!r}")
-            parent = int(parts[0])
-            pos = (float(parts[1]), float(parts[2]), float(parts[3]))
-            normal = (float(parts[4]), float(parts[5]), float(parts[6]))
-            uv = (float(parts[7]), float(parts[8]))
+            parent = number(parts[0], int, "vertex parent id")
+            pos = tuple(number(parts[i], float, "vertex position") for i in (1, 2, 3))
+            normal = tuple(number(parts[i], float, "vertex normal") for i in (4, 5, 6))
+            uv = tuple(number(parts[i], float, "vertex UV") for i in (7, 8))
             links: list[tuple[int, float]] = []
             # A Source SMD writes "<links> id w [id w ...]" before the pairs, so
             # the count is skipped rather than trusted: a mismatch is caught by
@@ -180,7 +190,8 @@ def parse_smd(text: str, name: str = "model") -> SmdModel:
             if len(rest) % 2:
                 raise SmdError(f"weight links come in id/weight pairs: {line!r}")
             for i in range(0, len(rest), 2):
-                links.append((int(rest[i]), float(rest[i + 1])))
+                links.append((number(rest[i], int, "weight bone id"),
+                              number(rest[i + 1], float, "weight")))
             pending_tri.append(SmdVertex(parent, pos, normal, uv, tuple(links)))
     flush()
     model.frames = max(1, len(frame_times))

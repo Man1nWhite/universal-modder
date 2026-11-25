@@ -269,6 +269,8 @@ def bc3_levels(dds: bytes) -> list[tuple[int, int, int]]:
     """(byte offset, width, height) of every mip level a DXT5 DDS declares."""
     if dds[:4] != b"DDS " or dds[84:88] != b"DXT5":
         raise ValueError("not a DXT5 DDS")
+    if len(dds) < 128:
+        raise ValueError(f"truncated DDS header: {len(dds)} bytes")
     height, width = struct.unpack_from("<2I", dds, 12)
     count = max(1, struct.unpack_from("<I", dds, 28)[0])
     levels, offset = [], 128

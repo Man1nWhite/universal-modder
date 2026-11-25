@@ -5,3 +5,5 @@ bin/um text eol=lf
 # and batch files stay CRLF: cmd.exe can miss goto labels in LF-only files
 *.cmd text eol=crlf
 *.bat text eol=crlf
+# These are byte-pinned third-party sources, including the game's CRLF Lua file.
+tests/fixtures/** -text

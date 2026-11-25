@@ -17,8 +17,11 @@ import io
 import json
 import struct
 import sys
+import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
@@ -35,6 +38,16 @@ def _told(**changes) -> lop.Registration:
                   unit=TPP_UNIT, flags=lop.BODY_ONLY)
     fields.update(changes)
     return lop.Registration(**fields)
+
+
+def _compile_error(src: str):
+    lupa = pytest.importorskip("lupa", reason="lupa (LuaJIT) not installed")
+    try:
+        from lupa import luajit21
+    except ImportError:  # pragma: no cover - older lupa wheels
+        luajit21 = None
+    runtime = (luajit21 or lupa).LuaRuntime(unpack_returned_tuples=True)
+    return runtime.eval("function(s) local f, err = loadstring(s) return err end")(src)
 
 
 # ------------------------------------------------------------------ the hook
@@ -66,6 +79,52 @@ def test_hook_braces_balance():
     lua = lop.hook_lua(_told(fps_unit=FPS_UNIT))
     assert lua.count("{") == lua.count("}"), lua
     assert lua.rstrip().endswith("}")
+
+
+@pytest.mark.parametrize("make", [
+    lambda: lop.hook_lua(_told(fps_unit=FPS_UNIT)),
+    lambda: lop.render_glove_adapter_lua("sample", "Sample"),
+    lambda: lop.render_own_hands_lua("sample", "Sample"),
+], ids=["outfit-hook", "glove-adapter", "own-hands"])
+def test_generated_lua_compiles(make):
+    assert _compile_error(make()) is None
+
+
+def test_every_lua_file_in_every_tracked_pack_compiles():
+    _compile_error("return true")  # skip cleanly when LuaJIT is not installed
+    lupa = pytest.importorskip("lupa", reason="lupa (LuaJIT) not installed")
+    try:
+        from lupa import luajit21
+    except ImportError:  # pragma: no cover
+        luajit21 = None
+    runtime = (luajit21 or lupa).LuaRuntime(unpack_returned_tuples=True)
+    compile_lua = runtime.eval("function(s) local f, err = loadstring(s) return err end")
+    for pack in sorted((REPO / "dist").rglob("*.zip")):
+        with zipfile.ZipFile(pack) as archive:
+            for name in (name for name in archive.namelist() if name.endswith(".lua")):
+                error = compile_lua(archive.read(name).decode("utf-8"))
+                assert error is None, (pack.name, name, error)
+
+
+@pytest.mark.parametrize("item_id", ["has-hyphen", "1starts_with_digit", "spa ce", "end"])
+def test_an_item_id_that_is_not_a_lua_identifier_is_refused(item_id):
+    with pytest.raises(ValueError):
+        _told(item_id=item_id)
+
+
+def test_display_text_with_quotes_and_markup_survives():
+    told = _told(display_name='Miranda "M" <Lawson> & co', description="Naïve – ünïcode")
+    root = ET.fromstring(lop.main_xml(told))
+    assert root.get("name") == told.display_name
+    strings = json.loads(lop.localization(told))
+    assert strings["bm_askn_sample"] == 'Miranda "M" <Lawson> & co'
+    assert strings["bm_askn_sample_desc"] == "Naïve – ünïcode"
+    assert _compile_error(lop.hook_lua(told)) is None
+
+
+def test_glove_adapter_and_own_hands_are_mutually_exclusive():
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        _told(glove_adapter=True, own_hands=True)
 
 
 # ------------------------------------------------------------------ main.xml

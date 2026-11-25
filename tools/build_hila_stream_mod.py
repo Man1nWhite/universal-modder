@@ -7,9 +7,9 @@ writing a file with our audio under Hila's id replaces that one line - no event
 table, no BeardLib, no Lua. ``references/Tokoyami Hila.7z`` is the working pack
 this is modelled on (``docs/tokoyami-hila-voice-mod-analysis.md``).
 
-The clips are the same ones the BeardLib pack ships (``slot_picks.csv`` decides
-each slot's ogg and the sub-ranges it keeps), re-encoded from the same cut oggs
-as IMA ADPCM in Wwise's RIFF container by ``tools/pd2-las/wwise_ima.py``. One
+The clips come from ``slot_picks.csv``, which decides each slot's ogg and the
+sub-ranges it keeps; they are encoded as IMA ADPCM in Wwise's RIFF container by
+``tools/pd2-las/wwise_ima.py``. One
 file per id, so the 885 ids of ``hila_intent_cuts.csv`` become 885 files (858
 after the 27 ids the vanilla bank keeps as Wwise Vorbis, which only a Wwise
 encoder could write - see ``hila_vorbis_ids.csv``).
@@ -79,7 +79,7 @@ def load_vorbis_ids() -> dict[str, str]:
 
 def cut_clip(slot: str, pick: dict, by_base: dict[str, str], extracted: dict[str, Path],
              work: Path, ff: str, normalize: bool = True) -> tuple[Path, float, float]:
-    """The slot's clip as an ogg, cut and level-matched exactly as the BeardLib pack does."""
+    """The slot's clip as an ogg, cut and level-matched from its curated pick."""
     base = Path(pick["source_ogg"]).name
     path = by_base.get(base)
     src = extracted.get(path) if path else None
@@ -142,15 +142,14 @@ HOW IT REPLACES LINES
 Every heister voice line is soundbanks/streamed/regular_vox/<id>.stream - RIFF
 IMA ADPCM, 44.1 kHz mono, 64 samples per 36-byte block. Replacing the file under
 that id replaces the line, which is how voice packs have always been made.
-The audio is the same set of cuts the BeardLib pack ships, re-encoded to ADPCM
-(measured 30 dB SNR against the ogg source, i.e. transparent for speech at this
-bitrate).
+The clips are cut from the source oggs and encoded to ADPCM (measured 30 dB SNR
+against the ogg source, i.e. transparent for speech at this bitrate).
 
 WHAT IS NOT IN HERE
   * {n_vorbis} of the {n_ids} ids in this pack's table are streamed by the vanilla game as Wwise
     Vorbis, and only the Wwise encoder can write that. Those ids are left out on
     purpose: an ADPCM file under a Vorbis id is not the audio the bank expects.
-    Those lines stay vanilla unless the BeardLib pack (the other zip) is used.
+    This stream pack leaves those lines vanilla; it does not include a Wwise Vorbis encoder.
   * The `robbers_mission_gen` bank: those ids are heist-scripted NPC lines with
     their own text, not heister barks.
 

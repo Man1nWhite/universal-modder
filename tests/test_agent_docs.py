@@ -28,9 +28,8 @@ AGENT_DOCS = ["AGENTS.md", "GEMINI.md", "README.md", "docs/pd2-las/HANDOFF.md", 
 OTHER_DOCS = ["CONTRIBUTING.md", "references/README.md"]
 #: bytes of AGENTS.md, which every harness loads whole at the start of every session
 START_BUDGET = 5000
-#: bytes of `make status`, one JSON object an agent reads whole. A tracked pack is ~90 bytes of it
-#: (name, size, 12 hex digits, target), so the budget is raised when a pack is added, not squeezed
-#: onto: 2,830 is 2,735 (22 tracked packs, 2026-11-25, the stream voice pack) plus room for one more.
+#: bytes of `make status`, one JSON object an agent reads whole. Pack names come from
+#: `status.pack_names()`; this budget leaves room for the next entry rather than quoting a count.
 STATUS_BUDGET = 2830
 
 

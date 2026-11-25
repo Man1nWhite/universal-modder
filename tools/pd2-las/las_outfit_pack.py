@@ -16,9 +16,11 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
+from xml.sax.saxutils import escape as xml_escape
 
 HOOK_SOURCE = "lib/tweak_data/armorskinstweakdata"
 #: the glove adapter is hooked here, which runs after LAS's loader; hooked where the
@@ -79,6 +81,17 @@ class Registration:
     # wins (the user's rule, D58/D60).
     own_hands: bool = False
 
+    def __post_init__(self) -> None:
+        lua_keywords = {"and", "break", "do", "else", "elseif", "end", "false", "for",
+                        "function", "goto", "if", "in", "local", "nil", "not", "or",
+                        "repeat", "return", "then", "true", "until", "while"}
+        if (not isinstance(self.item_id, str)
+                or re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", self.item_id) is None
+                or self.item_id in lua_keywords):
+            raise ValueError(f"item_id must be a non-keyword Lua identifier: {self.item_id!r}")
+        if self.glove_adapter and self.own_hands:
+            raise ValueError("glove_adapter and own_hands are mutually exclusive")
+
 
 def hook_lua(told: Registration) -> str:
     """The hook on `HOOK_SOURCE` that adds the outfit to `LegendaryArmours`."""
@@ -110,24 +123,31 @@ def localization(told: Registration) -> str:
     )
 
 
+def _xml_attr(value: str) -> str:
+    """Escape text for a double-quoted XML attribute."""
+    return xml_escape(str(value), {'"': "&quot;"})
+
+
 def main_xml(told: Registration) -> str:
     """The BeardLib mod table: the strings, the hooks, and every file under assets/ by name."""
     icon = told.icon or f"guis/dlcs/{told.item_id}/armor_skins/{told.item_id}"
     hook_file = told.hook_file or f"{told.item_id}_las.lua"
-    hooks = [f'\t\t<hook file="{hook_file}" source_file="{HOOK_SOURCE}"/>']
+    hooks = [f'\t\t<hook file="{_xml_attr(hook_file)}" source_file="{_xml_attr(HOOK_SOURCE)}"/>']
     if told.glove_adapter:
-        hooks.append(f'\t\t<hook file="{told.item_id}_glove_adapter.lua" '
-                     f'source_file="{GLOVE_HOOK_SOURCE}"/>')
+        adapter_hook = f"{told.item_id}_glove_adapter.lua"
+        hooks.append(f'\t\t<hook file="{_xml_attr(adapter_hook)}" '
+                     f'source_file="{_xml_attr(GLOVE_HOOK_SOURCE)}"/>')
     if told.own_hands:
-        hooks.append(f'\t\t<hook file="{told.item_id}_own_hands.lua" '
-                     f'source_file="{GLOVE_HOOK_SOURCE}"/>')
+        own_hands_hook = f"{told.item_id}_own_hands.lua"
+        hooks.append(f'\t\t<hook file="{_xml_attr(own_hands_hook)}" '
+                     f'source_file="{_xml_attr(GLOVE_HOOK_SOURCE)}"/>')
     hook_lines = "\n".join(hooks)
-    pairs = "\n".join(f'\t\t\t\t<df_nm path="{base}"/>' for base in told.pairs)
-    singles = "".join(f'\t\t\t\t<texture path="{name}"/>\n' for name in told.textures)
+    pairs = "\n".join(f'\t\t\t\t<df_nm path="{_xml_attr(base)}"/>' for base in told.pairs)
+    singles = "".join(f'\t\t\t\t<texture path="{_xml_attr(name)}"/>\n' for name in told.textures)
     units = [told.unit] + ([told.fps_unit] if told.fps_unit else [])
-    unit_lines = "\n".join(f'\t\t\t\t<unit_mat path="{u}"/>' for u in units)
+    unit_lines = "\n".join(f'\t\t\t\t<unit_mat path="{_xml_attr(u)}"/>' for u in units)
     return (
-        f'<table name="{told.display_name}" image="{icon}">\n'
+        f'<table name="{_xml_attr(told.display_name)}" image="{_xml_attr(icon)}">\n'
         "\n"
         '\t<Localization directory="localization" default="english.txt"/>\n'
         "\n"
@@ -170,12 +190,13 @@ def render_glove_adapter_lua(item_id: str, label: str) -> str:
       ``tweak_data.blackmarket.glove_adapter.player_style_exclude_list``.
 
     This PostHook runs after LAS (the pack loads after its dependency) and
-    restores the vanilla mechanism: a real ``default_glove_id``, the adapter
-    re-enabled, the exclude entry removed, and ``body_replacement.hands`` set to
-    ``false`` so the heister's own stock hands remain visible as a guaranteed
-    fallback (the glove spawn is not reliable in-game); any glove unit that does
-    spawn sets ``var_hands_replace = 1`` and replaces the stock hands, so there
-    are no double hands. Works in both TPP and FPS — BeardLib retargets the same
+    restores the vanilla mechanism on both the style and each remapped character
+    override: a real ``default_glove_id``, the adapter re-enabled, every exclude
+    entry removed, and ``body_replacement.hands`` set to ``false`` so the
+    heister's own stock hands remain visible as a guaranteed fallback (the glove
+    spawn is not reliable in-game); any glove unit that does spawn sets
+    ``var_hands_replace = 1`` and replaces the stock hands, so there are no
+    double hands. Works in both TPP and FPS — BeardLib retargets the same
     glove/adapter spawn to the camera unit for the local peer.
 
     Traps it avoids:
@@ -201,25 +222,37 @@ Hooks:PostHook(BlackMarketTweakData, "init", "{item_id}_GloveAdapter", function(
 \tlocal ps = self.player_styles and self.player_styles["{key}"]
 \tif not ps then return end
 
-\t-- A real default glove, exactly like the vanilla/DLC suits (LAS's
-\t-- fresh-table read drops this, leaving "Default" gloves with no unit).
-\tps.default_glove_id = "heist_default"
+\tlocal function restore_gloves(style)
+\t\tif not style then return end
 
-\t-- Enable the adapter with a table (NOT a boolean: BeardLib's table.merge
-\t-- would call pairs(true)). An empty table keeps the default hnd_forearms.
-\tps.glove_adapter = {{}}
+\t\t-- A real default glove, exactly like the vanilla/DLC suits (LAS's
+\t\t-- fresh-table read drops this, leaving "Default" gloves with no unit).
+\t\tstyle.default_glove_id = "heist_default"
 
-\t-- Drop the exclude-list entry LAS added for replace_body.
+\t\t-- Enable the adapter with a table (NOT a boolean: BeardLib's table.merge
+\t\t-- would call pairs(true)). An empty table keeps the default hnd_forearms.
+\t\tstyle.glove_adapter = {{}}
+
+\t\t-- Keep stock hands visible as a guaranteed fallback.
+\t\tif style.body_replacement then style.body_replacement.hands = false end
+\t\tif style.third_body_replacement then style.third_body_replacement.hands = false end
+\tend
+
+\t-- LAS remaps every character_override independently, so character-specific
+\t-- values take precedence over the style-level values in get_player_style_value.
+\trestore_gloves(ps)
+\tfor _, character in pairs(ps.characters or {{}}) do
+\t\trestore_gloves(character)
+\tend
+
+\t-- LAS inserts once for the style and again for each replace_body character.
+\t-- Walk backwards so every copy is removed without skipping adjacent entries.
 \tlocal list = self.glove_adapter and self.glove_adapter.player_style_exclude_list
 \tif list then
 \t\tfor i = #list, 1, -1 do
 \t\t\tif list[i] == "{key}" then table.remove(list, i) end
 \t\tend
 \tend
-
-\t-- Keep the stock hands visible as a guaranteed fallback.
-\tif ps.body_replacement then ps.body_replacement.hands = false end
-\tif ps.third_body_replacement then ps.third_body_replacement.hands = false end
 end)
 """
 

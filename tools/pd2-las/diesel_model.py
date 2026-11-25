@@ -214,6 +214,10 @@ def mat_apply_point(m: Mat, p):
 
 # ---------------------------------------------------------------- sections
 
+class ModelFormatError(ValueError):
+    """A truncated or malformed Diesel model container."""
+
+
 @dataclass
 class Section:
     type: int
@@ -231,25 +235,41 @@ class ModelFile:
     # -- container --
     @classmethod
     def read(cls, data: bytes) -> "ModelFile":
+        if len(data) < 4:
+            raise ModelFormatError(f"truncated model header: {len(data)} bytes")
         magic = struct.unpack_from("<I", data, 0)[0]
         if magic == 0x42444F44:  # "DODB": magic, version, filesize, count
+            if len(data) < 16:
+                raise ModelFormatError(f"truncated DODB header: {len(data)} bytes")
             _magic, _version, filesize, count = struct.unpack_from("<4sIII", data, 0)
             off = 16
         elif magic == 0xFFFFFFFF:
+            if len(data) < 12:
+                raise ModelFormatError(f"truncated legacy model header: {len(data)} bytes")
             filesize, count = struct.unpack_from("<II", data, 4)
             off = 12
         else:
+            if len(data) < 8:
+                raise ModelFormatError(f"truncated model header: {len(data)} bytes")
             filesize = magic
             count = struct.unpack_from("<I", data, 4)[0]
             off = 8
         if filesize != len(data):
-            raise ValueError(f"file size mismatch: header {filesize} actual {len(data)}")
+            raise ModelFormatError(f"file size mismatch: header {filesize} actual {len(data)}")
+        if count > (len(data) - off) // 12:
+            raise ModelFormatError(f"section count {count} exceeds the remaining container")
         sections = []
-        for _ in range(count):
+        for index in range(count):
+            if off + 12 > len(data):
+                raise ModelFormatError(f"truncated section {index} header at {off}")
             typ, sid, sz = struct.unpack_from("<III", data, off)
             off += 12
+            if sz > len(data) - off:
+                raise ModelFormatError(f"truncated section {index} payload: need {sz} bytes")
             sections.append(Section(typ, sid, data[off:off + sz]))
             off += sz
+        if off != len(data):
+            raise ModelFormatError(f"unclaimed bytes at end of model: {len(data) - off}")
         return cls(sections)
 
     @classmethod
