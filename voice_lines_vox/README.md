@@ -83,6 +83,12 @@ Miranda has no line for several PD2 barks; those slots keep the closest availabl
 
 - `drop.body` ("Bag") - the pack has no "bag" at all, so it says "Those bodies,".
 - `cop.hands` / `cop.drop` ("Hands up" / "Drop it") - no police vocabulary; they use "Stop" and "Don't".
+  `cop.hands` takes the word out of "and stop smiling, dammit." (`/s/` 0.10-0.17, `/t/` closure,
+  `/ɑ/` 0.22-0.30, `/p/` 0.30-0.33); the first pick cut 0.420-0.650, which is the "smi-" of the
+  next word, and was heard as a chopped "smi" in game.
+- `civ.nophone` ("Don't make that call") - no phone anywhere in the pack either. The pick is
+  "I'd rather we didn't.", the one take that reads as *don't do that* rather than as despair; it
+  replaced "There's nothing we can do," on 2026-11-25 after that was heard not to fit.
 - `tech.fix` ("Fix it") - nearest line is "You'll have to do it.".
 - `call_teammate.hey_you` ("Hey, you") - no "hey" anywhere, so it says "you take point.".
 

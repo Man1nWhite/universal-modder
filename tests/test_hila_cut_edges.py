@@ -32,6 +32,13 @@ DIR = ROOT / "voice_lines_vox" / "miranda_lawson"
 RATE = 44100
 #: below 4 kHz is voice, above it is a fricative: "sh" is 65-85% high, "n" is 0%
 HF_BAND = (4000, 9000)
+#: the source oggs the pinned picks cut from
+SOURCES = (
+    "procer_cover_tutorial_a_S_INT.011.ogg",   # civ.down
+    "profre_cover_tutorial_a_S_INT.002.ogg",   # call_teammate.hey_you
+    "norvx_relationship_03_h_S_INT.037.ogg",   # cop.hands
+    "norvx_starter_h_S_INT.006.ogg",           # civ.nophone
+)
 
 
 def _pick(slot: str) -> dict:
@@ -52,9 +59,8 @@ def decode_source(tmp_path_factory):
     out = tmp_path_factory.mktemp("hila_src")
     with py7zr.SevenZipFile(archive) as z:
         names = z.getnames()
-        targets = [n for n in names if "procer_cover_tutorial_a_S_INT.011.ogg" in n
-                   or "profre_cover_tutorial_a_S_INT.002.ogg" in n]
-        assert len(targets) == 2, targets
+        targets = [n for n in names if any(stem in n for stem in SOURCES)]
+        assert len(targets) == len(SOURCES), targets
         z.extract(path=str(out), targets=targets)
 
     ff = vo.ffmpeg_bin()
@@ -152,3 +158,54 @@ def test_the_hey_you_line_starts_and_ends_in_silence(decode_source):
         "the 't' of 'take' is missing"
 
     assert 0.55 < end - start < 0.80, "the clip is not the length of the three words"
+
+
+def test_the_stop_line_is_the_word_and_not_the_next_one(decode_source):
+    """`cop.hands`: "Stop." is the word from "and stop smiling, dammit.", whole.
+
+    The D61 pick took 0.420-0.650 s of that file and played a chopped "smi": the
+    phrase's /s/ is at 0.41 and the word "stop" *ends* before it. The clip now
+    starts on the word's own /s/, keeps the /t/ closure and the vowel, and stops in
+    the gap that follows the /p/.
+    """
+    pick = _pick("cop.hands")
+    pcm = decode_source(pick["source_ogg"])
+    start, end = float(pick["t_start"]), float(pick["t_end"])
+    loudest = _loudest_db(pcm, start, end)
+
+    # It opens on the /s/ of "stop": a fricative in the first tenth of a second ...
+    assert max(_hf_share(_window(pcm, start + 0.01 * i, start + 0.01 * i + 0.02))
+               for i in range(0, 9)) > 0.25, \
+        "there is no 's' in the head of the clip"
+    # ... then the /t/ closure and the open vowel, which carry no high band at all.
+    assert _hf_share(_window(pcm, start + 0.14, start + 0.22)) < 0.05, \
+        "the vowel of 'stop' is not inside the clip"
+    assert _level_db(_window(pcm, start + 0.16, start + 0.22)) > loudest - 6
+    # The end is the gap after the /p/, not speech - the word's release decays into it.
+    assert _level_db(_window(pcm, end - 0.015, end)) < loudest - 20
+    assert _level_db(_window(pcm, end, end + 0.030)) < loudest - 20
+
+    # It is the word: short, and over before the next word's /s/ at 0.41 s - which is
+    # where the old 0.420-0.650 window started, on a 53%-high-band fricative that
+    # belongs to "smiling".
+    assert 0.20 < end - start < 0.35
+    assert end < 0.40
+    assert _hf_share(_window(pcm, 0.420, 0.440)) > 0.30, \
+        "the old window no longer lands on a fricative; this diagnosis is stale"
+
+
+def test_the_no_calls_line_is_the_whole_take(decode_source):
+    """`civ.nophone`: the whole line, from its first sound to the gap after it."""
+    pick = _pick("civ.nophone")
+    pcm = decode_source(pick["source_ogg"])
+    start, end = float(pick["t_start"]), float(pick["t_end"])
+    loudest = _loudest_db(pcm, start, end)
+
+    # Nothing is cut off the head: the line starts with the file.
+    assert start <= 0.010
+    assert _level_db(_window(pcm, start, start + 0.020)) > loudest - 20
+    # And the tail lands in the gap after "didn't", so no release is clipped.
+    assert _level_db(_window(pcm, end - 0.015, end)) < loudest - 20
+    assert _level_db(_window(pcm, end, end + 0.020)) < loudest - 20
+    # A bark, not a speech.
+    assert 0.85 < end - start < 1.05

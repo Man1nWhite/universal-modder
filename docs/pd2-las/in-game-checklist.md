@@ -338,6 +338,14 @@ inside a word, which are re-cut below; the bytes it heard are not the tracked on
    If either still sounds wrong, note whether it is *cut short* (the line stops mid-way) or *cut
    wrong* (a fragment of the neighbouring word): the first is a playback-length question, the second
    is another edge to move, and they are different fixes.
+1b. **The two clips the next report named** (2026-11-25, same day):
+   - `cop.hands` (5 ids) should say **"Stop."** as one whole word. It used to play a chopped "smi",
+     because 0.420 s of the source is the start of "smiling", not the end of "stop". If it still
+     sounds odd, say whether a fricative is missing from the front or the word is cut off at the
+     back — those are the two edges, and they move independently.
+   - `civ.nophone` (1 id) is now **"I'd rather we didn't."** rather than "There's nothing we can do,".
+     It is the pick the pack's vocabulary allows for *don't make that call*; if a better-sounding
+     take exists, it can only be another line from the same archive.
 2. **No loader noise.** `mods/logs/` should show the mod folder loaded and no error from it: the pack
    has no Lua, no hooks and no XML to parse beyond `<mod name=…>`.
 3. **Line-by-line, not event-by-event.** A heist-scripted line Hila speaks as an NPC keeps Hila's
