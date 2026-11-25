@@ -31,14 +31,15 @@ and waist/hip/cuff fit adjustments (D50). It carries the 5% bone-anchored slim (
 layer-clearance pass with the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
 Earlier user-supplied captures show `OfficeSuite` prior to the jewelry texture update. It also ships a
 first-person arms unit (D53): the same slim/cleared arms, registered with an `fps_unit` and depth-scaled
-materials, and no head. It keeps the outfit's own palms, fingers and bracelet on the PD2 hand and finger
-bones — in the third-person body, the shadow caster and the first-person arms — and registers no glove
-adapter (D55). Its wrists therefore show the outfit's skin and cuff, not the vanilla blue gloves. The
-first-person arms have not been seen in game; the 2026-11-15 captures predate both the arms unit and the
-hands.
+materials, and no head. Its hands are cut where the palm begins — a plane through the PD2 `Hand` joint,
+perpendicular to the palm, 3.98° off the forearm axis — in the third-person body, the shadow caster and the
+first-person arms, and the rim is capped (D59). It therefore registers the glove adapter again, so the
+heister's stock gloves are the hands on screen and a chosen glove still wins (D58's own-hands hook is not
+shipped). Its sleeve ends read as sleeve, cuff and jewellery cuff; the 2026-11-15 captures predate both the
+arms unit and the cut, and the first-person arms have not been seen in game.
 
-`OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body, hands and arms unit
-with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
+`OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body (palms cut, D59) and
+arms unit with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
 packed in one `WHOLE_CHARACTER` unit. Its registration is `replace_all` with `hide_mask`, so the game
 swaps the heister's head and the mask cannot be put back on; the pack's own eyes and teeth are Hila's stock
 ones. It has not been seen in game; its lashes are the donation's `opacity:` shader with a real alpha cutout,
@@ -70,11 +71,11 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
 | `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust`, `Arivus_over_Hoxton` | no record | — |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
-| `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, hands and head override; its render is from the single replacement ZIP) |
+| `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, palm-cut sleeves and head override over Hila's stock gloves; its render is from the single replacement ZIP) |
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |
-| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild and the 2026-11-23 hands (D55); installed hash not measured |
+| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and both hand builds (D55's own hands, D59's palm cut); installed hash not measured |
 | `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |

@@ -9,7 +9,10 @@ and `build_christie_source.py` reuse the wrist-cut helper for Christie's heister
 
 * :func:`basis_matrix` / :func:`glbl_to_diesel` — the TMC frame (Y-up, cm) to the
   Diesel frame (Z-up, cm), det = +1, and the 171 world bind matrices with it.
-* :func:`cut_group_at_wrists` — drop the hands so a heister glove covers the rim.
+* :func:`cut_group_at_planes` — drop everything distal to a set of planes, slice
+  by slice; :func:`cut_group_at_wrists` (the hands at the wrist joint, along the
+  forearm axis) and :func:`cut_group_at_palm_bases` (the palms where they begin,
+  perpendicular to the palm) are the two named ways into it.
 * :func:`drop_long_thin_triangles` — drop the source's strip-break connector slivers.
 * :func:`fallback_icon` — the placeholder HUD tile for a build with `--no-previews`.
 
@@ -127,45 +130,42 @@ def drop_long_thin_triangles(g, max_edge: float = LONG_THIN_MAX_EDGE_CM) -> dict
             "verts_after": vbase}
 
 
-def cut_group_at_wrists(g, arm_joints, margin: float = 0.5) -> dict:
-    """Drop every triangle with a vertex past the PD2 wrist plane.
+def _unit(vector):
+    import numpy as np
 
-    After retarget the outfit is in the 2B bind frame, arms straight out;
-    the plane runs through the wrist joint along the forearm axis. Everything
-    distal to it (the hand) is dropped; anything at or proximal to it is
-    kept, so the rim sits exactly under the glove cuff.
+    v = np.asarray(vector, dtype=np.float64)
+    return v / np.linalg.norm(v)
+
+
+def cut_group_at_planes(g, planes, margin: float = 0.5, r_max: float = 28.0) -> dict:
+    """Drop every triangle with a vertex distal to any of the given planes.
+
+    ``planes`` is a sequence of ``(origin, axis)`` pairs: a point on the plane
+    and a unit axis pointing distally, away from the body. A vertex is distal
+    when it lies further than ``margin`` cm along that axis from the origin
+    **and** within ``r_max`` cm of the axis line. The radius limit is not
+    optional: in the PD2 bind pose the arm axes point steeply down-forward, so a
+    bare half-space would also swallow the lower legs.
 
     The drop is done slice by slice: each slice keeps its own compact vertex
     block (the Diesel atom invariant requires the slice's triangles to index
     inside its own block), unused vertices are dropped, and the slices'
     ``base_v``/``base_i`` are rebuilt.
 
-    The hand is the region beyond the wrist joint (radial distance < 28 cm
-    from the forearm axis); a plain half-space cut at the wrist is wrong for
-    the PD2 bind pose (the forearm axis points down-forward, so the plane
-    would contain the feet and cut the lower legs off).
+    The report carries ``removed_vertex_ids`` - the old indices of vertices that
+    only distal triangles used - so a caller can say which bones it removed.
     """
     import numpy as np
 
-    wrist_l, elbow_l = (np.array(v, dtype=np.float64) for v in arm_joints[-1])
-    wrist_r, elbow_r = (np.array(v, dtype=np.float64) for v in arm_joints[1])
-    axis_l = wrist_l - elbow_l
-    axis_l /= np.linalg.norm(axis_l)
-    axis_r = wrist_r - elbow_r
-    axis_r /= np.linalg.norm(axis_r)
     verts = np.asarray(g.verts, dtype=np.float64)
-
-    def hand_side(wrist, axis, r_max=28.0):
-        # beyond the wrist along the forearm axis, AND close to it: the hand and
-        # the outstretched fingers.  A bare half-space would also swallow the
-        # lower legs, because in the PD2 bind pose the forearm axis points
-        # steeply down-forward.
-        v = verts - wrist
-        t = v @ axis
-        perp = np.linalg.norm(v - np.outer(t, axis), axis=1)
-        return (t > margin) & (perp < r_max)
-
-    distal = hand_side(wrist_l, axis_l) | hand_side(wrist_r, axis_r)
+    distal = np.zeros(len(verts), dtype=bool)
+    for origin, axis in planes:
+        origin = np.asarray(origin, dtype=np.float64)
+        axis = np.asarray(axis, dtype=np.float64)
+        rel = verts - origin
+        axial = rel @ axis
+        perp = np.linalg.norm(rel - np.outer(axial, axis), axis=1)
+        distal |= (axial > margin) & (perp < r_max)
 
     # slice layout of the incoming faces: transfer_group extends faces slice by
     # slice, in model.meshes order; recover each slice's kept face list from it
@@ -182,6 +182,7 @@ def cut_group_at_wrists(g, arm_joints, margin: float = 0.5) -> dict:
     # faces of the old group are laid out in slice order; walk them with a
     # cursor and match each slice to its (old) vertex block
     cursor = 0
+    removed: set[int] = set()
     for (src_mat, base_v, base_i, tri_count, nverts) in g.slices:
         sl_faces = faces[cursor:cursor + tri_count]
         cursor += tri_count
@@ -212,6 +213,7 @@ def cut_group_at_wrists(g, arm_joints, margin: float = 0.5) -> dict:
         new_slices.append((src_mat, vbase, fbase * 3, len(kept), len(remap)))
         vbase += len(remap)
         fbase += len(kept)
+        removed.update(int(vi) for vi in np.unique(sl_faces[~keep_mask]) if int(vi) not in remap)
     g.verts = new_verts
     g.normals = new_normals
     g.uvs = new_uvs
@@ -220,7 +222,46 @@ def cut_group_at_wrists(g, arm_joints, margin: float = 0.5) -> dict:
     g.slices = new_slices
     return {"slices": report_per_slice,
             "tris_dropped": sum(s["tris_dropped"] for s in report_per_slice),
-            "verts_after": vbase}
+            "verts_after": vbase,
+            "removed_vertex_ids": sorted(removed)}
+
+
+def cut_group_at_wrists(g, arm_joints, margin: float = 0.5) -> dict:
+    """Drop the hands at the PD2 wrist joints, along the forearm axis.
+
+    After retarget the outfit is in the 2B bind frame, arms straight out; the
+    plane runs through the wrist joint along the forearm axis. Everything distal
+    to it (the hand) is dropped; anything at or proximal to it is kept, so the
+    rim sits exactly under a heister glove cuff. See :func:`cut_group_at_planes`
+    for the radius limit that keeps this from cutting the legs off.
+    """
+    import numpy as np
+
+    planes = [(np.asarray(arm_joints[side][0], dtype=float),
+               _unit(np.subtract(arm_joints[side][0], arm_joints[side][1])))
+              for side in (-1, 1)]
+    report = cut_group_at_planes(g, planes, margin)
+    # The Christies persist this report in their BUILD_INFO.json, and their
+    # tracked bytes predate `removed_vertex_ids`; the palm caller reads it and
+    # the wrist caller keeps its own record, so it ends here.
+    del report["removed_vertex_ids"]
+    return report
+
+
+def cut_group_at_palm_bases(g, palms, margin: float = 0.0) -> dict:
+    """Drop the palms and fingers where each palm begins.
+
+    ``palms`` is `build_models.palm_planes` output: per side, the ``Hand`` joint
+    (the wrist crease) and the axis from it to the knuckle bases. The plane is
+    perpendicular to the palm, not to the forearm, so the heel of the hand goes
+    with the fingers; a forearm-plane cut at the same joint (``margin`` 0.5)
+    leaves a wedge of it behind. ``margin`` 0 is the crease itself.
+    """
+    import numpy as np
+
+    planes = [(np.asarray(palms[side]["origin"], dtype=float),
+               np.asarray(palms[side]["axis"], dtype=float)) for side in (-1, 1)]
+    return cut_group_at_planes(g, planes, margin)
 
 
 def fallback_icon() -> bytes:

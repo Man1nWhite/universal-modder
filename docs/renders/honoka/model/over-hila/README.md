@@ -11,18 +11,19 @@
 3. Select **Hila** with her **default outfit and gloves**. This replaces her default third-person
    body and head in the menu/lobby and heists. It doesn't add an entry to the armor-skin menu.
 
-Neither donor ZIP nor LAS, SuperBLT, or BeardLib is required. The replacement carries the outfit's
-own hands, so Hila's stock gloves and the vanilla blue heister gloves no longer show at the wrist;
-her first-person arms are unchanged. Other outfit/glove mods can hide parts of the replacement, and
-heavy armor or masks may clip. Remove this one folder to uninstall.
+Neither donor ZIP nor LAS, SuperBLT, or BeardLib is required. The outfit's palms are cut where the
+palm begins, so the sleeve ends in its cuff and **Hila's stock gloves** — shipped in the pack,
+untouched and enabled — are the hands on screen; her first-person arms are unchanged. Other
+outfit/glove mods can hide parts of the replacement, and heavy armor or masks may clip. Remove this one folder to uninstall.
 
 ## Preview provenance
 
 - Generated with `.venv/bin/python tools/render_mod_previews.py --unified --only-hila` from the
   installed paths **inside the final ZIP**. This is not the older overlay of two donor ZIPs.
 - The left three views are front, three-quarter, and back in the bind pose; the right column
-  shows the face and side. Hila's stock glove drawable is deleted from the pack, so the wrists show
-  the outfit's own skin and cuff from the packed atlas. The face and the six outfit surfaces use
+  shows the face and side. Hila's stock glove drawable is drawn flat-shaded in that sheet: its
+  material samples a vanilla glove texture a replacement pack does not ship, and in game the game's
+  own texture applies. The face and the six outfit surfaces use
   packed diffuses.
 - Sources: the final OfficeSuite (DOAXVV *Secret Report*) body and caster, and the skin-matched ME2
   Romance head from Miranda Romance over Hila (including the supplied eyes and character icon).

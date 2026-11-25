@@ -194,13 +194,37 @@ seen here and nowhere else belongs to `L_23`. The pack also ships a first-person
 2. **It matches the suit** — the jewelry and the black jacket are lit by the same light without the
    jewelry looking like a separate cut-out pasted on top.
 3. **First person** — a heist with a weapon out, reload and interact once: the outfit's sleeves show
-   from the wrists to the hands, the jewelry cuff and the bra straps read as part of the outfit, the
-   heister's vanilla gloves spawn at the wrist cut, and nothing is missing, duplicated or clipped.
-   The cuff and straps are arm-weighted geometry by construction; the hands stay the heister's.
+   from the wrist to where the palm begins, the jewelry cuff and the bra straps read as part of the
+   outfit, the heister's gloves are the hands (the pack registers the adapter), and nothing is
+   missing, duplicated or clipped. The cuff and straps are arm-weighted geometry by construction;
+   the hands are the game's (D59).
 
 Everything else for this pack is covered by the 2026-11-15 sections of the render pages; the
 captures there predate this texture and cannot be used to judge the jewelry, and predate the
 first-person unit entirely.
+
+## OfficeSuite — the palms are cut (2026-11-25, D59)
+
+Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it any more: everything
+distal to where the palm begins is gone (plane through the PD2 `Hand` joint, perpendicular to the
+palm, `palm_cut` in `BUILD_INFO.json`), the rim is capped, and the pack registers
+`officesuite_glove_adapter.lua` so the heister's gloves cover it. Offline the sleeve ends read as a
+clean cuff; what only the game can show:
+
+1. **The sleeve end under the glove.** With gloves on "Default", the black cuff and the jewelry cuff
+   should sit *outside* the glove's cuff, with no bare skin band and no dark ring where the cap is.
+   Fail: the capped rim visible past the glove lip, or the glove sinking into the sleeve.
+2. **A chosen glove still wins.** Equip a named glove (Bone Mittens): it replaces the default one
+   over the cut. Then equip an outfit piece that is itself handless — the adapter must not double
+   the gloves.
+3. **The first-person arms match.** The `fps_officesuite` arms are cut on the same plane; a weapon
+   held and a reload should show the sleeve ending at the palm line, never a hand modelled in the
+   outfit and never a bare wrist stub.
+4. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
+   ground while turning — no hand, and no hole where the hands used to be.
+
+The same three checks apply to `OfficeSuite_Head` (its body is this body) and, without a hook, to
+the Hila override below, where Hila's stock gloves should be the hands.
 
 ## Native Hila body + head override (no LAS)
 
@@ -212,10 +236,12 @@ The ZIP was checked offline; these steps still need the game:
    Romance head should all show together, with no pink materials or missing triangles.
 2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
    neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
-   still be Hila's. **The wrists are the new bytes (D55):** the Hila override now shows the outfit's
-   own skin and black sleeve cuff where the vanilla blue gloves used to be, and the LAS pack does the
-   same under `LegendaryArmours.officesuite`. Check both from the front, the side and while the hand
-   closes on a weapon: no blue glove, no bare wrist band, no gap where the cuff meets the hand.
+   still be Hila's. **The wrists are the new bytes (D59):** the outfit's palms are cut where the palm
+   begins, so the sleeve ends in its cuff and **Hila's own stock gloves** — kept in the pack, node and
+   all — are the hands on screen; the LAS pack reaches the same sleeve end under
+   `LegendaryArmours.officesuite` and lets the heister's gloves cover it. Check the hands from the
+   front, the side and while the hand closes on a weapon: no gap between the glove and the sleeve, no
+   capped rim showing past the glove lip, no bare wrist band, no second pair of hands.
 3. Mask up and check the mask, a heavier vest, and a carried deployable. These use the original
    Hila attachments; check that the fit is acceptable. Alternate outfits/gloves are not the target.
 
@@ -236,12 +262,13 @@ body **and** the head, and hides the mask. The checks that the offline build can
    the pack's, and the mask must not appear on the face. Swap to another heister and back.
 4. **The neck.** Rotate the head in the lobby and reload in a heist: no gap or stretched skin where
    the pack's head meets OfficeSuite's collar, and no head that follows the hips instead of the head.
-5. **No vanilla glove, and not the stock hands (D58).** With gloves on "Default" in the blackmarket,
-   the wrists must show the outfit's own hands — no `hnd_glv_heistwrinkled` band at the cuff, and no
-   bare heister hands beside the modelled ones (that would be the stock hands failing to hide).
-   Both packs ship `*_own_hands.lua` for this. Then equip a named glove (Bone Mittens): it must
-   spawn over the hands, because a chosen glove is allowed to win.
-6. **The body is unchanged.** Wrists read as D55 (the outfit's own skin and cuff, no blue glove);
+5. **The heister's gloves are the hands (D59).** With gloves on "Default" in the blackmarket, the
+   heister's default gloves must cover the cut at the sleeve end — no `hnd_glv_heistwrinkled` band
+   floating at the cuff, no bare heister hands showing beside the sleeve, no capped rim visible. The
+   pack ships `officesuite_head_glove_adapter.lua` for this; D58's `*_own_hands.lua` is no longer
+   written, because there are no modelled hands for it to protect. Then equip a named glove
+   (Bone Mittens): it must replace the default one cleanly.
+6. **The body is the cut body.** Wrists read as D59 (cuff and jewellery cuff, gloves over the cut);
    jewellery, suit colourway and the first-person arms match `OfficeSuite`'s own checks above.
 
 `OfficeSuite` itself is unchanged by this pack: it keeps the stock head and its `BODY_ONLY`

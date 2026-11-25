@@ -7,7 +7,7 @@
   - [`officesuite_head_las_sheet.png`](officesuite_head_las_sheet.png): front, 3/4, back and side views,
     an 18° close-up portrait, a first-person panel (player view, `0°` yaw / `25°` down) and the
     HUD/menu icon, all from the pack's **one** unit: `g_body` (OfficeSuite's black jacket, light shirt
-    and jewelry, with the outfit's own hands, D55) and `g_head` (the ME2 "Romance" head and lashes that
+    and jewelry, palms cut where the palm begins, D59) and `g_head` (the ME2 "Romance" head and lashes that
     `OfficeSuite_Miranda_Romance_over_Hila.zip` carries, re-skinned onto the 2B rig, D56). There is no
     transform between the two drawables: they are in one model and one character frame.
   - [`officesuite_head_las_fps_sheet.png`](officesuite_head_las_fps_sheet.png): the whole-character

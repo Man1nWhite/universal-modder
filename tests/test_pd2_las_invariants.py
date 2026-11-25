@@ -1018,8 +1018,8 @@ def test_own_hands_packs_never_draw_a_default_glove(pack):
 def test_whole_character_packs_bring_their_own_head():
     """**Whole character.** A pack that brings its own head, as Office Suite + Miranda Head does.
 
-    The pack is OfficeSuite's body and hands with the Miranda Romance head from
-    the Hila override, in one unit: both drawables are drawn from one model, and
+    The pack is OfficeSuite's body with the Miranda Romance head from the Hila
+    override, in one unit: both drawables are drawn from one model, and
     the registration says whole character rather than body skin, so the game
     swaps the heister's head too and hides the mask that is no longer reachable.
     `OfficeSuite` itself is a body skin over the heister's stock head, and the two
@@ -1031,8 +1031,11 @@ def test_whole_character_packs_bring_their_own_head():
     flags = info["registration"]["flags"]
     assert "replace_all" in flags and "hide_mask" in flags, flags
     assert "replace_body" not in flags, f"{pack} registers as a body skin: {flags}"
-    assert info["registration"]["glove_adapter"] is False, (
-        "the pack brings authored hands, so the glove adapter would double them")
+    # The palms are cut (D59), so this pack needs the adapter that gives a handless
+    # outfit the heister's stock hands and changeable gloves back; without it the
+    # sleeve ends are empty in game and no glove can be selected.
+    assert info["registration"]["glove_adapter"] is True
+    assert info["registration"]["own_hands"] is False
 
     body_flags = _info("OfficeSuite")["registration"]["flags"]
     assert "replace_all" not in body_flags and "replace_body" in body_flags, body_flags

@@ -1219,14 +1219,15 @@ class TestLasScaffold:
                     f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
-    def test_officesuite_carries_the_alt_suits_and_its_own_hands(self):
-        """OfficeSuite replaces the suit and jewelry diffuses and keeps the source's hands.
+    def test_officesuite_carries_the_alt_suits_and_cuts_the_palms(self):
+        """OfficeSuite replaces the suit and jewelry diffuses and cuts the hands at the palms.
 
-        OfficeSuite is the only pack of this source that is not cut at the wrists, so its
-        body drawable carries the palms and fingers the gloves used to cover, and it
-        registers no glove adapter. Its other five diffuse/normal pairs are the source's
-        own, its slim factor is the 5% the outfit was fit with, and its clearance report
-        is the trimmed shadow caster (D44, D55).
+        OfficeSuite drops everything distal to where each palm begins - the plane through the
+        rig's `Hand` joint, perpendicular to the palm - so the body carries no palm or finger
+        geometry and registers the glove adapter that gives the heister's own gloves back
+        (D59; the palms were the outfit's own from D55 until then). Its other five
+        diffuse/normal pairs are the source's own, its slim factor is the 5% the outfit was
+        fit with, and its clearance report is the trimmed shadow caster (D44).
         """
         import hashlib
 
@@ -1243,15 +1244,17 @@ class TestLasScaffold:
         geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
                 for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
         body = max(geos, key=lambda k: len(geos[k]))
-        # the whole garment set, hands included; the handless builds of this source cut
-        # ~1.36k vertices at the wrists, which is why this one keeps the adapter off
-        assert len(geos[body]) == 32933, f"{len(geos[body])} vertices in the body drawable"
-        assert info["slim"]["vertices"] == 64059
+        # the whole garment set with the palms and fingers cut away: 1.36k vertices
+        # fewer than the authored hands D55 shipped
+        assert len(geos[body]) == 31577, f"{len(geos[body])} vertices in the body drawable"
+        assert info["slim"]["vertices"] == 61347
 
-        assert info["registration"]["glove_adapter"] is False
+        assert info["registration"]["glove_adapter"] is True
+        assert info["registration"]["own_hands"] is False
+        assert info["hands"] == "palm_cut"
         assert "replace_all" not in info["registration"]["flags"]
         assert info["slim"]["factor"] == pytest.approx(0.95)
-        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 64059
+        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 61347
         assert info["clearance"]["shadow_caster_drops"] == ["bra", "panties"]
 
         tex = info["source"]["textures"]

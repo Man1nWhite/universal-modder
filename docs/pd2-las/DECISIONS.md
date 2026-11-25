@@ -1122,7 +1122,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Held to:** the invariants (`tests/test_pd2_las_invariants.py`, `_stems`) read the `fps_officesuite`
   model; `fresh` rebuilds and compares the tracked bytes.
 - **Source:** `tools/pd2-las/build_honoko2_dae.py`
-- **Status:** holds.
+- **Status:** holds, except where the cut is named: the arms unit is cut where the palm begins since
+  D59 (not at the wrist as written above), and it registers the adapter again.
 
 ### D54 — `Honoko5` is renamed to `OfficeSuite`
 
@@ -1170,7 +1171,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PackSpec.hands`, `build_pack`, `registration`),
   `tools/build_hila_body_mod.py` (`_fit_unit`, `_drop_hands`, `_object`),
   `tools/pd2-las/build_models.py` (`template`)
-- **Status:** holds; `runtime_verified` stays `false` — the new wrists are checked offline only.
+- **Status:** superseded by D59 (2026-11-25): the palms are cut again, at the palm's starting
+  line rather than at the wrist joint, both LAS packs register the glove adapter again, and the
+  Hila override keeps her stock `g_hands`. `runtime_verified` was never claimed.
 
 ### D56 — `OfficeSuite_Head` is a separate whole-character pack, not a change to `OfficeSuite`
 
@@ -1200,9 +1203,10 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   alpha is the cutout. The pack's material and gloss invariants name that shader explicitly instead
   of assuming every skin slot is a `generic` diffuse+normal pair.
 - **Held to:** `tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head`
-  (`replace_all` and `hide_mask` set, `replace_body` not, no glove adapter, `g_body` and `g_head` in
+  (`replace_all` and `hide_mask` set, `replace_body` not, `g_body` and `g_head` in
   one model, the head bound above the collar and never to the hips, no FPS unit); the per-pack
-  invariants now run over `OfficeSuite_Head` too.
+  invariants now run over `OfficeSuite_Head` too. D59 put the glove adapter back on both packs: the
+  body ships no hands for the adapter to double.
 - **Rejected:** adding the head to `OfficeSuite` (offered; the user chose a separate pack); the full
   LAS-head port (offered; the user chose the existing Hila-override head); keeping the mask usable.
 - **Status:** holds; `runtime_verified` stays `false` — the head fit is checked offline only.
@@ -1227,7 +1231,8 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `Honoko3` (`test_honoko4_and_officesuite_are_honoko3_in_the_alt_suits`,
   `test_honoko3_and_4_open_the_layer_gaps_and_trim_the_shadow_caster`,
   `test_honoko3_is_honoko2_slimmed_about_the_bones`) are now
-  `test_officesuite_carries_the_alt_suits_and_its_own_hands`,
+  `test_officesuite_carries_the_alt_suits_and_its_own_hands` (renamed
+  `test_officesuite_carries_the_alt_suits_and_cuts_the_palms` by D59),
   `test_officesuite_opens_the_layer_gaps_and_trims_the_shadow_caster` and
   `test_officesuite_slims_about_the_bones_and_stays_on_the_floor`. They assert the same properties —
   the override diffuses and their source hashes, the hands and the absent glove adapter, four shadow
@@ -1280,5 +1285,67 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   against the real LAS loader, including the fixed-LAS regression and the chosen-glove case).
 - **Rejected:** removing the glove option for these outfits (offered; the user chose to let a
   chosen glove win); leaving the guarantee implicit in LAS's bug.
-- **Status:** holds; `runtime_verified` stays `false` — this is modelled against the verbatim LAS
-  loader and the ported BeardLib logic, not seen in the game. The in-game checklist has the step.
+- **Status:** holds as a rule for a pack with `hands = "own"`, which no tracked pack is since D59
+  (both `OfficeSuite` packs cut the palms and ship the adapter hook instead), so no `*_own_hands.lua`
+  is written today and the hook and its test stay for the next own-hands pack. `runtime_verified`
+  stays `false` — this is modelled against the verbatim LAS loader and the ported BeardLib logic,
+  not seen in the game. The in-game checklist has the step.
+
+### D59 — The OfficeSuite packs cut the hands where the palm begins, not at the wrist
+
+- **Decided:** 2026-11-25, by the user ("remove the palms from the OfficeSuite packages and make
+  explicit where the palm begins"), scoped by them to `OfficeSuite`, `OfficeSuite_Head` and the
+  native Hila override.
+- **Decision:** `PackSpec.hands` is a mode, not a flag: `"own"` (the D55 build, kept for a future
+  pack) or `"palm_cut"`. Both `OfficeSuite` and `OfficeSuite_Head` are `"palm_cut"`, and the native
+  override inherits that body. The cut plane is defined on the PD2 rig and per side: **origin** =
+  the `Hand` joint (`ARM_JOINTS`' wrist, the pivot the game animates), **axis** = the mean of the
+  four knuckle bases (`Hand{Index,Middle,Ring,Pinky}1`) minus that joint, normalised, pointing from
+  the wrist towards the fingers. A triangle goes if any of its vertices is distal to the plane,
+  inside a 28 cm radius of the axis (the radius is what stops the half-space from also cutting the
+  legs — see D55's dead end), and the rim is capped. On the 2B rig that axis is **3.98°** off the
+  forearm axis: that wedge is the heel of the hand, i.e. exactly the geometry a wrist-plane cut
+  leaves behind. The plane, the margin, the removed triangle count, the rim cap count, the vertices
+  removed per bone and how far short of the plane the shipped mesh now ends are all written into
+  `BUILD_INFO.json` under `palm_cut` (per side: origin cm, axis, `deg_from_forearm`, `kept_to_cm`).
+- **Why the palm line and not the wrist joint:** the user's earlier complaint (D55) was the vanilla
+  blue glove showing under a bare cuff rim. Cutting at the wrist joint leaves the palm's own heel
+  on the sleeve, so the sleeve end is neither a cuff nor a hand; cutting where the palm begins makes
+  the sleeve end exactly a sleeve, and the heister's own glove — which the game sizes to a hand —
+  covers the capped rim. It also gets the outfit's bracelet and cuff back to being jewellery rather
+  than part of a modelled hand.
+- **Why the register flips back to the adapter:** with no hands in the mesh, the pack needs the
+  `_glove_adapter.lua` hook (`default_glove_id`, `hands = false`) that gives the heister the stock
+  hands and changeable gloves, which is the opposite of D58's `_own_hands.lua`. `registration.own_hands`
+  is `false` and `registration.glove_adapter` is `true` again, and the "never both" invariant covers
+  this direction too.
+- **The Hila override is a replacement, not a LAS pack,** so it has no hook to flip: it keeps Hila's
+  stock `g_hands` drawable, its node enabled in both `.object` files, and its glove block in the
+  unit model, all byte-identical to the game's. `build_hila_body_mod.py` no longer deletes that node
+  or those sections, and the cuff tuck that D55 removed stays removed (with a capped rim inside a
+  glove there is nothing to tuck).
+- **Measured, not asserted:** the shipped `g_body` of both LAS packs has 31,577 vertices (61,347
+  after the 5% slim); the cut removes 2,276 triangles and adds 25 rim-cap triangles; the removed
+  vertices are dominated by `Left`/`RightHand` (209/211) and by every finger segment, with 17 per
+  side on the forearm edge. What survives ends 2.22 cm (left) and 2.27 cm (right) **short** of the
+  plane, because a triangle that straddles the crease goes with the palm; the cap closes the ring
+  that is left. The Hila override's `g_body` carries the same cut, and Hila's own glove covers it.
+- **Held to:** `tests/test_palm_cut.py` (the landmark is the `Hand` joint and the knuckle axis, the
+  recorded plane is the rig's plane, both packs record `removed_tris`/`rim_cap_tris`/`kept_to_cm`,
+  the shipped body has no vertex dominated by a hand bone and none distal to the plane, the Hila
+  override carries the same cut with `g_hands` present and enabled);
+  `tests/test_pd2_las.py::TestLasScaffold::test_officesuite_carries_the_alt_suits_and_cuts_the_palms`;
+  `tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head`;
+  `tests/test_hila_body_override.py` (the two models and two material configs are the only changed
+  files, the glove block survives, the hands are absent from the body).
+- **Rejected:** cutting at the wrist joint (D55's earlier geometry — leaves the palm heel and takes
+  the bracelet); a bare half-space without the radius limit (it cuts the legs); retexturing Hila's
+  glove mesh to skin, and Miranda's black gloves (offered under D55, not chosen); deleting Hila's
+  glove drawable and letting the sleeves end bare.
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PackSpec.hands`, `_last_kept_cm`,
+  `_cap_cut_rims`, `_dominant_bones`, the build loop's cut and its stray-bone guard),
+  `tools/pd2-las/build_models.py` (`PALM_KNUCKLES`, `palm_planes`, `is_hand_bone`),
+  `tools/pd2-las/tmc_las.py` (`cut_group_at_planes`, `cut_group_at_palm_bases`),
+  `tools/build_hila_body_mod.py` (`GLOVE`, `_fit_unit`)
+- **Status:** holds; `runtime_verified` stays `false` — the cut is checked offline (renders and the
+  shipped bytes) only. The in-game checklist has the wrist and glove steps.

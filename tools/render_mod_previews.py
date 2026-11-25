@@ -22,12 +22,12 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `18_all_dist_mods_overview.png` (grid of every pack in `dist/`)
   - `19_Miranda_L4D2_over_Hila.png`
   - `20_Miranda_Romance_over_Hila.png`
-  - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway with its own hands, plus the first-person arms panel)
+  - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway, hands cut at the palms, plus the first-person arms panel)
   - `25_OfficeSuite_with_Miranda_Romance_over_Hila.png` (the same combination for OfficeSuite)
   - `26_OfficeSuite_head_skin_detail.png` (front and three-quarter views of the colour match)
   - `27_Christie_Clover_LAS.png` (Clover-Christie GLB body-only LAS outfit)
   - `28_OfficeSuite_Miranda_Romance_over_Hila.png` (native Hila body and head override)
-  - `29_OfficeSuite_Head.png` (OfficeSuite body, hands, arms and the Romance head in one unit)
+  - `29_OfficeSuite_Head.png` (OfficeSuite body, palm cut, arms and the Romance head in one unit)
   - `30_Arivus_over_Hoxton.png` (GTA SA Arivus head over Old Hoxton, FPS gloves in TPS)
   - `31`–`36` `*_fps.png` (first-person `fps_*.model` sheets for every pack that ships one:
     Miranda_L4D2_LAS, Miranda_L4D2_Busty_LAS, Miranda_Romance_LAS, Christie_LAS, OfficeSuite,
@@ -925,16 +925,23 @@ def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Im
     with zipfile.ZipFile(zip_path or dist_path(ROOT, PACK)) as zf:
         model = dm.ModelFile.read(zf.read(f"{INSTALL}/{UNIT}.model"))
         mats = _parse_matcfg_diffuse(zf.read(f"{INSTALL}/{MATERIAL}.material_config"))
-        # The pack carries the outfit's own hands in g_body and deletes Hila's
-        # stock glove drawable (D55), so g_hands is absent by design.
+        # The outfit's palms are cut (D59), so Hila's stock glove drawable - kept
+        # by the pack, node and all - is what covers the sleeve ends: draw it,
+        # flat-shaded, because its material samples a vanilla glove texture the
+        # pack does not ship.
         cache: dict[str, np.ndarray] = {}
         parts = [p for draw in ("g_body", "g_head") for p in _parts_from_model_with_matcfg(
             zf, INSTALL, model, mats, cache, drawable=draw,
             cutout_materials=frozenset({"mtr_lashes"}), asset_root="",
         )]
+        geo, topo, _md = _model_drawables(model)["g_hands"]
+        glove = np.full((32, 32, 4), [38, 44, 64, 255], dtype=np.uint8)
+        parts.append((np.asarray(geo["verts"], np.float32), np.asarray(geo["normals"], np.float32),
+                      np.array(topo["indices"], dtype=np.int32).reshape(-1, 3),
+                      np.asarray(geo["uv0"], np.float32), glove, False, True))
         icon = decode_bgra_icon(zf.read(f"{INSTALL}/{HILA_ICON_PATH}"))
     return render_las_sheet(
-        "OfficeSuite + Miranda Romance over Hila", "Native body, hands and head replacement | Offline render | outfit hands, no stock gloves",
+        "OfficeSuite + Miranda Romance over Hila", "Native body, palm cut and head replacement | Offline render | stock gloves cover the cut",
         parts, [], icon, out_path, closeup=(18.0, 171.5, 7.4), full_view=(94.0, 2.48),
     )
 
@@ -1002,7 +1009,7 @@ def main(argv: list[str] | None = None) -> None:
         )
         th_os = render_las_sheet(
             "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
-            "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, hands and arms | fps_officesuite.model | "
+            "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, hands cut where the palms begin | fps_officesuite.model | "
             "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
             tpp_os,
             fps_os,
@@ -1012,7 +1019,7 @@ def main(argv: list[str] | None = None) -> None:
         )
         render_fps_sheet(
             "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
-            "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs, jewelry cuff and the outfit's own hands",
+            "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm cut",
             fps_os,
             target_for("35_OfficeSuite_fps.png"),
         )
@@ -1022,7 +1029,7 @@ def main(argv: list[str] | None = None) -> None:
         tpp_hd, fps_hd, icon_hd = load_head_las_parts()
         render_las_sheet(
             "dist/Honoka/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
-            "One unit: OfficeSuite's body, hands and first-person arms (fps_officesuite_head.model), and the ME2 "
+            "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
             "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
             "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
             tpp_hd,
@@ -1142,7 +1149,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     th_os = render_las_sheet(
         "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
-        "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, with the outfit's own hands | First-person arms unit | "
+        "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, hands cut where the palms begin | First-person arms unit | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
         tpp_os,
         fps_os,
@@ -1152,7 +1159,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     render_fps_sheet(
         "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
-        "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs, jewelry cuff and the outfit's own hands",
+        "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm cut",
         fps_os,
         target_for("35_OfficeSuite_fps.png"),
     )
@@ -1160,7 +1167,7 @@ def main(argv: list[str] | None = None) -> None:
     tpp_hd, fps_hd, icon_hd = load_head_las_parts()
     th_hd = render_las_sheet(
         "dist/Honoka/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
-        "One unit: OfficeSuite's body, hands and first-person arms (fps_officesuite_head.model), and the ME2 "
+        "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
         "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
         tpp_hd,

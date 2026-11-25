@@ -261,3 +261,44 @@ fixture) with no hook spawns a real glove over the modelled hands, and with the 
 Installing `lupa` for it is worth it — that suite had been skipped in this sandbox all along.
 `OfficeSuite`'s and `OfficeSuite_Head`'s geometry and textures are unchanged; the zips gain the one
 hook and the `main.xml`/`BUILD_INFO` lines that name it.
+
+## 2026-11-25 — the palms come off, and where the palm begins is a number
+
+The user reversed D55: "remove the palms from the OfficeSuite packages and make explicit where the
+palm begins", scoped to `OfficeSuite`, `OfficeSuite_Head` and the native Hila override (D59). The
+boundary is the palm's starting line, not the wrist joint.
+
+`build_models.palm_planes` defines it on the rig: origin = the `Hand` joint (the same point
+`ARM_JOINTS` calls the wrist), axis = mean of `Hand{Index,Middle,Ring,Pinky}1` minus that joint. On
+the 2B bind pose that axis is 3.98° off the forearm axis — the heel of the hand, which is what a
+wrist-plane cut leaves on the sleeve. `tmc_las.cut_group_at_planes` is the generalised cut (the old
+`cut_group_at_wrists` is now a wrapper over it, same cone radius of 28 cm, same rim behaviour);
+`cut_group_at_palm_bases` is the palm wrapper — and the wrist wrapper drops the new
+`removed_vertex_ids` key from its report, because the two Christie packs persist that report in
+their `BUILD_INFO.json` and their tracked bytes must not move (they rebuilt byte-identically). `PackSpec.hands` became a mode, `"own"` or
+`"palm_cut"`, and both OfficeSuite specs are `"palm_cut"`.
+
+`BUILD_INFO.json` now carries what "where the palm begins" resolves to, per side: `origin_cm`,
+`axis`, `deg_from_forearm`, `kept_to_cm` (how far short of the plane the shipped mesh ends, measured
+after the slim and clearance passes), plus `removed_tris`, `rim_cap_tris` and the vertex count per
+bone the cut took. On the tracked bytes: 2,276 triangles removed, 25 cap triangles, 2.22 cm / 2.27 cm
+short of the plane, 31,577 body vertices (61,347 after the 5% slim). The build now fails if the cut
+would remove geometry dominated by anything but a hand or the forearm edge.
+
+Registration went back to the adapter: `glove_adapter = true`, `own_hands = false`, and the packs
+ship `officesuite_glove_adapter.lua` / `officesuite_head_glove_adapter.lua` instead of
+`*_own_hands.lua`. `build_hila_body_mod.py` lost the glove deletion: her `g_hands` node stays
+enabled in both `.object` files, her glove block stays in the unit model, and no `.object` is
+patched at all any more — there is nothing to gate, because her gloves are the hands now.
+
+Tests: new `tests/test_palm_cut.py` pins the landmark to the rig, the record to the mesh and the
+mesh to the landmark; the OfficeSuite tests in `tests/test_pd2_las.py` and the whole-character
+invariant in `tests/test_pd2_las_invariants.py` follow the new facts (31,577 vertices, the adapter
+back, no hand-dominated vertex). `tests/test_hila_body_override.py` inverted its glove assertions:
+the two models and the two material configs are the only changed files, the glove block and its
+node survive, the hands are gone from the body. The render sheets were re-rendered; the native-Hila
+sheet draws her stock gloves flat-shaded, because their material samples a vanilla glove texture
+that a replacement pack does not ship.
+
+`runtime_verified` stays `false` in both packs; the wrist and glove steps are in
+`docs/pd2-las/in-game-checklist.md`.
