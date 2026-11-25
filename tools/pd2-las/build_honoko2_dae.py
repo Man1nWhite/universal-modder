@@ -29,7 +29,7 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   deterministic `dist/Honoka/OfficeSuite.zip` + `.sha256`. `Honoko2`..`Honoko4`, the
   earlier base/slim/alternate-suit builds of this same source, are no longer tracked
   (D57); their bytes are in git history. `OfficeSuite` cuts the hands where the palms
-  begin (`PackSpec.hands="palm_cut"`, D59/D60): the plane is perpendicular to the palm,
+  begin (`PackSpec.hands="palm_cut"`, D59/D60/D70): the plane is perpendicular to the palm,
   through the rig's `Hand` joint, and the mesh is clipped *on* it rather than at the
   last wholly-proximal triangle, so the palm and fingers go, the sleeve cuff and the
   outfit's bracelet stay, and no wrist is left standing above the cut. The rim is
@@ -160,23 +160,14 @@ class PackSpec:
 #: and the body, so they add no silhouette (D44)
 SHADOW_DROPS = {"bra", "panties"}
 
-#: How far past the palm line the arm is kept, along the palm axis, in cm (D62/D63).
-#: D60 cut exactly on the crease and the game then showed a gap: the heister's glove cuff
-#: starts below where the outline of a hand would be, so the arm ended in mid-air, capped,
-#: with nothing between it and the glove (user screenshots, 2026-11-25). Keeping some of
-#: the palm continues the arm down into the glove instead.
-#:
-#: The amount is set by the glove's own geometry (D63) and then by what the game showed (D65).
-#: The vanilla `g_hands` glove that the game draws starts 0.42 cm past the crease and is 3.5 cm
-#: in radius there, widening to 4.0 at 2 cm and 4.3 at 3 cm; this outfit's wrist is 3.46 cm and
-#: its palm passes the glove at about 2 cm. D63 tucked the arm 1.5 cm into the glove - a
-#: centimetre inside the rim - and the in-game screenshots of 2026-11-25 still showed a wedge of
-#: skin coming through the darker glove's cuff at the wrist bend: the arm is still growing
-#: (3.46 cm at the crease, 4.4 at 2 cm) where the glove's cuff is narrow, and the last
-#: half-centimetre of it is the fattest part. Cutting a little more takes that back - 1.25 cm,
-#: which after the 5% slim still reaches 0.6 cm, comfortably past the glove's 0.42 cm rim, so
-#: the D60 gap does not return.
-PALM_EXTEND_CM = 1.25
+#: How far past the palm line the arm is kept, along the palm axis, in cm (D70).
+#: The user asked to revert the extensions that started with D62: the cut goes back to
+#: D60's plane, exactly where the palm begins, and the pack models no skin beyond it.
+#: D62 extended it 4 cm into the palm, D63 cut that to 1.5 and D65 to 1.25; all three
+#: kept arm skin at the glove cuff, which the 2026-11-25 first-person screenshot showed
+#: coming through the white glove. With 0 the split lands on the `Hand` joint's plane and
+#: `_cap_cut_rims` caps the ring there; only a glove the player picks supplies hands.
+PALM_EXTEND_CM = 0.0
 
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
 #: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by
@@ -1002,11 +993,11 @@ def build_pack(
             cut = tmc_las.clip_group_at_palm_bases(g, palms, margin=PALM_EXTEND_CM)
             cut["removed_bones"] = _dominant_bones(weights, palette, cut["removed_vertex_ids"])
             del cut["removed_vertex_ids"]
-            # The only vertices a palm cut may take are hand and finger ones and, if
-            # the plane sits near the crease, forearm ones. Cutting `PALM_EXTEND_CM`
-            # into the palm takes none of the forearm's; anything that is neither a
-            # hand, a finger nor an arm bone means the plane is wrong - a leg inside
-            # the 28 cm cone, say.
+            # The only vertices a palm cut may take are hand and finger ones and, at
+            # the crease, a handful of forearm ones along the rim. A positive
+            # `PALM_EXTEND_CM` (the reverted D62/D63/D65 builds) took none of the
+            # forearm's; anything that is neither a hand, a finger nor an arm bone
+            # means the plane is wrong - a leg inside the 28 cm cone, say.
             stray = sorted(b for b in cut["removed_bones"] if not bm.is_fps_arm_bone(b))
             if stray:
                 raise SystemExit(f"[{gname}] the palm cut took geometry off {stray}, "
@@ -1020,8 +1011,8 @@ def build_pack(
         # The rim a palm cut leaves is capped: with no hands in the pack the cut end
         # is what the game draws until a glove spawns, and an open rim would show the
         # inside of the sleeve in first person and in the shadow map. The rim is
-        # `PALM_EXTEND_CM` past the crease, inside the palm, so the cap looks for it
-        # there rather than at the plane.
+        # `PALM_EXTEND_CM` past the crease; with the D70 value of 0 it is the ring
+        # on the plane itself.
         cap_tris = _cap_cut_rims(g, palm_planes, PALM_EXTEND_CM) if palms is not None else 0
         cut["long_thin"] = thin
         cut["rim_cap_tris"] = cap_tris
@@ -1035,8 +1026,8 @@ def build_pack(
     if palms is not None:
         # Straight after the cut, before the slim and the clearance pass: how far
         # the surviving surface reaches past the palm line. A clip lands on the plane
-        # it was given - `PALM_EXTEND_CM` (4.00) into the palm since D62; the D60 clip
-        # landed on the crease itself (0.00), and the drop it replaced at -2.22/-2.27.
+        # it was given - `PALM_EXTEND_CM` is 0.00 again since D70, i.e. the crease
+        # itself; the whole-triangle drop it replaced at D60 stopped at -2.22/-2.27.
         for side, key in ((-1, "left"), (1, "right")):
             cut_report["outfit"]["palm_base"][key]["clipped_to_cm"] = _last_kept_cm(
                 groups["outfit"], palms[side])
