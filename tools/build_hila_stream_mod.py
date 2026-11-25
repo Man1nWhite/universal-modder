@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "tools"), str(ROOT / "tools" / "pd2-las")]
 import determinism  # noqa: E402  (the pinned numeric code path every builder enters)
 import wwise_ima  # noqa: E402
-import build_hila_voice_mod as vo  # noqa: E402  (cut, level and archive helpers)
+import hila_voice_clips as vo  # noqa: E402  (cut, level and archive helpers)
 
 INSTALL = "Miranda Lawson VO over Hila Stream"
 CUTS = ROOT / "voice_lines_vox/miranda_lawson/hila_intent_cuts.csv"

@@ -26,7 +26,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "tools"), str(ROOT / "tools" / "pd2-las")]
 
-import build_hila_voice_mod as vo  # noqa: E402
+import hila_voice_clips as vo  # noqa: E402
 
 DIR = ROOT / "voice_lines_vox" / "miranda_lawson"
 RATE = 44100

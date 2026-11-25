@@ -925,10 +925,11 @@ def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Im
     with zipfile.ZipFile(zip_path or dist_path(ROOT, PACK)) as zf:
         model = dm.ModelFile.read(zf.read(f"{INSTALL}/{UNIT}.model"))
         mats = _parse_matcfg_diffuse(zf.read(f"{INSTALL}/{MATERIAL}.material_config"))
-        # The outfit's palms are cut (D59), so Hila's stock glove drawable - kept
-        # by the pack, node and all - is what covers the sleeve ends: draw it,
-        # flat-shaded, because its material samples a vanilla glove texture the
-        # pack does not ship.
+        # The outfit's palms are cut (D59/D60) and it spawns no default glove, so
+        # in game the sleeve ends in the cut until the player equips a glove. The
+        # sheet draws Hila's stock glove drawable - kept by the pack, node and all,
+        # so a chosen glove has something to land on - flat-shaded, because its
+        # material samples a vanilla glove texture the pack does not ship.
         cache: dict[str, np.ndarray] = {}
         parts = [p for draw in ("g_body", "g_head") for p in _parts_from_model_with_matcfg(
             zf, INSTALL, model, mats, cache, drawable=draw,
@@ -941,7 +942,7 @@ def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Im
                       np.asarray(geo["uv0"], np.float32), glove, False, True))
         icon = decode_bgra_icon(zf.read(f"{INSTALL}/{HILA_ICON_PATH}"))
     return render_las_sheet(
-        "OfficeSuite + Miranda Romance over Hila", "Native body, palm cut and head replacement | Offline render | stock gloves cover the cut",
+        "OfficeSuite + Miranda Romance over Hila", "Native body, palm cut and head replacement | Offline render | Hila's stock gloves drawn over the cut; in game a chosen glove does",
         parts, [], icon, out_path, closeup=(18.0, 171.5, 7.4), full_view=(94.0, 2.48),
     )
 
@@ -1483,7 +1484,7 @@ def main(argv: list[str] | None = None) -> None:
         dist_overview,
         f"PAYDAY 2 — All {len(all_dist_cells)} Model Packages in dist/ (Complete Overview)",
         "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, OfficeSuite (+ head), Geralt, Arivus, native Hila"
-        " | the audio-only Miranda_Lawson_VO_over_Hila has no model sheet",
+        " | the audio-only Miranda_Lawson_VO_over_Hila_Stream has no model sheet",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

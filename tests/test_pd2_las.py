@@ -1222,12 +1222,14 @@ class TestLasScaffold:
     def test_officesuite_carries_the_alt_suits_and_cuts_the_palms(self):
         """OfficeSuite replaces the suit and jewelry diffuses and cuts the hands at the palms.
 
-        OfficeSuite drops everything distal to where each palm begins - the plane through the
-        rig's `Hand` joint, perpendicular to the palm - so the body carries no palm or finger
-        geometry and registers the glove adapter that gives the heister's own gloves back
-        (D59; the palms were the outfit's own from D55 until then). Its other five
-        diffuse/normal pairs are the source's own, its slim factor is the 5% the outfit was
-        fit with, and its clearance report is the trimmed shadow caster (D44).
+        OfficeSuite cuts the palms exactly where they begin - on the plane through the rig's
+        `Hand` joint, perpendicular to the palm - so the body carries no palm or finger
+        geometry and stops dead on the crease (D59/D60; the palms were the outfit's own from
+        D55 until then). It registers `own_hands`, not the glove adapter: no default glove
+        and no vanilla bare-forearm piece, so the player's own glove choice is what puts a
+        hand on the character. Its other five diffuse/normal pairs are the source's own, its
+        slim factor is the 5% the outfit was fit with, and its clearance report is the
+        trimmed shadow caster (D44).
         """
         import hashlib
 
@@ -1244,17 +1246,20 @@ class TestLasScaffold:
         geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
                 for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
         body = max(geos, key=lambda k: len(geos[k]))
-        # the whole garment set with the palms and fingers cut away: 1.36k vertices
-        # fewer than the authored hands D55 shipped
-        assert len(geos[body]) == 31577, f"{len(geos[body])} vertices in the body drawable"
-        assert info["slim"]["vertices"] == 61347
+        # the whole garment set with the palms and fingers cut away: 1.3k vertices
+        # fewer than the authored hands D55 shipped, plus the 66 the clip adds where
+        # its triangles cross the crease
+        assert len(geos[body]) == 31643, f"{len(geos[body])} vertices in the body drawable"
+        assert info["slim"]["vertices"] == 61479
 
-        assert info["registration"]["glove_adapter"] is True
-        assert info["registration"]["own_hands"] is False
+        assert info["registration"]["glove_adapter"] is False
+        assert info["registration"]["own_hands"] is True
         assert info["hands"] == "palm_cut"
+        assert info["palm_cut"]["exact"] is True
+        assert info["palm_cut"]["plane"]["left"]["clipped_to_cm"] == 0.0
         assert "replace_all" not in info["registration"]["flags"]
         assert info["slim"]["factor"] == pytest.approx(0.95)
-        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 61347
+        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 61479
         assert info["clearance"]["shadow_caster_drops"] == ["bra", "panties"]
 
         tex = info["source"]["textures"]

@@ -11,9 +11,10 @@
 3. Select **Hila** with her **default outfit and gloves**. This replaces her default third-person
    body and head in the menu/lobby and heists. It doesn't add an entry to the armor-skin menu.
 
-Neither donor ZIP nor LAS, SuperBLT, or BeardLib is required. The outfit's palms are cut where the
-palm begins, so the sleeve ends in its cuff and **Hila's stock gloves** — shipped in the pack,
-untouched and enabled — are the hands on screen; her first-person arms are unchanged. Other
+Neither donor ZIP nor LAS, SuperBLT, or BeardLib is required. The outfit's palms are cut on the line
+where they begin, so the sleeve ends in its cuff, and **Hila's stock gloves** — kept in the pack,
+untouched and enabled, so that a glove the game equips still has somewhere to land — are what the
+game puts over it; her first-person arms are unchanged. Other
 outfit/glove mods can hide parts of the replacement, and heavy armor or masks may clip. Remove this one folder to uninstall.
 
 ## Preview provenance

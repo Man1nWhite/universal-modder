@@ -303,6 +303,72 @@ that a replacement pack does not ship.
 `runtime_verified` stays `false` in both packs; the wrist and glove steps are in
 `docs/pd2-las/in-game-checklist.md`.
 
+## 2026-11-25 — the palm cut moves onto the plane, and the vanilla wrist skin comes off
+
+The D59 build was seen in game. The user's screenshot showed, from the sleeve down: bare forearm, a
+salmon band with a seam in it, then the black glove. That band is `hnd_forearms`, the vanilla *bare
+forearm* the glove adapter spawns between a glove cuff and a short sleeve — a second, vanilla skin at
+the wrist, drawn outside the outfit and impossible to hide with our material or geometry. Their
+instruction: *"Forbid using previous method. Go back to previous version. AND ONLY REMOVE the palm
+and fingers. So the standard skin should have no hands. You should remove exactly where palm begins.
+But choosing another gloves would give those gloves."* (D60.)
+
+Two changes, one per half of that:
+
+- **The cut is made on the plane.** `tmc_las.clip_group_at_planes` splits a straddling triangle where
+  its edges cross the plane, interpolates position, normal, UV and skin weights at the crossing,
+  drops the distal part and keeps the proximal one; crossing points are cached per *edge*, so
+  neighbouring triangles share them and the rim stays one watertight loop for `_cap_cut_rims`.
+  `cut_group_at_planes` is untouched, so the two Christie packs still rebuild byte-identically.
+  `cut_group_at_palm_bases` stays as the coarse form; the build now calls
+  `clip_group_at_palm_bases`. On the tracked bytes: `clipped_to_cm` 0.00 both sides (was 2.22/2.27
+  short), 64 triangles split, 66 vertices added, 2,276 triangles removed, 68 cap triangles,
+  31,643 body vertices (61,479 after the 5% slim) and `kept_to_cm` −0.76/−0.79 — the last two
+  hundredths of that are the slim pulling the arm in, not the cut.
+- **Registration goes back to D58's hook.** `glove_adapter = false`, `own_hands = true`: no default
+  glove unit spawns and the stock hands stay hidden, so the pack's own body — hands cut off — is
+  what shows, and a glove the player picks by name is the only thing that puts hands on the
+  character. `render_own_hands_lua`'s docstring and file header now say so, and say why the adapter
+  is not the answer. The Hila override keeps its `g_hands` drawable and glove block, unchanged from
+  D59, because a chosen glove needs somewhere to land.
+
+`BUILD_INFO.palm_cut` gained `exact`, `tris_split`, `verts_added` and per-side `clipped_to_cm`;
+`registration` flipped both flags. Tests: `tests/test_palm_cut.py` gained a box test that shows the
+difference in one place (the clip ends exactly on the plane with one closed rim loop of eight edges;
+the whole-triangle drop keeps nothing above the plane's last full face) and the pack tests now pin
+`exact`/`clipped_to_cm`/`kept_to_cm` and the flipped registration;
+`tests/test_pd2_las.py::test_officesuite_carries_the_alt_suits_and_cuts_the_palms` carries the new
+vertex counts (31,643 / 61,479) and the flipped flags;
+`tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head` carries them for
+the head pack. All five render sheets of these packs were re-rendered, and the native-Hila caption no
+longer claims her gloves cover the cut in game.
+
+`runtime_verified` stays `false`: D59's bytes are the ones that were seen, these have not been.
+
+## 2026-11-25 — only the streamed voice pack ships
+
+The user asked for `dist/Hila/Miranda_Lawson_VO_over_Hila.zip` to go, keeping only the `_Stream`
+pack (D61). The BeardLib pack was the route that was installed on 2026-11-24 and never played a
+line; the id-keyed `.stream` pack was heard working on 2026-11-25. So: the zip and its `.sha256` are
+deleted, and everything that would have built it back is deleted with it — the `voices` make target,
+the `voices` stage in `fresh.py`, and `status.TARGETS`' entry for the pack.
+
+`tools/build_hila_voice_mod.py` was the BeardLib builder *and* the clip library the stream pack
+imports, so it is now `tools/hila_voice_clips.py`: the archive listing, the picks and splits, the
+cutters, `match_level` at `-1.5 dBFS` and the stem heuristic stay, the `<Sounds>` XML, the README and
+`mod.txt` text, the zip writer and the packaging `main()` go. `main()` now only refreshes the tracked
+`hila_slot_pieces.csv` build manifest (run it directly; it has no make target, since it builds no pack),
+which is what `fit_hila_intents.py` also writes. `tests/test_hila_voice_pack.py` became
+`tests/test_hila_voice_picks.py`: the route-independent half is kept (a pick for every slot, no name
+in the text that is supposed to be cut out, real windows), the `<Sounds>` keying tests go with the
+route, and a new test pins the packaging — no BeardLib zip in `dist/Hila`, no target or `fresh` stage
+that builds one, no builder file. `tests/test_hila_cut_edges.py` follows the rename.
+
+Docs: `docs/pd2-voice-mod-install.md` now opens on the one pack that ships, with §1–§6 marked as the
+record of the dropped route; `voice_lines_vox/README.md`, `tools/README.md`, `tools/pd2-las/README.md`
+and the in-game checklist follow; `HANDOFF.md`'s row records the pack as dropped rather than as an
+install-environment failure.
+
 ## 2026-11-25 — the streamed voice pack is heard in game; two clips are cut again
 
 The user installed `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` and reported that it **works**:

@@ -1,16 +1,23 @@
-# Packaging & installing the Hila VO mod (PAYDAY 2 · SuperBLT + BeardLib)
+# Packaging & installing the Hila VO mod (PAYDAY 2 · any BLT / SuperBLT)
 
-Two packs ship Miranda Lawson's clips over Hila, and this page is the contract for both:
+One pack ships Miranda Lawson's clips over Hila, and this page is its contract:
 
 | Pack | Route | Needs | Contract |
 |---|---|---|---|
 | `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` | one Wwise ADPCM `.stream` per voice-line id, in `soundbanks/streamed/regular_vox/` | any BLT / SuperBLT | **§7** |
-| `dist/Hila/Miranda_Lawson_VO_over_Hila.zip` | BeardLib `SoundsModule`: oggs keyed on the bark event name | SuperBLT with XAudio + BeardLib 5.x | §1–§6 |
 
-Install **one** of them. The stream pack is the route the game itself uses (it is how the reference
-voice pack `references/Tokoyami Hila.7z` is built, dissected in
-[`tokoyami-hila-voice-mod-analysis.md`](tokoyami-hila-voice-mod-analysis.md)); the BeardLib pack is
-the fallback that also covers the 27 ids whose vanilla files are Wwise Vorbis (§7.3).
+It is the route the game itself uses — it is how the reference voice pack
+`references/Tokoyami Hila.7z` is built, dissected in
+[`tokoyami-hila-voice-mod-analysis.md`](tokoyami-hila-voice-mod-analysis.md) — and it is the only
+one of the two that was heard working in game (2026-11-25).
+
+> **§1–§6 are the record of the route that was dropped.** A second pack,
+> `Miranda_Lawson_VO_over_Hila.zip`, keyed BeardLib `<Sounds>` on the bark *event* name and shipped
+> OGG clips. It was installed on 2026-11-24 and vanilla Hila still played; the keying was
+> re-verified against the loaders and was right, but the route never produced a line in game. It was
+> removed from `dist/` on 2026-11-25 (D61) and its builder with it. What follows is kept because the
+> reasoning is the record for that decision, and because a future pack on this route would start
+> here — not because anything below ships.
 
 Everything below was checked against the real loaders, not from memory:
 
@@ -186,9 +193,8 @@ heist-specific text (`p33`–`p47`, most of `v01`–`v58`, `g61`–`g68`) and th
 
 - No `assets/mod_overrides/` copy: that root is for the §4a `.stream` route (and raw bundle
   overrides). Our replacement audio is OGG and must go through `SoundsModule`.
-- No `.stream`/`.wem`/soundbank conversion *in this pack*: it needs Wwise IMA ADPCM (§4a), which the
-  OGG cutter in `tools/build_hila_voice_mod.py` does not produce. The stream pack does write it —
-  `tools/pd2-las/wwise_ima.py`, §7.
+- No `.stream`/`.wem`/soundbank conversion *in this pack*: it needs Wwise IMA ADPCM (§4a), which an
+  OGG cutter does not produce. The pack that ships does write it — `tools/pd2-las/wwise_ima.py`, §7.
 - No load-order/priority requirement: BeardLib loads mods through its own frameworks after its own
   `init`, and our mod has no Lua that must run before/after anything. `mod.txt` priority is only for
   the BLT list's ordering.
@@ -197,7 +203,7 @@ heist-specific text (`p33`–`p47`, most of `v01`–`v58`, `g61`–`g68`) and th
 ## 6. When nothing is replaced (troubleshooting)
 
 A 2026-11-24 report ("unpacked in mods, still hear Hila") was re-verified against the loaders and
-the game Lua, and the pack's keying is right: `tweak_data.criminals.characters.ecp_female`
+the game Lua, and the dropped pack's keying was right: `tweak_data.criminals.characters.ecp_female`
 `static_data.voice = "rb21"` (`tweakdata.lua`) and the AI teammate path agrees
 (`CharacterTweakData:_init_team_ai` sets `ecp_female.speech_prefix = "rb21"`,
 `TeamAISound:init`/`set_voice` put it in the `robber` switch). BeardLib's

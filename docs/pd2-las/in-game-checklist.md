@@ -194,37 +194,44 @@ seen here and nowhere else belongs to `L_23`. The pack also ships a first-person
 2. **It matches the suit** — the jewelry and the black jacket are lit by the same light without the
    jewelry looking like a separate cut-out pasted on top.
 3. **First person** — a heist with a weapon out, reload and interact once: the outfit's sleeves show
-   from the wrist to where the palm begins, the jewelry cuff and the bra straps read as part of the
-   outfit, the heister's gloves are the hands (the pack registers the adapter), and nothing is
-   missing, duplicated or clipped. The cuff and straps are arm-weighted geometry by construction;
-   the hands are the game's (D59).
+   down to where the palm begins, the jewelry cuff and the bra straps read as part of the outfit, and
+   nothing is missing, duplicated or clipped. The cuff and straps are arm-weighted geometry by
+   construction; the pack models no hands at all, and no glove spawns by default (D60).
 
 Everything else for this pack is covered by the 2026-11-15 sections of the render pages; the
 captures there predate this texture and cannot be used to judge the jewelry, and predate the
 first-person unit entirely.
 
-## OfficeSuite — the palms are cut (2026-11-25, D59)
+## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60)
 
-Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it any more: everything
-distal to where the palm begins is gone (plane through the PD2 `Hand` joint, perpendicular to the
-palm, `palm_cut` in `BUILD_INFO.json`), the rim is capped, and the pack registers
-`officesuite_glove_adapter.lua` so the heister's gloves cover it. Offline the sleeve ends read as a
-clean cuff; what only the game can show:
+Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it: everything from where
+the palm begins outwards is gone, cut *on* that plane (through the PD2 `Hand` joint, perpendicular
+to the palm; `palm_cut` in `BUILD_INFO.json`, `clipped_to_cm: 0.0`), and the rim is capped. The pack
+registers `officesuite_own_hands.lua`, not the glove adapter: no default glove unit spawns, so the
+body has no hands by default, and a glove the player picks by name is the only thing that puts hands
+on the character. Offline the sleeve ends read as a clean cuff; what only the game can show:
 
-1. **The sleeve end under the glove.** With gloves on "Default", the black cuff and the jewelry cuff
-   should sit *outside* the glove's cuff, with no bare skin band and no dark ring where the cap is.
-   Fail: the capped rim visible past the glove lip, or the glove sinking into the sleeve.
-2. **A chosen glove still wins.** Equip a named glove (Bone Mittens): it replaces the default one
-   over the cut. Then equip an outfit piece that is itself handless — the adapter must not double
-   the gloves.
-3. **The first-person arms match.** The `fps_officesuite` arms are cut on the same plane; a weapon
+1. **No vanilla skin at the wrist.** The D59 build showed a salmon-pink band with a seam between the
+   sleeve and the black glove — that was the adapter's `hnd_forearms`, a vanilla bare forearm drawn
+   outside the outfit. There must be none now: the sleeve, its black cuff and the jewelry cuff, then
+   either the cut or the glove. Fail: any second skin band, any band with a seam in it, any vanilla
+   `hnd_glv_heistwrinkled` glove at the cuff.
+2. **No hands by default.** With gloves on "Default" the character's hands must be *absent* where the
+   outline of a hand would be: the sleeve ends in a capped rim, and no stock bare hand shows beside
+   it. This is the D60 state and it is intended to look handless.
+3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn over the cut and read
+   as the character's hands, with the sleeve's cuff still outside it and no gap between them. Then
+   go back to "Default": the glove must disappear again rather than stick.
+4. **The first-person arms match.** The `fps_officesuite` arms are cut on the same plane; a weapon
    held and a reload should show the sleeve ending at the palm line, never a hand modelled in the
-   outfit and never a bare wrist stub.
-4. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
+   outfit and never a vanilla skin band at the wrist — with a glove equipped, the glove is what
+   holds the weapon.
+5. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
    ground while turning — no hand, and no hole where the hands used to be.
 
-The same three checks apply to `OfficeSuite_Head` (its body is this body) and, without a hook, to
-the Hila override below, where Hila's stock gloves should be the hands.
+The same checks apply to `OfficeSuite_Head` (its body is this body), and to the Hila override
+below without the hook: there the hands are Hila's stock gloves, which the override keeps so a
+chosen glove has something to land on.
 
 ## Native Hila body + head override (no LAS)
 
@@ -236,12 +243,13 @@ The ZIP was checked offline; these steps still need the game:
    Romance head should all show together, with no pink materials or missing triangles.
 2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
    neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
-   still be Hila's. **The wrists are the new bytes (D59):** the outfit's palms are cut where the palm
-   begins, so the sleeve ends in its cuff and **Hila's own stock gloves** — kept in the pack, node and
-   all — are the hands on screen; the LAS pack reaches the same sleeve end under
-   `LegendaryArmours.officesuite` and lets the heister's gloves cover it. Check the hands from the
-   front, the side and while the hand closes on a weapon: no gap between the glove and the sleeve, no
-   capped rim showing past the glove lip, no bare wrist band, no second pair of hands.
+   still be Hila's. **The wrists are the new bytes (D59/D60):** the outfit's palms are cut on the
+   plane where the palm begins, so the sleeve ends in its cuff, and **Hila's own stock gloves** —
+   kept in the pack, node and all, so a chosen glove still has somewhere to land — are what the game
+   puts over it. The LAS pack reaches the same sleeve end under `LegendaryArmours.officesuite` and
+   spawns no default glove at all (D60). Check the hands from the front, the side and while the hand
+   closes on a weapon: no gap between the glove and the sleeve, no capped rim showing past the glove
+   lip, no vanilla skin band above the glove, no second pair of hands.
 3. Mask up and check the mask, a heavier vest, and a carried deployable. These use the original
    Hila attachments; check that the fit is acceptable. Alternate outfits/gloves are not the target.
 
@@ -262,22 +270,26 @@ body **and** the head, and hides the mask. The checks that the offline build can
    the pack's, and the mask must not appear on the face. Swap to another heister and back.
 4. **The neck.** Rotate the head in the lobby and reload in a heist: no gap or stretched skin where
    the pack's head meets OfficeSuite's collar, and no head that follows the hips instead of the head.
-5. **The heister's gloves are the hands (D59).** With gloves on "Default" in the blackmarket, the
-   heister's default gloves must cover the cut at the sleeve end — no `hnd_glv_heistwrinkled` band
-   floating at the cuff, no bare heister hands showing beside the sleeve, no capped rim visible. The
-   pack ships `officesuite_head_glove_adapter.lua` for this; D58's `*_own_hands.lua` is no longer
-   written, because there are no modelled hands for it to protect. Then equip a named glove
-   (Bone Mittens): it must replace the default one cleanly.
-6. **The body is the cut body.** Wrists read as D59 (cuff and jewellery cuff, gloves over the cut);
-   jewellery, suit colourway and the first-person arms match `OfficeSuite`'s own checks above.
+5. **No hands by default, and no vanilla skin (D60).** With gloves on "Default" in the blackmarket,
+   nothing must spawn over the cut: no `hnd_glv_heistwrinkled` glove at the cuff, no bare heister
+   hands beside the sleeve, and above all no `hnd_forearms` band — the salmon bare-forearm piece
+   D59's adapter put there. The pack ships `officesuite_head_own_hands.lua` for this. Then equip a
+   named glove (Bone Mittens): it must spawn over the cut as the character's hands.
+6. **The body is the cut body.** Wrists read as D60 (cuff and jewellery cuff, then the cut, or the
+   player's glove); jewellery, suit colourway and the first-person arms match `OfficeSuite`'s own
+   checks above.
 
 `OfficeSuite` itself is unchanged by this pack: it keeps the stock head and its `BODY_ONLY`
 registration, so both entries should sit in the menu and both be selectable.
 
-## `Miranda_Lawson_VO_over_Hila` — audio only (2026-11-24)
+## `Miranda_Lawson_VO_over_Hila` — audio only (2026-11-24, dropped 2026-11-25)
 
-No LAS, no head pack: SuperBLT + BeardLib 5.1.0+ and the pack folder in `mods/`. Nothing of it has
-been heard in game; the packaging contract is [`docs/pd2-voice-mod-install.md`](../pd2-voice-mod-install.md).
+**This pack no longer ships (D61).** It was installed on 2026-11-24 and vanilla Hila still played;
+the keying was re-verified against the loaders and was right, so the route itself never produced a
+line. The id-keyed stream pack below does, and it is the only one in `dist/Hila/`. The steps stay as
+the record of what was asked of it, and as the checklist a future pack on that route would start
+from; the packaging contract (and the reason for the drop) is
+[`docs/pd2-voice-mod-install.md`](../pd2-voice-mod-install.md) §1–§6.
 
 1. **The mod list.** BeardLib's Mods menu lists *Miranda Lawson VO over Hila*, enabled, no red error line.
 2. **It replaces at all.** Play Hila in any heist: the interaction and movement barks ("On me.", "Follow
@@ -297,7 +309,7 @@ been heard in game; the packaging contract is [`docs/pd2-voice-mod-install.md`](
 
 ## `Miranda_Lawson_VO_over_Hila_Stream` — audio only (2026-11-25)
 
-The id-keyed twin of the pack above: SuperBLT and nothing else, no BeardLib, no `mods/logs` line to
+The only Hila voice pack that ships: SuperBLT and nothing else, no BeardLib, no `mods/logs` line to
 expect. 858 `.stream` files named after Hila's voice-line ids, 27 ids left vanilla (Wwise Vorbis in
 the vanilla bank). **Heard in game on 2026-11-25: the user installed it and reported it works** — this
 route replaces Hila's barks where the BeardLib pack did not. That report also named two clips cut

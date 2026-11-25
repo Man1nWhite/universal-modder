@@ -29,13 +29,15 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   deterministic `dist/Honoka/OfficeSuite.zip` + `.sha256`. `Honoko2`..`Honoko4`, the
   earlier base/slim/alternate-suit builds of this same source, are no longer tracked
   (D57); their bytes are in git history. `OfficeSuite` cuts the hands where the palms
-  begin (`PackSpec.hands="palm_cut"`, D59): the plane is perpendicular to the palm,
-  through the rig's `Hand` joint, so the palm and fingers go and the sleeve cuff and
-  the outfit's bracelet stay; the rim is capped and the pack registers the
-  glove-adapter hook, so the heister's own gloves cover the hand again. It
-  additionally ships the first-person arms unit (`fps_officesuite.model`) from the
-  same slim/cleared arms, registered with `fps_unit`, DEPTH_SCALING materials, no
-  head, and the same palm cut.
+  begin (`PackSpec.hands="palm_cut"`, D59/D60): the plane is perpendicular to the palm,
+  through the rig's `Hand` joint, and the mesh is clipped *on* it rather than at the
+  last wholly-proximal triangle, so the palm and fingers go, the sleeve cuff and the
+  outfit's bracelet stay, and no wrist is left standing above the cut. The rim is
+  capped. The pack registers `own_hands` - no default glove unit, no stock hands, and
+  no bare-forearm adapter - so the outfit's body simply has no hands and a glove the
+  player picks is what puts hands on the character (D60). It additionally ships the
+  first-person arms unit (`fps_officesuite.model`) from the same slim/cleared arms,
+  registered with `fps_unit`, DEPTH_SCALING materials, no head, and the same palm cut.
 * **One whole-character pack (`LegendaryArmours.officesuite_head`, D56)** — that same
   body and palm cut with the Miranda Romance head, built by `--only officesuite_head`.
 
@@ -94,8 +96,8 @@ class PackSpec:
     slim: float = 1.0
     clearance: bool = False
     # "own" keeps the source's palms and fingers on the PD2 hand and finger bones;
-    # "palm_cut" drops everything distal to where the palm begins (D59), so the
-    # heister's own gloves cover the hand again
+    # "palm_cut" clips them off exactly where the palm begins (D59/D60), so the
+    # outfit's body has no hands and the player's gloves are the hands on screen
     hands: str = "own"
     tex_override: dict = field(default_factory=dict)  # garment kind -> diffuse DDS name
     # ships a first-person arms unit (the outfit's sleeves down to the wrist cut,
@@ -160,8 +162,8 @@ SHADOW_DROPS = {"bra", "panties"}
 
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
 #: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by
-#: the user at `main` 526480e (D45/D46), hands cut where the palms begin (D59; they were the
-#: outfit's own from D55 until then).
+#: the user at `main` 526480e (D45/D46), hands cut where the palms begin (D59, clipped on the
+#: plane since D60; they were the outfit's own from D55 until then).
 #:
 #: `Honoko2` (base proportions), `Honoko3` (5% slim) and `Honoko4` (slim, alternate suit)
 #: were built from this same source until D57; their last bytes stay reachable through git
@@ -723,14 +725,16 @@ def registration(spec: "PackSpec"):
         # The head's lashes sample a diffuse whose cutout lives in its alpha, so
         # that one travels as a single texture next to the df/nm pairs.
         textures=tuple(f"{spec.unit_base}/{slot}" for slot in spec.head_textures) if spec.head else (),
-        # A pack cut at the palms is handless as far as the game is concerned: the
-        # adapter hook gives it the heister's stock hands and changeable gloves
-        # back (see render_glove_adapter_lua).
-        glove_adapter=spec.hands != "own",
-        # An outfit that models its own hands shows them: no default glove over
-        # them, and no stock hands beside them (D58). A glove the player picks
-        # by hand still wins. With the palms cut there is nothing to show.
-        own_hands=spec.hands == "own",
+        # No default glove for either mode, and no stock hands beside the outfit's
+        # own body (D58/D60). A glove the player picks by hand still spawns and
+        # wins, which is the whole point of a pack with no hands in it.
+        #
+        # The glove *adapter* stays off: it spawns the vanilla bare-forearm piece
+        # (`hnd_forearms`) to bridge a glove cuff and a short sleeve, and on this
+        # outfit that piece is a second, vanilla skin at the wrist - the thing the
+        # user rejected twice (D59's adapter, then D60).
+        glove_adapter=False,
+        own_hands=True,
     )
 
 
@@ -977,7 +981,7 @@ def build_pack(
         if palms is not None:
             # Before the cut, so the report can say what it took away by bone.
             weights, palette = list(g.weights), list(g.palette)
-            cut = tmc_las.cut_group_at_palm_bases(g, palms)
+            cut = tmc_las.clip_group_at_palm_bases(g, palms)
             cut["removed_bones"] = _dominant_bones(weights, palette, cut["removed_vertex_ids"])
             del cut["removed_vertex_ids"]
             # The only vertices a palm cut may take are hand and finger ones and, at
@@ -993,9 +997,9 @@ def build_pack(
                 "deg_from_forearm": round(palms[side]["deg_from_forearm"], 2),
             } for side in (-1, 1)}
         thin = tmc_las.drop_long_thin_triangles(g)
-        # The rim a palm cut leaves is capped: the heister's stock glove covers the
-        # hand from the cuff down, so the rim has to be closed or the inside of the
-        # sleeve shows through it in first person and in the shadow.
+        # The rim a palm cut leaves is capped: with no hands in the pack the cut end
+        # is what the game draws until a glove spawns, and an open rim would show the
+        # inside of the sleeve in first person and in the shadow map.
         cap_tris = _cap_cut_rims(g, palm_planes) if palms is not None else 0
         cut["long_thin"] = thin
         cut["rim_cap_tris"] = cap_tris
@@ -1006,14 +1010,23 @@ def build_pack(
         for d in gspec["drawables"]:
             share[d] = gname
 
+    if palms is not None:
+        # Straight after the cut, before the slim and the clearance pass: how far
+        # the surviving surface reaches past the plane. A clip lands on the plane
+        # (0.00); the whole-triangle drop it replaced stopped at -2.22 / -2.27.
+        for side, key in ((-1, "left"), (1, "right")):
+            cut_report["outfit"]["palm_base"][key]["clipped_to_cm"] = _last_kept_cm(
+                groups["outfit"], palms[side])
+
     slim_report = _slim_groups(groups, template, spec.slim) if spec.slim != 1.0 else None
     clear_report = _clearance_pass(groups, spec) if spec.clearance else None
 
     if palms is not None:
         # Where the shipped mesh ends, after slim and clearance: the most distal
-        # vertex left within the 28 cm radius, measured from the palm plane.
-        # Negative = proximal of it, because a triangle that straddles the crease
-        # goes with the palm. This is the number "where the palm begins" resolves to.
+        # vertex left within the 28 cm radius, measured from the palm plane. The cut
+        # itself is on the plane (`clipped_to_cm`, 0.00); the 5% slim then pulls the
+        # whole arm in towards its bones, so the rim ends a few millimetres
+        # proximal of it. This is the number "where the palm begins" resolves to.
         for side, key in ((-1, "left"), (1, "right")):
             cut_report["outfit"]["palm_base"][key]["kept_to_cm"] = _last_kept_cm(groups["outfit"], palms[side])
 
@@ -1183,6 +1196,10 @@ def build_pack(
         build_info["palm_cut"] = {
             "plane": body_cut.get("palm_base"),
             "margin_cm": 0.0,
+            # the cut splits the triangles it crosses instead of dropping them whole
+            "exact": True,
+            "tris_split": body_cut.get("tris_split"),
+            "verts_added": body_cut.get("verts_added"),
             "removed_tris": body_cut.get("tris_dropped"),
             "removed_bones": body_cut.get("removed_bones"),
             "rim_cap_tris": body_cut.get("rim_cap_tris"),

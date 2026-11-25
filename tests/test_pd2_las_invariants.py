@@ -1031,11 +1031,13 @@ def test_whole_character_packs_bring_their_own_head():
     flags = info["registration"]["flags"]
     assert "replace_all" in flags and "hide_mask" in flags, flags
     assert "replace_body" not in flags, f"{pack} registers as a body skin: {flags}"
-    # The palms are cut (D59), so this pack needs the adapter that gives a handless
-    # outfit the heister's stock hands and changeable gloves back; without it the
-    # sleeve ends are empty in game and no glove can be selected.
-    assert info["registration"]["glove_adapter"] is True
-    assert info["registration"]["own_hands"] is False
+    # The palms are cut (D59/D60), so the pack registers `own_hands`: no default
+    # glove unit is spawned and the stock hands stay hidden, which leaves the
+    # outfit's own cut wrist on screen until the player equips a glove. It does
+    # *not* register the adapter - that one spawns the vanilla bare forearm
+    # (`hnd_forearms`) over the sleeve, the second skin the user rejected.
+    assert info["registration"]["glove_adapter"] is False
+    assert info["registration"]["own_hands"] is True
 
     body_flags = _info("OfficeSuite")["registration"]["flags"]
     assert "replace_all" not in body_flags and "replace_body" in body_flags, body_flags

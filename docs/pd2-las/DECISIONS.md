@@ -1285,13 +1285,18 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   against the real LAS loader, including the fixed-LAS regression and the chosen-glove case).
 - **Rejected:** removing the glove option for these outfits (offered; the user chose to let a
   chosen glove win); leaving the guarantee implicit in LAS's bug.
-- **Status:** holds as a rule for a pack with `hands = "own"`, which no tracked pack is since D59
-  (both `OfficeSuite` packs cut the palms and ship the adapter hook instead), so no `*_own_hands.lua`
-  is written today and the hook and its test stay for the next own-hands pack. `runtime_verified`
-  stays `false` — this is modelled against the verbatim LAS loader and the ported BeardLib logic,
-  not seen in the game. The in-game checklist has the step.
+- **Status:** holds, and since D60 it is the hook the handless packs ship too: `default_glove_id =
+  false` plus stock hands hidden is exactly what an outfit with no hands in its mesh wants, and it
+  is what `OfficeSuite` and `OfficeSuite_Head` register. `runtime_verified` stays `false` — this is
+  modelled against the verbatim LAS loader and the ported BeardLib logic, not seen in the game. The
+  in-game checklist has the step.
 
 ### D59 — The OfficeSuite packs cut the hands where the palm begins, not at the wrist
+
+> **Superseded in part by D60 (2026-11-25).** The plane, its landmark on the rig and the 28 cm
+> radius stand. What does not: the whole-triangle drop (it stopped 2.2 cm short of the plane), the
+> `kept_to_cm` numbers below, and the glove-adapter registration, which produced a vanilla bare
+> forearm at the wrist in game.
 
 - **Decided:** 2026-11-25, by the user ("remove the palms from the OfficeSuite packages and make
   explicit where the palm begins"), scoped by them to `OfficeSuite`, `OfficeSuite_Head` and the
@@ -1347,5 +1352,100 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `tools/pd2-las/build_models.py` (`PALM_KNUCKLES`, `palm_planes`, `is_hand_bone`),
   `tools/pd2-las/tmc_las.py` (`cut_group_at_planes`, `cut_group_at_palm_bases`),
   `tools/build_hila_body_mod.py` (`GLOVE`, `_fit_unit`)
-- **Status:** holds; `runtime_verified` stays `false` — the cut is checked offline (renders and the
-  shipped bytes) only. The in-game checklist has the wrist and glove steps.
+- **Status:** superseded in part by D60: the plane and the measured landmark hold, the whole-triangle
+  drop and the `BUILD_INFO` numbers do not, and the glove-adapter registration was wrong in game (a
+  vanilla bare-forearm piece at the wrist). `runtime_verified` stays `false` — the cut is checked
+  offline (renders and the shipped bytes) only. The in-game checklist has the wrist and glove steps.
+
+### D60 — The palm cut is made on the plane, and a handless outfit spawns no glove and no forearm
+
+- **Decided:** 2026-11-25, by the user, after the first D59 build was seen in game: *"Forbid using
+  the previous method. Go back to previous version. AND ONLY REMOVE the palm and fingers. So the
+  standard skin should have no hands. You should remove exactly where palm begins. But choosing
+  another gloves would give those gloves."*
+- **What was wrong in game.** A third-person screenshot of the D59 build showed, from the sleeve
+  down: bare forearm, then a salmon-pink band with a seam in it that the outfit does not have, then
+  the black heister glove. That band is `hnd_forearms` — the vanilla *bare forearm* the glove
+  adapter spawns to bridge a glove cuff and a short sleeve. It is a second, vanilla skin at the
+  wrist, spawned by the `_glove_adapter.lua` hook D59 added, and no material or geometry of ours can
+  hide it because it is drawn outside the outfit. The same screenshot also showed the cut itself
+  leaving a ring: the D59 drop took a whole triangle as soon as one vertex was distal, so the sleeve
+  stopped 2.22 cm (left) / 2.27 cm (right) short of the crease, i.e. the cut was near the palm line
+  but not on it.
+- **Decision, geometry:** the same plane as D59 (through the `Hand` joint, perpendicular to the palm,
+  3.98° off the forearm axis, 28 cm radius), cut *on* the plane. `tmc_las.clip_group_at_planes`
+  splits a straddling triangle where its edges cross, interpolates position, normal, UV and skin
+  weights at the crossing, drops the distal part and leaves the proximal one. Crossing points are
+  cached per *edge*, so neighbouring triangles share them and the rim stays one watertight loop,
+  which is what lets the existing rim cap close it. `cut_group_at_planes` (whole-triangle drop) stays
+  for the Christie builds, whose tracked bytes reproduce unchanged.
+- **Decision, registration:** the packs go back to D58's `_own_hands.lua` and drop the adapter hook:
+  `default_glove_id = false` and `body_replacement.hands = true`, so the game spawns no glove unit
+  and hides the stock hands, and what the pack models is all there is on the arm. A glove the player
+  picks by name still spawns and replaces the hands - that is the "choosing another gloves would give
+  those gloves" half of the rule, and it is why the Hila override keeps its stock `g_hands` drawable
+  and glove block: a chosen glove needs something to land on.
+- **Why not keep the adapter off but still spawn a default glove:** it would put a vanilla glove
+  hand on a pack whose whole point is that the outfit models no hands; "the standard skin should
+  have no hands" is the default, not the fallback.
+- **Measured, not asserted:** `BUILD_INFO.palm_cut` now records `exact: true`, `clipped_to_cm: 0.0`
+  per side (the cut lands on the plane), `tris_split` 64 and `verts_added` 66 (crossing points that
+  are shared between the triangles either side of an edge), `removed_tris` 2,276 and `rim_cap_tris`
+  68. The shipped `g_body` has 31,643 vertices (61,479 after the 5% slim) - D59's 31,577 plus the 66
+  the clip adds - and its most distal vertex is 0.76 cm (left) / 0.79 cm (right) **proximal** of the
+  plane, which is the slim pulling the arm in towards its bones, not the cut: without the slim the
+  number is 0.00.
+- **Held to:** `tests/test_palm_cut.py` (the box test pins split-on-the-plane against
+  drop-a-whole-face: crossing vertices exactly on the plane, one watertight rim loop, slice blocks
+  intact; the pack tests pin `exact`/`clipped_to_cm`/`kept_to_cm` and that no hand bone survives);
+  `tests/test_pd2_las.py::TestLasScaffold::test_officesuite_carries_the_alt_suits_and_cuts_the_palms`
+  (vertex counts, `glove_adapter false`, `own_hands true`);
+  `tests/test_pd2_las_invariants.py::test_whole_character_packs_bring_their_own_head` and
+  `::test_own_hands_packs_never_draw_a_default_glove` (no adapter hook beside an own-hands hook, the
+  hook's own body); `tests/test_glove_behavior_lua.py` (a chosen glove still spawns).
+- **Rejected:** the glove adapter (the `hnd_forearms` band); a default glove unit on the handless
+  outfit; keeping the whole-triangle drop and calling the 2.2 cm stop "the palm line"; adding a
+  sleeve extension or a substitute wrist material to cover the seam - the user has rejected invented
+  wrist geometry twice, and with the cut on the plane and no adapter there is nothing left to cover.
+- **Source:** `tools/pd2-las/tmc_las.py` (`clip_group_at_planes`, `clip_group_at_palm_bases`,
+  `_plane_distances`), `tools/pd2-las/build_honoko2_dae.py` (`registration`, the build loop,
+  `_last_kept_cm`), `tools/pd2-las/las_outfit_pack.py` (`render_own_hands_lua`),
+  `tools/render_mod_previews.py` (the sheets' captions).
+- **Status:** holds; `runtime_verified` stays `false` - the D59 build is the one that was seen, and
+  these bytes have not. The in-game checklist's hand step now asks for three things: no vanilla skin
+  at the wrist, no glove by default, and the player's glove choice appearing when one is equipped.
+
+### D61 — Only the id-keyed stream pack ships; the BeardLib voice pack is dropped
+
+- **Decided:** 2026-11-25, by the user: *"remove the BeardLib voice pack from dist, keep only the
+  stream one."*
+- **Why:** the BeardLib `SoundsModule` pack (`dist/Hila/Miranda_Lawson_VO_over_Hila.zip`) was
+  installed on 2026-11-24 and vanilla Hila still played. Its keying was then re-verified against
+  BeardLib's `SoundManager`/`SoundsModule` and the game Lua (`ecp_female` is `rb21` in both the
+  player and the team-AI path, and `<Sounds prefix="rb21">` is what `ComparePrefixes` matches), so
+  the packing was right and the route still did not produce a line. The id-keyed `.stream` pack
+  (`..._Stream.zip`) was built on the same picks the next day, installed, and reported working. Two
+  routes, one of them verified in game: ship that one.
+- **Decision:** `dist/Hila/` holds `Miranda_Lawson_VO_over_Hila_Stream.zip` and nothing else. The
+  `voices` make target, the `voices` stage in `fresh.py`, `status.TARGETS`' entry and the builder
+  itself are gone; `tools/build_hila_voice_mod.py` became `tools/hila_voice_clips.py`, which keeps
+  the half the stream pack *does* use — archive listing, picks and splits, `cut_ogg`/`cut_ogg_ranges`,
+  `match_level` at `-1.5 dBFS` — and whose `main()` now only refreshes the tracked
+  `hila_slot_pieces.csv` build manifest (`python tools/hila_voice_clips.py`; it builds no pack, so it
+  has no make target of its own).
+- **What stays, and why:** `slot_picks.csv`, `hila_intent_cuts.csv`, `ogg_phrase_splits.csv` and
+  `slot_event_ids.csv` are the picks and the intent table the stream pack cuts from — the event table
+  no longer keys anything, but it is the record of which PD2 bark each slot stands for.
+  `docs/pd2-voice-mod-install.md` §1–§6 stay as the record of the dropped route (marked as such),
+  because a future pack on that route would start there.
+- **Held to:** `tests/test_hila_voice_picks.py` (the pick table is complete and clean for every slot,
+  the packs' window/splits are real, `dist/Hila` holds no BeardLib zip, no make target or `fresh`
+  stage builds one, and the builder file is gone); `tests/test_hila_cut_edges.py` (the re-cut edges,
+  now importing `hila_voice_clips`); `tests/test_hila_stream_pack.py` (the packed ids and bytes).
+- **Rejected:** keeping both packs "just in case" (the user asked for one, and a route that has never
+  played a line is not a fallback); keeping the builder as dead code behind an unused target.
+- **Source:** `tools/hila_voice_clips.py`, `tools/build_hila_stream_mod.py`,
+  `tools/pd2-las/Makefile`, `tools/pd2-las/fresh.py`, `tools/pd2-las/status.py`,
+  `docs/pd2-voice-mod-install.md`, `voice_lines_vox/README.md`.
+- **Status:** holds; the stream pack is the one whose clips were heard in game, and the two re-cut
+  clips still await a listen (see the in-game checklist).

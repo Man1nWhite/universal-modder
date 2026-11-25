@@ -1,12 +1,14 @@
-"""Where the palm begins: the OfficeSuite family's hand cut, as a number (D59).
+"""Where the palm begins: the OfficeSuite family's hand cut, as a number (D59/D60).
 
-The three packs that share OfficeSuite's body drop everything distal to the plane
+The three packs that share OfficeSuite's body cut everything distal to the plane
 through the rig's `Hand` joint, perpendicular to the palm (the axis from that joint
 to the four knuckle bases). That plane is what "where the palm begins" means in this
 repository, and it is written into each pack's `BUILD_INFO.json` - origin, axis,
-degrees from the forearm axis, what the cut removed by bone, and how far short of the
-plane the surviving mesh now ends. These tests pin the landmark to the rig, the record
-to the mesh, and the mesh to the landmark.
+degrees from the forearm axis, what the cut removed by bone, and how far past the
+plane the surviving mesh reaches. Since D60 the cut is made *on* the plane (the
+triangles it crosses are split, not dropped whole), so `clipped_to_cm` is 0.00 and
+the only distance left is the one the 5% slim introduces. These tests pin the
+landmark to the rig, the record to the mesh, and the mesh to the landmark.
 """
 from __future__ import annotations
 
@@ -89,8 +91,14 @@ def test_each_pack_records_the_plane_it_cut_on(pack, stem):
     cut = info["palm_cut"]
     assert cut["margin_cm"] == 0.0, "the cut is the crease itself, not a few cm past it"
     assert cut["removed_tris"] > 1000 and cut["rim_cap_tris"] > 0
-    assert info["registration"]["glove_adapter"] is True
-    assert info["registration"]["own_hands"] is False
+    # The cut is made on the plane: the triangles it crosses are split, so the
+    # surface that survives reaches the crease itself (D60).
+    assert cut["exact"] is True
+    assert cut["tris_split"] > 0 and cut["verts_added"] > 0
+    # No default glove unit, no stock hands, and no vanilla bare-forearm piece: the
+    # player's glove choice is the only thing that puts a hand on the character.
+    assert info["registration"]["glove_adapter"] is False
+    assert info["registration"]["own_hands"] is True
     # Everything the cut took was a hand or a finger; the rim carries a few
     # forearm-dominated vertices, which is the edge of the sleeve.
     stray = sorted(b for b in cut["removed_bones"] if not bm.is_hand_bone(b))
@@ -107,8 +115,10 @@ def test_the_recorded_plane_is_the_one_on_the_rig(pack, stem):
         assert cut[key]["origin_cm"] == pytest.approx([round(v, 3) for v in expected[side]["origin"]])
         assert cut[key]["axis"] == pytest.approx([round(v, 4) for v in expected[side]["axis"]])
         assert cut[key]["deg_from_forearm"] == pytest.approx(round(expected[side]["deg_from_forearm"], 2))
-        # the shipped mesh ends short of the plane, on the sleeve side
-        assert -6.0 < cut[key]["kept_to_cm"] < -0.5, cut[key]
+        # the cut lands on the plane; the shipped mesh then ends a few mm short of
+        # it, because the 5% slim pulls the whole arm in towards its bones
+        assert cut[key]["clipped_to_cm"] == 0.0, cut[key]
+        assert -1.2 < cut[key]["kept_to_cm"] < -0.2, cut[key]
 
 
 @pytest.mark.parametrize("pack,stem", PACKS)
@@ -136,6 +146,9 @@ def test_the_shipped_body_has_no_hand_left(pack, stem):
         near = perp < 28.0
         assert near.any()
         assert axial[near].max() < 0.0, "geometry survives distal to where the palm begins"
+        # ... and it reaches the crease: the clip leaves the rim within the millimetre
+        # the slim moves it, not the 2.2 cm band a whole-triangle drop used to leave
+        assert axial[near].max() > -1.2, "the mesh stops short of where the palm begins"
 
 
 def test_the_native_override_carries_the_same_cut_and_hilas_gloves():
@@ -158,3 +171,77 @@ def test_the_native_override_carries_the_same_cut_and_hilas_gloves():
     weights = np.asarray(geo["blendweights"])
     dominant = np.asarray(names)[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
     assert not np.array([bm.is_hand_bone(name) for name in dominant]).any()
+
+
+def _box_group():
+    """A one-slice 2 cm box in the outfit's group shape, straddling the z = 0 plane."""
+    import build_models as bm
+
+    g = bm.Group(name="probe")
+    corners = [(-1.0, -1.0, -1.0), (1.0, -1.0, -1.0), (1.0, 1.0, -1.0), (-1.0, 1.0, -1.0),
+               (-1.0, -1.0, 1.0), (1.0, -1.0, 1.0), (1.0, 1.0, 1.0), (-1.0, 1.0, 1.0)]
+    g.verts = corners
+    g.normals = [(0.0, 0.0, float(c[2])) for c in corners]
+    g.uvs = [(0.5 * (c[0] + 1.0), 0.5 * (c[1] + 1.0)) for c in corners]
+    g.weights = [[(0, 1.0)] for _ in corners]
+    g.palette = ["LeftForeArm"]
+    # bottom, top, and the four sides, wound outwards
+    g.faces = [(0, 2, 1), (0, 3, 2),                  # z = -1
+               (4, 5, 6), (4, 6, 7),                  # z = +1
+               (0, 1, 5), (0, 5, 4),
+               (1, 2, 6), (1, 6, 5),
+               (2, 3, 7), (2, 7, 6),
+               (3, 0, 4), (3, 4, 7)]
+    g.slices = [("body", 0, 0, len(g.faces), len(g.verts))]
+    g.mat_slots = ["officesuite_body"]
+    return g
+
+
+def test_the_clip_stops_dead_on_the_plane_and_the_drop_stops_a_face_early():
+    """D60's whole difference from D59, on a box: split on the plane, not a band short."""
+    import tmc_las
+
+    planes = [((0.0, 0.0, 0.0), (0.0, 0.0, 1.0))]
+
+    clipped = _box_group()
+    report = tmc_las.clip_group_at_planes(clipped, planes)
+    assert max(v[2] for v in clipped.verts) == pytest.approx(0.0, abs=1e-12), \
+        "the clip left geometry past the plane"
+    # the four bottom corners plus eight crossing points: two per side panel (one on
+    # the outer vertical edge, one on the panel's diagonal), the vertical ones shared
+    # between neighbouring panels - which is the edge-keyed cache doing its job
+    assert len(clipped.verts) == 12
+    assert report["tris_split"] == 8 and report["verts_added"] == 8
+    # each of the eight straddling triangles keeps its half - four keep a quad (two of
+    # their vertices were already proximal) and four keep a triangle - plus the bottom
+    # face's unchanged two
+    assert len(clipped.faces) == 14
+    assert report["verts_after"] == 12
+    # the slice block is still the slice's own (the Diesel atom invariant)
+    (src_mat, base_v, base_i, tris, nverts), = clipped.slices
+    assert (src_mat, base_v, base_i, nverts) == ("body", 0, 0, 12)
+    assert tris == len(clipped.faces) and base_i == 0
+    assert all(base_v <= vi < base_v + nverts for f in clipped.faces for vi in f)
+    # weights on the rim are interpolated, not invented
+    assert all(w == [(0, 1.0)] for w in clipped.weights)
+    # the cut leaves one watertight boundary loop, on the plane: eight rim edges, and
+    # every rim vertex used by exactly two of them (no T-junction, no open seam)
+    counts: dict[tuple[int, int], int] = {}
+    for a, b, c in clipped.faces:
+        for x, y in ((a, b), (b, c), (c, a)):
+            key = (x, y) if x < y else (y, x)
+            counts[key] = counts.get(key, 0) + 1
+    rim = [e for e, n in counts.items() if n == 1]
+    assert len(rim) == 8, rim
+    assert all(clipped.verts[v][2] == pytest.approx(0.0, abs=1e-12) for e in rim for v in e)
+    degree: dict[int, int] = {}
+    for x, y in rim:
+        degree[x] = degree.get(x, 0) + 1
+        degree[y] = degree.get(y, 0) + 1
+    assert sorted(degree.values()) == [2] * 8
+
+    dropped = _box_group()
+    tmc_las.cut_group_at_planes(dropped, planes, margin=0.0)
+    # ... while the whole-triangle drop cannot keep a side it crosses, so the box
+    # ends a full face short of the same plane.
+    assert max(v[2] for v in dropped.verts) == pytest.approx(-1.0)
