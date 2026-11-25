@@ -1,4 +1,4 @@
-"""Where the palm begins: the OfficeSuite family's hand cut, as a number (D59/D60/D62).
+"""Where the palm begins: the OfficeSuite family's hand cut, as a number (D59/D60/D70).
 
 The three packs that share OfficeSuite's body cut everything distal to a plane through
 the rig's `Hand` joint, perpendicular to the palm (the axis from that joint to the four
@@ -6,11 +6,9 @@ knuckle bases). That plane is what "where the palm begins" means in this reposit
 it is written into each pack's `BUILD_INFO.json` - origin, axis, degrees from the forearm
 axis, what the cut removed by bone, and how far past the plane the surviving mesh reaches.
 Since D60 the cut is made by splitting the triangles it crosses rather than dropping them
-whole; since D62 it sits `PALM_EXTEND_CM` past the palm line, inside the wrist (1.25 cm
-since D65),
-because cutting on the crease left the arm ending in mid-air short of the heister's glove
-cuff. These tests pin the landmark to the rig, the record to the mesh, and the mesh to the
-landmark.
+whole, and on the plane itself: D70 reverted the D62/D63/D65 extensions, so
+`PALM_EXTEND_CM` is 0.0 again and no skin reaches past the palm line. These tests pin the
+landmark to the rig, the record to the mesh, and the mesh to the landmark.
 """
 from __future__ import annotations
 
@@ -91,10 +89,9 @@ def test_each_pack_records_the_plane_it_cut_on(pack, stem):
     info = _info(pack)
     assert info["hands"] == "palm_cut"
     cut = info["palm_cut"]
-    # the cut is the palm line plus the extension D62 added, so the arm reaches into
-    # the glove instead of ending in mid-air above it. D63's 1.5 cm still let the arm's
-    # fattest half-centimetre through the glove's cuff in game, so D65 takes it to 1.25.
-    assert cut["margin_cm"] == cut["extend_cm"] == 1.25
+    # D70 reverted the extensions: the arm ends where the palm begins, with no skin
+    # carried past the crease into the heister's glove.
+    assert cut["margin_cm"] == cut["extend_cm"] == 0.0
     assert cut["removed_tris"] > 1000 and cut["rim_cap_tris"] > 0
     # The cut is made on the plane: the triangles it crosses are split, so the
     # surface that survives reaches the crease itself (D60).
@@ -104,10 +101,8 @@ def test_each_pack_records_the_plane_it_cut_on(pack, stem):
     # player's glove choice is the only thing that puts a hand on the character.
     assert info["registration"]["glove_adapter"] is False
     assert info["registration"]["own_hands"] is True
-    # Everything the cut took is dominated by a hand or a finger bone, plus (at this
-    # shallow an extension) a handful of forearm ones along the rim: a centimetre and a
-    # quarter into the palm is still the wrist, so the surface crossing the plane is the
-    # arm's.
+    # Everything the cut took is dominated by a hand or a finger bone, plus a handful
+    # of forearm ones along the rim where the plane crosses the wrist.
     stray = sorted(b for b in cut["removed_bones"] if not bm.is_hand_bone(b))
     assert stray in ([], ["LeftForeArm"], ["RightForeArm"], ["LeftForeArm", "RightForeArm"]), stray
     assert "LeftHand" in cut["removed_bones"] and "RightHand" in cut["removed_bones"]
@@ -123,22 +118,18 @@ def test_the_recorded_plane_is_the_one_on_the_rig(pack, stem):
         assert cut[key]["origin_cm"] == pytest.approx([round(v, 3) for v in expected[side]["origin"]])
         assert cut[key]["axis"] == pytest.approx([round(v, 4) for v in expected[side]["axis"]])
         assert cut[key]["deg_from_forearm"] == pytest.approx(round(expected[side]["deg_from_forearm"], 2))
-        # the cut lands exactly where it was asked to - the palm line plus 1.25 cm - and
-        # the shipped mesh ends inside that, because the 5% slim pulls the arm's end
-        # back towards its bones by about half a centimetre here
-        assert cut[key]["clipped_to_cm"] == 1.25, cut[key]
-        assert 0.45 < cut[key]["kept_to_cm"] < 1.25, cut[key]
-        # still past the vanilla glove's rim, which the game draws 0.42 cm past the
-        # crease (D63): the cap is inside the glove, not above it
-        assert cut[key]["kept_to_cm"] > 0.42, cut[key]
+        # the clip lands exactly on the palm line and the shipped mesh ends just
+        # proximal of it: the 5% slim pulls the arm's end towards its bones
+        assert cut[key]["clipped_to_cm"] == 0.0, cut[key]
+        assert -0.9 < cut[key]["kept_to_cm"] < 0.0, cut[key]
 
 
 @pytest.mark.parametrize("pack,stem", PACKS)
 def test_the_shipped_body_has_no_hand_left(pack, stem):
-    """No hand geometry survives, and nothing reaches past the palm line by more than the extension.
+    """No hand geometry survives, and nothing reaches past the palm line.
 
-    At 1.25 cm the cut is still inside the wrist, so nothing dominated by a hand bone is
-    left either - unlike the 4 cm cut of D62, which kept the thenar (D63).
+    The D70 cut is back on the crease, so no vertex dominated by a hand bone is left -
+    unlike D62's 4 cm extension, which kept the thenar.
     """
     template = _body_model(pack, stem)
     drawable = template.drawables["g_body"]
@@ -149,9 +140,8 @@ def test_the_shipped_body_has_no_hand_left(pack, stem):
     indices = np.asarray(geo["blendindices"])
     weights = np.asarray(geo["blendweights"])
     dominant = np.asarray(objects)[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
-    # Not one vertex is dominated by a hand or a finger bone: at 1.25 cm the cut is
-    # still inside the wrist, so the surface that survives carries no hand geometry at
-    # all (D63; the 4 cm cut of D62 kept the thenar).
+    # Not one vertex is dominated by a hand or a finger bone: the cut is on the palm
+    # line again (D70; the 4 cm cut of D62 kept the thenar).
     assert not any(bm.is_hand_bone(name) for name in dominant), sorted(set(dominant))
 
     verts = np.asarray(geo["verts"], dtype=np.float64)
@@ -164,11 +154,10 @@ def test_the_shipped_body_has_no_hand_left(pack, stem):
         perp = np.linalg.norm(rel - np.outer(axial, axis), axis=1)
         near = perp < 28.0
         assert near.any()
-        # ... and the farthest vertex is the extension, not a palm or a finger: 1.25 cm
-        # asked minus the half centimetre the slim pulls back from it
-        assert axial[near].max() <= 1.25, "geometry survives past the palm extension"
-        assert axial[near].max() > 0.45, "the mesh stops short of the palm extension"
-        assert axial[near].max() > 0.42, "the cap would sit outside the vanilla glove's rim"
+        # ... and the farthest vertex stops at the crease, a little way proximal of
+        # it after the 5% slim, with no extension carrying skin into the glove (D70)
+        assert axial[near].max() <= 0.0, "geometry survives past the palm line"
+        assert axial[near].max() > -0.9, "the mesh stops too far short of the palm line"
 
 
 def test_the_native_override_carries_the_same_cut_and_hilas_gloves():

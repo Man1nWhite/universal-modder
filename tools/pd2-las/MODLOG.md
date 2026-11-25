@@ -604,3 +604,27 @@ being flattened. Then the sheet changed the code twice more: the blend is faded 
 rather than stamped on a grown zone (a binary zone leaves a soft rectangle of its own), and the
 sideburn boxes were widened to the ears, where the old ones stopped 18 px short and left a strip of
 painted stubble in front of them. Pack: 8,420,283 B (`55cc0fc55b35`).
+
+## 2026-11-25 — all palm extensions reverted: the cut is back on the crease (D70)
+
+The user's first-person screenshot of `OfficeSuite_Head` showed a wedge of skin past the white
+glove at the wrist, and the instruction was to *"revert extensions, before 4 cm (D62)"*. D62 had
+cut 4 cm into the palm to close D60's in-game gap; D63 reduced it to 1.5 cm when the palm came
+through the glove, D65 to 1.25 cm when a wedge still showed. All three kept arm skin past the
+wrist crease. This change takes `PALM_EXTEND_CM` back to **0.0**, which is D60's cut exactly:
+`clip_group_at_palm_bases` splits on the plane through the rig's `Hand` joint and
+`_cap_cut_rims` caps the ring there. The registration is untouched — `own_hands true`,
+`glove_adapter false`, no default glove, and a chosen glove still supplies hands; the Hila
+override keeps its own `g_hands`.
+
+Measured on the rebuilt packs: `margin_cm`/`extend_cm` 0.0, `clipped_to_cm` 0.0 both sides,
+`kept_to_cm` -0.76 (left) / -0.79 (right) after the 5% slim (the mesh stops just proximal of
+the plane), 64 triangles split, 66 vertices added, 2,276 removed, 68 cap triangles, and a
+shipped `g_body` of 31,643 vertices (61,479 after the slim) with no hand- or
+finger-dominated vertex. `tests/test_palm_cut.py` now pins the plane and the zero extension,
+`tests/test_pd2_las.py` the vertex counts and the clip record, and
+`tests/test_hila_body_override.py` the same cut on the native override.
+
+`runtime_verified` stays `false`: the D62 and D65 builds are the ones seen in game. The gap
+that motivated D62 is the known trade-off of this choice, and the wrist step of the in-game
+checklist now describes the current bytes.
