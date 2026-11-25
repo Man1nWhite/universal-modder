@@ -27,6 +27,11 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `26_OfficeSuite_head_skin_detail.png` (front and three-quarter views of the colour match)
   - `27_Christie_Clover_LAS.png` (Clover-Christie GLB body-only LAS outfit)
   - `28_OfficeSuite_Miranda_Romance_over_Hila.png` (native Hila body and head override)
+  - `29_OfficeSuite_Head.png` (OfficeSuite body, hands, arms and the Romance head in one unit)
+  - `30_Arivus_over_Hoxton.png` (GTA SA Arivus head over Old Hoxton, FPS gloves in TPS)
+  - `31`–`36` `*_fps.png` (first-person `fps_*.model` sheets for every pack that ships one:
+    Miranda_L4D2_LAS, Miranda_L4D2_Busty_LAS, Miranda_Romance_LAS, Christie_LAS, OfficeSuite,
+    OfficeSuite_Head — player, three-quarter, side and top-down views, auto-framed)
 
 `00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
 """
@@ -58,6 +63,69 @@ FONT_REG_12 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.tt
 FONT_REG_11 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
 
 
+def view_rotation(deg: float, pitch_deg: float = 0.0) -> np.ndarray:
+    """Yaw-then-pitch rotation shared by the rasterizer and the auto-framing helper."""
+    rad = np.deg2rad(deg)
+    c, s = np.cos(rad), np.sin(rad)
+    Rz = np.array([[c, -s, 0.0], [s, c, 0.0], [0.0, 0.0, 1.0]], dtype=np.float32)
+    if abs(pitch_deg) > 1e-4:
+        prad = np.deg2rad(pitch_deg)
+        cp, sp = np.cos(prad), np.sin(prad)
+        Rx = np.array([[1.0, 0.0, 0.0], [0.0, cp, -sp], [0.0, sp, cp]], dtype=np.float32)
+        return Rx @ Rz
+    return Rz
+
+
+def fit_view(
+    parts: list[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, bool, bool]],
+    W: int,
+    H: int,
+    deg: float,
+    pitch_deg: float = 0.0,
+    *,
+    margin: float = 0.9,
+    pad: tuple[int, int, int, int] = (0, 0, 0, 0),
+) -> tuple[float, float, float]:
+    """Frame `parts` in one view: returns ``(pan_x, z_center, scale)`` for the rasterizer.
+
+    The bounds come from the rotated vertices, so a pitched view of a horizontal
+    subject (first-person arms) lands centred instead of drifting out of frame as a
+    fixed ``z_center``/``scale`` pair does. ``pad`` is (left, right, top, bottom) in
+    output pixels and reserves room for the caption.
+    """
+    visible = [p for p in parts if len(p[2])]
+    if not visible:
+        return 0.0, 0.0, 1.0
+    verts = np.concatenate([p[0] for p in visible])
+    rotated = verts @ view_rotation(deg, pitch_deg).T
+    xmin, xmax = float(rotated[:, 0].min()), float(rotated[:, 0].max())
+    zmin, zmax = float(rotated[:, 2].min()), float(rotated[:, 2].max())
+    left, right, top, bottom = pad
+    avail_w = max(1.0, (W - left - right) * margin)
+    avail_h = max(1.0, (H - top - bottom) * margin)
+    scale = min(avail_w / max(xmax - xmin, 1e-3), avail_h / max(zmax - zmin, 1e-3))
+    area_cx = left + (W - left - right) * 0.5
+    area_cy = top + (H - top - bottom) * 0.5
+    pan_x = (xmin + xmax) * 0.5 - (area_cx - W * 0.5) / scale
+    z_center = (zmin + zmax) * 0.5 - (H * 0.5 - area_cy) / scale
+    return pan_x, z_center, scale
+
+
+def rasterize_fitted(
+    parts: list[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, bool, bool]],
+    W: int,
+    H: int,
+    deg: float,
+    pitch_deg: float = 0.0,
+    *,
+    margin: float = 0.9,
+    pad: tuple[int, int, int, int] = (0, 0, 0, 0),
+) -> Image.Image:
+    """`rasterize_parts` with the camera framed on the subject instead of fixed numbers."""
+    pan_x, z_center, scale = fit_view(parts, W, H, deg, pitch_deg, margin=margin, pad=pad)
+    return rasterize_parts(parts, W, H, deg, z_center, scale, pitch_deg=pitch_deg, pan_x=pan_x)
+
+
 def rasterize_parts(
     parts: list[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, bool, bool]],
     W: int,
@@ -82,17 +150,7 @@ def rasterize_parts(
     W2, H2 = W * 2, H * 2
     scale2 = scale * 2.0
 
-    rad = np.deg2rad(deg)
-    c, s = np.cos(rad), np.sin(rad)
-    Rz = np.array([[c, -s, 0.0], [s, c, 0.0], [0.0, 0.0, 1.0]], dtype=np.float32)
-
-    if abs(pitch_deg) > 1e-4:
-        prad = np.deg2rad(pitch_deg)
-        cp, sp = np.cos(prad), np.sin(prad)
-        Rx = np.array([[1.0, 0.0, 0.0], [0.0, cp, -sp], [0.0, sp, cp]], dtype=np.float32)
-        R = Rx @ Rz
-    else:
-        R = Rz
+    R = view_rotation(deg, pitch_deg)
 
     if center is not None:
         cvec = np.asarray(center, dtype=np.float32) @ R.T
@@ -433,20 +491,29 @@ def load_outfit_with_head_parts(
 
 
 def load_head_las_parts() -> tuple[list, list, Image.Image]:
-    """Body and head from one unit: OfficeSuite_Head's model, its icon, no first-person arms."""
+    """Body, head and first-person arms from one unit: OfficeSuite_Head's model and its icon.
+
+    The pack registers a whole-character unit, but it ships `fps_officesuite_head.model`
+    with the same body/arms geometry, so the first-person panel is applicable here too.
+    """
     tag, prefix = "OfficeSuite_Head", "officesuite_head"
     unit = f"{tag}/assets/units/{prefix}/skins/{prefix}/"
+    tex_cache: dict[str, np.ndarray] = {}
     with zipfile.ZipFile(dist_path(ROOT, "OfficeSuite_Head.zip")) as zf:
         mf = dm.ModelFile.read(zf.read(unit + f"{prefix}.model"))
         mats = _parse_matcfg_diffuse(zf.read(unit + f"{prefix}.material_config"))
+        cutouts = frozenset({f"{prefix}_lashes"})
         parts = _parts_from_model_with_matcfg(
-            zf, tag, mf, mats, {}, cutout_materials=frozenset({f"{prefix}_lashes"}))
+            zf, tag, mf, mats, tex_cache, cutout_materials=cutouts)
         parts += _parts_from_model_with_matcfg(
-            zf, tag, mf, mats, {}, drawable="g_head", cutout_materials=frozenset({f"{prefix}_lashes"}))
+            zf, tag, mf, mats, tex_cache, drawable="g_head", cutout_materials=cutouts)
+        mf_fps = dm.ModelFile.read(zf.read(unit + f"fps_{prefix}.model"))
+        fps_mats = _parse_matcfg_diffuse(zf.read(unit + f"fps_{prefix}.material_config"))
+        fps_parts = _parts_from_model_with_matcfg(zf, tag, mf_fps, fps_mats, tex_cache)
         icon_im = Image.open(
             io.BytesIO(zf.read(f"{tag}/assets/guis/dlcs/{prefix}/armor_skins/{prefix}.texture"))
         ).convert("RGBA")
-    return parts, [], icon_im
+    return parts, fps_parts, icon_im
 
 
 def load_multi_mat_las_parts(
@@ -562,8 +629,13 @@ def render_las_sheet(
         top_lbl = "Upper Body 3/4 (24°)"
 
     if fps_parts:
-        p_bot = rasterize_parts(fps_parts, W_col, H_row // 2, 20, 129.0, 3.2, pitch_deg=15.0)
-        bot_lbl = "First-Person Arms (fps_*.model)"
+        # Player's-eye view: yaw 0 looks down the arms; the negative pitch looks down
+        # from above them, as the in-game camera does. Frame the arms themselves, not a
+        # fixed z_center — the unit is as wide as it is tall and auto-fits cleanly.
+        p_bot = rasterize_fitted(
+            fps_parts, W_col, H_row // 2, 0.0, -25.0, margin=0.88, pad=(12, 12, 10, 44)
+        )
+        bot_lbl = "First-Person Arms (fps_*.model, player view)"
     else:
         side_center, side_scale = (z_full, s_full / 2) if full_view else (74.0, 1.40)
         p_bot = rasterize_parts(tpp_parts, W_col, H_row // 2, 90, side_center, side_scale)
@@ -596,6 +668,51 @@ def render_las_sheet(
     if has_head:
         return rasterize_parts(tpp_parts, 360, 480, 24, 147.0, 5.8, z_min_clip=105.0)
     return rasterize_parts(tpp_parts, 360, 480, 24, 76.0, 2.50)
+
+
+#: Views of a `fps_*.model` unit: (caption, yaw, pitch). The arms are authored as the
+#: player sees them, so yaw 0 with a downward pitch is the in-game first-person read;
+#: the rest show the same unit from the angles the camera never takes.
+FPS_VIEWS = (
+    ("Player view (0°, 25° down)", 0.0, -25.0),
+    ("Three-quarter (35°, 20° down)", 35.0, -20.0),
+    ("Side (90° yaw)", 90.0, 0.0),
+    ("Top-down (0°, 70° down)", 0.0, -70.0),
+)
+
+
+def render_fps_sheet(
+    title: str,
+    subtitle: str,
+    fps_parts: list,
+    out_path: Path,
+    W_col: int = 720,
+    H_row: int = 280,
+) -> Image.Image:
+    """A four-view sheet of one pack's `fps_*.model` unit, auto-framed per view.
+
+    The cells are landscape because a first-person unit is: two arms span ~106 cm
+    across and ~50 cm deep, so portrait cells leave most of the frame empty.
+    `render_las_sheet` keeps a small first-person panel so a pack reads as one page;
+    this sheet is the close inspection of the same unit — the seams, cuffs and hands
+    that only exist on the arms.
+    """
+    cols = 2
+    rows = (len(FPS_VIEWS) + cols - 1) // cols
+    canvas = Image.new("RGB", (W_col * cols, H_row * rows + 58), (18, 22, 30))
+    for i, (caption, yaw, pitch) in enumerate(FPS_VIEWS):
+        img = rasterize_fitted(
+            fps_parts, W_col, H_row, yaw, pitch, margin=0.94, pad=(12, 12, 8, 34)
+        )
+        d = ImageDraw.Draw(img)
+        d.rectangle([8, H_row - 30, 285, H_row - 8], fill=(14, 17, 24))
+        d.text((14, H_row - 26), caption, fill=(230, 235, 245), font=FONT_REG_12)
+        canvas.paste(img, ((i % cols) * W_col, 58 + (i // cols) * H_row))
+    add_header_and_badges(canvas, title, subtitle)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out_path)
+    print(f"Saved {out_path}")
+    return canvas
 
 
 #: Chest close-up views for the busty sheets: (caption, yaw, pitch, scale, centre).
@@ -702,6 +819,8 @@ def render_heister_head_sheet(
     title: str,
     subtitle: str,
     out_path: Path,
+    portrait: tuple[float, float] | None = None,
+    full: tuple[float, float] | None = None,
 ) -> Image.Image:
     zp = dist_path(ROOT, zip_name)
     with zipfile.ZipFile(zp) as zf:
@@ -769,6 +888,12 @@ def render_heister_head_sheet(
     else:
         z_portrait, s_portrait = 164.0, 12.2
         z_full, s_full = 92.0, 2.55
+    # Per-pack overrides for heads that sit at another height (Old Hoxton's head is
+    # the shared suit model's, ~10 cm above Clover's/Bonnie's).
+    if portrait is not None:
+        z_portrait, s_portrait = portrait
+    if full is not None:
+        z_full, s_full = full
     p_front = rasterize_parts(parts, W_col, H_row, 0, z_portrait, s_portrait, z_min_clip=135.0)
     p_34 = rasterize_parts(parts, W_col, H_row, 32, z_portrait, s_portrait, z_min_clip=135.0)
     p_back = rasterize_parts(parts, W_col, H_row, 180, z_portrait, s_portrait, z_min_clip=135.0)
@@ -841,6 +966,13 @@ UNIFIED_PATHS = {
     "27_Christie_Clover_LAS.png": "christie/model/clover/christie_clover_las_sheet.png",
     "28_OfficeSuite_Miranda_Romance_over_Hila.png": "honoka/model/over-hila/officesuite_miranda_romance_over_hila_sheet.png",
     "29_OfficeSuite_Head.png": "honoka/model/head/officesuite_head_las_sheet.png",
+    "30_Arivus_over_Hoxton.png": "arivus/model/over-hoxton/arivus_over_hoxton_sheet.png",
+    "31_Miranda_LAS_fps.png": "miranda/model/las/miranda_las_fps_sheet.png",
+    "32_Miranda_Busty_LAS_fps.png": "miranda/model/busty/miranda_busty_las_fps_sheet.png",
+    "33_lawson_las_fps.png": "lawson/model/lawson_las_fps_sheet.png",
+    "34_Christie_LAS_fps.png": "christie/model/base/christie_las_fps_sheet.png",
+    "35_OfficeSuite_fps.png": "honoka/model/dae/officesuite_las_fps_sheet.png",
+    "36_OfficeSuite_Head_fps.png": "honoka/model/head/officesuite_head_las_fps_sheet.png",
 }
 
 
@@ -878,21 +1010,33 @@ def main(argv: list[str] | None = None) -> None:
             target_for("24_OfficeSuite.png"),
             has_head=False,
         )
+        render_fps_sheet(
+            "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
+            "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs, jewelry cuff and the outfit's own hands",
+            fps_os,
+            target_for("35_OfficeSuite_fps.png"),
+        )
         return
 
     if args.only_head:
-        tpp_hd, _, icon_hd = load_head_las_parts()
+        tpp_hd, fps_hd, icon_hd = load_head_las_parts()
         render_las_sheet(
             "dist/Honoka/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
-            "One unit: OfficeSuite's body and hands, and the ME2 Romance head and lashes from the Hila override | "
-            "Registration replaces the head and hides the mask | Source: Honoka_DOAXVV_Secret_Reportout.dae + "
-            "OfficeSuite_Miranda_Romance_over_Hila.zip",
+            "One unit: OfficeSuite's body, hands and first-person arms (fps_officesuite_head.model), and the ME2 "
+            "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
+            "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
             tpp_hd,
-            [],
+            fps_hd,
             icon_hd,
             target_for("29_OfficeSuite_Head.png"),
             has_head=True,
             closeup=(18.0, 170.0, 8.0),
+        )
+        render_fps_sheet(
+            "dist/Honoka/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
+            "Player, three-quarter, side and top-down views, auto-framed | the whole-character unit's arms unit",
+            fps_hd,
+            target_for("36_OfficeSuite_Head_fps.png"),
         )
         return
 
@@ -912,6 +1056,12 @@ def main(argv: list[str] | None = None) -> None:
         target_for("01_Miranda_LAS.png"),
     )
     thumbs.append(("Miranda_L4D2_LAS.zip (Full-Body L4D2)", th_mir))
+    render_fps_sheet(
+        "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip — First-Person Arms (fps_miranda.model)",
+        "Player, three-quarter, side and top-down views, auto-framed | the L4D2 outfit's arms unit, hands only",
+        fps_mir,
+        target_for("31_Miranda_LAS_fps.png"),
+    )
 
     tpp_law, fps_law, icon_law = load_lawson_las_parts()
     th_law = render_las_sheet(
@@ -923,6 +1073,12 @@ def main(argv: list[str] | None = None) -> None:
         target_for("02_lawson_las.png"),
     )
     thumbs.append(("Miranda_Romance_LAS.zip (Full-Body ME2)", th_law))
+    render_fps_sheet(
+        "dist/Miranda_Romance/Miranda_Romance_LAS.zip — First-Person Arms (fps_lawson.model)",
+        "Player, three-quarter, side and top-down views, auto-framed | the ME2 Romance outfit's arms unit",
+        fps_law,
+        target_for("33_lawson_las_fps.png"),
+    )
 
     tpp_bus, fps_bus, icon_bus = load_miranda_busty_parts()
     th_bus = render_las_sheet(
@@ -938,6 +1094,12 @@ def main(argv: list[str] | None = None) -> None:
                                target_for("13_Miranda_Busty_vs_LAS_chest.png"))
     render_busty_polar_sheet(tpp_mir, tpp_bus, icon_bus,
                              target_for("14_Miranda_Busty_vs_LAS_top_below.png"))
+    render_fps_sheet(
+        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — First-Person Arms (fps_miranda_busty.model)",
+        "Player, three-quarter, side and top-down views, auto-framed | the chest-morph pack's own arms unit",
+        fps_bus,
+        target_for("32_Miranda_Busty_LAS_fps.png"),
+    )
 
     tpp_chr, fps_chr, icon_chr = load_multi_mat_las_parts(
         dist_path(ROOT, "Christie_LAS.zip"), "Christie_LAS", "christie", has_fps=True
@@ -950,6 +1112,12 @@ def main(argv: list[str] | None = None) -> None:
         icon_chr,
         target_for("15_Christie_LAS.png"),
         has_head=False,
+    )
+    render_fps_sheet(
+        "dist/Christie/Christie_LAS.zip — First-Person Arms (fps_christie.model)",
+        "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and the glove adapter's opening",
+        fps_chr,
+        target_for("34_Christie_LAS_fps.png"),
     )
 
     tpp_chr_clv, fps_chr_clv, icon_chr_clv = load_multi_mat_las_parts(
@@ -982,19 +1150,31 @@ def main(argv: list[str] | None = None) -> None:
         target_for("24_OfficeSuite.png"),
         has_head=False,
     )
+    render_fps_sheet(
+        "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
+        "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs, jewelry cuff and the outfit's own hands",
+        fps_os,
+        target_for("35_OfficeSuite_fps.png"),
+    )
 
-    tpp_hd, _, icon_hd = load_head_las_parts()
+    tpp_hd, fps_hd, icon_hd = load_head_las_parts()
     th_hd = render_las_sheet(
         "dist/Honoka/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
-        "One unit: OfficeSuite's body and hands, and the ME2 Romance head and lashes from the Hila override | "
-        "Registration replaces the head and hides the mask | Source: Honoka_DOAXVV_Secret_Reportout.dae + "
-        "OfficeSuite_Miranda_Romance_over_Hila.zip",
+        "One unit: OfficeSuite's body, hands and first-person arms (fps_officesuite_head.model), and the ME2 "
+        "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
+        "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
         tpp_hd,
-        [],
+        fps_hd,
         icon_hd,
         target_for("29_OfficeSuite_Head.png"),
         has_head=True,
         closeup=(18.0, 170.0, 8.0),
+    )
+    render_fps_sheet(
+        "dist/Honoka/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
+        "Player, three-quarter, side and top-down views, auto-framed | the whole-character unit's arms unit",
+        fps_hd,
+        target_for("36_OfficeSuite_Head_fps.png"),
     )
 
     combo5_parts, _ = load_outfit_with_head_parts(
@@ -1226,6 +1406,26 @@ def main(argv: list[str] | None = None) -> None:
         )
         thumbs.append((short_lbl, th))
 
+    # Arivus replaces a drawable inside the shared suit model, so its frame sits a
+    # little higher than the female heisters' heads and needs its own portrait framing.
+    th_arivus = render_heister_head_sheet(
+        "Arivus_over_Hoxton.zip",
+        "units/payday2/characters/npc_criminals_suit_1/npc_criminals_suit_1.model",
+        "units/payday2/characters/shared_textures/old_hoxton_head_df.texture",
+        "units/payday2/characters/shared_textures/old_hoxton_head_df.texture",
+        "guis/textures/pd2/blackmarket/icons/characters/old_hoxton.texture",
+        "g_head_old_hoxton",
+        (58, 62, 68),
+        (42, 44, 48),
+        False,
+        "dist/Arivus/Arivus_over_Hoxton.zip — Old Hoxton head replacement (GTA SA Random4 ped)",
+        "Replaces Old Hoxton's head & hair (heist, menu & Safe House chill models) + FPS gloves in TPS + character icon"
+        " | Source: references/1581859199_135363.rar",
+        target_for("30_Arivus_over_Hoxton.png"),
+        portrait=(173.8, 10.8),
+        full=(82.0, 2.55),
+    )
+
     # Build master overview grid (6 columns x 2 rows, exact 3:4 aspect ratio)
     tw, th_h = 330, 440
     overview = Image.new("RGB", (tw * 6, th_h * 2 + 58), (16, 19, 26))
@@ -1267,14 +1467,16 @@ def main(argv: list[str] | None = None) -> None:
         ("OfficeSuite.zip", th_os),
         ("OfficeSuite_Head.zip", th_hd),
         thumbs[10],  # Geralt_over_Rust.zip
+        ("Arivus_over_Hoxton.zip", th_arivus),
         ("OfficeSuite + Miranda over Hila (native)", hila_thumb),
     ]
     rows = (len(all_dist_cells) + 5) // 6
     dist_overview = Image.new("RGB", (tw * 6, th_h * rows + 58), (16, 19, 26))
     add_header_and_badges(
         dist_overview,
-        f"PAYDAY 2 — All {len(all_dist_cells)} Mod Packages in dist/ (Complete Overview)",
-        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, OfficeSuite (+ head), Geralt, native Hila",
+        f"PAYDAY 2 — All {len(all_dist_cells)} Model Packages in dist/ (Complete Overview)",
+        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, OfficeSuite (+ head), Geralt, Arivus, native Hila"
+        " | the audio-only Miranda_Lawson_VO_over_Hila has no model sheet",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

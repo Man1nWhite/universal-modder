@@ -10,8 +10,12 @@
     Report" LAS outfit (`officesuite_body`, `_suit`, `_panties`, `_bra`, `_shoes`, `_jewelry`):
     the 5% bone-anchored slim and layer clearance (D42, D44) in the user's revised third suit and
     jewelry colourway (D45, D46, D50), and the outfit's own hands instead of a wrist cut (D55).
-    The bottom-right panel shows the first-person arms unit (`fps_officesuite.model`, D53) — the
-    sleeves, cuffs, jewelry cuff and hands; no vanilla glove is drawn at runtime.
+    The bottom-right panel shows the first-person arms unit (`fps_officesuite.model`, D53) from the
+    player's camera (`0°` yaw, `25°` down) — the sleeves, cuffs, jewelry cuff and hands; no vanilla
+    glove is drawn at runtime.
+  - [`officesuite_las_fps_sheet.png`](officesuite_las_fps_sheet.png): `fps_officesuite.model` on its
+    own — player view, three-quarter, side and top-down, auto-framed per view; the close read of the
+    sleeve seams, the jewelry cuff and the outfit's own hands.
   - [`officesuite_with_miranda_romance_over_hila_sheet.png`](officesuite_with_miranda_romance_over_hila_sheet.png):
     the same body under the `g_head` drawable of `dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip`
     (head + lashes), i.e. the combination as installed — both packs' models stand in one character
