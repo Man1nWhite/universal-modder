@@ -53,6 +53,8 @@ INPUTS = (
     "references/l4d2_miranda_lawson_1.zip",
     "references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip",
     "references/Geralt.7z",
+    "references/1581859199_135363.rar",
+    "references/npc_criminals_suit_1.7z",
     "references/npc_criminals_ecp_female.7z",
     "references/EYE_Diff.png",
     "references/2b.rar",

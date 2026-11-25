@@ -23,6 +23,8 @@ def dist_path(root: Path, name: str) -> Path:
         group = "Honoka"
     elif base.startswith("Geralt_"):
         group = "Geralt"
+    elif base.startswith("Arivus_"):
+        group = "Arivus"
     elif base.startswith("Miranda_Lawson_VO"):
         group = "Hila"
     else:

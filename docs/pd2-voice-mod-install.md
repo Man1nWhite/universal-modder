@@ -184,3 +184,31 @@ heist-specific text (`p33`–`p47`, most of `v01`–`v58`, `g61`–`g68`) and th
   `init`, and our mod has no Lua that must run before/after anything. `mod.txt` priority is only for
   the BLT list's ordering.
 - No localization/strings work: the clips are audio only; they do not add subtitles.
+
+## 6. When nothing is replaced (troubleshooting)
+
+A 2026-11-24 report ("unpacked in mods, still hear Hila") was re-verified against the loaders and
+the game Lua, and the pack's keying is right: `tweak_data.criminals.characters.ecp_female`
+`static_data.voice = "rb21"` (`tweakdata.lua`) and the AI teammate path agrees
+(`CharacterTweakData:_init_team_ai` sets `ecp_female.speech_prefix = "rb21"`,
+`TeamAISound:init`/`set_voice` put it in the `robber` switch). BeardLib's
+`SoundManager.lua` maps `set_switch` values into `engine_source:get_prefixes()`
+(`BeardLibSetSwitch` hook → `mapped_prefixes = table.map_values(data.switch)`) and
+`ComparePrefixes` matches `<Sounds prefix="rb21">` against exactly that, so a correct install
+replaces barks and a silent one is environmental. Check, in order:
+
+1. **Layout.** `PAYDAY 2/mods/Miranda Lawson VO over Hila/main.xml` must exist exactly one folder
+   deep. The zip is named with underscores (`Miranda_Lawson_VO_over_Hila.zip`) but the folder
+   inside uses spaces (`Miranda Lawson VO over Hila`); creating a folder after the zip's name and
+   extracting into it double-nests, and `FindMods` scans only `mods/*` — one level, no recursion.
+2. **The SuperBLT log** (`PAYDAY 2/mods/logs/`). If it says `Sounds module requires the XAudio
+   API!`, the BLT build predates XAudio (or BeardLib 5.x is not installed at `mods/BeardLib/`);
+   `BeardLibSoundManager.Closed` then short-circuits every check and vanilla audio always plays.
+   The log also lists each mod it loaded — the folder must appear there.
+3. **Main menu → Mods.** Both this mod (from `mod.txt`) and BeardLib must be listed and enabled.
+4. **Log Sounds** (Mods → BeardLib options). With it on, shout as Hila in any heist and read the
+   `Incoming sound check: ID … Prefixes …` line. `ID g18 Prefixes rb21` means the pack was asked
+   and answered (this pack ships `g18`); `Prefixes none` means the `robber` switch never reached
+   the source (report it — that would be a new loader fact); no line at all means step 2 failed.
+   The heist-scripted callouts §4d lists are deliberately not covered, so some vanilla lines
+   between replaced ones are expected.

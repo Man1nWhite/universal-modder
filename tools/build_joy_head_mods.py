@@ -53,6 +53,7 @@ import me2_dae  # noqa: E402
 import source_model as sm  # noqa: E402
 from pack_checksum import write_pack_checksum  # noqa: E402
 import vtf as vtf_mod  # noqa: E402
+import rw_dff as rwd  # noqa: E402
 
 
 JOY_UNIT_DIR = "units/pd2_dlc_joy/characters/npc_criminals_joy_1"
@@ -73,6 +74,19 @@ WILD_ICON_PATH = "guis/dlcs/wild/textures/pd2/blackmarket/icons/characters/wild.
 
 CHILL_UNIT_DIR = "units/pd2_dlc_chill/characters/shared_character"
 FPS_GLOVES_ZIP_PREFIX = "Heister - FPS Gloves in TPS/Heister - FPS Gloves in TPS/"
+SUIT_UNIT_DIR = "units/payday2/characters/npc_criminals_suit_1"
+SUIT_UNIT_STEM = "npc_criminals_suit_1"
+#: the menu model's stem is its own (npc_criminals_suit_menu_1), not <stem>_menu
+SUIT_MENU_STEM = "npc_criminals_suit_menu_1"
+OLD_HOXTON_ICON_PATH = "guis/textures/pd2/blackmarket/icons/characters/old_hoxton.texture"
+OLD_HOXTON_TEX_DIR = "units/payday2/characters/shared_textures"
+ARIVUS_ARCHIVE = "1581859199_135363.rar"
+#: Random4 "Head" bone in the source rig (+x up, +y fwd, +z left), anchored to the
+#: PD2 male "Head" bone (Rust/suit rig world). Scale matches crown-to-crown
+#: (source head-top 0.8384 -> Rust g_head top z 187.56).
+ARIVUS_SCALE = 83.25
+ARIVUS_SRC_ANCHOR = (0.5885, 0.0396, -0.0022)
+ARIVUS_DST_ANCHOR = (0.0, 5.33, 166.76)
 
 # Hila (the H3H3 collaboration heister, DLC folder `ecp`) is not one of the units in the FPS-gloves
 # archive: her heist + menu models, objects and material configs ship in her own reference 7z.
@@ -144,6 +158,73 @@ def ensure_geralt_extracted(tmp_dir: Path) -> Path:
     return tmp_dir / geralt
 
 
+def _ensure_rar(cache: Path, archive: Path, model: Path) -> None:
+    if (cache / model).is_file() and archive_cache.current(archive, cache):
+        return
+
+    def unpack(path: Path) -> None:
+        rwd.extract_rar(archive, path)
+
+    archive_cache.refresh(archive, cache, unpack, (model,))
+
+
+def ensure_arivus_extracted(tmp_dir: Path) -> Path:
+    """Unpack `references/1581859199_135363.rar` (Random4 GTA SA RenderWare ped)."""
+    _ensure_rar(tmp_dir, ROOT / "references" / ARIVUS_ARCHIVE, Path("Random4.dff"))
+    return tmp_dir
+
+
+def ensure_suit_reference(tmp_dir: Path) -> Path:
+    """Unpack the vanilla Old Hoxton suit unit (`npc_criminals_suit_1`).
+
+    The shared suit model carries every suit heister's head as its own drawable
+    (`g_head_old_hoxton` among them), so a head replacement needs the vanilla
+    `npc_criminals_suit_1.model` / `npc_criminals_suit_1_menu.model`. They are
+    game assets: extract `units/payday2/characters/npc_criminals_suit_1/` with
+    DieselBundleViewer (open `assets/bundle_db_blb`) and drop the folder (zipped
+    or bare) under `references/`. The Hila precedent is
+    `references/npc_criminals_ecp_female.7z`.
+    """
+    want = f"{SUIT_UNIT_STEM}.model"
+    for archive in sorted((ROOT / "references").iterdir()):
+        if archive.suffix.lower() not in (".zip", ".7z") or not archive.is_file():
+            continue
+        try:
+            if archive.suffix.lower() == ".zip":
+                names = zipfile.ZipFile(archive).namelist()
+                unpack_names = names
+            else:
+                import py7zr
+
+                with py7zr.SevenZipFile(archive, mode="r") as z:
+                    unpack_names = z.getnames()
+        except Exception:
+            continue
+        hit = [n for n in unpack_names if n.replace("\\", "/").endswith((f"characters/{SUIT_UNIT_STEM}/{want}", f"{SUIT_UNIT_STEM}/{want}"))]
+        if not hit:
+            continue
+        marker = Path(hit[0])
+        if archive.suffix.lower() == ".zip":
+            def unpack(path: Path, _archive=archive) -> None:
+                with zipfile.ZipFile(_archive) as source:
+                    source.extractall(path)
+            archive_cache.refresh(archive, tmp_dir, unpack, (marker,))
+        else:
+            _ensure_7z(tmp_dir, archive, marker)
+        found = _find_named(tmp_dir, want)
+        if found is not None:
+            return found.parent
+    raise FileNotFoundError(
+        "no archive in references/ contains units/payday2/characters/npc_criminals_suit_1/npc_criminals_suit_1.model; "
+        "extract that folder from the game with DieselBundleViewer and add it to references/"
+    )
+
+
+def _find_named(root: Path, name: str) -> Path | None:
+    hits = sorted(p for p in root.rglob(name) if p.is_file())
+    return hits[0] if hits else None
+
+
 def smoothstep(t: np.ndarray) -> np.ndarray:
     t = np.clip(t, 0.0, 1.0)
     return t * t * (3.0 - 2.0 * t)
@@ -203,6 +284,38 @@ def encode_rgba_dds(arr: np.ndarray) -> bytes:
     size = int(arr.shape[0])
     assert arr.shape == (size, size, 4), f"Expected square RGBA array, got {arr.shape}"
     return dds.pack_dds(dds.mip_payloads_from_image(arr), size)
+
+
+def encode_cutout_head_df_dds(arr: np.ndarray) -> bytes:
+    """Encode a 2048x2048 head_df atlas with coverage-preserving alpha mipmaps in the cutout bottom half."""
+    cur = np.ascontiguousarray(arr, dtype=np.uint8)
+    size = int(cur.shape[0])
+    w, h = size, size
+    payloads: list[bytes] = []
+    while True:
+        payloads.append(dds._level_payload(cur))
+        if w == 1 and h == 1:
+            break
+        nxt = dds.downsample2x2(cur)
+        nh, nw = nxt.shape[0], nxt.shape[1]
+        if nh >= 2 and h >= 4:
+            nxt[: nh // 2, :, 3] = np.maximum(nxt[: nh // 2, :, 3], 18)
+            cur_bot = cur[h // 2 :, :, :].reshape(nh // 2, 2, nw, 2, 4).astype(np.float32)
+            w_a = (cur_bot[..., 3:4] > 0).astype(np.float32)
+            w_sum = w_a.sum(axis=(1, 3))
+            rgb_bot = np.where(
+                w_sum > 0,
+                (cur_bot[..., :3] * w_a).sum(axis=(1, 3)) / np.maximum(w_sum, 1.0),
+                nxt[nh // 2 :, :, :3],
+            )
+            nxt[nh // 2 :, :, :3] = np.clip(np.round(rgb_bot), 0, 255).astype(np.uint8)
+            a_mean = cur_bot[..., 3].mean(axis=(1, 3))
+            nxt[nh // 2 :, :, 3] = np.where(a_mean >= 6.0, 24, 0).astype(np.uint8)
+        else:
+            nxt[:, :, 3] = np.maximum(nxt[:, :, 3], 18)
+        cur = nxt
+        w, h = nw, nh
+    return dds.pack_dds(payloads, size)
 
 
 def neck_skin_uv_island_mask(uv_img: np.ndarray, tris: np.ndarray | None = None) -> np.ndarray:
@@ -1043,6 +1156,38 @@ def patch_wild_material_config(xml_bytes: bytes, alpha_ref: str = "0.05") -> byt
         'render_template="generic:ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_3WEIGHTS" version="2">\n'
         '        <diffuse_texture file="units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_df"/>\n'
         '        <bump_normal_texture file="units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_nm"/>\n'
+        f'        <variable value="{alpha_ref}" type="scalar" name="alpha_ref"/>\n'
+        "    </material>"
+    )
+    text = re.sub(
+        r'<material\s+[^>]*name="mtr_head"[^>]*>.*?</material>',
+        new_head,
+        text,
+        flags=re.DOTALL,
+    )
+    return text.encode("utf-8")
+
+
+def patch_old_hoxton_material_config(xml_bytes: bytes, alpha_ref: str = "0.05") -> bytes:
+    """Upgrade `mtr_head` in Old Hoxton's .material_config to ALPHA_MASKED, keeping its texture paths.
+
+    The suit-chill config points `mtr_head` at `shared_textures/old_hoxton_head_p_df/_nm`
+    and the heist config at the non-`_p_` pair; the pack overrides all four textures,
+    so only the render template changes: hair cards need ALPHA_MASKED with an external
+    alpha_ref to cut out against the atlas' 0/24 hair alpha.
+    """
+    text = xml_bytes.decode("utf-8", errors="ignore")
+    block_m = re.search(r'<material\s+[^>]*name="mtr_head"[^>]*>.*?</material>', text, flags=re.DOTALL)
+    block = block_m.group(0) if block_m else ""
+    df_m = re.search(r'<diffuse_texture\s+file="([^"]+)"', block)
+    nm_m = re.search(r'<bump_normal_texture\s+file="([^"]+)"', block)
+    df_rel = df_m.group(1) if df_m else f"{OLD_HOXTON_TEX_DIR}/old_hoxton_head_p_df"
+    nm_rel = nm_m.group(1) if nm_m else f"{OLD_HOXTON_TEX_DIR}/old_hoxton_head_p_nm"
+    new_head = (
+        '<material name="mtr_head" unique="true" '
+        'render_template="generic:ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_3WEIGHTS" version="2">\n'
+        f'        <diffuse_texture file="{df_rel}"/>\n'
+        f'        <bump_normal_texture file="{nm_rel}"/>\n'
         f'        <variable value="{alpha_ref}" type="scalar" name="alpha_ref"/>\n'
         "    </material>"
     )
@@ -2195,34 +2340,7 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
 
     def encode_geralt_head_df_dds(arr: np.ndarray) -> bytes:
         """Encode Geralt's 2048x2048 head_df atlas with coverage-preserving alpha mipmaps in the cutout bottom half."""
-        cur = np.ascontiguousarray(arr, dtype=np.uint8)
-        size = int(cur.shape[0])
-        w, h = size, size
-        payloads: list[bytes] = []
-        while True:
-            payloads.append(dds._level_payload(cur))
-            if w == 1 and h == 1:
-                break
-            nxt = dds.downsample2x2(cur)
-            nh, nw = nxt.shape[0], nxt.shape[1]
-            if nh >= 2 and h >= 4:
-                nxt[: nh // 2, :, 3] = np.maximum(nxt[: nh // 2, :, 3], 18)
-                cur_bot = cur[h // 2 :, :, :].reshape(nh // 2, 2, nw, 2, 4).astype(np.float32)
-                w_a = (cur_bot[..., 3:4] > 0).astype(np.float32)
-                w_sum = w_a.sum(axis=(1, 3))
-                rgb_bot = np.where(
-                    w_sum > 0,
-                    (cur_bot[..., :3] * w_a).sum(axis=(1, 3)) / np.maximum(w_sum, 1.0),
-                    nxt[nh // 2 :, :, :3],
-                )
-                nxt[nh // 2 :, :, :3] = np.clip(np.round(rgb_bot), 0, 255).astype(np.uint8)
-                a_mean = cur_bot[..., 3].mean(axis=(1, 3))
-                nxt[nh // 2 :, :, 3] = np.where(a_mean >= 6.0, 24, 0).astype(np.uint8)
-            else:
-                nxt[:, :, 3] = np.maximum(nxt[:, :, 3], 18)
-            cur = nxt
-            w, h = nw, nh
-        return dds.pack_dds(payloads, size)
+        return encode_cutout_head_df_dds(arr)
 
     head_df_dds = encode_geralt_head_df_dds(head_df_atlas)
     head_nm_dds = encode_rgba_dds(head_nm_atlas)
@@ -2273,6 +2391,145 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     write_deterministic_zip(files, out_zip_paths)
 
 
+def build_arivus_hoxton_mod(
+    ada_root: Path, arivus_root: Path, suit_unit_dir: Path, out_zip_paths: list[Path]
+) -> None:
+    """Build the Arivus (Random4 GTA ped) head replacement over Old Hoxton.
+
+    Old Hoxton is one of the suit heisters: his head is the `g_head_old_hoxton`
+    drawable inside the shared `npc_criminals_suit_1` model (heist + menu), and
+    the Safe House rides `npc_criminals_suit_chill.model`. The pack replaces that
+    drawable and overrides the four `shared_textures/old_hoxton_head[_p_]df/_nm`
+    textures with a 2048 atlas of the Random4 head (material 5) and hair
+    (material 6); the necklace (material 4) and shirt (material 7) are clothing
+    and stay out. Transform: source rig axes (+x up, +y fwd, +z left) map to
+    Diesel world (+x right, +y fwd, +z up) around the Head-bone anchors below.
+    """
+    dff = rwd.read_dff((arivus_root / "Random4.dff").read_bytes())
+    rasters = {r.name: r for r in rwd.read_txd((arivus_root / "Random4.txd").read_bytes())}
+    V, Nrm, UV = dff.positions, dff.normals, dff.uvs
+
+    def _rot(pts: np.ndarray) -> np.ndarray:
+        return np.column_stack([-pts[:, 2], pts[:, 1], pts[:, 0]])
+
+    a_rot = _rot(np.asarray([ARIVUS_SRC_ANCHOR], dtype=np.float64))[0]
+    dst_anchor = np.asarray(ARIVUS_DST_ANCHOR, dtype=np.float64)
+
+    def extract_arivus_part(
+        mat_index: int, u_off: float, u_scale: float, v_off: float, v_scale: float
+    ) -> dict:
+        vidx = np.concatenate([v for m, v in dff.groups if m == mat_index]).reshape(-1, 3)
+        idx = vidx.ravel()
+        p_raw = V[idx].astype(np.float64)
+        n_raw = Nrm[idx].astype(np.float64)
+        uv_raw = UV[idx].reshape(-1, 3, 2).astype(np.float64)
+        # Shift all 3 vertices of each triangle by the same integer UV tile offset
+        u_tile = np.floor(uv_raw[:, :, 0].mean(axis=1, keepdims=True))
+        v_tile = np.floor(uv_raw[:, :, 1].mean(axis=1, keepdims=True))
+        u_img = np.clip(uv_raw[:, :, 0] - u_tile, 0.002, 0.998).ravel()
+        # source v = 1.0 is the texture top; v_img counts image rows from the top
+        v_img = np.clip(1.0 - (uv_raw[:, :, 1] - v_tile), 0.002, 0.998).ravel()
+        p = (_rot(p_raw) - a_rot) * ARIVUS_SCALE + dst_anchor
+        n = _rot(n_raw)
+        u_atlas = u_off + u_scale * u_img
+        v_img_atlas = v_off + v_scale * v_img
+        uv_diesel = np.column_stack([u_atlas, 1.0 - v_img_atlas]).astype(np.float32)
+        t = np.arange(len(p), dtype=np.int32).reshape(-1, 3)
+        return {
+            "verts": p.astype(np.float32),
+            "normals": n.astype(np.float32),
+            "uvs": uv_diesel,
+            "tris": t,
+        }
+
+    # Unified 2048x2048 atlas: top half is opaque skin (gloss alpha 18),
+    # bottom half is the alpha-cutout hair (0 / 24, ALPHA_MASKED alpha_ref 0.05).
+    def upscale_cell(name: str) -> np.ndarray:
+        im = Image.fromarray(rasters[name].rgba)
+        rgb = np.asarray(im.convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS))
+        alpha = np.asarray(im.getchannel("A").resize((1024, 1024), Image.Resampling.LANCZOS))
+        return np.dstack([rgb, alpha]).copy()
+
+    head_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
+    head_df_atlas[0:1024, 0:2048, 3] = 18
+    head_cell = upscale_cell("head_diff_000_a_whi")
+    head_cell[:, :, 3] = 18
+    head_df_atlas[0:1024, 0:1024] = head_cell
+    hair_cell = upscale_cell("hair_diff_001_a_uni")
+    hair_cell[:, :, 3] = np.where(hair_cell[:, :, 3] >= 24, 24, 0).astype(np.uint8)
+    head_df_atlas[1024:2048, 0:1024] = hair_cell
+
+    # No source normal map exists for this ped; a flat PD2 normal is honest
+    # (R = 255, G = 128, B = 0, A = 128, as in the other head packs' channels).
+    head_nm_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
+    head_nm_atlas[:, :] = [255, 128, 0, 128]
+
+    atom0_mesh = extract_arivus_part(5, 0.0, 0.5, 0.0, 0.5)  # head: top-left cell
+    atom1_mesh = extract_arivus_part(6, 0.0, 0.5, 0.5, 0.5)  # hair: bottom-left cell
+    packed_head = _prepare_combined_head_arrays(
+        atom0_mesh,
+        atom1_mesh,
+        bone_offset=1,
+        jaw_lift=7.5,
+        single_atom=True,
+        double_side_atom1=True,
+    )
+
+    portrait = render_head_portrait(
+        atom0_mesh, atom1_mesh, head_df_atlas[:, :, :3], head_df_atlas, alpha_cut=True
+    )
+    icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
+    head_df_dds = encode_cutout_head_df_dds(head_df_atlas)
+    head_nm_dds = encode_rgba_dds(head_nm_atlas)
+
+    def patch_suit_model(model_bytes: bytes) -> bytes:
+        return patch_female_heister_model(
+            model_bytes,
+            head_drawables=["g_head_old_hoxton"],
+            collapse_drawables=[],
+            head_mat_name="mtr_head",
+            hair_mat_name=None,
+            packed_head=packed_head,
+        )
+
+    def suit_bytes(name: str) -> bytes:
+        p = _find_named(suit_unit_dir, name)
+        if p is None:
+            raise FileNotFoundError(f"{name} missing from the npc_criminals_suit_1 reference")
+        return p.read_bytes()
+
+    suit_model = patch_suit_model(suit_bytes(f"{SUIT_UNIT_STEM}.model"))
+    suit_menu_model = patch_suit_model(suit_bytes(f"{SUIT_MENU_STEM}.model"))
+
+    fps_zip = ROOT / "references" / "Heister - FPS Gloves in TPS 2.zip"
+    with zipfile.ZipFile(fps_zip) as zf:
+        chill_model = patch_suit_model(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/npc_criminals_suit_chill.model")
+        )
+        chill_mtr = patch_old_hoxton_material_config(
+            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_old_hoxton.material_config")
+        )
+
+    prefix = "Arivus over Hoxton"
+    files: dict[str, bytes] = {
+        f"{prefix}/{OLD_HOXTON_ICON_PATH}": icon_dds,
+        f"{prefix}/{SUIT_UNIT_DIR}/{SUIT_UNIT_STEM}.model": suit_model,
+        f"{prefix}/{SUIT_UNIT_DIR}/{SUIT_MENU_STEM}.model": suit_menu_model,
+        f"{prefix}/{CHILL_UNIT_DIR}/npc_criminals_suit_chill.model": chill_model,
+        f"{prefix}/{CHILL_UNIT_DIR}/mtr_old_hoxton.material_config": chill_mtr,
+    }
+    for cfg in sorted(suit_unit_dir.rglob("mtr_old_hoxton*.material_config")):
+        files[f"{prefix}/{SUIT_UNIT_DIR}/{cfg.name}"] = patch_old_hoxton_material_config(cfg.read_bytes())
+    for obj_name in (f"{SUIT_UNIT_STEM}.object", f"{SUIT_MENU_STEM}.object"):
+        obj = _find_named(suit_unit_dir, obj_name)
+        if obj is not None:
+            files[f"{prefix}/{SUIT_UNIT_DIR}/{obj_name}"] = obj.read_bytes()
+    for stem in ("old_hoxton_head_p_df", "old_hoxton_head_p_nm", "old_hoxton_head_df", "old_hoxton_head_nm"):
+        payload = head_df_dds if stem.endswith("_df") else head_nm_dds
+        files[f"{prefix}/{OLD_HOXTON_TEX_DIR}/{stem}.texture"] = payload
+    write_deterministic_zip(files, out_zip_paths)
+
+
 def main() -> None:
     determinism.enter(__file__)
     ada_root = ensure_ada_reference(EXTRACT_DIR / "ada_joy")
@@ -2299,6 +2556,21 @@ def main() -> None:
         geralt_root,
         [dist_path(ROOT, "Geralt_over_Rust.zip")],
     )
+    arivus_root = ensure_arivus_extracted(EXTRACT_DIR / "arivus_extract")
+    try:
+        suit_unit_dir = ensure_suit_reference(EXTRACT_DIR / "suit_extract")
+    except FileNotFoundError as exc:
+        # The shared suit model is game content; the pack builds once the user
+        # extracts units/payday2/characters/npc_criminals_suit_1/ (see
+        # ensure_suit_reference). Everything else keeps building meanwhile.
+        print(f"SKIP Arivus_over_Hoxton: {exc}", file=sys.stderr)
+    else:
+        build_arivus_hoxton_mod(
+            ada_root,
+            arivus_root,
+            suit_unit_dir,
+            [dist_path(ROOT, "Arivus_over_Hoxton.zip")],
+        )
 
 
 if __name__ == "__main__":

@@ -5,11 +5,16 @@ Eight user-supplied PNGs of the `Honoko2` LAS outfit in PAYDAY 2, archived byte-
 heist: the character stands on the preview turntable and the capture is cropped to the figure, with the
 menu's scroll bars and the Russian menu heading visible at the edges.
 
-- **Pack:** `dist/Honoka/Honoko2.zip` — the DOAXVV "Secret Report" costume built from
+> `Honoko2` was removed from `dist/` and from the build on 2026-11-23 (D57), with its `Honoko3` and
+> `Honoko4` siblings. These captures are kept as the record of that build; its bytes are in git
+> history. `make -sC tools/pd2-las honokodae` now builds only `OfficeSuite`.
+
+- **Pack (removed, D57):** `dist/Honoka/Honoko2.zip` — the DOAXVV "Secret Report" costume built from
   `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` by `tools/pd2-las/build_honoko2_dae.py`
-  (`make -sC tools/pd2-las honokodae`). The user states these captures are of this pack. The slimmer
-  siblings `dist/Honoka/Honoko3.zip` (same outfit, mesh scaled 5% about the rig's bones, D42) and
-  `dist/Honoka/Honoko4.zip` / `dist/Honoka/OfficeSuite.zip` (alternate suit colourways, D44–D46, D50) are
+  (the builder then produced `Honoko2`; since D57 it writes only `OfficeSuite`). The user states these
+  captures are of this pack. The slimmer sibling `dist/Honoka/Honoko3.zip` (same outfit, mesh scaled 5%
+  about the rig's bones, D42) and `dist/Honoka/Honoko4.zip` (alternate suit colourway, D44–D46; both
+  removed with `Honoko2`, D57) / `dist/Honoka/OfficeSuite.zip` (the surviving alternate colourway, D50) are
   **not** in these frames (`OfficeSuite`'s own menu/lobby captures are archived separately under
   [`../officesuite/2026-11-15/`](../officesuite/2026-11-15/README.md)).
 - **Camera/view convention:** the game's preview turntable, seen from the front, three-quarter, side and
