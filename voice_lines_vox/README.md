@@ -82,12 +82,10 @@ it prints the id of a bark this pack deliberately leaves vanilla (see the instal
 Miranda has no line for several PD2 barks; those slots keep the closest available take:
 
 - `drop.body` ("Bag") - the pack has no "bag" at all, so it says "Those bodies,".
-- `cop.hands` / `cop.drop` ("Hands up" / "Drop it") - no police vocabulary. Miranda never says
-  "hands" in any of the 866 transcripts, so the slot has no matching word at all: it is
-  **"Heads up!"** (`omggra_2nd_intermission_d_S_INT.035.ogg`, 0.00-0.38), the closest bark in tone
-  that is two whole words. It has been through two other picks - a chopped "smi" cut out of "and
-  stop smiling, dammit" (heard as noise), then the "stop" of that same line - and those are recorded
-  here only so they are not tried again. `cop.drop` keeps "Don't".
+- `cop.hands` / `cop.drop` ("Hands up" / "Drop it") - no police vocabulary; they use "Stop" and "Don't".
+  `cop.hands` takes the word out of "and stop smiling, dammit." (`/s/` 0.10-0.17, `/t/` closure,
+  `/ɑ/` 0.22-0.30, `/p/` 0.30-0.33); the first pick cut 0.420-0.650, which is the "smi-" of the
+  next word, and was heard as a chopped "smi" in game.
 - `civ.nophone` ("Don't make that call") - no phone anywhere in the pack either. The pick is
   "I'd rather we didn't.", the one take that reads as *don't do that* rather than as despair; it
   replaced "There's nothing we can do," on 2026-11-25 after that was heard not to fit.

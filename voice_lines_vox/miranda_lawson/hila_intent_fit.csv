@@ -14,7 +14,7 @@ civ.talk,Talk.,9,pinned,What happened?,0.000,0.628,twrvxl_main_contact_d_S_INT.0
 civ.ties,Tie them.,5,pinned,"Just lie still,",0.000,0.900,procer_wakeup_c_S_INT.009.ogg,restraint tone
 cop.cuffs,Cuffs. Now.,8,pinned,hold,1.180,1.500,norcva_debrief_d_S_INT.011.ogg,unchanged from previous fit
 cop.drop,Don't.,7,pinned,Don't,0.000,0.260,norvx_relationship_03_h_S_INT.005.ogg,"intimidation; no ""drop it"" line exists"
-cop.hands,Hands up!,5,pinned,Heads up!,0.000,0.380,omggra_2nd_intermission_d_S_INT.035.ogg,"the vanilla slot says ""Hands up!"" (5 ids: ""Hands up!"", ""Hands up, asshole!"", ""Hands where I can see 'em.""), and Miranda never says ""hands"" - not once in the 866 transcripts - so this is the closest bark she has: omggra_2nd_intermission ""Heads up!"", 0.00-0.38 = /h/ 0.01-0.05, /heads/ 0.06-0.20 with its /dz/ at 0.17-0.19, /up/ 0.21-0.33 and the /p/ release at 0.34-0.36, in the gap at 0.37. Whole words, unlike the 0.27 s ""stop"" it replaces, which was cut out of the middle of ""and stop smiling, dammit."""
+cop.hands,Stop.,5,pinned,stop,0.090,0.360,norvx_relationship_03_h_S_INT.037.ogg,"the word, not the middle of the next one: ""and stop smiling, dammit."" is /and/ to 0.08, /s/ 0.10-0.17, /t/ closure, /ɑ/ 0.22-0.30, /p/ 0.30-0.33; the old 0.420-0.650 window was the first 0.23 s of ""smiling"""
 cop.kneel,On your knees.,6,pinned,Hold,1.060,1.310,endgm2_tech_culmination_c_S_INT.022.ogg,re-cut to the exact word (silence/energy-verified boundaries)
 cuffed.pick,Pick these cuffs.,9,pinned,I can't fight back like this.,0.000,1.264,endgm2_longwalk_a_S_INT.064.ogg,unchanged from previous fit
 curse.shit,Damn it.,21,pinned,Damn it.,0.000,0.690,norvx_relationship_04_h_S_INT.030.ogg,unchanged from previous fit
