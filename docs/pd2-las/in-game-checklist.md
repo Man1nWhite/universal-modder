@@ -299,12 +299,23 @@ been heard in game; the packaging contract is [`docs/pd2-voice-mod-install.md`](
 
 The id-keyed twin of the pack above: SuperBLT and nothing else, no BeardLib, no `mods/logs` line to
 expect. 858 `.stream` files named after Hila's voice-line ids, 27 ids left vanilla (Wwise Vorbis in
-the vanilla bank). Nothing of it has been heard in game either; the format is checked against real
-files and the id table only (`docs/pd2-voice-mod-install.md` §7).
+the vanilla bank). **Heard in game on 2026-11-25: the user installed it and reported it works** — this
+route replaces Hila's barks where the BeardLib pack did not. That report also named two clips cut
+inside a word, which are re-cut below; the bytes it heard are not the tracked ones.
 
 1. **It replaces at all.** Play Hila in any heist with the stream pack as the *only* Hila voice pack
-   installed: the movement and interaction barks are Miranda. This is the check the BeardLib pack
-   failed on 2026-11-24 — the same report now says something about the route rather than the install.
+   installed: the movement and interaction barks are Miranda. Passed 2026-11-25 — this is the check
+   the BeardLib pack failed on 2026-11-24, so the id-keyed route is the one that works.
+1a. **The two clips the 2026-11-25 report named.** Both were cut inside a word and re-cut by
+   measurement (`slot_picks.csv`, `tests/test_hila_cut_edges.py`):
+   - `civ.down` (46 ids) should say **"Keep your head down,"** and stop there — no fragment of
+     "Shepard" after "down". It used to end 0.2 s inside that name and played as "keep you head down,
+     Shep".
+   - `call_teammate.hey_you` (158 ids) should say **"you take point"** — three words, not just "you".
+     It used to start on the "-ard" of "Shepard," and end on the next word's fricative.
+   If either still sounds wrong, note whether it is *cut short* (the line stops mid-way) or *cut
+   wrong* (a fragment of the neighbouring word): the first is a playback-length question, the second
+   is another edge to move, and they are different fixes.
 2. **No loader noise.** `mods/logs/` should show the mod folder loaded and no error from it: the pack
    has no Lua, no hooks and no XML to parse beyond `<mod name=…>`.
 3. **Line-by-line, not event-by-event.** A heist-scripted line Hila speaks as an NPC keeps Hila's

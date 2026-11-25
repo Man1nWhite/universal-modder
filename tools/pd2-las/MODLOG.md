@@ -302,3 +302,39 @@ that a replacement pack does not ship.
 
 `runtime_verified` stays `false` in both packs; the wrist and glove steps are in
 `docs/pd2-las/in-game-checklist.md`.
+
+## 2026-11-25 — the streamed voice pack is heard in game; two clips are cut again
+
+The user installed `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` and reported that it **works**:
+Hila's barks are Miranda's through the id-keyed route, which the BeardLib pack did not manage on
+2026-11-24. The same report named two clips whose cuts land inside a word:
+
+- `civ.down` — `procer_cover_tutorial_a_S_INT.011.ogg` 0.020–1.020, heard as "keep you head down,
+  Shep". The 1.020 edge is 0.2 s inside "Shepard": the name's "sh" starts at 0.82 s (4–9 kHz is
+  65–84% of the energy from there) and runs to 1.20 s, so the clip ended mid-name.
+- `call_teammate.hey_you` — `profre_cover_tutorial_a_S_INT.002.ogg` 1.310–2.180, heard as "just
+  you". The 1.310 edge is on the "-ard" of "Shepard," and 2.180 is inside the next word's fricative,
+  so the clip carried a fragment at each end around "you take point".
+
+Both edges are now measured rather than eyeballed, on the same acoustic reading: level per 20 ms
+plus the share of energy between 4 and 9 kHz, which separates a fricative ("sh", "t") from the
+nasal and vowel tails around it. `civ.down` is **0.020–0.810** (ends in the 0.78–0.80 gap, 0% high
+band, with the "sh" of the name at 0.82 untouched) and `call_teammate.hey_you` is
+**1.450–2.105** (the `-ard` behind the start, the closing fricative after the end, the plosive
+closure of "point" inside). Clips: 0.79 s and 0.66 s instead of 1.00 s and 0.87 s, so the stream
+zip is 13.9 MB rather than 14.9 MB and 204 ids carry the shorter audio.
+
+`slot_picks.csv` and `hila_intent_fit.csv` carry the new windows and say what the edges were moved
+onto; `tools/build_hila_voice_mod.py` regenerated `hila_slot_pieces.csv` from them on the rebuild.
+Both packs were rebuilt (`voices`, `voices_stream`) — the BeardLib twin ships the same two clips as
+OGG.
+
+`tests/test_hila_cut_edges.py` decodes the two source oggs out of the tracked archive (with the
+pinned `py7zr` and `imageio-ffmpeg`, no skip) and pins the edges: the `civ.down` cut ends on a 0%
+high-band tail with 80%-high-band speech starting at the edge, and the `hey_you` clip is gap to gap
+with the "t" burst and the "point" closure inside it. It is the test that would have caught the
+clip the user heard.
+
+Nothing else was listened to line by line; the other picks have not moved. `runtime_verified` stays
+`false` in both packs, and `HANDOFF.md` records the 2026-11-25 report as a *partial* — the route is
+confirmed, the tracked bytes are not what was heard.

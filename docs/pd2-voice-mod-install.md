@@ -283,5 +283,8 @@ python tools/pd2-las/wwise_ima.py /tmp/712675.stream --wav /tmp/712675.wav   # h
 .venv/bin/python -m pytest -q tests/test_wwise_ima.py tests/test_hila_stream_pack.py
 ```
 
-Nothing here has been heard in game: the pack is checked against the container and the id table only
-(`docs/pd2-las/in-game-checklist.md`).
+Heard in game on 2026-11-25: the user installed this pack and reported that it works (the BeardLib
+route did not, on 2026-11-24). The report also named two clips cut inside a word, `civ.down` and
+`call_teammate.hey_you`; both edges were moved onto the gaps around the wanted words and pinned by
+`tests/test_hila_cut_edges.py`, so the tracked bytes are newer than what was heard
+(`docs/pd2-las/in-game-checklist.md`). Nothing else of it has been listened to line by line.

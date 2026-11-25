@@ -3,11 +3,11 @@ ammo.low,Low ammo.,16,pinned,I'm out,2.240,2.660,norvx_loyalty_01_h_S_INT.023.og
 assault.incoming,Cops incoming.,11,pinned,Incoming.,0.000,0.630,endgm2_longwalk_a_S_INT.063.ogg,unchanged from previous fit
 assault.ready,Get ready.,18,pinned,"Ready,",0.000,0.700,endgm2_longwalk_a_S_INT.065.ogg,"trimmed ""Commander?"""
 assault.retreat,They are pulling back.,4,pinned,They're pulling out.,0.000,0.690,horcr1_collector_retreat_c_S_INT.010.ogg,unchanged from previous fit
-call_teammate.hey_you,"Hey, you.",158,pinned,you take point.,1.310,2.180,profre_cover_tutorial_a_S_INT.002.ogg,"trimmed ""Shepard,"" off the front"
+call_teammate.hey_you,"Hey, you.",158,pinned,you take point.,1.450,2.105,profre_cover_tutorial_a_S_INT.002.ogg,"""you take point"" - ""ard"" of ""Shepard,"" trimmed off the front (silence at 1.450) and the next word's fricative off the end (silence at 2.10)"
 caution.wait,Wait.,2,pinned,"wait,",0.560,0.780,norvx_relationship_03_h_S_INT.045.ogg,"trimmed ""Shepard,"" + tail"
 caution.watch,Careful.,6,pinned,Look out.,0.000,0.470,cspcr2_platform_approach_h_S_INT.020.ogg,unchanged from previous fit
 civ.dontmove,Do not move.,8,pinned,don't try to move.,0.920,1.670,procer_wakeup_c_S_INT.002.ogg,"literally ""don't move"", trimmed ""Shepard,"""
-civ.down,Down. Now.,46,pinned,"Keep your head down,",0.020,1.020,procer_cover_tutorial_a_S_INT.011.ogg,"trimmed ""Shepard."""
+civ.down,Down. Now.,46,pinned,"Keep your head down,",0.020,0.810,procer_cover_tutorial_a_S_INT.011.ogg,"""Keep your head down,"" ends at 0.810, in the gap before the ""sh"" of ""Shepard"" (4-8 kHz share of energy 0% at 0.78-0.80, 65-84% from 0.82); the 1.020 end cut inside Shepard and played as ""Shep"""
 civ.killthreat,Bunker down,7,pinned,bunker down,2.160,2.720,endgm2_huddle_03a_d_S_INT.030.ogg,stay-on-the-ground intimidation
 civ.nophone,No calls.,1,pinned,"There's nothing we can do,",0.000,1.220,endgm1_dogfight_c_S_INT.057.ogg,"trimmed ""Shepard."""
 civ.talk,Talk.,9,pinned,What happened?,0.000,0.628,twrvxl_main_contact_d_S_INT.037.ogg,unchanged from previous fit
