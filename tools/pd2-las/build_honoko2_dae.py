@@ -160,14 +160,19 @@ class PackSpec:
 #: and the body, so they add no silhouette (D44)
 SHADOW_DROPS = {"bra", "panties"}
 
-#: How far past the palm line the arm is kept, along the palm axis, in cm (D62).
+#: How far past the palm line the arm is kept, along the palm axis, in cm (D62/D63).
 #: D60 cut exactly on the crease and the game then showed a gap: the heister's glove cuff
 #: starts below where the outline of a hand would be, so the arm ended in mid-air, capped,
-#: with nothing between it and the glove (user screenshots, 2026-11-25). Keeping this much
-#: of the palm continues the arm down into the glove instead. 4 cm is under two thirds of
-#: a palm's length, so no finger geometry comes back, and it overlaps a glove cuff by a
-#: centimetre or two at worst.
-PALM_EXTEND_CM = 4.0
+#: with nothing between it and the glove (user screenshots, 2026-11-25). Keeping some of
+#: the palm continues the arm down into the glove instead.
+#:
+#: The amount is set by the glove's own geometry (D63). The vanilla `g_hands` glove that
+#: the game draws starts 0.42 cm past the crease and is 3.5 cm in radius there, widening to
+#: 4.0 at 2 cm and 4.3 at 3 cm; this outfit's wrist is 3.46 cm and its palm passes the
+#: glove at about 2 cm. So the arm can be tucked 1.5 cm into the glove - a centimetre inside
+#: the rim - and no further: D62's 4 cm pushed the palm through the glove and the user saw
+#: the skin coming out of it.
+PALM_EXTEND_CM = 1.5
 
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
 #: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by

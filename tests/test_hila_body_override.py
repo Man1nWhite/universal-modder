@@ -168,31 +168,28 @@ def _glove_block(model):
 
 @pytest.mark.parametrize("side", ["Left", "Right"])
 def test_the_outfits_hands_end_where_the_palm_begins(models, side):
-    """No finger survives in the body, and the cut is 4 cm past the palm line.
+    """No hand or finger survives in the body, and the cut is past the palm line.
 
     The plane is `build_models.palm_planes`: through the rig's `Hand` joint, along
-    the axis to the four knuckles. Since D62 the cut sits `PALM_EXTEND_CM` (4 cm)
-    past it, inside the palm, so the arm ends inside the heister's glove; the body
-    inherits that cut from `dist/Honoka/OfficeSuite.zip`.
+    the axis to the four knuckles. Since D62 the cut sits `PALM_EXTEND_CM` past it
+    (1.5 cm since D63), inside the wrist, so the arm ends inside the heister's glove;
+    the body inherits that cut from `dist/Honoka/OfficeSuite.zip`.
     """
     output, native, _ = models
     body = hila.Drawable.read(output, "g_body")
     objs, worlds = bm._resolve_worlds(output)
     names = {obj["name_hash"]: sid for sid, obj in objs.items()}
     hand = names[dm.hash64(side + "Hand")]
-    thenar = names[dm.hash64(side + "HandThumb1")]  # the palm's own proximal few cm
-    fingers = [names[dm.hash64(side + joint)] for joint in PALM_AND_FINGERS
-               if joint != "HandThumb1"]
+    fingers = [names[dm.hash64(side + joint)] for joint in PALM_AND_FINGERS]
     palette = np.asarray(body.bind["objects"])
     indices = np.asarray(body.geo["blendindices"])
     weights = np.asarray(body.geo["blendweights"])
     dominant = palette[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
-    # Not one vertex is *dominated* by a finger: the fingers are gone, and what the
-    # 4 cm extension keeps is `Hand` and the thenar (`Thumb1`), which is the same
-    # territory the palm line itself bounds (D62). The rim may also carry a hand bone
-    # as a minor influence, which is why this looks at the dominant weight.
-    assert not np.isin(dominant, fingers).any()
-    assert np.isin(dominant, [hand, thenar]).any(), "the arm does not reach the palm"
+    # Not one vertex is *dominated* by the hand or a finger: at 1.5 cm the cut is still
+    # inside the wrist, so no hand geometry survives at all (D63). The rim may still
+    # carry a hand bone as a minor influence, which is why this looks at the dominant
+    # weight and not at any influence.
+    assert not np.isin(dominant, [hand, *fingers]).any()
 
     wrist = np.asarray(worlds[hand][12:15], dtype=np.float64)
     knuckles = np.mean([np.asarray(worlds[names[dm.hash64(side + k)]][12:15], dtype=np.float64)
@@ -205,10 +202,12 @@ def test_the_outfits_hands_end_where_the_palm_begins(models, side):
     perp = np.linalg.norm(rel - np.outer(axial, axis), axis=1)
     near = perp < 28.0
     assert near.any()
-    # The mesh reaches into the palm by the extension, and no further.
-    assert axial[near].max() <= 4.05, "geometry survives past the palm extension"
-    # ... and the sleeve does not stop at the crease, leaving the glove in mid-air.
-    assert axial[near].max() > 3.8, "the mesh stops short of the palm extension"
+    # The mesh reaches past the palm line by the extension, less what the slim pulls
+    # back, and no further.
+    assert axial[near].max() <= 1.5, "geometry survives past the palm extension"
+    # ... and it does not stop at the crease, leaving the glove in mid-air; the vanilla
+    # glove's rim is 0.42 cm past the crease (D63).
+    assert axial[near].max() > 0.6, "the mesh stops short of the palm extension"
 
 
 def test_the_stock_gloves_are_shipped_and_enabled(models, files):

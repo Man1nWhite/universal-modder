@@ -441,3 +441,37 @@ sheets under `docs/renders/honoka/model/` were re-rendered.
 
 `runtime_verified` stays `false`: the D60 bytes are the ones that were seen, these have not been. The
 in-game checklist's wrist step now asks that the cap sit inside the glove with no gap above it.
+
+## 2026-11-25 — the extension is 1.5 cm, not 4: the glove is only so big inside
+
+The D62 build was seen in game at the wrist, and the user's answer was three words long:
+*"Too much."* Two screenshots showed the arm reaching the glove and coming out of it — the palm's
+surface showing through and around it. The gap was closed; the fix overshot.
+
+Where the limit is can be measured, because the glove is in the repository. The game draws
+`g_hands`, and `references/npc_criminals_ecp_female.7z` carries one on the same rig: its `Hand`
+joint sits at `[-45.98, 18.69, 124.47]` where this body's palm origin is at
+`[-45.99, 18.70, 124.47]`. Measured along this body's palm axis, that glove starts **0.42 cm past
+the crease** and is **3.5 cm in radius at its rim**, 4.0 at 2 cm, 4.3 at 3 cm. This outfit's wrist
+is 3.46 cm in radius, its palm 4.4 at 2 cm and 5.6 at 3. So there is about a centimetre and a half
+of glove the arm fits inside, and past that the palm is wider than the glove and comes through it.
+
+`PALM_EXTEND_CM` is 1.5. Renders of the same body cut at 1.0, 1.5, 2.0 and 2.5 cm, with that glove
+composited over it (flat-shaded, three angles), were compared before choosing: 1.0 leaves the
+slim-pulled end at 0.27–0.33 cm, short of the 0.42 cm rim; 2.0 and 2.5 show the silhouette breaking
+at the cuff. On the tracked bytes: `clipped_to_cm` 1.50 both sides, `kept_to_cm` 0.90/0.83 (the 5%
+slim pulls the end back about half a centimetre at this depth), 67 triangles split, 69 vertices
+added, 2,224 removed, 71 cap triangles, 31,674 body vertices (61,541 after the slim). At 1.5 cm the
+cut is still inside the wrist, so **no vertex of the shipped body is dominated by a hand or finger
+bone at all** — D62's kept thenar is gone with the rest of the palm, and only the rim carries a
+handful of forearm-dominated ones. Packs: `OfficeSuite` 5,739,451 B, `OfficeSuite_Head`
+10,357,873 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,830,470 B.
+
+`BUILD_INFO` records 1.5 in both `margin_cm` and `extend_cm`. Tests: `tests/test_palm_cut.py` pins
+the reach to 0.6–1.5 cm **and** past the glove's 0.42 cm rim, drops the thenar allowance and lets
+the rim take a handful of `ForeArm` vertices; `tests/test_pd2_las.py` carries 31,674 / 61,541 and
+`clipped_to_cm` 1.5; `tests/test_hila_body_override.py` carries the same body and cut. The sheets
+and their captions were re-rendered at the new depth.
+
+`runtime_verified` stays `false`: D60 and D62 are the builds that were seen, this is the third
+answer to the same wrist, and the checklist's wrist step is what settles it.

@@ -1457,6 +1457,11 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D62 — The palms are cut 4 cm past the palm line, so the arm ends inside the glove
 
+> **Amended by D63 (2026-11-25): the extension is 1.5 cm, not 4.** Everything else here stands
+> — the plane, the margin mechanism, `extend_cm` in the record, the no-adapter registration.
+> The 4 cm number was answered by the game the same day: it put the palm through the glove. The
+> `clipped_to_cm` / vertex-count numbers below describe those bytes.
+
 - **Decided:** 2026-11-25, by the user, after looking at the D60 build in game: two wrist
   screenshots showing the capped end of the arm sitting in mid-air, above the heister's black glove
   cuff, with a gap between them. Their instruction: *"you need to extend forearms a bit"*.
@@ -1506,3 +1511,45 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   and this is the answer to what it showed — the in-game checklist's wrist step now asks that the cap
   sit inside the glove with no gap above it, and re-cutting is measured against that, not against the
   crease.
+
+### D63 — The extension is 1.5 cm: as far into the glove as its own geometry allows
+
+- **Decided:** 2026-11-25, by the user, after looking at the D62 build in game. Two wrist
+  screenshots, and three words: *"Too much."* The arm now reached the glove, but it also came out
+  of it — the palm's surface showed through and around the black glove at the wrist.
+- **Why 4 cm was too much, measured.** The glove the game draws is `g_hands`, and it is in the
+  same rig space as this body (its `Hand` joint is at `[-45.98, 18.69, 124.47]`, the body's palm
+  origin at `[-45.99, 18.70, 124.47]`). Measured along this body's palm axis, that glove **starts
+  0.42 cm past the crease** and is **3.5 cm in radius at its rim**, widening to 4.0 at 2 cm and
+  4.3 at 3 cm. This outfit's wrist is 3.46 cm in radius and its palm passes 4.4 cm at 2 cm and
+  5.6 at 3. So the arm can be tucked in until the palm meets the glove's interior, and no
+  further: at 4 cm the rim sat 3.5 cm inside the glove, in territory the glove does not have room
+  for, and the surface came through it. Renders of the same body at 1.0, 1.5, 2.0 and 2.5 cm with
+  the glove composited over it show the silhouette breaking between 1.5 and 2.0.
+- **Decision:** `PALM_EXTEND_CM = 1.5`. That is a centimetre past the glove's rim after the slim,
+  which is what closes the gap, and it is the largest whole step that stays inside the glove.
+- **Measured, not asserted:** `palm_cut` has `margin_cm`/`extend_cm` 1.5, `clipped_to_cm` 1.5 per
+  side, `kept_to_cm` 0.90 (left) and 0.83 (right) — the 5% slim pulls the arm's end back about
+  half a centimetre here, which is why the shipped numbers are not 1.5 — `tris_split` 67,
+  `verts_added` 69, `removed_tris` 2,224 and `rim_cap_tris` 71. Both are still past the glove's
+  0.42 cm rim, so the cap is inside the glove. The shipped `g_body` has 31,674 vertices (61,541
+  after the slim) and **no vertex dominated by a hand or finger bone at all**: 1.5 cm into the
+  wrist is still arm territory, so D62's kept thenar is gone with the rest of the palm. Packs:
+  `OfficeSuite` 5,739,451 B, `OfficeSuite_Head` 10,357,873 B,
+  `OfficeSuite_Miranda_Romance_over_Hila` 14,830,470 B.
+- **Held to:** `tests/test_palm_cut.py` (1.5 cm in the record, `kept_to_cm` between 0.6 and 1.5
+  **and past the glove's 0.42 cm rim**, the mesh reaching 0.6–1.5 cm and no further, no
+  hand-dominated vertex, the rim allowed to take a handful of forearm-dominated ones);
+  `tests/test_pd2_las.py` (31,674 / 61,541 vertices, `clipped_to_cm` 1.5);
+  `tests/test_hila_body_override.py` (the same cut on the override's body).
+- **Rejected:** keeping 4 cm and shrinking the palm so it fits inside the glove (invented
+  geometry at a place the user can see, and it would have to be tuned against a glove the pack
+  does not ship); 2.0 cm (the render shows the palm through the glove); 1.0 cm and below (the
+  slim pulls the mesh back to 0.27–0.33 cm, short of the glove's 0.42 cm rim — the D60 gap
+  returns); a per-heister margin (every glove is authored on the same hands and the same rig).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM` and the measurements in its
+  comment), `tests/test_palm_cut.py`, `tests/test_hila_body_override.py`.
+- **Status:** holds; `runtime_verified` stays `false`. D60 and D62 are what was seen in game; this
+  is the third answer to the same wrist. The glove measurements above come from
+  `references/npc_criminals_ecp_female.7z` (`g_hands`), which is the glove this rig draws, not a
+  photograph of the user's session — so the in-game checklist still decides.

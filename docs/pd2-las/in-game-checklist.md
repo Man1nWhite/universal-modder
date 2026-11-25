@@ -202,11 +202,11 @@ Everything else for this pack is covered by the 2026-11-15 sections of the rende
 captures there predate this texture and cannot be used to judge the jewelry, and predate the
 first-person unit entirely.
 
-## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62)
+## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62/D63)
 
 Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it: everything from where
-the palm begins outwards is gone — and since D62 the cut sits **4 cm past that line**, inside the
-palm (`palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `4.0`), so the arm
+the palm begins outwards is gone — and since D62 the cut sits **past that line**, inside the wrist
+(**1.5 cm**, `palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `1.5`), so the arm
 continues down into the heister's glove instead of ending above it — and the rim is capped. The plane
 is still D60's: through the PD2 `Hand` joint, perpendicular to the palm. The pack registers
 `officesuite_own_hands.lua`, not the glove adapter: no default glove unit spawns, so the body has no
@@ -221,17 +221,20 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
 2. **No hands by default.** With gloves on "Default" the character's hands must be *absent* where the
    outline of a hand would be: the sleeve runs on past the wrist into a capped end, and no stock bare
    hand shows beside it. This is the D60 state and it is intended to look handless.
-   **The wrist is the D62 fix:** the D60 build ended in a flat cap in mid-air, above the heister's
-   glove, with a visible gap. The cap must now sit *inside* the glove — no gap above the cuffs, no
-   ring of background between the sleeve end and the glove, nothing poking out of the glove lip.
+   **The wrist is the D62/D63 fix:** the D60 build ended in a flat cap in mid-air, above the
+   heister's glove, with a visible gap; the D62 build closed the gap by cutting 4 cm into the palm
+   and came out through the glove instead. The cap must now sit *inside* the glove and stay there:
+   no gap above the cuffs, no ring of background between the sleeve end and the glove, and **no
+   skin showing through or around the glove** at the wrist, in any pose. Move the hand, aim, and
+   reload — a spot of skin that appears on the glove in one pose is the extension being too deep.
 3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn over the cut and read
    as the character's hands, with the sleeve's cuff still outside it and no gap between them, and the
    arm's capped end hidden inside it. Then go back to "Default": the glove must disappear again
    rather than stick.
 4. **The first-person arms match.** The `fps_officesuite` arms are cut on the same plane; a weapon
-   held and a reload should show the sleeve running on past the wrist and into the glove, never a
-   hand modelled in the outfit and never a vanilla skin band at the wrist — with a glove equipped,
-   the glove is what holds the weapon.
+   held and a reload should show the sleeve running on past the wrist and into the glove, with the
+   cut end hidden inside the glove, never a hand modelled in the outfit and never a vanilla skin
+   band at the wrist — with a glove equipped, the glove is what holds the weapon.
 5. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
    ground while turning — no hand, and no hole where the hands used to be.
 
@@ -249,9 +252,9 @@ The ZIP was checked offline; these steps still need the game:
    Romance head should all show together, with no pink materials or missing triangles.
 2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
    neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
-   still be Hila's. **The wrists are the new bytes (D60/D62):** the outfit's palms are cut 4 cm past
-   the line where the palm begins, so the sleeve runs on into its cuff and the capped end sits inside
-   the glove, and **Hila's own stock gloves** —
+   still be Hila's. **The wrists are the new bytes (D60/D62/D63):** the outfit's palms are cut 1.5 cm
+   past the line where the palm begins, so the sleeve runs on into its cuff and the capped end sits
+   inside the glove without coming through it, and **Hila's own stock gloves** —
    kept in the pack, node and all, so a chosen glove still has somewhere to land — are what the game
    puts over it. The LAS pack reaches the same sleeve end under `LegendaryArmours.officesuite` and
    spawns no default glove at all (D60). Check the hands from the front, the side and while the hand
