@@ -583,3 +583,65 @@ other bark, and short enough (0.289 s) that a third of it cannot be all the game
 clip's loudest point, the tail inside the closure, and the next word still where the cut assumes it
 is — and `slot_picks.csv`, `hila_intent_fit.csv` and `hila_slot_pieces.csv` carry the new row. The
 stream pack is rebuilt: 12,608,121 B (`6b7d827dfe93`) against 13,926,249.
+
+## 2026-11-25 — the wrist is painted, Arivus gets its own skin tone, and the docs get one map
+
+Three packs moved and the voice documentation was consolidated. Nothing here has been heard or seen in
+game; `runtime_verified` stays `false` for all of it.
+
+**OfficeSuite, the wrist (D68).** *"Still needs less skin. Cut more."* Cutting cannot answer this, and
+measuring the shipped model says why: the jacket's sleeve ends mid-forearm, its last wrist vertices sit
+at z ≈ 129.5 with the body's skin starting at 122.1, and there is **no sleeve geometry within 7 cm of
+the wrist axis**. The 6–8 cm between the cuff and the palm is the outfit's own bare forearm, in front of
+the cut, and moving the plane cannot reach it — only deeper into the glove, which D62 already showed
+comes out through it. So the band is painted instead of cut: `glove_band_uvs` selects the body diffuse's
+triangles within 9 cm of the palm origin and `BAND_CM = (-16.0, 2.5)` along the palm plane (the proximal
+end deliberately past the sleeve's cuff), and `paint_glove_band` fills them with the suit's dark
+leather - the darkest quarter of the arm's own texels, (24, 22, 24) - keeping the skin's luminance as
+shading and bleeding 3 px. 338 triangles and 9,223 texels of the 1024² atlas, 10,023 with the bleed.
+The first build used `BAND_CM = (-12.0, 1.6)`, and measuring *that* build is what widened it: between
+14 and 10 cm up the arm the skin atom's vertices still sampled luminance **133**, bare skin, because
+the sleeve's opening sits further up than its cuff. The shipped bytes with `(-16.0, 2.5)` read mean
+**19.0** (100% under 60) in the band, **19.6** (100% under 60) in the stretch just above it, and
+**157.7** (none under 60) on the arm beyond 20 cm — the same numbers in `OfficeSuite` and
+`OfficeSuite_Head`, since both carry the one body diffuse. `test_the_bare_wrist_between_the_sleeve_and_the_glove_is_leather`
+pins it from the packed bytes — band mean < 45 with >95% of it under 60, arm above > 110 — and it needed
+its own helper because a drawable's vertices mix materials: it reads the `.material_config`, keeps the
+atom whose material ends `_body`, and samples only that. All three OfficeSuite packs are rebuilt:
+5,727,867 B (`d6e92a64fbef`), `OfficeSuite_Head` 10,346,324 B (`031d400be632`) and the Hila override
+14,819,162 B (`6b9fffb14e60`).
+
+**Arivus, the colour (D69).** *"Work more on Arivus texture - check renders."* The portrait from D66
+still showed a grey mask over the jaw. The tone match was using the raster's global skin patches
+(172,134,123), which are the **forehead**, not the jaw's skin: measured around the beard, the clean ring
+is ≈ (148,105,90), a much warmer value. Using the pale median as the reference desaturates the fill into
+soot — the numbers can be made to agree with the forehead and it still looks wrong, because it is chroma,
+not level, that reads as a mask. The fill now keeps its own luminance and is pulled 68% toward the
+**local** ring's chroma, level-matched to that ring within ±10%, feathered 5 px, with the ring selection
+widened to `clip(smooth(9) − smooth(4)) > 0.12` so it is a thin band just outside the mask rather than a
+box. Final field (136.9, 101.1, 89.5) against the jaw ring's own (148, 105, 90) and the pale
+(172, 132, 123) the old code had been matching; jaw luminance 110.5 ± 6.1 where it was 64.8 ± 41.4. Two
+pins in `tests/test_arivus_shave.py` were rewritten to the new, deliberate behaviour: the beard is gone
+in the sense that matters — 73% of the box was stubble-dark and 12% is now dark at all, but the hair's
+strokes are what has to go, so the test also pins the box's high-pass energy at 18.2 → 7.0 (< 55% of
+before) — and the lower lip lifts by 18 rather than 29, because the fill keeps its own light instead of
+being flattened. Then the sheet changed the code twice more: the blend is faded outward over ~9 px
+rather than stamped on a grown zone (a binary zone leaves a soft rectangle of its own), and the
+sideburn boxes were widened to the ears, where the old ones stopped 18 px short and left a strip of
+painted stubble in front of them. Pack: 8,420,283 B (`55cc0fc55b35`).
+
+**`cop.hands` (D70).** *"Voice line for cop intimidation to 'hands up' is bad."* Miranda has no "hands" —
+not once in the 866 corrected transcripts — so the slot cannot be matched by vocabulary. It is now the
+intermission's **"Heads up!"** (`omggra_2nd_intermission_d_S_INT.035.ogg`, 0.000–0.380: /h/ at 0.01,
+"heads" to 0.20 with its /dz/ at 0.17–0.19, "up" 0.21–0.33, the gap at 0.37): two whole words, an
+imperative, and nothing cut out of the middle of a neighbouring phrase — which is what both earlier picks
+("smi", then "stop") were. Stream pack 12,618,252 B (`106c2e5b5986`).
+
+**The voice docs.** The install doc had grown into a history of a route that no longer ships. It is now
+only the `.stream` contract (§1 layout, format, coverage, install, check); the BeardLib `<Sounds>`/OGG
+route moves to `docs/voice/dropped-beardlib-sounds-route.md` behind a D61 banner as deliberate history,
+and `docs/voice/README.md` is the one map of which page is current. A third page,
+`docs/voice/multiple-variants.md`, answers *how would a slot get several takes*: Wwise random containers
+already hold them (PD2's own line — "all voicelines use random containers"), the 78 slots cover 887 ids,
+and most slots have 4–8 of them, so the work is giving the existing members different takes rather than
+adding variations — no Lua, no BeardLib, nothing to keep in sync. Not built.

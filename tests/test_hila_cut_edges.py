@@ -38,7 +38,7 @@ HF_BAND = (4000, 9000)
 SOURCES = (
     "procer_cover_tutorial_a_S_INT.011.ogg",   # civ.down
     "twrvxl_oldfriend_d_S_INT.043.ogg",        # call_teammate.hey_you
-    "norvx_relationship_03_h_S_INT.037.ogg",   # cop.hands
+    "omggra_2nd_intermission_d_S_INT.035.ogg", # cop.hands
     "norvx_starter_h_S_INT.006.ogg",           # civ.nophone
 )
 
@@ -169,38 +169,32 @@ def test_the_hey_you_line_is_one_shouted_word(decode_source):
     assert 0.20 < end - start < 0.40
 
 
-def test_the_stop_line_is_the_word_and_not_the_next_one(decode_source):
-    """`cop.hands`: "Stop." is the word from "and stop smiling, dammit.", whole.
+def test_the_cop_line_is_two_whole_words(decode_source):
+    """`cop.hands`: "Heads up!" - the closest bark Miranda has to vanilla's "Hands up!".
 
-    The D61 pick took 0.420-0.650 s of that file and played a chopped "smi": the
-    phrase's /s/ is at 0.41 and the word "stop" *ends* before it. The clip now
-    starts on the word's own /s/, keeps the /t/ closure and the vowel, and stops in
-    the gap that follows the /p/.
+    She never says "hands" in the 866 transcripts, so the slot takes her own two-word call
+    instead of the clipped "stop" it used before (0.27 s out of the middle of "and stop
+    smiling, dammit.", which the 2026-11-25 report called bad). The pick is the whole
+    bark: the /h/ at 0.01, "heads" through 0.20 with its /dz/ fricative at 0.17-0.19,
+    "up" 0.21-0.33, the /p/ release, and the gap at 0.37.
     """
     pick = _pick("cop.hands")
     pcm = decode_source(pick["source_ogg"])
     start, end = float(pick["t_start"]), float(pick["t_end"])
     loudest = _loudest_db(pcm, start, end)
 
-    # It opens on the /s/ of "stop": a fricative in the first tenth of a second ...
-    assert max(_hf_share(_window(pcm, start + 0.01 * i, start + 0.01 * i + 0.02))
-               for i in range(0, 9)) > 0.25, \
-        "there is no 's' in the head of the clip"
-    # ... then the /t/ closure and the open vowel, which carry no high band at all.
-    assert _hf_share(_window(pcm, start + 0.14, start + 0.22)) < 0.05, \
-        "the vowel of 'stop' is not inside the clip"
-    assert _level_db(_window(pcm, start + 0.16, start + 0.22)) > loudest - 6
-    # The end is the gap after the /p/, not speech - the word's release decays into it.
+    # The bark starts with the file, in its own silence.
+    assert start <= 0.010
+    assert _level_db(_window(pcm, start, start + 0.010)) < loudest - 15
+    # "heads" is a whole word, loud on its vowel ...
+    assert _level_db(_window(pcm, start + 0.060, start + 0.110)) > loudest - 6
+    # ... a short dip between the words, then "up" at full level: two words, not one.
+    assert _level_db(_window(pcm, start + 0.130, start + 0.155)) < loudest - 12
+    assert _level_db(_window(pcm, start + 0.240, start + 0.310)) > loudest - 4
+    # The end is the gap after the /p/, so the release is not clipped.
     assert _level_db(_window(pcm, end - 0.015, end)) < loudest - 20
-    assert _level_db(_window(pcm, end, end + 0.030)) < loudest - 20
-
-    # It is the word: short, and over before the next word's /s/ at 0.41 s - which is
-    # where the old 0.420-0.650 window started, on a 53%-high-band fricative that
-    # belongs to "smiling".
-    assert 0.20 < end - start < 0.35
-    assert end < 0.40
-    assert _hf_share(_window(pcm, 0.420, 0.440)) > 0.30, \
-        "the old window no longer lands on a fricative; this diagnosis is stale"
+    assert _level_db(_window(pcm, end, end + 0.020)) < loudest - 20
+    assert 0.30 < end - start < 0.45, "the clip is not the two words"
 
 
 def test_the_no_calls_line_is_the_whole_take(decode_source):

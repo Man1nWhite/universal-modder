@@ -7,12 +7,16 @@
   - [`officesuite_head_las_sheet.png`](officesuite_head_las_sheet.png): front, 3/4, back and side views,
     an 18° close-up portrait, a first-person panel (player view, `0°` yaw / `25°` down) and the
     HUD/menu icon, all from the pack's **one** unit: `g_body` (OfficeSuite's black jacket, light shirt
-    and jewelry, palms cut 1.5 cm past the line where they begin, inside the wrist, D60/D62/D63) and `g_head` (the ME2 "Romance" head and lashes that
+    and jewelry, palms cut 1.25 cm past the line where they begin, inside the wrist,
+    D60/D62/D63/D65, with the bare forearm between the cuff and the palm painted to the suit's dark
+    leather, D68) and `g_head` (the ME2 "Romance" head and lashes that
     `OfficeSuite_Miranda_Romance_over_Hila.zip` carries, re-skinned onto the 2B rig, D56). There is no
     transform between the two drawables: they are in one model and one character frame.
   - [`officesuite_head_las_fps_sheet.png`](officesuite_head_las_fps_sheet.png): the whole-character
     unit's `fps_officesuite_head.model` — player, three-quarter, side and top-down views, auto-framed
-    per view. The arms unit was previously dropped from this sheet; the pack does ship one.
+    per view. The arms unit was previously dropped from this sheet; the pack does ship one. Since D68
+    the forearm between the white cuff and the black glove is the suit's own dark leather in the
+    texture, not skin: the arm reads sleeve → cuff → leather → glove, with no peach ring at the wrist.
 - **Caveats:** offline software Z-buffer render (`runtime_verified: false`). The head, its fit and the
   lashes have not been seen in game; the `opacity:` lashes are the open risk, and
   [`in-game-checklist.md`](../../../../pd2-las/in-game-checklist.md#officesuite_head--whole-character-with-the-romance-head-d56)

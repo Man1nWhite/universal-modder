@@ -40,7 +40,14 @@ stays inside it rather than through it (D59/D60/D62/D63). It registers `own_hand
 not the glove adapter: no default glove unit spawns, so the outfit's body has no hands by default, and a
 glove the player picks by name is what puts hands on it (D60). The adapter D59 registered is what put a
 vanilla bare-forearm band at the wrist in game, and the cut on the crease is what left a capped end in
-mid-air above the glove. Its sleeve ends read as sleeve, cuff and jewellery cuff; the 2026-11-15 captures
+mid-air above the glove. Cutting is at its limit: the in-game captures of 2026-11-25 still showed a
+wedge of skin at the wrist, and measuring the shipped model showed why — the jacket's sleeve ends
+mid-forearm, so 6–8 cm of the outfit's own bare forearm is on screen proximal to the palm cut and no
+plane can remove it. D68 therefore **paints** that stretch: `paint_glove_band` fills the body diffuse
+over the UV triangles within 9 cm of the palm origin and `BAND_CM` `(-16.0, 2.5)` along the palm plane
+— 338 triangles, 9,223 texels of the 1024² atlas — with the suit's darkest-quarter leather
+(24, 22, 24), keeping the skin's own luminance as shading and bleeding 3 px. The shipped body's arm
+vertices read luminance 18–20 through the band and ~133 above it. Its sleeve ends read as sleeve, cuff and jewellery cuff; the 2026-11-15 captures
 predate both the arms unit and the cut, the D59 and D60 builds are the ones that were seen, and the
 first-person arms have not been seen in game.
 
@@ -63,11 +70,13 @@ cooked DODB containers; `diesel_model.py` reads those and the packed channel for
 (Head-bone anchors, scale 83.25) are derived against the Rust male rig and proven offline
 (`build/arivus-solo-*.png`). The ped has no beard geometry — the beard, moustache and sideburns are
 painted into `head_diff_000_a_whi` — so the build inpaints them away (D64/D66: a mask grown 8 px
-along the stubble from the geometric beard, a harmonic fill from the clean skin ring, tone-matched at
-±15%, the raster's own structure added at 1.10x, feathered; lips, nostrils, ears and brows pasted
-back), and the pack is clean-shaven by construction rather than by texture choice. Seen in game on
-2026-11-25, which is why D66 exists: D64's mask had grown through the whole face and washed it out.
-Not seen since.
+along the stubble from the geometric beard, a harmonic fill from the clean skin ring, feathered;
+lips, nostrils, ears and brows pasted back), and the pack is clean-shaven by construction rather than
+by texture choice. D69 is the colour: the fill keeps its own luminance and takes the hue of the
+**local** clean ring round the beard (the jaw's own ≈ 148,105,90) rather than the raster's global skin
+median, which is the pale forehead — that median is what made the shaved field grey in the 2026-11-25
+portrait. Seen in game on 2026-11-25, which is why D66 exists: D64's mask had grown through the whole
+face and washed it out. Not seen since D69.
 
 ## Seen in game
 
@@ -87,12 +96,12 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |
-| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures; 2026-11-25, user-supplied wrist screenshots of the D60 and D62 builds (a **partial** — the wrist, not the whole outfit) | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and every hand build (D55's own hands, D59's palm cut, D60's cut on the plane with no default glove, D62's extension into the glove, D63's 1.5 cm that stays inside it); installed hash not measured |
+| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures; 2026-11-25, user-supplied wrist screenshots of the D60 and D62 builds (a **partial** — the wrist, not the whole outfit) | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and every hand build (D55's own hands, D59's palm cut, D60's cut on the plane with no default glove, D62's extension into the glove, D63's 1.5 cm that stays inside it, D65's 1.25 cm and D68's painted wrist band); installed hash not measured |
 | `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
 | `Miranda_Lawson_VO_over_Hila` (audio/BeardLib, **dropped 2026-11-25, D61**) | 2026-11-24, user installed in `mods/` and reported vanilla Hila still playing | **no** — the keying was re-verified against BeardLib's SoundManager and the game Lua (`rb21` in both the player and team-AI paths) and still nothing played, so the pack is out of `dist/` and its builder with it; the reasoning stays in `docs/pd2-voice-mod-install.md` §1–§6 |
-| `Miranda_Lawson_VO_over_Hila_Stream` (audio, id-keyed) | 2026-11-25, user installed in `mods/` and reported it **works** | **partly** — the report hears Miranda on Hila's barks through this route (the BeardLib pack of 2026-11-24 did not), and names two clips cut inside a word: `civ.down` ("keep you head down, Shep") and `call_teammate.hey_you` ("just you"). All were re-cut right after the report, and `hey_you` again once more — it is now a single shouted "You" (0.289 s, D67) — so the tracked bytes have not been heard; see [the checklist](in-game-checklist.md#miranda_lawson_vo_over_hila_stream--audio-only-2026-11-25) |
+| `Miranda_Lawson_VO_over_Hila_Stream` (audio, id-keyed) | 2026-11-25, user installed in `mods/` and reported it **works** | **partly** — the report hears Miranda on Hila's barks through this route (the BeardLib pack of 2026-11-24 did not), and names two clips cut inside a word: `civ.down` ("keep you head down, Shep") and `call_teammate.hey_you` ("just you"). All were re-cut right after the report, and `hey_you` again once more — it is now a single shouted "You" (0.289 s, D67), and `cop.hands` has gone from "Stop." to "Heads up!" (D70) — so no tracked audio has been heard — so the tracked bytes have not been heard; see [the checklist](in-game-checklist.md#miranda_lawson_vo_over_hila_stream--audio-only-2026-11-25) |
 
 New [Christie](../renders/christie/in-game/2026-11-15/README.md) and
 [OfficeSuite](../renders/honoka/in-game/officesuite/2026-11-15/README.md) menu/lobby captures

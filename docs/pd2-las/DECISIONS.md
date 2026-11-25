@@ -1694,3 +1694,111 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `voice_lines_vox/miranda_lawson/slot_picks.csv`, `tools/fit_hila_intents.py`,
   `tools/build_hila_stream_mod.py`.
 - **Status:** holds offline only; heard by the user only after the next in-game pass.
+
+## D68 — The bare wrist is painted as leather, because the cut cannot reach it
+
+- **Decided:** 2026-11-25, by the user, from two first-person screenshots: *"Still needs less skin. Cut
+  more."* The cuff (D65) is now inside the glove, and the arms still read as bare skin between the
+  jacket's sleeve and the glove.
+- **Why cutting cannot be the answer, measured.** The outfit's jacket sleeve ends mid-forearm: on the
+  left arm the `suit` material's last vertices near the wrist sit at z ≈ 129.5, the `body` skin runs
+  from 122.1 upward, and there is **no sleeve geometry at all within 7 cm of the wrist axis**. The
+  skin band is therefore the outfit's own bare forearm — 6–8 cm of it — and it lies *proximal* to the
+  palm cut. Cutting more at the palm (D62–D65) moves the arm's end inside the glove and cannot touch
+  it; cutting the arm up at the sleeve instead ends it in mid-air 3.5 cm above the glove's top
+  (z 126.5), which is D60's gap again, only bigger. Lengthening the sleeve is invented wrist geometry
+  and was rejected in D63. What is left is the texture.
+- **Decision:** the band is *painted* as the jacket's own black leather. `glove_band_uvs` selects the
+  body-material triangles within 16 cm of the palm origin along the palm plane and 9 cm around it (the
+  proximal end deliberately past the sleeve's own cuff, so no ring of skin is left where the two
+  meet), and `paint_glove_band` fills their texels in the body diffuse with the suit's own leather
+  (median of its darkest quarter: **24, 22, 24**), keeping the source skin's luminance as shading so
+  the band is leather with the wrist's form, not a flat tube. Three texels of bleed keep bilinear
+  filtering from mixing leather with skin.
+- **Measured, not asserted:** 338 UV triangles, **9,223 texels painted (10,023 with bleed)** of the
+  1024² body diffuse; in the shipped `g_body` the arm's vertices from the palm cut to 11 cm up sample
+  a mean luminance of **19** (`dark%` 100) against **162** above it, i.e. the band and nothing else.
+  `OfficeSuite_Head` is 10,352,058 B `e69568359c01` in the build that first carried it.
+- **Amended the same day.** The first build painted `BAND_CM = (-12.0, 1.6)` and measuring that build
+  showed the mistake: between 14 and 10 cm up the arm the skin atom's vertices still sampled luminance
+  **133** — bare skin — because the sleeve's opening sits further up than the cuff reads. `BAND_CM` is
+  now **(-16.0, 2.5)**, past where the sleeve's own vertices end, and the shipped bytes measure
+  **band (-10..+2 cm) 19.0 mean, 100% under 60; the stretch above it (-15.5..-11 cm) 19.6, 100% under
+  60; the arm beyond (-30..-20 cm) 157.7, none under 60** — in `OfficeSuite` and `OfficeSuite_Head`
+  alike. Packs: `OfficeSuite` 5,727,867 B `d6e92a64fbef`, `OfficeSuite_Head` 10,346,324 B
+  `031d400be632`, `OfficeSuite_Miranda_Romance_over_Hila` 14,819,162 B `6b9fffb14e60` (all three carry
+  the same body diffuse, so all three were rebuilt).
+- **Held to:** `tests/test_palm_cut.py::test_the_bare_wrist_between_the_sleeve_and_the_glove_is_leather`
+  — the band *and* the proximal stretch above it are leather-dark (which is what the narrow band
+  failed), and the arm beyond 20 cm is untouched skin, so a regression that floods the arm fails too.
+- **Rejected:** cutting the arm at the sleeve (a 3.5 cm hole above the glove); extending the sleeve or
+  the cuff to the glove (invented geometry, twice rejected); swapping the band's material to the suit
+  (its UVs would sample arbitrary suit texels); shrinking the forearm so it hides inside the sleeve
+  (the sleeve is a tube — the hole would show the background).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`BAND_CM`, `BAND_RADIUS_CM`, `glove_band_uvs`,
+  `paint_glove_band`, `leather_tone`), `tests/test_palm_cut.py`.
+- **Status:** holds offline. The band is visible in the FPP sheet; whether it reads in game is part of
+  the wrist step of the checklist, and `runtime_verified` stays `false`.
+
+## D69 — Arivus: the shaved area takes the skin's chroma, not a new one
+
+- **Decided:** 2026-11-25, by the user, from the offline portrait: *"Work more on Arivus texture - check
+  renders."* D66 removed the beard, and the portrait still read as soot on the cheeks and jaw.
+- **Why.** Two things were still in there. (1) The fill's chroma came from `ARIVUS_SKIN_PATCHES`, whose
+  median is the *pale forehead* — (172, 134, 123) — while the clean skin the jaw meets is
+  (148, 105, 90): a meter of red that reads as grey next to its neighbours. (2) The rim could only
+  follow the painted edge, and the mirrored detail pass re-added the clean patch's grain at 1.1×, so
+  what survived of the stubble read as dirt rather than as a shadow.
+- **Decision:** the shaved area keeps its own luminance — every wrinkle, every shadow — and is pulled
+  **68% of the way to this raster's own skin chroma**, measured from a ring of clean skin just outside
+  the mask rather than from the whole-face patches. The level is then matched to that same ring
+  (±10%), and the mask is feathered over 5 px rather than 2.5. The first attempt flattened the field
+  instead and the result was worse: a grey, airbrushed rectangle against untouched skin, which the
+  portrait showed immediately — so the flattening was reverted to this blend.
+- **Measured, not asserted:** jaw patch luminance **64.8 ± 41.4 → 110.5 ± 6.1**, its redness
+  **31.1 → 41.6** (the clean ring's own is ~40), and the shaved field's mean colour
+  **(136.9, 101.1, 89.5)** against the jaw ring's measured **(148, 105, 90)** and the pale patch
+  **(172, 132, 123)** the D66 code had been matching — one skin, not a patch, and nine points under
+  the pale one rather than a flood of it. The lips, brows, nostrils and ears are pasted back verbatim.
+- **Held to:** the twelve tests in `tests/test_arivus_shave.py` (beard gone, jaw structure, no seam,
+  features intact, chin brighter than the beard, alpha and layout untouched, reproducible).
+- **Rejected:** flattening the field to one tone (grey rectangle); keeping D66's whole-face skin median
+  as the chroma (a shade cooler than the cheeks); a global blur (it takes the wrinkle structure with
+  it).
+- **Source:** `tools/build_joy_head_mods.py` (`shave_arivus_face`, the "one even skin field" pass).
+- **Amended the same day, from the render.** Three follow-ons, each from looking at the sheet rather
+  than at the numbers. (1) The blend is **faded** outward from the mask over ~9 px instead of stamped
+  on a mask grown by `MaxFilter(9)`: the grown zone is binary, so it leaves a soft rectangle of its own
+  — the same failure by another route. (2) The sideburn boxes (`xx 318..396`) stopped short of the ear,
+  which left a strip of painted stubble in front of it; they now reach the ear (`318..414`, mirrored on
+  the other side to `118`, `yy 140..344`) and rely on `protect` to stop at the ear's rim. (3) The dark
+  band that is *still* in front of the ear on the 3/4 view is **not** texture: the ped's hair half of
+  the atlas carries 5,952 triangles whose vertices reach down to z ≈ 169.5, i.e. modelled sideburn
+  cards, and the shave only touches the painted beard. They stay — the user's rule for this pack is
+  texture, not mesh.
+- **Status:** holds offline; the in-game face check is still the user's call. Known and left alone: the
+  hairline is the hair mesh's own alpha edge, the forehead's shadow band is the hair mesh's shadow, and
+  the sideburn cards in front of the ears are geometry.
+
+## D70 — `cop.hands` says "Heads up!", and variants belong to the vanilla container
+
+- **Decided:** 2026-11-25, by the user: *"Voice line for cop intimidation to 'hands up' is bad."* The
+  slot is *Cop intimidate* — vanilla Hila says "Hands up!", "Hands up, asshole!", "Hands where I can
+  see 'em." — and the pack was answering it with a 0.27 s "Stop." cut out of the middle of "and stop
+  smiling, dammit."
+- **Why not "hands".** Miranda never says the word: no line in the 866 corrected transcripts contains
+  it. The slot therefore takes her closest bark, **"Heads up!"**
+  (`omggra_2nd_intermission_d_S_INT.035.ogg`, 0.000–0.380): /h/ at 0.01, "heads" through 0.20 with its
+  /dz/ at 0.17–0.19, "up" 0.21–0.33, the /p/ release, gap at 0.37. Two whole words, at the level of
+  the rest of the pack, and in game it is heard as "hands up" — which is what the report asked for.
+- **Measured, not asserted:** the clip is **0.38 s** against the 0.27 s it replaces, both words inside
+  it, and the pack rebuilds to 12,618,252 B `106c2e5b5986` with the same 158 + 5 + … id coverage.
+- **On variants** — asked in the same breath. PAYDAY 2 gives every voice line a Wwise *random
+  container*, and the pack already writes one file per member; giving members different takes is the
+  whole mechanism, and no Lua is involved. The research, the id-per-slot numbers and the plan are in
+  [`docs/voice/multiple-variants.md`](../voice/multiple-variants.md). Not built in this change.
+- **Held to:** `tests/test_hila_cut_edges.py::test_the_cop_line_is_two_whole_words` (silent head, both
+  words at level, dip between them, the tail in the gap, 0.30–0.45 s).
+- **Rejected:** keeping "Stop." (a fragment, and the report calls it bad); a fabricated "hands" (the
+  pack is one unprocessed voice); borrowing a line from another heister.
+- **Status:** holds offline; heard by the user only after the next in-game pass.

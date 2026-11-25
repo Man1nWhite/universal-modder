@@ -202,7 +202,7 @@ Everything else for this pack is covered by the 2026-11-15 sections of the rende
 captures there predate this texture and cannot be used to judge the jewelry, and predate the
 first-person unit entirely.
 
-## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62/D63/D65)
+## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62/D63/D65/D68)
 
 Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it: everything from where
 the palm begins outwards is gone — and since D62 the cut sits **past that line**, inside the wrist
@@ -229,8 +229,16 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
    skin showing through or around the glove** at the wrist, in any pose. Move the hand, aim, and
    reload — a spot of skin that appears on the glove in one pose is the extension being too deep.
    D63 cut 1.5 cm and that wedge of skin was still there in the first-person screenshots of
-   2026-11-25; this build cuts 1.25 cm, which takes the arm's fattest half-centimetre out. If a wedge
-   survives this one, the lever is the arm's radius at the cut, not its depth.
+   2026-11-25; D65 cut 1.25 cm, which takes the arm's fattest half-centimetre out, and the wedge
+   survived that too. **D68 stops cutting and paints instead:** the outfit's own bare forearm —
+   the 6–8 cm between the jacket's sleeve and the wrist — is filled with the suit's dark leather in
+   the texture, so the arm runs sleeve → cuff → leather → glove with no skin anywhere. Check the
+   band directly: hold a weapon in first person and look down the forearm; the stretch between the
+   white cuff and the black glove must be **the same black leather as the glove**, not a salmon or
+   peach ring round the wrist bone, in any pose or light. Fail: any skin tone below the cuff.
+   The paint covers only what is on screen — if a light patch appears on the *back* of the wrist
+   when the arm twists, that is the band's proximal end, and the fix is a wider `BAND_CM`, not a
+   deeper cut.
 3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn over the cut and read
    as the character's hands, with the sleeve's cuff still outside it and no gap between them, and the
    arm's capped end hidden inside it. Then go back to "Default": the glove must disappear again
@@ -343,10 +351,12 @@ inside a word, which are re-cut below; the bytes it heard are not the tracked on
    wrong* (a fragment of the neighbouring word): the first is a playback-length question, the second
    is another edge to move, and they are different fixes.
 1b. **The two clips the next report named** (2026-11-25, same day):
-   - `cop.hands` (5 ids) should say **"Stop."** as one whole word. It used to play a chopped "smi",
-     because 0.420 s of the source is the start of "smiling", not the end of "stop". If it still
-     sounds odd, say whether a fricative is missing from the front or the word is cut off at the
-     back — those are the two edges, and they move independently.
+   - `cop.hands` (5 ids) now says **"Heads up!"**, replacing "Stop.". Miranda never says "hands" —
+     not in one of the 866 corrected transcripts — so the closest bark she has is the intermission's
+     "Heads up!" (`omggra_2nd_intermission_d_S_INT.035.ogg`, 0.00–0.38 s), two whole words with its
+     /h/ at the front and the /p/ release at the back. If it still does not read as an order to
+     surrender, say so: the vocabulary limit is real, and the alternative is a longer line that fits
+     the slot's *tone* rather than its words, not a better matching phrase.
    - `civ.nophone` (1 id) is now **"I'd rather we didn't."** rather than "There's nothing we can do,".
      It is the pick the pack's vocabulary allows for *don't make that call*; if a better-sounding
      take exists, it can only be another line from the same archive.
@@ -381,6 +391,14 @@ head texture and the build inpaints it. These are the checks the offline render 
    is the reference angle) and for stray hairs under the lower lip. The face must also keep its own
    shading — the nose's flank, the eye sockets and the cheeks were flat in the 2026-11-25 build
    (D66: the shave had repainted the whole face), so a face that looks airbrushed is the failure.
+   D69 tuned the colour: the shaved field takes its hue from the clean skin ring round the beard
+   (the jaw's own ≈ 148,105,90), not from the pale forehead, and keeps its own light and shade. The
+   face should read as **one skin tone under one light**; the two things to look for are a **grey or
+   sooty patch** (the field taken the wrong hue — this is what the 2026-11-25 portrait showed) and a
+   **flat rectangle** across the jaw (the level match, not the hue). Say which, since they are
+   different levers, and say where on the face it starts. The short dark sideburn in front of each ear
+   is **geometry** on this ped (hair cards in the hair half of the atlas, z ≈ 169.5 upward), left on
+   purpose: the shave is a texture pass and does not cut mesh, so it is not a leftover beard.
 3. **The features are the ped's own.** Eyebrows, both lips (with the mouth's dark slit), nostrils and
    the ears should sit where they did before: nothing blurry, nothing doubled, no pale or thin mouth,
    and no drawn outline around it.

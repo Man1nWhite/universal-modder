@@ -9,12 +9,13 @@
     upper-body close-up and the 256x256 HUD/menu icon for the 6-material buttoned DOAXVV "Secret
     Report" LAS outfit (`officesuite_body`, `_suit`, `_panties`, `_bra`, `_shoes`, `_jewelry`):
     the 5% bone-anchored slim and layer clearance (D42, D44) in the user's revised third suit and
-    jewelry colourway (D45, D46, D50), with the palms cut 1.5 cm past the line where they begin, inside the wrist (D60/D62/D63): the
+    jewelry colourway (D45, D46, D50), with the palms cut 1.25 cm past the line where they begin, inside the wrist (D60/D62/D63/D65), and the bare forearm below the cuff painted to the suit's dark leather (D68): the
     sleeve runs on into its black cuff and jewelry cuff, the rim is capped inside where the glove
     sits, and the pack spawns no glove, so in game that cut is the end of the arm until a glove is
     equipped. The bottom-right panel shows the first-person arms unit
     (`fps_officesuite.model`, D53) from the player's camera (`0°` yaw, `25°` down) — the sleeves,
-    cuffs and jewelry cuff, running on past the wrist into the palm cut.
+    cuffs and jewelry cuff, running on past the wrist into the palm cut — and, since D68, dark leather
+    rather than skin from the cuff down to the cut.
   - [`officesuite_las_fps_sheet.png`](officesuite_las_fps_sheet.png): `fps_officesuite.model` on its
     own — player view, three-quarter, side and top-down, auto-framed per view; the close read of the
     sleeve seams, the jewelry cuff and where the palm cut ends the sleeve.

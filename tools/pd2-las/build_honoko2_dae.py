@@ -622,7 +622,131 @@ def _full_mip_levels(image, colour: bool) -> list:
     return levels
 
 
-def build_textures(spec: "PackSpec") -> tuple[dict[str, bytes], dict]:
+#: How far up the forearm the leather cuff reaches, in cm from the palm origin (D68). The
+#: proximal end is deliberately past the jacket's own cuff: the sleeve covers it, and a band that
+#: stops short leaves a ring of bare skin between the white shirt cuff and the leather (which the
+#: first build of this showed in the offline render).
+#: The outfit's jacket sleeve ends above the wrist and leaves 6-8 cm of bare forearm between
+#: it and the heister's glove, which is what the in-game screenshots of 2026-11-25 show as a
+#: pale band on both arms. The cut cannot remove it (the glove's top is at the crease and the
+#: sleeve is far above: cutting there would reopen D60's mid-air gap), so the band is
+#: *painted* as the same black leather as the glove and the jacket, down to the wrist.
+BAND_CM = (-16.0, 2.5)
+#: ... and its radius around the palm axis; nothing else on the body is this close to a wrist.
+BAND_RADIUS_CM = 9.0
+
+
+def glove_band_uvs(groups: dict, spec: "PackSpec", palms) -> list:
+    """UV triangles of the bare forearm between the sleeve and the palm cut (D68).
+
+    The body's own skin is what shows there: the outfit's sleeve ends mid-forearm, the
+    heister's glove starts at the crease, and the two leave a band of skin that no cut can
+    take away without leaving a hole. These are the triangles of that band, selected by
+    the palm plane (``BAND_CM`` along it, ``BAND_RADIUS_CM`` around it) and by material, in
+    texture space, so `build_textures` can paint them as leather.
+    """
+    import numpy as np
+
+    g = groups.get("outfit")
+    if g is None or not palms:
+        return []
+    verts = np.asarray(g.verts, dtype=float)
+    uvs = np.asarray(g.uvs, dtype=float)
+    faces = np.asarray(g.faces, dtype=np.int32)
+    body_slot = spec.slot("body")
+
+    keep = np.zeros(len(verts), dtype=bool)
+    for side in (-1, 1):
+        origin = np.asarray(palms[side]["origin"], dtype=float)
+        axis = np.asarray(palms[side]["axis"], dtype=float)
+        axis = axis / np.linalg.norm(axis)
+        rel = verts - origin
+        along = rel @ axis
+        radial = np.linalg.norm(rel - along[:, None] * axis, axis=1)
+        keep |= (along > BAND_CM[0]) & (along < BAND_CM[1]) & (radial < BAND_RADIUS_CM)
+
+    # Per face: which slice (and so which material) it belongs to.
+    slot_of = np.zeros(len(faces), dtype=object)
+    for si, (_src, _bv, base_i, tris, _nv) in enumerate(g.slices):
+        slot = g.mat_slots[si]
+        slot_of[base_i // 3: base_i // 3 + tris] = slot
+
+    tris_uv = []
+    for f in range(len(faces)):
+        if slot_of[f] != body_slot:
+            continue
+        a, b, c = faces[f]
+        # A face straddling the band's edge is painted too: the sleeve covers the leak, and
+        # a ring of skin left just below the cuff is exactly what the report saw (D68).
+        if not (keep[a] or keep[b] or keep[c]):
+            continue
+        # uvs are stored as (u, 1 - v): flip back to texture space
+        tris_uv.append([(float(uvs[i][0]), 1.0 - float(uvs[i][1])) for i in (a, b, c)])
+    return tris_uv
+
+
+def paint_glove_band(im, tris_uv, leather_rgb) -> tuple[int, int]:
+    """Paint the band's UV island leather-dark, keeping the skin's own relief as shading."""
+    import numpy as np
+
+    h, w = im.shape[:2]
+    mask = np.zeros((h, w), dtype=bool)
+    for tri in tris_uv:
+        pts = [(float(u) % 1.0 * (w - 1), float(v) % 1.0 * (h - 1)) for u, v in tri]
+        xs = [p[0] for p in pts]
+        ys = [p[1] for p in pts]
+        x0, x1 = max(0, int(np.floor(min(xs)))), min(w - 1, int(np.ceil(max(xs))))
+        y0, y1 = max(0, int(np.floor(min(ys)))), min(h - 1, int(np.ceil(max(ys))))
+        if x1 <= x0 or y1 <= y0:
+            continue
+        (ax, ay), (bx, by), (cx, cy) = pts
+        den = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+        if abs(den) < 1e-9:
+            continue
+        yy, xx = np.mgrid[y0:y1 + 1, x0:x1 + 1]
+        px, py = xx + 0.5, yy + 0.5
+        wa = ((by - cy) * (px - cx) + (cx - bx) * (py - cy)) / den
+        wb = ((cy - ay) * (px - cx) + (ax - cx) * (py - cy)) / den
+        wc = 1.0 - wa - wb
+        inside = (wa >= 0) & (wb >= 0) & (wc >= 0)
+        mask[y0:y1 + 1, x0:x1 + 1] |= inside
+
+    if not mask.any():
+        return 0, 0
+    im = im.copy() if not im.flags.writeable else im
+    # Three texels of bleed, so bilinear filtering never mixes leather with skin.
+    grown = mask.copy()
+    for _ in range(3):
+        nxt = grown.copy()
+        nxt[1:, :] |= grown[:-1, :]
+        nxt[:-1, :] |= grown[1:, :]
+        nxt[:, 1:] |= grown[:, :-1]
+        nxt[:, :-1] |= grown[:, 1:]
+        grown = nxt
+    # Fill the bleed ring from the mask's own leather so the edge stays dark.
+    band_lum = im[..., :2 + 1][mask].astype(float) @ np.array([0.299, 0.587, 0.114])
+    mean_lum = max(float(band_lum.mean()), 1.0)
+    shade = np.clip(0.78 + 0.30 * (im[..., 0].astype(float) / 255.0 * 255.0 / mean_lum - 1.0), 0.55, 0.95)
+    leather = np.asarray(leather_rgb, dtype=float)
+    rgb = leather[None, None, :] * shade[..., None]
+    im[grown, :3] = np.clip(rgb[grown], 0, 255).round().astype(np.uint8)
+    return int(mask.sum()), int(grown.sum())
+
+
+def leather_tone(suit_dds) -> tuple[int, int, int]:
+    """The jacket's own dark leather, as the median of its darkest quarter of texels."""
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    im = np.asarray(Image.open(io.BytesIO(suit_dds.read_bytes())).convert("RGB"), dtype=float)
+    lum = im @ np.array([0.299, 0.587, 0.114])
+    dark = im[lum <= np.quantile(lum, 0.25)]
+    return tuple(int(round(v)) for v in np.median(dark, axis=0))
+
+
+def build_textures(spec: "PackSpec", band_uvs: list | None = None) -> tuple[dict[str, bytes], dict]:
     """Decode all 6 diffuse+normal DDS pairs into PD2 BC3 `.texture`s with full mips."""
     import hashlib as _hl
 
@@ -633,6 +757,10 @@ def build_textures(spec: "PackSpec") -> tuple[dict[str, bytes], dict]:
 
     textures: dict[str, bytes] = {}
     report: dict[str, dict] = {}
+    band_report: dict = {}
+    body_slot = spec.slot("body")
+    leather = leather_tone(TEX_DIR / spec.tex_override.get("suit", MAT_TEXTURE_SOURCES["suit"][0])) \
+        if band_uvs and spec.fps else None
     for slot, (df_dds, nm_dds) in sorted(spec.mat_sources().items()):
         for kind, dds_name in (("df", df_dds), ("nm", nm_dds)):
             stem = f"{slot}_{kind}"
@@ -642,6 +770,11 @@ def build_textures(spec: "PackSpec") -> tuple[dict[str, bytes], dict]:
                 sq = min(pil_im.width, pil_im.height, 512) if kind == "nm" else min(max(pil_im.width, pil_im.height), 512)
                 pil_im = pil_im.resize((sq, sq), Image.Resampling.LANCZOS)
             im = np.asarray(pil_im, dtype=np.uint8)
+            if slot == body_slot and kind == "df" and leather is not None:
+                im = np.array(im, dtype=np.uint8, copy=True)
+                painted, grown = paint_glove_band(im, band_uvs, leather)
+                band_report = {"texels": painted, "with_bleed": grown,
+                               "leather_rgb": list(leather), "size": list(im.shape[:2])}
             if kind == "df":
                 alpha = np.full(im.shape[:2], 20, dtype=np.uint8)
                 img = np.dstack([im[..., :3], alpha]).astype(np.uint8)
@@ -664,6 +797,8 @@ def build_textures(spec: "PackSpec") -> tuple[dict[str, bytes], dict]:
                 "mips": len(levels),
                 "out_sha256": _hl.sha256(textures[f"{stem}.texture"]).hexdigest(),
             }
+    if band_report:
+        report[f"{body_slot}_df"]["glove_band"] = band_report
     return textures, report
 
 
@@ -1109,7 +1244,8 @@ def build_pack(
         fps_path = work / f"fps_{spec.item_id}.model"
         fps_path.write_bytes(fps["mf"].write())
 
-    textures, tex_report = build_textures(spec)
+    band_uvs = glove_band_uvs(groups, spec, palms) if (spec.fps and palms) else []
+    textures, tex_report = build_textures(spec, band_uvs)
     if head is not None:
         # The donor's head maps are already PD2 `.texture` files with full mips,
         # so they travel unchanged; only their stem follows the pack's slots.
@@ -1262,6 +1398,9 @@ def build_pack(
             for gname, g in groups.items()
         },
     }
+    report["glove_band"] = {"uv_triangles": len(band_uvs), "along_cm": list(BAND_CM),
+                            "radius_cm": BAND_RADIUS_CM,
+                            "painted": tex_report.get(f"{spec.slot('body')}_df", {}).get("glove_band")}
     if slim_report is not None:
         report["slim"] = slim_report
     if clear_report is not None:

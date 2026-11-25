@@ -14,13 +14,23 @@
 - **What is textured:** the replaced head and hair (one `ALPHA_MASKED` atom, skin in the atlas top
   half and cutout hair in the bottom half) and the collar. The head is clean-shaven: Random4 paints
   the beard, moustache and sideburns into `head_diff_000_a_whi` instead of modelling them, so the
-  build inpaints them away (`shave_arivus_face` in `tools/build_joy_head_mods.py`, D64). The mask
+  build inpaints them away (`shave_arivus_face` in `tools/build_joy_head_mods.py`, D64/D66/D69). The mask
   is a rim of 8 px grown along the stubble from the geometric beard (D66 - a search over the whole
   raster repainted the face, which the 2026-11-25 in-game portrait showed); the
   fill relaxes from the clean skin ring around it, takes that ring's level (a ±15% gain) and the
   raster's own pore-and-freckle structure at 1.10x, and is feathered into the untouched skin over
   2.5 px — so the shaved jaw carries grain and shading instead of a flat panel, with no seam where
-  the inpaint ends and no dark ring around the ears. The ped's own painted lips, nostrils, ears and
+  the inpaint ends and no dark ring around the ears. D69 changes the colour, not the shape: the fill
+  keeps its own luminance and takes the chroma of the **local** ring just outside the mask (the jaw's
+  own ≈ 148,105,90 — measured round the beard), level-matched to that ring within ±10% over a 5 px
+  feather. The raster's global skin median (172,134,123) is the pale forehead, and using it is what
+  made the field read grey in the D66 portrait. Final field (136.9, 101.1, 89.5) against the jaw ring's
+  (148, 105, 90): one tone, with the jaw's own shading left in it (luminance 110.5 ± 6.1 where the
+  stubble read 64.8 ± 41.4). The blend is faded outward
+  over ~9 px rather than stamped on a grown zone (a binary zone leaves a soft rectangle of its own),
+  and the sideburn boxes reach the ears, so no strip of painted stubble is left in front of them. What
+  is still dark in front of the ear on the 3/4 view is **geometry**: the ped's hair half of the atlas
+  carries ~6,000 triangles reaching down to z ≈ 169.5 cm — modelled sideburn cards, not texture. The ped's own painted lips, nostrils, ears and
   eyebrows are laid back on top, pixel for pixel. The open eyes come from the ped's eyeball raster, which only lands on the eye quads
   when the source UVs are read in their own order — Random4's v = 0 is the texture top, so the
   builder no longer mirrors v before packing the atlas. Suit, gloves and forearms are rendered with

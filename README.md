@@ -14,7 +14,8 @@ Skins outfits (Miranda Lawson, Christie, Honoka), head replacements (Miranda, Ge
 OfficeSuite + Miranda Romance body-and-head replacement for Hila, and the fork's audio — Miranda
 Lawson's barks over Hila's `rb21` voice lines, as one Wwise IMA ADPCM `.stream` per voice-line id
 (`Miranda_Lawson_VO_over_Hila_Stream`, no BeardLib: [packaging and install
-contract](docs/pd2-voice-mod-install.md), and the route dissected in
+contract](docs/pd2-voice-mod-install.md) with the map in [`docs/voice/`](docs/voice/README.md), and the
+route dissected in
 [`docs/tokoyami-hila-voice-mod-analysis.md`](docs/tokoyami-hila-voice-mod-analysis.md)).
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share.

@@ -2525,7 +2525,12 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
         (262, 237), (305, 235), (325, 230), (340, 220), (356, 195), (372, 165), (390, 148),
     ]
     y_top = np.interp(np.arange(W), [a[0] for a in anchors], [a[1] for a in anchors])
-    sideburns = ((xx >= 128) & (xx <= 206) | (xx >= 318) & (xx <= 396)) & (yy >= 140) & (yy <= 310)
+    # The boxes have to reach the ears: the painted sideburn runs all the way to the ear's rim,
+    # and a box that stops short leaves a dark strip of hair in front of it - which is what the
+    # 3/4 render of 2026-11-25 showed as a band down the jaw by the ear. The ear is in
+    # `protect`, so the mask stops at its edge by itself, and the boxes are mirrored about
+    # x = 266 (the raster's centreline between the two ears).
+    sideburns = ((xx >= 118) & (xx <= 206) | (xx >= 318) & (xx <= 414)) & (yy >= 140) & (yy <= 344)
     mask = (((yy >= y_top[None, :]) & (yy <= 344) & (xx >= 133) & (xx <= 392) | sideburns)
             & ~protect)
     # Ring the mouth, nose and ears with inpainted skin as well: the pixels just
@@ -2548,9 +2553,9 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
     # the washed-out rectangle in its portrait was. Eight pixels is wider than the painted
     # edge and far narrower than a cheek.
     rim_ok = np.asarray(
-        Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(17))
+        Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(21))
     ) > 127
-    dark = ((lum < 0.90 * skin_lum) & rim_ok & (yy >= 130) & (yy <= 352)
+    dark = ((lum < 0.92 * skin_lum) & rim_ok & (yy >= 130) & (yy <= 352)
             & (xx >= 112) & (xx <= 412) & ~protect)
     queue = deque(map(tuple, np.argwhere(mask)))
     while queue:
@@ -2626,10 +2631,49 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
     reps = (int(np.ceil(hgt / tile.shape[0])) + 1, int(np.ceil(wid / tile.shape[1])) + 1)
     detail = np.tile(tile, (reps[0], reps[1], 1))[:hgt, :wid]
     sub[mm] = np.clip(sub[mm] + 1.10 * detail[mm], 0, 255)
+
+    # --- one even skin field over the shaved area ---
+    # This ped paints its stubble in two layers: a reddish one under the hairs, and the hairs
+    # over it. The fill takes the hairs away, but the rim can only follow the painted edge so
+    # far, and the detail pass above adds the clean patch's grain at 1.1x - between them the
+    # cheek and the jaw still read as soot in the 2026-11-25 portrait ("still need work on
+    # textures"). So the shaved area is flattened into one field: its own low-frequency
+    # shading, this raster's own skin chroma (so no red mottle survives), and a third of its
+    # detail, which keeps it skin rather than a mannequin's cheek.
+    own_lum = sub @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    # The chroma reference is the clean skin *around this mask*, not the whole-raster median:
+    # that median is the pale forehead, and using it left the jaw a shade cooler than the
+    # cheeks it meets - which is what makes an inpainted patch read as a patch.
+    near = np.clip(_smooth_mask(mask, 9.0) - _smooth_mask(mask, 4.0), 0.0, 1.0) > 0.12
+    near &= ~mask
+    ref_col = (np.median(rgb[near], axis=0) if near.any() else skin).astype(np.float32)
+    ref_lum = float(ref_col @ np.array([0.299, 0.587, 0.114], dtype=np.float32))
+    skin_unit = ref_col / max(ref_lum, 1e-3)
+    toned = skin_unit[None, None, :] * own_lum[..., None]
+    # Its own luminance (so every wrinkle and shadow stays) on that chroma (so the stubble's
+    # red cast is gone), keeping a third of the original colour so the field is not one
+    # airbrushed tone - a fully flattened cheek reads as a grey mask against the untouched
+    # skin around it, which the first attempt at this showed. The mix is *faded* outward from
+    # the mask over ~9 px instead of stamped over a grown zone: a binary zone leaves a soft
+    # rectangle of its own, which is the same failure by another route.
+    fade = np.clip(_smooth_mask(mask, 9.0), 0.0, 1.0)[y0:y1, x0:x1]
+    fade = (fade * (~protect[y0:y1, x0:x1]).astype(np.float32))[..., None]
+    sub = sub * (1.0 - fade) + (0.68 * toned + 0.32 * sub) * fade
+    # ... and its level back to the clean skin just outside it: a field that is a shade
+    # lighter than the cheeks reads as a mask even when no hair is left in it. Same fade.
+    ring_w = np.clip(_smooth_mask(mask, 7.0) - _smooth_mask(mask, 4.0), 0.0, 1.0)
+    ring_sel = (ring_w > 0.3) & ~mask
+    if ring_sel.any():
+        for c in range(3):
+            ref = float(rgb[:, :, c][ring_sel].mean())
+            got = float((sub[:, :, c] * fade[..., 0]).sum() / max(float(fade.sum()), 1e-6))
+            if got > 1e-3 and ref > 1e-3:
+                gain = float(np.clip(ref / got, 0.90, 1.10))
+                sub[:, :, c] *= 1.0 + (gain - 1.0) * fade[..., 0]
     out[y0:y1, x0:x1] = sub
 
     # --- feather the mask's outline into the untouched raster ---
-    alpha = _smooth_mask(mask, 2.5)[:, :, None]
+    alpha = _smooth_mask(mask, 5.0)[:, :, None]
     out = out * alpha + rgb * (1.0 - alpha)
     out[protect] = rgb[protect]
     cleaned = cell.copy()

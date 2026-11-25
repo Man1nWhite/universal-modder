@@ -108,7 +108,13 @@ def test_the_beard_is_gone(head_cell: np.ndarray, shaved: np.ndarray) -> None:
     before_dark = float((before[box] < 0.72 * skin).mean())
     after_dark = float((after[box] < 0.72 * skin).mean())
     assert before_dark > 0.5
-    assert after_dark < 0.02, f"{after_dark:.1%} of the shaved jaw is still beard-dark"
+    # D69 keeps the zone's own luminance, so a shaded jaw still dips under 72% of the pale
+    # cheek: 73% -> 12% dark, but that 12% is smooth shade, not hair. The strokes are what
+    # has to go, so the high-pass energy is the second pin (18.2 -> 7.0 over the whole box).
+    assert after_dark < 0.20, f"{after_dark:.1%} of the shaved jaw is still beard-dark"
+    assert after_dark < 0.25 * before_dark, f"{after_dark:.1%} dark against {before_dark:.1%} before"
+    grain = _high_pass_std(shaved, *BEARD_BOX) / _high_pass_std(head_cell, *BEARD_BOX)
+    assert grain < 0.55, f"the beard box still carries {grain:.0%} of its hair strokes"
 
 
 @needs_assets
@@ -151,8 +157,9 @@ def test_the_lower_lip_is_not_a_shadow_patch(shaved: np.ndarray, head_cell: np.n
     """
     before = _lum(head_cell)[285:305, 230:285]
     after = _lum(shaved)[285:305, 230:285]
-    # 94.3 before, 123.4 after: the hairs and their shadow are skin now
-    assert float(after.mean()) > float(before.mean()) + 20.0
+    # 94.3 before, 112.5 after: the hairs and their shadow are skin now. D69 keeps the fill's
+    # own luminance instead of flattening it (123.4 there), so the lift is 18, not 29.
+    assert float(after.mean()) > float(before.mean()) + 15.0
 
 
 @needs_assets
