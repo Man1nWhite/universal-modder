@@ -1553,3 +1553,56 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   is the third answer to the same wrist. The glove measurements above come from
   `references/npc_criminals_ecp_female.7z` (`g_hands`), which is the glove this rig draws, not a
   photograph of the user's session — so the in-game checklist still decides.
+
+### D64 — The Arivus shave fills from grown beard, matched skin and real structure — no ring, no seam, no flat panel
+
+- **Decided:** 2026-11-25, by the user: *"And improve Arivus more."* The evidence base is the
+  offline portrait (`docs/renders/arivus/model/over-hoxton/`), which showed three things reading
+  wrong on a clean-shaven ped: a **black crescent around each ear**, a **straight seam** down each
+  side of the face and across the jaw, and a **flat, slightly too-bright lower face**.
+- **Why they were there, measured on the source raster.** (1) The ear ellipses `(110,210,21,34)` /
+  `(419,210,21,34)` are smaller than the painted sideburn over them, and the "ring" pass inpainted a
+  band *around* the protected ellipse with `MaxFilter(9)` — so the beard between ellipse and cheek
+  stayed dark on a flat skin field. (2) The Laplace relaxation ran only inside `y 130:356, x 128:400`
+  and started from **one** median skin tone (`lum 146.8` against the chin's `98.5`), so it ended in a
+  hard rectangle and the jaw came out as a single shade. (3) The mask stopped at the geometric
+  U-shaped hairline while the painted beard edge is soft, which left a reddish stipple at 30–40%
+  coverage across the jaw: the "5 o'clock shadow" a clean shave must not have.
+- **Decision:** grow the mask along the beard, then fill it and give it skin.
+  `shave_arivus_face` now (a) grows the geometric U through every pixel darker than **90%** of this
+  raster's own skin level (`0.90 x 143.5`), limited to the face box and never through a protected
+  feature, so the mask follows the stubble to where it fades and stops at the ear's lighter rim
+  instead of at an ellipse; (b) relaxes a harmonic fill over that region from the clean skin ring
+  around it; (c) matches the fill's level to the mean of that ring, **capped at ±15% gain** so it
+  cannot invent shading; (d) adds the high-frequency structure of the raster's cleanest skin patch
+  (forehead, mirrored on both axes before tiling so it does not repeat as a grid) at 1.10x; and
+  (e) blends the result into the untouched raster over 2.5 px. Lips, nostrils, ears and eyebrows
+  are pasted back byte for byte, and the lips are found by measurement, not by a box: the lip
+  colour is `redness 52..64` against the moustache's `~35`, occupying `x 210..298, y 252..292`,
+  so each column keeps the span from its top lip pixel to its bottom one — lips, mouth slit and
+  corners together — with **no dilation**, because one pixel of dilation pasted a dark lip liner
+  back on.
+- **Measured, not asserted.** In the beard box (`y 250..340, x 145..385`, mouth excluded), pixels
+  darker than 72% of skin fall from **73.0%** to **0.48%**. The jaw's high-pass structure is
+  **6.40** against the clean cheek's **9.62** (0.67 of it, where before it was zero) and the
+  untouched beard's 19.1. The seam check at the mask's bottom row (344) steps **no more than the
+  rows inside the face**. The shaved raster is `1a4fa5b16ee25e58` and is identical across runs; the
+  pack is **8,436,333 B**, `7056d2476ab5`.
+- **Held to:** `tests/test_arivus_shave.py` — the source really is 73% dark in that box, less than
+  2% is left after the shave, the jaw keeps 0.4–1.4 of the cheek's structure, the boundary row
+  steps no more than twice the interior, the ears, brows and lips change by at most four pixels, the
+  alpha channel and the 512x512 layout are untouched, and two runs are byte-identical.
+- **Rejected:** the `MaxFilter(9)` ring around the protected ellipses (it rings the feature instead
+  of covering the beard outside it); a relaxation confined to a smaller box (the seam moves, it does
+  not go); one median tone for the whole U (that *is* the flat jaw); a colour flood fill from the
+  mouth's centre (the chin beard matches the lips' redness and `lum 55..165`, so it leaked and
+  pasted a goatee back); row-span fills through the mouth oval (they carried the under-lip stubble
+  with them); dilating the lip mask (a one-pixel beard ring reads as a drawn outline around the
+  mouth); and the closing/opening variants tried between them, which all trade a pale mouth for a
+  dark one.
+- **Source:** `tools/build_joy_head_mods.py` (`shave_arivus_face`, `ARIVUS_SKIN_PATCHES`,
+  `ARIVUS_DETAIL_PATCH`), `tests/test_arivus_shave.py`,
+  `docs/renders/arivus/model/over-hoxton/`.
+- **Status:** holds offline only. `runtime_verified` stays `false`; the offline render is a software
+  Z-buffer with diffuse textures and no lighting rig, so the checklist's Arivus step is what settles
+  whether the shave reads as skin in game.

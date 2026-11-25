@@ -355,3 +355,24 @@ inside a word, which are re-cut below; the bytes it heard are not the tracked on
 4. **Length.** A replacement keeps its clip length (0.22–1.95 s), so a replaced line can be shorter or
    longer than the vanilla one. No subtitle changes: those still show Hila's line.
 5. **First person.** Nothing to check — audio only.
+
+## Arivus over Old Hoxton — the shaved face (2026-11-25, D64)
+
+Install `dist/Arivus/Arivus_over_Hoxton.zip` and put Old Hoxton in a heist (and in the Safe House —
+the pack also rewrites the chill model). The ped has no beard geometry; the beard is painted into its
+head texture and the build inpaints it. These are the checks the offline render cannot make:
+
+1. **The shave reads as skin.** Under the heist's lighting the jaw, cheeks and chin should look like
+   one face, not like a lighter panel: no straight line down either side of the face, no line across
+   the jaw, and no dark crescent beside either ear. Turn the head in the lobby, where the light
+   moves across it, and look at the jaw in the blackmarket preview too.
+2. **No stubble.** The painted beard's edge is soft; look for a reddish freckle-like shadow across the
+   lower face at close range (the collar & head 3/4 view in the sheet is the reference angle).
+3. **The features are the ped's own.** Eyebrows, both lips (with the mouth's dark slit), nostrils and
+   the ears should sit where they did before: nothing blurry, nothing doubled, no pale or thin mouth,
+   and no drawn outline around it.
+4. **The hair reads as hair.** The cutout fringe is `ALPHA_MASKED` with `alpha_ref 0.05`: it should
+   not flicker, halo or draw as a solid band against the forehead, and the scalp should not show
+   through at the crown.
+5. **The head still fits the suit.** No gap or stretched skin at the collar, the menu portrait
+   matches the in-game head, and the HUD icon is the same face.

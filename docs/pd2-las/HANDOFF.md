@@ -61,7 +61,11 @@ shirt stay out). It overrides the four `shared_textures/old_hoxton_head[_p_]df/_
 `alpha_ref 0.05`. The vanilla unit is the user's 2026-11-24 game extract (`npc_criminals_suit_1.7z`,
 cooked DODB containers; `diesel_model.py` reads those and the packed channel formats). Fit constants
 (Head-bone anchors, scale 83.25) are derived against the Rust male rig and proven offline
-(`build/arivus-solo-*.png`). Not seen in game.
+(`build/arivus-solo-*.png`). The ped has no beard geometry — the beard, moustache and sideburns are
+painted into `head_diff_000_a_whi` — so the build inpaints them away (D64: mask grown along the
+stubble, harmonic fill from the clean skin ring, tone-matched at ±15%, the raster's own structure
+added at 1.10x, feathered; lips, nostrils, ears and brows pasted back), and the pack is
+clean-shaven by construction rather than by texture choice. Not seen in game.
 
 ## Seen in game
 

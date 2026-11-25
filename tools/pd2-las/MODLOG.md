@@ -506,3 +506,35 @@ line each.
 `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` was rebuilt: 13,926,249 B against 13,926,657.
 `runtime_verified` stays `false` for the pack; the two new clips are unheard, and the checklist's
 voice step is what settles them.
+
+## 2026-11-25 — the Arivus face is shaved properly (D64)
+
+"And improve Arivus more", on the evidence of the offline portrait, which showed a black crescent
+around each ear, a straight seam down each side of the face and across the jaw, and a flat lower
+face. All three came from `shave_arivus_face`:
+
+- The crescent was the ear protect ellipse being smaller than the sideburn painted over it, with a
+  `MaxFilter(9)` "ring" that inpainted *around* the ellipse instead of over the beard outside it.
+- The seam was the harmonic fill's box (`y 130:356, x 128:400`) ending in a hard edge.
+- The flat jaw was one median skin tone (`lum 146.8` against the chin's `98.5`) relaxing across the
+  whole U, and a mask that stopped at the geometric hairline while the painted beard edge is soft —
+  which also left a reddish stipple at 30–40% coverage.
+
+The mask now grows along the beard (every pixel darker than 90% of this raster's own skin level,
+stopping at the ear's lighter rim), the fill is relaxed from the clean skin ring around it and then
+tone-matched to that ring at a ±15% gain, the raster's own pore-and-freckle structure is added at
+1.10x from a clean patch, and the result is feathered into the untouched skin over 2.5 px. The lips
+are measured rather than boxed (redness 52..64 against the moustache's 35, `x 210..298, y
+252..292`), the mouth slit is kept by taking each column's span between its top and bottom lip
+pixel, and nothing is dilated past the lip — one pixel of dilation is enough to paste a dark lip
+liner back on.
+
+Measured: dark pixels in the beard box fall from 73.0% to 0.48%; the jaw's high-pass structure is
+6.40 against the clean cheek's 9.62 (0.67 of it, and zero before); the mask's bottom row steps no
+more than the rows inside the face; ears, brows and lips change by at most four pixels; the alpha
+channel and the 512x512 layout are untouched. `tests/test_arivus_shave.py` holds all of it, plus
+that two runs are byte-identical. Sheets re-rendered with `--unified`; the pack is 8,436,333 B
+(`7056d2476ab5`) against 8,281,629.
+
+`runtime_verified` stays `false`: the portrait is a software Z-buffer with diffuse textures, and
+the in-game checklist's Arivus step is what settles whether the shave reads as skin.
