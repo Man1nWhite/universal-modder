@@ -1246,20 +1246,20 @@ class TestLasScaffold:
         geos = {oid: np.asarray(o.obj.positions, dtype=np.float64)
                 for oid, o in model.by_id.items() if hasattr(o.obj, "positions")}
         body = max(geos, key=lambda k: len(geos[k]))
-        # the whole garment set with the palms and fingers cut away: 1.3k vertices
-        # fewer than the authored hands D55 shipped, plus the 66 the clip adds where
-        # its triangles cross the crease
-        assert len(geos[body]) == 31643, f"{len(geos[body])} vertices in the body drawable"
-        assert info["slim"]["vertices"] == 61479
+        # the whole garment set with the fingers cut away and the arm kept 4 cm into
+        # the palm (D62), plus the 78 vertices the clip adds where its triangles cross
+        # that line
+        assert len(geos[body]) == 31804, f"{len(geos[body])} vertices in the body drawable"
+        assert info["slim"]["vertices"] == 61801
 
         assert info["registration"]["glove_adapter"] is False
         assert info["registration"]["own_hands"] is True
         assert info["hands"] == "palm_cut"
         assert info["palm_cut"]["exact"] is True
-        assert info["palm_cut"]["plane"]["left"]["clipped_to_cm"] == 0.0
+        assert info["palm_cut"]["plane"]["left"]["clipped_to_cm"] == 4.0
         assert "replace_all" not in info["registration"]["flags"]
         assert info["slim"]["factor"] == pytest.approx(0.95)
-        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 61479
+        assert info["slim"]["vertices"] == info["slim"]["vertices_moved"] == 61801
         assert info["clearance"]["shadow_caster_drops"] == ["bra", "panties"]
 
         tex = info["source"]["textures"]

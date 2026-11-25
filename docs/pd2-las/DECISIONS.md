@@ -1359,6 +1359,11 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D60 — The palm cut is made on the plane, and a handless outfit spawns no glove and no forearm
 
+> **Amended by D62 (2026-11-25).** The registration half stands unchanged: no glove adapter, no
+> default glove, a chosen glove still spawns. What moves is where the cut sits — 4 cm *past* the palm
+> line, inside the palm — because the game showed the capped end stopping short of the heister's glove
+> cuff. The `clipped_to_cm: 0.0` / `kept_to_cm` / vertex-count numbers below describe the D60 bytes.
+
 - **Decided:** 2026-11-25, by the user, after the first D59 build was seen in game: *"Forbid using
   the previous method. Go back to previous version. AND ONLY REMOVE the palm and fingers. So the
   standard skin should have no hands. You should remove exactly where palm begins. But choosing
@@ -1449,3 +1454,55 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `docs/pd2-voice-mod-install.md`, `voice_lines_vox/README.md`.
 - **Status:** holds; the stream pack is the one whose clips were heard in game, and the two re-cut
   clips still await a listen (see the in-game checklist).
+
+### D62 — The palms are cut 4 cm past the palm line, so the arm ends inside the glove
+
+- **Decided:** 2026-11-25, by the user, after looking at the D60 build in game: two wrist
+  screenshots showing the capped end of the arm sitting in mid-air, above the heister's black glove
+  cuff, with a gap between them. Their instruction: *"you need to extend forearms a bit"*.
+- **What was wrong.** D60 cut exactly where the palm begins, which is the right *landmark* and the
+  wrong *place for a glove*. A PD2 glove is modelled around a hand, so its cuff starts below the
+  outline of one — the sleeve's cap and the glove's rim do not meet, and the arm visibly stops before
+  the glove. The geometry was correct and the wrist was still broken.
+- **Decision, geometry:** keep D60's plane (through the `Hand` joint, along the knuckle axis, 3.98°
+  off the forearm, 28 cm radius) and push the cut `PALM_EXTEND_CM = 4.0` cm along its own normal,
+  into the palm: `tmc_las.clip_group_at_palm_bases(..., margin=PALM_EXTEND_CM)` splits where the edges
+  cross *that* plane, and the rim cap runs in a window of `margin − 1.5 .. margin + 0.5` cm. The arm
+  therefore continues down into the glove instead of ending above it. `BUILD_INFO.palm_cut` records
+  it twice: `margin_cm` (the plane the split used) and `extend_cm` (what the module asked for), both
+  4.0, so a build cannot silently drift from the number in the source.
+- **Why 4 cm.** It is under two thirds of a palm's length, so no finger geometry comes back and the
+  cut stays inside hand territory; it overlaps a glove cuff by a centimetre or two at worst, i.e. the
+  cap is hidden, not merely close; and it is short enough that the fist still reads as a fist under a
+  glove made for a full hand. Nothing was added to the mesh — the same arm, cut later.
+- **What the extension changes about the *bones*.** At 0 cm the cut took 17 forearm-dominated
+  vertices per side along the sleeve rim; at 4 cm it takes none (the `ForeArm` entries are gone from
+  `removed_bones`), because the whole cut is now inside the hand. What survives at the rim is
+  `Hand` (152/153 vertices) and the thumb's base — the thenar, `Thumb1`, 15 vertices per side — which
+  is the palm's own proximal few centimetres and is exactly what makes the end continuous with the
+  wrist. The thumb's phalanges and every finger segment are still gone.
+- **Measured, not asserted:** `BUILD_INFO.palm_cut` has `exact: true`, `margin_cm`/`extend_cm` 4.0,
+  `clipped_to_cm` 4.0 per side, `kept_to_cm` 3.97 (left) and 3.99 (right), `tris_split` 76,
+  `verts_added` 78, `removed_tris` 2,070 and `rim_cap_tris` 88. The shipped `g_body` has 31,804
+  vertices (61,801 after the 5% slim). Packs: `OfficeSuite` 5,766,633 B, `OfficeSuite_Head`
+  10,384,852 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,855,124 B.
+- **Held to:** `tests/test_palm_cut.py` (both packs record `margin_cm == extend_cm == 4.0`, the
+  shipped mesh reaches 3.8–4.0 cm past the palm line and no further, the only hand-dominated
+  vertices left are `Hand` and the thenar, and the Hila override carries the same body and cut);
+  `tests/test_hila_body_override.py::test_the_outfits_hands_end_where_the_palm_begins` (the override's
+  body reaches 3.8–4.0 cm into the palm, keeps `Hand` and the thenar, and no finger);
+  `tests/test_pd2_las.py::TestLasScaffold::test_officesuite_carries_the_alt_suits_and_cuts_the_palms`
+  (vertex counts and `clipped_to_cm`). D60's registration tests are untouched: an own-hands pack still
+  draws no default glove and still has no adapter hook.
+- **Rejected:** reverting to the D55 modelled hands or the D59 glove adapter to make the wrist meet
+  the glove (both were rejected by the user once already); lengthening the sleeve or the cuff instead
+  of the arm (that is invented wrist geometry, rejected twice); a smaller extension (2–3 cm still
+  leaves the cap above the cuff); a per-arm margin (the two planes are mirrored, and the game's glove
+  is the same on both hands).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM`, the clip call, `_cap_cut_rims`,
+  the `palm_cut` record), `tools/pd2-las/tmc_las.py` (`clip_group_at_palm_bases`'s `margin`),
+  `tests/test_palm_cut.py`, `tests/test_pd2_las.py`.
+- **Status:** holds; `runtime_verified` stays `false`. The D60 build is the one that was seen in game,
+  and this is the answer to what it showed — the in-game checklist's wrist step now asks that the cap
+  sit inside the glove with no gap above it, and re-cutting is measured against that, not against the
+  crease.

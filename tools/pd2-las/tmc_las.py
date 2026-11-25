@@ -450,6 +450,11 @@ def clip_group_at_palm_bases(g, palms, margin: float = 0.0) -> dict:
     to the palm), but cut on the plane rather than at the last triangle wholly
     proximal to it: the surface ends where the palm begins, to the millimetre, and
     nothing of the wrist is left standing above the cut.
+
+    ``margin`` moves that plane along its own normal, in the group's units (cm), so a
+    non-zero margin cuts *past* the crease: ``build_honoko2_dae.PALM_EXTEND_CM`` cuts
+    4 cm into the palm so the arm ends inside the heister's glove, whose cuff starts
+    below the outline of a hand (D62).
     """
     return clip_group_at_planes(g, _palm_planes(palms), margin)
 

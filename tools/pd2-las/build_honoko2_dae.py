@@ -160,6 +160,15 @@ class PackSpec:
 #: and the body, so they add no silhouette (D44)
 SHADOW_DROPS = {"bra", "panties"}
 
+#: How far past the palm line the arm is kept, along the palm axis, in cm (D62).
+#: D60 cut exactly on the crease and the game then showed a gap: the heister's glove cuff
+#: starts below where the outline of a hand would be, so the arm ended in mid-air, capped,
+#: with nothing between it and the glove (user screenshots, 2026-11-25). Keeping this much
+#: of the palm continues the arm down into the glove instead. 4 cm is under two thirds of
+#: a palm's length, so no finger geometry comes back, and it overlaps a glove cuff by a
+#: centimetre or two at worst.
+PALM_EXTEND_CM = 4.0
+
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
 #: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by
 #: the user at `main` 526480e (D45/D46), hands cut where the palms begin (D59, clipped on the
@@ -466,7 +475,7 @@ def _cap_cut_rims(g, planes, margin: float = 0.0) -> int:
             rel = mid - origin
             t = float(rel @ axis)
             perp = float(np.linalg.norm(rel - t * axis))
-            if -1.5 <= t <= margin + 0.5 and perp < 10.0:
+            if margin - 1.5 <= t <= margin + 0.5 and perp < 10.0:
                 rim_edges.append((x, y))
         if len(rim_edges) < 4:
             continue
@@ -981,12 +990,14 @@ def build_pack(
         if palms is not None:
             # Before the cut, so the report can say what it took away by bone.
             weights, palette = list(g.weights), list(g.palette)
-            cut = tmc_las.clip_group_at_palm_bases(g, palms)
+            cut = tmc_las.clip_group_at_palm_bases(g, palms, margin=PALM_EXTEND_CM)
             cut["removed_bones"] = _dominant_bones(weights, palette, cut["removed_vertex_ids"])
             del cut["removed_vertex_ids"]
-            # The only vertices a palm cut may take are hand and finger ones and, at
-            # the rim, forearm ones (the triangles that straddle the crease). Anything
-            # else means the plane is wrong - a leg inside the 28 cm cone, say.
+            # The only vertices a palm cut may take are hand and finger ones and, if
+            # the plane sits near the crease, forearm ones. Cutting `PALM_EXTEND_CM`
+            # into the palm takes none of the forearm's; anything that is neither a
+            # hand, a finger nor an arm bone means the plane is wrong - a leg inside
+            # the 28 cm cone, say.
             stray = sorted(b for b in cut["removed_bones"] if not bm.is_fps_arm_bone(b))
             if stray:
                 raise SystemExit(f"[{gname}] the palm cut took geometry off {stray}, "
@@ -999,8 +1010,10 @@ def build_pack(
         thin = tmc_las.drop_long_thin_triangles(g)
         # The rim a palm cut leaves is capped: with no hands in the pack the cut end
         # is what the game draws until a glove spawns, and an open rim would show the
-        # inside of the sleeve in first person and in the shadow map.
-        cap_tris = _cap_cut_rims(g, palm_planes) if palms is not None else 0
+        # inside of the sleeve in first person and in the shadow map. The rim is
+        # `PALM_EXTEND_CM` past the crease, inside the palm, so the cap looks for it
+        # there rather than at the plane.
+        cap_tris = _cap_cut_rims(g, palm_planes, PALM_EXTEND_CM) if palms is not None else 0
         cut["long_thin"] = thin
         cut["rim_cap_tris"] = cap_tris
         cut["leg_floor_scale"] = leg_floor_scale
@@ -1012,8 +1025,9 @@ def build_pack(
 
     if palms is not None:
         # Straight after the cut, before the slim and the clearance pass: how far
-        # the surviving surface reaches past the plane. A clip lands on the plane
-        # (0.00); the whole-triangle drop it replaced stopped at -2.22 / -2.27.
+        # the surviving surface reaches past the palm line. A clip lands on the plane
+        # it was given - `PALM_EXTEND_CM` (4.00) into the palm since D62; the D60 clip
+        # landed on the crease itself (0.00), and the drop it replaced at -2.22/-2.27.
         for side, key in ((-1, "left"), (1, "right")):
             cut_report["outfit"]["palm_base"][key]["clipped_to_cm"] = _last_kept_cm(
                 groups["outfit"], palms[side])
@@ -1195,7 +1209,8 @@ def build_pack(
         body_cut = cut_report.get("outfit", {})
         build_info["palm_cut"] = {
             "plane": body_cut.get("palm_base"),
-            "margin_cm": 0.0,
+            "margin_cm": PALM_EXTEND_CM,
+            "extend_cm": PALM_EXTEND_CM,
             # the cut splits the triangles it crosses instead of dropping them whole
             "exact": True,
             "tris_split": body_cut.get("tris_split"),

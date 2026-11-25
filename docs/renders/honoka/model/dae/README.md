@@ -9,11 +9,12 @@
     upper-body close-up and the 256x256 HUD/menu icon for the 6-material buttoned DOAXVV "Secret
     Report" LAS outfit (`officesuite_body`, `_suit`, `_panties`, `_bra`, `_shoes`, `_jewelry`):
     the 5% bone-anchored slim and layer clearance (D42, D44) in the user's revised third suit and
-    jewelry colourway (D45, D46, D50), with the palms cut on the line where they begin (D59/D60): the
-    sleeve ends in its black cuff and jewelry cuff, the rim is capped, and the pack spawns no glove,
-    so in game that cut is the end of the arm until a glove is equipped. The bottom-right panel shows the first-person arms unit
+    jewelry colourway (D45, D46, D50), with the palms cut 4 cm past the line where they begin, inside the palm (D60/D62): the
+    sleeve runs on into its black cuff and jewelry cuff, the rim is capped inside where the glove
+    sits, and the pack spawns no glove, so in game that cut is the end of the arm until a glove is
+    equipped. The bottom-right panel shows the first-person arms unit
     (`fps_officesuite.model`, D53) from the player's camera (`0°` yaw, `25°` down) — the sleeves,
-    cuffs and jewelry cuff, ending at the palm cut.
+    cuffs and jewelry cuff, running on past the wrist into the palm cut.
   - [`officesuite_las_fps_sheet.png`](officesuite_las_fps_sheet.png): `fps_officesuite.model` on its
     own — player view, three-quarter, side and top-down, auto-framed per view; the close read of the
     sleeve seams, the jewelry cuff and where the palm cut ends the sleeve.
@@ -27,7 +28,8 @@
 - **Caveats:** offline software Z-buffer render (`runtime_verified: false`). `OfficeSuite` has been seen
   in the game's outfit menu and lobby (user-supplied captures in
   [`../../in-game/officesuite/2026-11-15/`](../../in-game/officesuite/2026-11-15/README.md)), but those
-  predate the jewelry diffuse and both hand builds (D55's modelled hands, D59's palm cut), so the
+  predate the jewelry diffuse and every hand build (D55's modelled hands, D59's palm cut, D60's cut on
+  the plane, D62's 4 cm extension into the glove), so the
   sheet shows bytes no capture does. `Honoko2`,
   `Honoko3` and `Honoko4` were the earlier builds of this source and are no longer tracked (D57);
   their in-game captures are kept under [`../../in-game/2026-11-15/`](../../in-game/2026-11-15/README.md)

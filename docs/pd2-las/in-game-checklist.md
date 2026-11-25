@@ -193,23 +193,25 @@ seen here and nowhere else belongs to `L_23`. The pack also ships a first-person
    across the collar and no wrong-chroma patch where the old diffuse's UV island was.
 2. **It matches the suit** — the jewelry and the black jacket are lit by the same light without the
    jewelry looking like a separate cut-out pasted on top.
-3. **First person** — a heist with a weapon out, reload and interact once: the outfit's sleeves show
-   down to where the palm begins, the jewelry cuff and the bra straps read as part of the outfit, and
-   nothing is missing, duplicated or clipped. The cuff and straps are arm-weighted geometry by
-   construction; the pack models no hands at all, and no glove spawns by default (D60).
+3. **First person** — a heist with a weapon out, reload and interact once: the outfit's sleeves run
+   on past the wrist and end inside the gloves, the jewelry cuff and the bra straps read as part of
+   the outfit, and nothing is missing, duplicated or clipped. The cuff and straps are arm-weighted
+   geometry by construction; the pack models no hands at all, and no glove spawns by default (D60).
 
 Everything else for this pack is covered by the 2026-11-15 sections of the render pages; the
 captures there predate this texture and cannot be used to judge the jewelry, and predate the
 first-person unit entirely.
 
-## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60)
+## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62)
 
 Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it: everything from where
-the palm begins outwards is gone, cut *on* that plane (through the PD2 `Hand` joint, perpendicular
-to the palm; `palm_cut` in `BUILD_INFO.json`, `clipped_to_cm: 0.0`), and the rim is capped. The pack
-registers `officesuite_own_hands.lua`, not the glove adapter: no default glove unit spawns, so the
-body has no hands by default, and a glove the player picks by name is the only thing that puts hands
-on the character. Offline the sleeve ends read as a clean cuff; what only the game can show:
+the palm begins outwards is gone — and since D62 the cut sits **4 cm past that line**, inside the
+palm (`palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `4.0`), so the arm
+continues down into the heister's glove instead of ending above it — and the rim is capped. The plane
+is still D60's: through the PD2 `Hand` joint, perpendicular to the palm. The pack registers
+`officesuite_own_hands.lua`, not the glove adapter: no default glove unit spawns, so the body has no
+hands by default, and a glove the player picks by name is the only thing that puts hands on the
+character. Offline the sleeve ends read as a clean cuff; what only the game can show:
 
 1. **No vanilla skin at the wrist.** The D59 build showed a salmon-pink band with a seam between the
    sleeve and the black glove — that was the adapter's `hnd_forearms`, a vanilla bare forearm drawn
@@ -217,15 +219,19 @@ on the character. Offline the sleeve ends read as a clean cuff; what only the ga
    either the cut or the glove. Fail: any second skin band, any band with a seam in it, any vanilla
    `hnd_glv_heistwrinkled` glove at the cuff.
 2. **No hands by default.** With gloves on "Default" the character's hands must be *absent* where the
-   outline of a hand would be: the sleeve ends in a capped rim, and no stock bare hand shows beside
-   it. This is the D60 state and it is intended to look handless.
+   outline of a hand would be: the sleeve runs on past the wrist into a capped end, and no stock bare
+   hand shows beside it. This is the D60 state and it is intended to look handless.
+   **The wrist is the D62 fix:** the D60 build ended in a flat cap in mid-air, above the heister's
+   glove, with a visible gap. The cap must now sit *inside* the glove — no gap above the cuffs, no
+   ring of background between the sleeve end and the glove, nothing poking out of the glove lip.
 3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn over the cut and read
-   as the character's hands, with the sleeve's cuff still outside it and no gap between them. Then
-   go back to "Default": the glove must disappear again rather than stick.
+   as the character's hands, with the sleeve's cuff still outside it and no gap between them, and the
+   arm's capped end hidden inside it. Then go back to "Default": the glove must disappear again
+   rather than stick.
 4. **The first-person arms match.** The `fps_officesuite` arms are cut on the same plane; a weapon
-   held and a reload should show the sleeve ending at the palm line, never a hand modelled in the
-   outfit and never a vanilla skin band at the wrist — with a glove equipped, the glove is what
-   holds the weapon.
+   held and a reload should show the sleeve running on past the wrist and into the glove, never a
+   hand modelled in the outfit and never a vanilla skin band at the wrist — with a glove equipped,
+   the glove is what holds the weapon.
 5. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
    ground while turning — no hand, and no hole where the hands used to be.
 
@@ -243,8 +249,9 @@ The ZIP was checked offline; these steps still need the game:
    Romance head should all show together, with no pink materials or missing triangles.
 2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
    neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
-   still be Hila's. **The wrists are the new bytes (D59/D60):** the outfit's palms are cut on the
-   plane where the palm begins, so the sleeve ends in its cuff, and **Hila's own stock gloves** —
+   still be Hila's. **The wrists are the new bytes (D60/D62):** the outfit's palms are cut 4 cm past
+   the line where the palm begins, so the sleeve runs on into its cuff and the capped end sits inside
+   the glove, and **Hila's own stock gloves** —
    kept in the pack, node and all, so a chosen glove still has somewhere to land — are what the game
    puts over it. The LAS pack reaches the same sleeve end under `LegendaryArmours.officesuite` and
    spawns no default glove at all (D60). Check the hands from the front, the side and while the hand

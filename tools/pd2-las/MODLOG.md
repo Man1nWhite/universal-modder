@@ -404,3 +404,40 @@ clip the user heard.
 Nothing else was listened to line by line; the other picks have not moved. `runtime_verified` stays
 `false` in both packs, and `HANDOFF.md` records the 2026-11-25 report as a *partial* — the route is
 confirmed, the tracked bytes are not what was heard.
+
+## 2026-11-25 — the arm is cut 4 cm past the palm line, so it ends inside the glove
+
+The D60 build was seen in game, at the wrist. Two screenshots from the user showed what the cut had
+done: the arm ended in a flat cap in mid-air, with the heister's black glove cuff below it and a
+visible gap between the two. Their instruction: *"you need to extend forearms a bit"* (D62).
+
+The cut was in the right place and the wrong one at once. D60 put it exactly where the palm begins,
+which is the right landmark for "no hands", but a PD2 glove is modelled around a hand, so its cuff
+starts below the outline of one and never meets a cut made on the crease. The fix is to extend the
+arm into the glove, not to add anything: `PALM_EXTEND_CM = 4.0` in `build_honoko2_dae.py` is passed
+as `margin=` to `tmc_las.clip_group_at_palm_bases`, so the split plane moves 4 cm along the palm's own
+normal, into the palm, and `_cap_cut_rims` caps the ring in a window of `margin − 1.5 .. margin + 0.5`
+cm instead of around the plane. No spawned piece, no adapter, no vanilla skin: D60's registration
+stands exactly as it was.
+
+Four centimetres is under two thirds of a palm's length, so no finger geometry comes back: the cut
+now takes no forearm-dominated vertex at all (the `ForeArm` entries left `removed_bones`), and what
+survives at the rim is `Hand` (152/153 vertices) plus the thumb's *base* — the thenar, 15 vertices a
+side — which is the palm's own proximal few centimetres and what makes the end continuous with the
+wrist. On the tracked bytes: `clipped_to_cm` 4.00 both sides, `kept_to_cm` 3.97/3.99 (the slim
+pulling the arm in, again), 76 triangles split, 78 vertices added, 2,070 triangles removed, 88 cap
+triangles, 31,804 body vertices (61,801 after the 5% slim). Packs: `OfficeSuite` 5,766,633 B,
+`OfficeSuite_Head` 10,384,852 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,855,124 B.
+
+`BUILD_INFO.palm_cut` records `margin_cm` (the plane the split used) and `extend_cm` (what the module
+asked for), so a build cannot drift from the source number without saying so. Tests: the pack tests
+in `tests/test_palm_cut.py` pin both fields at 4.0, the shipped mesh reaching 3.8–4.0 cm past the
+palm line and no further, and the thenar as the only finger bone left; the stray-bone assertion is
+now `[]` rather than `["LeftForeArm", "RightForeArm"]`, and the whole-triangle rim expectation follows
+the moved window. `tests/test_pd2_las.py` carries the new vertex counts and `clipped_to_cm`, and
+`tests/test_hila_body_override.py::test_the_outfits_hands_end_where_the_palm_begins` follows the
+override's body into the palm instead of stopping it at the crease. The
+sheets under `docs/renders/honoka/model/` were re-rendered.
+
+`runtime_verified` stays `false`: the D60 bytes are the ones that were seen, these have not been. The
+in-game checklist's wrist step now asks that the cap sit inside the glove with no gap above it.

@@ -1,14 +1,15 @@
-"""Where the palm begins: the OfficeSuite family's hand cut, as a number (D59/D60).
+"""Where the palm begins: the OfficeSuite family's hand cut, as a number (D59/D60/D62).
 
-The three packs that share OfficeSuite's body cut everything distal to the plane
-through the rig's `Hand` joint, perpendicular to the palm (the axis from that joint
-to the four knuckle bases). That plane is what "where the palm begins" means in this
-repository, and it is written into each pack's `BUILD_INFO.json` - origin, axis,
-degrees from the forearm axis, what the cut removed by bone, and how far past the
-plane the surviving mesh reaches. Since D60 the cut is made *on* the plane (the
-triangles it crosses are split, not dropped whole), so `clipped_to_cm` is 0.00 and
-the only distance left is the one the 5% slim introduces. These tests pin the
-landmark to the rig, the record to the mesh, and the mesh to the landmark.
+The three packs that share OfficeSuite's body cut everything distal to a plane through
+the rig's `Hand` joint, perpendicular to the palm (the axis from that joint to the four
+knuckle bases). That plane is what "where the palm begins" means in this repository, and
+it is written into each pack's `BUILD_INFO.json` - origin, axis, degrees from the forearm
+axis, what the cut removed by bone, and how far past the plane the surviving mesh reaches.
+Since D60 the cut is made by splitting the triangles it crosses rather than dropping them
+whole; since D62 it sits `PALM_EXTEND_CM` (4 cm) *past* the palm line, inside the palm,
+because cutting on the crease left the arm ending in mid-air short of the heister's glove
+cuff. These tests pin the landmark to the rig, the record to the mesh, and the mesh to the
+landmark.
 """
 from __future__ import annotations
 
@@ -36,6 +37,10 @@ PACKS = (
     ("OfficeSuite", "officesuite"),
     ("OfficeSuite_Head", "officesuite_head"),
 )
+#: what survives inside the extension: the thumb's base is the thenar, the palm's own
+#: proximal few centimetres - it is what makes the arm's end continuous with the wrist
+THENAR = ("LeftHandThumb1", "RightHandThumb1")
+
 #: the native override ships the same body on Hila's unit
 HILA = ("OfficeSuite_Miranda_Romance_over_Hila",
         "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female")
@@ -89,7 +94,9 @@ def test_each_pack_records_the_plane_it_cut_on(pack, stem):
     info = _info(pack)
     assert info["hands"] == "palm_cut"
     cut = info["palm_cut"]
-    assert cut["margin_cm"] == 0.0, "the cut is the crease itself, not a few cm past it"
+    # the cut is the palm line plus the extension D62 added, so the arm reaches into
+    # the glove instead of ending in mid-air above it
+    assert cut["margin_cm"] == cut["extend_cm"] == 4.0
     assert cut["removed_tris"] > 1000 and cut["rim_cap_tris"] > 0
     # The cut is made on the plane: the triangles it crosses are split, so the
     # surface that survives reaches the crease itself (D60).
@@ -99,10 +106,12 @@ def test_each_pack_records_the_plane_it_cut_on(pack, stem):
     # player's glove choice is the only thing that puts a hand on the character.
     assert info["registration"]["glove_adapter"] is False
     assert info["registration"]["own_hands"] is True
-    # Everything the cut took was a hand or a finger; the rim carries a few
-    # forearm-dominated vertices, which is the edge of the sleeve.
+    # Everything the cut took is dominated by a hand or a finger bone. Cutting on the
+    # crease (D60) took 17 forearm-dominated vertices per side as well, at the rim;
+    # four centimetres into the palm (D62) the cut is entirely in hand territory.
     stray = sorted(b for b in cut["removed_bones"] if not bm.is_hand_bone(b))
-    assert stray == ["LeftForeArm", "RightForeArm"], stray
+    assert stray == [], stray
+    assert "LeftHand" in cut["removed_bones"] and "RightHand" in cut["removed_bones"]
     assert sum(cut["removed_bones"].values()) > 1000
 
 
@@ -115,15 +124,19 @@ def test_the_recorded_plane_is_the_one_on_the_rig(pack, stem):
         assert cut[key]["origin_cm"] == pytest.approx([round(v, 3) for v in expected[side]["origin"]])
         assert cut[key]["axis"] == pytest.approx([round(v, 4) for v in expected[side]["axis"]])
         assert cut[key]["deg_from_forearm"] == pytest.approx(round(expected[side]["deg_from_forearm"], 2))
-        # the cut lands on the plane; the shipped mesh then ends a few mm short of
-        # it, because the 5% slim pulls the whole arm in towards its bones
-        assert cut[key]["clipped_to_cm"] == 0.0, cut[key]
-        assert -1.2 < cut[key]["kept_to_cm"] < -0.2, cut[key]
+        # the cut lands exactly where it was asked to: the palm line plus 4 cm, which
+        # is where the shipped mesh ends (the 5% slim moves it by millimetres)
+        assert cut[key]["clipped_to_cm"] == 4.0, cut[key]
+        assert 3.8 < cut[key]["kept_to_cm"] <= 4.0, cut[key]
 
 
 @pytest.mark.parametrize("pack,stem", PACKS)
 def test_the_shipped_body_has_no_hand_left(pack, stem):
-    """Not one vertex is dominated by a hand or finger bone, and none passes the plane."""
+    """No finger survives, and nothing reaches past the palm line by more than the extension.
+
+    The `Hand` bone may dominate: the proximal 4 cm of the palm is what the body keeps
+    (D62), and that is a hand bone's territory. Every finger segment is not.
+    """
     template = _body_model(pack, stem)
     drawable = template.drawables["g_body"]
     mf = template.mf
@@ -133,7 +146,10 @@ def test_the_shipped_body_has_no_hand_left(pack, stem):
     indices = np.asarray(geo["blendindices"])
     weights = np.asarray(geo["blendweights"])
     dominant = np.asarray(objects)[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
-    assert not np.array([bm.is_hand_bone(name) for name in dominant]).any()
+    fingers = sorted({name for name in dominant if bm.is_hand_bone(name) and not name.endswith("Hand")})
+    # The thumb's *base* is kept: it is the thenar (D62). Nothing past it survives -
+    # no thumb phalanx, no finger segment.
+    assert fingers == list(THENAR), fingers
 
     verts = np.asarray(geo["verts"], dtype=np.float64)
     planes = _palm_planes()
@@ -145,10 +161,9 @@ def test_the_shipped_body_has_no_hand_left(pack, stem):
         perp = np.linalg.norm(rel - np.outer(axial, axis), axis=1)
         near = perp < 28.0
         assert near.any()
-        assert axial[near].max() < 0.0, "geometry survives distal to where the palm begins"
-        # ... and it reaches the crease: the clip leaves the rim within the millimetre
-        # the slim moves it, not the 2.2 cm band a whole-triangle drop used to leave
-        assert axial[near].max() > -1.2, "the mesh stops short of where the palm begins"
+        # ... and the farthest vertex is the extension, not a palm or a finger
+        assert axial[near].max() <= 4.05, "geometry survives past the palm extension"
+        assert axial[near].max() > 3.8, "the mesh stops short of the palm extension"
 
 
 def test_the_native_override_carries_the_same_cut_and_hilas_gloves():
@@ -170,7 +185,9 @@ def test_the_native_override_carries_the_same_cut_and_hilas_gloves():
     indices = np.asarray(geo["blendindices"])
     weights = np.asarray(geo["blendweights"])
     dominant = np.asarray(names)[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
-    assert not np.array([bm.is_hand_bone(name) for name in dominant]).any()
+    # Same body, same cut: only the thenar the extension keeps may be hand-dominated.
+    bones = sorted({name for name in dominant if bm.is_hand_bone(name)})
+    assert bones == sorted([*THENAR, "LeftHand", "RightHand"]), bones
 
 
 def _box_group():
