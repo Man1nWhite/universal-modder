@@ -350,6 +350,12 @@ inside a word, which are re-cut below; the bytes it heard are not the tracked on
    - `civ.nophone` (1 id) is now **"I'd rather we didn't."** rather than "There's nothing we can do,".
      It is the pick the pack's vocabulary allows for *don't make that call*; if a better-sounding
      take exists, it can only be another line from the same archive.
+1c. **`call_teammate.hey_you` is one word now** (2026-11-25, same day). It shipped 0.667 s of
+   "you take point" and the report heard "just you"; the shipped `.stream` decodes as three
+   syllables, so the line is now a single shouted "You" (0.289 s). Call a teammate: one clear
+   word, not a clipped one. If it still sounds cut, the game is stopping the line before the file
+   ends, and the next lever is the vanilla length rather than the cut.
+
 2. **No loader noise.** `mods/logs/` should show the mod folder loaded and no error from it: the pack
    has no Lua, no hooks and no XML to parse beyond `<mod name=…>`.
 3. **Line-by-line, not event-by-event.** A heist-scripted line Hila speaks as an NPC keeps Hila's

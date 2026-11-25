@@ -564,3 +564,22 @@ instead of repainting the face; the chin patch goes from luminance 94.3 to 123.4
 
 `tests/test_arivus_shave.py` holds the new behaviour (including the chin patch and the unchanged
 lips), and the sheets were re-rendered. `runtime_verified` stays `false` for every pack involved.
+
+## 2026-11-25 — `call_teammate.hey_you` is one shouted "You"
+
+The user heard the re-picked three-word clip ("you take point", 0.667 s) as just "you" and said what
+they wanted: *"She just needs to shout 'you'."* The pack's own bytes were not the problem — decoded
+from the shipped `.stream`, the clip is 0.29 s of three syllables — so the conclusion is that the
+game stops these lines earlier than ours run, and the answer is a line that is *one word*.
+
+The pick is now the **"You" of "You don't know what my father wants for her."**
+(`twrvxl_oldfriend_d_S_INT.043.ogg`, `0.000-0.300`): the /j/ onset at 0.06, the stressed /u/ peaking
+-9.6 dBFS at 0.16-0.20, and the decay into the /d/ closure at 0.29-0.31, which is where the cut ends
+— "don't" starts at 0.33, so nothing of it is in the clip. It is the most emphatic bare "you" in the
+866 transcripts: no /l/ of "you'll", no following word. Level-matched to -1.4 dBFS peak like every
+other bark, and short enough (0.289 s) that a third of it cannot be all the game plays.
+
+`tests/test_hila_cut_edges.py` measures it again — silence at the head, the vowel within 3 dB of the
+clip's loudest point, the tail inside the closure, and the next word still where the cut assumes it
+is — and `slot_picks.csv`, `hila_intent_fit.csv` and `hila_slot_pieces.csv` carry the new row. The
+stream pack is rebuilt: 12,608,121 B (`6b7d827dfe93`) against 13,926,249.

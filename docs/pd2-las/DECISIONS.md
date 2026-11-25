@@ -1667,3 +1667,30 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Status:** holds offline only. Known and left alone: the hairline is the hair mesh's own alpha
   edge, which no texture here can soften, and the ped's painted skin carries compression mottling
   on the cheeks.
+
+## D67 — `call_teammate.hey_you` is one shouted word, not a phrase
+
+- **Decided:** 2026-11-25, by the user, after hearing the re-picked line: *"She just needs to
+  shout 'you'."* The slot had shipped 0.667 s of "you take point" and the report heard "just you".
+- **Why.** The clip was not cut short — decoded out of the shipped `.stream` it is 0.29 s with three
+  syllables intact — so the game is stopping the line well before the file ends, and any line longer
+  than a word will be heard as its first word. The slot is a call-out (*Call* summons a teammate), so
+  one emphatic "You" is the whole correct answer, and a short one cannot be truncated into anything
+  else. The pack has no "hey" in its 866 transcripts (`hila_call_hey_you.csv`, README), so "Hey, you."
+  was never available as such.
+- **Decision:** the pick is the **"You" of "You don't know what my father wants for her."** -
+  `twrvxl_oldfriend_d_S_INT.043.ogg`, `0.000-0.300` - measured at 10 ms: the /j/ onset at 0.06, the
+  stressed /u/ within 3 dB of the file's peak at 0.16-0.20, and the decay into the /d/ closure at
+  0.29-0.31, which is where the cut ends ("don't" starts at 0.33). Chosen over "You'll die for that,
+  bitch!" (same delivery, but the /l/ is audible) and over "You ass." (the word is 60 ms there, too
+  short to be a call).
+- **Measured, not asserted:** the shipped clip is **0.289 s at -1.4 dBFS peak**; the pack rebuilds to
+  12,608,121 B `6b7d827dfe93` (was 13,926,249). 158 ids carry it.
+- **Held to:** `tests/test_hila_cut_edges.py::test_the_hey_you_line_is_one_shouted_word` (silent head,
+  the vowel at the loudest point, the tail inside the closure, "don't" still at 0.33 s, 0.20-0.40 s).
+- **Rejected:** keeping three words and trusting the game to play more of it (it does not);
+  synthesising a "you" (the pack is one voice, unprocessed); skewing the clip's length (a shorter file
+  does not make the game play more of it).
+- **Source:** `voice_lines_vox/miranda_lawson/slot_picks.csv`, `tools/fit_hila_intents.py`,
+  `tools/build_hila_stream_mod.py`.
+- **Status:** holds offline only; heard by the user only after the next in-game pass.

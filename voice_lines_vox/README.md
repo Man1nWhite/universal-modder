@@ -90,6 +90,10 @@ Miranda has no line for several PD2 barks; those slots keep the closest availabl
   "I'd rather we didn't.", the one take that reads as *don't do that* rather than as despair; it
   replaced "There's nothing we can do," on 2026-11-25 after that was heard not to fit.
 - `tech.fix` ("Fix it") - nearest line is "You'll have to do it.".
-- `call_teammate.hey_you` ("Hey, you") - no "hey" anywhere, so it says "you take point.".
+- `call_teammate.hey_you` ("Hey, you") - no "hey" anywhere in the 866 transcripts, so the line is
+  one word: an emphatic **"You!"**, the word cut out of "You don't know what my father wants for
+  her." (`twrvxl_oldfriend_d_S_INT.043.ogg`, 0.000-0.300). The 2026-11-25 report heard the previous
+  pick - "you take point" - as just "you" in game, so the slot now ships exactly that word, shouted,
+  and short enough that no cut-off can bite it.
 
 Re-cut those slots (`slot_picks.csv`) if a matching take is ever recorded.

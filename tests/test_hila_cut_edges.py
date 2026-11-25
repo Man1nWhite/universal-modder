@@ -5,7 +5,9 @@ one thing a pick has to get right is its two edges. Two of them did not, and the
 2026-11-25 report heard it in the game: `civ.down` ended at 1.020 s of
 `procer_cover_tutorial_a_S_INT.011.ogg`, which is inside "Shepard" ("keep you head
 down, Shep"), and `call_teammate.hey_you` started at 1.310 s of
-`profre_cover_tutorial_a_S_INT.002.ogg`, on the "-ard" of the same name.
+`profre_cover_tutorial_a_S_INT.002.ogg`, on the "-ard" of the same name. That slot has since
+been re-picked twice - once to three words from the same take, then (2026-11-25, D67) to one
+shouted "You" - so its test now measures that word instead.
 
 Both are now measured rather than guessed, and these tests measure them again: the
 edges are decoded from the tracked archive with the pinned `py7zr` and
@@ -35,7 +37,7 @@ HF_BAND = (4000, 9000)
 #: the source oggs the pinned picks cut from
 SOURCES = (
     "procer_cover_tutorial_a_S_INT.011.ogg",   # civ.down
-    "profre_cover_tutorial_a_S_INT.002.ogg",   # call_teammate.hey_you
+    "twrvxl_oldfriend_d_S_INT.043.ogg",        # call_teammate.hey_you
     "norvx_relationship_03_h_S_INT.037.ogg",   # cop.hands
     "norvx_starter_h_S_INT.006.ogg",           # civ.nophone
 )
@@ -138,26 +140,33 @@ def test_the_down_line_ends_before_the_name(decode_source):
     assert 0.5 < end - start < 1.0
 
 
-def test_the_hey_you_line_starts_and_ends_in_silence(decode_source):
-    """`call_teammate.hey_you`: "you take point" from gap to gap, no "-ard" head."""
+def test_the_hey_you_line_is_one_shouted_word(decode_source):
+    """`call_teammate.hey_you`: one emphatic "You", gap to gap.
+
+    The slot asks a teammate to come to you, so the whole line is the call: the pick is the
+    "You" of "You don't know what my father wants for her." - the /j/ onset, the stressed /u/
+    and the decay into the /d/ closure of "don't", which is where the cut ends. The pack has
+    no "hey" anywhere in its 866 transcripts (see `voice_lines_vox/README.md`), and the
+    2026-11-25 report heard the three-word pick as just "you", so one word it is.
+    """
     pick = _pick("call_teammate.hey_you")
     pcm = decode_source(pick["source_ogg"])
     start, end = float(pick["t_start"]), float(pick["t_end"])
     loudest = _loudest_db(pcm, start, end)
 
-    # Both edges are gaps, well under the clip's own loudest 20 ms: the "-ard" of
-    # "Shepard," is behind the start (the 1.310 s edge cut into it) and the next
-    # word's fricative is after the end.
+    # It starts in silence, then the /j/ glide brings the voice in.
+    assert start <= 0.010
     assert _level_db(_window(pcm, start, start + 0.015)) < loudest - 15
-    assert _level_db(_window(pcm, end - 0.015, end)) < loudest - 20
+    # One stressed word: the vowel peaks within 6 dB of the loudest point ...
+    assert _level_db(_window(pcm, start + 0.15, start + 0.20)) > loudest - 3
+    # ... and the clip is over inside the /d/ closure, before "don't" starts at 0.33 s.
+    assert end <= 0.32, "the cut runs into the next word"
+    assert _level_db(_window(pcm, end - 0.015, end)) < loudest - 15
+    assert _level_db(_window(pcm, 0.33, 0.36)) > loudest - 20, \
+        "the next word is no longer where the cut assumes it is; this diagnosis is stale"
 
-    # Three words, not one: the plosive closure of "point" is in there ...
-    assert _level_db(_window(pcm, start + 0.30, start + 0.40)) < loudest - 20
-    # ... and the "t" of "take" is the high-band burst that separates them.
-    assert _hf_share(_window(pcm, start + 0.16, start + 0.21)) > 0.40, \
-        "the 't' of 'take' is missing"
-
-    assert 0.55 < end - start < 0.80, "the clip is not the length of the three words"
+    # A call-out, not a sentence: a third of a second, and nothing else in it.
+    assert 0.20 < end - start < 0.40
 
 
 def test_the_stop_line_is_the_word_and_not_the_next_one(decode_source):

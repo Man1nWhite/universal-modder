@@ -3,7 +3,7 @@ ammo.low,Low ammo.,norvx_loyalty_01_h_S_INT.023.ogg,2.240,2.660,,I'm out,"""I'm 
 assault.incoming,Cops incoming.,endgm2_longwalk_a_S_INT.063.ogg,0.000,0.630,,Incoming.,unchanged from previous fit
 assault.ready,Get ready.,endgm2_longwalk_a_S_INT.065.ogg,0.000,0.700,,"Ready,","trimmed ""Commander?"""
 assault.retreat,They are pulling back.,horcr1_collector_retreat_c_S_INT.010.ogg,0.000,0.690,,They're pulling out.,unchanged from previous fit
-call_teammate.hey_you,"Hey, you.",profre_cover_tutorial_a_S_INT.002.ogg,1.450,2.105,,you take point.,"""you take point"" - ""ard"" of ""Shepard,"" trimmed off the front (silence at 1.450) and the next word's fricative off the end (silence at 2.10)"
+call_teammate.hey_you,"Hey, you.",twrvxl_oldfriend_d_S_INT.043.ogg,0.000,0.300,,You!,"the word ""You"" alone, shouted: ""You don't know what my father wants for her."" 0.00-0.30 is the /j/ onset at 0.06, the stressed /u/ peaking -9.6 at 0.16-0.20 and decaying into the /d/ closure at 0.29-0.31 (the next word, ""don't"", starts at 0.33). The slot is a call-out, so one emphatic ""You"" is the whole line."
 caution.wait,Wait.,norvx_relationship_03_h_S_INT.045.ogg,0.560,0.780,,"wait,","trimmed ""Shepard,"" + tail"
 caution.watch,Careful.,cspcr2_platform_approach_h_S_INT.020.ogg,0.000,0.470,,Look out.,unchanged from previous fit
 civ.dontmove,Do not move.,procer_wakeup_c_S_INT.002.ogg,0.920,1.670,,don't try to move.,"literally ""don't move"", trimmed ""Shepard,"""
