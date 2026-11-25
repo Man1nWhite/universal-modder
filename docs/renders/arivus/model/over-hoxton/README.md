@@ -12,7 +12,13 @@
   The head is framed higher than the female heisters' — Old Hoxton's `g_head_old_hoxton` sits at
   `z ≈ 159–188 cm` inside the shared suit model — so the sheet passes its own portrait framing.
 - **What is textured:** the replaced head and hair (one `ALPHA_MASKED` atom, skin in the atlas top
-  half and cutout hair in the bottom half) and the collar. Suit, gloves and forearms are rendered with
+  half and cutout hair in the bottom half) and the collar. The head is clean-shaven: Random4 paints
+  the beard, moustache and sideburns into `head_diff_000_a_whi` instead of modelling them, so the
+  build inpaints that U-shaped region with skin sampled around it (`shave_arivus_face` in
+  `tools/build_joy_head_mods.py`) and lays the ped's own painted lips, nostrils, ears and eyebrows
+  back on top. The open eyes come from the ped's eyeball raster, which only lands on the eye quads
+  when the source UVs are read in their own order — Random4's v = 0 is the texture top, so the
+  builder no longer mirrors v before packing the atlas. Suit, gloves and forearms are rendered with
   flat placeholder colours to isolate the replacement. The pack is built on *FPS Gloves in TPS*, so
   the hands in the third-person frame are that base mod's gloves; there is no separate `fps_*.model`
   unit in this pack and therefore no first-person sheet.
