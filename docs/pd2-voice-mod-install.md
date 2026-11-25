@@ -93,6 +93,9 @@ Notes:
 
 ## 3. Requirements and install steps
 
+*Dropped route (D61): nothing below ships — the pack these steps install is no longer built. See the
+note at the top of this page.*
+
 Prerequisites (both are hard requirements — the mod is silent without them):
 
 1. **SuperBLT** (any 64-bit build that exposes `blt.xaudio`). The XAudio API is what plays the OGGs;

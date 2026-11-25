@@ -425,18 +425,23 @@ def manifest_rows(rows, picks, oggs, splits) -> list[list[str]]:
         path, idx, a, b, _score = piece
         slot_piece[slot] = (path, idx, a, b)
         slot_file[slot] = path
+    # one row per slot: the cut table is per voice-line id, and several ids answer
+    # the same slot; the first row's cut line is the one the slot's clip is cut for
+    cut_line: dict[str, str] = {}
+    for row in rows:
+        cut_line.setdefault(row["slot"], row["cut_line"])
     out = [["slot", "cut_line", "source_ogg", "piece", "t_start", "t_end", "duration_s", "splits"]]
-    for row in sorted(rows, key=lambda r: r["slot"]):
-        slot = row["slot"]
-        if slot not in slot_piece:
-            continue
+    for slot in sorted(slot_piece):
         path, idx, a, b = slot_piece[slot]
-        cut = row["cut_line"]
+        cut = cut_line.get(slot, "")
         pk = picks.get(slot)
         if pk and pk.get("cut_line"):
             cut = pk["cut_line"]
+        # a spliced pick is as long as its pieces, not as long as the span it covers
+        ranges = parse_splits(pk.get("splits", "")) if pk else []
+        heard = sum(e - s_ for s_, e in ranges) if ranges else b - a
         out.append([slot, cut, Path(path).name, idx, f"{a:.3f}", f"{b:.3f}",
-                    f"{b - a:.3f}", pk.get("splits", "") if pk else ""])
+                    f"{heard:.3f}", pk.get("splits", "") if pk else ""])
     return out
 
 
@@ -453,12 +458,13 @@ def main(argv=None) -> int:
     if not ARCHIVE.is_file():
         raise SystemExit(f"missing {ARCHIVE}")
     oggs = list_archive_oggs()
+    rows = manifest_rows(load_cuts(), load_picks(), oggs, load_splits())
     buf = io.StringIO()
-    writer = csv.writer(buf, lineterminator="\n")
-    writer.writerows(manifest_rows(load_cuts(), load_picks(), oggs, load_splits()))
+    writer = csv.writer(buf)
+    writer.writerows(rows)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(buf.getvalue(), encoding="utf-8")
-    print(f"wrote {args.out} ({buf.getvalue().count(chr(10)) - 1} slots)")
+    print(f"wrote {args.out} ({len(rows) - 1} slots)")
     return 0
 
 

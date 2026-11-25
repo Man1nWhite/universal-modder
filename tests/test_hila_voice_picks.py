@@ -128,3 +128,22 @@ def test_the_stream_pack_carries_its_own_map():
     assert any(n.endswith("hila_stream_map.csv") for n in names), names[:5]
     streams = [n for n in names if n.endswith(".stream")]
     assert len(streams) > 800, len(streams)
+
+
+def test_the_tracked_pieces_manifest_is_what_the_picks_say():
+    """`hila_slot_pieces.csv` is the build record; it must be the picks, rebuilt.
+
+    Nothing ships it any more (D61), which is exactly why it has to be checkable:
+    it is the only line-by-line record of which ogg window each slot is cut from.
+    """
+    import io
+
+    if not vo.ARCHIVE.is_file():
+        pytest.skip("references/Голос Лоусон.7z is absent from this sandbox snapshot")
+    pytest.importorskip("py7zr", reason="the picks are resolved against the archive listing")
+    rows = vo.manifest_rows(vo.load_cuts(), vo.load_picks(), vo.list_archive_oggs(), vo.load_splits())
+    buf = io.StringIO()
+    csv.writer(buf).writerows(rows)
+    with (DIR / "hila_slot_pieces.csv").open(newline="", encoding="utf-8") as f:
+        tracked = f.read()
+    assert buf.getvalue() == tracked, "hila_slot_pieces.csv is stale: run tools/hila_voice_clips.py"
