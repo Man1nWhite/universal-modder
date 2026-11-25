@@ -81,7 +81,8 @@ LAS_TARGETS = {
 }
 # Native full replacements go here; other *_over_* packs are head-only.
 TARGETS = {**LAS_TARGETS, "OfficeSuite_Miranda_Romance_over_Hila": "hila",
-           "Miranda_Lawson_VO_over_Hila": "voices"}
+           "Miranda_Lawson_VO_over_Hila": "voices",
+           "Miranda_Lawson_VO_over_Hila_Stream": "voices_stream"}
 HEADS = "heads"
 
 MAKE = "make -sC tools/pd2-las"

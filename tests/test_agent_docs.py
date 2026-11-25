@@ -30,8 +30,8 @@ OTHER_DOCS = ["CONTRIBUTING.md", "references/README.md"]
 START_BUDGET = 5000
 #: bytes of `make status`, one JSON object an agent reads whole. A tracked pack is ~90 bytes of it
 #: (name, size, 12 hex digits, target), so the budget is raised when a pack is added, not squeezed
-#: onto: 2,720 leaves room for another pack above the ones that are tracked now.
-STATUS_BUDGET = 2720
+#: onto: 2,830 is 2,735 (22 tracked packs, 2026-11-25, the stream voice pack) plus room for one more.
+STATUS_BUDGET = 2830
 
 
 def _status():
