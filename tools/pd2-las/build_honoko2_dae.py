@@ -166,13 +166,17 @@ SHADOW_DROPS = {"bra", "panties"}
 #: with nothing between it and the glove (user screenshots, 2026-11-25). Keeping some of
 #: the palm continues the arm down into the glove instead.
 #:
-#: The amount is set by the glove's own geometry (D63). The vanilla `g_hands` glove that
-#: the game draws starts 0.42 cm past the crease and is 3.5 cm in radius there, widening to
-#: 4.0 at 2 cm and 4.3 at 3 cm; this outfit's wrist is 3.46 cm and its palm passes the
-#: glove at about 2 cm. So the arm can be tucked 1.5 cm into the glove - a centimetre inside
-#: the rim - and no further: D62's 4 cm pushed the palm through the glove and the user saw
-#: the skin coming out of it.
-PALM_EXTEND_CM = 1.5
+#: The amount is set by the glove's own geometry (D63) and then by what the game showed (D65).
+#: The vanilla `g_hands` glove that the game draws starts 0.42 cm past the crease and is 3.5 cm
+#: in radius there, widening to 4.0 at 2 cm and 4.3 at 3 cm; this outfit's wrist is 3.46 cm and
+#: its palm passes the glove at about 2 cm. D63 tucked the arm 1.5 cm into the glove - a
+#: centimetre inside the rim - and the in-game screenshots of 2026-11-25 still showed a wedge of
+#: skin coming through the darker glove's cuff at the wrist bend: the arm is still growing
+#: (3.46 cm at the crease, 4.4 at 2 cm) where the glove's cuff is narrow, and the last
+#: half-centimetre of it is the fattest part. Cutting a little more takes that back - 1.25 cm,
+#: which after the 5% slim still reaches 0.6 cm, comfortably past the glove's 0.42 cm rim, so
+#: the D60 gap does not return.
+PALM_EXTEND_CM = 1.25
 
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
 #: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by

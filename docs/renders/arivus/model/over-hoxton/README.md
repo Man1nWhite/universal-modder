@@ -15,7 +15,8 @@
   half and cutout hair in the bottom half) and the collar. The head is clean-shaven: Random4 paints
   the beard, moustache and sideburns into `head_diff_000_a_whi` instead of modelling them, so the
   build inpaints them away (`shave_arivus_face` in `tools/build_joy_head_mods.py`, D64). The mask
-  grows along the stubble to the ear's lighter rim rather than stopping at a geometric hairline; the
+  is a rim of 8 px grown along the stubble from the geometric beard (D66 - a search over the whole
+  raster repainted the face, which the 2026-11-25 in-game portrait showed); the
   fill relaxes from the clean skin ring around it, takes that ring's level (a ±15% gain) and the
   raster's own pore-and-freckle structure at 1.10x, and is feathered into the untouched skin over
   2.5 px — so the shaved jaw carries grain and shading instead of a flat panel, with no seam where

@@ -1606,3 +1606,64 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Status:** holds offline only. `runtime_verified` stays `false`; the offline render is a software
   Z-buffer with diffuse textures and no lighting rig, so the checklist's Arivus step is what settles
   whether the shave reads as skin in game.
+
+### D65 — The palm cut goes back to 1.25 cm: the arm's fattest half-centimetre was still in the glove's cuff
+
+- **Decided:** 2026-11-25, by the user, looking at `OfficeSuite_Head` in game (two first-person
+  screenshots with the black FPS-gloves glove): *"pretty close, just need to cut a bit more."*
+  The hand was gone and the cuff covered the wrist, but a wedge of skin still showed through the
+  glove's cuff at the wrist bend.
+- **Why.** D63's 1.5 cm kept a centimetre and a half of the palm, which is where the arm is still
+  growing: 3.46 cm in radius at the crease, 4.0 at 1.25, 4.4 at 2.0. The glove's cuff is 3.5 cm at
+  its rim and widens more slowly, so the last half-centimetre of the arm is the fattest part of it
+  and the part that finds its way through the cuff. Cutting a little more takes that back.
+- **Decision:** `PALM_EXTEND_CM = 1.25`.
+- **Measured, not asserted:** `clipped_to_cm` 1.25 per side, `kept_to_cm` **0.61** (left) and
+  **0.53** (right) after the 5% slim - both still past the glove's 0.42 cm rim, so D60's gap does
+  not return - `tris_split` 68, `verts_added` 70, `removed_tris` 2,242, `rim_cap_tris` 74. The
+  shipped `g_body` is 31,666 vertices (61,525 after the slim), still with no hand-dominated vertex.
+  Packs: `OfficeSuite` 5,737,727 B `d9438879522d`, `OfficeSuite_Head` 10,356,127 B `b21084a4c8d3`,
+  `OfficeSuite_Miranda_Romance_over_Hila` 14,828,794 B `77082170d623`.
+- **Held to:** `tests/test_palm_cut.py` (1.25 in the record, `kept_to_cm` between 0.45 and 1.25
+  **and past 0.42**, the mesh reaching 0.45–1.25 cm, no hand-dominated vertex);
+  `tests/test_pd2_las.py` (31,666 / 61,525, `clipped_to_cm` 1.25);
+  `tests/test_hila_body_override.py` (the same cut on the override's body).
+- **Rejected:** 1.0 cm and below (the slim pulls the mesh back to 0.27–0.33 cm, short of the
+  glove's 0.42 cm rim: D60's gap returns); going back to D63's 1.5 (that is the build the user is
+  looking at); sliming the wrist itself (inventing geometry at the one place the user can see, and
+  the outfit's arm is the donor's).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM`), `tests/test_palm_cut.py`.
+- **Status:** holds offline only; `runtime_verified` stays `false`. The next lever, if a wedge of
+  skin is still visible, is the arm's radius at the cut rather than the cut's depth.
+
+### D66 — The shave fills the beard, not the face
+
+- **Decided:** 2026-11-25, by the user, from the in-game portrait: *"Arivus still need work on
+  textures."* The face read washed out and flat, with a faint rectangle around it.
+- **Why.** D64's mask grew from the beard through every pixel darker than 90% of this raster's own
+  skin level. That raster's *whole face* is darker than its own skin level - cheeks, the nose's
+  flank, the eye sockets - so the flood ran straight through the face and repainted all of it: the
+  nose lost its shading, the cheeks their structure, and the growth's bounding box left a soft
+  rectangle from temple to jaw. The fill itself was never the problem; the mask was.
+- **Decision:** the growth is a **rim**, not a search: `dark` pixels only within 8 px
+  (`MaxFilter(17)`) of the geometric beard - wider than the painted edge, far narrower than a
+  cheek. Two consequences were then handled explicitly: (a) the hairs the ped paints onto the skin
+  under the lower lip are reddish enough to pass the lip test and were being pasted back as a
+  "soul patch", so below the mouth slit (`y > 276`) any pixel darker than 70% of skin is returned
+  to the mask; (b) single hairs stranded by the rim limit are swept: inside the filled area (plus a
+  2 px skirt), a pixel darker than 80% of the local fill becomes that fill.
+- **Measured, not asserted:** the shave now changes 18.9% of the raster instead of 100% of the
+  face, the nose and eye sockets keep their original shading, the chin's hair patch goes from
+  luminance **94.3 to 123.4**, and the lips/upper-lip/slit pixels are unchanged (≤4). The pack is
+  8,433,226 B `6b356c19e0d8`.
+- **Held to:** `tests/test_arivus_shave.py` (beard gone, jaw structure, no seam, features intact,
+  the chin patch brightened, alpha and layout untouched, reproducible).
+- **Rejected:** keeping the face-wide growth and fixing the tone afterwards (the shading it
+  destroys cannot be put back); protecting the whole mouth oval as D64 did (it pasted the hair
+  under the lip on with it); a red-channel test to separate lip from chin hair (this raster's
+  skin sits at redness 44–50 against the lips' 50–64 - too close to threshold).
+- **Source:** `tools/build_joy_head_mods.py` (`shave_arivus_face`, `LIP_ROWS`),
+  `tests/test_arivus_shave.py`.
+- **Status:** holds offline only. Known and left alone: the hairline is the hair mesh's own alpha
+  edge, which no texture here can soften, and the ped's painted skin carries compression mottling
+  on the cheeks.

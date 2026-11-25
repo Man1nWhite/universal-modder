@@ -46,7 +46,7 @@ FEATURE_BOXES = {
     "right ear": (slice(205, 220), slice(411, 429)),
     "left brow": (slice(176, 186), slice(200, 240)),
     "right brow": (slice(176, 186), slice(275, 315)),
-    "lips": (slice(262, 282), slice(238, 272)),
+    "upper lip and mouth slit": (slice(262, 276), slice(238, 272)),
 }
 #: the mask's bottom edge (the jaw) and a row well inside the filled area, for the seam check
 SEAM_ROW, INTERIOR_ROW = 344, 330
@@ -139,6 +139,20 @@ def test_the_face_keeps_its_features(name: str, head_cell: np.ndarray, shaved: n
     changed = int((np.abs(before - after).max(axis=2) > 0).sum())
     # the feather's outermost pixel can touch a feature's rim; a repaint would move hundreds
     assert changed <= 4, f"{changed} pixels of the {name} changed"
+
+
+@needs_assets
+def test_the_lower_lip_is_not_a_shadow_patch(shaved: np.ndarray, head_cell: np.ndarray) -> None:
+    """The chin hairs under the lower lip are gone, and the lip above them is not.
+
+    The ped paints sparse hairs onto the skin below the lower lip; they are darker than 70% of
+    skin, which is the line D66 gives back to the mask. The lip itself sits above that line, so
+    the two rows under the mouth must come out brighter than they went in, by a lot.
+    """
+    before = _lum(head_cell)[285:305, 230:285]
+    after = _lum(shaved)[285:305, 230:285]
+    # 94.3 before, 123.4 after: the hairs and their shadow are skin now
+    assert float(after.mean()) > float(before.mean()) + 20.0
 
 
 @needs_assets

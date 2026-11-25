@@ -2397,6 +2397,9 @@ ARIVUS_SKIN_PATCHES = ((112, 150, 200, 320), (196, 216, 178, 225),
                        (196, 216, 300, 347), (300, 330, 190, 232))
 #: The cleanest patch of the same raster: the structure the fill borrows (D64)
 ARIVUS_DETAIL_PATCH = (118, 150, 196, 330)
+#: The rows the painted mouth occupies on the same raster (`y 252..288`): a column's lip
+#: span is clipped to them so the chin hair under the lower lip cannot join the lips.
+LIP_ROWS = slice(252, 289)
 
 
 def _blur(arr: np.ndarray, radius: float) -> np.ndarray:
@@ -2465,14 +2468,25 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
     # each column keeps the span from its top lip pixel to its bottom one (that span is
     # the slit) and the result grows by one pixel for the lip's own antialiased outline.
     redness = rgb[:, :, 0] - (rgb[:, :, 1] + rgb[:, :, 2]) / 2.0
-    mouth_oval = ((xx - 254) / 44.0) ** 2 + ((yy - 272) / 22.0) ** 2 <= 1.0
+    mouth_oval = ((xx - 254) / 44.0) ** 2 + ((yy - 270) / 18.0) ** 2 <= 1.0
     lip_core = mouth_oval & (redness > 48.0) & (lum > 66.0)
     lip = np.zeros((H, W), dtype=bool)
     for col in np.nonzero(mouth_oval.any(axis=0))[0]:
-        rows = np.nonzero(lip_core[:, col])[0]
+        # the span is clipped to the mouth's own rows: the shadow under the lower lip is
+        # reddish and bright enough to pass the lip test, and letting a column's bottom
+        # follow it pastes the chin hairs back on (which is what the portrait showed)
+        rows = np.nonzero(lip_core[LIP_ROWS, col])[0]
         if rows.size:
-            lip[rows.min():rows.max() + 1, col] = True
+            lip[rows.min() + LIP_ROWS.start:rows.max() + LIP_ROWS.start + 1, col] = True
     lip &= mouth_oval
+    # The ped paints sparse hairs straight onto the skin under the lower lip, and a few of
+    # them are reddish enough to pass the lip test and join the protected set - which pastes
+    # a "soul patch" back on a clean-shaven face. Below the mouth slit they are given back to
+    # the mask; the slit itself (above this line) stays protected with the lips.
+    if lip.any():
+        under_lip = yy > 276
+        scars = under_lip & (lum < 0.70 * skin_lum)
+        lip &= ~scars
     protect |= lip
     feature |= protect
     # eyebrows: the dark blobs that sit above the eye line
@@ -2518,7 +2532,7 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
     # outside them carry the beard's shading, and keeping that ring would leave a
     # dark halo around the restored features.
     ring = np.asarray(
-        Image.fromarray((feature * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(9))
+        Image.fromarray((feature * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(17))
     ) > 127
     mask |= ring & ~protect
     mask = np.asarray(
@@ -2527,7 +2541,17 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
     mask &= ~protect
 
     # --- grow along the stubble: the painted edge is soft, the mask must not be ---
-    dark = (lum < 0.90 * skin_lum) & (yy >= 130) & (yy <= 352) & (xx >= 112) & (xx <= 412) & ~protect
+    # The growth is a *rim* around the geometric beard, not a search over the face: this
+    # raster's whole face is darker than its own skin level (cheeks, the nose's flank, the
+    # eye sockets), so a dark-pixel flood from the beard runs straight through it and
+    # repaints the entire face - which is exactly what the first D64 build did, and what
+    # the washed-out rectangle in its portrait was. Eight pixels is wider than the painted
+    # edge and far narrower than a cheek.
+    rim_ok = np.asarray(
+        Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(17))
+    ) > 127
+    dark = ((lum < 0.90 * skin_lum) & rim_ok & (yy >= 130) & (yy <= 352)
+            & (xx >= 112) & (xx <= 412) & ~protect)
     queue = deque(map(tuple, np.argwhere(mask)))
     while queue:
         cy, cx = queue.popleft()
@@ -2566,6 +2590,22 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
             den += wsl
         good = mm & (den > 0)
         sub[good] = num[good] / den[good][:, None]
+
+    # --- sweep the specks the growth could not reach ---
+    # A painted edge that thins into single hairs leaves them stranded where the rim stops,
+    # and a hair on a flat cheek reads as a freckle. Anything inside the filled area (plus a
+    # two-pixel skirt) that is much darker than the fill around it becomes that fill.
+    filled = np.clip(np.rint(sub), 0, 255).astype(np.uint8)
+    local = np.stack(
+        [_blur(filled[:, :, c].astype(np.float32), 3.0) for c in range(3)], axis=2
+    )
+    band = np.asarray(
+        Image.fromarray((mm * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(5))
+    ) > 127
+    filled_lum = filled.astype(np.float32) @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    local_lum = local @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    specks = band & (filled_lum < 0.80 * local_lum)
+    sub[specks] = local[specks]
 
     # --- the fill takes the level of the clean skin just outside it ---
     ring_w = np.clip(_smooth_mask(mask, 6.0) - _smooth_mask(mask, 1.5), 0.0, 1.0)

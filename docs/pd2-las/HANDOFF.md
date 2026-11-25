@@ -34,7 +34,7 @@ first-person arms unit (D53): the same slim/cleared arms, registered with an `fp
 materials, and no head. Its hands are cut on the plane where the palm begins — through the PD2 `Hand` joint,
 perpendicular to the palm, 3.98° off the forearm axis — in the third-person body, the shadow caster and the
 first-person arms; the triangles that cross it are split rather than dropped, the rim is capped, and since
-D62/D63 the plane itself sits **1.5 cm further out, inside the wrist** (`PALM_EXTEND_CM`,
+D62/D63/D65 the plane itself sits **1.25 cm further out, inside the wrist** (`PALM_EXTEND_CM`,
 `palm_cut.extend_cm`), so the arm runs on into the heister's glove instead of ending above it, and
 stays inside it rather than through it (D59/D60/D62/D63). It registers `own_hands`,
 not the glove adapter: no default glove unit spawns, so the outfit's body has no hands by default, and a
@@ -62,10 +62,12 @@ shirt stay out). It overrides the four `shared_textures/old_hoxton_head[_p_]df/_
 cooked DODB containers; `diesel_model.py` reads those and the packed channel formats). Fit constants
 (Head-bone anchors, scale 83.25) are derived against the Rust male rig and proven offline
 (`build/arivus-solo-*.png`). The ped has no beard geometry — the beard, moustache and sideburns are
-painted into `head_diff_000_a_whi` — so the build inpaints them away (D64: mask grown along the
-stubble, harmonic fill from the clean skin ring, tone-matched at ±15%, the raster's own structure
-added at 1.10x, feathered; lips, nostrils, ears and brows pasted back), and the pack is
-clean-shaven by construction rather than by texture choice. Not seen in game.
+painted into `head_diff_000_a_whi` — so the build inpaints them away (D64/D66: a mask grown 8 px
+along the stubble from the geometric beard, a harmonic fill from the clean skin ring, tone-matched at
+±15%, the raster's own structure added at 1.10x, feathered; lips, nostrils, ears and brows pasted
+back), and the pack is clean-shaven by construction rather than by texture choice. Seen in game on
+2026-11-25, which is why D66 exists: D64's mask had grown through the whole face and washed it out.
+Not seen since.
 
 ## Seen in game
 

@@ -538,3 +538,29 @@ that two runs are byte-identical. Sheets re-rendered with `--unified`; the pack 
 
 `runtime_verified` stays `false`: the portrait is a software Z-buffer with diffuse textures, and
 the in-game checklist's Arivus step is what settles whether the shave reads as skin.
+
+## 2026-11-25 — the wrist cut a little shorter, the shave only on the beard
+
+Two reports from the game, both actionable.
+
+**`OfficeSuite_Head` (D65).** *"Pretty close, just need to cut a bit more."* The hands are off and
+the cuff covers the wrist, but the in-game screenshots show a wedge of skin through the glove's cuff
+at the wrist bend. `PALM_EXTEND_CM` goes 1.5 → **1.25**: the last half-centimetre of the arm is its
+fattest (4.0 cm in radius against the glove's cuff at 3.5–3.9) and that is the part finding its way
+through. Measured: `kept_to_cm` 0.61 / 0.53 after the slim, both still past the glove's 0.42 cm rim,
+`g_body` 31,666 vertices (61,525 slimmed), no hand-dominated vertex. Packs: `OfficeSuite`
+5,737,727 B, `OfficeSuite_Head` 10,356,127 B, `OfficeSuite_Miranda_Romance_over_Hila` 14,828,794 B.
+
+**Arivus (D66).** *"Still need work on textures."* The portrait showed it: D64's mask grew from the
+beard through every pixel darker than 90% of the raster's own skin level, and on this raster that is
+the *whole face* - so the flood repainted the cheeks, the nose's flank and the eye sockets, and its
+bounding box left a soft rectangle. The growth is now a rim of 8 px around the geometric beard
+(`MaxFilter(17)`); the face keeps its own shading. Two follow-ons: below the mouth slit, pixels
+darker than 70% of skin go back to the mask (the ped paints hairs onto the skin under the lower lip
+and a few passed the lip test, which is what pasted a "soul patch" on), and stranded single hairs
+inside the filled area are swept into the local fill. The shave now changes 18.9% of the raster
+instead of repainting the face; the chin patch goes from luminance 94.3 to 123.4. Pack 8,433,226 B
+(`6b356c19e0d8`).
+
+`tests/test_arivus_shave.py` holds the new behaviour (including the chin patch and the unchanged
+lips), and the sheets were re-rendered. `runtime_verified` stays `false` for every pack involved.

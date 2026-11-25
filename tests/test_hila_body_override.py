@@ -172,7 +172,7 @@ def test_the_outfits_hands_end_where_the_palm_begins(models, side):
 
     The plane is `build_models.palm_planes`: through the rig's `Hand` joint, along
     the axis to the four knuckles. Since D62 the cut sits `PALM_EXTEND_CM` past it
-    (1.5 cm since D63), inside the wrist, so the arm ends inside the heister's glove;
+    (1.25 cm since D65), inside the wrist, so the arm ends inside the heister's glove;
     the body inherits that cut from `dist/Honoka/OfficeSuite.zip`.
     """
     output, native, _ = models
@@ -185,7 +185,7 @@ def test_the_outfits_hands_end_where_the_palm_begins(models, side):
     indices = np.asarray(body.geo["blendindices"])
     weights = np.asarray(body.geo["blendweights"])
     dominant = palette[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
-    # Not one vertex is *dominated* by the hand or a finger: at 1.5 cm the cut is still
+    # Not one vertex is *dominated* by the hand or a finger: at 1.25 cm the cut is still
     # inside the wrist, so no hand geometry survives at all (D63). The rim may still
     # carry a hand bone as a minor influence, which is why this looks at the dominant
     # weight and not at any influence.
@@ -204,10 +204,10 @@ def test_the_outfits_hands_end_where_the_palm_begins(models, side):
     assert near.any()
     # The mesh reaches past the palm line by the extension, less what the slim pulls
     # back, and no further.
-    assert axial[near].max() <= 1.5, "geometry survives past the palm extension"
+    assert axial[near].max() <= 1.25, "geometry survives past the palm extension"
     # ... and it does not stop at the crease, leaving the glove in mid-air; the vanilla
     # glove's rim is 0.42 cm past the crease (D63).
-    assert axial[near].max() > 0.6, "the mesh stops short of the palm extension"
+    assert axial[near].max() > 0.45, "the mesh stops short of the palm extension"
 
 
 def test_the_stock_gloves_are_shipped_and_enabled(models, files):

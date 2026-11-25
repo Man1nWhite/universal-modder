@@ -202,11 +202,12 @@ Everything else for this pack is covered by the 2026-11-15 sections of the rende
 captures there predate this texture and cannot be used to judge the jewelry, and predate the
 first-person unit entirely.
 
-## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62/D63)
+## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62/D63/D65)
 
 Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it: everything from where
 the palm begins outwards is gone — and since D62 the cut sits **past that line**, inside the wrist
-(**1.5 cm**, `palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `1.5`), so the arm
+(**1.25 cm** since D65, `palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `1.25`,
+`kept_to_cm` 0.61 / 0.53 after the slim), so the arm
 continues down into the heister's glove instead of ending above it — and the rim is capped. The plane
 is still D60's: through the PD2 `Hand` joint, perpendicular to the palm. The pack registers
 `officesuite_own_hands.lua`, not the glove adapter: no default glove unit spawns, so the body has no
@@ -221,12 +222,15 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
 2. **No hands by default.** With gloves on "Default" the character's hands must be *absent* where the
    outline of a hand would be: the sleeve runs on past the wrist into a capped end, and no stock bare
    hand shows beside it. This is the D60 state and it is intended to look handless.
-   **The wrist is the D62/D63 fix:** the D60 build ended in a flat cap in mid-air, above the
+   **The wrist is the D62/D63/D65 fix:** the D60 build ended in a flat cap in mid-air, above the
    heister's glove, with a visible gap; the D62 build closed the gap by cutting 4 cm into the palm
    and came out through the glove instead. The cap must now sit *inside* the glove and stay there:
    no gap above the cuffs, no ring of background between the sleeve end and the glove, and **no
    skin showing through or around the glove** at the wrist, in any pose. Move the hand, aim, and
    reload — a spot of skin that appears on the glove in one pose is the extension being too deep.
+   D63 cut 1.5 cm and that wedge of skin was still there in the first-person screenshots of
+   2026-11-25; this build cuts 1.25 cm, which takes the arm's fattest half-centimetre out. If a wedge
+   survives this one, the lever is the arm's radius at the cut, not its depth.
 3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn over the cut and read
    as the character's hands, with the sleeve's cuff still outside it and no gap between them, and the
    arm's capped end hidden inside it. Then go back to "Default": the glove must disappear again
@@ -366,8 +370,11 @@ head texture and the build inpaints it. These are the checks the offline render 
    one face, not like a lighter panel: no straight line down either side of the face, no line across
    the jaw, and no dark crescent beside either ear. Turn the head in the lobby, where the light
    moves across it, and look at the jaw in the blackmarket preview too.
-2. **No stubble.** The painted beard's edge is soft; look for a reddish freckle-like shadow across the
-   lower face at close range (the collar & head 3/4 view in the sheet is the reference angle).
+2. **No stubble, and no washed-out face.** The painted beard's edge is soft; look for a reddish
+   freckle-like shadow across the lower face at close range (the collar & head 3/4 view in the sheet
+   is the reference angle) and for stray hairs under the lower lip. The face must also keep its own
+   shading — the nose's flank, the eye sockets and the cheeks were flat in the 2026-11-25 build
+   (D66: the shave had repainted the whole face), so a face that looks airbrushed is the failure.
 3. **The features are the ped's own.** Eyebrows, both lips (with the mouth's dark slit), nostrils and
    the ears should sit where they did before: nothing blurry, nothing doubled, no pale or thin mouth,
    and no drawn outline around it.
