@@ -112,6 +112,8 @@ coverage said had no tests (`um/sprite.py` 58% with no test file, `um/render3d.p
 ## Gates after the sweep
 
 ```
+make -sC tools/pd2-las green        → all 16 stages passed; 24 of 24 tracked zips are their
+                                      tracked bytes after a fresh build (683.6s)
 pytest -q tests                     → 1157 passed, 14 skipped   (budget: OK, 0 new skip reasons)
 python -m pyflakes um tools tests   → clean
 um kb check --index                 → PASS, 247 notes
