@@ -1933,3 +1933,46 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `tools/pd2-las/build_arivus_glb_pack.py`, `tests/test_arivus_glb_pack.py`,
   `AGENTS.md`, `CONTRIBUTING.md`, `tools/README.md`.
 - **Status:** holds; publishing outside the repo is still asked of the owner first.
+
+## D73 — The stream tables are tracked, and the Rust bank question stays open
+
+- **Decided:** 2026-11-26, by the user: *"find stream tables for Rust and Hoxton for the VO mod"*,
+  in the session that had just shipped the two character packs (D71) with the shared-bank keying
+  and no table to read the ids from.
+- **Why.** A `.stream` pack's whole contract is a file name: `soundbanks/streamed/<bank>/<id>.stream`.
+  The fork had the *event* table (`slot_event_ids.csv`, D61's failed route) and the shared id list
+  (`hila_intent_cuts.csv`), but nothing that said, per target heister, which bank folder and which
+  numeric ids its lines live in. That is exactly the question a "rust stream table" or a "hoxton
+  stream table" asks, and answering it by hand once is how a pack drifts from its zip.
+- **Found.** Two banks, never interchangeable: `regular_vox` (shared, one id set, every heister's
+  pack on it replaces everyone's line) and `char_<module>` (dedicated, its own ids —
+  `char_rust`, `char_sydney`, `char_joy` … in the community Wwise bank dump, `Javgarag/pd2-mods`,
+  `resources/wwise-ids/`). `references/Marine VO for Rust.7z.001+.002` is a reference Rust pack
+  carrying 1,046 `char_rust` ids plus a `<Sounds>` module whose only entry is `g36x_any`
+  (`prefix="rb16"`) → four `rust_med_kill` OGGs. Measured overlap between `char_rust`'s ids and the
+  shared `regular_vox` ids (the 885 the packs write): **0**. The `rb` numbers are Wwise switch
+  values, not folder names. No `char_hoxton` exists in the bank dump, so Old Hoxton stays
+  shared-bank.
+- **Decision:** `tools/build_stream_tables.py` (make `voices_tables`) writes the shared table per
+  target, tracked: `voice_lines_vox/targets/rust_shared_regular_vox.csv` and
+  `old_hoxton_shared_regular_vox.csv` — 885 rows each, `written=yes` on exactly the 315 / 324 ids
+  the tracked zips carry, the 27 Vorbis ids and unpicked slots marked vanilla, and
+  `dedicated_bank` naming the folder a heister's own bank would be. A `dedicated` table is only
+  ever *measured* from a reference pack (`--bank dedicated --dedicated <mod>`); it is not generated,
+  because ids of a dedicated bank cannot be derived. One is tracked:
+  `voice_lines_vox/targets/rust_dedicated_char_rust.csv`, the 1,046 `char_rust` ids of
+  `references/Marine VO for Rust.7z.001` + `.002` (py7zr joins the volumes).
+- **Measured, not asserted:** `tests/test_stream_tables.py` — the id sets equal `hila.load_ids()`,
+  `written` equals each zip's `.stream` file names, no Vorbis id is claimed, the dedicated-table test
+  skips when no measured table is tracked, and the doc names the tables, the folders and the
+  switches. The 0-overlap figure is from the reference archive, not from a document.
+- **Rejected:** deriving the bank from the switch (`rb16` → `char_rb16`: a folder the game does not
+  read); treating the reference Rust pack's `char_rust` as proof that Rust's *heister barks* stream
+  from there (it also carries objective callouts; nobody documents which lines move); writing an
+  empty `char_hoxton` table (no such bank is listed anywhere); re-keying the tracked packs onto a
+  dedicated bank before the question is settled (the shared pack works for the crew and is inert
+  for Rust at worst).
+- **Source:** `tools/build_stream_tables.py`, `voice_lines_vox/targets/`,
+  `docs/pd2-voice-stream-tables.md`, `tests/test_stream_tables.py`, `references/Marine VO for Rust.7z.001`.
+- **Status:** holds offline; **which bank Rust barks from is still an open question** (D71), and the
+  in-game check that settles it is `docs/pd2-las/in-game-checklist.md` 1e.
