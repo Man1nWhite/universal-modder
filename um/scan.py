@@ -797,8 +797,11 @@ def save_hints(name: str, det: dict) -> list[str]:
     cands = [Path(t.format(**wf)) for t in KNOWN_SAVES.get((name or "").lower(), []) if all(k in wf for k in re.findall(r"{(\w+)}", t))]
     if det.get("company") and det.get("product") and prof:
         cands.append(Path(prof) / "AppData/LocalLow" / det["company"] / det["product"])
+    # `prof and str(...)` yields "" when there is no profile, not None, so the old
+    # `{docs, ...} - {None}` never dropped it and `Path("")` probed the current directory.
+    document_dirs = list(dict.fromkeys(d for d in (docs, str(Path(prof) / "Documents") if prof else None) if d))
     for n in names:
-        for d in {docs, prof and str(Path(prof) / "Documents")} - {None}:
+        for d in document_dirs:
             cands += [Path(d) / "My Games" / n, Path(d) / n]
         if prof:
             cands += [Path(prof) / "Saved Games" / n, Path(prof) / "Games" / n]

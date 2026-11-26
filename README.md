@@ -41,6 +41,22 @@ rebuilt by `make -sC tools/pd2-las glb`.
 - Sources and templates are catalogued in [`references/README.md`](references/README.md). The
   [handoff](docs/pd2-las/HANDOFF.md) distinguishes in-game observations from offline results.
 
+## Cloning
+
+This is a heavy checkout by design: about 190 MB of built packs under `dist/`, ~220 MB of source
+archives under `references/` (the only copy of some of them), and ~40 MB of archived renders, so
+`.git` is around 420 MB with no Git LFS. Two ways to pay less:
+
+```sh
+git clone --filter=blob:none https://github.com/Man1nWhite/universal-modder   # blobs on demand
+git clone --depth 1 https://github.com/Man1nWhite/universal-modder            # one commit only
+```
+
+Agents that only need the toolkit, the knowledge base and the skills can go further and skip the
+packs and archives with a sparse checkout (`git sparse-checkout set --no-cone '/*' '!/dist' '!/references'`),
+then read [`tools/pd2-las/README.md`](tools/pd2-las/README.md) before rebuilding anything.
+`tests/test_repo_weight.py` stops a new file over 25 MB from being committed unnoticed.
+
 ## Installing
 
 Upstream's plugin, marketplace and extension commands install upstream, which has none of the above. To work
@@ -55,4 +71,12 @@ Skills are in `skills/`, copied to `.agents/skills` and `.claude/skills` where t
 config is in `.mcp.json`, `.codex/config.toml`, `.cursor/mcp.json`, `.vscode/mcp.json`,
 `gemini-extension.json` and `opencode.json`.
 
-MIT licensed ([`LICENSE`](LICENSE)); credits are in upstream's README.
+## Licence
+
+The **code, skills, knowledge base and documentation** are MIT licensed ([`LICENSE`](LICENSE));
+credits are in upstream's README. That grant covers what this repository authored, not the
+third-party material it carries as build input and as deliverables: the archives under
+`references/`, the game-derived meshes, textures and voice lines inside the ZIPs under `dist/`,
+and the archived captures under `docs/renders/` remain the property of their creators and are
+here at the owner's call. [`NOTICE.md`](NOTICE.md) says which is which and points at the
+per-archive provenance table in [`references/README.md`](references/README.md).

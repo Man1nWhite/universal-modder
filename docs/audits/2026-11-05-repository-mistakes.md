@@ -72,6 +72,14 @@ deliberate choice.
 
 ## Gates after the sweep
 
+**These are the numbers of 2026-11-05, not of today.** The tree has grown since (the fork's packs,
+the voice packs, the render archive), so a later `um publish check .` reports more files: quoting
+a count from a document is what `AGENTS.md` tells agents not to do, and the audit is the document
+most likely to be quoted. Take the current numbers from `make -sC tools/pd2-las green`, and note
+that on 2026-11-26 the publish check was back to **0 failures, 0 warnings** after two
+false-positive classes were fixed (archives already named in a README, and home-directory
+fixtures in test files).
+
 ```
 pytest tests -q                     → 500 passed, 46 skipped, 1 warning
 um kb check --index                 → PASS, 246 notes, 0 warnings

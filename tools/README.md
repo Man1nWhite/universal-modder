@@ -1,7 +1,12 @@
 # tools/ — the three PAYDAY 2 pipelines
 
 Commands for all of them are make targets in `tools/pd2-las/Makefile`, listed in `AGENTS.md`;
-`make -sC tools/pd2-las status` prints every pack with the target that rebuilds it. Which archive feeds which
+`make -sC tools/pd2-las status` prints every pack with the target that rebuilds it.
+**Without make** (native Windows, where the Makefile's `.venv/bin/python`, `bash` and GNU make do
+not exist), every target has the same name in `tools/tasks.py`:
+`python tools/tasks.py status`, `python tools/tasks.py build`, `python tools/tasks.py green`.
+`tests/test_tasks.py` fails while the two lists differ, so a target added to one is added to the
+other. The build targets write their builder's log to `build/pd2-las/<target>.log` either way. Which archive feeds which
 pack: `references/README.md`. ZIPs are grouped by character in `dist/`; their internal mod
 folders remain the installable names. The Hila Romance head's skin diffuse is matched to Honoko's
 body and therefore changes with that head on other bodies too.

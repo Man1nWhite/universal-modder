@@ -2,7 +2,7 @@
 
 Four user-supplied PNGs of `OfficeSuite` wearing white buttoned dress gloves in PAYDAY 2, archived
 byte-identically to the uploads (no resizing, recompression or annotation). They are the evidence
-for [D75](../../../../pd2-las/DECISIONS.md): the outfit's own wrist standing through the gloves'
+for [D75](../../../../../pd2-las/DECISIONS.md): the outfit's own wrist standing through the gloves'
 cuffs in first person, while the menu's third-person turntable looks nearly clean.
 
 | # | Upload | Archived file | View | Shows |
@@ -28,6 +28,6 @@ cuffs in first person, while the menu's third-person turntable looks nearly clea
   says anything about any other installed mod.
 - These are the **D70** build (the cut reverted to the crease). The fix in D75 came after them; the
   offline comparison of the same junction is in
-  [`../../model/wrist/`](../../model/wrist/README.md).
+  [`../../model/wrist/`](../../../model/wrist/README.md).
 
 Exact dimensions, sizes and SHA-256 digests of every file: [`manifest.json`](manifest.json).

@@ -113,6 +113,8 @@ def main(argv: list[str] | None = None) -> int:
                              [str(ROOT / "tools" / "pd2-las" / "pack_checksum.py")]))
         results.append(stage("lint", ["-m", "pyflakes", "um", "tools", "tests"]))
         results.append(um_groups())
+        results.append(stage("documentation links", [str(ROOT / "tools" / "pd2-port" / "check_links.py")]))
+        results.append(stage("documentation index", [str(ROOT / "tools" / "gen_docs_index.py"), "--check"]))
         results.append(stage("knowledge base", ["-m", "um", "kb", "check", "--index"]))
         results.append(stage("nothing that shouldn't ship", ["-m", "um", "publish", "check", "."]))
         # One run of the suite serves both stages: -rsxX adds the skip and xfail lines that the budget

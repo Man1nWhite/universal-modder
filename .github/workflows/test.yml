@@ -1,24 +1,35 @@
 name: test
-# workflow_dispatch: so that the checks can be run by hand on a branch, from the
-# Actions tab. Its one input picks the runner, for a one-off comparison on
-# another architecture (ubuntu-24.04-arm); every other run is on ubuntu-latest.
+# Two jobs, because one of them is ten times the other:
+#   `test`  — every gate that reads the tree: checksums, lint, links, docs index, the suite, the
+#             skip budget, the CLI help, the knowledge base and the publish check. About 3 minutes.
+#   `packs` — every tracked ZIP built again from scratch and compared byte for byte
+#             (`tools/pd2-las/fresh.py check`). Quarter of an hour; the only slow step.
+# Until 2026-11-26 both lived in one 35-minute job that ran on every push, so a docs typo cost a
+# 15-minute rebuild and a superseded push kept a runner busy to the end. `packs` now runs when it
+# can change the answer: a push to main, a tag, a nightly schedule, a manual run, or a pull
+# request that carries the `rebuild-packs` label. `make -sC tools/pd2-las green` runs both locally.
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "0 4 * * *"        # the packs are rebuilt nightly even when nothing changed
   workflow_dispatch:
     inputs:
       runner:
         description: runner label
         default: ubuntu-latest
+      rebuild_packs:
+        description: also rebuild every tracked pack (the `packs` job)
+        type: boolean
+        default: true
+# One run per branch: a superseded push is cancelled instead of holding a runner to the end.
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
-    # 20 minutes cancelled the last step mid-build (2026-11-18, this branch): it
-    # started at 3m20s and was still rebuilding the packs when the cap hit. That
-    # step rebuilds all packs from scratch and is the only long one, so the
-    # cap has to cover it plus the ~3m the rest of the job takes; `main` with 19
-    # packs finished the whole job in 18m42s, i.e. with no margin left.
-    timeout-minutes: 35
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -28,6 +39,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          # the wheels are the same on every run; only pins.txt decides them
+          cache: pip
+          cache-dependency-path: tools/pd2-las/pins.txt
       - name: install deps
         run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy py7zr imageio-ffmpeg "pyyaml>=6" pytest hypothesis
         # The versions of pillow and numpy are those of tools/pd2-las/pins.txt.
@@ -45,13 +59,17 @@ jobs:
       - name: unpack 2B templates
         run: python tools/pd2-las/extract_2b.py
       - name: verify the checked-in pack checksums
-        # The suite reads the original artifacts. The independent rebuild
-        # below writes only inside build/fresh/.
+        # The suite reads the original artifacts. The independent rebuild in the
+        # `packs` job writes only inside build/fresh/.
         run: python tools/pd2-las/pack_checksum.py
       - name: lint
         # unused imports and dead locals accumulate silently otherwise; this is the whole check
         run: python -m pip install --quiet pyflakes && python -m pyflakes um tools tests
-
+      - name: documentation
+        # every relative Markdown link resolves, and docs/README.md lists every document
+        run: |
+          python tools/pd2-port/check_links.py
+          python tools/gen_docs_index.py --check
       - name: tests and skip budget
         run: |
           set -o pipefail
@@ -63,24 +81,37 @@ jobs:
         run: ./bin/um kb check --index
       - name: nothing that shouldn't ship
         run: ./bin/um publish check .
+
+  packs:
+    # Every tracked pack must equal a fresh build, byte for byte. All 20 are built again in a
+    # copy of the checkout, on this runner, and each generated ZIP is compared to the verified
+    # byte digest of the original. No copied outputs can count. `env` makes the pinned .venv and
+    # unpacks the 2B templates first (node and npm, for node-unrar-js). The builders put
+    # themselves on the declared code path (tools/pd2-las/determinism.py), which is why a runner
+    # with AVX-512 and one without build the same bytes. Before 2026-11-12 they did not:
+    # docs/audits/2026-11-12-cpu-independence.md.
+    # The runner's CPU, the code path and the result are also written as notices: annotations are
+    # the one part of a run the GitHub API serves, so a tool that cannot open the log can still
+    # read what happened.
+    # On a runner that is not x86-64 (the one-off ARM comparison) the declared code path does not
+    # exist: the builders are left free and the step reports what differs.
+    needs: test
+    if: >-
+      github.event_name == 'schedule'
+      || (github.event_name == 'workflow_dispatch' && inputs.rebuild_packs)
+      || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'rebuild-packs'))
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: verify the checked-in pack checksums
+        run: python tools/pd2-las/pack_checksum.py
       - name: every tracked pack must equal a fresh build, byte for byte
-        # All 20 tracked packs are built again in a copy of the checkout, on
-        # this runner, and each generated ZIP is compared to the verified byte
-        # digest of the original. No copied outputs can count. `env` makes
-        # the pinned .venv and unpacks the 2B templates first (node and npm,
-        # for node-unrar-js). The builders put themselves on the declared code
-        # path (tools/pd2-las/determinism.py), which is why a runner with
-        # AVX-512 and one without build the same bytes. Before 2026-11-12 they
-        # did not: docs/audits/2026-11-12-cpu-independence.md.
-        # The runner's CPU, the code path and the result are also written as
-        # notices: annotations are the one part of a run the GitHub API serves,
-        # so a tool that cannot open the log can still read what happened.
-        # On a runner that is not x86-64 (the one-off ARM comparison) the
-        # declared code path does not exist: the builders are left free and the
-        # step reports what differs.
-        # Last in the job, and run even after a failure above, so that it
-        # always reports.
-        if: ${{ !cancelled() }}
         run: |
           make -sC tools/pd2-las env
           .venv/bin/python tools/pd2-las/fresh.py check ${{ runner.arch != 'X64' && '--free' || '' }}
