@@ -47,7 +47,7 @@ import build_hila_stream_mod as base  # noqa: E402  (load_ids, load_vorbis_ids, 
 BANK = "soundbanks/streamed/regular_vox"
 ZIP_DATE = (2026, 11, 25, 0, 0, 0)
 #: The banks a pack may be keyed on. `shared` is `regular_vox`; a dedicated bank is a folder
-#: under `soundbanks/streamed/` whose ids only a measuring source can name (D73, D75).
+#: under `soundbanks/streamed/` whose ids only a measuring source can name (D73, D76).
 BANKS = {"shared": BANK, "char_rust": "soundbanks/streamed/char_rust"}
 def bank_folder(bank: str) -> str:
     """The `soundbanks/streamed/...` folder a bank writes."""
@@ -171,7 +171,7 @@ def readme(pack_id: str, cfg: dict, n_files: int, n_ids: int, n_vorbis: int, sec
     return f"""{install}
 
 WHAT IT IS
-{cfg['target']} voice lines, replaced by short {cfg['speaker']} barks: this pack writes
+{cfg['target']}'s voice lines, replaced by short {cfg['speaker']} barks: this pack writes
 {n_files} files into soundbanks/streamed/regular_vox/ under the shared voice-line ids. The game plays
 a line by its id, so the clip answers that line whether it comes from a bark event, a heist script
 or a teammate callout - no event table to keep up to date.
@@ -245,7 +245,7 @@ def readme_dedicated(pack_id: str, cfg: dict, n_files: int, named: int, picked: 
     return f"""{cfg['install']} (Rust's own bank)
 
 WHAT IT IS
-{cfg['target']} voice lines, replaced by short {cfg['speaker']} barks: this pack writes
+{cfg['target']}'s voice lines, replaced by short {cfg['speaker']} barks: this pack writes
 {n_files} files into soundbanks/streamed/char_rust/, Rust's own streamed bank, so it changes Rust
 and no other heister. The game plays a line by its id, so the clip answers that line however it is
 posted - no event table, no BeardLib, no XAudio.

@@ -17,7 +17,7 @@ The local `voice_lines_vox/hila_regular_vox.csv` is the first row of this table 
 call complete.
 
 **No tab of either document is `char_rust`.** Requesting `gid`/`sheet` for it returns page one of
-`regular_vox`, so the re-key's id map (D75) is still unfilled; `char_sydney` shows what such a tab
+`regular_vox`, so the re-key's id map (D76) is still unfilled; `char_sydney` shows what such a tab
 looks like when a dedicated bank does get written up.
 
 **The one-click path.** Open the sheet → the tab → `File → Download → Comma-separated values (.csv)`

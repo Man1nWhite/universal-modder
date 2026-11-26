@@ -6,7 +6,7 @@ structure is a contract rather than a style. It broke twice before this test exi
 * **one number, twice.** The re-key entry was written as `D74` on top of the day's other `D74`
   (game-derived exports), so `(D74)` meant two things and a reader following a citation landed in
   the wrong decision.
-* **appended outside the sections.** D67-D76 were appended after the last section, at `##` in a
+* **appended outside the sections.** D67-D77 were appended after the last section, at `##` in a
   file where every other entry is `###`, so the table of contents lost them.
 
 `tools/check_decisions_index.py` prints the numbers and checks the same rules; this runs it.

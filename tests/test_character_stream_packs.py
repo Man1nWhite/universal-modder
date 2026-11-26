@@ -178,7 +178,7 @@ def test_the_arivus_pack_ships_its_own_takes_plus_the_borrowed_callout():
     assert picks["call_teammate.hey_you"]["source_ogg"] == "Геральт-Hoxton.mp3"
 
 
-# ---------------------------------------------------------------- the char_rust route (D75)
+# ---------------------------------------------------------------- the char_rust route (D76)
 
 def test_the_char_rust_route_refuses_until_an_id_is_named(tmp_path, monkeypatch):
     """`--bank char_rust` ships nothing on a guess: a dedicated bank's ids cannot be derived.

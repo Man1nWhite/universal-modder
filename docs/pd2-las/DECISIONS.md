@@ -20,9 +20,10 @@ the next free number, wherever it is filed. `python tools/check_decisions_index.
 this, and `tests/test_decisions_index.py` runs it.
 
 **One number, one entry.** D74 was used twice for a day — once for game-derived exports, once for
-the Geralt re-key — which made every citation of it ambiguous; the re-key is D75 and the sheet
-decisions that followed it moved up with it (D76, D77). That is the only edit this record has ever
-made to a number, and it was made before either was cited from outside the file.
+the Geralt re-key — which made every citation of it ambiguous. The re-key is now D76: the wrist fix
+merged on `main` took D75 first, so when the branch merged, the re-key and the two voice-sheet
+decisions after it moved up one (D76, D77, D78). Those are the only edits this record has made to a
+number, both in the same week, and both before the moved entries were cited from outside the file.
 
 **Where it comes from.** Reconstructed on 2026-11-11 from the commit messages
 on `main`, the audits in `docs/audits/`, `HANDOFF.md` and
@@ -44,7 +45,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone)
 
-*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D76](#d76--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D77](#d77--tab-inventory-which-bank-each-community-sheet-actually-covers)
+*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers)
 
 *Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed)
 
@@ -1398,7 +1399,72 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Status:** holds offline; **which bank Rust barks from is still an open question** (D71), and the
   in-game check that settles it is `docs/pd2-las/in-game-checklist.md` 1e.
 
-### D75 — Geralt's takes are re-keyed to `char_rust`; the map that names the ids is the one open input
+### D75 — The wrist twists on `ForeArmRoll`, and its ring is centred on the glove: OfficeSuite's cuff fix
+
+- **Decided:** 2026-11-26, by the user, from four in-game captures: *"I like Combine Idea 1 + a
+  gentle Idea 2."* The captures show `OfficeSuite` in first person with white buttoned dress
+  gloves: a sliver of the outfit's own wrist stands through the glove's cuff in the weapon poses
+  (`image-1`, `image-4`), while the menu's third-person turntable (`image-2`, `image-3`) looks
+  nearly clean.
+- **Why the gloves are not at fault.** The outfit's wrists are cut on the rig's palm plane (D59/D60,
+  extended and reverted at D62-D70), and the pack ships no hands, so what a glove does at the cuff
+  decides everything. Measured on the built mesh, the circle of skin the cut leaves is the right
+  size but sits off-centre: its centroid is 0.28 cm from the rig's `Hand` joint on the left wrist
+  and 0.54 cm on the right, because `retarget_maps` fits *one* rigid matrix per segment to both of
+  the source forearm's joints - on a 20 cm forearm a 1.75 deg angular error does that, and it lands
+  Honoka's wrist 3.4 cm from where the 2B rig's is. The widest sector of that offset ring faces the
+  dress gloves' button slit, which is the sector the captures show. On top of it the forearm was
+  still 100% `ForeArm` right up to the crease, where vanilla Sydney's own body has been handing the
+  distal forearm to `ForeArmRoll` since `u = 0.37` (full by `u = 0.80`) - so the outfit's wrist
+  stayed rigid while a glove's cuff turned with the forearm.
+- **Decision: one pass, after the slim** (`build_honoko2_dae._wrist_pass`). Three things, none of
+  them on the cut:
+  1. **Twist.** Over `u` 0.35 -> 0.95 of the forearm, `ForeArm`'s weight hands over to
+     `ForeArmRoll` (the rig's twist bone, a child of `ForeArm` halfway down it), which is vanilla
+     Sydney's own curve. The gold bracelet rides the forearm *and* its roll, so it rotates with the
+     wrist like a ring does - it is never bent.
+  2. **Hand.** Over `-3.2 .. -0.6 cm` of the palm's own axis, the wrist skin blends up to 0.30 of
+     `Hand` - the bone a glove is bound to - so in a bent-wrist pose the skin goes where the cuff
+     goes instead of lagging into it. It stops at 0.30, not 0.48: measured against four gloves, a
+     larger majority of `Hand` *increases* protrusion, because the skin then swings on the glove's
+     pivot and its rim flares out of the cuff. Under 0.5 also keeps every wrist vertex dominated by
+     `ForeArmRoll`, which `tests/test_palm_cut.py` and `tests/test_hila_body_override.py` require.
+  3. **Tuck and centre.** Over the same stretch the skin is pulled in 0.35 cm towards the palm's
+     axis (gentle Idea 2 - it is a 5 cm-wide wrist, not a rope), and the ring the cut leaves is
+     re-centred on the palm's axis by exactly the offset measured on that ring. The tuck fades out
+     over the last half centimetre of radius so the rim's cap vertices never cross the axis.
+  Both run on the outfit and the shadow caster, are restricted to the skin's own slice (the
+  bracelet only takes the twist), and keep every vertex at four influences or fewer.
+- **Ordering, and why it matters.** The pass runs *after* `_slim_groups`. The slim pulls each vertex
+  towards the rest point of the bones carrying it, and `ForeArmRoll`'s rest point is 10 cm down the
+  forearm from `ForeArm`'s: re-weighting first moved the slim's own anchors and with them
+  `kept_to_cm` (-0.76 affected nothing) and the floor shift every test pins.
+- **Measured, not asserted.** Rebuilt all three packs. `BUILD_INFO.json` now carries a `wrist`
+  block: ramp, blend, tuck, and per group `vertices_reweighted` 1,839, `vertices_tapered` 102,
+  `max_shift_cm` 0.88, `max_hand_weight` 0.297, palette + `Left/RightForeArmRoll`. The cut is
+  untouched: `kept_to_cm` -0.76 / -0.79, `clipped_to_cm` 0.0, body 31,643 vertices, slim 61,479.
+  Posed against the game's own gloves (`npc_criminal_sydney`, `joy`, `chill`'s Clover), the worst
+  sector where the skin's wall stands outside the glove's cuff across six wrist poses fell from
+  **+2.67 mm to +1.63** (Sydney), **+3.19 to -1.79** (Joy - inside the cuff now in every pose) and
+  **-2.61 to -5.51** (Clover). The capture-driven render, and the tool that prints that table:
+  [`docs/renders/honoka/model/wrist/`](../renders/honoka/model/wrist/README.md).
+- **Held to:** `tests/test_wrist_twist.py` (the recorded curve, the curve on the shipped mesh, no
+  hand-dominated vertex, the rim and the bracelet where they were, the shadow caster in step, and
+  the posed protrusion under 0.20 cm against three gloves).
+- **Rejected:** any change to the cut or to `PALM_EXTEND_CM` (D70 stands: an extension is what put
+  skin *inside* the glove); a `Hand` majority (it made the protrusion worse in the sweep, and it
+  would break the palm-cut tests); a rigid radial shrink of the whole wrist (it narrows the bare
+  stub in third person, where nothing was wrong); moving the bracelet (it is the outfit's own ring);
+  registering `glove_adapter` (D59/D60).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`TWIST_RAMP`, `HAND_BLEND_CM`,
+  `HAND_BLEND_MAX`, `TAPER_CM`, `TAPER_MAX_CM`, `CENTRE_WRIST`, `_wrist_pass`),
+  `tools/pd2-las/wrist_compare.py` (the offline comparison render), `tests/test_wrist_twist.py`,
+  `docs/renders/honoka/in-game/officesuite/2026-11-26/`.
+- **Status:** holds offline only; `runtime_verified` stays `false`, and these bytes have not been
+  seen in game. The dress gloves' own tightness at the cuff is still the limit: the pass removes
+  what the outfit contributed, not what the glove's material does.
+
+### D76 — Geralt's takes are re-keyed to `char_rust`; the map that names the ids is the one open input
 
 - **Decided:** 2026-11-26, by the user: *"redo Geralt VO with numbers from the Marine mod"* — the
   re-key option (not "both banks", not "tables only"), the same 29 Geralt takes
@@ -1444,11 +1510,11 @@ from documents, tests and tools, so they never change; the headings are appendix
   extract of the game's `soundbanks/streamed/char_rust` (or any source naming id → line) fills it
   and the next `make -sC tools/pd2-las voices_char_rust` produces the re-keyed pack.
 
-### D76 — The community voice-line sheet is a shared-bank source, imported not trusted
+### D77 — The community voice-line sheet is a shared-bank source, imported not trusted
 
 - **Decided:** 2026-11-26, by the user, who supplied the sheet and said *"add this info"*.
 - **Context:** the user supplied a Google Sheets export, tab `regular_vox`, as the id → line source
-  the re-key (D75) had been waiting for. Shape: a 6-row status block (99.88%, 20,293 complete,
+  the re-key (D76) had been waiting for. Shape: a 6-row status block (99.88%, 20,293 complete,
   50 partial, 0 incomplete, 32 marked `(?)`), then a `Who | What | Notes` header whose id column is
   unlabeled to its left, then 20,343 data rows. Its speakers are the vanilla shared cast (Clover,
   Bain, Chains, Dallas, Hoxton, Houston, Wolf, Wick, the cop/security/civilian voices) — **no Rust
@@ -1474,17 +1540,17 @@ from documents, tests and tools, so they never change; the headings are appendix
   `tests/fixtures/regular_vox_head.csv` (first 25 real rows, preamble included),
   `voice_lines_vox/sheets/`, `docs/pd2-voice-stream-tables.md` §"The voice-line sheet".
 - **Status:** the importer, its fixture and 9 tests are in; the tracked `sheets/` export is the
-  first 25 rows only, marked as a head. The re-key stays blocked (D75). The productive use of the
+  first 25 rows only, marked as a head. The re-key stays blocked (D76). The productive use of the
   full export is the shared-bank reconciliation described in the note: join it against
   `voice_lines_vox/targets/*_shared_regular_vox.csv` on id, then confirm the line each slot claims.
 
-### D77 — Tab inventory: which bank each community sheet actually covers
+### D78 — Tab inventory: which bank each community sheet actually covers
 
 - **Decided:** 2026-11-26, by the user, who asked the same four links again as a coverage question.
-- **Context:** D76 recorded the `regular_vox` tab of `196bzO0M…` as the only sheet read, and a
+- **Context:** D77 recorded the `regular_vox` tab of `196bzO0M…` as the only sheet read, and a
   wrong access note (that tab selection did not work). Four tabs across two documents have now been
   read, and the note needs correcting: **`&gid=<number>` selects a tab; `&sheet=<name>` does not**
-  (it silently returns the first tab, which is what D75 saw).
+  (it silently returns the first tab, which is what D76 saw).
 - **Read:** `196bzO0M…` → `regular_vox` (`gid=0`, 20,293 complete, 32 `(?)`);
   `robbers_mission_gen` (`gid=1280565535`, 1,720 complete / 93 partial / 2,407 incomplete);
   `char_sydney` (`gid=1647606386`, 1,037 complete, 0 outstanding). `1c3uXGyH…` → `regular_vox`
@@ -1501,12 +1567,12 @@ from documents, tests and tools, so they never change; the headings are appendix
   - A **dedicated-bank community sheet exists** (`char_sydney`, 100% covered), which rules out the
     assumption that only shared tabs get written up. `char_rust` is not a tab of either document
     (`&gid=` on it returns page one of `regular_vox`), so no such sheet is known for Rust.
-- **Decision:** track the tab inventory in `voice_lines_vox/sheets/README.md` and leave D75's refusal
+- **Decision:** track the tab inventory in `voice_lines_vox/sheets/README.md` and leave D76's refusal
   in place. Nothing here names a `char_rust` id, and a `robbers_mission_gen` id must not be written
   to `char_rust` (0 ids in common with the measured `char_rust` table; the banks are not
   interchangeable).
 - **Rejected:** treating `1c3uXGyH…` as new information (it is already imported, in full);
-  re-keying onto `robbers_mission_gen` to "unblock" the objective callouts (a third bank, and D75
+  re-keying onto `robbers_mission_gen` to "unblock" the objective callouts (a third bank, and D76
   is about the heister barks); paging all 138 chunks of `regular_vox` before the tabs it is being
   compared against are actually wanted.
 - **Source:** `voice_lines_vox/sheets/README.md` (inventory), `tools/import_voiceline_sheet.py`
@@ -2130,67 +2196,3 @@ from documents, tests and tools, so they never change; the headings are appendix
   `AGENTS.md`, `CONTRIBUTING.md`, `tools/README.md`.
 - **Status:** holds; publishing outside the repo is still asked of the owner first.
 
-## D75 — The wrist twists on `ForeArmRoll`, and its ring is centred on the glove: OfficeSuite's cuff fix
-
-- **Decided:** 2026-11-26, by the user, from four in-game captures: *"I like Combine Idea 1 + a
-  gentle Idea 2."* The captures show `OfficeSuite` in first person with white buttoned dress
-  gloves: a sliver of the outfit's own wrist stands through the glove's cuff in the weapon poses
-  (`image-1`, `image-4`), while the menu's third-person turntable (`image-2`, `image-3`) looks
-  nearly clean.
-- **Why the gloves are not at fault.** The outfit's wrists are cut on the rig's palm plane (D59/D60,
-  extended and reverted at D62-D70), and the pack ships no hands, so what a glove does at the cuff
-  decides everything. Measured on the built mesh, the circle of skin the cut leaves is the right
-  size but sits off-centre: its centroid is 0.28 cm from the rig's `Hand` joint on the left wrist
-  and 0.54 cm on the right, because `retarget_maps` fits *one* rigid matrix per segment to both of
-  the source forearm's joints - on a 20 cm forearm a 1.75 deg angular error does that, and it lands
-  Honoka's wrist 3.4 cm from where the 2B rig's is. The widest sector of that offset ring faces the
-  dress gloves' button slit, which is the sector the captures show. On top of it the forearm was
-  still 100% `ForeArm` right up to the crease, where vanilla Sydney's own body has been handing the
-  distal forearm to `ForeArmRoll` since `u = 0.37` (full by `u = 0.80`) - so the outfit's wrist
-  stayed rigid while a glove's cuff turned with the forearm.
-- **Decision: one pass, after the slim** (`build_honoko2_dae._wrist_pass`). Three things, none of
-  them on the cut:
-  1. **Twist.** Over `u` 0.35 -> 0.95 of the forearm, `ForeArm`'s weight hands over to
-     `ForeArmRoll` (the rig's twist bone, a child of `ForeArm` halfway down it), which is vanilla
-     Sydney's own curve. The gold bracelet rides the forearm *and* its roll, so it rotates with the
-     wrist like a ring does - it is never bent.
-  2. **Hand.** Over `-3.2 .. -0.6 cm` of the palm's own axis, the wrist skin blends up to 0.30 of
-     `Hand` - the bone a glove is bound to - so in a bent-wrist pose the skin goes where the cuff
-     goes instead of lagging into it. It stops at 0.30, not 0.48: measured against four gloves, a
-     larger majority of `Hand` *increases* protrusion, because the skin then swings on the glove's
-     pivot and its rim flares out of the cuff. Under 0.5 also keeps every wrist vertex dominated by
-     `ForeArmRoll`, which `tests/test_palm_cut.py` and `tests/test_hila_body_override.py` require.
-  3. **Tuck and centre.** Over the same stretch the skin is pulled in 0.35 cm towards the palm's
-     axis (gentle Idea 2 - it is a 5 cm-wide wrist, not a rope), and the ring the cut leaves is
-     re-centred on the palm's axis by exactly the offset measured on that ring. The tuck fades out
-     over the last half centimetre of radius so the rim's cap vertices never cross the axis.
-  Both run on the outfit and the shadow caster, are restricted to the skin's own slice (the
-  bracelet only takes the twist), and keep every vertex at four influences or fewer.
-- **Ordering, and why it matters.** The pass runs *after* `_slim_groups`. The slim pulls each vertex
-  towards the rest point of the bones carrying it, and `ForeArmRoll`'s rest point is 10 cm down the
-  forearm from `ForeArm`'s: re-weighting first moved the slim's own anchors and with them
-  `kept_to_cm` (-0.76 affected nothing) and the floor shift every test pins.
-- **Measured, not asserted.** Rebuilt all three packs. `BUILD_INFO.json` now carries a `wrist`
-  block: ramp, blend, tuck, and per group `vertices_reweighted` 1,839, `vertices_tapered` 102,
-  `max_shift_cm` 0.88, `max_hand_weight` 0.297, palette + `Left/RightForeArmRoll`. The cut is
-  untouched: `kept_to_cm` -0.76 / -0.79, `clipped_to_cm` 0.0, body 31,643 vertices, slim 61,479.
-  Posed against the game's own gloves (`npc_criminal_sydney`, `joy`, `chill`'s Clover), the worst
-  sector where the skin's wall stands outside the glove's cuff across six wrist poses fell from
-  **+2.67 mm to +1.63** (Sydney), **+3.19 to -1.79** (Joy - inside the cuff now in every pose) and
-  **-2.61 to -5.51** (Clover). The capture-driven render, and the tool that prints that table:
-  [`docs/renders/honoka/model/wrist/`](../renders/honoka/model/wrist/README.md).
-- **Held to:** `tests/test_wrist_twist.py` (the recorded curve, the curve on the shipped mesh, no
-  hand-dominated vertex, the rim and the bracelet where they were, the shadow caster in step, and
-  the posed protrusion under 0.20 cm against three gloves).
-- **Rejected:** any change to the cut or to `PALM_EXTEND_CM` (D70 stands: an extension is what put
-  skin *inside* the glove); a `Hand` majority (it made the protrusion worse in the sweep, and it
-  would break the palm-cut tests); a rigid radial shrink of the whole wrist (it narrows the bare
-  stub in third person, where nothing was wrong); moving the bracelet (it is the outfit's own ring);
-  registering `glove_adapter` (D59/D60).
-- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`TWIST_RAMP`, `HAND_BLEND_CM`,
-  `HAND_BLEND_MAX`, `TAPER_CM`, `TAPER_MAX_CM`, `CENTRE_WRIST`, `_wrist_pass`),
-  `tools/pd2-las/wrist_compare.py` (the offline comparison render), `tests/test_wrist_twist.py`,
-  `docs/renders/honoka/in-game/officesuite/2026-11-26/`.
-- **Status:** holds offline only; `runtime_verified` stays `false`, and these bytes have not been
-  seen in game. The dress gloves' own tightness at the cuff is still the limit: the pass removes
-  what the outfit contributed, not what the glove's material does.

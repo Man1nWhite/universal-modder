@@ -4,7 +4,7 @@
 The sheets people keep for PAYDAY 2 (`regular_vox`, per-heister tabs, …) are the only public
 place where a *numeric stream id* is paired with the *spoken text*. Wwise keeps no name for a
 streamed file, so a sheet like this is what turns "1,046 measured ids" into "these ids say these
-words" — the input `voice_lines_vox/geralt/char_rust_ids.csv` waits for (D75).
+words" — the input `voice_lines_vox/geralt/char_rust_ids.csv` waits for (D76).
 
 What it does, in one pass:
 
