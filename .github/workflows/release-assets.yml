@@ -1,0 +1,57 @@
+name: release assets
+
+# The packs in `dist/` and the sources in `references/` are published as release assets, and
+# `assets.json` names the bytes that are current (tools/release_assets.py). This workflow is
+# how they are uploaded from a machine that is not the developer's: it is the one step that
+# cannot be done from the repository, because a release asset goes to uploads.github.com.
+#
+# Run it with:  gh workflow run release-assets.yml [--ref <branch>] [-f tag=packs-v1]
+# No secrets: GITHUB_TOKEN with `contents: write` is enough, and it is the default here.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "only one release: packs-v1 or sources-v1 (empty: both)"
+        required: false
+        default: ""
+      dry_run:
+        description: "list what would be uploaded, then stop"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-assets
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: the manifest names the bytes in the tree
+        run: python tools/release_assets.py check
+
+      - name: upload every asset that is missing or different
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          tag='${{ inputs.tag }}'
+          args=""
+          if [ -n "$tag" ]; then args="--tag $tag"; fi
+          if [ '${{ inputs.dry_run }}' = "true" ]; then args="$args --dry-run"; fi
+          echo "python tools/release_assets.py upload $args"
+          python tools/release_assets.py upload $args
+
+      - name: what GitHub now holds
+        run: python tools/release_assets.py plan
