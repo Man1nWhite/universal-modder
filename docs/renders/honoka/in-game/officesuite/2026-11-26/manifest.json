@@ -1,0 +1,40 @@
+{
+  "captured": "2026-11-26",
+  "files": [
+    {
+      "archived": "officesuite_fps_wrist_01.png",
+      "bytes": 451917,
+      "height": 419,
+      "sha256": "0c05ceafd44f02244c9dc16629532aaf6795072242731279e1f10e788d876423",
+      "upload": "image-1.png",
+      "width": 657
+    },
+    {
+      "archived": "officesuite_menu_02_threequarter.png",
+      "bytes": 868639,
+      "height": 874,
+      "sha256": "94e50279c0673b1e12073c995d014b8c2dbb6009d1d2d8a3b52c75a1edb9e99c",
+      "upload": "image-2.png",
+      "width": 597
+    },
+    {
+      "archived": "officesuite_menu_03_side.png",
+      "bytes": 840580,
+      "height": 869,
+      "sha256": "27c0a8ce75dad709937a79c1f3d52a1b3e925934f464c2b20ce153c79e4182d0",
+      "upload": "image-3.png",
+      "width": 579
+    },
+    {
+      "archived": "officesuite_fps_wrist_04.png",
+      "bytes": 772488,
+      "height": 542,
+      "sha256": "a589a964e7047aec23f9aac3f28287ab8bbc57f3c33722c7c949078552035c58",
+      "upload": "image-4.png",
+      "width": 743
+    }
+  ],
+  "note": "archived byte-identically to the uploads; no resizing, recompression or annotation",
+  "pack": "OfficeSuite",
+  "source": "user uploads (in-game screenshots)"
+}

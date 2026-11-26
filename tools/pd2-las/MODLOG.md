@@ -815,3 +815,17 @@ tools/pd2-las glb` builds it, `status.py` reports it, `fresh.py check` rebuilds 
 builds were byte-identical. The loose ignored copies at the root of `dist/` from the earlier
 turn were removed; this pack is the shipped form. `runtime_verified` stays false — it is a viewer
 export, not a mod to install, and no bytes of it have been seen in game.
+
+## 2026-11-26 — Arivus rebuilt with the supplied diffuse
+
+The owner requested a rebuild using `references/old_hoxton_head_df.dds` and
+selected transfer of its face onto the Arivus head. Inspection showed the input
+is already an edited Arivus atlas, not a vanilla Hoxton UV layout: skin, eyes
+and hair line up with the existing head mesh. The builder now reads it rather
+than procedurally shaving the GTA texture, preserves the supplied DXT5 base
+blocks byte for byte, generates the cutout-aware mip chain and renders the icon
+from the edit. The Arivus geometry, flat normal, and other packs are unchanged;
+the GLB export was rebuilt from the resulting head pack. The diffuse-only offline
+preview is updated; the in-game appearance and animation remain unverified.
+The pre-existing head skin palette issue documented in D73 is not changed by
+this texture rebuild; the GLB export still repairs it for the export only.
