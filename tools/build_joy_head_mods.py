@@ -576,7 +576,7 @@ def extend_neck_skirt(
 # Old Hoxton's collar, so `build_arivus_hoxton_mod` used to drag the whole cone
 # down (up to 4.3 cm at the throat) and push it up again near the collar. That
 # squashed the neck into half its height and left its open rim on show as a
-# jagged skin line across the collarbones (D75).
+# jagged skin line across the collarbones (D79).
 #
 # The ped is now left where it lands. Its open neck rim is closed by a skirt that
 # is tucked in towards the ped's own neck axis and dropped to just above where
@@ -2993,7 +2993,7 @@ def build_arivus_hoxton_mod(
         # The ped is left where it lands. D72 used to drag the whole neck cone down
         # (up to 4.3 cm at the throat) and push it back up near z 168, which squashed
         # the neck to half its height and still left its open rim in the collar
-        # opening as a jagged skin line (D75). The rim is closed by a skirt instead,
+        # opening as a jagged skin line (D79). The rim is closed by a skirt instead,
         # below, where it can be measured.
         n = _rot(n_raw)
         u_atlas = u_off + u_scale * u_img
@@ -3025,7 +3025,7 @@ def build_arivus_hoxton_mod(
 
     atom0_mesh = extract_arivus_part(5, 0.0, 0.5, 0.0, 0.5)  # head: top-left cell
     atom1_mesh = extract_arivus_part(6, 0.0, 0.5, 0.5, 0.5)  # hair: bottom-left cell
-    # Close the neck (D75): drop the ped's V-shaped cut to the collar's height, then
+    # Close the neck (D79): drop the ped's V-shaped cut to the collar's height, then
     # stitch a skirt from the rim down to z 148 tucked inside the suit. The extract
     # is triangle soup (one vertex per corner), so the rim only exists as an *open
     # edge* after welding: dedup first, then close it.

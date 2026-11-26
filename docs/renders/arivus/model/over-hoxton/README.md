@@ -15,7 +15,7 @@ The normal map remains flat. The heist, menu and Safe House models are unchanged
 The previous procedural shave is not applied to the supplied artwork.
 
 **The neck.** The ped's neck is cut in a V — z 159.4 across the throat, z 164.9 at the back —
-while the suit's collar rim only reaches z ~159.8–160.5. D75 leaves the ped where it lands, drops
+while the suit's collar rim only reaches z ~159.8–160.5. D79 leaves the ped where it lands, drops
 the cut rim to the collar's height (full weight behind and at the sides, fading out across the
 throat so its length is kept) and closes it with a skirt tucked to 0.35 of the rim's radius that
 ends at z 148 inside the suit; a ray-parity test against the suit's own body says all 23 skirt

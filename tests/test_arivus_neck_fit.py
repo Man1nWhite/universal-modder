@@ -1,8 +1,8 @@
-"""The Arivus head must meet Old Hoxton's collar from every angle (D72, D75).
+"""The Arivus head must meet Old Hoxton's collar from every angle (D72, D79).
 
 D72 cut the ped's neck and then dragged the whole cone down and up again to hide
 the cut; that squashed the neck and still left its open rim in the collar
-opening as a jagged skin line. D75 leaves the ped where it lands, drops only the
+opening as a jagged skin line. D79 leaves the ped where it lands, drops only the
 cut rim to the collar's height, and closes it with a skirt tucked inside the
 suit.
 
@@ -106,7 +106,7 @@ def test_the_cut_rim_ends_under_the_collar(model_rel: str) -> None:
                  and max(np.hypot(head_v[e[0], 0], head_v[e[0], 1]),
                          np.hypot(head_v[e[1], 0], head_v[e[1], 1])) < 9.5]
     rim_z = np.array([max(head_v[a, 2], head_v[b, 2]) for a, b in near_axis])
-    # D75: nothing of the cut ring is left standing above the collar.
+    # D79: nothing of the cut ring is left standing above the collar.
     assert len(rim_z) > 0, "no neck rim found: the rim must exist to be closed"
     assert rim_z.max() <= 160.5, f"cut rim reaches z {rim_z.max():.2f}, above the collar"
 
@@ -138,7 +138,7 @@ def test_the_head_is_not_squashed(model_rel: str) -> None:
 
 @pytest.mark.parametrize("model_rel", MODELS)
 def test_every_head_vertex_indexes_its_own_skin_palette(model_rel: str) -> None:
-    """`bone_offset` bug (D73/D75): the palette is [Spine2, Neck, Head], indices 0-2."""
+    """`bone_offset` bug (D73/D79): the palette is [Spine2, Neck, Head], indices 0-2."""
     mf = _model(model_rel)
     _, _, extra = _drawable(mf, HEAD)
     md = extra["model_data"]

@@ -169,6 +169,50 @@ SHADOW_DROPS = {"bra", "panties"}
 #: `_cap_cut_rims` caps the ring there; only a glove the player picks supplies hands.
 PALM_EXTEND_CM = 0.0
 
+#: The wrist pass (D73): how far along the forearm the twist ramp runs, as fractions of the
+#: forearm's length measured from the elbow (`u`) - and how much of the forearm's weight the
+#: distal end hands over to the rig's `ForeArmRoll` bone. Vanilla Sydney's `g_body` reaches a
+#: full `ForeArmRoll` where the wrist starts (`u` 0.80); the outfit's forearm keeps a little of
+#: `ForeArm` there so the elbow side stays with the sleeve's seam.
+TWIST_RAMP = (0.35, 0.95)
+TWIST_TO_ROLL = 1.0
+
+#: The `Hand` blend on the wrist skin, in cm of the palm's own axial coordinate (0 = the rig's
+#: `Hand` joint). It stops a fifth of a millimetre short of the cut on purpose: a glove the
+#: player picks is bound to `Hand`, and skin bound to it too goes where the glove's cuff goes
+#: instead of lagging behind it in a bent-wrist weapon pose (D73).
+HAND_BLEND_CM = (-3.2, -0.6)
+#: Kept strictly below 0.5: `tests/test_palm_cut.py` and `tests/test_hila_body_override.py`
+#: require that no vertex in the shipped `g_body` is *dominated* by a hand bone, and the
+#: `ForeArmRoll` the ramp gives the same vertices is what keeps it out of the majority.
+HAND_BLEND_MAX = 0.30
+
+#: The axial stretch of the palm's own coordinate that the cut's rim occupies, in cm: the ring
+#: the clip leaves (34 rim and cap vertices per hand, at -0.76/-0.79 cm before the slim) plus the
+#: ring behind it. It is where the ring's own centre is measured, so it stays a mesh measurement.
+RING_CM = (-1.3, -0.3)
+
+#: How far off the forearm's own line the wrist pass reaches, in cm. The outfit's forearm is
+#: ~3.5 cm across at the crease and its sleeve ~5 cm; 10 cm is comfortably the arm and nowhere
+#: near the shoulder's own skin.
+WRIST_RADIUS_CM = 10.0
+
+#: The cuff tuck: how far the wrist skin moves inwards, radially towards the palm axis, and over
+#: which stretch of that axis (cm). The retarget puts Honoka's wrist a few millimetres to one side
+#: of where PD2's gloves sit (D73), so the circle of skin the cut leaves is widest exactly where a
+#: glove's cuff is tightest; `TAPER_MAX_CM` of radial tuck takes that off without touching the
+#: bracelet, which ends 2.37 cm proximal of the crease, or the bare wrist's outline.
+TAPER_CM = (-3.2, -0.6)
+TAPER_MAX_CM = 0.35
+
+#: How much of the cut ring's own off-centre offset the wrist pass takes out, as a fraction.
+#: Measured on the built mesh, the ring the cut leaves is centred 0.28 cm off the rig's `Hand`
+#: joint on the left and 0.54 cm on the right, perpendicular to the palm: the circle is the right
+#: size but sits to one side of the glove, so one sector of it stands proud while the opposite
+#: one recedes. Centring it is what the taper cannot do - a radial tuck has to spend twice the
+#: offset to fix the proud side. It is the same stretch and the same curve as the tuck.
+CENTRE_WRIST = 1.0
+
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
 #: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by
 #: the user at `main` 526480e (D45/D46), hands cut where the palms begin (D59, clipped on the
@@ -934,6 +978,236 @@ def _clearance_pass(groups: dict, spec: PackSpec) -> dict:
     }
 
 
+def _smoothstep(x, lo: float, hi: float):
+    """0 below `lo`, 1 above `hi`, an S-curve between: C1 at both ends, so no crease."""
+    import numpy as np
+
+    t = np.clip((np.asarray(x, dtype=np.float64) - lo) / (hi - lo), 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def _forearm_frames(template) -> dict:
+    """Per side: the wrist joint, the forearm's unit axis, its length, and the roll's fraction.
+
+    `ForeArmRoll` is the rig's twist bone, a child of `ForeArm` halfway down it. Vanilla
+    Sydney's `g_body` hands the distal half of the forearm to it (`u` 0.37 -> 0.80), which is
+    what lets a glove's cuff follow a wrist that rotates along the forearm instead of
+    swinging a rigid tube through the outfit's sleeve.
+    """
+    import numpy as np
+
+    out = {}
+    for side, key in ((-1, "Left"), (1, "Right")):
+        elbow = np.asarray(template.worlds[template.name_id[f"{key}ForeArm"]][12:15], dtype=np.float64)
+        wrist = np.asarray(template.worlds[template.name_id[f"{key}Hand"]][12:15], dtype=np.float64)
+        axis = wrist - elbow
+        length = float(np.linalg.norm(axis))
+        out[side] = {
+            "elbow": elbow,
+            "wrist": wrist,
+            "axis": axis / length,
+            "length": length,
+            "bone": f"{key}ForeArm",
+            "roll": f"{key}ForeArmRoll",
+            "hand": f"{key}Hand",
+        }
+    return out
+
+
+def _wrist_pass(groups: dict, spec: PackSpec, template) -> dict:
+    """Twist the distal forearm onto `ForeArmRoll`, blend the wrist skin onto `Hand`, tuck the cuff.
+
+    The 2026-11-26 first-person captures showed the outfit's own wrist standing through the white
+    glove's cuff in weapon poses while the third-person view looked nearly clean; measured on the
+    built mesh the cause is upstream of the gloves. `retarget_maps` fits one rigid matrix per
+    segment to *both* of the source forearm's joints, so on a 20 cm forearm a 1.75 deg angular
+    error puts Honoka's wrist 3.4 cm away from the rig's `Hand` joint and the circle of skin the
+    palm cut leaves ~1 cm off the gloves' cross-section, widest towards the dress gloves' button
+    slit. Three passes, none of them on the cut:
+
+    * **twist** - over the distal forearm (`u` in `TWIST_RAMP`, the forearm's length fraction from
+      the elbow), hand `ForeArm`'s weight over to `ForeArmRoll`, the curve vanilla Sydney's
+      `g_body` uses. The bracelet rides the forearm *and* its roll, so it rotates with the wrist
+      like a ring does instead of staying rigid inside a sleeve that turns;
+    * **hand** - over `HAND_BLEND_CM` of the palm's axial coordinate, blend the wrist skin up to
+      `HAND_BLEND_MAX` of `Hand`. The heister's glove is bound to `Hand`; skin weighted there goes
+      where the cuff goes in a bent-wrist pose instead of lagging into it;
+    * **taper** - over the same stretch, pull the skin `TAPER_MAX_CM` inwards towards the palm
+      axis. The cut's rim is the widest part of the wrist, so the tuck takes the few millimetres
+      the retarget offset spends there; the bracelet (2.37 cm proximal of the crease) and the
+      bare-wrist outline below it keep their radius.
+
+    It runs *after* `_slim_groups` on purpose: the slim pulls every vertex towards the rest point
+    of the bones that carry it, and `ForeArmRoll`'s rest point is 10 cm down the forearm from
+    `ForeArm`'s, so re-weighting first would move the slim's own anchors and with them the wrist's
+    `kept_to_cm` and the floor shift the tests pin. Everything else about the cut is untouched, and
+    every vertex keeps at most the four influences the format holds.
+    """
+    import numpy as np
+
+    import build_models as bm
+
+    if spec.hands != "palm_cut":
+        return {}
+    palms = bm.palm_planes(template)
+    frames = _forearm_frames(template)
+    report: dict = {
+        "twist_ramp": list(TWIST_RAMP),
+        "twist_to_roll": TWIST_TO_ROLL,
+        "hand_blend_cm": list(HAND_BLEND_CM),
+        "hand_blend_max": HAND_BLEND_MAX,
+        "taper_cm": list(TAPER_CM),
+        "taper_max_cm": TAPER_MAX_CM,
+        "groups": {},
+    }
+    for gname in ("outfit", "shadow"):
+        g = groups.get(gname)
+        if g is None:
+            continue
+        # One palette entry per roll bone, after the template's own 53: the pack's palette is
+        # the template's order first, then extras by name, and appending keeps it that way.
+        for side in (-1, 1):
+            if frames[side]["roll"] not in g.palette:
+                g.palette.append(frames[side]["roll"])
+        pal = {name: i for i, name in enumerate(g.palette)}
+        verts = np.asarray(g.verts, dtype=np.float64)
+
+        # The tuck and the centring are shape changes: they belong on the skin, not on the
+        # bracelet, which shares the forearm's bones but is a rigid ring the tuck would flatten.
+        # Slices are keyed by their material slot, so the skin's is the spec's body slot.
+        # Both groups carry the same slices in the same order - the outfit keyed by material
+        # slot, the shadow caster with every slice on `shadow_caster` - so the slice's own source
+        # material name is what tells them apart.
+        skin_v = np.zeros(len(verts), dtype=bool)
+        for (src, base_v, _bi, _tris, nverts), slot in zip(g.slices, g.mat_slots):
+            if src == "body" or slot == spec.slot("body"):
+                skin_v[base_v:base_v + nverts] = True
+
+        # -- per-vertex parameters, both sides at once --
+        # A vertex belongs to a side when the forearm it is closest to is that side's, and it is
+        # in the band when it is within `WRIST_RADIUS_CM` of that forearm's *line* between the
+        # elbow and the crease. Both tests are needed: the radius alone also catches the
+        # shoulder's own skin, which sits 11 cm off a wrist frame's axis but only 5 cm off its
+        # wrist joint, and the hand side of the crease would otherwise be caught by distance.
+        hand_w = np.zeros(len(verts))
+        fore_w = np.zeros(len(verts))
+        take_hand = np.zeros(len(verts))
+        u_of = np.zeros(len(verts))
+        tuck_of = np.zeros(len(verts))
+        centre_of = np.zeros_like(verts)
+        sides = np.zeros(len(verts), dtype=np.int8)
+        dist_side = np.full(len(verts), np.inf)
+        for side in (-1, 1):
+            fr = frames[side]
+            origin = np.asarray(palms[side]["origin"], dtype=np.float64)
+            paxis = np.asarray(palms[side]["axis"], dtype=np.float64)
+            rel = verts - origin
+            ax_palm = rel @ paxis
+            radius = np.linalg.norm(rel - np.outer(ax_palm, paxis), axis=1)
+            along = (verts - fr["elbow"]) @ fr["axis"]
+            u = along / fr["length"]
+            off_axis = np.linalg.norm((verts - fr["elbow"]) - np.outer(along, fr["axis"]), axis=1)
+            closer = np.linalg.norm(verts - fr["wrist"], axis=1) < dist_side
+            dist_side = np.where(closer, np.linalg.norm(verts - fr["wrist"], axis=1), dist_side)
+            band = closer & (off_axis < WRIST_RADIUS_CM) & (u > TWIST_RAMP[0]) & (u < 1.02)
+            fi, hi = pal.get(fr["bone"]), pal.get(fr["hand"])
+            if fi is None or hi is None:
+                continue
+            w_f = np.zeros(len(verts))
+            w_h = np.zeros(len(verts))
+            for vi, infl in enumerate(g.weights):
+                for bi, w in infl:
+                    if bi == fi:
+                        w_f[vi] += w
+                    elif bi == hi:
+                        w_h[vi] += w
+            want = np.where(band, _smoothstep(ax_palm, *HAND_BLEND_CM) * HAND_BLEND_MAX, 0.0)
+            # take = what this side's vertex still needs, never more than its `ForeArm` holds
+            take = np.clip(want - w_h, 0.0, w_f)
+            mine = band & ((take > 1e-9) | (w_f * _smoothstep(u, *TWIST_RAMP) > 1e-9))
+            hand_w = np.where(mine, w_h, hand_w)
+            fore_w = np.where(mine, w_f, fore_w)
+            take_hand = np.where(mine, take, take_hand)
+            u_of = np.where(mine, u, u_of)
+            sides = np.where(mine, side, sides)
+            tuck = _smoothstep(ax_palm, *TAPER_CM) * TAPER_MAX_CM
+            # a rim's cap vertices sit within a couple of millimetres of the axis; the tuck
+            # fades out over the last half centimetre of radius so they never cross it.
+            tuck_of = np.where(mine, np.minimum(tuck, np.maximum(radius - 0.55, 0.0)), tuck_of)
+            # Where the ring the cut leaves sits relative to the palm's own axis, measured on
+            # the ring itself (that is the surface a glove's cuff has to clear), then faded in
+            # along the same stretch as the tuck.
+            ring = skin_v & (radius < 6.0) & (ax_palm > RING_CM[0]) & (ax_palm < RING_CM[1])
+            if ring.any():
+                c_rel = verts[ring].mean(axis=0) - origin
+                c_ax = c_rel @ paxis
+                offset = c_rel - c_ax * paxis
+                fade = _smoothstep(ax_palm, *TAPER_CM)
+                centre_of = np.where(mine[:, None],
+                                     centre_of + (-CENTRE_WRIST * fade)[:, None] * offset, centre_of)
+
+        # -- weights: ForeArm -> ForeArmRoll along the ramp, ForeArm/ForeArmRoll -> Hand --
+        touched = np.where(sides != 0)[0]
+        reweighted = 0
+        max_hand = 0.0
+        for vi in touched:
+            side = int(sides[vi])
+            fr = frames[side]
+            fore_i, roll_i, hand_i = pal[fr["bone"]], pal[fr["roll"]], pal[fr["hand"]]
+            share = float(_smoothstep(u_of[vi], *TWIST_RAMP)) * TWIST_TO_ROLL
+            acc = {bi: w for bi, w in g.weights[vi]}
+            take = float(take_hand[vi])
+            roll_now = acc.get(roll_i, 0.0)
+            # the hand blend comes off both forearm bones in proportion to what they hold
+            pool = acc.get(fore_i, 0.0) + roll_now
+            if take > 1e-9 and pool > 1e-9:
+                for bi in (fore_i, roll_i):
+                    if bi in acc:
+                        acc[bi] -= take * acc[bi] / pool
+            move = acc.get(fore_i, 0.0) * share
+            if move > 1e-9:
+                acc[fore_i] -= move
+                acc[roll_i] = acc.get(roll_i, 0.0) + move
+            if take > 1e-9:
+                acc[hand_i] = acc.get(hand_i, 0.0) + take
+            acc = {bi: w for bi, w in acc.items() if w > 1e-9}
+            top = sorted(acc.items(), key=lambda kv: (-kv[1], kv[0]))[:4]
+            total = sum(w for _, w in top)
+            g.weights[vi] = [(bi, w / total) for bi, w in sorted(top, key=lambda kv: kv[0])]
+            reweighted += 1
+            max_hand = max(max_hand, acc.get(hand_i, 0.0))
+
+        # -- geometry: radial tuck towards the palm's axis, skin only --
+        out = verts.copy()
+        for side in (-1, 1):
+            origin = np.asarray(palms[side]["origin"], dtype=np.float64)
+            paxis = np.asarray(palms[side]["axis"], dtype=np.float64)
+            rel = verts - origin
+            ax_palm = rel @ paxis
+            radial = rel - np.outer(ax_palm, paxis)
+            radius = np.linalg.norm(radial, axis=1)
+            s = np.where((sides == side) & skin_v, tuck_of, 0.0)
+            scale = np.where(radius > 1e-9, np.maximum(radius - s, 0.0) / np.maximum(radius, 1e-9), 1.0)
+            out = np.where((s > 0.0)[:, None],
+                           origin + np.outer(ax_palm, paxis) + radial * scale[:, None], out)
+        out = np.where(skin_v[:, None], out + centre_of, out)
+        shift = np.linalg.norm(out - verts, axis=1)
+        # Vertices move; normals do not. The source's authored normals are already within a few
+        # degrees of the faceted ones here, and the tuck is a fraction of a millimetre over
+        # centimetres, so the surface's curvature barely changes - while the sleeve is a
+        # double-sided shell whose inner faces would cancel the outer ones in any recomputation.
+        g.verts = [tuple(float(c) for c in row) for row in out]
+        report["groups"][gname] = {
+            "centre_fraction": CENTRE_WRIST,
+            "vertices_reweighted": reweighted,
+            "vertices_tapered": int((shift > 1e-6).sum()),
+            "max_shift_cm": round(float(shift.max()), 4),
+            "max_hand_weight": round(float(max_hand), 4),
+            "palette_added": [fr["roll"] for fr in frames.values()],
+        }
+    return report
+
+
 def build_pack(
     spec: PackSpec,
     template,
@@ -1034,6 +1308,9 @@ def build_pack(
 
     slim_report = _slim_groups(groups, template, spec.slim) if spec.slim != 1.0 else None
     clear_report = _clearance_pass(groups, spec) if spec.clearance else None
+    # After the slim, deliberately: it anchors each vertex on the rest point of its own bones,
+    # and the roll bone's rest point is 10 cm down the forearm from the forearm's (D73).
+    wrist_report = _wrist_pass(groups, spec, template)
 
     if palms is not None:
         # Where the shipped mesh ends, after slim and clearance: the most distal
@@ -1223,6 +1500,8 @@ def build_pack(
         build_info["slim"] = slim_report
     if clear_report is not None:
         build_info["clearance"] = clear_report
+    if wrist_report:
+        build_info["wrist"] = wrist_report
     (pack / "BUILD_INFO.json").write_text(
         json.dumps(build_info, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -1257,6 +1536,8 @@ def build_pack(
         report["slim"] = slim_report
     if clear_report is not None:
         report["clearance"] = clear_report
+    if wrist_report:
+        report["wrist"] = wrist_report
     (work / f"{spec.item_id}_report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )

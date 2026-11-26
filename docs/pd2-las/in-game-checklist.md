@@ -227,6 +227,14 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
    between it and the cuff are the *expected* result of this choice, not a build error. What still
    fails is any skin extending past the crease, a band of second skin, or a hand modelled by the
    outfit. Move the hand, aim, and reload and check that no skin pops through a glove in any pose.
+   **D75 is the answer to what that check found:** first person with white dress gloves showed a
+   sliver of the outfit's wrist in the glove's cuff (2026-11-26 captures, now archived under
+   `docs/renders/honoka/in-game/officesuite/2026-11-26/`). The wrist now twists on `ForeArmRoll`,
+   its last 2.6 cm blend up to 0.30 of `Hand`, that stretch is tucked 0.35 cm inwards and the cut
+   ring is centred on the palm's axis. Check the same view again with the buttoned dress gloves:
+   the cuff should close over the skin in aim, reload and sprint, and the bracelet should turn with
+   the forearm instead of staying square to the sleeve. What still fails is skin *inside* the cuff
+   showing through the glove, or the bracelet bending.
 3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn and read as the
    character's hands, with the sleeve's cuff still outside it. Since the arm ends on the crease, the
    glove may not reach the cut and a gap can remain; what matters is that no bare hand of ours sits
@@ -368,7 +376,12 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    wins). Rust is the punk heister (`npc_criminal_wild_1`). What to check: (i) whether his barks are
    Geralt's at all — the shared bank is verified for the crew, but whether this DLC heister plays
    from it is an open question; if his voice is vanilla, he is not on `regular_vox` and the pack
-   cannot fix that; (ii) the lines the Geralt set covers (29 slots: assault.incoming/retreat,
+   cannot fix that. The ids either pack writes, per bank, are tracked in `voice_lines_vox/targets/`
+   (the shared tables and the measured `char_rust` one — `docs/pd2-voice-stream-tables.md`, D73);
+   A Rust pack on his own bank exists but is not shipped (D76: it waits on
+   `voice_lines_vox/geralt/char_rust_ids.csv`, the slot → id map); so this check still decides whether the
+   *shared* pack can reach him at all.
+   (ii) the lines the Geralt set covers (29 slots: assault.incoming/retreat,
    civ.dontmove/down/killthreat/nophone, inspire.faster, kill.*, mark.*, mask.go, move.generic,
    nade.*, revive.*, tech.drill_jam, win.generic, ammo.low, drop.ammo); (iii) the 49 uncovered slots
    are vanilla by design; (iv) `kill.taser`/`mark.taser` ship the Geralt takes deliberately.
@@ -423,7 +436,7 @@ head texture and the build inpaints it. These are the checks the offline render 
    not flicker, halo or draw as a solid band against the forehead, and the scalp should not show
    through at the crown.
 5. **The head still fits the suit.** No gap or stretched skin at the collar, **including the back
-   of the neck**: D75 dropped the ped's V-shaped cut below the collar rim and closed it with a skirt
+   of the neck**: D79 dropped the ped's V-shaped cut below the collar rim and closed it with a skirt
    tucked inside the suit, so from behind the collar should read as an unbroken line with skin above
    it and nothing showing through. Watch also for the neck creasing or pinching when the head turns
    (the rim now sits ~5 cm lower than the cut did, and it is the part the `Neck` bone moves).

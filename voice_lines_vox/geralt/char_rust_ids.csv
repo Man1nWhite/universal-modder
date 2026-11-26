@@ -1,0 +1,13 @@
+# Filled in from a source that names the id, one row per Geralt slot. No row below is filled yet.
+#
+# Why it cannot be generated: Wwise stores no name for a streamed file, so Rust's char_rust ids
+# (voice_lines_vox/targets/rust_dedicated_char_rust.csv, 1,046 measured) say which files exist but
+# not which line each one is. A take written to a guessed id plays the wrong line (D73, D74).
+#
+# A row is: slot,id,named_by - the third column says where the pairing came from, e.g.
+#   kill.taser,1003861248,game extract: char_rust/1003861248 decodes to Rust's taser-kill line
+#
+# Then: python tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust
+# The build refuses while a picked slot has no row, and refuses an id that is not in the measured
+# bank. Slots the Geralt set has a take for: voice_lines_vox/geralt/slot_picks.csv (29 slots).
+slot,id,named_by

@@ -830,7 +830,7 @@ preview is updated; the in-game appearance and animation remain unverified.
 The pre-existing head skin palette issue documented in D73 is not changed by
 this texture rebuild; the GLB export still repairs it for the export only.
 
-## 2026-11-26 — Arivus: the neck is rebuilt, the cut rim is closed, the skinning is fixed (D75)
+## 2026-11-26 — Arivus: the neck is rebuilt, the cut rim is closed, the skinning is fixed (D79)
 
 **The ask.** *"What's with the neck of the Aivus head mod. Check renders"*, then *"Fix everything"*.
 The tracked sheet shows the neck as a hard angular line across the collarbones with a short
