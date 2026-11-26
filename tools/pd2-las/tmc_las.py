@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Helpers shared by the Diesel LAS builders (`build_honoko2_dae.py`, `christie_fit_probe.py`).
+"""Helpers shared by the Diesel LAS builders (`build_honoko2_dae.py`).
 
 These are the frame and mesh post-process helpers extracted when the TMC-only
 Honoka LAS pack and its driver were deleted on 2026-11-15
 (`docs/pd2-las/DECISIONS.md`, D40). `build_honoko2_dae.py` uses the TMC frame,
-world-bind, wrist-cut, sliver-drop, and fallback-icon helpers; `christie_fit_probe.py`
-and `build_christie_source.py` reuse the wrist-cut helper for Christie's heister-glove seam.
+world-bind, wrist-cut, sliver-drop, and fallback-icon helpers; the wrist cut is
+also the heister-glove seam.
 
 * :func:`basis_matrix` / :func:`glbl_to_diesel` — the TMC frame (Y-up, cm) to the
   Diesel frame (Z-up, cm), det = +1, and the 171 world bind matrices with it.
