@@ -23,6 +23,7 @@ import secrets
 import stat
 import tempfile
 import time
+import sys
 import zipfile
 from pathlib import Path, PureWindowsPath
 
@@ -65,10 +66,22 @@ def _scan(src: Path) -> dict:
 
 
 def _validate_rel(rel: str) -> None:
-    if (not isinstance(rel, str) or not rel or "\\" in rel or "\x00" in rel
-            or PureWindowsPath(rel).drive or rel.startswith("/")
-            or any(part in ("", ".", "..") or ":" in part for part in rel.split("/"))):
+    """Validate a relative path inside a backup; rejects traversal, absolute, and unsafe characters."""
+    if not isinstance(rel, str):
+        die(f"unsafe backup path: not a string: {rel!r}")
+    if not rel or "\\" in rel or "\x00" in rel or rel.startswith("/") or rel.startswith("//"):
         die(f"unsafe backup path: {rel!r}")
+    if PureWindowsPath(rel).drive:
+        die(f"unsafe backup path (drive letter): {rel!r}")
+    parts = rel.split("/")
+    if any(part in ("", ".", "..") for part in parts):
+        die(f"unsafe backup path (empty or dot component): {rel!r}")
+    if any(":" in part for part in parts):
+        die(f"unsafe backup path (colon in component): {rel!r}")
+    if any(len(part) > 255 for part in parts):
+        die(f"unsafe backup path (component too long): {rel!r}")
+    if rel.endswith("/"):
+        die(f"unsafe backup path (trailing slash): {rel!r}")
 
 
 def create(src: str, name: str | None = None, note: str = "") -> Path:
@@ -79,10 +92,15 @@ def create(src: str, name: str | None = None, note: str = "") -> Path:
         die(f"not a folder: {s}")
     s = s.resolve()
     name = name or s.name.replace(" ", "-").lower()
+    if not name or name in (".", ".."):
+        die(f"invalid backup name: {name!r}")
     files = _scan(s)
+    if not files:
+        print(f"warning: {s} is empty; creating empty snapshot", file=sys.stderr)
     total = sum(f["size"] for f in files.values())
     if total > MAX_SIZE:
-        die(f"{total / 2**30:.1f} GB - too big to snapshot casually; back up the specific subfolder you'll change")
+        die(f"{total / 2**30:.1f} GB - too big to snapshot casually; back up the specific subfolder you'll change "
+            f"(limit {MAX_SIZE / 2**30:.0f} GB; use --name to snapshot a subfolder)")
     stamp = time.strftime("%Y%m%d-%H%M%S")
     root = _root(name)
     sequences = (p.stem[len(stamp) + 1:] for p in root.glob(f"{stamp}_*.zip"))

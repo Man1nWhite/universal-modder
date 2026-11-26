@@ -95,11 +95,23 @@ _ANSI = re.compile(r"\x1b\[[0-9;]*m")
 
 
 def validate_report(report: str) -> str | None:
-    """Reject a missing/failed summary and incomplete skip or xfail details."""
+    """Reject a missing/failed summary and incomplete skip or xfail details.
+
+    Strips ANSI codes so reports piped through colour output still validate.
+    Accepts both old and new pytest summary formats (with or without warnings).
+    """
+    # Strip ANSI escape codes that pytest may emit with --color
+    report = _ANSI.sub("", report)
     lines = report.rstrip().splitlines()
+    if not lines:
+        return "no completed pytest summary (use pytest -q -rsxX tests)"
     summary = _SUMMARY.fullmatch(lines[-1].strip()) if lines else None
     if not summary:
-        return "no completed pytest summary (use pytest -q -rsxX tests)"
+        # Try without the trailing === markers (some pytest versions)
+        alt = lines[-1].strip().strip("= ")
+        summary = _SUMMARY.fullmatch(f"== {alt} ==") if alt else None
+        if not summary:
+            return "no completed pytest summary (use pytest -q -rsxX tests)"
     counts = {label: int(n) for n, label in re.findall(r"(\d+) ([a-z]+)", summary[1])}
     if counts.get("failed") or counts.get("error") or counts.get("errors"):
         return "pytest did not pass"

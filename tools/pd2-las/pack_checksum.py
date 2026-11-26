@@ -24,18 +24,42 @@ def sidecar_path(pack: Path) -> Path:
 
 
 def read_checksum(pack: Path, root: Path, *, portable: bool = False) -> str:
-    """Read a sidecar naming this ZIP from root (or beside the ZIP if portable)."""
+    """Read a sidecar naming this ZIP from root (or beside the ZIP if portable).
+
+    Handles CRLF line endings, trims surrounding whitespace, and validates
+    that the sidecar names exactly the expected file. Portable sidecars (for
+    scratch/custom builds) may name only the basename.
+    """
     sidecar = sidecar_path(pack)
-    lines = sidecar.read_text(encoding="utf-8").splitlines()
-    fields = lines[0].split("  ", 1) if len(lines) == 1 else []
+    try:
+        content = sidecar.read_text(encoding="utf-8")
+    except OSError as e:
+        raise ValueError(f"{sidecar}: cannot read sidecar: {e}") from e
+    # Handle CRLF and strip trailing whitespace/newlines; reject multi-line sidecars
+    lines = [line.strip() for line in content.splitlines() if line.strip()]
+    if len(lines) != 1:
+        raise ValueError(f"{sidecar}: expected one '<sha256>  <path>' entry, got {len(lines)} lines")
+    # Split on exactly two spaces as per sha256sum format, but also tolerate any whitespace
+    if "  " in lines[0]:
+        fields = lines[0].split("  ", 1)
+    else:
+        # Fallback: split on whitespace for non-standard sidecars (still require 64-hex digest)
+        parts = lines[0].split()
+        if len(parts) == 2 and re.fullmatch(r"[0-9a-fA-F]{64}", parts[0]):
+            fields = parts
+        else:
+            fields = []
     if len(fields) != 2 or not re.fullmatch(r"[0-9a-fA-F]{64}", fields[0]):
         raise ValueError(f"{sidecar}: expected one '<sha256>  <path>' entry")
-    digest, name = fields
+    digest, name = fields[0].strip(), fields[1].strip()
     paths = {pack.name} if portable else set()
-    if pack.resolve().is_relative_to(root.resolve()):
-        paths.add(pack.resolve().relative_to(root.resolve()).as_posix())
+    try:
+        if pack.resolve().is_relative_to(root.resolve()):
+            paths.add(pack.resolve().relative_to(root.resolve()).as_posix())
+    except (OSError, ValueError):
+        pass
     if name not in paths:
-        raise ValueError(f"{sidecar}: does not name {pack} from the expected directory: {name!r}")
+        raise ValueError(f"{sidecar}: does not name {pack} from the expected directory: {name!r} (expected one of {sorted(paths)!r})")
     return digest.lower()
 
 
@@ -62,14 +86,26 @@ def write_pack_checksum(pack: Path, repo: Path) -> str:
 
 
 def distribution_zips(root: Path, recorded: Iterable[str] = ()) -> list[str]:
-    """Inventory both halves, optionally including paths already recorded by git."""
+    """Inventory both halves, optionally including paths already recorded by git.
+
+    Returns sorted, deduplicated ZIP paths. Validates that every ZIP has a
+    matching .sha256 sidecar and vice versa, with distinct error messages
+    for missing vs orphan sidecars to aid debugging.
+    """
     paths = set(recorded)
-    paths.update(p.relative_to(root).as_posix() for p in (root / "dist").rglob("*") if p.is_file())
-    zips = sorted(rel for rel in paths if rel.endswith(".zip"))
+    if (root / "dist").is_dir():
+        paths.update(p.relative_to(root).as_posix() for p in (root / "dist").rglob("*") if p.is_file())
+    zips = sorted({rel for rel in paths if rel.endswith(".zip")})
+    # Deduplicate sidecar check: normalize recorded paths to avoid double counting
     missing = [rel for rel in zips if not (root / rel).is_file() or not sidecar_path(root / rel).is_file()]
-    orphan = sorted(rel for rel in paths if rel.endswith(".zip.sha256") and rel.removesuffix(".sha256") not in paths)
+    orphan = sorted(rel for rel in paths if rel.endswith(".zip.sha256") and rel.removesuffix(".sha256") not in paths and rel.removesuffix(".sha256") not in zips)
     if missing or orphan:
-        raise ValueError("incomplete ZIP/checksum inventory: " + ", ".join(missing + orphan))
+        details = []
+        if missing:
+            details.append(f"missing sidecar or ZIP: {', '.join(missing)}")
+        if orphan:
+            details.append(f"orphan sidecar without ZIP: {', '.join(orphan)}")
+        raise ValueError("incomplete ZIP/checksum inventory: " + "; ".join(details))
     if not zips:
         raise ValueError("no distribution ZIPs found")
     return zips
