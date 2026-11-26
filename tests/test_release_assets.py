@@ -332,3 +332,26 @@ def test_a_fresh_build_gets_the_published_inputs(tmp_path, monkeypatch):
     assert (tree / "code.py").is_file()
     assert (tree / "references" / "source.7z").read_bytes() == b"an input", "the build input"
     assert not (tree / "dist" / "A" / "Pack.zip").exists(), "the output is what the run verifies"
+
+
+def test_a_job_that_reads_a_pack_fetches_it_first():
+    """dist/ is not in a checkout any more: a job that verifies or rebuilds must fetch before it does.
+
+    This is the mistake that made the first run on `main` fail - the `packs` job verified the pack
+    checksums on a tree that had no packs, because the fetch step had been moved into the other job
+    and the YAML still looked right.
+    """
+    import yaml
+
+    data = yaml.safe_load((REPO / ".github" / "workflows" / "test.yml").read_text())
+    reads_a_pack = ("pack_checksum.py", "fresh.py", "-m pytest")
+    for name, job in data["jobs"].items():
+        steps = job.get("steps") or []
+        runs = [(index, (step.get("run") or "")) for index, step in enumerate(steps)]
+        fetch = [index for index, step in enumerate(steps)
+                 if "pd2-las fetch" in (step.get("run") or "")]
+        for index, command in runs:
+            if any(marker in command for marker in reads_a_pack):
+                assert fetch and min(fetch) < index, (
+                    f"{name}: step {index + 1} runs `{command.splitlines()[0]}`, which reads dist/, "
+                    "before any step fetches the published assets")

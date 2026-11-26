@@ -124,6 +124,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      # The packs and the inputs are release assets: this job needs them before it can verify or
+      # rebuild anything (docs/pd2-las/RELEASE_ASSETS.md).
+      - name: the published packs and sources
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            references
+          key: assets-${{ hashFiles('assets.json') }}
+      - name: fetch every published asset
+        run: make -sC tools/pd2-las fetch
       - name: verify the checked-in pack checksums
         run: python tools/pd2-las/pack_checksum.py
       - name: every tracked pack must equal a fresh build, byte for byte
