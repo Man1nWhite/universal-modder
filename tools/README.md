@@ -49,3 +49,17 @@ left apart and why, with the measurements: `docs/audits/2026-11-12-tool-merge.md
   of a release in `tools/pd2-port/releases/lawson-las-v<N>.md`: moving its files breaks the release.
 - Porting a method across the trees is fine: reimplement it in the target tree's dialect and keep both
   suites green.
+
+## Looking at a compiled unit: `.model` → `.glb` + `.dds`
+
+`tools/pd2-las/model_to_glb.py` writes a glTF 2.0 `.glb` (and the unit's `.texture` files as
+`.dds` — a PAYDAY 2 `.texture` is a DDS buffer) from a `.model`, a directory or a pack. It is the
+one place a compiled unit leaves this tree in a form Blender, three.js or a phone can open:
+
+    .venv/bin/python tools/pd2-las/model_to_glb.py dist/Arivus/Arivus_over_Hoxton.zip \
+        -o build/arivus_glb --all-textures --skin
+
+Its conventions — metres/y-up, the UV flip, global RenderAtom indices, DXT5nm → tangent-space RGB,
+`ALPHA_MASKED` → `alphaMode: MASK`, and the bind-pose skin whose matrices compose to the identity —
+are pinned by `tests/test_model_to_glb.py` on a synthetic unit, so the test needs no game asset.
+The output derives from game bytes: it goes under `build/`, never into `dist/` or Git.
