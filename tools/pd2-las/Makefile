@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus glb all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus voices_tables voices_char_rust voices_sheets glb all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -70,6 +70,19 @@ voices_geralt:  ## Geralt_VO_over_Rust_Stream: Geralt barks for the 29 slots the
 
 voices_arivus:  ## Arivus_VO_over_Hoxton_Stream: Arivus barks (+ the borrowed 'Hoxton.' callout) for the slots the set covers -> dist/Arivus/
 	$(call BUILD,tools/build_character_stream_mod.py --pack arivus-old-hoxton)
+
+voices_tables:  ## the Rust and Old Hoxton stream tables (slot -> bank -> id) -> voice_lines_vox/targets/
+	@cd "$(ROOT)" && $(PY) tools/build_stream_tables.py
+
+# Not a BUILD target: the re-keyed pack is not tracked in dist/ until the id map exists (D74),
+# so `fresh` and `status` do not own it - the builder prints its own state.
+voices_char_rust:  ## Geralt's takes onto Rust's own char_rust bank (refuses until voice_lines_vox/geralt/char_rust_ids.csv names every id)
+	@cd "$(ROOT)" && $(PY) tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust
+
+# Not a BUILD target either: an import is an input, not a pack, so `fresh`/`status` do not own it.
+voices_sheets:  ## import a community voice-line sheet (id | who | what | notes) -> voice_lines_vox/sheets/ ; SHEET=references/<file>.csv WANT=Rust
+	@cd "$(ROOT)" && test -n "$(SHEET)" || { echo "usage: make -sC tools/pd2-las voices_sheets SHEET=references/regular_vox.csv [WANT=Rust]"; exit 1; }
+	@cd "$(ROOT)" && $(PY) tools/import_voiceline_sheet.py --sheet "$(SHEET)" $(if $(TAB),--tab "$(TAB)") $(if $(WANT),--who "$(WANT)") $(if $(LEADS),--keys)
 
 glb:            ## Arivus_Head_over_Old_Hoxton_GLB: the Arivus head .glb + its .dds, from the tracked Arivus_over_Hoxton.zip -> dist/Arivus/
 	$(call BUILD,$(HERE)/build_arivus_glb_pack.py)

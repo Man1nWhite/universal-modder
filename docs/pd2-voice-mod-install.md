@@ -310,8 +310,21 @@ they share.
 | `Geralt/Geralt_VO_over_Rust_Stream.zip` | Geralt of Rivia (`references/GERALT VOICE (PAYDAY 2).zip`, CP866 file names) | 29 slots the set carries — 315 `.stream` files, including `kill.taser`/`mark.taser` | 49 slots (546 ids) with no take in the set; 24 covered ids are also Wwise Vorbis |
 | `Arivus/Arivus_VO_over_Hoxton_Stream.zip` | Arivus (`references/ARIVUS VOICE (PAYDAY 2).zip`) | 18 slots the set carries, plus the shared `call_teammate.hey_you` slot, which plays the Geralt 'Hoxton.' callout borrowed from the GERALT archive (the set has no Arivus callout) — 324 `.stream` files | 59 slots (540 ids) with no take in the set; 21 covered ids are also Wwise Vorbis |
 
+The ids either pack writes are listed per target in `voice_lines_vox/targets/`
+(`rust_shared_regular_vox.csv`, `old_hoxton_shared_regular_vox.csv`, `slot → bank → id`, with
+`written=yes` equal to the zip's file names); the shared versus dedicated bank split, and the
+open question of which one Rust barks from, are
+[`pd2-voice-stream-tables.md`](pd2-voice-stream-tables.md) (D73).
+
 Notes that matter:
 
+- **Rust is on his own bank.** The reference Rust pack (`references/Marine VO for Rust.7z.001`)
+  ships `char_rust` and `robbers_mission_gen` only, and its author's changelog says the U247 build
+  dropped the `regular_vox` lines — so a working Rust voice pack on the 64-bit build is
+  dedicated-bank. The id-keyed re-key of this pack's takes to `char_rust/` is built by
+  `make -sC tools/pd2-las voices_char_rust` but **not shipped**: it waits on
+  `voice_lines_vox/geralt/char_rust_ids.csv`, the map that names which id is which line (D76,
+  [stream tables](pd2-voice-stream-tables.md)).
 - **Rust** is the punk heister (`npc_criminal_wild_1`), the target of `dist/Geralt/Geralt_over_Rust.zip`.
   Whether he plays his heister barks from the shared `regular_vox` bank is **not verified**: the original
   crew do, and newer heisters are documented elsewhere as `char_<heister>`. If Geralt-over-Rust installs

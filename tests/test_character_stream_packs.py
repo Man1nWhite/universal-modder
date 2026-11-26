@@ -176,3 +176,49 @@ def test_the_arivus_pack_ships_its_own_takes_plus_the_borrowed_callout():
                    "mark.cloaker", "mark.dozer", "mark.shield", "mark.sniper", "mark.taser",
                    "nade.grenade", "nade.smoke", "nade.tear"}
     assert picks["call_teammate.hey_you"]["source_ogg"] == "Геральт-Hoxton.mp3"
+
+
+# ---------------------------------------------------------------- the char_rust route (D76)
+
+def test_the_char_rust_route_refuses_until_an_id_is_named(tmp_path, monkeypatch):
+    """`--bank char_rust` ships nothing on a guess: a dedicated bank's ids cannot be derived.
+
+    The measured table says which files exist in Rust's own bank; nothing in it (or in the
+    reference Marine pack, which only names the medic-kill *event*) says which line each id is.
+    So the builder has to stop, and it has to stop *before* encoding: a take written to a guessed
+    id plays the wrong line in game.
+    """
+    cfg = charpack.PACKS["geralt-rust"]
+    monkeypatch.setattr(charpack, "load_named_ids", lambda _path: {})
+    with pytest.raises(SystemExit) as stop:
+        charpack.build_dedicated("geralt-rust", cfg, "char_rust", ff="/nonexistent", args=None)
+    message = str(stop.value)
+    assert "no named voice-line id" in message
+    assert "char_rust_ids.csv" in message
+    assert "kill.taser" in message                      # the slots it lists are the picks
+    assert not list(tmp_path.iterdir())
+
+
+def test_the_named_id_template_is_tracked_and_empty():
+    """The file the build reads is tracked, carries the instructions, and holds no rows yet."""
+    path = charpack.CHAR_RUST_IDS
+    assert path.is_file(), "the build names this file; it has to exist as a template"
+    assert charpack.load_named_ids(path) == {}, "a row would need a source that named that id"
+    text = path.read_text()
+    assert "slot,id,named_by" in text and "refuses" in text
+
+
+def test_the_dedicated_route_writes_the_measured_bank_and_nothing_shared():
+    """The route's bank is the measured one, and the two banks never share an id."""
+    tables = ROOT / "voice_lines_vox" / "targets"
+    measured = [r["id"] for r in csv.DictReader((tables / "rust_dedicated_char_rust.csv").open())]
+    picks = list(_picks("geralt-rust"))[:3]
+    named = dict(zip(picks, measured[:3]))
+    folder = charpack.bank_folder("char_rust")
+    assert folder == "soundbanks/streamed/char_rust"
+    for slot, hila_id in named.items():
+        assert hila_id in measured, "an id has to come from the measured bank"
+        assert hila_id not in {r["id"] for r in csv.DictReader((tables / "rust_shared_regular_vox.csv").open())}
+    # the two banks are disjoint, which is the property the write path relies on
+    shared = {r["id"] for r in csv.DictReader((tables / "rust_shared_regular_vox.csv").open())}
+    assert not set(named.values()) & shared

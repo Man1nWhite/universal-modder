@@ -7,17 +7,18 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 
 | Question | Run or read |
 |---|---|
-| Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
+| Fresh clone or restarted sandbox (no `.venv`, `dist/` listed deleted) | `make -sC tools/pd2-las env` |
 | State of the packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
 | Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `honokodae_head`, `christie`, `cloverchristie`, `heads`, `hila`, `voices_stream`, `voices_geralt`, `voices_arivus`, or `glb` |
-| Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
+| Was a pack seen in game, which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
+| Why a route or format is so, and if it holds | `docs/pd2-las/DECISIONS.md` (indexed, cited `D<n>`) |
 | What is open | "Next" in `tools/pd2-las/README.md` |
-| Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
+| Before changing a builder, codec or pack contents | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
 
-- Take sizes, hashes and test counts from `status` and `green`, not from a document.
-- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. For `Miranda_Romance_LAS` you write
-  the `.sha256` yourself ("Publish a release" in `tools/pd2-port/README.md`).
+- Take sizes, hashes and counts from `status` and `green`, never from a document.
+- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. `Miranda_Romance_LAS` has no
+  sidecar writer, so you write it ("Publish a release" in `tools/pd2-port/README.md`).
 - A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
   `git checkout -- dist`: both discard work that was never pushed. First `git status` and
   `git log origin/<branch>..HEAD` must show nothing local that the remote lacks. Once both are empty,
@@ -25,8 +26,8 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
   older commit, which leaves `dist/` on the base bytes and `status` calling packs `broken` for no reason.
 
 ## Modding any other game
-1. Read `skills/mod-any-game/SKILL.md` and follow its loop: intake → recon → route → lab (backups) →
-   source of truth → vertical slice → assets → verify in the real game → showcase → publish.
+1. Read `skills/mod-any-game/SKILL.md`, whose loop is: intake → recon → route → lab (backups) → source of
+   truth → vertical slice → assets → verify in the real game → showcase → publish.
 2. Search the knowledge base first: `bin/um kb search "<game or engine>"` (`knowledge/INDEX.md`).
 3. At the end, write a field note (`bin/um kb new ...`) and, once your human agrees, open a PR
    (`bin/um kb pr <note> --yes`). See `knowledge/README.md` and `CONTRIBUTING.md`.
@@ -50,14 +51,14 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
   keep decompiles and secrets out.
 - **Renders:** tracked renders go in `docs/renders/<project>/<ext>/...` (`docs/renders/README.md`);
   scratch in `build/`.
-- **Processes:** kill by exact PID (`um win kill`), never by name pattern.
+- **Processes:** kill by exact PID (`um win kill`), never a name pattern.
 - **Ask first** before:
   - driving mouse/keyboard, and never focus a game with an online mode while the user types;
   - installing loaders into game folders or changing the registry;
   - publishing anything, PRs included.
 - **Keep a journal:** `MODLOG.md` in the mod's folder; it becomes your field note.
-- **Keep state in a command:** don't make the next agent rebuild state from a journal (`tools/pd2-las/status.py`).
-- **Sequence file edits:** parallel edits to one file race and clobber each other.
+- **Keep state in a command:** don't make the next agent rebuild it from a journal (`tools/pd2-las/status.py`).
+- **Sequence file edits:** parallel edits to one file clobber each other.
 
 ## Working on the toolkit itself
 - **Python:** 3.10+, deps Pillow, numpy and PyYAML. Code lives in `um/`, one module per CLI group, each

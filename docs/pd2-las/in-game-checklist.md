@@ -376,7 +376,12 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    wins). Rust is the punk heister (`npc_criminal_wild_1`). What to check: (i) whether his barks are
    Geralt's at all — the shared bank is verified for the crew, but whether this DLC heister plays
    from it is an open question; if his voice is vanilla, he is not on `regular_vox` and the pack
-   cannot fix that; (ii) the lines the Geralt set covers (29 slots: assault.incoming/retreat,
+   cannot fix that. The ids either pack writes, per bank, are tracked in `voice_lines_vox/targets/`
+   (the shared tables and the measured `char_rust` one — `docs/pd2-voice-stream-tables.md`, D73);
+   A Rust pack on his own bank exists but is not shipped (D76: it waits on
+   `voice_lines_vox/geralt/char_rust_ids.csv`, the slot → id map); so this check still decides whether the
+   *shared* pack can reach him at all.
+   (ii) the lines the Geralt set covers (29 slots: assault.incoming/retreat,
    civ.dontmove/down/killthreat/nophone, inspire.faster, kill.*, mark.*, mask.go, move.generic,
    nade.*, revive.*, tech.drill_jam, win.generic, ammo.low, drop.ammo); (iii) the 49 uncovered slots
    are vanilla by design; (iv) `kill.taser`/`mark.taser` ship the Geralt takes deliberately.
