@@ -138,6 +138,8 @@ git -c user.name=you -c user.email=you@example.invalid commit -m \
 # 4. publish the rewritten history
 git remote add origin <url>
 git push --force origin 'refs/heads/*'
+# 5. the two release tags point at a commit that no longer exists: move them to the new main
+git tag -f packs-v1 main && git tag -f sources-v1 main && git push --force origin packs-v1 sources-v1
 ```
 
 `git filter-repo` is the maintained tool; `git filter-branch` is the fallback and is 10–100×
@@ -148,6 +150,8 @@ refuses to run on a clone that is not fresh. Notes that matter afterwards:
   merge after a rewrite re-introduces the old blobs. Say so in the release notes.
 - **Open pull requests** against the old commits cannot merge; they need a rebase onto the
   rewritten branch. Land or close them *before* the rewrite, or expect to help.
+- **The release tags** (`packs-v1`, `sources-v1`) are what the release pages hang off; step 5 re-points
+  them into the rewritten history, or the release pages point at commits that are gone.
 - **GitHub keeps unreachable objects reachable by SHA** until it garbage-collects. Old commit
   SHAs still resolve for a while; ask support to run `git gc --prune=now` if the old size must go
   now, and expect cached views of old commits to break.
