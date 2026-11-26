@@ -62,14 +62,15 @@ shirt stay out). It overrides the four `shared_textures/old_hoxton_head[_p_]df/_
 cooked DODB containers; `diesel_model.py` reads those and the packed channel formats). Fit constants
 (Head-bone anchors, scale 83.25) are derived against the Rust male rig and proven offline
 (`build/arivus-solo-*.png`). The ped has no beard geometry — the beard, moustache and sideburns are
-painted into `head_diff_000_a_whi` — so the build inpaints them away (D64/D66: a mask grown 8 px
-along the stubble from the geometric beard, a harmonic fill from the clean skin ring, feathered;
-lips, nostrils, ears and brows pasted back), and the pack is clean-shaven by construction rather than
-by texture choice. D69 is the colour: the fill keeps its own luminance and takes the hue of the
-**local** clean ring round the beard (the jaw's own ≈ 148,105,90) rather than the raster's global skin
-median, which is the pale forehead — that median is what made the shaved field grey in the 2026-11-25
-portrait. Seen in game on 2026-11-25, which is why D66 exists: D64's mask had grown through the whole
-face and washed it out. Not seen since D69.
+painted into `head_diff_000_a_whi` — so the build inpaints them away, and the pack is clean-shaven by
+construction rather than by texture choice. D64/D66 found the beard with a hand-drawn U and wide
+sideburn boxes, which washed the face out; D69 fixed the fill's hue to the jaw's own clean ring
+(≈ 148,105,90) rather than the pale forehead's median. D70 replaced the hand-drawn mask with a flood
+from the raster's own dark hairs confined to the beard zone, so the clean upper face is left alone,
+removed the painted hairs in front of the ears, and shortened the neck so it no longer shows through
+the back of the collar. Lips, nostrils, ears and brows are pasted back pixel for pixel. Seen in game
+on 2026-11-25, which is why D66 exists: D64's mask had grown through the whole face and washed it out.
+Not seen since D69 (nor since D70).
 
 ## Seen in game
 

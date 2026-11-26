@@ -9,8 +9,8 @@ pin what must survive: the ears, eyebrows and lips are pasted back byte for byte
 is not touched at all, and the same raster always produces the same bytes.
 
 The numbers are measured on the source raster, so they move with it: the beard box is 73% "dark"
-before the shave and 0.5% after, and the jaw's high-frequency structure lands at 0.67 of the clean
-cheek's instead of zero.
+before the shave and ~1% after, and the jaw's high-frequency structure lands at ~0.7 of the clean
+cheek's instead of zero. D70 also pins that the clean upper face is not repainted at all.
 """
 from __future__ import annotations
 
@@ -51,6 +51,13 @@ FEATURE_BOXES = {
 #: the mask's bottom edge (the jaw) and a row well inside the filled area, for the seam check
 SEAM_ROW, INTERIOR_ROW = 344, 330
 SEAM_COLS = slice(150, 380)
+#: clean upper face: what D64/D66's geometric U and wide sideburn boxes used to repaint
+UPPER_FACE_BOXES = {
+    "left eye": (slice(180, 205), slice(180, 240)),
+    "right eye": (slice(180, 205), slice(280, 340)),
+    "nose bridge": (slice(205, 230), slice(240, 280)),
+    "left cheek": (slice(205, 230), slice(160, 200)),
+}
 
 
 def _lum(cell: np.ndarray) -> np.ndarray:
@@ -115,6 +122,24 @@ def test_the_beard_is_gone(head_cell: np.ndarray, shaved: np.ndarray) -> None:
     assert after_dark < 0.25 * before_dark, f"{after_dark:.1%} dark against {before_dark:.1%} before"
     grain = _high_pass_std(shaved, *BEARD_BOX) / _high_pass_std(head_cell, *BEARD_BOX)
     assert grain < 0.55, f"the beard box still carries {grain:.0%} of its hair strokes"
+
+
+@needs_assets
+@pytest.mark.parametrize("name", sorted(UPPER_FACE_BOXES))
+def test_the_clean_upper_face_is_not_repainted(
+    name: str, head_cell: np.ndarray, shaved: np.ndarray
+) -> None:
+    """D70: the inpaint follows the beard, not a rectangle up to the temples.
+
+    The old sideburn boxes reached from y 140 to 344 and 88 px into each cheek; the
+    eyes, the bridge of the nose and the upper cheeks came out darker, with a straight
+    edge visible in the portrait. Only the beard's soft fringe may touch these boxes.
+    """
+    rows, cols = UPPER_FACE_BOXES[name]
+    before = head_cell[rows, cols, :3].astype(np.int32)
+    after = shaved[rows, cols, :3].astype(np.int32)
+    changed = float((np.abs(before - after).max(axis=2) > 2).mean())
+    assert changed < 0.10, f"{changed:.0%} of the {name} was repainted"
 
 
 @needs_assets

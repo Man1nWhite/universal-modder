@@ -10,35 +10,31 @@
 - **Views ([`arivus_over_hoxton_sheet.png`](arivus_over_hoxton_sheet.png)):** Portrait Front (`0°`),
   Collar & Head 3/4 (`32°`), Back Collar & Hair (`180°`), Full Heister Rig (`22°`), and HUD/menu icon.
   The head is framed higher than the female heisters' — Old Hoxton's `g_head_old_hoxton` sits at
-  `z ≈ 159–188 cm` inside the shared suit model — so the sheet passes its own portrait framing.
+  `z ≈ 157–188 cm` inside the shared suit model — so the sheet passes its own portrait framing.
 - **What is textured:** the replaced head and hair (one `ALPHA_MASKED` atom, skin in the atlas top
   half and cutout hair in the bottom half) and the collar. The head is clean-shaven: Random4 paints
   the beard, moustache and sideburns into `head_diff_000_a_whi` instead of modelling them, so the
-  build inpaints them away (`shave_arivus_face` in `tools/build_joy_head_mods.py`, D64/D66/D69). The mask
-  is a rim of 8 px grown along the stubble from the geometric beard (D66 - a search over the whole
-  raster repainted the face, which the 2026-11-25 in-game portrait showed); the
-  fill relaxes from the clean skin ring around it, takes that ring's level (a ±15% gain) and the
-  raster's own pore-and-freckle structure at 1.10x, and is feathered into the untouched skin over
-  2.5 px — so the shaved jaw carries grain and shading instead of a flat panel, with no seam where
-  the inpaint ends and no dark ring around the ears. D69 changes the colour, not the shape: the fill
-  keeps its own luminance and takes the chroma of the **local** ring just outside the mask (the jaw's
-  own ≈ 148,105,90 — measured round the beard), level-matched to that ring within ±10% over a 5 px
-  feather. The raster's global skin median (172,134,123) is the pale forehead, and using it is what
-  made the field read grey in the D66 portrait. Final field (136.9, 101.1, 89.5) against the jaw ring's
-  (148, 105, 90): one tone, with the jaw's own shading left in it (luminance 110.5 ± 6.1 where the
-  stubble read 64.8 ± 41.4). The blend is faded outward
-  over ~9 px rather than stamped on a grown zone (a binary zone leaves a soft rectangle of its own),
-  and the sideburn boxes reach the ears, so no strip of painted stubble is left in front of them. What
-  is still dark in front of the ear on the 3/4 view is **geometry**: the ped's hair half of the atlas
-  carries ~6,000 triangles reaching down to z ≈ 169.5 cm — modelled sideburn cards, not texture. The ped's own painted lips, nostrils, ears and
-  eyebrows are laid back on top, pixel for pixel. The open eyes come from the ped's eyeball raster, which only lands on the eye quads
+  build inpaints them away (`shave_arivus_face` in `tools/build_joy_head_mods.py`, D64/D66/D69/D70).
+  D70 replaced the hand-drawn mask: a flood from the raster's own dark hairs, confined to the lower
+  face and narrow strips in front of the ears, finds the beard instead of painting a rectangle
+  across the cheeks and eye corners. The harmonic fill still takes its level and chroma from the
+  clean skin ring just outside the mask (the jaw's own ≈ 148,105,90, not the pale forehead's median)
+  and keeps the raster's pore-and-freckle structure; the blend fades outward over ~9 px. The
+  cheek-facing edge of each ear ellipse gives up its painted hairs (kept by the ear's pink chroma),
+  so no dark strip is left in front of the ear, and the two stubble ticks at the mouth's corners are
+  gone while the lip and its slit stay pixel for pixel. The ped's own painted lips, nostrils, ears
+  and eyebrows are laid back on top. The neck is reshaped as well: its cut edge sits below the
+  collar and no neck surface shows through the back opening, so the skin teeth once visible in the
+  back view are gone. What is still dark around the temple is **geometry**: the ped's hair half of
+  the atlas carries ~6,000 triangles reaching down to z ≈ 169.5 cm — modelled hair cards, not paint.
+  The open eyes come from the ped's eyeball raster, which only lands on the eye quads
   when the source UVs are read in their own order — Random4's v = 0 is the texture top, so the
   builder no longer mirrors v before packing the atlas. Suit, gloves and forearms are rendered with
   flat placeholder colours to isolate the replacement. The pack is built on *FPS Gloves in TPS*, so
   the hands in the third-person frame are that base mod's gloves; there is no separate `fps_*.model`
   unit in this pack and therefore no first-person sheet.
-- **Caveats:** offline software Z-buffer render with diffuse textures only — it is what D64 was judged
-  on, and it cannot say how the shave reads under the game's own lighting; `runtime_verified` stays
+- **Caveats:** offline software Z-buffer render with diffuse textures only — it is what D64/D70 were
+  judged on, and it cannot say how the shave reads under the game's own lighting; `runtime_verified` stays
   `false` and no tracked bytes of this pack have been seen in game
   ([`docs/pd2-las/HANDOFF.md`](../../../../pd2-las/HANDOFF.md)). The hair's alpha cutout is approximated
   in software (same `alpha >= 15` cut as the game's `ALPHA_MASKED` pass with `alpha_ref 0.05`).
