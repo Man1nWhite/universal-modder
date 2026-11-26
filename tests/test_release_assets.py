@@ -81,12 +81,19 @@ def test_asset_names_are_flat_unique_and_round_trip(assets, manifest):
     assert len(seen) == len(assets.manifest_entries(manifest))
 
 
-def test_manifest_lists_every_tracked_file(assets, manifest):
-    tracked = [rel for rel in _tracked() if assets.publishable(rel)]
-    if not tracked:
-        pytest.skip("nothing tracked under dist/ and references/ in this checkout")
+def test_manifest_lists_every_file_on_disk(assets, manifest):
+    """`dist/` and `references/` are fetched, not tracked: the manifest is the inventory.
+
+    A pack built here and not published is exactly what this catches — it would be a pack that
+    no clone can fetch, and `status` would call it `changed` with nothing to compare it to.
+    """
+    on_disk = sorted(rel for prefix in PREFIXES for rel in (
+        p.relative_to(REPO).as_posix() for p in (REPO / prefix).rglob("*") if p.is_file())
+        if assets.publishable(rel))
+    if not on_disk:
+        pytest.skip("nothing fetched under dist/ and references/ in this checkout")
     listed = {rel for _, rel, _ in assets.manifest_entries(manifest)}
-    assert sorted(listed) == tracked, sorted(set(tracked) - listed) + sorted(listed - set(tracked))
+    assert sorted(listed) == on_disk, sorted(set(on_disk) - listed) + sorted(listed - set(on_disk))
 
 
 def test_markdown_stays_in_git(assets, manifest):
@@ -294,3 +301,34 @@ def test_upload_dry_run_names_every_release_and_touches_nothing(served, monkeypa
     out = capsys.readouterr().out
     assert "would create packs-v1" in out and "would create sources-v1" in out
     assert "would upload dist/A/Pack.zip" in out
+
+
+def test_a_fresh_build_gets_the_published_inputs(tmp_path, monkeypatch):
+    """`references/` is gitignored now; `git ls-files` alone would starve every builder."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("fresh", REPO / "tools" / "pd2-las" / "fresh.py")
+    fresh = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(fresh)
+    except ModuleNotFoundError as exc:      # numpy, for the mesh code
+        pytest.skip(f"fresh.py needs {exc.name}")
+
+    repo = tmp_path / "repo"
+    (repo / "references").mkdir(parents=True)
+    (repo / "references" / "source.7z").write_bytes(b"an input")
+    (repo / "dist" / "A").mkdir(parents=True)
+    (repo / "dist" / "A" / "Pack.zip").write_bytes(b"an output")
+    (repo / "assets.json").write_text(json.dumps({"version": 1, "releases": {"sources-v1": {"files": {
+        "references/source.7z": {"asset": "references__source.7z", "bytes": 8, "sha256": "x"},
+        "dist/A/Pack.zip": {"asset": "dist__A__Pack.zip", "bytes": 9, "sha256": "y"}}}}}))
+    monkeypatch.setattr(fresh, "REPO", repo)
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    (repo / ".gitignore").write_text("references/\ndist/\n")
+    (repo / "code.py").write_text("print('a builder')\n")
+
+    tree = tmp_path / "tree"
+    fresh.copy_tree(tree, outputs=["dist/A/Pack.zip"])
+    assert (tree / "code.py").is_file()
+    assert (tree / "references" / "source.7z").read_bytes() == b"an input", "the build input"
+    assert not (tree / "dist" / "A" / "Pack.zip").exists(), "the output is what the run verifies"

@@ -281,6 +281,11 @@ after the preview works, try a backed-up offline heist.
 
 ## Publish a release
 
+The packs and the sources themselves are release assets: [`assets.json`](../../assets.json) names their
+bytes, `python tools/release_assets.py upload` publishes a rebuilt one, and
+[`docs/pd2-las/RELEASE_ASSETS.md`](../../docs/pd2-las/RELEASE_ASSETS.md) has the runbook. The rest of this
+section is the older, tag-driven route for the shipped port's own release.
+
 This is the release route of the shipped port. The GitHub release is
 tag-driven: on a `lawson-las-v*` tag the
 [`lawson LAS pack` workflow](../../.github/workflows/lawson-las.yml) rebuilds

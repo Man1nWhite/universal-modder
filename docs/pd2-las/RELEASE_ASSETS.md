@@ -1,8 +1,10 @@
 # Packs and sources in releases, not in the history
 
-**State: tooling and manifest are in place; the tree is still tracked.** The three steps that
-move the bytes out are ordered and gated below, and the first one needs a network that can reach
-`uploads.github.com` — which a sandbox may not be able to.
+**State: the bytes are published and the tree no longer tracks them.** Steps 0–3 are done: both
+releases hold all 117 assets with the manifest's sizes and sha256 (`remote` says PASS), and
+`dist/` and `references/` are gitignored, so a clone is code and documents. What remains is step 4,
+the history rewrite — the only part that needs the repository owner, and the only part that shrinks
+an existing clone.
 
 ## Why
 
@@ -24,6 +26,10 @@ Two releases, each with a stable tag, so a new pack is another asset rather than
 |---|---|---|---|
 | `packs-v1` | every `dist/<character>/<name>.zip` and its `.sha256` | 48 | 197 MB |
 | `sources-v1` | every `references/` archive the builders read | 69 | 231 MB |
+
+Uploaded on 2026-11-26 from `.github/workflows/release-assets.yml` (a runner, because the sandbox
+this was built in cannot reach the upload endpoint), and verified afterwards with `remote`:
+117 of 117, sizes and digests equal to the manifest's.
 
 - `assets.json` (tracked) is the manifest: for every file its path, size, sha256, and the flat
   asset name GitHub needs (`dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` →
@@ -56,14 +62,14 @@ python tools/release_assets.py remote    # does GitHub hold what the manifest sa
 Each step has a gate. Do not run a later step until the earlier gate passes; that is what keeps
 the switch reversible.
 
-### 0. Preflight (on the branch that has the packs)
+### 0. Preflight (done)
 
 ```sh
 python tools/release_assets.py check     # the manifest is the tree: 117 files, every sha256
 git status --short                       # nothing uncommitted that matters
 ```
 
-### 1. Upload
+### 1. Upload (done)
 
 From a machine that can reach `uploads.github.com`:
 
@@ -88,7 +94,7 @@ python tools/release_assets.py remote    # PASS: all 117 assets are published, w
 This reads sizes and digests through `api.github.com` and downloads nothing. **If it does not say
 PASS, stop**: untracking before this passes would leave a tree whose packs exist only in history.
 
-### 3. Untrack
+### 3. Untrack (done)
 
 ```sh
 git rm -r --cached dist references
@@ -97,7 +103,10 @@ printf 'dist/\nreferences/*\n!references/README.md\n' >> .gitignore
 
 Commit that with the `.gitignore` change. The files stay on disk (now ignored), so nothing local
 is lost, every builder still runs, and `green` still passes; what changes is that a clone no longer
-gets them and `fetch` becomes the way to get them.
+gets them and `fetch` becomes the way to get them. Two things needed adjusting with it: `fresh.py`
+now copies the published inputs into its scratch tree (git no longer lists them, and every builder
+reads `references/`), and `check_all.py` says "make fetch" instead of reporting a missing pack as a
+broken one. Both workflows fetch before they touch a pack.
 
 Then prove it the way a new contributor would:
 

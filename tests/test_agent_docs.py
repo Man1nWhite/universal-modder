@@ -10,6 +10,7 @@ Each test here fails when one of those comes back.
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import re
 import shutil
@@ -42,8 +43,22 @@ def _status():
     return module
 
 
+def _published() -> set[str]:
+    """The paths `assets.json` publishes, for the packs and sources that are no longer tracked.
+
+    They exist for a clone after `make -sC tools/pd2-las fetch`, which is what a document naming
+    one is telling an agent to do — so a published path is a path that exists, and a typo in one
+    is still caught.
+    """
+    manifest = REPO / "assets.json"
+    if not manifest.is_file():
+        return set()
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    return {rel for release in data.get("releases", {}).values() for rel in release.get("files", {})}
+
+
 def _tracked() -> set[str]:
-    """Tracked (plus unignored new, minus deleted) paths and the directories that hold them."""
+    """Tracked (plus unignored new, minus deleted) and published paths, and their directories."""
     git = shutil.which("git")
     if git and (REPO / ".git").exists():
         files = subprocess.run(
@@ -53,7 +68,7 @@ def _tracked() -> set[str]:
         files = [rel for rel in files if rel and (REPO / rel).exists()]
     else:
         files = [p.relative_to(REPO).as_posix() for p in REPO.rglob("*") if p.is_file() and ".venv" not in p.parts]
-    known = {rel for rel in files if rel}
+    known = {rel for rel in files if rel} | _published()
     for rel in list(known):
         parts = rel.split("/")
         known |= {"/".join(parts[:n]) for n in range(1, len(parts))}

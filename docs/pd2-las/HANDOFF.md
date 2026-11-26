@@ -7,8 +7,9 @@
 
 ## Tracked packs
 
-Which bytes are tracked is not written here. `make -sC tools/pd2-las status` prints each pack's size and sha256
-and whether the zip is what git holds; `dist/<character>/<name>.zip.sha256` is the hash itself.
+Which bytes are current is not written here. `make -sC tools/pd2-las status` prints each pack's size and
+sha256 and whether the zip is the published bytes (`assets.json`); `dist/<character>/<name>.zip.sha256` is
+the hash itself.
 
 Rebuildable packs use fixed timestamps and a declared numeric code path. The new
 `Christie_LAS.zip` is a source rebuild with head and hands removed and a glove
