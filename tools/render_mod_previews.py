@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import os
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
@@ -982,6 +983,8 @@ UNIFIED_PATHS = {
     "34_Christie_LAS_fps.png": "christie/model/base/christie_las_fps_sheet.png",
     "35_OfficeSuite_fps.png": "honoka/model/dae/officesuite_las_fps_sheet.png",
     "36_OfficeSuite_Head_fps.png": "honoka/model/head/officesuite_head_las_fps_sheet.png",
+    # not in the numbered overview: the wrist junction D75 changed, before and after the pass
+    "37_OfficeSuite_wrist.png": "honoka/model/wrist/officesuite_wrist_ext30_twist.png",
 }
 
 
@@ -992,6 +995,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--unified", action="store_true",
                     help="write sheets into <out>/<project>/model/... per docs/renders/README.md")
     ap.add_argument("--only-hila", action="store_true", help="render only the native Hila replacement")
+    ap.add_argument("--only-wrist", action="store_true",
+                    help="render only the OfficeSuite wrist junction (the D75 comparison)")
     ap.add_argument("--only-officesuite", action="store_true",
                     help="render only the OfficeSuite LAS sheet, with its FPS arms panel")
     ap.add_argument("--only-head", action="store_true",
@@ -1004,6 +1009,17 @@ def main(argv: list[str] | None = None) -> None:
         if args.unified:
             return out_dir / UNIFIED_PATHS[name]
         return out_dir / name
+
+    if args.only_wrist:
+        import wrist_compare
+
+        wrist_compare.render(
+            target_for("37_OfficeSuite_wrist.png"),
+            before=None,
+            body=Path(os.environ["OFFICESUITE_SKIN_MODEL"]) if "OFFICESUITE_SKIN_MODEL" in os.environ
+            else ROOT / "build/honoko2/officesuite/officesuite.model",
+        )
+        return
 
     if args.only_officesuite:
         tpp_os, fps_os, icon_os = load_multi_mat_las_parts(

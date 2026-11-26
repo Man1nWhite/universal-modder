@@ -1933,3 +1933,68 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `tools/pd2-las/build_arivus_glb_pack.py`, `tests/test_arivus_glb_pack.py`,
   `AGENTS.md`, `CONTRIBUTING.md`, `tools/README.md`.
 - **Status:** holds; publishing outside the repo is still asked of the owner first.
+
+## D75 — The wrist twists on `ForeArmRoll`, and its ring is centred on the glove: OfficeSuite's cuff fix
+
+- **Decided:** 2026-11-26, by the user, from four in-game captures: *"I like Combine Idea 1 + a
+  gentle Idea 2."* The captures show `OfficeSuite` in first person with white buttoned dress
+  gloves: a sliver of the outfit's own wrist stands through the glove's cuff in the weapon poses
+  (`image-1`, `image-4`), while the menu's third-person turntable (`image-2`, `image-3`) looks
+  nearly clean.
+- **Why the gloves are not at fault.** The outfit's wrists are cut on the rig's palm plane (D59/D60,
+  extended and reverted at D62-D70), and the pack ships no hands, so what a glove does at the cuff
+  decides everything. Measured on the built mesh, the circle of skin the cut leaves is the right
+  size but sits off-centre: its centroid is 0.28 cm from the rig's `Hand` joint on the left wrist
+  and 0.54 cm on the right, because `retarget_maps` fits *one* rigid matrix per segment to both of
+  the source forearm's joints - on a 20 cm forearm a 1.75 deg angular error does that, and it lands
+  Honoka's wrist 3.4 cm from where the 2B rig's is. The widest sector of that offset ring faces the
+  dress gloves' button slit, which is the sector the captures show. On top of it the forearm was
+  still 100% `ForeArm` right up to the crease, where vanilla Sydney's own body has been handing the
+  distal forearm to `ForeArmRoll` since `u = 0.37` (full by `u = 0.80`) - so the outfit's wrist
+  stayed rigid while a glove's cuff turned with the forearm.
+- **Decision: one pass, after the slim** (`build_honoko2_dae._wrist_pass`). Three things, none of
+  them on the cut:
+  1. **Twist.** Over `u` 0.35 -> 0.95 of the forearm, `ForeArm`'s weight hands over to
+     `ForeArmRoll` (the rig's twist bone, a child of `ForeArm` halfway down it), which is vanilla
+     Sydney's own curve. The gold bracelet rides the forearm *and* its roll, so it rotates with the
+     wrist like a ring does - it is never bent.
+  2. **Hand.** Over `-3.2 .. -0.6 cm` of the palm's own axis, the wrist skin blends up to 0.30 of
+     `Hand` - the bone a glove is bound to - so in a bent-wrist pose the skin goes where the cuff
+     goes instead of lagging into it. It stops at 0.30, not 0.48: measured against four gloves, a
+     larger majority of `Hand` *increases* protrusion, because the skin then swings on the glove's
+     pivot and its rim flares out of the cuff. Under 0.5 also keeps every wrist vertex dominated by
+     `ForeArmRoll`, which `tests/test_palm_cut.py` and `tests/test_hila_body_override.py` require.
+  3. **Tuck and centre.** Over the same stretch the skin is pulled in 0.35 cm towards the palm's
+     axis (gentle Idea 2 - it is a 5 cm-wide wrist, not a rope), and the ring the cut leaves is
+     re-centred on the palm's axis by exactly the offset measured on that ring. The tuck fades out
+     over the last half centimetre of radius so the rim's cap vertices never cross the axis.
+  Both run on the outfit and the shadow caster, are restricted to the skin's own slice (the
+  bracelet only takes the twist), and keep every vertex at four influences or fewer.
+- **Ordering, and why it matters.** The pass runs *after* `_slim_groups`. The slim pulls each vertex
+  towards the rest point of the bones carrying it, and `ForeArmRoll`'s rest point is 10 cm down the
+  forearm from `ForeArm`'s: re-weighting first moved the slim's own anchors and with them
+  `kept_to_cm` (-0.76 affected nothing) and the floor shift every test pins.
+- **Measured, not asserted.** Rebuilt all three packs. `BUILD_INFO.json` now carries a `wrist`
+  block: ramp, blend, tuck, and per group `vertices_reweighted` 1,839, `vertices_tapered` 102,
+  `max_shift_cm` 0.88, `max_hand_weight` 0.297, palette + `Left/RightForeArmRoll`. The cut is
+  untouched: `kept_to_cm` -0.76 / -0.79, `clipped_to_cm` 0.0, body 31,643 vertices, slim 61,479.
+  Posed against the game's own gloves (`npc_criminal_sydney`, `joy`, `chill`'s Clover), the worst
+  sector where the skin's wall stands outside the glove's cuff across six wrist poses fell from
+  **+2.67 mm to +1.63** (Sydney), **+3.19 to -1.79** (Joy - inside the cuff now in every pose) and
+  **-2.61 to -5.51** (Clover). The capture-driven render, and the tool that prints that table:
+  [`docs/renders/honoka/model/wrist/`](../renders/honoka/model/wrist/README.md).
+- **Held to:** `tests/test_wrist_twist.py` (the recorded curve, the curve on the shipped mesh, no
+  hand-dominated vertex, the rim and the bracelet where they were, the shadow caster in step, and
+  the posed protrusion under 0.20 cm against three gloves).
+- **Rejected:** any change to the cut or to `PALM_EXTEND_CM` (D70 stands: an extension is what put
+  skin *inside* the glove); a `Hand` majority (it made the protrusion worse in the sweep, and it
+  would break the palm-cut tests); a rigid radial shrink of the whole wrist (it narrows the bare
+  stub in third person, where nothing was wrong); moving the bracelet (it is the outfit's own ring);
+  registering `glove_adapter` (D59/D60).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`TWIST_RAMP`, `HAND_BLEND_CM`,
+  `HAND_BLEND_MAX`, `TAPER_CM`, `TAPER_MAX_CM`, `CENTRE_WRIST`, `_wrist_pass`),
+  `tools/pd2-las/wrist_compare.py` (the offline comparison render), `tests/test_wrist_twist.py`,
+  `docs/renders/honoka/in-game/officesuite/2026-11-26/`.
+- **Status:** holds offline only; `runtime_verified` stays `false`, and these bytes have not been
+  seen in game. The dress gloves' own tightness at the cuff is still the limit: the pass removes
+  what the outfit contributed, not what the glove's material does.
