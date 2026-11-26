@@ -11,6 +11,8 @@ What it does, in one pass:
 * **reads a Google export as it comes.** `File -> Download -> CSV` from the sheet, or the same CSV
   from `.../export?format=csv&gid=<id>` when this machine can reach it. The pipe-table form
   (`| id | who | what | notes |`) that a page reader returns is accepted too.
+  **A tab is selected by `gid`, never by name:** `&gid=<number>` from the tab's URL works, while
+  `&sheet=<name>` falls back to the first tab whatever the name is.
 * **skips the sheet's preamble.** The `regular_vox` sheet starts with a status block
   (`99.88% | 20293 | complete`, …, `Who | What | Notes`); the data header is the `Who`/`What` row and
   the id column is the unlabeled one before it.

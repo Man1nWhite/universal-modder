@@ -2055,3 +2055,38 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   first 25 rows only, marked as a head. The re-key stays blocked (D74). The productive use of the
   full export is the shared-bank reconciliation described in the note: join it against
   `voice_lines_vox/targets/*_shared_regular_vox.csv` on id, then confirm the line each slot claims.
+
+## D76 — Tab inventory: which bank each community sheet actually covers (2026-11-26)
+
+- **Context:** D75 recorded the `regular_vox` tab of `196bzO0M…` as the only sheet read, and a
+  wrong access note (that tab selection did not work). Four tabs across two documents have now been
+  read, and the note needs correcting: **`&gid=<number>` selects a tab; `&sheet=<name>` does not**
+  (it silently returns the first tab, which is what D75 saw).
+- **Read:** `196bzO0M…` → `regular_vox` (`gid=0`, 20,293 complete, 32 `(?)`);
+  `robbers_mission_gen` (`gid=1280565535`, 1,720 complete / 93 partial / 2,407 incomplete);
+  `char_sydney` (`gid=1647606386`, 1,037 complete, 0 outstanding). `1c3uXGyH…` → `regular_vox`
+  (`gid=0`, 887 rows / 885 ids, `PD2 ID | Speech | Category`).
+- **Findings that change what can be claimed:**
+  - `1c3uXGyH…` is exactly `voice_lines_vox/hila_regular_vox.csv` (all 885 ids, first, middle and
+    last rows byte-identical). So the ids the repo calls Rust's and Old Hoxton's "shared" lines are
+    **Hila's line list**, separated per heister by Wwise's `robber` switch only — not by a
+    per-heister table. D73's classification stands; its evidence is now explicit.
+  - `robbers_mission_gen` **does name Rust lines by id** (`3115131` It's delivered, `6480123` Find
+    him!, `10609593` Delivered, `11367917` Found it), and those four ids are in the Marine pack's
+    221-file `robbers_mission_gen` folder. That is a real id → line source for the objective-callout
+    bank — but it is a different bank from `char_rust`, and none of the shared slots' ids live there.
+  - A **dedicated-bank community sheet exists** (`char_sydney`, 100% covered), which rules out the
+    assumption that only shared tabs get written up. `char_rust` is not a tab of either document
+    (`&gid=` on it returns page one of `regular_vox`), so no such sheet is known for Rust.
+- **Decision:** track the tab inventory in `voice_lines_vox/sheets/README.md` and leave D74's refusal
+  in place. Nothing here names a `char_rust` id, and a `robbers_mission_gen` id must not be written
+  to `char_rust` (0 ids in common with the measured `char_rust` table; the banks are not
+  interchangeable).
+- **Rejected:** treating `1c3uXGyH…` as new information (it is already imported, in full);
+  re-keying onto `robbers_mission_gen` to "unblock" the objective callouts (a third bank, and D74
+  is about the heister barks); paging all 138 chunks of `regular_vox` before the tabs it is being
+  compared against are actually wanted.
+- **Source:** `voice_lines_vox/sheets/README.md` (inventory), `tools/import_voiceline_sheet.py`
+  (access note), `voice_lines_vox/hila_regular_vox.csv`,
+  `voice_lines_vox/targets/rust_shared_regular_vox.csv`,
+  `references/Marine VO for Rust.7z.001`/`.002`.
