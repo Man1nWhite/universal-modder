@@ -10,11 +10,16 @@ its ids say nothing about a dedicated `char_<module>` bank — importing it does
 `voice_lines_vox/geralt/char_rust_ids.csv` (D74). A `_keys.csv` row is a word-overlap *lead*: the id
 has to be the right heister's and checked against the line before any table or pack uses it (D75).
 
-| File | Rows | What it is |
-| --- | --- | --- |
-| `regular_vox.csv` | 25 | **Head only** — the first rows of the community `regular_vox` sheet (20,343 in the tab), status block stripped, `(?)` carried as `needs_review`. A worked example and the importer's test fixture source; replace it with a full export when one is available. |
-| `regular_vox_keys.csv` | 10 | The slot leads those 25 rows support (`move.on_me` → `On me`, id 236512; `mark.taser` → `Taser!`, 413529). Similarity only. |
-| `regular_vox_hoxton.csv` | 4 | The `--who Hoxton` slice of the head, showing what a per-speaker import looks like. |
+| File | Rows | Of the tab's | What it is |
+| --- | --- | --- | --- |
+| `regular_vox.csv` | 25 | 20,343 | **Head only.** Status block stripped, `(?)` carried as `needs_review`. A worked example, not the tab. |
+| `regular_vox_keys.csv` | 10 | — | The slot leads those 25 rows support (`move.on_me` → `On me`, id 236512; `mark.taser` → `Taser!`, 413529). Similarity only. |
+| `regular_vox_hoxton.csv` | 4 | — | The `--who Hoxton` slice of the head, showing what a per-speaker import looks like. |
+
+The importer now prints the tab's own coverage and measures the file against it
+(`tab declares 20343 rows … INCOMPLETE: this file holds 25 of 20343 rows (0.1%)`), and
+`--require-full` exits 2 unless the file holds every row the tab declares. Use it, or check the
+printed line, before treating any import as complete.
 
 The unmodified export is a reference input and is not tracked; `tests/fixtures/regular_vox_head.csv`
 is the byte-pinned first 25 data rows (preamble included) the parser is tested against.

@@ -129,3 +129,44 @@ def test_the_tracked_import_is_what_the_importer_writes(tmp_path):
         tracked = REPO / "voice_lines_vox" / "sheets" / name
         assert tracked.is_file(), f"missing {name}; re-run make voices_sheets"
         assert tracked.read_bytes() == (tmp_path / name).read_bytes(), name
+
+
+def test_the_declared_coverage_is_read_from_the_status_block(tmp_path):
+    """The status block is the only statement of how big the tab is, so it is parsed, not skipped."""
+    rows = sheet.read_rows(FIXTURE)
+    assert sheet.declared(rows) == {
+        "complete": 20293, "partially complete": 50, "incomplete": 0,
+        "need review": 32, "total": 20343,
+    }
+    out = tmp_path / "o"
+    out.mkdir()
+    assert sheet.main(["--sheet", str(FIXTURE), "--tab", "t", "--out", str(out)]) == 0
+
+
+def test_incompleteness_is_reported_and_can_fail_a_gate(tmp_path, capsys):
+    """A 25-row file of a 20,343-row tab must say so out loud, and `--require-full` must refuse.
+
+    This is the guard against the mistake that matters here: calling a head a full import.
+    """
+    out = tmp_path / "o"
+    out.mkdir()
+    assert sheet.main(["--sheet", str(FIXTURE), "--tab", "t", "--out", str(out)]) == 0
+    said = capsys.readouterr().out
+    assert "INCOMPLETE" in said and "25 of 20343" in said
+
+    assert sheet.main(["--sheet", str(FIXTURE), "--tab", "t", "--out", str(out),
+                       "--require-full"]) == 2
+
+
+def test_a_full_import_reports_full(tmp_path, capsys):
+    """A file holding exactly what the tab declares is accepted by `--require-full`."""
+    path = tmp_path / "tiny.csv"
+    path.write_text(
+        "Status,,,,\n100.00%,2,complete,,,\n,0,partially complete,,,\n,0,incomplete,,,\n"
+        ",0,\"need review, marked with (?)\",,\n,Who,What,Notes,\n"
+        "1,Clover,Oi,,,\n2,Dallas,Over here,,,\n", encoding="utf-8")
+    out = tmp_path / "o"
+    out.mkdir()
+    assert sheet.main(["--sheet", str(path), "--tab", "tiny", "--out", str(out),
+                       "--require-full"]) == 0
+    assert "FULL: 2 of 2" in capsys.readouterr().out

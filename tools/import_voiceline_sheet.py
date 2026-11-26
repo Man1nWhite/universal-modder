@@ -83,6 +83,30 @@ def data_start(rows: list[list[str]]) -> int:
                      "(File -> Download -> CSV, not the browser page)")
 
 
+def declared(rows: list[list[str]]) -> dict[str, int]:
+    """The sheet's own coverage block, e.g. `{"complete": 20293, "incomplete": 2407, "total": ...}`.
+
+    Rows 2-5 of the tab read `<pct> | <n> | complete | partially complete | incomplete | need
+    review`. They are the only statement of how big the tab is, and therefore the only way to say
+    whether an import is the whole tab. A block that is absent (an older export) yields `{}`.
+    """
+    out: dict[str, int] = {}
+    for row in rows[:data_start(rows)]:
+        cells = [c.strip() for c in row]
+        for i, cell in enumerate(cells):
+            label = cell.lower()
+            if label.startswith(("complete", "partially", "incomplete", "need review")):
+                for prev in reversed(cells[:i]):
+                    if prev.replace(",", "").isdigit():
+                        out[label.split(",")[0]] = int(prev.replace(",", ""))
+                        break
+                break
+    if out:
+        out["total"] = out.get("complete", 0) + out.get("partially complete", 0) \
+            + out.get("incomplete", 0)
+    return out
+
+
 def normalize(rows: list[list[str]], tab: str) -> list[dict]:
     """id / who / what / notes per data row; a non-numeric id is kept and flagged."""
     out = []
@@ -173,6 +197,8 @@ def main(argv=None) -> int:
                     help="keep one speaker only, e.g. Rust (case-insensitive)")
     ap.add_argument("--keys", action="store_true",
                     help="also write the slot leads this tab's text supports")
+    ap.add_argument("--require-full", action="store_true",
+                    help="exit 2 unless the file holds every row the tab declares (for gates)")
     ap.add_argument("--out", type=Path, default=None,
                     help=f"where the CSVs go (default: {OUT.relative_to(ROOT).as_posix()})")
     ap.add_argument("--threshold", type=float, default=0.6,
@@ -194,6 +220,23 @@ def main(argv=None) -> int:
     print(f"{path}: {len(rows)} rows"
           + (f", {dupes} duplicate id(s) kept as they are" if dupes else "")
           + (f", {reviewed} row(s) need review" if reviewed else ""))
+    coverage = declared(read_rows(args.sheet))
+    if coverage:
+        total = coverage.get("total", 0)
+        have = len(rows) if not args.who else 0
+        print(f"tab declares {total} rows: {coverage.get('complete', 0)} complete, "
+              f"{coverage.get('partially complete', 0)} partial, "
+              f"{coverage.get('incomplete', 0)} incomplete, "
+              f"{coverage.get('need review', 0)} to review")
+        if total and have and have < total:
+            print(f"INCOMPLETE: this file holds {have} of {total} rows "
+                  f"({have / total:.1%}) - the rest needs the sheet's own CSV export")
+        elif total and have >= total:
+            print(f"FULL: {have} of {total} rows")
+        else:
+            print("speaker slice: coverage is reported for the whole tab by the unfiltered import")
+        if args.require_full and have < total:
+            return 2
     if args.keys:
         leads = key_leads(rows, args.threshold)
         kpath = write(out_dir / f"{tab}{suffix}_keys.csv", leads,
