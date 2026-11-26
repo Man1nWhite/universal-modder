@@ -66,6 +66,18 @@ game yet. Search results for this table:
    pack keeps writing `regular_vox`, which replaces the shared line for every heister on it and
    Rust only if he streams from the shared bank.
 
+### The re-keyed Geralt pack (D74)
+
+`tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust` (make
+`voices_char_rust`) writes the *same 29 Geralt takes* into `soundbanks/streamed/char_rust/`, so the
+pack changes Rust and no other heister. It reads its ids from
+`voice_lines_vox/geralt/char_rust_ids.csv` — a tracked template with **no rows yet** — and refuses
+to build while any picked slot is unnamed or an id is outside the measured table. That refusal is
+the point: the 1,046 ids above say which files exist, not which line each one is, and the Marine
+pack names only the medic-kill *event* (`g36x_any`), never a numeric id. Fill the map from an
+extraction of the game's `soundbanks/streamed/char_rust` (decode a file, read its line) and the
+next build produces the re-keyed pack.
+
 ## Old Hoxton: the shared-bank heister
 
 The community wiki lists Hoxton's switch as `rb5`; his lines are the shared ones, so the Arivus

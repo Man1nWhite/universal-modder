@@ -50,6 +50,14 @@ folder a *dedicated* bank would be (`char_rust`, `char_hoxton`). Why the two ban
 interchangeable, and the open question of which one Rust barks from:
 [`docs/pd2-voice-stream-tables.md`](../docs/pd2-voice-stream-tables.md) (D73).
 
+**The re-key (D74).** `make -sC tools/pd2-las voices_char_rust` writes the same Geralt takes into
+`soundbanks/streamed/char_rust/` instead of `regular_vox/`, so the pack would change Rust alone. It
+takes every id from [`geralt/char_rust_ids.csv`](geralt/char_rust_ids.csv) — a **template with no
+rows** — and refuses to build until a source names each one, because the measured bank says which
+files exist, not which line each file is. Fill that map (an extract of the game's
+`soundbanks/streamed/char_rust`, decoded line by line) and the next build produces the re-keyed
+pack; `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` stays the shared-bank pack until then.
+
 ## Regenerate
 
 ```bash

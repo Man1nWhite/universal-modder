@@ -318,6 +318,13 @@ open question of which one Rust barks from, are
 
 Notes that matter:
 
+- **Rust is on his own bank.** The reference Rust pack (`references/Marine VO for Rust.7z.001`)
+  ships `char_rust` and `robbers_mission_gen` only, and its author's changelog says the U247 build
+  dropped the `regular_vox` lines — so a working Rust voice pack on the 64-bit build is
+  dedicated-bank. The id-keyed re-key of this pack's takes to `char_rust/` is built by
+  `make -sC tools/pd2-las voices_char_rust` but **not shipped**: it waits on
+  `voice_lines_vox/geralt/char_rust_ids.csv`, the map that names which id is which line (D74,
+  [stream tables](pd2-voice-stream-tables.md)).
 - **Rust** is the punk heister (`npc_criminal_wild_1`), the target of `dist/Geralt/Geralt_over_Rust.zip`.
   Whether he plays his heister barks from the shared `regular_vox` bank is **not verified**: the original
   crew do, and newer heisters are documented elsewhere as `char_<heister>`. If Geralt-over-Rust installs

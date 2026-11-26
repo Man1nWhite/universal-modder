@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus voices_tables glb all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus voices_tables voices_char_rust glb all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -73,6 +73,11 @@ voices_arivus:  ## Arivus_VO_over_Hoxton_Stream: Arivus barks (+ the borrowed 'H
 
 voices_tables:  ## the Rust and Old Hoxton stream tables (slot -> bank -> id) -> voice_lines_vox/targets/
 	@cd "$(ROOT)" && $(PY) tools/build_stream_tables.py
+
+# Not a BUILD target: the re-keyed pack is not tracked in dist/ until the id map exists (D74),
+# so `fresh` and `status` do not own it - the builder prints its own state.
+voices_char_rust:  ## Geralt's takes onto Rust's own char_rust bank (refuses until voice_lines_vox/geralt/char_rust_ids.csv names every id)
+	@cd "$(ROOT)" && $(PY) tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust
 
 glb:            ## Arivus_Head_over_Old_Hoxton_GLB: the Arivus head .glb + its .dds, from the tracked Arivus_over_Hoxton.zip -> dist/Arivus/
 	$(call BUILD,$(HERE)/build_arivus_glb_pack.py)

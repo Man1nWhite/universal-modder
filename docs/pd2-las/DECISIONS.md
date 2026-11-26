@@ -1976,3 +1976,49 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `docs/pd2-voice-stream-tables.md`, `tests/test_stream_tables.py`, `references/Marine VO for Rust.7z.001`.
 - **Status:** holds offline; **which bank Rust barks from is still an open question** (D71), and the
   in-game check that settles it is `docs/pd2-las/in-game-checklist.md` 1e.
+
+## D74 — Geralt's takes are re-keyed to `char_rust`; the map that names the ids is the one open input
+
+- **Decided:** 2026-11-26, by the user: *"redo Geralt VO with numbers from the Marine mod"* — the
+  re-key option (not "both banks", not "tables only"), the same 29 Geralt takes
+  (`voice_lines_vox/geralt/slot_picks.csv`, unchanged), and *"work around it"* for the id → line
+  mapping: ship only what the evidence supports rather than wait for a source.
+- **Why.** D71 shipped `Geralt_VO_over_Rust_Stream` on the shared `regular_vox` ids and recorded
+  the open question — whether Rust barks from that bank at all. The reference Rust pack answers a
+  large part of it: `references/Marine VO for Rust.7z.001` + `.002` (kzn's "Houshou Marine VO for
+  Rust", the current release) holds **no `regular_vox` folder at all**; it writes 1,046 ids under
+  `char_rust` and 220 under `robbers_mission_gen`. Its changelog says so in the author's words:
+  the 2026-08-17 build is *"Now Diesel 3.0 ver"* and the 2026-09-27 one *"Removed some useless
+  regular_vox and robbers_mission_gen lines from U247"*. A working Rust voice pack on the 64-bit
+  build is therefore dedicated-bank only, which is why the shared pack changes every heister on
+  `regular_vox` except, most likely, Rust.
+- **What blocks a full re-key.** Wwise keeps no name for a streamed file, and the Marine pack
+  carries no id → line list: its only named entry is a `<Sounds>` redirect of the medic-kill bark
+  (`g36x_any`, `prefix="rb16"`) to four OGGs — an *event*, not a numeric id. Measured, its
+  `char_rust` ids share **0** with the 885 shared ids, so a slot take cannot be moved across by any
+  arithmetic. Appending the same 29 takes to the first 29 measured ids would play the wrong line 29
+  times; that is the one thing this route must not do.
+- **Decision:** `tools/build_character_stream_mod.py` grows `--bank shared|char_rust` (make
+  `voices_char_rust`). On `char_rust` it writes the *same picks* to
+  `soundbanks/streamed/char_rust/<id>.stream`, taking every id from
+  `voice_lines_vox/geralt/char_rust_ids.csv` (tracked template, **no rows yet**), validating each
+  against the measured bank table. It raises while any picked slot lacks a named id, and raises for
+  an id that is not in `voice_lines_vox/targets/rust_dedicated_char_rust.csv`. The tracked
+  `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` is **not** rewritten: the shared pack stays the only
+  shipped Geralt pack, and the re-keyed one ships the day the map is filled.
+- **Measured, not asserted:** the route was run end-to-end on a throwaway synthetic map (29 ids from
+  the measured bank, deleted afterwards): 29 `.stream` members under `char_rust/`, **0**
+  `regular_vox` members, ADPCM headers valid at 44.1 kHz mono, manifest carrying `slot`, `id`,
+  `named_by` per row. `tests/test_character_stream_packs.py` pins the refusal (it must fire before
+  any encoding), the empty tracked template, and that the two banks share no id.
+- **Rejected:** guessing the mapping by size, order or count (the measured bank's sizes span 676 B
+  to 486 KB and the Marine takes are unrelated lengths); shipping a keyed-to-`char_rust` pack with
+  the ids left as the shared ones (inert at best); replacing the tracked shared pack now (it is the
+  only Geralt pack that works for the crew on `regular_vox`); re-keying Arivus/Hoxton the same way
+  (needs `char_hoxton`, which no bank dump lists).
+- **Source:** `tools/build_character_stream_mod.py`, `voice_lines_vox/geralt/char_rust_ids.csv`,
+  `voice_lines_vox/targets/rust_dedicated_char_rust.csv`, `references/Marine VO for Rust.7z.001`,
+  `docs/pd2-voice-stream-tables.md`, `tests/test_character_stream_packs.py`.
+- **Status:** the route holds offline and refuses to guess; **the map is the open input** — one
+  extract of the game's `soundbanks/streamed/char_rust` (or any source naming id → line) fills it
+  and the next `make -sC tools/pd2-las voices_char_rust` produces the re-keyed pack.
