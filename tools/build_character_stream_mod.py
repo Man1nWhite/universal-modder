@@ -47,7 +47,7 @@ import build_hila_stream_mod as base  # noqa: E402  (load_ids, load_vorbis_ids, 
 BANK = "soundbanks/streamed/regular_vox"
 ZIP_DATE = (2026, 11, 25, 0, 0, 0)
 #: The banks a pack may be keyed on. `shared` is `regular_vox`; a dedicated bank is a folder
-#: under `soundbanks/streamed/` whose ids only a measuring source can name (D73, D74).
+#: under `soundbanks/streamed/` whose ids only a measuring source can name (D73, D75).
 BANKS = {"shared": BANK, "char_rust": "soundbanks/streamed/char_rust"}
 def bank_folder(bank: str) -> str:
     """The `soundbanks/streamed/...` folder a bank writes."""

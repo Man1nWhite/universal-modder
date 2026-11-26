@@ -66,7 +66,7 @@ game yet. Search results for this table:
    pack keeps writing `regular_vox`, which replaces the shared line for every heister on it and
    Rust only if he streams from the shared bank.
 
-### The re-keyed Geralt pack (D74)
+### The re-keyed Geralt pack (D75)
 
 `tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust` (make
 `voices_char_rust`) writes the *same 29 Geralt takes* into `soundbanks/streamed/char_rust/`, so the
@@ -78,11 +78,11 @@ pack names only the medic-kill *event* (`g36x_any`), never a numeric id. Fill th
 extraction of the game's `soundbanks/streamed/char_rust` (decode a file, read its line) and the
 next build produces the re-keyed pack.
 
-### The voice-line sheet: what it can and cannot fill (D75)
+### The voice-line sheet: what it can and cannot fill (D76)
 
 The community `regular_vox` sheet (20,343 rows of `id | who | what | notes`, 99.88% covered, the
-`(?)` rows listed as *need review*) is the first public table that pairs a numeric id with the
-**text** of the line. `tools/import_voiceline_sheet.py` (make `voices_sheets SHEET=… [WANT=Rust]`)
+`(?)` rows listed as *need review*) is the only public table found so far that pairs a numeric id
+with the **text** of the line. `tools/import_voiceline_sheet.py` (make `voices_sheets SHEET=… [WANT=Rust]`)
 turns an export of it into `voice_lines_vox/sheets/<tab>.csv` — the status block stripped, ids as
 digits, notes kept, the sheet's own `(?)` carried as `needs_review` — and, with `--keys`,
 `<tab>_keys.csv`: `slot, id, score`, where the score is word overlap against the slot's `cut_line`

@@ -7,8 +7,8 @@ Community voice-line sheets, normalized to `id,who,what,notes,needs_review` by
 
 **A sheet names its own bank.** `regular_vox` is the shared bank the original crew streams from, so
 its ids say nothing about a dedicated `char_<module>` bank — importing it does **not** fill
-`voice_lines_vox/geralt/char_rust_ids.csv` (D74). A `_keys.csv` row is a word-overlap *lead*: the id
-has to be the right heister's and checked against the line before any table or pack uses it (D75).
+`voice_lines_vox/geralt/char_rust_ids.csv` (D75). A `_keys.csv` row is a word-overlap *lead*: the id
+has to be the right heister's and checked against the line before any table or pack uses it (D76).
 
 | File | Rows | Of the tab's | What it is |
 | --- | --- | --- | --- |
@@ -37,7 +37,7 @@ tab's URL); `&sheet=<name>` falls back to the first tab.
 | `196bzO0M-VAmtjd7V…ZvA` | `char_sydney` (`1647606386`) | 1,037 complete / 0 / 0 | **no** — a *dedicated-bank* sheet (`char_sydney`), the shape a `char_rust` sheet would have |
 
 `char_rust` is **not** a tab of either document: `&gid=` on a `sheet=char_rust` request returns page
-one of `regular_vox`, i.e. the name does not exist. So the re-key's map (D74) is still unfilled.
+one of `regular_vox`, i.e. the name does not exist. So the re-key's map (D75) is still unfilled.
 
 Which bank a document covers is worth checking before assuming: the `1c3uXGyH…` tab titled
 `regular_vox` is *Hila's* 885-line list, and those are exactly the 885 ids in

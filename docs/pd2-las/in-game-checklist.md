@@ -370,7 +370,7 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    from it is an open question; if his voice is vanilla, he is not on `regular_vox` and the pack
    cannot fix that. The ids either pack writes, per bank, are tracked in `voice_lines_vox/targets/`
    (the shared tables and the measured `char_rust` one — `docs/pd2-voice-stream-tables.md`, D73);
-   A Rust pack on his own bank exists but is not shipped (D74: it waits on
+   A Rust pack on his own bank exists but is not shipped (D75: it waits on
    `voice_lines_vox/geralt/char_rust_ids.csv`, the slot → id map); so this check still decides whether the
    *shared* pack can reach him at all.
    (ii) the lines the Geralt set covers (29 slots: assault.incoming/retreat,

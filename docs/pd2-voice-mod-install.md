@@ -323,7 +323,7 @@ Notes that matter:
   dropped the `regular_vox` lines — so a working Rust voice pack on the 64-bit build is
   dedicated-bank. The id-keyed re-key of this pack's takes to `char_rust/` is built by
   `make -sC tools/pd2-las voices_char_rust` but **not shipped**: it waits on
-  `voice_lines_vox/geralt/char_rust_ids.csv`, the map that names which id is which line (D74,
+  `voice_lines_vox/geralt/char_rust_ids.csv`, the map that names which id is which line (D75,
   [stream tables](pd2-voice-stream-tables.md)).
 - **Rust** is the punk heister (`npc_criminal_wild_1`), the target of `dist/Geralt/Geralt_over_Rust.zip`.
   Whether he plays his heister barks from the shared `regular_vox` bank is **not verified**: the original
