@@ -8,15 +8,10 @@ uv.lock
 *.env.*
 # intermediate build outputs (extracted VPKs, textures, previews, unpacked trees)
 build/*
-# Shipped ZIPs and their checksum sidecars under the character folders.
-dist/*
-!dist/Miranda_L4D2/
-!dist/Miranda_Romance/
-!dist/Christie/
-!dist/Honoka/
-!dist/Geralt/
-!dist/Arivus/
-!dist/Hila/
+# Shipped ZIPs and their checksum sidecars: published as release assets, not committed.
+# `assets.json` names their bytes; `make -sC tools/pd2-las fetch` brings them back.
+# docs/pd2-las/RELEASE_ASSETS.md has the runbook.
+dist/
 *.egg-info/
 # captures and scratch
 *.mkv
@@ -26,5 +21,8 @@ dist/*
 # the parent repo ignores bin/ (build output); the CLI launcher lives here
 !bin/
 preview_tmp/
+# Build inputs, also release assets. The provenance table stays: a clone has to read it.
+references/*
+!references/README.md
 
 .hypothesis/

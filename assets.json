@@ -1,0 +1,602 @@
+{
+ "releases": {
+  "packs-v1": {
+   "files": {
+    "dist/Arivus/Arivus_Head_over_Old_Hoxton_GLB.zip": {
+     "asset": "dist__Arivus__Arivus_Head_over_Old_Hoxton_GLB.zip",
+     "bytes": 3443523,
+     "sha256": "7986f8eaef7f00fc94c2aa96dba6aea34a73b9c0c70546c5ffd8d6f9d9b03a4e"
+    },
+    "dist/Arivus/Arivus_Head_over_Old_Hoxton_GLB.zip.sha256": {
+     "asset": "dist__Arivus__Arivus_Head_over_Old_Hoxton_GLB.zip.sha256",
+     "bytes": 114,
+     "sha256": "0249190dbddd4440ccef21b238e007a48b91fcaecec05a8c4af47b2280e2dd44"
+    },
+    "dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip": {
+     "asset": "dist__Arivus__Arivus_VO_over_Hoxton_Stream.zip",
+     "bytes": 9699262,
+     "sha256": "c3cbc562d6cacd48b47c79df58c3acf964efd658855efc5014f79357dea9ca1c"
+    },
+    "dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip.sha256": {
+     "asset": "dist__Arivus__Arivus_VO_over_Hoxton_Stream.zip.sha256",
+     "bytes": 111,
+     "sha256": "d72d5f80a62ee6433cc2c1740c4229920b9c7b70249f71633388a9da2dc45375"
+    },
+    "dist/Arivus/Arivus_over_Hoxton.zip": {
+     "asset": "dist__Arivus__Arivus_over_Hoxton.zip",
+     "bytes": 8546107,
+     "sha256": "d5f569610d2c5999428111b375287bdeff1fddd0ed0b9cacb880c55f3f2f065e"
+    },
+    "dist/Arivus/Arivus_over_Hoxton.zip.sha256": {
+     "asset": "dist__Arivus__Arivus_over_Hoxton.zip.sha256",
+     "bytes": 101,
+     "sha256": "05cd5a3f7992aa085a0498e90414d751ef7c6c9c68d187e5b74e12b34210f2a6"
+    },
+    "dist/Christie/Christie_Clover_LAS.zip": {
+     "asset": "dist__Christie__Christie_Clover_LAS.zip",
+     "bytes": 3175404,
+     "sha256": "468ae2d67a54b09735c065c9e759f9ab39e91754462cb8135dc832d5ae6bbb73"
+    },
+    "dist/Christie/Christie_Clover_LAS.zip.sha256": {
+     "asset": "dist__Christie__Christie_Clover_LAS.zip.sha256",
+     "bytes": 104,
+     "sha256": "0b616840e17571733d4a7613296d359bc635fb19549260c1b8f24fce631e34aa"
+    },
+    "dist/Christie/Christie_LAS.zip": {
+     "asset": "dist__Christie__Christie_LAS.zip",
+     "bytes": 4349530,
+     "sha256": "12940bb761ce16e0a6d11b32ff862921d38588372db426bd40e7cb957e188333"
+    },
+    "dist/Christie/Christie_LAS.zip.sha256": {
+     "asset": "dist__Christie__Christie_LAS.zip.sha256",
+     "bytes": 97,
+     "sha256": "b42daa9848c71a9b84cd94493cbca5691edeb59da09d96bb79bd772b4edc3eba"
+    },
+    "dist/Geralt/Geralt_VO_over_Rust_Stream.zip": {
+     "asset": "dist__Geralt__Geralt_VO_over_Rust_Stream.zip",
+     "bytes": 12825442,
+     "sha256": "c724264a0ce835618ecd2c61dafb589bc8bdd739c7b06d5d7486caf81d99b806"
+    },
+    "dist/Geralt/Geralt_VO_over_Rust_Stream.zip.sha256": {
+     "asset": "dist__Geralt__Geralt_VO_over_Rust_Stream.zip.sha256",
+     "bytes": 109,
+     "sha256": "a58bffcf1b4e169df8e6d11e9c8703fb32af2d2c3c9e774a9cfe351cb50e289e"
+    },
+    "dist/Geralt/Geralt_over_Rust.zip": {
+     "asset": "dist__Geralt__Geralt_over_Rust.zip",
+     "bytes": 8121550,
+     "sha256": "0dfb58069f948795488f8a3fd6c3dadbdb935ebc2876df5467c0fa104bf0b65d"
+    },
+    "dist/Geralt/Geralt_over_Rust.zip.sha256": {
+     "asset": "dist__Geralt__Geralt_over_Rust.zip.sha256",
+     "bytes": 99,
+     "sha256": "a7a9f99814f7d4bc8c3e4aef77f12a8c1728855462cc04baad0294de5c41f70f"
+    },
+    "dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip": {
+     "asset": "dist__Hila__Miranda_Lawson_VO_over_Hila_Stream.zip",
+     "bytes": 14405864,
+     "sha256": "3779f6a969f8abe3ea28f1ec15eb3f9de4297d09f8c9603e31ed1c0f9a0b06e4"
+    },
+    "dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip.sha256": {
+     "asset": "dist__Hila__Miranda_Lawson_VO_over_Hila_Stream.zip.sha256",
+     "bytes": 115,
+     "sha256": "d0f70eca22fb69e83bb6b7a677d3e2d6c2c3681a74e4282afbf921fe6fa166d3"
+    },
+    "dist/Honoka/OfficeSuite.zip": {
+     "asset": "dist__Honoka__OfficeSuite.zip",
+     "bytes": 5768986,
+     "sha256": "12ad07a638603b1c446918fb129582c3beb4c95c89317d4d23cba5f155589aef"
+    },
+    "dist/Honoka/OfficeSuite.zip.sha256": {
+     "asset": "dist__Honoka__OfficeSuite.zip.sha256",
+     "bytes": 94,
+     "sha256": "22999ed95d0a01641e037a23b7d8643f18effcae856a2c93ef0eb2660f482edb"
+    },
+    "dist/Honoka/OfficeSuite_Head.zip": {
+     "asset": "dist__Honoka__OfficeSuite_Head.zip",
+     "bytes": 10386973,
+     "sha256": "f389b21741eada03189fb721e93dd44c55556b708c26ab6cfb3e83bf8f2e291c"
+    },
+    "dist/Honoka/OfficeSuite_Head.zip.sha256": {
+     "asset": "dist__Honoka__OfficeSuite_Head.zip.sha256",
+     "bytes": 99,
+     "sha256": "743f26d9468f3db762bfa8b7a3e2ffddda99702b14300f7e86d34d2b44386644"
+    },
+    "dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip": {
+     "asset": "dist__Honoka__OfficeSuite_Miranda_Romance_over_Hila.zip",
+     "bytes": 14848976,
+     "sha256": "a1dd59c133d5bbdfc79a3d7fc4775ae059239f1c246969aabf38c4bf23c08eeb"
+    },
+    "dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip.sha256": {
+     "asset": "dist__Honoka__OfficeSuite_Miranda_Romance_over_Hila.zip.sha256",
+     "bytes": 120,
+     "sha256": "c018d4e08554a92b89338dd3a795abdc36811d6e8979b39fe301a306961c8d3f"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_Busty_LAS.zip",
+     "bytes": 6321140,
+     "sha256": "d8856d8d0f581c5e0cc7e12af132f373f1fb1952f530418ba4abde05a166e9cb"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip.sha256": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_Busty_LAS.zip.sha256",
+     "bytes": 111,
+     "sha256": "27af8dd9e65543736d1da712b52184239e23f4d069aa1ddfe1bfe1b036ea3ca7"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_LAS.zip",
+     "bytes": 5919822,
+     "sha256": "b7fe6b08c31f439dd3628bf82935b5e3e210f3639c239e8fc35572b7bfece002"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip.sha256": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_LAS.zip.sha256",
+     "bytes": 105,
+     "sha256": "3555b5ac01e1fdf93d3bd4298124398c3a140dbeaf9a6a5856ce516112677a7c"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Bonnie.zip": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Bonnie.zip",
+     "bytes": 8239423,
+     "sha256": "7a80a9c2488320b574924437ddf0dc1403315113edd86b97156960bbd4a7d1a5"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Bonnie.zip.sha256": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Bonnie.zip.sha256",
+     "bytes": 113,
+     "sha256": "b7e8fc1de9b6488408dce686f2eccd7eff8215eea109a3015aad31e9b5c31c2d"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Clover.zip": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Clover.zip",
+     "bytes": 7727389,
+     "sha256": "fb948821ada96a5d10ef2f1ba502c3bad72a57d0403126f2f9aceedf93bddaad"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Clover.zip.sha256": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Clover.zip.sha256",
+     "bytes": 113,
+     "sha256": "adf252e09addcb91f11b8a6d38879fd8c8705e796554277e74b8398be4d37d73"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Hila.zip",
+     "bytes": 7259189,
+     "sha256": "c42b5e47cd0b1ab57dab1ee81c38dc7578e585bff419866c0417217306f1252b"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip.sha256": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Hila.zip.sha256",
+     "bytes": 111,
+     "sha256": "a1c3c9460c7d7164ee841aa43ea2ffd33366e3a69117e0d03cc7d66323ef47ef"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Joy.zip",
+     "bytes": 10679818,
+     "sha256": "c6fa38b45e588e971a57baf280626a1582bb7ea95e782b9ebf5187a10d001b4b"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip.sha256": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Joy.zip.sha256",
+     "bytes": 110,
+     "sha256": "f5d4b565b9576ff5254184c87792d8daa5d2d2939809f3876c919906600b3c20"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Sydney.zip": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Sydney.zip",
+     "bytes": 7226259,
+     "sha256": "f97b71cf90f39fff50bf38e97e3cacb7bb84582193a55080af7e8c143beb9950"
+    },
+    "dist/Miranda_L4D2/Miranda_L4D2_over_Sydney.zip.sha256": {
+     "asset": "dist__Miranda_L4D2__Miranda_L4D2_over_Sydney.zip.sha256",
+     "bytes": 113,
+     "sha256": "19df6bcbc6f3aea24aaf1484956e6b9719bc698fde0ca9125a666c43bc28efc5"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_LAS.zip": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_LAS.zip",
+     "bytes": 9122766,
+     "sha256": "69e0f898c909bc66701142a9e7d4482a4deabf4537f1d59ebed2807f94edf62c"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_LAS.zip.sha256": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_LAS.zip.sha256",
+     "bytes": 111,
+     "sha256": "582520ed073c55f120cef15665dee04a83c0bffa07620c0555a94f1b3ebb605c"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Bonnie.zip": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Bonnie.zip",
+     "bytes": 7791881,
+     "sha256": "9b78576093236f1ff6b8c468fd4fa65e52dd0bdfe9b4cec4d5a2e0de4bf9f942"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Bonnie.zip.sha256": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Bonnie.zip.sha256",
+     "bytes": 119,
+     "sha256": "c91d60b15545f26ebe9a1c04f7995a79d81153472e066869596b8663d6413531"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Clover.zip": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Clover.zip",
+     "bytes": 7297684,
+     "sha256": "e8b7b433685deb73fe933b6f91a2c7665f8b2fc1dc376de0dc0823c3ae71d98f"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Clover.zip.sha256": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Clover.zip.sha256",
+     "bytes": 119,
+     "sha256": "5cced9300f2dd244538f7d401827e0ab6e60685bcbcb32dc6fbaace16b568e10"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Hila.zip": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Hila.zip",
+     "bytes": 6856376,
+     "sha256": "a8ee61dbe7286a965873606eab0ff1496fdcac460a2a6fd5ab116813f78967cf"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Hila.zip.sha256": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Hila.zip.sha256",
+     "bytes": 117,
+     "sha256": "0c7fc6a3c9efcb29933d888102d66ae6fcae372c4ae25a589b512369ee8cf16b"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Joy.zip": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Joy.zip",
+     "bytes": 10238808,
+     "sha256": "9694424b5ed108bab64fbcf611d8748904ecf51ee18fac05295c2f965a78adbe"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Joy.zip.sha256": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Joy.zip.sha256",
+     "bytes": 116,
+     "sha256": "978c3ff31f6cd77b6ce0332b16c27cfc9c021f173abfd847b052440d8cb179ed"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Sydney.zip": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Sydney.zip",
+     "bytes": 6805715,
+     "sha256": "a91b3ee5431b0c03ab668c85c1ff8724ce68da3762fbcdde5c1b5d4b64b59e90"
+    },
+    "dist/Miranda_Romance/Miranda_Romance_over_Sydney.zip.sha256": {
+     "asset": "dist__Miranda_Romance__Miranda_Romance_over_Sydney.zip.sha256",
+     "bytes": 119,
+     "sha256": "60a6fc5f04acd5cfb82af20528786c456a5c7451e238b0ecc41059527e060923"
+    }
+   },
+   "note": "The tracked PAYDAY 2 packs, byte for byte: every `dist/<character>/<name>.zip` and its `.sha256` sidecar.\n\nThese are build outputs, not source: the repository holds the builders, `references/` holds their inputs, and `assets.json` names the bytes that are current. Verify a download with `python tools/release_assets.py fetch`, which checks every sha256, or by hand: `sha256sum -c <name>.zip.sha256`.\n\nNothing here is MIT licensed; see `NOTICE.md` in the repository for what each asset is and whose it is.",
+   "title": "PAYDAY 2 packs (dist/)"
+  },
+  "sources-v1": {
+   "files": {
+    "references/1581859199_135363.rar": {
+     "asset": "references__1581859199_135363.rar",
+     "bytes": 2545304,
+     "sha256": "c877452c29082031d2790b95257a58f74943ddb034f1e86409c40ecd139ed5a0"
+    },
+    "references/2b.rar": {
+     "asset": "references__2b.rar",
+     "bytes": 6502350,
+     "sha256": "925a29ef79f7033cb681dd47a1f9c3856ef91d88a14e6728eb68b36396501fd9"
+    },
+    "references/ARIVUS VOICE (PAYDAY 2).zip": {
+     "asset": "references__ARIVUS.VOICE.PAYDAY.2-3d793ce7.zip",
+     "bytes": 611892,
+     "sha256": "f61a8a0c1ab49a60e0bd57866dde453395d1572f6d540b3fe616f520f138574f"
+    },
+    "references/Ada Wong over Joy.7z": {
+     "asset": "references__Ada.Wong.over.Joy-62a45b0b.7z",
+     "bytes": 11687558,
+     "sha256": "ab20d47aadc823575b2a17cce616a14d7578889f8c8ad2ab2f75c3106437caa1"
+    },
+    "references/Bodhi Voicelines.zip": {
+     "asset": "references__Bodhi.Voicelines-dc76cec6.zip",
+     "bytes": 59999,
+     "sha256": "15cd43dc53ad9a76cc351cdb1b1917c54331aca0dd59df353089b76296a7f7de"
+    },
+    "references/Christie.zip": {
+     "asset": "references__Christie.zip",
+     "bytes": 7445876,
+     "sha256": "605c352af06761fe00ea38846a78d505b95c767f7b4c77d02ff25bdf5d282a3b"
+    },
+    "references/Clover-Christie.zip": {
+     "asset": "references__Clover-Christie.zip",
+     "bytes": 25153726,
+     "sha256": "cdafd39561525911d0acc7d8016c299b9173097d1da1e577f4a53e15b4e9da70"
+    },
+    "references/EYE_Diff.png": {
+     "asset": "references__EYE_Diff.png",
+     "bytes": 68402,
+     "sha256": "2ba323f9e90079a4156af3d9df139b3ecec2fa36a08abb52d9e673570d7bec0a"
+    },
+    "references/GERALT VOICE (PAYDAY 2).zip": {
+     "asset": "references__GERALT.VOICE.PAYDAY.2-8821ff2c.zip",
+     "bytes": 1265876,
+     "sha256": "e7f1715ae0db4cc3296a8af3be2e849fbda399e7fafb87df23513036dc1221f4"
+    },
+    "references/Geralt.7z": {
+     "asset": "references__Geralt.7z",
+     "bytes": 14391080,
+     "sha256": "e1ef2c18eb5205f3827315a4e0b574fc06bbf7a9089898210250e78405752ea5"
+    },
+    "references/Heister - FPS Gloves in TPS 2.zip": {
+     "asset": "references__Heister.-.FPS.Gloves.in.TPS.2-d960397e.zip",
+     "bytes": 20398323,
+     "sha256": "b6b152f3fe911c68f6991498d3315527e8753cb0a68f3cda9505aa378386d2e0"
+    },
+    "references/Hila regular_vox - regular_vox.csv": {
+     "asset": "references__Hila.regular_vox.-.regular_vox-65a363fa.csv",
+     "bytes": 41373,
+     "sha256": "4bc6cf4b5ab077ec39672cdea4e7f50a55c28cdac5394738b243ba1ceb0fc057"
+    },
+    "references/Honoka/Honoka_DOAXVV_Secret_Report.rigged.glb": {
+     "asset": "references__Honoka__Honoka_DOAXVV_Secret_Report.rigged.glb",
+     "bytes": 2994708,
+     "sha256": "ef23c55e738bf857b2b04ace890c4dffa3413f7d1e831bef7dd438e05940c326"
+    },
+    "references/Honoka/Honoka_DOAXVV_Secret_Report_ALL_EXPORT.OBJ": {
+     "asset": "references__Honoka__Honoka_DOAXVV_Secret_Report_ALL_EXPORT.OBJ",
+     "bytes": 11177108,
+     "sha256": "e6e2529018eff64d84721f1468538abc9750564265ca7ea01b2e0bdebe97f4bd"
+    },
+    "references/Honoka/Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT.OBJ": {
+     "asset": "references__Honoka__Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT.OBJ",
+     "bytes": 66,
+     "sha256": "43aad9ab980a75fa264a953b19b5caa37015ab82004246fa6fcde8ba13d30eee"
+    },
+    "references/Honoka/Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT2.OBJ": {
+     "asset": "references__Honoka__Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT2.OBJ",
+     "bytes": 66,
+     "sha256": "43aad9ab980a75fa264a953b19b5caa37015ab82004246fa6fcde8ba13d30eee"
+    },
+    "references/Honoka/Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT3.OBJ": {
+     "asset": "references__Honoka__Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT3.OBJ",
+     "bytes": 66,
+     "sha256": "43aad9ab980a75fa264a953b19b5caa37015ab82004246fa6fcde8ba13d30eee"
+    },
+    "references/Honoka/Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT4.OBJ": {
+     "asset": "references__Honoka__Honoka_DOAXVV_Secret_Report_WGT_body_feather_EXPORT4.OBJ",
+     "bytes": 66,
+     "sha256": "43aad9ab980a75fa264a953b19b5caa37015ab82004246fa6fcde8ba13d30eee"
+    },
+    "references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae": {
+     "asset": "references__Honoka__Honoka_DOAXVV_Secret_Reportout.dae",
+     "bytes": 3627856,
+     "sha256": "7ead925747f3f052afa58e6af61a1b2370eb9780ae0c46d0b53a9b979ba7c3e8"
+    },
+    "references/Honoka/L_0.dds": {
+     "asset": "references__Honoka__L_0.dds",
+     "bytes": 20600,
+     "sha256": "9b52d3c2a68bfe38d344a946bcc371bf4ad50e8618304c0401598aab6b1f2ae3"
+    },
+    "references/Honoka/L_1.dds": {
+     "asset": "references__Honoka__L_1.dds",
+     "bytes": 2872,
+     "sha256": "7e4ec3882851003110cf11d72e74f7d23329298cf42a34862b20279c0927382a"
+    },
+    "references/Honoka/L_10.dds": {
+     "asset": "references__Honoka__L_10.dds",
+     "bytes": 349680,
+     "sha256": "ed5e453c063c42b4d6bbe89dee63e1c5374adeb329ab2b60c8d90a4814752258"
+    },
+    "references/Honoka/L_11.dds": {
+     "asset": "references__Honoka__L_11.dds",
+     "bytes": 174904,
+     "sha256": "f462fb3e1b8ccf8333660c2b26d985aaf031c20c52b391bb683d0c3d53efc28e"
+    },
+    "references/Honoka/L_12.dds": {
+     "asset": "references__Honoka__L_12.dds",
+     "bytes": 174904,
+     "sha256": "ac1970c87f2da71de53679d00c9041df68f927addf4677fa57509a944a067433"
+    },
+    "references/Honoka/L_13.dds": {
+     "asset": "references__Honoka__L_13.dds",
+     "bytes": 11064,
+     "sha256": "e720120ac9c4de42610a04bdb3401d4a86eda7087aae589bf7dd4593e041d447"
+    },
+    "references/Honoka/L_14.dds": {
+     "asset": "references__Honoka__L_14.dds",
+     "bytes": 1398256,
+     "sha256": "105789b3d2581896925a2d6f45cf5a0b7ce3675b06d12f695120103bf14f2e21"
+    },
+    "references/Honoka/L_15.dds": {
+     "asset": "references__Honoka__L_15.dds",
+     "bytes": 174904,
+     "sha256": "6377108d1b95cfdbda52abbb5a2cab323e7c6fbd8732d27fa7614698b4e23e36"
+    },
+    "references/Honoka/L_16.dds": {
+     "asset": "references__Honoka__L_16.dds",
+     "bytes": 174904,
+     "sha256": "a7dfaef34c67710e5b35f3be10ea5ace573898d8a2d96612f0fb2fe838fde1b7"
+    },
+    "references/Honoka/L_17.dds": {
+     "asset": "references__Honoka__L_17.dds",
+     "bytes": 699216,
+     "sha256": "2cdd3828a128d7ef865e4766aeddc6fb62a1433afde17559712f000464292cec"
+    },
+    "references/Honoka/L_18.dds": {
+     "asset": "references__Honoka__L_18.dds",
+     "bytes": 87528,
+     "sha256": "1f941ccb4f5e31b2951ec1c9a83eca41a0122825e914cd1beecb8c83e7d47ed9"
+    },
+    "references/Honoka/L_19.dds": {
+     "asset": "references__Honoka__L_19.dds",
+     "bytes": 87528,
+     "sha256": "39c78b20c66d191a8967521c67eeb00d8d2d5992c8a9e7f7cb4eee0477fb198a"
+    },
+    "references/Honoka/L_2.dds": {
+     "asset": "references__Honoka__L_2.dds",
+     "bytes": 2872,
+     "sha256": "7e4ec3882851003110cf11d72e74f7d23329298cf42a34862b20279c0927382a"
+    },
+    "references/Honoka/L_20.dds": {
+     "asset": "references__Honoka__L_20.dds",
+     "bytes": 349680,
+     "sha256": "fa68ffd9022c236ab02009aa7afcf8fa715940a0e87d91b3afe7988bb7464b30"
+    },
+    "references/Honoka/L_21.dds": {
+     "asset": "references__Honoka__L_21.dds",
+     "bytes": 174904,
+     "sha256": "0371b102cdfe6d323e9baed1d02bfdcc5558f254b005c28f1f07e20ae5392f2b"
+    },
+    "references/Honoka/L_22.dds": {
+     "asset": "references__Honoka__L_22.dds",
+     "bytes": 174904,
+     "sha256": "ac218cd1904d56569ee0b47a663b07187e7582baaa0a3875224950795d1943c8"
+    },
+    "references/Honoka/L_23.dds": {
+     "asset": "references__Honoka__L_23.dds",
+     "bytes": 174904,
+     "sha256": "9631c01ad132e994ad16db049e1ca050cc111cd552675078cf0eb420820eee17"
+    },
+    "references/Honoka/L_24.dds": {
+     "asset": "references__Honoka__L_24.dds",
+     "bytes": 174904,
+     "sha256": "2c5e4b428f771a964a9990f6848b3f051885e8b9b1b0db8363e7ecf59de0eede"
+    },
+    "references/Honoka/L_25.dds": {
+     "asset": "references__Honoka__L_25.dds",
+     "bytes": 174904,
+     "sha256": "2f992055d07922eb5ccce7bdb5527cda0b23c04754f3eb59b76a672d1a71f64f"
+    },
+    "references/Honoka/L_26.dds": {
+     "asset": "references__Honoka__L_26.dds",
+     "bytes": 2872,
+     "sha256": "c1e000836bb4ed9e2b63ecbbe635dff3128b781c8898aad30116800d66a6175e"
+    },
+    "references/Honoka/L_3.dds": {
+     "asset": "references__Honoka__L_3.dds",
+     "bytes": 1398256,
+     "sha256": "349467ba4c3d7beb822d09739f7903ac1c8e9f957cdfd890d48d4215ff5399ff"
+    },
+    "references/Honoka/L_4.dds": {
+     "asset": "references__Honoka__L_4.dds",
+     "bytes": 1048704,
+     "sha256": "8040d0c544a7b529da4a1486f114c938074c67274fb47254eee1f9f964c52b83"
+    },
+    "references/Honoka/L_5.dds": {
+     "asset": "references__Honoka__L_5.dds",
+     "bytes": 131200,
+     "sha256": "9720be78dc6aacc38e4ddb9a6f196bf593d9053e35fd5cd576f7c23d59def91c"
+    },
+    "references/Honoka/L_6.dds": {
+     "asset": "references__Honoka__L_6.dds",
+     "bytes": 349680,
+     "sha256": "f7088f57ae20d3b6bee4fa239a35bc25b4db7ad300ffab4a94d26ffa3e7eb71f"
+    },
+    "references/Honoka/L_7.dds": {
+     "asset": "references__Honoka__L_7.dds",
+     "bytes": 1398256,
+     "sha256": "eda10e01d64f1cad8c6f56c09476c5d275799376f1a573881eb683ce8a3ec4fe"
+    },
+    "references/Honoka/L_8.dds": {
+     "asset": "references__Honoka__L_8.dds",
+     "bytes": 699192,
+     "sha256": "dca7639d17cf5497d295902ba96bf0fc6f423d41da04ee0df32790f7cee60ec5"
+    },
+    "references/Honoka/L_9.dds": {
+     "asset": "references__Honoka__L_9.dds",
+     "bytes": 699192,
+     "sha256": "0f755450cb0beb398ec97dbe4dceb038a25b5eafd13c182e2918b9b1b0439543"
+    },
+    "references/Honoka/Tex_07(L_7) 2.dds": {
+     "asset": "references__Honoka__Tex_07.L_7.2-48482bbd.dds",
+     "bytes": 1048704,
+     "sha256": "f568d2b3f18973aa56b0fecfa27968beb69082bf66af2a8585b9ba34d85ffc7c"
+    },
+    "references/Honoka/Tex_07(L_7)3.dds": {
+     "asset": "references__Honoka__Tex_07.L_7.3-e93ba56e.dds",
+     "bytes": 1048704,
+     "sha256": "3c9b02cb9dc615eb737c51417419b944bc26c61c1ee5fdddf0b2c45dec438198"
+    },
+    "references/Honoka/Tex_23(L_23)2.dds": {
+     "asset": "references__Honoka__Tex_23.L_23.2-cba7b14a.dds",
+     "bytes": 262272,
+     "sha256": "f977dd5bad5c5bcd1bf75fa04a08bbb82a7d24e87060ed661488abc900df9ed2"
+    },
+    "references/Honoka/location": {
+     "asset": "references__Honoka__location",
+     "bytes": 9,
+     "sha256": "ff98ffb02a92beba64b2b3b5d15c120d3b546a5d3148480d22c2f94e33b9dd40"
+    },
+    "references/Hoxier Hoxton V2.zip": {
+     "asset": "references__Hoxier.Hoxton.V2-1b67ea58.zip",
+     "bytes": 9121376,
+     "sha256": "1052b012e9a31c6a674c516a6d171c50046c89efa40c154b75c3e73f5e12d4d1"
+    },
+    "references/LAWSON VOICE (PAYDAY 2).7z": {
+     "asset": "references__LAWSON.VOICE.PAYDAY.2-789bbc13.7z",
+     "bytes": 997390,
+     "sha256": "dfb759805c1da62c011247d9a58afdfad47fa894fc8954f0d845519887ad2e5f"
+    },
+    "references/Marine VO for Rust.7z.001": {
+     "asset": "references__Marine.VO.for.Rust.7z-f2d7b02b.001",
+     "bytes": 20971520,
+     "sha256": "7cb4ce9717ff8323d02ad068f0f4884038dc8ffc3b849e84ed31265f8b7bc74e"
+    },
+    "references/Marine VO for Rust.7z.002": {
+     "asset": "references__Marine.VO.for.Rust.7z-5f9f297a.002",
+     "bytes": 8360733,
+     "sha256": "b52fd78bccad18d630881e60bea906e7e89134385e019a1b0ad48a25a259a232"
+    },
+    "references/Outfit for Honoka-109-1-1-1628020933.zip": {
+     "asset": "references__Outfit.for.Honoka-109-1-1-1628020933-f916f683.zip",
+     "bytes": 6952231,
+     "sha256": "86fc084c7310e9cd78bfb39cd4bb15486a15295f1c233c754492e1c4f572e154"
+    },
+    "references/PAYDAY 2 Sound files - char_sydney.csv": {
+     "asset": "references__PAYDAY.2.Sound.files.-.char_sydney-a8c22f88.csv",
+     "bytes": 50367,
+     "sha256": "2fdac52b657041072008a0fb142d5005aa975fcfdd503287633b2bd340a9230c"
+    },
+    "references/PAYDAY 2 Sound files - regular_vox.csv": {
+     "asset": "references__PAYDAY.2.Sound.files.-.regular_vox-2b79b848.csv",
+     "bytes": 865227,
+     "sha256": "6a46051c44057cd970e041f559f6631188c0f77416e5f769f1870e58039a5d38"
+    },
+    "references/PAYDAY 2 Sound files - robbers_mission_gen.csv": {
+     "asset": "references__PAYDAY.2.Sound.files.-.robbers_mission_gen-8673521a.csv",
+     "bytes": 120507,
+     "sha256": "daaf488058a04f681abf6c6a358b783235c23ce79da4663a08d820d4e4a6b091"
+    },
+    "references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip": {
+     "asset": "references__PC._.Computer.-.Mass.Effect.2.-.Non-Playable.Characters.-.Miranda.Lawson.Romance-7042d0f6.zip",
+     "bytes": 10017391,
+     "sha256": "c4e5d0dd3aab9d9996ae119b018caf6a2ec2aa135005786525c158dc2f069e40"
+    },
+    "references/Payday 2 Voiceline IDs - Heister Voice IDs.csv": {
+     "asset": "references__Payday.2.Voiceline.IDs.-.Heister.Voice.IDs-907aaaca.csv",
+     "bytes": 7970,
+     "sha256": "e5215519ef0a4c5910452edbb9ddba928bce03bfdc4d28e918d26fd57bb0d554"
+    },
+    "references/Syndey Voicelines.docx": {
+     "asset": "references__Syndey.Voicelines-26f51767.docx",
+     "bytes": 86453,
+     "sha256": "4acb636251798a765c1499ef7173e0d56e72900fcd54d03af0a8b8cdf845a1d6"
+    },
+    "references/Syndey Voicelines.pdf": {
+     "asset": "references__Syndey.Voicelines-b1ea2f2e.pdf",
+     "bytes": 1218551,
+     "sha256": "2bd8b0fa46db0250e2673b103b18ba3349b0efc642ae49708b94d9ac2be020ab"
+    },
+    "references/Tokoyami Hila.7z": {
+     "asset": "references__Tokoyami.Hila-df0b7d1e.7z",
+     "bytes": 20695916,
+     "sha256": "2f8190677b374d9d9ce7211bf7d753a5527f6edd7364df81a2e1566d5d2f1532"
+    },
+    "references/l4d2_miranda_lawson_1.zip": {
+     "asset": "references__l4d2_miranda_lawson_1.zip",
+     "bytes": 4988258,
+     "sha256": "3e007b07b71f1fc28f008c3bde134d9a2e1f489e3e144c65c464c85ebfabf6d9"
+    },
+    "references/npc_criminals_ecp_female.7z": {
+     "asset": "references__npc_criminals_ecp_female.7z",
+     "bytes": 721181,
+     "sha256": "b601c47e581da56f5285f397cbd1ccebb8236b035855df460e967d7399eb03f4"
+    },
+    "references/npc_criminals_suit_1.7z": {
+     "asset": "references__npc_criminals_suit_1.7z",
+     "bytes": 1335904,
+     "sha256": "dc1e172b60593bce9881aa5e97ae4a1208ce711363d83134852f74d964b1d473"
+    },
+    "references/old_hoxton_head_df(1).dds": {
+     "asset": "references__old_hoxton_head_df.1-fdf438d3.dds",
+     "bytes": 4194432,
+     "sha256": "c8dea3e9ac6ccf5f16dfcde94eef2a9bee55aa27d1fe1e10b03d7f1d5d08a760"
+    },
+    "references/old_hoxton_head_df.dds": {
+     "asset": "references__old_hoxton_head_df.dds",
+     "bytes": 4194432,
+     "sha256": "713adb3a59cafd6ae3680e9429b573cc51e1346efad2c8d98f2a8784ee515518"
+    },
+    "references/Голос Лоусон.7z": {
+     "asset": "references__-9f5b4f2d.7z",
+     "bytes": 15403946,
+     "sha256": "9471ed5decf31fbdffb162bac3a6bbc56784405deb4806417dda395984b583d7"
+    }
+   },
+   "note": "The archives the builders read: converted models, extracted voice sets and the templates `references/README.md` describes.\n\nNot MIT licensed either: they are the work of the modellers and voice actors named in `references/README.md`, and they are here because a build that cannot read them cannot reproduce a pack. `python tools/release_assets.py fetch` restores them into `references/` and verifies them.",
+   "title": "Build inputs (references/)"
+  }
+ },
+ "version": 1
+}

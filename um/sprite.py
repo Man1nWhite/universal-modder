@@ -43,8 +43,17 @@ def load(path):
 
 
 def border_color(im, k: int = 4):
-    """Median colour of the four corners (k x k each): the flat background colour."""
+    """Median colour of the four corners (k x k each): the flat background colour.
+
+    `k` is clamped to the image: a 64x2 hair strip or a 3x3 icon has no 4x4 corner, and the
+    bare IndexError that produced took `um sprite info` and `um sprite cutout` down before
+    they ran (tests/test_sprite.py covers 1x1, 64x2 and 3x64). A zero-sized image has no
+    colour at all, so the transparent black it would have as a mode default is returned.
+    """
     w, h = im.size
+    if not w or not h:
+        return (0, 0, 0)
+    k = max(1, min(k, w, h))
     px = im.load()
     samples = [px[x, y][:3] for cx, cy in ((0, 0), (w - k, 0), (0, h - k), (w - k, h - k)) for x in range(cx, cx + k) for y in range(cy, cy + k)]
     return tuple(sorted(c[i] for c in samples)[len(samples) // 2] for i in range(3))

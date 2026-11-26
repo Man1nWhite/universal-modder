@@ -58,6 +58,17 @@ def powershell(script: str, timeout: float = 60) -> str:
     return r.stdout.replace("\r", "")
 
 
+def ps_literal(value: str) -> str:
+    """A value as a PowerShell single-quoted string.
+
+    PowerShell ends a single-quoted string at the first `'` and escapes one by doubling it, so
+    `-Name 'Assassin's Creed*'` was a parse error and anything after the quote was executed as
+    script. Every value that reaches a `-Command` string goes through here
+    (tests/test_win_quoting.py).
+    """
+    return "'" + str(value).replace("'", "''") + "'"
+
+
 def local_appdata() -> Path:
     """%LOCALAPPDATA%\\universal-modder (posix path under WSL)."""
     if is_windows():
@@ -175,7 +186,7 @@ def encoder() -> str:
 
 
 def processes(name: str | None = None) -> list[dict]:
-    flt = f"-Name '{name}*'" if name else ""
+    flt = f"-Name {ps_literal(name + '*')}" if name else ""
     out = powershell(f"Get-Process {flt} -ErrorAction SilentlyContinue | Where-Object {{ $_.MainWindowHandle -ne 0 }} | "
                      "Select-Object Id,ProcessName,MainWindowTitle,@{n='Hwnd';e={[int64]$_.MainWindowHandle}} | ConvertTo-Json -Compress")
     if not out.strip():
@@ -186,7 +197,7 @@ def processes(name: str | None = None) -> list[dict]:
 
 def pid_of(name: str) -> int | None:
     n = name[:-4] if name.lower().endswith(".exe") else name
-    out = powershell(f"(Get-Process -Name '{n}' -ErrorAction SilentlyContinue | Select-Object -First 1).Id").strip()
+    out = powershell(f"(Get-Process -Name {ps_literal(n)} -ErrorAction SilentlyContinue | Select-Object -First 1).Id").strip()
     return int(out) if out.isdigit() else None
 
 
@@ -198,8 +209,18 @@ def kill(pid: int):
 
 def launch(target: str, args: list[str], steam: bool = False):
     if steam:
+        # cmd.exe re-parses what it is handed, so `start "" steam://run/1//-a & calc/` ran a second
+        # command. Nothing here needs a shell: a URL goes to ShellExecute on Windows, and to
+        # `cmd start` only under WSL, which is the documented route for it.
+        bad = [a for a in args if any(c in a for c in '&|^<>%"') or "\n" in a or "\r" in a]
+        if bad:
+            die(f"steam launch arguments cannot carry quotes or cmd metacharacters: {bad!r} "
+                f"(launch the game without --steam to pass them through unchanged)")
         url = f"steam://rungameid/{target}" if not args else f"steam://run/{target}//{' '.join(args)}/"
-        subprocess.run(["cmd.exe" if is_wsl() else "cmd", "/c", "start", "", url], cwd="/mnt/c" if is_wsl() else None, timeout=30)
+        if is_windows():
+            os.startfile(url)  # ShellExecute: no cmd.exe, no argument re-parsing
+            return
+        subprocess.run(["cmd.exe", "/c", "start", "", url], cwd="/mnt/c", timeout=30)
         return
     exe = to_win(target)
     # Start in the exe's own folder: games open their data files relative to the working directory

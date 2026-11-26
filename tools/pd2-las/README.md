@@ -40,9 +40,9 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 - `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored) or refreshes a stale one.
   `PD2_2B_TEMPLATES` points setup, builds and `fresh` at a shared unit folder; `extract_2b.py` manages
   only the default cache. Of tracked files, `env` restores only missing ones.
-- A build **overwrites the tracked zips** in `dist/` (the Romance sidecar is updated separately), so only
-  `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
-  `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
+- A build **overwrites the published zips** in `dist/` (the Romance sidecar is updated separately), so
+  only `"is": "tracked"` (the zip is what `assets.json` publishes; `upload` republishes it) proves a
+  rebuild. Output: `build/pd2-las/<target>.log`. Unchanged, the pinned tree reproduces the zips on any x86-64
   Linux machine: every builder uses the declared `determinism.py` code path. `fresh` verifies original
   checksums before building in a copy; `check --builders NAME` limits what it rebuilds. A custom Miranda
   `--out` does not promote to `dist/`; verify its sidecar from there.

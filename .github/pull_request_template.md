@@ -3,8 +3,10 @@
 **What:** <!-- one line: game + what was built / learned, or the tool/skill change -->
 
 **Checklist**
-- [ ] `um kb check` passes (field notes) / `uv run --with pytest pytest -q tests` passes (code)
-- [ ] `um kb index` regenerated (field notes)
+- [ ] `um kb check` passes (field notes) / `pytest -q` passes after `pip install -e '.[dev]'` (code;
+      the 2B templates are extracted on first run, or those tests skip with the command that fixes it)
+- [ ] `um kb index` regenerated (field notes) / `python tools/gen_docs_index.py` regenerated (docs)
+- [ ] `python tools/pd2-port/check_links.py` passes (docs)
 - [ ] no game files, extracted assets, decompiled code dumps or secrets
 - [ ] nothing that cheats other players or bypasses anti-cheat / DRM / ownership checks
 - [ ] versions, verification and what was NOT verified are written down

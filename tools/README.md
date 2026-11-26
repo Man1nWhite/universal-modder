@@ -1,7 +1,12 @@
 # tools/ — the three PAYDAY 2 pipelines
 
 Commands for all of them are make targets in `tools/pd2-las/Makefile`, listed in `AGENTS.md`;
-`make -sC tools/pd2-las status` prints every pack with the target that rebuilds it. Which archive feeds which
+`make -sC tools/pd2-las status` prints every pack with the target that rebuilds it.
+**Without make** (native Windows, where the Makefile's `.venv/bin/python`, `bash` and GNU make do
+not exist), every target has the same name in `tools/tasks.py`:
+`python tools/tasks.py status`, `python tools/tasks.py build`, `python tools/tasks.py green`.
+`tests/test_tasks.py` fails while the two lists differ, so a target added to one is added to the
+other. The build targets write their builder's log to `build/pd2-las/<target>.log` either way. Which archive feeds which
 pack: `references/README.md`. ZIPs are grouped by character in `dist/`; their internal mod
 folders remain the installable names. The Hila Romance head's skin diffuse is matched to Honoko's
 body and therefore changes with that head on other bodies too.
@@ -16,6 +21,15 @@ body and therefore changes with that head on other bodies too.
 | `.model` dialect | DODB container, unshifted channel types, packed normals | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) | |
 | Rig work | `rig_target.py` + `reference/las_rig.json` | `skeleton_map.json` + the retarget in `build_models.py` | |
 | Verification | `check_all.py` (mutation-tested), release CI | one test per invariant on the tracked packs (`tests/test_pd2_las_invariants.py`), the authoring suites, byte round-trips of the codec | |
+
+## Where the bytes live
+
+`dist/` and `references/` are published as **release assets**, and `assets.json` at the repository
+root is the manifest: for every published file its path, size and sha256. `tools/release_assets.py`
+has the verbs — `plan`, `write`, `check`, `upload`, `fetch`, `verify`, and `remote` to ask what
+GitHub holds without downloading anything. `make -sC tools/pd2-las fetch` (or
+`python tools/tasks.py fetch`) is the short form, and it is how a fresh clone gets the packs.
+The runbook, including the history rewrite, is [`docs/pd2-las/RELEASE_ASSETS.md`](../docs/pd2-las/RELEASE_ASSETS.md).
 
 ## Invariants that hold in every pipeline (do not break)
 

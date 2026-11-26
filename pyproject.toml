@@ -11,8 +11,34 @@ dependencies = [
     "pyyaml>=6",
 ]
 
+[project.optional-dependencies]
+# Everything `pytest tests` needs beyond the runtime dependencies, so that a clone can be
+# tested with one command: `pip install -e '.[dev]'`. py7zr unpacks the reference archives the
+# fixture tests read; hypothesis drives tests/test_reader_fuzz.py; the 2B templates are not a
+# Python dependency at all (tests/conftest.py extracts them, or skips with the command).
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "hypothesis>=6",
+    "py7zr>=1",
+    "pyflakes>=3",
+    "imageio-ffmpeg>=0.6",
+]
+# The two optional readers that a dev checkout can use to cross-check more (`--extras` of
+# tools/pd2-las/recover_env.sh). Tests that need them skip without them, here and in CI.
+extras = [
+    "lupa>=2",
+    "sourcepp>=1",
+]
+
 [project.scripts]
 um = "um.cli:main"
+
+[project.urls]
+Source = "https://github.com/Man1nWhite/universal-modder"
+Upstream = "https://github.com/rehan-remade/universal-modder"
+Field-notes = "https://github.com/rehan-remade/universal-modder/tree/main/knowledge"
+Issues = "https://github.com/Man1nWhite/universal-modder/issues"
 
 [build-system]
 requires = ["hatchling"]
@@ -20,3 +46,17 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["um"]
+
+[tool.pytest.ini_options]
+# `pytest tests` and a bare `pytest` from the repository root are the same run.
+testpaths = ["tests"]
+# pytest's defaults, plus the trees that hold game-shaped projects rather than this suite:
+# `examples/` are worked mod projects, `docs/` and `knowledge/` are Markdown, `references/` is
+# source archives. A bare `pytest` from the root must not spend minutes collecting them.
+norecursedirs = [
+    "*.egg", ".*", "_darcs", "build", "CVS", "dist", "node_modules", "venv", "{arch}",
+    "examples", "docs", "knowledge", "references", "scratch", "preview_tmp",
+]
+markers = [
+    "slow: takes more than a few seconds (the builders and the pack rebuilds)",
+]

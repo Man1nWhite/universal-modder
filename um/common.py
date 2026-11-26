@@ -42,10 +42,11 @@ def to_win(path: str | Path) -> str:
     """/mnt/c/Games/x -> C:\\Games\\x (WSL); paths that are already Windows paths pass through."""
     p = str(path).strip()
     if len(p) > 1 and p[1] == ":":
-        # Normalize drive letter to upper case for consistency; handle forward slashes in Windows paths
-        drive = p[0].upper() + ":"
-        rest = p[2:].replace("/", "\\")
-        return drive + rest if rest.startswith("\\") else drive + "\\" + rest.lstrip("\\") if ":" in p else p
+        # Already a drive path: normalise the drive letter and the separators and change nothing
+        # else. `C:Games` is drive-relative on Windows, so it keeps its missing separator: adding
+        # one would silently move the target to the drive root. (The old one-line conditional
+        # nested three cases and ended in a branch that could never run.)
+        return p[0].upper() + ":" + p[2:].replace("/", "\\")
     if p.startswith("/mnt/") and len(p) > 6 and p[6] in "/" and p[5].isalpha():
         return p[5].upper() + ":\\" + p[7:].replace("/", "\\")
     if p.startswith("/mnt/") and len(p) == 6 and p[5].isalpha():

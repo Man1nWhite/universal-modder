@@ -31,10 +31,34 @@ from um.common import data_dir, die, to_posix
 
 MANIFEST = "_um_manifest.json"
 MAX_SIZE = 20 << 30
+#: A snapshot name is one directory component under backups/. `.` and `..` pass a naive check
+#: and `../../escape` walked out of the data directory entirely, where `list` and `restore`
+#: would never look for the snapshot again (tests/test_backup_name_safety.py).
+NAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}")
+#: Names Windows cannot create as a directory, whatever the extension. A restore target is
+#: often on a Windows drive, so a snapshot called `con` would fail late instead of here.
+RESERVED_NAMES = {"con", "prn", "aux", "nul", *(f"com{i}" for i in range(1, 10)), *(f"lpt{i}" for i in range(1, 10))}
+
+
+def _validate_name(name: str) -> str:
+    """A snapshot name: one safe path component, or die with the rule spelled out."""
+    if not isinstance(name, str) or not NAME_RE.fullmatch(name) or name in (".", ".."):
+        die(f"invalid backup name {name!r}: use letters, digits, '.', '-' and '_', starting with a letter or "
+            f"digit, at most 64 characters (a snapshot is one folder name under {data_dir() / 'backups'})")
+    if name.split(".")[0].lower() in RESERVED_NAMES:
+        die(f"invalid backup name {name!r}: that name is reserved on Windows")
+    return name
+
+
+def _default_name(src: Path) -> str:
+    """A folder name as a snapshot name: anything a name may not carry becomes '-'."""
+    name = re.sub(r"[^A-Za-z0-9._-]+", "-", src.name.lower())
+    name = re.sub(r"-{2,}", "-", name).strip("-.")
+    return _validate_name(name or "snapshot")
 
 
 def _root(name: str) -> Path:
-    d = data_dir() / "backups" / name
+    d = data_dir() / "backups" / _validate_name(name)
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -91,9 +115,7 @@ def create(src: str, name: str | None = None, note: str = "") -> Path:
     if not s.is_dir():
         die(f"not a folder: {s}")
     s = s.resolve()
-    name = name or s.name.replace(" ", "-").lower()
-    if not name or name in (".", ".."):
-        die(f"invalid backup name: {name!r}")
+    name = _validate_name(name) if name else _default_name(s)
     files = _scan(s)
     if not files:
         print(f"warning: {s} is empty; creating empty snapshot", file=sys.stderr)
@@ -283,7 +305,8 @@ def restore(name: str, to: str | None = None, snapshot: str | None = None, clean
     if not yes:
         die("re-run with --yes to do it")
     if t.is_dir():
-        create(str(t), name + "-pre-restore", note=f"automatic, before restoring {zp.name}")
+        # the suffix must fit the 64-character name limit a long `--name` already fills
+        create(str(t), name[:48] + "-pre-restore", note=f"automatic, before restoring {zp.name}")
     t.mkdir(parents=True, exist_ok=True)
     if _link(t):
         die(f"restore target is a symlink or junction: {t}")

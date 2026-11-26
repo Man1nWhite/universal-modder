@@ -41,6 +41,22 @@ rebuilt by `make -sC tools/pd2-las glb`.
 - Sources and templates are catalogued in [`references/README.md`](references/README.md). The
   [handoff](docs/pd2-las/HANDOFF.md) distinguishes in-game observations from offline results.
 
+## Cloning
+
+The packs (`dist/`, ~190 MB of built ZIPs) and the source archives (`references/`, ~220 MB) are
+published as release assets rather than committed: `assets.json` names their bytes, and one
+command brings them back.
+
+```sh
+git clone https://github.com/Man1nWhite/universal-modder && cd universal-modder
+make -sC tools/pd2-las fetch     # the published packs and sources, every sha256 checked
+```
+
+A clone without the fetch is the toolkit, the knowledge base, the skills and the documentation —
+about 40 MB of archived renders aside, that is what the history holds. What each asset is, whose
+it is and how to publish a rebuilt pack: [`docs/pd2-las/RELEASE_ASSETS.md`](docs/pd2-las/RELEASE_ASSETS.md).
+`tests/test_repo_weight.py` stops a new file over 25 MB from being committed unnoticed.
+
 ## Installing
 
 Upstream's plugin, marketplace and extension commands install upstream, which has none of the above. To work
@@ -55,4 +71,12 @@ Skills are in `skills/`, copied to `.agents/skills` and `.claude/skills` where t
 config is in `.mcp.json`, `.codex/config.toml`, `.cursor/mcp.json`, `.vscode/mcp.json`,
 `gemini-extension.json` and `opencode.json`.
 
-MIT licensed ([`LICENSE`](LICENSE)); credits are in upstream's README.
+## Licence
+
+The **code, skills, knowledge base and documentation** are MIT licensed ([`LICENSE`](LICENSE));
+credits are in upstream's README. That grant covers what this repository authored, not the
+third-party material it carries as build input and as deliverables: the archives under
+`references/`, the game-derived meshes, textures and voice lines inside the ZIPs under `dist/`,
+and the archived captures under `docs/renders/` remain the property of their creators and are
+here at the owner's call. [`NOTICE.md`](NOTICE.md) says which is which and points at the
+per-archive provenance table in [`references/README.md`](references/README.md).

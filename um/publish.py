@@ -7,10 +7,19 @@ INFO  files byte-identical to files in the game install: game-derived assets are
       records their provenance
 WARN  decompiler fingerprints in source (FUN_xxxx / DAT_xxxx / sub_XXXX, "// Decompiled with", ILSpy/dnSpy
       headers) - reimplement or reference instead of shipping decompiled code; big engine archives
-      (.pak/.bsa/.ba2/.vpk/.rpf/.utoc...) to name in the README; absolute user paths; no README /
-      credits; fal-generated assets listed in fal_manifest.jsonl without an attribution line
+      (.pak/.bsa/.ba2/.vpk/.rpf/.utoc...) whose file name no README or CREDITS file mentions; absolute
+      user paths; no README / credits; fal-generated assets listed in fal_manifest.jsonl without an
+      attribution line
 Modelled on IW4L's publish-check. It is a lint, not legal advice: game-derived assets may ship at the
 owner's call; name their source and keep credits.
+
+Two exemptions keep a clean tree clean, so that a warning still means something when it appears:
+
+- An archive whose file name is named in a README/CREDITS/Markdown file within the folder (or at its
+  root) is provenance-recorded: this repository names every archive it carries in
+  `references/README.md`, and warning about each one on every run taught people to ignore the check.
+- The absolute-user-path rule skips test files (`tests/`, `test_*`, `*_test.py`): a fixture needs a
+  realistic home directory to exercise the rule itself (`/home/<user>/saves`), and that is not a leak.
 """
 from __future__ import annotations
 
@@ -77,6 +86,33 @@ def _sha1(p: Path) -> str:
     return h.hexdigest()
 
 
+def is_test_path(rel: str) -> bool:
+    """A test file or fixture tree: a fake home directory there exercises a rule, it does not leak."""
+    parts = rel.split("/")
+    return (any(p.lower() in ("tests", "test", "__tests__", "fixtures") for p in parts[:-1])
+            or parts[-1].lower().startswith("test_") or parts[-1].lower().endswith(("_test.py", "_test.cs")))
+
+
+def provenance_notes(files: list[Path], limit_mb: int = 2) -> str:
+    """Everything the folder's READMEs, CREDITS and Markdown say, lower-cased, for archive names.
+
+    A big archive is only a warning when nothing in the folder accounts for it: naming the source in
+    the README is what the warning asks for, so a mention is the fix.
+    """
+    notes = []
+    for f in files:
+        low = f.name.lower()
+        if not (low.startswith(("readme", "credits", "notice", "sources")) or f.suffix.lower() in (".md", ".txt")):
+            continue
+        try:
+            if f.stat().st_size > limit_mb << 20:
+                continue
+            notes.append(f.read_text(errors="replace").lower())
+        except OSError:
+            continue
+    return "\n".join(notes)
+
+
 def is_suspicious_filename(name: str) -> bool:
     """Filenames that often leak secrets or are accidental redistributions."""
     lower = name.lower()
@@ -113,13 +149,15 @@ def check(mod: str, game: str | None = None) -> int:
                 if _sha1(gp) == h:
                     infos.append(f"game file copied verbatim: {f.relative_to(root).as_posix()}  (== {gp.relative_to(g).as_posix()})")
                     break
+    notes = provenance_notes(files) if any(f.suffix.lower() in ARCHIVE_EXT and f.stat().st_size > 5 << 20
+                                                 for f in files) else ""
     for f in files:
         rel = f.relative_to(root).as_posix()        # same report on every OS (Windows would print src\Mod.cs)
         name = f.name.lower()
         is_dotenv = name == ".env" or name.startswith(".env.") or name.endswith(".env") or ".env." in name
         if is_dotenv:
             fails.append(f"env file (secrets?): {rel}")
-        if f.suffix.lower() in ARCHIVE_EXT and f.stat().st_size > 5 << 20:
+        if f.suffix.lower() in ARCHIVE_EXT and f.stat().st_size > 5 << 20 and name not in notes:
             warns.append(f"large engine archive ({f.stat().st_size >> 20} MB): {rel} - name its source in the README")
         if f.suffix.lower() in TEXT_EXT or is_dotenv:
             try:
@@ -133,7 +171,7 @@ def check(mod: str, game: str | None = None) -> int:
                 m = rx.findall(txt)
                 if m:
                     warns.append(f"{label} x{len(m)} in {rel} (e.g. {m[0].strip()!r})")
-            if found := user_path(txt):
+            if not is_test_path(rel) and (found := user_path(txt)):
                 warns.append(f"absolute user path in {rel} (e.g. {found!r})")
     names = {f.name.lower() for f in files}
     if not any(n.startswith("readme") for n in names):

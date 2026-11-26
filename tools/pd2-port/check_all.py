@@ -79,6 +79,15 @@ def check_tracked_pack(pack: Path) -> tuple[str, bool, str]:
     return name, True, f"{pack.stat().st_size} bytes, sha256 {digest[:16]}…"
 
 
+def needs_fetch(pack: Path) -> bool:
+    """True when the packs are release assets and this clone has not fetched them.
+
+    Without this the first stage fails with "the Romance pack does not match its checksum", which
+    reads like a broken pack rather than a clone that is missing 428 MB on purpose.
+    """
+    return not pack.is_file() and (ROOT / "assets.json").is_file()
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     mode = ap.add_mutually_exclusive_group()
@@ -91,6 +100,10 @@ def main(argv: list[str] | None = None) -> int:
     print("Romance LAS pack verification" if native else "Pack checksum and geometry (not a full outfit audit)")
     print(f"  repo: {ROOT}")
     print(f"  pack: {pack}")
+    if needs_fetch(pack):
+        print("  the packs are release assets and this clone has not fetched them")
+        print("next: make -sC tools/pd2-las fetch")
+        return 1
     name, ok, detail = check_tracked_pack(pack)
     RERUN[name] = "make -sC tools/pd2-las status" if native else f"inspect the ZIP and sidecar for {pack}"
     print(f"  [{'ok  ' if ok else 'FAIL'}] {name:<34}         {detail}")
@@ -113,6 +126,8 @@ def main(argv: list[str] | None = None) -> int:
                              [str(ROOT / "tools" / "pd2-las" / "pack_checksum.py")]))
         results.append(stage("lint", ["-m", "pyflakes", "um", "tools", "tests"]))
         results.append(um_groups())
+        results.append(stage("documentation links", [str(ROOT / "tools" / "pd2-port" / "check_links.py")]))
+        results.append(stage("documentation index", [str(ROOT / "tools" / "gen_docs_index.py"), "--check"]))
         results.append(stage("knowledge base", ["-m", "um", "kb", "check", "--index"]))
         results.append(stage("nothing that shouldn't ship", ["-m", "um", "publish", "check", "."]))
         # One run of the suite serves both stages: -rsxX adds the skip and xfail lines that the budget

@@ -22,6 +22,7 @@ import re
 import shutil
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -61,13 +62,49 @@ def cache_root() -> Path:
     return data_dir() / "kb" / REPO.replace("/", "__") / "knowledge"
 
 
+def _fetch(url: str, retries: int = 3, timeout: float = 60) -> bytes:
+    """One GET, retried on a transient failure (a dropped connection, a 5xx, a rate-limited 403).
+
+    A sync writes one request per note; without a retry a single blip on note 214 of 250 threw the
+    whole cache away and the next `um kb search` started over.
+    """
+    req = urllib.request.Request(url, headers={"User-Agent": "universal-modder", "Accept": "application/vnd.github+json"})
+    for attempt in range(retries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            # 404 and 401 will not fix themselves; 403 is GitHub's rate limit, 5xx is theirs too
+            if e.code not in (403, 429, 500, 502, 503, 504) or attempt == retries - 1:
+                raise
+        except (urllib.error.URLError, TimeoutError, OSError):
+            if attempt == retries - 1:
+                raise
+        time.sleep(2 ** attempt)
+    raise AssertionError("unreachable")
+
+
 def sync(quiet: bool = False) -> Path:
-    """Mirror knowledge/ from GitHub into the cache (git tree API + raw files; no auth needed)."""
+    """Mirror knowledge/ from GitHub into the cache (git tree API + raw files; no auth needed).
+
+    The tree API caps its answer (`"truncated": true`) once a repository is large enough. A
+    partial answer used to be written as the whole cache and stamped fresh for 24 hours, so a
+    search silently ran against half the knowledge base: die instead, and let `resolve_root`
+    fall back to the copy it already had.
+    """
     api = f"https://api.github.com/repos/{REPO}/git/trees/{BRANCH}?recursive=1"
-    req = urllib.request.Request(api, headers={"User-Agent": "universal-modder", "Accept": "application/vnd.github+json"})
-    tree = json.load(urllib.request.urlopen(req, timeout=60))
+    try:
+        tree = json.loads(_fetch(api).decode("utf-8", "replace"))
+    except ValueError as e:  # a proxy or a rate-limit page instead of JSON
+        raise OSError(f"github.com/{REPO} answered with something that is not JSON: {e}") from e
+    if tree.get("truncated"):
+        raise OSError(f"github.com/{REPO} answered with a truncated tree: the knowledge base is larger than "
+                      f"one API response, so the cache would be partial. Clone the repository and search the "
+                      f"local knowledge/ instead")
     paths = [t["path"] for t in tree.get("tree", []) if t["type"] == "blob" and t["path"].startswith("knowledge/")
              and t["path"].endswith((".md", ".json"))]
+    if not paths:
+        raise OSError(f"github.com/{REPO} listed no knowledge/ files on {BRANCH}")
     root = cache_root()
     tmp = root.with_name("knowledge.tmp")
     shutil.rmtree(tmp, ignore_errors=True)
@@ -75,8 +112,7 @@ def sync(quiet: bool = False) -> Path:
         dst = tmp / p[len("knowledge/"):]
         dst.parent.mkdir(parents=True, exist_ok=True)
         url = f"https://raw.githubusercontent.com/{REPO}/{BRANCH}/{p}"
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "universal-modder"}), timeout=60) as r:
-            dst.write_bytes(r.read())
+        dst.write_bytes(_fetch(url))
     shutil.rmtree(root, ignore_errors=True)
     tmp.rename(root)
     (root / ".synced").write_text(str(time.time()), **TEXT)
