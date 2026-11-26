@@ -104,8 +104,8 @@ def test_status_covers_every_tracked_pack_and_agrees_with_the_sidecars():
         assert pack["is"] in {"tracked", "changed", "ok"}, f"{name}: the zip is not its .sha256"
         assert pack["sha256"] == (dist_path(REPO, f"{name}.zip.sha256")).read_text().split()[0], name
         assert short[name]["sha256"] == pack["sha256"][:12] and pack["bytes"] == path.stat().st_size, name
-    one = status.collect(only=["Christie_LAS"])
-    assert list(one["packs"]) == ["Christie_LAS"]
+    one = status.collect(only=["Geralt_over_Rust"])
+    assert list(one["packs"]) == ["Geralt_over_Rust"]
     # `note` is there while a pack is `changed`; never the environment, which `only` leaves out
     assert list(one)[0] == "packs" and list(one)[-1] == "next" and set(one) <= {"packs", "note", "next"}, list(one)
 
@@ -115,7 +115,7 @@ def status_checkout(tmp_path, monkeypatch):
     status = _load()
     monkeypatch.setattr(status, "REPO", tmp_path)
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
-    pack = dist_path(tmp_path, "Christie_LAS.zip")
+    pack = dist_path(tmp_path, "Geralt_over_Rust.zip")
     pack.parent.mkdir(parents=True)
     pack.write_bytes(b"first build")
     write_checksum(pack, root=tmp_path)
@@ -139,18 +139,18 @@ def test_status_tells_a_rebuilt_pack_from_the_tracked_one(status_checkout):
 def test_status_keeps_incomplete_and_deleted_pairs_in_target_inventory(status_checkout):
     status, pack = status_checkout
     sidecar_path(pack).unlink()
-    result = status.collect(only=["christie"])
-    assert result == {"packs": {pack.stem: {"is": "missing", "make": "christie"}}, "next": "git status --short dist"}
+    result = status.collect(only=["heads"])
+    assert result == {"packs": {pack.stem: {"is": "missing", "make": "heads"}}, "next": "git status --short dist"}
     # Even if both deletions have been staged, HEAD still records this pair.
     pack.unlink()
     subprocess.run(["git", "add", "-u"], cwd=status.REPO, check=True)
-    assert status.collect(only=["christie"]) == result
+    assert status.collect(only=["heads"]) == result
     assert status.main([pack.stem]) == 0
 
 
 def test_status_does_not_credit_an_untracked_pair_as_a_rebuild(status_checkout):
     status, pack = status_checkout
-    probe = pack.with_name("Christie_Probe.zip")
+    probe = pack.with_name("Miranda_Probe.zip")
     probe.write_bytes(pack.read_bytes())
     write_checksum(probe, root=status.REPO)
     assert status.collect(only=[probe.stem])["packs"][probe.stem]["is"] == "changed"
@@ -214,7 +214,7 @@ def test_status_only_names_inputs_and_targets_that_exist():
     assert set(status.TARGETS.values()) | {status.HEADS} <= targets
 
 
-@pytest.mark.parametrize("builder", ["build_models", "build_busty_variant"])
+@pytest.mark.parametrize("builder", ["build_models"])
 def test_builders_default_to_the_templates_status_reports(builder, tmp_path, monkeypatch):
     """`--templates` is optional: a builder looks where extract_2b.py unpacks the 2B pack.
 
@@ -251,7 +251,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
         "the README's commands need -s: a bare `make -C` wraps the output in directory lines")
     used = set(re.findall(r"make -sC tools/pd2-las (\w+)", readme))
     used |= set(re.findall(r"^\| `(?:Miranda|Christie)\w*`.*\| `(\w+)` \|$", readme, flags=re.M))
-    assert {"env", "status", "build", "busty", "fresh", "test", "green"} <= used, used
+    assert {"env", "status", "build", "fresh", "test", "green"} <= used, used
     assert used <= targets, f"README names make targets that do not exist: {sorted(used - targets)}"
 
     scripts = re.findall(r"\$\(HERE\)/([\w.]+)", makefile)
@@ -510,7 +510,7 @@ if Path(sys.argv[0]).stem == 'build_models':
     time.sleep(0.25)
     marker.touch()
     Path('base-was-run').touch()
-elif Path(sys.argv[0]).stem in ('build_busty_variant', 'build_joy_head_mods'):
+elif Path(sys.argv[0]).stem == 'build_joy_head_mods':
     assert marker.is_file(), 'started before the base finished'
 """
     for argv in importlib.import_module("fresh").BUILDERS.values():
@@ -528,5 +528,5 @@ elif Path(sys.argv[0]).stem in ('build_busty_variant', 'build_joy_head_mods'):
     run("heads")
     assert not (tmp_path / "base-was-run").exists(), "standalone heads should reuse the base ZIP"
     (tmp_path / "base-ready").unlink()
-    run("heads", "busty", "build")
+    run("heads", "build")
     assert (tmp_path / "base-was-run").exists()

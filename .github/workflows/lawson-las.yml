@@ -66,8 +66,8 @@ jobs:
           path: |
             dist/Miranda_Romance/Miranda_Romance_LAS.zip
             dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
-            dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip
-            dist/Miranda_Romance/Miranda_Romance_over_Joy.zip
+            dist/Miranda/Miranda_L4D2_over_Hila.zip
+            dist/Miranda/Miranda_Romance_over_Hila.zip
           if-no-files-found: error
       - name: publish to the GitHub release
         if: startsWith(github.ref, 'refs/tags/lawson-las-v')

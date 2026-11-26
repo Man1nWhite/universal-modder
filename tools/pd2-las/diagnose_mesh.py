@@ -40,9 +40,9 @@ import diesel_model as dm  # noqa: E402
 import render_mesh_skeleton as rms  # noqa: E402
 
 PACKS = {
-    "base": (dist_path(REPO, "Christie_LAS.zip"), "Christie_LAS", "christie", -1.0),
+    "base": (dist_path(REPO, "Miranda_L4D2_LAS.zip"), "Miranda_LAS", "miranda", -1.0),
 }
-ROLE = ["mtr_body", "mtr_c02_01", "mtr_c02_02", "mtr_c02_05"]
+ROLE = ["mtr_body", "mtr_head", "mtr_hair"]
 
 
 # --------------------------------------------------------------------- load

@@ -68,7 +68,7 @@ def test_the_build_targets_are_the_ones_make_logs():
     # a builder's stdout goes to build/pd2-las/<target>.log in both; map script -> target name
     scripts = {tasks.TASKS[t][0][-1].replace("{py}", "").strip(): t for t in tasks.BUILDERS}
     assert set(tasks.BUILDERS) == {
-        "build", "busty", "lawson", "honokodae", "honokodae_head", "christie", "cloverchristie",
+        "build", "lawson", "honokodae", "honokodae_head",
         "heads", "hila", "voices_stream", "voices_geralt", "voices_arivus", "glb"}
     assert len(scripts) == len(tasks.BUILDERS)
 

@@ -59,8 +59,6 @@ INPUTS = (
     "references/npc_criminals_ecp_female.7z",
     "references/EYE_Diff.png",
     "references/2b.rar",
-    "references/Christie.zip",
-    "references/Clover-Christie.zip",
     "references/Ada Wong over Joy.7z",
     "references/Heister - FPS Gloves in TPS 2.zip",
     "references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae",
@@ -73,10 +71,7 @@ INPUTS = (
 #: LAS outfit builders (both model dialects), independent of native overrides.
 LAS_TARGETS = {
     "Miranda_L4D2_LAS": "build",
-    "Miranda_L4D2_Busty_LAS": "busty",
     "Miranda_Romance_LAS": "lawson",
-    "Christie_LAS": "christie",
-    "Christie_Clover_LAS": "cloverchristie",
     "OfficeSuite": "honokodae",
     "OfficeSuite_Head": "honokodae_head",
 }

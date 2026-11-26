@@ -36,11 +36,11 @@ def _templates() -> Path:
 
 
 TEMPLATES = _templates()
-PACK = dist_path(REPO, "Christie_LAS.zip")
+PACK = dist_path(REPO, "Miranda_L4D2_LAS.zip")
 
 pytestmark = pytest.mark.skipif(
     not PACK.is_file(),
-    reason="Christie_LAS.zip is not in dist/ in this checkout",
+    reason="Miranda_L4D2_LAS.zip is not in dist/ in this checkout",
 )
 
 
@@ -51,9 +51,9 @@ def _fixtures():
 
     tpl = bm.load_template(TEMPLATES / "2b.model")
     with zipfile.ZipFile(PACK) as zf:
-        geo = rms.g_body_geo(zf, "Christie_LAS", "christie")
+        geo = rms.g_body_geo(zf, "Miranda_LAS", "miranda")
         mf = dm.ModelFile.read(zf.read(
-            "Christie_LAS/assets/units/christie/skins/christie/christie.model"))
+            "Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model"))
     hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
     sk = None
     for s in mf.by_type(dm.MODEL_DATA):
@@ -71,7 +71,7 @@ def _joints(tpl, worlds):
 
 
 def _authoring_worlds(rms, tpl):
-    """The rebuilt Christie body is authored in the template bind pose."""
+    """The rebuilt Miranda body is authored in the template bind pose."""
     return rms.posed_worlds(tpl, {})
 
 

@@ -1,6 +1,6 @@
 # OfficeSuite + Miranda Romance over Hila
 
-[Download the standalone ZIP](../../../../../dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip) ·
+[Download the standalone ZIP](../../../../../dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip) ·
 [View the compiled-model preview](officesuite_miranda_romance_over_hila_sheet.png)
 
 ## Install

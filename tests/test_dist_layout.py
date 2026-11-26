@@ -16,7 +16,6 @@ def test_character_folders_and_renamed_las_packages():
     assert {p.name for p in dist.iterdir() if p.is_dir()} == expected_folders
     for group, name, internal in (
         ('Miranda_L4D2', 'Miranda_L4D2_LAS.zip', 'Miranda_LAS/'),
-        ('Miranda_L4D2', 'Miranda_L4D2_Busty_LAS.zip', 'Miranda_Busty_LAS/'),
         ('Miranda_Romance', 'Miranda_Romance_LAS.zip', 'Lawson_LAS/'),
     ):
         archive = dist / group / name
@@ -25,8 +24,13 @@ def test_character_folders_and_renamed_las_packages():
             assert z.namelist() and all(n.startswith(internal) for n in z.namelist())
         assert archive.with_name(name + '.sha256').is_file()
     assert {path.stem for path in dist.rglob('*.zip')} == names
-    assert not (dist / 'Christie' / 'Christie_LAS_Slim.zip').exists()
-    assert not (dist / 'Christie' / 'Christie_LAS_Slim.zip.sha256').exists()
+    # the retired packs have no folder any more: asking dist_path for one is an error
+    import pytest
+    with pytest.raises(ValueError):
+        dist_path(ROOT, 'Christie_LAS.zip')
+    # a retired variant still has a group, but no file: the group is not the check
+    for gone in ('Miranda_L4D2_Busty_LAS.zip', 'Miranda_L4D2_over_Joy.zip'):
+        assert not dist_path(ROOT, gone).exists()
     assert not list(dist.glob('*.zip'))
 
 

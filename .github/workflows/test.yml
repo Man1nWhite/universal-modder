@@ -83,7 +83,7 @@ jobs:
         run: ./bin/um publish check .
 
   packs:
-    # Every tracked pack must equal a fresh build, byte for byte. All 20 are built again in a
+    # Every tracked pack must equal a fresh build, byte for byte. All 13 are built again in a
     # copy of the checkout, on this runner, and each generated ZIP is compared to the verified
     # byte digest of the original. No copied outputs can count. `env` makes the pinned .venv and
     # unpacks the 2B templates first (node and npm, for node-unrar-js). The builders put

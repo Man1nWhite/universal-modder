@@ -68,14 +68,14 @@ _dist_sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 from dist_paths import dist_path  # noqa: E402
 SHIPPED_MODELS = [
     (
-        "Miranda_L4D2_over_Bonnie.zip",
-        "Miranda L4D2 over Bonnie",
-        "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
+        "Miranda_L4D2_over_Hila.zip",
+        "Miranda L4D2 over Hila",
+        "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
     ),
     (
-        "Miranda_Romance_over_Clover.zip",
-        "Miranda Romance over Clover",
-        "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
+        "Miranda_Romance_over_Hila.zip",
+        "Miranda Romance over Hila",
+        "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
     ),
 ]
 
@@ -89,7 +89,7 @@ class TestShippedHeisterModels:
     verified end to end."""
 
     @pytest.mark.skipif(not (dist_path(REPO, SHIPPED_MODELS[0][0])).exists(), reason="dist packs not built")
-    @pytest.mark.parametrize("zip_name,prefix,model_rel", SHIPPED_MODELS, ids=["bonnie", "clover"])
+    @pytest.mark.parametrize("zip_name,prefix,model_rel", SHIPPED_MODELS, ids=["l4d2-hila", "romance-hila"])
     def test_every_geometry_section_round_trips(self, zip_name, prefix, model_rel):
         import zipfile
 

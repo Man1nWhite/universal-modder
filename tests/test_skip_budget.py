@@ -61,9 +61,9 @@ def test_what_has_no_budget_fails():
     assert failures == ["skip reason over budget: '2B templates not extracted' (4x, budget 0x)"]
 
     _, failures = budget.judge(
-        REPORT + "SKIPPED [13] tests/test_render_mesh_skeleton.py:39: Christie_LAS.zip is not in dist/ in this checkout\n"
+        REPORT + "SKIPPED [1] tests/test_pd2_las_status.py:114: Miranda_Romance_LAS is not the tracked zip in this checkout\n"
     )
-    assert failures == ["skip reason over budget: 'Christie_LAS.zip is not in dist/ in this checkout' (13x, budget 0x)"]
+    assert failures == ["unbudgeted skip reason: 'Miranda_Romance_LAS is not the tracked zip in this checkout' (1x)"]
 
 
 def test_no_budget_is_kept_for_a_reason_nothing_skips_with():

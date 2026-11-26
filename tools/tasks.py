@@ -38,15 +38,12 @@ TASKS: dict[str, tuple[list[str], str]] = {
     "status": (["{py}", "tools/pd2-las/status.py"], "one JSON object: environment, every tracked pack, what to run next"),
     "env": (["bash", "tools/pd2-las/recover_env.sh"], "once per fresh clone: pinned .venv, 2B composition, then status"),
     "build": (["{py}", "tools/pd2-las/build_models.py"], "Miranda_L4D2_LAS -> dist/Miranda_L4D2/"),
-    "busty": (["{py}", "tools/pd2-las/build_busty_variant.py"], "Miranda_L4D2_Busty_LAS -> dist/Miranda_L4D2/"),
     "lawson": (["{py}", "tools/pd2-port/build_las_pack.py"], "Miranda_Romance_LAS -> dist/Miranda_Romance/"),
-    "honokodae": (["{py}", "tools/pd2-las/build_honoko2_dae.py"], "OfficeSuite -> dist/Honoka/"),
-    "honokodae_head": (["{py}", "tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"], "OfficeSuite_Head -> dist/Honoka/"),
-    "christie": (["{py}", "tools/pd2-las/build_christie_source.py"], "Christie_LAS -> dist/Christie/"),
-    "cloverchristie": (["{py}", "tools/pd2-las/build_clover_christie.py"], "Christie_Clover_LAS (experimental) -> dist/Christie/"),
-    "heads": (["{py}", "tools/build_joy_head_mods.py"], "the head packs -> dist/"),
-    "hila": (["{py}", "tools/build_hila_body_mod.py"], "OfficeSuite + Miranda Romance over Hila -> dist/Honoka/"),
-    "voices_stream": (["{py}", "tools/build_hila_stream_mod.py"], "Miranda_Lawson_VO_over_Hila_Stream -> dist/Hila/"),
+    "honokodae": (["{py}", "tools/pd2-las/build_honoko2_dae.py"], "OfficeSuite -> dist/Miranda/"),
+    "honokodae_head": (["{py}", "tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"], "OfficeSuite_Head -> dist/Miranda/"),
+    "heads": (["{py}", "tools/build_joy_head_mods.py"], "the over Hila heads, Geralt_over_Rust, Arivus_over_Hoxton -> dist/"),
+    "hila": (["{py}", "tools/build_hila_body_mod.py"], "OfficeSuite + Miranda Romance over Hila -> dist/Miranda/"),
+    "voices_stream": (["{py}", "tools/build_hila_stream_mod.py"], "Miranda_Lawson_VO_over_Hila_Stream -> dist/Miranda/"),
     "voices_geralt": (["{py}", "tools/build_character_stream_mod.py", "--pack", "geralt-rust"], "Geralt_VO_over_Rust_Stream -> dist/Geralt/"),
     "voices_arivus": (["{py}", "tools/build_character_stream_mod.py", "--pack", "arivus-old-hoxton"], "Arivus_VO_over_Hoxton_Stream -> dist/Arivus/"),
     "voices_tables": (["{py}", "tools/build_stream_tables.py"], "the Rust and Old Hoxton stream tables -> voice_lines_vox/targets/"),
@@ -63,11 +60,11 @@ TASKS: dict[str, tuple[list[str], str]] = {
 }
 
 #: targets that write a pack and are therefore logged to build/pd2-las/<target>.log
-BUILDERS = {"build", "busty", "lawson", "honokodae", "honokodae_head", "christie", "cloverchristie",
-            "heads", "hila", "voices_stream", "voices_geralt", "voices_arivus", "glb"}
+BUILDERS = {"build", "lawson", "honokodae", "honokodae_head", "heads", "hila", "voices_stream",
+            "voices_geralt", "voices_arivus", "glb"}
 #: `all` is the Makefile's list of every tracked pack; task order matters (heads reads the base ZIP)
-ALL = ["build", "busty", "lawson", "honokodae", "honokodae_head", "christie", "cloverchristie",
-       "heads", "hila", "voices_stream", "voices_geralt", "voices_arivus", "glb"]
+ALL = ["build", "lawson", "honokodae", "honokodae_head", "heads", "hila", "voices_stream",
+       "voices_geralt", "voices_arivus", "glb"]
 
 
 def python() -> str:
