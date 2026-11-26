@@ -22,7 +22,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `18_all_dist_mods_overview.png` (grid of every pack in `dist/`)
   - `19_Miranda_L4D2_over_Hila.png`
   - `20_Miranda_Romance_over_Hila.png`
-  - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70), plus the first-person arms panel)
+  - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70), the wrist twisting on ForeArmRoll (D75), plus the first-person arms panel)
   - `25_OfficeSuite_with_Miranda_Romance_over_Hila.png` (the same combination for OfficeSuite)
   - `26_OfficeSuite_head_skin_detail.png` (front and three-quarter views of the colour match)
   - `27_Christie_Clover_LAS.png` (Clover-Christie GLB body-only LAS outfit)
@@ -927,8 +927,9 @@ def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Im
         model = dm.ModelFile.read(zf.read(f"{INSTALL}/{UNIT}.model"))
         mats = _parse_matcfg_diffuse(zf.read(f"{INSTALL}/{MATERIAL}.material_config"))
         # The outfit's palms are cut on the crease again (D60/D70), with no extension
-        # past it, and it spawns no default glove, so in game the sleeve ends in the
-        # cut until the player equips a glove. The
+        # past it, its distal wrist twists on ForeArmRoll (D75), and it spawns no
+        # default glove, so in game the sleeve ends in the cut until the player
+        # equips a glove. The
         # sheet draws Hila's stock glove drawable - kept by the pack, node and all,
         # so a chosen glove has something to land on - flat-shaded, because its
         # material samples a vanilla glove texture the pack does not ship.
@@ -944,7 +945,7 @@ def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Im
                       np.asarray(geo["uv0"], np.float32), glove, False, True))
         icon = decode_bgra_icon(zf.read(f"{INSTALL}/{HILA_ICON_PATH}"))
     return render_las_sheet(
-        "OfficeSuite + Miranda Romance over Hila", "Native body, palms cut on the line where they begin (D70) and head replacement | Offline render | Hila's stock gloves drawn over the cut; in game a chosen glove does",
+        "OfficeSuite + Miranda Romance over Hila", "Native body, palms cut on the line where they begin (D70), wrist twisted on ForeArmRoll (D75) and head replacement | Offline render | Hila's stock gloves drawn over the cut; in game a chosen glove does",
         parts, [], icon, out_path, closeup=(18.0, 171.5, 7.4), full_view=(94.0, 2.48),
     )
 
@@ -1027,7 +1028,7 @@ def main(argv: list[str] | None = None) -> None:
         )
         th_os = render_las_sheet(
             "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
-            "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70) | fps_officesuite.model | "
+            "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70); wrist twisted on ForeArmRoll and its cut ring centred on the glove (D75) | fps_officesuite.model | "
             "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
             tpp_os,
             fps_os,
@@ -1037,7 +1038,7 @@ def main(argv: list[str] | None = None) -> None:
         )
         render_fps_sheet(
             "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
-            "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm line",
+            "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm line, the bracelet on the forearm's roll",
             fps_os,
             target_for("35_OfficeSuite_fps.png"),
         )
@@ -1167,7 +1168,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     th_os = render_las_sheet(
         "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
-        "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70) | First-person arms unit | "
+        "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70); wrist twisted on ForeArmRoll (D75) | First-person arms unit | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
         tpp_os,
         fps_os,
@@ -1177,7 +1178,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     render_fps_sheet(
         "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
-        "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm line",
+        "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm line, the bracelet on the forearm's roll",
         fps_os,
         target_for("35_OfficeSuite_fps.png"),
     )
