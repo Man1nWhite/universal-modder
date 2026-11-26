@@ -1359,6 +1359,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D60 — The palm cut is made on the plane, and a handless outfit spawns no glove and no forearm
 
+> **Restored by D70 (2026-11-25).** D62's extension and its D63/D65 reductions are reverted: the
+> tracked packs cut on this plane again, with the registration as decided here.
+>
 > **Amended by D62 (2026-11-25).** The registration half stands unchanged: no glove adapter, no
 > default glove, a chosen glove still spawns. What moves is where the cut sits — 4 cm *past* the palm
 > line, inside the palm — because the game showed the capped end stopping short of the heister's glove
@@ -1457,6 +1460,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D62 — The palms are cut 4 cm past the palm line, so the arm ends inside the glove
 
+> **Superseded by D70 (2026-11-25): the extension is reverted to 0 cm.** The plane, mechanism and
+> measurements below remain the record of the D62 bytes; the tracked packs no longer use them.
+>
 > **Amended by D63 (2026-11-25): the extension is 1.5 cm, not 4.** Everything else here stands
 > — the plane, the margin mechanism, `extend_cm` in the record, the no-adapter registration.
 > The 4 cm number was answered by the game the same day: it put the palm through the glove. The
@@ -1513,6 +1519,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   crease.
 
 ### D63 — The extension is 1.5 cm: as far into the glove as its own geometry allows
+
+> **Superseded by D70 (2026-11-25): the extension is reverted to 0 cm.** The glove measurements
+> below still describe the glove in the references archive; the tracked packs cut on the crease.
 
 - **Decided:** 2026-11-25, by the user, after looking at the D62 build in game. Two wrist
   screenshots, and three words: *"Too much."* The arm now reached the glove, but it also came out
@@ -1609,6 +1618,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D65 — The palm cut goes back to 1.25 cm: the arm's fattest half-centimetre was still in the glove's cuff
 
+> **Superseded by D70 (2026-11-25): the extension is reverted to 0 cm.** Only the history below
+> remains; the shipped body no longer carries the extra 1.25 cm of forearm.
+>
 - **Decided:** 2026-11-25, by the user, looking at `OfficeSuite_Head` in game (two first-person
   screenshots with the black FPS-gloves glove): *"pretty close, just need to cut a bit more."*
   The hand was gone and the cuff covered the wrist, but a wedge of skin still showed through the
@@ -1771,8 +1783,46 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   hairline is the hair mesh's own alpha edge, the forehead's shadow band is the hair mesh's shadow, and
   the sideburn cards in front of the ears are geometry.
 
-## D70 — The character packs write the shared bank, and only one pack ships at a time
+## D70 — The palm extensions are reverted: the cut is on the crease again
 
+- **Decided:** 2026-11-25, by the user, from a first-person screenshot of
+  `OfficeSuite_Head`: *"I want you to revert extensions, before 4 cm (D62)"*. The shot showed
+  a wedge of bare arm on the far side of the white glove at the wrist; the D65 cut had left
+  skin inside the cuff and it still read as skin over the glove.
+- **Why.** D62 put the cut 4 cm past the palm line to close the gap D60 showed in game.
+  D63 reduced that to 1.5 cm when the arm came through the glove, D65 to 1.25 cm when a
+  wedge still showed. Each step kept some of the forearm's skin past the wrist crease, and
+  the user's answer to all three is to keep none of it: return to D60's landmark and let
+  the cut end where the palm begins.
+- **Decision:** `PALM_EXTEND_CM = 0.0`. `clip_group_at_palm_bases` splits on the plane
+  through the rig's `Hand` joint, perpendicular to the palm axis, and `_cap_cut_rims` caps
+  the ring there. No new geometry, no adapter and no change to the registration: the packs
+  still hide the stock hands and a glove the player picks is what puts hands on them
+  (D58/D60). The Hila override inherits the same body and keeps its own `g_hands`.
+- **Measured, not asserted:** the rebuild reproduces D60's cut on all three packs:
+  `margin_cm`/`extend_cm` 0.0, `clipped_to_cm` 0.0 per side, `kept_to_cm` -0.76 (left) and
+  -0.79 (right) after the 5% slim — the surface stops just *short* of the crease because
+  the slim pulls it towards the bones — `tris_split` 64, `verts_added` 66,
+  `removed_tris` 2,276, `rim_cap_tris` 68, and a shipped `g_body` of 31,643 vertices
+  (61,479 after the slim). The cut removes both hands' fingers and a handful of
+  forearm-dominated rim vertices; no hand- or finger-dominated vertex survives.
+- **Held to:** `tests/test_palm_cut.py` (0.0 in the record, the clip on the plane, the
+  shipped mesh at or proximal of the crease, no hand-dominated vertex),
+  `tests/test_pd2_las.py` (the body and slim vertex counts, `clipped_to_cm` 0.0),
+  `tests/test_hila_body_override.py` (the same cut on the override's body).
+- **Rejected:** keeping any positive extension, including D65's 1.25 cm (the reported
+  wedge); shrinking the arm's radius to fit a glove the pack does not ship; changing the
+  registration or spawning a glove by default (D58/D60).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM`),
+  `tools/pd2-las/tmc_las.py`, `tests/test_palm_cut.py`, `tests/test_hila_body_override.py`.
+- **Status:** holds offline only; `runtime_verified` stays `false`. The D62 and D65 builds
+  are the ones that were seen in game, these bytes have not been. The D60 gap that
+  motivated D62 is the known trade-off of this choice; the wrist step of the in-game
+  checklist records what to look for now.
+
+## D71 — The character packs write the shared bank, and only one pack ships at a time
+
+- **Renumbered:** drafted as D70 on the parallel branch; D70 is the palm-reversion entry on main, so this one is D71.
 - **Decided:** 2026-11-25, by the user, after the Hila rounds: *"I also want VO mod for Geralt over Rust
   and Arivus over Hoxton (not the brother to Dallas - Huston)"*, then choosing from the options: Rust =
   the punk heister (`npc_criminal_wild_1`, the `Geralt_over_Rust` head-pack target); Arivus over **Old

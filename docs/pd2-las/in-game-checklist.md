@@ -202,14 +202,13 @@ Everything else for this pack is covered by the 2026-11-15 sections of the rende
 captures there predate this texture and cannot be used to judge the jewelry, and predate the
 first-person unit entirely.
 
-## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D62/D63/D65)
+## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D70)
 
 Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it: everything from where
-the palm begins outwards is gone — and since D62 the cut sits **past that line**, inside the wrist
-(**1.25 cm** since D65, `palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `1.25`,
-`kept_to_cm` 0.61 / 0.53 after the slim), so the arm
-continues down into the heister's glove instead of ending above it — and the rim is capped. The plane
-is still D60's: through the PD2 `Hand` joint, perpendicular to the palm. The pack registers
+the palm begins outwards is gone, and D70 has reverted the D62/D63/D65 extensions, so the cut is back
+**on that line** (`palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `0.0`,
+`kept_to_cm` -0.76 / -0.79 after the slim) with the rim capped. The plane is D60's: through the PD2
+`Hand` joint, perpendicular to the palm. The pack registers
 `officesuite_own_hands.lua`, not the glove adapter: no default glove unit spawns, so the body has no
 hands by default, and a glove the player picks by name is the only thing that puts hands on the
 character. Offline the sleeve ends read as a clean cuff; what only the game can show:
@@ -220,25 +219,22 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
    either the cut or the glove. Fail: any second skin band, any band with a seam in it, any vanilla
    `hnd_glv_heistwrinkled` glove at the cuff.
 2. **No hands by default.** With gloves on "Default" the character's hands must be *absent* where the
-   outline of a hand would be: the sleeve runs on past the wrist into a capped end, and no stock bare
+   outline of a hand would be: the sleeve ends at the crease in a capped end, and no stock bare
    hand shows beside it. This is the D60 state and it is intended to look handless.
-   **The wrist is the D62/D63/D65 fix:** the D60 build ended in a flat cap in mid-air, above the
-   heister's glove, with a visible gap; the D62 build closed the gap by cutting 4 cm into the palm
-   and came out through the glove instead. The cap must now sit *inside* the glove and stay there:
-   no gap above the cuffs, no ring of background between the sleeve end and the glove, and **no
-   skin showing through or around the glove** at the wrist, in any pose. Move the hand, aim, and
-   reload — a spot of skin that appears on the glove in one pose is the extension being too deep.
-   D63 cut 1.5 cm and that wedge of skin was still there in the first-person screenshots of
-   2026-11-25; this build cuts 1.25 cm, which takes the arm's fattest half-centimetre out. If a wedge
-   survives this one, the lever is the arm's radius at the cut, not its depth.
-3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn over the cut and read
-   as the character's hands, with the sleeve's cuff still outside it and no gap between them, and the
-   arm's capped end hidden inside it. Then go back to "Default": the glove must disappear again
-   rather than stick.
+   **The wrist is D70's reversion:** D62 closed D60's in-game gap by cutting 4 cm into the palm,
+   D63 cut 1.5 cm and D65 cut 1.25 cm, and each still showed arm skin at the glove in the user's
+   screenshots. The cut is back on the palm line, so a flat cap above the heister's glove and a gap
+   between it and the cuff are the *expected* result of this choice, not a build error. What still
+   fails is any skin extending past the crease, a band of second skin, or a hand modelled by the
+   outfit. Move the hand, aim, and reload and check that no skin pops through a glove in any pose.
+3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn and read as the
+   character's hands, with the sleeve's cuff still outside it. Since the arm ends on the crease, the
+   glove may not reach the cut and a gap can remain; what matters is that no bare hand of ours sits
+   above it. Then go back to "Default": the glove must disappear again rather than stick.
 4. **The first-person arms match.** The `fps_officesuite` arms are cut on the same plane; a weapon
-   held and a reload should show the sleeve running on past the wrist and into the glove, with the
-   cut end hidden inside the glove, never a hand modelled in the outfit and never a vanilla skin
-   band at the wrist — with a glove equipped, the glove is what holds the weapon.
+   held and a reload should show the sleeve ending at the crease, with no hand modelled in the outfit
+   and no vanilla skin band at the wrist — with a glove equipped, the glove is what holds the weapon.
+   This is the view that showed the skin wedge in D65, so check it in motion.
 5. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
    ground while turning — no hand, and no hole where the hands used to be.
 
@@ -256,14 +252,15 @@ The ZIP was checked offline; these steps still need the game:
    Romance head should all show together, with no pink materials or missing triangles.
 2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
    neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
-   still be Hila's. **The wrists are the new bytes (D60/D62/D63):** the outfit's palms are cut 1.5 cm
-   past the line where the palm begins, so the sleeve runs on into its cuff and the capped end sits
-   inside the glove without coming through it, and **Hila's own stock gloves** —
+   still be Hila's. **The wrists are the new bytes (D70):** the outfit's palms are cut on the line
+   where the palm begins, so the sleeve ends at the crease and may leave a gap above the cuff, and
+   **Hila's own stock gloves** —
    kept in the pack, node and all, so a chosen glove still has somewhere to land — are what the game
    puts over it. The LAS pack reaches the same sleeve end under `LegendaryArmours.officesuite` and
    spawns no default glove at all (D60). Check the hands from the front, the side and while the hand
-   closes on a weapon: no gap between the glove and the sleeve, no capped rim showing past the glove
-   lip, no vanilla skin band above the glove, no second pair of hands.
+   closes on a weapon: only the expected gap where the arm stops on the crease, no capped rim showing
+   *past* the glove lip, no vanilla skin band above the glove from an extension, no second pair of
+   hands.
 3. Mask up and check the mask, a heavier vest, and a carried deployable. These use the original
    Hila attachments; check that the fit is acceptable. Alternate outfits/gloves are not the target.
 
