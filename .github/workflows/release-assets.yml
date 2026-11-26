@@ -6,9 +6,15 @@ name: release assets
 # cannot be done from the repository, because a release asset goes to uploads.github.com.
 #
 # Run it with:  gh workflow run release-assets.yml [--ref <branch>] [-f tag=packs-v1]
+# or, before it is on the default branch:  git tag assets-v1 && git push origin assets-v1
 # No secrets: GITHUB_TOKEN with `contents: write` is enough, and it is the default here.
 
 on:
+  # A tag push also runs it: `workflow_dispatch` only exists once this file is on the default
+  # branch, and a fresh fork (or a branch) has to be able to publish without that. The prefix
+  # keeps ordinary release tags from starting a 428 MB upload.
+  push:
+    tags: ["assets-*"]
   workflow_dispatch:
     inputs:
       tag:
