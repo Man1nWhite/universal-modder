@@ -240,8 +240,12 @@ def collect(only: list[str] | None = None, full: bool = False) -> dict:
             hint = ENV
         status = {"ready": hint is None, "hint": hint, "env": env, "packs": packs}
     if "changed" in states and not hint:
-        status["note"] = ("changed: new bytes, not committed. Meant: commit the zip with its .sha256. "
-                          "Not meant: git checkout -- dist")
+        status["note"] = (
+            "changed: new bytes, not published. Meant: `python tools/release_assets.py upload`, then "
+            "`write` and commit assets.json. Not meant: git checkout -- dist, which is not tracked "
+            "any more" if published_packs else
+            "changed: new bytes, not committed. Meant: commit the zip with its .sha256. "
+            "Not meant: git checkout -- dist")
     status["next"] = hint or GREEN
     return status
 

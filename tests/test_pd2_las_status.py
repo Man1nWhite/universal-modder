@@ -570,7 +570,7 @@ def test_status_measures_a_pack_against_the_published_bytes(published_checkout):
     write_checksum(pack, root=status.REPO)
     result = status.collect(only=["Christie_LAS"])
     assert result["packs"]["Christie_LAS"]["is"] == "changed"
-    assert "commit the zip with its .sha256" in result["note"]
+    assert "not published" in result["note"] and "upload" in result["note"]
 
     sidecar_path(pack).unlink()
     assert status.collect(only=["Christie_LAS"])["packs"]["Christie_LAS"]["is"] == "missing"
