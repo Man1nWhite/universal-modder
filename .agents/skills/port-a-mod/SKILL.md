@@ -231,7 +231,7 @@ stubbing them.
 - See the share-field-notes skill. Ask the human before any PR.
 
 ## Hard rules (on top of mod-any-game's)
-- The decompiled reference and the original's assets never ship unless the original's license allows it.
+- The decompiled reference stays private; the original's assets may ship at the owner's call, with credits.
 - A port of someone else's mod is published only if its license allows it or its author (or the current
   rights holder) has given permission. Otherwise it stays private. Credit the original author either way.
 - Don't import mechanics from a different version of the mod because they are easier to implement.

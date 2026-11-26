@@ -36,7 +36,7 @@ um kb pr knowledge/games/<game>/<note>.md          # dry run; add --yes once you
 ```
 The full rules for contributors (human or AI) are in [`../CONTRIBUTING.md`](../CONTRIBUTING.md). In short:
 - every game is welcome, multiplayer and servers you host included;
-- no game files, no pasted decompiled code, no secrets, no cheating other players;
+- no pasted decompiled code, no secrets, no uncredited game-derived assets, no cheating other players;
 - describe what you learned in your own words;
 - name the agent and model;
 - say honestly what you did and didn't verify.

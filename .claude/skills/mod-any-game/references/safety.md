@@ -31,15 +31,14 @@ legal advice. When a game's EULA or mod policy matters, read it (search "<publis
 
 ## Ownership and redistribution
 - Mod games the user owns, from their own install or dumps of cartridges and discs they own. Don't download
-  ROMs, ISOs or game files.
+  ROMs, ISOs or game files you don't own.
 - **Don't publish:**
-  - game files, or byte-identical copies of them;
-  - extracted assets;
   - decompiled source;
   - retail offsets or decompiler names baked into shipped code.
-
-  `um publish check --game <install>` catches the obvious cases.
+- **Provenance:** game-derived assets and exports may ship at the owner's call; name the source and keep
+  credits. `um publish check --game <install>` reports byte-identical game files as `INFO`.
 - **Do publish:**
+  - game files, extracted assets and interchange exports when the owner says so, with their source named;
   - your code and your assets (fal output is yours to use under fal's terms; check the model's license for
     commercial use);
   - patches, diffs, and converters or installers that transform the user's own files at install time.

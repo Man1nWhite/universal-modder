@@ -66,5 +66,5 @@ check the user's build before trusting an API.
   or persistence changes need a new campaign and a save/load round trip; check existing-save compatibility
   separately if promised. Mission changes need the relevant battle or scene, not only a successful menu launch.
 - Record compile, static, in-game and save/load results separately. Module health checks and indexed source
-  don't prove runtime behavior. Ship only authored code/assets; keep game files, extracted content, decompiled
-  source, index databases and local credentials out of the release.
+  don't prove runtime behavior. Game-derived assets may ship at the owner's call with their source named; keep
+  decompiled source, index databases and local credentials out of the release.

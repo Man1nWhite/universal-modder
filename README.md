@@ -20,7 +20,9 @@ of the same route ship alongside it: `Geralt_VO_over_Rust_Stream` (`dist/Geralt/
 `Arivus_VO_over_Hoxton_Stream` (`dist/Arivus/`) — the three are alternatives writing the same shared
 ids, so exactly one should be installed.
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
-pack is installed and what the pipelines share.
+pack is installed and what the pipelines share. The Arivus head also ships as a tracked `.glb` + `.dds`
+interchange export ([`Arivus_Head_over_Old_Hoxton_GLB.zip`](dist/Arivus/Arivus_Head_over_Old_Hoxton_GLB.zip)),
+rebuilt by `make -sC tools/pd2-las glb`.
 
 ## Packs and previews
 

@@ -83,7 +83,8 @@ LAS_TARGETS = {
 TARGETS = {**LAS_TARGETS, "OfficeSuite_Miranda_Romance_over_Hila": "hila",
            "Miranda_Lawson_VO_over_Hila_Stream": "voices_stream",
            "Geralt_VO_over_Rust_Stream": "voices_geralt",
-           "Arivus_VO_over_Hoxton_Stream": "voices_arivus"}
+           "Arivus_VO_over_Hoxton_Stream": "voices_arivus",
+           "Arivus_Head_over_Old_Hoxton_GLB": "glb"}
 HEADS = "heads"
 
 MAKE = "make -sC tools/pd2-las"

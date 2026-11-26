@@ -789,3 +789,29 @@ DDS buffer, so this is a byte copy) with PNG twins for viewers that do not take 
 game-derived is committed. A round trip back through the repo's own rasteriser reproduces the
 tracked sheet's head, eyeballs and hair cutout (`build/check_glb.py`); the suit is a placeholder
 because its textures are not in the pack. `runtime_verified` stays false.
+
+
+## 2026-11-26 — game-derived exports may ship, and the Arivus GLB does (D74)
+
+**The ask.** *"Change the repo's rule about committing game-derived exports."* The owner chose the
+repo-wide repeal and a checksummed ZIP: no blanket ban on game-derived assets anywhere in the
+tree, and the pending Arivus head export tracked as a distribution pack rather than loose ignored
+files.
+
+**What changed.** `AGENTS.md` and `CONTRIBUTING.md` no longer forbid game files or extracted
+assets; the mirrored skill docs, the knowledge-base checklist and `um publish check` say the same.
+Decompiled code, secrets and the ownership/anti-cheat rules stay out. `um publish check --game`
+now reports byte-identical game files as `INFO` provenance instead of a `FAIL`; the tests for that
+lint were updated with it. D32's "the rules stay" is superseded by D74 in
+`docs/pd2-las/DECISIONS.md`.
+
+**The pack.** `tools/pd2-las/build_arivus_glb_pack.py` reads the tracked
+`Arivus_over_Hoxton.zip`, calls `model_to_glb.py` for the `g_head_old_hoxton` drawable with its
+bind-pose skin and all five `.texture` files, and writes `Arivus_Head_over_Old_Hoxton_GLB.zip`
+with a fixed member order, the tree's one zip writer and a repo-relative `.sha256`. Inside: the
+`.glb`, five `.dds`, a provenance README and a manifest of per-file digests. `make -sC
+tools/pd2-las glb` builds it, `status.py` reports it, `fresh.py check` rebuilds it in a copy and
+`tests/test_arivus_glb_pack.py` pins its members to the source pack's bytes. Two consecutive
+builds were byte-identical. The loose ignored copies at the root of `dist/` from the earlier
+turn were removed; this pack is the shipped form. `runtime_verified` stays false — it is a viewer
+export, not a mod to install, and no bytes of it have been seen in game.

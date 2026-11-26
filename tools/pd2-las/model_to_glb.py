@@ -43,9 +43,9 @@ Conventions, all of them measured on the tracked packs rather than assumed:
   their product is the identity, i.e. the mesh stays in its bind pose.
 
 Non-goals: this is a viewer/interchange export. Nothing here is a runtime
-oracle, ``runtime_verified`` stays false, and no output belongs in the
-repository: write under ``build/``, which is git-ignored, and keep game-derived
-bytes out of Git (`AGENTS.md`, "What you ship").
+oracle, ``runtime_verified`` stays false. Ad-hoc exports go under ``build/``;
+the owner may commit an export instead, and then ``build_arivus_glb_pack.py``
+is the reproducible packaging step (`AGENTS.md`, "What you ship", D74).
 
     # a pack: every .model inside, plus every .texture it references
     .venv/bin/python tools/pd2-las/model_to_glb.py dist/Arivus/Arivus_over_Hoxton.zip --all-textures

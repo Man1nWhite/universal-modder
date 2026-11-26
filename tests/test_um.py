@@ -753,9 +753,10 @@ def test_publish_check(tmp_path, capsys):
                             "config.txt": fake_key})
     make(tmp_path / "game", {"data/big.bin": b"x" * 4096})
     (tmp_path / "mod" / "copied.bin").write_bytes(b"x" * 4096)
+    # game-derived bytes are INFO provenance now, not a failure; the key and the decompiler header still fail/warn
     assert publish.check(str(tmp_path / "mod"), str(tmp_path / "game")) == 1
     out = capsys.readouterr().out
-    assert "game file copied verbatim" in out and "FAL_KEY assignment" in out and "Ghidra auto-name" in out
+    assert "INFO  game file copied verbatim" in out and "FAL_KEY assignment" in out and "Ghidra auto-name" in out
     normalized = out.replace("\\", "/")
     assert "decompiler header x1 in src/Mod.cs" in normalized and "README.md" not in normalized.split("decompiler header")[-1].split("\n")[0]
 
@@ -776,14 +777,15 @@ def test_publish_check_ignores_path_placeholders(tmp_path, capsys):
 
 
 def test_publish_check_mod_inside_game(tmp_path, capsys):
-    # a Dwarf Fortress mod in <install>/mods/<name> matched itself: every file "game file copied verbatim"
+    # a Dwarf Fortress mod in <install>/mods/<name> must not match itself; a copied game file is INFO, not FAIL
     game, mod = tmp_path / "game", tmp_path / "game" / "mods" / "mine"
     make(game, {"data/big.bin": b"x" * 4096, "mods/mine/README.md": "My mod", "mods/mine/graphics/page.png": b"y" * 4096})
     assert publish.check(str(mod), str(game)) == 0
     (mod / "copied.bin").write_bytes(b"x" * 4096)
-    assert publish.check(str(mod), str(game)) == 1
+    assert publish.check(str(mod), str(game)) == 0
     out = capsys.readouterr().out
-    assert "copied.bin" in out and "page.png" not in out
+    assert "INFO  game file copied verbatim: copied.bin" in out and "FAIL" not in out
+    assert "page.png" not in out
 
 
 @pytest.mark.parametrize("label,key", [

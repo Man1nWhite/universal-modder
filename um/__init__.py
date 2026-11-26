@@ -9,7 +9,7 @@ Subcommands (see `um --help`):
   video     compile styled showcase videos, trim, mux
   win       Windows (and WSL): screenshots, recording with game-only audio, input, processes
   backup    snapshot and restore save folders before you touch them
-  publish   lint a mod folder before sharing: game files, decompiled code, secrets, credits
+  publish   lint a mod folder before sharing: secrets, decompiled code, credits; game assets allowed
   kb        the knowledge base: search prior field notes, write your own, check it, open a PR
 """
 

@@ -10,7 +10,7 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 | Fresh clone, or a restarted sandbox (no `.venv`, `git status` lists `dist/` as deleted) | `make -sC tools/pd2-las env` |
 | State of the packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `honokodae_head`, `christie`, `cloverchristie`, `heads`, `hila`, `voices_stream`, `voices_geralt`, or `voices_arivus` |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `honokodae_head`, `christie`, `cloverchristie`, `heads`, `hila`, `voices_stream`, `voices_geralt`, `voices_arivus`, or `glb` |
 | Was a pack seen in game, and which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | What is open | "Next" in `tools/pd2-las/README.md` |
 | Before changing a builder, a codec or what a pack holds | `tools/README.md` (the three pipelines, the invariants they share), then `tools/pd2-las/README.md` or `tools/pd2-port/README.md` |
@@ -46,8 +46,8 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
   - Never write cheats against other players (aimbots, ESP, speed hacks).
   - Never bypass anti-cheat, DRM or ownership checks.
 - **Saves:** `um backup` saves before modded launches.
-- **What you ship:** never commit or publish game files, extracted assets or decompiled code; keep
-  decompiles outside the repo.
+- **What you ship:** game-derived assets and exports may be committed anywhere at the owner's call;
+  keep decompiles and secrets out.
 - **Renders:** tracked renders go in `docs/renders/<project>/<ext>/...` (`docs/renders/README.md`);
   scratch in `build/`.
 - **Processes:** kill by exact PID (`um win kill`), never by name pattern.

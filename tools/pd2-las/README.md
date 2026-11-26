@@ -16,12 +16,12 @@ no Source compile step, Blender, or running game is needed.
 | `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | `references/Голос Лоусон.7z` (clips), `references/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
 | `Geralt_VO_over_Rust_Stream` — the purpose-authored Geralt barks, one `.stream` per shared `regular_vox` id for the 29 slots the set covers (315 files); slots without a take are vanilla (`docs/pd2-voice-mod-install.md` §8) | `references/GERALT VOICE (PAYDAY 2).zip` (CP866 file names) | `tools/build_character_stream_mod.py --pack geralt-rust` over `wwise_ima.py` | `voices_geralt` |
 | `Arivus_VO_over_Hoxton_Stream` — the purpose-authored Arivus barks for 18 slots plus the borrowed Geralt 'Hoxton.' callout for `call_teammate.hey_you` (324 files); uncovered slots vanilla | `references/ARIVUS VOICE (PAYDAY 2).zip` (+ the one callout file from the GERALT archive) | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` over `wwise_ima.py` | `voices_arivus` |
+| `Arivus_Head_over_Old_Hoxton_GLB` — the `g_head_old_hoxton` drawable as a bind-pose `.glb` plus the five pack `.texture` files as `.dds`; a viewer export, not an installable mod | `Arivus_over_Hoxton.zip` (the tracked pack itself) | `build_arivus_glb_pack.py` over `model_to_glb.py` | `glb` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status
 
-Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every
-tracked pack of the three pipelines (size, sha256, `make` target, whether the zip `is` what git tracks), the next command.
+Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every tracked pack of the three pipelines (size, sha256, `make` target, whether the zip `is` what git tracks), the next command.
 ## Commands
 
 The general CLI supports Python 3.10+; `env` requires **Python 3.11+** (CI uses 3.11).
@@ -30,7 +30,7 @@ From the repo root, `make -sC tools/pd2-las` alone lists the targets for all thr
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or busty | lawson | honokodae | honokodae_head | christie | cloverchristie | heads | hila | voices_stream | all
+make -sC tools/pd2-las build    # or busty | lawson | honokodae | honokodae_head | christie | cloverchristie | heads | hila | voices_stream | glb | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each

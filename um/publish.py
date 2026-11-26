@@ -1,15 +1,16 @@
-"""Check a mod folder before you share it: no game files, no decompiled code, no secrets, credits present.
+"""Check a mod folder before you share it: no secrets, no pasted decompiled code, credits present.
 
     um publish check ./MyMod --game "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Terraria"
 
-FAIL  files byte-identical to files in the game install (redistributing game files), leaked API keys
-      (FAL_KEY, Anthropic, GitHub, AWS...), .env files
+FAIL  leaked API keys (FAL_KEY, Anthropic, GitHub, AWS...), .env files
+INFO  files byte-identical to files in the game install: game-derived assets are allowed; this
+      records their provenance
 WARN  decompiler fingerprints in source (FUN_xxxx / DAT_xxxx / sub_XXXX, "// Decompiled with", ILSpy/dnSpy
       headers) - reimplement or reference instead of shipping decompiled code; big engine archives
-      (.pak/.bsa/.ba2/.vpk/.rpf/.utoc...) that may carry original assets; absolute user paths; no README /
+      (.pak/.bsa/.ba2/.vpk/.rpf/.utoc...) to name in the README; absolute user paths; no README /
       credits; fal-generated assets listed in fal_manifest.jsonl without an attribution line
-Modelled on IW4L's publish-check. It is a lint, not legal advice: when in doubt ship a patch/converter that
-runs on the user's own install ("bring your own game files") instead of the files themselves.
+Modelled on IW4L's publish-check. It is a lint, not legal advice: game-derived assets may ship at the
+owner's call; name their source and keep credits.
 """
 from __future__ import annotations
 
@@ -86,7 +87,7 @@ def check(mod: str, game: str | None = None) -> int:
     root = Path(to_posix(mod))
     if not root.is_dir():
         die(f"not a folder: {root}")
-    fails, warns = [], []
+    fails, warns, infos = [], [], []
     files = [p for p in root.rglob("*") if p.is_file() and not SKIP_DIRS.intersection(p.relative_to(root).parts)]
     # game files, matched by size then hash
     if game:
@@ -110,7 +111,7 @@ def check(mod: str, game: str | None = None) -> int:
             h = _sha1(f)
             for gp in by_size[sz]:
                 if _sha1(gp) == h:
-                    fails.append(f"game file copied verbatim: {f.relative_to(root).as_posix()}  (== {gp.relative_to(g).as_posix()})")
+                    infos.append(f"game file copied verbatim: {f.relative_to(root).as_posix()}  (== {gp.relative_to(g).as_posix()})")
                     break
     for f in files:
         rel = f.relative_to(root).as_posix()        # same report on every OS (Windows would print src\Mod.cs)
@@ -119,7 +120,7 @@ def check(mod: str, game: str | None = None) -> int:
         if is_dotenv:
             fails.append(f"env file (secrets?): {rel}")
         if f.suffix.lower() in ARCHIVE_EXT and f.stat().st_size > 5 << 20:
-            warns.append(f"large engine archive ({f.stat().st_size >> 20} MB): {rel} - make sure it holds only your own assets")
+            warns.append(f"large engine archive ({f.stat().st_size >> 20} MB): {rel} - name its source in the README")
         if f.suffix.lower() in TEXT_EXT or is_dotenv:
             try:
                 txt = f.read_text(errors="replace")
@@ -142,6 +143,8 @@ def check(mod: str, game: str | None = None) -> int:
         readmes = [f for f in files if f.name.lower().startswith(("readme", "credits"))]
         if not any("fal" in f.read_text(errors="replace").lower() for f in readmes):
             warns.append("fal-generated assets (fal_manifest.jsonl) but no credit line in README/CREDITS")
+    for x in infos:
+        print("INFO ", x)
     for x in fails:
         print("FAIL ", x)
     for x in warns:
@@ -156,10 +159,10 @@ def main(a):
 
 def register(sub):
     import argparse
-    p = sub.add_parser("publish", help="lint a mod folder before sharing (game files, decompiled code, secrets)",
+    p = sub.add_parser("publish", help="lint a mod folder before sharing (secrets, decompiled code, credits; game assets allowed)",
                        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     cs = p.add_subparsers(dest="cmd", metavar="<cmd>")
     q = cs.add_parser("check", help="check a mod folder")
     q.add_argument("mod")
-    q.add_argument("--game", help="game install folder, to catch copied game files")
+    q.add_argument("--game", help="game install folder, to report game-derived files for provenance")
     q.set_defaults(func=main)

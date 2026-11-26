@@ -399,7 +399,7 @@ def open_pr(path: Path, yes: bool):
     body = (f"Field note: **{meta.get('title')}**\n\n- game: {meta.get('game', '-')}\n- engine / route: {meta.get('engine', '-')} / "
             f"{meta.get('route', '-')}\n- status: {meta.get('status')}\n- agents: {', '.join(meta.get('agents') or [])}\n\n"
             "Checked with `um kb check`; index regenerated with `um kb index`.\n\n"
-            "- [x] no game files, decompiled code dumps or secrets\n- [x] versions and verification written down\n")
+            "- [x] no decompiled code dumps or secrets; game-derived assets named with sources\n- [x] versions and verification written down\n")
     media = [p for p in path.parent.glob("media/*")] if (path.parent / "media").exists() else []
     can_push = False
     if shutil.which("gh"):

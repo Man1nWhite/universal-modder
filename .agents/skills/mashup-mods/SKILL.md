@@ -131,7 +131,7 @@ user supplies their own ROM for assets.
   - Owner-approved end-to-end tests only.
   - A **publish check** that greps for retail offsets and decompiler names before any push
     (`um publish check` does a version of this).
-  - Converters that run on the user's files; game assets never committed.
+  - Converters that run on the user's files; game-derived assets may be committed at the owner's call.
 - **Measures and fidelity:** `knowledge/techniques/engine-recreation-measures-and-fidelity.md` covers how each
   kind of rebuild is measured, why scripts are part of fidelity, and the SDK rules other mods need.
 

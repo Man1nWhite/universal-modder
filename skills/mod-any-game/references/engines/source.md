@@ -29,7 +29,7 @@
     workshop addon shipping a DLL is still a trust decision.
   - Measuring an addon without extracting or rendering it: `python tools/pd2-las/inspect_gma.py
     <id>.gma` for rig/geometry, `inspect_textures.py <folder|zip|vpk|gma>` for whether every
-    material's `.vmt`→`.vtf` chain actually exists and decodes. Never commit the assets.
+    material's `.vmt`→`.vtf` chain actually exists and decodes. Name the source of any assets you commit.
   - Writing one: `gmad.exe` packs (`addon.json` + its `ignore` globs, and a whitelist that rejects
     stray file types), `gmpublish.exe` uploads — but publishing needs Windows and a signed-in Steam
     client, so an agent can prepare an addon and never upload it. Lint the Lua first with `glualint`
@@ -52,7 +52,7 @@
   - Dota 2: custom games (Lua + Panorama UI).
 - **Read assets:** Source 2 Viewer / ValveResourceFormat (VRF) decompiles `_c` resources: models, maps,
   textures, even collision. `um`'s authors used VRF to export CS2 map collision for a movement clone.
-  Derived data stays out of git.
+  Game-derived data may be committed at the owner's call; name its source.
 
 ## Rules
 - VAC: modified clients on VAC-secured servers get banned. Test with `-insecure` on a local listen server
