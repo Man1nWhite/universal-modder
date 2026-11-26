@@ -7,7 +7,7 @@ Start with [AGENTS.md](../AGENTS.md) if you are new here: it has one command per
 The field notes (how a game was actually modded) live in [`knowledge/`](../knowledge/INDEX.md);
 this directory holds the project's own guides, audits and evidence.
 
-27 documents, plus the [render and capture index](renders/README.md) (25 archived sets).
+26 documents, plus the [render and capture index](renders/README.md) (25 archived sets).
 
 ## Guides
 
@@ -28,7 +28,6 @@ Handoffs, decisions and format notes for the packs in `dist/`.
 | [Miranda `Miranda_Busty_LAS` — chest-size variant](pd2-las/CHEST-VARIANT.md) | `pd2-las/CHEST-VARIANT.md` |
 | [pd2-las — decisions, and why](pd2-las/DECISIONS.md) | `pd2-las/DECISIONS.md` |
 | [HANDOFF — where the pd2-las packs stand](pd2-las/HANDOFF.md) | `pd2-las/HANDOFF.md` |
-| [Packs and sources in releases, not in the history](pd2-las/RELEASE_ASSETS.md) | `pd2-las/RELEASE_ASSETS.md` |
 | [Christie source rebuild and fit notes](pd2-las/christie-fit-probe.md) | `pd2-las/christie-fit-probe.md` |
 | [Honoka "Secret Report" TMC — decode findings and rigged export (2026-11-14/15)](pd2-las/honoka-tmc-format.md) | `pd2-las/honoka-tmc-format.md` |
 | [Miranda LAS — in-game verification checklist](pd2-las/in-game-checklist.md) | `pd2-las/in-game-checklist.md` |

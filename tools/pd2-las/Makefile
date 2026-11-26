@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env fetch build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus voices_tables voices_char_rust voices_sheets glb all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus voices_tables voices_char_rust voices_sheets glb all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -33,9 +33,6 @@ status:     ## one JSON object: environment, all tracked packs, the next command
 
 env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
 	@cd "$(ROOT)" && bash $(HERE)/recover_env.sh
-
-fetch:      ## the published packs and source archives, into place, every sha256 checked (no venv, needs network)
-	@cd "$(ROOT)" && python3 tools/release_assets.py fetch
 
 build:      ## Miranda_L4D2_LAS -> dist/Miranda_L4D2/
 	$(call BUILD,$(HERE)/build_models.py)

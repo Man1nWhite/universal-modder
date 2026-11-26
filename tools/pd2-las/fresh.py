@@ -127,22 +127,8 @@ def verified_checksums(zips: list[str]) -> dict[str, str]:
         raise SystemExit(f"original distribution: {error}") from error
 
 
-def published_inputs() -> list[str]:
-    """The files `assets.json` publishes: gitignored, but the builders read them.
-
-    `references/` became release assets (`docs/pd2-las/RELEASE_ASSETS.md`), so `git ls-files` no
-    longer lists it — and a fresh tree without the source archives cannot build anything.
-    """
-    manifest = REPO / "assets.json"
-    if not manifest.is_file():
-        return []
-    data = json.loads(manifest.read_text(encoding="utf-8"))
-    return sorted(rel for release in data.get("releases", {}).values()
-                  for rel in release.get("files", {}))
-
-
 def copy_tree(tree: Path, outputs: list[str]) -> None:
-    """Copy the working tree as git sees it plus the published inputs, omitting the outputs."""
+    """Copy the working tree as git sees it, omitting the outputs we will verify."""
     if tree.exists():
         shutil.rmtree(tree)
     omit = set(outputs) | {rel + ".sha256" for rel in outputs}
@@ -153,11 +139,6 @@ def copy_tree(tree: Path, outputs: list[str]) -> None:
         source = REPO / rel
         if raw and rel not in omit and source.is_file():
             target = tree / rel
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, target)
-    for rel in published_inputs():
-        source, target = REPO / rel, tree / rel
-        if rel not in omit and source.is_file() and not target.exists():
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
     (tree / "build").mkdir(parents=True, exist_ok=True)

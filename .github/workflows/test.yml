@@ -56,21 +56,6 @@ jobs:
           sudo rm -f /var/lib/man-db/auto-update
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 update
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 install -y --no-install-recommends ffmpeg
-      # Before anything reads a pack or the templates: both are release assets now, and the
-      # templates come out of references/2b.rar.
-      - name: the published packs and sources
-        # dist/ and references/ are release assets, not tracked files (docs/pd2-las/RELEASE_ASSETS.md):
-        # assets.json names their bytes. The cache is keyed on that manifest, so a run only
-        # downloads them when a pack or an input was actually republished.
-        uses: actions/cache@v4
-        with:
-          path: |
-            dist
-            references
-          key: assets-${{ hashFiles('assets.json') }}
-      - name: fetch every published asset
-        # a no-op when the cache had them all: fetch verifies every sha256 either way
-        run: make -sC tools/pd2-las fetch
       - name: unpack 2B templates
         run: python tools/pd2-las/extract_2b.py
       - name: verify the checked-in pack checksums
@@ -124,17 +109,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      # The packs and the inputs are release assets: this job needs them before it can verify or
-      # rebuild anything (docs/pd2-las/RELEASE_ASSETS.md).
-      - name: the published packs and sources
-        uses: actions/cache@v4
-        with:
-          path: |
-            dist
-            references
-          key: assets-${{ hashFiles('assets.json') }}
-      - name: fetch every published asset
-        run: make -sC tools/pd2-las fetch
       - name: verify the checked-in pack checksums
         run: python tools/pd2-las/pack_checksum.py
       - name: every tracked pack must equal a fresh build, byte for byte
