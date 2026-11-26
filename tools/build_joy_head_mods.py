@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import io
 import re
+import struct
 import subprocess
 from collections import deque
 import sys
@@ -82,6 +83,8 @@ SUIT_MENU_STEM = "npc_criminals_suit_menu_1"
 OLD_HOXTON_ICON_PATH = "guis/textures/pd2/blackmarket/icons/characters/old_hoxton.texture"
 OLD_HOXTON_TEX_DIR = "units/payday2/characters/shared_textures"
 ARIVUS_ARCHIVE = "1581859199_135363.rar"
+# The supplied DDS is an edited Arivus atlas (not vanilla Hoxton UVs).
+ARIVUS_DIFFUSE = ROOT / "references" / "old_hoxton_head_df.dds"
 #: Random4 "Head" bone in the source rig (+x up, +y fwd, +z left), anchored to the
 #: PD2 male "Head" bone (Rust/suit rig world). Scale matches crown-to-crown
 #: (source head-top 0.8384 -> Rust g_head top z 187.56).
@@ -287,14 +290,20 @@ def encode_rgba_dds(arr: np.ndarray) -> bytes:
     return dds.pack_dds(dds.mip_payloads_from_image(arr), size)
 
 
-def encode_cutout_head_df_dds(arr: np.ndarray) -> bytes:
-    """Encode a 2048x2048 head_df atlas with coverage-preserving alpha mipmaps in the cutout bottom half."""
+def encode_cutout_head_df_dds(arr: np.ndarray, base_payload: bytes | None = None) -> bytes:
+    """Encode a head atlas with coverage-preserving cutout mips.
+
+    A supplied BC3 base level can be preserved verbatim while lower levels are
+    built from its decoded pixels, avoiding a lossy second compression.
+    """
     cur = np.ascontiguousarray(arr, dtype=np.uint8)
     size = int(cur.shape[0])
+    if base_payload is not None and len(base_payload) != ((size + 3) // 4) ** 2 * 16:
+        raise ValueError("invalid BC3 base level size")
     w, h = size, size
     payloads: list[bytes] = []
     while True:
-        payloads.append(dds._level_payload(cur))
+        payloads.append(base_payload if not payloads and base_payload is not None else dds._level_payload(cur))
         if w == 1 and h == 1:
             break
         nxt = dds.downsample2x2(cur)
@@ -2694,6 +2703,22 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
     return cleaned
 
 
+def load_arivus_diffuse(path: Path = ARIVUS_DIFFUSE) -> tuple[np.ndarray, bytes]:
+    """Read the supplied single-level 2048² BC3 Arivus atlas, retaining its blocks."""
+    data = path.read_bytes()
+    if (len(data) != 128 + 2048 * 2048 or data[:4] != b"DDS "
+            or data[84:88] != b"DXT5"
+            or struct.unpack_from("<II", data, 12) != (2048, 2048)
+            or struct.unpack_from("<I", data, 28)[0] not in (0, 1)):
+        raise ValueError(f"{path}: expected a single-level 2048x2048 DXT5 DDS")
+    with Image.open(io.BytesIO(data)) as image:
+        pixels = np.array(image.convert("RGBA"), dtype=np.uint8)
+    # Skin must pass the material's alpha test; hair uses alpha for cutout.
+    if pixels[:1024, :, 3].min() < 15:
+        raise ValueError(f"{path}: skin alpha falls below the material cutout threshold")
+    return pixels, data[128:]
+
+
 def build_arivus_hoxton_mod(
     ada_root: Path, arivus_root: Path, suit_unit_dir: Path, out_zip_paths: list[Path]
 ) -> None:
@@ -2703,13 +2728,13 @@ def build_arivus_hoxton_mod(
     drawable inside the shared `npc_criminals_suit_1` model (heist + menu), and
     the Safe House rides `npc_criminals_suit_chill.model`. The pack replaces that
     drawable and overrides the four `shared_textures/old_hoxton_head[_p_]df/_nm`
-    textures with a 2048 atlas of the Random4 head (material 5) and hair
-    (material 6); the necklace (material 4) and shirt (material 7) are clothing
+    textures with the supplied 2048 Arivus atlas and a flat normal map. The atlas
+    matches the Random4 head (material 5) and hair (material 6) UVs; the necklace
+    (material 4) and shirt (material 7) are clothing
     and stay out. Transform: source rig axes (+x up, +y fwd, +z left) map to
     Diesel world (+x right, +y fwd, +z up) around the Head-bone anchors below.
     """
     dff = rwd.read_dff((arivus_root / "Random4.dff").read_bytes())
-    rasters = {r.name: r for r in rwd.read_txd((arivus_root / "Random4.txd").read_bytes())}
     V, Nrm, UV = dff.positions, dff.normals, dff.uvs
 
     def _rot(pts: np.ndarray) -> np.ndarray:
@@ -2760,26 +2785,10 @@ def build_arivus_hoxton_mod(
             "tris": t,
         }
 
-    # Unified 2048x2048 atlas: top half is opaque skin (gloss alpha 18),
-    # bottom half is the alpha-cutout hair (0 / 24, ALPHA_MASKED alpha_ref 0.05).
-    def upscale_cell(name: str, rgba: np.ndarray | None = None) -> np.ndarray:
-        im = Image.fromarray(rasters[name].rgba if rgba is None else rgba)
-        rgb = np.asarray(im.convert("RGB").resize((1024, 1024), Image.Resampling.LANCZOS))
-        alpha = np.asarray(im.getchannel("A").resize((1024, 1024), Image.Resampling.LANCZOS))
-        return np.dstack([rgb, alpha]).copy()
-
-    head_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    head_df_atlas[0:1024, 0:2048, 3] = 18
-    # The ped's beard is painted, not modelled: clean-shave the raster before it
-    # is upscaled into the atlas.
-    head_cell = upscale_cell(
-        "head_diff_000_a_whi", shave_arivus_face(rasters["head_diff_000_a_whi"].rgba)
-    )
-    head_cell[:, :, 3] = 18
-    head_df_atlas[0:1024, 0:1024] = head_cell
-    hair_cell = upscale_cell("hair_diff_001_a_uni")
-    hair_cell[:, :, 3] = np.where(hair_cell[:, :, 3] >= 24, 24, 0).astype(np.uint8)
-    head_df_atlas[1024:2048, 0:1024] = hair_cell
+    # The supplied edit already uses this mesh's atlas layout: skin/eyes at
+    # top left, cutout hair at bottom left. Its BC3 base level is preserved
+    # exactly; mip levels are generated below for the game's texture sampler.
+    head_df_atlas, head_df_base = load_arivus_diffuse()
 
     # No source normal map exists for this ped; a flat PD2 normal is honest
     # (R = 255, G = 128, B = 0, A = 128, as in the other head packs' channels).
@@ -2801,7 +2810,7 @@ def build_arivus_hoxton_mod(
         atom0_mesh, atom1_mesh, head_df_atlas[:, :, :3], head_df_atlas, alpha_cut=True
     )
     icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
-    head_df_dds = encode_cutout_head_df_dds(head_df_atlas)
+    head_df_dds = encode_cutout_head_df_dds(head_df_atlas, base_payload=head_df_base)
     head_nm_dds = encode_rgba_dds(head_nm_atlas)
 
     def patch_suit_model(model_bytes: bytes) -> bytes:
