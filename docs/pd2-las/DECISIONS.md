@@ -1707,6 +1707,42 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `tools/build_hila_stream_mod.py`.
 - **Status:** holds offline only; heard by the user only after the next in-game pass.
 
+## D68 — The Hila stream pack ships 61 slots: LAWSON VOICE takes in, sub-8 slots out
+
+- **Decided:** 2026-11-25, by the user, after the semantic-fit round: *"remove everything that is worse
+  fit than 8. Use LAWSON VOICE (PAYDAY 2).7z"* and, on the scope question, "every slot with a take in the
+  archive — including slots that scored 8+ — gets it".
+- **Why.** `hila_semantic_fit.csv` scored all 78 slots against game intention (engine event from
+  `slot_event_ids.csv` plus the dominant PD2 category), not against Hila's wording; 36 scored below 8.
+  19 of those had a take in the new archive; 17 did not, and for those the pack had only closest-ever
+  compromises. The new archive exists precisely for the slots the source pack could not carry
+  (`references/LAWSON VOICE (PAYDAY 2).7z`, purpose-authored Mira Lawson barks).
+- **Decision:** (a) every slot with a take in the archive — all 36 that map onto picks, ≥8 scorers
+  included — ships that take, whole, with 30 ms of the file's own leading silence and 50 ms of its
+  trailing silence kept, peak-matched to −1.5 dBFS with the existing clamps; the 5 call-tagged takes
+  map as `uffs..` → `cop.cuffs`, `nees..` → `cop.kneel`, `Tazer` → `mark.taser`, `gun_` → `cop.drop`,
+  `Now._.` → `tech.fix`. (b) The 17 slots below 8 with no take are **removed from the pack entirely**:
+  their ~162 ids are absent from `soundbanks/streamed/regular_vox/`, so vanilla Hila plays them —
+  recorded in `removed_slots.csv` with the clip each slot used to play. (c) The semantic-fit table now
+  carries a `status` column (`kept` / `replaced_tts` / `removed`).
+- **Measured, not asserted:** the pack rebuilds to **14,405,864 B `3779f6a969f8`** — 699 `.stream`
+  files (885 ids − 27 Vorbis − 162 removed, the three shared counted once), 661 s of audio, 61 slots,
+  ids sharing a slot sharing identical bytes. `hila_slot_pieces.csv` is the re-picked window record;
+  `removed_slots.csv` carries the 17 slots.
+- **Held to:** `tests/test_hila_voice_picks.py` (picks ∪ removed covers the cut table, no slot in both,
+  no rank names), `tests/test_hila_stream_pack.py` (699 streams, removed ids recorded `removed:` in the
+  manifest with `stream_bytes 0`), `tests/test_hila_cut_edges.py` (`civ.down` and `civ.nophone` are now
+  the whole TTS takes, verified against the archive). `tools/hila_voice_clips.py`,
+  `tools/fit_hila_intents.py` and `tools/build_hila_stream_mod.py` all read `removed_slots.csv`.
+- **Rejected:** keeping the sub-8 takes and shipping them anyway (the user's explicit instruction);
+  substituting takes from `ARIVUS VOICE (PAYDAY 2).zip` / `GERALT VOICE (PAYDAY 2).zip` (not sanctioned);
+  deleting the removed slots from the cut table (the table is the authoritative ID → slot map; removal
+  is enforced at pick/build time, so a take recorded later can revive a slot); folding D67's one-word
+  rule away (unaffected).
+- **Source:** `voice_lines_vox/miranda_lawson/slot_picks.csv`, `removed_slots.csv`,
+  `hila_semantic_fit.csv`, `tools/build_hila_stream_mod.py`.
+- **Status:** holds offline only; the rebuilt pack has NOT been heard in game — the user's call.
+
 ## D69 — Arivus: the shaved area takes the skin's chroma, not a new one
 
 - **Decided:** 2026-11-25, by the user, from the offline portrait: *"Work more on Arivus texture - check
@@ -1783,3 +1819,42 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   are the ones that were seen in game, these bytes have not been. The D60 gap that
   motivated D62 is the known trade-off of this choice; the wrist step of the in-game
   checklist records what to look for now.
+
+## D71 — The character packs write the shared bank, and only one pack ships at a time
+
+- **Renumbered:** drafted as D70 on the parallel branch; D70 is the palm-reversion entry on main, so this one is D71.
+- **Decided:** 2026-11-25, by the user, after the Hila rounds: *"I also want VO mod for Geralt over Rust
+  and Arivus over Hoxton (not the brother to Dallas - Huston)"*, then choosing from the options: Rust =
+  the punk heister (`npc_criminal_wild_1`, the `Geralt_over_Rust` head-pack target); Arivus over **Old
+  Hoxton** (`mtr_old_hoxton`, the `Arivus_over_Hoxton` head-pack ped) — not Victor Hoxton, Dallas's
+  brother; the **same route as Hila** (the id-keyed `.stream` pack, not the BeardLib prefix route);
+  uncovered slots stay **vanilla**; the name-callout takes wire into `call_teammate.hey_you`.
+- **Why.** The purpose-authored sets (`references/GERALT VOICE (PAYDAY 2).zip`, "Геральт", CP866 file
+  names; `references/ARIVUS VOICE (PAYDAY 2).zip`) cover only part of the slot taxonomy — shipping a
+  closest-available compromise for the rest was rejected by the user, and forcing coverage via
+  unrelated takes is what produced the sub-8 problem D68 cleaned up. Both sets are authored for their
+  slots, so their takes ship without a scoring round.
+- **Decision:** one pack per set, built by `tools/build_character_stream_mod.py` (`--pack
+  geralt-rust|arivus-old-hoxton`), same container/format as D68: IMA ADPCM `.stream` per **shared
+  `regular_vox` id** — the same ids the Hila pack writes, which makes the three **alternatives, not
+  companions** (install one; last loaded wins). Ids of uncovered slots stay vanilla; the 27 Wwise
+  Vorbis ids stay vanilla as before. The ARIVUS pack borrows the GERALT set's 'Hoxton.' callout for
+  `call_teammate.hey_you` (per the user's mapping; that one slot is Geralt's voice); the GERALT pack
+  leaves `hey_you` vanilla — no Rust name take exists yet. The Hila pack and its builder are
+  untouched, and the sub-8 removal (D68) is per-archive: it does not transfer (the Geralt pack ships
+  `kill.taser`/`mark.taser`).
+- **Measured, not asserted:** `Geralt_VO_over_Rust_Stream.zip` — 315 streams, 584 s, 49 slots uncovered
+  (546 ids), `737f1fb13616…`; `Arivus_VO_over_Hoxton_Stream.zip` — 324 streams, 442 s, 59 slots
+  uncovered (540 ids), `9e04ccfde24b…`; both reproducible byte for byte; 885-row manifests agree with
+  the zips; peaks within −1.97…−0.32 dBFS after the −1.5 dBFS match.
+- **Held to:** `tests/test_character_stream_packs.py` (coverage invariants, the alternatives-not-
+  companions README line, manifest vs streams, ADPCM headers).
+- **Rejected:** the BeardLib `<Sounds prefix="rbXX">` route for per-heister targeting (it failed silently
+  for Hila, D61); a `char_wild` bank guess (no evidence it exists; the user chose the shared route);
+  borrowing Geralt takes to fill the Arivus gaps beyond the mapped callout; scoring the purpose-authored
+  takes against game intention (they exist to be the answer).
+- **Source:** `voice_lines_vox/geralt/slot_picks.csv`, `voice_lines_vox/arivus/slot_picks.csv`,
+  `tools/build_character_stream_mod.py`, `docs/pd2-voice-mod-install.md` §8.
+- **Status:** holds offline only; neither pack has been heard in game. **Whether Rust barks from
+  `regular_vox` is unknown** — if his voice is vanilla in game, he is not on the shared bank and this
+  route cannot cover him; the fix is a dedicated-bank variant once the bank is known.

@@ -321,10 +321,13 @@ from; the packaging contract (and the reason for the drop) is
 ## `Miranda_Lawson_VO_over_Hila_Stream` — audio only (2026-11-25)
 
 The only Hila voice pack that ships: SuperBLT and nothing else, no BeardLib, no `mods/logs` line to
-expect. 858 `.stream` files named after Hila's voice-line ids, 27 ids left vanilla (Wwise Vorbis in
-the vanilla bank). **Heard in game on 2026-11-25: the user installed it and reported it works** — this
-route replaces Hila's barks where the BeardLib pack did not. That report also named two clips cut
-inside a word, which are re-cut below; the bytes it heard are not the tracked ones.
+expect. 699 `.stream` files named after Hila's voice-line ids, 189 ids left vanilla — 27 Vorbis in
+the vanilla bank, and 162 ids of slots below the semantic-fit floor with no take in either source
+archive (2026-11-25 rebuild; those lines are vanilla on purpose). **Heard in game on 2026-11-25: the
+user installed the previous build and reported it works — the rebuilt pack is NOT yet heard in game.**
+That report also named two clips cut inside a word, which are re-cut below; the rebuilt pack also
+swapped 33 slots to purpose-authored takes from `LAWSON VOICE (PAYDAY 2).7z` and silenced nothing —
+the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
 
 1. **It replaces at all.** Play Hila in any heist with the stream pack as the *only* Hila voice pack
    installed: the movement and interaction barks are Miranda. Passed 2026-11-25 — this is the check
@@ -352,6 +355,31 @@ inside a word, which are re-cut below; the bytes it heard are not the tracked on
    syllables, so the line is now a single shouted "You" (0.289 s). Call a teammate: one clear
    word, not a clipped one. If it still sounds cut, the game is stopping the line before the file
    ends, and the next lever is the vanilla length rather than the cut.
+1d. **The sub-8 slots are vanilla now** (2026-11-25 rebuild, not yet heard in game). 33 slots play
+   purpose-authored takes from `references/LAWSON VOICE (PAYDAY 2).7z` (whole takes, 30 ms pre-roll
+   and 50 ms post-roll kept, −1.5 dBFS); 17 slots with no take — among them `civ.nophone`'s neighbours
+   (`civ.talk`, `civ.ties`), the squad-move lines (`move.on_me`, `move.this_way`), the medic/police
+   body lines (`hurt.medic`, `kill.taser`, `mark.medic`…) and `pager.clear` — are simply absent from
+   the pack, so those ids play vanilla Hila. If one of those sounds like vanilla Hila instead of
+   Miranda, that is by design, not a miss. The TTS wording itself has not been verified by ear: if a
+   new take says something odd in context, that is the take, not the cut.
+1e. **`Geralt_VO_over_Rust_Stream` is NOT heard in game** (2026-11-25 build). Install it ALONE
+   (it writes the same `regular_vox` ids as the Hila and Arivus packs — two installed, last loaded
+   wins). Rust is the punk heister (`npc_criminal_wild_1`). What to check: (i) whether his barks are
+   Geralt's at all — the shared bank is verified for the crew, but whether this DLC heister plays
+   from it is an open question; if his voice is vanilla, he is not on `regular_vox` and the pack
+   cannot fix that; (ii) the lines the Geralt set covers (29 slots: assault.incoming/retreat,
+   civ.dontmove/down/killthreat/nophone, inspire.faster, kill.*, mark.*, mask.go, move.generic,
+   nade.*, revive.*, tech.drill_jam, win.generic, ammo.low, drop.ammo); (iii) the 49 uncovered slots
+   are vanilla by design; (iv) `kill.taser`/`mark.taser` ship the Geralt takes deliberately.
+1f. **`Arivus_VO_over_Hoxton_Stream` is NOT heard in game** (2026-11-25 build). Install it ALONE
+   (same shared ids; see 1e). Old Hoxton is the shared-suit heister (`mtr_old_hoxton`). What to
+   check: (i) the 18 Arivus slots (ammo.low, civ.down, civ.killthreat, civ.nophone, drop.ammo,
+   kill.*, mark.*, nade.*); (ii) `call_teammate.hey_you` is Geralt's voice saying the 'Hoxton.'
+   callout, borrowed from the GERALT archive — if it sounds wrong, note it: the set has no Arivus
+   callout and the borrow was a deliberate trade; (iii) everything else is vanilla by design.
+   The Arivus files peak at −2.8…−7.5 dBFS and are peak-matched to −1.5 dBFS, the loudest take boost
+   is ~+6 dB.
 
 2. **No loader noise.** `mods/logs/` should show the mod folder loaded and no error from it: the pack
    has no Lua, no hooks and no XML to parse beyond `<mod name=…>`.

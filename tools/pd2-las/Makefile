@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -65,6 +65,12 @@ hila:       ## OfficeSuite + Miranda Romance over Hila (native body and head, no
 voices_stream:  ## Miranda_Lawson_VO_over_Hila_Stream: the same clips as one Wwise ADPCM .stream per Hila voice-line id, no BeardLib -> dist/Hila/
 	$(call BUILD,tools/build_hila_stream_mod.py)
 
+voices_geralt:  ## Geralt_VO_over_Rust_Stream: Geralt barks for the 29 slots the set covers, same id-keyed route -> dist/Geralt/
+	$(call BUILD,tools/build_character_stream_mod.py --pack geralt-rust)
+
+voices_arivus:  ## Arivus_VO_over_Hoxton_Stream: Arivus barks (+ the borrowed 'Hoxton.' callout) for the slots the set covers -> dist/Arivus/
+	$(call BUILD,tools/build_character_stream_mod.py --pack arivus-old-hoxton)
+
 # These consumers share base build files or read the base ZIP. Order them when
 # both goals are requested, but don't rebuild an existing base for `make heads`.
 ifneq ($(filter all build,$(MAKECMDGOALS)),)
@@ -82,7 +88,7 @@ ifneq ($(filter all heads,$(MAKECMDGOALS)),)
 hila: heads
 endif
 
-all: build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream  ## every tracked pack
+all: build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

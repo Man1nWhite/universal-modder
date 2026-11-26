@@ -95,6 +95,8 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |
 | `Miranda_Lawson_VO_over_Hila` (audio/BeardLib, **dropped 2026-11-25, D61**) | 2026-11-24, user installed in `mods/` and reported vanilla Hila still playing | **no** — the keying was re-verified against BeardLib's SoundManager and the game Lua (`rb21` in both the player and team-AI paths) and still nothing played, so the pack is out of `dist/` and its builder with it; the reasoning stays in `docs/pd2-voice-mod-install.md` §1–§6 |
+| `Geralt_VO_over_Rust_Stream` (audio, id-keyed) | no record | — (built 2026-11-25; not heard in game; whether Rust plays from the shared `regular_vox` bank is an open question) |
+| `Arivus_VO_over_Hoxton_Stream` (audio, id-keyed) | no record | — (built 2026-11-25; not heard in game) |
 | `Miranda_Lawson_VO_over_Hila_Stream` (audio, id-keyed) | 2026-11-25, user installed in `mods/` and reported it **works** | **partly** — the report hears Miranda on Hila's barks through this route (the BeardLib pack of 2026-11-24 did not), and names two clips cut inside a word: `civ.down` ("keep you head down, Shep") and `call_teammate.hey_you` ("just you"). All were re-cut right after the report, and `hey_you` again once more — it is now a single shouted "You" (0.289 s, D67) — so the tracked bytes have not been heard; see [the checklist](in-game-checklist.md#miranda_lawson_vo_over_hila_stream--audio-only-2026-11-25) |
 
 New [Christie](../renders/christie/in-game/2026-11-15/README.md) and

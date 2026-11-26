@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+import hila_voice_clips as vo  # noqa: E402  (the shared removal table)
 CUTS = ROOT / "voice_lines_vox/miranda_lawson/hila_intent_cuts.csv"
 TR = ROOT / "voice_lines_vox/miranda_lawson/miranda_transcripts_corrected.csv"
 SPLITS = ROOT / "voice_lines_vox/miranda_lawson/ogg_phrase_splits.csv"
@@ -221,6 +224,7 @@ def span_for_sentence(full: str, sent: str, dur: float, phrases: list[tuple[floa
 
 
 def main():
+    removed = vo.load_removed()
     cuts = list(csv.DictReader(CUTS.open(newline="", encoding="utf-8")))
     slots = []
     seen = set()
@@ -312,6 +316,14 @@ def main():
         # sorted, so a rebuild after `tools/build_hila_voice_mod.py` (which writes the
         # same pieces sorted) leaves no reorder-only diff in the tracked CSV
         for slot, cut in sorted(slots):
+            if slot in removed:
+                # left vanilla: semantic fit < 8 and no take in either archive; the
+                # record of the clip it replaced lives in removed_slots.csv
+                fw.writerow([slot, cut, uses[slot], "removed",
+                             removed[slot].get("clip_text", ""), 0, 0, "",
+                             "left vanilla 2026-11-25: semantic fit < 8, no take in LAWSON VOICE (PAYDAY 2).7z"])
+                print(f"REM  {slot}")
+                continue
             if slot in pinned:
                 pk = pinned[slot]
                 cut = pk["cut_line"] or cut

@@ -94,8 +94,9 @@ python tools/pd2-las/wwise_ima.py FILE.stream [--wav out.wav]   # what is in a f
 - **Audio**: the same cut oggs the BeardLib pack ships (`slot_picks.csv` → slot ranges, level-matched
   to −1.5 dBFS), decoded to 44.1 kHz mono PCM and re-encoded. Nothing is copied out of the reference
   pack or out of a game install.
-- **One file per id**: 885 ids in `hila_intent_cuts.csv`, 27 skipped as Vorbis, 858 `.stream` files,
-  665 s of audio, 14.9 MB zipped. Ids that share a slot share the identical bytes.
+- **One file per id**: 885 ids in `hila_intent_cuts.csv`, 27 skipped as Vorbis, 162 more skipped as
+  below-fit-8 slots with no matching take (`removed_slots.csv`; 3 of them overlap Vorbis), 699
+  `.stream` files, 661 s of audio, 14.4 MB zipped. Ids that share a slot share the identical bytes.
 - **Encoder**: integer-only numpy over whole batches of blocks, so the bytes do not depend on the
   machine's math library. Per block it tries a handful of start indices (the previous block's, one
   derived from the block's opening three-sample slope, and ±2 around it) and keeps the one with the
