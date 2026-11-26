@@ -270,5 +270,5 @@ def test_two_traces_are_compared_by_function(tmp_path):
     assert lines[1:] == ["exact: return of a.g#1"]
     assert {Path(path).stem for path in fresh.tracked_zips()} == set(status.pack_names())
     assert list(fresh.BUILDERS) == [
-        "miranda", "busty", "lawson", "heads", "honokodae", "christie", "cloverchristie", "hila",
+        "miranda", "lawson", "heads", "honokodae", "hila",
         "voices_stream", "voices_geralt", "voices_arivus", "honokodae_head", "glb"]

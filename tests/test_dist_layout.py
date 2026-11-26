@@ -26,9 +26,11 @@ def test_character_folders_and_renamed_las_packages():
     assert {path.stem for path in dist.rglob('*.zip')} == names
     # the retired packs have no folder any more: asking dist_path for one is an error
     import pytest
-    for gone in ('Christie_LAS.zip', 'Miranda_L4D2_Busty_LAS.zip', 'Miranda_L4D2_over_Joy.zip'):
-        with pytest.raises(ValueError):
-            dist_path(ROOT, gone)
+    with pytest.raises(ValueError):
+        dist_path(ROOT, 'Christie_LAS.zip')
+    # a retired variant still has a group, but no file: the group is not the check
+    for gone in ('Miranda_L4D2_Busty_LAS.zip', 'Miranda_L4D2_over_Joy.zip'):
+        assert not dist_path(ROOT, gone).exists()
     assert not list(dist.glob('*.zip'))
 
 
