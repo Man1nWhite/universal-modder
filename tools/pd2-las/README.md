@@ -1,10 +1,9 @@
 # pd2-las — 2B-template outfits for PAYDAY 2
 
 Builds **Legendary Armour Skins (LAS)** outfits from compiled Source models (`.mdl`/`.vvd`/`.vtx` + `.vtf`),
-rigged GLB, and COLLADA with TMC skinning. Each mesh is re-skinned onto the PD2 player skeleton from `2b.rar`
-and written as Diesel `.model`, `.texture`, and `.material_config` behind a BeardLib `LegendaryArmours.<id>`
-registration. After unpacking the templates, the builders run in Python; no Source compile step, Blender,
-or running game is needed.
+rigged GLB and COLLADA-with-TMC characters, and written as Diesel `.model`/`.texture`/`.material_config` behind
+a BeardLib `LegendaryArmours.<id>` registration. After unpacking the templates the builders run in Python;
+no Source compile step, Blender, or running game is needed.
 
 | Tracked pack (`dist/<character>/<name>.zip`) | Source archive | Builder | `make` target |
 | --- | --- | --- | --- |
@@ -14,7 +13,9 @@ or running game is needed.
 | `Christie_Clover_LAS` — experimental body-only outfit, glove adapter, TPP only | `references/Clover-Christie.zip` | `build_clover_christie.py` | `cloverchristie` |
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses, palms cut *on* the line where they begin and 4 cm past it, into the palm, so the arm ends inside the glove (`palm_cut`, `extend_cm`/`clipped_to_cm: 4.0` in `BUILD_INFO.json`, D62; no default glove, a chosen one wins), in TPP and FPS | `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 | `OfficeSuite_Head` — `OfficeSuite`'s palm-cut body with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
-| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 858 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | `references/Голос Лоусон.7z` (clips), `references/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
+| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | `references/Голос Лоусон.7z` (clips), `references/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
+| `Geralt_VO_over_Rust_Stream` — the purpose-authored Geralt barks, one `.stream` per shared `regular_vox` id for the 29 slots the set covers (315 files); slots without a take are vanilla (`docs/pd2-voice-mod-install.md` §8) | `references/GERALT VOICE (PAYDAY 2).zip` (CP866 file names) | `tools/build_character_stream_mod.py --pack geralt-rust` over `wwise_ima.py` | `voices_geralt` |
+| `Arivus_VO_over_Hoxton_Stream` — the purpose-authored Arivus barks for 18 slots plus the borrowed Geralt 'Hoxton.' callout for `call_teammate.hey_you` (324 files); uncovered slots vanilla | `references/ARIVUS VOICE (PAYDAY 2).zip` (+ the one callout file from the GERALT archive) | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` over `wwise_ima.py` | `voices_arivus` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 ## Status

@@ -604,3 +604,90 @@ being flattened. Then the sheet changed the code twice more: the blend is faded 
 rather than stamped on a grown zone (a binary zone leaves a soft rectangle of its own), and the
 sideburn boxes were widened to the ears, where the old ones stopped 18 px short and left a strip of
 painted stubble in front of them. Pack: 8,420,283 B (`55cc0fc55b35`).
+
+## 2026-11-25 — A round of semantic fit scores for the voice pack
+
+The 2026-11-24 stale sweep noted `hila_intent_fit.csv` carries "pinned" in the score column for every
+slot — it records *that* a clip was hand-picked, never *how well* the pick serves the slot. This
+round scores all 78 slots 0–10 on semantic fit to the slot's **game intention** (the engine/sheet
+event in `slot_event_ids.csv` and the dominant `hila_category` — what the bark *does* in the game),
+not to Hila's wording. The artifact is `voice_lines_vox/miranda_lawson/hila_semantic_fit.csv`, one row
+per slot with the category, the event, the clip and a one-line rationale. Nothing reads it at build
+time; no clip, cut or level moved, and the pack's bytes are unchanged.
+
+Mean 7.45, use-weighted 7.73. Thirty-four slots score 9–10. The ones below 4, in order:
+`tech.drill_jam` 2 ("There must be some other explanation." — general bewilderment, no drill, no jam;
+it belongs to `tech.generic` at best), `civ.nophone` 3, `cop.kneel` 3, `mark.taser` 3, `nade.smoke` 3
+("Hostile fire." — bullets, not smoke) and `tech.fix` 3 ("You'll have to do it." — delegation, not
+repair). Readers of this list should note the pack's own known-gaps section already flags that
+`cop.*`, `civ.nophone`, `tech.fix` and friends are closest-available takes from a pack with no
+police, phone or repair vocabulary; the scores just say how far those compromises sit from the bark's
+intention. Re-cut any of the below-4 slots if a better take is ever recorded.
+
+## 2026-11-25 — The sub-8 lines are vanilla; the LAWSON takes are in (D68)
+
+The user read the semantic-fit scores and said *"remove everything that is worse fit than 8. Use
+LAWSON VOICE (PAYDAY 2).7z"* — and, asked about scope, that every slot with an archive take ships it,
+8/8+ included. Two kinds of change followed.
+
+The 33 slots with a take in `references/LAWSON VOICE (PAYDAY 2).7z` now ship it: the 28 PD2-bark-named
+`Mira-*.mp3` files plus the 5 call-tagged files mapped per the user's answers (`uffs..` → `cop.cuffs`,
+`nees..` → `cop.kneel`, `Tazer` → `mark.taser`, `gun_` → `cop.drop`, `Now._.` → `tech.fix`). They are
+cut whole — an earlier pass kept only the silence-trimmed body and the first-window scan showed ~0.10 s
+of digital silence at the heads that silencedetect (d = 0.15 s) had never reported, so every take now
+carries a 30 ms pre-roll of the file's own leading silence and a 50 ms post-roll (sample-scanned above
+-40 dBFS). `hila_semantic_fit.csv` marks them `replaced_tts` (the table was re-scored: 9s across the
+board — the takes are purpose-authored for their slots; mean 9.1, use-weighted 8.88, nothing below 8
+among what ships).
+
+The 17 slots below 8 with no take anywhere are **out of the pack**: `assault.ready` (18 uses),
+`civ.talk`, `civ.ties`, `cuffed.pick`, `drop.body`, `hurt.hit`, `hurt.medic`, `kill.medic`,
+`kill.taser`, `mark.guard`, `mark.medic`, `move.on_me`, `move.this_way`, `nade.generic`, `pager.clear`
+(32 uses), `pager.cover`, `tech.comp` — recorded in `removed_slots.csv` with the clip each slot played
+and the reason. ~162 ids are absent from the rebuilt zip; vanilla Hila answers them. (Three of the
+162 are also Vorbis and would not have been written anyway.)
+
+`removed_slots.csv` is deliberately not a deletion from `hila_intent_cuts.csv`: the cuts table stays
+the authoritative ID → slot map, and the builders (`hila_voice_clips.py`, `fit_hila_intents.py`,
+`build_hila_stream_mod.py`) refuse to pick for removed slots and record `removed:` rows in the manifest
+instead — so recording a take later revives the slot by editing one file. The pack rebuilds to
+**14,405,864 B `3779f6a969f8`**: 699 `.stream` files (was 858), 661 s of audio, 61 slots. All voice
+tests pass (`116 passed, 2 skipped`); `civ.down` and `civ.nophone` are re-pinned as whole-take
+contract tests. The rebuilt bytes are NOT heard in game — the 2026-11-25 report was on the previous
+build, and this one needs a fresh pass.
+
+## 2026-11-25 — Geralt over Rust and Arivus over Old Hoxton, same stream route (D70)
+
+The user asked for two more voice packs of the D68/D61 route: **Geralt over Rust** and **Arivus over
+Hoxton**, clarifying for the latter *"not the brother to Dallas — Huston"* and then choosing the
+**Old Hoxton** ped (`mtr_old_hoxton`, the target of `Arivus_over_Hoxton.zip`) from the options. Same
+questions settled the rest: same route as Hila (the id-keyed `.stream` pack, not the BeardLib prefix
+route); uncovered slots stay vanilla; the name-callout takes go to `call_teammate.hey_you` — the
+Geralt set's 'Hoxton.' callout is borrowed for the Arivus pack, and Rust's hey_you stays vanilla
+until the user supplies a take.
+
+Both packs write the **same shared regular_vox voice-line ids** as the Hila pack — they are
+alternatives, not companions (install one; last loaded wins otherwise) — and they are the same
+885-id table with per-pack coverage from purpose-authored bark sets:
+
+- `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` — `references/GERALT VOICE (PAYDAY 2).zip` ("Геральт",
+  CP866 names). 29 covered slots, 315 `.stream` files (24 covered ids are also Wwise Vorbis),
+  584 s of audio. Uncovered (49 slots, 546 ids): vanilla. Alternate takes in the set (`civ.down (2..4)`,
+  `mask.go (2)`, `inspire.faster (2)`) are left unused and noted in `geralt/slot_picks.csv`.
+  Rust = `npc_criminal_wild_1`; **whether he barks from `regular_vox` is not verified** — the
+  original crew do, newer heisters are documented elsewhere as `char_<heister>`. The tracked bytes
+  are not heard in game.
+- `dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip` — `references/ARIVUS VOICE (PAYDAY 2).zip`. 18
+  covered slots + `call_teammate.hey_you` (the Geralt 'Hoxton.' callout, borrowed per the user's
+  decision — that one slot is Geralt's voice), 324 `.stream` files (21 covered ids also Vorbis),
+  442 s of audio. The set's peaks sit at −2.8…−7.5 dBFS, so the −1.5 dBFS peak match boosts them
+  (max ≈ +6 dB, within the clamp). Uncovered (59 slots, 540 ids): vanilla. Not heard in game.
+
+New builder `tools/build_character_stream_mod.py` (`--pack geralt-rust|arivus-old-hoxton|all`, make
+targets `voices_geralt` / `voices_arivus`, in `all`) reuses the shared cuts table, the Vorbis list,
+and the cut/level/encode helpers — the Hila builder is untouched and its bytes are unchanged. Picks
+keep 30 ms of each file's leading silence and 50 ms of trailing (sample-scanned above −40 dBFS).
+Tests: `tests/test_character_stream_packs.py` (16 tests: coverage invariants, zip contract, manifest
+vs streams, ADPCM header/blocks, alternative-not-companion wording). Both packs rebuild byte for
+byte (`737f1fb13616…` / `9e04ccfde24b…`); the sub-8 slot rule from D68 does not transfer — the sets
+were authored per slot, so covered takes ship as-is.

@@ -1,0 +1,18 @@
+slot,uses,score,cut_line,old_source_ogg,old_t_start,old_t_end,old_clip_text,reason,date
+assault.ready,18,7,Get ready.,endgm2_longwalk_a_S_INT.065.ogg,0.000,0.700,"Ready,",semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+civ.talk,9,6,Talk.,twrvxl_main_contact_d_S_INT.037.ogg,0.000,0.628,What happened?,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+civ.ties,5,6,Tie them.,procer_wakeup_c_S_INT.009.ogg,0.000,0.900,"Just lie still,",semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+cuffed.pick,9,5,Pick these cuffs.,endgm2_longwalk_a_S_INT.064.ogg,0.000,1.264,I can't fight back like this.,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+drop.body,4,5,Bag,cspcr2_bodies_a_S_INT.026.ogg,0.000,0.880,"Those bodies,",semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+hurt.hit,8,6,I am hit.,endgm2_team_c06_c_S_INT.026.ogg,0.000,1.450,"We're getting slaughtered up here,",semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+hurt.medic,9,7,Need a medic bag.,endgm2_longwalk_a_S_INT.071.ogg,0.000,1.950,I don't know how much more I can take.,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+kill.medic,9,7,Medic down.,procer_vixen_intro_d_S_INT.063.ogg,0.000,1.000,Not anymore.,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+kill.taser,10,6,Taser down.,endgm2_leaderbarks_a_S_INT.034.ogg,0.060,0.680,Nice shot!,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+mark.guard,7,7,Guard.,bchlml_ambientmaster_a_S_INT.033.ogg,0.030,0.470,Patrols,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+mark.medic,7,7,Medic.,procer_cover_tutorial_a_S_INT.001.ogg,0.000,0.680,It's a med,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+move.on_me,4,6,On me.,endgm2_longwalk_a_S_INT.068.ogg,0.000,0.620,Moving out.,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+move.this_way,15,7,This way.,procer_vixen_intro_d_S_INT.043.ogg,1.884,2.270,Come on.,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+nade.generic,10,7,Heads up!,omggra_2nd_intermission_d_S_INT.035.ogg,0.000,0.360,Heads up!,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+pager.clear,32,6,Nothing here. All clear.,endgm1_huddle_01c_d_S_INT.046.ogg,0.000,0.500,"Understood,",semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+pager.cover,1,5,False alarm. All clear.,profre_shuttle_d_S_INT.014.ogg,0.000,0.860,"Understood,",semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
+tech.comp,5,6,Activate the console,procer_storm_tutorial_a_S_INT.002.ogg,0.180,1.500,Activate the console,semantic fit < 8 and no take in references/LAWSON VOICE (PAYDAY 2).7z; left vanilla,2026-11-25
