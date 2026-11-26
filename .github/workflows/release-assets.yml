@@ -51,13 +51,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -eu
+          set -euo pipefail
+          mkdir -p build
           tag='${{ inputs.tag }}'
           args=""
           if [ -n "$tag" ]; then args="--tag $tag"; fi
           if [ '${{ inputs.dry_run }}' = "true" ]; then args="$args --dry-run"; fi
           echo "python tools/release_assets.py upload $args"
-          python tools/release_assets.py upload $args
+          # The run log is not readable from everywhere this workflow is watched from, but an
+          # annotation is part of the check run, which the API serves: put the failure there.
+          python tools/release_assets.py upload $args 2>&1 | tee build/upload.log || {
+            echo "::error title=upload failed::$(tail -c 1200 build/upload.log | tr '\n' ' ')"
+            exit 1
+          }
 
       - name: what GitHub now holds
         run: python tools/release_assets.py plan
