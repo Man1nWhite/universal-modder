@@ -715,3 +715,31 @@ finger-dominated vertex. `tests/test_palm_cut.py` now pins the plane and the zer
 `runtime_verified` stays `false`: the D62 and D65 builds are the ones seen in game. The gap
 that motivated D62 is the known trade-off of this choice, and the wrist step of the in-game
 checklist now describes the current bytes.
+
+## 2026-11-25 — Arivus: no rectangle on the face, no skin at the back of the collar
+
+**Arivus (D72).** *"I want you to improve Arivus head mod. Check renders for mistakes."* Looking at
+the compiled-portrait sheet found three: a dark rectangle across the lower face with a straight
+edge under the eyes, a painted dark strip in front of each ear, and a jagged strip of skin through
+the back of Old Hoxton's collar. The atlas showed two more: pale blobs beside the nose and hard
+vertical inpaint edges at the temples.
+
+The rectangle was the mask, not the fill. D64's "geometric U" started at `(135, 148)` and ran
+diagonally to the moustache at `y ≈ 235`, while the sideburn boxes were 88 px wide from `y 140` to
+`344`; between them they repainted the clean cheeks, eye corners and nose bridge. `shave_arivus_face`
+now seeds on this raster's own dark hairs and floods through the softer stubble only inside the
+zone a beard can occupy (lower face and narrow sideburn strips, with a tighter threshold at the
+temples). A close/open pass bridges the gaps between strokes; the feature ring is confined to that
+zone; only the cheek-facing edge of the ear ellipse yields its dark, low-redness hairs, while the
+pink ear stays byte for byte; the two stubble ticks the lip column span used to protect at the
+mouth's corners are given back to the mask. The beard box goes from 73% to 1.1% dark and its hair
+strokes from 18.2 to 7.2 high-pass; the eyes and nose are untouched; the jaw fill is
+(152, 110, 95) against the (91, 62, 52) stubble it replaced.
+
+The collar strip was mesh: the ped's neck was cut at `z ≈ 159.4`, and from behind the front of
+that neck showed through the suit's collar opening. The extraction now lowers the cut edge by 6 cm
+and shortens the neck above it by 4 cm (both smoothly faded), so no back-half neck vertex remains
+inside the opening and the throat still meets the front of the collar. The shaved raster is
+`9083aa578e2eb6ac`; the pack is 8,429,027 B (`ad4cb8afafdc`). `tests/test_arivus_shave.py` gained
+four upper-face pins (16 tests total) and `tests/test_arivus_neck_fit.py` checks all three shipped
+models. Sheets re-rendered with `--unified`; `runtime_verified` stays false.

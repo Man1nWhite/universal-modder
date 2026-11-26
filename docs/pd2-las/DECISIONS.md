@@ -1858,3 +1858,58 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Status:** holds offline only; neither pack has been heard in game. **Whether Rust barks from
   `regular_vox` is unknown** — if his voice is vanilla in game, he is not on the shared bank and this
   route cannot cover him; the fix is a dedicated-bank variant once the bank is known.
+
+## D72 — Arivus: the beard is found, the rectangle and the collar gap are gone
+
+- **Renumbered:** drafted as D70 on the parallel branch; main uses D70 for the palm
+  reversion and D71 for the character VO packs.
+
+- **Decided:** 2026-11-25, by the user: *"I want you to improve Arivus head mod. Check renders for
+  mistakes."* The compiled-portrait sheet was the evidence. Three mistakes were visible in it: a
+  dark rectangular field over the lower face with its top edge across the cheeks, a painted dark
+  strip in front of each ear, and a strip of skin with a jagged top edge showing through the back
+  of Old Hoxton's collar. A fourth showed up only in the atlas: pale blobs beside the nose and a
+  straight inpaint edge at each temple.
+- **Why.** (1) D64's "geometric U" is not the beard's outline: its anchors run from `(135, 148)`
+  diagonally to the moustache at `y ≈ 235`, and the sideburn boxes were 88 px wide (`118..206`,
+  `318..414`, `y 140..344`). Between them they masked the clean cheeks, eye corners and nose bridge;
+  the feature ring dilated another 8 px over that. Feathering 9 px cannot hide a mask that big, so the
+  face came out as one rectangle under a pale forehead. (2) The ear ellipses (`cx 110/419`, `rx 21`)
+  covered the painted hairs in front of the ears, so those hairs were pasted back byte for byte.
+  (3) The neck is cut at `z ≈ 159.4` cm; from behind, the suit's collar rim has an opening through
+  which the *front* of that neck was visible as skin with a jagged top.
+- **Decision:** stop drawing the beard by hand. `shave_arivus_face` now seeds on the raster's own
+  dark hairs (`lum < 0.70 × skin`) and floods through the softer stubble (`0.86 × skin` on the jaw,
+  a tighter `0.78 × skin` at the temples), **only inside the zone a beard can occupy** — the lower
+  face and narrow strips in front of the ears. A close/open pass bridges the gaps between hair
+  strokes, the feature ring is confined to that zone, and only the cheek-facing edge of each ear
+  ellipse is given up: ear pixels are kept by their pink chroma (redness ~37..49) while the darker,
+  low-redness hairs overlapping the ellipse are inpainted. The two dark ticks the lip column-span
+  used to protect at the mouth's corners are given back too, without touching the central slit.
+  For the collar, the extracted neck's cut edge is lowered 6 cm with a smooth fade out by `z = 166`,
+  then the neck below `z = 168` is shortened 4 cm so no surface sits inside the back opening while
+  the throat still reaches the front of the collar. Face and hair vertices are untouched.
+- **Measured, not asserted:** in the beard box (mouth excluded) pixels under 72% of skin fall from
+  **73% to 1.1%**, and the hair strokes' high-pass energy from **18.2 to 7.2**. The eyes and nose
+  bridge are byte-identical to the source; the jaw fill goes from **(91, 62, 52)** to
+  **(152, 110, 95)**, i.e. skin at the level of the cheeks it meets. The shaved raster is
+  `9083aa578e2eb6ac`; the pack is **8,429,027 B**, `ad4cb8afafdc` (was 8,420,283 B, `55cc0fc55b35`).
+  In all three shipped models the head's lowest vertex is now at **z ≈ 157.4 cm** and there is no
+  back-half neck vertex below z 164 inside the collar opening, while ≥3 throat vertices remain
+  below z 160 in front.
+- **Held to:** `tests/test_arivus_shave.py` (16 tests: beard gone, jaw structure, no seam, features
+  intact, the clean upper face repainted in <10% of any reference box, alpha and layout untouched,
+  reproducible) and `tests/test_arivus_neck_fit.py` (the collar fit on the heist, menu and chill
+  models). Sheets re-rendered with `--unified`.
+- **Rejected:** widening the sideburn zone to `x 185/345` (a flood through the temple's own shadow
+  left a *wider* straight edge); shrinking the ear ellipse (it erased the ear's inner detail along
+  with the hair); clipping low neck triangles (the teeth survived in the triangles that straddled
+  the opening); raising the neck on its own (it closed the back gap but opened one at the throat);
+  raising the suit's collar mesh (a change to shared body geometry for a defect in the donated head).
+- **Source:** `tools/build_joy_head_mods.py` (`shave_arivus_face`, `extract_arivus_part`),
+  `tests/test_arivus_shave.py`, `tests/test_arivus_neck_fit.py`,
+  `docs/renders/arivus/model/over-hoxton/`.
+- **Status:** holds offline; the in-game face and collar checks in
+  [`docs/pd2-las/in-game-checklist.md`](in-game-checklist.md) are still the user's call. Known and
+  left alone: the hair cards' triangular shading and the hair mesh's alpha hairline are geometry,
+  and this pack changes texture and neck fit only.

@@ -411,14 +411,17 @@ head texture and the build inpaints it. These are the checks the offline render 
    face should read as **one skin tone under one light**; the two things to look for are a **grey or
    sooty patch** (the field taken the wrong hue — this is what the 2026-11-25 portrait showed) and a
    **flat rectangle** across the jaw (the level match, not the hue). Say which, since they are
-   different levers, and say where on the face it starts. The short dark sideburn in front of each ear
-   is **geometry** on this ped (hair cards in the hair half of the atlas, z ≈ 169.5 upward), left on
-   purpose: the shave is a texture pass and does not cut mesh, so it is not a leftover beard.
+   different levers, and say where on the face it starts. D72 found the beard from the raster's own
+   hairs instead of a hand-drawn U, so the upper cheeks and eye corners must keep their own shading;
+   the painted hairs in front of each ear and the two ticks at the mouth's corners are gone. The
+   hair cards in the hair half of the atlas (z ≈ 169.5 upward) are still geometry and may shade a
+   little dark in front of the ear under the game's light — that is not leftover paint.
 3. **The features are the ped's own.** Eyebrows, both lips (with the mouth's dark slit), nostrils and
    the ears should sit where they did before: nothing blurry, nothing doubled, no pale or thin mouth,
    and no drawn outline around it.
 4. **The hair reads as hair.** The cutout fringe is `ALPHA_MASKED` with `alpha_ref 0.05`: it should
    not flicker, halo or draw as a solid band against the forehead, and the scalp should not show
    through at the crown.
-5. **The head still fits the suit.** No gap or stretched skin at the collar, the menu portrait
-   matches the in-game head, and the HUD icon is the same face.
+5. **The head still fits the suit.** No gap or stretched skin at the collar, **including the back
+   of the neck** (D72 shortened the donated neck: no jagged strip of skin should show through the
+   back collar opening), the menu portrait matches the in-game head, and the HUD icon is the same face.
