@@ -7,7 +7,7 @@ uv.lock
 *.env
 *.env.*
 # intermediate build outputs (extracted VPKs, textures, previews, unpacked trees)
-build/*
+
 # Shipped ZIPs and their checksum sidecars under the character folders.
 dist/*
 !dist/Miranda_L4D2/
