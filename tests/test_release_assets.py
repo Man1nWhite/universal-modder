@@ -74,8 +74,8 @@ def test_asset_names_are_flat_unique_and_round_trip(assets, manifest):
         name = entry["asset"]
         assert "/" not in name and name not in seen, name
         assert name == assets.asset_name(rel)
-        assert not assets.KEPT.search(name), (
-            f"{rel}: GitHub would rewrite {name!r} to {assets.KEPT.sub('.', name)!r} after "
+        assert assets.github_normalise(name) == name, (
+            f"{rel}: GitHub would rewrite {name!r} to {assets.github_normalise(name)!r} after "
             "uploading it, and then the manifest could not find it again")
         seen.add(name)
     assert len(seen) == len(assets.manifest_entries(manifest))
@@ -170,6 +170,7 @@ def test_a_name_github_would_rewrite_is_made_ascii_first(tree):
     data = json.loads((tree.REPO / "assets.json").read_text())
     name = data["releases"]["sources-v1"]["files"]["references/source one.7z"]["asset"]
     assert re.fullmatch(r"[A-Za-z0-9._-]+", name), name
+    assert ".." not in name, "GitHub collapses a run of dots"
     assert name.startswith("references__source.one-") and name.endswith(".7z"), name
     assert tree.asset_name("dist/A/B.zip") == "dist__A__B.zip", "a plain path is left alone"
     assert tree.asset_name("references/source one.7z") == name, "and the name is stable"

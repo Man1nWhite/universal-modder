@@ -259,7 +259,7 @@
      "sha256": "925a29ef79f7033cb681dd47a1f9c3856ef91d88a14e6728eb68b36396501fd9"
     },
     "references/ARIVUS VOICE (PAYDAY 2).zip": {
-     "asset": "references__ARIVUS.VOICE..PAYDAY.2.-3d793ce7.zip",
+     "asset": "references__ARIVUS.VOICE.PAYDAY.2-3d793ce7.zip",
      "bytes": 611892,
      "sha256": "f61a8a0c1ab49a60e0bd57866dde453395d1572f6d540b3fe616f520f138574f"
     },
@@ -289,7 +289,7 @@
      "sha256": "2ba323f9e90079a4156af3d9df139b3ecec2fa36a08abb52d9e673570d7bec0a"
     },
     "references/GERALT VOICE (PAYDAY 2).zip": {
-     "asset": "references__GERALT.VOICE..PAYDAY.2.-8821ff2c.zip",
+     "asset": "references__GERALT.VOICE.PAYDAY.2-8821ff2c.zip",
      "bytes": 1265876,
      "sha256": "e7f1715ae0db4cc3296a8af3be2e849fbda399e7fafb87df23513036dc1221f4"
     },
@@ -479,7 +479,7 @@
      "sha256": "0f755450cb0beb398ec97dbe4dceb038a25b5eafd13c182e2918b9b1b0439543"
     },
     "references/Honoka/Tex_07(L_7) 2.dds": {
-     "asset": "references__Honoka__Tex_07.L_7..2-48482bbd.dds",
+     "asset": "references__Honoka__Tex_07.L_7.2-48482bbd.dds",
      "bytes": 1048704,
      "sha256": "f568d2b3f18973aa56b0fecfa27968beb69082bf66af2a8585b9ba34d85ffc7c"
     },
@@ -504,7 +504,7 @@
      "sha256": "1052b012e9a31c6a674c516a6d171c50046c89efa40c154b75c3e73f5e12d4d1"
     },
     "references/LAWSON VOICE (PAYDAY 2).7z": {
-     "asset": "references__LAWSON.VOICE..PAYDAY.2.-789bbc13.7z",
+     "asset": "references__LAWSON.VOICE.PAYDAY.2-789bbc13.7z",
      "bytes": 997390,
      "sha256": "dfb759805c1da62c011247d9a58afdfad47fa894fc8954f0d845519887ad2e5f"
     },
@@ -539,7 +539,7 @@
      "sha256": "daaf488058a04f681abf6c6a358b783235c23ce79da4663a08d820d4e4a6b091"
     },
     "references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip": {
-     "asset": "references__PC._.Computer.-.Mass.Effect.2.-.Non-Playable.Characters.-.Miranda.Lawson..Romance.-7042d0f6.zip",
+     "asset": "references__PC._.Computer.-.Mass.Effect.2.-.Non-Playable.Characters.-.Miranda.Lawson.Romance-7042d0f6.zip",
      "bytes": 10017391,
      "sha256": "c4e5d0dd3aab9d9996ae119b018caf6a2ec2aa135005786525c158dc2f069e40"
     },
@@ -579,7 +579,7 @@
      "sha256": "dc1e172b60593bce9881aa5e97ae4a1208ce711363d83134852f74d964b1d473"
     },
     "references/old_hoxton_head_df(1).dds": {
-     "asset": "references__old_hoxton_head_df.1.-fdf438d3.dds",
+     "asset": "references__old_hoxton_head_df.1-fdf438d3.dds",
      "bytes": 4194432,
      "sha256": "c8dea3e9ac6ccf5f16dfcde94eef2a9bee55aa27d1fe1e10b03d7f1d5d08a760"
     },
@@ -589,7 +589,7 @@
      "sha256": "713adb3a59cafd6ae3680e9429b573cc51e1346efad2c8d98f2a8784ee515518"
     },
     "references/Голос Лоусон.7z": {
-     "asset": "references__............-9f5b4f2d.7z",
+     "asset": "references__-9f5b4f2d.7z",
      "bytes": 15403946,
      "sha256": "9471ed5decf31fbdffb162bac3a6bbc56784405deb4806417dda395984b583d7"
     }

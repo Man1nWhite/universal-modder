@@ -104,8 +104,15 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-#: the characters GitHub keeps in an asset name; anything else it rewrites to `.`
-KEPT = re.compile(r"[^A-Za-z0-9._-]")
+#: the characters GitHub keeps in an asset name; runs of anything else become one `.`
+KEPT = re.compile(r"[^A-Za-z0-9._-]+")
+#: GitHub does not keep a run of dots either (`a..b` arrived as `a.b`)
+DOTS = re.compile(r"\.{2,}")
+
+
+def github_normalise(name: str) -> str:
+    """What GitHub does to an asset name it does not like. Names must be fixed points of this."""
+    return DOTS.sub(".", KEPT.sub(".", name))
 
 
 def asset_name(rel: str) -> str:
@@ -119,7 +126,7 @@ def asset_name(rel: str) -> str:
     rewritten, which keeps distinct paths distinct for ever.
     """
     name = rel.replace("/", "__")
-    safe = KEPT.sub(".", name)
+    safe = github_normalise(name)
     if safe == name:
         return name
     stem, dot, ext = safe.rpartition(".")
@@ -347,8 +354,15 @@ def upload_asset(repo: str, tag: str, path: Path, name: str, replace_id: int | N
             "  uploads.github.com may be blocked here; run `upload` elsewhere or dispatch "
             "the release-assets workflow")
     if reply.get("name") != name:
-        die(f"GitHub stored the asset as {reply.get('name')!r}, not {name!r}; "
-            "the manifest would not find it again")
+        # Do not leave the renamed copy behind: a re-run would upload a second one, and the
+        # manifest would still be looking for the first. The name rules live in `asset_name`.
+        stored = reply.get("name")
+        if reply.get("id"):
+            subprocess.run(["gh", "api", "--method", "DELETE",
+                            f"repos/{repo}/releases/assets/{reply['id']}"], cwd=REPO,
+                           capture_output=True, check=False)
+        die(f"GitHub stored {path.name} as {stored!r}, not {name!r} (it has just been deleted "
+            f"again). Teach `asset_name` the rule: {stored!r} is what it keeps")
 
 
 def publish(repo: str, manifest: dict, only: list[str], dry_run: bool) -> dict:
