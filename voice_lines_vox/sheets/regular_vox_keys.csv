@@ -1,0 +1,11 @@
+slot,id,score,what,who
+call_teammate.hey_you,1255800,0.67,"Hey, dickhead",Hoxton
+cuffed.pick,205752,0.86,Come pick these cuffs,Dallas
+cuffed.pick,2594639,0.67,Get these cuffs off,Dallas
+downed.need_help,2424401,0.67,Help me!,Hoxton
+downed.need_help,654387,0.67,Help me up,Dallas
+downed.need_help,905586,0.67,Help me up!,Hoxton
+hurt.medic,986174,1.00,I need a medic bag,Chains
+mark.medic,2033620,1.00,Medic!,Chains
+mark.taser,413529,1.00,Taser!,Wolf
+move.on_me,236512,1.00,On me,Hoxton

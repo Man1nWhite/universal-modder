@@ -78,6 +78,33 @@ pack names only the medic-kill *event* (`g36x_any`), never a numeric id. Fill th
 extraction of the game's `soundbanks/streamed/char_rust` (decode a file, read its line) and the
 next build produces the re-keyed pack.
 
+### The voice-line sheet: what it can and cannot fill (D75)
+
+The community `regular_vox` sheet (20,343 rows of `id | who | what | notes`, 99.88% covered, the
+`(?)` rows listed as *need review*) is the first public table that pairs a numeric id with the
+**text** of the line. `tools/import_voiceline_sheet.py` (make `voices_sheets SHEET=… [WANT=Rust]`)
+turns an export of it into `voice_lines_vox/sheets/<tab>.csv` — the status block stripped, ids as
+digits, notes kept, the sheet's own `(?)` carried as `needs_review` — and, with `--keys`,
+`<tab>_keys.csv`: `slot, id, score`, where the score is word overlap against the slot's `cut_line`
+in `hila_intent_cuts.csv`.
+
+What it does **not** do is fill the re-key. Two independent reasons, and both stay true:
+
+- **It is titled `regular_vox`.** A sheet names its own bank; `regular_vox` is the shared bank, so
+  its ids say nothing about `char_rust`. The 29 slots in `voice_lines_vox/geralt/char_rust_ids.csv`
+  need `char_rust` ids, and no public sheet of *that* bank is known.
+- **A lead is a similarity, not a mapping.** `--keys` finds "On me" (id 236512) for `move.on_me`
+  and "I need a medic bag" (986174) for `hurt.medic` at full score, but the same method puts "Help
+  me up!" under `downed.need_help` for three different heisters; the id must be the one **Rust**
+  says, and it must be checked against the audio. Nothing in `dist/` is built from a lead.
+
+Where it does earn its place: it is the id→line source for the **shared**-bank route, the one the
+two shipped packs already write. `voice_lines_vox/targets/rust_shared_regular_vox.csv` says which
+id answers which slot for Rust (`slot, bank, id, …`); a sheet row whose id is in that table and
+whose `who` is Rust is a *verified* pair for that slot, and a row that contradicts its slot is how
+the 27 Vorbis exceptions and the "vanilla line still plays" notes get caught. That reconciliation
+is the next step, and it needs the full export (`File -> Download -> CSV`), not 138 pages of it.
+
 ## Old Hoxton: the shared-bank heister
 
 The community wiki lists Hoxton's switch as `rb5`; his lines are the shared ones, so the Arivus

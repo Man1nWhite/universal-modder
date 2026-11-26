@@ -32,6 +32,7 @@ stream pack, `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and
 | `miranda_lawson/hila_slot_pieces.csv` | Build record of the exact source ogg/time range cut for each slot. Written by `tools/hila_voice_clips.py` or `tools/fit_hila_intents.py`; not shipped (the stream pack carries `hila_stream_map.csv`). |
 | `miranda_lawson/slot_event_ids.csv` | Historical BeardLib-route record of PD2 bark events per intent slot. The shipped `.stream` pack does not use event names. |
 | `miranda_lawson/hila_vorbis_ids.csv` | The 27 voice-line ids the vanilla bank streams as Wwise Vorbis (`fmt` tag `0xFFFF`). The pack leaves these vanilla because this pipeline writes IMA ADPCM, not Vorbis. See `docs/tokoyami-hila-voice-mod-analysis.md`. |
+| `sheets/` | Community voice-line sheets (`id,who,what,notes,needs_review`) imported by `tools/import_voiceline_sheet.py` (make `voices_sheets`), with the slot *leads* each tab's text supports. A sheet names its own bank: the `regular_vox` tab says nothing about `char_rust` ids, so importing it does not fill `geralt/char_rust_ids.csv` (D75). |
 
 ## The stream tables (Rust, Old Hoxton)
 
@@ -57,6 +58,10 @@ rows** — and refuses to build until a source names each one, because the measu
 files exist, not which line each file is. Fill that map (an extract of the game's
 `soundbanks/streamed/char_rust`, decoded line by line) and the next build produces the re-keyed
 pack; `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` stays the shared-bank pack until then.
+
+The community `regular_vox` sheet the user supplied is **not** that map: it is the shared
+bank, and its speakers are the vanilla crew. It is imported into [`sheets/`](sheets/README.md)
+as a reproducible table with slot *leads* (D75); nothing in `dist/` is built from a lead.
 
 ## Regenerate
 

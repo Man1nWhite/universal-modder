@@ -2022,3 +2022,36 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Status:** the route holds offline and refuses to guess; **the map is the open input** — one
   extract of the game's `soundbanks/streamed/char_rust` (or any source naming id → line) fills it
   and the next `make -sC tools/pd2-las voices_char_rust` produces the re-keyed pack.
+
+## D75 — The community voice-line sheet is a shared-bank source, imported not trusted (2026-11-26)
+
+- **Context:** the user supplied a Google Sheets export, tab `regular_vox`, as the id → line source
+  the re-key (D74) had been waiting for. Shape: a 6-row status block (99.88%, 20,293 complete,
+  50 partial, 0 incomplete, 32 marked `(?)`), then a `Who | What | Notes` header whose id column is
+  unlabeled to its left, then 20,343 data rows. Its speakers are the vanilla shared cast (Clover,
+  Bain, Chains, Dallas, Hoxton, Houston, Wolf, Wick, the cop/security/civilian voices) — **no Rust
+  row on the pages that were read, and the tab is not titled `char_rust`**.
+- **Decision:** ingest it as a tracked, reproducible table, and treat every slot suggestion it
+  yields as a *lead*, not a mapping. `tools/import_voiceline_sheet.py` (make `voices_sheets
+  SHEET=… [WANT=Rust] [LEADS=1]`) strips the status block, keeps ids as digits, keeps `notes`,
+  carries the sheet's `(?)` as `needs_review`, dedupes nothing (a repeated id is printed, not
+  silently merged), and writes `voice_lines_vox/sheets/<tab>.csv`; `--keys` additionally writes
+  `<tab>_keys.csv` (`slot, id, score, what, who`) by word overlap against `cut_line`.
+- **Why a lead is not a mapping:** the sheet gives the line text, not which heister says which id.
+  "Help me up!" scores as `downed.need_help` for Hoxton *and* Dallas, and a line that is a
+  sentence ("Lemme uh, just, just gimme a minute here umm, thanks") shares a word with many slots.
+  Scoring is therefore the F1 of word overlap in both directions, not recall against the slot's
+  line — recall alone scored "I need a medic bag" as a perfect `downed.need_help`. A false mapping
+  plays the wrong bark forever, which is worse than a missing one (D74).
+- **Rejected:** paging the export through the page reader 138 times (136 chunks unread; the reader
+  normalizes every `gid=`/`sheet=`/`tq=select` variant back to page 1, and this sandbox has no
+  outbound HTTPS to `docs.google.com`), so a full ingest waits on a one-click `File ->
+  Download -> CSV`; writing `voice_lines_vox/geralt/char_rust_ids.csv` from these ids (wrong bank);
+  writing shared-bank ids as if they were dedicated ones; auto-appending leads to any tracked table.
+- **Source:** `tools/import_voiceline_sheet.py`, `tests/test_voiceline_sheet_import.py`,
+  `tests/fixtures/regular_vox_head.csv` (first 25 real rows, preamble included),
+  `voice_lines_vox/sheets/`, `docs/pd2-voice-stream-tables.md` §"The voice-line sheet".
+- **Status:** the importer, its fixture and 9 tests are in; the tracked `sheets/` export is the
+  first 25 rows only, marked as a head. The re-key stays blocked (D74). The productive use of the
+  full export is the shared-bank reconciliation described in the note: join it against
+  `voice_lines_vox/targets/*_shared_regular_vox.csv` on id, then confirm the line each slot claims.
