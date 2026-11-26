@@ -69,9 +69,16 @@ sideburn boxes, which washed the face out; D69 fixed the fill's hue to the jaw's
 (≈ 148,105,90) rather than the pale forehead's median. D72 replaced the hand-drawn mask with a flood
 from the raster's own dark hairs confined to the beard zone, so the clean upper face is left alone,
 removed the painted hairs in front of the ears, and shortened the neck so it no longer shows through
-the back of the collar. Lips, nostrils, ears and brows are pasted back pixel for pixel. Seen in game
+the back of the collar. D75 removed that shortening again — it had squashed the neck to half its
+height (a 6 cm drop and a 4 cm lift applied to the same vertices) and still left the ped's V-shaped
+cut standing above the collar at the back, where the opening looked straight through into the neck.
+The ped now sits where it lands, its cut rim is dropped to the collar's height, and a skirt tucked to
+0.35 of the rim's radius ends at z 148 inside the suit. The same change fixed the skin: the head had
+every vertex weighting `BLENDINDICES 3` against a three-entry palette (`bone_offset=1` on a drawable
+whose `SkinBones` lists exactly `Spine2, Neck, Head`), which no bind-pose render can see.
+Lips, nostrils, ears and brows are pasted back pixel for pixel. Seen in game
 on 2026-11-25, which is why D66 exists: D64's mask had grown through the whole face and washed it out.
-Not seen since D69 (nor since D72).
+Not seen since D69 (nor since D72 or D75).
 
 ## Seen in game
 
@@ -85,7 +92,8 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | --- | --- | --- |
 | `Miranda_L4D2_LAS`, `Miranda_L4D2_Busty_LAS` | no record | — |
 | `Miranda_L4D2_over_{Joy,Clover,Bonnie,Sydney}` | 2026-11-05, tested by the user | no: all four were rebuilt on 2026-11-07 with the neck skirt, again on 2026-11-11 and on 2026-11-12 |
-| `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust`, `Arivus_over_Hoxton` | no record | — |
+| `Miranda_Romance_over_{Joy,Clover,Bonnie,Sydney}`, `Geralt_over_Rust` | no record | — |
+| `Arivus_over_Hoxton` | 2026-11-25 (face, D66/D69-era bytes) | **no** — rebuilt again for D75 (neck rim, skirt, skinning); the D72 neck and the `bone_offset` fix have never been in game |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
 | `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, palms cut on the crease again after D70, and head override, over Hila's stock gloves, which a chosen glove can replace; its render is from the single replacement ZIP) |
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |

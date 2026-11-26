@@ -571,6 +571,236 @@ def extend_neck_skirt(
     return p_out, n_out, uv_out, tris_out
 
 
+# ---------------------------------------------------------------- Arivus neck
+# The Random4 ped is a low-poly tube: its neck cone is not tall enough to reach
+# Old Hoxton's collar, so `build_arivus_hoxton_mod` used to drag the whole cone
+# down (up to 4.3 cm at the throat) and push it up again near the collar. That
+# squashed the neck into half its height and left its open rim on show as a
+# jagged skin line across the collarbones (D75).
+#
+# The ped is now left where it lands. Its open neck rim is closed by a skirt that
+# is tucked in towards the ped's own neck axis and dropped to just above where
+# the suit stops surrounding the neck, so the open edge ends inside the suit.
+# Measured, not guessed: a ray-parity test against the suit's `g_body` (parity
+# along +-x and +-y from each skirt vertex) says **26 of the rim loop's 27**
+# vertices are enclosed, the 27th being a degenerate point 0.3 cm off the
+# model's z axis. `tests/test_arivus_neck_fit.py` measures the same thing on
+# all three shipped models.
+NECK_TUCK = 0.35          # skirt radius as a fraction of the rim's own radius
+NECK_SKIRT_BOTTOM_Z = 148.0  # z where the suit still surrounds the neck
+NECK_RING_MAX_Z = 170.5   # rim edges below this are the neck's own open bottom
+NECK_AXIS_TOLERANCE_CM = 11.5  # ... and this close to the neck axis
+#: the ped's neck axis in PD2 space (x, y): the cone is centred ~1-3 cm forward
+#: of the model's z axis, so tucking towards the origin would swing it sideways.
+ARIVUS_NECK_AXIS_XY = (0.0, 1.0)
+#: the ped's neck is cut in a V: z 159.4 across the throat, z 164.9 at the back,
+#: and the suit's collar rim only reaches z ~159.8-160.5. D72 hid that V by
+#: shifting the whole cone 4 cm; that squashed the neck. Instead the rim is
+#: dropped to the collar's own height, so the open edge ends under the collar
+#: instead of standing above it, and a skirt closes it from below.
+NECK_RIM_TARGET_Z = 159.0
+#: the rim's back half is pushed down at full weight from |azimuth| > 60 deg,
+#: fading to nothing across the throat, so the throat keeps its length.
+NECK_RIM_FADE_DEG = 60.0
+
+
+def neck_skirt_ring(rim: np.ndarray, axis_xy: tuple[float, float],
+                    bottom_z: float, tuck: float) -> np.ndarray:
+    """The single ring an open neck rim is closed with.
+
+    Every rim vertex moves radially inward about ``axis_xy`` (a fraction
+    ``tuck`` of its own radius) and down to ``bottom_z``, so the skirt narrows
+    under the collar instead of pushing through it. Returns one point per rim
+    vertex, in the same order.
+    """
+    p = np.asarray(rim, dtype=np.float64)
+    ax, ay = axis_xy
+    rel = p[:, :2] - np.array([ax, ay])
+    return np.column_stack([ax + rel[:, 0] * tuck,
+                            ay + rel[:, 1] * tuck,
+                            np.full(len(p), bottom_z)])
+
+
+def push_neck_rim(p: np.ndarray, rim_verts: list[int], *,
+                  target_z: float = NECK_RIM_TARGET_Z,
+                  fade_deg: float = NECK_RIM_FADE_DEG) -> None:
+    """Drop the neck's cut rim to the collar's height, back and sides first.
+
+    The ped's cut is a V: lowest across the throat, ~5.5 cm higher up the back
+    of the neck. The suit's collar rim sits at z ~159.8-160.5, so the back of
+    the V stands *above* it and the opening lets you see into the neck. This
+    lowers rim vertices above ``target_z`` to it, at full weight from
+    ``fade_deg`` either side of the back, fading to nothing at the throat, so the
+    face, jaw and the front of the neck are untouched.
+    """
+    for v in rim_verts:
+        z = float(p[v, 2])
+        if z <= target_z:
+            continue
+        az = abs(float(np.degrees(np.arctan2(p[v, 0], p[v, 1]))))
+        w = min(az / fade_deg, 1.0)
+        p[v, 2] = z - w * (z - target_z)
+
+
+def _neck_rim_loop(p: np.ndarray, rim_edges: list[tuple[int, int]]) -> list[int]:
+    """The connected boundary loop that contains the neck's lowest vertex."""
+    if not rim_edges:
+        return []
+    adj: dict[int, set[int]] = {}
+    for a, b in rim_edges:
+        adj.setdefault(a, set()).add(b)
+        adj.setdefault(b, set()).add(a)
+    lowest = min(adj, key=lambda v: p[v, 2])
+    seen = {lowest}
+    stack = [lowest]
+    while stack:
+        cur = stack.pop()
+        for nb in adj[cur]:
+            if nb not in seen:
+                seen.add(nb)
+                stack.append(nb)
+    return sorted(seen)
+
+
+def extend_neck_into_collar(
+    p: np.ndarray,
+    n: np.ndarray,
+    uv: np.ndarray,
+    tris: np.ndarray,
+    *,
+    axis_xy: tuple[float, float] = ARIVUS_NECK_AXIS_XY,
+    max_z: float = NECK_RING_MAX_Z,
+    tuck: float = NECK_TUCK,
+    bottom_z: float = NECK_SKIRT_BOTTOM_Z,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Close the head's open neck rim with a skirt that tucks inside the suit.
+
+    Only the neck's own rim is used. The ped's open edges are a tangle: the cut
+    ring, a jaw/ear loop above it and a strip that climbs the back of the head
+    to z 186, all reachable from one another. The ring is therefore taken as the
+    connected boundary loop owning the neck's lowest vertex, restricted to
+    vertices near the neck axis and below z 170, so the jaw, the hair sheet and
+    the scalp's cut are left alone. Returns ``(p, n, uv, tris)`` with vertices
+    appended; existing indices do not change.
+    """
+    if len(tris) == 0:
+        return p, n, uv, tris
+    counts: dict[tuple[int, int], int] = {}
+    for a, b, c in tris:
+        for u, w in ((int(a), int(b)), (int(b), int(c)), (int(c), int(a))):
+            if u == w:
+                continue
+            key = (min(u, w), max(u, w))
+            counts[key] = counts.get(key, 0) + 1
+    rim_edges = []
+    for (a, b), cnt in counts.items():
+        if cnt != 1:
+            continue
+        pa, pb = np.asarray(p[a]), np.asarray(p[b])
+        if max(pa[2], pb[2]) > max_z:
+            continue
+        if max(np.hypot(pa[0], pa[1]), np.hypot(pb[0], pb[1])) > NECK_AXIS_TOLERANCE_CM:
+            continue
+        rim_edges.append((a, b))
+    if not rim_edges:
+        return p, n, uv, tris
+
+    # The ped's cut is a V: low across the throat, high up the back of the neck,
+    # and a separate jaw/ear loop hangs above it. Take the connected boundary
+    # loop that owns the neck's lowest vertex - that is the neck's own rim - and
+    # leave every other open edge (jaw, hair sheet) alone.
+    rim_verts = _neck_rim_loop(p, rim_edges)
+    if not rim_verts:
+        return p, n, uv, tris
+    # The loop is the neck's cut ring plus a strip running up the back of the
+    # head to the crown. Only the ring is both near the neck axis and low: the
+    # strip's own vertices climb to z 186 and are left alone.
+    rim_verts = [v for v in rim_verts
+                 if p[v, 2] < 170.0 and np.hypot(p[v, 0], p[v, 1]) < 9.5]
+    if not rim_verts:
+        return p, n, uv, tris
+    push_neck_rim(p, rim_verts)
+    keep_set = set(rim_verts)
+    rim_edges = [(a, b) for a, b in rim_edges if a in keep_set and b in keep_set]
+    if not rim_edges:
+        return p, n, uv, tris
+
+    skirt = neck_skirt_ring(np.asarray([p[v] for v in rim_verts]), axis_xy, bottom_z, tuck)
+
+    new_p = np.empty((len(rim_verts), p.shape[1]), dtype=p.dtype)
+    new_n = np.empty((len(rim_verts), n.shape[1]), dtype=n.dtype)
+    new_uv = np.empty((len(rim_verts), uv.shape[1]), dtype=uv.dtype)
+    new_index: dict[int, int] = {}
+    for row, v in enumerate(rim_verts):
+        new_p[row] = skirt[row]
+        new_uv[row] = uv[v]
+        new_index[v] = len(p) + row
+
+    # Normals point in and down: the skirt is the inside of the suit's collar,
+    # and must not catch the key light like skin if a pose ever shows it.
+    ax, ay = axis_xy
+    for row in range(len(rim_verts)):
+        d = np.array([ax - new_p[row, 0], ay - new_p[row, 1], 0.0])
+        ln = float(np.linalg.norm(d))
+        inward = d / ln if ln > 1e-9 else np.array([0.0, -1.0, 0.0])
+        nv = inward + np.array([0.0, 0.0, -0.4])
+        new_n[row] = nv / max(float(np.linalg.norm(nv)), 1e-9)
+
+    new_tris = []
+    for a, b in rim_edges:
+        a2, b2 = new_index[a], new_index[b]
+        # wind the strip so its front faces away from the neck axis (outward),
+        # the way the cone above it already does
+        tip = np.cross(np.asarray(p[b], np.float64) - np.asarray(p[a], np.float64),
+                       np.asarray(new_p[b2 - len(p)], np.float64) - np.asarray(p[a], np.float64))
+        ref = np.asarray(n[a], np.float64) + np.asarray(n[b], np.float64)
+        if float(np.dot(tip, np.array([ref[0], ref[1], 0.0]))) < 0.0:
+            new_tris += [(a, b2, b), (a, a2, b2)]
+        else:
+            new_tris += [(a, b, b2), (a, b2, a2)]
+
+    return (np.vstack([p, new_p]), np.vstack([n, new_n]),
+            np.vstack([uv, new_uv]),
+            np.vstack([tris, np.asarray(new_tris, dtype=tris.dtype)]))
+
+
+def suit_collar_radius(model_bytes: bytes, *, from_z: float = 150.0,
+                       to_z: float = 172.0) -> callable:
+    """The suit body's radius as a function of height, for the neck skirt.
+
+    Measures the ``g_body`` drawable of a suit model: for each 0.5 cm slice it
+    takes the largest radius of any surface within 25 cm of the neck axis. That
+    is the collar's outer wall, which is the surface the skirt has to stay
+    inside. Below the collar (no g_body surface that high) the radius falls back
+    to the last measured value.
+    """
+    mf = dm.ModelFile.read(model_bytes)
+    body = None
+    for s in mf.by_type(dm.MODEL_DATA):
+        md = dm.decode_model_data(s.payload)
+        if md.get("version") != 3 or not md.get("atoms") or md.get("name_hash") != dm.hash64("g_body"):
+            continue
+        gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        body = np.asarray(dm.decode_geometry(mf.by_id(gp["geometry"]).payload)["verts"], np.float64)
+        break
+    if body is None:
+        raise ValueError("suit model has no g_body drawable to measure the collar on")
+    near = (np.hypot(body[:, 0], body[:, 1]) < 25.0) & (body[:, 2] > from_z) & (body[:, 2] < to_z)
+    heights, radii = [], []
+    for z0 in np.arange(from_z, to_z, 0.5):
+        m = near & (body[:, 2] >= z0) & (body[:, 2] < z0 + 0.5)
+        if m.any():
+            heights.append(z0 + 0.25)
+            radii.append(float(np.hypot(body[m, 0], body[m, 1]).max()))
+
+    def radius(z: float) -> float:
+        if not heights:
+            return 0.0
+        return float(np.interp(z, heights, radii))
+
+    return radius
+
+
 def repair_skin_and_neck_normals(
     face_p: np.ndarray,
     face_n: np.ndarray,
@@ -2760,19 +2990,11 @@ def build_arivus_hoxton_mod(
         # the beard on the forehead and the eye quads on the chin.
         v_img = np.clip(uv_raw[:, :, 1] - v_tile, 0.002, 0.998).ravel()
         p = (_rot(p_raw) - a_rot) * ARIVUS_SCALE + dst_anchor
-        # The ped's neck stops at z ~ 159.4 cm while the suit's collar opening reaches
-        # lower. Seen from behind, that leaves the head's jagged neck edge visible through
-        # the opening as a strip of skin (the back view of the 2026-11-25 sheet). Extend
-        # only the bottom of the neck downward, fading out by z = 166 cm, so the cut end
-        # sits behind the collar on every side. The face and the hair are untouched.
-        tuck = np.clip((166.0 - p[:, 2]) / 6.6, 0.0, 1.0)
-        p[:, 2] -= 6.0 * tuck * tuck * (3.0 - 2.0 * tuck)
-        # From behind, the suit's collar has a gap that lets the *front* of the neck show
-        # through as a strip of skin with a jagged top. Shortening the neck above that edge
-        # (smoothly, fading out by z = 168 cm) closes the gap without opening one at the
-        # throat: the cut edge is still below the collar, the visible neck still reaches it.
-        lift = np.clip((168.0 - p[:, 2]) / 8.0, 0.0, 1.0)
-        p[:, 2] += 4.0 * lift * lift * (3.0 - 2.0 * lift)
+        # The ped is left where it lands. D72 used to drag the whole neck cone down
+        # (up to 4.3 cm at the throat) and push it back up near z 168, which squashed
+        # the neck to half its height and still left its open rim in the collar
+        # opening as a jagged skin line (D75). The rim is closed by a skirt instead,
+        # below, where it can be measured.
         n = _rot(n_raw)
         u_atlas = u_off + u_scale * u_img
         v_img_atlas = v_off + v_scale * v_img
@@ -2795,12 +3017,27 @@ def build_arivus_hoxton_mod(
     head_nm_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_nm_atlas[:, :] = [255, 128, 0, 128]
 
+    def suit_bytes(name: str) -> bytes:
+        p = _find_named(suit_unit_dir, name)
+        if p is None:
+            raise FileNotFoundError(f"{name} missing from the npc_criminals_suit_1 reference")
+        return p.read_bytes()
+
     atom0_mesh = extract_arivus_part(5, 0.0, 0.5, 0.0, 0.5)  # head: top-left cell
     atom1_mesh = extract_arivus_part(6, 0.0, 0.5, 0.5, 0.5)  # hair: bottom-left cell
+    # Close the neck (D75): drop the ped's V-shaped cut to the collar's height, then
+    # stitch a skirt from the rim down to z 148 tucked inside the suit. The extract
+    # is triangle soup (one vertex per corner), so the rim only exists as an *open
+    # edge* after welding: dedup first, then close it.
+    welded = deduplicate_mesh(atom0_mesh["verts"], atom0_mesh["normals"],
+                              atom0_mesh["uvs"], atom0_mesh["tris"])
+    neck_skirt = extend_neck_into_collar(*welded)
+    atom0_mesh = {"verts": neck_skirt[0], "normals": neck_skirt[1],
+                  "uvs": neck_skirt[2], "tris": neck_skirt[3]}
     packed_head = _prepare_combined_head_arrays(
         atom0_mesh,
         atom1_mesh,
-        bone_offset=1,
+        bone_offset=0,  # the head's palette starts at Spine2: SkinBones lists exactly it
         jaw_lift=7.5,
         single_atom=True,
         double_side_atom1=True,
@@ -2822,12 +3059,6 @@ def build_arivus_hoxton_mod(
             hair_mat_name=None,
             packed_head=packed_head,
         )
-
-    def suit_bytes(name: str) -> bytes:
-        p = _find_named(suit_unit_dir, name)
-        if p is None:
-            raise FileNotFoundError(f"{name} missing from the npc_criminals_suit_1 reference")
-        return p.read_bytes()
 
     suit_model = patch_suit_model(suit_bytes(f"{SUIT_UNIT_STEM}.model"))
     suit_menu_model = patch_suit_model(suit_bytes(f"{SUIT_MENU_STEM}.model"))

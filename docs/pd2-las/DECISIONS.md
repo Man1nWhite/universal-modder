@@ -1933,3 +1933,62 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 - **Source:** `tools/pd2-las/build_arivus_glb_pack.py`, `tests/test_arivus_glb_pack.py`,
   `AGENTS.md`, `CONTRIBUTING.md`, `tools/README.md`.
 - **Status:** holds; publishing outside the repo is still asked of the owner first.
+
+
+## D75 — Arivus: the neck is a neck again, and the head is skinned to its own palette
+
+- **Decided:** 2026-11-26, by the user: *"What's with the neck of the Aivus head mod. Check renders"*,
+  then *"Fix everything"*. The evidence was the tracked sheet: a hard angular line across the
+  collarbones in the front and three-quarter panels, a short throat, and from behind either a strip
+  of skin or a jagged patch depending on which build you looked at.
+- **Three defects, not one.**
+  1. **D72 squashed the neck.** `extract_arivus_part` pushed every vertex below `z 166` down by up to
+     6 cm and lifted every vertex below `z 168` by up to 4 cm — with `z` re-evaluated *after* the
+     first move — so a net −3.0 to −4.3 cm displacement turned a smoothstep into a shear. That
+     squashed ~10 cm of neck into half its height, kinked it at z 166–168 (the crease across the
+     throat) and still left the ped's cut edge in the collar opening.
+  2. **The cut is a V, and the collar only reaches the front of it.** The Random4 ped's neck ends at
+     `z 159.4` across the throat but at `z ≈ 164.9` at the back, while the suit's collar rim tops out
+     at `z ≈ 159.8–160.5`. From behind, the back of the V stands *above* the collar, and the
+     opening looks straight into the neck — the skin band is the throat's own far wall, i.e.
+     back-facing interior geometry, not a strip of the near surface.
+  3. **The head weighed the wrong bones.** `bone_offset=1` assumed a palette beginning at `Hips`,
+     but this drawable's `SkinBones` section lists exactly `[Spine2, Neck, Head]` (ids 40, 41, 42)
+     with root 37. 4,595 of 4,596 vertices therefore carried `BLENDINDICES 3`, one past the end of a
+     three-entry palette. D73's GLB exporter saw this and repaired it on its own copy; the shipped
+     pack was untouched, and no render can see it because bind-pose cancels the skinning matrices.
+- **Decision:** leave the ped where it lands and close the neck from below.
+  - `bone_offset=0`, so every vertex indexes a palette slot that exists.
+  - `push_neck_rim` drops the cut rim's vertices to `z 159.0`, at full weight from 60° either side of
+    the back and fading to nothing across the throat, so the back of the V ends under the collar and
+    the throat keeps its length. Only the neck's own ring is touched: the loop that also runs up the
+    back of the head to `z 186` is split off first.
+  - `extend_neck_into_collar` welds the extracted part (the extraction is triangle soup, so the rim
+    only exists as an open edge after `deduplicate_mesh`), takes the connected boundary loop owning
+    the neck's lowest vertex, and stitches one skirt ring: each rim vertex moves radially inward
+    about the ped's neck axis `(0, 1)` to 0.35 of its own radius, down to `z 148.0`. Inward, not
+    outward — the suit closes around the neck below the collar, so a skirt that widens pushes
+    *through* it, while one that tucks goes inside.
+- **Measured, not asserted.** A ray-parity test against the suit's own `g_body` (odd crossings along
+  ±x and ±y, i.e. genuinely enclosed) says **23 of 23** skirt vertices are inside the suit on all
+  three shipped models, and all four rendered views are clean. The ped's own neck height is back:
+  the throat's front reaches `z 166` again instead of 163.4. The pack is **8,543,738 B**,
+  `c1630f56289b` (was 8,540,550 B, `31127712ab92`).
+- **Held to:** `tests/test_arivus_neck_fit.py` (12 tests, three models × four properties: no cut-rim
+  edge above the collar, the skirt enclosed by the suit, the throat not squashed, every blend index
+  inside the palette). All 12 pass on these bytes and **8 of them fail on the D72 bytes** — the neck
+  test now measures what the renderer would show, not how many vertices sit at a given height, which
+  is what let D72 regress quietly. `tests/test_arivus_glb_pack.py` asserts the GLB's skin has **3**
+  joints and no repair warning; it said 4, which was the bug.
+- **Rejected:** welding positions only (it merges the seam across two UV islands — the D72-era note in
+  `HANDOFF.md`); clipping the low neck triangles (the teeth survive in the triangles that straddle
+  the opening); widening the skirt outward (measured: 15% of columns always end outside the suit);
+  dropping the skirt to `z 146.5` (the suit stops surrounding the neck at ~148, so the ring leaves
+  its lower half in the open); rebuilding the three models with a taller neck (the donation has no
+  more neck to give).
+- **Source:** `tools/build_joy_head_mods.py` (`extract_arivus_part`, `push_neck_rim`,
+  `neck_skirt_ring`, `extend_neck_into_collar`, `_neck_rim_loop`), `tests/test_arivus_neck_fit.py`,
+  `tests/test_arivus_glb_pack.py`, `docs/renders/arivus/model/over-hoxton/`.
+- **Status:** holds offline. Still not seen in game — the neck's motion under the `Neck`/`Head`
+  bones and the way the game's own culling treats the skirt are the in-game checks in
+  [`in-game-checklist.md`](in-game-checklist.md).

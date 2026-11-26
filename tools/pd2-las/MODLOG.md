@@ -829,3 +829,48 @@ the GLB export was rebuilt from the resulting head pack. The diffuse-only offlin
 preview is updated; the in-game appearance and animation remain unverified.
 The pre-existing head skin palette issue documented in D73 is not changed by
 this texture rebuild; the GLB export still repairs it for the export only.
+
+## 2026-11-26 — Arivus: the neck is rebuilt, the cut rim is closed, the skinning is fixed (D75)
+
+**The ask.** *"What's with the neck of the Aivus head mod. Check renders"*, then *"Fix everything"*.
+The tracked sheet shows the neck as a hard angular line across the collarbones with a short
+throat — the "collar" in those panels is mostly the edge of a truncated neck, shaded as skin.
+
+**What the renders were hiding.** Three things, each reproduced by a measurement before it was
+touched:
+
+1. **D72 had squashed the neck.** `extract_arivus_part` applied `z -= 6·ss((166−z)/6.6)` and
+   `z += 4·ss((168−z)/8)` with `z` re-evaluated after the first move, so the net displacement ran
+   −2.99 cm at z 157 to −4.26 cm at z 165 and back to 0 at 173. A smoothstep became a shear, and
+   ~10 cm of neck was compressed into half of it.
+2. **The cut is a V, and the collar only reaches the front of it.** The ped's neck ends at z 159.4
+   across the throat and z 164.9 at the back; the suit's collar rim tops out at z 159.8–160.5. From
+   behind, the back of the V stood above the collar and the opening looked into the neck — the
+   visible band is the throat's own **far wall**, i.e. back-facing interior geometry. Rendering
+   back-facing head triangles in magenta and everything else normally put the whole band in magenta,
+   which is how that was settled without guessing.
+3. **The head weighed the wrong bones.** `bone_offset=1` with a `SkinBones` section that lists
+   exactly `[Spine2, Neck, Head]` (40, 41, 42; root 37) left **4,595 of 4,596** vertices carrying
+   `BLENDINDICES 3`, one past the end of a three-entry palette. Bind-pose renders cannot see this,
+   which is why it survived four rebuilds; D73 found it from the GLB side and left it open.
+
+**What was done.** `bone_offset=0`. `push_neck_rim` drops the cut rim to z 159.0, full weight from
+60° either side of the back, fading to nothing at the throat, so the V ends under the collar and the
+throat keeps its length; the boundary loop that also climbs the back of the head to z 186 is split
+off first, so only the neck ring moves. `extend_neck_into_collar` welds the extracted part (it is
+triangle soup, so the rim is not an open edge until `deduplicate_mesh` has run), takes the connected
+boundary loop owning the neck's lowest vertex, and stitches a skirt to z 148.0 tucked to **0.35** of
+each rim vertex's radius about the ped's neck axis `(0, 1)` — inward, because the suit closes around
+the neck below the collar and an outward skirt pushes through it (a sweep of widening skirts peaked
+at 85% of columns enclosed, no matter the taper).
+
+**Evidence.** Ray-parity against `g_body` (odd crossings along ±x and ±y = enclosed): **23 of 23**
+skirt vertices inside on all three shipped models. All four camera views rendered clean, including
+the back that previously showed the band. The throat's front reaches z 166 again. `runtime_verified`
+stays false and the pack is still unseen in game. `tests/test_arivus_neck_fit.py` was rewritten to
+measure these four properties on the shipped models; **8 of its 12 tests fail on the D72 bytes**, so
+the regression is now pinned by the thing that regressed rather than by vertex counts.
+`arivus_over_hoxton_sheet.png` re-rendered with `--unified`, and `Arivus_Head_over_Old_Hoxton_GLB.zip`
+rebuilt from the new source — its skin is 3 joints with no repair warning, so
+`tests/test_arivus_glb_pack.py` now asserts 3 (it asserted 4, which encoded the bug).
+Pack `c1630f56289b`, 8,543,738 B; GLB pack `534075b32a28`, 3,442,128 B.

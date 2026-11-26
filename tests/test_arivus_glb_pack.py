@@ -71,7 +71,12 @@ def test_glb_is_a_valid_bind_pose_head_export():
     assert doc["scenes"][0]["name"] == Path(GLB).stem
     assert [mesh["name"] for mesh in doc["meshes"]] == ["g_head_old_hoxton"]
     assert doc["materials"][0]["alphaMode"] == "MASK"
-    assert len(doc["skins"][0]["joints"]) == 4
+    # D75 rebuilt the head with `bone_offset=0`, so every vertex indexes the
+    # palette the SkinBones section actually lists (Spine2, Neck, Head) and the
+    # exporter no longer has to prepend the skin root to repair a stray index.
+    # Three joints is the correct, repaired count; four meant the pack was broken.
+    assert len(doc["skins"][0]["joints"]) == 3
+    assert "warnings" not in doc["extras"], doc["extras"].get("warnings")
     assert len(doc["images"]) >= 2
     assert doc["extras"]["pd2_model"].endswith("npc_criminals_suit_1.model")
 
