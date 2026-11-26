@@ -436,5 +436,8 @@ head texture and the build inpaints it. These are the checks the offline render 
    not flicker, halo or draw as a solid band against the forehead, and the scalp should not show
    through at the crown.
 5. **The head still fits the suit.** No gap or stretched skin at the collar, **including the back
-   of the neck** (D72 shortened the donated neck: no jagged strip of skin should show through the
-   back collar opening), the menu portrait matches the in-game head, and the HUD icon is the same face.
+   of the neck**: D79 dropped the ped's V-shaped cut below the collar rim and closed it with a skirt
+   tucked inside the suit, so from behind the collar should read as an unbroken line with skin above
+   it and nothing showing through. Watch also for the neck creasing or pinching when the head turns
+   (the rim now sits ~5 cm lower than the cut did, and it is the part the `Neck` bone moves).
+   The menu portrait should match the in-game head, and the HUD icon is the same face.

@@ -43,7 +43,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Building and the build environment* — [D5](#d5--our-own-model-codec-byte-exact-no-blender-or-external-tool-in-the-build), [D6](#d6--retarget-by-anatomical-partition-not-per-bone-and-not-by-frame-deltas), [D7](#d7--geometry-conventions-are-the-2b-models), [D8](#d8--install-under-assetsmod_overrides)
 
-*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone)
+*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette)
 
 *Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers)
 
@@ -1217,6 +1217,65 @@ from documents, tests and tools, so they never change; the headings are appendix
   left alone: the hair cards' triangular shading and the hair mesh's alpha hairline are geometry,
   and this pack changes texture and neck fit only.
 
+
+### D79 — Arivus: the neck is a neck again, and the head is skinned to its own palette
+
+- **Decided:** 2026-11-26, by the user: *"What's with the neck of the Aivus head mod. Check renders"*,
+  then *"Fix everything"*. The evidence was the tracked sheet: a hard angular line across the
+  collarbones in the front and three-quarter panels, a short throat, and from behind either a strip
+  of skin or a jagged patch depending on which build you looked at.
+- **Three defects, not one.**
+  1. **D72 squashed the neck.** `extract_arivus_part` pushed every vertex below `z 166` down by up to
+     6 cm and lifted every vertex below `z 168` by up to 4 cm — with `z` re-evaluated *after* the
+     first move — so a net −3.0 to −4.3 cm displacement turned a smoothstep into a shear. That
+     squashed ~10 cm of neck into half its height, kinked it at z 166–168 (the crease across the
+     throat) and still left the ped's cut edge in the collar opening.
+  2. **The cut is a V, and the collar only reaches the front of it.** The Random4 ped's neck ends at
+     `z 159.4` across the throat but at `z ≈ 164.9` at the back, while the suit's collar rim tops out
+     at `z ≈ 159.8–160.5`. From behind, the back of the V stands *above* the collar, and the
+     opening looks straight into the neck — the skin band is the throat's own far wall, i.e.
+     back-facing interior geometry, not a strip of the near surface.
+  3. **The head weighed the wrong bones.** `bone_offset=1` assumed a palette beginning at `Hips`,
+     but this drawable's `SkinBones` section lists exactly `[Spine2, Neck, Head]` (ids 40, 41, 42)
+     with root 37. 4,595 of 4,596 vertices therefore carried `BLENDINDICES 3`, one past the end of a
+     three-entry palette. D73's GLB exporter saw this and repaired it on its own copy; the shipped
+     pack was untouched, and no render can see it because bind-pose cancels the skinning matrices.
+- **Decision:** leave the ped where it lands and close the neck from below.
+  - `bone_offset=0`, so every vertex indexes a palette slot that exists.
+  - `push_neck_rim` drops the cut rim's vertices to `z 159.0`, at full weight from 60° either side of
+    the back and fading to nothing across the throat, so the back of the V ends under the collar and
+    the throat keeps its length. Only the neck's own ring is touched: the loop that also runs up the
+    back of the head to `z 186` is split off first.
+  - `extend_neck_into_collar` welds the extracted part (the extraction is triangle soup, so the rim
+    only exists as an open edge after `deduplicate_mesh`), takes the connected boundary loop owning
+    the neck's lowest vertex, and stitches one skirt ring: each rim vertex moves radially inward
+    about the ped's neck axis `(0, 1)` to 0.35 of its own radius, down to `z 148.0`. Inward, not
+    outward — the suit closes around the neck below the collar, so a skirt that widens pushes
+    *through* it, while one that tucks goes inside.
+- **Measured, not asserted.** A ray-parity test against the suit's own `g_body` (odd crossings along
+  ±x and ±y, i.e. genuinely enclosed) says **23 of 23** skirt vertices are inside the suit on all
+  three shipped models, and all four rendered views are clean. The ped's own neck height is back:
+  the throat's front reaches `z 166` again instead of 163.4. The pack is **8,543,738 B**,
+  `c1630f56289b` (was 8,540,550 B, `31127712ab92`).
+- **Held to:** `tests/test_arivus_neck_fit.py` (12 tests, three models × four properties: no cut-rim
+  edge above the collar, the skirt enclosed by the suit, the throat not squashed, every blend index
+  inside the palette). All 12 pass on these bytes and **8 of them fail on the D72 bytes** — the neck
+  test now measures what the renderer would show, not how many vertices sit at a given height, which
+  is what let D72 regress quietly. `tests/test_arivus_glb_pack.py` asserts the GLB's skin has **3**
+  joints and no repair warning; it said 4, which was the bug.
+- **Rejected:** welding positions only (it merges the seam across two UV islands — the D72-era note in
+  `HANDOFF.md`); clipping the low neck triangles (the teeth survive in the triangles that straddle
+  the opening); widening the skirt outward (measured: 15% of columns always end outside the suit);
+  dropping the skirt to `z 146.5` (the suit stops surrounding the neck at ~148, so the ring leaves
+  its lower half in the open); rebuilding the three models with a taller neck (the donation has no
+  more neck to give).
+- **Source:** `tools/build_joy_head_mods.py` (`extract_arivus_part`, `push_neck_rim`,
+  `neck_skirt_ring`, `extend_neck_into_collar`, `_neck_rim_loop`), `tests/test_arivus_neck_fit.py`,
+  `tests/test_arivus_glb_pack.py`, `docs/renders/arivus/model/over-hoxton/`.
+- **Status:** holds offline. Still not seen in game — the neck's motion under the `Neck`/`Head`
+  bones and the way the game's own culling treats the skirt are the in-game checks in
+  [`in-game-checklist.md`](in-game-checklist.md).
+
 ## Voice lines and the stream packs
 
 ### D61 — Only the id-keyed stream pack ships; the BeardLib voice pack is dropped
@@ -1581,6 +1640,7 @@ from documents, tests and tools, so they never change; the headings are appendix
   `references/Marine VO for Rust.7z.001`/`.002`.
 - **Status:** holds; every count here is the sheet's own status block, re-read on
   every import, and no tab of either document is `char_rust`.
+
 
 ## Environment, tests and documents
 
