@@ -743,3 +743,49 @@ inside the opening and the throat still meets the front of the collar. The shave
 `9083aa578e2eb6ac`; the pack is 8,429,027 B (`ad4cb8afafdc`). `tests/test_arivus_shave.py` gained
 four upper-face pins (16 tests total) and `tests/test_arivus_neck_fit.py` checks all three shipped
 models. Sheets re-rendered with `--unified`; `runtime_verified` stays false.
+
+## 2026-11-26 — a compiled `.model` becomes `.glb` + `.dds` (`model_to_glb.py`, D73)
+
+**The ask.** *"I want to transform arivus .model to .glb and .dds."* Neither half existed: the tree
+could decode a Diesel unit (`diesel_model.py`) and rasterise it into a preview sheet
+(`render_mod_previews.py`), but nothing wrote an interchange mesh, and the `.texture` side had only
+ever been read. `tools/pd2-las/model_to_glb.py` does both, from a `.model`, a directory or a pack
+zip, reusing `diesel_model` for the container and `tmc_export.Glb` as the tree's one glTF binary
+writer (D16's rule: no second implementation of a format).
+
+**Why the conventions are the hard part.** Four ways an export can be silently wrong, each pinned
+by a test in `tests/test_model_to_glb.py` (10 tests, a synthetic unit written by the same codecs the
+builders use — no game assets, no 2B templates):
+
+- diesel is z-up centimetres and glTF is y-up metres, so `q = p @ A` with
+  `A = [[0.01,0,0,0],[0,0,0.01,0],[0,-0.01,0,0],[0,0,0,1]]`; det > 0, so winding survives and no
+  triangle is flipped (checked: face normals agree with the vertex normals on 100% of the Arivus
+  head's triangles);
+- glTF images start at the top-left and diesel's decoded `uv0` is bottom-up, so `v_gltf = 1 - v` —
+  the same convention the tracked sheets were rasterised with, and the reason the exported atlas
+  lands right-way-up;
+- RenderAtom indices are **global** vertex indices (`AGENTS.md` invariant 2), so every atom is one
+  primitive over one vertex buffer;
+- DXT5nm (X in alpha, Y in green) is unswizzled to tangent-space RGB with `z = sqrt(1 - x² - y²)`,
+  and `ALPHA_MASKED` keeps its `alpha_ref` (0.05) as `alphaMode: MASK`, so the hair cutout is
+  there. A missing texture is a stable placeholder tint and a line in the report, never a crash —
+  a shared suit unit references 20 textures no head pack ships.
+
+**A real defect in the shipped Arivus pack, found by the skin path (open).** `g_head_old_hoxton`
+weights four bones from `bone_offset=1` in `build_arivus_hoxton_mod` (the Clover/Bonnie/Sydney/Rust
+convention, whose head palettes start at `Hips`), but its `SkinBones` section lists three bones
+`[40, 41, 42]` — the vanilla suit's `Spine2, Neck, Head`. 4,582 of 4,596 vertices therefore carry
+`BLENDINDICES 3`, one past the end of the palette, and the intended `Hips` entry (`37`, the skin
+root) is not in the section at all. The exporter repairs exactly that shape — every stray index one
+past the end, and the root's bind matrix present in another drawable's palette — by prepending the
+root, and records it in the GLB's `extras.warnings`; the pack bytes are untouched and what the game
+does with the stray index is unknown. The 2026-11-25 renders could not see this: they are
+bind-pose, where the skinning matrices cancel. `tests/test_arivus_neck_fit.py` measures geometry,
+not weights. Whether to rebuild the three Arivus models with `bone_offset=0` is the owner's call.
+
+**Output and hygiene.** The conversion writes under `build/arivus_glb/` (ignored): three whole
+models, a head+body+hands GLB for looking at the replacement, and five `.dds` (a PD2 `.texture` is a
+DDS buffer, so this is a byte copy) with PNG twins for viewers that do not take DDS. Nothing
+game-derived is committed. A round trip back through the repo's own rasteriser reproduces the
+tracked sheet's head, eyeballs and hair cutout (`build/check_glb.py`); the suit is a placeholder
+because its textures are not in the pack. `runtime_verified` stays false.
