@@ -41,9 +41,20 @@ the outfit's body has no hands by default, and a glove the player picks by name 
 it (D60). The adapter D59 registered is what put a vanilla bare-forearm band at the wrist in game.
 The cut on the crease leaves a capped end above the glove — the gap D62 was meant to fix and D70
 knowingly restores — so the sleeve ends read as sleeve, cuff and jewellery cuff with no hands of
-their own. The 2026-11-15 captures predate both the arms unit and the cut; the D59, D60, D62 and D65
-builds are the ones seen in game at the wrist, and the first-person arms have not been seen in a
+their own. The 2026-11-15 captures predate both the arms unit and the cut; the D59, D60, D62, D65 and
+D70 builds are the ones seen in game at the wrist, and the first-person arms have not been seen in a
 build with the current cut.
+
+D75 is the answer to the wrist the 2026-11-26 first-person captures showed standing through a dress
+glove's cuff: after the slim, a `_wrist_pass` hands the distal forearm's weight to `ForeArmRoll` on
+vanilla Sydney's own curve, blends the last 2.6 cm of wrist skin up to 0.30 of `Hand`, tucks that
+stretch 0.35 cm inwards, and re-centres the ring the cut leaves on the palm's axis (it was 0.28 cm off
+on the left wrist, 0.54 cm on the right, which is what the retarget's per-segment fit costs). The cut,
+the bracelet and the registration are unchanged; the pass records itself in `BUILD_INFO.json` under
+`wrist`. Posed against Sydney's, Joy's and Clover's own gloves the worst sector of skin outside a cuff
+fell from +2.7/+3.2/−2.6 mm to +1.6/−1.8/−5.5 mm. `OfficeSuite_Head` and
+`OfficeSuite_Miranda_Romance_over_Hila` inherit it through the shared body. The D75 bytes have not been
+seen in game.
 
 `OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body (palms cut, D60/D70) and
 arms unit with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
@@ -91,7 +102,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |
-| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures; 2026-11-25, user-supplied wrist screenshots of the D60 and D62 builds (a **partial** — the wrist, not the whole outfit) | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and every hand build (D55's own hands, D59's palm cut, D60's cut on the plane with no default glove, D62/D63/D65's extensions and D70's reversion to the plane); installed hash not measured |
+| `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures; 2026-11-25, user-supplied wrist screenshots of the D60 and D62 builds; 2026-11-26, the same user-supplied wrist captures in first person, with white dress gloves, that drove D75 (a **partial** — the wrist, not the whole outfit) | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and every hand build (D55's own hands, D59's palm cut, D60's cut on the plane with no default glove, D62/D63/D65's extensions, D70's reversion to the plane and D75's wrist pass); installed hash not measured |
 | `Christie_LAS` | 2026-11-15, user-supplied menu/lobby captures | Build not hash-verified from captures; earlier captures showed the prior full pack |
 | `Christie_Clover_LAS` | no record | — |
 | `Christie_LAS_Slim` (removed) | 2026-11-15, menu armor-skin preview, user report | Earlier Slim capture; installed hash not measured |

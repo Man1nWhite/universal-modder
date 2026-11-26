@@ -227,6 +227,14 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
    between it and the cuff are the *expected* result of this choice, not a build error. What still
    fails is any skin extending past the crease, a band of second skin, or a hand modelled by the
    outfit. Move the hand, aim, and reload and check that no skin pops through a glove in any pose.
+   **D75 is the answer to what that check found:** first person with white dress gloves showed a
+   sliver of the outfit's wrist in the glove's cuff (2026-11-26 captures, now archived under
+   `docs/renders/honoka/in-game/officesuite/2026-11-26/`). The wrist now twists on `ForeArmRoll`,
+   its last 2.6 cm blend up to 0.30 of `Hand`, that stretch is tucked 0.35 cm inwards and the cut
+   ring is centred on the palm's axis. Check the same view again with the buttoned dress gloves:
+   the cuff should close over the skin in aim, reload and sprint, and the bracelet should turn with
+   the forearm instead of staying square to the sleeve. What still fails is skin *inside* the cuff
+   showing through the glove, or the bracelet bending.
 3. **A chosen glove wins.** Equip a named glove (Bone Mittens): it must spawn and read as the
    character's hands, with the sleeve's cuff still outside it. Since the arm ends on the crease, the
    glove may not reach the cut and a gap can remain; what matters is that no bare hand of ours sits
