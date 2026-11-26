@@ -54,7 +54,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_honoko2_dae.py`, `las_head.py`, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the OfficeSuite LAS packs built from the Collada `.dae` with the TMC's skinning, the donor head re-skin, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
 | `las_outfit_pack.py`, `dist_paths.py` | shared registration, hook, localization, unit/object XML, zip, glove-adapter companion, and canonical `dist/` path map |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
-| `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py`, `source_to_obj.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF), DDS writers, and Source-to-OBJ converter |
+| `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |
 | `skeleton_map.json`, `las_target_skeleton.json` | Source → PD2 bone map; the PD2 rig and object names |
 | `segment_fit.py`, `render_mesh_skeleton.py`, `preview.py` | fit measurements and renders the builders call |
 | `diagnose_mesh.py`, `neck_junction.py`, `uv_check.py`, `audit_metrics.py`, `elbow_before_after.py`, `glove_check.py`, `review_christie_idle.py`, `pose_zoom.py` | diagnostics for built packs, off the build path; each docstring carries its command |
