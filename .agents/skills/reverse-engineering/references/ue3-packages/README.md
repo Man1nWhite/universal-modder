@@ -62,4 +62,5 @@ package other tools can load, use Gildor's decompressor.
 
 - Depends on the PyPI `minilzo` package (GPL-2.0), which `uv` fetches at run time. It's a C extension
   published only as source, so `uv` builds it and needs a C compiler (on Windows, the MSVC Build Tools).
-- Extracted assets/scripts are the user's own game data — do not redistribute.
+- Extracted assets/scripts are the user's own game data: they may be committed at the owner's call,
+  with their source named.

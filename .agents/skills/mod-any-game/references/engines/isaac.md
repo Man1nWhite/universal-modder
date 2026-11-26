@@ -51,7 +51,8 @@ for what vanilla hides (XML data at runtime, ImGui, extra callbacks, unlocks for
 - Vanilla assets to read or copy sizes from: run `tools/ResourceExtractor/ResourceExtractor.exe` from its
   own folder with no arguments; it unpacks every archive to `<game>/extracted_resources/` (the first
   argument is the *input* path; an output folder there gives "No archive files found"). `filelist.txt` has
-  the names. Never ship those files: a UI override is your own PNG at the vanilla sheet's size.
+  the names. Name the source if you commit those files; a UI override is normally your own PNG at the
+  vanilla sheet's size.
 
 ## Versions and extensions
 - Afterbirth+ → Repentance changed the API in places (IsaacDocs marks them); there is no separate
