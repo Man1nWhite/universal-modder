@@ -31,7 +31,7 @@ Otherwise install it once for any agent: `uv tool install git+https://github.com
 | Launch, screenshot, click/type, record a Windows game (also from WSL) | `um win ...` |
 | Snapshot saves before touching them; undo | `um backup create/diff/restore` |
 | Cut a showcase video | `um video contact/compile/mux` |
-| Lint a mod before sharing (game files, decompiled code, secrets) | `um publish check` |
+| Lint a mod before sharing (secrets, decompiled code, credits) | `um publish check` |
 
 Companion skills: **game-recon**, **reverse-engineering**, **fal-assets**, **asset-pipeline**,
 **game-automation**, **showcase-video**, **mashup-mods**, **port-a-mod**, **publish-mod**,
@@ -85,8 +85,8 @@ Write the chosen route and the reason into MODLOG.md before building.
   so keep a pristine copy and restore it before every take.
 - Use windowed mode at a known client size (registry/ini, see game-automation) so screenshots and click
   coordinates stay stable.
-- Keep decompiled code and extracted assets outside the repo (e.g. `~/<game>-decomp`) and gitignore any
-  derived data. Never commit game files.
+- Game-derived assets and exports may be committed at the owner's call; name their source. Keep
+  decompiled code and secrets outside the repo (e.g. `~/<game>-decomp`).
 
 ### 4. Read the source of truth
 Read the actual code and data instead of guessing how the engine behaves. The **reverse-engineering** skill
@@ -139,7 +139,7 @@ Choose moments from a contact sheet, then cut 20-45 s with one-line titles and a
 
 ### 9. Package and publish (the publish-mod skill)
 Run `um publish check <mod> --game "<install>"`. Write a README with install steps. Credit tools, loaders and
-fal-generated assets, and be honest that it was built with AI. Ship no game files.
+fal-generated assets, and be honest that it was built with AI. Name the source of any game-derived bytes you ship.
 
 ### 10. Leave a field note (the share-field-notes skill)
 Turn `MODLOG.md` into a knowledge-base note (`um kb new ...`, then `um kb check`). Cover:
@@ -160,8 +160,8 @@ documented dead end saves the next agent hours.
 - **No bypasses.** Never bypass anti-cheat, DRM or ownership checks. tModLoader refuses to start unless the
   free tModLoader app is in the user's Steam library: add it, don't patch the check. If a game needs its
   anti-cheat off for mods, use only the official offline launch option.
-- **No redistribution.** Don't ship game files, decompiled source or extracted assets. Ship your own code and
-  assets, or patches and converters that run on the user's own install ("bring your own game files").
+- **Provenance.** Game-derived assets and exports may ship at the owner's call; name the source and credits.
+  Don't ship decompiled source; patches and converters that run on the user's own install are always fine.
 - **Back up first.** Run `um backup` before changing saves, profiles or game folders. Keep the restore path
   written in MODLOG.md.
 - **Process hygiene.**

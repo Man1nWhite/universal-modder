@@ -8,9 +8,10 @@ description: Read how a game actually works so a mod can hook it. Decompile .NET
 Rule zero: **read the real thing, don't guess.** Decompiled code, the actual data, a live memory view or a
 GPU capture is the spec. Write what you learn into `MODLOG.md` (names, IDs, offsets, formats) as you go.
 
-Keep all decompiled output and extracted assets **outside** the mod repo (e.g. `~/<game>-decomp/`) and never
-publish them. Single-player, offline or servers the user runs. Never attach debuggers or scanners to games
-with anti-cheat (see `skills/mod-any-game/references/safety.md`).
+Keep decompiled output **outside** the mod repo (e.g. `~/<game>-decomp/`) and never publish it.
+Game-derived assets and exports may live in the repo at the owner's call; name their source. Single-player,
+offline or servers the user runs. Never attach debuggers or scanners to games with anti-cheat (see
+`skills/mod-any-game/references/safety.md`).
 
 ## Pick the tool by what the code is (`um scan` tells you)
 

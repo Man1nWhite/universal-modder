@@ -1,6 +1,6 @@
 ---
 name: publish-mod
-description: Package and release a finished game mod. Covers the pre-release lint (no game files, decompiled code or leaked keys), README and install steps, credits and AI disclosure, versioning, where to upload (Nexus Mods, Steam Workshop, Thunderstore, mod.io, GitHub releases), and the post with a video. Use when the user wants to ship, share, upload, release or post a mod.
+description: Package and release a finished game mod. Covers the pre-release lint (secrets, decompiled code, credits), README and install steps, credits and AI disclosure, versioning, where to upload (Nexus Mods, Steam Workshop, Thunderstore, mod.io, GitHub releases), and the post with a video. Use when the user wants to ship, share, upload, release or post a mod.
 ---
 
 # Publish a mod
@@ -9,7 +9,9 @@ description: Package and release a finished game mod. Covers the pre-release lin
 ```bash
 um publish check ./MyMod --game "<game install folder>"
 ```
-- **FAIL:** files byte-identical to game files, leaked keys (fal/Anthropic/OpenAI/GitHub/AWS), `.env` files.
+- **FAIL:** leaked keys (fal/Anthropic/OpenAI/GitHub/AWS), `.env` files.
+- **INFO:** files byte-identical to game files. Game-derived assets may ship at the owner's call; name
+  their source in the README and keep credits.
 - **WARN:** decompiler fingerprints in source (`FUN_`/`DAT_`/`sub_` names, "Decompiled with" headers), large
   engine archives, absolute user paths, a missing README, fal assets without credit.
 

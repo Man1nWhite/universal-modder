@@ -14,7 +14,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus all inventory audit fresh test green
+.PHONY: help status env build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus glb all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -71,6 +71,9 @@ voices_geralt:  ## Geralt_VO_over_Rust_Stream: Geralt barks for the 29 slots the
 voices_arivus:  ## Arivus_VO_over_Hoxton_Stream: Arivus barks (+ the borrowed 'Hoxton.' callout) for the slots the set covers -> dist/Arivus/
 	$(call BUILD,tools/build_character_stream_mod.py --pack arivus-old-hoxton)
 
+glb:            ## Arivus_Head_over_Old_Hoxton_GLB: the Arivus head .glb + its .dds, from the tracked Arivus_over_Hoxton.zip -> dist/Arivus/
+	$(call BUILD,$(HERE)/build_arivus_glb_pack.py)
+
 # These consumers share base build files or read the base ZIP. Order them when
 # both goals are requested, but don't rebuild an existing base for `make heads`.
 ifneq ($(filter all build,$(MAKECMDGOALS)),)
@@ -88,7 +91,7 @@ ifneq ($(filter all heads,$(MAKECMDGOALS)),)
 hila: heads
 endif
 
-all: build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus  ## every tracked pack
+all: build busty lawson honokodae honokodae_head christie cloverchristie heads hila voices_stream voices_geralt voices_arivus glb  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

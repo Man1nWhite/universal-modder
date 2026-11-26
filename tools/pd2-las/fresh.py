@@ -60,6 +60,8 @@ BUILDERS = {
     # Reads dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip for its head, so
     # it runs after `hila`. `--only` keeps the OfficeSuite body pack out of it.
     "honokodae_head": ["tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"],
+    # Reads the tracked Arivus head pack, so it runs after `heads`.
+    "glb": ["tools/pd2-las/build_arivus_glb_pack.py"],
 }
 
 _NO_512 = "X86_V4 AVX512_ICL AVX512_SPR"

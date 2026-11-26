@@ -62,4 +62,9 @@ one place a compiled unit leaves this tree in a form Blender, three.js or a phon
 Its conventions — metres/y-up, the UV flip, global RenderAtom indices, DXT5nm → tangent-space RGB,
 `ALPHA_MASKED` → `alphaMode: MASK`, and the bind-pose skin whose matrices compose to the identity —
 are pinned by `tests/test_model_to_glb.py` on a synthetic unit, so the test needs no game asset.
-The output derives from game bytes: it goes under `build/`, never into `dist/` or Git.
+The output derives from game bytes and may be committed at the owner's call (D74). The tracked
+`dist/Arivus/Arivus_Head_over_Old_Hoxton_GLB.zip` is exactly this: `make -sC tools/pd2-las glb`
+runs `tools/pd2-las/build_arivus_glb_pack.py`, which exports the head and its five `.dds` from the
+tracked `Arivus_over_Hoxton.zip` with `model_to_glb.py`, writes a reproducible zip and its `.sha256`,
+and `tests/test_arivus_glb_pack.py` pins the members to the source pack's bytes. Ad-hoc exports still
+default to `build/`.

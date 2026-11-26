@@ -996,7 +996,7 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   under "What you ship" in `AGENTS.md` and in the skills are upstream's, for game files an agent extracts
   while modding any game; they stay. Publishing is still asked of the owner first, like any publishing.
 - **Source:** the user, 2026-11-13; `docs/audits/2026-11-13-agent-entry.md`
-- **Status:** holds.
+- **Status:** holds on redistribution; the "What you ship" rules it left in place were repealed by D74.
 
 ### D33 — What is stale is deleted, not kept for later
 
@@ -1913,3 +1913,23 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   [`docs/pd2-las/in-game-checklist.md`](in-game-checklist.md) are still the user's call. Known and
   left alone: the hair cards' triangular shading and the hair mesh's alpha hairline are geometry,
   and this pack changes texture and neck fit only.
+
+
+### D74 — Game-derived exports may be committed
+
+- **Decided:** 2026-11-26, by the user ("Change the repo's rule about committing game-derived exports")
+- **Decision:** game-derived assets and exports may be committed anywhere in this repo at the
+  owner's call. `AGENTS.md`'s "What you ship" and `CONTRIBUTING.md`'s "No game content" hard rule
+  were rewritten, the mirrored skill docs, `knowledge/README.md` and the `um publish check` lint
+  follow, and D32's note that those rules stay is superseded. Decompiled code, secrets, links to
+  pirated copies and the ownership/anti-cheat rules are unchanged. The first shipped export is
+  `Arivus_Head_over_Old_Hoxton_GLB.zip`: a tracked, checksummed pack with a deterministic builder
+  and its own make target, not loose ignored files.
+- **Why:** the owner decided that a self-imposed hygiene rule should not keep a requested
+  deliverable out of the repository. The rule was a convention of this fork, not a property of the
+  assets; D32 had already removed every redistribution restriction from the packs. Provenance is
+  kept instead of a prohibition: the pack names its source, the manifest records per-file digests,
+  and `um publish check --game` reports game-derived files as `INFO`.
+- **Source:** `tools/pd2-las/build_arivus_glb_pack.py`, `tests/test_arivus_glb_pack.py`,
+  `AGENTS.md`, `CONTRIBUTING.md`, `tools/README.md`.
+- **Status:** holds; publishing outside the repo is still asked of the owner first.

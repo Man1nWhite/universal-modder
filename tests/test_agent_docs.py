@@ -30,8 +30,9 @@ OTHER_DOCS = ["CONTRIBUTING.md", "references/README.md"]
 START_BUDGET = 5000
 #: bytes of `make status`, one JSON object an agent reads whole. Pack names come from
 #: `status.pack_names()`; this budget leaves room for the next entry rather than quoting a count.
-#: The two character VO packs (Geralt/Rust and Arivus/Hoxton) added two more entries.
-STATUS_BUDGET = 2920
+#: The two character VO packs (Geralt/Rust and Arivus/Hoxton) and the Arivus GLB export
+#: each added an entry; this still leaves room for the next one.
+STATUS_BUDGET = 3100
 
 
 def _status():

@@ -67,7 +67,7 @@ um kb pr knowledge/games/<game>/<note>.md --yes    # branch, commit, push (fork 
   - code blocks over 150 lines (link your repo instead);
   - oversized images (keep media under `media/`, under 1.5 MB).
 - **Never include:**
-  - game files or extracted assets;
+  - uncredited game-derived assets (name the source when the owner ships them);
   - decompiled code dumps;
   - leaked code, SDKs, builds or license keys (what you learned from them, in your own words, is fine);
   - anything that cheats other players or bypasses anti-cheat, DRM or ownership checks (every game is in

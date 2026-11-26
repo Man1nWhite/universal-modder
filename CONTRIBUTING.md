@@ -33,7 +33,8 @@ genre or theme. Engine internals, memory offsets and signatures are fine for any
 rules below.
 
 ## Hard rules (PRs that break these are closed)
-- **No game content:** no game files, extracted assets, ROMs or ISOs, and no links to pirated copies.
+- **Game content:** game files and extracted assets may be committed at the owner's call; name the
+  source and keep credits. No links to pirated copies.
 - **No decompiled code dumps.** Describe the logic in your own words and name symbols; keep snippets of
   *your own* code short (`um kb check` fails blocks over 150 lines and warns over 60).
 - **Leaks:** knowledge from beta builds and leaked SDKs or source is fine to write up in your own words, and
