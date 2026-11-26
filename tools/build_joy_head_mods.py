@@ -1,24 +1,19 @@
 #!/usr/bin/env python3
-"""Build PAYDAY 2 `mod_overrides` head-replacement mods over Joy, Clover, Bonnie, Sydney, Hila, and Rust (11 packs):
+"""Build PAYDAY 2 `mod_overrides` head-replacement mods (4 packs).
 
-1. Joy (`npc_criminals_joy_1`):
-   - `dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance/Miranda_Romance_over_Joy.zip` (+ `.sha256`)
-2. Clover (`npc_criminal_female_1` + Safe House `npc_criminal_female_chill`):
-   - `dist/Miranda_L4D2/Miranda_L4D2_over_Clover.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance/Miranda_Romance_over_Clover.zip` (+ `.sha256`)
-3. Bonnie (`npc_criminal_bonnie` + Safe House `npc_criminal_bonnie_chill`):
-   - `dist/Miranda_L4D2/Miranda_L4D2_over_Bonnie.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance/Miranda_Romance_over_Bonnie.zip` (+ `.sha256`)
-4. Sydney (`npc_criminals_fem_3` / `npc_criminal_sydney`):
-   - `dist/Miranda_L4D2/Miranda_L4D2_over_Sydney.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance/Miranda_Romance_over_Sydney.zip` (+ `.sha256`)
-5. Hila (`npc_criminals_ecp_female`, from `references/npc_criminals_ecp_female.7z`; no Safe House unit):
-   - `dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip` (+ `.sha256`)
-   - `dist/Miranda_Romance/Miranda_Romance_over_Hila.zip` (+ `.sha256`)
+The head geometry, atlases, and portrait icons these packs share are assembled
+once per Miranda base (`Miranda_L4D2_LAS.zip`, `Miranda_Romance_LAS.zip`); the
+over Joy/Clover/Bonnie/Sydney variants that the same code used to emit are
+retired, so each base now writes only its over Hila pack.
+
+1. Hila (`npc_criminals_ecp_female`, from `references/npc_criminals_ecp_female.7z`; no Safe House unit):
+   - `dist/Miranda/Miranda_L4D2_over_Hila.zip` (+ `.sha256`)
+   - `dist/Miranda/Miranda_Romance_over_Hila.zip` (+ `.sha256`)
    These two are the only Miranda packs whose eye quadrant is the user's `references/EYE_Diff.png`.
-6. Rust (`npc_criminals_punk` + Safe House `npc_criminal_punk_chill`, from `references/Geralt.7z`):
+2. Rust (`npc_criminals_punk` + Safe House `npc_criminal_punk_chill`, from `references/Geralt.7z`):
    - `dist/Geralt/Geralt_over_Rust.zip` (+ `.sha256`)
+3. Old Hoxton (`npc_criminals_suit_1`, from `references/Arivus.7z` + the game's suit unit):
+   - `dist/Arivus/Arivus_over_Hoxton.zip` (+ `.sha256`)
 
 All packages use fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
 """
@@ -1698,180 +1693,6 @@ def write_deterministic_zip(files: dict[str, bytes], out_zip_paths: list[Path]) 
         print(f"Wrote {zp} ({len(raw):,} bytes, sha256={sha[:16]}…)")
 
 
-def _emit_female_heister_packages(
-    variant_tag: str,
-    packed_suit_head: dict,
-    head_df_dds: bytes,
-    head_nm_dds: bytes,
-    sec_df_dds: bytes,
-    sec_op_dds: bytes,
-    sec_nm_dds: bytes,
-    icon_dds: bytes,
-    is_romance: bool,
-) -> None:
-    """Package Clover, Bonnie, and Sydney mod_overrides zips from Heister - FPS Gloves in TPS 2.zip."""
-    fps_zip = ROOT / "references" / "Heister - FPS Gloves in TPS 2.zip"
-    if not fps_zip.exists():
-        return
-
-    with zipfile.ZipFile(fps_zip) as zf:
-        # 1. Clover (npc_criminal_female_1 + Safe House chill)
-        clover_hair_objs = [
-            "g_hair_cloth1",
-            "g_hair_cloth2",
-            "g_hair_cloth3",
-            "g_hair_mask_cloth1",
-            "g_hair_mask_cloth2",
-            "g_hair_mask_cloth3",
-        ]
-        clover_heist_model = patch_female_heister_model(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/npc_criminal_female_1.model"),
-            head_drawables=["g_head_fem1"],
-            collapse_drawables=clover_hair_objs,
-            head_mat_name="mtr_head",
-            hair_mat_name="mtr_hair_1",
-            packed_head=packed_suit_head,
-        )
-        clover_chill_model = patch_female_heister_model(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/npc_criminal_female_chill.model"),
-            head_drawables=["g_head_fem1"],
-            collapse_drawables=["g_hair_cloth1", "g_hair_cloth2", "g_hair_cloth3"],
-            head_mat_name="mtr_head",
-            hair_mat_name="mtr_hair_1",
-            packed_head=packed_suit_head,
-        )
-        clover_obj = disable_objects_in_xml(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/npc_criminal_female_1.object"),
-            clover_hair_objs,
-        )
-        clover_menu_obj = disable_objects_in_xml(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/npc_criminal_female_1_menu.object"),
-            clover_hair_objs,
-        )
-        clover_mtr = patch_clover_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/mtr_fem1.material_config")
-        )
-        clover_mtr_cc = patch_clover_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CLOVER_UNIT_DIR}/mtr_fem1_cc.material_config")
-        )
-        clover_chill_mtr = patch_clover_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_fem1.material_config")
-        )
-        clover_prefix = f"Miranda {variant_tag} over Clover"
-        clover_files = {
-            f"{clover_prefix}/{CLOVER_ICON_PATH}": icon_dds,
-            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1.model": clover_heist_model,
-            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1_menu.model": clover_heist_model,
-            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1.object": clover_obj,
-            f"{clover_prefix}/{CLOVER_UNIT_DIR}/npc_criminal_female_1_menu.object": clover_menu_obj,
-            f"{clover_prefix}/{CLOVER_UNIT_DIR}/mtr_fem1.material_config": clover_mtr,
-            f"{clover_prefix}/{CLOVER_UNIT_DIR}/mtr_fem1_cc.material_config": clover_mtr_cc,
-            f"{clover_prefix}/{CHILL_UNIT_DIR}/npc_criminal_female_chill.model": clover_chill_model,
-            f"{clover_prefix}/{CHILL_UNIT_DIR}/mtr_fem1.material_config": clover_chill_mtr,
-            f"{clover_prefix}/{CLOVER_TEX_DIR}/clover_head_df.texture": head_df_dds,
-            f"{clover_prefix}/{CLOVER_TEX_DIR}/clover_head_nm.texture": head_nm_dds,
-            f"{clover_prefix}/{CLOVER_TEX_DIR}/npc_criminal_female_1_hair_df.texture": sec_df_dds,
-            f"{clover_prefix}/{CLOVER_TEX_DIR}/npc_female_hair_1_op.texture": sec_op_dds,
-        }
-        write_deterministic_zip(clover_files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Clover.zip")])
-
-        # 2. Bonnie (npc_criminal_bonnie + Safe House chill)
-        bonnie_heist_model = patch_female_heister_model(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/npc_criminal_bonnie.model"),
-            head_drawables=["g_head", "g_head_mask_on"],
-            collapse_drawables=[],
-            head_mat_name="mtr_head",
-            hair_mat_name="mtr_hair",
-            packed_head=packed_suit_head,
-        )
-        bonnie_chill_model = patch_female_heister_model(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/npc_criminal_bonnie_chill.model"),
-            head_drawables=["g_head"],
-            collapse_drawables=[],
-            head_mat_name="mtr_head",
-            hair_mat_name="mtr_hair",
-            packed_head=packed_suit_head,
-        )
-        bonnie_alpha = "0.30" if is_romance else "0.05"
-        bonnie_mtr = patch_bonnie_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/mtr_bonnie.material_config"), bonnie_alpha
-        )
-        bonnie_mtr_cc = patch_bonnie_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/mtr_bonnie_cc.material_config"), bonnie_alpha
-        )
-        bonnie_chill_mtr = patch_bonnie_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_bonnie.material_config"), bonnie_alpha
-        )
-        bonnie_prefix = f"Miranda {variant_tag} over Bonnie"
-        bonnie_files = {
-            f"{bonnie_prefix}/{BONNIE_ICON_PATH}": icon_dds,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie.model": bonnie_heist_model,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_menu.model": bonnie_heist_model,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie.object": zf.read(
-                f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/npc_criminal_bonnie.object"
-            ),
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_menu.object": zf.read(
-                f"{FPS_GLOVES_ZIP_PREFIX}{BONNIE_UNIT_DIR}/npc_criminal_bonnie_menu.object"
-            ),
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/mtr_bonnie.material_config": bonnie_mtr,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/mtr_bonnie_cc.material_config": bonnie_mtr_cc,
-            f"{bonnie_prefix}/{CHILL_UNIT_DIR}/npc_criminal_bonnie_chill.model": bonnie_chill_model,
-            f"{bonnie_prefix}/{CHILL_UNIT_DIR}/mtr_bonnie.material_config": bonnie_chill_mtr,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_head_df.texture": head_df_dds,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_head_nm.texture": head_nm_dds,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_hair_df.texture": sec_df_dds,
-            f"{bonnie_prefix}/{BONNIE_UNIT_DIR}/npc_criminal_bonnie_hair_nm.texture": sec_nm_dds,
-        }
-        write_deterministic_zip(bonnie_files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Bonnie.zip")])
-
-        # 3. Sydney (npc_criminals_fem_3 / npc_criminal_sydney)
-        sydney_hair_objs = ["g_hair_mask_off", "g_hair_mask_on"]
-        sydney_heist_model = patch_female_heister_model(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/npc_criminal_sydney.model"),
-            head_drawables=["g_head"],
-            collapse_drawables=sydney_hair_objs,
-            head_mat_name="mtr_head",
-            hair_mat_name="mtr_hair",
-            packed_head=packed_suit_head,
-        )
-        sydney_obj = disable_objects_in_xml(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/npc_criminal_sydney.object"),
-            sydney_hair_objs,
-        )
-        sydney_menu_obj = disable_objects_in_xml(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/npc_criminal_sydney_menu.object"),
-            sydney_hair_objs,
-        )
-        sydney_mtr = patch_sydney_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/mtr_criminal_sydney.material_config"),
-            alpha_masked=is_romance,
-        )
-        sydney_mtr_cc = patch_sydney_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{SYDNEY_UNIT_DIR}/mtr_criminal_sydney_cc.material_config"),
-            alpha_masked=is_romance,
-        )
-        sydney_chill_mtr = patch_sydney_material_config(
-            zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_criminal_sydney.material_config"),
-            alpha_masked=is_romance,
-        )
-        sydney_prefix = f"Miranda {variant_tag} over Sydney"
-        sydney_files = {
-            f"{sydney_prefix}/{SYDNEY_ICON_PATH}": icon_dds,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney.model": sydney_heist_model,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney_menu.model": sydney_heist_model,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney.object": sydney_obj,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_sydney_menu.object": sydney_menu_obj,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/mtr_criminal_sydney.material_config": sydney_mtr,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/mtr_criminal_sydney_cc.material_config": sydney_mtr_cc,
-            f"{sydney_prefix}/{CHILL_UNIT_DIR}/mtr_criminal_sydney.material_config": sydney_chill_mtr,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_head_df.texture": head_df_dds,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_head_nm.texture": head_nm_dds,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_hair_df.texture": sec_df_dds,
-            f"{sydney_prefix}/{SYDNEY_UNIT_DIR}/npc_criminal_fem_3_hair_nm.texture": sec_nm_dds,
-        }
-        write_deterministic_zip(sydney_files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Sydney.zip")])
-
-
 def _emit_hila_packages(
     variant_tag: str,
     packed_suit_head: dict,
@@ -1928,7 +1749,11 @@ def _emit_hila_packages(
 
 
 def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path], sec_nm_dds: bytes) -> None:
-    """Build Version 1 (L4D2 Miranda) over Joy, Clover, Bonnie, and Sydney."""
+    """Build Version 1 (L4D2 Miranda) head textures and emit the over Hila pack.
+
+    The over Joy/Clover/Bonnie/Sydney variants were retired in the dist clean-up;
+    the shared head assembly still feeds ``_emit_hila_packages``.
+    """
     with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
         face_df_im = Image.open(io.BytesIO(zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda_face_df.texture"))).convert("RGBA")
@@ -2107,18 +1932,6 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
     }
     write_deterministic_zip(files, out_zip_paths)
 
-    _emit_female_heister_packages(
-        variant_tag="L4D2",
-        packed_suit_head=packed_suit_head,
-        head_df_dds=head_df_dds,
-        head_nm_dds=head_nm_dds,
-        sec_df_dds=eyes_df_dds,
-        sec_op_dds=lashes_op_dds,
-        sec_nm_dds=sec_nm_dds,
-        icon_dds=icon_dds,
-        is_romance=True,
-    )
-
     hila_atlas_df = atlas_df.copy()
     hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
     _emit_hila_packages(
@@ -2133,7 +1946,11 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
 
 
 def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path], sec_nm_dds: bytes) -> None:
-    """Build Version 2 (ME2 Romance Miranda) over Joy, Clover, Bonnie, and Sydney."""
+    """Build Version 2 (ME2 Romance Miranda) head textures and emit the over Hila pack.
+
+    The over Joy/Clover/Bonnie/Sydney variants were retired in the dist clean-up;
+    the shared head assembly still feeds ``_emit_hila_packages``.
+    """
     with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
     pm_mir = dm.ModelFile.read(mir_bytes)
@@ -2368,18 +2185,6 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
         f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_op.texture": lashes_op_dds,
     }
     write_deterministic_zip(files, out_zip_paths)
-
-    _emit_female_heister_packages(
-        variant_tag="Romance",
-        packed_suit_head=packed_suit_head,
-        head_df_dds=head_df_dds,
-        head_nm_dds=head_nm_dds,
-        sec_df_dds=eyes_df_dds,
-        sec_op_dds=lashes_op_dds,
-        sec_nm_dds=sec_nm_dds,
-        icon_dds=icon_dds,
-        is_romance=True,
-    )
 
     hila_atlas_df = match_romance_hila_skin_to_honoka(atlas_df)
     hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
@@ -3106,18 +2911,10 @@ def main() -> None:
     flat_nm[:, :] = [255, 128, 0, 128]
     sec_nm_dds = encode_rgba_dds(flat_nm)
 
-    build_l4d2_joy_mod(
-        ada_root,
-        me2_dir,
-        [dist_path(ROOT, "Miranda_L4D2_over_Joy.zip")],
-        sec_nm_dds=sec_nm_dds,
-    )
-    build_me2_romance_joy_mod(
-        ada_root,
-        me2_dir,
-        [dist_path(ROOT, "Miranda_Romance_over_Joy.zip")],
-        sec_nm_dds=sec_nm_dds,
-    )
+    # The over Joy pack is retired: an empty output list keeps the shared head
+    # assembly (which feeds the over Hila pack) without writing a Joy zip.
+    build_l4d2_joy_mod(ada_root, me2_dir, [], sec_nm_dds=sec_nm_dds)
+    build_me2_romance_joy_mod(ada_root, me2_dir, [], sec_nm_dds=sec_nm_dds)
     build_geralt_rust_mod(
         ada_root,
         geralt_root,

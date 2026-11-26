@@ -63,7 +63,7 @@ def fresh_builder(fresh_checkout, tmp_path_factory, monkeypatch):
     from pack_checksum import write_checksum
 
     fresh, root = fresh_checkout
-    built_rel = Path("dist/Christie/Christie_Clover_LAS.zip")
+    built_rel = Path("dist/Miranda/Miranda_L4D2_over_Hila.zip")
     dep_rel = Path("dist/Miranda_L4D2/Miranda_L4D2_LAS.zip")
     for rel in (built_rel, dep_rel):
         pack = root / rel
@@ -71,7 +71,7 @@ def fresh_builder(fresh_checkout, tmp_path_factory, monkeypatch):
         pack.write_bytes(b"zip output from input")
         write_checksum(pack, root=root)
     builder = root / "builder.py"
-    monkeypatch.setitem(fresh.BUILDERS, "cloverchristie", [builder.name])
+    monkeypatch.setitem(fresh.BUILDERS, "heads", [builder.name])
     # Shared unit folder is not inside the checkout and has no managed stamp.
     external = tmp_path_factory.mktemp("shared templates")
     for name in fresh.extract_2b.TEMPLATE_FILES:
@@ -84,7 +84,7 @@ def fresh_builder(fresh_checkout, tmp_path_factory, monkeypatch):
 def test_fresh_check_will_not_credit_a_noop_builder(fresh_builder, capsys):
     fresh, root, builder, output, _, _ = fresh_builder
     builder.write_text("print('done without making anything')\n")
-    assert fresh.main(["check", "--builders", "cloverchristie"]) == 2
+    assert fresh.main(["check", "--builders", "heads"]) == 2
     assert f"did not produce: {output.as_posix()}" in capsys.readouterr().out
     assert (root / output).read_bytes() == b"zip output from input"
 
@@ -94,7 +94,7 @@ def test_fresh_checks_original_bytes_before_even_running_the_builder(fresh_build
     builder.write_text("raise AssertionError('builder must not run against a corrupt original')\n")
     (root / output).write_bytes(b"corrupt bytes")
     with pytest.raises(SystemExit, match="original distribution: .*ZIP does not match its checksum"):
-        fresh.main(["check", "--builders", "cloverchristie"])
+        fresh.main(["check", "--builders", "heads"])
     assert not (root / "build/fresh/tree").exists()
 
 
@@ -113,7 +113,7 @@ raw = Path({dependency.as_posix()!r}).read_bytes()
 out.write_bytes(raw)
 sidecar.write_text(f'{{hashlib.sha256(raw).hexdigest()}}  {{out.as_posix()}}\\n')
 """)
-    assert fresh.main(["check", "--builders", "cloverchristie"]) == 0
+    assert fresh.main(["check", "--builders", "heads"]) == 0
     log = capsys.readouterr().out
     assert "1 of 1 tracked zips are the tracked bytes after a fresh build" in log
     assert dependency.as_posix() not in log

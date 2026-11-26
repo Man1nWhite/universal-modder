@@ -42,7 +42,6 @@ HERE = REPO / "tools" / "pd2-las"
 sys.path.insert(0, str(HERE))
 
 import build_las  # noqa: E402  (the paths of the source models inside the VPK)
-import bust_variant  # noqa: E402  (the chest region the variant declares)
 import diesel_model as dm  # noqa: E402
 from extract_2b import MISSING, TEMPLATES  # noqa: E402
 from source_model import load_model  # noqa: E402
@@ -61,9 +60,6 @@ def _status():
 #: holds it to each pack's BUILD_INFO.json and to the list `status.py` reports on.
 ITEMS = {
     "Miranda_LAS": "miranda",
-    "Miranda_Busty_LAS": "miranda_busty",
-    "Christie_LAS": "christie",
-    "Christie_Clover_LAS": "clover_christie",
     "OfficeSuite": "officesuite",
     "OfficeSuite_Head": "officesuite_head",
 }
@@ -182,8 +178,6 @@ def _model(pack: str, stem: str) -> Model:
 
 def _stems(pack: str) -> tuple:
     """The models of a pack: third person, plus first person when the pack ships one."""
-    if pack == "Christie_Clover_LAS":
-        return (ITEMS[pack],)
     return (ITEMS[pack], f"fps_{ITEMS[pack]}")
 
 
@@ -314,9 +308,9 @@ def test_units_are_centimetres_at_the_scale_of_the_rig(pack, stem):
     A mesh still in inches fails 2, 3 and 4. One that was only multiplied by 2.54
     fails 4, and in third person 3 as well: the source is shorter than the rig.
 
-    The Christie and Honoko packs have no check 4. They are body-only cuts of
-    their sources (no head and no authored hands), so the source's full area is
-    no measure for them.
+    The OfficeSuite packs have no check 4: they are body-only cuts of their
+    source (no head and no authored hands), so the source's full area is no
+    measure for them.
     """
     model = _model(pack, stem)
     hips, neck, head = (model.joints[name][2] for name in ("Hips", "Neck", "Head"))
@@ -327,8 +321,8 @@ def test_units_are_centimetres_at_the_scale_of_the_rig(pack, stem):
     for d in model.skinned():
         owner = d.indices[np.arange(len(d.verts)), d.weights.argmax(axis=1)]
         reach = np.linalg.norm(d.verts - d.rest[owner], axis=1)
-        # measured: at most 46.6 cm in third person (Christie's shoe, on `LeftLeg`)
-        # and 34.9 cm in first person (Christie's shoulder, on `Spine1`)
+        # measured: at most 51.6 cm in third person (the shoe, on `LeftLeg`)
+        # and 34.9 cm in first person (the shoulder, on `Spine1`)
         limit = 45.0 if model.first_person else 60.0
         assert reach.max() < limit, (
             f"{d.name}: a vertex sits {reach.max():.1f} cm from the bone it is bound to")
@@ -525,7 +519,7 @@ def test_atoms_index_global_vertices_inside_their_own_block(pack, stem):
         assert next_vertex == len(d.verts), f"{d.name}: the atoms cover {next_vertex} of {len(d.verts)} vertices"
         assert next_triangle == len(d.faces), f"{d.name}: the atoms draw {next_triangle} of {len(d.faces)} triangles"
     # the case the rule exists for: several atoms in one drawable
-    if not model.first_person or pack.startswith("Christie"):
+    if not model.first_person:
         assert max(len(d.atoms) for d in model.drawables.values()) > 1
 
 
@@ -772,7 +766,7 @@ def test_registration_follows_the_2b_contract(pack):
     """
     # Every LAS outfit pack built by tools/pd2-las; the DODB Lawson pack has its own checks.
     status = _status()
-    pack_folder = {"Miranda_L4D2_LAS": "Miranda_LAS", "Miranda_L4D2_Busty_LAS": "Miranda_Busty_LAS"}
+    pack_folder = {"Miranda_L4D2_LAS": "Miranda_LAS"}
     las = {pack_folder.get(name, name) for name, tgt in status.LAS_TARGETS.items() if tgt != "lawson"}
     assert set(ITEMS) == las, "this file no longer covers every tracked tools/pd2-las LAS pack"
     z = _zip(pack)
@@ -874,89 +868,6 @@ def test_tracked_bytes_match_their_sidecar_and_build_info(pack):
     assert "WIP_DO_NOT_INSTALL.txt" not in shipped
     for name, expected in payload.items():
         assert hashlib.sha256(z.read(f"{pack}/{name}")).hexdigest() == expected, name
-
-
-def test_variants_change_only_what_they_claim():
-    """**Variants.** The busty pack is the base pack plus the chest, and nothing else.
-
-    The same head and the same first-person arms, value for value; the same
-    textures, byte for byte; the same unit files but for the pack's own name; and a
-    body that differs from the base body only inside the region `bust_variant`
-    declares for the chest. The variant has its own menu icon, so the two can be
-    told apart in the outfit grid.
-
-    The first-person model is not the same file. The base model carries `g_head`
-    and `g_head_lod1` as disabled copies of the arms; the variant's has neither,
-    and so its `.object` is the base file without the lines of those two.
-    """
-    base, busty = "Miranda_LAS", "Miranda_Busty_LAS"
-    base_id, busty_id = ITEMS[base], ITEMS[busty]
-
-    def same(a: Drawable, b: Drawable) -> bool:
-        return (np.array_equal(a.verts, b.verts) and np.array_equal(a.normals, b.normals)
-                and a.uvs == b.uvs and np.array_equal(a.faces, b.faces)
-                and np.array_equal(a.weights, b.weights) and np.array_equal(a.indices, b.indices)
-                and a.palette == b.palette)
-
-    theirs, ours = _model(base, base_id), _model(busty, busty_id)
-    for name in ("g_head", "g_head_lod1"):
-        assert same(theirs.drawables[name], ours.drawables[name]), f"the head changed ({name})"
-    arms_base, arms = _model(base, f"fps_{base_id}"), _model(busty, f"fps_{busty_id}")
-    head_slots = {"g_head", "g_head_lod1"}
-    assert set(arms_base.drawables) - set(arms.drawables) == head_slots
-    assert set(arms.drawables) <= set(arms_base.drawables)
-    for name, d in arms.drawables.items():
-        assert same(arms_base.drawables[name], d), f"the first-person arms changed ({name})"
-
-    def key(p):
-        return (round(float(p[0]), 4), round(float(p[1]), 4), round(float(p[2]), 4))
-
-    for name in ("g_body", "s_body"):
-        before = Counter(map(key, theirs.drawables[name].verts))
-        after = Counter(map(key, ours.drawables[name].verts))
-        changed = np.array(list((before - after).elements()) + list((after - before).elements()))
-        # measured on g_body: 257 base vertices gone and 3,549 new, all within
-        # |x| 13.4, y 6.5 to 23.2 and z 132.6 to 151.0
-        assert len(changed) > 1000, f"{name}: the variant changed almost nothing"
-        assert np.abs(changed[:, 0]).max() <= bust_variant.X_ZERO + 1e-3, f"{name}: changed beside the chest"
-        assert bust_variant.BAND_LO <= changed[:, 2].min(), f"{name}: changed below the chest"
-        assert changed[:, 2].max() <= bust_variant.BAND_HI, f"{name}: changed above the chest"
-        assert changed[:, 1].min() > bust_variant.GATE_LO, f"{name}: changed behind the chest"
-
-    def chest_front(model: Model) -> float:
-        v = model.drawables["g_body"].verts
-        inside = ((np.abs(v[:, 0]) < bust_variant.X_ZERO)
-                  & (v[:, 2] > bust_variant.BAND_LO) & (v[:, 2] < bust_variant.BAND_HI))
-        return float(v[inside, 1].max())
-
-    # measured: 19.98 cm in the base pack, 23.21 cm in the variant
-    assert chest_front(ours) > chest_front(theirs) + 2.0, (chest_front(ours), chest_front(theirs))
-
-    z_base, z_busty = _zip(base), _zip(busty)
-    base_dir, busty_dir = _unit_dir(base), _unit_dir(busty)
-    textures = [n[len(base_dir) + 1:] for n in z_base.namelist()
-                if n.startswith(base_dir + "/") and n.endswith(".texture")]
-    assert len(textures) == 7
-    for name in textures:
-        twin = f"{busty_dir}/{name.replace(base_id, busty_id, 1)}"
-        assert z_busty.read(twin) == z_base.read(f"{base_dir}/{name}"), f"{name}: a texture changed"
-    for stem in ("", "fps_"):
-        for ending in (".unit", ".object", ".material_config"):
-            text = z_base.read(f"{base_dir}/{stem}{base_id}{ending}").decode()
-            twin = z_busty.read(f"{busty_dir}/{stem}{busty_id}{ending}").decode()
-            if (stem, ending) == ("fps_", ".object"):
-                lines = text.splitlines(keepends=True)
-                kept = [line for line in lines
-                        if not any(f'<object name="{slot}"' in line for slot in head_slots)]
-                assert len(kept) == len(lines) - len(head_slots), (
-                    f"fps_{base_id}.object has no line for each of {sorted(head_slots)}")
-                text = "".join(kept)
-            assert twin == text.replace(base_id, busty_id), f"{stem}{busty_id}{ending} differs"
-
-    def icon(pack, item):
-        return _zip(pack).read(f"{pack}/assets/guis/dlcs/{item}/armor_skins/{item}.texture")
-
-    assert icon(base, base_id) != icon(busty, busty_id), "the variant has the base pack's icon"
 
 
 @each_pack

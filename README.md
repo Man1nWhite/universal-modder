@@ -26,13 +26,13 @@ rebuilt by `make -sC tools/pd2-las glb`.
 
 ## Packs and previews
 
-- Browse the ZIPs and their checksum sidecars in [`dist/`](dist/): [Miranda L4D2](dist/Miranda_L4D2/),
-  [Miranda Romance](dist/Miranda_Romance/), [Christie](dist/Christie/),
-  [Honoka](dist/Honoka/), [Geralt](dist/Geralt/) and [Arivus](dist/Arivus/).
-- [OfficeSuite + Miranda Romance over Hila](dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip) is the standalone
+- Browse the ZIPs and their checksum sidecars in [`dist/`](dist/): [Miranda](dist/Miranda/),
+  [Miranda L4D2](dist/Miranda_L4D2/), [Miranda Romance](dist/Miranda_Romance/),
+  [Geralt](dist/Geralt/) and [Arivus](dist/Arivus/). The Miranda folder holds the whole-family
+  packs: both ``OfficeSuite`` bodies and the four Hila packs built on the two LAS outfits.
+- [OfficeSuite + Miranda Romance over Hila](dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip) is the standalone
   native override (no LAS); see the [install notes and preview](docs/renders/honoka/model/over-hila/README.md).
-- See the user-supplied [Christie](docs/renders/christie/in-game/2026-11-15/README.md) and
-  [OfficeSuite](docs/renders/honoka/in-game/officesuite/2026-11-15/README.md) screenshots,
+- See the user-supplied [OfficeSuite](docs/renders/honoka/in-game/officesuite/2026-11-15/README.md) screenshots,
   [all packs](docs/renders/overview/model/all_dist_mods_sheet.png),
   [Arivus over Old Hoxton](docs/renders/arivus/model/over-hoxton/README.md), the
   [older two-pack OfficeSuite and Miranda Romance preview](docs/renders/honoka/model/dae/officesuite_with_miranda_romance_over_hila_sheet.png),

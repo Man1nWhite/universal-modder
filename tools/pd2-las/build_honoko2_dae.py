@@ -26,7 +26,7 @@ export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   the 2B PD2 skeleton via `tmc_skeleton_map.json` + `build_models.retarget_maps`.
 * **One third-person BODY_ONLY LAS pack (`LegendaryArmours.officesuite`)** — the
   alternate suit and jewelry diffuses plus waist/hip/cuff fit adjustments, and a
-  deterministic `dist/Honoka/OfficeSuite.zip` + `.sha256`. `Honoko2`..`Honoko4`, the
+  deterministic `dist/Miranda/OfficeSuite.zip` + `.sha256`. `Honoko2`..`Honoko4`, the
   earlier base/slim/alternate-suit builds of this same source, are no longer tracked
   (D57); their bytes are in git history. `OfficeSuite` cuts the hands where the palms
   begin (`PackSpec.hands="palm_cut"`, D59/D60/D70): the plane is perpendicular to the palm,
@@ -73,7 +73,7 @@ from dist_paths import dist_path  # noqa: E402
 from pack_checksum import write_pack_checksum  # noqa: E402
 
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
-DEFAULT_OUT = REPO / "dist" / "Honoka"
+DEFAULT_OUT = REPO / "dist" / "Miranda"
 DEFAULT_WORK = REPO / "build" / "honoko2"
 DAE_PATH = REPO / "references" / "Honoka" / "Honoka_DOAXVV_Secret_Reportout.dae"
 SOURCE_ZIP = REPO / "references" / "Outfit for Honoka-109-1-1-1628020933.zip"
@@ -1550,7 +1550,7 @@ def main(argv=None) -> int:
     ap.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES,
                     help="directory containing 2b.model (default: where extract_2b.py unpacks it)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
-                    help="directory for the Honoko*.zip packs + .sha256 (default: dist/Honoka)")
+                    help="directory for the OfficeSuite*.zip packs + .sha256 (default: dist/Miranda)")
     ap.add_argument("--work-dir", type=Path, default=DEFAULT_WORK,
                     help="working directory for intermediate model/pack tree (default: build/honoko2)")
     ap.add_argument("--dae", type=Path, default=DAE_PATH)

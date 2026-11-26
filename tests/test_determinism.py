@@ -30,7 +30,7 @@ import fresh  # noqa: E402
 import status  # noqa: E402
 import tangents  # noqa: E402
 
-LAS_PACKS = (("Miranda_LAS", "miranda"), ("Miranda_Busty_LAS", "miranda_busty"))
+LAS_PACKS = (("Miranda_LAS", "miranda"),)
 
 #: an eight-vertex box in every first-person model, copied from fps_2b.model as it is
 TEMPLATE_BOX = 777890663
@@ -199,7 +199,7 @@ def test_tangent_frames_in_the_tracked_models_follow_from_the_file():
                         raise AssertionError(f"{pack} {name} geometry {geometry}: the frames do not follow from the file")
                     checked += 1
                     ruled += len(by_rule)
-    assert checked == 10 and ruled >= 176, (checked, ruled)  # measured on the two Miranda packs 2026-11-14 (Christie deletion)
+    assert checked == 5 and ruled >= 88, (checked, ruled)  # measured on the Miranda_LAS models 2026-11-26
 
 
 # ------------------------------------------------------------- the code path

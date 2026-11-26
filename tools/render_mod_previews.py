@@ -1027,7 +1027,7 @@ def main(argv: list[str] | None = None) -> None:
             dist_path(ROOT, "OfficeSuite.zip"), "OfficeSuite", "officesuite", has_fps=True
         )
         th_os = render_las_sheet(
-            "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
+            "dist/Miranda/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
             "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70); wrist twisted on ForeArmRoll and its cut ring centred on the glove (D75) | fps_officesuite.model | "
             "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
             tpp_os,
@@ -1037,7 +1037,7 @@ def main(argv: list[str] | None = None) -> None:
             has_head=False,
         )
         render_fps_sheet(
-            "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
+            "dist/Miranda/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
             "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm line, the bracelet on the forearm's roll",
             fps_os,
             target_for("35_OfficeSuite_fps.png"),
@@ -1047,7 +1047,7 @@ def main(argv: list[str] | None = None) -> None:
     if args.only_head:
         tpp_hd, fps_hd, icon_hd = load_head_las_parts()
         render_las_sheet(
-            "dist/Honoka/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
+            "dist/Miranda/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
             "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
             "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
             "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
@@ -1059,7 +1059,7 @@ def main(argv: list[str] | None = None) -> None:
             closeup=(18.0, 170.0, 8.0),
         )
         render_fps_sheet(
-            "dist/Honoka/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
+            "dist/Miranda/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
             "Player, three-quarter, side and top-down views, auto-framed | the whole-character unit's arms unit",
             fps_hd,
             target_for("36_OfficeSuite_Head_fps.png"),
@@ -1167,7 +1167,7 @@ def main(argv: list[str] | None = None) -> None:
         dist_path(ROOT, "OfficeSuite.zip"), "OfficeSuite", "officesuite", has_fps=True
     )
     th_os = render_las_sheet(
-        "dist/Honoka/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
+        "dist/Miranda/OfficeSuite.zip — Body-Only LAS Outfit, slim, black suit (DOAXVV Honoka Secret Report DAE)",
         "The 5% slim, cleared geometry in the user's revised third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70); wrist twisted on ForeArmRoll (D75) | First-person arms unit | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + Tex_07(L_7)3.dds + Tex_23(L_23)2.dds",
         tpp_os,
@@ -1177,7 +1177,7 @@ def main(argv: list[str] | None = None) -> None:
         has_head=False,
     )
     render_fps_sheet(
-        "dist/Honoka/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
+        "dist/Miranda/OfficeSuite.zip — First-Person Arms (fps_officesuite.model)",
         "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm line, the bracelet on the forearm's roll",
         fps_os,
         target_for("35_OfficeSuite_fps.png"),
@@ -1185,7 +1185,7 @@ def main(argv: list[str] | None = None) -> None:
 
     tpp_hd, fps_hd, icon_hd = load_head_las_parts()
     th_hd = render_las_sheet(
-        "dist/Honoka/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
+        "dist/Miranda/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
         "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
         "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
         "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
@@ -1197,7 +1197,7 @@ def main(argv: list[str] | None = None) -> None:
         closeup=(18.0, 170.0, 8.0),
     )
     render_fps_sheet(
-        "dist/Honoka/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
+        "dist/Miranda/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
         "Player, three-quarter, side and top-down views, auto-framed | the whole-character unit's arms unit",
         fps_hd,
         target_for("36_OfficeSuite_Head_fps.png"),

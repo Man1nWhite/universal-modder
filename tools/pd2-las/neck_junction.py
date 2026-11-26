@@ -1,7 +1,7 @@
 """Measure the head <-> body neck junction of a LAS body with a heister head.
 
 Body-only LAS packs replace the heister's body and keep whatever head the
-heister has, including the eleven head-replacement packs in
+heister has, including the over Hila head-replacement packs in
 `tools/build_joy_head_mods.py`. Nothing in either pack knows about the other, so
 the throat is where the two meshes have to agree on their own. This tool puts
 the body and the head in one space, ray-casts the throat from the front and from
@@ -17,8 +17,8 @@ as exposed and the trailing mesh as winning; see ``tools/pd2-las/MODLOG.md``
 (2026-11-07). Do not "fix" a comparison here without reading that entry.
 
     .venv/bin/python tools/pd2-las/neck_junction.py \\
-        --body dist/Christie/Christie_LAS.zip \\
-        --head dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip
+        --body dist/Miranda_L4D2/Miranda_L4D2_LAS.zip \\
+        --head dist/Miranda/Miranda_L4D2_over_Hila.zip
 
 Reported per head:
 
@@ -53,13 +53,10 @@ REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "pd2-port"))
 
-CHRISTIE_BODY = dist_path(REPO, "Christie_LAS.zip")
+DEFAULT_BODY = dist_path(REPO, "Miranda_L4D2_LAS.zip")
 HEADS = (
-    dist_path(REPO, "Miranda_L4D2_over_Joy.zip"),
-    dist_path(REPO, "Miranda_L4D2_over_Clover.zip"),
-    dist_path(REPO, "Miranda_L4D2_over_Bonnie.zip"),
-    dist_path(REPO, "Miranda_L4D2_over_Sydney.zip"),
     dist_path(REPO, "Miranda_L4D2_over_Hila.zip"),
+    dist_path(REPO, "Miranda_Romance_over_Hila.zip"),
 )
 
 THROAT = dict(x=(-6.0, 6.0), z=(149.0, 161.0), step=0.25)
@@ -77,9 +74,8 @@ def _body_mesh(path: Path) -> tuple[np.ndarray, np.ndarray]:
 def _head_mesh(path: Path) -> tuple[np.ndarray, np.ndarray]:
     """Vertices and triangles of the pack's head drawable.
 
-    The drawable is not always called ``g_head``: Clover's pack ships it as
-    ``g_head_fem1`` (4,402 verts / 7,109 tris, like the other seven), so the
-    name is matched as a prefix and the largest match wins - ``c_headphys*``
+    The drawable is not always called ``g_head`` on a heister unit, so the name
+    is matched as a prefix and the largest match wins - ``c_headphys*``
     collision boxes are 24-vertex cubes and lose that comparison anyway.
     """
     import diesel_model as dm
@@ -281,7 +277,7 @@ def grid_difference(a: dict, b: dict) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--body", type=Path, default=CHRISTIE_BODY)
+    ap.add_argument("--body", type=Path, default=DEFAULT_BODY)
     ap.add_argument("--head", type=Path, action="append")
     ap.add_argument("--render", type=Path, help="write a tinted composite PNG")
     ap.add_argument("--ab", type=Path, metavar="HEAD_ZIP",

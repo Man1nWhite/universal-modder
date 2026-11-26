@@ -8,6 +8,5 @@
   - [`christie_las_fps_sheet.png`](christie_las_fps_sheet.png): `fps_christie.model` alone — player
     view (`0°` yaw, `25°` down), three-quarter, side and top-down, auto-framed per view. The unit is the
     sleeves and cuff openings; the pack has no hands, so the cuffs show their open glove-adapter rims.
-- **Fit and sleeve-gloss notes:** [`docs/pd2-las/christie-fit-probe.md`](../../../../pd2-las/christie-fit-probe.md)
   — how the rig was mapped, what was cut beyond the wrist plane, and what `BUILD_INFO.json` records.
 - **Caveats:** Headless and handless LAS outfit with glove adapter; the heister's head and gloves are supplied at runtime, not shown here. Software Z-buffer rasterization with diffuse textures only; user-supplied [in-game captures](../../in-game/2026-11-15/README.md) are separate; installed bytes are not hash-verified (`runtime_verified: false`).

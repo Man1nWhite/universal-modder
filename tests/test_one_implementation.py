@@ -7,7 +7,6 @@ fails when a second copy, or the difference between the copies, comes back.
 from __future__ import annotations
 
 import ast
-import json
 import re
 import sys
 import zipfile
@@ -95,8 +94,6 @@ WRITERS = [
     LAS / "las_pack.py",
     LAS / "las_outfit_pack.py",
     LAS / "build_honoko2_dae.py",
-    LAS / "build_christie_source.py",
-    LAS / "build_clover_christie.py",
     REPO / "tools" / "build_joy_head_mods.py",
     REPO / "tools" / "build_hila_body_mod.py",
 ]
@@ -118,42 +115,11 @@ def _pack(name: str) -> dict:
 
 
 def _registrations() -> dict:
-    """All eight tools/pd2-las LAS packs, each as its own builder describes it to the one writer."""
-    import build_christie_source
-    import build_clover_christie
+    """Every tools/pd2-las LAS pack, each as its own builder describes it to the one writer."""
     import build_honoko2_dae
-    import las_outfit_pack as lop
     import las_pack
 
-    strings = json.loads(next(data for member, data in _pack("Miranda_Busty_LAS").items() if member.endswith("english.txt")))
-    busty = las_pack.PackIdentity("miranda_busty", strings["bm_askn_miranda_busty"], strings["bm_askn_miranda_busty_desc"],
-                                  pack_dir_name="Miranda_Busty_LAS")
-    christie = lop.Registration(
-        item_id=build_christie_source.ITEM,
-        display_name="Christie (DOA5)",
-        description="Christie outfit without head or hands; use your heister head and gloves.",
-        unit=f"{build_christie_source.UNIT_DIR}/christie",
-        fps_unit=f"{build_christie_source.UNIT_DIR}/fps_christie",
-        flags=lop.BODY_ONLY,
-        glove_adapter=True,
-        pairs=tuple(f"{build_christie_source.UNIT_DIR}/{build_christie_source.ITEM}_{role}"
-                    for role in build_christie_source.ROLES.values()),
-    )
-    clover_christie = lop.Registration(
-        item_id=build_clover_christie.ITEM,
-        display_name="Christie (Clover)",
-        description="Christie outfit, without head or hands. Experimental; not tested in game.",
-        unit=f"{build_clover_christie.UNIT}/{build_clover_christie.ITEM}",
-        flags=lop.BODY_ONLY,
-        glove_adapter=True,
-        pairs=tuple(f"{build_clover_christie.UNIT}/{slot}" for slot in build_clover_christie.SLOTS.values()),
-    )
-    out = {
-        "Miranda_LAS": las_pack.registration(),
-        "Miranda_Busty_LAS": las_pack.registration(busty),
-        "Christie_LAS": christie,
-        "Christie_Clover_LAS": clover_christie,
-    }
+    out = {"Miranda_LAS": las_pack.registration()}
     for spec in build_honoko2_dae.PACKS:
         out[spec.pack_dir] = build_honoko2_dae.registration(spec)
     return out
@@ -162,8 +128,8 @@ def _registrations() -> dict:
 def test_the_registration_files_have_one_writer():
     """main.xml, the hook, the strings, the unit file, the glove adapter and the zip are written in one place.
 
-    las_pack.py, las_outfit_pack.py, build_honoko2_dae.py, build_christie_source.py,
-    and build_joy_head_mods.py all route through las_outfit_pack.py for main.xml,
+    las_pack.py, las_outfit_pack.py, build_honoko2_dae.py and build_joy_head_mods.py
+    all route through las_outfit_pack.py for main.xml,
     hook Lua, localization strings, unit XML, the glove adapter, and deterministic zipping.
     (tools/pd2-port/build_las_pack.py writes Miranda_Romance_LAS in another layout and
     stays apart: docs/audits/2026-11-12-tool-merge.md.)
@@ -194,9 +160,9 @@ def test_that_writer_gives_each_tracked_pack_its_files():
         for unit in units:
             assert writer.render_unit_xml(unit) == text(f"/{unit.rsplit('/', 1)[-1]}.unit"), (name, unit)
         if told.glove_adapter:
-            label = name if name in ("Christie_LAS", "Christie_Clover_LAS") else told.display_name
+            label = told.display_name
             assert writer.render_glove_adapter_lua(told.item_id, label) == text(f"/hooks/{told.item_id}_glove_adapter.lua"), name
-    for name in ("Miranda_LAS", "Christie_LAS", "Christie_Clover_LAS", "OfficeSuite", "Miranda_L4D2_over_Joy",
+    for name in ("Miranda_LAS", "OfficeSuite", "Miranda_L4D2_over_Hila",
                  "OfficeSuite_Miranda_Romance_over_Hila"):
         assert writer.zip_bytes(_pack(name).items()) == (dist_path(REPO, f"{name}.zip")).read_bytes(), name
 

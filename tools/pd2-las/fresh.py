@@ -42,22 +42,19 @@ from pack_checksum import distribution_zips, sha256_file, verify_checksum  # noq
 from status import target as make_target  # noqa: E402
 import trace_run  # noqa: E402
 
-#: What builds the tracked packs, in dependency order. Miranda and busty share
-#: a texture staging directory; the head packs consume the base Miranda ZIP.
+#: What builds the tracked packs, in dependency order. The builders share a
+#: texture staging directory; the head packs consume the base Miranda ZIP.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
-    "busty": ["tools/pd2-las/build_busty_variant.py"],
     "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
-    "christie": ["tools/pd2-las/build_christie_source.py"],
-    "cloverchristie": ["tools/pd2-las/build_clover_christie.py"],
     "hila": ["tools/build_hila_body_mod.py"],
     "voices_stream": ["tools/build_hila_stream_mod.py"],
     # One pack per purpose-authored bark set, same id-keyed route as voices_stream.
     "voices_geralt": ["tools/build_character_stream_mod.py", "--pack", "geralt-rust"],
     "voices_arivus": ["tools/build_character_stream_mod.py", "--pack", "arivus-old-hoxton"],
-    # Reads dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip for its head, so
+    # Reads dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip for its head, so
     # it runs after `hila`. `--only` keeps the OfficeSuite body pack out of it.
     "honokodae_head": ["tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"],
     # Reads the tracked Arivus head pack, so it runs after `heads`.

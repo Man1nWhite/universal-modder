@@ -63,7 +63,6 @@ ALLOWED: dict[str, int] = {
     # must be 0. Every test that needs the 2B templates skips with
     # tools/pd2-las/extract_2b.MISSING; any other wording is unbudgeted and fails.
     "2B templates not extracted": 0,
-    "Christie_LAS.zip is not in dist/ in this checkout": 0,
     "Tokoyami Hila reference archive is absent": 1,
 }
 

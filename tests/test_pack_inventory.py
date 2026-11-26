@@ -25,8 +25,7 @@ def test_every_pack_inventory_agrees_with_status_pack_names():
     # The invariant suite keys internal asset folders, not public ZIP names.
     internal_to_public = {
         "Miranda_LAS": "Miranda_L4D2_LAS",
-        "Miranda_Busty_LAS": "Miranda_L4D2_Busty_LAS",
-        **{name: name for name in ITEMS if name not in {"Miranda_LAS", "Miranda_Busty_LAS"}},
+        **{name: name for name in ITEMS if name != "Miranda_LAS"},
     }
     expected_las = set(LAS_TARGETS) - {"Miranda_Romance_LAS"}
     assert set(internal_to_public.values()) == expected_las

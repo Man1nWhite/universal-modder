@@ -18,7 +18,7 @@ keeps as Wwise Vorbis, which only a Wwise encoder could write - see
 2026-11-25, whose best clip scored below semantic fit 8 with no take in either
 archive; see ``removed_slots.csv``).
 
-    python tools/build_hila_stream_mod.py            # dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip
+    python tools/build_hila_stream_mod.py            # dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip
     python tools/build_hila_stream_mod.py --out build/hila_stream.zip
 """
 from __future__ import annotations
@@ -44,7 +44,7 @@ INSTALL = "Miranda Lawson VO over Hila Stream"
 CUTS = ROOT / "voice_lines_vox/miranda_lawson/hila_intent_cuts.csv"
 PICKS = ROOT / "voice_lines_vox/miranda_lawson/slot_picks.csv"
 VORBIS = ROOT / "voice_lines_vox/miranda_lawson/hila_vorbis_ids.csv"
-DEFAULT_OUT = ROOT / "dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip"
+DEFAULT_OUT = ROOT / "dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip"
 BANK = "soundbanks/streamed/regular_vox"
 ZIP_DATE = (2026, 11, 25, 0, 0, 0)
 

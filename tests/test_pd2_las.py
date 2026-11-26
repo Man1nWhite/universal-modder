@@ -900,7 +900,7 @@ class TestLasScaffold:
         with pytest.raises(ValueError, match="g_body"):
             render_object_xml(base, True, ["g_body_lod1", "s_body"])
 
-    @pytest.mark.parametrize("pack_name", ["Miranda_LAS", "Miranda_Busty_LAS"])
+    @pytest.mark.parametrize("pack_name", ["Miranda_LAS"])
     def test_install_models_writes_each_object_from_its_model(self, tmp_path, pack_name):
         """The step both Miranda builders end on, run on the tracked models.
 
@@ -1012,84 +1012,11 @@ class TestLasScaffold:
                 actual = hashlib.sha256(z.read(f"Miranda_LAS/{rel}")).hexdigest()
                 assert actual == expected, rel
 
-    def test_tracked_joy_head_replacement_packs(self):
-        """Both Joy head-replacement mod_overrides packs in dist/ are tracked and valid."""
-        import diesel_model as dm
-
-        for zip_name, prefix in (
-            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy"),
-            ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy"),
-        ):
-            zp = dist_path(REPO, zip_name)
-            sp = dist_path(REPO, f"{zip_name}.sha256")
-            assert zp.is_file(), f"missing {zp}"
-            assert sp.is_file(), f"missing {sp}"
-            raw = zp.read_bytes()
-            assert sp.read_text().split()[0] == hashlib.sha256(raw).hexdigest()
-            unit_dir = f"{prefix}/units/pd2_dlc_joy/characters/npc_criminals_joy_1"
-            icon_path = f"{prefix}/guis/dlcs/joy/textures/pd2/blackmarket/icons/characters/joy.texture"
-            with zipfile.ZipFile(zp) as z:
-                names = set(z.namelist())
-                assert icon_path in names
-                assert len(z.read(icon_path)) == 65664
-                m_bytes = z.read(f"{unit_dir}/npc_criminal_joy_1.model")
-                assert m_bytes == z.read(f"{unit_dir}/npc_criminal_joy_1_menu.model")
-                mf = dm.ModelFile.read(m_bytes)
-                for did, gid, tid in ((120, 228, 229), (121, 233, 234)):
-                    md = dm.decode_model_data(mf.by_id(did).payload)
-                    geo = dm.decode_geometry(mf.by_id(gid).payload)
-                    topo = dm.decode_topology(mf.by_id(tid).payload)
-                    assert len(md["atoms"]) == 2
-                    assert geo["vert_count"] > 4000
-                    assert len(topo["indices"]) == sum(a["tri_count"] for a in md["atoms"]) * 3
-
-    def test_tracked_clover_bonnie_sydney_head_replacement_packs(self):
-        """Clover, Bonnie, Sydney and Hila head-replacement mod_overrides packs in dist/ are tracked and valid."""
+    def test_tracked_hila_head_replacement_packs(self):
+        """Both Hila head-replacement mod_overrides packs in dist/ are tracked and valid."""
         import diesel_model as dm
 
         specs = [
-            (
-                "Miranda_L4D2_over_Clover.zip",
-                "Miranda L4D2 over Clover",
-                "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
-                "g_head_fem1",
-                "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
-            ),
-            (
-                "Miranda_Romance_over_Clover.zip",
-                "Miranda Romance over Clover",
-                "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
-                "g_head_fem1",
-                "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
-            ),
-            (
-                "Miranda_L4D2_over_Bonnie.zip",
-                "Miranda L4D2 over Bonnie",
-                "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
-                "g_head",
-                "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
-            ),
-            (
-                "Miranda_Romance_over_Bonnie.zip",
-                "Miranda Romance over Bonnie",
-                "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
-                "g_head",
-                "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
-            ),
-            (
-                "Miranda_L4D2_over_Sydney.zip",
-                "Miranda L4D2 over Sydney",
-                "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
-                "g_head",
-                "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
-            ),
-            (
-                "Miranda_Romance_over_Sydney.zip",
-                "Miranda Romance over Sydney",
-                "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
-                "g_head",
-                "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
-            ),
             (
                 "Miranda_L4D2_over_Hila.zip",
                 "Miranda L4D2 over Hila",
@@ -1370,14 +1297,6 @@ class TestLasScaffold:
         import neck_junction as nj
 
         specs = [
-            ("Miranda_L4D2_over_Joy.zip", 4515, 7321, 142.98),
-            ("Miranda_L4D2_over_Clover.zip", 4508, 7305, 142.98),
-            ("Miranda_L4D2_over_Bonnie.zip", 4508, 7305, 142.98),
-            ("Miranda_L4D2_over_Sydney.zip", 4508, 7305, 142.98),
-            ("Miranda_Romance_over_Joy.zip", 4454, 7070, 148.90),
-            ("Miranda_Romance_over_Clover.zip", 4454, 7070, 148.90),
-            ("Miranda_Romance_over_Bonnie.zip", 4454, 7070, 148.90),
-            ("Miranda_Romance_over_Sydney.zip", 4454, 7070, 148.90),
             ("Miranda_L4D2_over_Hila.zip", 4508, 7305, 142.98),
             ("Miranda_Romance_over_Hila.zip", 4454, 7070, 148.90),
         ]
@@ -1435,10 +1354,6 @@ class TestLasScaffold:
         expected = np.minimum(face[..., 3].astype(np.float32), 18.0)
 
         specs = [
-            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture"),
-            ("Miranda_L4D2_over_Clover.zip", "Miranda L4D2 over Clover", "units/payday2/characters/shared_textures/clover_head_df.texture"),
-            ("Miranda_L4D2_over_Bonnie.zip", "Miranda L4D2 over Bonnie", "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_head_df.texture"),
-            ("Miranda_L4D2_over_Sydney.zip", "Miranda L4D2 over Sydney", "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_head_df.texture"),
             ("Miranda_L4D2_over_Hila.zip", "Miranda L4D2 over Hila", "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture"),
         ]
         for zip_name, prefix, df_rel in specs:
@@ -1463,10 +1378,6 @@ class TestLasScaffold:
         import diesel_model as dm
 
         specs = [
-            ("Miranda_L4D2_over_Joy.zip", "Miranda L4D2 over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_nm.texture", "g_head"),
-            ("Miranda_Romance_over_Joy.zip", "Miranda Romance over Joy", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture", "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_nm.texture", "g_head"),
-            ("Miranda_L4D2_over_Clover.zip", "Miranda L4D2 over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
-            ("Miranda_Romance_over_Clover.zip", "Miranda Romance over Clover", "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model", "units/payday2/characters/shared_textures/clover_head_df.texture", "units/payday2/characters/shared_textures/clover_head_nm.texture", "g_head_fem1"),
         ]
         for zip_name, prefix, model_rel, df_rel, nm_rel, head_draw in specs:
             with zipfile.ZipFile(dist_path(REPO, zip_name)) as z:
@@ -1680,8 +1591,6 @@ class TestLasScaffold:
         for zip_name, tex_suffix, uv_scale in (
             ("lawson_las.zip", "/face_df.texture", 1.0),
             ("Miranda_LAS.zip", "/miranda_face_df.texture", 1.0),
-            ("Miranda_L4D2_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
-            ("Miranda_Romance_over_Joy.zip", "/npc_criminal_joy_1_head_df.texture", 0.5),
         ):
             zp = dist_path(REPO, zip_name)
             with zipfile.ZipFile(zp) as z:
@@ -1720,10 +1629,6 @@ def test_our_packs_have_an_orthonormal_tangent_basis():
          "assets/units/miranda/skins/miranda/miranda.model"),
         ("Miranda_LAS.zip", "Miranda_LAS",
          "assets/units/miranda/skins/miranda/fps_miranda.model"),
-        ("Miranda_Busty_LAS.zip", "Miranda_Busty_LAS",
-         "assets/units/miranda_busty/skins/miranda_busty/miranda_busty.model"),
-        ("Miranda_Busty_LAS.zip", "Miranda_Busty_LAS",
-         "assets/units/miranda_busty/skins/miranda_busty/fps_miranda_busty.model"),
     ]
     for zip_name, prefix, model_rel in specs:
         zp = dist_path(REPO, zip_name)
