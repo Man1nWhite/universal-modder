@@ -40,7 +40,7 @@ channels (packed UByte4N normals/UV directions, Half2 UVs); the patched models a
 legacy container the modding ecosystem ships.
 
 
-**Supplied Arivus atlas:** `old_hoxton_head_df.dds` is the user-supplied 2048×2048 DXT5 edit of the Arivus head/hair atlas, not vanilla Hoxton UVs. `tools/build_joy_head_mods.py` preserves its base-level BC3 blocks and builds cutout-aware mips for `Arivus_over_Hoxton.zip`; the GLB export reads that pack.
+**Supplied Arivus atlas:** `old_hoxton_head_df(1).dds` is the user-supplied 2048×2048 DXT5 edit of the Arivus head/hair atlas, not vanilla Hoxton UVs, and the current build input. It retouches the first edit, `old_hoxton_head_df.dds` — same layout and alpha cutout, with softer brows, one catchlight on the iris instead of two plus a stray wedge, and small skin adjustments; the earlier bytes stay here and in git as provenance. `tools/build_joy_head_mods.py` preserves the supplied base-level BC3 blocks and builds cutout-aware mips for `Arivus_over_Hoxton.zip`; the GLB export reads that pack.
 
 **Supplied textures:** `EYE_Diff.png` — the Miranda Lawson eye diffuse (256×256 RGB: blue iris, veined sclera),
 supplied by the user on 2026-11-15, and repainted again the same day (rounder iris, 1.38x the first

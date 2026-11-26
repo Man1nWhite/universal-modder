@@ -874,3 +874,26 @@ the regression is now pinned by the thing that regressed rather than by vertex c
 rebuilt from the new source — its skin is 3 joints with no repair warning, so
 `tests/test_arivus_glb_pack.py` now asserts 3 (it asserted 4, which encoded the bug).
 Pack `c1630f56289b`, 8,543,738 B; GLB pack `534075b32a28`, 3,442,128 B.
+
+## 2026-11-26 — Arivus rebuilt with the retouched atlas
+
+**The ask.** *"I want you to rebuild Arivus with references/old_hoxton_head_df(1).dds."* The file is a
+retouch of the supplied diffuse: the same single-level 2048² BC3 layout and the same alpha cutout
+(upper half ≥ 18, hair {0, 24}), with ~118 k repainted pixels — softer, lighter brows in place of the
+thick angled ones, one catchlight on the iris instead of the two highlights and stray tan wedge that
+sat on it, and small skin adjustments along the brow, lid, nose and lip rows of the head cell. The
+outside the head cell only 100 texels moved, all on two cell seams (column 1024 rows 860–943, and
+rows 1024–1027 columns 888–891) — block-edge leftovers of the editor's re-encode, shipped as supplied.
+
+**The rebuild.** `ARIVUS_DIFFUSE` in `tools/build_joy_head_mods.py` now reads the retouch, and
+`status.py`'s INPUTS names it, so a recovered clone fetches the input the builder wants. The builder
+still ships the supplied base-level BC3 blocks byte for byte and regenerates the cutout mips and the
+HUD icon from them: `Arivus_over_Hoxton.zip` is `d5f569610d2c`, 8,546,107 B (was `c1630f56289b`,
+8,543,738 B). `make heads` reproduced the other eleven head packs byte-identical to their tracked
+bytes, so the change is Arivus alone; the GLB interchange export rebuilt from the new source pack is
+`7986f8eaef7f`, 3,443,523 B. The suite passes (1023 passed, 14 skipped) and
+`tests/test_arivus_diffuse.py` now pins the retouch's base blocks inside the pack. The offline sheet
+and the dist overview re-rendered with `--unified`; every other sheet came back byte-identical. The
+first edit stays in git and on disk as `references/old_hoxton_head_df.dds`, provenance only.
+`runtime_verified` stays false — how the retouch reads under the game's lighting remains a check
+waiting for a person with the game.
