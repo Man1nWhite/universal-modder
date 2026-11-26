@@ -28,7 +28,11 @@ SECRET_PATTERNS = [
     # classic tokens (ghp_, gho_, ...) and fine-grained personal access tokens (github_pat_)
     ("GitHub token", re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{60,})")),
     ("AWS key id", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("AWS secret", re.compile(r"aws_secret_access_key\s*=\s*[A-Za-z0-9/+=]{20,}", re.I)),
     ("private key", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")),
+    ("Discord token", re.compile(r"\b[MN][A-Za-z0-9_-]{23,}\.[A-Za-z0-9_-]{6,}\.[A-Za-z0-9_-]{20,}\b")),
+    ("Stripe key", re.compile(r"\b(?:sk_live|rk_live)_[A-Za-z0-9]{20,}\b")),
+    ("Slack token", re.compile(r"\bxox[bpsa]-[A-Za-z0-9-]{10,}\b")),
 ]
 DECOMP_PATTERNS = [
     ("Ghidra auto-name", re.compile(r"\b(?:FUN|DAT|LAB|PTR)_[0-9a-fA-F]{6,}\b")),
@@ -60,15 +64,22 @@ CODE_EXT = {".cs", ".c", ".cpp", ".h", ".hpp", ".py", ".lua", ".js", ".ts", ".rs
 SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache", "obj", ".vs", ".idea"}
 TEXT_EXT = {".cs", ".c", ".cpp", ".h", ".hpp", ".py", ".lua", ".js", ".ts", ".json", ".toml", ".ini", ".cfg", ".txt", ".md", ".xml",
             ".yaml", ".yml", ".rs", ".java", ".kt", ".gd", ".rpy", ".psc", ".sh", ".ps1", ".bat", ".gml", ".hlsl", ".glsl", ".env"}
-ARCHIVE_EXT = {".pak", ".utoc", ".ucas", ".bsa", ".ba2", ".vpk", ".rpf", ".pck", ".assets", ".bundle", ".sga", ".big", ".wad", ".bdt", ".archive"}
+ARCHIVE_EXT = {".pak", ".utoc", ".ucas", ".bsa", ".ba2", ".vpk", ".rpf", ".pck", ".assets", ".bundle", ".sga", ".big", ".wad", ".bdt", ".archive", ".7z", ".rar", ".zip", ".tgz", ".tar"}
 
 
 def _sha1(p: Path) -> str:
+    """SHA1 of a file, chunked for large files."""
     h = hashlib.sha1()
     with open(p, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def is_suspicious_filename(name: str) -> bool:
+    """Filenames that often leak secrets or are accidental redistributions."""
+    lower = name.lower()
+    return any(lower.endswith(ext) for ext in (".pem", ".key", ".p12", ".pfx")) or lower in (".env", ".env.local")
 
 
 def check(mod: str, game: str | None = None) -> int:

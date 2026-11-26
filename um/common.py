@@ -40,30 +40,48 @@ def ps_exe() -> str:
 
 def to_win(path: str | Path) -> str:
     """/mnt/c/Games/x -> C:\\Games\\x (WSL); paths that are already Windows paths pass through."""
-    p = str(path)
+    p = str(path).strip()
     if len(p) > 1 and p[1] == ":":
-        return p
+        # Normalize drive letter to upper case for consistency; handle forward slashes in Windows paths
+        drive = p[0].upper() + ":"
+        rest = p[2:].replace("/", "\\")
+        return drive + rest if rest.startswith("\\") else drive + "\\" + rest.lstrip("\\") if ":" in p else p
     if p.startswith("/mnt/") and len(p) > 6 and p[6] in "/" and p[5].isalpha():
         return p[5].upper() + ":\\" + p[7:].replace("/", "\\")
-    if p.startswith("/mnt/") and len(p) == 6:
+    if p.startswith("/mnt/") and len(p) == 6 and p[5].isalpha():
         return p[5].upper() + ":\\"
     if is_wsl() and shutil.which("wslpath"):
-        return subprocess.run(["wslpath", "-w", p], capture_output=True, **text_utf8()).stdout.strip()
+        try:
+            out = subprocess.run(["wslpath", "-w", p], capture_output=True, **text_utf8(), timeout=5).stdout.strip()
+            return out or p
+        except (OSError, subprocess.SubprocessError):
+            return p
     return p
 
 
 def to_posix(path: str | Path) -> str:
     """C:\\Games\\x -> /mnt/c/Games/x under WSL; unchanged elsewhere."""
-    p = str(path)
+    p = str(path).strip()
     if is_wsl() and len(p) > 1 and p[1] == ":":
-        return "/mnt/" + p[0].lower() + p[2:].replace("\\", "/")
+        # Handle both C:\ and C:/ forms, and normalize drive letter
+        drive = p[0].lower()
+        rest = p[2:].lstrip("\\/").replace("\\", "/")
+        return f"/mnt/{drive}/{rest}" if rest else f"/mnt/{drive}"
     return p
 
 
 def data_dir() -> Path:
     """Per-user state: backups, downloaded tools. Override with UM_HOME."""
     d = Path(os.environ.get("UM_HOME", Path.home() / ".universal-modder"))
-    d.mkdir(parents=True, exist_ok=True)
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        if os.name == "posix":
+            try:
+                os.chmod(d, 0o700)
+            except OSError:
+                pass
+    except OSError as e:
+        die(f"cannot create data directory {d}: {e}")
     return d
 
 
@@ -119,12 +137,28 @@ def emit(obj, as_json: bool = False):
         print(obj)
 
 
+MAX_DIMENSION = 16384
+
+
 def parse_size(s: str) -> tuple[int, int]:
-    """'64x26' -> (64, 26); '128' -> (128, 128)."""
-    if "x" in s.lower():
-        w, h = s.lower().split("x", 1)
-        return int(w), int(h)
-    return int(s), int(s)
+    """'64x26' -> (64, 26); '128' -> (128, 128). Validates positive, bounded dimensions."""
+    if not isinstance(s, str) or not s.strip():
+        die(f"invalid size {s!r}: expected 'N' or 'WxH' with positive integers")
+    raw = s.strip().lower()
+    try:
+        if "x" in raw:
+            a, b = raw.split("x", 1)
+            w, h = int(a.strip()), int(b.strip())
+        else:
+            w = h = int(raw)
+    except ValueError:
+        die(f"invalid size {s!r}: expected 'N' or 'WxH' with positive integers")
+    for dim, name in ((w, "width"), (h, "height")):
+        if dim <= 0:
+            die(f"invalid size {s!r}: {name} must be > 0, got {dim}")
+        if dim > MAX_DIMENSION:
+            die(f"invalid size {s!r}: {name} {dim} exceeds maximum {MAX_DIMENSION}")
+    return w, h
 
 
 def need(module: str, pip_name: str | None = None):

@@ -135,16 +135,26 @@ def venv_versions() -> dict[str, str]:
 
 
 def git(*args: str) -> list[str] | None:
-    """Paths git prints for this checkout, or None where REPO is not the top of a git work tree."""
+    """Paths git prints for this checkout, or None where REPO is not the top of a git work tree.
+
+    Handles detached HEAD, missing git binary, and non-UTF8 paths via surrogateescape.
+    Returns None when git is unavailable or REPO is not a work tree.
+    """
     exe = shutil.which("git")
     if not exe:
         return None
     try:
-        top = subprocess.run([exe, "-C", str(REPO), "rev-parse", "--show-toplevel"], capture_output=True, text=True)
-        if top.returncode != 0 or Path(top.stdout.strip()).resolve() != REPO.resolve():
+        top = subprocess.run([exe, "-C", str(REPO), "rev-parse", "--show-toplevel"], capture_output=True, text=True, timeout=5)
+        if top.returncode != 0:
             return None
-        out = subprocess.run([exe, "-C", str(REPO), *args], capture_output=True, check=True).stdout
-    except (OSError, subprocess.CalledProcessError):
+        try:
+            resolved = Path(top.stdout.strip()).resolve()
+        except (OSError, ValueError):
+            return None
+        if resolved != REPO.resolve():
+            return None
+        out = subprocess.run([exe, "-C", str(REPO), *args], capture_output=True, check=True, timeout=10).stdout
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
         return None
     return [raw.decode("utf-8", "surrogateescape") for raw in out.split(b"\0") if raw]
 

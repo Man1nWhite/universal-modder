@@ -132,7 +132,15 @@ def notes(root: Path) -> list[tuple[Path, dict, str]]:
 
 
 def slug(s: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")[:60] or "note"
+    """URL-safe slug from a title or game name. Normalizes unicode, limits length."""
+    # Normalize unicode to ASCII approximation where possible (e.g., é -> e)
+    try:
+        import unicodedata
+        normalized = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode()
+    except Exception:
+        normalized = s
+    base = re.sub(r"[^a-z0-9]+", "-", normalized.lower()).strip("-")[:60]
+    return base or "note"
 
 
 def strs(v) -> list[str]:

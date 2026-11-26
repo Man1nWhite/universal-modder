@@ -28,21 +28,34 @@ MAX_DEPTH = 6
 
 
 def _vdf(text: str) -> dict:
-    """Minimal Valve KeyValues parser (libraryfolders.vdf, appmanifest_*.acf)."""
+    """Minimal Valve KeyValues parser (libraryfolders.vdf, appmanifest_*.acf).
+
+    Handles UTF-8 BOM, escaped quotes and backslashes. Unrecognised escape
+    sequences are left as-is to avoid corrupting paths like C:\\Games.
+    """
+    # Strip UTF-8 BOM if present (Steam writes libraryfolders.vdf with BOM on Windows)
+    if text.startswith("\ufeff"):
+        text = text.lstrip("\ufeff")
     tokens = re.findall(r'"((?:[^"\\]|\\.)*)"|([{}])', text)
     stack, cur, key = [], {}, None
     for s, brace in tokens:
         if brace == "{":
             new = {}
-            cur[key] = new
-            stack.append(cur)
-            cur, key = new, None
+            if key is not None:
+                cur[key] = new
+                stack.append(cur)
+                cur, key = new, None
+            else:
+                # Malformed VDF with braces but no key: treat as nested anonymous object
+                stack.append(cur)
+                cur = new
         elif brace == "}":
             cur = stack.pop() if stack else cur
         elif key is None:
-            key = s
+            key = s.replace('\\"', '"').replace("\\\\", "\\")
         else:
-            cur[key] = s.replace("\\\\", "\\")
+            value = s.replace('\\"', '"').replace("\\\\", "\\")
+            cur[key] = value
             key = None
     return cur
 
@@ -201,15 +214,19 @@ class Index:
         self.dirs: set[str] = set()
         self.truncated = False
         base = len(str(root)) + 1
-        for dirpath, dirnames, filenames in os.walk(root):
+        for dirpath, dirnames, filenames in os.walk(root, onerror=lambda e: None, followlinks=False):
             rel = dirpath[base:].replace("\\", "/")
             depth = rel.count("/") + 1 if rel else 0
             if depth >= MAX_DEPTH:
                 dirnames[:] = []
-            dirnames[:] = [d for d in dirnames if d.lower() not in ("__pycache__", ".git", "shadercache")]
+            # Filter before descending: avoid walking into ignored or huge cache dirs
+            dirnames[:] = [d for d in dirnames if d.lower() not in ("__pycache__", ".git", "shadercache", ".svn", ".hg")]
             for d in dirnames:
                 self.dirs.add((rel + "/" + d if rel else d).lower())
             for f in filenames:
+                # Skip files with null bytes or extremely long names that indicate corruption
+                if "\x00" in f or len(f) > 255:
+                    continue
                 self.files.append((rel + "/" + f if rel else f).lower())
             if len(self.files) > MAX_ENTRIES:
                 self.truncated = True
@@ -297,21 +314,33 @@ def unity_version(ix: Index, data_dir: str) -> str | None:
 
 
 def godot_pck(path: Path) -> str | None:
+    """Detect Godot PCK version from standalone .pck or exe-embedded PCK.
+
+    Handles both Godot 3.x and 4.x pack formats, including the 64-bit size header
+    used by Godot 4's embedded PCK. Returns None for non-PCK files.
+    """
     try:
         with open(path, "rb") as f:
             head = f.read(20)
             if head[:4] == b"GDPC":
                 fmt, major, minor, patch = struct.unpack_from("<4I", head, 4)
-                return f"{major}.{minor}.{patch} (pack format {fmt})"
-            f.seek(-12, os.SEEK_END)
+                if 0 <= fmt <= 10 and major < 100:  # sanity check to avoid false positives
+                    return f"{major}.{minor}.{patch} (pack format {fmt})"
+            # Check for exe-embedded PCK (Godot exports can append PCK to the binary)
+            try:
+                f.seek(-12, os.SEEK_END)
+            except OSError:
+                return None
             tail = f.read(12)
-            if tail[8:] == b"GDPC":   # pck appended to the executable
+            if len(tail) == 12 and tail[8:] == b"GDPC":
                 size = struct.unpack_from("<Q", tail, 0)[0]
-                f.seek(-12 - size, os.SEEK_END)
-                head = f.read(20)
-                if head[:4] == b"GDPC":
-                    fmt, major, minor, patch = struct.unpack_from("<4I", head, 4)
-                    return f"{major}.{minor}.{patch} (embedded in exe)"
+                if size < 1 << 30:  # sanity: PCK unlikely > 1GB for embedded check
+                    f.seek(-12 - size, os.SEEK_END)
+                    head = f.read(20)
+                    if head[:4] == b"GDPC":
+                        fmt, major, minor, patch = struct.unpack_from("<4I", head, 4)
+                        if 0 <= fmt <= 10 and major < 100:
+                            return f"{major}.{minor}.{patch} (embedded in exe)"
     except (OSError, struct.error):
         pass
     return None
