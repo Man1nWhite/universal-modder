@@ -16,9 +16,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-import hashlib
 import io
-import subprocess
 import sys
 import tempfile
 import zipfile
