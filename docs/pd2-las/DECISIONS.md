@@ -1359,6 +1359,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D60 — The palm cut is made on the plane, and a handless outfit spawns no glove and no forearm
 
+> **Restored by D70 (2026-11-25).** D62's extension and its D63/D65 reductions are reverted: the
+> tracked packs cut on this plane again, with the registration as decided here.
+>
 > **Amended by D62 (2026-11-25).** The registration half stands unchanged: no glove adapter, no
 > default glove, a chosen glove still spawns. What moves is where the cut sits — 4 cm *past* the palm
 > line, inside the palm — because the game showed the capped end stopping short of the heister's glove
@@ -1457,6 +1460,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D62 — The palms are cut 4 cm past the palm line, so the arm ends inside the glove
 
+> **Superseded by D70 (2026-11-25): the extension is reverted to 0 cm.** The plane, mechanism and
+> measurements below remain the record of the D62 bytes; the tracked packs no longer use them.
+>
 > **Amended by D63 (2026-11-25): the extension is 1.5 cm, not 4.** Everything else here stands
 > — the plane, the margin mechanism, `extend_cm` in the record, the no-adapter registration.
 > The 4 cm number was answered by the game the same day: it put the palm through the glove. The
@@ -1513,6 +1519,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   crease.
 
 ### D63 — The extension is 1.5 cm: as far into the glove as its own geometry allows
+
+> **Superseded by D70 (2026-11-25): the extension is reverted to 0 cm.** The glove measurements
+> below still describe the glove in the references archive; the tracked packs cut on the crease.
 
 - **Decided:** 2026-11-25, by the user, after looking at the D62 build in game. Two wrist
   screenshots, and three words: *"Too much."* The arm now reached the glove, but it also came out
@@ -1609,6 +1618,9 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
 
 ### D65 — The palm cut goes back to 1.25 cm: the arm's fattest half-centimetre was still in the glove's cuff
 
+> **Superseded by D70 (2026-11-25): the extension is reverted to 0 cm.** Only the history below
+> remains; the shipped body no longer carries the extra 1.25 cm of forearm.
+>
 - **Decided:** 2026-11-25, by the user, looking at `OfficeSuite_Head` in game (two first-person
   screenshots with the black FPS-gloves glove): *"pretty close, just need to cut a bit more."*
   The hand was gone and the cuff covered the wrist, but a wedge of skin still showed through the
@@ -1695,6 +1707,42 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   `tools/build_hila_stream_mod.py`.
 - **Status:** holds offline only; heard by the user only after the next in-game pass.
 
+## D68 — The Hila stream pack ships 61 slots: LAWSON VOICE takes in, sub-8 slots out
+
+- **Decided:** 2026-11-25, by the user, after the semantic-fit round: *"remove everything that is worse
+  fit than 8. Use LAWSON VOICE (PAYDAY 2).7z"* and, on the scope question, "every slot with a take in the
+  archive — including slots that scored 8+ — gets it".
+- **Why.** `hila_semantic_fit.csv` scored all 78 slots against game intention (engine event from
+  `slot_event_ids.csv` plus the dominant PD2 category), not against Hila's wording; 36 scored below 8.
+  19 of those had a take in the new archive; 17 did not, and for those the pack had only closest-ever
+  compromises. The new archive exists precisely for the slots the source pack could not carry
+  (`references/LAWSON VOICE (PAYDAY 2).7z`, purpose-authored Mira Lawson barks).
+- **Decision:** (a) every slot with a take in the archive — all 36 that map onto picks, ≥8 scorers
+  included — ships that take, whole, with 30 ms of the file's own leading silence and 50 ms of its
+  trailing silence kept, peak-matched to −1.5 dBFS with the existing clamps; the 5 call-tagged takes
+  map as `uffs..` → `cop.cuffs`, `nees..` → `cop.kneel`, `Tazer` → `mark.taser`, `gun_` → `cop.drop`,
+  `Now._.` → `tech.fix`. (b) The 17 slots below 8 with no take are **removed from the pack entirely**:
+  their ~162 ids are absent from `soundbanks/streamed/regular_vox/`, so vanilla Hila plays them —
+  recorded in `removed_slots.csv` with the clip each slot used to play. (c) The semantic-fit table now
+  carries a `status` column (`kept` / `replaced_tts` / `removed`).
+- **Measured, not asserted:** the pack rebuilds to **14,405,864 B `3779f6a969f8`** — 699 `.stream`
+  files (885 ids − 27 Vorbis − 162 removed, the three shared counted once), 661 s of audio, 61 slots,
+  ids sharing a slot sharing identical bytes. `hila_slot_pieces.csv` is the re-picked window record;
+  `removed_slots.csv` carries the 17 slots.
+- **Held to:** `tests/test_hila_voice_picks.py` (picks ∪ removed covers the cut table, no slot in both,
+  no rank names), `tests/test_hila_stream_pack.py` (699 streams, removed ids recorded `removed:` in the
+  manifest with `stream_bytes 0`), `tests/test_hila_cut_edges.py` (`civ.down` and `civ.nophone` are now
+  the whole TTS takes, verified against the archive). `tools/hila_voice_clips.py`,
+  `tools/fit_hila_intents.py` and `tools/build_hila_stream_mod.py` all read `removed_slots.csv`.
+- **Rejected:** keeping the sub-8 takes and shipping them anyway (the user's explicit instruction);
+  substituting takes from `ARIVUS VOICE (PAYDAY 2).zip` / `GERALT VOICE (PAYDAY 2).zip` (not sanctioned);
+  deleting the removed slots from the cut table (the table is the authoritative ID → slot map; removal
+  is enforced at pick/build time, so a take recorded later can revive a slot); folding D67's one-word
+  rule away (unaffected).
+- **Source:** `voice_lines_vox/miranda_lawson/slot_picks.csv`, `removed_slots.csv`,
+  `hila_semantic_fit.csv`, `tools/build_hila_stream_mod.py`.
+- **Status:** holds offline only; the rebuilt pack has NOT been heard in game — the user's call.
+
 ## D69 — Arivus: the shaved area takes the skin's chroma, not a new one
 
 - **Decided:** 2026-11-25, by the user, from the offline portrait: *"Work more on Arivus texture - check
@@ -1735,7 +1783,86 @@ replaced, mark the old entry "superseded by D<n>" and leave its text alone.
   hairline is the hair mesh's own alpha edge, the forehead's shadow band is the hair mesh's shadow, and
   the sideburn cards in front of the ears are geometry.
 
-## D70 — Arivus: the beard is found, the rectangle and the collar gap are gone
+## D70 — The palm extensions are reverted: the cut is on the crease again
+
+- **Decided:** 2026-11-25, by the user, from a first-person screenshot of
+  `OfficeSuite_Head`: *"I want you to revert extensions, before 4 cm (D62)"*. The shot showed
+  a wedge of bare arm on the far side of the white glove at the wrist; the D65 cut had left
+  skin inside the cuff and it still read as skin over the glove.
+- **Why.** D62 put the cut 4 cm past the palm line to close the gap D60 showed in game.
+  D63 reduced that to 1.5 cm when the arm came through the glove, D65 to 1.25 cm when a
+  wedge still showed. Each step kept some of the forearm's skin past the wrist crease, and
+  the user's answer to all three is to keep none of it: return to D60's landmark and let
+  the cut end where the palm begins.
+- **Decision:** `PALM_EXTEND_CM = 0.0`. `clip_group_at_palm_bases` splits on the plane
+  through the rig's `Hand` joint, perpendicular to the palm axis, and `_cap_cut_rims` caps
+  the ring there. No new geometry, no adapter and no change to the registration: the packs
+  still hide the stock hands and a glove the player picks is what puts hands on them
+  (D58/D60). The Hila override inherits the same body and keeps its own `g_hands`.
+- **Measured, not asserted:** the rebuild reproduces D60's cut on all three packs:
+  `margin_cm`/`extend_cm` 0.0, `clipped_to_cm` 0.0 per side, `kept_to_cm` -0.76 (left) and
+  -0.79 (right) after the 5% slim — the surface stops just *short* of the crease because
+  the slim pulls it towards the bones — `tris_split` 64, `verts_added` 66,
+  `removed_tris` 2,276, `rim_cap_tris` 68, and a shipped `g_body` of 31,643 vertices
+  (61,479 after the slim). The cut removes both hands' fingers and a handful of
+  forearm-dominated rim vertices; no hand- or finger-dominated vertex survives.
+- **Held to:** `tests/test_palm_cut.py` (0.0 in the record, the clip on the plane, the
+  shipped mesh at or proximal of the crease, no hand-dominated vertex),
+  `tests/test_pd2_las.py` (the body and slim vertex counts, `clipped_to_cm` 0.0),
+  `tests/test_hila_body_override.py` (the same cut on the override's body).
+- **Rejected:** keeping any positive extension, including D65's 1.25 cm (the reported
+  wedge); shrinking the arm's radius to fit a glove the pack does not ship; changing the
+  registration or spawning a glove by default (D58/D60).
+- **Source:** `tools/pd2-las/build_honoko2_dae.py` (`PALM_EXTEND_CM`),
+  `tools/pd2-las/tmc_las.py`, `tests/test_palm_cut.py`, `tests/test_hila_body_override.py`.
+- **Status:** holds offline only; `runtime_verified` stays `false`. The D62 and D65 builds
+  are the ones that were seen in game, these bytes have not been. The D60 gap that
+  motivated D62 is the known trade-off of this choice; the wrist step of the in-game
+  checklist records what to look for now.
+
+## D71 — The character packs write the shared bank, and only one pack ships at a time
+
+- **Renumbered:** drafted as D70 on the parallel branch; D70 is the palm-reversion entry on main, so this one is D71.
+- **Decided:** 2026-11-25, by the user, after the Hila rounds: *"I also want VO mod for Geralt over Rust
+  and Arivus over Hoxton (not the brother to Dallas - Huston)"*, then choosing from the options: Rust =
+  the punk heister (`npc_criminal_wild_1`, the `Geralt_over_Rust` head-pack target); Arivus over **Old
+  Hoxton** (`mtr_old_hoxton`, the `Arivus_over_Hoxton` head-pack ped) — not Victor Hoxton, Dallas's
+  brother; the **same route as Hila** (the id-keyed `.stream` pack, not the BeardLib prefix route);
+  uncovered slots stay **vanilla**; the name-callout takes wire into `call_teammate.hey_you`.
+- **Why.** The purpose-authored sets (`references/GERALT VOICE (PAYDAY 2).zip`, "Геральт", CP866 file
+  names; `references/ARIVUS VOICE (PAYDAY 2).zip`) cover only part of the slot taxonomy — shipping a
+  closest-available compromise for the rest was rejected by the user, and forcing coverage via
+  unrelated takes is what produced the sub-8 problem D68 cleaned up. Both sets are authored for their
+  slots, so their takes ship without a scoring round.
+- **Decision:** one pack per set, built by `tools/build_character_stream_mod.py` (`--pack
+  geralt-rust|arivus-old-hoxton`), same container/format as D68: IMA ADPCM `.stream` per **shared
+  `regular_vox` id** — the same ids the Hila pack writes, which makes the three **alternatives, not
+  companions** (install one; last loaded wins). Ids of uncovered slots stay vanilla; the 27 Wwise
+  Vorbis ids stay vanilla as before. The ARIVUS pack borrows the GERALT set's 'Hoxton.' callout for
+  `call_teammate.hey_you` (per the user's mapping; that one slot is Geralt's voice); the GERALT pack
+  leaves `hey_you` vanilla — no Rust name take exists yet. The Hila pack and its builder are
+  untouched, and the sub-8 removal (D68) is per-archive: it does not transfer (the Geralt pack ships
+  `kill.taser`/`mark.taser`).
+- **Measured, not asserted:** `Geralt_VO_over_Rust_Stream.zip` — 315 streams, 584 s, 49 slots uncovered
+  (546 ids), `737f1fb13616…`; `Arivus_VO_over_Hoxton_Stream.zip` — 324 streams, 442 s, 59 slots
+  uncovered (540 ids), `9e04ccfde24b…`; both reproducible byte for byte; 885-row manifests agree with
+  the zips; peaks within −1.97…−0.32 dBFS after the −1.5 dBFS match.
+- **Held to:** `tests/test_character_stream_packs.py` (coverage invariants, the alternatives-not-
+  companions README line, manifest vs streams, ADPCM headers).
+- **Rejected:** the BeardLib `<Sounds prefix="rbXX">` route for per-heister targeting (it failed silently
+  for Hila, D61); a `char_wild` bank guess (no evidence it exists; the user chose the shared route);
+  borrowing Geralt takes to fill the Arivus gaps beyond the mapped callout; scoring the purpose-authored
+  takes against game intention (they exist to be the answer).
+- **Source:** `voice_lines_vox/geralt/slot_picks.csv`, `voice_lines_vox/arivus/slot_picks.csv`,
+  `tools/build_character_stream_mod.py`, `docs/pd2-voice-mod-install.md` §8.
+- **Status:** holds offline only; neither pack has been heard in game. **Whether Rust barks from
+  `regular_vox` is unknown** — if his voice is vanilla in game, he is not on the shared bank and this
+  route cannot cover him; the fix is a dedicated-bank variant once the bank is known.
+
+## D72 — Arivus: the beard is found, the rectangle and the collar gap are gone
+
+- **Renumbered:** drafted as D70 on the parallel branch; main uses D70 for the palm
+  reversion and D71 for the character VO packs.
 
 - **Decided:** 2026-11-25, by the user: *"I want you to improve Arivus head mod. Check renders for
   mistakes."* The compiled-portrait sheet was the evidence. Three mistakes were visible in it: a

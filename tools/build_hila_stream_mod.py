@@ -7,12 +7,16 @@ writing a file with our audio under Hila's id replaces that one line - no event
 table, no BeardLib, no Lua. ``references/Tokoyami Hila.7z`` is the working pack
 this is modelled on (``docs/tokoyami-hila-voice-mod-analysis.md``).
 
-The clips come from ``slot_picks.csv``, which decides each slot's ogg and the
-sub-ranges it keeps; they are encoded as IMA ADPCM in Wwise's RIFF container by
-``tools/pd2-las/wwise_ima.py``. One
-file per id, so the 885 ids of ``hila_intent_cuts.csv`` become 885 files (858
-after the 27 ids the vanilla bank keeps as Wwise Vorbis, which only a Wwise
-encoder could write - see ``hila_vorbis_ids.csv``).
+The clips come from ``slot_picks.csv``, which decides each slot's source - an ogg
+from ``references/Голос Лоусон.7z`` or a purpose-authored MP3 from
+``references/LAWSON VOICE (PAYDAY 2).7z`` - and the sub-ranges it keeps; they are
+encoded as IMA ADPCM in Wwise's RIFF container by
+``tools/pd2-las/wwise_ima.py``. One file per id, so the 885 ids of
+``hila_intent_cuts.csv`` become 885 files (699 after the 27 ids the vanilla bank
+keeps as Wwise Vorbis, which only a Wwise encoder could write - see
+``hila_vorbis_ids.csv`` - and after the 162 ids of the slots removed on
+2026-11-25, whose best clip scored below semantic fit 8 with no take in either
+archive; see ``removed_slots.csv``).
 
     python tools/build_hila_stream_mod.py            # dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip
     python tools/build_hila_stream_mod.py --out build/hila_stream.zip
@@ -111,7 +115,7 @@ def pcm_mono(path: Path, ff: str):
     return np.frombuffer(raw, np.int16)
 
 
-def readme(n_files: int, n_ids: int, n_vorbis: int, seconds: float) -> str:
+def readme(n_files: int, n_ids: int, n_vorbis: int, seconds: float, n_removed: int) -> str:
     return f"""{INSTALL}
 
 WHAT IT IS
@@ -150,6 +154,9 @@ WHAT IS NOT IN HERE
     Vorbis, and only the Wwise encoder can write that. Those ids are left out on
     purpose: an ADPCM file under a Vorbis id is not the audio the bank expects.
     This stream pack leaves those lines vanilla; it does not include a Wwise Vorbis encoder.
+  * {n_removed} ids answer slots whose best clip scored below semantic fit 8 with no take
+    in either source archive (`voice_lines_vox/miranda_lawson/removed_slots.csv`).
+    This pack does not write those ids either, so the vanilla Hila line plays there.
   * The `robbers_mission_gen` bank: those ids are heist-scripted NPC lines with
     their own text, not heister barks.
 
@@ -164,7 +171,7 @@ CONTENTS
   soundbanks/streamed/regular_vox/      {n_files} .stream files, {seconds:.0f}s of audio in all
   hila_stream_map.csv                   id -> slot -> source clip (build manifest)
 
-Source archive: references/\\u0413\\u043e\\u043b\\u043e\\u0441 \\u041b\\u043e\\u0443\\u0441\\u043e\\u043d.7z
+Source archives: references/Голос Лоусон.7z and references/LAWSON VOICE (PAYDAY 2).7z
 Mapping: voice_lines_vox/miranda_lawson/hila_intent_cuts.csv
 Nothing outside this folder is touched: music, radio, other heisters and all
 vanilla files stay as they are.
@@ -237,8 +244,10 @@ def main(argv=None) -> int:
     ids = load_ids()
     vorbis = load_vorbis_ids()
     picks = vo.load_picks()
+    removed = vo.load_removed()
+    remove_slots = set(removed)
     slots = {slot for _id, slot, _also in ids}
-    unpicked = sorted(slots - picks.keys())
+    unpicked = sorted(slots - picks.keys() - remove_slots)
     if unpicked:
         raise SystemExit("slots without a clip in slot_picks.csv: " + ", ".join(unpicked))
     unknown = sorted(vorbis.keys() - {hila_id for hila_id, _s, _a in ids})
@@ -248,13 +257,14 @@ def main(argv=None) -> int:
 
     work = tempfile.TemporaryDirectory(prefix="hila_stream_")
     stage = Path(work.name)
-    by_base = {base: path for _size, base, path in vo.list_archive_oggs()}
-    wanted = {by_base[Path(p["source_ogg"]).name] for p in picks.values()
+    live = {slot: p for slot, p in picks.items() if slot not in remove_slots}
+    by_base = {base: path for _size, base, path in vo.list_archive_oggs() + vo.list_mira_files()}
+    wanted = {by_base[Path(p["source_ogg"]).name] for p in live.values()
               if Path(p["source_ogg"]).name in by_base}
     extracted = vo.extract_selected(wanted, stage / "src")
 
     clip = {}
-    for slot in sorted(slots):
+    for slot in sorted(set(live)):
         dest, start, end = cut_clip(slot, picks[slot], by_base, extracted, stage, ff,
                                     normalize=not args.no_normalize)
         pcm = pcm_mono(dest, ff)
@@ -274,21 +284,32 @@ def main(argv=None) -> int:
     w.writerow(["hila_id", "slot", "also_slots", "cut_line", "source_ogg", "t_start", "t_end",
                 "clip_s", "frames", "stream_bytes", "skipped"])
     seconds = 0.0
+    removed_ids = 0
     for hila_id, slot, also in ids:
-        blob, start, end, clip_s, frames = clip[slot]
-        skipped = "vorbis id left vanilla" if hila_id in vorbis and not args.include_vorbis_ids else ""
+        if slot in remove_slots:
+            removed_ids += 1
+            skipped = "removed: semantic fit < 8 (no take in LAWSON VOICE (PAYDAY 2).7z)"
+            start, end = 0.0, 0.0
+            clip_s, frames, blob = 0.0, 0, b""
+        elif hila_id in vorbis and not args.include_vorbis_ids:
+            blob, start, end, clip_s, frames = clip[slot]
+            skipped = "vorbis id left vanilla"
+        else:
+            blob, start, end, clip_s, frames = clip[slot]
+            skipped = ""
         if not skipped:
             files[f"{install}{BANK}/{hila_id}.stream"] = blob
             seconds += clip_s
-        w.writerow([hila_id, slot, also, picks[slot].get("cut_line", ""), picks[slot]["source_ogg"],
+        src_pick = picks.get(slot) or {}
+        w.writerow([hila_id, slot, also, src_pick.get("cut_line", ""), src_pick.get("source_ogg", ""),
                     f"{start:.3f}", f"{end:.3f}", f"{clip_s:.3f}", frames, len(blob), skipped])
     files[install + "hila_stream_map.csv"] = manifest.getvalue().encode("utf-8")
     n_files = sum(1 for name in files if name.endswith(".stream"))
-    files[install + "README.txt"] = readme(n_files, len(ids), len(vorbis), seconds).encode("utf-8")
+    files[install + "README.txt"] = readme(n_files, len(ids), len(vorbis), seconds, removed_ids).encode("utf-8")
 
     size, sha = write_zip(args.out, files)
     print(f"wrote {args.out} ({size} bytes) sha256={sha[:12]}… streams={n_files} "
-          f"ids={len(ids)} slots={len(clip)} audio={seconds:.0f}s")
+          f"ids={len(ids)} slots={len(clip)} removed={removed_ids} audio={seconds:.0f}s")
     return 0
 
 

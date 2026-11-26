@@ -30,6 +30,10 @@ import determinism  # noqa: E402  (the pinned numeric code path every builder en
 CUTS = ROOT / "voice_lines_vox/miranda_lawson/hila_intent_cuts.csv"
 MAP = ROOT / "voice_lines_vox/miranda_lawson/hila_to_miranda_mapping.csv"
 ARCHIVE = ROOT / "references/Голос Лоусон.7z"
+#: purpose-authored Mira takes for individual slots (TTS); slot-keyed by file name
+MIRA_ARCHIVE = ROOT / "references/LAWSON VOICE (PAYDAY 2).7z"
+#: slots deliberately left vanilla: semantic fit < 8 and no take in either archive
+REMOVED = ROOT / "voice_lines_vox/miranda_lawson/removed_slots.csv"
 SPLITS = ROOT / "voice_lines_vox/miranda_lawson/ogg_phrase_splits.csv"
 PIECES = ROOT / "voice_lines_vox/miranda_lawson/hila_slot_pieces.csv"
 PICKS = ROOT / "voice_lines_vox/miranda_lawson/slot_picks.csv"
@@ -165,6 +169,34 @@ def list_archive_oggs():
             if info.filename.endswith(".ogg"):
                 out.append((info.uncompressed, info.filename.split("/")[-1], info.filename))
     out.sort()
+    return out
+
+
+def list_mira_files():
+    """The purpose-authored Mira takes, MP3s from the LAWSON VOICE (PAYDAY 2) archive."""
+    import py7zr
+    with py7zr.SevenZipFile(MIRA_ARCHIVE) as z:
+        out = []
+        for info in z.list():
+            if info.filename.lower().endswith(".mp3"):
+                out.append((info.uncompressed, info.filename.split("/")[-1], info.filename))
+    out.sort()
+    return out
+
+
+def load_removed():
+    """slots the pack does not answer: semantic fit < 8, no take in either archive.
+
+    Kept in `removed_slots.csv` (with the clip they replaced); the builders refuse
+    to write those ids and leave them for the vanilla Hila line.
+    """
+    out = {}
+    if not REMOVED.is_file():
+        return out
+    with REMOVED.open(newline="", encoding="utf-8") as f:
+        for r in csv.DictReader(f):
+            if r.get("slot"):
+                out[r["slot"]] = r
     return out
 
 
@@ -382,13 +414,19 @@ def parse_splits(spec: str) -> list[tuple[float, float]]:
 
 
 def extract_selected(paths: set[str], dest: Path) -> dict[str, Path]:
-    """Unpack the oggs this build touches; returns archive path -> extracted file."""
+    """Unpack the sources this build touches; returns archive member -> extracted file."""
     py7zr = import_py7zr()
     dest.mkdir(parents=True, exist_ok=True)
-    with py7zr.SevenZipFile(ARCHIVE) as z:
-        targets = [p for p in z.getnames() if p in paths]
-        z.extract(targets=targets, path=dest)
-    return {p: dest / p for p in targets}
+    out = {}
+    for archive in (ARCHIVE, MIRA_ARCHIVE):
+        if not archive.is_file():
+            continue
+        with py7zr.SevenZipFile(archive) as z:
+            targets = [p for p in z.getnames() if p in paths]
+            if targets:
+                z.extract(targets=targets, path=dest)
+            out.update({p: dest / p for p in targets})
+    return out
 
 
 def manifest_rows(rows, picks, oggs, splits) -> list[list[str]]:
@@ -402,6 +440,8 @@ def manifest_rows(rows, picks, oggs, splits) -> list[list[str]]:
     slot_piece = {}
     slot_file = {}
     used: set[str] = set()
+    removed = load_removed()
+    picks = {s: p for s, p in picks.items() if s not in removed}
     by_base = {base: path for _size, base, path in oggs}
     for slot in sorted(picks):
         pk = picks[slot]
@@ -419,7 +459,7 @@ def manifest_rows(rows, picks, oggs, splits) -> list[list[str]]:
         used.add(path)
     for row in rows:
         slot = row["slot"]
-        if slot in slot_file:
+        if slot in removed or slot in slot_file:
             continue
         piece = pick_piece_for_slot(slot, "", oggs, splits, used)
         path, idx, a, b, _score = piece
@@ -457,7 +497,7 @@ def main(argv=None) -> int:
     determinism.enter(__file__)
     if not ARCHIVE.is_file():
         raise SystemExit(f"missing {ARCHIVE}")
-    oggs = list_archive_oggs()
+    oggs = list_archive_oggs() + list_mira_files()
     rows = manifest_rows(load_cuts(), load_picks(), oggs, load_splits())
     buf = io.StringIO()
     writer = csv.writer(buf)

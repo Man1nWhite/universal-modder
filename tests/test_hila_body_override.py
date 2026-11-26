@@ -168,12 +168,12 @@ def _glove_block(model):
 
 @pytest.mark.parametrize("side", ["Left", "Right"])
 def test_the_outfits_hands_end_where_the_palm_begins(models, side):
-    """No hand or finger survives in the body, and the cut is past the palm line.
+    """No hand or finger survives in the body, and the cut is on the palm line.
 
     The plane is `build_models.palm_planes`: through the rig's `Hand` joint, along
-    the axis to the four knuckles. Since D62 the cut sits `PALM_EXTEND_CM` past it
-    (1.25 cm since D65), inside the wrist, so the arm ends inside the heister's glove;
-    the body inherits that cut from `dist/Honoka/OfficeSuite.zip`.
+    the axis to the four knuckles. D70 reverted the extensions, so `PALM_EXTEND_CM`
+    is 0.0 and the arm ends on that plane; the body inherits the cut from
+    `dist/Honoka/OfficeSuite.zip`.
     """
     output, native, _ = models
     body = hila.Drawable.read(output, "g_body")
@@ -185,10 +185,9 @@ def test_the_outfits_hands_end_where_the_palm_begins(models, side):
     indices = np.asarray(body.geo["blendindices"])
     weights = np.asarray(body.geo["blendweights"])
     dominant = palette[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
-    # Not one vertex is *dominated* by the hand or a finger: at 1.25 cm the cut is still
-    # inside the wrist, so no hand geometry survives at all (D63). The rim may still
-    # carry a hand bone as a minor influence, which is why this looks at the dominant
-    # weight and not at any influence.
+    # Not one vertex is *dominated* by the hand or a finger: the cut is back on the
+    # palm line (D70). The rim may still carry a hand bone as a minor influence, which
+    # is why this looks at the dominant weight and not at any influence.
     assert not np.isin(dominant, [hand, *fingers]).any()
 
     wrist = np.asarray(worlds[hand][12:15], dtype=np.float64)
@@ -202,12 +201,10 @@ def test_the_outfits_hands_end_where_the_palm_begins(models, side):
     perp = np.linalg.norm(rel - np.outer(axial, axis), axis=1)
     near = perp < 28.0
     assert near.any()
-    # The mesh reaches past the palm line by the extension, less what the slim pulls
-    # back, and no further.
-    assert axial[near].max() <= 1.25, "geometry survives past the palm extension"
-    # ... and it does not stop at the crease, leaving the glove in mid-air; the vanilla
-    # glove's rim is 0.42 cm past the crease (D63).
-    assert axial[near].max() > 0.45, "the mesh stops short of the palm extension"
+    # With no extension (D70) the mesh stops at the palm line, a little way proximal
+    # of it after the 5% slim.
+    assert axial[near].max() <= 0.0, "geometry survives past the palm line"
+    assert axial[near].max() > -0.9, "the mesh stops too far short of the palm line"
 
 
 def test_the_stock_gloves_are_shipped_and_enabled(models, files):

@@ -15,7 +15,10 @@ OfficeSuite + Miranda Romance body-and-head replacement for Hila, and the fork's
 Lawson's barks over Hila's `rb21` voice lines, as one Wwise IMA ADPCM `.stream` per voice-line id
 (`Miranda_Lawson_VO_over_Hila_Stream`, no BeardLib: [packaging and install
 contract](docs/pd2-voice-mod-install.md), and the route dissected in
-[`docs/tokoyami-hila-voice-mod-analysis.md`](docs/tokoyami-hila-voice-mod-analysis.md)).
+[`docs/tokoyami-hila-voice-mod-analysis.md`](docs/tokoyami-hila-voice-mod-analysis.md)). Two more packs
+of the same route ship alongside it: `Geralt_VO_over_Rust_Stream` (`dist/Geralt/`) and
+`Arivus_VO_over_Hoxton_Stream` (`dist/Arivus/`) — the three are alternatives writing the same shared
+ids, so exactly one should be installed.
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share.
 

@@ -1,4 +1,4 @@
-"""The Arivus head must meet Old Hoxton's collar from every angle (D70).
+"""The Arivus head must meet Old Hoxton's collar from every angle (D72).
 
 The Random4 ped's neck is cut at z ~ 159 cm, and its front surface used to show through
 the back of the shared suit's collar opening as a strip of skin with a jagged top edge.

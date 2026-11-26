@@ -247,7 +247,7 @@ PAYDAY 2/
       ├─ README.txt
       ├─ hila_stream_map.csv                  ← build manifest: id → slot → clip
       └─ soundbanks/streamed/regular_vox/
-         ├─ 712675.stream                     ← 858 files, one per voice-line id
+         ├─ 712675.stream                     ← 699 files, one per written voice-line id
          └─ …
 ```
 
@@ -269,8 +269,8 @@ picks a start index per block, is in
 | | |
 |---|---|
 | Voice-line ids in the mapping | 885 (`voice_lines_vox/miranda_lawson/hila_intent_cuts.csv`) |
-| `.stream` files written | 858 — 665 s of audio, 14.9 MB zipped |
-| Ids left vanilla | 27 (`hila_vorbis_ids.csv`): the vanilla bank streams those as Wwise Vorbis (`fmt` tag `0xFFFF`), which only the Wwise encoder writes. ADPCM under such an id is not the audio the bank expects, so it is not written. |
+| `.stream` files written | 699 — 661 s of audio, 14.4 MB zipped |
+| Ids left vanilla | 189 — 27 Vorbis (`hila_vorbis_ids.csv`) for the format reason above, plus 162 ids of slots whose best clip scored below 8 on semantic fit with no take in either source archive (`removed_slots.csv`): vanilla Hila plays those lines. 3 of the 162 are also Vorbis. |
 | Not covered by design | the `robbers_mission_gen` bank (heist-scripted NPC lines with their own text) and music/radio |
 
 ### 7.4 Install and check
@@ -297,3 +297,32 @@ route did not, on 2026-11-24). The report also named two clips cut inside a word
 `call_teammate.hey_you`; both edges were moved onto the gaps around the wanted words and pinned by
 `tests/test_hila_cut_edges.py`, so the tracked bytes are newer than what was heard
 (`docs/pd2-las/in-game-checklist.md`). Nothing else of it has been listened to line by line.
+
+## 8. The character packs (2026-11-25)
+
+Two more packs of the §7 route exist, one per purpose-authored bark set. Both write the **same shared
+`regular_vox` ids** as `Miranda_Lawson_VO_over_Hila_Stream.zip`, so the three are alternatives: install
+exactly one. With several installed, the one that loads last wins and the others are inert for the ids
+they share.
+
+| Pack (`dist/…`) | Voice of | Covers | Not covered (vanilla) |
+| --- | --- | --- | --- |
+| `Geralt/Geralt_VO_over_Rust_Stream.zip` | Geralt of Rivia (`references/GERALT VOICE (PAYDAY 2).zip`, CP866 file names) | 29 slots the set carries — 315 `.stream` files, including `kill.taser`/`mark.taser` | 49 slots (546 ids) with no take in the set; 24 covered ids are also Wwise Vorbis |
+| `Arivus/Arivus_VO_over_Hoxton_Stream.zip` | Arivus (`references/ARIVUS VOICE (PAYDAY 2).zip`) | 18 slots the set carries, plus the shared `call_teammate.hey_you` slot, which plays the Geralt 'Hoxton.' callout borrowed from the GERALT archive (the set has no Arivus callout) — 324 `.stream` files | 59 slots (540 ids) with no take in the set; 21 covered ids are also Wwise Vorbis |
+
+Notes that matter:
+
+- **Rust** is the punk heister (`npc_criminal_wild_1`), the target of `dist/Geralt/Geralt_over_Rust.zip`.
+  Whether he plays his heister barks from the shared `regular_vox` bank is **not verified**: the original
+  crew do, and newer heisters are documented elsewhere as `char_<heister>`. If Geralt-over-Rust installs
+  and Rust still barks in his vanilla voice, that is the reason — this pack then replaces the shared bank
+  (everyone else) but not Rust.
+- **Old Hoxton** (`npc_criminals_suit_1`, the shared-suit heister of `dist/Arivus/Arivus_over_Hoxton.zip`) is
+  on the shared bank, so installing the Arivus pack replaces those lines for every heister on it, not for
+  Old Hoxton alone. The 'Hoxton.' callout in it is Geralt's voice — it is the callout file the GERALT
+  archive carries, borrowed per the user's 2026-11-25 decision; the rest of the pack is Arivus's.
+- Uncovered slots stay **vanilla**, the same rule the Hila pack applies to its sub-8 slots
+  (`voice_lines_vox/miranda_lawson/removed_slots.csv` records the Hila-specific removals). Nothing was
+  scored for these sets; purpose-authored takes are shipped as-is, wording unverified by ear.
+- Build: `python tools/build_character_stream_mod.py --pack all` (or `make -sC tools/pd2-las voices_geralt`
+  / `voices_arivus`). The tracked bytes are reproducible; the packs have **not** been heard in game.

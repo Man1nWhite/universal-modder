@@ -2422,7 +2422,7 @@ def shave_arivus_face(cell: np.ndarray) -> np.ndarray:
     look therefore means inpainting that region with skin taken from around it —
     and following the paint itself, not a hand-drawn box around it.
 
-    Four passes, in this order (D70):
+    Four passes, in this order (D72):
 
     * **Find the beard.** The geometric U of D64 ran diagonally across the clean cheeks
       and its sideburn boxes were 88 px wide, so the inpaint covered a rectangle under a

@@ -211,7 +211,7 @@ def _plain_env(**extra) -> dict:
 
 
 # Romance is the DODB pipeline and deliberately has no code-path guard.
-ENTRY_POINTS = [cmd[0] for tgt, cmd in fresh.BUILDERS.items() if tgt != "lawson"]
+ENTRY_POINTS = list(dict.fromkeys(cmd[0] for tgt, cmd in fresh.BUILDERS.items() if tgt != "lawson"))
 ENTRY_POINTS.append("tools/pd2-las/build_las.py")  # also a standalone scaffold tool
 
 
@@ -271,4 +271,4 @@ def test_two_traces_are_compared_by_function(tmp_path):
     assert {Path(path).stem for path in fresh.tracked_zips()} == set(status.pack_names())
     assert list(fresh.BUILDERS) == [
         "miranda", "busty", "lawson", "heads", "honokodae", "christie", "cloverchristie", "hila",
-        "voices_stream", "honokodae_head"]
+        "voices_stream", "voices_geralt", "voices_arivus", "honokodae_head"]

@@ -69,14 +69,26 @@ def test_event_ids_are_wwise_event_names_not_voice_line_ids():
     assert [ev for ev in ids if ev in hila_ids] == []
 
 
-def test_every_slot_has_a_curated_pick_and_that_pick_names_no_rank():
-    """A pick is what both routes play; the fallback heuristic is not allowed to decide."""
+def test_every_slot_has_a_curated_pick_or_is_removed_and_neither_names_a_rank():
+    """A pick is what both routes play; the fallback heuristic is not allowed to decide.
+
+    Slots whose best clip scored below semantic fit 8 with no take in either source
+    archive are removed in `removed_slots.csv`: those ids are left vanilla on
+    purpose, so they must not come back as picks, and the table records what they
+    used to play.
+    """
     picks = {r["slot"]: r for r in _rows("slot_picks.csv")}
+    removed = {r["slot"]: r for r in _rows("removed_slots.csv")}
     cuts = {r["slot"] for r in _rows("hila_intent_cuts.csv")}
-    assert cuts == set(picks), sorted(cuts ^ set(picks))
+    assert cuts == set(picks) | set(removed), sorted(cuts ^ (set(picks) | set(removed)))
+    assert not (set(picks) & set(removed)), "a slot is both picked and removed"
+    # `note` may quote the name that was trimmed; only what is heard has to be clean
     for slot, row in picks.items():
-        # `note` may quote the name that was trimmed; only what is heard has to be clean
         for column in ("cut_line", "clip_text"):
+            assert not NAME_ADDRESS.search(row.get(column) or ""), (slot, column)
+    for slot, row in removed.items():
+        assert row["reason"], slot
+        for column in ("cut_line", "old_clip_text"):
             assert not NAME_ADDRESS.search(row.get(column) or ""), (slot, column)
 
 
@@ -127,21 +139,22 @@ def test_the_stream_pack_carries_its_own_map():
         names = z.namelist()
     assert any(n.endswith("hila_stream_map.csv") for n in names), names[:5]
     streams = [n for n in names if n.endswith(".stream")]
-    assert len(streams) > 800, len(streams)
+    assert len(streams) > 600, len(streams)
 
 
 def test_the_tracked_pieces_manifest_is_what_the_picks_say():
     """`hila_slot_pieces.csv` is the build record; it must be the picks, rebuilt.
 
     Nothing ships it any more (D61), which is exactly why it has to be checkable:
-    it is the only line-by-line record of which ogg window each slot is cut from.
+    it is the only line-by-line record of which source window each slot is cut from.
     """
     import io
 
     if not vo.ARCHIVE.is_file():
         pytest.skip("references/Голос Лоусон.7z is absent from this sandbox snapshot")
     pytest.importorskip("py7zr", reason="the picks are resolved against the archive listing")
-    rows = vo.manifest_rows(vo.load_cuts(), vo.load_picks(), vo.list_archive_oggs(), vo.load_splits())
+    oggs = vo.list_archive_oggs() + vo.list_mira_files()
+    rows = vo.manifest_rows(vo.load_cuts(), vo.load_picks(), oggs, vo.load_splits())
     buf = io.StringIO()
     csv.writer(buf).writerows(rows)
     with (DIR / "hila_slot_pieces.csv").open(newline="", encoding="utf-8") as f:

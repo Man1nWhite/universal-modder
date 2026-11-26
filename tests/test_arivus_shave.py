@@ -10,7 +10,7 @@ is not touched at all, and the same raster always produces the same bytes.
 
 The numbers are measured on the source raster, so they move with it: the beard box is 73% "dark"
 before the shave and ~1% after, and the jaw's high-frequency structure lands at ~0.7 of the clean
-cheek's instead of zero. D70 also pins that the clean upper face is not repainted at all.
+cheek's instead of zero. D72 also pins that the clean upper face is not repainted at all.
 """
 from __future__ import annotations
 
@@ -129,7 +129,7 @@ def test_the_beard_is_gone(head_cell: np.ndarray, shaved: np.ndarray) -> None:
 def test_the_clean_upper_face_is_not_repainted(
     name: str, head_cell: np.ndarray, shaved: np.ndarray
 ) -> None:
-    """D70: the inpaint follows the beard, not a rectangle up to the temples.
+    """D72: the inpaint follows the beard, not a rectangle up to the temples.
 
     The old sideburn boxes reached from y 140 to 344 and 88 px into each cheek; the
     eyes, the bridge of the nose and the upper cheeks came out darker, with a straight

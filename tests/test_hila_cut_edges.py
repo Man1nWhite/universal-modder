@@ -5,15 +5,17 @@ one thing a pick has to get right is its two edges. Two of them did not, and the
 2026-11-25 report heard it in the game: `civ.down` ended at 1.020 s of
 `procer_cover_tutorial_a_S_INT.011.ogg`, which is inside "Shepard" ("keep you head
 down, Shep"), and `call_teammate.hey_you` started at 1.310 s of
-`profre_cover_tutorial_a_S_INT.002.ogg`, on the "-ard" of the same name. That slot has since
-been re-picked twice - once to three words from the same take, then (2026-11-25, D67) to one
-shouted "You" - so its test now measures that word instead.
+`profre_cover_tutorial_a_S_INT.002.ogg`, on the "-ard" of the same name. `hey_you` was
+re-picked, then (2026-11-25, D67) re-cut to one shouted "You". The `civ.down` and
+`civ.nophone` slots were replaced (2026-11-25) by purpose-authored takes from
+`references/LAWSON VOICE (PAYDAY 2).7z`, so their edges are now the silence at the
+edges of a whole TTS take instead of a hand-trimmed window.
 
-Both are now measured rather than guessed, and these tests measure them again: the
-edges are decoded from the tracked archive with the pinned `py7zr` and
-`imageio-ffmpeg`, so this runs offline like the rest of the suite. A voice is
-distinguishable from the silence around it - and "sh" from the "n" before it - by
-the share of energy above 4 kHz, which is what the checks below use.
+The edges are measured, not guessed: decoded from the tracked archives with the
+pinned `py7zr` and `imageio-ffmpeg`, so this runs offline like the rest of the
+suite. A voice is distinguishable from the silence around it - and "sh" from the
+"n" before it - by the share of energy above 4 kHz, which is what the name checks
+below use.
 """
 from __future__ import annotations
 
@@ -34,12 +36,12 @@ DIR = ROOT / "voice_lines_vox" / "miranda_lawson"
 RATE = 44100
 #: below 4 kHz is voice, above it is a fricative: "sh" is 65-85% high, "n" is 0%
 HF_BAND = (4000, 9000)
-#: the source oggs the pinned picks cut from
+#: the source files the current picks cut from (two archives, matched by file name)
 SOURCES = (
-    "procer_cover_tutorial_a_S_INT.011.ogg",   # civ.down
+    "Mira-civ.down.mp3",                       # civ.down
     "twrvxl_oldfriend_d_S_INT.043.ogg",        # call_teammate.hey_you
     "norvx_relationship_03_h_S_INT.037.ogg",   # cop.hands
-    "norvx_starter_h_S_INT.006.ogg",           # civ.nophone
+    "Mira-civ.nophone.mp3",                    # civ.nophone
 )
 
 
@@ -52,18 +54,21 @@ def _pick(slot: str) -> dict:
 
 @pytest.fixture(scope="module")
 def decode_source(tmp_path_factory):
-    """`filename -> mono 44.1 kHz float samples`, unpacked from the tracked archive."""
+    """`filename -> mono 44.1 kHz float samples`, unpacked from the tracked archives."""
     import py7zr
 
-    archive = ROOT / "references" / "Голос Лоусон.7z"
-    if not archive.is_file():
-        raise AssertionError(f"{archive.relative_to(ROOT)} is tracked; it is missing here")
+    archives = [ROOT / "references" / "Голос Лоусон.7z",
+                ROOT / "references" / "LAWSON VOICE (PAYDAY 2).7z"]
+    for archive in archives:
+        if not archive.is_file():
+            raise AssertionError(f"{archive.relative_to(ROOT)} is tracked; it is missing here")
     out = tmp_path_factory.mktemp("hila_src")
-    with py7zr.SevenZipFile(archive) as z:
-        names = z.getnames()
-        targets = [n for n in names if any(stem in n for stem in SOURCES)]
-        assert len(targets) == len(SOURCES), targets
-        z.extract(path=str(out), targets=targets)
+    for archive in archives:
+        with py7zr.SevenZipFile(archive) as z:
+            names = z.getnames()
+            targets = [n for n in names if any(n.endswith(stem) for stem in SOURCES)]
+            if targets:
+                z.extract(path=str(out), targets=targets)
 
     ff = vo.ffmpeg_bin()
     assert ff, "imageio-ffmpeg is a pinned build dependency"
@@ -73,7 +78,7 @@ def decode_source(tmp_path_factory):
     def decode(name: str) -> np.ndarray:
         if name not in cache:
             hits = [p for p in out.rglob(name)]
-            assert hits, f"{name} is not in the archive"
+            assert hits, f"{name} is not in either source archive"
             raw = subprocess.run(
                 [ff, "-v", "quiet", "-i", str(hits[0]), "-ac", "1", "-ar", str(RATE),
                  "-f", "s16le", "-"], check=True, capture_output=True).stdout
@@ -113,31 +118,28 @@ def _hf_share(seg: np.ndarray) -> float:
     return float(band) / total
 
 
-def test_the_down_line_ends_before_the_name(decode_source):
-    """`civ.down`: "Keep your head down," stops before the "sh" of "Shepard"."""
+def test_the_down_line_is_the_whole_take(decode_source):
+    """`civ.down`: the purpose-authored take, silence-trimmed at both edges.
+
+    The previous pick cut into "Shepard" and played "Shep"; the slot now plays the
+    Mira TTS take for the line, which contains no names at all. The contract is
+    that nothing is clipped off either end: the pre-roll stays inside the file's
+    own leading silence and the post-roll inside its trailing silence.
+    """
     pick = _pick("civ.down")
     pcm = decode_source(pick["source_ogg"])
     start, end = float(pick["t_start"]), float(pick["t_end"])
+    loudest = _loudest_db(pcm, start, end)
 
-    # The last 20 ms of the clip are the nasal tail of "down": no high band at
-    # all (the decoded source measures 0.00 there, against 0.80 for the name).
-    assert _hf_share(_window(pcm, end - 0.020, end)) < 0.05, \
-        "the cut ends on a fricative, not on the 'n' of 'down'"
-
-    # The name starts immediately after the edge, and it starts with "sh": 80% of
-    # the next 80 ms is high band. The first 20 ms already are, which is what makes
-    # the edge tight rather than merely early.
-    assert _hf_share(_window(pcm, end, end + 0.080)) > 0.50, \
-        "the name's 'sh' is not where the pick says it is"
-    assert _hf_share(_window(pcm, end, end + 0.020)) > 0.15, \
-        "the cut is far from the name; the clip is shorter than the line"
-
-    # Nothing of the name is inside the clip - which is exactly what the 1.020 s
-    # edge broke, played back as "keep you head down, Shep".
-    assert _hf_share(_window(pcm, end - 0.060, end)) < 0.05
-
-    # Still a bark, and it does not run on into "Shield yourself from the blast.".
-    assert 0.5 < end - start < 1.0
+    # The head carries no speech: everything before the pick is silence.
+    assert _window(pcm, 0.0, start).size == 0 or _level_db(_window(pcm, 0.0, start)) < -45
+    # The pick comes in before the voice, within 60 ms of it.
+    assert _level_db(_window(pcm, start, start + 0.060)) > loudest - 20
+    # And the tail lands in the gap after the line, so no release is clipped.
+    assert _level_db(_window(pcm, end - 0.015, end)) < loudest - 20
+    assert _level_db(_window(pcm, end, len(pcm) / RATE)) < -45
+    # A bark, not a speech.
+    assert 1.0 < end - start < 1.6
 
 
 def test_the_hey_you_line_is_one_shouted_word(decode_source):
@@ -204,17 +206,18 @@ def test_the_stop_line_is_the_word_and_not_the_next_one(decode_source):
 
 
 def test_the_no_calls_line_is_the_whole_take(decode_source):
-    """`civ.nophone`: the whole line, from its first sound to the gap after it."""
+    """`civ.nophone`: the whole purpose-authored take, silence-trimmed at both edges."""
     pick = _pick("civ.nophone")
     pcm = decode_source(pick["source_ogg"])
     start, end = float(pick["t_start"]), float(pick["t_end"])
     loudest = _loudest_db(pcm, start, end)
 
-    # Nothing is cut off the head: the line starts with the file.
-    assert start <= 0.010
-    assert _level_db(_window(pcm, start, start + 0.020)) > loudest - 20
-    # And the tail lands in the gap after "didn't", so no release is clipped.
+    # The head carries no speech: everything before the pick is silence.
+    assert _window(pcm, 0.0, start).size == 0 or _level_db(_window(pcm, 0.0, start)) < -45
+    # The pick comes in before the voice, within 60 ms of it.
+    assert _level_db(_window(pcm, start, start + 0.060)) > loudest - 20
+    # And the tail lands in the gap after the line, so no release is clipped.
     assert _level_db(_window(pcm, end - 0.015, end)) < loudest - 20
-    assert _level_db(_window(pcm, end, end + 0.020)) < loudest - 20
-    # A bark, not a speech.
-    assert 0.85 < end - start < 1.05
+    assert _level_db(_window(pcm, end, len(pcm) / RATE)) < -45
+    # A hostage-intimidation line, and a full one: several seconds of speech.
+    assert 3.0 < end - start < 4.2

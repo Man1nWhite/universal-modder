@@ -14,8 +14,8 @@
 - **What is textured:** the replaced head and hair (one `ALPHA_MASKED` atom, skin in the atlas top
   half and cutout hair in the bottom half) and the collar. The head is clean-shaven: Random4 paints
   the beard, moustache and sideburns into `head_diff_000_a_whi` instead of modelling them, so the
-  build inpaints them away (`shave_arivus_face` in `tools/build_joy_head_mods.py`, D64/D66/D69/D70).
-  D70 replaced the hand-drawn mask: a flood from the raster's own dark hairs, confined to the lower
+  build inpaints them away (`shave_arivus_face` in `tools/build_joy_head_mods.py`, D64/D66/D69/D72).
+  D72 replaced the hand-drawn mask: a flood from the raster's own dark hairs, confined to the lower
   face and narrow strips in front of the ears, finds the beard instead of painting a rectangle
   across the cheeks and eye corners. The harmonic fill still takes its level and chroma from the
   clean skin ring just outside the mask (the jaw's own ≈ 148,105,90, not the pale forehead's median)
@@ -33,7 +33,7 @@
   flat placeholder colours to isolate the replacement. The pack is built on *FPS Gloves in TPS*, so
   the hands in the third-person frame are that base mod's gloves; there is no separate `fps_*.model`
   unit in this pack and therefore no first-person sheet.
-- **Caveats:** offline software Z-buffer render with diffuse textures only — it is what D64/D70 were
+- **Caveats:** offline software Z-buffer render with diffuse textures only — it is what D64/D72 were
   judged on, and it cannot say how the shave reads under the game's own lighting; `runtime_verified` stays
   `false` and no tracked bytes of this pack have been seen in game
   ([`docs/pd2-las/HANDOFF.md`](../../../../pd2-las/HANDOFF.md)). The hair's alpha cutout is approximated

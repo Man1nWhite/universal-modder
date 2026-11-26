@@ -605,9 +605,120 @@ rather than stamped on a grown zone (a binary zone leaves a soft rectangle of it
 sideburn boxes were widened to the ears, where the old ones stopped 18 px short and left a strip of
 painted stubble in front of them. Pack: 8,420,283 B (`55cc0fc55b35`).
 
+## 2026-11-25 — A round of semantic fit scores for the voice pack
+
+The 2026-11-24 stale sweep noted `hila_intent_fit.csv` carries "pinned" in the score column for every
+slot — it records *that* a clip was hand-picked, never *how well* the pick serves the slot. This
+round scores all 78 slots 0–10 on semantic fit to the slot's **game intention** (the engine/sheet
+event in `slot_event_ids.csv` and the dominant `hila_category` — what the bark *does* in the game),
+not to Hila's wording. The artifact is `voice_lines_vox/miranda_lawson/hila_semantic_fit.csv`, one row
+per slot with the category, the event, the clip and a one-line rationale. Nothing reads it at build
+time; no clip, cut or level moved, and the pack's bytes are unchanged.
+
+Mean 7.45, use-weighted 7.73. Thirty-four slots score 9–10. The ones below 4, in order:
+`tech.drill_jam` 2 ("There must be some other explanation." — general bewilderment, no drill, no jam;
+it belongs to `tech.generic` at best), `civ.nophone` 3, `cop.kneel` 3, `mark.taser` 3, `nade.smoke` 3
+("Hostile fire." — bullets, not smoke) and `tech.fix` 3 ("You'll have to do it." — delegation, not
+repair). Readers of this list should note the pack's own known-gaps section already flags that
+`cop.*`, `civ.nophone`, `tech.fix` and friends are closest-available takes from a pack with no
+police, phone or repair vocabulary; the scores just say how far those compromises sit from the bark's
+intention. Re-cut any of the below-4 slots if a better take is ever recorded.
+
+## 2026-11-25 — The sub-8 lines are vanilla; the LAWSON takes are in (D68)
+
+The user read the semantic-fit scores and said *"remove everything that is worse fit than 8. Use
+LAWSON VOICE (PAYDAY 2).7z"* — and, asked about scope, that every slot with an archive take ships it,
+8/8+ included. Two kinds of change followed.
+
+The 33 slots with a take in `references/LAWSON VOICE (PAYDAY 2).7z` now ship it: the 28 PD2-bark-named
+`Mira-*.mp3` files plus the 5 call-tagged files mapped per the user's answers (`uffs..` → `cop.cuffs`,
+`nees..` → `cop.kneel`, `Tazer` → `mark.taser`, `gun_` → `cop.drop`, `Now._.` → `tech.fix`). They are
+cut whole — an earlier pass kept only the silence-trimmed body and the first-window scan showed ~0.10 s
+of digital silence at the heads that silencedetect (d = 0.15 s) had never reported, so every take now
+carries a 30 ms pre-roll of the file's own leading silence and a 50 ms post-roll (sample-scanned above
+-40 dBFS). `hila_semantic_fit.csv` marks them `replaced_tts` (the table was re-scored: 9s across the
+board — the takes are purpose-authored for their slots; mean 9.1, use-weighted 8.88, nothing below 8
+among what ships).
+
+The 17 slots below 8 with no take anywhere are **out of the pack**: `assault.ready` (18 uses),
+`civ.talk`, `civ.ties`, `cuffed.pick`, `drop.body`, `hurt.hit`, `hurt.medic`, `kill.medic`,
+`kill.taser`, `mark.guard`, `mark.medic`, `move.on_me`, `move.this_way`, `nade.generic`, `pager.clear`
+(32 uses), `pager.cover`, `tech.comp` — recorded in `removed_slots.csv` with the clip each slot played
+and the reason. ~162 ids are absent from the rebuilt zip; vanilla Hila answers them. (Three of the
+162 are also Vorbis and would not have been written anyway.)
+
+`removed_slots.csv` is deliberately not a deletion from `hila_intent_cuts.csv`: the cuts table stays
+the authoritative ID → slot map, and the builders (`hila_voice_clips.py`, `fit_hila_intents.py`,
+`build_hila_stream_mod.py`) refuse to pick for removed slots and record `removed:` rows in the manifest
+instead — so recording a take later revives the slot by editing one file. The pack rebuilds to
+**14,405,864 B `3779f6a969f8`**: 699 `.stream` files (was 858), 661 s of audio, 61 slots. All voice
+tests pass (`116 passed, 2 skipped`); `civ.down` and `civ.nophone` are re-pinned as whole-take
+contract tests. The rebuilt bytes are NOT heard in game — the 2026-11-25 report was on the previous
+build, and this one needs a fresh pass.
+
+## 2026-11-25 — Geralt over Rust and Arivus over Old Hoxton, same stream route (D71)
+
+The user asked for two more voice packs of the D68/D61 route: **Geralt over Rust** and **Arivus over
+Hoxton**, clarifying for the latter *"not the brother to Dallas — Huston"* and then choosing the
+**Old Hoxton** ped (`mtr_old_hoxton`, the target of `Arivus_over_Hoxton.zip`) from the options. Same
+questions settled the rest: same route as Hila (the id-keyed `.stream` pack, not the BeardLib prefix
+route); uncovered slots stay vanilla; the name-callout takes go to `call_teammate.hey_you` — the
+Geralt set's 'Hoxton.' callout is borrowed for the Arivus pack, and Rust's hey_you stays vanilla
+until the user supplies a take.
+
+Both packs write the **same shared regular_vox voice-line ids** as the Hila pack — they are
+alternatives, not companions (install one; last loaded wins otherwise) — and they are the same
+885-id table with per-pack coverage from purpose-authored bark sets:
+
+- `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` — `references/GERALT VOICE (PAYDAY 2).zip` ("Геральт",
+  CP866 names). 29 covered slots, 315 `.stream` files (24 covered ids are also Wwise Vorbis),
+  584 s of audio. Uncovered (49 slots, 546 ids): vanilla. Alternate takes in the set (`civ.down (2..4)`,
+  `mask.go (2)`, `inspire.faster (2)`) are left unused and noted in `geralt/slot_picks.csv`.
+  Rust = `npc_criminal_wild_1`; **whether he barks from `regular_vox` is not verified** — the
+  original crew do, newer heisters are documented elsewhere as `char_<heister>`. The tracked bytes
+  are not heard in game.
+- `dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip` — `references/ARIVUS VOICE (PAYDAY 2).zip`. 18
+  covered slots + `call_teammate.hey_you` (the Geralt 'Hoxton.' callout, borrowed per the user's
+  decision — that one slot is Geralt's voice), 324 `.stream` files (21 covered ids also Vorbis),
+  442 s of audio. The set's peaks sit at −2.8…−7.5 dBFS, so the −1.5 dBFS peak match boosts them
+  (max ≈ +6 dB, within the clamp). Uncovered (59 slots, 540 ids): vanilla. Not heard in game.
+
+New builder `tools/build_character_stream_mod.py` (`--pack geralt-rust|arivus-old-hoxton|all`, make
+targets `voices_geralt` / `voices_arivus`, in `all`) reuses the shared cuts table, the Vorbis list,
+and the cut/level/encode helpers — the Hila builder is untouched and its bytes are unchanged. Picks
+keep 30 ms of each file's leading silence and 50 ms of trailing (sample-scanned above −40 dBFS).
+Tests: `tests/test_character_stream_packs.py` (16 tests: coverage invariants, zip contract, manifest
+vs streams, ADPCM header/blocks, alternative-not-companion wording). Both packs rebuild byte for
+byte (`737f1fb13616…` / `9e04ccfde24b…`); the sub-8 slot rule from D68 does not transfer — the sets
+were authored per slot, so covered takes ship as-is.
+
+## 2026-11-25 — all palm extensions reverted: the cut is back on the crease (D70)
+
+The user's first-person screenshot of `OfficeSuite_Head` showed a wedge of skin past the white
+glove at the wrist, and the instruction was to *"revert extensions, before 4 cm (D62)"*. D62 had
+cut 4 cm into the palm to close D60's in-game gap; D63 reduced it to 1.5 cm when the palm came
+through the glove, D65 to 1.25 cm when a wedge still showed. All three kept arm skin past the
+wrist crease. This change takes `PALM_EXTEND_CM` back to **0.0**, which is D60's cut exactly:
+`clip_group_at_palm_bases` splits on the plane through the rig's `Hand` joint and
+`_cap_cut_rims` caps the ring there. The registration is untouched — `own_hands true`,
+`glove_adapter false`, no default glove, and a chosen glove still supplies hands; the Hila
+override keeps its own `g_hands`.
+
+Measured on the rebuilt packs: `margin_cm`/`extend_cm` 0.0, `clipped_to_cm` 0.0 both sides,
+`kept_to_cm` -0.76 (left) / -0.79 (right) after the 5% slim (the mesh stops just proximal of
+the plane), 64 triangles split, 66 vertices added, 2,276 removed, 68 cap triangles, and a
+shipped `g_body` of 31,643 vertices (61,479 after the slim) with no hand- or
+finger-dominated vertex. `tests/test_palm_cut.py` now pins the plane and the zero extension,
+`tests/test_pd2_las.py` the vertex counts and the clip record, and
+`tests/test_hila_body_override.py` the same cut on the native override.
+
+`runtime_verified` stays `false`: the D62 and D65 builds are the ones seen in game. The gap
+that motivated D62 is the known trade-off of this choice, and the wrist step of the in-game
+checklist now describes the current bytes.
+
 ## 2026-11-25 — Arivus: no rectangle on the face, no skin at the back of the collar
 
-**Arivus (D70).** *"I want you to improve Arivus head mod. Check renders for mistakes."* Looking at
+**Arivus (D72).** *"I want you to improve Arivus head mod. Check renders for mistakes."* Looking at
 the compiled-portrait sheet found three: a dark rectangle across the lower face with a straight
 edge under the eyes, a painted dark strip in front of each ear, and a jagged strip of skin through
 the back of Old Hoxton's collar. The atlas showed two more: pale blobs beside the nose and hard

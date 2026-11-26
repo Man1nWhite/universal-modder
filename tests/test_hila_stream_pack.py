@@ -32,10 +32,27 @@ BANK = pack.BANK + "/"
 
 def test_generated_readme_describes_the_single_shipped_route():
     """The install notes inside the zip must not advertise the removed BeardLib pack."""
-    readme = pack.readme(858, 885, 27, 665)
+    readme = pack.readme(699, 885, 27, 505, 162)
     assert "This stream pack leaves those lines vanilla" in readme
     assert "unless the BeardLib pack" not in readme
     assert "the other zip" not in readme
+    # ... and it says that the removed slots are not written by this pack either
+    assert "semantic fit 8" in readme
+
+
+def _removed_slots():
+    with (DIR / "removed_slots.csv").open(newline="", encoding="utf-8") as f:
+        return {r["slot"] for r in csv.DictReader(f)}
+
+
+def _removed_ids():
+    """ids whose slot (first row of the cut table wins) is removed."""
+    removed = _removed_slots()
+    rows = list(csv.DictReader((DIR / "hila_intent_cuts.csv").open(newline="", encoding="utf-8")))
+    chosen: dict[str, str] = {}
+    for r in rows:
+        chosen.setdefault(r["hila_id"].strip(), r["slot"])
+    return {hila_id for hila_id, slot in chosen.items() if slot in removed}
 
 
 def test_every_voice_line_id_is_numeric_and_answers_exactly_one_slot():
@@ -52,8 +69,9 @@ def test_every_voice_line_id_is_numeric_and_answers_exactly_one_slot():
 
 def test_every_slot_the_ids_use_asks_for_a_curated_clip():
     picks = pack.vo.load_picks()
+    removed = _removed_slots()
     slots = {slot for _id, slot, _also in pack.load_ids()}
-    missing = sorted(slots - picks.keys())
+    missing = sorted(slots - picks.keys() - removed)
     assert not missing, f"slots without a clip in slot_picks.csv: {missing}"
 
 
@@ -68,16 +86,35 @@ def test_the_ids_an_adpcm_file_cannot_replace_are_known_and_inside_the_table():
     assert [r["hila_id"] for r in rows] == sorted(vorbis, key=int), "the CSV is in id order"
 
 
+def test_the_removed_slots_are_left_vanilla():
+    """The removed (semantic fit < 8) slots' ids are not written by the pack."""
+    assert len(_removed_ids()) == 162
+    assert all(hila_id.isdigit() for hila_id in _removed_ids())
+
+
 @pytest.mark.skipif(not PACK.is_file(), reason="dist/ is absent from this sandbox snapshot")
 def test_the_pack_holds_one_stream_per_id_except_the_vorbis_ids():
     ids = {hila_id for hila_id, _s, _a in pack.load_ids()}
-    skipped = set(pack.load_vorbis_ids())
+    vorbis = set(pack.load_vorbis_ids())
+    removed_ids = _removed_ids()
     with zipfile.ZipFile(PACK) as z:
         names = z.namelist()
     streams = [n for n in names if n.startswith(FOLDER + BANK)]
-    assert {Path(n).stem for n in streams} == ids - skipped
+    assert {Path(n).stem for n in streams} == ids - vorbis - removed_ids
     assert all(n.endswith(".stream") for n in streams), "the bank holds nothing else"
-    assert len(streams) == len(ids) - len(skipped) == 858
+    assert len(streams) == len(ids) - len(vorbis) - len(removed_ids - vorbis) == 699
+
+
+@pytest.mark.skipif(not PACK.is_file(), reason="dist/ is absent from this sandbox snapshot")
+def test_the_removed_ids_are_recorded_in_the_manifest_with_the_reason():
+    removed = _removed_slots()
+    with zipfile.ZipFile(PACK) as z:
+        rows = list(csv.DictReader(z.read(FOLDER + "hila_stream_map.csv").decode("utf-8").splitlines()))
+    removed_rows = [r for r in rows if r["slot"] in removed]
+    assert removed_rows, "no removed id reached the manifest"
+    for r in removed_rows:
+        assert r["skipped"].startswith("removed"), r
+        assert r["stream_bytes"] == "0" and r["frames"] == "0", r
 
 
 @pytest.mark.skipif(not PACK.is_file(), reason="dist/ is absent from this sandbox snapshot")
