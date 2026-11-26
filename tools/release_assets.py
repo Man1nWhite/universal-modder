@@ -36,6 +36,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -103,17 +104,27 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def asset_name(rel: str) -> str:
-    """`dist/A/B.zip` -> `dist__A__B.zip`.
+#: the characters GitHub keeps in an asset name; anything else it rewrites to `.`
+KEPT = re.compile(r"[^A-Za-z0-9._-]")
 
-    GitHub takes only a flat asset name with no slashes, so the path is encoded in it. It has
-    to be reversible and readable in a release listing, and it has to survive a round trip
-    through a URL.
+
+def asset_name(rel: str) -> str:
+    """`dist/A/B.zip` -> `dist__A__B.zip`; `references/ARIVUS VOICE (PAYDAY 2).zip` -> a safe name.
+
+    GitHub takes only a flat asset name, so the path is encoded in it, and it rewrites every
+    character outside `A-Za-z0-9._-` to `.` — a space, a parenthesis and a Cyrillic letter all
+    become dots, two different paths can land on one name, and the upload then fails its own
+    "did GitHub keep my name" check after the bytes are already up. So the name is made ASCII
+    here: the rewrite GitHub would do, plus a short digest of the path when anything had to be
+    rewritten, which keeps distinct paths distinct for ever.
     """
     name = rel.replace("/", "__")
-    for bad in '%#?*:"<>|\\':
-        name = name.replace(bad, "_")
-    return name
+    safe = KEPT.sub(".", name)
+    if safe == name:
+        return name
+    stem, dot, ext = safe.rpartition(".")
+    digest = hashlib.sha1(rel.encode("utf-8")).hexdigest()[:8]
+    return f"{stem}-{digest}.{ext}" if dot else f"{safe}-{digest}"
 
 
 def path_of_asset(asset: str) -> str:
