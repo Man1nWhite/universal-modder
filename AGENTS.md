@@ -7,7 +7,7 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 
 | Question | Run or read |
 |---|---|
-| Fresh clone or restarted sandbox (no `.venv`, `dist/` listed deleted) | `make -sC tools/pd2-las env` |
+| Fresh clone or restarted sandbox (no `.venv`, no packs) | `make -sC tools/pd2-las env`, then `fetch` |
 | State of the packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
 | Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `busty`, `lawson`, `honokodae`, `honokodae_head`, `christie`, `cloverchristie`, `heads`, `hila`, `voices_stream`, `voices_geralt`, `voices_arivus`, or `glb` |
@@ -19,8 +19,8 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 
 - Take sizes, hashes and counts from `status` and `green`, not from a document.
 - No `make` (native Windows)? `python tools/tasks.py <target>` runs the same targets (a test keeps the lists equal).
-- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. `Miranda_Romance_LAS` has no
-  sidecar writer, so you write it ("Publish a release" in `tools/pd2-port/README.md`).
+- A rebuilt pack is published, not committed: `python tools/release_assets.py upload`, then `write`
+  and commit `assets.json` (`docs/pd2-las/RELEASE_ASSETS.md`).
 - A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
   `git checkout -- dist`: both discard work that was never pushed. `git status` and
   `git log origin/<branch>..HEAD` must first show nothing local the remote lacks; then

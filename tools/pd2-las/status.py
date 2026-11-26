@@ -16,12 +16,13 @@ used to quote and get wrong:
   are the 2B templates unpacked (``extract_2b.TEMPLATES``), are the source
   archives there, and how many tracked files are missing from the checkout (a
   restarted sandbox deletes ``dist/``, ``build/`` and ``node_modules/``).
-- ``packs``: per pack in ``dist/`` its size, its sha256, the make target that
-  rebuilds it, and ``is``:
+- ``packs``: per pack the make target that rebuilds it, its size and sha256, and
+  ``is`` — the packs are the ones ``assets.json`` publishes, so they are known
+  before a clone has fetched them (``fetch`` says how):
     ``tracked``  the zip is byte for byte what git tracks (``ok`` where there is no git to ask)
     ``changed``  the pair matches locally but is new or differs from HEAD
     ``broken``   the zip does not equal its ``.sha256``
-    ``missing``  the zip or its ``.sha256`` is not there
+    ``missing``  the zip or its ``.sha256`` is not there (``fetch`` if it is published)
   Every builder but lawson's writes the ``.sha256`` itself, so only the
   comparison with the commit says that a rebuild reproduced the tracked bytes.
 - ``next``:  the command to run now.
@@ -101,12 +102,35 @@ def target(name: str) -> str | None:
     return TARGETS.get(name) or (HEADS if "_over_" in name else None)
 
 
+#: the release the packs are published in
+PUBLISHED_RELEASE = "packs-v1"
+FETCH = "python tools/release_assets.py fetch"
+
+
+def published() -> dict[str, dict]:
+    """The packs `assets.json` publishes: repo-relative zip path -> its manifest entry.
+
+    Empty when there is no manifest (an older checkout, a test's temporary repository), which
+    leaves the git-and-disk discovery below as the only source.
+    """
+    manifest = REPO / "assets.json"      # next to REPO, not at import: tests move REPO
+    if not manifest.is_file():
+        return {}
+    try:
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    files = data.get("releases", {}).get(PUBLISHED_RELEASE, {}).get("files", {})
+    return {rel: entry for rel, entry in files.items() if rel.endswith(".zip")}
+
+
 def pack_paths(committed: set[str] | None = None) -> dict[str, str]:
     """Discover both halves of each pack, including pairs missing from disk."""
     if committed is None:
         committed = set(git("ls-tree", "-rz", "--name-only", "HEAD", "--", "dist") or [])
     paths = committed | set(git("ls-files", "-z", "--", "dist") or [])
     paths |= {p.relative_to(REPO).as_posix() for p in (REPO / "dist").rglob("*") if p.is_file()}
+    paths |= set(published())
     zips = {rel.removesuffix(".sha256") for rel in paths if rel.endswith((".zip", ".zip.sha256"))}
     packs = {Path(rel).stem: rel for rel in sorted(zips)}
     return {name: packs[name] for name in [*TARGETS, *sorted(packs.keys() - TARGETS.keys())] if name in packs}
@@ -162,9 +186,11 @@ def git(*args: str) -> list[str] | None:
 
 
 def pack_status(name: str, rel: str, committed: set[str] | None,
-                differs: set[str], full: bool = False) -> dict:
+                differs: set[str], full: bool = False, entry: dict | None = None) -> dict:
     path = REPO / rel
     out = {"is": "missing", "make": target(name)}
+    if entry is not None:
+        out["fetch"] = FETCH
     if not (path.is_file() and sidecar_path(path).is_file()):
         return out
     digest = sha256_file(path)
@@ -175,6 +201,9 @@ def pack_status(name: str, rel: str, committed: set[str] | None,
     pair = {rel, rel + ".sha256"}
     if not matches:
         state = "broken"
+    elif entry is not None:
+        # the published bytes are the reference now: a rebuild that changed them is `changed`
+        state = "tracked" if digest == entry["sha256"] else "changed"
     elif committed is None:
         state = "ok"
     else:
@@ -187,12 +216,15 @@ def collect(only: list[str] | None = None, full: bool = False) -> dict:
     changed = git("diff", "-z", "--name-only", "HEAD", "--", "dist")
     committed = None if head is None or changed is None else set(head)
     differs = set(changed or ())
-    packs = {name: pack_status(name, rel, committed, differs, full)
+    published_packs = published()
+    packs = {name: pack_status(name, rel, committed, differs, full, published_packs.get(rel))
              for name, rel in pack_paths(set(head or ())).items()
              if not only or name in only or target(name) in only}
     states = {pack["is"] for pack in packs.values()}
 
-    hint = "git status --short dist" if states & {"missing", "broken"} else None
+    hint = None
+    if states & {"missing", "broken"}:
+        hint = FETCH if published_packs and "missing" in states else "git status --short dist"
     if only:
         status = {"packs": packs}
     else:

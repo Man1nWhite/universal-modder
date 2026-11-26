@@ -548,11 +548,6 @@
      "bytes": 7970,
      "sha256": "e5215519ef0a4c5910452edbb9ddba928bce03bfdc4d28e918d26fd57bb0d554"
     },
-    "references/README.md": {
-     "asset": "references__README.md",
-     "bytes": 9899,
-     "sha256": "efe42006c0cbf68e3b26aba0a0947e1aad8d5c9657d45368f3006e6c4dbd3ed7"
-    },
     "references/Syndey Voicelines.docx": {
      "asset": "references__Syndey Voicelines.docx",
      "bytes": 86453,

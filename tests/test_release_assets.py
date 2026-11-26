@@ -78,11 +78,19 @@ def test_asset_names_are_flat_unique_and_round_trip(assets, manifest):
 
 
 def test_manifest_lists_every_tracked_file(assets, manifest):
-    tracked = _tracked()
+    tracked = [rel for rel in _tracked() if assets.publishable(rel)]
     if not tracked:
         pytest.skip("nothing tracked under dist/ and references/ in this checkout")
     listed = {rel for _, rel, _ in assets.manifest_entries(manifest)}
     assert sorted(listed) == tracked, sorted(set(tracked) - listed) + sorted(listed - set(tracked))
+
+
+def test_markdown_stays_in_git(assets, manifest):
+    """`references/README.md` is the provenance table NOTICE.md points at: a clone needs it
+    without a network, so it is documentation, not a published asset."""
+    listed = {rel for _, rel, _ in assets.manifest_entries(manifest)}
+    assert not any(rel.endswith(".md") for rel in listed)
+    assert (REPO / "references" / "README.md").is_file() or not _tracked()
 
 
 def test_the_manifest_names_the_bytes_on_disk(assets, manifest, tmp_path):

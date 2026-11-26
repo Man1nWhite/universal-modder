@@ -22,6 +22,15 @@ body and therefore changes with that head on other bodies too.
 | Rig work | `rig_target.py` + `reference/las_rig.json` | `skeleton_map.json` + the retarget in `build_models.py` | |
 | Verification | `check_all.py` (mutation-tested), release CI | one test per invariant on the tracked packs (`tests/test_pd2_las_invariants.py`), the authoring suites, byte round-trips of the codec | |
 
+## Where the bytes live
+
+`dist/` and `references/` are published as **release assets**, and `assets.json` at the repository
+root is the manifest: for every published file its path, size and sha256. `tools/release_assets.py`
+has the verbs — `plan`, `write`, `check`, `upload`, `fetch`, `verify`, and `remote` to ask what
+GitHub holds without downloading anything. `make -sC tools/pd2-las fetch` (or
+`python tools/tasks.py fetch`) is the short form, and it is how a fresh clone gets the packs.
+The runbook, including the history rewrite, is [`docs/pd2-las/RELEASE_ASSETS.md`](../docs/pd2-las/RELEASE_ASSETS.md).
+
 ## Invariants that hold in every pipeline (do not break)
 
 A pipeline's own invariants, and the tests that enforce them, are in its README.

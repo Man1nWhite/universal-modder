@@ -58,6 +58,19 @@ jobs:
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 install -y --no-install-recommends ffmpeg
       - name: unpack 2B templates
         run: python tools/pd2-las/extract_2b.py
+      - name: the published packs and sources
+        # dist/ and references/ are release assets, not tracked files (docs/pd2-las/RELEASE_ASSETS.md):
+        # assets.json names their bytes. The cache is keyed on that manifest, so a run only
+        # downloads them when a pack or an input was actually republished.
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            references
+          key: assets-${{ hashFiles('assets.json') }}
+      - name: fetch every published asset
+        # a no-op when the cache had them all: fetch verifies every sha256 either way
+        run: make -sC tools/pd2-las fetch
       - name: verify the checked-in pack checksums
         # The suite reads the original artifacts. The independent rebuild in the
         # `packs` job writes only inside build/fresh/.
@@ -109,6 +122,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: the published packs and sources
+        # dist/ and references/ are release assets, not tracked files (docs/pd2-las/RELEASE_ASSETS.md):
+        # assets.json names their bytes. The cache is keyed on that manifest, so a run only
+        # downloads them when a pack or an input was actually republished.
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist
+            references
+          key: assets-${{ hashFiles('assets.json') }}
+      - name: fetch every published asset
+        # a no-op when the cache had them all: fetch verifies every sha256 either way
+        run: make -sC tools/pd2-las fetch
       - name: verify the checked-in pack checksums
         run: python tools/pd2-las/pack_checksum.py
       - name: every tracked pack must equal a fresh build, byte for byte

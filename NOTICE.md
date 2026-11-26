@@ -12,6 +12,10 @@ It does not cover the third-party material the repository carries:
 | `docs/renders/`, `docs/media/` | Archived screenshots and software renders of that game content | Their creators/uploaders; each capture folder's `README.md`/`manifest.json` records provenance |
 | `voice_lines_vox/` | Voice-line tables derived from the packs above | The respective rights holders |
 
+The same material is published as release assets (`packs-v1`, `sources-v1`) as well as, until the
+history is rewritten, committed: [`docs/pd2-las/RELEASE_ASSETS.md`](docs/pd2-las/RELEASE_ASSETS.md)
+names what is in each release and why.
+
 The owner of this repository ships these game-derived assets at their own call, with sources
 named and credits kept. Nothing here is a licence to redistribute third-party game content, and
 the MIT grant must not be read as one: if you fork this repository, the provenance obligations

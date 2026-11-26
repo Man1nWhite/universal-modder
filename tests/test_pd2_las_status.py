@@ -530,3 +530,58 @@ elif Path(sys.argv[0]).stem in ('build_busty_variant', 'build_joy_head_mods'):
     (tmp_path / "base-ready").unlink()
     run("heads", "busty", "build")
     assert (tmp_path / "base-was-run").exists()
+
+
+@pytest.fixture
+def published_checkout(tmp_path, monkeypatch):
+    """A temporary repository with a manifest and no dist/: a clone that has not fetched yet."""
+    status = _load()
+    monkeypatch.setattr(status, "REPO", tmp_path)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    payload = b"the published pack"
+    manifest = {"version": 1, "releases": {"packs-v1": {"title": "packs", "note": "", "files": {
+        "dist/Christie/Christie_LAS.zip": {
+            "asset": "dist__Christie__Christie_LAS.zip", "bytes": len(payload),
+            "sha256": __import__("hashlib").sha256(payload).hexdigest()},
+    }}}}
+    (tmp_path / "assets.json").write_text(json.dumps(manifest))
+    return status, payload
+
+
+def test_status_knows_every_published_pack_before_a_clone_has_fetched(published_checkout):
+    """`dist/` is not in the tree any more: the manifest is what makes the packs known."""
+    status, payload = published_checkout
+    result = status.collect(only=["Christie_LAS"])
+    assert result == {"packs": {"Christie_LAS": {"is": "missing", "make": "christie",
+                                                 "fetch": status.FETCH}},
+                      "next": status.FETCH}
+
+
+def test_status_measures_a_pack_against_the_published_bytes(published_checkout):
+    """After `fetch` the pack is `tracked`; a rebuild that changes bytes is `changed`, not noise."""
+    status, payload = published_checkout
+    pack = dist_path(status.REPO, "Christie_LAS.zip")
+    pack.parent.mkdir(parents=True)
+    pack.write_bytes(payload)
+    write_checksum(pack, root=status.REPO)
+    assert status.collect(only=["Christie_LAS"])["packs"]["Christie_LAS"]["is"] == "tracked"
+
+    pack.write_bytes(b"rebuilt from the sources, not published yet")
+    write_checksum(pack, root=status.REPO)
+    result = status.collect(only=["Christie_LAS"])
+    assert result["packs"]["Christie_LAS"]["is"] == "changed"
+    assert "commit the zip with its .sha256" in result["note"]
+
+    sidecar_path(pack).unlink()
+    assert status.collect(only=["Christie_LAS"])["packs"]["Christie_LAS"]["is"] == "missing"
+
+
+def test_a_clone_without_the_manifest_still_works(published_checkout):
+    """An older checkout has no assets.json: git and the disk are the only sources, as before."""
+    status, payload = published_checkout
+    (status.REPO / "assets.json").unlink()
+    pack = dist_path(status.REPO, "Christie_LAS.zip")
+    pack.parent.mkdir(parents=True, exist_ok=True)
+    pack.write_bytes(payload)
+    write_checksum(pack, root=status.REPO)
+    assert status.collect(only=["Christie_LAS"])["packs"]["Christie_LAS"]["is"] == "ok"

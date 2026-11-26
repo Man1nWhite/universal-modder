@@ -99,8 +99,10 @@ coverage said had no tests (`um/sprite.py` 58% with no test file, `um/render3d.p
 
 ## Left alone, on purpose
 
-- **The 420 MB of history.** Untracking `dist/` or `references/` needs a history rewrite and a
-  release-asset plan; the guard above only stops growth.
+- **The 420 MB of history.** Superseded by the release-asset plan: the manifest (`assets.json`),
+  `tools/release_assets.py` and the gated runbook in
+  [`../pd2-las/RELEASE_ASSETS.md`](../pd2-las/RELEASE_ASSETS.md) are in the tree, and the switch
+  waits only on the upload, so `dist/` and `references/` stay tracked until `remote` says PASS.
 - **Three copies of `skills/`.** `test_skill_copies_match` keeps them equal and symlinks are
   unreliable on Windows without developer mode. `tools/sync_skills.py` makes the copy one command.
 - **Splitting `tests/test_pd2_las.py` (1,750 lines) and `tests/test_um.py` (1,294).** Structural, and
@@ -118,6 +120,6 @@ pytest -q tests                     → 1157 passed, 14 skipped   (budget: OK, 0
 python -m pyflakes um tools tests   → clean
 um kb check --index                 → PASS, 247 notes
 um publish check .                  → PASS, 1247 files, 0 failures, 0 warnings
-python tools/pd2-port/check_links.py → PASS, 431 Markdown files, 0 broken
-python tools/gen_docs_index.py --check → PASS, 25 documents
+python tools/pd2-port/check_links.py → PASS, 433 Markdown files, 0 broken
+python tools/gen_docs_index.py --check → PASS, 27 documents
 ```

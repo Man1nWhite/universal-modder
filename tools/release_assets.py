@@ -14,7 +14,8 @@ manifest (`assets.json`) that says exactly which bytes are current:
     python tools/release_assets.py plan      what is published, and how big it is
     python tools/release_assets.py write     regenerate assets.json from the tree
     python tools/release_assets.py check     assets.json against the files that are present
-    python tools/release_assets.py upload    gh release create/upload what is missing
+    python tools/release_assets.py remote    what GitHub holds against the manifest
+    python tools/release_assets.py upload    create the releases, upload what is missing
     python tools/release_assets.py fetch     download into place, verify every sha256
     python tools/release_assets.py verify    check the files against assets.json, offline
 
@@ -80,6 +81,9 @@ RELEASES = {
 }
 
 DEFAULT_REPO = "Man1nWhite/universal-modder"
+#: Markdown stays in git: it is documentation (`references/README.md` is the provenance table),
+#: it is small, and a clone has to be able to read it without a network.
+TRACKED_DOCS = (".md",)
 CHUNK = 1 << 20
 
 
@@ -138,12 +142,17 @@ def tracked_paths() -> list[str]:
 RELEASES_PREFIXES = tuple(spec["prefix"] for spec in RELEASES.values())
 
 
+def publishable(rel: str) -> bool:
+    """Everything under the published prefixes except the Markdown that stays in git."""
+    return not rel.endswith(TRACKED_DOCS)
+
+
 def build_manifest() -> dict:
     releases: dict[str, dict] = {}
     for tag, spec in RELEASES.items():
         files: dict[str, dict] = {}
         for rel in tracked_paths():
-            if not rel.startswith(spec["prefix"] + "/"):
+            if not rel.startswith(spec["prefix"] + "/") or not publishable(rel):
                 continue
             path = REPO / rel
             if not path.is_file():
@@ -262,15 +271,31 @@ def gh(*args: str, capture: bool = True) -> str:
     return proc.stdout.strip() if capture else ""
 
 
-def release_assets(repo: str, tag: str) -> dict[str, dict]:
-    """asset name -> {"id", "size", "digest"} for one release; {} when the release has none."""
-    out = gh("api", f"repos/{repo}/releases/tags/{quote_tag(tag)}", "--jq",
-             '.assets[] | [.name, (.size|tostring), (.digest // ""), (.id|tostring)] | @tsv')
+ASSET_JQ = '.assets[] | [.name, (.size|tostring), (.digest // ""), (.id|tostring)] | @tsv'
+
+
+def remote_state(repo: str, tag: str) -> dict[str, dict] | None:
+    """asset name -> {"id", "size", "digest"} for one release; None when the release is absent.
+
+    None and {} are different answers: `remote` has to tell a release that was never created
+    from one that is there with nothing in it.
+    """
+    proc = subprocess.run(["gh", "api", f"repos/{repo}/releases/tags/{quote_tag(tag)}",
+                           "--jq", ASSET_JQ], cwd=REPO, capture_output=True, text=True, check=False)
+    if proc.returncode != 0:
+        return None
     assets = {}
-    for line in out.splitlines():
+    for line in proc.stdout.splitlines():
         name, size, digest, ident = (line.split("\t") + ["", "", ""])[:4]
         assets[name] = {"id": int(ident or 0), "size": int(size or 0),
                         "digest": digest.removeprefix("sha256:") or None}
+    return assets
+
+
+def release_assets(repo: str, tag: str) -> dict[str, dict]:
+    assets = remote_state(repo, tag)
+    if assets is None:
+        die(f"{tag} is not on GitHub yet: `upload` creates it")
     return assets
 
 
@@ -279,9 +304,7 @@ def quote_tag(tag: str) -> str:
 
 
 def release_exists(repo: str, tag: str) -> bool:
-    proc = subprocess.run(["gh", "api", f"repos/{repo}/releases/tags/{quote_tag(tag)}"], cwd=REPO,
-                          capture_output=True, text=True, check=False)
-    return proc.returncode == 0
+    return remote_state(repo, tag) is not None
 
 
 def release_id(repo: str, tag: str) -> int:
@@ -394,7 +417,7 @@ def cmd_check(args) -> int:
             problems.append(f"{rel}: on disk sha256 {digest[:12]}…, {tag} publishes {entry['sha256'][:12]}… "
                             f"(rebuilt? `upload` it, then `write`)")
     for path in tracked_paths():
-        if not any(rel == path for _, rel, _ in manifest_entries(manifest)):
+        if publishable(path) and not any(rel == path for _, rel, _ in manifest_entries(manifest)):
             problems.append(f"{path}: tracked but missing from {MANIFEST.name} (run `write`)")
     if problems:
         for problem in problems:
@@ -453,6 +476,43 @@ def cmd_verify(args) -> int:
     return 0
 
 
+def cmd_remote(args) -> int:
+    """What GitHub holds against the manifest: sizes and digests, without downloading a byte.
+
+    This is the check that has to pass *before* dist/ and references/ stop being tracked: after
+    that, a missing asset is a pack no clone can rebuild or even install.
+    """
+    manifest = load_manifest()
+    repo = args.repo or DEFAULT_REPO
+    problems: list[str] = []
+    ok = 0
+    for tag, release in manifest["releases"].items():
+        if args.tag and tag != args.tag:
+            continue
+        have = remote_state(repo, tag)
+        if have is None:
+            problems.append(f"{tag}: the release does not exist yet (run `upload`)")
+            continue
+        for rel, entry in sorted(release["files"].items()):
+            remote = have.get(entry["asset"])
+            if remote is None:
+                problems.append(f"{tag}: {rel} is not published yet")
+            elif remote["size"] != entry["bytes"]:
+                problems.append(f"{tag}: {rel} is {remote['size']} bytes on GitHub, the tree has "
+                                f"{entry['bytes']}")
+            elif remote["digest"] and remote["digest"] != entry["sha256"]:
+                problems.append(f"{tag}: {rel} has sha256 {remote['digest'][:12]}… on GitHub, the "
+                                f"tree has {entry['sha256'][:12]}…")
+            else:
+                ok += 1
+    if problems:
+        for problem in problems:
+            print(f"MISSING {problem}", file=sys.stderr)
+        die(f"{len(problems)} problem(s): {ok} asset(s) are published and correct")
+    print(f"PASS: all {ok} assets are published, with the manifest's sizes and sha256")
+    return 0
+
+
 def cmd_upload(args) -> int:
     manifest = load_manifest()
     if args.write_first:
@@ -498,6 +558,11 @@ def main(argv: list[str] | None = None) -> int:
                        help=f"where the assets are served from (default {DEFAULT_BASE})")
         p.add_argument("--force", action="store_true", help="download even when a file matches")
         p.set_defaults(func=func)
+
+    p = sub.add_parser("remote", help="what GitHub holds, against the manifest (no download)")
+    p.add_argument("--repo", default=None, help=f"owner/name (default {DEFAULT_REPO})")
+    p.add_argument("--tag", default=None, help="only this release")
+    p.set_defaults(func=cmd_remote)
 
     p = sub.add_parser("upload", help="create the releases and upload what is missing")
     p.add_argument("--repo", default=None, help=f"owner/name (default {DEFAULT_REPO})")

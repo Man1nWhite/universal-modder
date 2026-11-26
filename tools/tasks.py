@@ -4,6 +4,7 @@
     python tools/tasks.py                    # every target and what it does
     python tools/tasks.py status             # one JSON object: environment and every tracked pack
     python tools/tasks.py env                # once per fresh clone: pinned .venv, 2B templates
+    python tools/tasks.py fetch              # the published packs and sources, verified
     python tools/tasks.py build              # rebuild one pack -> dist/
     python tools/tasks.py test green fresh   # the checks, in the order CI runs them
     python tools/tasks.py docs               # regenerate docs/README.md
@@ -37,6 +38,7 @@ LOGS = ROOT / "build" / "pd2-las"
 TASKS: dict[str, tuple[list[str], str]] = {
     "status": (["{py}", "tools/pd2-las/status.py"], "one JSON object: environment, every tracked pack, what to run next"),
     "env": (["bash", "tools/pd2-las/recover_env.sh"], "once per fresh clone: pinned .venv, 2B composition, then status"),
+    "fetch": (["{py}", "tools/release_assets.py", "fetch"], "the published packs and sources, into place, every sha256 checked"),
     "build": (["{py}", "tools/pd2-las/build_models.py"], "Miranda_L4D2_LAS -> dist/Miranda_L4D2/"),
     "busty": (["{py}", "tools/pd2-las/build_busty_variant.py"], "Miranda_L4D2_Busty_LAS -> dist/Miranda_L4D2/"),
     "lawson": (["{py}", "tools/pd2-port/build_las_pack.py"], "Miranda_Romance_LAS -> dist/Miranda_Romance/"),
