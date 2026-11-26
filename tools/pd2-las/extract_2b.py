@@ -138,8 +138,7 @@ def main() -> int:
               file=sys.stderr)
         return 1
     if not RAR.is_file():
-        print(f"missing {shown(RAR)}: it is a release asset now - `make -sC tools/pd2-las fetch` "
-              "puts it back (docs/pd2-las/RELEASE_ASSETS.md)", file=sys.stderr)
+        print(f"missing {shown(RAR)} (restore the tracked reference archive)", file=sys.stderr)
         return 1
     node = shutil.which("node")
     if not node:

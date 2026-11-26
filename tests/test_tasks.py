@@ -102,23 +102,3 @@ def test_an_unknown_target_is_a_usage_error(capsys):
     tasks = tasks_module()
     assert tasks.main(["nope"]) == 2
     assert "unknown target" in capsys.readouterr().err
-
-
-def test_green_says_fetch_rather_than_failing_on_a_missing_pack(tmp_path, monkeypatch):
-    """`dist/` is not tracked any more: a clone without `make fetch` must be told, not misdiagnosed."""
-    import importlib.util
-    from pathlib import Path
-
-    repo = Path(__file__).resolve().parents[1]
-    spec = importlib.util.spec_from_file_location("check_all", repo / "tools" / "pd2-port" / "check_all.py")
-    check_all = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(check_all)
-
-    monkeypatch.setattr(check_all, "ROOT", tmp_path)
-    pack = tmp_path / "dist" / "Miranda_Romance" / "Miranda_Romance_LAS.zip"
-    assert not check_all.needs_fetch(pack), "no manifest: an ordinary missing pack"
-    (tmp_path / "assets.json").write_text('{"version": 1, "releases": {}}')
-    assert check_all.needs_fetch(pack), "a manifest and no pack: this clone has not fetched"
-    pack.parent.mkdir(parents=True)
-    pack.write_bytes(b"fetched")
-    assert not check_all.needs_fetch(pack)

@@ -43,18 +43,18 @@ rebuilt by `make -sC tools/pd2-las glb`.
 
 ## Cloning
 
-The packs (`dist/`, ~190 MB of built ZIPs) and the source archives (`references/`, ~220 MB) are
-published as release assets rather than committed: `assets.json` names their bytes, and one
-command brings them back.
+This is a heavy checkout by design: about 190 MB of built packs under `dist/`, ~220 MB of source
+archives under `references/` (the only copy of some of them), and ~40 MB of archived renders, so
+`.git` is around 420 MB with no Git LFS. Two ways to pay less:
 
 ```sh
-git clone https://github.com/Man1nWhite/universal-modder && cd universal-modder
-make -sC tools/pd2-las fetch     # the published packs and sources, every sha256 checked
+git clone --filter=blob:none https://github.com/Man1nWhite/universal-modder   # blobs on demand
+git clone --depth 1 https://github.com/Man1nWhite/universal-modder            # one commit only
 ```
 
-A clone without the fetch is the toolkit, the knowledge base, the skills and the documentation —
-about 40 MB of archived renders aside, that is what the history holds. What each asset is, whose
-it is and how to publish a rebuilt pack: [`docs/pd2-las/RELEASE_ASSETS.md`](docs/pd2-las/RELEASE_ASSETS.md).
+Agents that only need the toolkit, the knowledge base and the skills can go further and skip the
+packs and archives with a sparse checkout (`git sparse-checkout set --no-cone '/*' '!/dist' '!/references'`),
+then read [`tools/pd2-las/README.md`](tools/pd2-las/README.md) before rebuilding anything.
 `tests/test_repo_weight.py` stops a new file over 25 MB from being committed unnoticed.
 
 ## Installing
