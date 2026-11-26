@@ -27,6 +27,7 @@ ROOT = HERE.parents[1]
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
+import determinism  # noqa: E402
 import model_to_glb as mtg  # noqa: E402
 from dist_paths import dist_path  # noqa: E402
 from las_outfit_pack import zip_bytes  # noqa: E402
@@ -95,6 +96,7 @@ def members() -> tuple[dict[str, bytes], dict]:
 
 
 def main() -> int:
+    determinism.enter(__file__)
     files, manifest = members()
     data = zip_bytes([(INTERNAL + name, payload) for name, payload in sorted(files.items())],
                      stamp=STAMP)
