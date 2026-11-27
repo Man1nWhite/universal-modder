@@ -1,12 +1,16 @@
 # CI: what runs, what must pass, how to change it
 
-`.github/workflows/test.yml` has three jobs; there is no per-pack workflow any more (the Romance
-LAS one went with its pack, D83).
+`.github/workflows/test.yml` has four jobs; there is no per-pack workflow any more (the Romance
+LAS one went with its pack, D83). `smoke` is new and is **not** in the `main` ruleset yet: it
+proves the CLI and the Windows-only code paths on the platforms nobody was testing. Once it has a
+few green runs, add `smoke` as a required check the same way `changes` was added (step 5); until
+then it is advisory.
 
 | Job | Runs | Cost | Blocking? |
 | --- | --- | --- | --- |
 | `test` | every gate that reads the tree: checksums, ruff, mypy, links, docs index, the suite (+ coverage floor), skip budget, `um` CLI, knowledge base, publish check | ~4 min | **yes** |
 | `changes` | pull requests only: did this change touch `dist/`, `tools/` or `references/`? | seconds | no, it feeds `packs` |
+| `smoke` | Windows and macOS: the launchers, the CLI help, the pure quoting/launch tests | ~2 min | not yet (see below) |
 | `packs` | `tools/pd2-las/fresh.py check`: all 9 tracked ZIPs built again from scratch and compared byte for byte | ~15 min | on `main` yes |
 
 `packs` runs on a push to `main`, a tag, the nightly schedule, a manual run with
@@ -97,7 +101,7 @@ workflow comment.
 | --- | --- | --- |
 | lint | `python -m ruff check .` | `[tool.ruff]` in `pyproject.toml` (rules, ignores, excluded trees) |
 | types | `python -m mypy` | `[tool.mypy]` — scoped to the byte-critical modules, by file list |
-| tests | `python -m pytest -q -rsxX tests --cov --cov-fail-under=58` | `[tool.pytest.ini_options]`, `[tool.coverage.*]` |
+| tests | `python -m pytest -q -rsxX tests --cov --cov-fail-under=61` | `[tool.pytest.ini_options]`, `[tool.coverage.*]` |
 | skip budget | `tools/pd2-port/check_skip_budget.py --report …` | the budget in that script |
 | links, docs index | `tools/pd2-port/check_links.py`, `tools/gen_docs_index.py --check` | — |
 | packs | `tools/pd2-las/fresh.py check` | `tools/pd2-las/packs.py` |

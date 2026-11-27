@@ -20,7 +20,7 @@ See `docs/pd2-las/HANDOFF.md` for in-game evidence.
 Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, one JSON object: the environment, every tracked pack of the three pipelines (size, sha256, `make` target, whether the zip `is` what git tracks), the next command.
 ## Commands
 
-The general CLI supports Python 3.10+; `env` requires **Python 3.11+** (CI uses 3.11).
+The toolkit requires Python 3.11+ everywhere (the CLI floor and CI).
 From the repo root, `make -sC tools/pd2-las` with no target lists them.
 
 ```sh

@@ -46,9 +46,12 @@ MONO_FONT = FONTS / "JetBrainsMono-Bold.ttf"
 FONT_OVERRIDES: dict[Path, str] = {}   # set per EDL from the theme's title_font / body_font / mono_font
 
 
-def ff(*args, quiet=True):
+def ff(*args, quiet=True, timeout=3600):
     cmd = ["ffmpeg", "-hide_banner", "-y"] + (["-loglevel", "error"] if quiet else []) + [str(a) for a in args]
-    r = subprocess.run(cmd, capture_output=True, **text_utf8())
+    try:
+        r = subprocess.run(cmd, capture_output=True, timeout=timeout, **text_utf8())
+    except subprocess.TimeoutExpired:
+        die(f"ffmpeg did not finish within {timeout:.0f}s; the command line was:\n" + " ".join(cmd)[:3000])
     if r.returncode:
         die("ffmpeg failed:\n" + " ".join(cmd)[:3000] + "\n" + r.stderr[-3000:])
     return r
@@ -56,7 +59,10 @@ def ff(*args, quiet=True):
 
 def _probe_ffmpeg(path) -> dict:
     """ffprobe-less fallback: parse `ffmpeg -i` banner."""
-    err = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path)], capture_output=True, **text_utf8()).stderr
+    try:
+        err = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(path)], capture_output=True, timeout=120, **text_utf8()).stderr
+    except subprocess.TimeoutExpired:
+        die(f"ffmpeg -i {path} timed out after 120s")
     if "Invalid data" in err or "No such file" in err:
         die(f"cannot read {path}: {err.strip().splitlines()[-1]}")
     m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", err)
@@ -71,7 +77,10 @@ def _probe_ffmpeg(path) -> dict:
 def probe(path) -> dict:
     if not shutil.which("ffprobe"):
         return _probe_ffmpeg(path)
-    r = subprocess.run(["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format", str(path)], capture_output=True, **text_utf8())
+    try:
+        r = subprocess.run(["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format", str(path)], capture_output=True, timeout=120, **text_utf8())
+    except subprocess.TimeoutExpired:
+        die(f"ffprobe {path} timed out after 120s")
     if r.returncode:
         die(f"ffprobe {path}: {r.stderr.strip()}")
     d = json.loads(r.stdout)
@@ -133,8 +142,11 @@ def first_frame(path, start=0.0, step=0.5, limit=90, min_mean=45, min_std=18) ->
     np = need("numpy")
     t = start
     while t < limit:
-        raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.2f}", "-i", str(path), "-frames:v", "1", "-vf", "scale=160:90,format=gray",
-                              "-f", "rawvideo", "-"], capture_output=True).stdout
+        try:
+            raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.2f}", "-i", str(path), "-frames:v", "1", "-vf", "scale=160:90,format=gray",
+                                  "-f", "rawvideo", "-"], capture_output=True, timeout=60, **text_utf8()).stdout
+        except subprocess.TimeoutExpired:
+            break
         if not raw:
             break
         a = np.frombuffer(raw, np.uint8).reshape(-1, 160)[5:-5, 20:140].astype(float)
@@ -148,7 +160,11 @@ def beats(path) -> dict:
     """Rough tempo + first-beat offset from onset strength (good enough to cut on the beat)."""
     np = need("numpy")
     sr = 22050
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"], capture_output=True).stdout
+    try:
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"],
+                             capture_output=True, timeout=600, **text_utf8()).stdout
+    except subprocess.TimeoutExpired:
+        die(f"ffmpeg reading {path} timed out after 600s")
     x = np.frombuffer(raw, np.float32)
     if x.size < sr:
         die("audio too short")

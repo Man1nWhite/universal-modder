@@ -1,4 +1,5 @@
 {
+  "private": true,
   "dependencies": {
     "node-unrar-js": "2.0.2"
   }

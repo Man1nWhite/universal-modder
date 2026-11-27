@@ -28,7 +28,27 @@ from pathlib import Path
 
 from um.common import data_dir, die, need, text_utf8
 
-REPO = os.environ.get("UM_KB_REPO", "rehan-remade/universal-modder")
+def _default_repo() -> str:
+    """Where `um kb` syncs from and opens PRs against.
+
+    This used to be hardwired to the upstream toolkit, so in a fork `um kb sync` cached upstream's
+    knowledge base and `um kb pr --yes` forked from — and opened the PR against — the wrong repo,
+    carrying fork-only notes upstream's rules would close. The default is now this clone's
+    `origin/owner/repo` when it is a GitHub URL, else upstream (a bare plugin install with no clone).
+    `UM_KB_REPO` always wins.
+    """
+    try:
+        out = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, timeout=5, **text_utf8())
+        url = out.stdout.strip()
+        m = re.search(r"github\.com[:/]+([^/\s]+)/([^/\s]+?)(?:\.git)?/?$", url)
+        if m:
+            return f"{m.group(1)}/{m.group(2)}"
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return "rehan-remade/universal-modder"
+
+
+REPO = os.environ.get("UM_KB_REPO", _default_repo())
 BRANCH = os.environ.get("UM_KB_BRANCH", "main")
 ROUTES = ["data", "asset-only", "loader-api", "managed-patch", "native-hook", "reimplementation", "decomp-recomp",
           "passthrough", "emulator", "other"]

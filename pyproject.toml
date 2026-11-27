@@ -4,7 +4,7 @@ version = "0.2.0"
 description = "Tools and a shared knowledge base for AI agents that mod games: engine scanner, fal asset generation, sprite and 3D-to-sprite pipelines, window capture and input on Windows, showcase video editing, field notes."
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.11"   # CI tests 3.11 (both jobs); the pack toolchain needs it
 dependencies = [
     "pillow>=10",
     "numpy>=1.24",
@@ -16,14 +16,16 @@ dependencies = [
 # tested with one command: `pip install -e '.[dev]'`. py7zr unpacks the reference archives the
 # fixture tests read; hypothesis drives tests/test_reader_fuzz.py; the 2B templates are not a
 # Python dependency at all (tests/conftest.py extracts them, or skips with the command).
+# exact pins, the same ones the test workflow installs: a fresh `pip install -e '.[dev]'` must
+# resolve to a suite that behaves like CI's, not like whatever was released last week.
 dev = [
-    "pytest>=8",
-    "pytest-cov>=5",
-    "hypothesis>=6",
-    "py7zr>=1",
-    "ruff>=0.17",
-    "mypy>=2.4",
-    "imageio-ffmpeg>=0.6",
+    "pytest==9.2.0",
+    "pytest-cov==7.1.0",
+    "hypothesis==6.170.17",
+    "py7zr==1.1.4",
+    "ruff==0.17.6",
+    "mypy==2.4.1",
+    "imageio-ffmpeg==0.8.1",
 ]
 # The two optional readers that a dev checkout can use to cross-check more (`--extras` of
 # tools/pd2-las/recover_env.sh). Tests that need them skip without them, here and in CI.
@@ -114,7 +116,7 @@ branch = false
 [tool.coverage.report]
 # The floor is a ratchet, not a target: today's number rounded down by a point, raised
 # when the suite earns it. Excluded lines are the ones that cannot run in CI at all.
-fail_under = 58
+fail_under = 61
 skip_covered = true
 exclude_lines = [
     "pragma: no cover",
