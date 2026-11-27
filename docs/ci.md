@@ -20,19 +20,53 @@ gh workflow run test.yml --ref <branch> -f rebuild_packs=true
 
 ## What the repository owner must set once
 
-The checks above only bind if GitHub is told to require them. The repository has no
-branch protection and no ruleset as of 2026-11-26 (`gh api repos/…/rulesets` returns `[]`),
-and the workflow token cannot create one (`403 Resource not accessible by integration`), so
-this is a settings change, made once, by a person with admin rights:
+The checks above only bind if GitHub is told to require them. The repository has no branch
+protection and no ruleset as of 2026-11-26 (`gh api repos/…/rulesets` returns `[]`), and the
+workflow token cannot create one (`403 Resource not accessible by integration`). This is
+one settings change, by a person with admin rights, in the browser. Settings → **Rules** →
+**Rulesets** → **New branch ruleset**, then:
 
-- **Settings → Rules → Rulesets → New branch ruleset** for `main`: require a pull request,
-  require the status checks **`test`** and **`changes`**, block force pushes, block deletion.
-- Leave `packs` out of the required list: it takes fifteen minutes and the `changes` job
-  already decides when it is worth them. It still blocks a push to `main` when it runs and
-  fails.
+1. **Ruleset Name**: `main: required checks`.
+2. **Enforcement status**: open the dropdown (it starts on *Disabled*) and pick **Active**.
+   Nothing in the form applies until this is set, which is the step most often missed.
+3. **Bypass list**: leave it empty so the rules apply to everyone, or — if you want an
+   emergency route — **+ Add bypass** → role **Repository admin**. An empty list is the
+   stronger setting; the price is that an urgent direct push to `main` waits for a pull
+   request like everything else.
+4. **Target branches** → **Add target** → **Include by pattern** → type `refs/heads/main` →
+   **Add Inclusion pattern**. The box then reads `1 inclusion pattern` and the branch is
+   matched by name, not by the "default branch" alias that would follow a rename.
+5. **Branch rules**, tick these four and leave the rest alone:
+   - **Restrict deletions** — a branch with 1.8 GB of history is not one to delete by accident.
+   - **Block force pushes** — the packs are byte-tracked; a rewritten `main` invalidates every
+     `.sha256` and every clone.
+   - **Require a pull request before merging** — leave the approval count at **0**: this is a
+     one-person repository, and a required approval would mean approving your own PR is
+     impossible rather than safer. Turn on *Dismiss stale approvals* only if approvals are
+     ever required.
+   - **Require status checks to pass** — after ticking it, **Add checks**, type `test`, choose
+     the `test` job and confirm; repeat for `changes`. Both are job *names* from
+     `.github/workflows/test.yml`.
+6. Leave **Require linear history** off: `main` is merged with merge commits on purpose (the
+   PR number stays in the history).
+7. **Create** at the bottom.
 
-Do the same for any other protected branch. Nothing in the repository can enforce this from
-the outside, which is why it is written here rather than only in a workflow comment.
+**Do not add `packs` to the required checks.** It takes fifteen minutes and the `changes`
+job already decides when it is worth them; requiring it would make every docs-only PR wait
+for it, and a *skipped* job never reports the success a required check needs. It still blocks
+a `main` push when it does run and fails, and the PR checks list shows it as skipped, not
+green-by-default.
+
+**Verify it took.** In the browser: Settings → Rules should list `main: required checks` as
+*Active*, and a new PR shows `test` and `changes` under *Required*. From a terminal:
+
+```sh
+gh api repos/Man1nWhite/universal-modder/rulesets --jq '.[] | "\(.name): \(.enforcement)"'
+```
+
+Do the same for any other branch that should be protected. Nothing in the repository can
+enforce this from the outside, which is why the steps are written here rather than only in a
+workflow comment.
 
 ## The gates, and where their settings live
 
