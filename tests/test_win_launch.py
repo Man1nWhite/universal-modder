@@ -67,6 +67,7 @@ def test_launch_under_wsl_uses_the_linux_path_and_parent(monkeypatch):
 def test_launch_steam_url_has_no_directory(monkeypatch):
     calls = []
     monkeypatch.setattr(win.subprocess, "run", lambda cmd, **kw: calls.append(cmd))
+    monkeypatch.setattr(win, "is_windows", lambda: False)   # otherwise this calls the real os.startfile / ShellExecute
     monkeypatch.setattr(win, "is_wsl", lambda: False)
     win.launch("105600", [], steam=True)
     assert calls and "/D" not in calls[0]
