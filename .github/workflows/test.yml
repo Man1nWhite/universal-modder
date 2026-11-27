@@ -122,8 +122,19 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: bin\um.cmd --version
-      - name: platform-pure suites
-        run: python -m pytest tests/test_win_quoting.py tests/test_win_launch.py tests/test_encoding.py tests/test_backup_name_safety.py -q -rs
+      # TEMP probe (will be reverted): per-file steps with continue-on-error to identify which suite fails on Windows
+      - name: probe quoting
+        continue-on-error: true
+        run: python -m pytest tests/test_win_quoting.py -q
+      - name: probe launch
+        continue-on-error: true
+        run: python -m pytest tests/test_win_launch.py -q
+      - name: probe encoding
+        continue-on-error: true
+        run: python -m pytest tests/test_encoding.py -q
+      - name: probe backup_name_safety
+        continue-on-error: true
+        run: python -m pytest tests/test_backup_name_safety.py -q
 
   changes:
     # A pull request tells the `packs` job whether it can change the answer. The workflow's own
