@@ -495,7 +495,7 @@ def extend_neck_skirt(
 
     The head models are cut off at the neck: the neck sheet's outer boundary ends
     across the throat, at z 149.5 on the heister rig. Over the bodies measured so
-    far that rim is already hidden - on `dist/Christie/Christie_LAS.zip` **0 of its 98-120
+    far that rim is already hidden - on the retired Christie body **0 of its 98-120
     edges** are the front-most surface, from the front or from behind
     (docs/audits/2026-11-07-christie-slim-diagnosis.md §10.2) - but a rim that
     stops exactly where a collar ends is one wider neckline away from being the
