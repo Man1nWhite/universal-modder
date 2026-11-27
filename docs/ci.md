@@ -33,9 +33,11 @@ one settings change, by a person with admin rights, in the browser. Settings →
    emergency route — **+ Add bypass** → role **Repository admin**. An empty list is the
    stronger setting; the price is that an urgent direct push to `main` waits for a pull
    request like everything else.
-4. **Target branches** → **Add target** → **Include by pattern** → type `refs/heads/main` →
-   **Add Inclusion pattern**. The box then reads `1 inclusion pattern` and the branch is
-   matched by name, not by the "default branch" alias that would follow a rename.
+4. **Target branches** → **Add target** → **Include by pattern** → type **`main`** (the
+   branch name alone — the form adds the `refs/heads/` itself, and typing it again stores
+   `refs/heads/refs/heads/main`, a pattern that matches no branch at all and silently leaves
+   `main` unprotected) → **Add Inclusion pattern**. The box then reads
+   `refs/heads/main`; no "default branch" alias, so a rename does not quietly retarget it.
 5. **Branch rules**, tick these four and leave the rest alone:
    - **Restrict deletions** — a branch with 1.8 GB of history is not one to delete by accident.
    - **Block force pushes** — the packs are byte-tracked; a rewritten `main` invalidates every
@@ -57,11 +59,24 @@ for it, and a *skipped* job never reports the success a required check needs. It
 a `main` push when it does run and fails, and the PR checks list shows it as skipped, not
 green-by-default.
 
-**Verify it took.** In the browser: Settings → Rules should list `main: required checks` as
-*Active*, and a new PR shows `test` and `changes` under *Required*. From a terminal:
+**Verify it took.** The browser check — Settings → Rules lists `main: required checks` as
+*Active* — does not prove the pattern matches anything: a ruleset stored with the pattern
+`refs/heads/refs/heads/main` is Active, has every rule, and applies to no branch. Ask which
+rules `main` actually gets:
 
 ```sh
-gh api repos/Man1nWhite/universal-modder/rulesets --jq '.[] | "\(.name): \(.enforcement)"'
+gh api repos/Man1nWhite/universal-modder/rules/branches/main \
+  --jq '.[] | "\(.type): \(.parameters.required_status_checks // "" | tostring)"'
+```
+
+Four lines (`deletion`, `non_fast_forward`, `pull_request`, `required_status_checks`) mean it
+applies; `[]` means the ruleset is inert, and the pattern is the thing to look at. The
+ruleset's own record shows the stored pattern:
+
+```sh
+gh api repos/Man1nWhite/universal-modder/rulesets \
+  --jq '.[] | .id' | xargs -I{} gh api "repos/Man1nWhite/universal-modder/rulesets/{}" \
+  --jq '.conditions.ref_name.include'
 ```
 
 Do the same for any other branch that should be protected. Nothing in the repository can
