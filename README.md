@@ -30,8 +30,9 @@ rebuilt by `make -sC tools/pd2-las glb`.
   [Miranda L4D2](dist/Miranda_L4D2/), [Miranda Romance](dist/Miranda_Romance/),
   [Geralt](dist/Geralt/) and [Arivus](dist/Arivus/). The Miranda folder holds the whole-family
   packs: both ``OfficeSuite`` bodies and the four Hila packs built on the two LAS outfits.
-- [OfficeSuite + Miranda Romance over Hila](dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip) is the standalone
-  native override (no LAS); see the [install notes and preview](docs/renders/honoka/model/over-hila/README.md).
+- The standalone native Hila override (`OfficeSuite_Miranda_Romance_over_Hila.zip`) was retired on
+  2026-11-26 (D82): the same body and head ship as one whole-character LAS item,
+  [`OfficeSuite_Head`](docs/renders/honoka/model/head/README.md).
 - See the user-supplied [OfficeSuite](docs/renders/honoka/in-game/officesuite/2026-11-15/README.md) screenshots,
   [all packs](docs/renders/overview/model/all_dist_mods_sheet.png),
   [Arivus over Old Hoxton](docs/renders/arivus/model/over-hoxton/README.md), the

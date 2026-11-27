@@ -263,8 +263,11 @@ HEAD_PACKS = (OFFICE_SUITE_HEAD,)
 PACKS = (OFFICE_SUITE,)
 
 #: The donor drawable the head pack re-skins, its source materials, and the unit
-#: inside the donor ZIP the head is read from (the native Hila override's unit).
-HEAD_DONOR = "OfficeSuite_Miranda_Romance_over_Hila.zip"
+#: inside the donor ZIP the head is read from. The unit is Hila's own, and both native
+#: over-Hila replacements carry the identical `g_head` (2026-11-26: same MODEL_DATA
+#: payload in each), so the surviving head replacement is the donor now that the
+#: OfficeSuite-native one is retired (D82).
+HEAD_DONOR = "Miranda_Romance_over_Hila.zip"
 HEAD_SLOTS = ("head", "lashes")
 HILA_HEAD_UNIT = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female"
 

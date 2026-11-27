@@ -47,9 +47,9 @@ stretch 0.35 cm inwards, and re-centres the ring the cut leaves on the palm's ax
 on the left wrist, 0.54 cm on the right, which is what the retarget's per-segment fit costs). The cut,
 the bracelet and the registration are unchanged; the pass records itself in `BUILD_INFO.json` under
 `wrist`. Posed against Sydney's, Joy's and Clover's own gloves the worst sector of skin outside a cuff
-fell from +2.7/+3.2/−2.6 mm to +1.6/−1.8/−5.5 mm. `OfficeSuite_Head` and
-`OfficeSuite_Miranda_Romance_over_Hila` inherit it through the shared body. The D75 bytes have not been
-seen in game.
+fell from +2.7/+3.2/−2.6 mm to +1.6/−1.8/−5.5 mm. `OfficeSuite_Head` inherits it through the shared
+body; the native `OfficeSuite_Miranda_Romance_over_Hila` override it was first measured on was retired
+on 2026-11-26 (D82). The D75 bytes have not been seen in game.
 
 `OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body (palms cut, D60/D70) and
 arms unit with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
@@ -99,7 +99,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Geralt_over_Rust` | no record | — |
 | `Arivus_over_Hoxton` | 2026-11-25 (face, D66/D69-era bytes) | **no** — rebuilt again for D79 (neck rim, skirt, skinning); the D72 neck and the `bone_offset` fix have never been in game |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
-| `OfficeSuite_Miranda_Romance_over_Hila` | no record | — (native body, palms cut on the crease again after D70, and head override, over Hila's stock gloves, which a chosen glove can replace; its render is from the single replacement ZIP) |
+| `OfficeSuite_Miranda_Romance_over_Hila` (**retired 2026-11-26, D82**) | no record | — (native body and head override; retired in favour of `OfficeSuite_Head`, which carries the same body, cut and head as a registered LAS item) |
 | `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
 | `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |

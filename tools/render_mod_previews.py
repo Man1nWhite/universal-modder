@@ -12,7 +12,6 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70), the wrist twisting on ForeArmRoll (D75), plus the first-person arms panel)
   - `25_OfficeSuite_with_Miranda_Romance_over_Hila.png` (the same combination for OfficeSuite)
   - `26_OfficeSuite_head_skin_detail.png` (front and three-quarter views of the colour match)
-  - `28_OfficeSuite_Miranda_Romance_over_Hila.png` (native Hila body and head override)
   - `29_OfficeSuite_Head.png` (OfficeSuite body, palm cut, arms and the Romance head in one unit)
   - `30_Arivus_over_Hoxton.png` (GTA SA Arivus head over Old Hoxton, FPS gloves in TPS)
   - `31`–`36` `*_fps.png` (first-person `fps_*.model` sheets for every pack that ships one:
@@ -830,38 +829,6 @@ def render_heister_head_sheet(
     return p_34
 
 
-def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Image.Image:
-    """Read the actual replacement ZIP, not the pre-fit overlay of LAS and head donors."""
-    from build_hila_body_mod import INSTALL, MATERIAL, PACK, UNIT
-    from build_joy_head_mods import HILA_ICON_PATH
-
-    with zipfile.ZipFile(zip_path or dist_path(ROOT, PACK)) as zf:
-        model = dm.ModelFile.read(zf.read(f"{INSTALL}/{UNIT}.model"))
-        mats = _parse_matcfg_diffuse(zf.read(f"{INSTALL}/{MATERIAL}.material_config"))
-        # The outfit's palms are cut on the crease again (D60/D70), with no extension
-        # past it, its distal wrist twists on ForeArmRoll (D75), and it spawns no
-        # default glove, so in game the sleeve ends in the cut until the player
-        # equips a glove. The
-        # sheet draws Hila's stock glove drawable - kept by the pack, node and all,
-        # so a chosen glove has something to land on - flat-shaded, because its
-        # material samples a vanilla glove texture the pack does not ship.
-        cache: dict[str, np.ndarray] = {}
-        parts = [p for draw in ("g_body", "g_head") for p in _parts_from_model_with_matcfg(
-            zf, INSTALL, model, mats, cache, drawable=draw,
-            cutout_materials=frozenset({"mtr_lashes"}), asset_root="",
-        )]
-        geo, topo, _md = _model_drawables(model)["g_hands"]
-        glove = np.full((32, 32, 4), [38, 44, 64, 255], dtype=np.uint8)
-        parts.append((np.asarray(geo["verts"], np.float32), np.asarray(geo["normals"], np.float32),
-                      np.array(topo["indices"], dtype=np.int32).reshape(-1, 3),
-                      np.asarray(geo["uv0"], np.float32), glove, False, True))
-        icon = decode_bgra_icon(zf.read(f"{INSTALL}/{HILA_ICON_PATH}"))
-    return render_las_sheet(
-        "OfficeSuite + Miranda Romance over Hila", "Native body, palms cut on the line where they begin (D70), wrist twisted on ForeArmRoll (D75) and head replacement | Offline render | Hila's stock gloves drawn over the cut; in game a chosen glove does",
-        parts, [], icon, out_path, closeup=(18.0, 171.5, 7.4), full_view=(94.0, 2.48),
-    )
-
-
 UNIFIED_PATHS = {
     "01_Miranda_LAS.png": "miranda/model/las/miranda_las_sheet.png",
     "02_lawson_las.png": "lawson/model/lawson_las_sheet.png",
@@ -873,7 +840,6 @@ UNIFIED_PATHS = {
     "25_OfficeSuite_with_Miranda_Romance_over_Hila.png":
         "honoka/model/dae/officesuite_with_miranda_romance_over_hila_sheet.png",
     "26_OfficeSuite_head_skin_detail.png": "honoka/model/dae/officesuite_head_skin_detail.png",
-    "28_OfficeSuite_Miranda_Romance_over_Hila.png": "honoka/model/over-hila/officesuite_miranda_romance_over_hila_sheet.png",
     "29_OfficeSuite_Head.png": "honoka/model/head/officesuite_head_las_sheet.png",
     "30_Arivus_over_Hoxton.png": "arivus/model/over-hoxton/arivus_over_hoxton_sheet.png",
     "31_Miranda_LAS_fps.png": "miranda/model/las/miranda_las_fps_sheet.png",
@@ -891,7 +857,6 @@ def main(argv: list[str] | None = None) -> None:
                     help="output directory (default: build/previews, or docs/renders with --unified)")
     ap.add_argument("--unified", action="store_true",
                     help="write sheets into <out>/<project>/model/... per docs/renders/README.md")
-    ap.add_argument("--only-hila", action="store_true", help="render only the native Hila replacement")
     ap.add_argument("--only-wrist", action="store_true",
                     help="render only the OfficeSuite wrist junction (the D75 comparison)")
     ap.add_argument("--only-officesuite", action="store_true",
@@ -945,8 +910,8 @@ def main(argv: list[str] | None = None) -> None:
         render_las_sheet(
             "dist/Miranda/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
             "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
-            "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
-            "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
+            "Romance head and lashes from the Hila head override | Registration replaces the head and hides the mask | "
+            "Source: Honoka_DOAXVV_Secret_Reportout.dae + Miranda_Romance_over_Hila.zip",
             tpp_hd,
             fps_hd,
             icon_hd,
@@ -960,10 +925,6 @@ def main(argv: list[str] | None = None) -> None:
             fps_hd,
             target_for("36_OfficeSuite_Head_fps.png"),
         )
-        return
-
-    hila_thumb = render_native_hila_sheet(target_for("28_OfficeSuite_Miranda_Romance_over_Hila.png"))
-    if args.only_hila:
         return
 
     thumbs: list[tuple[str, Image.Image]] = []
@@ -1027,7 +988,7 @@ def main(argv: list[str] | None = None) -> None:
         "dist/Miranda/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
         "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
         "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
-        "Source: Honoka_DOAXVV_Secret_Reportout.dae + OfficeSuite_Miranda_Romance_over_Hila.zip",
+        "Source: Honoka_DOAXVV_Secret_Reportout.dae + Miranda_Romance_over_Hila.zip",
         tpp_hd,
         fps_hd,
         icon_hd,
@@ -1179,7 +1140,6 @@ def main(argv: list[str] | None = None) -> None:
         ("OfficeSuite_Head.zip", th_hd),
         *thumbs,  # Geralt, Hila L4D2, Hila Romance
         ("Arivus_over_Hoxton.zip", th_arivus),
-        ("OfficeSuite + Miranda over Hila (native)", hila_thumb),
     ]
     rows = (len(all_dist_cells) + 5) // 6
     grid = Image.new("RGB", (tw * 6, th_h * rows + 58), (16, 19, 26))
@@ -1197,7 +1157,7 @@ def main(argv: list[str] | None = None) -> None:
         d.text((12, 10), lbl, fill=(240, 245, 255), font=FONT_BOLD_13)
         grid.paste(cell, (col_i * tw, 58 + row_i * th_h))
 
-    dist_ov_path = target_for("00_all_dist_mods_overview.png")
+    dist_ov_path = target_for("18_all_dist_mods_overview.png")
     dist_ov_path.parent.mkdir(parents=True, exist_ok=True)
     grid.save(dist_ov_path)
     print(f"Saved {dist_ov_path}")

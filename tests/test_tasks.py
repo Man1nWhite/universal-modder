@@ -69,7 +69,7 @@ def test_the_build_targets_are_the_ones_make_logs():
     scripts = {tasks.TASKS[t][0][-1].replace("{py}", "").strip(): t for t in tasks.BUILDERS}
     assert set(tasks.BUILDERS) == {
         "build", "lawson", "honokodae", "honokodae_head",
-        "heads", "hila", "voices_stream", "voices_geralt", "voices_arivus", "glb"}
+        "heads", "voices_stream", "voices_geralt", "voices_arivus", "glb"}
     assert len(scripts) == len(tasks.BUILDERS)
 
 

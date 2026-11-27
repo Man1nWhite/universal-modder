@@ -34,9 +34,6 @@ from dist_paths import dist_path  # noqa: E402
 TEMPLATES = extract_2b.TEMPLATES
 needs_templates = pytest.mark.skipif(not TEMPLATES.exists(), reason=extract_2b.MISSING)
 BODY = dist_path(ROOT, "OfficeSuite.zip")
-HILA = dist_path(ROOT, "OfficeSuite_Miranda_Romance_over_Hila.zip")
-#: the two units in the Hila override that carry the outfit's own body drawable
-HILA_UNIT = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female"
 
 
 def _template():
@@ -119,7 +116,7 @@ def _info(pack=BODY):
 # ---------------------------------------------------------------- the record
 
 
-@pytest.mark.parametrize("pack,stem", [(BODY, "OfficeSuite"), (HILA, None)])
+@pytest.mark.parametrize("pack,stem", [(BODY, "OfficeSuite")])
 def test_the_pack_records_the_weight_curve_it_wrote(pack, stem):
     """Every number the pass used is in the pack, and the curve is vanilla Sydney's own.
 

@@ -1,5 +1,24 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-26 — the native Hila override is retired (D82)
+
+`dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip` and its sidecar are deleted, with the table row,
+the `hila` make target, the `tasks.py` entry, `tools/build_hila_body_mod.py`, its test file and its render.
+The pack combined OfficeSuite's body with the ME2 Romance head on Hila's own unit with no LAS; both halves
+ship without it (`OfficeSuite_Head` as one whole-character LAS item, `Miranda_Romance_over_Hila.zip` as the
+head over Hila), so what went is a second install route, not content.
+
+It was also `OfficeSuite_Head`'s head donor. The two over-Hila replacements carry a byte-identical `g_head`
+`MODEL_DATA` payload (`8125a6c6cb6066f7`) and the same four head/lash textures, so the builder now reads
+`Miranda_Romance_over_Hila.zip`; rebuilt from it, `OfficeSuite_Head` differs from its previous bytes in one
+member and two lines — `BUILD_INFO.json`'s `head.donor` and `head_donor` — with the other 28 members
+byte-identical. `las_head.read()` takes the donor's name as a parameter so no report names the retired pack.
+
+Also fixed while here: `render_mod_previews.py --unified` crashed at the end (it saved the overview under
+`00_all_dist_mods_overview.png`, a key `UNIFIED_PATHS` no longer had). The overview it then wrote is the
+first in a while — the tracked one still carried a full extra row of packs retired on 2026-11-26, including
+this one. Tracked zips: thirteen → twelve.
+
 ## 2026-11-14 — fresh start
 
 The dated journal that stood here before this entry was removed on 2026-11-14, at the owner's direction:

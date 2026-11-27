@@ -9,7 +9,7 @@ no Source compile step, Blender, or running game is needed.
 | --- | --- | --- | --- |
 | `Miranda_L4D2_LAS` — full body and first-person arms | `references/characters/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses, palms cut *on* the line where they begin, with no extension past it (`palm_cut`, `extend_cm`/`clipped_to_cm: 0.0` in `BUILD_INFO.json`, D70; no default glove, a chosen one wins), in TPP and FPS | `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
-| `OfficeSuite_Head` — `OfficeSuite`'s palm-cut body with the Miranda Romance head, one whole-character unit | `OfficeSuite_Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
+| `OfficeSuite_Head` — `OfficeSuite`'s palm-cut body with the Miranda Romance head, one whole-character unit | `dist/Miranda/Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
 | `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | `references/voice/Голос Лоусон.7z` (clips), `references/voice/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/voice/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
 | `Geralt_VO_over_Rust_Stream` — the purpose-authored Geralt barks, one `.stream` per shared `regular_vox` id for the 29 slots the set covers (315 files); slots without a take are vanilla (`docs/pd2-voice-mod-install.md` §8) | `references/voice/GERALT VOICE (PAYDAY 2).zip` (CP866 file names) | `tools/build_character_stream_mod.py --pack geralt-rust` over `wwise_ima.py` | `voices_geralt` |
 | `Arivus_VO_over_Hoxton_Stream` — the purpose-authored Arivus barks for 18 slots plus the borrowed Geralt 'Hoxton.' callout for `call_teammate.hey_you` (324 files); uncovered slots vanilla | `references/voice/ARIVUS VOICE (PAYDAY 2).zip` (+ the one callout file from the GERALT archive) | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` over `wwise_ima.py` | `voices_arivus` |
@@ -27,7 +27,7 @@ From the repo root, `make -sC tools/pd2-las` alone lists the targets for all thr
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or lawson | honokodae | honokodae_head | heads | hila | voices_stream | voices_geralt | voices_arivus | glb | all
+make -sC tools/pd2-las build    # or lawson | honokodae | honokodae_head | heads | voices_stream | voices_geralt | voices_arivus | glb | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -46,7 +46,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
   Linux machine: every builder uses the declared `determinism.py` code path. `fresh` verifies original
   checksums before building in a copy; `check --builders NAME` limits what it rebuilds. A custom Miranda
   `--out` does not promote to `dist/`; verify its sidecar from there.
-- Order: `build` before `heads`; `heads`, `honokodae` and then `honokodae_head` before `hila`, whose pack holds the head. Standalone `hila` builds a [native override](../../docs/renders/honoka/model/over-hila/README.md), not LAS. **Done means:** `green` passes and `status` shows `changed` only for the packs you meant to change.
+- Order: `build` before `heads`, and `heads` before `honokodae_head`, which reads its head from `dist/Miranda/Miranda_Romance_over_Hila.zip` (D82). **Done means:** `green` passes and `status` shows `changed` only for the packs you meant to change.
 ## File map
 
 | Path (`tools/pd2-las/`) | Role |
@@ -116,8 +116,7 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
    `OfficeSuite_Head`, jewelry swap, and the OfficeSuite palm cut/glove behavior.
    The Hila stream voice pack was reported working, but its latest tracked clips have not been heard;
    the checklist records the remaining re-cut checks. It needs SuperBLT, not BeardLib.
-2. The native Hila body/head pack awaits its own [in-game check](../../docs/pd2-las/in-game-checklist.md#native-hila-body--head-override-no-las); it needs neither LAS nor BeardLib.
-3. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
+2. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
    the Miranda packs' `body_df`/`head_df`; no in-game record of `Miranda_Romance_LAS` or the head packs.
 
 ## Further reading
