@@ -7,7 +7,7 @@ Start with [AGENTS.md](../AGENTS.md) if you are new here: it has one command per
 The field notes (how a game was actually modded) live in [`knowledge/`](../knowledge/INDEX.md);
 this directory holds the project's own guides, audits and evidence.
 
-26 documents, plus the [render and capture index](renders/README.md) (25 archived sets).
+27 documents, plus the [render and capture index](renders/README.md) (25 archived sets).
 
 ## Guides
 
@@ -39,6 +39,7 @@ Dated sweeps and second passes. Numbers in them are a snapshot of their day: tak
 | Document | Path |
 |---|---|
 | [Review sweep — bugs, gates and the first five minutes of a clone, 2026-11-26](audits/2026-11-26-review-fixes.md) | `audits/2026-11-26-review-fixes.md` |
+| [`references/` — what it holds, what can go, and how to group it (2026-11-26)](audits/2026-11-26-references-inventory.md) | `audits/2026-11-26-references-inventory.md` |
 | [Stale tools, docs and tests — sweep (2026-11-24)](audits/2026-11-24-stale-sweep.md) | `audits/2026-11-24-stale-sweep.md` |
 | [Stale tools, docs and tests — second sweep (2026-11-24)](audits/2026-11-24-stale-sweep-second-pass.md) | `audits/2026-11-24-stale-sweep-second-pass.md` |
 | [Christie rebuild — redo, from a deleted builder back to verifiable bytes (2026-11-14)](audits/2026-11-14-christie-rebuild-redo.md) | `audits/2026-11-14-christie-rebuild-redo.md` |
