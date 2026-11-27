@@ -171,31 +171,8 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
 5. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
    ground while turning — no hand, and no hole where the hands used to be.
 
-The same checks apply to `OfficeSuite_Head` (its body is this body), and to the Hila override
-below without the hook: there the hands are Hila's stock gloves, which the override keeps so a
-chosen glove has something to land on.
-
-## Native Hila body + head override (no LAS)
-
-Install only `dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip` for Hila, following the
-[install notes](../renders/honoka/model/over-hila/README.md). Select Hila's default outfit and gloves.
-The ZIP was checked offline; these steps still need the game:
-
-1. In the lobby/menu, rotate Hila: OfficeSuite's black jacket, light shirt and jewelry, and Miranda's
-   Romance head should all show together, with no pink materials or missing triangles.
-2. Start an offline heist. Check the third-person model moving and reloading; look for wrist gaps,
-   neckline flicker, shading or shadow artifacts, and knee deformation. First-person arms should
-   still be Hila's. **The wrists are the new bytes (D70):** the outfit's palms are cut on the line
-   where the palm begins, so the sleeve ends at the crease and may leave a gap above the cuff, and
-   **Hila's own stock gloves** —
-   kept in the pack, node and all, so a chosen glove still has somewhere to land — are what the game
-   puts over it. The LAS pack reaches the same sleeve end under `LegendaryArmours.officesuite` and
-   spawns no default glove at all (D60). Check the hands from the front, the side and while the hand
-   closes on a weapon: only the expected gap where the arm stops on the crease, no capped rim showing
-   *past* the glove lip, no vanilla skin band above the glove from an extension, no second pair of
-   hands.
-3. Mask up and check the mask, a heavier vest, and a carried deployable. These use the original
-   Hila attachments; check that the fit is acceptable. Alternate outfits/gloves are not the target.
+The same checks apply to `OfficeSuite_Head` (its body is this body). The native Hila override that
+used to be checked here was retired on 2026-11-26 (D82).
 
 ## OfficeSuite_Head — whole character with the Romance head (D56)
 
@@ -203,9 +180,8 @@ Install `dist/Miranda/OfficeSuite_Head.zip`, then pick `OfficeSuite + Miranda He
 `LegendaryArmours.officesuite_head` on any heister. This pack is `replace_all`: it brings the
 body **and** the head, and hides the mask. The checks that the offline build cannot make:
 
-1. **The head is the Romance one, on the body.** Face, hair and skin tone should match
-   `OfficeSuite_Miranda_Romance_over_Hila.zip`'s Hila; the eyes and teeth are Hila's stock ones, so
-   they should not be missing or doubled.
+1. **The head is the Romance one, on the body.** Face, hair and skin tone should match the ME2
+   Romance head; the eyes and teeth are Hila's stock ones, so they should not be missing or doubled.
 2. **The lashes (the open risk).** The donor's lashes are one diffuse whose alpha is the cutout,
    drawn with `opacity:`. Look at the eyes up close and at an angle: the lashes should read as
    lashes, not as solid black quads and not as a hole in the face. This is the one thing no render

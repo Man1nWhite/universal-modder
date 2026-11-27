@@ -42,7 +42,6 @@ TASKS: dict[str, tuple[list[str], str]] = {
     "honokodae": (["{py}", "tools/pd2-las/build_honoko2_dae.py"], "OfficeSuite -> dist/Miranda/"),
     "honokodae_head": (["{py}", "tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"], "OfficeSuite_Head -> dist/Miranda/"),
     "heads": (["{py}", "tools/build_joy_head_mods.py"], "the over Hila heads, Geralt_over_Rust, Arivus_over_Hoxton -> dist/"),
-    "hila": (["{py}", "tools/build_hila_body_mod.py"], "OfficeSuite + Miranda Romance over Hila -> dist/Miranda/"),
     "voices_stream": (["{py}", "tools/build_hila_stream_mod.py"], "Miranda_Lawson_VO_over_Hila_Stream -> dist/Miranda/"),
     "voices_geralt": (["{py}", "tools/build_character_stream_mod.py", "--pack", "geralt-rust"], "Geralt_VO_over_Rust_Stream -> dist/Geralt/"),
     "voices_arivus": (["{py}", "tools/build_character_stream_mod.py", "--pack", "arivus-old-hoxton"], "Arivus_VO_over_Hoxton_Stream -> dist/Arivus/"),
@@ -60,10 +59,10 @@ TASKS: dict[str, tuple[list[str], str]] = {
 }
 
 #: targets that write a pack and are therefore logged to build/pd2-las/<target>.log
-BUILDERS = {"build", "lawson", "honokodae", "honokodae_head", "heads", "hila", "voices_stream",
+BUILDERS = {"build", "lawson", "honokodae", "honokodae_head", "heads", "voices_stream",
             "voices_geralt", "voices_arivus", "glb"}
 #: `all` is the Makefile's list of every tracked pack; task order matters (heads reads the base ZIP)
-ALL = ["build", "lawson", "honokodae", "honokodae_head", "heads", "hila", "voices_stream",
+ALL = ["build", "lawson", "honokodae", "honokodae_head", "heads", "voices_stream",
        "voices_geralt", "voices_arivus", "glb"]
 
 

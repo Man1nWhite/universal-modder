@@ -36,11 +36,6 @@ PACKS = (
     ("OfficeSuite", "officesuite"),
     ("OfficeSuite_Head", "officesuite_head"),
 )
-#: the native override ships the same body on Hila's unit
-HILA = ("OfficeSuite_Miranda_Romance_over_Hila",
-        "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female")
-
-
 def _palm_planes():
     return bm.palm_planes(bm.load_template(TEMPLATES / "2b.model"))
 
@@ -158,30 +153,6 @@ def test_the_shipped_body_has_no_hand_left(pack, stem):
         # it after the 5% slim, with no extension carrying skin into the glove (D70)
         assert axial[near].max() <= 0.0, "geometry survives past the palm line"
         assert axial[near].max() > -0.9, "the mesh stops too far short of the palm line"
-
-
-def test_the_native_override_carries_the_same_cut_and_hilas_gloves():
-    """The Hila override inherits the body, so it inherits the cut - and keeps her gloves."""
-    path = dist_path(ROOT, f"{HILA[0]}.zip")
-    if not path.is_file():
-        pytest.skip("dist/ is absent from this sandbox snapshot")
-    from build_hila_body_mod import GLOVE, INSTALL
-    with zipfile.ZipFile(path) as z:
-        model = dm.ModelFile.read(z.read(f"{INSTALL}/{HILA[1]}.model"))
-        objects = z.read(f"{INSTALL}/{HILA[1]}.object").decode("utf-8")
-    template = bm.template(model)
-    assert GLOVE in template.drawables, "the stock glove drawable is missing"
-    assert f'name="{GLOVE}"' in objects and 'enabled="true"' in objects
-    drawable = template.drawables["g_body"]
-    gp = dm.decode_passthroughgp(model.by_id(drawable["passthroughgp"]).payload)
-    geo = dm.decode_geometry(model.by_id(gp["geometry"]).payload)
-    names = [template.id_name.get(o, "?") for o in template.drawable_skin["g_body"]["objects"]]
-    indices = np.asarray(geo["blendindices"])
-    weights = np.asarray(geo["blendweights"])
-    dominant = np.asarray(names)[indices[np.arange(len(indices)), weights.argmax(axis=1)]]
-    # Same body, same cut: no hand geometry survives in it.
-    bones = sorted({name for name in dominant if bm.is_hand_bone(name)})
-    assert bones == [], bones
 
 
 def _box_group():

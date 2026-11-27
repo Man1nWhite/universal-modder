@@ -81,7 +81,7 @@ def load(donor_zip: Path, template: bm.Template, slot_prefix: str,
         model = dm.ModelFile.read(z.read(f"{prefix}{unit}.model"))
         config = ET.fromstring(z.read(f"{prefix}{unit.rsplit('/', 1)[0]}/mtr_criminal_ecp_female"
                                       ".material_config"))
-        head = read(model, template, slot_prefix)
+        head = read(model, template, slot_prefix, Path(donor_zip).name)
         # The donor's own maps, under the pack's slot names. The face and lashes
         # are DXT5 with full mips already, so no re-encode.
         names = {m.get("name"): m for m in config.findall("material")}
@@ -100,11 +100,14 @@ def load(donor_zip: Path, template: bm.Template, slot_prefix: str,
     return head, model
 
 
-def read(donor: dm.ModelFile, template: bm.Template, slot_prefix: str) -> Head:
+def read(donor: dm.ModelFile, template: bm.Template, slot_prefix: str,
+         donor_name: str = "(in memory)") -> Head:
     """Re-skin the donor's head drawable onto `template` as one group.
 
     `slot_prefix` is the LAS item id: the out materials are `<prefix>_head` and
     `<prefix>_lashes`, so two packs built from this donor cannot collide.
+    `donor_name` is what the report says the head came from — the ZIP's name when it
+    came from one, so two interchangeable donors cannot produce the same report.
     """
     section, data, geo, top, bind, _gp = _drawable(donor, DRAWABLE)
     faces = np.asarray(top["indices"], dtype=np.int64).reshape(-1, 3)
@@ -167,7 +170,7 @@ def read(donor: dm.ModelFile, template: bm.Template, slot_prefix: str) -> Head:
         group.slices.append((slot, start, atom["base_index"], atom["tri_count"], atom["slice_len"]))
 
     report = {
-        "donor": "OfficeSuite_Miranda_Romance_over_Hila.zip",
+        "donor": donor_name,
         "drawable": DRAWABLE,
         "verts": int(len(verts)),
         "tris": int(len(faces)),

@@ -19,7 +19,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build lawson honokodae honokodae_head heads hila voices_stream voices_geralt voices_arivus voices_tables voices_char_rust voices_sheets glb all inventory audit fresh test green
+.PHONY: help status env build lawson honokodae honokodae_head heads voices_stream voices_geralt voices_arivus voices_tables voices_char_rust voices_sheets glb all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -54,9 +54,6 @@ honokodae_head:  ## OfficeSuite_Head: OfficeSuite + the Miranda Romance head as 
 heads:      ## the over Hila heads, Geralt_over_Rust, Arivus_over_Hoxton -> dist/Miranda/, dist/Geralt/, dist/Arivus/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
 
-hila:       ## OfficeSuite + Miranda Romance over Hila (native body and head, no LAS) -> dist/Miranda/
-	$(call BUILD,tools/build_hila_body_mod.py)
-
 
 voices_stream:  ## Miranda_Lawson_VO_over_Hila_Stream: the same clips as one Wwise ADPCM .stream per Hila voice-line id, no BeardLib -> dist/Miranda/
 	$(call BUILD,tools/build_hila_stream_mod.py)
@@ -89,18 +86,13 @@ ifneq ($(filter all build,$(MAKECMDGOALS)),)
 heads: build
 endif
 
-# The direct Hila pack consumes the two assembled donors, not 2B templates.
-ifneq ($(filter all honokodae,$(MAKECMDGOALS)),)
-hila: honokodae
-endif
-ifeq ($(filter honokodae_head,$(MAKECMDGOALS)),honokodae_head)
-honokodae_head: hila
-endif
-ifneq ($(filter all heads,$(MAKECMDGOALS)),)
-hila: heads
+# OfficeSuite_Head reads the surviving over-Hila head replacement for its head (D82),
+# so it runs after `heads`; `--only` keeps the OfficeSuite body pack out of it.
+ifneq ($(filter all honokodae_head,$(MAKECMDGOALS)),)
+honokodae_head: heads
 endif
 
-all: build lawson honokodae honokodae_head heads hila voices_stream voices_geralt voices_arivus glb  ## every tracked pack
+all: build lawson honokodae honokodae_head heads voices_stream voices_geralt voices_arivus glb  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

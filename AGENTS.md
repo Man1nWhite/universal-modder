@@ -10,7 +10,7 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 | Fresh clone or restarted sandbox (no `.venv`, `dist/` listed deleted) | `make -sC tools/pd2-las env` |
 | State of the packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `lawson`, `honokodae`, `honokodae_head`, `heads`, `hila`, `voices_stream`, `voices_geralt`, `voices_arivus`, or `glb` |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `lawson`, `honokodae`, `honokodae_head`, `heads`, `voices_stream`, `voices_geralt`, `voices_arivus`, or `glb` |
 | Was a pack seen in game, which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | Why a route or format is so, and if it holds | `docs/pd2-las/DECISIONS.md` (indexed, cited `D<n>`) |
 | What is open | "Next" in `tools/pd2-las/README.md` |

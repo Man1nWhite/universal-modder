@@ -49,13 +49,12 @@ BUILDERS = {
     "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
-    "hila": ["tools/build_hila_body_mod.py"],
     "voices_stream": ["tools/build_hila_stream_mod.py"],
     # One pack per purpose-authored bark set, same id-keyed route as voices_stream.
     "voices_geralt": ["tools/build_character_stream_mod.py", "--pack", "geralt-rust"],
     "voices_arivus": ["tools/build_character_stream_mod.py", "--pack", "arivus-old-hoxton"],
-    # Reads dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip for its head, so
-    # it runs after `hila`. `--only` keeps the OfficeSuite body pack out of it.
+    # Reads dist/Miranda/Miranda_Romance_over_Hila.zip for its head (D82), so it runs
+    # after `heads`. `--only` keeps the OfficeSuite body pack out of it.
     "honokodae_head": ["tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"],
     # Reads the tracked Arivus head pack, so it runs after `heads`.
     "glb": ["tools/pd2-las/build_arivus_glb_pack.py"],
