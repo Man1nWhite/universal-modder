@@ -152,28 +152,31 @@ def test_the_decoders_of_this_repository_agree_on_the_tracked_textures():
                 assert a.shape == b.shape and np.abs(a - b).max() <= 1, (role, level)
 
 
-def test_the_eye_levels_are_the_picture_a_finer_drawing_gives():
-    """The eye is drawn once and averaged down. Drawn again at each size it is another picture.
+def test_the_eye_levels_are_the_picture_a_finer_sampling_gives():
+    """The eye is the supplied picture sampled once and averaged down.
 
-    The yardstick is the eye drawn with sixteen points per texel of level 0 and
-    averaged. The build's levels, one point per texel of level 0 and averaged,
-    stay within 2 of it in every texel of every level (measured: at most 1.66)
-    and keep its iris. The eye drawn again with one point per texel of a level
-    is as good at 512 and 256 and falls apart below, because the fibres of the
-    iris fall between the points: at 32x32 one texel in a hundred is off by more
-    than 13, and at 4x4 the iris is off by 11. That is why the levels are
-    averages of one drawing (D24).
+    The yardstick is the same picture sampled with sixteen points per texel of
+    level 0 (the picture is a 256x256 draw, so from 128x128 up this is the
+    picture's own texels) and averaged. The build's levels, one sampling of level
+    0 and area averages of it, stay within 3 of that in every texel of every
+    level and keep the iris within 0.1 of it. Sampling the picture again with one
+    point per texel of a level is the other way of making a level, and it falls
+    apart below 128x128 because the hairs of the sclera and the rim of the iris
+    fall between the points: at 16x16 the iris is off by 6. That is why the
+    levels are averages of one sampling (D24).
     """
-    fine, built = mip_audit.eye_drawn_finer(), build_las.mip_levels(build_las.draw_eye())
+    fine = mip_audit.eye_drawn_finer()
+    built = build_las.mip_levels(build_las.supplied_eye_values())
     assert [level.shape for level in fine] == [level.shape for level in built]
     assert len(built) == 10 and built[0].shape == (512, 512, 4)
     for level, (want, got) in enumerate(zip(fine, built)):
         figures = mip_audit.measure(want, got, True)
-        assert figures["colour_max"] < 2.0 and figures["gloss_max"] <= 4, (level, figures)
-        assert figures.get("iris", 0.0) < 0.05, (level, figures)
-    each = {level: mip_audit.measure(fine[level], build_las.draw_eye(fine[level].shape[0], check=False), True) for level in (1, 4, 7)}
-    assert each[1]["colour_max"] < 2.0
-    assert each[4]["colour_p99"] > 10 and each[7]["iris"] > 6, each
+        assert figures["colour_max"] < 3.0 and figures["gloss_max"] <= 3, (level, figures)
+        assert figures.get("iris", 0.0) < 0.1, (level, figures)
+    each = {level: mip_audit.measure(fine[level], build_las.supplied_eye_values(fine[level].shape[0]), True)
+            for level in (1, 5, 7)}
+    assert each[1]["colour_p99"] < 4.0
+    assert each[5]["colour_p99"] > 8 and each[7]["iris"] > 6, each
 
 
 def test_the_tracked_pack_meets_the_limits_except_the_known_misses():
@@ -187,12 +190,15 @@ def test_the_tracked_pack_meets_the_limits_except_the_known_misses():
     results = mip_audit.audit_pack()
     assert sorted(results) == sorted([("face_df", k) for k in range(11)] + [("eyes", k) for k in range(10)])
     assert not mip_audit.unexpected(results), "\n".join(mip_audit.unexpected(results))
-    assert all(role == "eyes" and 3 <= level <= 7 for role, level in mip_audit.KNOWN_MISSES)
-    assert not any("iris" in names or "gloss_max" in names or "gloss_mean" in names
+    assert all(role == "eyes" and 2 <= level <= 7 for role, level in mip_audit.KNOWN_MISSES)
+    assert not any("gloss_max" in names or "gloss_mean" in names
                    for names in mip_audit.KNOWN_MISSES.values())
+    assert {key for key, names in mip_audit.KNOWN_MISSES.items() if "iris" in names} == {("eyes", 7)}
     irises = {level: figures["iris"] for (role, level), figures in results.items() if "iris" in figures}
-    assert sorted(irises) == list(range(8))                      # 512x512 down to 4x4
-    assert max(irises.values()) < 2.0                            # measured: at most 1.71
+    # 512x512 down to 4x4, less the 8x8 level, where no four texel centres are left in the ring
+    assert sorted(irises) == [0, 1, 2, 3, 4, 5, 7]
+    assert max(value for level, value in irises.items() if level < 7) < 3.0   # 2.90 at 16x16
+    assert irises[7] < 5.0                                       # measured: 4.34 at 4x4, the rim
     assert max(figures["gloss_max"] for figures in results.values()) <= 3
     assert {level for (role, level), figures in results.items() if role == "face_df" and figures["near"]} == set(range(7))
     assert {level for (role, level), figures in results.items() if role == "eyes" and figures["near"]} == set(range(8))

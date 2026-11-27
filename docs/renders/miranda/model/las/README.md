@@ -11,4 +11,7 @@
 - **First-person framing:** the panel and the sheet both look down the arms the way the in-game camera
   does; the unit is as wide as it is tall, so a fixed `z_center`/scale pair used to leave it drifting in
   a corner of the panel.
+- **Eyes:** `miranda_eyes.texture` is the user-supplied `references/textures/EYE_Diff.png`, cropped to the
+  eyeball's own planar map (`supplied_eye_values()`, `EYE_ZOOM` 2.7, D84), where it used to be the eye
+  `build_las` drew. The sheet predates that change.
 - **Caveats:** Software Z-buffer rasterization with 2x SSAA and diffuse textures only (no Diesel normal-map shader, cubemap reflections, or in-game lighting). Run `make -sC tools/pd2-las status` for pack digests and verification state.

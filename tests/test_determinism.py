@@ -75,17 +75,34 @@ def test_a_mean_is_rounded_to_the_nearest_and_a_half_goes_up_on_every_machine():
     assert determinism.SHIFT == 2.0 ** -25
 
 
-def test_the_eye_is_the_same_under_another_math_library():
-    """Values that differ as two math libraries do round to the same bytes; cut off, as before, they do not."""
-    values = build_las.eye_values()
-    drawn = build_las.draw_eye()
-    assert values.dtype == np.float64 and np.array_equal(drawn, determinism.floor8(values, "eye"))
-    noise = np.random.default_rng(7).uniform(-1e-12, 1e-12, values.shape)
-    assert np.array_equal(determinism.floor8(values * (1.0 + noise), "eye", check=False), drawn)
-    # the pupil is (2, 3, 5) exactly and its gloss 4: one bit less and cutting off gives (1, 2, 4) and 3
-    cut = lambda image: np.clip(image, 0, 255).astype(np.uint8)        # noqa: E731
-    assert not np.array_equal(cut(values * (1.0 - 1e-12)), cut(values))
-    assert drawn[256, 256].tolist() == [2, 3, 5, 4]
+def test_the_eye_is_the_same_picture_on_every_machine():
+    """The LAS eye is the supplied picture resampled: whole numbers, one Pillow call, no drawn values.
+
+    It used to be drawn here (`eye_values`/`draw_eye`), and its values sat close
+    enough to a rounding boundary that the bytes depended on the machine's math
+    library. The pack wears `references/textures/EYE_Diff.png` now (2026-11-27):
+    a crop of the picture through one `resize`, into a uint8 array, so there is
+    nothing left to round. What is pinned here is that the sampling is still that
+    picture - the same bytes twice, the picture's own centre, its iris where the
+    gloss says it is - and that the gloss is the three whole values it names.
+    """
+    from PIL import Image
+
+    eye = build_las.supplied_eye_values()
+    assert eye.dtype == np.uint8 and eye.shape == (build_las.EYE_SIZE, build_las.EYE_SIZE, 4)
+    assert sorted(np.unique(eye[..., 3]).tolist()) == sorted(build_las.EYE_GLOSS)
+    assert np.array_equal(build_las.supplied_eye_values(), eye)          # no cache, no randomness
+    # the picture's centre is its pupil, and the eye's centre is that pupil at gloss 4
+    picture = np.asarray(Image.open(build_las.EYE_DIFFUSE).convert("RGB"))
+    assert picture[picture.shape[0] // 2, picture.shape[1] // 2].tolist() == [2, 2, 3]
+    assert eye[256, 256].tolist() == [2, 2, 3, 4]
+    # the gloss bands follow the picture's iris: 10 on the iris, 8 outside it
+    side = build_las.EYE_SIZE
+    centre = (np.arange(side) + 0.5) / side - 0.5
+    radius = np.hypot(centre[None, :], centre[:, None])
+    iris = eye[..., 3][(radius > 0.15) & (radius < 0.19)]
+    sclera = eye[..., 3][radius > 0.30]
+    assert set(np.unique(iris).tolist()) == {10} and set(np.unique(sclera).tolist()) == {8}
 
 
 def _function(path: str, name: str) -> str:
@@ -96,8 +113,7 @@ def _function(path: str, name: str) -> str:
 
 def test_what_the_build_draws_is_float64_and_cut_off_with_the_margin():
     """The paint functions: no float32, no hypot, no power for a square, and every cut through determinism."""
-    drawn = {"tools/pd2-las/build_las.py": {"eye_values": (), "draw_eye": ("floor8(",), "eye_weights": (),
-                                            "repaint_face": ("floor8(", "above(")},
+    drawn = {"tools/pd2-las/build_las.py": {"eye_weights": (), "repaint_face": ("floor8(", "above(")},
              "tools/build_joy_head_mods.py": {"build_crisp_miranda_eye_texture": ("determinism.floor8(",),
                                               "shade_nostril_cavities": ("determinism.floor8(",)}}
     for path, functions in drawn.items():

@@ -43,7 +43,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Building and the build environment* — [D5](#d5--our-own-model-codec-byte-exact-no-blender-or-external-tool-in-the-build), [D6](#d6--retarget-by-anatomical-partition-not-per-bone-and-not-by-frame-deltas), [D7](#d7--geometry-conventions-are-the-2b-models), [D8](#d8--install-under-assetsmod_overrides), [D80](#d80--the-over-joy-zips-are-gone-the-assembly-that-wrote-them-is-the-over-hila-builder)
 
-*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used)
+*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names)
 
 *Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree)
 
@@ -1352,6 +1352,59 @@ from documents, tests and tools, so they never change; the headings are appendix
   `tests/test_agent_docs.py`, `tests/test_pack_paths_resolve.py`.
 - **Status:** holds; `dist/` is nine zips and every one of them rebuilds. D82 is superseded: neither the
   native override nor the pack that replaced it is tracked.
+
+### D84 — The supplied eye reaches the outfit pack too, and the head pack is rebuilt from the picture it names
+
+- **Decided:** 2026-11-27, by the user, who asked for "the eye texture of `Miranda_Lawson_VO_over_Hila_Stream.zip`"
+  to be replaced with `references/textures/EYE_Diff.png`, and, told that pack is audio only, chose both
+  Miranda packs.
+- **Why the request could not be taken literally:** the stream pack is 699 Wwise `.stream` files, a
+  `main.xml`, a `mod.txt` and a README, and nothing else (§7/§8 of `docs/pd2-voice-mod-install.md`). It has
+  no unit and no texture, so a texture cannot replace anything in it. The two packs that do carry Miranda's
+  eyes are the outfit (`Miranda_L4D2_LAS`) and the head over Hila (`Miranda_L4D2_over_Hila`).
+- **What was found on the way:** the head pack's eye quadrant was **not** the tracked `EYE_Diff.png`. Its
+  shipped `head_df` was built from an earlier repaint of the picture - smaller iris, no catchlight - while
+  the builder reads the file as it is now, so `build_joy_head_mods` at `9614623` could no longer reproduce
+  its own tracked zip, and `test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye` was failing on
+  the merged tree (mean |diff| 23.67 against the picture, where it allows under 4). Rebuilding the pack
+  from the picture the builder names fixes both: the quadrant is now the 2.03 crop of it (mean |diff| 1.28,
+  DXT5 between).
+- **Decision, the outfit pack:** `Miranda_L4D2_LAS`'s `miranda_eyes.texture` is the supplied picture, not
+  the eye drawn by `build_las`. `supplied_eye_values()` crops the picture and resizes the crop with the
+  same Pillow call the head packs use (`load_hila_eye_texture`), so one picture reaches both packs through
+  one resampler; `supplied_eye_texture()` makes its levels the same way as before (`mip_levels`,
+  `eye_weights`). `EYE_ZOOM = 2.7` is measured, not chosen: the eyeball's own planar map
+  (`u = -0.2834 x + 1.399`, `v = 0.283 z - 48.91` over the 3.17 cm sphere) draws the blue disc of the
+  source's iris map (`miranda_eyes.vtf`, drawn by Source's `EyeRefract` shader) out to 0.205 of the
+  texture, and the supplied picture's disc ends at 0.075, so 0.205 / 0.075 = 2.7 puts the supplied iris
+  where the game's own was. `eye_weights` follows that disc, since it exists to keep the iris a small
+  block still holds.
+- **What it costs, measured:** by `mip_audit`, the pack's levels are closer to the picture they stand for
+  than the drawn eye's were on every limit (level 0: colour mean 1.26 against 1.49, iris 0.06 against
+  0.37; level 5: iris 2.90 against 4.56). The picture's sclera carries veins and shading where the drawn
+  eye had a smooth field, so the per-texel colour limit is now missed from 128x128 down rather than
+  64x64, and the iris limit at 16x16 and 4x4, where a texel is the rim or the pupil beside it; every other encoder
+  that was tried misses the same levels, and `KNOWN_MISSES` says so exactly.
+- **Retired with it:** `eye_values`, `draw_eye` and `eye_texture` in `build_las` - the drawing the pack no
+  longer ships - with their docstrings' rounding argument, and the text in `eye_weights`, `mip_audit`,
+  `tests/test_mip_audit.py` and `tests/test_determinism.py` that described judging that drawing. The gloss
+  stays the drawn eye's three bands (4/8/10), so the audit's limits still say what they said. The drawing
+  is in git history at `9614623`.
+- **Carried by:** `references/textures/EYE_Diff.png` (already tracked, `references/README.md`), and the
+  rebuilt `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip` and `dist/Miranda/Miranda_L4D2_over_Hila.zip` with
+  their sidecars.
+- **Held to:** `tests/test_pd2_las.py::TestMirandaTextures::test_eye_keeps_a_blue_iris_at_every_size` (the
+  shipped eye's levels are the picture's, iris still blue), `::test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye`
+  (the head quadrant is the picture), `tests/test_mip_audit.py` (every level against `LIMITS`, the misses
+  exactly `KNOWN_MISSES`) and `tests/test_determinism.py` (the sampling is whole numbers from the picture,
+  not drawn values).
+- **Rejected:** putting a texture into the audio pack (it has nowhere to put one); leaving the head pack's
+  stale quadrant alone because "it was already the supplied eye" (it was the supplied eye from an earlier
+  repaint, and the builder no longer reproduced it); keeping `draw_eye` beside the new sampler (nothing
+  would read it, and D33 deletes what is stale).
+- **Source:** the user, 2026-11-27; `tools/pd2-las/build_las.py`, `tools/pd2-las/mip_audit.py`,
+  `tools/build_joy_head_mods.py`; `references/README.md`; D41, D43.
+- **Status:** holds; neither pack has been seen in game since, and `runtime_verified` stays false (D31).
 
 ## Voice lines and the stream packs
 

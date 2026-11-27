@@ -39,6 +39,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 - `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored) or refreshes a stale one.
   `PD2_2B_TEMPLATES` points setup, builds and `fresh` at a shared unit folder; `extract_2b.py` manages
   only the default cache. Of tracked files, `env` restores only missing ones.
+- The LAS outfit's eye is `references/textures/EYE_Diff.png`, the same picture the Hila head pack wears, cropped to the eyeball's own planar map (`EYE_ZOOM`, D84); it is not converted from the source, whose eye is drawn by a shader and has no texture to convert.
 - A build **overwrites the tracked zips** in dist/, so only
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
@@ -61,7 +62,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `segment_fit.py`, `render_mesh_skeleton.py`, `preview.py` | fit measurements and renders the builders call |
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
-| `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (make -sC tools/pd2-las audit) |
+| `mip_audit.py` | for the two Miranda textures the build writes itself (the repainted face and the supplied eye): which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (make -sC tools/pd2-las audit) |
 | `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of the distribution packs, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the pinned Pillow/NumPy versions |
 | `pack_checksum.py`, `archive_cache.py` | the sha256 sidecars of the tracked and scratch packs (`python tools/pd2-las/pack_checksum.py`), and validating extracted build inputs by archive and payload instead of sentinel files |
 | `build_arivus_glb_pack.py`, `model_to_glb.py`, `rw_dff.py`, `hila_texture_atlas.py`, `wwise_ima.py` | the Arivus `.glb` interchange pack and its readers: Diesel `.model` → glTF + DDS, RenderWare DFF/TXD, the OfficeSuite texture fit into Hila's suit slots, Wwise IMA in a `.stream` |
