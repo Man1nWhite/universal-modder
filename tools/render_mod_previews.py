@@ -5,22 +5,17 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
 `docs/renders/<project>/model/...` per `docs/renders/README.md`:
   - `00_all_dist_mods_overview.png` (grid of every pack in `dist/`)
   - `01_Miranda_LAS.png`
-  - `02_lawson_las.png`
   - `11_Geralt_over_Rust.png`
   - `19_Miranda_L4D2_over_Hila.png`
-  - `20_Miranda_Romance_over_Hila.png`
   - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70), the wrist twisting on ForeArmRoll (D75), plus the first-person arms panel)
-  - `25_OfficeSuite_with_Miranda_Romance_over_Hila.png` (the same combination for OfficeSuite)
-  - `26_OfficeSuite_head_skin_detail.png` (front and three-quarter views of the colour match)
-  - `29_OfficeSuite_Head.png` (OfficeSuite body, palm cut, arms and the Romance head in one unit)
   - `30_Arivus_over_Hoxton.png` (GTA SA Arivus head over Old Hoxton, FPS gloves in TPS)
-  - `31`–`36` `*_fps.png` (first-person `fps_*.model` sheets for every pack that ships one:
-    Miranda_L4D2_LAS, Miranda_Romance_LAS, OfficeSuite, OfficeSuite_Head — player,
-    three-quarter, side and top-down views, auto-framed)
+  - `31`/`35` `*_fps.png` (first-person `fps_*.model` sheets for the two packs that ship one —
+    Miranda_L4D2_LAS and OfficeSuite — player, three-quarter, side and top-down views, auto-framed)
   - `37_OfficeSuite_wrist.png` (the D75 wrist junction)
 
-The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie) stay in
-`docs/renders/` as history; this script no longer renders them because the packs are gone.
+The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie, and the ME2
+Romance line — `Miranda_Romance_LAS`, `Miranda_Romance_over_Hila`, `OfficeSuite_Head`, D83) stay
+in `docs/renders/` as history; this script no longer renders them because the packs are gone.
 """
 from __future__ import annotations
 
@@ -43,7 +38,6 @@ sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 sys.path.insert(0, str(ROOT / "tools" / "pd2-port"))
 
 import diesel_model as dm  # noqa: E402
-import dmodel  # noqa: E402
 
 FONT_BOLD_16 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 15)
 FONT_BOLD_13 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 12)
@@ -447,57 +441,6 @@ def _parts_from_model_with_matcfg(
     return parts
 
 
-def load_outfit_with_head_parts(
-    outfit_zip: str, outfit_tag: str, outfit_prefix: str,
-    head_zip: str, head_tag: str, head_unit: str, head_stem: str,
-) -> tuple[list, Image.Image]:
-    """One figure from two packs: a body-only LAS outfit plus a head pack's `g_head` drawable.
-
-    The combination the game shows when both are installed (the outfit replaces the body, the head
-    pack the head), rendered offline: both packs' models stand in the same character frame - the
-    outfit's neck plug nests inside the head unit's neck by design (D44) - so their parts share one
-    rasterizer call without any transform between them.
-    """
-    tpp_parts, _, icon_im = load_multi_mat_las_parts(
-        dist_path(ROOT, outfit_zip), outfit_tag, outfit_prefix, has_fps=False
-    )
-    with zipfile.ZipFile(dist_path(ROOT, head_zip)) as zf:
-        unit = f"{head_tag}/{head_unit}/"
-        mf = dm.ModelFile.read(zf.read(unit + f"{head_stem}.model"))
-        mats = _parse_matcfg_diffuse(zf.read(unit + "mtr_criminal_ecp_female.material_config"))
-        head_parts = _parts_from_model_with_matcfg(
-            zf, head_tag, mf, mats, {}, drawable="g_head",
-            cutout_materials=frozenset({"mtr_lashes"}), asset_root="",
-        )
-    return tpp_parts + head_parts, icon_im
-
-
-def load_head_las_parts() -> tuple[list, list, Image.Image]:
-    """Body, head and first-person arms from one unit: OfficeSuite_Head's model and its icon.
-
-    The pack registers a whole-character unit, but it ships `fps_officesuite_head.model`
-    with the same body/arms geometry, so the first-person panel is applicable here too.
-    """
-    tag, prefix = "OfficeSuite_Head", "officesuite_head"
-    unit = f"{tag}/assets/units/{prefix}/skins/{prefix}/"
-    tex_cache: dict[str, np.ndarray] = {}
-    with zipfile.ZipFile(dist_path(ROOT, "OfficeSuite_Head.zip")) as zf:
-        mf = dm.ModelFile.read(zf.read(unit + f"{prefix}.model"))
-        mats = _parse_matcfg_diffuse(zf.read(unit + f"{prefix}.material_config"))
-        cutouts = frozenset({f"{prefix}_lashes"})
-        parts = _parts_from_model_with_matcfg(
-            zf, tag, mf, mats, tex_cache, cutout_materials=cutouts)
-        parts += _parts_from_model_with_matcfg(
-            zf, tag, mf, mats, tex_cache, drawable="g_head", cutout_materials=cutouts)
-        mf_fps = dm.ModelFile.read(zf.read(unit + f"fps_{prefix}.model"))
-        fps_mats = _parse_matcfg_diffuse(zf.read(unit + f"fps_{prefix}.material_config"))
-        fps_parts = _parts_from_model_with_matcfg(zf, tag, mf_fps, fps_mats, tex_cache)
-        icon_im = Image.open(
-            io.BytesIO(zf.read(f"{tag}/assets/guis/dlcs/{prefix}/armor_skins/{prefix}.texture"))
-        ).convert("RGBA")
-    return parts, fps_parts, icon_im
-
-
 def load_multi_mat_las_parts(
     zip_path: Path,
     tag: str,
@@ -521,66 +464,6 @@ def load_multi_mat_las_parts(
         icon_im = Image.open(
             io.BytesIO(zf.read(f"{tag}/assets/guis/dlcs/{prefix}/armor_skins/{prefix}.texture"))
         ).convert("RGBA")
-    return tpp_parts, fps_parts, icon_im
-
-
-def load_lawson_las_parts() -> tuple[list, list, Image.Image]:
-    """Load TPP and FPS parts + icon from dist/Miranda_Romance/Miranda_Romance_LAS.zip."""
-    with zipfile.ZipFile(dist_path(ROOT, "lawson_las.zip")) as zf:
-        m_tpp = dmodel.DieselModel.from_bytes(zf.read("Lawson_LAS/assets/units/lawson/skins/lawson/lawson.model"))
-        m_fps = dmodel.DieselModel.from_bytes(zf.read("Lawson_LAS/assets/units/lawson/skins/lawson/fps_lawson.model"))
-        tex = {}
-        for stem in ("body1", "body2", "face", "hair", "eyes", "lashes", "teeth", "mouth"):
-            tex[stem] = np.asarray(
-                Image.open(io.BytesIO(zf.read(f"Lawson_LAS/assets/units/lawson/skins/lawson/{stem}_df.texture"))).convert("RGBA")
-            )
-        icon_im = Image.open(io.BytesIO(zf.read("Lawson_LAS/assets/guis/dlcs/lawson/armor_skins/lawson.texture"))).convert("RGBA")
-
-    tpp_parts = []
-    # Body (id=74, geo=77, topo=78)
-    md_b = m_tpp.by_id[74].obj
-    geo_b = m_tpp.by_id[77].obj
-    topo_b = np.asarray(m_tpp.by_id[78].obj.faces, dtype=np.int32)
-    vb = np.asarray(geo_b.positions, np.float32)
-    nb = np.asarray(geo_b.normals, np.float32)
-    uvb = np.asarray(geo_b.uvs, np.float32)
-    body_mats = {0: tex["body1"], 1: tex["body2"]}
-    for atom in md_b.render_atoms:
-        bi, tc, mid = atom["base_index"], atom["tri_count"], atom["material_id"]
-        tpp_parts.append((vb, nb, topo_b[bi // 3 : bi // 3 + tc], uvb, body_mats[mid], False, False))
-
-    # Head (id=75, geo=82, topo=83)
-    md_h = m_tpp.by_id[75].obj
-    geo_h = m_tpp.by_id[82].obj
-    topo_h = np.asarray(m_tpp.by_id[83].obj.faces, dtype=np.int32)
-    vh = np.asarray(geo_h.positions, np.float32)
-    nh = np.asarray(geo_h.normals, np.float32)
-    uvh = np.asarray(geo_h.uvs, np.float32)
-    head_mats = {
-        0: (tex["face"], False),
-        1: (tex["hair"], False),
-        2: (tex["eyes"], False),
-        3: (tex["lashes"], True),
-        4: (tex["teeth"], False),
-        5: (tex["mouth"], False),
-    }
-    for atom in md_h.render_atoms:
-        bi, tc, mid = atom["base_index"], atom["tri_count"], atom["material_id"]
-        t_img, is_cut = head_mats[mid]
-        tpp_parts.append((vh, nh, topo_h[bi // 3 : bi // 3 + tc], uvh, t_img, is_cut, False))
-
-    # FPS arms (id=67, geo=69, topo=70)
-    md_f = m_fps.by_id[67].obj
-    geo_f = m_fps.by_id[69].obj
-    topo_f = np.asarray(m_fps.by_id[70].obj.faces, dtype=np.int32)
-    vf = np.asarray(geo_f.positions, np.float32)
-    nf = np.asarray(geo_f.normals, np.float32)
-    uvf = np.asarray(geo_f.uvs, np.float32)
-    fps_parts = []
-    for atom in md_f.render_atoms:
-        bi, tc, mid = atom["base_index"], atom["tri_count"], atom["material_id"]
-        fps_parts.append((vf, nf, topo_f[bi // 3 : bi // 3 + tc], uvf, body_mats[mid], False, False))
-
     return tpp_parts, fps_parts, icon_im
 
 
@@ -727,7 +610,6 @@ def render_heister_head_sheet(
     head_draw_name: str,
     suit_rgb: tuple[int, int, int],
     glove_rgb: tuple[int, int, int],
-    is_rom: bool,
     title: str,
     subtitle: str,
     out_path: Path,
@@ -831,21 +713,13 @@ def render_heister_head_sheet(
 
 UNIFIED_PATHS = {
     "01_Miranda_LAS.png": "miranda/model/las/miranda_las_sheet.png",
-    "02_lawson_las.png": "lawson/model/lawson_las_sheet.png",
     "11_Geralt_over_Rust.png": "geralt/model/over-rust/geralt_over_rust_sheet.png",
     "18_all_dist_mods_overview.png": "overview/model/all_dist_mods_sheet.png",
     "19_Miranda_L4D2_over_Hila.png": "miranda/model/over-hila/miranda_l4d2_over_hila_sheet.png",
-    "20_Miranda_Romance_over_Hila.png": "miranda/model/over-hila/miranda_romance_over_hila_sheet.png",
     "24_OfficeSuite.png": "honoka/model/dae/officesuite_las_sheet.png",
-    "25_OfficeSuite_with_Miranda_Romance_over_Hila.png":
-        "honoka/model/dae/officesuite_with_miranda_romance_over_hila_sheet.png",
-    "26_OfficeSuite_head_skin_detail.png": "honoka/model/dae/officesuite_head_skin_detail.png",
-    "29_OfficeSuite_Head.png": "honoka/model/head/officesuite_head_las_sheet.png",
     "30_Arivus_over_Hoxton.png": "arivus/model/over-hoxton/arivus_over_hoxton_sheet.png",
     "31_Miranda_LAS_fps.png": "miranda/model/las/miranda_las_fps_sheet.png",
-    "33_lawson_las_fps.png": "lawson/model/lawson_las_fps_sheet.png",
     "35_OfficeSuite_fps.png": "honoka/model/dae/officesuite_las_fps_sheet.png",
-    "36_OfficeSuite_Head_fps.png": "honoka/model/head/officesuite_head_las_fps_sheet.png",
     # not in the numbered overview: the wrist junction D75 changed, before and after the pass
     "37_OfficeSuite_wrist.png": "honoka/model/wrist/officesuite_wrist_ext30_twist.png",
 }
@@ -861,8 +735,6 @@ def main(argv: list[str] | None = None) -> None:
                     help="render only the OfficeSuite wrist junction (the D75 comparison)")
     ap.add_argument("--only-officesuite", action="store_true",
                     help="render only the OfficeSuite LAS sheet, with its FPS arms panel")
-    ap.add_argument("--only-head", action="store_true",
-                    help="render only the OfficeSuite_Head sheet, body and head in one unit")
     args = ap.parse_args(argv)
     out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -905,28 +777,6 @@ def main(argv: list[str] | None = None) -> None:
         )
         return
 
-    if args.only_head:
-        tpp_hd, fps_hd, icon_hd = load_head_las_parts()
-        render_las_sheet(
-            "dist/Miranda/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
-            "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
-            "Romance head and lashes from the Hila head override | Registration replaces the head and hides the mask | "
-            "Source: Honoka_DOAXVV_Secret_Reportout.dae + Miranda_Romance_over_Hila.zip",
-            tpp_hd,
-            fps_hd,
-            icon_hd,
-            target_for("29_OfficeSuite_Head.png"),
-            has_head=True,
-            closeup=(18.0, 170.0, 8.0),
-        )
-        render_fps_sheet(
-            "dist/Miranda/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
-            "Player, three-quarter, side and top-down views, auto-framed | the whole-character unit's arms unit",
-            fps_hd,
-            target_for("36_OfficeSuite_Head_fps.png"),
-        )
-        return
-
     thumbs: list[tuple[str, Image.Image]] = []
 
     tpp_mir, fps_mir, icon_mir = load_miranda_las_parts()
@@ -944,23 +794,6 @@ def main(argv: list[str] | None = None) -> None:
         "Player, three-quarter, side and top-down views, auto-framed | the L4D2 outfit's arms unit, hands only",
         fps_mir,
         target_for("31_Miranda_LAS_fps.png"),
-    )
-
-    tpp_law, fps_law, icon_law = load_lawson_las_parts()
-    th_law = render_las_sheet(
-        "dist/Miranda_Romance/Miranda_Romance_LAS.zip — Full-Body LAS Outfit (ME2 Romance Port)",
-        "Legendary Armour Skins (LAS) full-body outfit + first-person arms | Source: Mass Effect 2 Miranda (Romance)",
-        tpp_law,
-        fps_law,
-        icon_law,
-        target_for("02_lawson_las.png"),
-    )
-    thumbs.append(("Miranda_Romance_LAS.zip (Full-Body ME2)", th_law))
-    render_fps_sheet(
-        "dist/Miranda_Romance/Miranda_Romance_LAS.zip — First-Person Arms (fps_lawson.model)",
-        "Player, three-quarter, side and top-down views, auto-framed | the ME2 Romance outfit's arms unit",
-        fps_law,
-        target_for("33_lawson_las_fps.png"),
     )
 
     tpp_os, fps_os, icon_os = load_multi_mat_las_parts(
@@ -983,56 +816,6 @@ def main(argv: list[str] | None = None) -> None:
         target_for("35_OfficeSuite_fps.png"),
     )
 
-    tpp_hd, fps_hd, icon_hd = load_head_las_parts()
-    th_hd = render_las_sheet(
-        "dist/Miranda/OfficeSuite_Head.zip — Whole-Character LAS (OfficeSuite body + Miranda Romance head)",
-        "One unit: OfficeSuite's body, palm cut and first-person arms (fps_officesuite_head.model), and the ME2 "
-        "Romance head and lashes from the Hila override | Registration replaces the head and hides the mask | "
-        "Source: Honoka_DOAXVV_Secret_Reportout.dae + Miranda_Romance_over_Hila.zip",
-        tpp_hd,
-        fps_hd,
-        icon_hd,
-        target_for("29_OfficeSuite_Head.png"),
-        has_head=True,
-        closeup=(18.0, 170.0, 8.0),
-    )
-    render_fps_sheet(
-        "dist/Miranda/OfficeSuite_Head.zip — First-Person Arms (fps_officesuite_head.model)",
-        "Player, three-quarter, side and top-down views, auto-framed | the whole-character unit's arms unit",
-        fps_hd,
-        target_for("36_OfficeSuite_Head_fps.png"),
-    )
-
-    combo5_parts, _ = load_outfit_with_head_parts(
-        "OfficeSuite.zip", "OfficeSuite", "officesuite",
-        "Miranda_Romance_over_Hila.zip", "Miranda Romance over Hila",
-        "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female", "npc_criminal_ecp_female",
-    )
-    render_las_sheet(
-        "OfficeSuite + Miranda Romance over Hila — the combination as installed",
-        "OfficeSuite's body-only outfit under the Hila head pack's g_head (head + lashes); one character frame, no transform between the packs",
-        combo5_parts,
-        [],
-        icon_os,
-        target_for("25_OfficeSuite_with_Miranda_Romance_over_Hila.png"),
-        has_head=True,
-        closeup=(18.0, 170.0, 8.0),
-    )
-
-    detail = Image.new("RGB", (1200, 626), (18, 22, 30))
-    draw = ImageDraw.Draw(detail)
-    draw.text((18, 9), "OfficeSuite + Miranda Romance over Hila — head/body skin match", font=FONT_BOLD_16,
-              fill=(235, 239, 247))
-    draw.text((18, 33), "Offline render | front and three-quarter views | neck geometry unchanged",
-              font=FONT_REG_12, fill=(170, 188, 212))
-    for i, yaw in enumerate((0.0, 18.0)):
-        image = rasterize_parts(combo5_parts, 600, 570, yaw, 0, 24, center=(0, 5, 170.2))
-        detail.paste(image, (i * 600, 56))
-    detail_path = target_for("26_OfficeSuite_head_skin_detail.png")
-    detail_path.parent.mkdir(parents=True, exist_ok=True)
-    detail.save(detail_path)
-    print(f"Saved {detail_path}")
-
     heister_specs = [
         (
             "11_Geralt_over_Rust.png",
@@ -1044,7 +827,6 @@ def main(argv: list[str] | None = None) -> None:
             "g_head",
             (64, 58, 52),
             (48, 44, 42),
-            True,
             "dist/Geralt/Geralt_over_Rust.zip — Rust Head Replacement (Witcher 3 Geralt of Rivia)",
             "Replaces Rust's head, hair & beard (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
             "Geralt_over_Rust.zip",
@@ -1059,25 +841,9 @@ def main(argv: list[str] | None = None) -> None:
             "g_head",
             (66, 60, 56),
             (48, 42, 40),
-            False,
             "dist/Miranda/Miranda_L4D2_over_Hila.zip — Hila Head Replacement (L4D2)",
             "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/textures/EYE_Diff.png",
             "Miranda_L4D2_over_Hila.zip",
-        ),
-        (
-            "20_Miranda_Romance_over_Hila.png",
-            "Miranda_Romance_over_Hila.zip",
-            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model",
-            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture",
-            "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_lashes_df.texture",
-            "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_female.texture",
-            "g_head",
-            (66, 60, 56),
-            (48, 42, 40),
-            True,
-            "dist/Miranda/Miranda_Romance_over_Hila.zip — Hila Head Replacement (ME2 Romance)",
-            "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/textures/EYE_Diff.png",
-            "Miranda_Romance_over_Hila.zip",
         ),
     ]
 
@@ -1091,7 +857,6 @@ def main(argv: list[str] | None = None) -> None:
         hdraw,
         suit_c,
         glove_c,
-        is_rom,
         title,
         sub,
         short_lbl,
@@ -1105,7 +870,6 @@ def main(argv: list[str] | None = None) -> None:
             hdraw,
             suit_c,
             glove_c,
-            is_rom,
             title,
             sub,
             target_for(out_name),
@@ -1123,7 +887,6 @@ def main(argv: list[str] | None = None) -> None:
         "g_head_old_hoxton",
         (58, 62, 68),
         (42, 44, 48),
-        False,
         "Arivus over Old Hoxton — supplied diffuse",
         "Arivus mesh and hair; user-supplied old_hoxton_head_df(1).dds | Offline preview",
         target_for("30_Arivus_over_Hoxton.png"),
@@ -1131,14 +894,12 @@ def main(argv: list[str] | None = None) -> None:
         full=(82.0, 2.55),
     )
 
-    # Complete dist/ overview grid: every tracked pack's sheet plus the native Hila override
+    # Complete dist/ overview grid: every tracked pack's model sheet
     tw, th_h = 330, 440
     all_dist_cells = [
         ("Miranda_L4D2_LAS.zip", th_mir),
-        ("Miranda_Romance_LAS.zip", th_law),
         ("OfficeSuite.zip", th_os),
-        ("OfficeSuite_Head.zip", th_hd),
-        *thumbs,  # Geralt, Hila L4D2, Hila Romance
+        *thumbs,  # Geralt, Hila L4D2
         ("Arivus_over_Hoxton.zip", th_arivus),
     ]
     rows = (len(all_dist_cells) + 5) // 6
@@ -1146,8 +907,9 @@ def main(argv: list[str] | None = None) -> None:
     add_header_and_badges(
         grid,
         f"PAYDAY 2 — All {len(all_dist_cells)} Model Packages in dist/ (Complete Overview)",
-        "Miranda L4D2 & ME2 LAS | OfficeSuite (+ head) | Geralt, Arivus, Hila | the audio-only"
-        " Miranda_Lawson_VO_over_Hila_Stream has no model sheet",
+        "Miranda L4D2 LAS | OfficeSuite | Geralt, Arivus, Hila | the audio-only packs"
+        " (Miranda_Lawson_VO_over_Hila_Stream, Geralt_VO_over_Rust_Stream,"
+        " Arivus_VO_over_Hoxton_Stream) have no model sheet",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

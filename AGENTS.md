@@ -10,7 +10,7 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 | Fresh clone or restarted sandbox (no `.venv`, `dist/` listed deleted) | `make -sC tools/pd2-las env` |
 | State of the packs, their sizes and hashes, what to run next | `make -sC tools/pd2-las status` |
 | Is everything green? Every check of the `test` workflow | `make -sC tools/pd2-las green` |
-| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `lawson`, `honokodae`, `honokodae_head`, `heads`, `voices_stream`, `voices_geralt`, `voices_arivus`, or `glb` |
+| Rebuild a pack and prove its bytes (`"is": "tracked"`) | `make -sC tools/pd2-las <target>`: `build`, `honokodae`, `heads`, `voices_stream`, `voices_geralt`, `voices_arivus`, or `glb` |
 | Was a pack seen in game, which bytes? Dead ends | `docs/pd2-las/HANDOFF.md` |
 | Why a route or format is so, and if it holds | `docs/pd2-las/DECISIONS.md` (indexed, cited `D<n>`) |
 | What is open | "Next" in `tools/pd2-las/README.md` |
@@ -19,8 +19,8 @@ The work in this fork is PAYDAY 2: tracked packs in `dist/`, built by three pipe
 
 - Take sizes, hashes and counts from `status` and `green`, not from a document.
 - No `make` (native Windows)? `python tools/tasks.py <target>` runs the same targets (a test keeps the lists equal).
-- A rebuilt pack needs no document edited: commit the zip with its `.sha256`. `Miranda_Romance_LAS` has no
-  sidecar writer, so you write it ("Publish a release" in `tools/pd2-port/README.md`).
+- A rebuilt pack needs no document edited: commit the zip with its `.sha256` (`status` prints it if
+  the builder writes the sidecar itself; `make -sC tools/pd2-las status` is the check).
 - A strange git state (local `HEAD` behind the pushed branch) is not a reason for `git reset --hard` or
   `git checkout -- dist`: both discard work that was never pushed. `git status` and
   `git log origin/<branch>..HEAD` must first show nothing local the remote lacks; then

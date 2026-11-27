@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-"""Run the whole LAS pack verification chain and print a one-line verdict.
+"""Run the repository's verification chain and print a one-line verdict.
 
-    python tools/pd2-port/check_all.py             # full Romance pack checks
-    python tools/pd2-port/check_all.py --pack ZIP  # common checksum and geometry checks for one ZIP
-    make -sC tools/pd2-las green                   # default checks plus the repository suite
+    python tools/pd2-port/check_all.py --pack ZIP  # checksum and geometry checks for one ZIP
+    make -sC tools/pd2-las green                   # everything the test workflow checks
 
-The default verifies the shipped Romance pack against its DODB guide rules,
-source normal convention, and pack-level mutation tests. The mutations use
-scratch copies. An explicitly selected pack gets the cross-pipeline checks
-only: it never inherits an audit result from an unrelated source or pack.
+Without ``--pack`` nothing is verified about one specific pack: the LAS-guide audits that used to
+run here read the ME2 Romance source and the pack built from it, and that whole line was retired on
+2026-11-26 (D83). ``--pack`` still checks any tracked ZIP against its own sidecar and its geometry,
+and never inherits an audit result from an unrelated source or pack.
 
-``--full`` (``green``) also runs the lint, CLI help, knowledge base, publish
-check, suite and skip budget, and an independent rebuild of every tracked ZIP.
-Run ``make -sC tools/pd2-las env`` first. The suite runs once; the skip budget
-reads its report. No stage writes to the original distribution packs.
+``--full`` (``green``) runs the lint, types, CLI help, knowledge base, publish check, links, docs
+index, suite and skip budget, and an independent rebuild of every tracked ZIP. Run
+``make -sC tools/pd2-las env`` first. The suite runs once; the skip budget reads its report. No
+stage writes to the original distribution packs.
 
 """
 from __future__ import annotations
@@ -27,13 +26,11 @@ import time
 from pathlib import Path
 import sys as _dist_sys
 _dist_sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools" / "pd2-las"))
-from dist_paths import dist_path  # noqa: E402
 from pack_checksum import verify_checksum  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 PY = sys.executable
-DEFAULT_PACK = dist_path(ROOT, "Miranda_Romance_LAS.zip")
 #: the command groups of `um`; the test workflow asks each for --help
 UM_GROUPS = "scan fal comfy sprite render3d video win backup publish kb".split()
 #: name of a stage -> the command that shows its whole output
@@ -81,34 +78,24 @@ def check_tracked_pack(pack: Path) -> tuple[str, bool, str]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    mode = ap.add_mutually_exclusive_group()
-    mode.add_argument("--full", action="store_true", help="also run the repository verification stages")
-    mode.add_argument("--pack", type=Path, help="run only checksum and geometry on this pack")
+    ap.add_argument("--full", action="store_true", help="also run the repository verification stages")
+    ap.add_argument("--pack", type=Path, help="check this pack's checksum and geometry")
     args = ap.parse_args(argv)
-    native = args.pack is None
-    pack = (args.pack or DEFAULT_PACK).resolve()
 
-    print("Romance LAS pack verification" if native else "Pack checksum and geometry (not a full outfit audit)")
-    print(f"  repo: {ROOT}")
-    print(f"  pack: {pack}")
-    name, ok, detail = check_tracked_pack(pack)
-    RERUN[name] = "make -sC tools/pd2-las status" if native else f"inspect the ZIP and sidecar for {pack}"
-    print(f"  [{'ok  ' if ok else 'FAIL'}] {name:<34}         {detail}")
-    results = [(name, ok, detail)]
-    if native:
-        results.append(stage("guide compliance audit",
-                              [str(HERE / "check_guide_compliance.py"), str(pack)]))
-    if pack.is_file():
-        results.append(stage("winding and tangent frame",
-                              [str(HERE / "check_mesh_geometry.py"), str(pack)]))
-    if native:
-        results.append(stage("normal-map convention",
-                              [str(HERE / "check_nm_convention.py")]))
-        results.append(stage("pack-level test mutations",
-                              [str(HERE / "check_test_suite_mutations.py")]))
+    print("Pack checksum and geometry (not a full outfit audit)")
+    results: list[tuple[str, bool, str]] = []
+    if args.pack is not None:
+        pack = args.pack.resolve()
+        print(f"  repo: {ROOT}")
+        print(f"  pack: {pack}")
+        name, ok, detail = check_tracked_pack(pack)
+        RERUN[name] = f"inspect the ZIP and sidecar for {pack}"
+        print(f"  [{'ok  ' if ok else 'FAIL'}] {name:<34}         {detail}")
+        results.append((name, ok, detail))
+        if pack.is_file():
+            results.append(stage("winding and tangent frame",
+                                  [str(HERE / "check_mesh_geometry.py"), str(pack)]))
     if args.full:
-        results.append(stage("auditor self-test",
-                              [str(HERE / "check_guide_compliance_self_test.py")]))
         results.append(stage("original distribution checksums",
                              [str(ROOT / "tools" / "pd2-las" / "pack_checksum.py")]))
         results.append(stage("lint", ["-m", "ruff", "check", "."]))
@@ -135,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"next: {RERUN.get(bad[0], 'git status --short')}")
         return 1
     print(f"all {len(results)} stages passed")
-    print("next: make -sC tools/pd2-las green" if native and not args.full else "next: git status --short")
+    print("next: git status --short")
     return 0
 
 

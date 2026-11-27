@@ -47,16 +47,9 @@ stretch 0.35 cm inwards, and re-centres the ring the cut leaves on the palm's ax
 on the left wrist, 0.54 cm on the right, which is what the retarget's per-segment fit costs). The cut,
 the bracelet and the registration are unchanged; the pass records itself in `BUILD_INFO.json` under
 `wrist`. Posed against Sydney's, Joy's and Clover's own gloves the worst sector of skin outside a cuff
-fell from +2.7/+3.2/−2.6 mm to +1.6/−1.8/−5.5 mm. `OfficeSuite_Head` inherits it through the shared
-body; the native `OfficeSuite_Miranda_Romance_over_Hila` override it was first measured on was retired
-on 2026-11-26 (D82). The D75 bytes have not been seen in game.
-
-`OfficeSuite_Head` (`make -sC tools/pd2-las honokodae_head`, D56) is that same body (palms cut, D60/D70) and
-arms unit with a head: the ME2 "Romance" head and lashes the Hila override carries, re-skinned onto the 2B rig and
-packed in one `WHOLE_CHARACTER` unit. Its registration is `replace_all` with `hide_mask`, so the game
-swaps the heister's head and the mask cannot be put back on; the pack's own eyes and teeth are Hila's stock
-ones. It has not been seen in game; its lashes are the donation's `opacity:` shader with a real alpha cutout,
-which is the one thing the offline checks cannot confirm.
+fell from +2.7/+3.2/−2.6 mm to +1.6/−1.8/−5.5 mm. `OfficeSuite` carries it. The D75 bytes have not been
+seen in game: the two packs they were first measured on — the native `OfficeSuite_Miranda_Romance_over_Hila`
+override (D82) and `OfficeSuite_Head` (D83) — were both retired on 2026-11-26.
 
 `Arivus_over_Hoxton` (`build_arivus_hoxton_mod`, `references/characters/1581859199_135363.rar`) replaces Old Hoxton's
 head — the `g_head_old_hoxton` drawable inside the shared suit model (`npc_criminals_suit_1.model` +
@@ -99,8 +92,10 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Geralt_over_Rust` | no record | — |
 | `Arivus_over_Hoxton` | 2026-11-25 (face, D66/D69-era bytes) | **no** — rebuilt again for D79 (neck rim, skirt, skinning); the D72 neck and the `bone_offset` fix have never been in game |
 | `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
-| `OfficeSuite_Miranda_Romance_over_Hila` (**retired 2026-11-26, D82**) | no record | — (native body and head override; retired in favour of `OfficeSuite_Head`, which carries the same body, cut and head as a registered LAS item) |
-| `Miranda_Romance_LAS` | see [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) | |
+| `OfficeSuite_Miranda_Romance_over_Hila` (**retired 2026-11-26, D82**) | no record | — (native body and head override; retired in favour of `OfficeSuite_Head`, which carried the same body, cut and head as a registered LAS item — and that one went too, D83) |
+| `OfficeSuite_Head` (**retired 2026-11-26, D83**) | no record | — (the whole-character pack; the D75 wrist pass and its palettes are still checked on the `OfficeSuite` body it shared) |
+| `Miranda_Romance_LAS` (**retired 2026-11-26, D83**) | no record | — (the ME2 Romance LAS outfit and the port that built it; [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) is its record) |
+| `Miranda_Romance_over_Hila` (**retired 2026-11-26, D83**) | no record | — (the ME2 Romance head over Hila) |
 | `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |
 | `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures; 2026-11-25, user-supplied wrist screenshots of the D60 and D62 builds; 2026-11-26, the same user-supplied wrist captures in first person, with white dress gloves, that drove D75 (a **partial** — the wrist, not the whole outfit) | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and every hand build (D55's own hands, D59's palm cut, D60's cut on the plane with no default glove, D62/D63/D65's extensions, D70's reversion to the plane and D75's wrist pass); installed hash not measured |

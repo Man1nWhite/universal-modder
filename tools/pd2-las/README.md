@@ -9,8 +9,7 @@ no Source compile step, Blender, or running game is needed.
 | --- | --- | --- | --- |
 | `Miranda_L4D2_LAS` — full body and first-person arms | `references/characters/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses, palms cut *on* the line where they begin, with no extension past it (`palm_cut`, `extend_cm`/`clipped_to_cm: 0.0` in `BUILD_INFO.json`, D70; no default glove, a chosen one wins), in TPP and FPS | `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
-| `OfficeSuite_Head` — `OfficeSuite`'s palm-cut body with the Miranda Romance head, one whole-character unit | `dist/Miranda/Miranda_Romance_over_Hila.zip` (its head) | `build_honoko2_dae.py --only officesuite_head` | `honokodae_head` |
-| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | `references/voice/Голос Лоусон.7z` (clips), `references/voice/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/voice/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
+| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | references/voice/Голос Лоусон.7z (clips), `references/voice/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/voice/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
 | `Geralt_VO_over_Rust_Stream` — the purpose-authored Geralt barks, one `.stream` per shared `regular_vox` id for the 29 slots the set covers (315 files); slots without a take are vanilla (`docs/pd2-voice-mod-install.md` §8) | `references/voice/GERALT VOICE (PAYDAY 2).zip` (CP866 file names) | `tools/build_character_stream_mod.py --pack geralt-rust` over `wwise_ima.py` | `voices_geralt` |
 | `Arivus_VO_over_Hoxton_Stream` — the purpose-authored Arivus barks for 18 slots plus the borrowed Geralt 'Hoxton.' callout for `call_teammate.hey_you` (324 files); uncovered slots vanilla | `references/voice/ARIVUS VOICE (PAYDAY 2).zip` (+ the one callout file from the GERALT archive) | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` over `wwise_ima.py` | `voices_arivus` |
 | `Arivus_Head_over_Old_Hoxton_GLB` — the `g_head_old_hoxton` drawable as a bind-pose `.glb` plus the five pack `.texture` files as `.dds`; a viewer export, not an installable mod | `Arivus_over_Hoxton.zip` (the tracked pack itself) | `build_arivus_glb_pack.py` over `model_to_glb.py` | `glb` |
@@ -22,12 +21,12 @@ Authoritative: `python3 tools/pd2-las/status.py` — read-only, no venv needed, 
 ## Commands
 
 The general CLI supports Python 3.10+; `env` requires **Python 3.11+** (CI uses 3.11).
-From the repo root, `make -sC tools/pd2-las` alone lists the targets for all three pipelines.
+From the repo root, `make -sC tools/pd2-las` with no target lists them.
 
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or lawson | honokodae | honokodae_head | heads | voices_stream | voices_geralt | voices_arivus | glb | all
+make -sC tools/pd2-las build    # or honokodae | heads | voices_stream | voices_geralt | voices_arivus | glb | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -40,29 +39,29 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 - `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored) or refreshes a stale one.
   `PD2_2B_TEMPLATES` points setup, builds and `fresh` at a shared unit folder; `extract_2b.py` manages
   only the default cache. Of tracked files, `env` restores only missing ones.
-- A build **overwrites the tracked zips** in `dist/` (the Romance sidecar is updated separately), so only
+- A build **overwrites the tracked zips** in dist/, so only
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
   `build/pd2-las/<target>.log`. In the pinned environment an unchanged tree reproduces the zips on any x86-64
   Linux machine: every builder uses the declared `determinism.py` code path. `fresh` verifies original
   checksums before building in a copy; `check --builders NAME` limits what it rebuilds. A custom Miranda
-  `--out` does not promote to `dist/`; verify its sidecar from there.
-- Order: `build` before `heads`, and `heads` before `honokodae_head`, which reads its head from `dist/Miranda/Miranda_Romance_over_Hila.zip` (D82). **Done means:** `green` passes and `status` shows `changed` only for the packs you meant to change.
+  `--out` does not promote to dist/; verify its sidecar from there.
+- Order: `build` before `heads`, which reads the L4D2 pack's model. **Done means:** `green` passes and `status` shows `changed` only for the packs you meant to change.
 ## File map
 
-| Path (`tools/pd2-las/`) | Role |
+| Path (tools/pd2-las/) | Role |
 | --- | --- |
 | `build_models.py` | the whole Miranda build (both models, the scaffold stage, the zip), and the mesh library every builder imports: retarget (`retarget_maps`), `transfer_group`, `assemble_model`, mesh audits |
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
-| `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
-| `build_honoko2_dae.py`, `las_head.py`, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the OfficeSuite LAS packs built from the Collada `.dae` with the TMC's skinning, the donor head re-skin, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
-| `packs.py`, `dist_paths.py`, `las_outfit_pack.py` | **the one pack table** (name → `dist/` folder, make target, builder); the path map derived from it; shared registration, hook, localization, unit/object XML, zip, glove adapter |
+| `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, make -sC tools/pd2-las inventory rewrites it, and a test fails while it is stale |
+| `build_honoko2_dae.py`, las_head.py, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the OfficeSuite LAS packs built from the Collada `.dae` with the TMC's skinning, the donor head re-skin, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
+| `packs.py`, `dist_paths.py`, `las_outfit_pack.py` | **the one pack table** (name → dist/ folder, make target, builder); the path map derived from it; shared registration, hook, localization, unit/object XML, zip, glove adapter |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |
 | `skeleton_map.json`, `las_target_skeleton.json` | Source → PD2 bone map; the PD2 rig and object names |
 | `segment_fit.py`, `render_mesh_skeleton.py`, `preview.py` | fit measurements and renders the builders call |
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
-| `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
+| `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (make -sC tools/pd2-las audit) |
 | `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of the distribution packs, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the pinned Pillow/NumPy versions |
 | `pack_checksum.py`, `archive_cache.py` | the sha256 sidecars of the tracked and scratch packs (`python tools/pd2-las/pack_checksum.py`), and validating extracted build inputs by archive and payload instead of sentinel files |
 | `build_arivus_glb_pack.py`, `model_to_glb.py`, `rw_dff.py`, `hila_texture_atlas.py`, `wwise_ima.py` | the Arivus `.glb` interchange pack and its readers: Diesel `.model` → glTF + DDS, RenderWare DFF/TXD, the OfficeSuite texture fit into Hila's suit slots, Wwise IMA in a `.stream` |
@@ -87,14 +86,13 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 | **Codec:** `ModelFile.read → write` is byte-exact on the 2B templates and on every tracked model | `test_codec_round_trips_byte_for_byte` |
 | **Registration** follows the 2B contract: a hook on `lib/tweak_data/armorskinstweakdata` that creates `LegendaryArmours.<id>`, BeardLib `main.xml` AddFiles, menu locales | `test_registration_follows_the_2b_contract` |
 | **Tracked bytes:** every zip equals its `.sha256` sidecar, and its `BUILD_INFO.json` hashes its own payload | `test_tracked_bytes_match_their_sidecar_and_build_info` |
-| **Own hands:** a pack keeps "Default" gloves from spawning over its own arms — its modelled hands, or the cut where a `palm_cut` pack removed them (both OfficeSuite packs, on the palm line since D70) — and ships no bare-forearm adapter | `test_own_hands_packs_never_draw_a_default_glove` |
-| **Whole character:** a pack with its own head registers `replace_all`, hides the mask and binds that head to the head end of the rig, not the hips | `test_whole_character_packs_bring_their_own_head` |
+| **Own hands:** a pack keeps "Default" gloves from spawning over its own arms — its modelled hands, or the cut where a `palm_cut` pack removed them (the palm line since D70) — and ships no bare-forearm adapter | `test_own_hands_packs_never_draw_a_default_glove` |
 
 ## Do not
 
 - Do not copy the 2B pack's defects (an unregistered `ss.model`, empty
-  `cooked_physics` files, `Hooks` in `main.xml` where the folder is `hooks/`).
-- Do not apply `tools/pd2-port`'s vertex-normal winding repair here: these
+  `cooked_physics` files, `Hooks` in `main.xml` where the folder is hooks/).
+- Do not apply tools/pd2-port's vertex-normal winding repair here: these
   meshes are welded, and the hole test is `build_models.orientation_breaks`.
 - Do not re-measure the source by hand: read `source_inventory.json`.
 - Do not judge by eye how a mesh sits on the skeleton: `segment_fit.py`
@@ -113,16 +111,16 @@ packs, so they need no build and no 2B templates; the authoring suites check mor
 ## Next
 
 1. In-game checks (`docs/pd2-las/in-game-checklist.md`) still need a human with PAYDAY 2: `Miranda_L4D2_LAS`,
-   `OfficeSuite_Head`, jewelry swap, and the OfficeSuite palm cut/glove behavior.
+   the jewelry swap, and the OfficeSuite palm cut/glove behavior.
    The Hila stream voice pack was reported working, but its latest tracked clips have not been heard;
    the checklist records the remaining re-cut checks. It needs SuperBLT, not BeardLib.
 2. Gloss, measured and not fixed (`docs/audits/2026-11-11-miranda-mips-and-object.md`): full-gloss texels in
-   the Miranda packs' `body_df`/`head_df`; no in-game record of `Miranda_Romance_LAS` or the head packs.
+   the Miranda packs' `body_df`/`head_df`; no in-game record of the head packs.
 
 ## Further reading
 
-- The sibling pipelines (`tools/pd2-port/`, `tools/build_joy_head_mods.py`): [`tools/README.md`](../README.md)
-- Why it is built this way: `docs/pd2-las/DECISIONS.md`; dated audits: `docs/audits/`; renders: `docs/renders/README.md`
+- The sibling pipelines (tools/pd2-port/, `tools/build_joy_head_mods.py`): [`tools/README.md`](../README.md)
+- Why it is built this way: `docs/pd2-las/DECISIONS.md`; dated audits: docs/audits/; renders: `docs/renders/README.md`
 - The tracked bytes, what was seen in game and when, dead ends: `docs/pd2-las/HANDOFF.md`
 - LAS runtime contract and gotchas: `knowledge/games/payday-2/las-armor-skin-outfit.md`
 - Retarget and matrix conventions: the `build_models.py` docstring, `retarget_maps`

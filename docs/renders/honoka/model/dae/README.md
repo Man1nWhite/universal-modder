@@ -18,13 +18,6 @@
   - [`officesuite_las_fps_sheet.png`](officesuite_las_fps_sheet.png): `fps_officesuite.model` on its
     own — player view, three-quarter, side and top-down, auto-framed per view; the close read of the
     sleeve seams, the jewelry cuff and where the palm cut ends the sleeve.
-  - [`officesuite_with_miranda_romance_over_hila_sheet.png`](officesuite_with_miranda_romance_over_hila_sheet.png):
-    the same body under the `g_head` drawable of `dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip`
-    (head + lashes), i.e. the combination as installed — both packs' models stand in one character
-    frame, so the parts share one rasterizer call with no transform between them.
-  - [`officesuite_head_skin_detail.png`](officesuite_head_skin_detail.png): front and three-quarter
-    face/neck close-ups of that combination, using the Romance-over-Hila skin tint matched to
-    OfficeSuite (D48).
 - **Caveats:** offline software Z-buffer render (`runtime_verified: false`). `OfficeSuite` has been seen
   in the game's outfit menu and lobby (user-supplied captures in
   [`../../in-game/officesuite/2026-11-15/`](../../in-game/officesuite/2026-11-15/README.md)), but those
@@ -33,5 +26,7 @@
   bytes no capture does. `Honoko2`,
   `Honoko3` and `Honoko4` were the earlier builds of this source and are no longer tracked (D57);
   their in-game captures are kept under [`../../in-game/2026-11-15/`](../../in-game/2026-11-15/README.md)
-  as the record of that build. The whole-character pack built from this body is in
-  [`../head/`](../head/README.md) (D56).
+  as the record of that build. The whole-character pack built from this body (D56) and the two
+  sheets that showed it with the ME2 Romance head — `officesuite_with_miranda_romance_over_hila_sheet.png`
+  and `officesuite_head_skin_detail.png` — were retired with the Romance line on 2026-11-26 (D82/D83);
+  the sheets are in git history at `c26b990` and `5272168`.

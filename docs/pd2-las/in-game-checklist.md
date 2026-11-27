@@ -171,36 +171,15 @@ character. Offline the sleeve ends read as a clean cuff; what only the game can 
 5. **The shadow.** The trimmed shadow caster is cut too: look at the character's own shadow on the
    ground while turning — no hand, and no hole where the hands used to be.
 
-The same checks apply to `OfficeSuite_Head` (its body is this body). The native Hila override that
-used to be checked here was retired on 2026-11-26 (D82).
+`OfficeSuite_Head` shared this body and would have needed the same checks; it was retired on
+2026-11-26 (D83), as was the native Hila override (D82).
 
-## OfficeSuite_Head — whole character with the Romance head (D56)
+## Retired: `OfficeSuite_Head` and the native Hila override (D82/D83)
 
-Install `dist/Miranda/OfficeSuite_Head.zip`, then pick `OfficeSuite + Miranda Head` under
-`LegendaryArmours.officesuite_head` on any heister. This pack is `replace_all`: it brings the
-body **and** the head, and hides the mask. The checks that the offline build cannot make:
-
-1. **The head is the Romance one, on the body.** Face, hair and skin tone should match the ME2
-   Romance head; the eyes and teeth are Hila's stock ones, so they should not be missing or doubled.
-2. **The lashes (the open risk).** The donor's lashes are one diffuse whose alpha is the cutout,
-   drawn with `opacity:`. Look at the eyes up close and at an angle: the lashes should read as
-   lashes, not as solid black quads and not as a hole in the face. This is the one thing no render
-   here settles.
-3. **No second head, no floating mask.** The heister's stock head must not show through or beside
-   the pack's, and the mask must not appear on the face. Swap to another heister and back.
-4. **The neck.** Rotate the head in the lobby and reload in a heist: no gap or stretched skin where
-   the pack's head meets OfficeSuite's collar, and no head that follows the hips instead of the head.
-5. **No hands by default, and no vanilla skin (D60).** With gloves on "Default" in the blackmarket,
-   nothing must spawn over the cut: no `hnd_glv_heistwrinkled` glove at the cuff, no bare heister
-   hands beside the sleeve, and above all no `hnd_forearms` band — the salmon bare-forearm piece
-   D59's adapter put there. The pack ships `officesuite_head_own_hands.lua` for this. Then equip a
-   named glove (Bone Mittens): it must spawn over the cut as the character's hands.
-6. **The body is the cut body.** Wrists read as D60 (cuff and jewellery cuff, then the cut, or the
-   player's glove); jewellery, suit colourway and the first-person arms match `OfficeSuite`'s own
-   checks above.
-
-`OfficeSuite` itself is unchanged by this pack: it keeps the stock head and its `BODY_ONLY`
-registration, so both entries should sit in the menu and both be selectable.
+Both packs are gone from `dist/` (2026-11-26), and so is the Romance line they were built from, so
+this page has no install steps for them and no checks left open. What was left unconfirmed at the
+time stays on the record in [`HANDOFF.md`](HANDOFF.md): the lashes on the `opacity:` shader, the neck
+under the collar, and whether the mask came back — none of them was ever seen in game.
 
 ## `Miranda_Lawson_VO_over_Hila` — audio only (2026-11-24, dropped 2026-11-25)
 

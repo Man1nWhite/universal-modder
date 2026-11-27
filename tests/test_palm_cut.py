@@ -34,7 +34,6 @@ needs_templates = pytest.mark.skipif(not TEMPLATES.exists(), reason=extract_2b.M
 #: pack, the unit inside it, and the drawable that carries the outfit body
 PACKS = (
     ("OfficeSuite", "officesuite"),
-    ("OfficeSuite_Head", "officesuite_head"),
 )
 def _palm_planes():
     return bm.palm_planes(bm.load_template(TEMPLATES / "2b.model"))

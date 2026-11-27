@@ -1,5 +1,25 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-26 — the Romance line is retired (D83)
+
+`dist/Miranda_Romance/Miranda_Romance_LAS.zip`, `dist/Miranda/Miranda_Romance_over_Hila.zip` and
+`dist/Miranda/OfficeSuite_Head.zip` are deleted with everything that existed only for them: the `lawson`
+and `honokodae_head` make targets and their `tasks.py` entries, `tools/pd2-las/lawson-las.yml`, the
+Romance builder in `tools/build_joy_head_mods.py`, `las_head.py` and its test file, five render paths, and
+the Romance-only half of `tools/pd2-port/` — `build_las_pack.py`, `rig_target.py`, `las_model.py`,
+`preview_check.py`, `shade_check.py`, `check_guide_compliance.py`, `check_nm_convention.py` and
+`check_test_suite_mutations.py`.
+
+Nothing unique went with them. `OfficeSuite_Head` and `Miranda_Romance_over_Hila` carried a
+byte-identical `g_head` `MODEL_DATA` payload (`8125a6c6cb6066f7`) and the same four head textures, so the
+head that survives (`Miranda_L4D2_over_Hila`) is that head, and `Miranda_L4D2_LAS` is the outfit. What is
+gone is the ME2 Romance character's LAS route and the no-LAS install route.
+
+`tools/pd2-port/` stays as the archive reader and the gates that still apply: `dds.py`, `dmodel.py`,
+`me2_dae.py`, `check_links.py`, `check_skip_budget.py` and `check_mesh_geometry.py`, with `check_all.py`
+pack-only and no default pack. `status.py` reports one LAS target. Tracked zips: twelve → nine, and the
+overview sheet re-rendered to nine cells.
+
 ## 2026-11-26 — the native Hila override is retired (D82)
 
 `dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip` and its sidecar are deleted, with the table row,

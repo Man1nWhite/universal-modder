@@ -61,7 +61,6 @@ def _status():
 ITEMS = {
     "Miranda_LAS": "miranda",
     "OfficeSuite": "officesuite",
-    "OfficeSuite_Head": "officesuite_head",
 }
 PACKS = tuple(ITEMS)
 RESTORE = "a tracked pack is missing; restore it with `make -sC tools/pd2-las env`"
@@ -874,8 +873,8 @@ def test_tracked_bytes_match_their_sidecar_and_build_info(pack):
 def test_own_hands_packs_never_draw_a_default_glove(pack):
     """**Own hands.** An outfit that models its hands shows them, not a default glove (D58).
 
-    The rule is the user's: no vanilla glove over the modelled hands, in either
-    OfficeSuite pack. A glove the player picks by hand is still allowed to win,
+    The rule is the user's: no vanilla glove over the modelled hands. A glove the
+    player picks by hand is still allowed to win,
     so this checks the *default* is stated, not that gloves are taken away.
 
     Without the hook the pack depended on an upstream LAS bug to get this right:
@@ -924,57 +923,3 @@ def test_own_hands_packs_never_draw_a_default_glove(pack):
     for flag in ("third_body_replacement", "body_replacement"):
         assert re.search(rf"if ps\.{flag} then ps\.{flag}\.hands = true end", lua), (
             f"{own[0]} does not keep the stock hands hidden in {flag}")
-
-
-def test_whole_character_packs_bring_their_own_head():
-    """**Whole character.** A pack that brings its own head, as Office Suite + Miranda Head does.
-
-    The pack is OfficeSuite's body with the Miranda Romance head from the Hila
-    override, in one unit: both drawables are drawn from one model, and
-    the registration says whole character rather than body skin, so the game
-    swaps the heister's head too and hides the mask that is no longer reachable.
-    `OfficeSuite` itself is a body skin over the heister's stock head, and the two
-    packs must not be confused: the body-only pack keeps `replace_body` and no
-    head drawable. The head also has to be weighted to the head end of the rig.
-    """
-    pack, item = "OfficeSuite_Head", ITEMS["OfficeSuite_Head"]
-    info = _info(pack)
-    flags = info["registration"]["flags"]
-    assert "replace_all" in flags and "hide_mask" in flags, flags
-    assert "replace_body" not in flags, f"{pack} registers as a body skin: {flags}"
-    # The palms are cut (D59/D60), so the pack registers `own_hands`: no default
-    # glove unit is spawned and the stock hands stay hidden, which leaves the
-    # outfit's own cut wrist on screen until the player equips a glove. It does
-    # *not* register the adapter - that one spawns the vanilla bare forearm
-    # (`hnd_forearms`) over the sleeve, the second skin the user rejected.
-    assert info["registration"]["glove_adapter"] is False
-    assert info["registration"]["own_hands"] is True
-
-    body_flags = _info("OfficeSuite")["registration"]["flags"]
-    assert "replace_all" not in body_flags and "replace_body" in body_flags, body_flags
-
-    model = _model(pack, item)
-    assert {"g_body", "g_head"} <= set(model.drawables), sorted(model.drawables)
-    # The pack ships its own first-person arms unit: a whole-character pack
-    # replaces the FP arms too, so without one the first-person view is handless.
-    fps_names = [n for n in _zip(pack).namelist() if n.rsplit("/", 1)[-1].startswith("fps_")]
-    assert fps_names, "no first-person unit"
-    assert info["registration"]["fps_unit"], "the first-person unit is not registered"
-    fps = _model(pack, f"fps_{item}")
-    assert fps.drawables, sorted(fps.drawables)
-    assert not any(name == "g_head" for name in fps.drawables), "the FP arms carry a head"
-
-    # The head is weighted to the head end of the rig. The donor palette is in
-    # its own order (Hips first), and `Group.weights` indexes the *pack's*
-    # palette, so this is the check that the two orders were not confused: a
-    # mis-indexed head binds to Hips and travels with the hips.
-    head = model.drawables["g_head"]
-    owner = head.indices[np.arange(len(head.verts)), head.weights.argmax(axis=1)]
-    rest = np.asarray(head.rest)[owner]
-    hips = min(range(len(head.rest)), key=lambda i: head.rest[i][2])
-    assert not (owner == hips).any(), (
-        f"{int((owner == hips).sum())} head vertices are bound to the hips bone")
-    assert (rest[:, 2] > 140.0).mean() > 0.85, (
-        f"{float((rest[:, 2] <= 140.0).mean()):.1%} of the head is bound below the collar")
-    reach = np.linalg.norm(head.verts - rest, axis=1)
-    assert reach.max() < 30.0, f"a head vertex sits {reach.max():.1f} cm from its bone"

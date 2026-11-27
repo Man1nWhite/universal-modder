@@ -187,8 +187,7 @@ def test_the_pins_are_written_once():
     pins = status.pins()
     assert set(pins) == set(status.PINNED), pins
     named = re.compile(r"\b(%s)\b" % "|".join(pins))
-    for rel in ("tools/pd2-las/recover_env.sh", ".github/workflows/test.yml",
-                ".github/workflows/lawson-las.yml"):
+    for rel in ("tools/pd2-las/recover_env.sh", ".github/workflows/test.yml"):
         text = (REPO / rel).read_text()
         installs = [line.strip() for line in text.splitlines()
                     if "pip install" in line and not line.lstrip().startswith("#") and named.search(line)]
@@ -218,7 +217,7 @@ def test_a_workflow_that_runs_the_suite_installs_what_the_test_workflow_installs
     reference = [installed(line) for line in lines(workflows / "test.yml") if "pip install" in line and "pytest" in line]
     assert len(reference) == 1 and {"pytest", "pyyaml", "pillow", "numpy"} <= reference[0], reference
     runs_the_suite = [path for path in sorted(workflows.glob("*.yml")) if any("-m pytest" in line for line in lines(path))]
-    assert [path.name for path in runs_the_suite] == ["lawson-las.yml", "test.yml"], runs_the_suite
+    assert [path.name for path in runs_the_suite] == ["test.yml"], runs_the_suite
     for path in runs_the_suite:
         has = set().union(*(installed(line) for line in lines(path) if "pip install" in line))
         assert reference[0] <= has, f"{path.name} runs the suite without installing {sorted(reference[0] - has)}"
@@ -502,14 +501,10 @@ def test_no_tool_or_test_depends_on_a_fixed_tmp_path():
     # the head builder unpacks are other people's mods
     git = shutil.which("git")
     if git and (REPO / ".git").exists():
-        for rel in ("build/head-mods/ada_joy/x.model", "build/pd2-port/preview/x.png",
-                    "build/pd2-port/shade/x.png"):
+        for rel in ("build/head-mods/ada_joy/x.model",):
             ignored = subprocess.run([git, "check-ignore", "-q", rel], cwd=REPO)
             assert ignored.returncode == 0, f"{rel} must stay gitignored"
-    for rel, constant in (("tools/build_joy_head_mods.py", 'EXTRACT_DIR = ROOT / "build" / "head-mods"'),
-                          ("tools/pd2-port/preview_check.py",
-                           'DEFAULT_RENDER_DIR = REPO / "build" / "pd2-port" / "preview"'),
-                          ("tools/pd2-port/shade_check.py", '/ "build" / "pd2-port" / "shade"')):
+    for rel, constant in (("tools/build_joy_head_mods.py", 'EXTRACT_DIR = ROOT / "build" / "head-mods"'),):
         assert constant in (REPO / rel).read_text(), f"{rel} no longer keeps its files under build/"
 
 

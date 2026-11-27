@@ -1,4 +1,4 @@
-# tools/ — the three PAYDAY 2 pipelines
+# tools/ — the PAYDAY 2 pipelines
 
 Commands for all of them are make targets in `tools/pd2-las/Makefile`, listed in `AGENTS.md`;
 `make -sC tools/pd2-las status` prints every pack with the target that rebuilds it.
@@ -11,24 +11,24 @@ pack: `references/README.md`. ZIPs are grouped by character in `dist/`; their in
 folders remain the installable names. The Hila Romance head's skin diffuse is matched to Honoko's
 body and therefore changes with that head on other bodies too.
 
-| | `tools/pd2-port/` — COLLADA → LAS | `tools/pd2-las/` — Source MDL / COLLADA / GLB → LAS | Native heister overrides |
-| --- | --- | --- | --- |
-| Builds | a full-body LAS outfit from a rigged COLLADA character. Not tied to one character; the port it ships is Miranda Lawson from the Mass Effect 2 *Romance* archive, `Miranda_Romance_LAS` | LAS outfits re-authored onto the 2B template skeleton: `Miranda_L4D2_LAS`, plus the `OfficeSuite` and `OfficeSuite_Head` outfits from COLLADA with TMC skinning | the over Hila head replacements (Miranda's L4D2 and ME2 Romance heads) and Geralt over Rust, modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`. It takes the L4D2 face from `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, so it runs after that pack. (the standalone native OfficeSuite + Miranda Romance override it used to write was retired on 2026-11-26, D82 — `OfficeSuite_Head` carries the same body and head as an LAS item); the audio pack is Miranda barks over Hila's `rb21` voice lines — `tools/build_hila_stream_mod.py` writes one Wwise IMA ADPCM `.stream` per voice-line id (the id-keyed route, format in `tools/pd2-las/wwise_ima.py`), on the clip, cut and level helpers in `tools/hila_voice_clips.py`; since 2026-11-25 two more packs of the same route ship: `Geralt_VO_over_Rust_Stream` and `Arivus_VO_over_Hoxton_Stream` (`tools/build_character_stream_mod.py`, one pack per purpose-authored bark set, writing the same shared ids — install only one; [packaging and install contract](../docs/pd2-voice-mod-install.md) §8); the BeardLib `SoundsModule` variant it replaced was dropped on 2026-11-25 (D61) |
+| | `tools/pd2-las/` — Source MDL / COLLADA / GLB → LAS | Native heister overrides |
+| --- | --- | --- |
+| Builds | LAS outfits re-authored onto the 2B template skeleton: `Miranda_L4D2_LAS`, plus the `OfficeSuite` outfit from COLLADA with TMC skinning | the L4D2 head over Hila and Geralt over Rust, modeled on `Ada Wong over Joy.7z` and `Heister - FPS Gloves in TPS 2.zip`. It takes the L4D2 face from `dist/Miranda_L4D2/Miranda_L4D2_LAS.zip`, so it runs after that pack; the audio pack is Miranda barks over Hila's `rb21` voice lines — `tools/build_hila_stream_mod.py` writes one Wwise IMA ADPCM `.stream` per voice-line id (the id-keyed route, format in `tools/pd2-las/wwise_ima.py`), on the clip, cut and level helpers in `tools/hila_voice_clips.py`; since 2026-11-25 two more packs of the same route ship: `Geralt_VO_over_Rust_Stream` and `Arivus_VO_over_Hoxton_Stream` (`tools/build_character_stream_mod.py`, one pack per purpose-authored bark set, writing the same shared ids — install only one; [packaging and install contract](../docs/pd2-voice-mod-install.md) §8); the BeardLib `SoundsModule` variant it replaced was dropped on 2026-11-25 (D61) |
 | Voice-line id tables and the re-key | `tools/build_stream_tables.py` (make `voices_tables`) writes `voice_lines_vox/targets/<target>_shared_regular_vox.csv` — slot → bank → id for Rust and Old Hoxton, equal to the tracked zips' file names — plus the measured `char_rust` table; `tools/build_character_stream_mod.py --bank char_rust` (make `voices_char_rust`) re-keys Geralt's takes onto Rust's own bank from `voice_lines_vox/geralt/char_rust_ids.csv` and refuses until that map names every id; the two banks and both open questions are in [the stream-table note](../docs/pd2-voice-stream-tables.md) (D73, D76); `tools/import_voiceline_sheet.py` (make `voices_sheets SHEET=<export>.csv [WANT=Rust] [LEADS=1]`) turns a community `id | who | what` sheet into `voice_lines_vox/sheets/<tab>.csv` plus word-overlap slot *leads* — a lead is not a mapping, and a `regular_vox` sheet never names `char_rust` ids (D77) |
-| Start at | `tools/pd2-port/README.md`; the dated state of the shipped port is `tools/pd2-port/STATUS.md` | `tools/pd2-las/README.md`; the dated record is `docs/pd2-las/HANDOFF.md` | the docstring of `tools/build_joy_head_mods.py`. For the native Hila body/head pack, see [its install notes](../docs/renders/honoka/model/over-hila/README.md). Tracked renders: `docs/renders/README.md`; scratch preview sheets: `build/previews/` (`tools/render_mod_previews.py`) |
-| Pack layout | `Lawson_LAS/assets/units/…` | `Miranda_LAS/assets/units/…` and the like | `{Miranda … over Hila, Geralt over Rust}/units/…`; Geralt is two atoms, `mtr_head` and an `ALPHA_MASKED` `mtr_hair` |
-| Install | extract into `PAYDAY 2\assets\mod_overrides\`; needs SuperBLT + BeardLib + Legendary Armour Skins | the same | extract into `PAYDAY 2\assets\mod_overrides\` (native replacement, no loader or LAS) |
-| `.model` dialect | DODB container, unshifted channel types, packed normals | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) | |
-| Rig work | `rig_target.py` + `reference/las_rig.json` | `skeleton_map.json` + the retarget in `build_models.py` | |
-| Verification | `check_all.py` (mutation-tested), release CI | one test per invariant on the tracked packs (`tests/test_pd2_las_invariants.py`), the authoring suites, byte round-trips of the codec | |
+| Start at | `tools/pd2-las/README.md`; the dated record is `docs/pd2-las/HANDOFF.md` | the docstring of `tools/build_joy_head_mods.py`. For the retired native Hila body/head pack, see [its record](../docs/renders/honoka/model/over-hila/README.md). Tracked renders: `docs/renders/README.md`; scratch preview sheets: `build/previews/` (`tools/render_mod_previews.py`) |
+| Pack layout | `Miranda_LAS/assets/units/…` and the like | `{Miranda … over Hila, Geralt over Rust}/units/…`; Geralt is two atoms, `mtr_head` and an `ALPHA_MASKED` `mtr_hair` |
+| Install | extract into `PAYDAY 2\assets\mod_overrides\`; needs SuperBLT + BeardLib + Legendary Armour Skins | extract into `PAYDAY 2\assets\mod_overrides\` (native replacement, no loader or LAS) |
+| `.model` dialect | plain container, shifted types, float normals (byte-exact to the game-tested 2B template) | |
+| Rig work | `skeleton_map.json` + the retarget in `build_models.py` | |
+| Verification | one test per invariant on the tracked packs (`tests/test_pd2_las_invariants.py`), the authoring suites, byte round-trips of the codec | |
 
 ## Invariants that hold in every pipeline (do not break)
 
 A pipeline's own invariants, and the tests that enforce them, are in its README.
 
 1. **Two Diesel `.model` Parsers**:
-   - `tools/pd2-las/diesel_model.py` (`dm.ModelFile.read` + `dm.decode_geometry` / `dm.decode_topology` / `dm.decode_model_data`) decodes any legacy PAYDAY 2 `.model` (`2b.model`, `miranda.model`, `npc_criminal_joy_1.model`).
-   - `tools/pd2-port/dmodel.py` (`DieselModel.from_bytes`) only populates `geo.weights3` for the models `tools/pd2-port/las_model.py` writes (such as `lawson.model`).
+   - `tools/pd2-las/diesel_model.py` (`dm.ModelFile.read` + `dm.decode_geometry` / `dm.decode_topology` / `dm.decode_model_data`) decodes any legacy PAYDAY 2 `.model` (`2b.model`, `miranda.model`, `npc_criminal_ecp_female.model`).
+   - `tools/pd2-port/dmodel.py` (`DieselModel.from_bytes`) is the independent DODB reader the geometry check and the preview renderer use; it is the port of the model tool that used to be the second implementation's home (D29).
 2. **Global `Topology` Indices in Multi-Atom Drawables**:
    - In Diesel `.model` files (`npc_criminal_joy_1.model`, `miranda.model`), triangle indices in `Topology` for `RenderAtom` `i` are **global vertex indices** in `[base_vertex, base_vertex + slice_len - 1]`, never local `0 .. slice_len - 1`.
 3. **UV Coordinate Convention (`v_diesel = 1.0 - v_img`)**:
@@ -50,9 +50,8 @@ Two tools that do one job may be merged only if no byte of a tracked pack change
 left apart and why, with the measurements: `docs/audits/2026-11-12-tool-merge.md`. A merge is held to
 `make -sC tools/pd2-las green` and to `tests/test_one_implementation.py`.
 
-- The two `.model` dialects in the table stay two writers: each is byte-exact to its own contract.
-- `tools/pd2-port/` is released from hardcoded paths by `.github/workflows/lawson-las.yml`, with the notes
-  of a release in `tools/pd2-port/releases/lawson-las-v<N>.md`: moving its files breaks the release.
+- The remaining `.model` writer is the plain dialect of the 2B template, byte-exact to it. The DODB writer
+  that `tools/pd2-port/` had went with the pack it built (D83).
 - Porting a method across the trees is fine: reimplement it in the target tree's dialect and keep both
   suites green.
 

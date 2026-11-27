@@ -1,12 +1,13 @@
 # CI: what runs, what must pass, how to change it
 
-`.github/workflows/test.yml` has three jobs. `lawson-las.yml` builds one pack on its own.
+`.github/workflows/test.yml` has three jobs; there is no per-pack workflow any more (the Romance
+LAS one went with its pack, D83).
 
 | Job | Runs | Cost | Blocking? |
 | --- | --- | --- | --- |
 | `test` | every gate that reads the tree: checksums, ruff, mypy, links, docs index, the suite (+ coverage floor), skip budget, `um` CLI, knowledge base, publish check | ~4 min | **yes** |
 | `changes` | pull requests only: did this change touch `dist/`, `tools/` or `references/`? | seconds | no, it feeds `packs` |
-| `packs` | `tools/pd2-las/fresh.py check`: all 13 tracked ZIPs built again from scratch and compared byte for byte | ~15 min | on `main` yes |
+| `packs` | `tools/pd2-las/fresh.py check`: all 9 tracked ZIPs built again from scratch and compared byte for byte | ~15 min | on `main` yes |
 
 `packs` runs on a push to `main`, a tag, the nightly schedule, a manual run with
 `rebuild_packs`, a pull request labelled `rebuild-packs`, and — the 2026-11-26 addition — a

@@ -38,8 +38,10 @@ export `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
   player picks is what puts hands on the character (D60). It additionally ships the
   first-person arms unit (`fps_officesuite.model`) from the same slim/cleared arms,
   registered with `fps_unit`, DEPTH_SCALING materials, no head, and the same palm cut.
-* **One whole-character pack (`LegendaryArmours.officesuite_head`, D56)** — that same
-  body and palm cut with the Miranda Romance head, built by `--only officesuite_head`.
+
+The whole-character pack that put the ME2 Romance head on this body
+(`LegendaryArmours.officesuite_head`, D56) was retired on 2026-11-26 with the rest of the
+Romance line (D83), and the `--only`/`--head-donor` switches it needed went with it.
 
 Earlier builds were inspected in game (`docs/renders/honoka/in-game/`).
 The latest OfficeSuite jewelry is not verified in game; see `docs/pd2-las/HANDOFF.md`.
@@ -69,7 +71,6 @@ sys.path.insert(0, str(HERE))
 
 import determinism  # noqa: E402
 import extract_2b  # noqa: E402
-from dist_paths import dist_path  # noqa: E402
 from pack_checksum import write_pack_checksum  # noqa: E402
 
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
@@ -103,10 +104,6 @@ class PackSpec:
     # ships a first-person arms unit (the outfit's sleeves down to the wrist cut,
     # gloves spawning on top, DEPTH_SCALING materials); the TPP body is unchanged
     fps: bool = False
-    # adds a head drawable to the body, re-skinned from another unit's `g_head`,
-    # and registers as a WHOLE_CHARACTER pack (`replace_all`): the skin replaces
-    # the body, head and mask instead of borrowing the heister's head
-    head: bool = False
 
     @property
     def unit_base(self) -> str:
@@ -131,21 +128,6 @@ class PackSpec:
     def slot(self, kind: str) -> str:
         """Material slot (and texture stem) for one source garment kind."""
         return f"{self.item_id}_{kind}"
-
-    @property
-    def head_slots(self) -> tuple[str, ...]:
-        """The head drawable's two material slots: skin, then lashes.
-
-        The skin is a diffuse+normal pair like every garment slot; the lashes
-        are one diffuse whose alpha is the cutout.
-        """
-        return tuple(f"{self.slot(name)}" for name in HEAD_SLOTS)
-
-    @property
-    def head_textures(self) -> tuple[str, ...]:
-        """The head's maps registered on their own: the face pair, then the lashes."""
-        skin, lashes = self.head_slots
-        return (f"{skin}_df", f"{skin}_nm", lashes)
 
     def slots(self) -> list[str]:
         return [self.slot(kind) for kind in MAT_TEXTURE_SOURCES]
@@ -234,42 +216,9 @@ OFFICE_SUITE = PackSpec(
     fps=True,
 )
 
-#: OfficeSuite plus the Miranda Romance head, as one whole-character LAS pack: the
-#: skin brings its own head and registers `replace_all`, so the heister's head and
-#: the mask are out of the picture (D56). Its body is OfficeSuite's, palm cut included.
-#: Like OfficeSuite it ships its first-person arms unit (D53/D55): a whole-character
-#: pack replaces the FP arms too, so without one the first-person view has no hands.
-OFFICE_SUITE_HEAD = PackSpec(
-    item_id="officesuite_head",
-    pack_dir="OfficeSuite_Head",
-    display_name="OfficeSuite + Miranda Head",
-    description=(
-        "OfficeSuite [LAS] as a complete character: the black suit and light shirt from "
-        "OfficeSuite with the Miranda Romance head and lashes. Replaces the body, head and "
-        "mask. Legendary Armour Skins whole-character outfit."
-    ),
-    slim=0.95,
-    clearance=True,
-    hands="palm_cut",
-    head=True,
-    fps=True,
-    tex_override={"suit": "Tex_07(L_7)3.dds", "jewelry": "Tex_23(L_23)2.dds"},
-)
-
-#: ``PACKS`` is what `make honokodae` builds: OfficeSuite alone. The head pack is a
-#: target of its own (``build_honoko2_dae.py --only officesuite_head``), so OfficeSuite's
-#: bytes stay identical; `HEAD_PACKS` is what the runner adds when asked.
-HEAD_PACKS = (OFFICE_SUITE_HEAD,)
+#: ``PACKS`` is every pack this builder writes: OfficeSuite alone since the
+#: whole-character pack of D56 was retired (D83).
 PACKS = (OFFICE_SUITE,)
-
-#: The donor drawable the head pack re-skins, its source materials, and the unit
-#: inside the donor ZIP the head is read from. The unit is Hila's own, and both native
-#: over-Hila replacements carry the identical `g_head` (2026-11-26: same MODEL_DATA
-#: payload in each), so the surviving head replacement is the donor now that the
-#: OfficeSuite-native one is retired (D82).
-HEAD_DONOR = "Miranda_Romance_over_Hila.zip"
-HEAD_SLOTS = ("head", "lashes")
-HILA_HEAD_UNIT = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female"
 
 # Source garment kinds, in the deterministic order the material slots are emitted in; every DAE
 # submesh maps to exactly one kind, and each pack names its slots `<item_id>_<kind>`.
@@ -717,26 +666,9 @@ def render_material_config(spec: "PackSpec") -> str:
             "    </material>\n"
         )
 
-    # The head's skin uses the same shader as the body's; its lashes are cut out
-    # by the diffuse alpha, exactly as the donor's own `mtr_lashes` was.
-    head_slot, lashes_slot = spec.head_slots if spec.head else (None, None)
-    head_skin = head_slot          # already the "_df" stem: the pair names the base
-    lashes_single = lashes_slot
-
-    def lash_mat(slot: str) -> str:
-        return (
-            f'    <material name="{slot}" unique="true" version="2"\n'
-            '              render_template="opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS">\n'
-            f'        <diffuse_texture file="{spec.unit_base}/{slot}"/>\n'
-            "    </material>\n"
-        )
-
     parts = [f'<materials version="3" group="{spec.item_id}">\n\n']
     for slot in spec.slots():
         parts.append(contour_mat(slot) + "\n")
-    if spec.head:
-        parts.append(contour_mat(head_skin) + "\n")
-        parts.append(lash_mat(lashes_single) + "\n")
     parts.append('    <material name="shadow_caster" render_template="shadow_caster_only:SKINNED_1WEIGHT" version="2"/>\n')
     parts.append("</materials>")
     return "".join(parts)
@@ -769,18 +701,14 @@ def registration(spec: "PackSpec"):
         display_name=spec.display_name,
         description=spec.description,
         unit=spec.tpp_unit,
-        # A pack that brings its own head replaces the whole character: body,
-        # head and mask. One that does not is a body skin and leaves the
-        # heister's head and mask alone.
-        flags=lop.WHOLE_CHARACTER if spec.head else lop.BODY_ONLY,
+        # A body skin: it leaves the heister's head and mask alone.
+        flags=lop.BODY_ONLY,
         fps_unit=spec.fps_unit,
         category=spec.item_id,
         icon=f"{spec.gui_base}/{spec.item_id}",
         hook_file=f"{spec.item_id}_las.lua",
         pairs=tuple(f"{spec.unit_base}/{slot}" for slot in spec.slots()),
-        # The head's lashes sample a diffuse whose cutout lives in its alpha, so
-        # that one travels as a single texture next to the df/nm pairs.
-        textures=tuple(f"{spec.unit_base}/{slot}" for slot in spec.head_textures) if spec.head else (),
+        textures=(),
         # No default glove for either mode, and no stock hands beside the outfit's
         # own body (D58/D60). A glove the player picks by hand still spawns and
         # wins, which is the whole point of a pack with no hands in it.
@@ -794,38 +722,6 @@ def registration(spec: "PackSpec"):
     )
 
 
-def _head_meshes(model_path: Path, spec: "PackSpec") -> list[dict]:
-    """The head drawable as one part per atom, material keyed by the pack's slots."""
-    import numpy as np
-
-    import diesel_model as dm
-
-    mf = dm.ModelFile.read_path(model_path)
-    parts = []
-    sid = next((s.id for s in mf.by_type(dm.MODEL_DATA)
-                if (d := dm.decode_model_data(s.payload))["name_hash"] == dm.hash64("g_head")
-                and d["version"] == 3), None)
-    if sid is None:
-        raise ValueError("a pack with head=True has no g_head drawable to render")
-    data = dm.decode_model_data(mf.by_id(sid).payload)
-    gp = dm.decode_passthroughgp(mf.by_id(data["passthroughgp"]).payload)
-    geo = dm.decode_geometry(mf.by_id(gp["geometry"]).payload)
-    top = np.asarray(dm.decode_topology(mf.by_id(gp["topology"]).payload)["indices"],
-                     dtype=np.int64).reshape(-1, 3)
-    verts = np.asarray(geo["verts"], dtype=np.float64)
-    normals = np.asarray(geo["normals"], dtype=np.float64)
-    uvs = np.asarray(geo["uv0"], dtype=np.float64)
-    for atom, slot in zip(data["atoms"], spec.head_slots):
-        start = atom["base_index"] // 3
-        tris = top[start:start + atom["tri_count"]]
-        used = np.unique(tris)
-        remap = np.full(len(verts), -1, np.int64)
-        remap[used] = np.arange(len(used))
-        parts.append({"material": slot, "vertices": verts[used], "normals": normals[used],
-                      "uvs": uvs[used], "triangles": remap[tris]})
-    return parts
-
-
 def _render_icon_bytes(spec: "PackSpec", model_path: Path, textures: dict[str, bytes]) -> bytes:
     import numpy as np
     from PIL import Image
@@ -833,22 +729,13 @@ def _render_icon_bytes(spec: "PackSpec", model_path: Path, textures: dict[str, b
     import las_outfit_pack as lop
     import preview_textured as pt
 
-    # `material_meshes` returns the one multi-material drawable (the body). A
-    # whole-character pack also has a head, so that gets its own textured parts
-    # or the icon shows a headless character.
+    # `material_meshes` returns the one multi-material drawable (the body); the pack
+    # carries no head of its own, so there is nothing to add to it.
     mesh_list = pt.material_meshes(model_path)
     tex_by_mat = {}
     for slot in spec.slots():
         data = textures[f"{slot}_df.texture"]
         tex_by_mat[slot] = np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"), dtype=np.float32) / 255.0
-
-    if spec.head:
-        skin, lashes = spec.head_slots
-        mesh_list = mesh_list + _head_meshes(model_path, spec)
-        for slot, stem in ((skin, f"{skin}_df"), (lashes, lashes)):
-            tex_by_mat[slot] = np.asarray(
-                Image.open(io.BytesIO(textures[f"{stem}.texture"])).convert("RGBA"),
-                dtype=np.float32) / 255.0
 
     size = 256
     imgs = [
@@ -1223,7 +1110,6 @@ def build_pack(
     no_previews: bool,
     source: dict,
     fps_template=None,
-    head_donor=None,
 ) -> Path:
     """Transfer the shared source model into `spec`'s skeleton, package it, and write its zip."""
     import hashlib as _hl
@@ -1324,27 +1210,9 @@ def build_pack(
         for side, key in ((-1, "left"), (1, "right")):
             cut_report["outfit"]["palm_base"][key]["kept_to_cm"] = _last_kept_cm(groups["outfit"], palms[side])
 
-    head = None
-    if spec.head:
-        import las_head
-
-        if head_donor is None:
-            raise SystemExit("a pack with head=True needs the head donor (--head-donor)")
-        head, head_source = las_head.load(head_donor, template, spec.item_id, HILA_HEAD_UNIT)
-        # Repo-relative when the donor lives in the repo: `fresh` builds in a copy of the
-        # tree, and an absolute path would make its bytes differ from the tracked ones.
-        donor = (head_donor.relative_to(REPO).as_posix() if head_donor.is_relative_to(REPO)
-                 else str(head_donor))
-        source = {**source, "head": head.report, "head_donor": donor}
-        if len(head.slots) != 2:
-            raise ValueError(f"expected the head's two material atoms, got {head.slots}")
-        groups["head"] = head.group
-        share["g_head"] = "head"
-
-    # The template's own head goes unless this pack brings one: a drawable that is
-    # present but disabled would still carry someone else's character in the pack.
-    drop = ("g_head_lod1",) if spec.head else ("g_head", "g_head_lod1")
-    tpp_mf = bm.assemble_model(template, groups, share, drop_drawables=drop)
+    # The template's own head and its LOD go: a drawable that is present but disabled
+    # would still carry someone else's character in the pack.
+    tpp_mf = bm.assemble_model(template, groups, share, drop_drawables=("g_head", "g_head_lod1"))
 
     # The first-person unit: the same slimmed, cleared outfit arms as the
     # third-person body (the FPS skeleton shares the PD2 bind pose, so the same
@@ -1381,12 +1249,6 @@ def build_pack(
         fps_path.write_bytes(fps["mf"].write())
 
     textures, tex_report = build_textures(spec)
-    if head is not None:
-        # The donor's head maps are already PD2 `.texture` files with full mips,
-        # so they travel unchanged; only their stem follows the pack's slots.
-        for slot, data in head.textures.items():
-            textures[slot] = data
-        tex_report.update(head.report.get("textures", {}))
     reg = registration(spec)
 
     pack = work / spec.pack_dir
@@ -1423,8 +1285,7 @@ def build_pack(
     (unit_dir / f"{spec.item_id}.unit").write_bytes(lop.render_unit_xml(spec.tpp_unit).encode("utf-8"))
     drawables = lop.model_drawables(tpp_path.read_bytes())
     (unit_dir / f"{spec.item_id}.object").write_bytes(
-        lop.render_object_xml(spec.tpp_unit, drawables,
-                              also_visible=("g_head",) if spec.head else ()).encode("utf-8")
+        lop.render_object_xml(spec.tpp_unit, drawables).encode("utf-8")
     )
     (unit_dir / f"{spec.item_id}.material_config").write_bytes(
         render_material_config(spec).encode("utf-8")
@@ -1560,12 +1421,6 @@ def main(argv=None) -> int:
     ap.add_argument("--source-zip", type=Path, default=SOURCE_ZIP)
     ap.add_argument("--no-previews", action="store_true",
                     help="skip the 3D render used to generate the HUD icon")
-    ap.add_argument("--head-donor", type=Path, default=None,
-                    help="unit ZIP the --only head packs re-skin their head from "
-                         "(default: the tracked native Hila override)")
-    ap.add_argument("--only", default="",
-                    help="comma-separated item ids to build; the default is the tracked "
-                         "pack, and 'officesuite_head' builds the whole-character one")
     args = ap.parse_args(argv)
     determinism.enter(__file__)
 
@@ -1615,20 +1470,7 @@ def main(argv=None) -> int:
         "dae_to_tmc_max_match_err_m": max_match_err,
     }
 
-    wanted = {name.strip() for name in args.only.split(",") if name.strip()}
-    known = {spec.item_id: spec for spec in PACKS + HEAD_PACKS}
-    if unknown := wanted - known.keys():
-        raise SystemExit(f"unknown pack(s): {', '.join(sorted(unknown))}; "
-                         f"known: {', '.join(sorted(known))}")
-    specs = [known[name] for name in sorted(wanted, key=lambda n: list(known).index(n))] if wanted else PACKS
-
-    head_donor = None
-    if any(spec.head for spec in specs):
-        head_donor = args.head_donor or dist_path(REPO, HEAD_DONOR)
-        if not head_donor.is_file():
-            raise SystemExit(f"missing head donor: {head_donor}")
-
-    for spec in specs:
+    for spec in PACKS:
         build_pack(
             spec,
             template,
@@ -1641,7 +1483,6 @@ def main(argv=None) -> int:
             args.no_previews,
             source,
             fps_template=fps_template,
-            head_donor=head_donor,
         )
     return 0
 

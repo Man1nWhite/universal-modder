@@ -27,7 +27,7 @@ def test_every_pack_inventory_agrees_with_status_pack_names():
         "Miranda_LAS": "Miranda_L4D2_LAS",
         **{name: name for name in ITEMS if name != "Miranda_LAS"},
     }
-    expected_las = set(LAS_TARGETS) - {"Miranda_Romance_LAS"}
+    expected_las = set(LAS_TARGETS)
     assert set(internal_to_public.values()) == expected_las
     assert set(internal_to_public.values()) <= names
 

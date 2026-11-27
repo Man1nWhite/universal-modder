@@ -46,16 +46,12 @@ import trace_run  # noqa: E402
 #: texture staging directory; the head packs consume the base Miranda ZIP.
 BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
-    "lawson": ["tools/pd2-port/build_las_pack.py"],
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
     "voices_stream": ["tools/build_hila_stream_mod.py"],
     # One pack per purpose-authored bark set, same id-keyed route as voices_stream.
     "voices_geralt": ["tools/build_character_stream_mod.py", "--pack", "geralt-rust"],
     "voices_arivus": ["tools/build_character_stream_mod.py", "--pack", "arivus-old-hoxton"],
-    # Reads dist/Miranda/Miranda_Romance_over_Hila.zip for its head (D82), so it runs
-    # after `heads`. `--only` keeps the OfficeSuite body pack out of it.
-    "honokodae_head": ["tools/pd2-las/build_honoko2_dae.py", "--only", "officesuite_head"],
     # Reads the tracked Arivus head pack, so it runs after `heads`.
     "glb": ["tools/pd2-las/build_arivus_glb_pack.py"],
 }
@@ -141,7 +137,7 @@ def copy_tree(tree: Path, outputs: list[str]) -> None:
 
 
 def require_env(plan: dict[str, list[str]]) -> None:
-    if not PY.is_file() or (plan.keys() - {"lawson", "heads", "hila"} and not extract_2b.ready()):
+    if not PY.is_file() or (plan.keys() - {"heads"} and not extract_2b.ready()):
         raise SystemExit("no .venv or no current 2B templates: run `make -sC tools/pd2-las env` first")
 
 
@@ -167,12 +163,11 @@ def run_builders(tree: Path, extra: dict, plan: dict[str, list[str]], trace_dir:
         missing = [rel for rel in outputs if not (tree / rel).is_file()]
         if missing:
             raise BuildFailed(name, 1, ["did not produce: " + ", ".join(missing)])
-        if name != "lawson":  # Romance's distributed sidecar is written at promotion time.
-            for rel in outputs:
-                try:
-                    verify_checksum(tree / rel, tree)
-                except (OSError, ValueError) as error:
-                    raise BuildFailed(name, 1, [str(error)]) from error
+        for rel in outputs:
+            try:
+                verify_checksum(tree / rel, tree)
+            except (OSError, ValueError) as error:
+                raise BuildFailed(name, 1, [str(error)]) from error
 
 
 # ------------------------------------------------------------ what differs

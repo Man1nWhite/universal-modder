@@ -69,9 +69,6 @@ def test_the_hash_is_the_one_the_tracked_models_were_named_with():
                   for text in diesel_model.decode_custom_hashlist(section.payload)["names"]}
         carried = [diesel_model.decode_object3d(section.payload)["name_hash"] for section in model.by_type(diesel_model.OBJECT3D)]
         assert sum(1 for value in carried if value in listed) >= 100, name
-    with zipfile.ZipFile(dist_path(REPO, "lawson_las.zip")) as z:
-        lawson = dmodel.DieselModel.from_bytes(z.read(next(n for n in z.namelist() if n.endswith("/lawson.model"))))
-    assert lawson.find_by_name("Hips"), "the reader of the port no longer finds a bone of its own pack by name"
 
 
 def test_the_tag_numbers_are_written_once():
@@ -130,8 +127,8 @@ def test_the_registration_files_have_one_writer():
     las_pack.py, las_outfit_pack.py, build_honoko2_dae.py and build_joy_head_mods.py
     all route through las_outfit_pack.py for main.xml,
     hook Lua, localization strings, unit XML, the glove adapter, and deterministic zipping.
-    (tools/pd2-port/build_las_pack.py writes Miranda_Romance_LAS in another layout and
-    stays apart: docs/audits/2026-11-12-tool-merge.md.)
+    (The port's own build_las_pack.py wrote Miranda_Romance_LAS in another layout and stayed
+    apart from it until both went, D83: docs/audits/2026-11-12-tool-merge.md.)
     """
     marks = {'<Hooks directory="hooks">': "main.xml", "LegendaryArmours = LegendaryArmours or {}": "the hook",
              "bm_menu_": "the strings", '<unit type="dah" slot="1">': "the unit file", "_GloveAdapter": "the glove adapter"}

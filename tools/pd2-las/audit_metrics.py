@@ -204,9 +204,7 @@ def main(argv=None) -> int:
               "(mean / levels / p10 / p50 / p90 / max):")
         for label, zpath, suffix in (
                 ("Miranda body (shipped)", args.dist / "Miranda_L4D2" / "Miranda_L4D2_LAS.zip",
-                 "_body_df.texture"),
-                ("lawson body1 (shipped)", args.dist / "Miranda_Romance" / "Miranda_Romance_LAS.zip",
-                 "body1_df.texture")):
+                 "_body_df.texture"),):
             if not Path(zpath).is_file():
                 continue
             blob = _texture(Path(zpath), suffix)

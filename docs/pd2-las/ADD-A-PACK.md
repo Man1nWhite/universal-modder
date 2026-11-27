@@ -8,7 +8,7 @@ to be found by hand.
 ## Add a pack
 
 1. **Decide the identity.** The name is `<Character>_<what it replaces>_<variant>` and the
-   folder is `dist/<group>/` — `Miranda`, `Miranda_L4D2`, `Miranda_Romance`, `Geralt`,
+   folder is `dist/<group>/` — `Miranda`, `Miranda_L4D2`, `Geralt`,
    `Arivus`. A pack that replaces a whole character or outfit goes to the character's folder;
    an `*_over_<heister>` head replacement goes to `dist/Miranda/` (or its own character's).
 2. **Add one row to `tools/pd2-las/packs.py`**: name, group, make target, builder argv, one

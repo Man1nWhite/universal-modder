@@ -1,10 +1,8 @@
-# lawson_las — the dated record of the shipped port
+# lawson_las — the dated record of a retired port
 
-> **Start at [`README.md`](README.md).** Commands, the pipeline, the file map and the release route are
-> written there and nowhere else. This page is the dated record beneath it, for the port that is in the tree
-> (Miranda Lawson, *Mass Effect 2*): what a release serves and what is tracked, what has been seen in game,
-> what was found and settled, which approaches failed. It gives no commands and keeps no work queue.
-> Day by day: [`MODLOG.md`](MODLOG.md).
+> **Retired 2026-11-26 (D83).** The Romance LAS pack, build_las_pack.py
+> and everything only it used are gone; this page is the record of what that port was, what it
+> settled and what it got wrong. [Start at `README.md`](README.md) for what is still here.
 
 Rewritten on 2026-11-13. Until then this page was also a start-here, a table of check results, an
 environment guide and a file map, written on 2026-10-19 and corrected by a note at its top. What it and the
@@ -12,11 +10,11 @@ README claimed that was not so is under [Corrections](#corrections).
 
 ## Released and tracked
 
-**There is no release.** The pack is the tracked `dist/Miranda_Romance/Miranda_Romance_LAS.zip`, stamped 0.1.2. Its models, textures,
+**There was no release.** The pack was the tracked Romance LAS zip, stamped 0.1.2. Its models, textures,
 unit files, hook and menu strings are those built at `15b0fbe` (2026-10-22). On 2026-11-13 it was built
 again without `CREDITS.txt`, at the owner's direction (`docs/pd2-las/DECISIONS.md`, D34): that file and its
 line in the manifest went, and the other 28 files are byte for byte what they were.
-`make -sC tools/pd2-las status` prints its size and sha256.
+make -sC tools/pd2-las status prints its size and sha256.
 
 - **Deleted on 2026-11-13, at the owner's direction:** the pre-release `lawson-las-v2` of 2026-10-19 with its
   tag (→ `282703f`), the tag `lawson-las-v1` (→ `2b0b1b4`; its release was already gone) and the tag
@@ -29,7 +27,7 @@ line in the manifest went, and the other 28 files are byte for byte what they we
   textures; the retarget of the hands and fingers, then of the shoulders, upper arms and elbows; the normal
   maps; the seams at the cheek and mouth, with their bone weights and normals; the eyes, lashes and
   nostrils; hair at the throat and on the face; the shoulder pose. None of them moved `VERSION` in
-  `build_las_pack.py`, so both packs were stamped 0.1.2. GitHub counted 0 downloads of each of the
+  build_las_pack.py, so both packs were stamped 0.1.2. GitHub counted 0 downloads of each of the
   pre-release's two assets on the day it was deleted.
 - **The next release is `lawson-las-v3`:** the numbers 1 and 2 are used, and a test rejects release notes
   with a lower number.
@@ -59,7 +57,7 @@ name of the pack that was looked at. `build_manifest.json` in the pack says `"ru
     2026-11-11 the build re-wound 3 triangles.
 - **The green channel of the normal maps** (settled on 2026-10-19, by provenance). The files cannot say
   whether the source maps are Y+ or Y−: their blue channel is saturated, so the height field cannot be
-  recovered, and both readings are consistent with the image. `check_nm_convention.py` measures that and
+  recovered, and both readings are consistent with the image. check_nm_convention.py measures that and
   prints the verdict. The provenance can: *Mass Effect 2* runs on DirectX 9, whose normal maps are Y−, and
   PAYDAY 2 wants Y+. So the default build, which inverts green, is the right one for this source, and
   `--keep-nm-green` is for a source that is already Y+. Nobody has looked at it in game. It is the audit's
@@ -101,8 +99,8 @@ What this page and the README said until 2026-11-13, and what is so:
   The transfer was rebuilt another way within three days. The plan, its constraint set and the tear angles
   of the old scheme are gone from this page; what was measured on the rigs is under Dead ends.
 - **The check results of 2026-10-19** (the audit's and the suite's counts, the timings of `check_all.py`)
-  were a snapshot. `check_all.py` and `make -sC tools/pd2-las green` print today's.
-- **The venv recipe** wrote the two pinned versions by hand. `make -sC tools/pd2-las env` makes the
+  were a snapshot. `check_all.py` and make -sC tools/pd2-las green print today's.
+- **The venv recipe** wrote the two pinned versions by hand. make -sC tools/pd2-las env makes the
   environment and `tools/pd2-las/pins.txt` is the one place the versions are written.
 - **"Related work on other branches"** described `arena/136395ac-universal-modder`. Both lines of work are
   in `main` and the branch is gone.

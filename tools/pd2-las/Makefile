@@ -19,7 +19,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build lawson honokodae honokodae_head heads voices_stream voices_geralt voices_arivus voices_tables voices_char_rust voices_sheets glb all inventory audit fresh test green
+.PHONY: help status env build honokodae heads voices_stream voices_geralt voices_arivus voices_tables voices_char_rust voices_sheets glb all inventory audit fresh test green
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -42,14 +42,8 @@ env:        ## once per fresh clone or restarted sandbox: missing tracked files,
 build:      ## Miranda_L4D2_LAS -> dist/Miranda_L4D2/
 	$(call BUILD,$(HERE)/build_models.py)
 
-lawson:     ## Miranda_Romance_LAS -> dist/Miranda_Romance/
-	$(call BUILD,tools/pd2-port/build_las_pack.py)
-
 honokodae:  ## OfficeSuite (DOAXVV 'Secret Report' from .dae; ships the FPS arms unit) -> dist/Miranda/
 	$(call BUILD,$(HERE)/build_honoko2_dae.py)
-
-honokodae_head:  ## OfficeSuite_Head: OfficeSuite + the Miranda Romance head as one whole-character LAS -> dist/Miranda/
-	$(call BUILD,$(HERE)/build_honoko2_dae.py --only officesuite_head)
 
 heads:      ## the over Hila heads, Geralt_over_Rust, Arivus_over_Hoxton -> dist/Miranda/, dist/Geralt/, dist/Arivus/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
@@ -86,13 +80,7 @@ ifneq ($(filter all build,$(MAKECMDGOALS)),)
 heads: build
 endif
 
-# OfficeSuite_Head reads the surviving over-Hila head replacement for its head (D82),
-# so it runs after `heads`; `--only` keeps the OfficeSuite body pack out of it.
-ifneq ($(filter all honokodae_head,$(MAKECMDGOALS)),)
-honokodae_head: heads
-endif
-
-all: build lawson honokodae honokodae_head heads voices_stream voices_geralt voices_arivus glb  ## every tracked pack
+all: build honokodae heads voices_stream voices_geralt voices_arivus glb  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)
