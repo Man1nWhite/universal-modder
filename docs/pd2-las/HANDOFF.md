@@ -88,10 +88,10 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 
 | Pack | Last seen in game | Were those the tracked bytes? |
 | --- | --- | --- |
-| `Miranda_L4D2_LAS`, `Miranda_L4D2_Busty_LAS` | no record | — |
+| `Miranda_L4D2_LAS` (eye is the supplied picture since D84) | no record | — |
 | `Geralt_over_Rust` | no record | — |
 | `Arivus_over_Hoxton` | 2026-11-25 (face, D66/D69-era bytes) | **no** — rebuilt again for D79 (neck rim, skirt, skinning); the D72 neck and the `bone_offset` fix have never been in game |
-| `Miranda_{L4D2,Romance}_over_Hila` | no record | — |
+| `Miranda_L4D2_over_Hila` (eye quadrant rebuilt from the tracked `EYE_Diff.png`, D84) | no record | — |
 | `OfficeSuite_Miranda_Romance_over_Hila` (**retired 2026-11-26, D82**) | no record | — (native body and head override; retired in favour of `OfficeSuite_Head`, which carried the same body, cut and head as a registered LAS item — and that one went too, D83) |
 | `OfficeSuite_Head` (**retired 2026-11-26, D83**) | no record | — (the whole-character pack; the D75 wrist pass and its palettes are still checked on the `OfficeSuite` body it shared) |
 | `Miranda_Romance_LAS` (**retired 2026-11-26, D83**) | no record | — (the ME2 Romance LAS outfit and the port that built it; [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) is its record) |
@@ -121,9 +121,11 @@ installed on 2026-11-15 were identified by the user, not hash-measured from the 
   the game. No tracked bytes of either pack have been in game.
 - **Head packs, coverage.** Clover and Bonnie replace the heist, menu *and* Safe House (`*_chill`) models; Joy,
   Sydney and Hila replace the heist + menu models only, so their Safe House units keep the vanilla head (Hila
-  has no Safe House unit to swap). Hila is also the only heister whose head packs carry the user-supplied
-  `references/textures/EYE_Diff.png` in the eye quadrant (D41). There is no checklist for the head packs. Until someone
-  looks at a throat again the five L4D2 packs are *offline-verified only*.
+  has no Safe House unit to swap). Her head pack carries the user-supplied `references/textures/EYE_Diff.png`
+  in the eye quadrant (D41), and since 2026-11-27 so does the `Miranda_L4D2_LAS` outfit's `miranda_eyes`
+  texture (D84) - the head pack's was rebuilt then, because the quadrant it shipped had been made from an
+  earlier repaint of that picture and the builder no longer reproduced its own bytes. There is no checklist
+  for the head packs. Until someone looks at a throat again the five L4D2 packs are *offline-verified only*.
 
 ## Dead ends — do not retry
 

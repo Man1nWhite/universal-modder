@@ -1,5 +1,25 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-27 — the supplied eye reaches the outfit pack, and the head pack catches up with it
+
+`dist/Miranda_L4D2_LAS.zip` and `dist/Miranda/Miranda_L4D2_over_Hila.zip` are rebuilt. The outfit's
+`miranda_eyes.texture` is now `references/textures/EYE_Diff.png` - `supplied_eye_values()` /
+`supplied_eye_texture()` in `build_las.py`, the picture cropped to the eyeball's own planar map at a
+measured 2.7x - where it had been the eye `build_las` drew. The drawing (`eye_values`, `draw_eye`,
+`eye_texture`) is retired with it, and `mip_audit.py` judges the supplied picture instead: the shipped eye
+is closer to the picture than the drawing was on every limit, and the per-texel colour limit is now missed
+from 128x128 down (the picture's sclera has veins where the drawing had a smooth field) and the iris limit
+at 16x16 and 4x4; `KNOWN_MISSES` lists exactly that, and every other encoder tried misses the same levels.
+
+The head pack's eye quadrant was stale: it had been built from the 2026-11-15 repaint before that day's
+second repaint, while the builder reads the tracked picture as it is. `test_hila_packs_replace_the_ecp_unit_and_use_the_supplied_eye`
+was failing on the merged tree because of it; rebuilt, the quadrant is the tracked picture's 2.03 crop
+again and the test passes.
+
+New besides the packs: `tools/extract_beard_textures.py` writes Geralt's beard out of
+`Geralt_over_Rust.zip`'s head atlas as textures of its own under `references/textures/`
+(`geralt_beard_df`/`_nm`, PNG and DXT5 DDS with full mips). It only reads `dist/`. Reasoning: D84.
+
 ## 2026-11-26 — the Romance line is retired (D83)
 
 `dist/Miranda_Romance/Miranda_Romance_LAS.zip`, `dist/Miranda/Miranda_Romance_over_Hila.zip` and

@@ -45,20 +45,30 @@ LIMITS = {
 #: The limits the pack is known to miss, and which no encoder that was tried
 #: meets on the same image: `quicktex` at its highest setting misses the same
 #: levels (2026-11-11). A block holds four colours on one line, and from 64x64
-#: down a block of the eye holds pupil, iris, dark rim and sclera. The iris
-#: limit, which is what the eye is looked at for, is met at every level.
-#: The report fails when the misses are not exactly these.
+#: down a block of the eye holds pupil, iris, dark rim and sclera.
+#:
+#: Since the pack wears the supplied picture (2026-11-27) its sclera carries the
+#: picture's veins and shading rather than the drawn eye's smooth field, so the
+#: per-texel limits are missed from 128x128 down instead of 64x64; measured
+#: against the same picture through the three other encoders, they miss the same
+#: levels. The iris limit, which is what the eye is looked at for, is met from
+#: 32x32 up and missed by 0.9 at 16x16 and 1.3 at 4x4, where a texel *is* the
+#: rim or the pupil beside it. The report fails when the misses are not exactly
+#: these.
 KNOWN_MISSES = {
+    ("eyes", 2): {"colour_p99"},
     ("eyes", 3): {"colour_p99"},
     ("eyes", 4): {"colour_mean", "colour_p99"},
     ("eyes", 5): {"colour_mean", "colour_p99"},
     ("eyes", 6): {"colour_mean", "colour_p99"},
-    ("eyes", 7): {"colour_mean", "colour_p99"},
+    ("eyes", 7): {"colour_mean", "colour_p99", "iris"},
 }
 
 #: The iris ring of the eye texture, as a distance from the centre in texture
-#: widths: outside the pupil's soft edge, inside the dark rim (`build_las.draw_eye`).
-IRIS_RING = (0.14, 0.24)
+#: widths. The pack ships the supplied `EYE_Diff.png` (`build_las.EYE_ZOOM` puts
+#: its iris out to 0.20 of the texture), and this ring sits inside that disc and
+#: outside its pupil, so "blue stays blue" is measured where the iris is.
+IRIS_RING = (0.14, 0.19)
 
 #: Distances and screen heights the level-on-screen table is given for.
 DISTANCES_M = (1, 2, 4, 8, 16)
@@ -236,7 +246,7 @@ def reference_levels() -> dict:
     """role -> the mip levels the build means, level 0 first, uncompressed."""
     arc = VpkArchive.from_zip(build_las.SOURCE_ZIP, build_las.VPK_INNER)
     face, _changed = build_las.face_levels(build_las.converted_face_diffuse(arc))
-    return {"face_df": face, "eyes": build_las.mip_levels(build_las.draw_eye())}
+    return {"face_df": face, "eyes": build_las.mip_levels(build_las.supplied_eye_values())}
 
 
 #: points per texel of level 0, along each axis, in the finer drawing of the eye
@@ -244,14 +254,14 @@ EYE_FINER = 4
 
 
 def eye_drawn_finer() -> list:
-    """The eye's levels from a drawing with `EYE_FINER` squared points per texel of level 0.
+    """The eye's levels from a sampling with `EYE_FINER` squared points per texel of level 0.
 
-    The build draws the eye with one point per texel of level 0 and averages
-    that drawing for the levels below. This is the same formula integrated more
+    The build samples the supplied picture once per texel of level 0 and averages
+    that sampling for the levels below. This is the same picture sampled more
     finely, so it is closer to what the eye is at each size than either the
-    build's levels or a drawing made again, one point per texel, at each size.
+    build's levels or a sampling made again, one point per texel, at each size.
     """
-    fine = build_las.mip_levels(build_las.draw_eye(build_las.EYE_SIZE * EYE_FINER, check=False), check=False)
+    fine = build_las.mip_levels(build_las.supplied_eye_values(build_las.EYE_SIZE * EYE_FINER), check=False)
     return fine[EYE_FINER.bit_length() - 1:]
 
 
@@ -583,7 +593,8 @@ def report(before: Path | None) -> int:
     print(_row(["---"] * 11))
     for level, (fine, built) in enumerate(zip(eye_drawn_finer(), references["eyes"])):
         side = built.shape[0]
-        ours, each = measure(fine, built, True), measure(fine, build_las.draw_eye(side, check=False), True)
+        ours = measure(fine, built, True)
+        each = measure(fine, build_las.supplied_eye_values(side), True)
         print(_row([level, f"{side}x{side}", f"{ours['colour_mean']:.2f}", f"{ours['colour_p99']:.2f}",
                     f"{ours['colour_max']:.2f}", ours["gloss_max"], f"{ours['iris']:.2f}" if "iris" in ours else "-",
                     f"{each['colour_mean']:.2f}", f"{each['colour_p99']:.2f}", f"{each['colour_max']:.2f}",

@@ -131,9 +131,34 @@ def model_inventory(model) -> dict:
 
 #: Side of the eye texture, in texels.
 EYE_SIZE = 512
-#: The iris of the eye texture, as distances from the centre in texture widths:
-#: full iris up to the first, fading into the sclera up to the second.
-EYE_IRIS_INNER, EYE_IRIS_OUTER = 0.25, 0.28
+#: The supplied eye diffuse: `references/textures/EYE_Diff.png`, the picture the
+#: head packs' eye quadrant is made from too.
+EYE_DIFFUSE = HERE.parents[1] / "references" / "textures" / "EYE_Diff.png"
+#: Magnification about the supplied picture's centre. Both eyeballs carry the
+#: source's own planar map (`u = -0.2834 x + 1.399`, `v = 0.283 z - 48.91` over
+#: the 3.17 cm eyeball, so u and v are linear in x and z) and that map is the
+#: yardstick: its own iris map draws the blue disc out to 0.205 of the picture,
+#: measured on 2026-11-27 from `materials/models/miranda/miranda_eyes.vtf` at
+#: the same threshold the supplied picture is measured with. The supplied
+#: picture's iris ends at 0.075, so the factor is 0.205 / 0.075 = 2.7, which
+#: puts the supplied iris at 0.20 of the texture - where the game's own map has
+#: it, so the eyeball reads as the eye that was replaced.
+EYE_ZOOM = 2.7
+#: The supplied picture's own radii, measured on 2026-11-27 from its radial
+#: profile: its blue disc ends at 0.075 of a picture width and its pupil at
+#: 0.020. `supplied_eye_values` puts the gloss where its eye is.
+EYE_PUPIL, EYE_IRIS_EDGE = 0.020, 0.075
+#: The same two radii on the texture that ships, as distances from its centre in
+#: texture widths: the picture's disc after `EYE_ZOOM`.
+EYE_PUPIL_RADIUS = EYE_PUPIL * EYE_ZOOM
+EYE_IRIS_RADIUS = EYE_IRIS_EDGE * EYE_ZOOM
+#: How far past the iris disc a texel still counts as iris in `eye_weights`, in
+#: texture widths, so a block on the rim keeps the blue instead of the sclera.
+EYE_IRIS_FADE = 0.02
+#: Gloss per texel of the supplied eye: 4 on the pupil, 8 on the sclera and 10
+#: on the iris - the three bands the drawn eye had before the pack wore this
+#: picture, so `mip_audit`'s gloss limits still say what they said.
+EYE_GLOSS = (4, 8, 10)
 #: How much more an iris or pupil texel counts than a sclera texel when a block
 #: of the eye texture is fitted. Measured on 2026-11-11: without it the iris of
 #: the 8x8 level, which is on screen from 4 to 8 m at 1080p, is (44, 59, 87)
@@ -309,81 +334,46 @@ def repainted_face_texture(dds: bytes) -> bytes:
     return bytes(out)
 
 
-def eye_values(size: int = EYE_SIZE) -> np.ndarray:
-    """The eye before it is rounded to bytes: (size, size, 4) float64 on the 0..255 scale.
+def supplied_eye_values(side: int = EYE_SIZE) -> np.ndarray:
+    """The supplied eye diffuse, resampled to the eye texture: (side, side, 4) uint8.
 
-    Source draws its eyes with a shader of their own (iris, cornea and the
-    lid's shadow are projected at run time) and has no texture that could be
-    converted, so the eye is drawn here: sclera with the lid's shadow, a blue
-    iris with fibres, a dark rim and the pupil. Alpha is gloss.
+    `references/textures/EYE_Diff.png` is the eye both head packs wear (D41/D43),
+    and the user asked for the eyeball texture of the outfit pack to be the same
+    picture. It is a 256x256 draw of an eyeball map: the iris is a small disc in
+    the middle of a wide sclera field. `EYE_ZOOM` magnifies it about its centre so
+    the iris lands where the source's own iris map had it - crop the square of the
+    picture that fills the texture, then resize it, exactly as
+    `load_hila_eye_texture` does for the head packs, so the same picture reaches
+    both packs through the same resampler.
 
-    Radii, masks and gloss are made of + - * / and sqrt, which every machine
-    rounds the same way. The fibres, the collarette and the falloffs go through
-    arctan2, sin, cos, exp and powers, whose last digit belongs to the math
-    library that computed it: `draw_eye` rounds with a margin for that.
+    The alpha is gloss, chosen by radius in whole numbers: 4 inside the pupil, 10
+    on the iris, 8 on the sclera. `side` is a parameter for the same reason the
+    audit takes one: `mip_audit` samples this picture finer than the build does,
+    as its yardstick.
     """
-    yy, xx = np.mgrid[0:size, 0:size].astype(np.float64)
-    u = (xx + 0.5) / size - 0.5
-    v = (yy + 0.5) / size - 0.5
-    r = np.sqrt(u * u + v * v)
-    theta = np.arctan2(v, u)
-    sclera_t = np.clip((r - 0.25) / 0.25, 0.0, 1.0)
-    lid_ao = np.clip(
-        1.0
-        - 0.32 * np.clip((-v - 0.02) / 0.22, 0.0, 1.0)
-        - 0.22 * np.clip((v - 0.06) / 0.22, 0.0, 1.0)
-        - 0.32 * (sclera_t**1.2),
-        0.46,
-        1.0,
-    )
-    rgb = np.stack([166.0 * lid_ao, 152.0 * lid_ao, 146.0 * lid_ao], axis=-1)
-    iris_outer, iris_inner, pupil_r = EYE_IRIS_OUTER, EYE_IRIS_INNER, 0.115
-    iris_mask = np.clip((iris_outer - r) / (iris_outer - iris_inner), 0.0, 1.0)
-    rn = np.clip((r - pupil_r) / max(iris_inner - pupil_r, 1e-4), 0.0, 1.0)
-    f1 = np.sin(theta * 36.0 + 0.4 * np.sin(theta * 7.0))
-    f2 = np.cos(theta * 64.0 - 0.6 * np.cos(theta * 11.0))
-    f3 = np.sin(theta * 112.0 + 3.5 * rn)
-    fiber_detail = (0.45 * f1 + 0.35 * f2 + 0.20 * f3) * np.sin(rn * np.pi)
-    bump = (rn - 0.34) / 0.14
-    collarette = np.exp(-(bump * bump))
-    radial = 1.0 - 0.38 * (rn**1.35) + 0.12 * collarette + 0.14 * fiber_detail
-    upper_iris_ao = np.clip(1.0 - 0.18 * np.clip((-v - 0.05) / 0.20, 0.0, 1.0), 0.80, 1.0)
-    radial = radial * upper_iris_ao
-    iris_rgb = np.stack(
-        [
-            np.clip(24.0 * radial + 10.0 * collarette + 10.0 * fiber_detail, 8.0, 78.0),
-            np.clip(68.0 * radial + 18.0 * collarette + 18.0 * fiber_detail, 24.0, 142.0),
-            np.clip(146.0 * radial + 26.0 * collarette + 24.0 * fiber_detail, 52.0, 204.0),
-        ],
-        axis=-1,
-    )
-    limbus = np.clip((r - (iris_inner - 0.035)) / 0.045, 0.0, 1.0) * np.clip(
-        (iris_outer - r) / 0.025, 0.0, 1.0
-    )
-    iris_rgb = iris_rgb * (1.0 - 0.78 * limbus[..., None])
-    pupil_mask = np.clip((pupil_r + 0.012 - r) / 0.018, 0.0, 1.0)
-    iris_rgb = iris_rgb * (1.0 - pupil_mask[..., None]) + np.array([2.0, 3.0, 5.0]) * pupil_mask[..., None]
-    rgb = rgb * (1.0 - iris_mask[..., None]) + iris_rgb * iris_mask[..., None]
-    cornea_mask = np.clip(1.0 - (r - iris_outer) / 0.03, 0.0, 1.0)
-    alpha = np.where(r < 0.118, 4.0, 8.0 + 4.0 * cornea_mask)
-    return np.clip(np.dstack([rgb, alpha]), 0.0, 255.0)
+    from PIL import Image  # noqa: PLC0415  (only the textures stage reads a picture)
+
+    picture = np.asarray(Image.open(EYE_DIFFUSE).convert("RGB"))
+    across = int(round(picture.shape[0] / EYE_ZOOM))
+    lo = picture.shape[0] // 2 - across // 2
+    crop = picture[lo : lo + across, lo : lo + across]
+    rgb = np.asarray(Image.fromarray(crop).resize((side, side), Image.Resampling.LANCZOS))
+    yy, xx = np.mgrid[0:side, 0:side].astype(np.float64)
+    radius = np.sqrt(((xx + 0.5) / side - 0.5) ** 2 + ((yy + 0.5) / side - 0.5) ** 2)
+    pupil, sclera, iris = EYE_GLOSS
+    gloss = np.where(radius < EYE_PUPIL_RADIUS, pupil,
+                     np.where(radius < EYE_IRIS_RADIUS, iris, sclera)).astype(np.uint8)
+    return np.dstack([rgb, gloss])
 
 
-def draw_eye(size: int = EYE_SIZE, check: bool = True) -> np.ndarray:
-    """The eye texture, level 0: (size, size, 4) uint8, one point per texel.
+def supplied_eye_texture() -> bytes:
+    """The supplied eye as a DXT5 DDS: levels from the picture, fitted where it counts.
 
-    `eye_values`, cut off to bytes (`determinism.floor8`). With `check`, the
-    build stops if a value lies within `determinism.MARGIN` of a rounding
-    boundary: under another math library such a value could fall on the other
-    side, and the texture would depend on the machine that drew it.
-
-    The build draws it once, at `EYE_SIZE`, and averages that drawing for the
-    levels below (`mip_levels`). Drawing it again at each smaller size, one
-    point per texel, is not the same picture: the fibres fall between the
-    points. `mip_audit.py` draws it at other sizes to measure both, without the
-    check: those drawings are yardsticks and ship nowhere.
+    The fit is `eye_weights`: a block of a small level cannot hold the pupil, the
+    iris beside it and the sclera behind both, so it keeps the iris, which is what
+    an eye is looked at for.
     """
-    return floor8(eye_values(size), "the eye texture", check)
+    return bc3_dds_from_levels(mip_levels(supplied_eye_values()), eye_weights())
 
 
 def eye_weights() -> list[np.ndarray]:
@@ -393,18 +383,16 @@ def eye_weights() -> list[np.ndarray]:
     between for a texel that holds some of both. The sclera fills most of the
     texture and the lids cover most of the sclera: what is seen of an eye is its
     iris. A block of a small level cannot hold both, and has to keep the iris.
+
+    The disc is the shipped picture's (`EYE_IRIS_RADIUS`), not the drawn eye's:
+    the weights exist to keep the iris a block does hold, and that is this one.
     """
     centre = (np.arange(EYE_SIZE) + 0.5) / EYE_SIZE - 0.5
     across, down = centre[None, :], centre[:, None]
     radius = np.sqrt(across * across + down * down)
-    iris = np.clip((EYE_IRIS_OUTER - radius) / (EYE_IRIS_OUTER - EYE_IRIS_INNER), 0.0, 1.0)
+    iris = np.clip((EYE_IRIS_RADIUS + EYE_IRIS_FADE - radius) / EYE_IRIS_FADE, 0.0, 1.0)
     return [1 + np.rint((EYE_IRIS_WEIGHT - 1) * box_reduce(iris, 1 << level)[..., 0]).astype(np.int64)
             for level in range(EYE_SIZE.bit_length())]
-
-
-def eye_texture() -> bytes:
-    """The eye texture with its mip levels: drawn, averaged as light, fitted for the iris."""
-    return bc3_dds_from_levels(mip_levels(draw_eye()), eye_weights())
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -497,8 +485,10 @@ def main(argv: list[str] | None = None) -> int:
             elif stem.endswith("_normal"):
                 dds = swizzle_source_normal_dxt5_to_pd2(raw_dds[stem], invert_y=True)
             elif stem == "miranda_eyes":
-                # drawn here, not converted, so it has no source blocks to keep
-                dds = eye_texture()
+                # sampled from the supplied picture at run time, not converted from
+                # the source: its iris map is drawn with a shader, not stored, so
+                # there are no source blocks to keep
+                dds = supplied_eye_texture()
             else:
                 dds = raw_dds[stem]
             textures[f"{pack_name}.texture"] = dds
