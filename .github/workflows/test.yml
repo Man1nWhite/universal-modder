@@ -123,8 +123,16 @@ jobs:
         shell: cmd
         run: bin\um.cmd --version
       # TEMP probe (will be reverted): per-file steps with continue-on-error to identify which suite fails on Windows
-      - name: platform-pure suites
-        run: python -m pytest tests/test_win_quoting.py tests/test_win_launch.py tests/test_encoding.py tests/test_backup_name_safety.py -q -rs
+      # TEMP probe v2 (will be reverted): separate steps, no continue-on-error —
+      # the first failing file fails the job honestly and identifies itself
+      - name: quoting
+        run: python -m pytest tests/test_win_quoting.py -q
+      - name: win_launch
+        run: python -m pytest tests/test_win_launch.py -q
+      - name: encoding
+        run: python -m pytest tests/test_encoding.py -q
+      - name: backup_name_safety
+        run: python -m pytest tests/test_backup_name_safety.py -q
 
   changes:
     # A pull request tells the `packs` job whether it can change the answer. The workflow's own
