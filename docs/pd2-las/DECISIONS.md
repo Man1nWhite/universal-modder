@@ -2258,3 +2258,22 @@ from documents, tests and tools, so they never change; the headings are appendix
   `AGENTS.md`, `CONTRIBUTING.md`, `tools/README.md`.
 - **Status:** holds; publishing outside the repo is still asked of the owner first.
 
+### D80 — The over Joy zips are gone; the assembly that wrote them is the over Hila builder
+
+- **Decided:** 2026-11-27, by the agent, under the owner's "fix everything" instruction
+- **Decision:** `build_l4d2_joy_mod` / `build_me2_romance_joy_mod` assembled a head, wrote a Joy
+  zip into a caller-supplied path list and then emitted `Miranda_{L4D2,Romance}_over_Hila.zip`;
+  since the dist clean-up `main()` passed `[]`, so every `heads` build patched Joy's model and
+  encoded Joy's textures for a zip nobody wrote. The zip packaging and the five functions only it
+  used (`patch_joy_model`, the Bonnie/Clover/Sydney material-config patchers, `suit_collar_radius`)
+  are deleted, and the two builders are renamed `build_l4d2_hila_head` /
+  `build_me2_romance_hila_head`, which is what they produce.
+- **Why:** the assembly is not dead — it is the only source of the two over Hila packs — so the
+  first attempt (delete the whole cluster) left `heads` unable to produce them, which the `packs`
+  job caught within a build and `fresh.py check --builders heads` reproduced locally. What is dead
+  is the Joy-shaped output path, and only that is gone.
+- **Held to:** `fresh.py check --builders heads` builds the four packs of that target from scratch
+  and compares them with their sidecars: 4 of 4 identical, before and after the deletion.
+- **Source:** `tools/build_joy_head_mods.py`, `tools/pd2-las/fresh.py`, the `packs` job of
+  `.github/workflows/test.yml`, `docs/ci.md`.
+- **Status:** holds.
