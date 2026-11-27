@@ -79,6 +79,29 @@ def chunks(buf: memoryview) -> list[Chunk]:
     return out
 
 
+FRAME_NAME_PLUGIN = 0x0253F2FE
+
+
+def frame_names(frame_c: Chunk, count: int) -> list[str]:
+    """The name in each frame's extension, in frame order; [] when the count disagrees.
+
+    An extension that does not parse is an error rather than an empty name: the source
+    writes the skeleton's frame names there, and a silently unnamed rig turns every
+    bone lookup into a miss two hundred lines later.
+    """
+    names: list[str] = []
+    for index, ext in enumerate(c for c in frame_c.sub() if c.type == ID_EXTENSION):
+        name = ""
+        try:
+            for sc in chunks(ext.body):
+                if sc.type == FRAME_NAME_PLUGIN:
+                    name = bytes(sc.body).decode("latin-1")
+        except ValueError as exc:
+            raise ValueError(f"frame {index}: unreadable frame-name extension: {exc}") from None
+        names.append(name)
+    return names if len(names) == count else []
+
+
 def one(buf: memoryview, ctype: int) -> Chunk:
     found = [c for c in chunks(buf) if c.type == ctype]
     if len(found) != 1:
@@ -155,17 +178,8 @@ def read_dff(data: bytes) -> DffModel:
     # extensions; try both.
     # Frame names ride in each frame's extension as a GTA frame-name plugin
     # (this exporter: chunk 0x0253f2fe, body = raw name like " Pelvis").
-    names = []
-    for ext in [c for c in frame_c.sub() if c.type == ID_EXTENSION]:
-        name = ""
-        try:
-            for sc in chunks(ext.body):
-                if sc.type == 0x0253F2FE:
-                    name = bytes(sc.body).decode("latin-1")
-        except ValueError:
-            pass
-        names.append(name)
-    if len(names) == num_frames:
+    names = frame_names(frame_c, num_frames)
+    if names:
         frames = [Frame(name=n, parent=f.parent) for n, f in zip(names, frames)]
 
     glist = one(clump.body, ID_GEOMETRYLIST)

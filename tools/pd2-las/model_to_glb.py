@@ -245,10 +245,15 @@ def read_material_configs(src: Source) -> dict[str, MaterialInfo]:
                 info.normal = bump.attrib["file"]
             for var in mat.findall("variable"):
                 if var.attrib.get("name") == "alpha_ref" and var.attrib.get("value"):
+                    raw = var.attrib["value"]
                     try:
-                        info.alpha_ref = float(var.attrib["value"])
+                        info.alpha_ref = float(raw)
                     except ValueError:
-                        pass
+                        # A material that asks for alpha cutout but cannot be read as a
+                        # number would silently ship opaque: name the file and the value.
+                        raise ValueError(
+                            f"{key}: material {name!r}: alpha_ref is not a number: {raw!r}"
+                        ) from None
             out.setdefault(name, info)
     return out
 

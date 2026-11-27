@@ -1,12 +1,15 @@
 """Paths of shipped packs; ZIP filenames are independent of their internal mod folders.
 
-`dist/` groups a pack by what it replaces. The Miranda family is one folder: the LAS outfits
-over Miranda L4D2 and Miranda Romance, the whole-character packs built on them, the DOAXVV
-`OfficeSuite` body (a Miranda head on the Secret Report costume) and the voice swap. The packs
-that are gone - both Christie outfits, the Busty variant and the four unused head variants - have
-no group any more, and asking for one is an error rather than a quiet new folder.
+`tools/pd2-las/packs.py` is the table this reads: pack name → `dist/` folder. `dist/` groups a
+pack by what it replaces - the Miranda family in `Miranda/` (the LAS outfits' whole-character
+packs, the DOAXVV `OfficeSuite` body and the voice swap), their source outfits in
+`Miranda_L4D2/` and `Miranda_Romance/`, and `Geralt/` and `Arivus/` for those two characters.
+A retired pack is not in the table, so asking for one raises instead of quietly naming a
+folder that does not exist; `_RENAMED` still maps the builder names older than the packs.
 """
 from pathlib import Path
+
+from packs import GROUPS
 
 #: builder names older than the pack names, still honoured by the builders that write them
 _RENAMED = {
@@ -32,6 +35,8 @@ def dist_path(root: Path, name: str) -> Path:
     suffix = ".sha256" if name.endswith(".sha256") else ""
     base = name.removesuffix(suffix) if suffix else name
     base = _RENAMED.get(base, base)
+    if base in GROUPS:
+        return root / "dist" / GROUPS[base] / (base + suffix)
     for prefix, group in _GROUPS:
         if base.startswith(prefix):
             return root / "dist" / group / (base + suffix)

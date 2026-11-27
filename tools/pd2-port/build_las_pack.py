@@ -998,7 +998,8 @@ def validate(files: dict[str, bytes], log=print) -> None:
         cfg = files.get(f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/{base}.material_config", b"").decode()
         cfg_mats = set(_re.findall(r'<material name="([^"]+)"', cfg))
         from dmodel import DieselModel
-        import tempfile, os
+        import tempfile
+        import os
         model = files[f"{ROOT_DIR}/{ASSET_DIR}/{UNIT_DIR}/{base}.model"]
         tmp = tempfile.mktemp(suffix=".model")
         Path(tmp).write_bytes(model)

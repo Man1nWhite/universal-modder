@@ -9,7 +9,12 @@
 # makefile can turn that off before make 4.4; with -s it does not print them,
 # so `make -sC tools/pd2-las status` is one JSON object and nothing else.
 ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
-PY   := .venv/bin/python
+# The venv interpreter: `.venv/bin/python` on POSIX, `.venv/Scripts/python.exe` on Windows
+# (git-bash / MSYS make). `env` builds the POSIX venv with recover_env.sh; a Windows venv
+# made by hand (see the README) is found the same way.
+PY   := $(firstword $(wildcard .venv/bin/python .venv/Scripts/python.exe) .venv/bin/python)
+# `status` and `help` run before a venv exists, so they take whatever Python is there.
+SYS_PY := $(or $(wildcard .venv/bin/python),$(wildcard .venv/Scripts/python.exe),python3)
 HERE := tools/pd2-las
 LOGS := build/pd2-las
 
@@ -22,14 +27,14 @@ LOGS := build/pd2-las
 define BUILD
 @cd "$(ROOT)" && mkdir -p $(LOGS) && { $(PY) $(1) > $(LOGS)/$@.log 2>&1 \
 	|| { tail -n 25 $(LOGS)/$@.log; echo "FAILED: $(1) (the whole log: $(LOGS)/$@.log)"; exit 1; }; } \
-	&& python3 $(HERE)/status.py $@
+	&& $(SYS_PY) $(HERE)/status.py $@
 endef
 
 help:       ## list the targets
 	@sed -n 's/^\([a-z]*\):.*## /\1\t/p' $(MAKEFILE_LIST)
 
 status:     ## one JSON object: environment, all tracked packs, the next command (needs no venv)
-	@cd "$(ROOT)" && python3 $(HERE)/status.py
+	@cd "$(ROOT)" && $(SYS_PY) $(HERE)/status.py
 
 env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
 	@cd "$(ROOT)" && bash $(HERE)/recover_env.sh

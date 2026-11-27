@@ -11,7 +11,8 @@ sources (ModelReader.cs, Sections/*.cs, Hash64.cs).
 The idstring hash and the numbers of the section tags are not written here a
 second time: they are those of tools/pd2-las/diesel_model.py.
 """
-import struct, sys
+import struct
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "pd2-las"))

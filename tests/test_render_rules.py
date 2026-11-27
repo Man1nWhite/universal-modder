@@ -192,8 +192,26 @@ def _unmapped_model_renders(paths: list[Path], root: Path, mapped: set[str]) -> 
     return renders - mapped
 
 
+#: renders of the packs retired on 2026-11-26 (Christie, Busty, the four overwritten
+#: heisters) plus the 6x2 overview they were on: kept as provenance, not regenerated
+ARCHIVED_RENDERS = (
+    "christie/",
+    "miranda/model/busty/",
+    "miranda/model/over-joy/",
+    "miranda/model/over-clover/",
+    "miranda/model/over-bonnie/",
+    "miranda/model/over-sydney/",
+    "overview/model/all_miranda_mods_sheet.png",
+)
+
+
 def test_every_tracked_model_render_sheet_belongs_to_render_mod_previews():
-    """Check exact unified paths relative to docs/renders, not absolute paths."""
+    """Check exact unified paths relative to docs/renders, not absolute paths.
+
+    A sheet the tool no longer renders may stay in `docs/renders/` only if it is one of the
+    archived ones: a render of a pack that still ships and is not in UNIFIED_PATHS means
+    somebody added a pack without teaching the tool to render it.
+    """
     script = REPO / "tools" / "render_mod_previews.py"
     assignments = ast.parse(script.read_text(encoding="utf-8")).body
     mapping = next(ast.literal_eval(node.value) for node in assignments if isinstance(node, ast.Assign)
@@ -201,7 +219,9 @@ def test_every_tracked_model_render_sheet_belongs_to_render_mod_previews():
     assert not (REPO / "tools" / "render_clover_honoko.py").exists()
     paths = _tracked_under("docs/renders")
     assert any(path.relative_to(RENDERS).parts[1:2] == ("model",) for path in paths)
-    assert not (unmapped := _unmapped_model_renders(paths, RENDERS, set(mapping.values()))), sorted(unmapped)
+    unmapped = {path for path in _unmapped_model_renders(paths, RENDERS, set(mapping.values()))
+                if not path.startswith(ARCHIVED_RENDERS)}
+    assert not unmapped, sorted(unmapped)
 
 
 def test_orphan_model_render_is_detected_from_an_absolute_path(tmp_path):
