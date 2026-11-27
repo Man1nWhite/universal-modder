@@ -12,13 +12,11 @@ one looks at the shape itself:
 Missing enabled drawables and units with no analyzable triangles fail the check.
 Drawables without the needed streams (for example legacy shadow meshes) are
 reported as uncovered. Tangent agreement is a diagnostic, not a pass threshold.
-Source normal-map channel checks are separate (check_nm_convention.py).
-
     python tools/pd2-port/check_mesh_geometry.py [pack.zip]
 
 The analysis works on any Diesel model pack zip: it discovers the third-person
 and optional first-person ``.model`` entries inside the archive automatically
-(defaulting to ``dist/Miranda_Romance/Miranda_Romance_LAS.zip``).
+(defaulting to ``dist/Miranda_L4D2/Miranda_L4D2_LAS.zip``).
 """
 from __future__ import annotations
 
@@ -40,7 +38,7 @@ sys.path.insert(0, str(HERE))
 
 from dmodel import DieselModel, hash_str  # noqa: E402
 
-PACK = dist_path(ROOT, "Miranda_Romance_LAS.zip")
+PACK = dist_path(ROOT, "Miranda_L4D2_LAS.zip")
 
 
 # ------------------------------------------------------------------ helpers

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Build PAYDAY 2 `mod_overrides` head-replacement mods (4 packs).
+"""Build PAYDAY 2 `mod_overrides` head-replacement mods (3 packs).
 
-The head geometry, atlases, and portrait icons these packs share are assembled
-once per Miranda base (`Miranda_L4D2_LAS.zip`, `Miranda_Romance_LAS.zip`); the
-over Joy/Clover/Bonnie/Sydney variants that the same code used to emit are
-retired, so each base now writes only its over Hila pack.
+The head geometry, atlases and portrait icons these packs share are assembled
+from the tracked `Miranda_L4D2_LAS.zip` model; the over Joy/Clover/Bonnie/Sydney
+variants the same code used to emit are retired, and so is the ME2 Romance head it
+wrote for Hila, once the Romance line went (D83).
 
 1. Hila (`npc_criminals_ecp_female`, from `references/templates/npc_criminals_ecp_female.7z`; no Safe House unit):
    - `dist/Miranda/Miranda_L4D2_over_Hila.zip` (+ `.sha256`)
-   - `dist/Miranda/Miranda_Romance_over_Hila.zip` (+ `.sha256`)
-   These two are the only Miranda packs whose eye quadrant is the user's `references/textures/EYE_Diff.png`.
+   This is the one Miranda pack whose eye quadrant is the user's `references/textures/EYE_Diff.png`.
 2. Rust (`npc_criminals_punk` + Safe House `npc_criminal_punk_chill`, from `references/characters/Geralt.7z`):
    - `dist/Geralt/Geralt_over_Rust.zip` (+ `.sha256`)
 3. Old Hoxton (`npc_criminals_suit_1`, from `references/characters/1581859199_135363.rar` + the game's suit unit):
@@ -1790,228 +1789,6 @@ def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> No
     )
 
 
-def build_me2_romance_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> None:
-    """Build the ME2 Romance head and emit `Miranda_Romance_over_Hila.zip`.
-
-    The over Joy/Clover/Bonnie/Sydney variants this assembly used to write were retired in
-    the dist clean-up, together with their zip; what remains is the assembly and the Hila
-    pack it feeds (D80).
-    """
-    with zipfile.ZipFile(find_miranda_las_zip()) as zf:
-        mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
-    pm_mir = dm.ModelFile.read(mir_bytes)
-    md_head = dm.decode_model_data(pm_mir.by_id(94).payload)
-    pg_head = dm.decode_passthroughgp(pm_mir.by_id(md_head["passthroughgp"]).payload)
-    geo_mir_head = dm.decode_geometry(pm_mir.by_id(pg_head["geometry"]).payload)
-
-    dae_path = me2_dir / "Miranda Lawson (Romance) - Adjusted Version.dae"
-    scene = me2_dae.load_dae(dae_path.read_bytes())
-
-    m_me2_face = [m for m in scene.meshes if m.name == "Face"][0]
-    a3 = md_head["atoms"][3]
-    pos_l4d_face = np.asarray(geo_mir_head["verts"], dtype=np.float64)[a3["base_vertex"] : a3["base_vertex"] + a3["slice_len"]]
-    uv_l4d_face = np.asarray(geo_mir_head["uv0"], dtype=np.float64)[a3["base_vertex"] : a3["base_vertex"] + a3["slice_len"]]
-    pos_me2_face = np.asarray(m_me2_face.positions, dtype=np.float64)
-    uv_me2_face = np.asarray(m_me2_face.uvs, dtype=np.float64)
-
-    dists = np.linalg.norm(uv_l4d_face[:, None, :] - uv_me2_face[None, :, :], axis=2)
-    nearest = dists.argmin(axis=1)
-    P_src, P_tgt = pos_me2_face[nearest], pos_l4d_face
-    mu_s, mu_t = P_src.mean(axis=0), P_tgt.mean(axis=0)
-    U, S, Vt = np.linalg.svd((P_tgt - mu_t).T @ (P_src - mu_s))
-    R = U @ Vt
-    if np.linalg.det(R) < 0:
-        U[:, -1] *= -1
-        R = U @ Vt
-    scale = float(np.sum(S) / np.sum((P_src - mu_s) ** 2))
-    t = mu_t - scale * (R @ mu_s)
-
-    def xform_p(pts: np.ndarray) -> np.ndarray:
-        return ((scale * (R @ np.asarray(pts, dtype=np.float64).T)).T + t).astype(np.float32)
-
-    def xform_n(nrm: np.ndarray) -> np.ndarray:
-        return (R @ np.asarray(nrm, dtype=np.float64).T).T.astype(np.float32)
-
-    face_df = shade_nostril_cavities(
-        np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Face_Diff.png").convert("RGBA")).copy()
-    )
-    scalp_df = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Scalp_Diff.png").convert("RGBA")).copy()
-    nkd_df = np.asarray(Image.open(me2_dir / "HMF_MIR_NKDa_DIFF.png").convert("RGBA")).copy()
-    y0, y1 = int(0.60 * nkd_df.shape[0]), int(0.88 * nkd_df.shape[0])
-    x0, x1 = int(0.35 * nkd_df.shape[1]), int(0.60 * nkd_df.shape[1])
-    patch = nkd_df[y0:y1, x0:x1, :3]
-    skin_med = np.median(patch[patch.mean(axis=2) > 120], axis=0).astype(np.uint8)
-    dark_mask = patch.mean(axis=2) < 115
-    patch[dark_mask] = skin_med
-    nkd_df[y0:y1, x0:x1, :3] = patch
-
-    eyes_df = build_crisp_miranda_eye_texture(me2_dir, size=1024)
-
-    atlas_df = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    atlas_df[0:1024, 0:1024] = face_df
-    atlas_df[0:1024, 1024:2048] = scalp_df
-    atlas_df[1024:2048, 0:1024] = nkd_df
-    atlas_df[1024:2048, 1024:2048] = eyes_df
-    atlas_df[0:1024, 0:1024, 3] = 12
-    atlas_df[0:1024, 0:1024] = shade_nostril_cavities(atlas_df[0:1024, 0:1024])
-    atlas_df[0:1024, 1024:2048, 3] = 16
-    atlas_df[1024:2048, 0:1024, 3] = 12
-
-    # UE3/ME2 extracted normal PNGs store vertical Y_down in Red and horizontal X_right in Green
-    face_raw_nm = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Face_Norm.png").convert("RGBA"))[..., [1, 0, 2, 3]]
-    scalp_raw_nm = np.asarray(Image.open(me2_dir / "HMF_HED_PROMiranda_Scalp_Norm.png").convert("RGBA"))[..., [1, 0, 2, 3]]
-    face_nm = flatten_nostril_normals(dds.pd2_normal_channels(face_raw_nm))
-    scalp_nm = dds.pd2_normal_channels(scalp_raw_nm)
-    nkd_raw_nm = np.asarray(
-        Image.open(me2_dir / "HMF_MIR_NKDa_Norm.png").convert("RGBA").resize((1024, 1024), Image.Resampling.LANCZOS)
-    )[..., [1, 0, 2, 3]].copy()
-    nkd_raw_nm[y0:y1, x0:x1, 0] = 128
-    nkd_raw_nm[y0:y1, x0:x1, 1] = 128
-    nkd_raw_nm[y0:y1, x0:x1, 2] = 255
-    nkd_nm = dds.pd2_normal_channels(nkd_raw_nm)
-
-    atlas_nm = np.zeros((2048, 2048, 4), dtype=np.uint8)
-    atlas_nm[:, :] = [255, 128, 0, 128]
-    atlas_nm[0:1024, 0:1024] = face_nm
-    atlas_nm[0:1024, 1024:2048] = scalp_nm
-    atlas_nm[1024:2048, 0:1024] = nkd_nm
-
-    def build_romance_meshes(for_suit: bool) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
-        a0_verts, a0_norms, a0_uvs, a0_tris = [], [], [], []
-        a1_verts, a1_norms, a1_uvs, a1_tris = [], [], [], []
-
-        def append_part(target_v, target_n, target_uv, target_t, p, n, uv, t_idx):
-            offset = sum(len(x) for x in target_v)
-            target_v.append(p)
-            target_n.append(n)
-            target_uv.append(uv)
-            target_t.append(t_idx + offset)
-
-        parts: dict[str, tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
-        for m in scene.meshes:
-            if m.name in ("Body 1", "Body 2"):
-                continue
-            p = xform_p(m.positions)
-            n = xform_n(m.normals)
-            uv_dae = np.asarray(m.uvs, dtype=np.float32)
-            uv_img = np.column_stack([uv_dae[:, 0], 1.0 - uv_dae[:, 1]])
-            tris = np.asarray(m.triangles, dtype=np.int32)
-            if m.name == "Hair":
-                # Tuck the 33 sub-millimeter (1.5 mm) flyaway wire strips (809 tris)
-                # inside the solid cranial volume while shaping only the main 2,753-tri
-                # hair cap + neck skin component.
-                from collections import defaultdict
-
-                pos_key = [tuple(np.round(pt, 3)) for pt in p]
-                edge_to_tris: dict[tuple, list[int]] = defaultdict(list)
-                for ti, (a, b, c) in enumerate(tris):
-                    ka, kb, kc = pos_key[int(a)], pos_key[int(b)], pos_key[int(c)]
-                    for u_e, v_e in ((ka, kb), (kb, kc), (kc, ka)):
-                        if u_e != v_e:
-                            edge_to_tris[tuple(sorted((u_e, v_e)))].append(ti)
-                adj: dict[int, set[int]] = defaultdict(set)
-                for t_list in edge_to_tris.values():
-                    for t1 in t_list:
-                        for t2 in t_list:
-                            if t1 != t2:
-                                adj[t1].add(t2)
-                visited: set[int] = set()
-                best_comp: list[int] = []
-                for ti in range(len(tris)):
-                    if ti in visited:
-                        continue
-                    comp: list[int] = []
-                    stack = [ti]
-                    visited.add(ti)
-                    while stack:
-                        cur = stack.pop()
-                        comp.append(cur)
-                        for nxt in adj[cur]:
-                            if nxt not in visited:
-                                visited.add(nxt)
-                                stack.append(nxt)
-                    if len(comp) > len(best_comp):
-                        best_comp = comp
-                if for_suit:
-                    p = shape_neck_and_hair_for_suit_collar(p, uv_img, z_drop=5.6, y_push=3.0, x_flare=0.28, tris=tris)
-                else:
-                    p = extend_scalp_neck_skin_into_collar(p, uv_img, z_drop=4.2, y_push=2.2, tris=tris)
-                    p = tuck_hair_for_joy_hood(p, uv_img, tris=tris)
-                # No neck skirt here. On this rig the neck skin shares the "Hair"
-                # mesh with the hair cap and the flyaway wire strips, so the rim
-                # filter catches 741 hair-sheet edges instead of the neck's ~145,
-                # and the wire pass below then squashes the new ring into the head
-                # (it is not part of `best_comp`): +2,318 tris and a visible lump
-                # at z ~169 instead of a skirt at z 143. The L4D2 path has its own
-                # mesh for the neck sheet and takes the skirt there.
-                uv_dae = np.column_stack([uv_img[:, 0], 1.0 - uv_img[:, 1]])
-                if best_comp and len(best_comp) < len(tris):
-                    keep_v = set(np.unique(tris[sorted(best_comp)]).tolist())
-                    wire_mask = np.array([vi not in keep_v for vi in range(len(p))], dtype=bool)
-                    center = np.array([0.0, 6.0, 175.0], dtype=np.float32)
-                    p[wire_mask] = center + 0.20 * (p[wire_mask] - center)
-            parts[m.name] = (p, n, uv_dae, uv_img, tris)
-
-        fp, fn, f_uv_dae, f_uv_img, ft = parts["Face"]
-        hp, hn, h_uv_dae, h_uv_img, ht = parts["Hair"]
-        fn, hn = repair_skin_and_neck_normals(fp, fn, ft, hp, hn, h_uv_img, ht)
-        parts["Face"] = (fp, fn, f_uv_dae, f_uv_img, ft)
-        parts["Hair"] = (hp, hn, h_uv_dae, h_uv_img, ht)
-
-        for name in ("Eyes", "Eyelashes", "Hair", "Face", "Mouth Inside", "Teeth"):
-            if name not in parts:
-                continue
-            p, n, uv_dae, uv_img, tris = parts[name]
-            if name == "Face":
-                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 0, 0), tris)
-            elif name in ("Hair", "Teeth", "Mouth Inside"):
-                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n, map_uv_to_quadrant(uv_img, 1, 0), tris)
-            elif name == "Eyes":
-                uv_eye_img = project_me2_eye_uv_img(p)
-                n_eye = soften_eyeball_normals(n)
-                append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p, n_eye, map_uv_to_quadrant(uv_eye_img, 1, 1), tris)
-            elif name == "Eyelashes":
-                append_part(a1_verts, a1_norms, a1_uvs, a1_tris, p, n, uv_dae, tris)
-
-        return (
-            {
-                "verts": np.vstack(a0_verts),
-                "normals": np.vstack(a0_norms),
-                "uvs": np.vstack(a0_uvs),
-                "tris": np.vstack(a0_tris),
-            },
-            {
-                "verts": np.vstack(a1_verts),
-                "normals": np.vstack(a1_norms),
-                "uvs": np.vstack(a1_uvs),
-                "tris": np.vstack(a1_tris),
-            },
-        )
-
-    atom0_joy, atom1_joy = build_romance_meshes(for_suit=False)
-    atom0_suit, atom1_suit = build_romance_meshes(for_suit=True)
-    packed_suit_head = _prepare_combined_head_arrays(atom0_suit, atom1_suit, bone_offset=1)
-
-    lash_rgba, lashes_df_dds, lashes_op_dds = prepare_crisp_eyelash_textures(me2_dir)
-    eyes_df_dds = lashes_df_dds
-
-    head_nm_dds = encode_rgba_dds(atlas_nm)
-
-    hila_atlas_df = match_romance_hila_skin_to_honoka(atlas_df)
-    hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
-    hila_portrait = render_head_portrait(atom0_joy, atom1_joy, hila_atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
-    hila_icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, hila_portrait)
-    _emit_hila_packages(
-        variant_tag="Romance",
-        packed_suit_head=packed_suit_head,
-        head_df_dds=encode_rgba_dds(hila_atlas_df),
-        head_nm_dds=head_nm_dds,
-        sec_df_dds=eyes_df_dds,
-        sec_op_dds=lashes_op_dds,
-        icon_dds=hila_icon_dds,
-    )
-
-
 def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list[Path]) -> None:
     """Build Witcher 3 Geralt of Rivia head replacement over Rust (npc_criminal_wild_1)."""
     gm = sm.load_model(
@@ -2725,7 +2502,6 @@ def main() -> None:
     # The head assemblies: each emits its over Hila pack and nothing else (the over Joy
     # zips they used to write are retired, with the code that wrote them).
     build_l4d2_hila_head(ada_root, me2_dir, sec_nm_dds=sec_nm_dds)
-    build_me2_romance_hila_head(ada_root, me2_dir, sec_nm_dds=sec_nm_dds)
     build_geralt_rust_mod(
         ada_root,
         geralt_root,

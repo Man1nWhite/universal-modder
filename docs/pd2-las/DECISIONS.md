@@ -1311,7 +1311,47 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Source:** `docs/pd2-las/ADD-A-PACK.md` §"Retire a pack"; `tools/pd2-las/{packs,status,fresh}.py`;
   `tools/pd2-las/Makefile`; `tools/build_honoko2_dae.py`; `tools/pd2-las/las_head.py`;
   `tests/test_one_implementation.py`.
-- **Status:** holds; `dist/` is twelve zips and every one of them rebuilds.
+- **Status:** superseded by D83: the pack it kept, `OfficeSuite_Head`, is retired too.
+
+### D83 — The Romance line is retired, and the tracker chain that only it used
+
+- **Decided:** 2026-11-26, by the owner: *"You can delete Miranda_Romance, … Miranda_Romance_over_Hila.zip
+  and … OfficeSuite_Head.zip"*, choosing both Romance packs and confirming the head pack goes too.
+- **Decision:** `dist/Miranda_Romance/Miranda_Romance_LAS.zip`, `dist/Miranda/Miranda_Romance_over_Hila.zip`
+  and `dist/Miranda/OfficeSuite_Head.zip` are gone with everything that existed only to build, verify,
+  render or document them: the `lawson` and `honokodae_head` make targets and their `tasks.py` entries,
+  `tools/pd2-las/lawson-las.yml`, the Romance builder in `tools/build_joy_head_mods.py`, `las_head.py`,
+  `tests/test_las_pack.py`, five render paths, and the Romance-only half of `tools/pd2-port/`
+  (`build_las_pack.py`, `rig_target.py`, `las_model.py`, `preview_check.py`, `shade_check.py`,
+  `check_guide_compliance.py`, `check_nm_convention.py`, `check_test_suite_mutations.py`). Tracked zips
+  go from twelve to nine.
+- **Why:** the owner asked for the packs to go. `Miranda_L4D2_LAS` is the LAS outfit the project ships,
+  the ME2 Romance character has no LAS route left to serve, and `OfficeSuite_Head` existed to give the
+  OfficeSuite body a head on its own — a route D82 had already reduced to a donor of the pack that is now
+  gone as well.
+- **What the head donor proved on its way out:** the `g_head` `MODEL_DATA` payload in
+  `OfficeSuite_Head` and in `Miranda_Romance_over_Hila` was byte-identical (sha256[:16]
+  `8125a6c6cb6066f7`) and their four head textures hashed identically, so D82's donor swap changed
+  only two `BUILD_INFO.json` lines. Deleting both costs no content that is not also in
+  `Miranda_L4D2_over_Hila` or `Miranda_L4D2_LAS`.
+- **What survives:** `Miranda_L4D2_over_Hila` is the only over-Hila head and the only pack that carries
+  the supplied `EYE_Diff.png`; `Miranda_L4D2_LAS` is the only LAS outfit. `tools/pd2-port/` keeps the
+  archive reader (`dds.py`, `dmodel.py`, `me2_dae.py`), the link gate, the skip budget and the geometry
+  check — `check_all.py` now runs on whatever pack it is pointed at, with no default. `status.py`'s
+  `LAS_TARGETS` is `("build", "honokodae")`, one outfit.
+- **Kept, as history:** `docs/audits/`, earlier `DECISIONS` and `MODLOG` entries and the two READMEs
+  under `docs/renders/*/model/over-hila/` keep the names they were written with; live documents are
+  rewritten to the nine packs. The retired sheets are in git at `5272168` (LAS, head) and `c26b990`
+  (render tree before this change).
+- **Rejected:** keeping `OfficeSuite_Head` as the head donor for a pack that no longer exists; keeping
+  `pd2-port`'s Romance-shaped checks as a record (their subject was one pack, and the link gate, the skip
+  budget and the geometry gate carry the checks that still apply); rewriting the retired names out of
+  dated records.
+- **Source:** `tools/pd2-las/{packs,status,dist_paths,fresh,tasks}.py`; `tools/pd2-las/Makefile`;
+  `tools/render_mod_previews.py`; `tools/pd2-port/{README,STATUS}.md`; `docs/pd2-las/HANDOFF.md`;
+  `tests/test_agent_docs.py`, `tests/test_pack_paths_resolve.py`.
+- **Status:** holds; `dist/` is nine zips and every one of them rebuilds. D82 is superseded: neither the
+  native override nor the pack that replaced it is tracked.
 
 ## Voice lines and the stream packs
 

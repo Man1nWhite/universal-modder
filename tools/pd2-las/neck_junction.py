@@ -54,10 +54,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "pd2-port"))
 
 DEFAULT_BODY = dist_path(REPO, "Miranda_L4D2_LAS.zip")
-HEADS = (
-    dist_path(REPO, "Miranda_L4D2_over_Hila.zip"),
-    dist_path(REPO, "Miranda_Romance_over_Hila.zip"),
-)
+HEADS = (dist_path(REPO, "Miranda_L4D2_over_Hila.zip"),)
 
 THROAT = dict(x=(-6.0, 6.0), z=(149.0, 161.0), step=0.25)
 

@@ -22,7 +22,7 @@ used to quote and get wrong:
     ``changed``  the pair matches locally but is new or differs from HEAD
     ``broken``   the zip does not equal its ``.sha256``
     ``missing``  the zip or its ``.sha256`` is not there
-  Every builder but lawson's writes the ``.sha256`` itself, so only the
+  Every builder writes the ``.sha256`` itself, so only the
   comparison with the commit says that a rebuild reproduced the tracked bytes.
 - ``next``:  the command to run now.
 
@@ -79,7 +79,7 @@ INPUTS = (
 TARGETS = dict(packs.TARGETS)
 #: the LAS outfit packs (both model dialects), i.e. not the native overrides or the VO packs
 LAS_TARGETS = {name: make for name, make in TARGETS.items()
-               if make in ("build", "lawson", "honokodae", "honokodae_head")}
+               if make in ("build", "honokodae")}
 HEADS = "heads"
 
 MAKE = "make -sC tools/pd2-las"

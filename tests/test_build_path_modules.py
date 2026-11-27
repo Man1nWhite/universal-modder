@@ -1,14 +1,12 @@
 """Unit tests for the build-path modules nothing else exercised.
 
-`las_head` re-skins a donor head onto the 2B skeleton, `tmc_export` writes the glTF the
-Arivus GLB pack ships, `segment_fit` measures a built mesh against the rig and `trace_run`
-records the checkpoints `fresh.py matrix --trace` compares. All four ran only inside a
-label-gated rebuild: a break showed up as `packs` failing on main half an hour later, with
+`tmc_export` writes the glTF the Arivus GLB pack ships, `segment_fit` measures a built mesh
+against the rig and `trace_run` records the checkpoints `fresh.py matrix --trace` compares.
+All three ran only inside a label-gated rebuild: a break showed up as `packs` failing on main half an hour later, with
 the cause buried in the build log. These are small synthetic inputs, not the real packs.
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import struct
 import sys
@@ -20,8 +18,6 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 
-import diesel_model as dm  # noqa: E402
-import las_head  # noqa: E402
 import segment_fit  # noqa: E402
 import tmc_export  # noqa: E402
 import trace_run  # noqa: E402
@@ -140,19 +136,3 @@ def test_the_fit_report_lists_every_segment_it_was_given():
     assert "[probe] mesh-vs-skeleton fit (cm, PD2 bind space)" in text
     assert "ForeArm" in text and "1.25" in text
     assert "Elbow 0.40" in text
-
-
-# -------------------------------------------------------------------- las_head
-
-def test_a_missing_drawable_is_an_error_that_names_it():
-    """`read` refuses a donor without the head drawable instead of building a headless pack."""
-    empty = dm.ModelFile()
-    with pytest.raises(ValueError) as excinfo:
-        las_head._drawable(empty, las_head.DRAWABLE)
-    assert las_head.DRAWABLE in str(excinfo.value), str(excinfo.value)
-    assert "found 0" in str(excinfo.value), str(excinfo.value)
-
-
-def test_the_head_module_is_importable_without_a_game_install():
-    assert hasattr(las_head, "load") and hasattr(las_head, "read")
-    assert hashlib.sha256(b"las_head").hexdigest()      # the import above did not need a ZIP
