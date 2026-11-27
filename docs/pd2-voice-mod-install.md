@@ -4,7 +4,7 @@ One pack ships Miranda Lawson's clips over Hila, and this page is its contract:
 
 | Pack | Route | Needs | Contract |
 |---|---|---|---|
-| `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip` | one Wwise ADPCM `.stream` per voice-line id, in `soundbanks/streamed/regular_vox/` | any BLT / SuperBLT | **§7** |
+| `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip` | one Wwise ADPCM `.stream` per voice-line id, in `soundbanks/streamed/regular_vox/` | any BLT / SuperBLT | **§7** |
 
 It is the route the game itself uses — it is how the reference voice pack
 `references/Tokoyami Hila.7z` is built, dissected in
@@ -286,7 +286,7 @@ Rebuild and verify offline:
 
 ```bash
 make -sC tools/pd2-las voices_stream      # rebuilds the zip + .sha256, prints `tracked`
-unzip -p dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip \
+unzip -p dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip \
   "Miranda Lawson VO over Hila Stream/soundbanks/streamed/regular_vox/712675.stream" > /tmp/712675.stream
 python tools/pd2-las/wwise_ima.py /tmp/712675.stream --wav /tmp/712675.wav   # header, duration, audio
 .venv/bin/python -m pytest -q tests/test_wwise_ima.py tests/test_hila_stream_pack.py

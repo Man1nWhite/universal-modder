@@ -395,8 +395,9 @@ from documents, tests and tools, so they never change; the headings are appendix
   `tools/build_joy_head_mods.py`, the rebuilt sidecars, and the renders in
   `docs/renders/miranda/model/over-hila/`.
 - **Held to:** the D41 test, which rebuilds the expected quadrant from the reference at test time and so
-  pins the new bytes without an edit; `make -sC tools/pd2-las green` rebuilds all 20 tracked zips and
-  holds these two to the new sidecars and the other 18 to the old bytes.
+  pins the new bytes without an edit; `make -sC tools/pd2-las green` rebuilds every tracked zip (13 at
+  2026-11-26; 20 when this decision was written) and holds these two to the new sidecars and the rest
+  to the old bytes.
 - **Source:** the user, 2026-11-15.
 - **Status:** holds.
 
@@ -524,7 +525,8 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Decision:** the duplicate force-tracked archives `build/pd2-las/Miranda_LAS.zip` and
   `build/pd2-las/Miranda_Busty_LAS.zip` (and their `.sha256` sidecars), which duplicated
   `dist/Miranda_L4D2/Miranda_L4D2_{LAS,Busty_LAS}.zip` byte for byte inside gitignored `build/`, are
-  untracked and removed. `dist/` holds all 20 tracked packs and sidecars; `build/*` is purely scratch.
+  untracked and removed. `dist/` holds every tracked pack and sidecar (20 then, 13 now);
+  `build/*` is purely scratch.
 - **Status:** holds.
 
 ### D52 — Honoko5 and Miranda Romance directly replace Hila

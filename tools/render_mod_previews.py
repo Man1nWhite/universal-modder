@@ -3,37 +3,25 @@
 
 By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` to emit into
 `docs/renders/<project>/model/...` per `docs/renders/README.md`:
-  - `00_all_miranda_mods_overview.png`
+  - `00_all_dist_mods_overview.png` (grid of every pack in `dist/`)
   - `01_Miranda_LAS.png`
   - `02_lawson_las.png`
-  - `03_Miranda_L4D2_over_Joy.png`
-  - `04_Miranda_Romance_over_Joy.png`
-  - `05_Miranda_L4D2_over_Clover.png`
-  - `06_Miranda_Romance_over_Clover.png`
-  - `07_Miranda_L4D2_over_Bonnie.png`
-  - `08_Miranda_Romance_over_Bonnie.png`
-  - `09_Miranda_L4D2_over_Sydney.png`
-  - `10_Miranda_Romance_over_Sydney.png`
   - `11_Geralt_over_Rust.png`
-  - `12_Miranda_Busty_LAS.png` (chest-morph variant of 01)
-  - `13_Miranda_Busty_vs_LAS_chest.png` (before/after chest close-up)
-  - `14_Miranda_Busty_vs_LAS_top_below.png` (overhead/underside chest comparison)
-  - `15_Christie_LAS.png` (DOA5 Christie body-only LAS outfit)
-  - `18_all_dist_mods_overview.png` (grid of every pack in `dist/`)
   - `19_Miranda_L4D2_over_Hila.png`
   - `20_Miranda_Romance_over_Hila.png`
   - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70), the wrist twisting on ForeArmRoll (D75), plus the first-person arms panel)
   - `25_OfficeSuite_with_Miranda_Romance_over_Hila.png` (the same combination for OfficeSuite)
   - `26_OfficeSuite_head_skin_detail.png` (front and three-quarter views of the colour match)
-  - `27_Christie_Clover_LAS.png` (Clover-Christie GLB body-only LAS outfit)
   - `28_OfficeSuite_Miranda_Romance_over_Hila.png` (native Hila body and head override)
   - `29_OfficeSuite_Head.png` (OfficeSuite body, palm cut, arms and the Romance head in one unit)
   - `30_Arivus_over_Hoxton.png` (GTA SA Arivus head over Old Hoxton, FPS gloves in TPS)
   - `31`–`36` `*_fps.png` (first-person `fps_*.model` sheets for every pack that ships one:
-    Miranda_L4D2_LAS, Miranda_L4D2_Busty_LAS, Miranda_Romance_LAS, Christie_LAS, OfficeSuite,
-    OfficeSuite_Head — player, three-quarter, side and top-down views, auto-framed)
+    Miranda_L4D2_LAS, Miranda_Romance_LAS, OfficeSuite, OfficeSuite_Head — player,
+    three-quarter, side and top-down views, auto-framed)
+  - `37_OfficeSuite_wrist.png` (the D75 wrist junction)
 
-`00_all_miranda_mods_overview.png` is the 6x2 grid of the twelve Miranda head/full-body packs.
+The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie) stay in
+`docs/renders/` as history; this script no longer renders them because the packs are gone.
 """
 from __future__ import annotations
 
@@ -407,12 +395,6 @@ def load_miranda_las_parts() -> tuple[list, list, Image.Image]:
     return load_las_variant_parts(dist_path(ROOT, "Miranda_LAS.zip"), "Miranda_LAS", "miranda")
 
 
-def load_miranda_busty_parts() -> tuple[list, list, Image.Image]:
-    """Load TPP and FPS parts + icon from dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip."""
-    return load_las_variant_parts(dist_path(ROOT, "Miranda_Busty_LAS.zip"),
-                                  "Miranda_Busty_LAS", "miranda_busty")
-
-
 def _parse_matcfg_diffuse(xml_bytes: bytes) -> dict[str, str]:
     """Map material name -> diffuse texture asset path from a `.material_config`."""
     root = ET.fromstring(xml_bytes)
@@ -737,76 +719,6 @@ CHEST_POLAR_VIEWS = (
 )
 
 
-def render_busty_compare_sheet(
-    tpp_base: list,
-    tpp_variant: list,
-    icon_im: Image.Image,
-    out_path: Path,
-) -> Image.Image:
-    """Before/after chest close-up sheet for the `Miranda_Busty_LAS` morph."""
-    W, H = 380, 470
-    canvas = Image.new("RGB", (W * len(CHEST_VIEWS), (H + 22) * 2 + 58), (18, 22, 30))
-    for row, (label, parts) in enumerate((("Miranda_LAS (stock)", tpp_base),
-                                          ("Miranda_Busty_LAS", tpp_variant))):
-        for col, (caption, yaw, pitch, scale, center) in enumerate(CHEST_VIEWS):
-            img = rasterize_parts(parts, W, H, yaw, 141.0, scale,
-                                  pitch_deg=pitch, center=center)
-            d = ImageDraw.Draw(img)
-            d.rectangle([8, H - 30, 250, H - 8], fill=(14, 17, 24))
-            d.text((14, H - 26), f"{label} · {caption}", fill=(230, 235, 245),
-                   font=FONT_REG_12)
-            canvas.paste(img, (col * W, 58 + row * (H + 22)))
-    add_header_and_badges(
-        canvas,
-        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — Chest Morph (Before / After)",
-        "Same outfit, rig and textures; the bust pass grows the chest mass"
-        " | chest close-up 0°, 30°, 45°, 60°, 90° (framing widens with the yaw)",
-        icon_im,
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(out_path)
-    print(f"Saved {out_path}")
-    return rasterize_parts(tpp_variant, 360, 480, 24, 147.0, 5.8, z_min_clip=105.0)
-
-
-def render_busty_polar_sheet(
-    tpp_base: list,
-    tpp_variant: list,
-    icon_im: Image.Image,
-    out_path: Path,
-) -> Image.Image:
-    """Overhead and underside chest sheet: the two angles the front views cannot reach.
-
-    Above shows whether the placket hem and the cup rims stay clean from the neck down;
-    below shows whether the cups still hang off the ribcage instead of merging into one
-    cushion, which is where a `+y`-only chest push always gives itself away.
-    """
-    W, H = 620, 560
-    canvas = Image.new("RGB", (W * len(CHEST_POLAR_VIEWS), (H + 22) * 2 + 58),
-                       (18, 22, 30))
-    for row, (label, parts) in enumerate((("Miranda_LAS (stock)", tpp_base),
-                                          ("Miranda_Busty_LAS", tpp_variant))):
-        for col, (caption, yaw, pitch) in enumerate(CHEST_POLAR_VIEWS):
-            center = (0.0, 18.0, 146.5) if pitch < 0.0 else (0.0, 20.0, 134.0)
-            img = rasterize_parts(parts, W, H, yaw, 0.0, 12.6,
-                                  pitch_deg=pitch, center=center)
-            d = ImageDraw.Draw(img)
-            d.rectangle([8, H - 32, 250, H - 8], fill=(14, 17, 24))
-            d.text((14, H - 28), f"{label} · {caption}", fill=(230, 235, 245),
-                   font=FONT_REG_12)
-            canvas.paste(img, (col * W, 58 + row * (H + 22)))
-    add_header_and_badges(
-        canvas,
-        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — Chest Morph, Overhead & Underside",
-        "The same chest read from 58° above and from 58° below — stock above, variant below",
-        icon_im,
-    )
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(out_path)
-    print(f"Saved {out_path}")
-    return canvas
-
-
 def render_heister_head_sheet(
     zip_name: str,
     model_rel: str,
@@ -951,22 +863,9 @@ def render_native_hila_sheet(out_path: Path, zip_path: Path | None = None) -> Im
 
 
 UNIFIED_PATHS = {
-    "00_all_miranda_mods_overview.png": "overview/model/all_miranda_mods_sheet.png",
     "01_Miranda_LAS.png": "miranda/model/las/miranda_las_sheet.png",
     "02_lawson_las.png": "lawson/model/lawson_las_sheet.png",
-    "03_Miranda_L4D2_over_Joy.png": "miranda/model/over-joy/miranda_l4d2_over_joy_sheet.png",
-    "04_Miranda_Romance_over_Joy.png": "miranda/model/over-joy/miranda_romance_over_joy_sheet.png",
-    "05_Miranda_L4D2_over_Clover.png": "miranda/model/over-clover/miranda_l4d2_over_clover_sheet.png",
-    "06_Miranda_Romance_over_Clover.png": "miranda/model/over-clover/miranda_romance_over_clover_sheet.png",
-    "07_Miranda_L4D2_over_Bonnie.png": "miranda/model/over-bonnie/miranda_l4d2_over_bonnie_sheet.png",
-    "08_Miranda_Romance_over_Bonnie.png": "miranda/model/over-bonnie/miranda_romance_over_bonnie_sheet.png",
-    "09_Miranda_L4D2_over_Sydney.png": "miranda/model/over-sydney/miranda_l4d2_over_sydney_sheet.png",
-    "10_Miranda_Romance_over_Sydney.png": "miranda/model/over-sydney/miranda_romance_over_sydney_sheet.png",
     "11_Geralt_over_Rust.png": "geralt/model/over-rust/geralt_over_rust_sheet.png",
-    "12_Miranda_Busty_LAS.png": "miranda/model/busty/miranda_busty_las_sheet.png",
-    "13_Miranda_Busty_vs_LAS_chest.png": "miranda/model/busty/miranda_busty_vs_las_chest_before-after.png",
-    "14_Miranda_Busty_vs_LAS_top_below.png": "miranda/model/busty/miranda_busty_vs_las_top_below_before-after.png",
-    "15_Christie_LAS.png": "christie/model/base/christie_las_sheet.png",
     "18_all_dist_mods_overview.png": "overview/model/all_dist_mods_sheet.png",
     "19_Miranda_L4D2_over_Hila.png": "miranda/model/over-hila/miranda_l4d2_over_hila_sheet.png",
     "20_Miranda_Romance_over_Hila.png": "miranda/model/over-hila/miranda_romance_over_hila_sheet.png",
@@ -974,14 +873,11 @@ UNIFIED_PATHS = {
     "25_OfficeSuite_with_Miranda_Romance_over_Hila.png":
         "honoka/model/dae/officesuite_with_miranda_romance_over_hila_sheet.png",
     "26_OfficeSuite_head_skin_detail.png": "honoka/model/dae/officesuite_head_skin_detail.png",
-    "27_Christie_Clover_LAS.png": "christie/model/clover/christie_clover_las_sheet.png",
     "28_OfficeSuite_Miranda_Romance_over_Hila.png": "honoka/model/over-hila/officesuite_miranda_romance_over_hila_sheet.png",
     "29_OfficeSuite_Head.png": "honoka/model/head/officesuite_head_las_sheet.png",
     "30_Arivus_over_Hoxton.png": "arivus/model/over-hoxton/arivus_over_hoxton_sheet.png",
     "31_Miranda_LAS_fps.png": "miranda/model/las/miranda_las_fps_sheet.png",
-    "32_Miranda_Busty_LAS_fps.png": "miranda/model/busty/miranda_busty_las_fps_sheet.png",
     "33_lawson_las_fps.png": "lawson/model/lawson_las_fps_sheet.png",
-    "34_Christie_LAS_fps.png": "christie/model/base/christie_las_fps_sheet.png",
     "35_OfficeSuite_fps.png": "honoka/model/dae/officesuite_las_fps_sheet.png",
     "36_OfficeSuite_Head_fps.png": "honoka/model/head/officesuite_head_las_fps_sheet.png",
     # not in the numbered overview: the wrist junction D75 changed, before and after the pass
@@ -1106,63 +1002,6 @@ def main(argv: list[str] | None = None) -> None:
         target_for("33_lawson_las_fps.png"),
     )
 
-    tpp_bus, fps_bus, icon_bus = load_miranda_busty_parts()
-    th_bus = render_las_sheet(
-        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — Full-Body LAS Outfit, chest morph (L4D2 Port)",
-        "The 01 outfit with a sculpted chest mass and its own LegendaryArmours.miranda_busty entry"
-        " | Source: l4d2_miranda_lawson_1.zip + references/2b.rar",
-        tpp_bus,
-        fps_bus,
-        icon_bus,
-        target_for("12_Miranda_Busty_LAS.png"),
-    )
-    render_busty_compare_sheet(tpp_mir, tpp_bus, icon_bus,
-                               target_for("13_Miranda_Busty_vs_LAS_chest.png"))
-    render_busty_polar_sheet(tpp_mir, tpp_bus, icon_bus,
-                             target_for("14_Miranda_Busty_vs_LAS_top_below.png"))
-    render_fps_sheet(
-        "dist/Miranda_L4D2/Miranda_L4D2_Busty_LAS.zip — First-Person Arms (fps_miranda_busty.model)",
-        "Player, three-quarter, side and top-down views, auto-framed | the chest-morph pack's own arms unit",
-        fps_bus,
-        target_for("32_Miranda_Busty_LAS_fps.png"),
-    )
-
-    tpp_chr, fps_chr, icon_chr = load_multi_mat_las_parts(
-        dist_path(ROOT, "Christie_LAS.zip"), "Christie_LAS", "christie", has_fps=True
-    )
-    th_chr = render_las_sheet(
-        "dist/Christie/Christie_LAS.zip — Body-Only LAS Outfit (DOA5 Christie)",
-        "Headless, handless outfit + first-person sleeves + glove adapter | Source: DOA5 Christie",
-        tpp_chr,
-        fps_chr,
-        icon_chr,
-        target_for("15_Christie_LAS.png"),
-        has_head=False,
-    )
-    render_fps_sheet(
-        "dist/Christie/Christie_LAS.zip — First-Person Arms (fps_christie.model)",
-        "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and the glove adapter's opening",
-        fps_chr,
-        target_for("34_Christie_LAS_fps.png"),
-    )
-
-    tpp_chr_clv, fps_chr_clv, icon_chr_clv = load_multi_mat_las_parts(
-        dist_path(ROOT, "Christie_Clover_LAS.zip"),
-        "Christie_Clover_LAS",
-        "clover_christie",
-        has_fps=False,
-        cutout_materials=frozenset({"clover_christie_3"}),
-    )
-    th_chr_clv = render_las_sheet(
-        "dist/Christie/Christie_Clover_LAS.zip — Body-Only LAS Outfit (Clover-Christie GLB)",
-        "Headless third-person body-only LAS outfit (no fps_unit) + glove adapter + lace cutout | Source: Clover-Christie.zip",
-        tpp_chr_clv,
-        fps_chr_clv,
-        icon_chr_clv,
-        target_for("27_Christie_Clover_LAS.png"),
-        has_head=False,
-    )
-
     tpp_os, fps_os, icon_os = load_multi_mat_las_parts(
         dist_path(ROOT, "OfficeSuite.zip"), "OfficeSuite", "officesuite", has_fps=True
     )
@@ -1235,126 +1074,6 @@ def main(argv: list[str] | None = None) -> None:
 
     heister_specs = [
         (
-            "03_Miranda_L4D2_over_Joy.png",
-            "Miranda_L4D2_over_Joy.zip",
-            "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model",
-            "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture",
-            "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_lashes_df.texture",
-            "guis/dlcs/joy/textures/pd2/blackmarket/icons/characters/joy.texture",
-            "g_head",
-            (62, 70, 88),
-            (45, 48, 55),
-            False,
-            "dist/Miranda_L4D2/Miranda_L4D2_over_Joy.zip — Joy Head Replacement (L4D2)",
-            "Replaces Joy's head & hair (npc_criminal_joy_1.model + _menu.model) and character icon",
-            "Miranda_L4D2_over_Joy.zip",
-        ),
-        (
-            "04_Miranda_Romance_over_Joy.png",
-            "Miranda_Romance_over_Joy.zip",
-            "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1.model",
-            "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_head_df.texture",
-            "units/pd2_dlc_joy/characters/npc_criminals_joy_1/npc_criminal_joy_1_lashes_df.texture",
-            "guis/dlcs/joy/textures/pd2/blackmarket/icons/characters/joy.texture",
-            "g_head",
-            (62, 70, 88),
-            (45, 48, 55),
-            True,
-            "dist/Miranda_Romance/Miranda_Romance_over_Joy.zip — Joy Head Replacement (ME2 Romance)",
-            "Replaces Joy's head & hair with ME2 Romance head + alpha-masked eyelashes and character icon",
-            "Miranda_Romance_over_Joy.zip",
-        ),
-        (
-            "05_Miranda_L4D2_over_Clover.png",
-            "Miranda_L4D2_over_Clover.zip",
-            "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
-            "units/payday2/characters/shared_textures/clover_head_df.texture",
-            "units/payday2/characters/shared_textures/npc_criminal_female_1_hair_df.texture",
-            "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
-            "g_head_fem1",
-            (58, 66, 64),
-            (70, 125, 185),
-            False,
-            "dist/Miranda_L4D2/Miranda_L4D2_over_Clover.zip — Clover Head Replacement (L4D2)",
-            "Replaces Clover's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
-            "Miranda_L4D2_over_Clover.zip",
-        ),
-        (
-            "06_Miranda_Romance_over_Clover.png",
-            "Miranda_Romance_over_Clover.zip",
-            "units/payday2/characters/npc_criminal_female_1/npc_criminal_female_1.model",
-            "units/payday2/characters/shared_textures/clover_head_df.texture",
-            "units/payday2/characters/shared_textures/npc_criminal_female_1_hair_df.texture",
-            "guis/dlcs/character_pack_clover/textures/pd2/blackmarket/icons/characters/female_1.texture",
-            "g_head_fem1",
-            (58, 66, 64),
-            (70, 125, 185),
-            True,
-            "dist/Miranda_Romance/Miranda_Romance_over_Clover.zip — Clover Head Replacement (ME2 Romance)",
-            "Replaces Clover's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
-            "Miranda_Romance_over_Clover.zip",
-        ),
-        (
-            "07_Miranda_L4D2_over_Bonnie.png",
-            "Miranda_L4D2_over_Bonnie.zip",
-            "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
-            "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_head_df.texture",
-            "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_hair_df.texture",
-            "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
-            "g_head",
-            (64, 72, 86),
-            (70, 125, 185),
-            False,
-            "dist/Miranda_L4D2/Miranda_L4D2_over_Bonnie.zip — Bonnie Head Replacement (L4D2)",
-            "Replaces Bonnie's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
-            "Miranda_L4D2_over_Bonnie.zip",
-        ),
-        (
-            "08_Miranda_Romance_over_Bonnie.png",
-            "Miranda_Romance_over_Bonnie.zip",
-            "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie.model",
-            "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_head_df.texture",
-            "units/pd2_dlc_bonnie/characters/npc_criminal_bonnie/npc_criminal_bonnie_hair_df.texture",
-            "guis/dlcs/character_pack_bonnie/textures/pd2/blackmarket/icons/characters/bonnie.texture",
-            "g_head",
-            (64, 72, 86),
-            (70, 125, 185),
-            True,
-            "dist/Miranda_Romance/Miranda_Romance_over_Bonnie.zip — Bonnie Head Replacement (ME2 Romance)",
-            "Replaces Bonnie's head & hair (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
-            "Miranda_Romance_over_Bonnie.zip",
-        ),
-        (
-            "09_Miranda_L4D2_over_Sydney.png",
-            "Miranda_L4D2_over_Sydney.zip",
-            "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
-            "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_head_df.texture",
-            "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_hair_df.texture",
-            "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
-            "g_head",
-            (52, 62, 82),
-            (70, 125, 185),
-            False,
-            "dist/Miranda_L4D2/Miranda_L4D2_over_Sydney.zip — Sydney Head Replacement (L4D2)",
-            "Replaces Sydney's head & hair (heist & menu) + FPS gloves in TPS + character icon",
-            "Miranda_L4D2_over_Sydney.zip",
-        ),
-        (
-            "10_Miranda_Romance_over_Sydney.png",
-            "Miranda_Romance_over_Sydney.zip",
-            "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",
-            "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_head_df.texture",
-            "units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_hair_df.texture",
-            "guis/dlcs/opera/textures/pd2/blackmarket/icons/characters/sydney.texture",
-            "g_head",
-            (52, 62, 82),
-            (70, 125, 185),
-            True,
-            "dist/Miranda_Romance/Miranda_Romance_over_Sydney.zip — Sydney Head Replacement (ME2 Romance)",
-            "Replaces Sydney's head & hair (heist & menu) + FPS gloves in TPS + character icon",
-            "Miranda_Romance_over_Sydney.zip",
-        ),
-        (
             "11_Geralt_over_Rust.png",
             "Geralt_over_Rust.zip",
             "units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1.model",
@@ -1380,7 +1099,7 @@ def main(argv: list[str] | None = None) -> None:
             (66, 60, 56),
             (48, 42, 40),
             False,
-            "dist/Miranda_L4D2/Miranda_L4D2_over_Hila.zip — Hila Head Replacement (L4D2)",
+            "dist/Miranda/Miranda_L4D2_over_Hila.zip — Hila Head Replacement (L4D2)",
             "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
             "Miranda_L4D2_over_Hila.zip",
         ),
@@ -1395,7 +1114,7 @@ def main(argv: list[str] | None = None) -> None:
             (66, 60, 56),
             (48, 42, 40),
             True,
-            "dist/Miranda_Romance/Miranda_Romance_over_Hila.zip — Hila Head Replacement (ME2 Romance)",
+            "dist/Miranda/Miranda_Romance_over_Hila.zip — Hila Head Replacement (ME2 Romance)",
             "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
             "Miranda_Romance_over_Hila.zip",
         ),
@@ -1451,57 +1170,24 @@ def main(argv: list[str] | None = None) -> None:
         full=(82.0, 2.55),
     )
 
-    # Build master overview grid (6 columns x 2 rows, exact 3:4 aspect ratio)
+    # Complete dist/ overview grid: every tracked pack's sheet plus the native Hila override
     tw, th_h = 330, 440
-    overview = Image.new("RGB", (tw * 6, th_h * 2 + 58), (16, 19, 26))
-    add_header_and_badges(
-        overview,
-        "PAYDAY 2 — All 12 Miranda Lawson Mod Packages in dist/ (Overview)",
-        "Top row: L4D2 variants (Full-Body LAS, Joy, Clover, Bonnie, Sydney, Hila) | Bottom row: ME2 Romance variants",
-    )
-    # Order: L4D2 row (0, 2, 4, 6, 8, Hila), Romance row (1, 3, 5, 7, 9, Hila)
-    l4d2_indices = [0, 2, 4, 6, 8, 11]
-    rom_indices = [1, 3, 5, 7, 9, 12]
-    for col_i, idx in enumerate(l4d2_indices):
-        lbl, im = thumbs[idx]
-        cell = im.resize((tw, th_h), Image.Resampling.LANCZOS)
-        d = ImageDraw.Draw(cell)
-        d.rectangle([6, 6, tw - 6, 30], fill=(14, 17, 24))
-        d.text((12, 10), lbl, fill=(240, 245, 255), font=FONT_BOLD_13)
-        overview.paste(cell, (col_i * tw, 58))
-    for col_i, idx in enumerate(rom_indices):
-        lbl, im = thumbs[idx]
-        cell = im.resize((tw, th_h), Image.Resampling.LANCZOS)
-        d = ImageDraw.Draw(cell)
-        d.rectangle([6, 6, tw - 6, 30], fill=(14, 17, 24))
-        d.text((12, 10), lbl, fill=(240, 245, 255), font=FONT_BOLD_13)
-        overview.paste(cell, (col_i * tw, 58 + th_h))
-
-    ov_path = target_for("00_all_miranda_mods_overview.png")
-    ov_path.parent.mkdir(parents=True, exist_ok=True)
-    overview.save(ov_path)
-    print(f"Saved {ov_path}")
-
-    # Complete dist/ overview grid: every tracked zip plus the native Hila override
     all_dist_cells = [
-        *[thumbs[i] for i in l4d2_indices],
-        *[thumbs[i] for i in rom_indices],
-        ("Miranda_L4D2_Busty_LAS.zip", th_bus),
-        ("Christie_LAS.zip", th_chr),
-        ("Christie_Clover_LAS.zip", th_chr_clv),
+        ("Miranda_L4D2_LAS.zip", th_mir),
+        ("Miranda_Romance_LAS.zip", th_law),
         ("OfficeSuite.zip", th_os),
         ("OfficeSuite_Head.zip", th_hd),
-        thumbs[10],  # Geralt_over_Rust.zip
+        *thumbs,  # Geralt, Hila L4D2, Hila Romance
         ("Arivus_over_Hoxton.zip", th_arivus),
         ("OfficeSuite + Miranda over Hila (native)", hila_thumb),
     ]
     rows = (len(all_dist_cells) + 5) // 6
-    dist_overview = Image.new("RGB", (tw * 6, th_h * rows + 58), (16, 19, 26))
+    grid = Image.new("RGB", (tw * 6, th_h * rows + 58), (16, 19, 26))
     add_header_and_badges(
-        dist_overview,
+        grid,
         f"PAYDAY 2 — All {len(all_dist_cells)} Model Packages in dist/ (Complete Overview)",
-        "L4D2 Miranda | ME2 Miranda | Busty, Christie, Christie Clover, OfficeSuite (+ head), Geralt, Arivus, native Hila"
-        " | the audio-only Miranda_Lawson_VO_over_Hila_Stream has no model sheet",
+        "Miranda L4D2 & ME2 LAS | OfficeSuite (+ head) | Geralt, Arivus, Hila | the audio-only"
+        " Miranda_Lawson_VO_over_Hila_Stream has no model sheet",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)
@@ -1509,11 +1195,11 @@ def main(argv: list[str] | None = None) -> None:
         d = ImageDraw.Draw(cell)
         d.rectangle([6, 6, tw - 6, 30], fill=(14, 17, 24))
         d.text((12, 10), lbl, fill=(240, 245, 255), font=FONT_BOLD_13)
-        dist_overview.paste(cell, (col_i * tw, 58 + row_i * th_h))
+        grid.paste(cell, (col_i * tw, 58 + row_i * th_h))
 
-    dist_ov_path = target_for("18_all_dist_mods_overview.png")
+    dist_ov_path = target_for("00_all_dist_mods_overview.png")
     dist_ov_path.parent.mkdir(parents=True, exist_ok=True)
-    dist_overview.save(dist_ov_path)
+    grid.save(dist_ov_path)
     print(f"Saved {dist_ov_path}")
 
 

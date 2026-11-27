@@ -34,6 +34,9 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 ```
 
 - `make -n <target>` prints what a target runs. Without `-s`, make wraps the JSON in "Entering directory" lines.
+- Windows: `env` is a bash script. Make the venv once by hand (`py -3.11 -m venv .venv`), install with
+  `pip install -c tools/pd2-las/pins.txt` (the versions the packs rebuild byte for byte with), then the
+  same `make` calls work under git-bash/MSYS: they find `.venv/Scripts/python.exe` themselves.
 - `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored) or refreshes a stale one.
   `PD2_2B_TEMPLATES` points setup, builds and `fresh` at a shared unit folder; `extract_2b.py` manages
   only the default cache. Of tracked files, `env` restores only missing ones.
@@ -52,16 +55,18 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `build_las.py`, `las_pack.py` | scaffold stage: VPK → textures, hook, `main.xml`, locales, unit XML, `BUILD_INFO.json`, reproducible zip. Run alone, `build_las.py` leaves a scaffold without models, marked `WIP_DO_NOT_INSTALL.txt` |
 | `source_inventory.json` | what the L4D2 source archive contains (bones, meshes, triangle counts, texture formats); tracked, `make -sC tools/pd2-las inventory` rewrites it, and a test fails while it is stale |
 | `build_honoko2_dae.py`, `las_head.py`, `tmc_las.py`, `tmc.py`, `tmc_export.py`, `tmc_skeleton_map.json`, `render_honoka.py` | the OfficeSuite LAS packs built from the Collada `.dae` with the TMC's skinning, the donor head re-skin, TMC decoder + glTF exporter, MOT → PD2 bone map, and Honoka source preview renderer |
-| `las_outfit_pack.py`, `dist_paths.py` | shared registration, hook, localization, unit/object XML, zip, glove-adapter companion, and canonical `dist/` path map |
+| `packs.py`, `dist_paths.py`, `las_outfit_pack.py` | **the one pack table** (name → `dist/` folder, make target, builder); the path map derived from it; shared registration, hook, localization, unit/object XML, zip, glove adapter |
 | `diesel_model.py` | Diesel `.model` codec; change it only with the round-trip tests green |
 | `vpk.py`, `source_model.py`, `vtf.py`, `dds_encode.py` | Source readers (VPK, MDL 44–49 + VVD + VTX, VTF) and DDS writers |
 | `skeleton_map.json`, `las_target_skeleton.json` | Source → PD2 bone map; the PD2 rig and object names |
 | `segment_fit.py`, `render_mesh_skeleton.py`, `preview.py` | fit measurements and renders the builders call |
-| `diagnose_mesh.py`, `neck_junction.py`, `uv_check.py`, `audit_metrics.py`, `elbow_before_after.py`, `glove_check.py`, `review_christie_idle.py`, `pose_zoom.py` | diagnostics for built packs, off the build path; each docstring carries its command |
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `mip_audit.py` | for the two Miranda textures the build encodes itself: which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (`make -sC tools/pd2-las audit`) |
 | `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of the distribution packs, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the pinned Pillow/NumPy versions |
+| `pack_checksum.py`, `archive_cache.py` | the sha256 sidecars of the tracked and scratch packs (`python tools/pd2-las/pack_checksum.py`), and validating extracted build inputs by archive and payload instead of sentinel files |
+| `build_arivus_glb_pack.py`, `model_to_glb.py`, `rw_dff.py`, `hila_texture_atlas.py`, `wwise_ima.py` | the Arivus `.glb` interchange pack and its readers: Diesel `.model` → glTF + DDS, RenderWare DFF/TXD, the OfficeSuite texture fit into Hila's suit slots, Wwise IMA in a `.stream` |
+| `audit_metrics.py`, `diagnose_mesh.py`, `neck_junction.py`, `elbow_before_after.py`, `glove_check.py`, `pose_zoom.py`, `uv_check.py`, `wrist_compare.py` | one measurement or before/after sheet each, over a shipped pack: the audit numbers, a mesh deep-dive, the neck seam, elbow and wrist, sleeve/glove junctions, the UV convention |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and rounding margin; tangent frames from stored values; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 
 ## Invariants
