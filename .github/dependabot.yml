@@ -1,0 +1,24 @@
+# Actions and the npm package the build needs are pinned to exact versions and kept current here.
+#
+# Both halves of the repository's supply chain: the workflows (every `uses:` names a commit,
+# with the release in a comment) and `node-unrar-js`, which unpacks the 2B templates every
+# pack skins onto and therefore decides the bytes of every OfficeSuite pack. A floating tag
+# on either side changes a build without a commit.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+    labels:
+      - dependencies
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "deps"
+    labels:
+      - dependencies

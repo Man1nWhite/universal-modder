@@ -111,7 +111,8 @@ def main(argv: list[str] | None = None) -> int:
                               [str(HERE / "check_guide_compliance_self_test.py")]))
         results.append(stage("original distribution checksums",
                              [str(ROOT / "tools" / "pd2-las" / "pack_checksum.py")]))
-        results.append(stage("lint", ["-m", "pyflakes", "um", "tools", "tests"]))
+        results.append(stage("lint", ["-m", "ruff", "check", "."]))
+        results.append(stage("types", ["-m", "mypy"]))
         results.append(um_groups())
         results.append(stage("documentation links", [str(ROOT / "tools" / "pd2-port" / "check_links.py")]))
         results.append(stage("documentation index", [str(ROOT / "tools" / "gen_docs_index.py"), "--check"]))
@@ -121,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
         # reads. Until 2026-11-13 the budget ran the suite a second time, two minutes of the seven.
         with tempfile.TemporaryDirectory() as scratch:
             report = Path(scratch) / "pytest-rsxX.txt"
-            results.append(stage("pytest suite", ["-m", "pytest", "-q", "-rsxX", "tests"], keep=report))
+            results.append(stage("pytest suite", ["-m", "pytest", "-q", "-rsxX", "tests", "--cov", "--cov-fail-under=58"], keep=report))
             results.append(stage("skip budget", [str(HERE / "check_skip_budget.py"), "--report", str(report)]))
         RERUN["skip budget"] = ".venv/bin/python tools/pd2-port/check_skip_budget.py"
         results.append(stage("every tracked zip, built again",

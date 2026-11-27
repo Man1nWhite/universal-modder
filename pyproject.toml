@@ -21,7 +21,8 @@ dev = [
     "pytest-cov>=5",
     "hypothesis>=6",
     "py7zr>=1",
-    "pyflakes>=3",
+    "ruff>=0.17",
+    "mypy>=2.4",
     "imageio-ffmpeg>=0.6",
 ]
 # The two optional readers that a dev checkout can use to cross-check more (`--extras` of
@@ -59,4 +60,64 @@ norecursedirs = [
 ]
 markers = [
     "slow: takes more than a few seconds (the builders and the pack rebuilds)",
+]
+
+[tool.ruff]
+# The lint gate: `ruff check` from the repository root, the same command CI and
+# `make -sC tools/pd2-las green` run (tests/test_one_implementation.py keeps them equal).
+target-version = "py311"
+line-length = 120
+# the same trees pytest collects: examples/ are worked mod projects, the rest are docs,
+# source archives and build output
+extend-exclude = ["examples", "references", "docs", "knowledge", "build", "node_modules"]
+
+[tool.ruff.lint]
+# pyflakes' whole set (the previous gate) plus the import checks, the pycodestyle
+# statements that catch two statements where one was meant, and bugbear: loop-variable
+# closures, silent `assert` misuse, mutable defaults.
+select = ["F", "E4", "E7", "E9", "B"]
+ignore = [
+    "E701",   # `if x: return` on one line is deliberate in these scripts
+    "E702",   # `a; b` on one line likewise
+    "E731",   # a lambda bound to a name is the clearest form for a sort key
+    "E741",   # `l`, `I`, `O` appear in the math whose notation they are
+    "E402",   # the tools put tools/pd2-las on sys.path before importing from it
+    "B905",   # zip(strict=) is a behaviour change across 69 call sites, decided separately
+    "B023",   # the closures over a loop variable are called inside the same iteration
+    "B007",   # `for _i, x in enumerate` names the index as documentation
+]
+
+[tool.mypy]
+# Scoped to the byte-critical code: the two file codecs whose output is a tracked pack,
+# and the table/paths/status modules every builder reads. `python -m mypy` from the root
+# checks exactly these; the rest of `um/` has 57 findings of its own (mostly platform
+# attributes) and is not claimed as typed.
+python_version = "3.11"
+files = [
+    "tools/pd2-las/diesel_model.py",
+    "tools/pd2-las/las_outfit_pack.py",
+    "tools/pd2-las/packs.py",
+    "tools/pd2-las/dist_paths.py",
+    "tools/pd2-las/status.py",
+]
+ignore_missing_imports = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[tool.coverage.run]
+# What the floor covers: the CLI and the pack toolchain. The gate runs with the suite
+# (`--cov --cov-fail-under`, in check_all.py --full and the test workflow), so a change
+# that deletes tests instead of code cannot pass by shrinking the denominator quietly.
+source = ["um", "tools/pd2-las"]
+branch = false
+
+[tool.coverage.report]
+# The floor is a ratchet, not a target: today's number rounded down by a point, raised
+# when the suite earns it. Excluded lines are the ones that cannot run in CI at all.
+fail_under = 58
+skip_covered = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
 ]
