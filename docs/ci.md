@@ -18,13 +18,19 @@ installer. Run it by hand on a branch with:
 gh workflow run test.yml --ref <branch> -f rebuild_packs=true
 ```
 
-## What the repository owner must set once
+## Branch rules: what is set, and how to set it again
 
-The checks above only bind if GitHub is told to require them. The repository has no branch
-protection and no ruleset as of 2026-11-26 (`gh api repos/…/rulesets` returns `[]`), and the
-workflow token cannot create one (`403 Resource not accessible by integration`). This is
-one settings change, by a person with admin rights, in the browser. Settings → **Rules** →
-**Rulesets** → **New branch ruleset**, then:
+The checks above only bind if GitHub is told to require them, and only the repository owner
+can say so: the workflow token gets `403 Resource not accessible by integration` on every
+ruleset write. Branch protection is a ruleset, **`main: required checks`** (id 28219531),
+created 2026-11-27 and in force since; its record is readable with
+
+```sh
+gh api repos/Man1nWhite/universal-modder/rulesets/28219531
+```
+
+It is one settings change, in the browser — Settings → **Rules** → **Rulesets**. To change
+it, edit that ruleset; to recreate it, **New branch ruleset** and then:
 
 1. **Ruleset Name**: `main: required checks`.
 2. **Enforcement status**: open the dropdown (it starts on *Disabled*) and pick **Active**.
@@ -61,8 +67,9 @@ green-by-default.
 
 **Verify it took.** The browser check — Settings → Rules lists `main: required checks` as
 *Active* — does not prove the pattern matches anything: a ruleset stored with the pattern
-`refs/heads/refs/heads/main` is Active, has every rule, and applies to no branch. Ask which
-rules `main` actually gets:
+`refs/heads/refs/heads/main` is Active, has every rule, and applies to no branch. (That is
+not hypothetical: the first attempt on 2026-11-27 stored exactly that, and only the check
+below caught it.) Ask which rules `main` actually gets:
 
 ```sh
 gh api repos/Man1nWhite/universal-modder/rules/branches/main \
@@ -70,8 +77,8 @@ gh api repos/Man1nWhite/universal-modder/rules/branches/main \
 ```
 
 Four lines (`deletion`, `non_fast_forward`, `pull_request`, `required_status_checks`) mean it
-applies; `[]` means the ruleset is inert, and the pattern is the thing to look at. The
-ruleset's own record shows the stored pattern:
+applies — that is what `main` reports now; `[]` means the ruleset is inert, and the pattern
+is the thing to look at. The ruleset's own record shows the stored pattern:
 
 ```sh
 gh api repos/Man1nWhite/universal-modder/rulesets \
