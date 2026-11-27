@@ -91,7 +91,7 @@ if [ "$EXTRAS" = 1 ]; then
 fi
 
 # ------------------------------------------------------------ 2. the templates
-# references/2b.rar (RAR5) -> build/pd2-las/2b/. extract_2b.py owns both the
+# references/templates/2b.rar (RAR5) -> build/pd2-las/2b/. extract_2b.py owns both the
 # location and the unpacking (node-unrar-js; there is no system unrar/7z/bsdtar
 # in the sandbox), and reuses the cache only when the archive and extracted files still match.
 echo "== 2B templates"

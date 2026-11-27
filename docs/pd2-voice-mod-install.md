@@ -7,7 +7,7 @@ One pack ships Miranda Lawson's clips over Hila, and this page is its contract:
 | `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip` | one Wwise ADPCM `.stream` per voice-line id, in `soundbanks/streamed/regular_vox/` | any BLT / SuperBLT | **§7** |
 
 It is the route the game itself uses — it is how the reference voice pack
-`references/Tokoyami Hila.7z` is built, dissected in
+`references/voice/Tokoyami Hila.7z` is built, dissected in
 [`tokoyami-hila-voice-mod-analysis.md`](tokoyami-hila-voice-mod-analysis.md) — and it is the only
 one of the two that was heard working in game (2026-11-25).
 
@@ -307,8 +307,8 @@ they share.
 
 | Pack (`dist/…`) | Voice of | Covers | Not covered (vanilla) |
 | --- | --- | --- | --- |
-| `Geralt/Geralt_VO_over_Rust_Stream.zip` | Geralt of Rivia (`references/GERALT VOICE (PAYDAY 2).zip`, CP866 file names) | 29 slots the set carries — 315 `.stream` files, including `kill.taser`/`mark.taser` | 49 slots (546 ids) with no take in the set; 24 covered ids are also Wwise Vorbis |
-| `Arivus/Arivus_VO_over_Hoxton_Stream.zip` | Arivus (`references/ARIVUS VOICE (PAYDAY 2).zip`) | 18 slots the set carries, plus the shared `call_teammate.hey_you` slot, which plays the Geralt 'Hoxton.' callout borrowed from the GERALT archive (the set has no Arivus callout) — 324 `.stream` files | 59 slots (540 ids) with no take in the set; 21 covered ids are also Wwise Vorbis |
+| `Geralt/Geralt_VO_over_Rust_Stream.zip` | Geralt of Rivia (`references/voice/GERALT VOICE (PAYDAY 2).zip`, CP866 file names) | 29 slots the set carries — 315 `.stream` files, including `kill.taser`/`mark.taser` | 49 slots (546 ids) with no take in the set; 24 covered ids are also Wwise Vorbis |
+| `Arivus/Arivus_VO_over_Hoxton_Stream.zip` | Arivus (`references/voice/ARIVUS VOICE (PAYDAY 2).zip`) | 18 slots the set carries, plus the shared `call_teammate.hey_you` slot, which plays the Geralt 'Hoxton.' callout borrowed from the GERALT archive (the set has no Arivus callout) — 324 `.stream` files | 59 slots (540 ids) with no take in the set; 21 covered ids are also Wwise Vorbis |
 
 The ids either pack writes are listed per target in `voice_lines_vox/targets/`
 (`rust_shared_regular_vox.csv`, `old_hoxton_shared_regular_vox.csv`, `slot → bank → id`, with
@@ -318,7 +318,7 @@ open question of which one Rust barks from, are
 
 Notes that matter:
 
-- **Rust is on his own bank.** The reference Rust pack (`references/Marine VO for Rust.7z.001`)
+- **Rust is on his own bank.** The reference Rust pack (`references/voice/Marine VO for Rust.7z.001`)
   ships `char_rust` and `robbers_mission_gen` only, and its author's changelog says the U247 build
   dropped the `regular_vox` lines — so a working Rust voice pack on the 64-bit build is
   dedicated-bank. The id-keyed re-key of this pack's takes to `char_rust/` is built by

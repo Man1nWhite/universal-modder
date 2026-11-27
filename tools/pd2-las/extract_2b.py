@@ -3,7 +3,7 @@
 
     python3 tools/pd2-las/extract_2b.py     # idempotent; recover_env.sh runs it
 
-``references/2b.rar`` is unpacked as it is into ``build/pd2-las/2b/`` (gitignored
+``references/templates/2b.rar`` is unpacked as it is into ``build/pd2-las/2b/`` (gitignored
 with the rest of ``build/``). The two models every builder skins onto end up in
 ``TEMPLATES``:
 
@@ -40,7 +40,7 @@ from pathlib import Path
 import archive_cache
 
 REPO = Path(__file__).resolve().parents[2]
-RAR = REPO / "references" / "2b.rar"
+RAR = REPO / "references" / "templates" / "2b.rar"
 #: where the archive is unpacked
 OUT = REPO / "build" / "pd2-las" / "2b"
 #: the unit directory inside the archive

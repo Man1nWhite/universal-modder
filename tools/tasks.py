@@ -88,7 +88,7 @@ def command(target: str) -> list[str]:
             argv += [flag, value]
     if target == "voices_sheets":
         if not os.environ.get("SHEET"):
-            print("usage: SHEET=references/<file>.csv python tools/tasks.py voices_sheets [WANT=Rust]",
+            print("usage: SHEET=references/sheets/<file>.csv python tools/tasks.py voices_sheets [WANT=Rust]",
                   file=sys.stderr)
             return []
         if os.environ.get("LEADS"):

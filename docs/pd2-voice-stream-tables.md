@@ -15,7 +15,7 @@ Written by `tools/build_stream_tables.py`; pinned to the tracked zips by
 | --- | --- | --- | --- | --- |
 | `rust_shared_regular_vox.csv` | Rust (`npc_criminal_wild_1`, switch `rb16`) | `regular_vox` | 885 ids | 315 (`dist/Geralt/Geralt_VO_over_Rust_Stream.zip`) |
 | `old_hoxton_shared_regular_vox.csv` | Old Hoxton (`npc_criminals_suit_1`, switch `rb5`) | `regular_vox` | 885 ids | 324 (`dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip`) |
-| `rust_dedicated_char_rust.csv` | Rust | `char_rust` | 1,046 ids **measured** in `references/Marine VO for Rust.7z.001` | none — the packs write the shared bank |
+| `rust_dedicated_char_rust.csv` | Rust | `char_rust` | 1,046 ids **measured** in `references/voice/Marine VO for Rust.7z.001` | none — the packs write the shared bank |
 
 Columns: `slot`, `bank`, `id`, `vanilla_kind` (`adpcm` / `vorbis`), `written`, `target`,
 `model`, `dedicated_bank` (the folder a heister's *own* bank would be called, not what the pack
@@ -46,7 +46,7 @@ Consequences a builder must not lose:
 315 ids) or from `char_rust` is **not established** — not by the docs, not by a pack, and not in
 game yet. Search results for this table:
 
-1. **A reference Rust pack ships `char_rust`** — `references/Marine VO for Rust.7z.001` + `.002`
+1. **A reference Rust pack ships `char_rust`** — `references/voice/Marine VO for Rust.7z.001` + `.002`
    (a 7z volume pair) carries 1,046 `char_rust` ids and 220 `robbers_mission_gen` ids, plus a `<Sounds>` module whose only entry is the `g36x_any` bark
    (`prefix="rb16"`) redirected to four `rust_med_kill` OGGs. A pack that replaces the whole voice
    over `char_rust` is evidence the *objective callouts* stream from there; it does not show the
@@ -56,7 +56,7 @@ game yet. Search results for this table:
    (`Javgarag/pd2-mods`, `resources/wwise-ids/`) — so a dedicated Hoxton bank is unlikely, and
    Rust's may exist.
 3. **The measured table answers "what ids does `char_rust` have":** `rust_dedicated_char_rust.csv`,
-   `tools/build_stream_tables.py --bank dedicated --dedicated "references/Marine VO for Rust.7z.001"`
+   `tools/build_stream_tables.py --bank dedicated --dedicated "references/voice/Marine VO for Rust.7z.001"`
    (`py7zr` joins the `.001`/`.002` pair). It is ids only — the reference pack does not say which
    slot each one answers — and **it shares no id with the 885 shared ones**, so a file cannot be
    written to both banks by mistake; it would simply be a different file.
@@ -118,7 +118,7 @@ as the folder a dedicated table would have, and no such table is tracked.
 ```bash
 python3 tools/build_stream_tables.py                       # both shared tables
 python3 tools/build_stream_tables.py --target rust --bank dedicated \
-    --dedicated "references/Marine VO for Rust.7z.001"      # the measured char_rust table
+    --dedicated "references/voice/Marine VO for Rust.7z.001"      # the measured char_rust table
 .venv/bin/python -m pytest -q tests/test_stream_tables.py
 ```
 

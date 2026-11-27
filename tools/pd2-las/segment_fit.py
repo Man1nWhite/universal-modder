@@ -8,7 +8,7 @@ middle, the elbow dot sits on the silhouette, and the cuff no longer surrounds
 the ``Hand`` pivot where the in-game glove spawns.
 
 Everything here is measured against the PD2 bind-pose skeleton the pack ships
-with (``2b.model`` from ``references/2b.rar``), in the same units (cm) and the
+with (``2b.model`` from ``references/templates/2b.rar``), in the same units (cm) and the
 same space as the built ``g_body`` geometry, so the numbers are directly
 comparable between a pack and the vanilla-fitted 2B reference.
 

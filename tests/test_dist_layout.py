@@ -36,8 +36,8 @@ def test_character_folders_and_renamed_las_packages():
 
 def test_character_archives_live_in_references():
     refs = ROOT / 'references'
-    for name in ('Geralt.7z',
-                 'PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip',
-                 '1581859199_135363.rar', 'npc_criminals_suit_1.7z'):
+    for name in ('characters/Geralt.7z',
+                 'characters/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip',
+                 'characters/1581859199_135363.rar', 'templates/npc_criminals_suit_1.7z'):
         assert (refs / name).is_file()
     assert not (ROOT / 'models').exists()

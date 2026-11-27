@@ -21,9 +21,9 @@ What it does, in one pass:
   (`voice_lines_vox/miranda_lawson/hila_intent_cuts.csv`), writes `slot,id,score,what`. A lead is a
   similarity, **not** a verified id → slot mapping; nothing in `dist/` is built from a lead.
 
-    python tools/import_voiceline_sheet.py --sheet references/regular_vox.csv --tab regular_vox
-    python tools/import_voiceline_sheet.py --sheet references/regular_vox.csv --who Rust
-    python tools/import_voiceline_sheet.py --sheet references/regular_vox.csv --keys --who Rust
+    python tools/import_voiceline_sheet.py --sheet references/sheets/<file>.csv --tab regular_vox
+    python tools/import_voiceline_sheet.py --sheet references/sheets/<file>.csv --who Rust
+    python tools/import_voiceline_sheet.py --sheet references/sheets/<file>.csv --keys --who Rust
 
 Outputs land in `voice_lines_vox/sheets/`: `<tab>.csv` (whole tab), `<tab>_<who>.csv` (one
 speaker), `<tab>_<who>_keys.csv` (the leads). The tool never writes into `dist/` and never into a

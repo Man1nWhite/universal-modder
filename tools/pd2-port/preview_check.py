@@ -52,7 +52,7 @@ sys.path.append(str(HERE.parent / "pd2-las"))
 import extract_2b                       # noqa: E402  (where 2b.rar is unpacked)
 
 REPO = HERE.parents[1]
-SOURCE_ZIP = REPO / "references" / ("PC _ Computer - Mass Effect 2 - Non-Playable "
+SOURCE_ZIP = REPO / "references" / "characters" / ("PC _ Computer - Mass Effect 2 - Non-Playable "
                      "Characters - Miranda Lawson (Romance).zip")
 RIG_JSON = HERE / "reference" / "las_rig.json"
 #: optional: the donor model's bounds are printed next to the retarget's when the

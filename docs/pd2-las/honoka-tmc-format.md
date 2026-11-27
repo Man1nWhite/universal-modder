@@ -9,10 +9,10 @@ the same day. Read the decode sections as written; the last section says what th
 
 | File | sha256 |
 |---|---|
-| `references/Outfit for Honoka-109-1-1-1628020933.zip` | `86fc084c7310e9cd78bfb39cd4bb15486a15295f1c233c754492e1c4f572e154` |
+| `references/templates/Outfit for Honoka-109-1-1-1628020933.zip` | `86fc084c7310e9cd78bfb39cd4bb15486a15295f1c233c754492e1c4f572e154` |
 | `Honoka_DOAXVV_Secret_Report.TMC` (in the zip) | `12d4f370ee47a183bfc3ba4792b7fda47b4176b13444a87745c89089cefa129b` |
-| `references/Honoka/Honoka_DOAXVV_Secret_Report_ALL_EXPORT.OBJ` (3rd-party dump) | `e6e2529018eff64d84721f1468538abc9750564265ca7ea01b2e0bdebe97f4bd` |
-| `references/Honoka/Honoka_DOAXVV_Secret_Report.rigged.glb` (this repo's export, regenerated 2026-11-15 with palette-remapped joints and normal-aligned winding) | `ef23c55e738bf857b2b04ace890c4dffa3413f7d1e831bef7dd438e05940c326` |
+| `references/honoka/Honoka_DOAXVV_Secret_Report_ALL_EXPORT.OBJ` (3rd-party dump) | `e6e2529018eff64d84721f1468538abc9750564265ca7ea01b2e0bdebe97f4bd` |
+| `references/honoka/Honoka_DOAXVV_Secret_Report.rigged.glb` (this repo's export, regenerated 2026-11-15 with palette-remapped joints and normal-aligned winding) | `ef23c55e738bf857b2b04ace890c4dffa3413f7d1e831bef7dd438e05940c326` |
 
 ## What the file is
 
@@ -113,7 +113,7 @@ by the reader. Total decoded: 38,550 verts / 54,286 tris.
 
 ## Export
 
-`references/Honoka/Honoka_DOAXVV_Secret_Report.rigged.glb` (~2.9 MB,
+`references/honoka/Honoka_DOAXVV_Secret_Report.rigged.glb` (~2.9 MB,
 glTF 2.0 binary; 171-joint skin, identity scene = bind pose). Recorded export validation:
 container/views in bounds; scene lists only `[Hips_root, mesh nodes]`;
 171/171 joints reachable; `W·IBM ≈ I` ≤ 5e-06 per joint; glTF world
@@ -177,7 +177,7 @@ With palette remapping, skinning is anatomically coherent everywhere
 `OPT_Hand_*`/`MOT*Hand`; torso to `MOT02_Chest`; feet to feet). `tools/
 pd2-las/tmc.py` now parses the palettes (`mesh_palettes`, attached per
 `MeshPayload.palette`), and `tmc_export.py` remaps `JOINTS_0` through them:
-the tracked `references/Honoka/Honoka_DOAXVV_Secret_Report.rigged.glb` was
+the tracked `references/honoka/Honoka_DOAXVV_Secret_Report.rigged.glb` was
 regenerated (sha256 `ef23c55e…`; the previous `b5f51282…` bound vertices to
 raw slot indices and is superseded). The feather mesh has no palette and
 keeps raw node indices; it remains excluded from any build.
@@ -223,7 +223,7 @@ heuristic. `runtime_verified` stays `false`.
 ## The outfit ships from the `.dae` (2026-11-15)
 
 `OfficeSuite` and `OfficeSuite_Head` are built by `tools/pd2-las/build_honoko2_dae.py` from
-`references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`, which carries the six material slots the source binds and
+`references/honoka/Honoka_DOAXVV_Secret_Reportout.dae`, which carries the six material slots the source binds and
 the buttoned suit. The TMC-only pack this page used to describe — three merged material slots over the raw TMC
 meshes, the unbuttoned `WGT_cap2` jacket laid over the buttoned `WGT_headdress2` suit — was deleted on 2026-11-15
 at the owner's direction; its bytes stay in git history (`ce1d1c0`, `2e49f14`). See D40–D46, D50.

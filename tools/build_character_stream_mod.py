@@ -85,8 +85,8 @@ PACKS = {
         "install": "Geralt VO over Rust Stream",
         "out": ROOT / "dist/Geralt/Geralt_VO_over_Rust_Stream.zip",
         "picks": VOX / "geralt/slot_picks.csv",
-        "archives": [(ROOT / "references/GERALT VOICE (PAYDAY 2).zip", "cp866")],
-        "archive_note": "references/GERALT VOICE (PAYDAY 2).zip",
+        "archives": [(ROOT / "references/voice/GERALT VOICE (PAYDAY 2).zip", "cp866")],
+        "archive_note": "references/voice/GERALT VOICE (PAYDAY 2).zip",
         "manifest": "geralt_rust_stream_map.csv",
         "speaker": "Geralt of Rivia",
         "target": "Rust (npc_criminal_wild_1), the punk heister",
@@ -110,9 +110,9 @@ PACKS = {
         "install": "Arivus VO over Old Hoxton Stream",
         "out": ROOT / "dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip",
         "picks": VOX / "arivus/slot_picks.csv",
-        "archives": [(ROOT / "references/ARIVUS VOICE (PAYDAY 2).zip", None),
-                     (ROOT / "references/GERALT VOICE (PAYDAY 2).zip", "cp866")],
-        "archive_note": "references/ARIVUS VOICE (PAYDAY 2).zip",
+        "archives": [(ROOT / "references/voice/ARIVUS VOICE (PAYDAY 2).zip", None),
+                     (ROOT / "references/voice/GERALT VOICE (PAYDAY 2).zip", "cp866")],
+        "archive_note": "references/voice/ARIVUS VOICE (PAYDAY 2).zip",
         "manifest": "arivus_hoxton_stream_map.csv",
         "speaker": "Arivus",
         "target": "Old Hoxton (npc_criminals_suit_1, mtr_old_hoxton), the shared-suit heister",
@@ -254,7 +254,7 @@ WHY THIS BANK
 Rust is on his own bank (char_rust, {cfg['voice']}); the shared regular_vox ids that the other
 packs write are a different set of files. Measured on the reference Rust pack: 1,046 char_rust ids,
 none of them shared with regular_vox (docs/pd2-voice-stream-tables.md, D73). The Marine reference
-pack (references/Marine VO for Rust.7z.001) has no regular_vox folder at all on the 64-bit build.
+pack (references/voice/Marine VO for Rust.7z.001) has no regular_vox folder at all on the 64-bit build.
 
 WHAT A DEDICATED BANK COSTS
 Id -> line cannot be derived: Wwise stores no name for a streamed file. Every id here was named by

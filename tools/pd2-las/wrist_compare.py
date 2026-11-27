@@ -30,7 +30,7 @@ import build_models as bm  # noqa: E402
 import diesel_model as dm  # noqa: E402
 import preview_textured as pt  # noqa: E402
 
-GLOVES = REPO / "references" / "Heister - FPS Gloves in TPS 2.zip"
+GLOVES = REPO / "references" / "templates" / "Heister - FPS Gloves in TPS 2.zip"
 UNITS = "Heister - FPS Gloves in TPS/Heister - FPS Gloves in TPS/units/"
 GLOVE_MODELS = {
     "sydney": UNITS + "pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",

@@ -894,6 +894,42 @@ bytes, so the change is Arivus alone; the GLB interchange export rebuilt from th
 `7986f8eaef7f`, 3,443,523 B. The suite passes (1023 passed, 14 skipped) and
 `tests/test_arivus_diffuse.py` now pins the retouch's base blocks inside the pack. The offline sheet
 and the dist overview re-rendered with `--unified`; every other sheet came back byte-identical. The
-first edit stays in git and on disk as `references/old_hoxton_head_df.dds`, provenance only.
+first edit stayed in git and on disk as `references/old_hoxton_head_df.dds` until 2026-11-26, when it
+left the tree and stayed in git only (the entry below).
 `runtime_verified` stays false — how the retouch reads under the game's lighting remains a check
 waiting for a person with the game.
+
+## 2026-11-26 — `references/` grouped into six folders, four files gone
+
+**The ask.** *"Analyse `/references` — what can be deleted safely? How can they be grouped in
+folders?"* The audit that answers it is `docs/audits/2026-11-26-references-inventory.md`; this entry
+is the change it proposed, executed. Paths in the entries above this one are as they were written.
+
+**Grouped.** 63 tracked files became 59, in `characters/` (4), `templates/` (6), `textures/` (3),
+`honoka/` (31, the old `Honoka/`), `voice/` (7) and `sheets/` (7). Grouped by what reads them, so the
+folder a file is in says which builder wants it. `references/README.md` now names every one of them —
+it named 22 of 63 before, which is why `2b.rar` (a build input) and `Hoxier Hoxton V2.zip` (a
+curiosity) read the same.
+
+**Removed** (in git history, nothing read them): `Honoka/location`, a `Location$` shell artifact;
+`Hila regular_vox - regular_vox.csv`, content-identical to `voice_lines_vox/hila_regular_vox.csv`
+(885 ids in both); `old_hoxton_head_df.dds`, the first Arivus atlas edit, superseded by `(1).dds`;
+`Honoka/Tex_07(L_7) 2.dds`, the retired `Honoko4` suit diffuse (D44), which leaves `status.INPUTS`.
+Kept deliberately: `Hoxier Hoxton V2.zip` (reference-only, but the evidence for the icon DDS format),
+the fifteen unused `L_*.dds` (the tracked contact sheet, its renderer and its test all glob them) and
+`Syndey Voicelines.pdf` (a print, but a VO mod may need the printed table).
+
+**Rebuilt, five packs.** They embed `references/` paths of their own, so their `BUILD_INFO.json` or
+`README.txt` changed with the layout: `OfficeSuite` is `1b34bbea1732`, 5,768,993 B; `OfficeSuite_Head`
+`0e27343de92c`, 10,386,984 B; `Miranda_Lawson_VO_over_Hila_Stream` `fbcd89cfe600`, 14,405,868 B;
+`Geralt_VO_over_Rust_Stream` `ce6ba0246d80`, 12,825,557 B; `Arivus_VO_over_Hoxton_Stream`
+`5ef59bf31f29`, 9,699,268 B. Every other pack is byte-identical: only those five name a source path,
+and `OfficeSuite_Miranda_Romance_over_Hila` came back `tracked` when its target re-ran. `fresh.py
+check` then rebuilt all 13 from a copy of the new tree: **13 of 13 same**.
+
+**Also.** `status.INPUTS` dropped the removed diffuse and gained the six `voice/` archives the stream
+targets read, so `ready` is now honest for them; the suit-unit search in `build_joy_head_mods.py`
+walks `references/` recursively instead of one level; `references/README.md` documents the sheets and
+voice packs it had never named. The suite is 1060 passed, 13 skipped (2 `test_repo_weight` tests read
+HEAD and pass once this lands); `pack_checksum.py` 13 match; `check_links.py` 433/0; `um publish
+check .` PASS, 0 warnings.

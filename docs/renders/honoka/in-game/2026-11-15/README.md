@@ -10,7 +10,7 @@ menu's scroll bars and the Russian menu heading visible at the edges.
 > history. `make -sC tools/pd2-las honokodae` now builds only `OfficeSuite`.
 
 - **Pack (removed, D57):** `dist/Honoka/Honoko2.zip` — the DOAXVV "Secret Report" costume built from
-  `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae` by `tools/pd2-las/build_honoko2_dae.py`
+  `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae` by `tools/pd2-las/build_honoko2_dae.py`
   (the builder then produced `Honoko2`; since D57 it writes only `OfficeSuite`). The user states these
   captures are of this pack. The slimmer sibling `dist/Honoka/Honoko3.zip` (same outfit, mesh scaled 5%
   about the rig's bones, D42) and `dist/Honoka/Honoko4.zip` (alternate suit colourway, D44–D46; both

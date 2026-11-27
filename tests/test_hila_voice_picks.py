@@ -151,7 +151,7 @@ def test_the_tracked_pieces_manifest_is_what_the_picks_say():
     import io
 
     if not vo.ARCHIVE.is_file():
-        pytest.skip("references/Голос Лоусон.7z is absent from this sandbox snapshot")
+        pytest.skip("references/voice/Голос Лоусон.7z is absent from this sandbox snapshot")
     pytest.importorskip("py7zr", reason="the picks are resolved against the archive listing")
     oggs = vo.list_archive_oggs() + vo.list_mira_files()
     rows = vo.manifest_rows(vo.load_cuts(), vo.load_picks(), oggs, vo.load_splits())

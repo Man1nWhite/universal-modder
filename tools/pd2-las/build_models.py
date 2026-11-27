@@ -40,7 +40,7 @@ Usage (from the repo root):
   .venv/bin/python tools/pd2-las/build_models.py [--templates DIR] [--out DIR]
 
 --templates is the directory holding 2b.model and fps_2b.model from
-references/2b.rar. It defaults to DEFAULT_TEMPLATES, the place extract_2b.py
+references/templates/2b.rar. It defaults to DEFAULT_TEMPLATES, the place extract_2b.py
 unpacks them to (build/pd2-las/2b/). With the default --out (build/pd2-las) the finished
 zip also replaces the tracked dist/Miranda_L4D2/Miranda_L4D2_LAS.zip; any other --out leaves the
 tracked files alone. Previews are written to <out>/previews/.
@@ -69,9 +69,9 @@ from source_model import ModelData, load_model  # noqa: E402
 from vpk import VpkArchive  # noqa: E402
 
 REPO = HERE.parents[1]
-SOURCE_ZIP = REPO / "references" / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "references" / "characters" / "l4d2_miranda_lawson_1.zip"
 #: The default of every builder's --templates: where extract_2b.py unpacks
-#: references/2b.rar. That module is the one place the path is written.
+#: references/templates/2b.rar. That module is the one place the path is written.
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
 
 TPP_MDLS = (
@@ -1624,7 +1624,7 @@ def require_templates(path: Path, names=("2b.model", "fps_2b.model")) -> Path:
         raise SystemExit(
             f"2B templates not found in {extract_2b.shown(Path(path))} "
             f"(missing: {', '.join(missing)}). Run `{extract_2b.RECOVER}` to unpack "
-            "references/2b.rar, or pass --templates DIR.")
+            "references/templates/2b.rar, or pass --templates DIR.")
     path = Path(path)
     if extract_2b.managed(path) and not extract_2b.ready(path):
         raise SystemExit(f"2B template cache is stale in {extract_2b.shown(path)}. "

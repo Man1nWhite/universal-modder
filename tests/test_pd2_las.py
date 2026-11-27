@@ -19,7 +19,7 @@ from dist_paths import dist_path  # noqa: E402
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-SOURCE_ZIP = REPO / "references" / "l4d2_miranda_lawson_1.zip"
+SOURCE_ZIP = REPO / "references" / "characters" / "l4d2_miranda_lawson_1.zip"
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
 pytestmark = pytest.mark.skipif(
@@ -989,7 +989,7 @@ class TestLasScaffold:
         assert out.read_bytes() == out2.read_bytes()
 
     def test_reference_archive_untouched(self):
-        ref = REPO / "references" / "2b.rar"
+        ref = REPO / "references" / "templates" / "2b.rar"
         if ref.is_file():
             # 2b.rar is the contract reference; the pipeline must not rewrite it.
             assert zipfile.is_zipfile(ref) is False
@@ -1067,7 +1067,7 @@ class TestLasScaffold:
         head drawable carries *two* atoms whose second material is `mtr_lashes` rather than the other
         heisters' `mtr_hair`, and `mtr_head` is authored against a GSMA gloss map the atlas does not
         have. The two Hila packs are also the only packs whose eye quadrant is the user's
-        `references/EYE_Diff.png` instead of the synthesised eye, so both halves are pinned here.
+        `references/textures/EYE_Diff.png` instead of the synthesised eye, so both halves are pinned here.
         """
         import io
         import sys as _sys
@@ -1142,7 +1142,7 @@ class TestLasScaffold:
                 off_supplied = float(np.abs(quad - eye.astype(np.int16)).mean())
                 off_synth = float(np.abs(quad - synth_eye.astype(np.int16)).mean())
                 assert off_supplied < 4.0 and off_supplied * 3 < off_synth, (
-                    f"{zip_name}: the eye quadrant is not references/EYE_Diff.png "
+                    f"{zip_name}: the eye quadrant is not references/textures/EYE_Diff.png "
                     f"(mean |diff| {off_supplied:.2f} to the supplied diffuse, {off_synth:.2f} to the synthesised eye)")
                 assert set(np.unique(head_df[1024:2048, 1024:2048, 3]).tolist()) <= {4, 8, 10}
 
@@ -1192,13 +1192,13 @@ class TestLasScaffold:
         tex = info["source"]["textures"]
         for slot, dds in (("suit", "Tex_07(L_7)3.dds"), ("jewelry", "Tex_23(L_23)2.dds")):
             entry = tex[f"{stem}_{slot}_df"]
-            assert entry["source"] == f"references/Honoka/{dds}", slot
-            source = REPO / "references" / "Honoka" / dds
+            assert entry["source"] == f"references/honoka/{dds}", slot
+            source = REPO / "references" / "honoka" / dds
             assert entry["source_sha256"] == hashlib.sha256(source.read_bytes()).hexdigest(), slot
         for slot, dds in (("body", "L_3.dds"), ("panties", "L_14.dds"),
                           ("bra", "L_17.dds"), ("shoes", "L_20.dds")):
-            assert tex[f"{stem}_{slot}_df"]["source"] == f"references/Honoka/{dds}", slot
-        assert tex[f"{stem}_suit_nm"]["source"] == "references/Honoka/L_8.dds"
+            assert tex[f"{stem}_{slot}_df"]["source"] == f"references/honoka/{dds}", slot
+        assert tex[f"{stem}_suit_nm"]["source"] == "references/honoka/L_8.dds"
 
     def test_officesuite_opens_the_layer_gaps_and_trims_the_shadow_caster(self):
         """The shells the in-game flakes came from stand >= 1 mm apart; the shadow caster drops two (D44).

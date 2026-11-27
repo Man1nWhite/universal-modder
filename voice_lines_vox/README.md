@@ -1,8 +1,8 @@
 # voice_lines_vox
 
 Working data for the Hila (`rb21`) voice-line replacement: Miranda Lawson clips from
-`references/Голос Лоусон.7z` and purpose-authored Mira Lawson takes from
-`references/LAWSON VOICE (PAYDAY 2).7z`, mapped to Hila's PAYDAY 2 lines. The only shipped pack is the id-keyed
+`references/voice/Голос Лоусон.7z` and purpose-authored Mira Lawson takes from
+`references/voice/LAWSON VOICE (PAYDAY 2).7z`, mapped to Hila's PAYDAY 2 lines. The only shipped pack is the id-keyed
 stream pack, `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
 [`docs/pd2-voice-mod-install.md`](../docs/pd2-voice-mod-install.md) §7.
 
@@ -44,7 +44,7 @@ tools/pd2-las voices_tables`) and pinned to the zips by `tests/test_stream_table
 | --- | --- | --- |
 | `rust_shared_regular_vox.csv` | Rust, `regular_vox` (switch `rb16`) | 315 = `Geralt_VO_over_Rust_Stream.zip` |
 | `old_hoxton_shared_regular_vox.csv` | Old Hoxton, `regular_vox` (switch `rb5`) | 324 = `Arivus_VO_over_Hoxton_Stream.zip` |
-| `rust_dedicated_char_rust.csv` | Rust, `char_rust` — **measured** in `references/Marine VO for Rust.7z.001` | none (no id shared with the table above) |
+| `rust_dedicated_char_rust.csv` | Rust, `char_rust` — **measured** in `references/voice/Marine VO for Rust.7z.001` | none (no id shared with the table above) |
 
 Both leave the 27 Wwise Vorbis ids and the slots without a take vanilla, and both name the
 folder a *dedicated* bank would be (`char_rust`, `char_hoxton`). Why the two banks are not
@@ -82,8 +82,8 @@ Since 2026-11-25, two more packs of the same route ship for other characters, bu
 
 | Pack | Source | Coverage |
 | --- | --- | --- |
-| `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` | `references/GERALT VOICE (PAYDAY 2).zip` ("Геральт", CP866 file names) | the 29 slots the set carries (315 `.stream` files over the shared ids); alternate takes (`civ.down (2..4)`, `mask.go (2)`, `inspire.faster (2)`) are left unused, noted in `geralt/slot_picks.csv` |
-| `dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip` | `references/ARIVUS VOICE (PAYDAY 2).zip` (+ one borrowed file) | the 18 slots the set carries, plus `call_teammate.hey_you` ← the Geralt 'Hoxton.' callout borrowed from the GERALT archive per the user's 2026-11-25 decision, so that slot is Geralt's voice too |
+| `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` | `references/voice/GERALT VOICE (PAYDAY 2).zip` ("Геральт", CP866 file names) | the 29 slots the set carries (315 `.stream` files over the shared ids); alternate takes (`civ.down (2..4)`, `mask.go (2)`, `inspire.faster (2)`) are left unused, noted in `geralt/slot_picks.csv` |
+| `dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip` | `references/voice/ARIVUS VOICE (PAYDAY 2).zip` (+ one borrowed file) | the 18 slots the set carries, plus `call_teammate.hey_you` ← the Geralt 'Hoxton.' callout borrowed from the GERALT archive per the user's 2026-11-25 decision, so that slot is Geralt's voice too |
 
 Both write the **same shared `regular_vox` voice-line ids** as the Hila pack — they are alternatives,
 not companions; install only one of the three. Slots with no take in the pack's source set are left
@@ -129,7 +129,7 @@ the shipped stream builder.
 ## Known gaps in the source pack
 
 **2026-11-25 — the sub-8 slots are gone or replaced.** The semantic-fit round scored all 78 slots
-against game intention. Every slot with a take in `references/LAWSON VOICE (PAYDAY 2).7z` now ships that
+against game intention. Every slot with a take in `references/voice/LAWSON VOICE (PAYDAY 2).7z` now ships that
 take, whole (30 ms of the file's own leading silence and 50 ms of its trailing silence kept), at the
 usual −1.5 dBFS peak — 33 slots, including the `cop.*` / `civ.*` / `tech.fix` call-tags the archive
 carries (`cop.cuffs`, `cop.kneel`, `cop.drop`, `mark.taser`, `tech.fix`). The 17 slots below 8 with no

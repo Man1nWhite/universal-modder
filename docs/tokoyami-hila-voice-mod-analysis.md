@@ -1,4 +1,4 @@
-# How a PAYDAY 2 voice pack is made: dissecting `references/Tokoyami Hila.7z`
+# How a PAYDAY 2 voice pack is made: dissecting `references/voice/Tokoyami Hila.7z`
 
 The reference pack replaces Hila's (`ecp_female`, voice switch `rb21`) heister lines by **writing one
 game file per voice-line id**. It is the only working example of the route this repository's
@@ -7,7 +7,7 @@ is read from the archive itself, not from memory.
 
 | | |
 |---|---|
-| Archive | `references/Tokoyami Hila.7z` (20 MB, `Tokoyami Towa Voice for Hila`) |
+| Archive | `references/voice/Tokoyami Hila.7z` (20 MB, `Tokoyami Towa Voice for Hila`) |
 | Contents | `main.xml`, `hooks/localization.lua`, 1,089 `.stream`, two DDS-wrapped `ecp_female.texture` icons |
 | Bank layout | `soundbanks/streamed/regular_vox/` 887 files, `soundbanks/streamed/robbers_mission_gen/` 202 |
 | Mechanism | no `<Sounds>`, no BeardLib module, no OGG — the soundbanks are the entire mod |

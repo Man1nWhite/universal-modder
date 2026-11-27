@@ -1100,7 +1100,7 @@ def main(argv: list[str] | None = None) -> None:
             (48, 42, 40),
             False,
             "dist/Miranda/Miranda_L4D2_over_Hila.zip — Hila Head Replacement (L4D2)",
-            "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
+            "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/textures/EYE_Diff.png",
             "Miranda_L4D2_over_Hila.zip",
         ),
         (
@@ -1115,7 +1115,7 @@ def main(argv: list[str] | None = None) -> None:
             (48, 42, 40),
             True,
             "dist/Miranda/Miranda_Romance_over_Hila.zip — Hila Head Replacement (ME2 Romance)",
-            "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/EYE_Diff.png",
+            "Replaces Hila's head, hair & eyelashes (heist & menu models) + character icon | eyes: references/textures/EYE_Diff.png",
             "Miranda_Romance_over_Hila.zip",
         ),
     ]

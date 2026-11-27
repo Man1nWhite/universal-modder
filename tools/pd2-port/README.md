@@ -61,8 +61,8 @@ extraction with `PD2_2B_TEMPLATES`) and fails without them. The same stage budge
 
 | | What the pipeline takes or makes | The shipped port |
 |---|---|---|
-| Source model | a zip archive holding a rigged, skinned COLLADA `.dae` and its PNG textures (the repo keeps sources under `references/`) | `references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`; of its two `.dae` files the build reads `Miranda Lawson (Romance) - Adjusted Version.dae` |
-| Rig contract | `reference/las_rig.json` — the PD2 biped skeleton an LAS unit animates on, extracted from the model in `references/2b.rar` by `extract_las_rig.py` (skeleton data only; no 2B art) | the same file — PAYDAY 2's rig does not change with the outfit |
+| Source model | a zip archive holding a rigged, skinned COLLADA `.dae` and its PNG textures (the repo keeps sources under `references/`) | `references/characters/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip`; of its two `.dae` files the build reads `Miranda Lawson (Romance) - Adjusted Version.dae` |
+| Rig contract | `reference/las_rig.json` — the PD2 biped skeleton an LAS unit animates on, extracted from the model in `references/templates/2b.rar` by `extract_las_rig.py` (skeleton data only; no 2B art) | the same file — PAYDAY 2's rig does not change with the outfit |
 | Output | a BeardLib pack zip, built deterministically | `dist/Miranda_Romance/Miranda_Romance_LAS.zip`, root `Lawson_LAS/` (**tracked in git**) |
 | Checksum | — | `dist/Miranda_Romance/Miranda_Romance_LAS.zip.sha256` (tracked; CI refuses to publish a build that differs from it) |
 | Release | — | [`STATUS.md`](STATUS.md) says whether there is one and which pack it serves; the body of a release page is `releases/lawson-las-vN.md` |

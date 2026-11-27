@@ -242,7 +242,7 @@ def test_the_cut_and_the_bracelet_are_where_they_were(side):
 
 # ---------------------------------------------------------------- the bug itself, posed
 
-GLOVES = ROOT / "references" / "Heister - FPS Gloves in TPS 2.zip"
+GLOVES = ROOT / "references" / "templates" / "Heister - FPS Gloves in TPS 2.zip"
 GLOVE_UNITS = "Heister - FPS Gloves in TPS/Heister - FPS Gloves in TPS/units/"
 GLOVES_BY_NAME = {
     "sydney": GLOVE_UNITS + "pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_sydney.model",

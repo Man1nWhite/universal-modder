@@ -29,7 +29,7 @@ CAP = 25 << 20
 
 #: repo-relative paths (or their split-archive stem) allowed past CAP, each with the reason
 ALLOWED: dict[str, str] = {
-    "references/Marine VO for Rust.7z":
+    "references/voice/Marine VO for Rust.7z":
         "split 7z set (.001 + .002) holding the Rust voice lines the VO packs are cut from; "
         "the only copy, and git stores each volume compressed already",
 }

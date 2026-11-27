@@ -46,27 +46,33 @@ import extract_2b  # noqa: E402
 import packs  # noqa: E402
 from pack_checksum import read_checksum, sha256_file, sidecar_path  # noqa: E402
 
-#: where references/2b.rar is unpacked: the default of every builder's --templates
+#: where references/templates/2b.rar is unpacked: the default of every builder's --templates
 TEMPLATES = extract_2b.TEMPLATES
 
 #: archives and inputs the builders read (repo-relative)
 INPUTS = (
-    "references/l4d2_miranda_lawson_1.zip",
-    "references/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip",
-    "references/Geralt.7z",
-    "references/1581859199_135363.rar",
-    "references/old_hoxton_head_df(1).dds",
-    "references/npc_criminals_suit_1.7z",
-    "references/npc_criminals_ecp_female.7z",
-    "references/EYE_Diff.png",
-    "references/2b.rar",
-    "references/Ada Wong over Joy.7z",
-    "references/Heister - FPS Gloves in TPS 2.zip",
-    "references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae",
-    "references/Honoka/Tex_07(L_7) 2.dds",
-    "references/Honoka/Tex_07(L_7)3.dds",
-    "references/Honoka/Tex_23(L_23)2.dds",
-    "references/Outfit for Honoka-109-1-1-1628020933.zip",
+    "references/characters/l4d2_miranda_lawson_1.zip",
+    "references/characters/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip",
+    "references/characters/Geralt.7z",
+    "references/characters/1581859199_135363.rar",
+    "references/textures/old_hoxton_head_df(1).dds",
+    "references/templates/npc_criminals_suit_1.7z",
+    "references/templates/npc_criminals_ecp_female.7z",
+    "references/textures/EYE_Diff.png",
+    "references/templates/2b.rar",
+    "references/templates/Ada Wong over Joy.7z",
+    "references/templates/Heister - FPS Gloves in TPS 2.zip",
+    "references/honoka/Honoka_DOAXVV_Secret_Reportout.dae",
+    "references/honoka/Tex_07(L_7)3.dds",
+    "references/honoka/Tex_23(L_23)2.dds",
+    "references/templates/Outfit for Honoka-109-1-1-1628020933.zip",
+    # the stream targets: the container pack, and the clips the two VO routes cut from
+    "references/voice/Tokoyami Hila.7z",
+    "references/voice/Голос Лоусон.7z",
+    "references/voice/LAWSON VOICE (PAYDAY 2).7z",
+    "references/voice/GERALT VOICE (PAYDAY 2).zip",
+    "references/voice/ARIVUS VOICE (PAYDAY 2).zip",
+    "references/voice/Marine VO for Rust.7z.001",
 )
 
 #: pack -> make target, from the one table (`packs.py`); every other *_over_* pack is a head

@@ -18,7 +18,7 @@ The install contract, the voice-line tables and the format write-ups.
 | [CI: what runs, what must pass, how to change it](ci.md) | `ci.md` |
 | [Packaging & installing the Hila VO mod (PAYDAY 2 · any BLT / SuperBLT)](pd2-voice-mod-install.md) | `pd2-voice-mod-install.md` |
 | [Stream tables for Rust and Old Hoxton (where the VO packs' ids live)](pd2-voice-stream-tables.md) | `pd2-voice-stream-tables.md` |
-| [How a PAYDAY 2 voice pack is made: dissecting `references/Tokoyami Hila.7z`](tokoyami-hila-voice-mod-analysis.md) | `tokoyami-hila-voice-mod-analysis.md` |
+| [How a PAYDAY 2 voice pack is made: dissecting `references/voice/Tokoyami Hila.7z`](tokoyami-hila-voice-mod-analysis.md) | `tokoyami-hila-voice-mod-analysis.md` |
 
 ## PAYDAY 2 work
 

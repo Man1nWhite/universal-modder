@@ -192,7 +192,7 @@ each_pack = pytest.mark.parametrize("pack", PACKS)
 @functools.lru_cache(maxsize=None)
 def _source(first_person: bool):
     """The L4D2 model the Miranda packs are built from, as the Source reader decodes it."""
-    arc = VpkArchive.from_zip(str(REPO / "references" / "l4d2_miranda_lawson_1.zip"),
+    arc = VpkArchive.from_zip(str(REPO / "references" / "characters" / "l4d2_miranda_lawson_1.zip"),
                               "miranda_rochelle.vpk")
     paths = build_las.FPS_MDLS if first_person else build_las.TPP_MDLS
     return load_model(*(arc.read(p) for p in paths))

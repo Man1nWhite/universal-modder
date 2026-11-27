@@ -489,7 +489,7 @@
   (all merged or superseded: `a72d4579` duplicated merged PR#3; `ecdfa60b`'s nifly
   route was replaced by `skyrim_source.py`). Remote now: `main` + `star-chart` only.
 - **Repos read:** `Vladik268/P2` (LAS 4.1.9 + BeardLib), `LebiFur/LASCreator`,
-  `references/2b.rar`, and the decompiled vanilla Lua (`AzureeDev/payday-2-luajit`).
+  `references/templates/2b.rar`, and the decompiled vanilla Lua (`AzureeDev/payday-2-luajit`).
 - **Vanilla/DLC/Infamy outfits keep gloves changeable.** `glovestweakdata.lua`
   defines `glove_adapter = { unit = units/pd2_dlc_hnd/characters/hnd_forearms/...,
   character_sequence = {female/male per heister}, player_style_exclude_list =

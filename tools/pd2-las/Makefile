@@ -76,8 +76,8 @@ voices_char_rust:  ## Geralt's takes onto Rust's own char_rust bank (refuses unt
 	@cd "$(ROOT)" && $(PY) tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust
 
 # Not a BUILD target either: an import is an input, not a pack, so `fresh`/`status` do not own it.
-voices_sheets:  ## import a community voice-line sheet (id | who | what | notes) -> voice_lines_vox/sheets/ ; SHEET=references/<file>.csv WANT=Rust
-	@cd "$(ROOT)" && test -n "$(SHEET)" || { echo "usage: make -sC tools/pd2-las voices_sheets SHEET=references/regular_vox.csv [WANT=Rust]"; exit 1; }
+voices_sheets:  ## import a community voice-line sheet (id | who | what | notes) -> voice_lines_vox/sheets/ ; SHEET=references/sheets/<file>.csv WANT=Rust
+	@cd "$(ROOT)" && test -n "$(SHEET)" || { echo "usage: make -sC tools/pd2-las voices_sheets SHEET=references/sheets/<file>.csv [WANT=Rust]"; exit 1; }
 	@cd "$(ROOT)" && $(PY) tools/import_voiceline_sheet.py --sheet "$(SHEET)" $(if $(TAB),--tab "$(TAB)") $(if $(WANT),--who "$(WANT)") $(if $(LEADS),--keys)
 
 glb:            ## Arivus_Head_over_Old_Hoxton_GLB: the Arivus head .glb + its .dds, from the tracked Arivus_over_Hoxton.zip -> dist/Arivus/
