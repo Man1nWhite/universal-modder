@@ -103,7 +103,9 @@ two shipped packs already write. `voice_lines_vox/targets/rust_shared_regular_vo
 id answers which slot for Rust (`slot, bank, id, …`); a sheet row whose id is in that table and
 whose `who` is Rust is a *verified* pair for that slot, and a row that contradicts its slot is how
 the 27 Vorbis exceptions and the "vanilla line still plays" notes get caught. That reconciliation
-is the next step, and it needs the full export (`File -> Download -> CSV`), not 138 pages of it.
+is the next step, and the full export it needed is now tracked: all four tabs are in
+`references/sheets/` and imported into `voice_lines_vox/sheets/` (D81), so the join is a command, not a
+download.
 
 ## Old Hoxton: the shared-bank heister
 

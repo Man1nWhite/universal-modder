@@ -1,11 +1,3995 @@
 slot,id,score,what,who
+ammo.low,151510284,1.00,Ammo low,Wick
+ammo.low,612608180,1.00,Ammo low,Clover
+ammo.low,710103584,1.00,Ammo low,Chains
+ammo.low,715451342,1.00,Low on ammo,Chains
+ammo.low,837130135,1.00,Ammo low,Dallas
+ammo.low,139018901,0.80,I'm low on ammo,Clover
+ammo.low,458647492,0.80,I'm low on ammo,Houston
+ammo.low,128448072,0.67,No ammo,Dallas
+ammo.low,417107897,0.67,0 ammo,Chains
+ammo.low,473928782,0.67,Ammo low over here,Chains
+ammo.low,555244361,0.67,I'm running low on ammo,Houston
+ammo.low,56929787,0.67,No ammo,Hoxton
+ammo.low,574030550,0.67,I'm running low on ammo,Dallas
+assault.incoming,141765861,0.67,Cops,Chains
+assault.incoming,18449354,0.67,Cops,Chains
+assault.incoming,243379756,0.67,Cops in the AO,Chains
+assault.incoming,312735059,0.67,Cops,Chains
+assault.incoming,728509710,0.67,"In 30 seconds you got company, cops incoming",Bain
+assault.ready,1011970459,1.00,Ready,Cop
+assault.ready,1027216322,1.00,Get ready,Cop
+assault.ready,1028296848,1.00,Get ready,Bulldozer
+assault.ready,103160186,1.00,Ready!,Cop
+assault.ready,1042770003,1.00,Ready!,Cop
+assault.ready,1045014689,1.00,Ready now,Cop (static)
+assault.ready,1055208741,1.00,Ready up,Cop
+assault.ready,1057422347,1.00,Ready,Cop (static)
+assault.ready,1063410012,1.00,Get ready,Cop (static)
+assault.ready,1069467611,1.00,Ready,Cop (static)
+assault.ready,109176756,1.00,Ready now,Cop
+assault.ready,110396171,1.00,Get ready,Cop (static)
+assault.ready,129804872,1.00,Ready up,Cop (static)
+assault.ready,13914046,1.00,Ready now,Cop (static)
+assault.ready,14023149,1.00,Ready,Cop (static)
+assault.ready,163817707,1.00,Ready up,Cop
+assault.ready,168764185,1.00,Ready!,Cop
+assault.ready,174028358,1.00,Ready up,Cop
+assault.ready,189754780,1.00,Get ready,Cop
+assault.ready,197819563,1.00,Ready up,Cop (static)
+assault.ready,201172108,1.00,Ready up,Cop (static)
+assault.ready,214315983,1.00,Ready,Cop (static)
+assault.ready,238566692,1.00,Get ready for this,Dallas
+assault.ready,240964745,1.00,Ready now,Cop (static)
+assault.ready,2454868,1.00,Ready,Cop (static)
+assault.ready,266960930,1.00,Ready up,Cop (static)
+assault.ready,27774348,1.00,Ready now,Cop (static)
+assault.ready,286184557,1.00,Ready,Cop
+assault.ready,300119148,1.00,Ready,Cop (static)
+assault.ready,304327429,1.00,Ready up,Cop (static)
+assault.ready,304415207,1.00,Ready,Cop
+assault.ready,315061875,1.00,Get ready,Cop (static)
+assault.ready,326459499,1.00,Ready up,Cop
+assault.ready,345907565,1.00,Ready,Cop (static)
+assault.ready,346662962,1.00,Get ready now,Dallas
+assault.ready,351062689,1.00,Ready now,Cop
+assault.ready,381314649,1.00,Ready now,Cop (static)
+assault.ready,381550706,1.00,Be ready be ready,Hoxton
+assault.ready,392566404,1.00,Ready,Cop
+assault.ready,406980834,1.00,Ready,Cop (static)
+assault.ready,415377982,1.00,Ready now,Cop (static)
+assault.ready,417262395,1.00,Ready up,Cop (static)
+assault.ready,417663932,1.00,Get ready,Cop
+assault.ready,452890659,1.00,Get ready,Cop
+assault.ready,458189212,1.00,Get ready,Cop
+assault.ready,463260111,1.00,Get ready,Cop (static)
+assault.ready,464832292,1.00,Get ready now,Wolf
+assault.ready,468480440,1.00,Ready up,Cop
+assault.ready,474078282,1.00,Get ready,Cop (static)
+assault.ready,474778778,1.00,Ready now,Cop (static)
+assault.ready,475376142,1.00,Ready up,Cop (static)
+assault.ready,478002951,1.00,Get ready,Cop
+assault.ready,491920105,1.00,Get ready,Cop
+assault.ready,512320021,1.00,Ready up,Cop
+assault.ready,528438859,1.00,Ready now,Cop
+assault.ready,53095921,1.00,Ready now,Cop
+assault.ready,540932979,1.00,Ready,Cop (static)
+assault.ready,545369556,1.00,Get ready,Cop (static)
+assault.ready,552244582,1.00,Ready up,Cop
+assault.ready,556604713,1.00,Ready,Cop (static)
+assault.ready,557744195,1.00,Ready,Cop (static)
+assault.ready,565189554,1.00,Ready now,Cop
+assault.ready,569994014,1.00,Ready up,Cop (static)
+assault.ready,597543075,1.00,Ready!,Cop
+assault.ready,600208786,1.00,Get ready,Cop (static)
+assault.ready,610173042,1.00,Ready up,Cop
+assault.ready,624753357,1.00,Ready,Cop (static)
+assault.ready,629924304,1.00,Ready,Cop
+assault.ready,650507937,1.00,Ready now,Cop
+assault.ready,65489933,1.00,Get ready,Cop
+assault.ready,665108552,1.00,Ready,Cop (static)
+assault.ready,665370808,1.00,Ready,Cop (static)
+assault.ready,670491750,1.00,Ready now,Cop
+assault.ready,689178284,1.00,Ready now,Cop (static)
+assault.ready,717600943,1.00,Get ready,Bain
+assault.ready,725256987,1.00,Ready now,Cop (static)
+assault.ready,725385141,1.00,Ready now,Cop (static)
+assault.ready,726586317,1.00,Get ready,Cop
+assault.ready,736708847,1.00,Ready now,Cop (static)
+assault.ready,742602702,1.00,Ready now,Cop
+assault.ready,744506240,1.00,Ready,Cop
+assault.ready,754245238,1.00,Ready,Cop
+assault.ready,795876885,1.00,Ready now,Cop (static)
+assault.ready,797236644,1.00,Ready up,Cop
+assault.ready,812512887,1.00,Ready,Cop
+assault.ready,837869794,1.00,Ready now,Cop
+assault.ready,856474552,1.00,Ready,Cop (static)
+assault.ready,856959371,1.00,Ready,Cop
+assault.ready,864929058,1.00,Ready up,Cop
+assault.ready,868055980,1.00,Ready up,Cop (static)
+assault.ready,875935814,1.00,Ready up,Cop
+assault.ready,900945593,1.00,Ready!,Cop (static)
+assault.ready,906891031,1.00,Get ready.,Cop (static)
+assault.ready,925315200,1.00,Ready,Cop
+assault.ready,957202210,1.00,Ready now,Cop
+assault.ready,96546925,1.00,Ready up,Dallas
+assault.ready,966041723,1.00,Ready up,Chains
+assault.ready,978759237,1.00,Ready!,Cop
+assault.ready,979313314,1.00,Ready now,Cop (static)
+assault.ready,987549243,1.00,Ready now,Cop
+assault.ready,993183621,1.00,Ready up,Cop (static)
+assault.ready,994668139,1.00,Ready up,Cop
+assault.ready,101494963,0.67,Ready for action,Cop (static)
+assault.ready,151261880,0.67,"Ready up, cops",Chains
+assault.ready,160347653,0.67,Ready for the bang,Clover
+assault.ready,167505444,0.67,Ready for action,Cop (static)
+assault.ready,171569928,0.67,Guns ready,Hoxton
+assault.ready,185051361,0.67,"Easy now, ready",Chains
+assault.ready,205268940,0.67,Get ready for action,Dallas
+assault.ready,234842689,0.67,"Ready up, positions",Chains
+assault.ready,256185881,0.67,Get ready to fight,Houston
+assault.ready,267064569,0.67,Get ready for action,Dallas
+assault.ready,306936451,0.67,"Ok, ready to roll",Houston
+assault.ready,321817181,0.67,Ready for action,Cop
+assault.ready,330786848,0.67,Get ready to fight,Houston
+assault.ready,335314699,0.67,Wake up get ready,Chains
+assault.ready,335447972,0.67,Ready for action,Cop
+assault.ready,339187565,0.67,"Easy now, ready",Chains
+assault.ready,340498228,0.67,Get ready to rock,Chains
+assault.ready,340521,0.67,Ready for action!,Cop (static)
+assault.ready,37756367,0.67,Ready for action,Cop
+assault.ready,407617283,0.67,"Wake up, get ready",Chains
+assault.ready,440757827,0.67,Get ready to rock,Wolf
+assault.ready,440903212,0.67,Be ready for anything,Bain
+assault.ready,476829238,0.67,Ready for discharge,Taser
+assault.ready,492578786,0.67,Get ready to fight,Dallas
+assault.ready,5144188,0.67,Get ready to fight,Hoxton
+assault.ready,518437891,0.67,Oh I'm ready,Bulldozer
+assault.ready,652843307,0.67,Ready for action,Cop
+assault.ready,70505593,0.67,Get ready to brawl,Hoxton
+assault.ready,754518495,0.67,They won't be ready for us,Houston
+assault.ready,770905533,0.67,Ready for action,Cop (static)
+assault.ready,80658470,0.67,They won't be ready for us,Hoxton
+assault.ready,809317239,0.67,Ready for action,Cop (static)
+assault.ready,814701585,0.67,Ready for action,Cop
+assault.ready,823384612,0.67,"Ready up, bulldozer",Chains
+assault.ready,824346111,0.67,Ready for discharge,Taser
+assault.retreat,528214650,1.00,Pulling back,Captain
+assault.retreat,1060475447,0.80,The police are pulling back,Houston
+assault.retreat,1066366269,0.80,Cops are pulling back,Dallas
+assault.retreat,11558410,0.80,They're pulling back,Chains
+assault.retreat,206938338,0.80,The police are pulling back,Chains
+assault.retreat,238482900,0.80,They're pulling back,Hoxton
+assault.retreat,287954731,0.80,They're pulling back,Houston
+assault.retreat,333438570,0.80,The cops are pulling back,Chains
+assault.retreat,395132520,0.80,Law is pulling back,Houston
+assault.retreat,414957398,0.80,They're pulling back,Dallas
+assault.retreat,442425952,0.80,The police are pulling back,Hoxton
+assault.retreat,462591868,0.80,The police are pulling back,Clover
+assault.retreat,475530790,0.80,The cops are pulling back,Hoxton
+assault.retreat,589567047,0.80,They're pulling back,Wolf
+assault.retreat,601630893,0.80,The cops are pulling back,Wolf
+assault.retreat,674956060,0.80,They're pulling back,Clover
+assault.retreat,7145532,0.80,They're pulling back,Wick
+assault.retreat,909291485,0.80,The police are pulling back,Wolf
+assault.retreat,188494441,0.67,I got your back,Chains
+assault.retreat,470068740,0.67,In the back,Bain
+assault.retreat,52222297,0.67,They're pulling back hahaha,Clover
+assault.retreat,711906492,0.67,I got your back ı got you,Chains
+call_teammate.hey_you,1012686504,1.00,Hey!,Cop (static)
+call_teammate.hey_you,132791669,1.00,Hey,Cop
+call_teammate.hey_you,144337991,1.00,Hey,Cop (static)
+call_teammate.hey_you,158254622,1.00,Hey,Security
+call_teammate.hey_you,159605659,1.00,Hey,Clover
+call_teammate.hey_you,16949098,1.00,Hey you get up,Wolf
+call_teammate.hey_you,193566284,1.00,Hey,Houston
+call_teammate.hey_you,20383208,1.00,Hey,Hoxton
+call_teammate.hey_you,221146087,1.00,Hey,Cop (static)
+call_teammate.hey_you,246234151,1.00,Hey,Wolf
+call_teammate.hey_you,25808564,1.00,Hey!,Cop (static)
+call_teammate.hey_you,267516125,1.00,Hey,Cop (static)
+call_teammate.hey_you,284491811,1.00,Hey,Wick
+call_teammate.hey_you,308819958,1.00,Hey,Security
+call_teammate.hey_you,310420729,1.00,Hey,Cop
+call_teammate.hey_you,316103270,1.00,Hey,Houston
+call_teammate.hey_you,435617081,1.00,Hey,Cop (static)
+call_teammate.hey_you,463821537,1.00,Hey,Cop (static)
+call_teammate.hey_you,473880742,1.00,Hey,Security
+call_teammate.hey_you,50445318,1.00,Hey,Security
+call_teammate.hey_you,52463083,1.00,Hey!,Cop (static)
+call_teammate.hey_you,613139572,1.00,"Hey you, get up!",Wolf
+call_teammate.hey_you,664123649,1.00,Hey,Security
+call_teammate.hey_you,696888096,1.00,Hey,Cop (static)
+call_teammate.hey_you,714366668,1.00,Hey,Cop (static)
+call_teammate.hey_you,744941319,1.00,Hey hey,Cop
+call_teammate.hey_you,756063532,1.00,Hey,Cop (static)
+call_teammate.hey_you,770904568,1.00,Hey,Security
+call_teammate.hey_you,819179682,1.00,Hey,Security
+call_teammate.hey_you,819485658,1.00,Hey,Security
+call_teammate.hey_you,820992194,1.00,Hey,Cop (static)
+call_teammate.hey_you,889378346,1.00,Hey,Cop
+call_teammate.hey_you,9286050,1.00,Hey Hey!,Security
+call_teammate.hey_you,930083425,1.00,Hey,Cop
+call_teammate.hey_you,940247197,1.00,Hey,Cop
+call_teammate.hey_you,948842167,1.00,Hey,Cop (static)
+call_teammate.hey_you,100691114,0.67,Hey wolf,Clover
+call_teammate.hey_you,101639332,0.67,Hey jiro,Dallas
+call_teammate.hey_you,10174104,0.67,Hey clover,Houston
+call_teammate.hey_you,103012224,0.67,Hey wolf,Wick
+call_teammate.hey_you,103067348,0.67,Hey tony,Chains
+call_teammate.hey_you,104016206,0.67,Hey assbreath,Hoxton
+call_teammate.hey_you,106053270,0.67,Hey rust,Houston
+call_teammate.hey_you,106607718,0.67,Hey wick,Hoxton
+call_teammate.hey_you,107211234,0.67,Hey sydney,Dallas
+call_teammate.hey_you,107437413,0.67,Hey dallas,Houston
+call_teammate.hey_you,108378365,0.67,Hey dallas,Wick
+call_teammate.hey_you,109744762,0.67,Hey dallas,Wick
+call_teammate.hey_you,110227279,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,110671756,0.67,Hey jiro,Houston
+call_teammate.hey_you,111006478,0.67,Hey dickhead,Houston
+call_teammate.hey_you,11112812,0.67,Hey bodhi,Wick
+call_teammate.hey_you,111162186,0.67,Hey rust,Hoxton
+call_teammate.hey_you,111223742,0.67,Hey houston,Wick
+call_teammate.hey_you,11490485,0.67,Hey jacket,Houston
+call_teammate.hey_you,11540457,0.67,Hey sydney,Chains
+call_teammate.hey_you,115730167,0.67,Hey rust,Dallas
+call_teammate.hey_you,116124393,0.67,Hey sokol,Wick
+call_teammate.hey_you,117321438,0.67,Hey wick,Dallas
+call_teammate.hey_you,11756415,0.67,Hey jimmy,Clover
+call_teammate.hey_you,118300959,0.67,Hey dragan,Wick
+call_teammate.hey_you,118920551,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,121171175,0.67,Hey wick,Clover
+call_teammate.hey_you,121755661,0.67,Hey dallas,Wick
+call_teammate.hey_you,122298730,0.67,Hey bonnie,Wick
+call_teammate.hey_you,123928476,0.67,Hey bodhi,Wick
+call_teammate.hey_you,125120745,0.67,Hey hoxton,Wolf
+call_teammate.hey_you,12525683,0.67,Hey sydney,Wick
+call_teammate.hey_you,125274624,0.67,Hey look,Cop
 call_teammate.hey_you,1255800,0.67,"Hey, dickhead",Hoxton
+call_teammate.hey_you,125936242,0.67,Hey houston,Wick
+call_teammate.hey_you,127486517,0.67,Hey dallas,Houston
+call_teammate.hey_you,130466236,0.67,Hey rust,Wick
+call_teammate.hey_you,131054803,0.67,Hey clover,Chains
+call_teammate.hey_you,131341381,0.67,Hey rust,Houston
+call_teammate.hey_you,132315950,0.67,Hey lets go,Chains
+call_teammate.hey_you,133063837,0.67,Hey wick,Houston
+call_teammate.hey_you,133182400,0.67,Hey jimmy,Houston
+call_teammate.hey_you,133843665,0.67,Hey wolf,Dallas
+call_teammate.hey_you,134804651,0.67,Hey clover,Hoxton
+call_teammate.hey_you,135124857,0.67,Hey jiro,Wick
+call_teammate.hey_you,136568141,0.67,Hey jimmy,Dallas
+call_teammate.hey_you,137328679,0.67,Hey jimmy,Dallas
+call_teammate.hey_you,13806522,0.67,Hey bodhi,Houston
+call_teammate.hey_you,139155117,0.67,Hey bonnie,Dallas
+call_teammate.hey_you,139533106,0.67,Hey jiro,Chains
+call_teammate.hey_you,139582172,0.67,Hey bodhi,Wick
+call_teammate.hey_you,14075350,0.67,Hey sydney,Dallas
+call_teammate.hey_you,14128729,0.67,Hey you move it,Hoxton
+call_teammate.hey_you,141621816,0.67,Hey dallas,Wolf
+call_teammate.hey_you,145420027,0.67,Hey sydney,Wick
+call_teammate.hey_you,145678747,0.67,Hey wolf,Dallas
+call_teammate.hey_you,147570009,0.67,Hey wick,Hoxton
+call_teammate.hey_you,149561411,0.67,Hey jimmy,Houston
+call_teammate.hey_you,149826836,0.67,Hey jiro,Houston
+call_teammate.hey_you,150991631,0.67,Hey rust,Wick
+call_teammate.hey_you,151122642,0.67,Hey jiro,Houston
+call_teammate.hey_you,151711803,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,152373911,0.67,Hey chains,Houston
+call_teammate.hey_you,155267368,0.67,Hey chains,Dallas
+call_teammate.hey_you,156157146,0.67,Hey sydney,Dallas
+call_teammate.hey_you,15633496,0.67,Hey chains,Dallas
+call_teammate.hey_you,156688105,0.67,Hey jacket,Dallas
+call_teammate.hey_you,157731097,0.67,Hey chains,Houston
+call_teammate.hey_you,157978003,0.67,Hey bodhi,Dallas
+call_teammate.hey_you,15835664,0.67,Hey wolf,Wick
+call_teammate.hey_you,160529035,0.67,Hey clover,Dallas
+call_teammate.hey_you,161138013,0.67,Hey hoxton,Clover
+call_teammate.hey_you,162833798,0.67,Hey wolf,Dallas
+call_teammate.hey_you,16359680,0.67,Hey Hoxton,Dallas
+call_teammate.hey_you,16364974,0.67,Hey Bodhi,Chains
+call_teammate.hey_you,16366144,0.67,Hey Sydney,Clover
+call_teammate.hey_you,163943127,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,16450869,0.67,Hey sydney,Houston
+call_teammate.hey_you,165508906,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,167098193,0.67,Hey sydney,Dallas
+call_teammate.hey_you,168274496,0.67,Hey clover,Hoxton
+call_teammate.hey_you,170455658,0.67,Hey houston,Dallas
+call_teammate.hey_you,172210971,0.67,Hey houston,Clover
+call_teammate.hey_you,172663055,0.67,Hey wick,Dallas
+call_teammate.hey_you,173355751,0.67,Hey jacket,Wick
+call_teammate.hey_you,173607873,0.67,Hey look,Security
+call_teammate.hey_you,174721754,0.67,Hey sokol,Houston
+call_teammate.hey_you,177049979,0.67,Hey tony,Houston
+call_teammate.hey_you,177186334,0.67,Hey sokol,Wick
+call_teammate.hey_you,177996892,0.67,Hey clover,Hoxton
+call_teammate.hey_you,179617624,0.67,Hey sydney,Wick
+call_teammate.hey_you,1796909,0.67,Hey Bonnie!,Houston
+call_teammate.hey_you,180486892,0.67,Hey chains,Dallas
+call_teammate.hey_you,181460546,0.67,Hey jacket,Dallas
+call_teammate.hey_you,181791798,0.67,Hey chains,Houston
+call_teammate.hey_you,183365624,0.67,Hey jimmy,Houston
+call_teammate.hey_you,183377113,0.67,Hey wick,Dallas
+call_teammate.hey_you,18438318,0.67,Hey clover,Hoxton
+call_teammate.hey_you,19200963,0.67,Hey wolf,Dallas
+call_teammate.hey_you,193141368,0.67,Hey jacket,Houston
+call_teammate.hey_you,196148269,0.67,Hey dragan,Dallas
+call_teammate.hey_you,19769831,0.67,Hey houston,Wick
+call_teammate.hey_you,199498609,0.67,Hey hoxton,Houston
+call_teammate.hey_you,201211285,0.67,Hey jiro,Houston
+call_teammate.hey_you,20163247,0.67,Hey tony,Houston
+call_teammate.hey_you,201928311,0.67,Hey bonnie,Wick
+call_teammate.hey_you,202517911,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,202768489,0.67,Hey hoxton,Bain
+call_teammate.hey_you,203121711,0.67,Hey assface,Houston
+call_teammate.hey_you,203141979,0.67,Hey clover,Hoxton
+call_teammate.hey_you,203569009,0.67,Hey chains,Dallas
+call_teammate.hey_you,203662709,0.67,Hey bonnie,Wick
+call_teammate.hey_you,204647109,0.67,Hey sokol,Houston
+call_teammate.hey_you,205094821,0.67,Hey wolf,Dallas
+call_teammate.hey_you,205282732,0.67,Hey chains,Dallas
+call_teammate.hey_you,205427677,0.67,Hey dragan,Houston
+call_teammate.hey_you,206245213,0.67,Hey wolf,Houston
+call_teammate.hey_you,206514732,0.67,Hey chains,Dallas
+call_teammate.hey_you,20823361,0.67,Hey wick,Dallas
+call_teammate.hey_you,208864248,0.67,Hey hoxton,Clover
+call_teammate.hey_you,21071533,0.67,Hey tony,Hoxton
+call_teammate.hey_you,21168308,0.67,Hey jacket,Clover
+call_teammate.hey_you,213452706,0.67,Hey jiro,Dallas
+call_teammate.hey_you,213945628,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,214194832,0.67,Hey hoxton,Wick
+call_teammate.hey_you,215748628,0.67,Hey bodhi,Clover
+call_teammate.hey_you,217321530,0.67,Hey houston,Clover
+call_teammate.hey_you,218011349,0.67,Hey rust,Wick
+call_teammate.hey_you,219949959,0.67,Hey chains,Houston
+call_teammate.hey_you,222978211,0.67,Hey jiro,Dallas
+call_teammate.hey_you,224714192,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,227497488,0.67,Hey tony,Houston
+call_teammate.hey_you,22760292,0.67,Hey dragan,Dallas
+call_teammate.hey_you,22827586,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,230387244,0.67,Hey dickhead,Hoxton
+call_teammate.hey_you,230403207,0.67,Hey jimmy,Houston
+call_teammate.hey_you,230615488,0.67,Hey wolf,Houston
+call_teammate.hey_you,23092246,0.67,Hey jimmy,Wick
+call_teammate.hey_you,231264067,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,231281355,0.67,Hey sokol,Chains
+call_teammate.hey_you,233934959,0.67,Hey wick,Houston
+call_teammate.hey_you,23636352,0.67,Hey dragan,Dallas
+call_teammate.hey_you,238902945,0.67,Hey sokol,Houston
+call_teammate.hey_you,239144607,0.67,Hey bonnie,Dallas
+call_teammate.hey_you,24018818,0.67,Hey bonnie,Houston
+call_teammate.hey_you,242825797,0.67,Hey dragan,Houston
+call_teammate.hey_you,24490731,0.67,Hey dallas,Clover
+call_teammate.hey_you,245242790,0.67,Hey chains,Clover
+call_teammate.hey_you,246014141,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,246019512,0.67,Hey jiro,Wick
+call_teammate.hey_you,247987574,0.67,Hey bodhi,Dallas
+call_teammate.hey_you,249103886,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,249197586,0.67,Hey hoxton,Wick
+call_teammate.hey_you,249899986,0.67,Hey sokol,Dallas
+call_teammate.hey_you,251790438,0.67,Hey dallas,Clover
+call_teammate.hey_you,251921861,0.67,Hey people,Houston
+call_teammate.hey_you,255345610,0.67,Hey jacket,Wick
+call_teammate.hey_you,255461055,0.67,Hey dallas,Houston
+call_teammate.hey_you,25553705,0.67,Hey jiro,Wick
+call_teammate.hey_you,256372180,0.67,Hey wick,Houston
+call_teammate.hey_you,257135431,0.67,Hey sokol,Wick
+call_teammate.hey_you,25751125,0.67,Hey wolf,Houston
+call_teammate.hey_you,258470253,0.67,Hey dallas,Chains
+call_teammate.hey_you,258787322,0.67,Hey my friends,Dallas
+call_teammate.hey_you,258893045,0.67,Hey hoxton,Clover
+call_teammate.hey_you,259555315,0.67,Hey chains,Wolf
+call_teammate.hey_you,26149557,0.67,Hey wolf,Clover
+call_teammate.hey_you,263390169,0.67,Hey wolf,Bain
+call_teammate.hey_you,263495114,0.67,Hey chains,Clover
+call_teammate.hey_you,263603756,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,264499491,0.67,Hey dragan,Wick
+call_teammate.hey_you,269635397,0.67,Hey jimmy,Houston
+call_teammate.hey_you,270067510,0.67,Hey chains,Wick
+call_teammate.hey_you,270089496,0.67,Hey jimmy,Chains
+call_teammate.hey_you,270168272,0.67,Hey sydney,Houston
+call_teammate.hey_you,273131970,0.67,Hey chains,Wolf
+call_teammate.hey_you,275280793,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,276571841,0.67,Ah hey thanks,Houston
+call_teammate.hey_you,277229977,0.67,Hey houston,Clover
+call_teammate.hey_you,277780250,0.67,Hey sydney,Chains
+call_teammate.hey_you,278184782,0.67,Hey jacket,Houston
+call_teammate.hey_you,278484277,0.67,Hey wick,Dallas
+call_teammate.hey_you,27944310,0.67,Hey wick,Dallas
+call_teammate.hey_you,280124347,0.67,Hey bonnie,Houston
+call_teammate.hey_you,28103035,0.67,Hey guys,Dallas
+call_teammate.hey_you,281499672,0.67,Hey hoxton,Clover
+call_teammate.hey_you,285013197,0.67,Hey bonnie,Dallas
+call_teammate.hey_you,286045665,0.67,Hey chains,Hoxton
+call_teammate.hey_you,288156479,0.67,Hey chains,Hoxton
+call_teammate.hey_you,288650096,0.67,Hey rust,Houston
+call_teammate.hey_you,291931234,0.67,Hey bodhi,Houston
+call_teammate.hey_you,292860927,0.67,Hey jimmy,Wick
+call_teammate.hey_you,294871563,0.67,Hey sokol,Dallas
+call_teammate.hey_you,295424011,0.67,Hey dragan,Houston
+call_teammate.hey_you,296136687,0.67,Hey jimmy,Hoxton
+call_teammate.hey_you,29618266,0.67,Hey wolf,Houston
+call_teammate.hey_you,296884283,0.67,Hey tony,Hoxton
+call_teammate.hey_you,298211881,0.67,Hey clover,Dallas
+call_teammate.hey_you,299797599,0.67,Hey clover,Houston
+call_teammate.hey_you,299952709,0.67,Hey bonnie,Houston
+call_teammate.hey_you,300705513,0.67,Hey sydney,Wick
+call_teammate.hey_you,30198212,0.67,Hey jacket,Houston
+call_teammate.hey_you,303033887,0.67,Hey jacket,Dallas
+call_teammate.hey_you,30344798,0.67,Hey wick,Dallas
+call_teammate.hey_you,309386878,0.67,Hey chains,Wolf
+call_teammate.hey_you,309678845,0.67,Hey jiro,Chains
+call_teammate.hey_you,30983120,0.67,Hey dallas,Bain
+call_teammate.hey_you,310075366,0.67,Hey bodhi,Wick
+call_teammate.hey_you,313874357,0.67,Hey jiro,Wick
+call_teammate.hey_you,314576073,0.67,Hey clover,Wick
+call_teammate.hey_you,315827360,0.67,"Hey, look",Cop
+call_teammate.hey_you,316608064,0.67,Hey bodhi,Houston
+call_teammate.hey_you,319575094,0.67,Hey sydney,Chains
+call_teammate.hey_you,322546674,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,322905202,0.67,Hey bonnie,Wick
+call_teammate.hey_you,323598547,0.67,Hey chains,Wick
+call_teammate.hey_you,325622603,0.67,Hey bonnie,Dallas
+call_teammate.hey_you,325717316,0.67,Hey houston,Dallas
+call_teammate.hey_you,326978077,0.67,Hey dragan,Dallas
+call_teammate.hey_you,32728544,0.67,Hey dallas,Houston
+call_teammate.hey_you,32820529,0.67,Hey jacket,Wick
+call_teammate.hey_you,32934232,0.67,Hey sokol,Dallas
+call_teammate.hey_you,33071852,0.67,Hey jiro,Chains
+call_teammate.hey_you,335080582,0.67,Up and at'em hey,Chains
+call_teammate.hey_you,336837566,0.67,Hey sokol,Wick
+call_teammate.hey_you,338024242,0.67,Hey jimmy,Clover
+call_teammate.hey_you,342908670,0.67,Hey rust,Wick
+call_teammate.hey_you,346013348,0.67,Hey clover,Chains
+call_teammate.hey_you,346853654,0.67,Hey jiro,Houston
+call_teammate.hey_you,350759340,0.67,Hey dallas,Wolf
+call_teammate.hey_you,35267968,0.67,Hey bodhi,Dallas
+call_teammate.hey_you,35347015,0.67,Hey hoxton,Houston
+call_teammate.hey_you,359485918,0.67,"Hey, camera",Clover
+call_teammate.hey_you,360765605,0.67,Hey wolf,Clover
+call_teammate.hey_you,360851311,0.67,Hey tony,Hoxton
+call_teammate.hey_you,362255516,0.67,Hey clover,Hoxton
+call_teammate.hey_you,363533495,0.67,Hey wolfy,Hoxton
+call_teammate.hey_you,367931366,0.67,Hey hoxton,Houston
+call_teammate.hey_you,373033490,0.67,Hey chains,Hoxton
+call_teammate.hey_you,373452349,0.67,Hey you get a move on,Hoxton
+call_teammate.hey_you,373499772,0.67,Hey clover,Wick
+call_teammate.hey_you,374107250,0.67,Hey careful now,Houston
+call_teammate.hey_you,374755705,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,375665443,0.67,Hey wick,Hoxton
+call_teammate.hey_you,376743458,0.67,Hey tony,Dallas
+call_teammate.hey_you,378087090,0.67,Hey wolf,Houston
+call_teammate.hey_you,38005988,0.67,Hey tony,Houston
+call_teammate.hey_you,38341792,0.67,Hey sokol,Chains
+call_teammate.hey_you,38347799,0.67,Hey dallas,Wolf
+call_teammate.hey_you,38392273,0.67,Hey wolf,Hoxton
+call_teammate.hey_you,38624427,0.67,Hey shitbread,Hoxton
+call_teammate.hey_you,387095809,0.67,Hey wanker,Hoxton
+call_teammate.hey_you,387800759,0.67,Hey bodhi,Dallas
+call_teammate.hey_you,3893448,0.67,Hey Jacket!,Wick
+call_teammate.hey_you,390600841,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,391159085,0.67,Hey wick,Clover
+call_teammate.hey_you,39424176,0.67,Hey jacket,Dallas
+call_teammate.hey_you,394662236,0.67,Hey wanker,Hoxton
+call_teammate.hey_you,395752970,0.67,Hey guys,Dallas
+call_teammate.hey_you,397472109,0.67,Hey wolfy,Hoxton
+call_teammate.hey_you,397570714,0.67,Hey dragan,Wick
+call_teammate.hey_you,401059767,0.67,Hey rust,Clover
+call_teammate.hey_you,40126765,0.67,Hey sokol,Wick
+call_teammate.hey_you,40399853,0.67,Hey wick,Clover
+call_teammate.hey_you,405387004,0.67,Hey wick,Houston
+call_teammate.hey_you,40594946,0.67,Hey hoxton,Clover
+call_teammate.hey_you,41144929,0.67,Hey chains,Hoxton
+call_teammate.hey_you,41179927,0.67,Hey jiro,Dallas
+call_teammate.hey_you,414365117,0.67,Hey dragan,Wick
+call_teammate.hey_you,414996655,0.67,Hey rust,Chains
+call_teammate.hey_you,415105277,0.67,Hey dallas,Clover
+call_teammate.hey_you,415628638,0.67,Hey rust,Houston
+call_teammate.hey_you,416651441,0.67,Hey clover,Wick
+call_teammate.hey_you,418805994,0.67,Hey jimmy,Hoxton
+call_teammate.hey_you,419861263,0.67,Hey tony,Dallas
+call_teammate.hey_you,42337942,0.67,Hey hoxton,Wolf
+call_teammate.hey_you,42380050,0.67,Hey dallas,Houston
+call_teammate.hey_you,429021750,0.67,Hey jimmy,Dallas
+call_teammate.hey_you,42933223,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,43641966,0.67,Hey wick,Chains
+call_teammate.hey_you,43763406,0.67,Hey wick,Dallas
+call_teammate.hey_you,43911579,0.67,Hey Wolf,Hoxton
+call_teammate.hey_you,439436808,0.67,Hey dragan,Dallas
+call_teammate.hey_you,44114816,0.67,Hey sokol,Chains
+call_teammate.hey_you,443182285,0.67,Hey wolf,Wick
+call_teammate.hey_you,44977053,0.67,Hey chains,Dallas
+call_teammate.hey_you,451612740,0.67,Hey sydney,Houston
+call_teammate.hey_you,45278582,0.67,Hey jimmy,Dallas
+call_teammate.hey_you,457428188,0.67,Hey chains,Houston
+call_teammate.hey_you,46408540,0.67,Hey jacket,Dallas
+call_teammate.hey_you,464348794,0.67,Hey jimmy,Wick
+call_teammate.hey_you,467950076,0.67,Hey tony,Clover
+call_teammate.hey_you,46872940,0.67,Hey clover,Houston
+call_teammate.hey_you,46981468,0.67,Hey you get moving,Hoxton
+call_teammate.hey_you,47146113,0.67,Hey rust,Hoxton
+call_teammate.hey_you,472470530,0.67,Hey jimmy,Dallas
+call_teammate.hey_you,474819961,0.67,Hey chains,Bain
+call_teammate.hey_you,476478916,0.67,Hey dragan,Houston
+call_teammate.hey_you,477589840,0.67,Hey tony,Wick
+call_teammate.hey_you,480136425,0.67,Hey wolf,Houston
+call_teammate.hey_you,482321294,0.67,Hey sydney,Wick
+call_teammate.hey_you,482690723,0.67,Hey wolf,Chains
+call_teammate.hey_you,483092312,0.67,Hey sokol,Dallas
+call_teammate.hey_you,483315100,0.67,Hey jimmy,Houston
+call_teammate.hey_you,485039074,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,486634341,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,490059560,0.67,Hey dallas,Bain
+call_teammate.hey_you,49097093,0.67,Hey dragan,Houston
+call_teammate.hey_you,4914074,0.67,Hey Rust!,Dallas
+call_teammate.hey_you,4917528,0.67,Hey Dallas!,Clover
+call_teammate.hey_you,493054711,0.67,Hey chains,Wolf
+call_teammate.hey_you,496412945,0.67,Hey bodhi,Houston
+call_teammate.hey_you,49810578,0.67,Hey sokol,Houston
+call_teammate.hey_you,49833669,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,501875044,0.67,Hey you get moving,Hoxton
+call_teammate.hey_you,50675896,0.67,Hey houston,Clover
+call_teammate.hey_you,512074452,0.67,Hey dickhead,Houston
+call_teammate.hey_you,513139013,0.67,Hey chains,Bain
+call_teammate.hey_you,513699220,0.67,Hey tony,Wick
+call_teammate.hey_you,515068796,0.67,Hey chains,Houston
+call_teammate.hey_you,518907391,0.67,Hey jiro,Bain
+call_teammate.hey_you,52051431,0.67,Hey wick,Dallas
+call_teammate.hey_you,530829644,0.67,Hey Chains,Clover
+call_teammate.hey_you,537288272,0.67,Hey clover,Wick
+call_teammate.hey_you,53782380,0.67,Hey tony,Chains
+call_teammate.hey_you,53946779,0.67,Hey bodhi,Clover
+call_teammate.hey_you,540911724,0.67,Hey Tony,Hoxton
+call_teammate.hey_you,54105884,0.67,Hey tony,Wick
+call_teammate.hey_you,54838978,0.67,Hey wick,Houston
+call_teammate.hey_you,55088745,0.67,Hey Wolfy,Hoxton
+call_teammate.hey_you,551319779,0.67,Hey rust,Chains
+call_teammate.hey_you,551687003,0.67,Hey guys,Dallas
+call_teammate.hey_you,5536488,0.67,Hey Bodhi,Chains
+call_teammate.hey_you,5549129,0.67,Hey Clover,Dallas
+call_teammate.hey_you,55802944,0.67,Hey wolf,Houston
+call_teammate.hey_you,558797653,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,560885804,0.67,Hey Dallas,Houston
+call_teammate.hey_you,568663675,0.67,Hey Hoxton,Clover
+call_teammate.hey_you,571463842,0.67,Hey thanks,Houston
+call_teammate.hey_you,5727403,0.67,Hey sokol,Chains
+call_teammate.hey_you,573155840,0.67,Hey dragan,Wick
+call_teammate.hey_you,575433536,0.67,Hey clover,Houston
+call_teammate.hey_you,57618694,0.67,Hey dallas,Houston
+call_teammate.hey_you,580868828,0.67,Hey sydney,Clover
+call_teammate.hey_you,583757887,0.67,Hey get up man,Chains
+call_teammate.hey_you,59337621,0.67,Hey chains,Clover
+call_teammate.hey_you,59696713,0.67,Hey dallas,Wolf
+call_teammate.hey_you,60712986,0.67,Hey bodhi,Houston
+call_teammate.hey_you,611550110,0.67,Hey Tony!,Dallas
+call_teammate.hey_you,613719838,0.67,Hey Tony!,Houston
+call_teammate.hey_you,614842319,0.67,Hey dallas,Clover
+call_teammate.hey_you,616632913,0.67,Hey wolf,Dallas
+call_teammate.hey_you,61680074,0.67,Hey wolf,Dallas
+call_teammate.hey_you,617996032,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,61802199,0.67,Hey wolf,Houston
+call_teammate.hey_you,619585118,0.67,Hey sydney,Houston
+call_teammate.hey_you,619844639,0.67,Hey chains,Wolf
+call_teammate.hey_you,620089150,0.67,Hey chains,Dallas
+call_teammate.hey_you,620761777,0.67,Hey sydney,Houston
+call_teammate.hey_you,621118816,0.67,Hey tony,Chains
+call_teammate.hey_you,621892142,0.67,Hey hoxton,Bain
+call_teammate.hey_you,623547146,0.67,Hey jiro,Houston
+call_teammate.hey_you,631364787,0.67,Hey guys,Wolf
+call_teammate.hey_you,634929666,0.67,Hey hoxton,Wolf
+call_teammate.hey_you,63506889,0.67,Hey bodhi,Houston
+call_teammate.hey_you,643920354,0.67,Hey look,Security
+call_teammate.hey_you,644989518,0.67,Hey sokol,Houston
+call_teammate.hey_you,648402902,0.67,Hey jimmy,Wick
+call_teammate.hey_you,651210609,0.67,Hey dallas,Chains
+call_teammate.hey_you,65226881,0.67,Hey sydney,Dallas
+call_teammate.hey_you,65360118,0.67,Hey Wick,Hoxton
+call_teammate.hey_you,662893951,0.67,Hey is everything ok,Pager (Bolivian)
+call_teammate.hey_you,663705771,0.67,Hey rust,Houston
+call_teammate.hey_you,66787982,0.67,Hey hoxton,Wick
+call_teammate.hey_you,669090646,0.67,Hey bodhi,Wick
+call_teammate.hey_you,66984084,0.67,Hey rust,Wick
+call_teammate.hey_you,67060460,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,671878430,0.67,Hey jimmy,Chains
+call_teammate.hey_you,678193185,0.67,"Alright, ok, hey hey hey",Cop
+call_teammate.hey_you,68159732,0.67,Hey dallas,Wolf
+call_teammate.hey_you,68250983,0.67,Hey bonnie,Dallas
+call_teammate.hey_you,68407938,0.67,Hey hoxton,Dallas
+call_teammate.hey_you,68520903,0.67,Hey hoxton,Clover
+call_teammate.hey_you,698069519,0.67,Hey you move it,Hoxton
+call_teammate.hey_you,698304557,0.67,Hey rust,Wick
+call_teammate.hey_you,69830457,0.67,Hey chains,Houston
+call_teammate.hey_you,69985922,0.67,Hey guys,Wolf
+call_teammate.hey_you,700938552,0.67,Hey sokol,Houston
+call_teammate.hey_you,710920000,0.67,Hey rust,Houston
+call_teammate.hey_you,7201692,0.67,"Hey, Clover!",Wick
+call_teammate.hey_you,72073020,0.67,Hey tony,Clover
+call_teammate.hey_you,73448579,0.67,Hey Jiro,Wick
+call_teammate.hey_you,73674491,0.67,Alright ok hey hey hey,Cop (static)
+call_teammate.hey_you,738245348,0.67,Hey hoxton,Wolf
+call_teammate.hey_you,74298486,0.67,Hey dallas,Houston
+call_teammate.hey_you,74437766,0.67,Hey Wolf,Hoxton
+call_teammate.hey_you,74763424,0.67,Hey clover,Houston
+call_teammate.hey_you,751332266,0.67,Hey bodhi,Wick
+call_teammate.hey_you,75302658,0.67,Hey tony,Wick
+call_teammate.hey_you,753754105,0.67,Hey look,Cop
+call_teammate.hey_you,7541034,0.67,Hey Wick!,Clover
+call_teammate.hey_you,755917739,0.67,Hey jimmy,Hoxton
+call_teammate.hey_you,7627959,0.67,"Hey, Clover!",Wick
+call_teammate.hey_you,770268426,0.67,Hey jimmy,Chains
+call_teammate.hey_you,776573363,0.67,Hey bonnie,Houston
+call_teammate.hey_you,77869910,0.67,Hey houston,Dallas
+call_teammate.hey_you,78207940,0.67,Hey jacket,Houston
+call_teammate.hey_you,784031055,0.67,Hey Bodhi,Bain
+call_teammate.hey_you,79014679,0.67,Hey hoxton,Wolf
+call_teammate.hey_you,790993426,0.67,Hey bodhi,Dallas
+call_teammate.hey_you,80534877,0.67,Hey jacket,Wick
+call_teammate.hey_you,81040375,0.67,Hey cuckboi,Houston
+call_teammate.hey_you,81352992,0.67,Hey wick,Clover
+call_teammate.hey_you,82031082,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,827723850,0.67,Hey sydney,Houston
+call_teammate.hey_you,83585004,0.67,Hey Rust,Clover
+call_teammate.hey_you,84309866,0.67,Hey tony,Dallas
+call_teammate.hey_you,85446717,0.67,Hey sydney,Chains
+call_teammate.hey_you,85448117,0.67,Hey rust,Dallas
+call_teammate.hey_you,859699348,0.67,"Hey, hello?",Civilian
+call_teammate.hey_you,86229082,0.67,Hey jimmy,Chains
+call_teammate.hey_you,86595392,0.67,Hey wolf,Clover
+call_teammate.hey_you,86663184,0.67,Hey wick,Dallas
+call_teammate.hey_you,86836265,0.67,Hey motherfucker,Wolf
+call_teammate.hey_you,87320742,0.67,"Hey, hey easy",Cop (static)
+call_teammate.hey_you,87636454,0.67,Hey chains,Wick
+call_teammate.hey_you,878814682,0.67,Hey bodhi,Chains
+call_teammate.hey_you,88784376,0.67,Hey chains,Wolf
+call_teammate.hey_you,89621388,0.67,Hey bodhi,Clover
+call_teammate.hey_you,89987877,0.67,Hey sokol,Chains
+call_teammate.hey_you,900878625,0.67,Hey rust,Chains
+call_teammate.hey_you,90114510,0.67,Hey rust,Dallas
+call_teammate.hey_you,90261061,0.67,Hey hoxton,Chains
+call_teammate.hey_you,903137292,0.67,"Hey, hey, easy",Cop
+call_teammate.hey_you,91421222,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,91929197,0.67,Hey jiro,Dallas
+call_teammate.hey_you,91936891,0.67,Hey jacket,Houston
+call_teammate.hey_you,92405203,0.67,Hey wick,Houston
+call_teammate.hey_you,926079736,0.67,Hey tony,Hoxton
+call_teammate.hey_you,93611246,0.67,Hey bodhi,Houston
+call_teammate.hey_you,945069814,0.67,Hey wolf,Bain
+call_teammate.hey_you,950826138,0.67,Hey dallas,Wolf
+call_teammate.hey_you,960361986,0.67,Hey rust,Wick
+call_teammate.hey_you,96344104,0.67,Hey hoxton,Wick
+call_teammate.hey_you,96573195,0.67,Hey jacket,Dallas
+call_teammate.hey_you,97908684,0.67,Hey rust,Dallas
+call_teammate.hey_you,97958430,0.67,Hey rust,Dallas
+call_teammate.hey_you,983939544,0.67,Hey tony,Houston
+caution.wait,1019102406,1.00,Wait for it,Cop
+caution.wait,1024923467,1.00,Wait for my go,Cop (static)
+caution.wait,1034823851,1.00,"Wait for it, wait for it",Houston
+caution.wait,122251285,1.00,Wait for it,Cop (static)
+caution.wait,130368042,1.00,"Wait for it, wait for it",Wolf
+caution.wait,161557506,1.00,Wait for it,Cop (static)
+caution.wait,177930758,1.00,Wait for it wait for it,Hoxton
+caution.wait,191908393,1.00,Wait for it,Cop (static)
+caution.wait,231349038,1.00,Wait for it wait for it,Dallas
+caution.wait,23444687,1.00,"Wait for it, wait for it",Houston
+caution.wait,249018649,1.00,Wait for it,Cop (static)
+caution.wait,292691259,1.00,Wait for it,Cop (static)
+caution.wait,315601312,1.00,Wait,Hoxton
+caution.wait,365657285,1.00,Wait for my go,Cop
+caution.wait,403511624,1.00,Wait for my go,Cop (static)
+caution.wait,422293627,1.00,Wait for my go,Cop (static)
+caution.wait,463844580,1.00,Wait for it wait for it,Hoxton
+caution.wait,47959099,1.00,Wait for it,Cop
+caution.wait,539581777,1.00,"Wait for it, wait for it",Wolf
+caution.wait,547410021,1.00,Wait,Hoxton
+caution.wait,579852590,1.00,Wait for it,Cop
+caution.wait,665739238,1.00,Wait for my go,Cop
+caution.wait,699070459,1.00,"Wait for it, wait for it",Dallas
+caution.wait,770967223,1.00,Wait for my go,Cop
+caution.wait,841510527,1.00,Wait for my go,Cop
+caution.wait,857376456,1.00,Wait for my go,Cop
+caution.wait,877352626,1.00,Wait for my go,Cop (static)
+caution.wait,934091476,1.00,Wait for my go,Cop (static)
+caution.wait,1058297852,0.67,Wait for my command,Cop (static)
+caution.wait,150769442,0.67,Wait for my command,Cop
+caution.wait,18139320,0.67,Wait for my command,Cop
+caution.wait,198734934,0.67,Wait for my command,Cop
+caution.wait,209178639,0.67,Wait for my signal,Cop
+caution.wait,232713496,0.67,Wait for my signal,Cop (static)
+caution.wait,233796496,0.67,Wait for my signal,Cop
+caution.wait,322312843,0.67,Hurry up and wait,Chains
+caution.wait,399682577,0.67,Wait for my signal,Cop (static)
+caution.wait,400008268,0.67,Wait for my command,Cop (static)
+caution.wait,443914679,0.67,Wait for my command,Cop (static)
+caution.wait,446199581,0.67,Wait for my signal,Cop
+caution.wait,469007813,0.67,Wait for my command,Cop
+caution.wait,546188946,0.67,Wait for my signal,Cop
+caution.wait,57311903,0.67,Wait for my signal,Cop (static)
+caution.wait,581873145,0.67,Wait for my signal,Cop (static)
+caution.wait,596627613,0.67,"Alright, wait for it",Wick
+caution.wait,603737394,0.67,Wait for my command,Cop (static)
+caution.wait,64197343,0.67,Wait for my signal,Cop
+caution.wait,656105345,0.67,Wait for the boom,Hoxton
+caution.wait,784001353,0.67,Wait for my command,Cop (static)
+caution.wait,91419805,0.67,Wait for my signal,Cop (static)
+caution.wait,971689644,0.67,Wait for my command,Cop
+caution.watch,142115111,1.00,Careful now,Clover
+caution.watch,165537507,1.00,Careful,Hoxton
+caution.watch,194927579,1.00,Be careful now,Houston
+caution.watch,2066329,1.00,Be careful now!,Houston
+caution.watch,244337481,1.00,Careful,Wick
+caution.watch,249605793,1.00,Careful now,Wolf
+caution.watch,252245175,1.00,Careful now,Dallas
+caution.watch,266662013,1.00,Careful,Dallas
+caution.watch,30471821,1.00,Careful,Houston
+caution.watch,311308873,1.00,Careful,Houston
+caution.watch,324987597,1.00,Careful now,Houston
+caution.watch,349355360,1.00,Careful,Dallas
+caution.watch,362033343,1.00,Careful,Wick
+caution.watch,401309397,1.00,Careful now,Wolf
+caution.watch,405292122,1.00,Careful now,Dallas
+caution.watch,429364140,1.00,Careful,Houston
+caution.watch,4547010,1.00,Careful now!,Clover
+caution.watch,504293503,1.00,Careful now,Hoxton
+caution.watch,576212061,1.00,Careful,Wick
+caution.watch,656938394,1.00,Careful,Houston
+caution.watch,677935060,1.00,Careful now,Hoxton
+caution.watch,73725628,1.00,Careful,Dallas
+caution.watch,810395402,1.00,Careful,Clover
+caution.watch,904888961,1.00,Careful!,Clover
+caution.watch,912253732,1.00,Careful,Hoxton
+caution.watch,255832330,0.67,Careful with the civilians,Houston
+caution.watch,291172805,0.67,"Careful, guard",Chains
+caution.watch,421576642,0.67,Careful with the people,Dallas
+caution.watch,6853580,0.67,"Guard, careful",Wick
+caution.watch,71929027,0.67,"Careful, guard",Clover
+civ.dontmove,487253313,1.00,Do not move,Cop (static)
+civ.dontmove,911603385,1.00,Do not move,Cop (static)
+civ.dontmove,796305446,0.67,"Read my lips, do, not, move",Dallas
+civ.down,112381148,1.00,Down,Chains
+civ.down,11621708,1.00,Get down,Dallas
+civ.down,118273915,1.00,Down,Wick
+civ.down,122476440,1.00,Down,Hoxton
+civ.down,124875607,1.00,Get down,Houston
+civ.down,125841237,1.00,Down,Wick
+civ.down,12744249,1.00,Get down,Hoxton
+civ.down,128739616,1.00,Down,Clover
+civ.down,129735513,1.00,Down,Dallas
+civ.down,132611512,1.00,Down,Hoxton
+civ.down,135434517,1.00,Get down now,Houston
+civ.down,139837813,1.00,Get down,Chains
+civ.down,148450367,1.00,Down,Hoxton
+civ.down,150303025,1.00,Down,Wick
+civ.down,153510623,1.00,Down,Dallas
+civ.down,157309975,1.00,Get down,Dallas
+civ.down,158867428,1.00,Down,Houston
+civ.down,162145696,1.00,Down,Chains
+civ.down,16848931,1.00,"Down, down",Clover
+civ.down,170178582,1.00,Get down,Clover
+civ.down,173827621,1.00,Down,Dallas
+civ.down,175047259,1.00,Get down,Chains
+civ.down,195527788,1.00,Down,Wolf
+civ.down,207253231,1.00,"Down, down",Chains
+civ.down,207325870,1.00,Down,Wick
+civ.down,208769636,1.00,Get down,Wick
+civ.down,209119206,1.00,Get down,Dallas
+civ.down,210399451,1.00,Get down,Wolf
+civ.down,213193671,1.00,Down,Hoxton
+civ.down,213347827,1.00,Down,Chains
+civ.down,215853787,1.00,Get down,Dallas
+civ.down,226549620,1.00,Get down,Dallas
+civ.down,24007893,1.00,Down!,Clover
+civ.down,241295133,1.00,Get down,Dallas
+civ.down,246144790,1.00,Down,Hoxton
+civ.down,260203227,1.00,Get down,Wick
+civ.down,260430910,1.00,Get down,Chains
+civ.down,260489786,1.00,Get down,Wolf
+civ.down,266303691,1.00,Down,Clover
+civ.down,282355571,1.00,Down,Wolf
+civ.down,284902300,1.00,Get down,Chains
+civ.down,287885386,1.00,Get down,Chains
+civ.down,291940553,1.00,"Down, down",Chains
+civ.down,292340175,1.00,Down,Hoxton
+civ.down,295852418,1.00,Now get down,Chains
+civ.down,29749924,1.00,Get down,Clover
+civ.down,303505992,1.00,Down down,Houston
+civ.down,30395700,1.00,Get down,Hoxton
+civ.down,306895497,1.00,"Down, now",Houston
+civ.down,317927447,1.00,Down,Dallas
+civ.down,326150126,1.00,Down,Hoxton
+civ.down,326541370,1.00,Down,Dallas
+civ.down,334986047,1.00,Down,Clover
+civ.down,341306103,1.00,Get down,Chains
+civ.down,34757228,1.00,Down down,Wolf
+civ.down,351932306,1.00,Get down,Clover
+civ.down,3665049,1.00,Get down!,Clover
+civ.down,366795491,1.00,Get down,Houston
+civ.down,380667927,1.00,Down,Wick
+civ.down,385237237,1.00,Down,Wick
+civ.down,390279335,1.00,Down,Wick
+civ.down,393898065,1.00,Down,Wick
+civ.down,396207225,1.00,"Down, down",Chains
+civ.down,409858058,1.00,Get down,Houston
+civ.down,412111465,1.00,Down,Dallas
+civ.down,418000348,1.00,Down,Hoxton
+civ.down,420865280,1.00,"Down, down",Chains
+civ.down,423971415,1.00,Down,Dallas
+civ.down,4246555,1.00,Get down!,Clover
+civ.down,432123960,1.00,Get down,Dallas
+civ.down,445724755,1.00,Down,Wolf
+civ.down,455835467,1.00,Now get down,Chains
+civ.down,46060585,1.00,Down,Clover
+civ.down,460668796,1.00,Get down,Chains
+civ.down,4705971,1.00,Get down!,Clover
+civ.down,499714335,1.00,"Down, down",Houston
+civ.down,51120434,1.00,Down,Houston
+civ.down,5156980,1.00,Down!,Hoxton
+civ.down,516874832,1.00,Get down,Hoxton
+civ.down,525572768,1.00,Get down,Houston
+civ.down,53272908,1.00,Down,Clover
+civ.down,534019375,1.00,Down,Dallas
+civ.down,54083768,1.00,Down,Wolf
+civ.down,54928510,1.00,Get down,Hoxton
+civ.down,552355858,1.00,Get down,Clover
+civ.down,552926362,1.00,Down now,Houston
+civ.down,556614004,1.00,Get down,Wick
+civ.down,57514406,1.00,Down,Clover
+civ.down,578161029,1.00,Now get down,Chains
+civ.down,582796477,1.00,Down!,Chains
+civ.down,583041955,1.00,Get down,Houston
+civ.down,59033748,1.00,Down down,Hoxton
+civ.down,599649350,1.00,Get down!,Dallas
+civ.down,600571757,1.00,Down!,Houston
+civ.down,618994910,1.00,Get down,Houston
+civ.down,627249334,1.00,Down down,Hoxton
+civ.down,629809913,1.00,Down,Wick
+civ.down,635145294,1.00,Get down,Dallas
+civ.down,636865583,1.00,Down,Hoxton
+civ.down,643292432,1.00,Down,Houston
+civ.down,647654356,1.00,Down down,Dallas
+civ.down,665931107,1.00,Down,Wick
+civ.down,671515098,1.00,Down,Dallas
+civ.down,673015371,1.00,Get down,Hoxton
+civ.down,673778970,1.00,Get down,Wick
+civ.down,680643702,1.00,Down down,Dallas
+civ.down,687706296,1.00,Down,Wick
+civ.down,709120382,1.00,Get down,Dallas
+civ.down,767732938,1.00,Down down,Wolf
+civ.down,774667132,1.00,Get down now,Houston
+civ.down,798146677,1.00,Get down,Chains
+civ.down,80425510,1.00,Down,Chains
+civ.down,81800068,1.00,Get down,Hoxton
+civ.down,857484756,1.00,Get down,Wolf
+civ.down,864782798,1.00,Now get down,Chains
+civ.down,87444552,1.00,Get down and get down now,Chains
+civ.down,8774010,1.00,Get down,Wick
+civ.down,916505259,1.00,"Down, down",Clover
+civ.down,946667518,1.00,Down!,Dallas
+civ.down,963629211,1.00,Now get down,Chains
+civ.down,968180086,1.00,Now get down,Chains
+civ.down,1003250000,0.67,Stay down,Cop (static)
+civ.down,101958528,0.67,Down on your knees,Dallas
+civ.down,10528372,0.67,All of you get down,Houston
+civ.down,1053217783,0.67,Stay down,Cop (static)
+civ.down,105625728,0.67,Down on the ground,Wick
+civ.down,1064214259,0.67,Sangres is down,Bain
+civ.down,1070310045,0.67,Cover down,Cop (static)
+civ.down,108800402,0.67,Bring'em down,Cop (static)
+civ.down,112266371,0.67,Stay down,Dallas
+civ.down,112799059,0.67,Get down on the ground,Clover
+civ.down,113484931,0.67,Take'em down,Cop (static)
+civ.down,115964565,0.67,Get the fuck down,Hoxton
+civ.down,118624553,0.67,Man down,Chains
+civ.down,122166944,0.67,Down people,Dallas
+civ.down,123268418,0.67,Bulldozer down,Houston
+civ.down,125035250,0.67,Get down on the ground,Houston
+civ.down,126632400,0.67,Stay down,Chains
+civ.down,130346146,0.67,Now down on your knees,Clover
+civ.down,131717176,0.67,Man down,Chains
+civ.down,136166392,0.67,Take'em down,Cop
+civ.down,136512808,0.67,Kneel down,Chains
+civ.down,138363559,0.67,Stay down,Wick
+civ.down,140451291,0.67,"All of you, down",Chains
+civ.down,140713878,0.67,Get down on the ground,Dallas
+civ.down,14162943,0.67,Down the stairs,Houston
+civ.down,143039340,0.67,Stay down,Wolf
+civ.down,143240565,0.67,Hunt'em down,Cop (static)
+civ.down,143395164,0.67,Stay down,Clover
+civ.down,144761532,0.67,And stay down,Dallas
+civ.down,145876842,0.67,Hunt'em down,Cop
+civ.down,146981398,0.67,Get fucking down,Hoxton
+civ.down,14721465,0.67,Stay down,Dallas
+civ.down,147375133,0.67,I said get down,Dallas
+civ.down,149303075,0.67,Down on your knees,Hoxton
+civ.down,149392507,0.67,Bulldozer's down,Chains
+civ.down,150641263,0.67,Stay down,Dallas
+civ.down,150692943,0.67,Dallas is down,Bain
+civ.down,151268141,0.67,Ethan is down,Bain
+civ.down,151991995,0.67,Jump down,Wolf
+civ.down,15222070,0.67,Down on your knees,Dallas
+civ.down,153234538,0.67,Joy is down,Bain
+civ.down,156439795,0.67,And stay down,Houston
+civ.down,156497952,0.67,Down on your knees,Houston
+civ.down,157381897,0.67,Stay down,Chains
+civ.down,158054010,0.67,Slow'em down,Cop (static)
+civ.down,158478193,0.67,Kneel down,Wick
+civ.down,161478104,0.67,I said get down,Houston
+civ.down,1621852,0.67,Chains' down,Bain (old)
+civ.down,162404199,0.67,And stay down,Clover
+civ.down,166965553,0.67,Down you cocksuckers,Hoxton
+civ.down,167757565,0.67,Lay down,Houston
+civ.down,167799564,0.67,Down all of you,Hoxton
+civ.down,17351321,0.67,Get the fuck down,Chains
+civ.down,173955367,0.67,Get down on the ground,Wolf
+civ.down,17508264,0.67,Down here,Clover
+civ.down,17564112,0.67,Stay down,Dallas
+civ.down,175755047,0.67,Gear down,Cop (static)
+civ.down,178976461,0.67,Stay down,Cop (static)
+civ.down,180884839,0.67,Down on the ground,Houston
+civ.down,181138001,0.67,Robbers down,Captain
+civ.down,182713326,0.67,Get down all of you,Hoxton
+civ.down,183659154,0.67,Kneel down,Clover
+civ.down,184429800,0.67,Down on the ground,Hoxton
+civ.down,189302295,0.67,Down on the ground,Dallas
+civ.down,19248477,0.67,"Down people, down!",Cop
+civ.down,194918427,0.67,I said down,Clover
+civ.down,197979067,0.67,I said down,Clover
+civ.down,198624905,0.67,And stay down,Dallas
+civ.down,203642796,0.67,Take'em down,Cop (static)
+civ.down,21099360,0.67,Face down,Wick
+civ.down,213943473,0.67,Stay down,Cop
+civ.down,214090888,0.67,Bulldozer down,Clover
+civ.down,214759861,0.67,Get the fuck down,Wolf
+civ.down,216790641,0.67,Get the fuck down,Wolf
+civ.down,219819058,0.67,Down the stairs,Hoxton
+civ.down,220285226,0.67,Down on your knees,Houston
+civ.down,220615360,0.67,Down motherfucker,Houston
+civ.down,224861637,0.67,Taser's down,Wolf
+civ.down,225772982,0.67,Robber's down,Bulldozer
+civ.down,230093671,0.67,Dallas is down,Bain
+civ.down,233298992,0.67,Take him down,Cop (static)
+civ.down,234499264,0.67,Stay down,Wolf
+civ.down,235695797,0.67,Get down on the ground,Houston
+civ.down,236579962,0.67,Take him down,Cop (static)
+civ.down,237977422,0.67,Down here,Clover
+civ.down,239262295,0.67,Taser's down,Houston
+civ.down,241439340,0.67,Get down on the ground,Hoxton
+civ.down,245545669,0.67,And stay down,Wolf
+civ.down,245912536,0.67,Everyone down,Houston
+civ.down,25342388,0.67,I said down,Dallas
+civ.down,257219200,0.67,Jump down,Dallas
+civ.down,258483677,0.67,Everybody down,Dallas
+civ.down,259794016,0.67,Take'em down,Cop
+civ.down,260170330,0.67,Get the fuck down,Wolf
+civ.down,260497441,0.67,And stay down,Wolf
+civ.down,262781693,0.67,Stay down,Dallas
+civ.down,263041447,0.67,And stay down,Dallas
+civ.down,263234400,0.67,Hunt'em down,Cop (static)
+civ.down,263867312,0.67,Bulldozer down,Houston
+civ.down,264016235,0.67,Everybody down,Dallas
+civ.down,26999161,0.67,Stay down,Dallas
+civ.down,27629096,0.67,I said get down,Wolf
+civ.down,279883557,0.67,Down on your knees,Clover
+civ.down,281017464,0.67,Keep down and keep it down,Chains
+civ.down,281020094,0.67,Bulldozer down,Dallas
+civ.down,282580266,0.67,Stay down,Dallas
+civ.down,283274129,0.67,Get the fuck down,Dallas
+civ.down,287593041,0.67,Clover's down,Bain
+civ.down,28924609,0.67,"Down, all of you",Wolf
+civ.down,291040898,0.67,And stay down,Wick
+civ.down,291727575,0.67,Down on your knees,Clover
+civ.down,291933826,0.67,Bulldozer down,Chains
+civ.down,294450838,0.67,Everybody down,Houston
+civ.down,29472689,0.67,Man down,Chains
+civ.down,30014088,0.67,Duke is down,Bain
+civ.down,300634159,0.67,Lay down,Chains
+civ.down,300931094,0.67,Down here,Hoxton
+civ.down,307186420,0.67,Hunt them down,Cop (static)
+civ.down,307543810,0.67,Bulldozer down,Hoxton
+civ.down,308675650,0.67,Gear down,Cop (static)
+civ.down,309502461,0.67,Rust is down,Bain
+civ.down,311172716,0.67,Get down or get killed,Clover
+civ.down,312061796,0.67,"Ok, cloaker's down",Chains
+civ.down,316657736,0.67,Stay down,Clover
+civ.down,31792899,0.67,Stay down,Clover
+civ.down,318970519,0.67,Hoxton is down,Bain
+civ.down,319970849,0.67,Down on the ground,Clover
+civ.down,325231555,0.67,Down the stairs,Wolf
+civ.down,326155209,0.67,Get down on your knees,Houston
+civ.down,329219224,0.67,Lay down,Houston
+civ.down,33348584,0.67,Stay down,Wick
+civ.down,33427556,0.67,Down on the ground,Clover
+civ.down,337336552,0.67,Bulldozer down,Houston
+civ.down,338522647,0.67,Bulldozer down,Dallas
+civ.down,340855377,0.67,Take'em down,Cop (static)
+civ.down,341924207,0.67,Get down on the ground,Houston
+civ.down,342631735,0.67,Shield's down,Wolf
+civ.down,346320623,0.67,Cloaker's down,Dallas
+civ.down,347891617,0.67,Bulldozer down,Chains
+civ.down,34847142,0.67,Get down on the ground,Dallas
+civ.down,349276736,0.67,Get down on the ground,Hoxton
+civ.down,351641271,0.67,And stay down,Wick
+civ.down,351876999,0.67,Down on the ground,Hoxton
+civ.down,351914304,0.67,Down on the ground,Houston
+civ.down,3529354,0.67,Take him down!,Cop
+civ.down,353212715,0.67,Down here,Wick
+civ.down,357869481,0.67,Shut up and get down,Houston
+civ.down,358297806,0.67,Down here,Chains
+civ.down,359171028,0.67,The bulldozer's down,Wolf
+civ.down,36039929,0.67,Man down,Chains
+civ.down,362425861,0.67,Get down or get killed,Wick
+civ.down,365577266,0.67,Stay down,Dallas
+civ.down,367866160,0.67,Stay down,Wolf
+civ.down,367973404,0.67,Down on the ground,Dallas
+civ.down,368046110,0.67,Down here,Houston
+civ.down,370045552,0.67,Down on your faces,Chains
+civ.down,370209790,0.67,I said down,Chains
+civ.down,379808134,0.67,Get down on your knees,Dallas
+civ.down,381842144,0.67,Stay down,Houston
+civ.down,382568203,0.67,Jump down,Hoxton
+civ.down,38468805,0.67,Everybody down,Dallas
+civ.down,385842062,0.67,Joy's down,Bain
+civ.down,388202228,0.67,Get down people,Dallas
+civ.down,388471091,0.67,Stay down,Wolf
+civ.down,390244961,0.67,And stay down,Wolf
+civ.down,3906571,0.67,Fucking get down!,Hoxton
+civ.down,391554326,0.67,Everybody get down,Hoxton
+civ.down,392335447,0.67,The bulldozer's down,Wolf
+civ.down,397113241,0.67,Stay down,Hoxton
+civ.down,39743025,0.67,I said down,Wolf
+civ.down,398326457,0.67,Down people down,Cop
+civ.down,40342998,0.67,Stay down,Clover
+civ.down,404523971,0.67,Down all of you,Dallas
+civ.down,40551558,0.67,Fly down,Chains
+civ.down,405571305,0.67,Lay down,Chains
+civ.down,406965123,0.67,Kneel down,Chains
+civ.down,407222017,0.67,Hila's down,Bain
+civ.down,408277191,0.67,Down on your knees,Chains
+civ.down,41095031,0.67,Down all of you,Dallas
+civ.down,413757150,0.67,Down on the ground,Dallas
+civ.down,416557891,0.67,Face down,Clover
+civ.down,424216731,0.67,Everybody down,Wolf
+civ.down,425980590,0.67,Lay down,Clover
+civ.down,428208965,0.67,Get down on the ground,Hoxton
+civ.down,432121854,0.67,Down on the ground,Dallas
+civ.down,435374626,0.67,Down all of you,Dallas
+civ.down,440380462,0.67,Kneel down,Wick
+civ.down,441108479,0.67,I said down,Chains
+civ.down,44195196,0.67,Get down all of you,Houston
+civ.down,444036081,0.67,Down the stairs,Dallas
+civ.down,44426573,0.67,Down on the ground,Wolf
+civ.down,448578684,0.67,Down on the ground,Chains
+civ.down,455342397,0.67,Wolf's down,Bain
+civ.down,456648183,0.67,Get down on the ground,Dallas
+civ.down,458400479,0.67,Down the stairs,Houston
+civ.down,460742729,0.67,Jimmy's down,Bain
+civ.down,461208440,0.67,Jump down,Wolf
+civ.down,46467187,0.67,Down here,Dallas
+civ.down,466337497,0.67,Everybody down,Houston
+civ.down,466742147,0.67,Down on your knees,Wolf
+civ.down,468893222,0.67,Down people down,Cop (static)
+civ.down,469711734,0.67,Jump down,Wick
+civ.down,47050130,0.67,Robbers down!,Bulldozer
+civ.down,471902088,0.67,Get down on the ground,Dallas
+civ.down,475274690,0.67,Everybody get down,Dallas
+civ.down,475543122,0.67,Down on the ground,Dallas
+civ.down,480351190,0.67,Down motherfucker,Dallas
+civ.down,480608817,0.67,Down here,Wick
+civ.down,483751028,0.67,Power down,Cop (static)
+civ.down,485918418,0.67,Get the fuck down,Wolf
+civ.down,487388590,0.67,Duke's down,Bain
+civ.down,487786748,0.67,Stay down,Houston
+civ.down,488881624,0.67,Bring'em down,Cop
+civ.down,490948191,0.67,Everyone get down,Chains
+civ.down,495996777,0.67,Bring'em down,Cop
+civ.down,4963381,0.67,Lay down!,Wick
+civ.down,496880739,0.67,Take'em down,Cop (static)
+civ.down,499749784,0.67,Bulldozer down,Houston
+civ.down,500191118,0.67,Stay down,Cop
+civ.down,505465363,0.67,Jump down,Houston
+civ.down,50613853,0.67,Jump down,Hoxton
+civ.down,507294865,0.67,Everybody down,Dallas
+civ.down,508512340,0.67,Stay down,Wolf
+civ.down,528467257,0.67,Calm down,Cop (static)
+civ.down,53422912,0.67,Get down on the ground,Dallas
+civ.down,537600658,0.67,Get down on your knees,Clover
+civ.down,53774051,0.67,Bulldozer down,Chains
+civ.down,542822288,0.67,Jump down,Houston
+civ.down,544145330,0.67,Down on the ground,Houston
+civ.down,544440110,0.67,Down the stairs,Clover
+civ.down,54763120,0.67,Down on the ground,Dallas
+civ.down,548052687,0.67,Sydney's down,Bain
+civ.down,549688077,0.67,Everybody down,Hoxton
+civ.down,550067963,0.67,Wick is down,Bain
+civ.down,550897241,0.67,Tony is down,Bain
+civ.down,551089320,0.67,Sydney is down,Bain
+civ.down,552517349,0.67,Grenade get down,Clover
+civ.down,553409826,0.67,Everybody down,Wolf
+civ.down,553630537,0.67,Bulldozer down,Clover
+civ.down,555203052,0.67,Stay down,Dallas
+civ.down,557582270,0.67,Down there,Bain
+civ.down,562021898,0.67,Down motherfucker,Hoxton
+civ.down,56336259,0.67,Kneel down,Houston
+civ.down,565460993,0.67,Down people down,Cop (static)
+civ.down,567704111,0.67,Stay down,Cop
+civ.down,568178894,0.67,Down here,Wolf
+civ.down,569103172,0.67,Bodhi's down,Bain
+civ.down,569565189,0.67,Down on the ground,Houston
+civ.down,574024772,0.67,Target down,Bulldozer
+civ.down,575239362,0.67,Down people down,Cop (static)
+civ.down,5765713,0.67,Get down on the ground!,Wick
+civ.down,576781236,0.67,Weapon down,Chains
+civ.down,580803258,0.67,Get down on your faces,Chains
+civ.down,58367249,0.67,Slow down,Cop (static)
+civ.down,585788739,0.67,Everybody down!,Wolf
+civ.down,58844478,0.67,Stay down,Dallas
+civ.down,593213757,0.67,Bulldozer down!,Houston
+civ.down,59513170,0.67,Down on your knee,Wolf
+civ.down,597272483,0.67,Hoxton's down,Bain
+civ.down,600581124,0.67,Stay down!,Dallas
+civ.down,603852360,0.67,Stay down!,Wolf
+civ.down,605011361,0.67,Slow em down,Cop (static)
+civ.down,61049859,0.67,Man down,Chains
+civ.down,611596362,0.67,"I told ya, down!",Dallas
+civ.down,612476485,0.67,"Down, people, down!",Cop (static)
+civ.down,614131367,0.67,Get the fuck down,Chains
+civ.down,615280512,0.67,The shield's down,Wolf
+civ.down,62053324,0.67,Everybody get down,Houston
+civ.down,622064938,0.67,Get down on the ground,Dallas
+civ.down,630339724,0.67,Bring him down,Cop (static)
+civ.down,631147281,0.67,Stay down,Cop
+civ.down,634836031,0.67,You go down again and ...(?),Chains
+civ.down,635352535,0.67,Down the stairs,Clover
+civ.down,637695289,0.67,Get down on your knees,Houston
+civ.down,638788079,0.67,Stay down,Cop (static)
+civ.down,644809993,0.67,And stay down,Dallas
+civ.down,650669279,0.67,Down everybody,Dallas
+civ.down,656047352,0.67,Houston is down,Bain
+civ.down,660560320,0.67,Bring him down,Cop
+civ.down,663920,0.67,Bulldozer is down,Chains
+civ.down,665650340,0.67,I told you to get down,Chains
+civ.down,665944065,0.67,Take him down,Cop
+civ.down,671550423,0.67,Hunt'em down,Cop (static)
+civ.down,67386997,0.67,Jump down,Clover
+civ.down,675002432,0.67,Get down on the ground,Dallas
+civ.down,679886936,0.67,I said get down,Houston
+civ.down,681541861,0.67,Down the stairs,Clover
+civ.down,68158404,0.67,Stay down,Clover
+civ.down,682154864,0.67,Stay down,Cop (static)
+civ.down,682988858,0.67,Kneel down,Houston
+civ.down,689337746,0.67,And stay down,Houston
+civ.down,695997853,0.67,Slow'em down,Cop (static)
+civ.down,697386536,0.67,Everybody down,Houston
+civ.down,699014491,0.67,Stay down,Houston
+civ.down,70245324,0.67,Shut up and get down,Houston
+civ.down,703336866,0.67,Down the stairs,Bain
+civ.down,70495039,0.67,Man down,Chains
+civ.down,705625309,0.67,Down on the ground,Chains
+civ.down,707522821,0.67,Calm down,Cop
+civ.down,7080494,0.67,Man down,Chains
+civ.down,708168713,0.67,Bandit down,Bulldozer
+civ.down,708550330,0.67,And stay down,Dallas
+civ.down,7085741,0.67,Stay down!,Cop
+civ.down,709545541,0.67,Dragan's down,Bain
+civ.down,70978937,0.67,And stay down,Hoxton
+civ.down,711001447,0.67,Down the stairs,Hoxton
+civ.down,713947244,0.67,Down here,Hoxton
+civ.down,721061335,0.67,And stay down,Dallas
+civ.down,72312312,0.67,Jump down,Dallas
+civ.down,724933816,0.67,Take'em down,Cop (static)
+civ.down,728275344,0.67,Bulldozer's down,Chains
+civ.down,73256424,0.67,Get down on the ground,Wolf
+civ.down,733494631,0.67,Bring him down,Cop (static)
+civ.down,734710953,0.67,Down people down,Cop (static)
+civ.down,735526128,0.67,Take him down,Cop (static)
+civ.down,736992266,0.67,I said get down,Wolf
+civ.down,738193483,0.67,Down on the ground,Hoxton
+civ.down,747663315,0.67,Calm down,Cop
+civ.down,752834660,0.67,Houston's down,Bain
+civ.down,756401828,0.67,Down on the ground,Dallas
+civ.down,758515108,0.67,Slow them down,Cop (static)
+civ.down,764746349,0.67,Get down all of you,Dallas
+civ.down,76922864,0.67,Everybody down,Hoxton
+civ.down,79529399,0.67,Down on your knees,Dallas
+civ.down,79548357,0.67,Bulldozer down,Dallas
+civ.down,796705160,0.67,Hila's down,Bain
+civ.down,810084545,0.67,Stay down,Houston
+civ.down,81070330,0.67,Lay down,Houston
+civ.down,81462211,0.67,Down here,Chains
+civ.down,818963676,0.67,Down the stairs,Dallas
+civ.down,824083795,0.67,Gear down,Cop (static)
+civ.down,830001910,0.67,Stay down,Dallas
+civ.down,830294102,0.67,Bulldozer down,Dallas
+civ.down,835847072,0.67,Rust's down,Bain
+civ.down,83785152,0.67,Get down on your knees,Clover
+civ.down,844889968,0.67,Bring'em down,Cop (static)
+civ.down,846134719,0.67,Rust's down,Bain
+civ.down,85131153,0.67,I said get down,Hoxton
+civ.down,8569122,0.67,Down here,Wolf
+civ.down,860162887,0.67,Take'em down,Cop (static)
+civ.down,86177770,0.67,Down on the ground,Dallas
+civ.down,863795097,0.67,Wick is down,Bain
+civ.down,875631184,0.67,Drive them down,Wolf
+civ.down,876465491,0.67,Take'em down,Cop (static)
+civ.down,881491388,0.67,Down on the dirt,Chains
+civ.down,88247562,0.67,Tony's down,Bain
+civ.down,883107410,0.67,Power it down,Cop (static)
+civ.down,886494940,0.67,I said down,Chains
+civ.down,894460710,0.67,Jump down,Clover
+civ.down,896261831,0.67,Get down on your knees,Dallas
+civ.down,897706574,0.67,Ethan is down,Bain
+civ.down,903245990,0.67,Everybody down,Dallas
+civ.down,919107704,0.67,Get down on the ground now,Hoxton
+civ.down,92871619,0.67,Down on the ground,Hoxton
+civ.down,929313316,0.67,Bulldozer down,Houston
+civ.down,9300193,0.67,Man down,Chains
+civ.down,930524180,0.67,One down,Captain
+civ.down,93235070,0.67,I said down,Wick
+civ.down,933490023,0.67,Power down,Cop (static)
+civ.down,93365306,0.67,Get down on the ground,Dallas
+civ.down,93449394,0.67,Face down,Clover
+civ.down,937630771,0.67,Take him down,Cop (static)
+civ.down,939271610,0.67,Target down,Captain
+civ.down,948871952,0.67,Take'em down,Cop (static)
+civ.down,951992163,0.67,Calm down,Cop (static)
+civ.down,957747107,0.67,Take him down,Cop (static)
+civ.down,958692637,0.67,Get down on the ground,Wolf
+civ.down,96736732,0.67,Get down on your knees,Wolf
+civ.down,96746785,0.67,Down here,Dallas
+civ.down,972836688,0.67,Down here,Houston
+civ.down,97723955,0.67,Stay down,Wick
+civ.down,986751133,0.67,Wolf's down,Bain
+civ.down,987855550,0.67,Get down everybody,Dallas
+civ.down,987911568,0.67,Down people down,Cop
+civ.down,990552981,0.67,Hunt'em down,Cop
+civ.down,995405799,0.67,Bodhi's down,Bain
+civ.down,997564506,0.67,Bulldozer is down,Chains
+civ.down,997618828,0.67,One down,Bulldozer
+cop.cuffs,1013957519,1.00,Cuffs on,Hoxton
+cop.cuffs,139897283,1.00,Cuffs on,Chains
+cop.cuffs,154378587,1.00,Now cuffs,Houston
+cop.cuffs,157560802,1.00,Get your cuffs on,Clover
+cop.cuffs,161503820,1.00,Now cuffs,Houston
+cop.cuffs,203094698,1.00,Cuffs on,Chains
+cop.cuffs,215399263,1.00,Cuffs on,Hoxton
+cop.cuffs,222561023,1.00,Now cuffs,Wick
+cop.cuffs,228226845,1.00,Now cuffs,Hoxton
+cop.cuffs,251701716,1.00,Get your cuffs on,Houston
+cop.cuffs,261784388,1.00,Get your cuffs on,Clover
+cop.cuffs,270304248,1.00,And on with the cuffs,Hoxton
+cop.cuffs,349258249,1.00,Cuffs on,Clover
+cop.cuffs,469109948,1.00,Cuffs on now,Chains
+cop.cuffs,475552282,1.00,"Now, cuffs",Hoxton
+cop.cuffs,52387663,1.00,Cuffs on,Houston
+cop.cuffs,580123745,1.00,Cuffs now,Houston
+cop.cuffs,605298413,1.00,Get your cuffs on,Chains
+cop.cuffs,61517129,1.00,Now cuffs,Hoxton
+cop.cuffs,653078357,1.00,Now get your cuffs on,Chains
+cop.cuffs,69349194,1.00,Now cuffs,Clover
+cop.cuffs,785294252,1.00,Get your cuffs on,Houston
+cop.cuffs,8619834,1.00,Cuffs on now,Chains
+cop.cuffs,902736256,1.00,Cuffs on,Chains
+cop.cuffs,90643984,1.00,Cuffs on,Clover
+cop.cuffs,118745509,0.67,"Now, put your cuffs on",Houston
+cop.cuffs,12034489,0.67,Put your cuffs on,Wolf
+cop.cuffs,146447233,0.67,Put your cuffs on,Wolf
+cop.cuffs,155104065,0.67,Put on the cuffs,Houston
+cop.cuffs,155643651,0.67,"Cuffs, put'em on",Clover
+cop.cuffs,159654702,0.67,Cuffs open,Dallas
+cop.cuffs,210376615,0.67,Put your cuffs on,Chains
+cop.cuffs,216004302,0.67,Put your cuffs on,Dallas
+cop.cuffs,218384829,0.67,Ok I picked the cuffs,Dallas
+cop.cuffs,272201047,0.67,Now put your cuffs on,Dallas
+cop.cuffs,306409611,0.67,Put your cuffs on,Hoxton
+cop.cuffs,30655344,0.67,Now put your cuffs on,Dallas
+cop.cuffs,370498093,0.67,Put your cuffs on,Dallas
+cop.cuffs,378051527,0.67,Now put your cuffs on,Houston
+cop.cuffs,380666859,0.67,Put your cuffs on,Clover
+cop.cuffs,381431195,0.67,Put your cuffs on,Hoxton
+cop.cuffs,46605879,0.67,Get those cuffs on,Chains
+cop.cuffs,526237275,0.67,And arm with the cuffs,Clover
+cop.cuffs,594971436,0.67,Put your cuffs on!,Clover
+cop.cuffs,634244914,0.67,And armed with the cuffs,Clover
+cop.cuffs,641214367,0.67,And armed with the cuffs,Hoxton
+cop.cuffs,649489163,0.67,Ok I got rid of the cuffs,Wolf
+cop.cuffs,657417697,0.67,Put on the cuffs,Houston
+cop.cuffs,693735059,0.67,Ok I picked the cuffs,Wolf
+cop.cuffs,729847864,0.67,Get dem cuffs on,Chains
+cop.cuffs,752293945,0.67,Ok I got rid of the cuffs,Dallas
+cop.cuffs,93767793,0.67,Put your cuffs on,Dallas
+cop.drop,131151521,1.00,And don't get up,Wolf
+cop.drop,131624116,1.00,Don't do it,Houston
+cop.drop,170476720,1.00,And don't get up,Hoxton
+cop.drop,217029300,1.00,And don't you get up,Dallas
+cop.drop,218651171,1.00,And don't get up,Dallas
+cop.drop,22637060,1.00,And don't get up,Houston
+cop.drop,23770266,1.00,And don't you get up,Dallas
+cop.drop,252346888,1.00,And don't get up,Wolf
+cop.drop,265649519,1.00,And don't get up,Clover
+cop.drop,304392344,1.00,And don't get up,Hoxton
+cop.drop,372248316,1.00,And don't get up,Houston
+cop.drop,459519765,1.00,And don't get up,Wolf
+cop.drop,531459907,1.00,And don't get up,Wolf
+cop.drop,545501544,1.00,Don't do that,Houston
+cop.drop,594077172,1.00,Don't you do it!,Houston
+cop.drop,625899726,1.00,And don't get up,Dallas
+cop.drop,64323264,1.00,And don't get up,Wick
+cop.drop,781604403,1.00,And don't you get up,Dallas
+cop.drop,1005262734,0.67,Don't be stupid now,Cop (static)
+cop.drop,115930022,0.67,I don't judge you,Cop
+cop.drop,124199434,0.67,Don't let'em up,Cop
+cop.drop,133547997,0.67,"Ok ok, don't shoot",Cop (static)
+cop.drop,144474042,0.67,And don't fucking get up,Hoxton
+cop.drop,146136333,0.67,Don't be stupid now,Cop (static)
+cop.drop,155053207,0.67,"Ok ok, don't shoot",Cop (static)
+cop.drop,161411066,0.67,And don't do anything,Chains
+cop.drop,164705798,0.67,Don't get smart now,Houston
+cop.drop,167948734,0.67,Don't panic,Cop (static)
+cop.drop,173567014,0.67,Don't panic,Cop (static)
+cop.drop,175530090,0.67,"Ok ok, don't shoot",Cop
+cop.drop,179502095,0.67,Don't let'em up,Cop (static)
+cop.drop,184257786,0.67,Ok ok don't shoot,Cop
+cop.drop,191532848,0.67,I don't judge you,Cop
+cop.drop,198956235,0.67,Ok ok don't shoot,Cop
+cop.drop,208128685,0.67,Don't you die on me,Clover
+cop.drop,208559496,0.67,Don't be stupid,Cop (static)
+cop.drop,212294040,0.67,Don't shoot don't shoot,Cop (static)
+cop.drop,238035897,0.67,And don't look up,Houston
+cop.drop,248631586,0.67,Don't fuck with me,Wick
+cop.drop,25727836,0.67,Don't panic,Cop
+cop.drop,263348040,0.67,"Ok ok, don't shoot",Cop
+cop.drop,264129126,0.67,Don't panic,Cop
+cop.drop,28480794,0.67,Ok ok don't shoot,Cop (static)
+cop.drop,286922263,0.67,Don't shoot don't shoot,Cop (static)
+cop.drop,310492115,0.67,And don't fucking get up,Dallas
+cop.drop,31241162,0.67,Don't go be a tricky now,Chains
+cop.drop,338611686,0.67,Ok ok don't shoot,Cop
+cop.drop,373288681,0.67,Don't slow now,Chains
+cop.drop,378925786,0.67,Don't die,Bain
+cop.drop,405086493,0.67,Don't be a hero,Houston
+cop.drop,409057633,0.67,Don't be stupid,Cop (static)
+cop.drop,415357758,0.67,And don't fucking get up,Hoxton
+cop.drop,41972895,0.67,And don't do anything,Chains
+cop.drop,431224446,0.67,Don't shoot don't shoot,Cop
+cop.drop,4433594,0.67,And don't looking,Chains
+cop.drop,46759421,0.67,Don't you die on me,Wick
+cop.drop,476543131,0.67,Ok ok don't shoot,Cop (static)
+cop.drop,478742191,0.67,Don't panic,Cop (static)
+cop.drop,48308300,0.67,Don't look at me,Houston
+cop.drop,506465727,0.67,Don't go anywhere,Hoxton
+cop.drop,513694906,0.67,And don't get ideas,Chains
+cop.drop,536921272,0.67,And don't look at me,Chains
+cop.drop,538213311,0.67,Ok ok don't shoot,Cop (static)
+cop.drop,542425445,0.67,Don't panic,Cop
+cop.drop,551565446,0.67,"Ok ok, ok ok don't shoot",Cop (static)
+cop.drop,590544801,0.67,Don't. Mess. With me,Bulldozer
+cop.drop,608464123,0.67,Don't be stupid now,Cop (static)
+cop.drop,617704146,0.67,"Don't shoot, don't shoot",Cop (static)
+cop.drop,64863124,0.67,Don't give up,Wick
+cop.drop,658791380,0.67,And don't blink,Chains
+cop.drop,667246224,0.67,"Ok, ok, don't shoot",Cop (static)
+cop.drop,669712832,0.67,Don't let them up,Cop
+cop.drop,684882471,0.67,And don't fucking get up,Dallas
+cop.drop,692700102,0.67,"Ok, ok don't shoot",Cop
+cop.drop,695181077,0.67,Don't slow now,Chains
+cop.drop,70357272,0.67,Ok ok don't shoot,Cop
+cop.drop,708915091,0.67,Don't get loose with it now,Dallas
+cop.drop,721044027,0.67,Don't die I got this,Chains
+cop.drop,73413191,0.67,Don't shoot don't shoot,Cop (static)
+cop.drop,739702973,0.67,I don't judge you,Civilian
+cop.drop,750570385,0.67,Don't be stupid now,Cop
+cop.drop,76569724,0.67,Don't let'em up,Cop (static)
+cop.drop,766733198,0.67,Don't let'em up,Cop (static)
+cop.drop,779021719,0.67,I don't judge you,Cop
+cop.drop,794602631,0.67,"Ok ok, don't shoot",Cop (static)
+cop.drop,827185978,0.67,I don't judge you,Cop
+cop.drop,830993961,0.67,"Oh ok, ok don't shoot",Cop (static)
+cop.drop,83842636,0.67,Don't panic,Cop
+cop.drop,843854709,0.67,Don't shoot don't shoot,Cop
+cop.drop,85304011,0.67,Don't panic,Cop
+cop.drop,885543866,0.67,And don't you fucking get up,Dallas
+cop.drop,902683631,0.67,"ok ok, ok ok don't shoot",Cop
+cop.drop,946343075,0.67,Don't be stupid now,Cop (static)
+cop.drop,951509966,0.67,Don't panic,Cop (static)
+cop.drop,959499186,0.67,Don't be stupid now,Security
+cop.drop,981129383,0.67,Don't panic,Cop (static)
+cop.hands,1010340561,1.00,Stop!,Cop (static)
+cop.hands,1057475216,1.00,Stop!,Cop (static)
+cop.hands,112345270,1.00,Stop it,Security
+cop.hands,127139605,1.00,Stop it,Cop (static)
+cop.hands,148168898,1.00,Stop,Cop (static)
+cop.hands,150130277,1.00,Stop it,Cop (static)
+cop.hands,173870629,1.00,Stop,Security
+cop.hands,185958581,1.00,Stop,Cop (static)
+cop.hands,197318562,1.00,Stop,Cop (static)
+cop.hands,197930639,1.00,Stop it,Cop (static)
+cop.hands,250150947,1.00,Stop,Cop (static)
+cop.hands,255927562,1.00,Stop,Cop (static)
+cop.hands,260499095,1.00,Stop,Cop (static)
+cop.hands,275259076,1.00,Stop it,Security
+cop.hands,292498192,1.00,Stop,Security
+cop.hands,2939911,1.00,Stop!,Cop (static)
+cop.hands,316953922,1.00,Stop it,Security
+cop.hands,334347261,1.00,Stop it,Security
+cop.hands,340037151,1.00,Stop it,Security
+cop.hands,375060467,1.00,Stop,Security
+cop.hands,394587473,1.00,Stop,Cop (static)
+cop.hands,418487521,1.00,Stop it,Cop (static)
+cop.hands,449581751,1.00,Stop it,Cop (static)
+cop.hands,485736406,1.00,Stop,Cop (static)
+cop.hands,487795847,1.00,Stop it,Cop (static)
+cop.hands,505167509,1.00,Stop it,Security
+cop.hands,506230407,1.00,Stop,Security
+cop.hands,533184247,1.00,Stop it,Security
+cop.hands,536655660,1.00,Stop it,Cop (static)
+cop.hands,559048709,1.00,Stop it,Cop (static)
+cop.hands,586359737,1.00,Stop!,Security
+cop.hands,639878917,1.00,Stop,Security
+cop.hands,728209091,1.00,Stop it,Cop (static)
+cop.hands,729772209,1.00,Stop it,Security
+cop.hands,767489075,1.00,Stop it,Cop (static)
+cop.hands,772397635,1.00,Stop,Security
+cop.hands,805000211,1.00,Stop,Cop (static)
+cop.hands,825622493,1.00,Stop it,Cop (static)
+cop.hands,904540120,1.00,Stop!,Security
+cop.hands,91043019,1.00,Stop!,Security
+cop.hands,934222043,1.00,Stop it,Security
+cop.hands,973475766,1.00,Stop it,Cop (static)
+cop.hands,24142501,0.67,"Ah, stop the bleeding",Wick
+cop.hands,416178948,0.67,Can't stop me,Bulldozer
+cop.hands,434088182,0.67,You won't stop me,Bulldozer
+cop.hands,458828735,0.67,Stop moving,Houston
+cop.hands,525331398,0.67,You can't stop me,Bulldozer
+cop.kneel,101044066,1.00,"Knees, get on them",Chains
+cop.kneel,131113434,1.00,Get on your knees,Wolf
+cop.kneel,140118540,1.00,On your knees,Wolf
+cop.kneel,154205240,1.00,On your knees,Houston
+cop.kneel,162674190,1.00,Get on your knees,Dallas
+cop.kneel,171356267,1.00,On your knees,Clover
+cop.kneel,202695379,1.00,On your knees,Wolf
+cop.kneel,202933213,1.00,Get on your knees,Clover
+cop.kneel,218316595,1.00,Get on your knees,Clover
+cop.kneel,236544962,1.00,On your knees,Dallas
+cop.kneel,236855025,1.00,Get on your knees,Wolf
+cop.kneel,280523567,1.00,On your knees,Houston
+cop.kneel,30764318,1.00,On your knees,Wick
+cop.kneel,308665334,1.00,Knees,Chains
+cop.kneel,313175614,1.00,On your knees,Chains
+cop.kneel,343795651,1.00,Get on your knees,Wolf
+cop.kneel,370501946,1.00,Get on your knees,Chains
+cop.kneel,426964203,1.00,On your knees,Wick
+cop.kneel,473098367,1.00,On your knees,Chains
+cop.kneel,476132217,1.00,On your knees,Hoxton
+cop.kneel,487037134,1.00,Get on your knees,Chains
+cop.kneel,493728123,1.00,Get on your knees,Hoxton
+cop.kneel,608789625,1.00,Get on your knees!,Dallas
+cop.kneel,760617792,1.00,Get on your knees,Dallas
+cop.kneel,80764310,1.00,On your knees,Clover
+cop.kneel,83944417,1.00,Get on your knees,Houston
+cop.kneel,875402557,1.00,On your knees,Dallas
+cop.kneel,930727240,1.00,"Knees, get on them",Chains
+cop.kneel,117182634,0.67,Get on your fucking knees,Hoxton
+cop.kneel,361777156,0.67,Drop on your knees,Clover
+cop.kneel,363214460,0.67,Drop on your knees,Houston
+cop.kneel,366183523,0.67,Get on your damn knees,Chains
+cop.kneel,447687356,0.67,On your fucking knees,Dallas
+cop.kneel,521622648,0.67,Drop on your knees,Houston
+cop.kneel,608056127,0.67,"Get on your knees, fuck(?)",Dallas
+cop.kneel,724608013,0.67,On your fucking knees,Chains
+cop.kneel,85352130,0.67,On your fucking knees,Hoxton
+cuffed.pick,10223583,1.00,Pick these cuffs for me,Houston
+cuffed.pick,102251048,1.00,Pick these cuffs for me,Houston
+cuffed.pick,22217181,1.00,Pick these cuffs for me,Houston
+cuffed.pick,26729510,1.00,Pick these cuffs for me,Dallas
+cuffed.pick,41482129,1.00,Pick these cuffs for me,Dallas
+cuffed.pick,8801304,1.00,Pick these cuffs for me,Dallas
+cuffed.pick,1037692,0.86,Come pick these cuffs,Houston
+cuffed.pick,107459439,0.86,Come pick these cuffs,Wolf
+cuffed.pick,11042367,0.86,Come pick these cuffs,Houston
+cuffed.pick,126649240,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,13161095,0.86,Come pick these cuffs,Houston
+cuffed.pick,138460050,0.86,Come pick these cuffs,Dallas
+cuffed.pick,182552381,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,19384843,0.86,Come pick these cuffs,Dallas
+cuffed.pick,20260217,0.86,Come and pick these cuffs for me,Hoxton
 cuffed.pick,205752,0.86,Come pick these cuffs,Dallas
+cuffed.pick,218712749,0.86,Need to pick these cuffs,Houston
+cuffed.pick,23623387,0.86,Come pick these cuffs,Houston
+cuffed.pick,24819915,0.86,Come pick these cuffs,Houston
+cuffed.pick,2569723,0.86,Come pick these cuffs,Wolf
+cuffed.pick,29569628,0.86,Come pick these cuffs for me,Clover
+cuffed.pick,3124812,0.86,Come and pick these cuffs for me,Hoxton
+cuffed.pick,3332269,0.86,Come pick these cuffs,Wolf
+cuffed.pick,3450276,0.86,Come pick these cuffs,Dallas
+cuffed.pick,40530155,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,49622485,0.86,Come pick these cuffs,Houston
+cuffed.pick,5244438,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,52993024,0.86,Come pick these cuffs for me,Clover
+cuffed.pick,5714378,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,6856499,0.86,Come pick these cuffs for me,Clover
+cuffed.pick,126776777,0.80,Pick my cuffs,Wick
+cuffed.pick,46959323,0.80,Pick my cuffs,Wick
+cuffed.pick,5167537,0.80,Get these cuffs on,Wolf
+cuffed.pick,96917787,0.80,Pick my cuffs,Wick
+cuffed.pick,174787133,0.75,I'll pick these cuffs in no time,Wolf
+cuffed.pick,453723224,0.75,I'll pick these cuffs in no time,Dallas
+cuffed.pick,707280966,0.75,I'll pick these cuffs in no time,Wolf
+cuffed.pick,103043526,0.67,Get these cuffs off,Hoxton
+cuffed.pick,107900041,0.67,Get these cuffs off,Wick
+cuffed.pick,110410266,0.67,Get these cuffs off,Dallas
+cuffed.pick,110980539,0.67,Get these cuffs off,Wick
+cuffed.pick,11247968,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,11339546,0.67,Get me out of these cuffs,Chains
+cuffed.pick,117749398,0.67,Get these cuffs off,Houston
+cuffed.pick,118016775,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,120586143,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,12438816,0.67,Get these cuffs off,Wick
+cuffed.pick,13227486,0.67,Get me out of these cuffs,Wolf
+cuffed.pick,13667819,0.67,Get me out of these cuffs,Wick
+cuffed.pick,14068330,0.67,These cuffs are chasin' me,Chains
+cuffed.pick,142743372,0.67,Get me out of these cuffs,Chains
+cuffed.pick,14414213,0.67,Get me out of these cuffs,Chains
+cuffed.pick,146974494,0.67,Get these cuffs off,Dallas
+cuffed.pick,1487290,0.67,Get these cuffs off,Wolf
+cuffed.pick,14977974,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,160549928,0.67,Get me out of these cuffs,Houston
+cuffed.pick,16113187,0.67,Get these cuffs off,Wick
+cuffed.pick,164483802,0.67,Get these cuffs off,Hoxton
+cuffed.pick,17663218,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,179098359,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,187382120,0.67,Get these cuffs off,Houston
+cuffed.pick,188685523,0.67,Get these cuffs off,Houston
+cuffed.pick,1911284,0.67,Get me out of these cuffs,Clover
+cuffed.pick,19449578,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,19536505,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,19808361,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,20093129,0.67,Get these cuffs off,Houston
+cuffed.pick,220024099,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,22469744,0.67,Get me out of these cuffs,Wick
+cuffed.pick,22494562,0.67,Get me out of these cuffs,Houston
+cuffed.pick,22747482,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,22800512,0.67,Get these cuffs off,Wolf
+cuffed.pick,23074051,0.67,These cuffs are chasin' me,Chains
+cuffed.pick,246934369,0.67,Get me out of these cuffs,Houston
 cuffed.pick,2594639,0.67,Get these cuffs off,Dallas
+cuffed.pick,266194910,0.67,Get me out of these cuffs,Houston
+cuffed.pick,27013075,0.67,Get me out of these cuffs,Houston
+cuffed.pick,30954515,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,3122463,0.67,Get these cuffs off,Dallas
+cuffed.pick,31764436,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,324855,0.67,Get these cuffs off,Wolf
+cuffed.pick,32738806,0.67,Get these cuffs off,Wick
+cuffed.pick,33483097,0.67,Get these cuffs off,Houston
+cuffed.pick,37074563,0.67,Get these cuffs off,Clover
+cuffed.pick,37459360,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,39534417,0.67,Get these cuffs off,Hoxton
+cuffed.pick,40216309,0.67,Get me out of these cuffs,Houston
+cuffed.pick,43668918,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,44714077,0.67,Get me out of these cuffs,Chains
+cuffed.pick,50536936,0.67,Get me out of these cuffs,Houston
+cuffed.pick,50893923,0.67,Get me out of these cuffs,Dallas
+cuffed.pick,51851734,0.67,Get these cuffs off,Houston
+cuffed.pick,52054968,0.67,Get me out of these cuffs,Houston
+cuffed.pick,53282279,0.67,Get these cuffs off,Wick
+cuffed.pick,53944372,0.67,Get these cuffs off,Wolf
+cuffed.pick,55010235,0.67,Get me out of these cuffs,Clover
+cuffed.pick,56763096,0.67,Get these cuffs off,Dallas
+cuffed.pick,61363634,0.67,Get me out of these cuffs,Houston
+cuffed.pick,66757785,0.67,Get these cuffs off,Hoxton
+cuffed.pick,67066760,0.67,Get me out of these cuffs,Houston
+cuffed.pick,68778538,0.67,Get these cuffs off,Clover
+cuffed.pick,7104534,0.67,Get me out of these cuffs,Chains
+cuffed.pick,72095254,0.67,Get these cuffs off,Wick
+cuffed.pick,8114808,0.67,Get me out of these cuffs,Chains
+cuffed.pick,90089451,0.67,Get these cuffs off,Houston
+cuffed.pick,97714466,0.67,Get these cuffs off,Clover
+cuffed.pick,9812912,0.67,Get me out of these cuffs,Wick
+curse.shit,1006034341,1.00,Damn you,Cop
+curse.shit,103181260,1.00,Damn,Wolf
+curse.shit,230064088,1.00,Damn you,Cop
+curse.shit,303629161,1.00,Damn you,Cop (static)
+curse.shit,397894563,1.00,Damn,Houston
+curse.shit,426887698,1.00,Damn,Wolf
+curse.shit,447912940,1.00,Damn,Cop (static)
+curse.shit,453573811,1.00,Damn you,Cop (static)
+curse.shit,51657606,1.00,Damn you,Cop (static)
+curse.shit,52389791,1.00,Damn,Dallas
+curse.shit,533665316,1.00,Damn,Cop (static)
+curse.shit,535215543,1.00,Damn you,Cop (static)
+curse.shit,591686837,1.00,Damn,Cop
+curse.shit,69019452,1.00,Damn,Dallas
+curse.shit,748513948,1.00,Damn you,Cop (static)
+curse.shit,857593623,1.00,Damn you,Cop
+curse.shit,104688479,0.67,Damn you for doing this,Cop (static)
+curse.shit,144395089,0.67,Damn you for doing this,Cop (static)
+curse.shit,270807938,0.67,Damn you for doing this,Cop
+curse.shit,284059326,0.67,God damn,Chains
+curse.shit,335760508,0.67,Damn you for doing this,Cop (static)
+curse.shit,387135811,0.67,Damn you for doing this,Cop
+curse.shit,399314461,0.67,Damn you for doing this,Cop (static)
+curse.shit,480792586,0.67,Damn you for doing this,Cop
+curse.shit,483825265,0.67,My damn visor,Bulldozer
+curse.shit,551719003,0.67,God damn,Chains
+curse.shit,763992080,0.67,The damn visor,Bulldozer
+curse.shit,865940137,0.67,Damn you for doing this,Cop
+curse.shit,92135719,0.67,That damn visor!,Bulldozer
+curse.shit,968354359,0.67,Damn you for doing this,Cop (static)
+curse.shit,987559435,0.67,Damn you for doing this,Cop
+curse.slow,48468196,0.80,Too slow too slow this is much too slow,Houston
+curse.slow,977593679,0.80,Too slow come on,Civilian
+downed.need_help,101451633,1.00,I need help,Dallas
+downed.need_help,12842532,1.00,I need help!,Dallas
+downed.need_help,144906663,1.00,I need help,Dallas
+downed.need_help,1527988,1.00,I need help!,Hoxton
+downed.need_help,200551427,1.00,I need help,Dallas
+downed.need_help,2449698,1.00,I need help,Wolf
+downed.need_help,25607915,1.00,I need help,Hoxton
+downed.need_help,37036979,1.00,I need help,Dallas
+downed.need_help,37700326,1.00,I need help,Wolf
+downed.need_help,40994224,1.00,I need help,Dallas
+downed.need_help,45676703,1.00,I need help,Hoxton
+downed.need_help,53853852,1.00,I need help,Dallas
+downed.need_help,54491806,1.00,I need help,Dallas
+downed.need_help,56669524,1.00,I need help,Wolf
+downed.need_help,58812396,1.00,I need help,Wolf
+downed.need_help,6103806,1.00,I need help!,Hoxton
+downed.need_help,7537589,1.00,I need help!,Hoxton
+downed.need_help,9049622,1.00,I need help!,Wolf
+downed.need_help,10257413,0.80,Need some help,Chains
+downed.need_help,105665784,0.80,Gonna need help,Houston
+downed.need_help,2291112,0.80,"Hey, I need help!",Hoxton
+downed.need_help,34870438,0.80,Hey I need help,Hoxton
+downed.need_help,52731947,0.80,Hey I need help,Hoxton
+downed.need_help,54449946,0.80,Need some help,Chains
+downed.need_help,74613409,0.80,Need some help,Chains
+downed.need_help,75264500,0.80,Hey I need help,Hoxton
+downed.need_help,100248597,0.67,Help,Hoxton
+downed.need_help,100629185,0.67,Help me up,Dallas
+downed.need_help,101029275,0.67,Help,Dallas
+downed.need_help,101349063,0.67,Help me,Wolf
+downed.need_help,1020703115,0.67,Help,Cop (static)
+downed.need_help,102164329,0.67,Help,Dallas
+downed.need_help,1034941561,0.67,Help me,Wolf
+downed.need_help,10367814,0.67,Help!,Dallas
+downed.need_help,1056836751,0.67,Help,Cop (static)
+downed.need_help,106311397,0.67,Help me up,Dallas
+downed.need_help,10889887,0.67,Help,Hoxton
+downed.need_help,108912829,0.67,Help,Cop (static)
+downed.need_help,110725789,0.67,Help me up,Wolf
+downed.need_help,114199301,0.67,Help,Dallas
+downed.need_help,11540265,0.67,Help,Hoxton
+downed.need_help,11676438,0.67,Help me!,Dallas
+downed.need_help,118896249,0.67,Help,Cop
+downed.need_help,121295651,0.67,Help,Hoxton
+downed.need_help,12241653,0.67,Help,Wick
+downed.need_help,127024911,0.67,Help,Dallas
+downed.need_help,129966487,0.67,Help,Dallas
+downed.need_help,143326098,0.67,Help,Dallas
+downed.need_help,14567065,0.67,Help,Hoxton
+downed.need_help,146781494,0.67,Help me up,Dallas
+downed.need_help,147181947,0.67,Help,Wolf
+downed.need_help,153276424,0.67,Help me,Dallas
+downed.need_help,15396709,0.67,Help me,Wolf
+downed.need_help,154258583,0.67,Help me up,Wolf
+downed.need_help,15746067,0.67,Help,Hoxton
+downed.need_help,161918874,0.67,Help,Hoxton
+downed.need_help,163347737,0.67,Help me,Dallas
+downed.need_help,164818233,0.67,Help,Hoxton
+downed.need_help,180681394,0.67,Help,Wolf
+downed.need_help,19339181,0.67,Help me,Hoxton
+downed.need_help,19909045,0.67,Help!,Clover
+downed.need_help,19976842,0.67,Help me,Hoxton
+downed.need_help,201482208,0.67,Help,Wolf
+downed.need_help,20432571,0.67,Help,Hoxton
+downed.need_help,205249306,0.67,Help,Houston
+downed.need_help,20771043,0.67,Help me,Dallas
+downed.need_help,20921498,0.67,Help me,Houston
+downed.need_help,21146959,0.67,Help,Hoxton
+downed.need_help,214687388,0.67,Help me up,Dallas
+downed.need_help,22004583,0.67,Help,Wick
+downed.need_help,22496231,0.67,Help,Hoxton
+downed.need_help,22900058,0.67,Help,Houston
+downed.need_help,23226599,0.67,Help!,Clover
+downed.need_help,23592286,0.67,Help me up,Dallas
+downed.need_help,23783135,0.67,Help me,Dallas
 downed.need_help,2424401,0.67,Help me!,Hoxton
+downed.need_help,26060775,0.67,Help,Hoxton
+downed.need_help,26089212,0.67,Help me,Hoxton
+downed.need_help,264595264,0.67,Help,Cop
+downed.need_help,26463662,0.67,Help,Hoxton
+downed.need_help,270838443,0.67,Help,Cop
+downed.need_help,27259783,0.67,Help me up,Hoxton
+downed.need_help,281618473,0.67,Help,Cop
+downed.need_help,28862194,0.67,Help,Dallas
+downed.need_help,2910536,0.67,Help!,Hoxton
+downed.need_help,291786268,0.67,Help,Cop (static)
+downed.need_help,295699215,0.67,Help,Wolf
+downed.need_help,30166859,0.67,Help me,Hoxton
+downed.need_help,30230285,0.67,Help,Hoxton
+downed.need_help,308481536,0.67,Help,Cop (static)
+downed.need_help,31088899,0.67,Help,Hoxton
+downed.need_help,31143680,0.67,Help,Hoxton
+downed.need_help,32037502,0.67,Help,Dallas
+downed.need_help,32455945,0.67,Help me,Dallas
+downed.need_help,32502712,0.67,Help me up,Hoxton
+downed.need_help,32631350,0.67,Help,Dallas
+downed.need_help,34194907,0.67,Help me up,Wolf
+downed.need_help,359190516,0.67,Help,Cop
+downed.need_help,36287573,0.67,Help,Houston
+downed.need_help,36450684,0.67,Help,Wick
+downed.need_help,369621201,0.67,Help,Cop
+downed.need_help,37993569,0.67,Help me,Clover
+downed.need_help,3841738,0.67,Help,Dallas
+downed.need_help,38638589,0.67,Help,Wolf
+downed.need_help,38785437,0.67,Help,Houston
+downed.need_help,38957411,0.67,Help,Hoxton
+downed.need_help,391954228,0.67,Help,Houston
+downed.need_help,39333662,0.67,Help,Dallas
+downed.need_help,394062062,0.67,Help,Cop
+downed.need_help,40760695,0.67,Help,Hoxton
+downed.need_help,41703172,0.67,Help,Dallas
+downed.need_help,41728584,0.67,Help,Dallas
+downed.need_help,41795394,0.67,Help me,Hoxton
+downed.need_help,41948695,0.67,Help,Wolf
+downed.need_help,4412025,0.67,Help me,Wolf
+downed.need_help,45350292,0.67,Help me up,Dallas
+downed.need_help,453577018,0.67,Help,Cop (static)
+downed.need_help,45558362,0.67,Help,Dallas
+downed.need_help,459795826,0.67,Help,Cop
+downed.need_help,46600145,0.67,Help,Dallas
+downed.need_help,4794616,0.67,Help me!,Clover
+downed.need_help,4806437,0.67,Help,Dallas
+downed.need_help,485986920,0.67,Help,Cop (static)
+downed.need_help,49054164,0.67,Help,Dallas
+downed.need_help,490757212,0.67,Help,Cop
+downed.need_help,49264503,0.67,Help,Wick
+downed.need_help,511067260,0.67,Help,Houston
+downed.need_help,52280123,0.67,Help me up,Wolf
+downed.need_help,52444953,0.67,Help!,Dallas
+downed.need_help,53421477,0.67,Help,Cop
+downed.need_help,54388499,0.67,Help me,Hoxton
+downed.need_help,55234040,0.67,Help me up,Hoxton
+downed.need_help,573315731,0.67,Help,Cop
+downed.need_help,57410676,0.67,Help,Houston
+downed.need_help,587219275,0.67,Help!,Cop
+downed.need_help,5874153,0.67,Help me up!,Hoxton
+downed.need_help,60948835,0.67,Help,Dallas
+downed.need_help,62128777,0.67,Help,Hoxton
+downed.need_help,6267431,0.67,Help me!,Clover
+downed.need_help,6341003,0.67,Help,Wolf
+downed.need_help,63764869,0.67,Help me up,Hoxton
+downed.need_help,650649873,0.67,Help,Cop (static)
 downed.need_help,654387,0.67,Help me up,Dallas
+downed.need_help,654751639,0.67,Help,Cop
+downed.need_help,65632271,0.67,Help me up,Dallas
+downed.need_help,663167685,0.67,Help,Cop
+downed.need_help,666350642,0.67,Help,Cop (static)
+downed.need_help,66755991,0.67,Help me,Dallas
+downed.need_help,6679379,0.67,Help me up,Dallas
+downed.need_help,67943365,0.67,Help,Dallas
+downed.need_help,680277943,0.67,Help,Cop (static)
+downed.need_help,68276412,0.67,Help me up,Hoxton
+downed.need_help,70713909,0.67,Help,Wolf
+downed.need_help,71959447,0.67,Help,Hoxton
+downed.need_help,72498331,0.67,Help me,Dallas
+downed.need_help,7383484,0.67,Help me up!,Wolf
+downed.need_help,7625582,0.67,Help me up,Hoxton
+downed.need_help,79153114,0.67,Help,Houston
+downed.need_help,79598307,0.67,Help,Hoxton
+downed.need_help,797514980,0.67,Help,Cop (static)
+downed.need_help,803706613,0.67,Help,Cop
+downed.need_help,806963950,0.67,Help,Cop (static)
+downed.need_help,82008257,0.67,Help,Houston
+downed.need_help,84289257,0.67,Help me up,Dallas
+downed.need_help,86476797,0.67,Help,Houston
+downed.need_help,89877545,0.67,Help me,Dallas
 downed.need_help,905586,0.67,Help me up!,Hoxton
+downed.need_help,90804540,0.67,Help,Dallas
+downed.need_help,915691562,0.67,Help!,Wolf
+downed.need_help,917901918,0.67,Help!,Cop
+downed.need_help,93875906,0.67,Help,Hoxton
+downed.need_help,9443125,0.67,Help me,Clover
+downed.need_help,94873113,0.67,Help me,Hoxton
+downed.need_help,949519183,0.67,Help,Cop (static)
+downed.need_help,980408909,0.67,Help!,Cop (static)
+downed.need_help,9957631,0.67,Help!,Dallas
+downed.want_fight,100594239,0.67,We need to get it fixed,Houston
+downed.want_fight,100958594,0.67,Need ammo now,Chains
+downed.want_fight,106373289,0.67,I need a hand,Houston
+downed.want_fight,132872501,0.67,I need a hand,Wick
+downed.want_fight,140084048,0.67,I need a hand,Clover
+downed.want_fight,147222848,0.67,We need you on your loafers,Clover
+downed.want_fight,15741423,0.67,I need a hand,Clover
+downed.want_fight,164564571,0.67,"We need you buddy, get up",Dallas
+downed.want_fight,173267637,0.67,"We need you mate, get up",Hoxton
+downed.want_fight,178342839,0.67,We need to get it fixed,Clover
+downed.want_fight,19036266,0.67,I need a hand,Houston
+downed.want_fight,193854129,0.67,I need a hand,Houston
+downed.want_fight,195620944,0.67,Need ammo,Chains
+downed.want_fight,197672745,0.67,We need to get it fixed,Hoxton
+downed.want_fight,20696600,0.67,I need a hand,Wick
+downed.want_fight,20792659,0.67,I need a hand,Houston
+downed.want_fight,22623636,0.67,Need an assist,Chains
+downed.want_fight,278414089,0.67,We need to get it fixed,Clover
+downed.want_fight,289711410,0.67,We need to get it fixed,Clover
+downed.want_fight,29000339,0.67,I need a hand,Clover
+downed.want_fight,291035719,0.67,We need to get it fixed,Hoxton
+downed.want_fight,29582402,0.67,Need an assist,Chains
+downed.want_fight,313227826,0.67,We need to get it fixed,Wick
+downed.want_fight,31540560,0.67,Need an assist,Chains
+downed.want_fight,329534951,0.67,Yo fam we need you up,Chains
+downed.want_fight,33289598,0.67,I need a hand,Clover
+downed.want_fight,36190874,0.67,I need a hand,Clover
+downed.want_fight,410614985,0.67,You need a doc,Chains
+downed.want_fight,417176331,0.67,Need ammo now,Chains
+downed.want_fight,42413533,0.67,Need ammo,Houston
+downed.want_fight,426112494,0.67,We need to get you stabilized,Chains
+downed.want_fight,4496814,0.67,Need an assist,Chains
+downed.want_fight,474566902,0.67,"We need you pal, get up",Hoxton
+downed.want_fight,5016564,0.67,Need an assist,Chains
+downed.want_fight,50191059,0.67,We need to get it fixed,Dallas
+downed.want_fight,5192116,0.67,I need a hand,Hoxton
+downed.want_fight,566843415,0.67,Need to get it fixed,Dallas
+downed.want_fight,59337290,0.67,I need a hand,Houston
+downed.want_fight,68299369,0.67,I need ammo,Chains
+downed.want_fight,759520420,0.67,Need ammo now,Chains
+downed.want_fight,7653635,0.67,I need a hand,Wick
+downed.want_fight,77264481,0.67,We need to get it fixed,Hoxton
+downed.want_fight,783160768,0.67,We need to get it fixed,Clover
+downed.want_fight,78727867,0.67,I need a hand,Houston
+downed.want_fight,814303621,0.67,You need to get patched up,Chains
+downed.want_fight,836071394,0.67,We need to get it fixed,Chains
+downed.want_fight,94772920,0.67,I need a hand,Wick
+downed.want_fight,96334103,0.67,I need a hand,Wick
+downed.want_fight,99011052,0.67,We need to get it fixed,Hoxton
+downed.want_fight,99022957,0.67,We need it fixed,Chains
+drop.ammo,54668806,1.00,Get ammo here,Chains
+drop.ammo,552140217,1.00,Get your ammo here,Houston
+drop.ammo,75601221,1.00,Ammo here,Chains
+drop.ammo,131827479,0.80,Got ammo refill here,Chains
+drop.ammo,191485032,0.80,Ammo right here,Chains
+drop.ammo,282877194,0.80,There's ammo here,Houston
+drop.ammo,292915364,0.80,Get ammo right here,Houston
+drop.ammo,304735929,0.80,Ammo over here,Hoxton
+drop.ammo,323466605,0.80,Ammo up over here by me,Chains
+drop.ammo,47767198,0.80,Ammo over here,Houston
+drop.ammo,491152224,0.80,"Ammo, right here",Chains
+drop.ammo,783090490,0.80,Ammo over here,Houston
+drop.ammo,98576157,0.80,Ammo over here,Clover
+drop.ammo,1006807224,0.67,And here they are,Bain
+drop.ammo,1008576828,0.67,And here they are,Bain
+drop.ammo,106452936,0.67,Here we go,Chains
+drop.ammo,166088737,0.67,Extra ammo right here,Clover
+drop.ammo,177174862,0.67,Ammo bag over here,Dallas
+drop.ammo,188054090,0.67,I got extra ammo over here,Houston
+drop.ammo,192368110,0.67,Ammo bag right here,Wick
+drop.ammo,230083685,0.67,Ammo bag right here,Wolf
+drop.ammo,237501997,0.67,Ammo bag right here,Dallas
+drop.ammo,259755073,0.67,Extra ammo over here,Houston
+drop.ammo,260044618,0.67,Extra ammo right here,Hoxton
+drop.ammo,261807531,0.67,Here we go,Houston
+drop.ammo,269249266,0.67,Here we go,Chains
+drop.ammo,308545006,0.67,Here it is,Wolf
+drop.ammo,311473798,0.67,Got ammo supply over here,Chains
+drop.ammo,318585267,0.67,I got extra ammo over here,Dallas
+drop.ammo,41280775,0.67,Ammo bag right here,Wick
+drop.ammo,416898574,0.67,Here it is,Wolf
+drop.ammo,438828723,0.67,Extra ammo right here,Clover
+drop.ammo,441364951,0.67,There's ammo over here,Hoxton
+drop.ammo,450057799,0.67,Extra ammo over here,Chains
+drop.ammo,455123289,0.67,Extra ammo over here,Wick
+drop.ammo,485380815,0.67,Extra ammo over here,Houston
+drop.ammo,54125170,0.67,This is 2-5 here,Security
+drop.ammo,576157960,0.67,Extra ammo over here,Clover
+drop.ammo,580232030,0.67,Theres ammo over here,Houston
+drop.ammo,591521762,0.67,There's ammo over here,Clover
+drop.ammo,599876401,0.67,Ammo bag over here,Chains
+drop.ammo,637534461,0.67,Extra ammo over here,Dallas
+drop.ammo,643221377,0.67,There's ammo over here,Houston
+drop.ammo,703857981,0.67,Here we go here we go,Chains
+drop.ammo,773256550,0.67,Ok here we go,Bain
+drop.ammo,810857530,0.67,Extra ammo over here,Hoxton
+drop.ammo,84579565,0.67,Ok here we go,Houston
+drop.ammo,865584366,0.67,Here we go,Chains
+drop.body,1065603922,0.67,Get the bag to recovery,Cop (static)
+drop.body,11418897,0.67,Ammo bag,Dallas
+drop.body,321824523,0.67,Get the bag to recovery,Cop (static)
+drop.body,349602700,0.67,Bag it snag it,Bain
+drop.body,554305201,0.67,Get the bag to recovery,Cop
+drop.body,658016214,0.67,Bag the loot,Bain
+drop.body,685619915,0.67,Get the bag to recovery,Cop
+drop.body,700314061,0.67,Get the bag to recovery,Cop
+drop.body,947440757,0.67,Get the bag to recovery,Cop (static)
+drop.body,982204483,0.67,Get the bag to recovery,Cop (static)
+drop.fak,137029026,0.86,First aid kit here,Houston
+drop.fak,184383098,0.86,First aid kit here,Dallas
+drop.fak,22555593,0.86,First aid kit here,Hoxton
+drop.fak,246176168,0.86,First aid kit here,Wick
+drop.fak,277287511,0.86,Got a first aid kit here,Dallas
+drop.fak,52014780,0.86,First aid kit here,Chains
+drop.fak,547993170,0.86,Got a first aid kit here,Clover
+drop.fak,711277276,0.86,First aid kit here,Clover
+drop.fak,330468027,0.75,First aid kit get your band-aid here,Dallas
+drop.fak,345937174,0.75,I've got a first aid kit here,Hoxton
+drop.fak,352199184,0.75,Placed the first aid kit here,Houston
+drop.fak,387328953,0.75,First aid kit get your band-aid here,Wick
+drop.fak,388932595,0.75,First aid kit get your band-aid here,Dallas
+drop.fak,58104083,0.75,First aid kit get your band-aid here,Clover
+drop.fak,611226278,0.75,"First aid kit, get your bandaid here",Hoxton
+drop.fak,146323938,0.67,I've placed a first aid kit here,Clover
+drop.fak,182758013,0.67,"Right there, there is a first aid kit here",Dallas
+drop.fak,240187211,0.67,I've placed a first aid kit here,Wick
+drop.fak,36188758,0.67,I've put a first aid kit here,Hoxton
+drop.fak,138987195,0.60,First aid kit here for anyone who needs it,Clover
+drop.fak,371403345,0.60,Y'all I put a first aid kit over here,Chains
+drop.fak,378278623,0.60,First aid kit here for anyone who needs it,Hoxton
+drop.fak,551773399,0.60,First aid kit here for anyone who needs it,Dallas
+drop.fak,816821895,0.60,First aid kit here for anyone who needs it,Houston
+drop.medic,123417141,1.00,Medic bag here,Wick
+drop.medic,374841087,1.00,Medic bag here,Wick
+drop.medic,612089830,1.00,Got a medic bag here,Clover
+drop.medic,63456716,1.00,Got a medic bag here,Hoxton
+drop.medic,111680839,0.86,"Medic bag, right here",Dallas
+drop.medic,125344653,0.86,Medic bag over here,Houston
+drop.medic,203300739,0.86,Medic bag over here,Houston
+drop.medic,20617732,0.86,Medic bag right here,Wolf
+drop.medic,259368389,0.86,Medic bag right here,Chains
+drop.medic,278787732,0.86,Medic bag right here,Houston
+drop.medic,294980819,0.86,Medic bag over here,Clover
+drop.medic,3383334,0.86,I got a medic bag over here,Houston
+drop.medic,353071000,0.86,Medic bag right here,Hoxton
+drop.medic,389109943,0.86,Medic bag over here,Hoxton
+drop.medic,44136432,0.86,Got a medic bag right here,Hoxton
+drop.medic,445715051,0.86,Medic bag right here,Clover
+drop.medic,534791871,0.86,I got a medic bag right here,Clover
+drop.medic,644112569,0.86,I got a medic bag right here,Houston
+drop.medic,66628481,0.86,Medic bag right here,Houston
+drop.medic,681344448,0.86,Medic bag over here,Chains
+drop.medic,139372844,0.80,Got a medic bag?,Wick
+drop.medic,128831293,0.75,I've got a medic bag over here,Dallas
+drop.medic,178221505,0.75,I've got a medic bag right here,Houston
+drop.medic,201457241,0.75,I've got a medic bag over here,Clover
+drop.medic,287921548,0.75,I've got a medic bag over here,Hoxton
+drop.medic,318722095,0.75,Get over here if you need a medic bag,Dallas
+drop.medic,525595817,0.75,I placed a medic bag over here,Dallas
+drop.medic,724229139,0.75,"Medic bag, doc yourself up here",Chains
+drop.medic,763968307,0.75,"Medic bag here, anyone hit",Houston
+drop.medic,77953422,0.75,There's a medic bag over here,Dallas
+drop.medic,788465870,0.75,I dropped a medic bag over here,Dallas
+drop.medic,92232643,0.75,I dropped a medic bag over here,Houston
+drop.medic,946566996,0.75,I've got a medic bag over here,Houston
+drop.medic,105627820,0.67,Medic bag on the ground,Clover
+drop.medic,137536576,0.67,I've dropped a medic bag over here,Clover
+drop.medic,156405869,0.67,Medic bag dropped,Hoxton
+drop.medic,158512134,0.67,Anybody got a medic bag,Hoxton
+drop.medic,1853376,0.67,Who's got a medic bag for me,Houston
+drop.medic,196333067,0.67,Doc bag here,Chains
+drop.medic,218758080,0.67,Medic bag up for grabs,Dallas
+drop.medic,238306070,0.67,I've dropped a medic bag over here,Houston
+drop.medic,261201197,0.67,Medic bag get patched up,Hoxton
+drop.medic,265733688,0.67,Medic bag here anyone need patching up,Houston
+drop.medic,282082567,0.67,Anybody got a medic bag,Clover
+drop.medic,312052436,0.67,Give me a medic bag,Wick
+drop.medic,326517973,0.67,Someone got a medic bag,Wick
+drop.medic,35216123,0.67,Anybody got a medic bag,Hoxton
+drop.medic,355882762,0.67,I've dropped a medic bag over here,Hoxton
+drop.medic,358668853,0.67,Somebody got a medic bag,Clover
+drop.medic,383977531,0.67,We got a bag here that shouldn't be here,Security
+drop.medic,388297738,0.67,Medic bag get patched up,Clover
+drop.medic,39923350,0.67,Anyone got a medic bag,Dallas
+drop.medic,45614919,0.67,"Medic bag here, anyone need patching up?",Dallas
+drop.medic,467724104,0.67,Anybody got a medic bag,Dallas
+drop.medic,47013249,0.67,And the damn medic bag,Cop
+drop.medic,48189218,0.67,Someone got a medic bag?,Houston
+drop.medic,496835053,0.67,Medic bag anyone,Chains
+drop.medic,500686206,0.67,Who's got a medic bag for me,Clover
+drop.medic,56652413,0.67,Medic bag on the ground,Hoxton
+drop.medic,58248136,0.67,Medic bag in place,Wick
+drop.medic,58288875,0.67,Who's got a medic bag,Houston
+drop.medic,583937524,0.67,Medic bag deployed,Wick
+drop.medic,60359590,0.67,Anybody got a medic bag,Wick
+drop.medic,610912938,0.67,Anybody got a medic bag?,Houston
+drop.medic,611955685,0.67,Medic bag anyone,Houston
+drop.medic,61507548,0.67,"Medic bag, anyone",Wolf
+drop.medic,629007129,0.67,Anybody got a medic bag,Clover
+drop.medic,69240951,0.67,Medic bag is out,Houston
+drop.medic,697274535,0.67,Medic bag is out,Houston
+drop.medic,720604663,0.67,Anybody got a medic bag,Hoxton
+drop.medic,722850891,0.67,Who's got a medic bag for me,Clover
+drop.medic,741942856,0.67,Medic bag in place,Hoxton
+drop.medic,751023101,0.67,Anybody got a medic bag,Houston
+drop.medic,796486908,0.67,Anybody got a medic bag,Chains
+drop.medic,797766769,0.67,Medic bag anyone,Hoxton
+drop.medic,842075913,0.67,Who's got a medic bag,Clover
+drop.medic,847979947,0.67,Medic bag anyone?,Wick
+drop.medic,849260063,0.67,Who's got a medic bag,Houston
+drop.medic,955558353,0.67,Medic bag anyone?,Clover
+drop.medic,991483438,0.67,We got a bag here that shouldn't be here,Security
+hurt.hit,439838221,1.00,"Ok, hit it",Chains
+hurt.hit,609020523,1.00,Hit em!,Cop
+hurt.hit,157150739,0.67,Lets hit it,Chains
+hurt.hit,197714223,0.67,I'm hit,Houston
+hurt.hit,230286299,0.67,Hit the deck,Chains
+hurt.hit,265165383,0.67,Lets hit it,Wick
+hurt.hit,292631344,0.67,Hit the deck,Chains
+hurt.hit,302000543,0.67,Hit the cameras,Chains
+hurt.hit,466674044,0.67,Hit the ground,Dallas
+hurt.hit,71634109,0.67,Hit the deck,Chains
+hurt.hit,839175435,0.67,We gonna get hit,Houston
+hurt.medic,151044760,1.00,I need a medic bag,Chains
+hurt.medic,213394716,1.00,I need a medic bag,Hoxton
+hurt.medic,238115976,1.00,I need a medic bag,Dallas
+hurt.medic,292087191,1.00,I need a medic bag,Houston
+hurt.medic,343309556,1.00,I need a medic bag,Wick
+hurt.medic,471404550,1.00,I need a medic bag,Hoxton
+hurt.medic,581163616,1.00,Need a medic bag,Chains
+hurt.medic,74532393,1.00,"I need a medic bag, I need a MEDIC bag!",Wolf
+hurt.medic,85983403,1.00,I need a medic bag,Hoxton
+hurt.medic,96007146,1.00,I need a medic bag,Hoxton
 hurt.medic,986174,1.00,I need a medic bag,Chains
+hurt.medic,239728871,0.86,You need a medic bag I got one,Houston
+hurt.medic,242627887,0.86,I need a medic bag (meme),Dallas
+hurt.medic,283411054,0.86,Ah medic bag I need one,Clover
+hurt.medic,41614382,0.86,Medic bag I need one,Houston
+hurt.medic,654851631,0.86,I need a goddamn medic bag,Houston
+hurt.medic,835345041,0.86,I need a fucking medic bag,Clover
+hurt.medic,164005396,0.75,Anyone hit need a medic bag,Houston
+hurt.medic,260961472,0.75,Shit I need a fucking medic bag,Chains
+hurt.medic,85148029,0.75,Anyone hurt need a medic bag?,Houston
+hurt.medic,337878934,0.67,"I sure need a medic bag, anyone got one",Chains
+hurt.medic,412494467,0.67,I need a medic bag (budget dallas meme),Houston
+hurt.medic,689001393,0.67,I need a goddamn medic,Chains
+hurt.medic,755905556,0.67,"I sure need a medic bag, anybody got one",Houston
+hurt.medic,81381842,0.67,I need an ammo bag,Clover
+hurt.medic,838242430,0.67,"Gonna need a medic bag, anyone got one",Hoxton
+inspire.faster,151763453,1.00,Faster faster,Wolf
+inspire.faster,163639046,1.00,Faster faster,Chains
+inspire.faster,210953160,1.00,Faster faster,Hoxton
+inspire.faster,458189707,1.00,Faster,Wick
+inspire.faster,543445465,1.00,Faster faster,Clover
+inspire.faster,630667996,1.00,Faster,Wick
+inspire.faster,651630031,1.00,Faster faster faster,Chains
+inspire.faster,674000547,1.00,Faster faster,Clover
+inspire.faster,69914585,1.00,Faster faster,Clover
+inspire.faster,711857200,1.00,Go faster,Hoxton
+inspire.faster,817657314,1.00,"Faster, Faster",Wolf
+inspire.faster,83981754,1.00,Faster faster,Chains
+inspire.faster,95807247,1.00,Go faster,Hoxton
+inspire.faster,108460570,0.67,Come on faster,Clover
+inspire.faster,11568992,0.67,Faster come on,Clover
+inspire.faster,166539726,0.67,"Come on, faster",Wolf
+inspire.faster,251442109,0.67,Come on faster,Hoxton
+inspire.faster,278516891,0.67,Go faster time,Chains
+inspire.faster,334942008,0.67,Come on faster,Houston
+inspire.faster,371173051,0.67,Come on faster,Clover
+inspire.faster,421009650,0.67,Come on faster,Dallas
+inspire.faster,481636613,0.67,Faster is better,Chains
+inspire.faster,567020693,0.67,Come on faster,Houston
+inspire.faster,58585679,0.67,Go faster time,Chains
+inspire.faster,59778991,0.67,Work faster,Bain
+inspire.faster,599451468,0.67,"Come on, faster!",Wolf
+inspire.faster,635424629,0.67,Go faster bitch,Chains
+inspire.faster,719691421,0.67,"Come on, faster",Clover
+inspire.faster,806852944,0.67,Faster come on,Clover
+inspire.faster,921118970,0.67,Come on faster,Dallas
+inspire.faster,92477629,0.67,Come on faster,Hoxton
+inspire.faster,985418838,0.67,Faster come on,Clover
+inspire.get_up,131347863,1.00,Get on your feet,Chains
+inspire.get_up,178321407,1.00,You get on your feet,Chains
+inspire.get_up,207200435,1.00,"Ay, you, get on your feet",Chains
+inspire.get_up,248938717,1.00,On your feet,Clover
+inspire.get_up,321925467,1.00,On your feet,Chains
+inspire.get_up,385872360,1.00,On your feet,Chains
+inspire.get_up,491191460,1.00,On your feet,Clover
+inspire.get_up,642350992,1.00,On your feet,Chains
+inspire.get_up,871927473,1.00,"You, get on your feet",Clover
+inspire.get_up,956374870,1.00,On your feet,Chains
+inspire.get_up,2357263,0.67,"Hey, you, get on your feet",Clover
+inspire.get_up,240975165,0.67,"We need you on your feet, get up",Chains
+inspire.get_up,261793223,0.67,On your fucking feet,Medic Dozer
+inspire.get_up,461601567,0.67,Lets get you on your feet,Houston
+inspire.get_up,528020921,0.67,On your feet soldier,Chains
+inspire.move,101981096,1.00,Move move,Cop (static)
+inspire.move,1020735435,1.00,Move,Cop (static)
+inspire.move,1032396047,1.00,Move!,Clover
+inspire.move,1060796525,1.00,Move move move,Cop (static)
+inspire.move,1063708905,1.00,Move,Cop (static)
+inspire.move,110232256,1.00,Move,Hoxton
+inspire.move,145255265,1.00,Get a move on,Hoxton
+inspire.move,150995878,1.00,Move it,Cop (static)
+inspire.move,15170381,1.00,Move!,Wolf
+inspire.move,152010089,1.00,Move,Cop (static)
+inspire.move,175774789,1.00,"You, move it",Hoxton
+inspire.move,176889322,1.00,Move it,Wick
+inspire.move,17806647,1.00,Get a move on,Hoxton
+inspire.move,1782802,1.00,Move it!,Wolf
+inspire.move,190072731,1.00,Get a move on,Wolf
+inspire.move,193708722,1.00,Move,Clover
+inspire.move,195222393,1.00,Get a move on,Clover
+inspire.move,197518058,1.00,Get a move on,Clover
+inspire.move,198970780,1.00,Move move move,Cop
+inspire.move,20056504,1.00,Move it,Cop
+inspire.move,200846626,1.00,Move it,Cop (static)
+inspire.move,210388413,1.00,Move,Houston
+inspire.move,219669257,1.00,Get a move on,Wolf
+inspire.move,234326985,1.00,Move it,Clover
+inspire.move,243255014,1.00,Move it,Dallas
+inspire.move,249253132,1.00,Move,Hoxton
+inspire.move,249376513,1.00,Move,Hoxton
+inspire.move,274723731,1.00,Move,Wolf
+inspire.move,275763274,1.00,Move,Dallas
+inspire.move,279932181,1.00,Move it,Dallas
+inspire.move,294202802,1.00,Move,Cop (static)
+inspire.move,297105486,1.00,Move it,Hoxton
+inspire.move,302473893,1.00,Move move,Cop
+inspire.move,304153141,1.00,Move move,Cop (static)
+inspire.move,308142525,1.00,Move move move move move,Bain
+inspire.move,313944469,1.00,Move move move move,Cop (static)
+inspire.move,31811932,1.00,Move move move,Cop (static)
+inspire.move,322294759,1.00,Move,Wick
+inspire.move,333765163,1.00,Move,Cop
+inspire.move,334033313,1.00,Move it,Cop (static)
+inspire.move,336508955,1.00,Move it,Cop
+inspire.move,336786597,1.00,Move,Cop (static)
+inspire.move,337295465,1.00,Move,Cop
+inspire.move,338770013,1.00,Move,Cop
+inspire.move,34844950,1.00,Get a move on,Dallas
+inspire.move,349822924,1.00,Move move move,Cop (static)
+inspire.move,362703986,1.00,Move it,Hoxton
+inspire.move,371837065,1.00,Move it,Dallas
+inspire.move,374392642,1.00,Move it,Hoxton
+inspire.move,377852624,1.00,Move move move,Cop
+inspire.move,393878567,1.00,You get a move on,Hoxton
+inspire.move,40503679,1.00,Move move,Cop (static)
+inspire.move,406303175,1.00,Move,Cop (static)
+inspire.move,407597005,1.00,Move,Houston
+inspire.move,410622661,1.00,Get a move on,Clover
+inspire.move,423470085,1.00,Move it,Cop (static)
+inspire.move,424406451,1.00,Move it,Cop
+inspire.move,429687752,1.00,Move move move,Cop
+inspire.move,460987689,1.00,Move move move,Cop (static)
+inspire.move,479273836,1.00,Move it,Clover
+inspire.move,491270566,1.00,Move move move,Cop (static)
+inspire.move,507551765,1.00,Move move,Cop
+inspire.move,508367031,1.00,Move move move,Cop (static)
+inspire.move,52835437,1.00,Move move move,Cop (static)
+inspire.move,565215241,1.00,Move,Clover
+inspire.move,566451103,1.00,Move,Wolf
+inspire.move,57449978,1.00,Move,Cop
+inspire.move,594342654,1.00,"Move, move!",Cop (static)
+inspire.move,60087369,1.00,Move,Hoxton
+inspire.move,62193481,1.00,Move,Hoxton
+inspire.move,635630823,1.00,Move move move,Cop
+inspire.move,638926605,1.00,Move,Cop (static)
+inspire.move,657818766,1.00,Get a move on,Dallas
+inspire.move,65867615,1.00,Move,Cop (static)
+inspire.move,661693331,1.00,Move,Wolf
+inspire.move,672427020,1.00,Move,Hoxton
+inspire.move,694300067,1.00,Move move move,Cop
+inspire.move,695266190,1.00,Move,Cop
+inspire.move,735431145,1.00,Move move,Cop
+inspire.move,748531864,1.00,Move,Dallas
+inspire.move,790772542,1.00,Move it,Cop (static)
+inspire.move,79988060,1.00,Move,Wick
+inspire.move,81232166,1.00,Move,Dallas
+inspire.move,816753241,1.00,Move it,Hoxton
+inspire.move,818524526,1.00,Move move move,Cop
+inspire.move,82670774,1.00,Move,Wolf
+inspire.move,866675822,1.00,Move move move,Cop (static)
+inspire.move,869627372,1.00,Move,Dallas
+inspire.move,870097650,1.00,Move,Cop
+inspire.move,872309320,1.00,Move it,Dallas
+inspire.move,875744129,1.00,Move it,Cop
+inspire.move,90277387,1.00,Move it,Houston
+inspire.move,905689666,1.00,Move move,Cop (static)
+inspire.move,916050722,1.00,Move,Wolf
+inspire.move,94344686,1.00,Move it,Clover
+inspire.move,943902655,1.00,Move,Cop (static)
+inspire.move,9460378,1.00,Move it,Wick
+inspire.move,946707873,1.00,Move move move,Cop (static)
+inspire.move,95404201,1.00,Move it,Houston
+inspire.move,959375539,1.00,Move,Cop (static)
+inspire.move,96015546,1.00,Move,Dallas
+inspire.move,967081467,1.00,Move it move it,Bain
+inspire.move,977451952,1.00,Move it,Clover
+inspire.move,990115267,1.00,Move in,Cop (static)
+inspire.move,99153613,1.00,Move in,Cop
+inspire.move,994332873,1.00,Move!,Clover
+inspire.move,1007585711,0.67,Don't move,Security
+inspire.move,10109332,0.67,Come with me move it,Dallas
+inspire.move,1016951543,0.67,"Taser, move!",Taser
+inspire.move,1023888551,0.67,Move aside I got this,Bulldozer
+inspire.move,102416033,0.67,Move out,Cop
+inspire.move,1030962558,0.67,Move out,Cop
+inspire.move,1036471939,0.67,We need to move on them now,Cop
+inspire.move,11797204,0.67,Come with me move it,Dallas
+inspire.move,121897418,0.67,Don't move,Houston
+inspire.move,138832601,0.67,Move out,Cop (static)
+inspire.move,14409660,0.67,Come with me move it,Wolf
+inspire.move,14423430,0.67,Don't move,Wick
+inspire.move,145722550,0.67,Hostiles are on the move,Chains
+inspire.move,14760722,0.67,Come with me move it,Dallas
+inspire.move,15129354,0.67,Come with me move it,Dallas
+inspire.move,152064243,0.67,Move out,Cop (static)
+inspire.move,152270646,0.67,Nobody move,Chains
+inspire.move,160784988,0.67,"You move, you die, ok?",Dallas
+inspire.move,163159706,0.67,Nobody move,Houston
+inspire.move,168439264,0.67,Move and you lose,Chains
+inspire.move,168970252,0.67,We need to move on them now,Cop
+inspire.move,176287553,0.67,Come with me move it,Wolf
+inspire.move,17896331,0.67,Move aside,Bulldozer
+inspire.move,213784070,0.67,And don't move,Wick
+inspire.move,217562974,0.67,Fucking get a move on,Clover
+inspire.move,221150605,0.67,Don't move,Chains
+inspire.move,224148388,0.67,And don't move,Dallas
+inspire.move,233576974,0.67,Don't move,Cop (static)
+inspire.move,238062535,0.67,Move aside,Taser
+inspire.move,24458537,0.67,And don't move,Clover
+inspire.move,248395541,0.67,Don't move,Dallas
+inspire.move,25942032,0.67,Come with me move it,Houston
+inspire.move,263228629,0.67,I'll move on,Security
+inspire.move,266426320,0.67,Nobody move,Houston
+inspire.move,273809043,0.67,Move out,Cop
+inspire.move,275172874,0.67,Don't move,Dallas
+inspire.move,292814228,0.67,And don't move,Wolf
+inspire.move,296667026,0.67,Don't move,Wick
+inspire.move,30956151,0.67,Come with me move it,Houston
+inspire.move,31385845,0.67,And don't move,Dallas
+inspire.move,322750529,0.67,And don't move,Dallas
+inspire.move,327940684,0.67,Don't move,Dallas
+inspire.move,32929381,0.67,And don't move,Clover
+inspire.move,331287956,0.67,Don't move,Houston
+inspire.move,33717115,0.67,Come with me move it,Houston
+inspire.move,337395233,0.67,Move aside I got this,Bulldozer
+inspire.move,339281850,0.67,And don't move,Wolf
+inspire.move,346319826,0.67,Don't move,Clover
+inspire.move,348281091,0.67,And don't move,Houston
+inspire.move,350620084,0.67,"Taser, move",Taser
+inspire.move,374699602,0.67,Don't move,Houston
+inspire.move,377199717,0.67,Nobody move,Dallas
+inspire.move,382193909,0.67,Don't move,Cop
+inspire.move,390952726,0.67,Move out,Cop (static)
+inspire.move,397057564,0.67,Don't move,Dallas
+inspire.move,401985351,0.67,And don't move,Wolf
+inspire.move,411762082,0.67,Don't move,Wick
+inspire.move,420393903,0.67,Don't move,Security
+inspire.move,423879906,0.67,Move out,Cop
+inspire.move,42480602,0.67,Don't move,Wolf
+inspire.move,432373338,0.67,Move out,Cop (static)
+inspire.move,452226944,0.67,Move faster,Clover
+inspire.move,461201526,0.67,Don't move,Wick
+inspire.move,462884495,0.67,Don't move,Security
+inspire.move,463615732,0.67,Don't move,Dallas
+inspire.move,468202667,0.67,Move out,Cop
+inspire.move,484452760,0.67,Move and cover move and cover,Captain
+inspire.move,49987277,0.67,Come with me move it,Dallas
+inspire.move,5025345,0.67,Come with me move it,Houston
+inspire.move,51968161,0.67,Don't move,Houston
+inspire.move,521409495,0.67,Don't move,Cop (static)
+inspire.move,528061132,0.67,Move faster,Clover
+inspire.move,528955196,0.67,Fucking move it,Clover
+inspire.move,5340245,0.67,And don't move!,Wolf
+inspire.move,5370683,0.67,"Come with me, move it",Dallas
+inspire.move,54140319,0.67,And don't move,Wick
+inspire.move,549299151,0.67,10 seconds move move move,Bain
+inspire.move,55456538,0.67,Don't move,Clover
+inspire.move,559749479,0.67,Nobody move,Houston
+inspire.move,56403107,0.67,Don't move,Wolf
+inspire.move,56563558,0.67,Don't move,Dallas
+inspire.move,567097037,0.67,Move aside,Taser
+inspire.move,569995521,0.67,Move aside,Bulldozer
+inspire.move,581979111,0.67,Nobody move,Chains
+inspire.move,587384675,0.67,And don't move,Dallas
+inspire.move,594721958,0.67,Nobody move!,Dallas
+inspire.move,606582801,0.67,Don't move,Cop (static)
+inspire.move,616435538,0.67,Fucking move it,Clover
+inspire.move,616585665,0.67,Don't move,Cop (static)
+inspire.move,618586957,0.67,Nobody move,Hoxton
+inspire.move,630171421,0.67,Don't move,Houston
+inspire.move,6391641,0.67,Don't move!,Clover
+inspire.move,642751073,0.67,And don't move,Wolf
+inspire.move,645771117,0.67,Don't move,Cop (static)
+inspire.move,6544109,0.67,Come with me move it,Houston
+inspire.move,668549415,0.67,"Taser, move",Taser
+inspire.move,675459524,0.67,Fucking move it,Clover
+inspire.move,67615206,0.67,Come with me move it,Houston
+inspire.move,680937872,0.67,Don't move,Cop (static)
+inspire.move,69413632,0.67,Nobody move,Hoxton
+inspire.move,698632720,0.67,Move it shitebag move it,Clover
+inspire.move,699335976,0.67,Nobody move,Houston
+inspire.move,701071698,0.67,Move out,Cop (static)
+inspire.move,704170260,0.67,Nobody move,Wolf
+inspire.move,707162970,0.67,Don't move,Chains
+inspire.move,710512476,0.67,Move and you lose,Chains
+inspire.move,730627217,0.67,Nobody move,Dallas
+inspire.move,733371669,0.67,Move your asses,Bain
+inspire.move,735248230,0.67,Don't move,Cop (static)
+inspire.move,738916553,0.67,Move it come on,Clover
+inspire.move,74607628,0.67,Nobody move,Dallas
+inspire.move,74683877,0.67,Don't move,Houston
+inspire.move,754205543,0.67,Move it come on,Clover
+inspire.move,785697813,0.67,Lets move,Cop (static)
+inspire.move,797460417,0.67,Don't move,Cop (static)
+inspire.move,825109649,0.67,Move aside,Bulldozer
+inspire.move,843955590,0.67,Don't move,Security
+inspire.move,846534972,0.67,Move out,Cop (static)
+inspire.move,854068996,0.67,"Taser, move",Taser
+inspire.move,887396327,0.67,Move aside,Taser
+inspire.move,90702202,0.67,Don't move,Chains
+inspire.move,947255063,0.67,Move aside,Bulldozer
+inspire.move,956333841,0.67,Move faster,Clover
+inspire.run,105450260,1.00,"Run, run",Chains
+inspire.run,13062603,1.00,Run run,Chains
+inspire.run,330395454,1.00,"Run, go go go",Bain
+inspire.run,534355913,1.00,"Run, run",Bain
+inspire.run,69951478,1.00,Run run,Hoxton
+inspire.run,87373754,1.00,"Run, run",Bain
+inspire.run,1007299263,0.67,Run to safety,Cop
+inspire.run,1057621864,0.67,Run to safety,Cop
+inspire.run,12979609,0.67,Run forrest run,Hoxton
+inspire.run,141777906,0.67,Run to safety,Cop (static)
+inspire.run,142762447,0.67,Run to safety,Cop (static)
+inspire.run,196010638,0.67,Now run to safety,Cop (static)
+inspire.run,227649294,0.67,Motherfucking run,Hoxton
+inspire.run,273002983,0.67,Run to safety,Cop
+inspire.run,274898283,0.67,Run for your lives,Bain
+inspire.run,293556554,0.67,Run to safety,Cop
+inspire.run,324611390,0.67,Come on run,Hoxton
+inspire.run,358025907,0.67,Run faster,Chains
+inspire.run,36285731,0.67,Run to safety,Cop (static)
+inspire.run,370231446,0.67,"Now, run to safety",Cop (static)
+inspire.run,425596477,0.67,Now run to safety,Cop
+inspire.run,432034383,0.67,Now run to safety,Cop (static)
+inspire.run,45364557,0.67,"Now, run to safety",Cop
+inspire.run,490349378,0.67,Run to safety,Cop (static)
+inspire.run,495979345,0.67,Run to safety,Cop
+inspire.run,506296071,0.67,"Run faster, faster",Hoxton
+inspire.run,542648644,0.67,Now run to safety,Cop (static)
+inspire.run,585766681,0.67,Run faster!,Chains
+inspire.run,593893713,0.67,Now run to safety,Cop
+inspire.run,678471384,0.67,Now run to safety,Cop (static)
+inspire.run,762052588,0.67,Now run to safety,Cop
+inspire.run,777119599,0.67,Now run to safety,Cop (static)
+inspire.run,835743687,0.67,Now run to safety,Cop (static)
+inspire.run,881550390,0.67,Run to safety,Cop (static)
+inspire.run,914412251,0.67,Run to safety,Cop
+inspire.run,974459729,0.67,Run to safety,Cop (static)
+inspire.run,998286674,0.67,"Now, run to safety",Cop
+kill.cloaker,117545117,1.00,Cloaker down,Chains
+kill.cloaker,13116766,1.00,Cloaker down,Chains
+kill.cloaker,142552749,1.00,Cloaker down,Wick
+kill.cloaker,156136511,1.00,Cloaker down,Dallas
+kill.cloaker,289114365,1.00,Cloaker down,Houston
+kill.cloaker,296121101,1.00,Cloaker down,Hoxton
+kill.cloaker,390436586,1.00,Cloaker down,Chains
+kill.cloaker,423855488,1.00,Cloaker down,Chains
+kill.cloaker,467601799,1.00,Cloaker down,Dallas
+kill.cloaker,531871889,1.00,Cloaker down,Chains
+kill.cloaker,577828095,1.00,Cloaker down,Wick
+kill.cloaker,775222884,1.00,Cloaker down,Houston
+kill.cloaker,786988010,1.00,Cloaker down,Chains
+kill.cloaker,80070320,1.00,Cloaker down,Clover
+kill.cloaker,945031487,1.00,Cloaker down,Dallas
+kill.cloaker,16465162,0.80,Aight cloaker down,Chains
+kill.cloaker,168665207,0.80,One cloaker down,Wolf
+kill.cloaker,43032258,0.80,Yes! Cloaker down,Chains
+kill.cloaker,710058271,0.80,Haaa cloaker down,Clover
+kill.cloaker,86524162,0.80,Yeah cloaker down,Chains
+kill.dozer,474331429,1.00,Dozer down,Wick
+kill.dozer,17467116,0.67,Got the dozer,Wick
+kill.dozer,214092508,0.67,Dozer,Clover
+kill.dozer,242213849,0.67,Dozer,Wick
+kill.dozer,357765228,0.67,Dozer,Clover
+kill.dozer,394578453,0.67,Dozer,Wick
+kill.dozer,422182434,0.67,Got the dozer,Clover
+kill.dozer,511733750,0.67,Dozer,Wick
+kill.dozer,602510375,0.67,We got a dozer,Wick
+kill.dozer,622359208,0.67,Dozer,Clover
+kill.dozer,701884457,0.67,Dozer,Wick
+kill.dozer,75571299,0.67,We got a dozer,Wick
+kill.dozer,78892906,0.67,Dozer,Wick
+kill.dozer,89029920,0.67,Dozer!,Wick
+kill.medic,1055765087,1.00,The medic is down,Chains
+kill.medic,170518352,1.00,The medic is down,Chains
+kill.medic,208504242,1.00,The medic is down,Chains
+kill.medic,213459227,1.00,The medic is down,Chains
+kill.medic,28305825,1.00,The medic is down,Chains
+kill.medic,1047912006,0.80,Yes! Medic down,Hoxton
+kill.medic,343616381,0.80,"Yes, medic down",Hoxton
+kill.shield,1000322642,1.00,Shield down,Houston
+kill.shield,107771716,1.00,Shield down,Hoxton
+kill.shield,160814314,1.00,Shield down,Houston
+kill.shield,190080058,1.00,Shield down,Dallas
+kill.shield,19940066,1.00,Shield down,Chains
+kill.shield,207001261,1.00,Shield down,Dallas
+kill.shield,283558496,1.00,Shield down,Dallas
+kill.shield,285511148,1.00,Shield down,Chains
+kill.shield,350434663,1.00,Shield down,Dallas
+kill.shield,387986264,1.00,Shield down,Houston
+kill.shield,413249784,1.00,Shield down,Chains
+kill.shield,456895920,1.00,Shield down,Clover
+kill.shield,587231268,1.00,Shield down,Wick
+kill.shield,63889513,1.00,Shield down,Houston
+kill.shield,661207533,1.00,Shield down,Chains
+kill.shield,687935682,1.00,Shield down,Clover
+kill.shield,81886050,1.00,"Ok, shield down",Chains
+kill.shield,829396736,1.00,Shield down,Wick
+kill.shield,98249884,1.00,Shield down,Chains
+kill.shield,99609518,1.00,Shield down,Chains
+kill.shield,23587404,0.80,"Finally, shield down",Chains
+kill.shield,35580419,0.80,Yeah shield down,Chains
+kill.shield,347847366,0.67,Fuck yeah shield down,Chains
+kill.sniper,100252440,1.00,Sniper down,Clover
+kill.sniper,1020378047,1.00,Sniper down,Wick
+kill.sniper,1046923570,1.00,Sniper down,Hoxton
+kill.sniper,112396356,1.00,Sniper down,Clover
+kill.sniper,11935618,1.00,Sniper down,Hoxton
+kill.sniper,139674849,1.00,Sniper down,Chains
+kill.sniper,292388587,1.00,Sniper down,Dallas
+kill.sniper,292585131,1.00,Sniper down,Dallas
+kill.sniper,476443455,1.00,Sniper down,Dallas
+kill.sniper,531640056,1.00,Sniper down,Chains
+kill.sniper,623229124,1.00,Sniper down,Wick
+kill.taser,161988222,1.00,Taser down,Houston
+kill.taser,188444866,1.00,Taser down,Chains
+kill.taser,194737340,1.00,Taser down,Dallas
+kill.taser,216568534,1.00,Taser down,Hoxton
+kill.taser,260621567,1.00,Taser down,Houston
+kill.taser,310071054,1.00,Taser down,Dallas
+kill.taser,464538819,1.00,Taser down,Houston
+kill.taser,510874557,1.00,Taser down taser down,Chains
+kill.taser,513442080,1.00,Taser down,Wick
+kill.taser,53710372,1.00,Taser down,Clover
+kill.taser,550744359,1.00,Taser down,Houston
+kill.taser,58534455,1.00,Ok taser down,Chains
+kill.taser,768420691,1.00,Taser down,Houston
+kill.taser,81464308,1.00,Taser down,Dallas
+kill.taser,819707638,1.00,Taser down,Dallas
+kill.taser,858203929,1.00,Taser down,Chains
+kill.taser,890844833,1.00,Taser down,Chains
+kill.taser,923135502,1.00,Taser down,Chains
+kill.taser,420633042,0.80,"Taser, I put him down",Wick
+kill.taser,48329121,0.80,<squeals> taser down,Clover
+kill.taser,581392534,0.80,"Yeah, Taser down!",Chains
+kill.taser,811531242,0.80,I took down the taser,Wolf
+kill.taser,174948088,0.67,Fuck yeah taser down,Chains
+mark.captain,379286101,0.67,Oh shit a captain,Dallas
+mark.captain,761197049,0.67,Oh shit a captain,Dallas
+mark.cloaker,100152704,1.00,Cloaker!,Wolf
+mark.cloaker,164979841,1.00,Cloaker,Houston
+mark.cloaker,18144874,1.00,Cloaker!,Clover
+mark.cloaker,194585415,1.00,We got a cloaker,Wick
+mark.cloaker,20175872,1.00,Cloaker!,Hoxton
+mark.cloaker,21212378,1.00,Cloaker!,Clover
+mark.cloaker,222196374,1.00,Cloaker,Hoxton
+mark.cloaker,224593293,1.00,Cloaker,Wolf
+mark.cloaker,228808932,1.00,Cloaker,Houston
+mark.cloaker,246155040,1.00,I got the cloaker,Houston
+mark.cloaker,273042964,1.00,Cloaker,Wick
+mark.cloaker,276600615,1.00,Cloaker,Clover
+mark.cloaker,293763173,1.00,Cloaker,Houston
+mark.cloaker,300973159,1.00,Cloaker,Hoxton
+mark.cloaker,331707858,1.00,Cloaker,Chains
+mark.cloaker,337857628,1.00,Cloaker,Hoxton
+mark.cloaker,338339577,1.00,I got the cloaker,Chains
+mark.cloaker,349810954,1.00,Cloaker,Hoxton
+mark.cloaker,369833434,1.00,Cloaker,Chains
+mark.cloaker,37715417,1.00,Cloaker,Hoxton
+mark.cloaker,424028243,1.00,Cloaker,Clover
+mark.cloaker,436607423,1.00,Cloaker,Hoxton
+mark.cloaker,448539853,1.00,We got a cloaker,Clover
+mark.cloaker,45181519,1.00,Cloaker,Houston
+mark.cloaker,488164332,1.00,Cloaker,Chains
+mark.cloaker,52761393,1.00,Cloaker!,Wick
+mark.cloaker,535905252,1.00,Got the cloaker,Clover
+mark.cloaker,53790394,1.00,Cloaker,Houston
+mark.cloaker,572919115,1.00,Cloaker,Dallas
+mark.cloaker,65329850,1.00,Cloaker!,Dallas
+mark.cloaker,654162140,1.00,Cloaker,Chains
+mark.cloaker,679071033,1.00,Cloaker,Wick
+mark.cloaker,683244174,1.00,Cloaker,Wick
+mark.cloaker,68794932,1.00,Cloaker!,Wolf
+mark.cloaker,694581822,1.00,Got the cloaker,Houston
+mark.cloaker,720310851,1.00,Cloaker,Dallas
+mark.cloaker,725676109,1.00,Cloaker,Clover
+mark.cloaker,819454624,1.00,We got a cloaker,Wick
+mark.cloaker,841146603,1.00,Cloaker,Dallas
+mark.cloaker,86560744,1.00,Cloaker!,Dallas
+mark.cloaker,88401396,1.00,Cloaker!,Hoxton
+mark.cloaker,94767709,1.00,"Got him, got the cloaker",Wick
+mark.cloaker,9686083,1.00,We got a cloaker,Clover
+mark.cloaker,100150146,0.67,Cloaker coming,Clover
+mark.cloaker,100860165,0.67,Cloaker incoming,Clover
+mark.cloaker,100923243,0.67,Fucking cloaker,Dallas
+mark.cloaker,134659467,0.67,"Got the cloaker, hurrah",Chains
+mark.cloaker,153739675,0.67,Thats a cloaker,Clover
+mark.cloaker,158282735,0.67,Cloaker spotted,Clover
+mark.cloaker,173549562,0.67,Cloaker eliminated,Dallas
+mark.cloaker,177338879,0.67,"Ah shit, cloaker",Wolf
+mark.cloaker,177635184,0.67,Cloaker spotted,Wick
+mark.cloaker,183504702,0.67,Cloaker spotted,Chains
+mark.cloaker,18942692,0.67,We've got a cloaker,Wick
+mark.cloaker,197182323,0.67,Fucking cloaker,Houston
+mark.cloaker,202824365,0.67,Killed the cloaker,Clover
+mark.cloaker,216522860,0.67,I spotted a cloaker,Dallas
+mark.cloaker,223097552,0.67,"Got that cloaker, yeah",Chains
+mark.cloaker,22605773,0.67,Cloaker eliminated,Chains
+mark.cloaker,240765908,0.67,Its a cloaker,Chains
+mark.cloaker,245804144,0.67,Fucking cloaker,Chains
+mark.cloaker,276759782,0.67,Thats a cloaker,Clover
+mark.cloaker,309212494,0.67,I spotted a cloaker,Clover
+mark.cloaker,322089613,0.67,Cloaker eliminated,Houston
+mark.cloaker,335138211,0.67,Its a cloaker,Clover
+mark.cloaker,344652382,0.67,Got the cloaker yeah,Chains
+mark.cloaker,354523159,0.67,Its a cloaker,Wick
+mark.cloaker,356884315,0.67,Eyes on the cloaker,Chains
+mark.cloaker,370161146,0.67,Its a cloaker,Clover
+mark.cloaker,383383968,0.67,Eliminated the cloaker,Wick
+mark.cloaker,387415906,0.67,Cloaker spotted,Wick
+mark.cloaker,391797792,0.67,Killed the cloaker,Houston
+mark.cloaker,40112984,0.67,Fucking cloaker,Dallas
+mark.cloaker,405682303,0.67,Fucking cloaker,Hoxton
+mark.cloaker,40877752,0.67,Fucking cloaker,Hoxton
+mark.cloaker,41242715,0.67,Cloaker spotted,Wick
+mark.cloaker,433991579,0.67,Eyes on a cloaker,Chains
+mark.cloaker,434749134,0.67,Cloaker coming,Clover
+mark.cloaker,449809559,0.67,Its a cloaker,Dallas
+mark.cloaker,455146913,0.67,Cloaker spotted,Wick
+mark.cloaker,505077772,0.67,Cloaker eliminated,Chains
+mark.cloaker,515834716,0.67,Cloaker eliminated,Dallas
+mark.cloaker,51869805,0.67,Cloaker sneaking up on us,Clover
+mark.cloaker,5209787,0.67,Oh shit cloaker,Houston
+mark.cloaker,54821766,0.67,Its a cloaker,Wick
+mark.cloaker,585807970,0.67,No more cloaker,Houston
+mark.cloaker,613029460,0.67,Cloaker smoked,Chains
+mark.cloaker,633324510,0.67,Its a cloaker,Houston
+mark.cloaker,65647783,0.67,"Oh shit, cloaker",Clover
+mark.cloaker,704852765,0.67,Cloaker incoming,Clover
+mark.cloaker,723754097,0.67,Cloaker incoming,Clover
+mark.cloaker,734890702,0.67,Cloaker spotted,Wick
+mark.cloaker,776984291,0.67,Cloaker spotted,Clover
+mark.cloaker,78585069,0.67,No more cloaker,Houston
+mark.cloaker,78710866,0.67,Its a cloaker,Clover
+mark.cloaker,794762369,0.67,No more cloaker,Chains
+mark.cloaker,806937402,0.67,Cloaker eliminated,Chains
+mark.cloaker,826755727,0.67,Cloaker incoming,Clover
+mark.cloaker,86777167,0.67,Killed the cloaker,Clover
+mark.cloaker,89905285,0.67,Killed the cloaker,Houston
+mark.cloaker,914080031,0.67,Spotted a cloaker,Clover
+mark.cloaker,921590900,0.67,I spotted a cloaker,Clover
+mark.cloaker,96785079,0.67,Oh shit cloaker,Dallas
+mark.dozer,2502646,0.80,Take em out!,Hoxton
+mark.dozer,727096058,0.80,Take him out,Cop (static)
+mark.dozer,1004009762,0.67,Take out the drill,Cop (static)
+mark.dozer,1010453642,0.67,Take out that gear,Cop (static)
+mark.dozer,286169628,0.67,Take out the drill,Cop (static)
+mark.dozer,35758708,0.67,Take out the cameras,Wolf
+mark.dozer,461103829,0.67,Take out the drill,Cop (static)
+mark.dozer,605641173,0.67,Take out the cameras,Dallas
+mark.dozer,62325892,0.67,Take out the drill,Cop (static)
+mark.dozer,671219951,0.67,Take out the drill,Cop (static)
+mark.generic,98212524,0.67,Halfway mark now,Chains
+mark.guard,17803679,1.00,Guard,Houston
+mark.guard,218392762,1.00,Guard,Chains
+mark.guard,264036590,1.00,Got a guard,Wolf
+mark.guard,313053280,1.00,Guard,Dallas
+mark.guard,31324895,1.00,Guard,Dallas
+mark.guard,384689240,1.00,Guard,Clover
+mark.guard,465269696,1.00,Guard,Wick
+mark.guard,528471296,1.00,Guard,Hoxton
+mark.guard,60648929,1.00,Guard,Clover
+mark.guard,746731453,1.00,Got a guard,Dallas
+mark.guard,19019852,0.67,"Oi, guard, watch it",Clover
+mark.guard,278209996,0.67,Guard on patrol,Chains
+mark.guard,316809443,0.67,I see a guard,Dallas
+mark.guard,353645039,0.67,Guard on patrol,Clover
+mark.guard,51210489,0.67,"Guard, watch it",Clover
+mark.guard,84240365,0.67,I've got a guard,Hoxton
+mark.medic,112387425,1.00,Medic!,Chains
+mark.medic,14433048,1.00,Medic!,Chains
+mark.medic,150314875,1.00,Got that medic,Chains
 mark.medic,2033620,1.00,Medic!,Chains
+mark.medic,21356273,1.00,Medic!,Chains
+mark.medic,2138371,1.00,Medic!,Chains
+mark.medic,239681742,1.00,Got the medic,Wick
+mark.medic,252256973,1.00,Got the medic,Dallas
+mark.medic,268516645,1.00,Got the medic,Dallas
+mark.medic,27050269,1.00,Medic!,Chains
+mark.medic,277807292,1.00,Got the medic,Wick
+mark.medic,328408507,1.00,Got the medic,Chains
+mark.medic,445490266,1.00,Medic,Clover
+mark.medic,536778516,1.00,Got the medic,Dallas
+mark.medic,56958651,1.00,Medic!,Chains
+mark.medic,574760162,1.00,They got a medic,Houston
+mark.medic,576877097,1.00,Got the medic,Wick
+mark.medic,706242395,1.00,Got the medic,Wick
+mark.medic,910819298,1.00,Got the medic,Dallas
+mark.medic,923869931,1.00,Got the medic,Dallas
+mark.medic,10133044,0.67,Enemy medic,Wick
+mark.medic,1023976118,0.67,Killed the medic,Chains
+mark.medic,1059991401,0.67,They've got a medic,Cop
+mark.medic,13784825,0.67,Killed the medic,Houston
+mark.medic,141041183,0.67,Killed the medic,Hoxton
+mark.medic,14120538,0.67,Killed the medic,Houston
+mark.medic,154585393,0.67,Enemy medic,Wick
+mark.medic,157425145,0.67,They have a medic,Cop
+mark.medic,16216568,0.67,Killed the medic,Houston
+mark.medic,16464800,0.67,They've got a medic,Wick
+mark.medic,171722303,0.67,Enemy medic,Wick
+mark.medic,174352880,0.67,They brought a medic,Houston
+mark.medic,17452350,0.67,Enemy medic,Clover
+mark.medic,17995200,0.67,One of them is a medic,Cop
+mark.medic,190998775,0.67,Killed the medic,Dallas
+mark.medic,192376489,0.67,Killed the medic,Clover
+mark.medic,19793367,0.67,Killed the medic,Clover
+mark.medic,21832021,0.67,Enemy medic,Chains
+mark.medic,242758815,0.67,Killed the medic,Chains
+mark.medic,24582359,0.67,Medic is dead,Dallas
+mark.medic,246551133,0.67,Killed the medic,Dallas
+mark.medic,254481944,0.67,I killed the medic,Hoxton
+mark.medic,26299662,0.67,Enemy medic,Clover
+mark.medic,283347774,0.67,They've got a medic,Dallas
+mark.medic,283559041,0.67,They have a medic,Cop
+mark.medic,284237529,0.67,Suck it medic,Houston
+mark.medic,286172621,0.67,"Fuck, medic",Chains
+mark.medic,289461746,0.67,Suck it medic,Houston
+mark.medic,302343002,0.67,Cops got a medic,Dallas
+mark.medic,310878310,0.67,Killed the medic,Dallas
+mark.medic,344986384,0.67,Killed the medic,Clover
+mark.medic,412230584,0.67,Got the fucking medic,Hoxton
+mark.medic,417778574,0.67,Enemy medic,Houston
+mark.medic,428919313,0.67,Killed the medic,Houston
+mark.medic,457204566,0.67,One of them is a medic,Cop
+mark.medic,460858630,0.67,One of them is a medic,Cop
+mark.medic,466854140,0.67,Killed the medic,Houston
+mark.medic,479513066,0.67,Enemy medic,Houston
+mark.medic,505416729,0.67,Suck it medic,Houston
+mark.medic,511209223,0.67,"Fuck, medic",Chains
+mark.medic,536173257,0.67,"Ah shit, medic",Hoxton
+mark.medic,575360905,0.67,They've got a medic,Hoxton
+mark.medic,604650207,0.67,They've got a medic,Dallas
+mark.medic,626991408,0.67,They have a medic,Cop
+mark.medic,62929935,0.67,Killed the medic,Houston
+mark.medic,668629394,0.67,Killed the medic,Chains
+mark.medic,694140779,0.67,They've got a medic,Houston
+mark.medic,737841264,0.67,Bollocks they got a medic,Hoxton
+mark.medic,749831668,0.67,Enemy medic,Chains
+mark.medic,778675216,0.67,Killed the medic,Hoxton
+mark.medic,798969456,0.67,They have a medic,Cop
+mark.medic,842927717,0.67,They've got a medic,Wick
+mark.medic,84692936,0.67,One of them is a medic,Cop
+mark.medic,865221809,0.67,Killed the medic,Chains
+mark.medic,877297942,0.67,They brought a medic,Houston
+mark.medic,917030429,0.67,Cops got a medic,Dallas
+mark.medic,931464378,0.67,Killed the medic,Dallas
+mark.medic,931666506,0.67,Killed the medic,Hoxton
+mark.medic,941797600,0.67,Medic is dead,Dallas
+mark.medic,946815888,0.67,Medic incoming,Wick
+mark.medic,947906409,0.67,One of them is a medic,Cop
+mark.medic,96651528,0.67,Killed the medic,Dallas
+mark.medic,972258003,0.67,They've got a medic,Cop
+mark.medic,973668827,0.67,Killed the medic,Clover
+mark.medic,996400706,0.67,They have a medic,Cop
+mark.medic,998945506,0.67,Got the fucking medic,Hoxton
+mark.shield,112294052,1.00,We got a shield,Wick
+mark.shield,120219152,1.00,Shield!,Wolf
+mark.shield,132539394,1.00,Shield,Wick
+mark.shield,137593177,1.00,Got the shield,Houston
+mark.shield,161582707,1.00,Shield,Houston
+mark.shield,162136784,1.00,Shield,Chains
+mark.shield,165104060,1.00,Shield,Wick
+mark.shield,20246316,1.00,Shield!,Wick
+mark.shield,203444697,1.00,Got the shield,Wick
+mark.shield,219341735,1.00,Shield,Clover
+mark.shield,228698742,1.00,We got a shield,Clover
+mark.shield,232453880,1.00,We got a shield,Wick
+mark.shield,249532563,1.00,Shield,Houston
+mark.shield,254749851,1.00,We got a shield,Clover
+mark.shield,257301034,1.00,We got a shield,Houston
+mark.shield,270172465,1.00,We got a shield,Dallas
+mark.shield,270392503,1.00,Shield,Chains
+mark.shield,27784694,1.00,Shield!,Dallas
+mark.shield,292000976,1.00,Shield,Hoxton
+mark.shield,29361128,1.00,Shield!,Chains
+mark.shield,297268783,1.00,We got a shield,Chains
+mark.shield,304758475,1.00,Shield,Wolf
+mark.shield,306553865,1.00,Shield,Dallas
+mark.shield,311049704,1.00,Shield,Wolf
+mark.shield,322327514,1.00,Got the shield,Clover
+mark.shield,322994404,1.00,Shield,Clover
+mark.shield,340583419,1.00,Shield,Houston
+mark.shield,34621817,1.00,Shield,Houston
+mark.shield,351193395,1.00,Shield,Dallas
+mark.shield,35255131,1.00,Shield,Wolf
+mark.shield,36344789,1.00,Shield,Hoxton
+mark.shield,367336910,1.00,Got the shield,Clover
+mark.shield,387682765,1.00,Shield,Hoxton
+mark.shield,389216740,1.00,Shield,Hoxton
+mark.shield,406684747,1.00,Shield,Chains
+mark.shield,412936920,1.00,Shield,Dallas
+mark.shield,424200801,1.00,Got the shield,Clover
+mark.shield,439067899,1.00,We got a shield,Hoxton
+mark.shield,457530103,1.00,Shield,Dallas
+mark.shield,478925529,1.00,Shield,Wolf
+mark.shield,48941868,1.00,Got the shield,Wick
+mark.shield,517997040,1.00,Got the shield,Houston
+mark.shield,569801205,1.00,Got the shield,Houston
+mark.shield,572451149,1.00,Shield,Clover
+mark.shield,624325316,1.00,Shield,Dallas
+mark.shield,628173649,1.00,We got a shield,Wick
+mark.shield,65643121,1.00,We got a shield,Clover
+mark.shield,661188787,1.00,Got the shield,Houston
+mark.shield,674106899,1.00,I got the shield,Chains
+mark.shield,69774567,1.00,Shield shield,Wolf
+mark.shield,734413632,1.00,Shield,Houston
+mark.shield,78099955,1.00,Shield!,Hoxton
+mark.shield,847187101,1.00,Shield!,Chains
+mark.shield,84841224,1.00,We got a shield,Hoxton
+mark.shield,8545889,1.00,Shield,Houston
+mark.shield,92634912,1.00,Shield!,Hoxton
+mark.shield,94394823,1.00,Shield,Clover
+mark.shield,121619199,0.67,Shield eliminated,Dallas
+mark.shield,168430957,0.67,Fucking shield,Clover
+mark.shield,182063887,0.67,Oh shit shield,Houston
+mark.shield,183483776,0.67,Its a shield,Wolf
+mark.shield,191618038,0.67,Shield eliminated,Hoxton
+mark.shield,212330401,0.67,Shield eliminated,Clover
+mark.shield,23804666,0.67,Shield terminated,Chains
+mark.shield,246804441,0.67,Its a shield,Wick
+mark.shield,251957964,0.67,Oh shit shield,Dallas
+mark.shield,264867641,0.67,Its a shield,Clover
+mark.shield,27890171,0.67,Shield eliminated,Wick
+mark.shield,298635380,0.67,Shield spotted,Clover
+mark.shield,30488345,0.67,Its a shield,Houston
+mark.shield,3191885,0.67,Shield inbound!,Wick
+mark.shield,322427413,0.67,Shield spotted,Clover
+mark.shield,336333913,0.67,I dropped the shield,Chains
+mark.shield,353003832,0.67,Oh shit shield,Clover
+mark.shield,367684131,0.67,"Ah hell no, shield",Chains
+mark.shield,3740670,0.67,Shield terminated!,Chains
+mark.shield,3771193,0.67,It's a shield,Clover
+mark.shield,401223232,0.67,Fucking shield,Chains
+mark.shield,41057825,0.67,"Ah hell no, shield",Chains
+mark.shield,452642612,0.67,Oh shit shield,Wolf
+mark.shield,45595610,0.67,I've got a shield,Wolf
+mark.shield,473137704,0.67,Its a shield,Dallas
+mark.shield,490778118,0.67,Shield smoked,Chains
+mark.shield,517025543,0.67,Shield spotted,Chains
+mark.shield,521232885,0.67,Shield eliminated,Wick
+mark.shield,52847787,0.67,That's a shield,Clover
+mark.shield,55143040,0.67,Thats a shield,Clover
+mark.shield,571461756,0.67,I spotted a shield,Houston
+mark.shield,634567944,0.67,I spotted a shield,Wolf
+mark.shield,636207617,0.67,Shield dropped,Chains
+mark.shield,641920586,0.67,Fucking shield,Clover
+mark.shield,658706365,0.67,Shield eliminated,Houston
+mark.shield,66760052,0.67,Shield dropped,Chains
+mark.shield,68811729,0.67,Goddamn shield,Clover
+mark.shield,692115,0.67,It's a shield!,Clover
+mark.shield,794366435,0.67,Its a shield,Houston
+mark.shield,856340209,0.67,Shield killed,Chains
+mark.shield,936150562,0.67,Shield dead,Chains
+mark.sniper,123204623,1.00,I got that sniper,Chains
+mark.sniper,148788451,1.00,Sniper,Dallas
+mark.sniper,193690250,1.00,A sniper,Chains
+mark.sniper,2118214,1.00,Sniper!,Houston
+mark.sniper,221313281,1.00,A sniper,Clover
+mark.sniper,227140304,1.00,A sniper,Hoxton
+mark.sniper,263219639,1.00,A sniper,Clover
+mark.sniper,26919839,1.00,Sniper!,Wick
+mark.sniper,274353714,1.00,A sniper,Clover
+mark.sniper,279554418,1.00,Sniper,Chains
+mark.sniper,297086187,1.00,Sniper,Wick
+mark.sniper,302978752,1.00,A sniper,Clover
+mark.sniper,303363906,1.00,Sniper,Wolf
+mark.sniper,370588936,1.00,Sniper,Chains
+mark.sniper,395021486,1.00,Sniper,Hoxton
+mark.sniper,408062774,1.00,Sniper,Wick
+mark.sniper,41126869,1.00,Sniper!,Hoxton
+mark.sniper,440895638,1.00,A sniper,Hoxton
+mark.sniper,469574703,1.00,Sniper,Chains
+mark.sniper,498699013,1.00,Sniper,Clover
+mark.sniper,56147137,1.00,Sniper,Clover
+mark.sniper,56910560,1.00,Got a sniper,Dallas
+mark.sniper,601390539,1.00,Sniper,Chains
+mark.sniper,60279219,1.00,Got a sniper,Hoxton
+mark.sniper,6137821,1.00,Got that sniper!,Chains
+mark.sniper,624366526,1.00,A sniper,Hoxton
+mark.sniper,634147283,1.00,Sniper,Wolf
+mark.sniper,691430721,1.00,Got a sniper,Hoxton
+mark.sniper,721944693,1.00,Sniper,Wick
+mark.sniper,725582874,1.00,Sniper,Clover
+mark.sniper,771817815,1.00,Got a sniper,Clover
+mark.sniper,797208189,1.00,Sniper,Wick
+mark.sniper,89572423,1.00,Sniper!,Wolf
+mark.sniper,899454691,1.00,Sniper,Hoxton
+mark.sniper,910457992,1.00,A sniper!,Chains
+mark.sniper,100528377,0.67,Sniper spotted,Chains
+mark.sniper,101338487,0.67,I see a sniper,Clover
+mark.sniper,1045775094,0.67,Sniper dead,Hoxton
+mark.sniper,128690648,0.67,Sniper spotted,Hoxton
+mark.sniper,132530241,0.67,"Sniper, rooftop",Bain
+mark.sniper,147348305,0.67,Sniper spotted,Chains
+mark.sniper,161504055,0.67,Sniper dead,Chains
+mark.sniper,164654760,0.67,"Sniper, there",Wick
+mark.sniper,173275953,0.67,Sniper spotted,Clover
+mark.sniper,174066282,0.67,Sniper dead,Dallas
+mark.sniper,175847442,0.67,Sniper there,Wick
+mark.sniper,176560409,0.67,Sniper spotted,Clover
+mark.sniper,180681071,0.67,Sniper spotted,Hoxton
+mark.sniper,218797645,0.67,"Sniper, building",Bain
+mark.sniper,224071329,0.67,"Whoa, sniper",Wick
+mark.sniper,227456379,0.67,Sniper eliminated,Chains
+mark.sniper,242952447,0.67,Sniper spotted,Chains
+mark.sniper,319755865,0.67,Sniper spotted,Clover
+mark.sniper,360656433,0.67,Sniper dead,Clover
+mark.sniper,364674558,0.67,Sniper out,Hoxton
+mark.sniper,37209246,0.67,I see a sniper,Clover
+mark.sniper,390988686,0.67,I see a sniper,Hoxton
+mark.sniper,456361113,0.67,Sniper out,Dallas
+mark.sniper,458929762,0.67,sniper killed,Dallas
+mark.sniper,49002842,0.67,Sniper spotted,Hoxton
+mark.sniper,501032261,0.67,Sniper dead,Wick
+mark.sniper,528529707,0.67,"Sniper, interior!",Bain
+mark.sniper,539081773,0.67,Sniper out,Wick
+mark.sniper,57996748,0.67,"Whoa, sniper",Wick
+mark.sniper,607704159,0.67,"Sniper, I see a sniper",Chains
+mark.sniper,616164406,0.67,"Sniper, interior",Bain
+mark.sniper,63920218,0.67,I see a sniper,Clover
+mark.sniper,661752503,0.67,"Sniper, rooftop",Bain
+mark.sniper,683768612,0.67,"Sniper, building",Bain
+mark.sniper,700542984,0.67,I see a sniper,Chains
+mark.sniper,731461706,0.67,I see a sniper,Hoxton
+mark.sniper,827731020,0.67,Sniper dead,Dallas
+mark.sniper,905552282,0.67,Sniper out,Dallas
+mark.sniper,962404191,0.67,"Sniper, rooftop!",Bain
+mark.sniper,96554711,0.67,Sniper dead,Chains
+mark.sniper,99396903,0.67,Fucking sniper,Chains
+mark.taser,106426802,1.00,Taser!,Wolf
+mark.taser,127042289,1.00,Taser,Houston
+mark.taser,159253744,1.00,Got the taser,Wick
+mark.taser,174826133,1.00,Taser,Dallas
+mark.taser,175058761,1.00,Taser,Hoxton
+mark.taser,189384174,1.00,Taser taser,Chains
+mark.taser,191361388,1.00,Taser,Clover
+mark.taser,206530021,1.00,Taser,Wick
+mark.taser,207438578,1.00,Taser,Hoxton
+mark.taser,213730489,1.00,Taser,Houston
+mark.taser,217421176,1.00,Taser,Dallas
+mark.taser,222757576,1.00,Got the taser,Houston
+mark.taser,223447520,1.00,I got the taser,Clover
+mark.taser,226791782,1.00,Taser,Chains
+mark.taser,233897001,1.00,Taser,Wolf
+mark.taser,26026455,1.00,Taser!,Chains
+mark.taser,272244180,1.00,Taser,Chains
+mark.taser,286630751,1.00,Got the taser,Houston
+mark.taser,293947177,1.00,Taser,Dallas
+mark.taser,296204179,1.00,Taser,Houston
+mark.taser,31218988,1.00,Got the taser,Wick
+mark.taser,329303581,1.00,We got a taser,Clover
+mark.taser,346700631,1.00,Taser,Houston
+mark.taser,350909359,1.00,Taser,Houston
+mark.taser,373402874,1.00,Taser,Hoxton
+mark.taser,383689399,1.00,Taser,Houston
+mark.taser,39731755,1.00,Taser,Chains
+mark.taser,397371815,1.00,Taser taser,Chains
+mark.taser,400066431,1.00,We got a taser,Wick
+mark.taser,402153314,1.00,Taser,Dallas
 mark.taser,413529,1.00,Taser!,Wolf
+mark.taser,471806969,1.00,Taser,Chains
+mark.taser,494844215,1.00,Got the taser,Clover
+mark.taser,51513273,1.00,Taser taser,Wolf
+mark.taser,527121413,1.00,Taser,Clover
+mark.taser,531628361,1.00,We got a taser,Wick
+mark.taser,53914840,1.00,Taser,Wick
+mark.taser,637248472,1.00,I got the taser,Chains
+mark.taser,66971311,1.00,Taser!,Houston
+mark.taser,69666907,1.00,Taser!,Dallas
+mark.taser,69733322,1.00,Taser!,Wolf
+mark.taser,707383893,1.00,I got the taser,Houston
+mark.taser,723913443,1.00,Taser taser,Chains
+mark.taser,742719308,1.00,Taser,Wick
+mark.taser,7913251,1.00,We got a taser,Clover
+mark.taser,79329049,1.00,Taser!,Hoxton
+mark.taser,794191594,1.00,Taser,Clover
+mark.taser,81189683,1.00,Taser,Wick
+mark.taser,85124922,1.00,Taser!,Dallas
+mark.taser,876489466,1.00,Taser,Wolf
+mark.taser,909806465,1.00,Taser!,Dallas
+mark.taser,93403630,1.00,Taser!,Clover
+mark.taser,100696785,0.67,Taser got wiped,Clover
+mark.taser,108190895,0.67,"Ah hell no, taser",Chains
+mark.taser,111521742,0.67,Its a taser,Houston
+mark.taser,12326309,0.67,Its a taser,Houston
+mark.taser,150149633,0.67,"Taser, clear",Taser
+mark.taser,157539361,0.67,We've got us a taser,Hoxton
+mark.taser,158756278,0.67,Taser spotted,Wick
+mark.taser,162659076,0.67,Thats a taser,Hoxton
+mark.taser,166080743,0.67,Bleedin' taser,Hoxton
+mark.taser,179409436,0.67,Taser killed,Chains
+mark.taser,201469443,0.67,Oh shit taser,Clover
+mark.taser,21614773,0.67,The motherfucking taser,Chains
+mark.taser,229382639,0.67,Go to hell taser,Chains
+mark.taser,23388896,0.67,Oh shit taser,Wolf
+mark.taser,253278239,0.67,Its a taser,Wick
+mark.taser,282164991,0.67,Taser spotted,Clover
+mark.taser,293404019,0.67,Taser terminated,Chains
+mark.taser,303633151,0.67,Taser spotted,Wick
+mark.taser,30478626,0.67,"Ah hell no, taser",Chains
+mark.taser,30532714,0.67,Taser spotted,Hoxton
+mark.taser,340854241,0.67,Taser eliminated,Chains
+mark.taser,342515617,0.67,"Taser, clear",Taser
+mark.taser,358310911,0.67,"Taser, chains, 0-1",Chains
+mark.taser,362818133,0.67,Taser eliminated,Hoxton
+mark.taser,36952340,0.67,Its a taser,Clover
+mark.taser,3845846,0.67,It's a taser,Clover
+mark.taser,386845987,0.67,Its a taser,Wick
+mark.taser,403503701,0.67,Taser spotted,Dallas
+mark.taser,417593072,0.67,Taser spotted,Wolf
+mark.taser,43384048,0.67,Taser eliminated,Chains
+mark.taser,464529482,0.67,Taser eliminated,Clover
+mark.taser,4658907,0.67,Taser eliminated,Chains
+mark.taser,468623806,0.67,Go to hell taser,Chains
+mark.taser,470603159,0.67,Taser dead,Chains
+mark.taser,486300054,0.67,"Taser, clear",Taser
+mark.taser,48834342,0.67,Thats a taser,Clover
+mark.taser,501147467,0.67,Taser eliminated,Dallas
+mark.taser,513973776,0.67,Taser spotted,Clover
+mark.taser,563507273,0.67,Taser eliminated,Dallas
+mark.taser,578911040,0.67,Taser smoked,Chains
+mark.taser,589511619,0.67,That's a taser,Clover
+mark.taser,623628955,0.67,Taser ready,Taser
+mark.taser,648928966,0.67,Taser killed,Chains
+mark.taser,653206734,0.67,Taser eliminated,Clover
+mark.taser,687989088,0.67,Its a taser,Hoxton
+mark.taser,700489675,0.67,Taser terminated,Chains
+mark.taser,70051414,0.67,Oh shit taser,Dallas
+mark.taser,764284650,0.67,Taser dead,Chains
+mark.taser,78225377,0.67,Taser spotted,Wick
+mark.taser,826774412,0.67,They sent in a taser,Bain
+mark.taser,82724300,0.67,Oh shit taser,Houston
+mark.taser,831385687,0.67,"Taser, clear",Taser
+mark.taser,839670581,0.67,<squeals> got the taser,Clover
+mark.taser,841154897,0.67,"Taser, ready",Taser
+mark.taser,845758827,0.67,Taser smoked,Chains
+mark.taser,85420509,0.67,Oh shit taser,Dallas
+mark.taser,872664461,0.67,Taser eliminated,Wick
+mark.taser,979303373,0.67,Taser spotted,Houston
+mark.turret,102633187,1.00,Turret,Chains
+mark.turret,236981333,1.00,Turret,Clover
+mark.turret,248147575,1.00,A turret,Wick
+mark.turret,252634791,1.00,Turret,Chains
+mark.turret,273413828,1.00,Turret,Houston
+mark.turret,307510296,1.00,Turret,Hoxton
+mark.turret,332441077,1.00,Turret,Hoxton
+mark.turret,409499922,1.00,They got a turret,Wick
+mark.turret,578678046,1.00,Turret,Dallas
+mark.turret,611476347,1.00,Turret!,Wick
+mark.turret,611983315,1.00,Turret!,Wick
+mark.turret,67257463,1.00,Turret,Chains
+mark.turret,69315056,1.00,Ah turret,Dallas
+mark.turret,708169278,1.00,Turret,Houston
+mark.turret,82400376,1.00,"Oh no, turret",Dallas
+mark.turret,845340941,1.00,Turret,Wick
+mark.turret,91924671,1.00,"Ah, turret",Wick
+mark.turret,949144309,1.00,Turret!,Dallas
+mark.turret,11834737,0.67,Fuck! Turret,Houston
+mark.turret,126678594,0.67,SWAT turret,Chains
+mark.turret,138010696,0.67,They brought a turret,Dallas
+mark.turret,141204362,0.67,"Turret, fuck",Houston
+mark.turret,14363772,0.67,SWAT turret,Dallas
+mark.turret,170175296,0.67,Oh shit turret,Houston
+mark.turret,217265772,0.67,Ah shit a turret,Hoxton
+mark.turret,224401294,0.67,They brought a turret,Chains
+mark.turret,244618976,0.67,SWAT turret,Wick
+mark.turret,25512271,0.67,SWAT turret,Houston
+mark.turret,259287840,0.67,SWAT turret,Hoxton
+mark.turret,260123257,0.67,Watch that turret,Clover
+mark.turret,269744078,0.67,"Bollocks, turret",Hoxton
+mark.turret,281968873,0.67,SWAT turret,Clover
+mark.turret,297834971,0.67,They've got a turret,Houston
+mark.turret,305517856,0.67,"Shit, turret",Houston
+mark.turret,317270214,0.67,SWAT turret,Chains
+mark.turret,338664089,0.67,They deployed a turret,Wick
+mark.turret,344593489,0.67,They brought a turret,Hoxton
+mark.turret,35157579,0.67,SWAT turret,Wick
+mark.turret,354676744,0.67,Its a turret,Wick
+mark.turret,363986710,0.67,"Ah bollocks, a turret",Hoxton
+mark.turret,365195256,0.67,They brought a turret,Wick
+mark.turret,368009098,0.67,Watch that turret,Clover
+mark.turret,373173263,0.67,Its a turret,Wick
+mark.turret,376192406,0.67,They've got a turret,Hoxton
+mark.turret,387704533,0.67,They brought in a turret,Dallas
+mark.turret,43209851,0.67,"Turret, watch it",Chains
+mark.turret,453632670,0.67,"Fuck me, turret",Hoxton
+mark.turret,479356739,0.67,"Shit, turret",Hoxton
+mark.turret,48006935,0.67,Motherfucking turret,Dallas
+mark.turret,480972003,0.67,"Fuck me, turret",Dallas
+mark.turret,535025483,0.67,SWAT turret,Hoxton
+mark.turret,547924419,0.67,A turret in play,Houston
+mark.turret,564726898,0.67,"Hell, turret",Houston
+mark.turret,57919315,0.67,SWAT turret,Dallas
+mark.turret,579494244,0.67,Heads up we got a turret,Chains
+mark.turret,600731407,0.67,It's a turret,Chains
+mark.turret,609819836,0.67,"Ah bollocks, turret",Clover
+mark.turret,615313862,0.67,Motherfucking turret,Chains
+mark.turret,616988528,0.67,They've got a turret,Dallas
+mark.turret,642053222,0.67,They brought in a turret,Hoxton
+mark.turret,672173159,0.67,SWAT turret,Houston
+mark.turret,712881829,0.67,"Ah shit, turret",Chains
+mark.turret,747129857,0.67,"Turret, fuck me",Hoxton
+mark.turret,764560690,0.67,They deployed a turret,Chains
+mark.turret,860039803,0.67,"Damnit, turret",Wick
+mark.turret,94623767,0.67,Ah hell no turret,Chains
+mark.turret,957432369,0.67,Ah shit turret,Dallas
+move.go,1003785147,1.00,Go!,Cop (static)
+move.go,1009558271,1.00,Go,Cop
+move.go,1023504105,1.00,Go,Cop (static)
+move.go,1038640818,1.00,Go,Cop
+move.go,1042620756,1.00,Go,Cop (static)
+move.go,107807723,1.00,Go,Cop (static)
+move.go,11395820,1.00,Go go go,Chains
+move.go,117543393,1.00,Go,Cop
+move.go,127177743,1.00,Go,Cop (static)
+move.go,143207661,1.00,Go go go,Chains
+move.go,145128632,1.00,Go go go,Cop
+move.go,150748887,1.00,Go go,Cop (static)
+move.go,152600917,1.00,Go,Cop
+move.go,155535315,1.00,Go,Cop (static)
+move.go,15659551,1.00,Go go,Cop (static)
+move.go,172911116,1.00,Go go,Cop
+move.go,174998275,1.00,Go go,Cop (static)
+move.go,17659828,1.00,Go,Cop (static)
+move.go,189242689,1.00,Go go,Cop
+move.go,202528034,1.00,Go,Cop
+move.go,20313507,1.00,Go,Cop
+move.go,205007618,1.00,Go go,Cop (static)
+move.go,206305947,1.00,Go go go,Cop (static)
+move.go,210764221,1.00,Go go,Cop
+move.go,22287832,1.00,Go go go,Cop
+move.go,227348182,1.00,Go go go,Chains
+move.go,234647698,1.00,Go,Cop
+move.go,24313121,1.00,Go go go,Cop (static)
+move.go,243719500,1.00,Go,Chains
+move.go,250430207,1.00,Go go,Cop
+move.go,270444526,1.00,Go,Cop
+move.go,275101283,1.00,Go go go,Cop (static)
+move.go,282685025,1.00,Go,Cop (static)
+move.go,283910255,1.00,Go,Cop
+move.go,291405993,1.00,Go go,Cop
+move.go,295052292,1.00,Go go,Cop
+move.go,297361740,1.00,Go go go,Cop
+move.go,297807565,1.00,Go go go,Cop (static)
+move.go,307126703,1.00,Go,Cop
+move.go,314298782,1.00,Go,Cop (static)
+move.go,314410337,1.00,"go, go go",Cop
+move.go,321413038,1.00,"Go, go",Cop (static)
+move.go,334238950,1.00,Go go go,Cop (static)
+move.go,347155491,1.00,Go go go,Hoxton
+move.go,352747690,1.00,Go,Cop (static)
+move.go,358638812,1.00,Go go,Cop (static)
+move.go,360926783,1.00,Go go,Cop
+move.go,36118903,1.00,Go,Cop (static)
+move.go,36154437,1.00,Go,Cop (static)
+move.go,363909305,1.00,Go,Cop
+move.go,367858362,1.00,"Go, go go",Cop (static)
+move.go,373351524,1.00,Go,Cop
+move.go,376541645,1.00,Go go go,Cop (static)
+move.go,384490797,1.00,Go,Cop
+move.go,389682657,1.00,"Go, go",Cop (static)
+move.go,414682287,1.00,Go,Cop
+move.go,415339853,1.00,Go go go,Cop (static)
+move.go,415884756,1.00,Go,Cop
+move.go,416003269,1.00,Go go go,Cop
+move.go,421421033,1.00,Go,Cop (static)
+move.go,422060910,1.00,Go go,Cop (static)
+move.go,422710722,1.00,Go,Cop
+move.go,431919684,1.00,Go go,Cop
+move.go,444162636,1.00,Go go,Cop
+move.go,44890044,1.00,Go,Cop
+move.go,461812985,1.00,Go go go,Cop (static)
+move.go,470852384,1.00,Go,Cop (static)
+move.go,483542797,1.00,Go go go,Cop (static)
+move.go,49103476,1.00,Go,Cop (static)
+move.go,507287025,1.00,Go,Cop (static)
+move.go,515280294,1.00,Go go go,Bain
+move.go,517569789,1.00,Go,Cop (static)
+move.go,51939620,1.00,Go go go,Cop (static)
+move.go,52800144,1.00,Go go go,Cop (static)
+move.go,535547737,1.00,Go go go,Cop
+move.go,537218491,1.00,Go,Cop
+move.go,544310524,1.00,Go go go,Cop
+move.go,586583082,1.00,"Go, go go!",Cop
+move.go,587207399,1.00,"Go, go, go!",Cop (static)
+move.go,594914053,1.00,"Go, go!",Cop (static)
+move.go,597811559,1.00,"Go, go, go!",Cop (static)
+move.go,600676805,1.00,Go!,Cop (static)
+move.go,608511257,1.00,"Go, go",Cop
+move.go,609156321,1.00,"Go, go, go!",Cop
+move.go,610527853,1.00,Go!,Chains
+move.go,610543650,1.00,"Go, go, go!",Cop
+move.go,612639572,1.00,"Go, go!",Cop (static)
+move.go,616675983,1.00,Go,Cop (static)
+move.go,635166115,1.00,Go,Cop (static)
+move.go,646411762,1.00,Go go,Cop (static)
+move.go,651565469,1.00,Go go,Cop
+move.go,665073865,1.00,Go go go,Cop (static)
+move.go,679146949,1.00,Go,Cop (static)
+move.go,67919769,1.00,Go,Cop
+move.go,693084239,1.00,Go,Cop
+move.go,70241241,1.00,"Go, go",Cop
+move.go,702824783,1.00,Go go go,Cop
+move.go,704357575,1.00,Go go go,Cop
+move.go,712540933,1.00,Go go go,Cop
+move.go,721686123,1.00,Go,Cop
+move.go,722659657,1.00,Go,Cop
+move.go,730205860,1.00,Go go,Cop
+move.go,739801379,1.00,Go go,Cop
+move.go,741541853,1.00,Go,Cop (static)
+move.go,742892794,1.00,Go go go,Cop
+move.go,764688317,1.00,Go go go,Cop (static)
+move.go,780755088,1.00,Go,Cop (static)
+move.go,786852208,1.00,Go go go,Cop (static)
+move.go,792450832,1.00,Go,Cop (static)
+move.go,800618136,1.00,Go,Cop (static)
+move.go,80880865,1.00,Go,Cop (static)
+move.go,814037225,1.00,Go,Cop (static)
+move.go,871374594,1.00,"Go, go",Cop (static)
+move.go,875413026,1.00,Go!,Cop
+move.go,923290369,1.00,Go go go,Cop
+move.go,927159762,1.00,Go!,Cop
+move.go,928235209,1.00,Go go go,Cop (static)
+move.go,936260764,1.00,Go go go,Cop (static)
+move.go,948954705,1.00,Go go go,Cop (static)
+move.go,961446892,1.00,GO!,Cop
+move.go,968616423,1.00,Go,Bain
+move.go,969867471,1.00,Go go,Cop (static)
+move.go,994379407,1.00,Go go go!,Cop (static)
+move.go,9977348,1.00,Go,Cop (static)
+move.go,998463799,1.00,Go,Cop (static)
+move.go,998698039,1.00,Go!,Cop (static)
+move.go,1026220003,0.67,Now go,Cop (static)
+move.go,137342723,0.67,Now go,Cop (static)
+move.go,312030448,0.67,Now go,Cop
+move.go,322680927,0.67,"Now, go",Cop
+move.go,417674304,0.67,"Now, go",Cop (static)
+move.go,488512938,0.67,Now go,Cop (static)
+move.go,587013893,0.67,Now go!,Cop
+move.go,712191558,0.67,Now go,Cop (static)
+move.go,729403071,0.67,Now go,Cop
+move.go,758609267,0.67,Now go,Cop
+move.go,834025842,0.67,"Now, go",Cop
+move.go,845657791,0.67,Now go,Cop (static)
+move.go,929389225,0.67,Now go,Cop (static)
+move.go,965233446,0.67,Now go,Cop
+move.hold,1001542661,1.00,Hold it,Cop (static)
+move.hold,1020579783,1.00,Hold it,Cop (static)
+move.hold,106405274,1.00,Hold it,Cop (static)
+move.hold,109597863,1.00,Hold it,Security
+move.hold,119372706,1.00,Hold it,Cop (static)
+move.hold,176645444,1.00,Hold it,Security
+move.hold,21756663,1.00,Hold on,Houston
+move.hold,234132200,1.00,Hold it,Security
+move.hold,277159248,1.00,Hold it,Security
+move.hold,286736803,1.00,Hold it,Security
+move.hold,360167279,1.00,Hold on,Hoxton
+move.hold,39969584,1.00,Hold up,Security
+move.hold,508721829,1.00,Hold on,Wick
+move.hold,511022991,1.00,Hold it,Cop (static)
+move.hold,535206927,1.00,Hold it,Security
+move.hold,615546511,1.00,Hold it,Security
+move.hold,621567511,1.00,Hold on,Clover
+move.hold,644528001,1.00,"Hold it, hold it",Cop (static)
+move.hold,711661971,1.00,Hold it,Cop
+move.hold,714603964,1.00,Hold it,Security
+move.hold,802557236,1.00,Hold it,Cop (static)
+move.hold,834169263,1.00,Hold up,Cop (static)
+move.hold,840791275,1.00,Hold it,Security
+move.hold,943675642,1.00,Hold it,Cop (static)
+move.hold,980039537,1.00,Hold it,Cop (static)
+move.hold,998459678,1.00,Hold it,Cop (static)
+move.hold,1006509226,0.67,Hold fire,Cop (static)
+move.hold,1020004642,0.67,Hold your fire,Cop (static)
+move.hold,1026947330,0.67,Weapons hold,Cop
+move.hold,1031947130,0.67,Hold your fire,Cop
+move.hold,1035252501,0.67,Weapons hold,Cop (static)
+move.hold,1060965775,0.67,Hold still,Security
+move.hold,1063409074,0.67,Weapons hold!,Cop
+move.hold,111640390,0.67,"Steady now, hold it",Wolf
+move.hold,118536880,0.67,Hold fire,Cop
+move.hold,123598373,0.67,Hold your fire,Cop (static)
+move.hold,137270096,0.67,Hold still,Cop (static)
+move.hold,164237966,0.67,Hold the fort,Dallas
+move.hold,1644054,0.67,"Steady now, hold it!",Wolf
+move.hold,170368505,0.67,Hold your bollocks,Clover
+move.hold,171688568,0.67,Weapons hold,Cop
+move.hold,18012815,0.67,Hold them off,Houston
+move.hold,182557752,0.67,Hold the fort,Houston
+move.hold,212033580,0.67,Hold the fort,Wick
+move.hold,224894139,0.67,Hold your fire,Cop
+move.hold,225111888,0.67,Hold still,Cop (static)
+move.hold,235782505,0.67,Hold fire,Cop (static)
+move.hold,243355029,0.67,Hold still,Cop (static)
+move.hold,249712191,0.67,Hold them off,Hoxton
+move.hold,258167704,0.67,Just hold on,Chains
+move.hold,273997410,0.67,Hold them in position,Bain
+move.hold,278517310,0.67,Steady now hold it,Dallas
+move.hold,286706501,0.67,Steady now hold it,Houston
+move.hold,287316386,0.67,Steady now hold it,Hoxton
+move.hold,297394843,0.67,Hold still,Cop (static)
+move.hold,298408394,0.67,Hold your fire,Cop (static)
+move.hold,316251870,0.67,Hold fire,Cop
+move.hold,317610455,0.67,Hold your fire,Cop
+move.hold,319065600,0.67,Weapons hold,Cop
+move.hold,320225446,0.67,Hold your bollocks,Clover
+move.hold,326987446,0.67,Weapons hold,Cop (static)
+move.hold,333822024,0.67,Steady now hold it,Hoxton
+move.hold,347876065,0.67,Hold fire,Cop (static)
+move.hold,35314229,0.67,Weapons hold,Cop (static)
+move.hold,379213953,0.67,Weapons hold,Cop
+move.hold,397867059,0.67,Hold your fire,Cop
+move.hold,40148731,0.67,"Hold it, steady now",Hoxton
+move.hold,419361258,0.67,Hold fire,Cop (static)
+move.hold,42482702,0.67,Hold fire,Cop (static)
+move.hold,435356464,0.67,Weapons hold,Cop (static)
+move.hold,44857650,0.67,Hold the fort,Wolf
+move.hold,452527862,0.67,Hold out,Dallas
+move.hold,459985873,0.67,Hold still,Security
+move.hold,4907405,0.67,Hold still,Cop
+move.hold,508042301,0.67,Steady now hold it,Dallas
+move.hold,532686769,0.67,Hold them off,Bain
+move.hold,553393341,0.67,Hold your fire,Cop
+move.hold,564863650,0.67,Weapons hold,Cop (static)
+move.hold,575529093,0.67,Weapons hold,Cop
+move.hold,592914917,0.67,Hold your fire!,Cop (static)
+move.hold,601175823,0.67,Hold fire!,Cop (static)
+move.hold,611823229,0.67,"Weapons, hold",Cop (static)
+move.hold,619942137,0.67,Hold your bollocks,Clover
+move.hold,639095370,0.67,Weapons hold,Cop (static)
+move.hold,640332290,0.67,Hold your ground,Bain
+move.hold,649312655,0.67,Hold still,Cop (static)
+move.hold,665546026,0.67,Weapons hold,Cop (static)
+move.hold,676016125,0.67,Weapons hold,Cop
+move.hold,682810660,0.67,Hold the fort,Hoxton
+move.hold,695400162,0.67,Hold still,Cop (static)
+move.hold,70151862,0.67,Hold the fort,Dallas
+move.hold,703414805,0.67,Hold your fire,Cop
+move.hold,712421680,0.67,Weapons hold,Cop (static)
+move.hold,714156999,0.67,Hold still,Cop (static)
+move.hold,721937469,0.67,Hold the fort,Hoxton
+move.hold,7477536,0.67,Hold fire!,Cop (static)
+move.hold,747850661,0.67,"Hold it, steady now",Hoxton
+move.hold,773934372,0.67,Hold the fort,Houston
+move.hold,776645777,0.67,Hold them off,Hoxton
+move.hold,777346179,0.67,Hold fire,Cop
+move.hold,799073002,0.67,Hold fire,Cop
+move.hold,801722957,0.67,Hold your fire,Cop (static)
+move.hold,803992853,0.67,Hold your fire,Cop (static)
+move.hold,830660429,0.67,Hold fire,Cop
+move.hold,866721048,0.67,Weapons hold,Cop
+move.hold,873229863,0.67,Weapons hold,Cop
+move.hold,887278825,0.67,Hold fire,Cop (static)
+move.hold,889626918,0.67,Hold your fire,Cop (static)
+move.hold,895699366,0.67,I'm on hold!?,Civilian
+move.hold,911429336,0.67,Weapons hold,Cop (static)
+move.hold,912452112,0.67,Hold your fire,Cop (static)
+move.hold,928523655,0.67,Hold fire,Cop (static)
+move.hold,9290317,0.67,Hold them off,Wick
+move.hold,940442769,0.67,Hold fire,Cop
+move.hold,953620387,0.67,Hold your ground,Wick
+move.hold,961433283,0.67,"Steady now, hold it",Houston
+move.hold,965517875,0.67,Hold out,Dallas
+move.hold,96671025,0.67,Weapons hold,Cop
+move.hold,981901332,0.67,Hold fire,Cop (static)
+move.hold,994838770,0.67,Hold your fire,Cop (static)
+move.hold,996233797,0.67,Hold your fire,Cop (static)
+move.in,108656101,1.00,Inside,Wick
+move.in,155499048,1.00,Inside,Clover
+move.in,292324666,1.00,Inside,Houston
+move.in,333621659,1.00,Inside,Chains
+move.in,37861085,1.00,Inside,Dallas
+move.in,438024411,1.00,Inside,Clover
+move.in,511059208,1.00,Inside,Hoxton
+move.in,63848111,1.00,Inside,Chains
+move.in,764329101,1.00,Inside,Dallas
+move.in,770261747,1.00,Inside,Clover
+move.in,87043194,1.00,Inside,Houston
+move.in,9301982,1.00,Inside,Hoxton
+move.in,973106946,1.00,Inside!,Wick
+move.in,1049151468,0.67,Units inside,Bain
+move.in,317915154,0.67,They're inside,Bain
+move.in,590215826,0.67,They're inside,Bain
+move.in,605343231,0.67,"Enemy, inside",Bain
+move.in,803892563,0.67,They're inside,Bain
+move.left,150448465,1.00,To the left,Dallas
+move.left,167043320,1.00,To the left,Wolf
+move.left,174875170,1.00,To the left,Houston
+move.left,176633664,1.00,To the left,Wolf
+move.left,189821322,1.00,To the left,Dallas
+move.left,201248404,1.00,Left,Houston
+move.left,204146039,1.00,Left,Hoxton
+move.left,204635023,1.00,On the left,Chains
+move.left,280475800,1.00,Left,Dallas
+move.left,281246627,1.00,Left,Clover
+move.left,293553146,1.00,On the left,Chains
+move.left,35767777,1.00,To the left,Hoxton
+move.left,383270711,1.00,To the left,Houston
+move.left,399550148,1.00,To the left,Clover
+move.left,469929266,1.00,Go left,Chains
+move.left,49931050,1.00,Left,Hoxton
+move.left,50626959,1.00,Left,Clover
+move.left,532662496,1.00,Left,Wick
+move.left,543204882,1.00,To the left,Hoxton
+move.left,549035025,1.00,Left,Wick
+move.left,866922960,1.00,Left,Dallas
+move.left,94468356,1.00,Left,Houston
+move.left,945610371,1.00,To the left,Clover
+move.left,96353334,1.00,Go left,Chains
+move.left,793761679,0.67,20 seconds left,Bain
+move.on_me,10362874,1.00,On me,Houston
+move.on_me,11987771,1.00,On me,Houston
+move.on_me,13516288,1.00,On me,Chains
+move.on_me,137961027,1.00,On me,Clover
+move.on_me,14081341,1.00,On me,Hoxton
+move.on_me,17717031,1.00,On me,Wick
+move.on_me,1782828,1.00,On me,Hoxton
+move.on_me,19748899,1.00,On me,Chains
+move.on_me,21164901,1.00,On me,Hoxton
+move.on_me,21694552,1.00,On me,Houston
 move.on_me,236512,1.00,On me,Hoxton
+move.on_me,26599481,1.00,On me,Houston
+move.on_me,28716000,1.00,On me,Clover
+move.on_me,28988532,1.00,On me,Wick
+move.on_me,29292911,1.00,On me,Chains
+move.on_me,34072237,1.00,On me,Hoxton
+move.on_me,34612255,1.00,On me,Chains
+move.on_me,51619460,1.00,On me,Chains
+move.on_me,54651766,1.00,On me,Clover
+move.on_me,62284425,1.00,On me,Houston
+move.on_me,17603056,0.80,On me now,Clover
+move.on_me,24186522,0.80,On me now,Houston
+move.on_me,31546519,0.80,On me now,Hoxton
+move.on_me,3274598,0.80,On me now,Clover
+move.on_me,34649108,0.80,On me now,Houston
+move.on_me,5044430,0.80,On me now,Clover
+move.on_me,54387581,0.80,On me now,Hoxton
+move.on_me,67384302,0.80,On me now,Hoxton
+move.on_me,67390034,0.80,On me now,Hoxton
+move.on_me,6821072,0.80,On me now!,Wick
+move.on_me,68900334,0.80,On me now,Hoxton
+move.on_me,69520268,0.80,On me now,Hoxton
+move.on_me,9598908,0.80,On me now,Houston
+move.right,143856775,1.00,To the right,Hoxton
+move.right,144706674,1.00,Right,Wick
+move.right,154742637,1.00,Right,Clover
+move.right,175136678,1.00,To the right,Wolf
+move.right,191917516,1.00,Right,Dallas
+move.right,19603593,1.00,Right on it,Hoxton
+move.right,204347000,1.00,Right,Chains
+move.right,238617218,1.00,This is right,Clover
+move.right,253811310,1.00,This is right,Houston
+move.right,256093662,1.00,Right on it,Clover
+move.right,267664944,1.00,To the right,Dallas
+move.right,296365028,1.00,To the right,Wolf
+move.right,29920783,1.00,Right,Hoxton
+move.right,314719975,1.00,Right,Hoxton
+move.right,315778913,1.00,Right now,Houston
+move.right,32334385,1.00,Right now,Security
+move.right,341534638,1.00,Right now,Houston
+move.right,350931882,1.00,To the right,Houston
+move.right,353954918,1.00,To the right,Houston
+move.right,358263417,1.00,To the right,Dallas
+move.right,381626560,1.00,Right,Clover
+move.right,38541689,1.00,On the right,Chains
+move.right,391684116,1.00,Right,Houston
+move.right,39952537,1.00,This is right,Clover
+move.right,411522758,1.00,Now this is right,Houston
+move.right,427374216,1.00,Right,Wick
+move.right,437186423,1.00,Right,Houston
+move.right,440069929,1.00,To the right,Clover
+move.right,45661768,1.00,Right,Dallas
+move.right,47412550,1.00,To the right,Clover
+move.right,486892519,1.00,Right now,Wolf
+move.right,573683660,1.00,On the right,Chains
+move.right,807842335,1.00,Right,Chains
+move.right,86625097,1.00,To the right,Hoxton
+move.right,131590094,0.67,Be right there,Dallas
+move.right,13569246,0.67,Right now motherfucker,Dallas
+move.right,136368215,0.67,Be right there,Hoxton
+move.right,16298180,0.67,Right now motherfucker,Houston
+move.right,17606277,0.67,Ooh right right right,Pager
+move.right,195531836,0.67,This looks right,Chains
+move.right,204019265,0.67,Right fucking now,Hoxton
+move.right,237089711,0.67,Right fucking now,Clover
+move.right,264611381,0.67,Be right there,Houston
+move.right,282434638,0.67,Right fucking now,Dallas
+move.right,291918485,0.67,I know right,Security
+move.right,298252992,0.67,Right now motherfucker,Houston
+move.right,308024361,0.67,Be right there,Clover
+move.right,30823931,0.67,Right now motherfucker,Hoxton
+move.right,31973781,0.67,"Right, its on",Clover
+move.right,33530605,0.67,Right fucking now,Houston
+move.right,433809976,0.67,"I know, right?",Security
+move.right,445554706,0.67,Right now motherfucker,Dallas
+move.right,460053429,0.67,This looks right,Chains
+move.right,53001906,0.67,Right fucking now,Wick
+move.right,536049285,0.67,Right there,Chains
+move.right,559717948,0.67,Be right there,Wolf
+move.right,563594291,0.67,Right there,Chains
+move.right,574698038,0.67,Right away,Security
+move.right,58208246,0.67,On the ground right now,Houston
+move.right,59958045,0.67,Right fucking now,Houston
+move.right,606690268,0.67,Right. Fucking. Now,Hoxton
+move.right,615817020,0.67,Right on the money,Chains
+move.right,66357507,0.67,"Right, lets get it on",Clover
+move.right,671788944,0.67,"Right on, nice",Civilian
+move.right,715469,0.67,Be right there,Wolf
+move.right,724072360,0.67,"AH, this isn't right",Wick
+move.right,791180364,0.67,"I know, right?",Security
+move.right,79497966,0.67,Be right there,Dallas
+move.right,90918936,0.67,Right fucking now,Chains
+move.right,924398373,0.67,I know right?,Security
+move.right,93464406,0.67,Thats right thats right,Dallas
+move.this_way,123191038,1.00,This way,Wick
+move.this_way,1443632,1.00,On my way,Houston
+move.this_way,21765481,1.00,This way,Hoxton
+move.this_way,283905146,1.00,On my way,Wick
+move.this_way,311472573,1.00,On my way,Hoxton
+move.this_way,324656905,1.00,This way,Wick
+move.this_way,342269201,1.00,This way,Clover
+move.this_way,4155675,1.00,This way!,Dallas
+move.this_way,445135937,1.00,This way,Wolf
+move.this_way,524509731,1.00,This way,Houston
+move.this_way,540411191,1.00,Go this way,Chains
+move.this_way,574606792,1.00,This way,Wolf
+move.this_way,59826744,1.00,On my way,Houston
+move.this_way,601889888,1.00,On my way,Wick
+move.this_way,637637054,1.00,Go this way,Chains
+move.this_way,689258959,1.00,This way,Clover
+move.this_way,78824622,1.00,This way,Houston
+move.this_way,79024212,1.00,Now this way,Houston
+move.this_way,97570452,1.00,This way,Dallas
+move.this_way,99470648,1.00,This way,Hoxton
+move.this_way,128082514,0.67,Wrong way,Chains
+move.this_way,132758711,0.67,Not this way,Dallas
+move.this_way,151666940,0.67,Make way,Taser
+move.this_way,201681508,0.67,Get out of the way,Taser
+move.this_way,212421638,0.67,Not this way,Dallas
+move.this_way,217929551,0.67,Not this way,Chains
+move.this_way,218938955,0.67,I'm on my way,Houston
+move.this_way,224429573,0.67,This is the wrong way,Houston
+move.this_way,243953798,0.67,Get out of the way,Bulldozer
+move.this_way,261441509,0.67,This is the wrong way,Dallas
+move.this_way,262194295,0.67,This is not the way,Wolf
+move.this_way,271205414,0.67,Not this way,Houston
+move.this_way,286683761,0.67,I'm on my way,Hoxton
+move.this_way,305478328,0.67,This is the wrong way,Clover
+move.this_way,340468124,0.67,This is the wrong way,Clover
+move.this_way,364451916,0.67,Wrong way,Wick
+move.this_way,391743678,0.67,Help is on the way,Police Radio
+move.this_way,413697662,0.67,Make way,Bulldozer
+move.this_way,433414216,0.67,Make way,Taser
+move.this_way,482818910,0.67,I'm on my way,Clover
+move.this_way,485930641,0.67,Make way,Taser
+move.this_way,503312216,0.67,Not this way,Clover
+move.this_way,515603481,0.67,Get out of the way,Taser
+move.this_way,529420707,0.67,This is the wrong way,Dallas
+move.this_way,53228364,0.67,This is the wrong way,Hoxton
+move.this_way,54587078,0.67,Help is on the way,Police Radio
+move.this_way,56269312,0.67,Help is on the way,Police Radio
+move.this_way,570753279,0.67,Not this way,Hoxton
+move.this_way,576152200,0.67,Not this way,Hoxton
+move.this_way,626060767,0.67,Wrong way,Wick
+move.this_way,642969561,0.67,This is the wrong way,Houston
+move.this_way,645283436,0.67,Not this way,Chains
+move.this_way,65156054,0.67,This is not the way,Wolf
+move.this_way,705919322,0.67,Get out of the way,Bulldozer
+move.this_way,727221630,0.67,Get out of the way,Taser
+move.this_way,730663501,0.67,Not this way,Clover
+move.this_way,786377613,0.67,Not this way,Wolf
+move.this_way,841498525,0.67,Make way,Bulldozer
+move.this_way,87684616,0.67,This is the wrong way,Hoxton
+move.this_way,941102129,0.67,Make way,Taser
+move.this_way,943429005,0.67,Get out of the way,Bulldozer
+move.this_way,944299511,0.67,Get out of the way,Bulldozer
+move.this_way,955994998,0.67,Make way,Bulldozer
+move.this_way,984939610,0.67,Not this way,Wolf
+move.up,1018645214,1.00,Up,Clover
+move.up,1018930876,1.00,Up,Dallas
+move.up,1026241854,1.00,Up,Wick
+move.up,116461230,1.00,Up,Chains
+move.up,118714607,1.00,Up,Wick
+move.up,185337849,1.00,Up,Wick
+move.up,250292667,1.00,Up up,Dallas
+move.up,27468929,1.00,Up,Chains
+move.up,288112739,1.00,Up,Houston
+move.up,296971245,1.00,Up up,Hoxton
+move.up,329474658,1.00,Up up,Clover
+move.up,340687516,1.00,"Up, up",Houston
+move.up,340897469,1.00,Up,Bain
+move.up,372596109,1.00,Up,Dallas
+move.up,386773436,1.00,Up up,Clover
+move.up,439216550,1.00,Up up,Chains
+move.up,451683716,1.00,Up,Wick
+move.up,504103118,1.00,Up up,Wolf
+move.up,612610034,1.00,Up!,Clover
+move.up,62756132,1.00,Up up,Wolf
+move.up,637172027,1.00,Up up,Houston
+move.up,675654901,1.00,Up up,Dallas
+move.up,72056557,1.00,Up!,Chains
+move.up,778975779,1.00,Up up up,Wolf
+move.up,782171346,1.00,Up,Houston
+move.up,84539607,1.00,Up up,Hoxton
+move.up,854875708,1.00,Up,Hoxton
+move.up,85574292,1.00,Up,Houston
+move.up,905478802,1.00,Up.,Houston
+move.up,912242685,1.00,"Up, up",Dallas
+move.up,931036015,1.00,"Up, up",Chains
+move.up,94093610,1.00,Up,Chains
+move.up,1065850189,0.67,Get up,Chains
+move.up,125270736,0.67,Get up,Wick
+move.up,446018402,0.67,Get up,Wolf
+move.up,474595150,0.67,Go up,Chains
+move.up,534948106,0.67,Get up,Chains
+move.up,560373189,0.67,Go up,Chains
+move.up,610558084,0.67,Get up,Cop (static)
+move.up,773508768,0.67,"Up, now",Clover
+move.up,811519009,0.67,Get up,Hoxton
+move.up,84793923,0.67,Get up,Wolf
+move.up,856493260,0.67,Get up,Clover
+move.up,906897803,0.67,Get up,Wick
+move.up,95489569,0.67,Get up,Dallas
+nade.generic,100327331,1.00,Heads up,Bain
+nade.generic,97966564,1.00,Heads up,Bain
+nade.generic,186916656,0.67,Heads up guys,Bain
+nade.grenade,118487036,1.00,Grenade,Clover
+nade.grenade,21669333,1.00,Grenade!,Houston
+nade.grenade,246319081,1.00,Grenade,Dallas
+nade.grenade,334810937,1.00,Grenade,Clover
+nade.grenade,35109392,1.00,Grenade!,Dallas
+nade.grenade,376560210,1.00,Grenade,Houston
+nade.grenade,237092885,0.67,Smoke grenade,Dallas
+nade.grenade,307111196,0.67,Smoke grenade,Clover
+nade.grenade,332276486,0.67,Grenade out,Clover
+nade.grenade,349428351,0.67,Grenade away,Hoxton
+nade.grenade,396178510,0.67,Smoke grenade,Hoxton
+nade.grenade,442537969,0.67,Smoke grenade,Hoxton
+nade.grenade,47546336,0.67,Get clear grenade,Clover
+nade.grenade,525530159,0.67,Smoke grenade,Hoxton
+nade.grenade,631969383,0.67,Smoke grenade,Houston
+nade.grenade,684004132,0.67,Grenade away,Dallas
+nade.grenade,711618549,0.67,Get clear grenade,Clover
+nade.grenade,787042067,0.67,Smoke grenade,Hoxton
+nade.grenade,812175811,0.67,Smoke grenade,Clover
+nade.grenade,916515279,0.67,Smoke grenade,Houston
+nade.grenade,987071286,0.67,Smoke grenade,Houston
+nade.grenade,998562843,0.67,Smoke grenade,Houston
+nade.smoke,1004100867,1.00,Smoke,Hoxton
+nade.smoke,1015512011,1.00,Smoke,Chains
+nade.smoke,1034306515,1.00,Smoke,Cop
+nade.smoke,1037760701,1.00,Smoke,Houston
+nade.smoke,1050914876,1.00,Smoke,Cop
+nade.smoke,134101790,1.00,Smoke,Cop
+nade.smoke,201719421,1.00,Smoke,Clover
+nade.smoke,202328728,1.00,Smoke,Dallas
+nade.smoke,220266154,1.00,Smoke,Cop (static)
+nade.smoke,260645831,1.00,Smoke,Hoxton
+nade.smoke,281552847,1.00,Smoke,Wolf
+nade.smoke,324802718,1.00,Smoke,Houston
+nade.smoke,333054206,1.00,Smoke,Houston
+nade.smoke,415658835,1.00,Smoke,Wick
+nade.smoke,421626353,1.00,Smoke,Hoxton
+nade.smoke,493405239,1.00,Smoke,Cop
+nade.smoke,536644493,1.00,Smoke,Houston
+nade.smoke,572728600,1.00,Smoke,Chains
+nade.smoke,584939847,1.00,Smoke em!,Cop (static)
+nade.smoke,688573313,1.00,Smoke,Chains
+nade.smoke,714999670,1.00,Smoke,Houston
+nade.smoke,748353911,1.00,Smoke,Wolf
+nade.smoke,799170367,1.00,Smoke,Cop
+nade.smoke,803786654,1.00,Smoke,Cop (static)
+nade.smoke,849391492,1.00,Smoke,Cop (static)
+nade.smoke,871671319,1.00,Smoke,Clover
+nade.smoke,880392907,1.00,Smoke,Dallas
+nade.smoke,926053172,1.00,Smoke,Cop (static)
+nade.smoke,941997865,1.00,Smoke!,Cop (static)
+nade.smoke,954519681,1.00,Smoke!,Clover
+nade.smoke,995074904,1.00,Smoke,Hoxton
+nade.smoke,1024980721,0.67,Smoke bomb,Hoxton
+nade.smoke,1050635482,0.67,Smoke the place,Cop
+nade.smoke,1054833172,0.67,Deploy smoke,Cop
+nade.smoke,1071986886,0.67,Incoming smoke,Chains
+nade.smoke,118420164,0.67,Wall of smoke,Cop (static)
+nade.smoke,122719358,0.67,Smoke the place,Cop (static)
+nade.smoke,139787791,0.67,Deploy smoke,Cop (static)
+nade.smoke,170088060,0.67,Deploy smoke,Cop (static)
+nade.smoke,175804923,0.67,Wall of smoke,Cop (static)
+nade.smoke,181774877,0.67,Smoke bomb,Hoxton
+nade.smoke,196642233,0.67,Deploy smoke,Cop
+nade.smoke,298488548,0.67,Deploy smoke,Cop (static)
+nade.smoke,322910996,0.67,Smoke time,Cop (static)
+nade.smoke,359135062,0.67,Wall of smoke,Cop
+nade.smoke,36367819,0.67,Smoke bomb,Wolf
+nade.smoke,366813973,0.67,Smoke bomb,Wolf
+nade.smoke,436812964,0.67,Deploy smoke,Cop (static)
+nade.smoke,441030141,0.67,Smoke the place,Cop (static)
+nade.smoke,452475620,0.67,Smoke coming in,Chains
+nade.smoke,479512647,0.67,Smoke bomb,Hoxton
+nade.smoke,5059875,0.67,Smoke the place,Cop
+nade.smoke,555059154,0.67,Smoke time,Cop (static)
+nade.smoke,56437916,0.67,Wall of smoke,Cop (static)
+nade.smoke,572084598,0.67,Smoke bomb,Houston
+nade.smoke,581124633,0.67,Deploy smoke,Cop
+nade.smoke,597175488,0.67,Deploy smoke,Cop
+nade.smoke,601393590,0.67,Deploy smoke,Cop
+nade.smoke,604138009,0.67,Smoke bomb,Clover
+nade.smoke,607166581,0.67,Wall of smoke,Cop
+nade.smoke,607270609,0.67,Smoke bomb,Hoxton
+nade.smoke,631076323,0.67,Smoke bomb,Wick
+nade.smoke,648001401,0.67,Smoke screen,Cop (static)
+nade.smoke,681987166,0.67,Smoke bomb,Houston
+nade.smoke,702515605,0.67,Smoke screen,Cop (static)
+nade.smoke,712683554,0.67,Smoke bomb,Dallas
+nade.smoke,729206748,0.67,Smoke bomb,Houston
+nade.smoke,757273438,0.67,Smoke coming in,Chains
+nade.smoke,778672136,0.67,Smoke the place,Cop (static)
+nade.smoke,853819886,0.67,Smoke time,Cop (static)
+nade.smoke,85853994,0.67,Incoming smoke,Chains
+nade.smoke,868614333,0.67,Deploy smoke,Cop (static)
+nade.smoke,896012183,0.67,Smoke the place,Cop (static)
+nade.smoke,923137718,0.67,Smoke time,Cop (static)
+nade.smoke,926022768,0.67,Smoke time,Cop
+nade.smoke,930200043,0.67,Smoke time,Cop
+nade.smoke,948097203,0.67,Wall of smoke,Cop (static)
+nade.tear,162829074,1.00,Tear gas,Clover
+nade.tear,210766913,1.00,Tear gas,Hoxton
+nade.tear,213472665,1.00,We got tear gas,Clover
+nade.tear,106230325,0.80,Ow goddamn tear gas,Clover
+nade.tear,108355535,0.80,Motherfucking tear gas,Clover
+nade.tear,165872812,0.80,Ahhh tear gas,Houston
+nade.tear,372548073,0.80,Ahh tear gas,Wick
+nade.tear,401545764,0.80,"Gah, tear gas",Hoxton
+nade.tear,459029690,0.80,AAA tear gas,Dallas
+nade.tear,467944810,0.80,"Ahh, tear gas",Clover
+nade.tear,536255884,0.80,Ahhh tear gas,Hoxton
+nade.tear,367351515,0.67,"Watch out, tear gas",Clover
+nade.tear,37423062,0.67,Fucking tear gas <coughs>,Clover
+pager.clear,1050886833,0.67,All clear,Security
+pager.clear,1059240753,0.67,All is clear,Security
+pager.clear,11267295,0.67,All is clear,Security
+pager.clear,11294760,0.67,All is clear,Security
+pager.clear,138165954,0.67,All clear,Cop (static)
+pager.clear,148413680,0.67,All clear,Cop
+pager.clear,151781683,0.67,All is clear,Security
+pager.clear,157779628,0.67,All clear,Cop (static)
+pager.clear,158055928,0.67,All clear,Cop (static)
+pager.clear,162105613,0.67,All clear,Security
+pager.clear,182938115,0.67,All clear,Cop
+pager.clear,212560360,0.67,All clear,Cop
+pager.clear,213710603,0.67,All clear,Cop (static)
+pager.clear,220006245,0.67,All clear,Security
+pager.clear,221131694,0.67,All is clear,Security
+pager.clear,222431538,0.67,All clear,Security
+pager.clear,237836550,0.67,All clear,Cop (static)
+pager.clear,250242723,0.67,All clear,Cop (static)
+pager.clear,263890877,0.67,All clear,Cop
+pager.clear,274081411,0.67,All clear,Security
+pager.clear,286178963,0.67,All clear,Security
+pager.clear,297774064,0.67,All clear,Cop (static)
+pager.clear,314779781,0.67,All is clear,Security
+pager.clear,321001001,0.67,All clear,Cop
+pager.clear,342218111,0.67,All clear,Cop (static)
+pager.clear,362220499,0.67,All clear,Cop (static)
+pager.clear,392026496,0.67,All is clear,Security
+pager.clear,412497825,0.67,All clear,Security
+pager.clear,4154839,0.67,All clear!,Cop
+pager.clear,476305555,0.67,All is clear,Security
+pager.clear,52986757,0.67,Nothing new down here at all,Houston
+pager.clear,554063670,0.67,All clear,Cop (static)
+pager.clear,555036639,0.67,All clear,Security
+pager.clear,588309654,0.67,All clear,Cop (static)
+pager.clear,600672029,0.67,All is clear,Security
+pager.clear,637123367,0.67,All is clear,Security
+pager.clear,646949757,0.67,All clear,Cop
+pager.clear,6680596,0.67,All clear,Security
+pager.clear,670910482,0.67,All clear,Cop (static)
+pager.clear,675325549,0.67,All clear,Cop (static)
+pager.clear,699031598,0.67,All clear,Cop
+pager.clear,700917142,0.67,All clear,Cop (static)
+pager.clear,740540818,0.67,All clear,Cop
+pager.clear,746170732,0.67,All clear,Security
+pager.clear,792523545,0.67,All clear,Security
+pager.clear,818521249,0.67,All clear,Security
+pager.clear,835896564,0.67,All is clear,Security
+pager.clear,844804246,0.67,All clear,Cop
+pager.clear,845717586,0.67,"Ah nothing, nothin' doin, all clear",Chains
+pager.clear,847313704,0.67,All clear,Security
+pager.clear,85901854,0.67,All clear,Cop (static)
+pager.clear,923417354,0.67,All clear,Security
+pager.clear,9584418,0.67,All clear,Cop (static)
+pager.clear,979392414,0.67,All clear,Cop (static)
+pager.clear,140603576,0.60,"Uhh uhh no, nothing at all happening over here",Wolf
+pager.clear,409728516,0.60,"Huh nothing, nothning doing, all clear",Chains
+revive.critical,116160243,1.00,Stay with me,Chains
+revive.critical,121475550,1.00,Stay,Clover
+revive.critical,252649196,1.00,Stay,Wick
+revive.critical,254346007,1.00,Stay,Clover
+revive.critical,286261877,1.00,Stay,Clover
+revive.critical,33232172,1.00,Stay,Houston
+revive.critical,34502292,1.00,Stay,Wick
+revive.critical,34569705,1.00,Stay,Houston
+revive.critical,500408417,1.00,Stay,Houston
+revive.critical,529706102,1.00,Stay,Clover
+revive.critical,59232469,1.00,Stay,Wick
+revive.critical,100453572,0.67,And stay quiet,Wick
+revive.critical,1028750276,0.67,Stay low,Hoxton
+revive.critical,1030203005,0.67,Stay frosty,Bain
+revive.critical,106360348,0.67,Stay clear,Taser
+revive.critical,10958412,0.67,Stay still,Dallas
+revive.critical,110854953,0.67,And stay put,Dallas
+revive.critical,111308114,0.67,Stay with your unit,Captain
+revive.critical,115527566,0.67,Stay still,Wolf
+revive.critical,12010521,0.67,Stay back!,Taser
+revive.critical,122458948,0.67,Stay put,Clover
+revive.critical,123167110,0.67,Stay put,Clover
+revive.critical,13546342,0.67,Stay where you are,Dallas
+revive.critical,150556883,0.67,Stay still,Dallas
+revive.critical,16029452,0.67,Stay still,Clover
+revive.critical,160303061,0.67,Stay where you are,Wolf
+revive.critical,160668776,0.67,Stay back,Wick
+revive.critical,16265617,0.67,Stay back!,Bulldozer
+revive.critical,162705682,0.67,And stay put,Wick
+revive.critical,164211576,0.67,And stay put,Dallas
+revive.critical,169279246,0.67,Stay calm,Cop
+revive.critical,181415816,0.67,Stay put,Clover
+revive.critical,186040569,0.67,Stay low,Dallas
+revive.critical,186904076,0.67,Stay where you are,Security
+revive.critical,191652919,0.67,Stay back,Wick
+revive.critical,192441620,0.67,Stay where you are,Cop (static)
+revive.critical,193356180,0.67,Stay invisible,Hoxton
+revive.critical,206616467,0.67,Stay still,Wolf
+revive.critical,212474251,0.67,Stay where you are,Chains
+revive.critical,219423589,0.67,And stay put,Clover
+revive.critical,228591841,0.67,Stay calm,Cop
+revive.critical,243666018,0.67,Stay where you are,Dallas
+revive.critical,251494330,0.67,Stay put,Wick
+revive.critical,253848787,0.67,Stay still,Houston
+revive.critical,254239682,0.67,You stay where you are,Houston
+revive.critical,26594889,0.67,Stay where you are,Hoxton
+revive.critical,271814425,0.67,Stay still,Wick
+revive.critical,273638908,0.67,Stay where you are,Dallas
+revive.critical,293785741,0.67,Stay the course,Dallas
+revive.critical,301630610,0.67,Stay where you are,Cop
+revive.critical,310728908,0.67,Stay where you are,Cop (static)
+revive.critical,31425114,0.67,Stay with me man,Chains
+revive.critical,319407376,0.67,Stay clear,Cop (static)
+revive.critical,321017630,0.67,Stay calm,Cop
+revive.critical,351288017,0.67,Stay where you are,Security
+revive.critical,359928786,0.67,Stay put,Dallas
+revive.critical,37318570,0.67,Stay put,Wick
+revive.critical,376022063,0.67,Stay still,Wick
+revive.critical,388512102,0.67,And stay put,Wolf
+revive.critical,388659119,0.67,Stay in cover,Houston
+revive.critical,397910593,0.67,Stay still,Clover
+revive.critical,427749539,0.67,Stay calm,Cop
+revive.critical,439659904,0.67,Stay where you are,Wolf
+revive.critical,449660193,0.67,Stay put,Wick
+revive.critical,456001599,0.67,Stay low,Dallas
+revive.critical,465709406,0.67,Stay where you are,Houston
+revive.critical,49478685,0.67,Stay where you are,Hoxton
+revive.critical,500790500,0.67,Stay still,Dallas
+revive.critical,5080428,0.67,Stay where you are!,Cop (static)
+revive.critical,519073391,0.67,Stay where you are,Chains
+revive.critical,522188318,0.67,Stay where you are,Cop (static)
+revive.critical,532972357,0.67,Stay put,Dallas
+revive.critical,534626281,0.67,Stay still,Dallas
+revive.critical,53999067,0.67,Stay low,Dallas
+revive.critical,545943607,0.67,Stay where you are,Dallas
+revive.critical,5486169,0.67,Stay still,Wick
+revive.critical,549245740,0.67,Stay back,Hoxton
+revive.critical,556520817,0.67,Stay low,Dallas
+revive.critical,55954178,0.67,Stay where you are,Cop (static)
+revive.critical,577256072,0.67,Stay where you are,Cop (static)
+revive.critical,605427469,0.67,Stay back!,Bulldozer
+revive.critical,61170659,0.67,Stay where you are,Security
+revive.critical,628476959,0.67,Stay where you are,Dallas
+revive.critical,636189554,0.67,Stay calm,Cop (static)
+revive.critical,64053353,0.67,Stay where you are,Dallas
+revive.critical,655777383,0.67,Stay back,Wick
+revive.critical,659048451,0.67,Stay where you are,Cop (static)
+revive.critical,665993417,0.67,Stay back,Hoxton
+revive.critical,667150592,0.67,Stay calm,Cop (static)
+revive.critical,670281753,0.67,Stay where you are,Dallas
+revive.critical,672307155,0.67,Stay calm,Cop (static)
+revive.critical,673741225,0.67,Stay where you are,Cop (static)
+revive.critical,674267426,0.67,Stay low,Dallas
+revive.critical,7192473,0.67,Stay low!,Hoxton
+revive.critical,72489265,0.67,Stay still,Dallas
+revive.critical,73901350,0.67,Stay still,Houston
+revive.critical,74163896,0.67,Stay back,Hoxton
+revive.critical,78869338,0.67,Stay calm,Cop (static)
+revive.critical,79242427,0.67,Stay calm,Cop (static)
+revive.critical,807245652,0.67,Stay where you are,Cop (static)
+revive.critical,808096317,0.67,Stay clear,Taser
+revive.critical,824559969,0.67,Stay where you are,Security
+revive.critical,89100687,0.67,Stay still,Houston
+revive.critical,90508139,0.67,Stay put,Wick
+revive.critical,91122769,0.67,Stay back,Dallas
+revive.critical,923351152,0.67,Stay where you are,Dallas
+revive.critical,966582589,0.67,Stay where you are,Security
+revive.critical,970683287,0.67,Stay where you are,Security
+revive.critical,978282857,0.67,Stay still,Dallas
+revive.critical,979441371,0.67,Stay back,Taser
+revive.critical,994755079,0.67,Stay calm,Cop
+revive.hold,63711078,1.00,Have this,Clover
+revive.hold,105363182,0.67,We have to restart it,Chains
+revive.hold,149018689,0.67,We have to restart it,Hoxton
+revive.hold,186970132,0.67,We have to restart it,Dallas
+revive.hold,244211966,0.67,We have to restart it,Hoxton
+revive.hold,338129582,0.67,We have you surrounded,Megaphone
+revive.hold,347289271,0.67,We have to restart it,Chains
+revive.hold,518332048,0.67,Let'em have it,Bain
+revive.hold,59021718,0.67,You have no choice,Bain
+revived.thanks,346610287,1.00,"Ah, thank you",Houston
+revived.thanks,500765960,0.67,Ahh thank you,Houston
+spot.generic,120019198,1.00,There,Hoxton
+spot.generic,156986931,1.00,There,Wolf
+spot.generic,174511345,1.00,There,Cop
+spot.generic,175533694,1.00,There,Wick
+spot.generic,185671653,1.00,There,Hoxton
+spot.generic,227789802,1.00,There,Clover
+spot.generic,422412119,1.00,There,Houston
+spot.generic,430604472,1.00,There,Cop
+spot.generic,457707893,1.00,There,Wick
+spot.generic,527627838,1.00,There,Cop
+spot.generic,537872887,1.00,There,Hoxton
+spot.generic,61148043,1.00,There,Cop
+spot.generic,626420882,1.00,There,Houston
+spot.generic,697534718,1.00,There,Clover
+spot.generic,707915825,1.00,There,Wick
+spot.generic,71551076,1.00,Hi there,Bank Teller
+spot.generic,743626953,1.00,There,Dallas
+spot.generic,769379736,1.00,There,Wick
+spot.generic,803567061,1.00,Up there,Bain
+spot.generic,887920745,1.00,Hi there,Bank Teller
+spot.generic,973759736,1.00,There,Dallas
+spot.generic,1008011791,0.67,Stay there,Hoxton
+spot.generic,1015027170,0.67,Over there,Cop
+spot.generic,1035533183,0.67,Hang in there,Dallas
+spot.generic,1041410788,0.67,There are at least 2 of them,Cop
+spot.generic,1058205537,0.67,Is anyone there?,Civilian
+spot.generic,115548423,0.67,You hang in there now,Wolf
+spot.generic,120570652,0.67,"Almost there, almost there",Wolf
+spot.generic,125197130,0.67,"Almost there, almost there",Dallas
+spot.generic,134260628,0.67,And stay there,Houston
+spot.generic,138952577,0.67,You hang in there,Dallas
+spot.generic,143288619,0.67,There are at least 3 of them,Cop
+spot.generic,149272139,0.67,Is anyone there,Security
+spot.generic,150628596,0.67,And stay there,Houston
+spot.generic,161877637,0.67,Over there,Hoxton
+spot.generic,177216993,0.67,There are at least 3 of them,Cop
+spot.generic,182124103,0.67,There are at least 3 of them,Cop
+spot.generic,193769041,0.67,Hang in there,Wolf
+spot.generic,197415647,0.67,And stay there,Dallas
+spot.generic,204564272,0.67,And stay there,Houston
+spot.generic,208379045,0.67,Be there asap,Clover
+spot.generic,22186609,0.67,You hang in there,Houston
+spot.generic,226371827,0.67,Easy there,Chains
+spot.generic,231481790,0.67,"Yo, over there",Cop
+spot.generic,237623279,0.67,And stay there,Wick
+spot.generic,279164771,0.67,Stay there,Hoxton
+spot.generic,284141673,0.67,And stay there,Dallas
+spot.generic,294141709,0.67,"Hang in there,",Dallas
+spot.generic,298528777,0.67,Over there,Wolf
+spot.generic,305795740,0.67,Almost there almost there,Houston
+spot.generic,309329796,0.67,Over there,Houston
+spot.generic,328099442,0.67,And stay there,Wolf
+spot.generic,328240433,0.67,Over there,Chains
+spot.generic,32901800,0.67,And stay there,Wolf
+spot.generic,343927955,0.67,There are at least 2 of them,Cop
+spot.generic,358383167,0.67,Stay there,Hoxton
+spot.generic,365602042,0.67,And stay there,Wolf
+spot.generic,366264709,0.67,And stay there,Dallas
+spot.generic,374097375,0.67,You hang in there,Houston
+spot.generic,374644767,0.67,And stay there,Wick
+spot.generic,447819095,0.67,You hang in there,Dallas
+spot.generic,450320575,0.67,There are at least 2 of them,Cop
+spot.generic,45164582,0.67,You hang in there,Dallas
+spot.generic,454735580,0.67,Hang in there,Houston
+spot.generic,462485975,0.67,Over there,Clover
+spot.generic,476469754,0.67,And stay there,Dallas
+spot.generic,496090243,0.67,Over there,Hoxton
+spot.generic,506878435,0.67,Hang in there,Houston
+spot.generic,513842177,0.67,There are at least 3 of them,Cop
+spot.generic,52740864,0.67,And stay there,Clover
+spot.generic,53088752,0.67,Hang in there,Clover
+spot.generic,53873934,0.67,Hang in there,Wolf
+spot.generic,553705712,0.67,You hang in there,Wolf
+spot.generic,565348855,0.67,Hang in there,Wick
+spot.generic,565974,0.67,Over there,Dallas
+spot.generic,571109167,0.67,Hang in there,Dallas
+spot.generic,57991584,0.67,Over there,Cop
+spot.generic,605621615,0.67,Almost there,Wolf
+spot.generic,608278560,0.67,"Almost there, almost there",Houston
+spot.generic,637408725,0.67,There are at least 3 of them,Cop
+spot.generic,67066499,0.67,Hang in there,Wolf
+spot.generic,6766985,0.67,Is anyone there?,Civilian
+spot.generic,677667591,0.67,There are at least 2 of them,Cop
+spot.generic,68527371,0.67,Be there asap,Houston
+spot.generic,701424758,0.67,Hang in there,Hoxton
+spot.generic,707206460,0.67,You hang in there,Wolf
+spot.generic,714742130,0.67,Over there,Wolf
+spot.generic,721131658,0.67,You hang in there,Hoxton
+spot.generic,803932118,0.67,Over there,Houston
+spot.generic,807652034,0.67,You hang in there,Wolf
+spot.generic,811776080,0.67,"Almost there, almost there",Wolf
+spot.generic,818025230,0.67,Be there asap,Wick
+spot.generic,839336329,0.67,Over there,Clover
+spot.generic,839890551,0.67,Over there,Dallas
+spot.generic,8611238,0.67,Hang in there,Hoxton
+spot.generic,86974463,0.67,And stay there,Clover
+spot.generic,895837739,0.67,Halfway there,Bain
+spot.generic,934040870,0.67,You hang in there,Wick
+spot.generic,9510329,0.67,And stay there,Hoxton
+spot.generic,955972998,0.67,Is anyone there?,Civilian
+spot.generic,974388236,0.67,There are at least 2 of them,Cop
+spot.generic,990783572,0.67,And stay there,Dallas
+spot.place,158346751,1.00,This is it,Houston
+spot.place,254352525,1.00,This is it,Wolf
+spot.place,264951052,1.00,This is it,Wolf
+spot.place,277133560,1.00,This is it,Cop (static)
+spot.place,280039066,1.00,This is it,Hoxton
+spot.place,33380698,1.00,This is it,Dallas
+spot.place,338410158,1.00,This is it,Dallas
+spot.place,340180823,1.00,This is it,Clover
+spot.place,365276220,1.00,This is it,Cop (static)
+spot.place,38007417,1.00,This is it,Hoxton
+spot.place,392704963,1.00,This is it,Cop
+spot.place,415396004,1.00,This is it,Houston
+spot.place,494456454,1.00,This is it,Cop (static)
+spot.place,56932272,1.00,This is it,Wick
+spot.place,569796012,1.00,This is it,Wick
+spot.place,614416474,1.00,This is it,Bain
+spot.place,756040387,1.00,This is it,Clover
+spot.place,820009823,1.00,This is it,Cop (static)
+spot.place,98271678,1.00,This is it,Cop
+spot.place,11939425,0.80,This is 2-3,Security
+spot.place,421935090,0.80,This is 2-6,Security
+spot.place,752017876,0.80,This is 2-5,Security
+tech.drill_jam,185291751,0.80,Squeaky drill is a jammed drill,Dallas
+tech.drill_jam,286174774,0.80,The drill has jammed,Wick
+tech.drill_jam,34237967,0.80,The drill has jammed,Wick
+tech.drill_jam,104132057,0.67,I got the drill,Houston
+tech.drill_jam,13780028,0.67,I got the drill,Houston
+tech.drill_jam,16013840,0.67,I got the drill,Dallas
+tech.drill_jam,176729151,0.67,Go for the drill,Cop (static)
+tech.drill_jam,180582090,0.67,Drill up,Clover
+tech.drill_jam,200990921,0.67,Ain't that a jammed drill sound,Dallas
+tech.drill_jam,222701237,0.67,I got the drill,Hoxton
+tech.drill_jam,226137970,0.67,Go for the drill,Cop (static)
+tech.drill_jam,228701314,0.67,It jammed,Chains
+tech.drill_jam,273054720,0.67,Go for the drill,Cop (static)
+tech.drill_jam,291909650,0.67,I got the drill,Dallas
+tech.drill_jam,301867258,0.67,Drill up,Wick
+tech.drill_jam,376382948,0.67,Got the drill up,Clover
+tech.drill_jam,383638833,0.67,I got the drill,Hoxton
+tech.drill_jam,394987920,0.67,Got the drill,Chains
+tech.drill_jam,429667824,0.67,Ah it jammed,Clover
+tech.drill_jam,48806357,0.67,Drill got jammed right up I think,Dallas
+tech.drill_jam,504528361,0.67,Got the drill,Chains
+tech.drill_jam,52414177,0.67,You hear that? The drill has jammed,Dallas
+tech.drill_jam,703981847,0.67,I got the drill,Wolf
+tech.drill_jam,771096343,0.67,Go for the drill,Cop (static)
+tech.drill_jam,8777851,0.67,I got the drill,Wolf
+tech.drill_jam,890865920,0.67,Go for the drill,Cop (static)
+tech.fix,14577590,0.67,We gotta fix it,Houston
+tech.fix,164011704,0.67,We gotta fix it,Houston
+tech.fix,20806044,0.67,We have to fix it,Chains
+tech.fix,278731168,0.67,We have to fix it,Wick
+tech.fix,407261062,0.67,We have to fix it,Clover
+tech.fix,46541682,0.67,"Fix me up, fix me faster",Houston
+tech.fix,473304328,0.67,We have to fix it,Wick
+tech.fix,54571229,0.67,We have to fix it,Chains
+tech.fix,621861905,0.67,"Someone, fix it",Dallas
+tech.fix,62775449,0.67,We have to fix it,Dallas
+tech.fix,67315364,0.67,We gotta fix it,Wick
+tech.fix,908111428,0.67,Lets fix you up,Dallas
+tech.generic,487627703,0.67,Are you up to something,Hoxton

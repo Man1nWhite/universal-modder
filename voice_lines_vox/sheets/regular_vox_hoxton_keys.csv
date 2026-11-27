@@ -1,5 +1,435 @@
 slot,id,score,what,who
+ammo.low,56929787,0.67,No ammo,Hoxton
+assault.ready,381550706,1.00,Be ready be ready,Hoxton
+assault.ready,171569928,0.67,Guns ready,Hoxton
+assault.ready,5144188,0.67,Get ready to fight,Hoxton
+assault.ready,70505593,0.67,Get ready to brawl,Hoxton
+assault.ready,80658470,0.67,They won't be ready for us,Hoxton
+assault.retreat,238482900,0.80,They're pulling back,Hoxton
+assault.retreat,442425952,0.80,The police are pulling back,Hoxton
+assault.retreat,475530790,0.80,The cops are pulling back,Hoxton
+call_teammate.hey_you,20383208,1.00,Hey,Hoxton
+call_teammate.hey_you,104016206,0.67,Hey assbreath,Hoxton
+call_teammate.hey_you,106607718,0.67,Hey wick,Hoxton
+call_teammate.hey_you,111162186,0.67,Hey rust,Hoxton
 call_teammate.hey_you,1255800,0.67,"Hey, dickhead",Hoxton
+call_teammate.hey_you,134804651,0.67,Hey clover,Hoxton
+call_teammate.hey_you,14128729,0.67,Hey you move it,Hoxton
+call_teammate.hey_you,147570009,0.67,Hey wick,Hoxton
+call_teammate.hey_you,151711803,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,163943127,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,165508906,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,168274496,0.67,Hey clover,Hoxton
+call_teammate.hey_you,177996892,0.67,Hey clover,Hoxton
+call_teammate.hey_you,18438318,0.67,Hey clover,Hoxton
+call_teammate.hey_you,203141979,0.67,Hey clover,Hoxton
+call_teammate.hey_you,21071533,0.67,Hey tony,Hoxton
+call_teammate.hey_you,213945628,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,224714192,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,230387244,0.67,Hey dickhead,Hoxton
+call_teammate.hey_you,231264067,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,246014141,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,249103886,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,263603756,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,275280793,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,286045665,0.67,Hey chains,Hoxton
+call_teammate.hey_you,288156479,0.67,Hey chains,Hoxton
+call_teammate.hey_you,296136687,0.67,Hey jimmy,Hoxton
+call_teammate.hey_you,296884283,0.67,Hey tony,Hoxton
+call_teammate.hey_you,322546674,0.67,Hey sydney,Hoxton
+call_teammate.hey_you,360851311,0.67,Hey tony,Hoxton
+call_teammate.hey_you,362255516,0.67,Hey clover,Hoxton
+call_teammate.hey_you,363533495,0.67,Hey wolfy,Hoxton
+call_teammate.hey_you,373033490,0.67,Hey chains,Hoxton
+call_teammate.hey_you,373452349,0.67,Hey you get a move on,Hoxton
+call_teammate.hey_you,375665443,0.67,Hey wick,Hoxton
+call_teammate.hey_you,38392273,0.67,Hey wolf,Hoxton
+call_teammate.hey_you,38624427,0.67,Hey shitbread,Hoxton
+call_teammate.hey_you,387095809,0.67,Hey wanker,Hoxton
+call_teammate.hey_you,390600841,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,394662236,0.67,Hey wanker,Hoxton
+call_teammate.hey_you,397472109,0.67,Hey wolfy,Hoxton
+call_teammate.hey_you,41144929,0.67,Hey chains,Hoxton
+call_teammate.hey_you,418805994,0.67,Hey jimmy,Hoxton
+call_teammate.hey_you,42933223,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,43911579,0.67,Hey Wolf,Hoxton
+call_teammate.hey_you,46981468,0.67,Hey you get moving,Hoxton
+call_teammate.hey_you,47146113,0.67,Hey rust,Hoxton
+call_teammate.hey_you,485039074,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,486634341,0.67,Hey bodhi,Hoxton
+call_teammate.hey_you,49833669,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,501875044,0.67,Hey you get moving,Hoxton
+call_teammate.hey_you,540911724,0.67,Hey Tony,Hoxton
+call_teammate.hey_you,55088745,0.67,Hey Wolfy,Hoxton
+call_teammate.hey_you,65360118,0.67,Hey Wick,Hoxton
+call_teammate.hey_you,698069519,0.67,Hey you move it,Hoxton
+call_teammate.hey_you,74437766,0.67,Hey Wolf,Hoxton
+call_teammate.hey_you,755917739,0.67,Hey jimmy,Hoxton
+call_teammate.hey_you,82031082,0.67,Hey fuckface,Hoxton
+call_teammate.hey_you,91421222,0.67,Hey dallas,Hoxton
+call_teammate.hey_you,926079736,0.67,Hey tony,Hoxton
+caution.wait,177930758,1.00,Wait for it wait for it,Hoxton
+caution.wait,315601312,1.00,Wait,Hoxton
+caution.wait,463844580,1.00,Wait for it wait for it,Hoxton
+caution.wait,547410021,1.00,Wait,Hoxton
+caution.wait,656105345,0.67,Wait for the boom,Hoxton
+caution.watch,165537507,1.00,Careful,Hoxton
+caution.watch,504293503,1.00,Careful now,Hoxton
+caution.watch,677935060,1.00,Careful now,Hoxton
+caution.watch,912253732,1.00,Careful,Hoxton
+civ.down,122476440,1.00,Down,Hoxton
+civ.down,12744249,1.00,Get down,Hoxton
+civ.down,132611512,1.00,Down,Hoxton
+civ.down,148450367,1.00,Down,Hoxton
+civ.down,213193671,1.00,Down,Hoxton
+civ.down,246144790,1.00,Down,Hoxton
+civ.down,292340175,1.00,Down,Hoxton
+civ.down,30395700,1.00,Get down,Hoxton
+civ.down,326150126,1.00,Down,Hoxton
+civ.down,418000348,1.00,Down,Hoxton
+civ.down,5156980,1.00,Down!,Hoxton
+civ.down,516874832,1.00,Get down,Hoxton
+civ.down,54928510,1.00,Get down,Hoxton
+civ.down,59033748,1.00,Down down,Hoxton
+civ.down,627249334,1.00,Down down,Hoxton
+civ.down,636865583,1.00,Down,Hoxton
+civ.down,673015371,1.00,Get down,Hoxton
+civ.down,81800068,1.00,Get down,Hoxton
+civ.down,115964565,0.67,Get the fuck down,Hoxton
+civ.down,146981398,0.67,Get fucking down,Hoxton
+civ.down,149303075,0.67,Down on your knees,Hoxton
+civ.down,166965553,0.67,Down you cocksuckers,Hoxton
+civ.down,167799564,0.67,Down all of you,Hoxton
+civ.down,182713326,0.67,Get down all of you,Hoxton
+civ.down,184429800,0.67,Down on the ground,Hoxton
+civ.down,219819058,0.67,Down the stairs,Hoxton
+civ.down,241439340,0.67,Get down on the ground,Hoxton
+civ.down,300931094,0.67,Down here,Hoxton
+civ.down,307543810,0.67,Bulldozer down,Hoxton
+civ.down,349276736,0.67,Get down on the ground,Hoxton
+civ.down,351876999,0.67,Down on the ground,Hoxton
+civ.down,382568203,0.67,Jump down,Hoxton
+civ.down,3906571,0.67,Fucking get down!,Hoxton
+civ.down,391554326,0.67,Everybody get down,Hoxton
+civ.down,397113241,0.67,Stay down,Hoxton
+civ.down,428208965,0.67,Get down on the ground,Hoxton
+civ.down,50613853,0.67,Jump down,Hoxton
+civ.down,549688077,0.67,Everybody down,Hoxton
+civ.down,562021898,0.67,Down motherfucker,Hoxton
+civ.down,70978937,0.67,And stay down,Hoxton
+civ.down,711001447,0.67,Down the stairs,Hoxton
+civ.down,713947244,0.67,Down here,Hoxton
+civ.down,738193483,0.67,Down on the ground,Hoxton
+civ.down,76922864,0.67,Everybody down,Hoxton
+civ.down,85131153,0.67,I said get down,Hoxton
+civ.down,919107704,0.67,Get down on the ground now,Hoxton
+civ.down,92871619,0.67,Down on the ground,Hoxton
+cop.cuffs,1013957519,1.00,Cuffs on,Hoxton
+cop.cuffs,215399263,1.00,Cuffs on,Hoxton
+cop.cuffs,228226845,1.00,Now cuffs,Hoxton
+cop.cuffs,270304248,1.00,And on with the cuffs,Hoxton
+cop.cuffs,475552282,1.00,"Now, cuffs",Hoxton
+cop.cuffs,61517129,1.00,Now cuffs,Hoxton
+cop.cuffs,306409611,0.67,Put your cuffs on,Hoxton
+cop.cuffs,381431195,0.67,Put your cuffs on,Hoxton
+cop.cuffs,641214367,0.67,And armed with the cuffs,Hoxton
+cop.drop,170476720,1.00,And don't get up,Hoxton
+cop.drop,304392344,1.00,And don't get up,Hoxton
+cop.drop,144474042,0.67,And don't fucking get up,Hoxton
+cop.drop,415357758,0.67,And don't fucking get up,Hoxton
+cop.drop,506465727,0.67,Don't go anywhere,Hoxton
+cop.kneel,476132217,1.00,On your knees,Hoxton
+cop.kneel,493728123,1.00,Get on your knees,Hoxton
+cop.kneel,117182634,0.67,Get on your fucking knees,Hoxton
+cop.kneel,85352130,0.67,On your fucking knees,Hoxton
+cuffed.pick,126649240,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,182552381,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,20260217,0.86,Come and pick these cuffs for me,Hoxton
+cuffed.pick,3124812,0.86,Come and pick these cuffs for me,Hoxton
+cuffed.pick,40530155,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,5244438,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,5714378,0.86,Come on pick these cuffs for me,Hoxton
+cuffed.pick,103043526,0.67,Get these cuffs off,Hoxton
+cuffed.pick,11247968,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,164483802,0.67,Get these cuffs off,Hoxton
+cuffed.pick,19536505,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,22747482,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,30954515,0.67,Get me out of these cuffs,Hoxton
+cuffed.pick,39534417,0.67,Get these cuffs off,Hoxton
+cuffed.pick,66757785,0.67,Get these cuffs off,Hoxton
+downed.need_help,1527988,1.00,I need help!,Hoxton
+downed.need_help,25607915,1.00,I need help,Hoxton
+downed.need_help,45676703,1.00,I need help,Hoxton
+downed.need_help,6103806,1.00,I need help!,Hoxton
+downed.need_help,7537589,1.00,I need help!,Hoxton
+downed.need_help,2291112,0.80,"Hey, I need help!",Hoxton
+downed.need_help,34870438,0.80,Hey I need help,Hoxton
+downed.need_help,52731947,0.80,Hey I need help,Hoxton
+downed.need_help,75264500,0.80,Hey I need help,Hoxton
+downed.need_help,100248597,0.67,Help,Hoxton
+downed.need_help,10889887,0.67,Help,Hoxton
+downed.need_help,11540265,0.67,Help,Hoxton
+downed.need_help,121295651,0.67,Help,Hoxton
+downed.need_help,14567065,0.67,Help,Hoxton
+downed.need_help,15746067,0.67,Help,Hoxton
+downed.need_help,161918874,0.67,Help,Hoxton
+downed.need_help,164818233,0.67,Help,Hoxton
+downed.need_help,19339181,0.67,Help me,Hoxton
+downed.need_help,19976842,0.67,Help me,Hoxton
+downed.need_help,20432571,0.67,Help,Hoxton
+downed.need_help,21146959,0.67,Help,Hoxton
+downed.need_help,22496231,0.67,Help,Hoxton
 downed.need_help,2424401,0.67,Help me!,Hoxton
+downed.need_help,26060775,0.67,Help,Hoxton
+downed.need_help,26089212,0.67,Help me,Hoxton
+downed.need_help,26463662,0.67,Help,Hoxton
+downed.need_help,27259783,0.67,Help me up,Hoxton
+downed.need_help,2910536,0.67,Help!,Hoxton
+downed.need_help,30166859,0.67,Help me,Hoxton
+downed.need_help,30230285,0.67,Help,Hoxton
+downed.need_help,31088899,0.67,Help,Hoxton
+downed.need_help,31143680,0.67,Help,Hoxton
+downed.need_help,32502712,0.67,Help me up,Hoxton
+downed.need_help,38957411,0.67,Help,Hoxton
+downed.need_help,40760695,0.67,Help,Hoxton
+downed.need_help,41795394,0.67,Help me,Hoxton
+downed.need_help,54388499,0.67,Help me,Hoxton
+downed.need_help,55234040,0.67,Help me up,Hoxton
+downed.need_help,5874153,0.67,Help me up!,Hoxton
+downed.need_help,62128777,0.67,Help,Hoxton
+downed.need_help,63764869,0.67,Help me up,Hoxton
+downed.need_help,68276412,0.67,Help me up,Hoxton
+downed.need_help,71959447,0.67,Help,Hoxton
+downed.need_help,7625582,0.67,Help me up,Hoxton
+downed.need_help,79598307,0.67,Help,Hoxton
 downed.need_help,905586,0.67,Help me up!,Hoxton
+downed.need_help,93875906,0.67,Help,Hoxton
+downed.need_help,94873113,0.67,Help me,Hoxton
+downed.want_fight,173267637,0.67,"We need you mate, get up",Hoxton
+downed.want_fight,197672745,0.67,We need to get it fixed,Hoxton
+downed.want_fight,291035719,0.67,We need to get it fixed,Hoxton
+downed.want_fight,474566902,0.67,"We need you pal, get up",Hoxton
+downed.want_fight,5192116,0.67,I need a hand,Hoxton
+downed.want_fight,77264481,0.67,We need to get it fixed,Hoxton
+downed.want_fight,99011052,0.67,We need to get it fixed,Hoxton
+drop.ammo,304735929,0.80,Ammo over here,Hoxton
+drop.ammo,260044618,0.67,Extra ammo right here,Hoxton
+drop.ammo,441364951,0.67,There's ammo over here,Hoxton
+drop.ammo,810857530,0.67,Extra ammo over here,Hoxton
+drop.fak,22555593,0.86,First aid kit here,Hoxton
+drop.fak,345937174,0.75,I've got a first aid kit here,Hoxton
+drop.fak,611226278,0.75,"First aid kit, get your bandaid here",Hoxton
+drop.fak,36188758,0.67,I've put a first aid kit here,Hoxton
+drop.fak,378278623,0.60,First aid kit here for anyone who needs it,Hoxton
+drop.medic,63456716,1.00,Got a medic bag here,Hoxton
+drop.medic,353071000,0.86,Medic bag right here,Hoxton
+drop.medic,389109943,0.86,Medic bag over here,Hoxton
+drop.medic,44136432,0.86,Got a medic bag right here,Hoxton
+drop.medic,287921548,0.75,I've got a medic bag over here,Hoxton
+drop.medic,156405869,0.67,Medic bag dropped,Hoxton
+drop.medic,158512134,0.67,Anybody got a medic bag,Hoxton
+drop.medic,261201197,0.67,Medic bag get patched up,Hoxton
+drop.medic,35216123,0.67,Anybody got a medic bag,Hoxton
+drop.medic,355882762,0.67,I've dropped a medic bag over here,Hoxton
+drop.medic,56652413,0.67,Medic bag on the ground,Hoxton
+drop.medic,720604663,0.67,Anybody got a medic bag,Hoxton
+drop.medic,741942856,0.67,Medic bag in place,Hoxton
+drop.medic,797766769,0.67,Medic bag anyone,Hoxton
+hurt.medic,213394716,1.00,I need a medic bag,Hoxton
+hurt.medic,471404550,1.00,I need a medic bag,Hoxton
+hurt.medic,85983403,1.00,I need a medic bag,Hoxton
+hurt.medic,96007146,1.00,I need a medic bag,Hoxton
+hurt.medic,838242430,0.67,"Gonna need a medic bag, anyone got one",Hoxton
+inspire.faster,210953160,1.00,Faster faster,Hoxton
+inspire.faster,711857200,1.00,Go faster,Hoxton
+inspire.faster,95807247,1.00,Go faster,Hoxton
+inspire.faster,251442109,0.67,Come on faster,Hoxton
+inspire.faster,92477629,0.67,Come on faster,Hoxton
+inspire.move,110232256,1.00,Move,Hoxton
+inspire.move,145255265,1.00,Get a move on,Hoxton
+inspire.move,175774789,1.00,"You, move it",Hoxton
+inspire.move,17806647,1.00,Get a move on,Hoxton
+inspire.move,249253132,1.00,Move,Hoxton
+inspire.move,249376513,1.00,Move,Hoxton
+inspire.move,297105486,1.00,Move it,Hoxton
+inspire.move,362703986,1.00,Move it,Hoxton
+inspire.move,374392642,1.00,Move it,Hoxton
+inspire.move,393878567,1.00,You get a move on,Hoxton
+inspire.move,60087369,1.00,Move,Hoxton
+inspire.move,62193481,1.00,Move,Hoxton
+inspire.move,672427020,1.00,Move,Hoxton
+inspire.move,816753241,1.00,Move it,Hoxton
+inspire.move,618586957,0.67,Nobody move,Hoxton
+inspire.move,69413632,0.67,Nobody move,Hoxton
+inspire.run,69951478,1.00,Run run,Hoxton
+inspire.run,12979609,0.67,Run forrest run,Hoxton
+inspire.run,227649294,0.67,Motherfucking run,Hoxton
+inspire.run,324611390,0.67,Come on run,Hoxton
+inspire.run,506296071,0.67,"Run faster, faster",Hoxton
+kill.cloaker,296121101,1.00,Cloaker down,Hoxton
+kill.medic,1047912006,0.80,Yes! Medic down,Hoxton
+kill.medic,343616381,0.80,"Yes, medic down",Hoxton
+kill.shield,107771716,1.00,Shield down,Hoxton
+kill.sniper,1046923570,1.00,Sniper down,Hoxton
+kill.sniper,11935618,1.00,Sniper down,Hoxton
+kill.taser,216568534,1.00,Taser down,Hoxton
+mark.cloaker,20175872,1.00,Cloaker!,Hoxton
+mark.cloaker,222196374,1.00,Cloaker,Hoxton
+mark.cloaker,300973159,1.00,Cloaker,Hoxton
+mark.cloaker,337857628,1.00,Cloaker,Hoxton
+mark.cloaker,349810954,1.00,Cloaker,Hoxton
+mark.cloaker,37715417,1.00,Cloaker,Hoxton
+mark.cloaker,436607423,1.00,Cloaker,Hoxton
+mark.cloaker,88401396,1.00,Cloaker!,Hoxton
+mark.cloaker,405682303,0.67,Fucking cloaker,Hoxton
+mark.cloaker,40877752,0.67,Fucking cloaker,Hoxton
+mark.dozer,2502646,0.80,Take em out!,Hoxton
+mark.guard,528471296,1.00,Guard,Hoxton
+mark.guard,84240365,0.67,I've got a guard,Hoxton
+mark.medic,141041183,0.67,Killed the medic,Hoxton
+mark.medic,254481944,0.67,I killed the medic,Hoxton
+mark.medic,412230584,0.67,Got the fucking medic,Hoxton
+mark.medic,536173257,0.67,"Ah shit, medic",Hoxton
+mark.medic,575360905,0.67,They've got a medic,Hoxton
+mark.medic,737841264,0.67,Bollocks they got a medic,Hoxton
+mark.medic,778675216,0.67,Killed the medic,Hoxton
+mark.medic,931666506,0.67,Killed the medic,Hoxton
+mark.medic,998945506,0.67,Got the fucking medic,Hoxton
+mark.shield,292000976,1.00,Shield,Hoxton
+mark.shield,36344789,1.00,Shield,Hoxton
+mark.shield,387682765,1.00,Shield,Hoxton
+mark.shield,389216740,1.00,Shield,Hoxton
+mark.shield,439067899,1.00,We got a shield,Hoxton
+mark.shield,78099955,1.00,Shield!,Hoxton
+mark.shield,84841224,1.00,We got a shield,Hoxton
+mark.shield,92634912,1.00,Shield!,Hoxton
+mark.shield,191618038,0.67,Shield eliminated,Hoxton
+mark.sniper,227140304,1.00,A sniper,Hoxton
+mark.sniper,395021486,1.00,Sniper,Hoxton
+mark.sniper,41126869,1.00,Sniper!,Hoxton
+mark.sniper,440895638,1.00,A sniper,Hoxton
+mark.sniper,60279219,1.00,Got a sniper,Hoxton
+mark.sniper,624366526,1.00,A sniper,Hoxton
+mark.sniper,691430721,1.00,Got a sniper,Hoxton
+mark.sniper,899454691,1.00,Sniper,Hoxton
+mark.sniper,1045775094,0.67,Sniper dead,Hoxton
+mark.sniper,128690648,0.67,Sniper spotted,Hoxton
+mark.sniper,180681071,0.67,Sniper spotted,Hoxton
+mark.sniper,364674558,0.67,Sniper out,Hoxton
+mark.sniper,390988686,0.67,I see a sniper,Hoxton
+mark.sniper,49002842,0.67,Sniper spotted,Hoxton
+mark.sniper,731461706,0.67,I see a sniper,Hoxton
+mark.taser,175058761,1.00,Taser,Hoxton
+mark.taser,207438578,1.00,Taser,Hoxton
+mark.taser,373402874,1.00,Taser,Hoxton
+mark.taser,79329049,1.00,Taser!,Hoxton
+mark.taser,157539361,0.67,We've got us a taser,Hoxton
+mark.taser,162659076,0.67,Thats a taser,Hoxton
+mark.taser,166080743,0.67,Bleedin' taser,Hoxton
+mark.taser,30532714,0.67,Taser spotted,Hoxton
+mark.taser,362818133,0.67,Taser eliminated,Hoxton
+mark.taser,687989088,0.67,Its a taser,Hoxton
+mark.turret,307510296,1.00,Turret,Hoxton
+mark.turret,332441077,1.00,Turret,Hoxton
+mark.turret,217265772,0.67,Ah shit a turret,Hoxton
+mark.turret,259287840,0.67,SWAT turret,Hoxton
+mark.turret,269744078,0.67,"Bollocks, turret",Hoxton
+mark.turret,344593489,0.67,They brought a turret,Hoxton
+mark.turret,363986710,0.67,"Ah bollocks, a turret",Hoxton
+mark.turret,376192406,0.67,They've got a turret,Hoxton
+mark.turret,453632670,0.67,"Fuck me, turret",Hoxton
+mark.turret,479356739,0.67,"Shit, turret",Hoxton
+mark.turret,535025483,0.67,SWAT turret,Hoxton
+mark.turret,642053222,0.67,They brought in a turret,Hoxton
+mark.turret,747129857,0.67,"Turret, fuck me",Hoxton
+move.go,347155491,1.00,Go go go,Hoxton
+move.hold,360167279,1.00,Hold on,Hoxton
+move.hold,249712191,0.67,Hold them off,Hoxton
+move.hold,287316386,0.67,Steady now hold it,Hoxton
+move.hold,333822024,0.67,Steady now hold it,Hoxton
+move.hold,40148731,0.67,"Hold it, steady now",Hoxton
+move.hold,682810660,0.67,Hold the fort,Hoxton
+move.hold,721937469,0.67,Hold the fort,Hoxton
+move.hold,747850661,0.67,"Hold it, steady now",Hoxton
+move.hold,776645777,0.67,Hold them off,Hoxton
+move.in,511059208,1.00,Inside,Hoxton
+move.in,9301982,1.00,Inside,Hoxton
+move.left,204146039,1.00,Left,Hoxton
+move.left,35767777,1.00,To the left,Hoxton
+move.left,49931050,1.00,Left,Hoxton
+move.left,543204882,1.00,To the left,Hoxton
+move.on_me,14081341,1.00,On me,Hoxton
+move.on_me,1782828,1.00,On me,Hoxton
+move.on_me,21164901,1.00,On me,Hoxton
 move.on_me,236512,1.00,On me,Hoxton
+move.on_me,34072237,1.00,On me,Hoxton
+move.on_me,31546519,0.80,On me now,Hoxton
+move.on_me,54387581,0.80,On me now,Hoxton
+move.on_me,67384302,0.80,On me now,Hoxton
+move.on_me,67390034,0.80,On me now,Hoxton
+move.on_me,68900334,0.80,On me now,Hoxton
+move.on_me,69520268,0.80,On me now,Hoxton
+move.right,143856775,1.00,To the right,Hoxton
+move.right,19603593,1.00,Right on it,Hoxton
+move.right,29920783,1.00,Right,Hoxton
+move.right,314719975,1.00,Right,Hoxton
+move.right,86625097,1.00,To the right,Hoxton
+move.right,136368215,0.67,Be right there,Hoxton
+move.right,204019265,0.67,Right fucking now,Hoxton
+move.right,30823931,0.67,Right now motherfucker,Hoxton
+move.right,606690268,0.67,Right. Fucking. Now,Hoxton
+move.this_way,21765481,1.00,This way,Hoxton
+move.this_way,311472573,1.00,On my way,Hoxton
+move.this_way,99470648,1.00,This way,Hoxton
+move.this_way,286683761,0.67,I'm on my way,Hoxton
+move.this_way,53228364,0.67,This is the wrong way,Hoxton
+move.this_way,570753279,0.67,Not this way,Hoxton
+move.this_way,576152200,0.67,Not this way,Hoxton
+move.this_way,87684616,0.67,This is the wrong way,Hoxton
+move.up,296971245,1.00,Up up,Hoxton
+move.up,84539607,1.00,Up up,Hoxton
+move.up,854875708,1.00,Up,Hoxton
+move.up,811519009,0.67,Get up,Hoxton
+nade.grenade,349428351,0.67,Grenade away,Hoxton
+nade.grenade,396178510,0.67,Smoke grenade,Hoxton
+nade.grenade,442537969,0.67,Smoke grenade,Hoxton
+nade.grenade,525530159,0.67,Smoke grenade,Hoxton
+nade.grenade,787042067,0.67,Smoke grenade,Hoxton
+nade.smoke,1004100867,1.00,Smoke,Hoxton
+nade.smoke,260645831,1.00,Smoke,Hoxton
+nade.smoke,421626353,1.00,Smoke,Hoxton
+nade.smoke,995074904,1.00,Smoke,Hoxton
+nade.smoke,1024980721,0.67,Smoke bomb,Hoxton
+nade.smoke,181774877,0.67,Smoke bomb,Hoxton
+nade.smoke,479512647,0.67,Smoke bomb,Hoxton
+nade.smoke,607270609,0.67,Smoke bomb,Hoxton
+nade.tear,210766913,1.00,Tear gas,Hoxton
+nade.tear,401545764,0.80,"Gah, tear gas",Hoxton
+nade.tear,536255884,0.80,Ahhh tear gas,Hoxton
+revive.critical,1028750276,0.67,Stay low,Hoxton
+revive.critical,193356180,0.67,Stay invisible,Hoxton
+revive.critical,26594889,0.67,Stay where you are,Hoxton
+revive.critical,49478685,0.67,Stay where you are,Hoxton
+revive.critical,549245740,0.67,Stay back,Hoxton
+revive.critical,665993417,0.67,Stay back,Hoxton
+revive.critical,7192473,0.67,Stay low!,Hoxton
+revive.critical,74163896,0.67,Stay back,Hoxton
+revive.hold,149018689,0.67,We have to restart it,Hoxton
+revive.hold,244211966,0.67,We have to restart it,Hoxton
+spot.generic,120019198,1.00,There,Hoxton
+spot.generic,185671653,1.00,There,Hoxton
+spot.generic,537872887,1.00,There,Hoxton
+spot.generic,1008011791,0.67,Stay there,Hoxton
+spot.generic,161877637,0.67,Over there,Hoxton
+spot.generic,279164771,0.67,Stay there,Hoxton
+spot.generic,358383167,0.67,Stay there,Hoxton
+spot.generic,496090243,0.67,Over there,Hoxton
+spot.generic,701424758,0.67,Hang in there,Hoxton
+spot.generic,721131658,0.67,You hang in there,Hoxton
+spot.generic,8611238,0.67,Hang in there,Hoxton
+spot.generic,9510329,0.67,And stay there,Hoxton
+spot.place,280039066,1.00,This is it,Hoxton
+spot.place,38007417,1.00,This is it,Hoxton
+tech.drill_jam,222701237,0.67,I got the drill,Hoxton
+tech.drill_jam,383638833,0.67,I got the drill,Hoxton
+tech.generic,487627703,0.67,Are you up to something,Hoxton

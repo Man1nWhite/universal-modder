@@ -45,7 +45,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette)
 
-*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers)
+*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree)
 
 *Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed)
 
@@ -1600,9 +1600,9 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Source:** `tools/import_voiceline_sheet.py`, `tests/test_voiceline_sheet_import.py`,
   `tests/fixtures/regular_vox_head.csv` (first 25 real rows, preamble included),
   `voice_lines_vox/sheets/`, `docs/pd2-voice-stream-tables.md` §"The voice-line sheet".
-- **Status:** the importer, its fixture and 9 tests are in; the tracked `sheets/` export is the
-  first 25 rows only, marked as a head. The re-key stays blocked (D76). The productive use of the
-  full export is the shared-bank reconciliation described in the note: join it against
+- **Status:** the importer, its fixture and 9 tests are in. The 25-row head this entry shipped was
+  replaced by the full tab on 2026-11-26 (D81). The re-key stays blocked (D76). The productive use of
+  the full export is the shared-bank reconciliation described in the note: join it against
   `voice_lines_vox/targets/*_shared_regular_vox.csv` on id, then confirm the line each slot claims.
 
 ### D78 — Tab inventory: which bank each community sheet actually covers
@@ -1643,6 +1643,42 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Status:** holds; every count here is the sheet's own status block, re-read on
   every import, and no tab of either document is `char_rust`.
 
+### D81 — The three sheet tabs are imported in full, from exports that were already in the tree
+
+- **Decided:** 2026-11-26, by the user, who chose *"Yes, import them"* from the audit of `references/`.
+- **Context:** `voice_lines_vox/sheets/COVERAGE.md` had been reporting three tabs as held at 0.1 % and
+  page 1, and asking for a one-click `File → Download → CSV` that would fill them. The exports were
+  already in `references/`: somebody had made that download and nobody had imported it, so the
+  document said the repo was missing data it held. D78's tab inventory was right about the sheets and
+  wrong about the tree.
+- **Decision:** import every tab in full, from the exports already tracked in `references/sheets/`
+  (no network, so the import is reproducible from a clone). What that puts in `voice_lines_vox/sheets/`:
+  `regular_vox` 20,404 rows / 20,403 ids (22 speakers, 29 `needs_review`, one repeated id
+  `1052460785`); `robbers_mission_gen` 5,499 rows, of which 1,813 carry a speaker and a line and
+  3,686 are bare ids the sheet has not filled in; `char_sydney` 1,037 rows, all Sydney, none marked.
+  Leads for the intent slots: 3,994 over 65 slots and 22 speakers, plus the `--who Hoxton` slice
+  (1,550 rows, 434 leads) as the worked example of a per-heister import.
+- **The status block is a snapshot, not a count.** `regular_vox` declares 20,343 rows and holds
+  20,404; `robbers_mission_gen` declares 4,220 and holds 5,499. The importer prints both and compares
+  them, which is why it never trusts the block alone; where they disagree the block is stale, and
+  `--require-full` would refuse a *short* file, not a longer one.
+- **What it does not change:** D76's refusal. No tab of either document is `char_rust`; the
+  `robbers_mission_gen` Rust ids are a third bank (D78). The **shared**-bank reconciliation is now
+  unblocked, which it was not before: join the tab against
+  `voice_lines_vox/targets/*_shared_regular_vox.csv` on id, take the rows whose `who` is the heister,
+  and check the line each slot claims. A lead still becomes nothing until a line is confirmed.
+- **Kept as it was:** `char_sydney.csv` carries the tab's first four columns, so `Type` lands in
+  `notes` and `Sub-Type`/the second `Notes` column are not carried. Changing the importer's schema
+  would invalidate D77's fixtures for a column no build reads; the export in `references/sheets/`
+  keeps every column.
+- **Rejected:** paging the tabs through the page reader; treating the status block as the row count;
+  merging the repeated id silently; writing the `robbers_mission_gen` ids into `char_rust` (D78);
+  dropping `references/sheets/*.csv` after importing them (they are what makes the import
+  reproducible, and the audit's deletion pass had to be told they are inputs, not leftovers).
+- **Source:** `tools/import_voiceline_sheet.py`; `voice_lines_vox/sheets/{README,COVERAGE}.md`;
+  `references/sheets/`; `docs/pd2-voice-stream-tables.md` §"The voice-line sheet";
+  `tests/test_voiceline_sheet_import.py`; `docs/audits/2026-11-26-references-inventory.md` §2.
+- **Status:** holds; the four tabs are held in full and the coverage table now says so.
 
 ## Environment, tests and documents
 

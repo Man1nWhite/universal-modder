@@ -122,12 +122,32 @@ def test_a_pipe_table_is_read_like_the_export():
     assert rows[1]["who"] == "Wolf"
 
 
-def test_the_tracked_import_is_what_the_importer_writes(tmp_path):
-    """`voice_lines_vox/sheets/` is reproducible: same import command, same bytes."""
-    run(tmp_path, "--tab", "regular_vox", "--keys")
+EXPORTS = REPO / "references" / "sheets"
+
+
+@pytest.mark.parametrize("tab", ["regular_vox", "robbers_mission_gen", "char_sydney"])
+def test_the_tracked_import_is_what_the_importer_writes(tmp_path, tab):
+    """`voice_lines_vox/sheets/` is reproducible from the tracked export: same command, same bytes.
+
+    The export is the input (D81): importing it again from `references/sheets/` must reproduce the
+    tracked table byte for byte, which is the only claim that makes a 20k-row CSV reviewable.
+    """
+    export = EXPORTS / f"PAYDAY 2 Sound files - {tab}.csv"
+    assert export.is_file(), f"{export.relative_to(REPO)} is the tab's export; it is tracked"
+    assert sheet.main(["--sheet", str(export), "--tab", tab, "--out", str(tmp_path)]) == 0
+    tracked = REPO / "voice_lines_vox" / "sheets" / f"{tab}.csv"
+    assert tracked.is_file(), f"missing {tab}.csv; re-run make voices_sheets"
+    assert tracked.read_bytes() == (tmp_path / f"{tab}.csv").read_bytes()
+
+
+def test_the_tracked_leads_are_what_the_importer_writes(tmp_path):
+    """The `--keys` output is reproducible too, and it is the file a lead is read out of."""
+    export = EXPORTS / "PAYDAY 2 Sound files - regular_vox.csv"
+    assert export.is_file()
+    assert sheet.main(["--sheet", str(export), "--tab", "regular_vox",
+                       "--out", str(tmp_path), "--keys"]) == 0
     for name in ("regular_vox.csv", "regular_vox_keys.csv"):
         tracked = REPO / "voice_lines_vox" / "sheets" / name
-        assert tracked.is_file(), f"missing {name}; re-run make voices_sheets"
         assert tracked.read_bytes() == (tmp_path / name).read_bytes(), name
 
 

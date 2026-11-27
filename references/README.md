@@ -73,15 +73,17 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 ## `sheets/` — 2.3 MB
 
 The community voice-line sheets, downloaded rather than paged through (the API only serves them a
-page at a time). `voice_lines_vox/sheets/COVERAGE.md` says what each tab holds and what has been
-imported; `make -sC tools/pd2-las voices_sheets SHEET="references/sheets/<file>.csv" TAB=<tab>`
-imports one.
+page at a time), and imported in full on 2026-11-26 (D81): `voice_lines_vox/sheets/` holds the
+normalized tables and `voice_lines_vox/sheets/COVERAGE.md` says what each tab declares against what
+it holds. `make -sC tools/pd2-las voices_sheets SHEET="references/sheets/<file>.csv" TAB=<tab>`
+imports one again. The exports are inputs, not leftovers: they are what makes the import reproducible
+offline.
 
 | File | What it is |
 |---|---|
-| `PAYDAY 2 Sound files - regular_vox.csv` | `File → Download → CSV` of the community sheet's `regular_vox` tab, status preamble intact: 20,343 rows — 20,293 complete, 50 partial, 32 marked `(?)` |
-| `PAYDAY 2 Sound files - robbers_mission_gen.csv` | the same export of the `robbers_mission_gen` tab: 4,220 rows — 1,720 complete, 93 partial, 2,407 incomplete, 14 `(?)` |
-| `PAYDAY 2 Sound files - char_sydney.csv` | the same export of the `char_sydney` tab: 1,037 rows, all complete — the one dedicated bank that is written up in full |
+| `PAYDAY 2 Sound files - regular_vox.csv` | `File → Download → CSV` of the community sheet's `regular_vox` tab, status preamble intact: 20,343 rows declared — 20,293 complete, 50 partial, 32 marked `(?)`; the export holds 20,404, because the block is older than the rows. Imported to 20,403 ids |
+| `PAYDAY 2 Sound files - robbers_mission_gen.csv` | the same export of the `robbers_mission_gen` tab: 4,220 declared — 1,720 complete, 93 partial, 2,407 incomplete, 14 `(?)`; the export holds 5,499, of which 1,813 carry a speaker and a line and 3,686 are ids still waiting for text. The tab that names Rust lines by id, in a third bank |
+| `PAYDAY 2 Sound files - char_sydney.csv` | the same export of the `char_sydney` tab: 1,037 rows, all complete, every one Sydney — the one dedicated bank that is written up in full |
 | `Payday 2 Voiceline IDs - Heister Voice IDs.csv` | the community callout sheet (`g01`–`g92`, `p01`–`p28`, `v04`/`v08`/`v23`/`v32`, the drill and pager lines) that `docs/pd2-voice-mod-install.md` transcribes by hand |
 | `Syndey Voicelines.docx` | a Word export of the Sydney sheet with 1,301 distinct ids against the CSV tab's 1,037: a fuller sheet, not a duplicate of it |
 | `Syndey Voicelines.pdf` | the same document printed to 68 pages — kept because a VO mod may need the printed table |
