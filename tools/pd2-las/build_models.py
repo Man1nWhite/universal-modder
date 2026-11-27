@@ -40,8 +40,8 @@ Usage (from the repo root):
   .venv/bin/python tools/pd2-las/build_models.py [--templates DIR] [--out DIR]
 
 --templates is the directory holding 2b.model and fps_2b.model from
-references/templates/2b.rar. It defaults to DEFAULT_TEMPLATES, the place extract_2b.py
-unpacks them to (build/pd2-las/2b/). With the default --out (build/pd2-las) the finished
+references/templates/2b.rar. It defaults to DEFAULT_TEMPLATES, the tracked
+references/templates/2b/ that extract_2b.py names. With the default --out (build/pd2-las) the finished
 zip also replaces the tracked dist/Miranda_L4D2/Miranda_L4D2_LAS.zip; any other --out leaves the
 tracked files alone. Previews are written to <out>/previews/.
 """
@@ -70,8 +70,8 @@ from vpk import VpkArchive  # noqa: E402
 
 REPO = HERE.parents[1]
 SOURCE_ZIP = REPO / "references" / "characters" / "l4d2_miranda_lawson_1.zip"
-#: The default of every builder's --templates: where extract_2b.py unpacks
-#: references/templates/2b.rar. That module is the one place the path is written.
+#: The default of every builder's --templates: the tracked references/templates/2b/,
+#: where extract_2b.py's two models live. That module is the one place the path is written.
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
 
 TPP_MDLS = (
@@ -1623,12 +1623,14 @@ def require_templates(path: Path, names=("2b.model", "fps_2b.model")) -> Path:
     if missing:
         raise SystemExit(
             f"2B templates not found in {extract_2b.shown(Path(path))} "
-            f"(missing: {', '.join(missing)}). Run `{extract_2b.RECOVER}` to unpack "
-            "references/templates/2b.rar, or pass --templates DIR.")
+            f"(missing: {', '.join(missing)}). They are tracked in "
+            f"{extract_2b.shown(extract_2b.TEMPLATES)}: restore them with `git checkout -- "
+            f"{extract_2b.shown(extract_2b.TEMPLATES)}`, or pass --templates DIR.")
     path = Path(path)
-    if extract_2b.managed(path) and not extract_2b.ready(path):
-        raise SystemExit(f"2B template cache is stale in {extract_2b.shown(path)}. "
-                         f"Run `{extract_2b.RECOVER}` to refresh it.")
+    if not extract_2b.ready(path):
+        raise SystemExit(f"the 2B template models in {extract_2b.shown(path)} are not the archive's "
+                         f"bytes ({extract_2b.describe(path)}). Restore them: "
+                         f"`git checkout -- {extract_2b.shown(extract_2b.TEMPLATES)}`.")
     return path
 
 
@@ -1636,8 +1638,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES,
                     help="directory containing 2b.model and fps_2b.model "
-                         "(default: where recover_env.sh unpacks 2b.rar, "
-                         "under build/pd2-las/2b/)")
+                         "(default: the tracked references/templates/2b/)")
     ap.add_argument("--out", type=Path, default=REPO / "build" / "pd2-las")
     ap.add_argument("--source-zip", type=Path, default=SOURCE_ZIP)
     ap.add_argument("--no-previews", action="store_true")

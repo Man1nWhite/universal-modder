@@ -62,7 +62,7 @@ once your human agrees, open a PR (`knowledge/README.md`, `CONTRIBUTING.md`).
 - **Windows tools:** `um/ps1/*.ps1` embed C# 5 (Windows PowerShell 5.1's compiler): no string
   interpolation, no `out var`, no expression-bodied members.
 - **Tests:** `pip install -e '.[dev]'` once, then `make -sC tools/pd2-las test` (the suite) and `green`
-  (everything CI checks, docs included). `tests/conftest.py` extracts the 2B templates on first run, or
-  skips those tests with the command that does.
+  (everything CI checks, docs included). The 2B template models are tracked (`references/templates/2b/`,
+  D87); a checkout that has lost them skips those tests with the command that restores them.
 - **Wording:** keep skills and docs agent-neutral ("the agent", not a product name) except in sections
   about one specific agent.

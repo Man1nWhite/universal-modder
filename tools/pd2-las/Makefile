@@ -36,7 +36,7 @@ help:       ## list the targets
 status:     ## one JSON object: environment, all tracked packs, the next command (needs no venv)
 	@cd "$(ROOT)" && $(SYS_PY) $(HERE)/status.py
 
-env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; then status
+env:        ## once per fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B template models; then status
 	@cd "$(ROOT)" && bash $(HERE)/recover_env.sh
 
 build:      ## Miranda_L4D2_LAS -> dist/Miranda_L4D2/

@@ -1,5 +1,30 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-27 — Geralt's beard from the port's VTF, and two reference archives out of the build path
+
+Geralt's beard is no longer cut out of the built pack. `references/characters/Geralt.7z`'s
+`beard_d.vtf` / `beard_n.vtf` are the source; `tools/extract_beard_textures.py` reads them out of the
+archive and writes `references/textures/geralt_beard_{df,nm}.{png,dds}` - the colour with the VTF's
+coverage at the game's own `alpha_ref` threshold (12 of 255, not a 50 % cut, which would erase 4.6 % of
+the faint hair ends), the normal with the builder's Y flip - and `build_geralt_rust_mod` now assembles
+the pack's beard quadrant from those tracked DDS. The committed beard pair from PR #75 decoded to a flat,
+fully transparent image and the beard test was failing on it; with the texture rebuilt from the VTF the
+test passes, and the shipped beard changes by mean |diff| 0.16 of 255 (colour) and 0.00-0.02 (normal) -
+DXT5 re-encoding of the same picture. `Geralt_over_Rust.zip`: 8,121,550 -> 8,120,780 bytes.
+
+`references/templates/Ada Wong over Joy.7z` is gone. The head builder unpacked all 11.7 MB of it for the
+first 128 bytes of its icon: those bytes are `references/textures/icon_header_128x128_bgra8.dds` now
+(`tools/extract_icon_header.py`), and with the archive moved out of the tree and `build/head-mods/`
+emptied, a full `heads` build wrote all three packs byte for byte as tracked (D86).
+
+`2b.rar` stops being a build input. Its two template models are tracked in `references/templates/2b/`,
+so a clone needs no node, npm or RAR unpacker before its first build; `extract_2b.py` checks them
+(`--check`, run by CI and `recover_env.sh`) and keeps `read_member()` for the one diagnostic that wants
+one of the archive's textures (`uv_check.py`). With the archive moved away, `build`, `honokodae` and
+`heads` rebuilt `Miranda_L4D2_LAS` (`14485fcb…`), `OfficeSuite` (`1b34bbea…`), `Miranda_L4D2_over_Hila`
+(`1bee840f…`), `Geralt_over_Rust` (`20b26e81…`) and `Arivus_over_Hoxton` (`d5f56961…`) - all as tracked
+(D87). The archive stays as the pack-shape contract and the textures' only copy.
+
 ## 2026-11-27 — the supplied eye reaches the outfit pack, and the head pack catches up with it
 
 `dist/Miranda_L4D2_LAS.zip` and `dist/Miranda/Miranda_L4D2_over_Hila.zip` are rebuilt. The outfit's

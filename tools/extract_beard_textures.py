@@ -1,26 +1,34 @@
 #!/usr/bin/env python3
-"""Pull Geralt's beard out of the shipped head atlas as textures of its own.
+"""Write Geralt's beard from the Witcher 3 port's own maps in `references/`.
 
-`dist/Geralt/Geralt_over_Rust.zip` ships one 2048x2048 head atlas
-(`npc_criminal_wild_1_head_df.texture` and `_nm`), assembled from the Witcher 3
-port's own maps by `build_joy_head_mods.build_geralt_rust_mod`. The beard is a
-rectangle of it, not a texture of its own:
-
-    1024..1536 rows, 1024..2048 columns   (v 0.50..0.75, u 0.50..1.00)
-
-a 1024x512 native `beard_d` (colour, with the hair's alpha cutout) and the
-matching `beard_n` in Diesel's packed normal layout (X in alpha, Y in green).
-Anyone reusing Geralt's beard in another mod, or in another engine, needs those
-two pictures and nothing else from the atlas, so this writes them out:
+`references/characters/Geralt.7z` carries the L4D2 port of Geralt: his VTF
+textures under `materials/models/survivors/witcher3/geralt/`, among them
+`beard_d.vtf` (colour, with the hair's alpha cutout) and `beard_n.vtf` (the
+normal map) at 1024x512. Those two are the beard's source of truth; this tool
+reads them straight out of the archive and writes the four files every other
+consumer takes:
 
     references/textures/geralt_beard_df.png   1024x512 RGBA - colour + cutout
     references/textures/geralt_beard_nm.png   1024x512 RGBA - PD2 normal layout
     references/textures/geralt_beard_df.dds   the same colour as DXT5, full mips
     references/textures/geralt_beard_nm.dds   the same normal as DXT5, full mips
 
-The crops are read back out of the tracked pack, so what they hold is what the
-pack ships; the DDS files are encoded with the pack's own encoder. Nothing in
-`dist/` changes: this only reads it. Run it again after a `heads` rebuild.
+The colour keeps the VTF's coverage as a 0/255 cutout at the game's own
+`alpha_ref` threshold: the port ships an anti-aliased alpha, and a texel the
+material would still draw (12 of 255 and up, against `alpha_ref` 0.05) stays in,
+including the thin hair ends a 50 % cut would erase. The pack's atlas stores 24
+under a hair and 0 off one; that final quantisation is the builder's. The normal map is converted
+to Diesel's packed layout by the same helper, with the same Y flip, that the pack
+builder applies to this VTF - X in alpha, Y in green (Source's DirectX Y- flipped
+to PD2's Y+), 255 in red, 0 in blue - so the PNG is the picture the pack's atlas
+quadrant holds, not a Source-format VTF.
+
+`build_joy_head_mods.build_geralt_rust_mod` reads the DDS pair rather than the
+VTFs: the pack's atlas beard, and so `dist/Geralt/Geralt_over_Rust.zip`, is built
+from these tracked files. Re-run this tool and then `make -sC tools/pd2-las heads`
+after changing anything it reads. Re-encoding is not idempotent through lossy
+DXT5, so a byte-for-byte rebuild needs these tracked files, not a fresh run:
+`tests/test_beard_textures.py` holds the two together.
 
     python tools/extract_beard_textures.py
     python tools/extract_beard_textures.py --out build/geralt-beard   # elsewhere
@@ -30,8 +38,9 @@ from __future__ import annotations
 import argparse
 import io
 import struct
+import subprocess
 import sys
-import zipfile
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,60 +49,88 @@ sys.path[:0] = [str(ROOT / "tools"), str(ROOT / "tools" / "pd2-las"), str(ROOT /
 import numpy as np  # noqa: E402
 from PIL import Image  # noqa: E402
 
-import dds  # noqa: E402  (the pack's DXT5 writer)
+import dds  # noqa: E402  (the pack's DXT5 writer and PD2 normal packing)
 import dds_encode  # noqa: E402  (its edge padding, for levels smaller than a block)
+import vtf  # noqa: E402  (the VTF reader the pack builder also uses)
 
-DEFAULT_PACK = ROOT / "dist" / "Geralt" / "Geralt_over_Rust.zip"
+#: the Witcher 3 port archive, and the two maps inside it
+DEFAULT_ARCHIVE = ROOT / "references" / "characters" / "Geralt.7z"
+VTFS = {"df": "beard_d.vtf", "nm": "beard_n.vtf"}
 DEFAULT_OUT = ROOT / "references" / "textures"
-UNIT = "units/pd2_dlc_wild/characters/npc_criminals_wild_1"
-#: the beard's rectangle in the atlas: 1024..1536 rows, 1024..2048 columns
-BEARD = (1024, 1536, 1024, 2048)
-#: the atlas is written for a cutout material at this reference alpha
-ALPHA_REF = 0.05
+#: the pixel size both maps are; the pack's atlas quadrant is this size too
+SIZE = (1024, 512)
 
 
-def read_atlas(pack: Path, suffix: str) -> np.ndarray:
-    """One of the pack's head atlases as an (2048, 2048, 4) uint8 array."""
-    with zipfile.ZipFile(pack) as z:
-        name = next(n for n in z.namelist() if n.endswith(f"npc_criminal_wild_1_head_{suffix}.texture"))
-        with Image.open(io.BytesIO(z.read(name))) as image:
-            atlas = np.asarray(image.convert("RGBA")).copy()
-    if atlas.shape != (2048, 2048, 4):
-        raise SystemExit(f"{pack.name}: the head {suffix} atlas is {atlas.shape}, expected 2048x2048 RGBA")
-    return atlas
+def read_vtf(pack: Path, suffix: str) -> np.ndarray:
+    """One of the port's beard maps as an (512, 1024, 4) uint8 array, straight from the archive.
+
+    A `.7z` is read with py7zr when it is installed (the pinned build dependency)
+    and with the `7z` binary otherwise. Nothing is extracted to disk: the VTF is
+    decoded in memory with the same reader the builder uses.
+    """
+    member = VTFS[suffix]
+    # py7zr extracts to a folder rather than to memory, so the member goes through a
+    # scratch directory and is read back; nothing is kept afterwards.
+    with tempfile.TemporaryDirectory(prefix="geralt-beard-") as scratch:
+        try:
+            import py7zr
+        except ImportError:  # not the pinned environment: any 7z CLI will do
+            subprocess.run(["7z", "e", "-y", f"-o{scratch}", str(pack), f"*{member}"], check=True,
+                           capture_output=True)
+        else:
+            with py7zr.SevenZipFile(pack, mode="r") as archive:
+                names = [n for n in archive.getnames() if n.replace("\\", "/").endswith(member)]
+                if not names:
+                    raise SystemExit(f"{pack.name}: no {member} in the archive")
+                archive.extract(path=scratch, targets=[names[0]])
+            member = names[0]
+        written = Path(scratch) / member
+        if not written.is_file():  # py7zr keeps the archive's folders; 7z e flattens them
+            written = next(Path(scratch).rglob(member), written)
+        data = written.read_bytes()
+    image = vtf.parse_vtf(data)
+    with Image.open(io.BytesIO(vtf.to_dds(image))) as im:
+        arr = np.asarray(im.convert("RGBA")).copy()
+    if arr.shape[:2] != SIZE[::-1]:
+        raise SystemExit(f"{pack.name}/{member}: {arr.shape[1]}x{arr.shape[0]}, expected {SIZE[0]}x{SIZE[1]}")
+    return arr
 
 
-def beard_cutout(df: np.ndarray) -> np.ndarray:
-    """The beard's alpha as a 0/255 cutout: it is 24 under a hair and 0 off one."""
-    return np.where(df[..., 3] > int(round(ALPHA_REF * 255)), 255, 0).astype(np.uint8)
+def cutout(alpha: np.ndarray) -> np.ndarray:
+    """The port's anti-aliased alpha as a 0/255 cutout, keeping the faint outline wisps.
 
-
-def crop(atlas: np.ndarray) -> np.ndarray:
-    y0, y1, x0, x1 = BEARD
-    return atlas[y0:y1, x0:x1]
+    The VTF alpha is smooth 0..255. The game's material cuts at `alpha_ref` 0.05 (13 of
+    255), so a texel at 12 is still drawn where one at 0 is not: cutting at 128 would erase
+    thin, semi-transparent hair ends the pack has always drawn, which is 4.6 % of the beard's
+    outside edge. The threshold is the pack builder's own (`>= 12`), written here once.
+    """
+    return np.where(alpha >= 12, 255, 0).astype(np.uint8)
 
 
 def write_outputs(pack: Path, out: Path) -> list[Path]:
     """Write the four files; return the paths, PNGs first."""
     out.mkdir(parents=True, exist_ok=True)
-    df, nm = crop(read_atlas(pack, "df")), crop(read_atlas(pack, "nm"))
+    df, nm = read_vtf(pack, "df"), read_vtf(pack, "nm")
+    colour = np.dstack([df[..., :3], cutout(df[..., 3])])
+    # the same Y flip the pack builder applies to this VTF, so the two cannot disagree
+    normal = dds.pd2_normal_channels(nm, invert_y=True).copy()
     written: list[Path] = []
 
     df_png = out / "geralt_beard_df.png"
-    df_png.write_bytes(_png(np.dstack([df[..., :3], beard_cutout(df)])))
+    df_png.write_bytes(_png(colour))
     written.append(df_png)
 
     nm_png = out / "geralt_beard_nm.png"
-    nm_png.write_bytes(_png(nm))
+    nm_png.write_bytes(_png(normal))
     written.append(nm_png)
 
     # DXT5, full mip chain, exactly as the pack encodes its textures
     df_dds = out / "geralt_beard_df.dds"
-    df_dds.write_bytes(_dds(np.dstack([df[..., :3], beard_cutout(df)])))
+    df_dds.write_bytes(_dds(colour))
     written.append(df_dds)
 
     nm_dds = out / "geralt_beard_nm.dds"
-    nm_dds.write_bytes(_dds(nm))
+    nm_dds.write_bytes(_dds(normal))
     written.append(nm_dds)
     return written
 
@@ -141,13 +178,14 @@ def _dds(rgba: np.ndarray) -> bytes:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--pack", type=Path, default=DEFAULT_PACK)
+    parser.add_argument("--archive", type=Path, default=DEFAULT_ARCHIVE,
+                        help="the Witcher 3 port archive (default: references/characters/Geralt.7z)")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args(argv)
-    if not args.pack.is_file():
-        print(f"error: {args.pack} is not there; restore it with git checkout -- dist", file=sys.stderr)
+    if not args.archive.is_file():
+        print(f"error: {args.archive} is not there; restore the tracked reference archive", file=sys.stderr)
         return 2
-    for path in write_outputs(args.pack, args.out):
+    for path in write_outputs(args.archive, args.out):
         print(f"{path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}  {path.stat().st_size} B")
     return 0
 

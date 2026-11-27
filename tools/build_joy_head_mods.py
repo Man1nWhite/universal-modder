@@ -14,6 +14,10 @@ wrote for Hila, once the Romance line went (D83).
 3. Old Hoxton (`npc_criminals_suit_1`, from `references/characters/1581859199_135363.rar` + the game's suit unit):
    - `dist/Arivus/Arivus_over_Hoxton.zip` (+ `.sha256`)
 
+The character icon's 128-byte DDS header is the tracked
+`references/textures/icon_header_128x128_bgra8.dds` (written once by
+`tools/extract_icon_header.py` from a reference icon), not a read of that archive.
+
 All packages use fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
 """
 from __future__ import annotations
@@ -52,8 +56,11 @@ import vtf as vtf_mod  # noqa: E402
 import rw_dff as rwd  # noqa: E402
 
 
-JOY_UNIT_DIR = "units/pd2_dlc_joy/characters/npc_criminals_joy_1"
-JOY_ICON_PATH = "guis/dlcs/joy/textures/pd2/blackmarket/icons/characters/joy.texture"
+#: The 128-byte DDS header the character icons are written under: the uncompressed BGRA8
+#: 128x128 header of the reference Joy icon, which the retired `Ada Wong over Joy.7z`
+#: carried and `tools/extract_icon_header.py` wrote out, so the packs no longer read that
+#: 11.7 MB archive for 128 bytes. The icon payload itself is always drawn here.
+ICON_HEADER = ROOT / "references" / "textures" / "icon_header_128x128_bgra8.dds"
 
 CLOVER_UNIT_DIR = "units/payday2/characters/npc_criminal_female_1"
 CLOVER_TEX_DIR = "units/payday2/characters/shared_textures"
@@ -121,13 +128,6 @@ def _ensure_7z(cache: Path, archive: Path, model: Path) -> None:
                 z.extractall(path=path)
 
     archive_cache.refresh(archive, cache, unpack, (model,))
-
-
-def ensure_ada_reference(tmp_dir: Path) -> Path:
-    ada = Path("Ada Wong over Joy")
-    _ensure_7z(tmp_dir, ROOT / "references" / "templates" / "Ada Wong over Joy.7z",
-               ada / JOY_UNIT_DIR / "npc_criminal_joy_1.model")
-    return tmp_dir / ada
 
 
 def ensure_me2_extracted(tmp_dir: Path) -> Path:
@@ -1395,9 +1395,15 @@ def patch_hila_material_config(xml_bytes: bytes) -> bytes:
     return text.encode("utf-8")
 
 
-def make_character_icon_dds(ada_icon_path: Path, portrait_rgb: Image.Image) -> bytes:
-    """Create a 128x128 uncompressed BGRA8 DDS character icon in PAYDAY 2 high-contrast B&W style."""
-    header = ada_icon_path.read_bytes()[:128]
+def make_character_icon_dds(portrait_rgb: Image.Image) -> bytes:
+    """Create a 128x128 uncompressed BGRA8 DDS character icon in PAYDAY 2 high-contrast B&W style.
+
+    The 128-byte header is the tracked reference icon's (`ICON_HEADER`); the pixels are
+    the portrait, drawn here the same way for every head pack.
+    """
+    header = ICON_HEADER.read_bytes()
+    if len(header) != 128:
+        raise SystemExit(f"{ICON_HEADER.relative_to(ROOT)} must be a 128-byte DDS header")
     gray = portrait_rgb.convert("L").resize((128, 128), Image.Resampling.LANCZOS)
     arr = np.asarray(gray, dtype=np.float32)
     bg_mask = arr <= 34.0
@@ -1623,7 +1629,7 @@ def _emit_hila_packages(
     write_deterministic_zip(files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Hila.zip")])
 
 
-def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> None:
+def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
     """Build the L4D2 Miranda head and emit `Miranda_L4D2_over_Hila.zip`.
 
     The over Joy/Clover/Bonnie/Sydney variants this assembly used to write were retired in
@@ -1774,7 +1780,7 @@ def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> No
     head_nm_dds = encode_rgba_dds(atlas_nm)
 
     portrait = render_head_portrait(atom0_joy, atom1_joy, atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
-    icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
+    icon_dds = make_character_icon_dds(portrait)
 
     hila_atlas_df = atlas_df.copy()
     hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
@@ -1789,7 +1795,7 @@ def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> No
     )
 
 
-def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list[Path]) -> None:
+def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
     """Build Witcher 3 Geralt of Rivia head replacement over Rust (npc_criminal_wild_1)."""
     gm = sm.load_model(
         (geralt_root / "models" / "survivors" / "survivor_gambler.mdl").read_bytes(),
@@ -1811,6 +1817,23 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     def load_pd2_nm(stem: str, size: tuple[int, int]) -> np.ndarray:
         arr = load_vtf_rgba(stem, size)
         return dds.pd2_normal_channels(arr, invert_y=True).copy()
+
+    def load_beard_texture(suffix: str) -> np.ndarray:
+        """One of the tracked beard maps (`references/textures/geralt_beard_<suffix>.dds`).
+
+        Written by `tools/extract_beard_textures.py` from this archive's `beard_d.vtf` /
+        `beard_n.vtf`; the pack reads the tracked file so the hand-out copy and the pack
+        ship the same pixels. Missing means the checkout is incomplete - the extractor is
+        the command that fixes it.
+        """
+        path = ROOT / "references" / "textures" / f"geralt_beard_{suffix}.dds"
+        if not path.is_file():
+            raise SystemExit(f"missing {path.relative_to(ROOT)}; run python tools/extract_beard_textures.py")
+        with Image.open(path) as im:
+            arr = np.asarray(im.convert("RGBA")).copy()
+        if arr.shape[:2] != (512, 1024):
+            raise SystemExit(f"{path.relative_to(ROOT)} is {arr.shape[1]}x{arr.shape[0]}, expected 1024x512")
+        return arr
 
     # Unified 2048x2048 atlas in npc_criminal_wild_1_head_df / _nm (single vanilla mtr_head with ALPHA_MASKED, alpha_ref=0.05):
     # Top half y in [0, 1024] (100% opaque with low natural specular alpha=18..28 > 13):
@@ -1840,7 +1863,11 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     hair_keep = (hair_mask == 1) & (neigh_sum >= 2)
     hair_arr[:, :, 3] = np.where(hair_keep, 24, 0).astype(np.uint8)
 
-    beard_arr = load_vtf_rgba("beard_d", (1024, 512))
+    # The beard's two maps are tracked build inputs of their own, written from the VTF pair by
+    # `tools/extract_beard_textures.py` (the same conversions this builder used to inline); the
+    # pack's beard quadrant is built from those files, so the texture the repository hands out
+    # and the texture the pack ships cannot drift apart.
+    beard_arr = load_beard_texture("df")
     beard_rgb_scaled = np.clip(beard_arr[:, :, :3].astype(np.float32) * 0.90, 0, 255)
     beard_core = beard_arr[:, :, 3] >= 12
     pad_b = np.pad(beard_core.astype(np.int32), 1, mode="edge")
@@ -1868,7 +1895,7 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     head_nm_atlas[0:1024, 0:1024] = load_pd2_nm("geralt_head_nm", (1024, 1024))
     head_nm_atlas[0:512, 1024:2048] = load_pd2_nm("teeths_nm", (1024, 512))
     head_nm_atlas[1024:2048, 0:1024] = load_pd2_nm("hair_n", (1024, 1024))
-    head_nm_atlas[1024:1536, 1024:2048] = load_pd2_nm("beard_n", (1024, 512))
+    head_nm_atlas[1024:1536, 1024:2048] = load_beard_texture("nm")
     head_nm_atlas[:, :, 0] = 255
     head_nm_atlas[:, :, 2] = 0
 
@@ -1986,7 +2013,7 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     portrait = render_head_portrait(
         atom0_mesh, atom1_mesh, head_df_atlas[:, :, :3], head_df_atlas, alpha_cut=True
     )
-    icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
+    icon_dds = make_character_icon_dds(portrait)
 
     fps_zip = ROOT / "references" / "templates" / "Heister - FPS Gloves in TPS 2.zip"
     with zipfile.ZipFile(fps_zip) as zf:
@@ -2348,7 +2375,7 @@ def load_arivus_diffuse(path: Path = ARIVUS_DIFFUSE) -> tuple[np.ndarray, bytes]
 
 
 def build_arivus_hoxton_mod(
-    ada_root: Path, arivus_root: Path, suit_unit_dir: Path, out_zip_paths: list[Path]
+    arivus_root: Path, suit_unit_dir: Path, out_zip_paths: list[Path]
 ) -> None:
     """Build the Arivus (Random4 GTA ped) head replacement over Old Hoxton.
 
@@ -2444,7 +2471,7 @@ def build_arivus_hoxton_mod(
     portrait = render_head_portrait(
         atom0_mesh, atom1_mesh, head_df_atlas[:, :, :3], head_df_atlas, alpha_cut=True
     )
-    icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
+    icon_dds = make_character_icon_dds(portrait)
     head_df_dds = encode_cutout_head_df_dds(head_df_atlas, base_payload=head_df_base)
     head_nm_dds = encode_rgba_dds(head_nm_atlas)
 
@@ -2492,7 +2519,6 @@ def build_arivus_hoxton_mod(
 
 def main() -> None:
     determinism.enter(__file__)
-    ada_root = ensure_ada_reference(EXTRACT_DIR / "ada_joy")
     me2_dir = ensure_me2_extracted(EXTRACT_DIR / "me2_extract")
     geralt_root = ensure_geralt_extracted(EXTRACT_DIR / "geralt_extract")
     flat_nm = np.zeros((512, 512, 4), dtype=np.uint8)
@@ -2501,9 +2527,8 @@ def main() -> None:
 
     # The head assemblies: each emits its over Hila pack and nothing else (the over Joy
     # zips they used to write are retired, with the code that wrote them).
-    build_l4d2_hila_head(ada_root, me2_dir, sec_nm_dds=sec_nm_dds)
+    build_l4d2_hila_head(me2_dir, sec_nm_dds=sec_nm_dds)
     build_geralt_rust_mod(
-        ada_root,
         geralt_root,
         [dist_path(ROOT, "Geralt_over_Rust.zip")],
     )
@@ -2517,7 +2542,6 @@ def main() -> None:
         print(f"SKIP Arivus_over_Hoxton: {exc}", file=sys.stderr)
     else:
         build_arivus_hoxton_mod(
-            ada_root,
             arivus_root,
             suit_unit_dir,
             [dist_path(ROOT, "Arivus_over_Hoxton.zip")],

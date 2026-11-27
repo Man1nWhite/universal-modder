@@ -6,7 +6,7 @@ exists to make every row of that table checkable in one command:
 
     .venv/bin/python tools/pd2-las/audit_metrics.py
 
-(``--template`` defaults to where ``extract_2b.py`` unpacks the 2B pack.)
+(``--template`` defaults to the tracked 2B templates, ``references/templates/2b/``.)
 
 It reads the shipped packs from ``dist/`` (they are the reviewed artifacts) and,
 if given, the 2B LAS template model that the project treats as ground truth.
@@ -155,8 +155,7 @@ def _texture(zpath: Path, suffix: str) -> bytes | None:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--template", type=Path, default=extract_2b.TEMPLATES,
-                    help="2B LAS template folder (default: where extract_2b.py "
-                         "unpacks it, under build/pd2-las/2b/)")
+                    help="2B LAS template folder (default: the tracked references/templates/2b/)")
     ap.add_argument("--dist", type=Path, default=REPO / "dist")
     ap.add_argument("--z-hist", action="store_true",
                     help="bucket the divergent coincident pairs by height")

@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import io
 import sys
+import tempfile
 import zipfile
 from pathlib import Path, PurePosixPath
 
@@ -40,6 +41,22 @@ MAT_TEX = {
     "mtr_hair": "miranda_head_df.texture",
     "mtr_eyes": "miranda_eyes.texture",
 }
+
+
+def template_atlas(templates: Path) -> Path:
+    """The 2B body atlas: beside the templates if the whole unit is unpacked, else out of the archive.
+
+    Only the two `.model` templates are tracked (D87); `base_df.texture` is one of the
+    archive's own textures (22 MB), so a clone reads it from `references/templates/2b.rar`
+    when it needs it rather than carrying it beside the models.
+    """
+    beside = Path(templates) / "base_df.texture"
+    if beside.is_file():
+        return beside
+    scratch = Path(tempfile.mkdtemp(prefix="uv-check-2b-", dir=HERE.parents[1] / "build"))
+    path = scratch / "base_df.texture"
+    path.write_bytes(extract_2b.read_member("base_df.texture"))
+    return path
 
 
 def _names(mf: dm.ModelFile) -> dict[int, str]:
@@ -111,7 +128,8 @@ def _ours(path: Path, textures: Path | None):
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--two-b", type=Path, default=extract_2b.TEMPLATES,
-                    help="directory with 2b.model and base_df.texture (default: extracted templates)")
+                    help="directory with 2b.model and base_df.texture (default: the tracked 2B templates; "
+                         "the textures are in the 2b.rar, unpack it if you need those)")
     ap.add_argument("--ours", type=Path, default=dist_path(HERE.parents[1], "Miranda_L4D2_LAS.zip"),
                     help="a L4D2 Miranda ZIP or a loose miranda.model (default: tracked ZIP)")
     ap.add_argument("--textures", type=Path,
@@ -120,11 +138,12 @@ def main(argv=None) -> int:
     ap.add_argument("--size", type=int, default=640)
     args = ap.parse_args(argv)
     try:
-        atlas = _tex(args.two_b / "base_df.texture")
+        atlas = _tex(template_atlas(args.two_b))
         mf2 = dm.ModelFile.read_path(args.two_b / "2b.model")
         mf, textures = _ours(args.ours, args.textures)
     except (OSError, ValueError, KeyError, zipfile.BadZipFile) as error:
-        ap.exit(1, f"uv_check: {error}\nFor loose models pass --textures DIR; run make env for the 2B reference.\n")
+        ap.exit(1, f"uv_check: {error}\nFor loose models pass --textures DIR; the 2B atlas is read from "
+                   f"references/templates/2b.rar.\n")
     args.out.mkdir(parents=True, exist_ok=True)
 
     print(f"2B atlas: {atlas.size}")

@@ -1,20 +1,22 @@
-"""`tools/extract_beard_textures.py`: Geralt's beard, cut out of the tracked head atlas.
+"""`tools/extract_beard_textures.py`: Geralt's beard, read out of the Witcher 3 port's own maps.
 
-The beard is a rectangle of `Geralt_over_Rust.zip`'s 2048x2048 head atlas, not a
-texture of its own: rows 1024..1536, columns 1024..2048 of
-`npc_criminal_wild_1_head_df.texture` (colour, with the hair's cutout in alpha) and
-of `_nm` (Diesel's packed normal layout). The tool writes those two rectangles out
-as PNG and DXT5 DDS under `references/textures/`, so another mod or another engine
-can use Geralt's beard without the rest of his head.
+The source is `references/characters/Geralt.7z`'s `beard_d.vtf` (colour, with a
+smooth alpha) and `beard_n.vtf` (the normal map), both 1024x512. The tool writes
+them under `references/textures/` as PNG and DXT5 DDS: the colour's alpha as the
+0/255 cutout the game's `alpha_ref` 0.05 material cuts on, the normal map in
+Diesel's packed layout (X in alpha, Y in green, 255 in red, 0 in blue).
 
-The files are read back against the pack they came from, not against a stored
-copy: if the atlas is rebuilt the crops must be regenerated, and this says so.
+Those tracked files are build inputs now, not an export: `build_joy_head_mods`
+builds `Geralt_over_Rust.zip`'s beard quadrant from the DDS pair. So this file
+holds the two together - the tracked textures must be what the tool writes, and
+the pack's quadrant must be what the tracked textures say.
 """
 from __future__ import annotations
 
 import io
 import struct
 import sys
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -29,45 +31,52 @@ sys.path.insert(0, str(REPO / "tools" / "pd2-port"))
 import extract_beard_textures as beard  # noqa: E402
 
 TEXTURES = REPO / "references" / "textures"
+GERALT_PACK = REPO / "dist" / "Geralt" / "Geralt_over_Rust.zip"
+#: the builder's colour factor and its atlas alpha, `build_geralt_rust_mod`
+BEARD_GAIN = 0.90
+ATLAS_ALPHA = 24
 
 pytestmark = pytest.mark.skipif(
-    not beard.DEFAULT_PACK.is_file(),
-    reason="the tracked Geralt pack is missing; restore it with `git checkout -- dist`")
+    not beard.DEFAULT_ARCHIVE.is_file(),
+    reason="the tracked Witcher 3 port archive is missing; restore it with `git checkout -- references`")
 
-#: `(name, the atlas it is cut from)`, in the order the tool writes them
-CROPS = (("geralt_beard_df", "df"), ("geralt_beard_nm", "nm"))
+#: `(name, the VTF it is decoded from)`, in the order the tool writes them
+MAPS = (("geralt_beard_df", "df"), ("geralt_beard_nm", "nm"))
 
 
 @pytest.fixture(scope="module")
 def written(tmp_path_factory) -> Path:
     """The four files, written fresh into a temporary folder once for this module."""
     out = tmp_path_factory.mktemp("beard")
-    beard.write_outputs(beard.DEFAULT_PACK, out)
+    beard.write_outputs(beard.DEFAULT_ARCHIVE, out)
     return out
 
 
-@pytest.mark.parametrize("name,atlas", CROPS)
-def test_the_png_is_the_rectangle_of_the_atlas(name, atlas, written):
-    """Colour pixel for pixel, and the alpha as the 0/255 cutout the atlas expresses as 24."""
+@pytest.mark.parametrize("name,suffix", MAPS)
+def test_the_png_is_the_ports_map_in_the_layout_the_game_reads(name, suffix, written):
+    """Colour from the VTF; alpha as the cutout at the material's own threshold."""
     got = np.asarray(Image.open(written / f"{name}.png").convert("RGBA"))
-    source = beard.crop(beard.read_atlas(beard.DEFAULT_PACK, atlas))
+    source = beard.read_vtf(beard.DEFAULT_ARCHIVE, suffix)
     assert got.shape == (512, 1024, 4)
-    assert np.array_equal(got[..., :3], source[..., :3])
-    if atlas == "df":
-        # the atlas' alpha is the material's cutout: 24 under a hair, 0 off one
-        assert set(np.unique(source[..., 3]).tolist()) == {0, 24}
-        assert np.array_equal(got[..., 3] == 255, source[..., 3] > 12)
+    if suffix == "df":
+        assert np.array_equal(got[..., :3], source[..., :3])
+        # the port's smooth alpha, cut where alpha_ref 0.05 stops drawing (12 of 255)
         assert set(np.unique(got[..., 3]).tolist()) == {0, 255}
+        assert np.array_equal(got[..., 3] == 255, source[..., 3] >= 12)
+        # the faint ends a 50 % cut would have dropped are still there
+        assert (got[..., 3] > 0).sum() > (source[..., 3] >= 128).sum()
     else:
-        # a normal map keeps X in alpha and Y in green, red 255 and blue 0, as the pack
-        # writes it (`tests/test_pd2_las_invariants.py` holds the packs to the same rule)
-        assert np.array_equal(got, source)
+        # Diesel's packed normal: X in alpha, Y in green, 255 in red, 0 in blue,
+        # as the pack writes it (`tests/test_pd2_las_invariants.py` holds the packs to it)
         assert set(np.unique(got[..., 0]).tolist()) == {255}
         assert set(np.unique(got[..., 2]).tolist()) == {0}
+        # Y is the source's green, flipped: DirectX-style Y- into PD2's Y+
+        assert np.array_equal(got[..., 1], 255 - source[..., 1])
+        assert not np.array_equal(got[..., 3], source[..., 2])  # X comes from red, not blue
 
 
-@pytest.mark.parametrize("name,_atlas", CROPS)
-def test_the_dds_is_a_full_pyramid_of_the_same_picture(name, _atlas, written):
+@pytest.mark.parametrize("name,_suffix", MAPS)
+def test_the_dds_is_a_full_pyramid_of_the_same_picture(name, _suffix, written):
     """Its own header for 1024x512, every level there, and level 0 decodes to the PNG.
 
     `dds.pack_dds` assumes a square texture, so the tool writes this header itself;
@@ -96,24 +105,60 @@ def test_the_dds_is_a_full_pyramid_of_the_same_picture(name, _atlas, written):
 
 
 def test_what_is_tracked_is_what_the_tool_writes(written):
-    """The files under `references/textures/` are the tracked pack's crops, byte for byte.
+    """The files under `references/textures/` are the port archive's own maps, byte for byte.
 
-    They are inputs for other work, so they are committed; this is what keeps a
-    rebuild of the Geralt pack from leaving them describing an atlas that is gone.
+    They are build inputs for the Geralt pack and hand-outs for other work, so they
+    are committed; this is what keeps a re-run of the tool from leaving them silently
+    behind, or the tracked copy from being something no command writes.
     """
-    missing = [f"{name}{suffix}" for name, _ in CROPS for suffix in (".png", ".dds")
+    missing = [f"{name}{suffix}" for name, _ in MAPS for suffix in (".png", ".dds")
                if not (TEXTURES / f"{name}{suffix}").is_file()]
     assert not missing, f"not in the tree: {missing}; run python tools/extract_beard_textures.py"
-    for name, _ in CROPS:
+    for name, _ in MAPS:
         for suffix in (".png", ".dds"):
             tracked = (TEXTURES / f"{name}{suffix}").read_bytes()
             assert tracked == (written / f"{name}{suffix}").read_bytes(), (
                 f"{name}{suffix} is stale: run python tools/extract_beard_textures.py")
 
 
-def test_the_tool_only_reads_the_pack():
-    """It writes into references/textures/ and touches nothing in dist/."""
+@pytest.mark.skipif(not GERALT_PACK.is_file(), reason="the tracked Geralt pack is missing")
+def test_the_pack_ships_the_tracked_beard():
+    """The pack's beard quadrant is the tracked diffuse, darkened by the builder's own gain.
+
+    The builder reads `references/textures/geralt_beard_{df,nm}.dds`; this reads the
+    shipped zip and says the same picture is inside it, as far as DXT5 re-encoding
+    allows. A rebuild that shipped some other beard would pass every other test here.
+    """
+    with zipfile.ZipFile(GERALT_PACK) as z:
+        df = np.asarray(Image.open(io.BytesIO(z.read(
+            next(n for n in z.namelist() if n.endswith("npc_criminal_wild_1_head_df.texture"))))).convert("RGBA"))
+        nm = np.asarray(Image.open(io.BytesIO(z.read(
+            next(n for n in z.namelist() if n.endswith("npc_criminal_wild_1_head_nm.texture"))))).convert("RGBA"))
+    assert df.shape == (2048, 2048, 4) and nm.shape == (2048, 2048, 4)
+    quadrant_df, quadrant_nm = df[1024:1536, 1024:2048], nm[1024:1536, 1024:2048]
+
+    tracked_df = np.asarray(Image.open(TEXTURES / "geralt_beard_df.dds").convert("RGBA"))
+    tracked_nm = np.asarray(Image.open(TEXTURES / "geralt_beard_nm.dds").convert("RGBA"))
+    expected = np.clip(tracked_df[..., :3].astype(np.float32) * BEARD_GAIN, 0, 255)
+
+    assert set(np.unique(quadrant_df[..., 3]).tolist()) == {0, ATLAS_ALPHA}
+    # every texel the tracked texture draws is drawn by the pack too: the builder feathers a
+    # ring outside the cutout, and never drops one from inside it
+    drawn, packed = tracked_df[..., 3] > 0, quadrant_df[..., 3] > 0
+    assert not (drawn & ~packed).any()
+    assert np.abs(quadrant_df[..., :3].astype(int) - expected).mean() < 6.0
+
+    assert set(np.unique(quadrant_nm[..., 0]).tolist()) == {255}
+    assert set(np.unique(quadrant_nm[..., 2]).tolist()) == {0}
+    assert np.abs(quadrant_nm[..., 1].astype(int) - tracked_nm[..., 1]).mean() < 1.0
+    assert np.abs(quadrant_nm[..., 3].astype(int) - tracked_nm[..., 3]).mean() < 1.0
+
+
+def test_the_tool_reads_the_archive_and_writes_only_references():
+    """Its input is the tracked port archive; its output folder is the one that is tracked."""
     source = (REPO / "tools" / "extract_beard_textures.py").read_text(encoding="utf-8")
-    assert "zipfile.ZipFile(pack)" in source and 'write("' not in source
-    assert "dist/" in source and "DEFAULT_OUT = ROOT / \"references\" / \"textures\"" in source
+    assert 'DEFAULT_ARCHIVE = ROOT / "references" / "characters" / "Geralt.7z"' in source
+    assert 'DEFAULT_OUT = ROOT / "references" / "textures"' in source
+    assert "dist/" not in source.replace('`dist/Geralt/Geralt_over_Rust.zip`', ""), \
+        "the tool's source is the archive; the pack is downstream of it"
     assert (beard.DEFAULT_OUT / "geralt_beard_df.png").parent == TEXTURES

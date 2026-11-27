@@ -1,6 +1,7 @@
 """Managed extraction caches are derived inputs, not sources of truth."""
 from __future__ import annotations
 
+import hashlib
 import sys
 import zipfile
 from pathlib import Path
@@ -16,40 +17,38 @@ import build_models as bm  # noqa: E402
 import extract_2b  # noqa: E402
 
 
-def test_stale_2b_cache_cannot_be_used_as_a_managed_template(tmp_path, monkeypatch):
-    archive = tmp_path / "2b.rar"
-    archive.write_bytes(b"first template")
-    cache = tmp_path / "cache"
-    directory = cache / extract_2b.UNIT
-    monkeypatch.setattr(extract_2b, "RAR", archive)
-    monkeypatch.setattr(extract_2b, "OUT", cache)
-    monkeypatch.setattr(extract_2b, "TEMPLATES", directory)
-    monkeypatch.setattr(extract_2b.shutil, "which", lambda _name: "node")
-    calls = []
+def test_a_tracked_template_that_is_not_the_archives_bytes_is_refused(tmp_path, monkeypatch):
+    """The two 2B models are tracked (D87); a checkout whose copy was edited is not trusted.
 
-    def unpack(_node, output):
-        unit = output / extract_2b.UNIT
-        unit.mkdir(parents=True)
-        for name in extract_2b.REQUIRED:
-            (unit / name).write_bytes(archive.read_bytes())
-        calls.append(output)
+    `require_templates` used to fight a stale extraction cache. There is no extraction any
+    more, so what it guards is the tracked file itself: a byte that is not the archive's
+    model is a repair, not a template, and `extract_2b --check` says so.
+    """
+    templates = tmp_path / "2b"
+    templates.mkdir()
+    for name in extract_2b.TEMPLATE_FILES:
+        (templates / name).write_bytes(b"model")
+    monkeypatch.setattr(extract_2b, "TEMPLATES", templates)
+    monkeypatch.setattr(extract_2b, "SHA256", {name: hashlib.sha256(b"model").hexdigest()
+                                               for name in extract_2b.TEMPLATE_FILES})
+    assert extract_2b.ready(templates)
+    assert bm.require_templates(templates) == templates
 
-    monkeypatch.setattr(extract_2b, "_unpack", unpack)
-    assert extract_2b.main() == 0
-    assert bm.require_templates(directory) == directory
-    assert extract_2b.main() == 0 and len(calls) == 1
+    (templates / "2b.model").write_bytes(b"edited payload")
+    assert not extract_2b.ready(templates)
+    assert "2b.model" in extract_2b.describe(templates)
+    with pytest.raises(SystemExit, match="not the archive's bytes"):
+        bm.require_templates(templates)
+    assert extract_2b.main(["--check"]) == 1     # the default path is still the tracked one
 
-    archive.write_bytes(b"changed archive")
-    assert not extract_2b.ready()
-    with pytest.raises(SystemExit, match="cache is stale"):
-        bm.require_templates(directory)
-    assert extract_2b.main() == 0 and len(calls) == 2
-    assert (directory / "2b.model").read_bytes() == b"changed archive"
 
-    (directory / "base_df.texture").write_bytes(b"edited payload")
-    assert not extract_2b.ready()
-    assert extract_2b.main() == 0 and len(calls) == 3
-    assert (directory / "base_df.texture").read_bytes() == b"changed archive"
+def test_the_tracked_models_are_what_the_archive_holds():
+    """The tracked 2b.model / fps_2b.model hash to the values extract_2b records for them."""
+    if not extract_2b.RAR.is_file():
+        pytest.skip("the 2B reference archive is not in this checkout")
+    assert extract_2b.ready(), extract_2b.describe()
+    for name, digest in extract_2b.SHA256.items():
+        assert extract_2b.sha256_file(extract_2b.TEMPLATES / name) == digest, name
 
 
 def test_incomplete_extraction_does_not_replace_a_cache(tmp_path):
