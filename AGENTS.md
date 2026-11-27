@@ -57,7 +57,7 @@ once your human agrees, open a PR (`knowledge/README.md`, `CONTRIBUTING.md`).
 - **Sequence edits:** parallel edits to one file clobber each other.
 
 ## Working on the toolkit itself
-- **Python:** 3.10+, deps Pillow, numpy and PyYAML. Code lives in `um/`, one module per CLI group, each
+- **Python:** 3.11+, deps Pillow, numpy and PyYAML. Code lives in `um/`, one module per CLI group, each
   with `register(sub)` and a docstring that doubles as `--help`.
 - **Windows tools:** `um/ps1/*.ps1` embed C# 5 (Windows PowerShell 5.1's compiler): no string
   interpolation, no `out var`, no expression-bodied members.

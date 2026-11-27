@@ -43,9 +43,9 @@ rebuilt by `make -sC tools/pd2-las glb`.
 
 ## Cloning
 
-This is a heavy checkout by design: about 190 MB of built packs under `dist/`, ~220 MB of source
-archives under `references/` (the only copy of some of them), and ~40 MB of archived renders, so
-`.git` is around 420 MB with no Git LFS. Two ways to pay less:
+This is a heavy checkout by design: about 73 MB of built packs under `dist/`, ~174 MB of source
+archives under `references/` (the only copy of some of them), and ~30 MB of archived renders, so
+`.git` is around 284 MB with no Git LFS. Two ways to pay less:
 
 ```sh
 git clone --filter=blob:none https://github.com/Man1nWhite/universal-modder   # blobs on demand

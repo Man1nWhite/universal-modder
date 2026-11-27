@@ -24,13 +24,15 @@ import hashlib
 import json
 import ntpath
 import os
+import posixpath
+import re
 import shutil
 import subprocess
 import sys
 import time
 import urllib.request
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from um.common import PS_UTF8, die, is_windows, is_wsl, ps_exe, text_console, text_utf8, to_posix, to_win
 
@@ -128,7 +130,10 @@ def download_ffmpeg(z: Path):
     """Download the ffmpeg zip to z and check its SHA-256 before anything is extracted."""
     want = ffmpeg_sha256()
     print("downloading", FFMPEG_URL)
-    urllib.request.urlretrieve(FFMPEG_URL, z)
+    # urlopen with a timeout rather than urlretrieve, which has none: a stalled connection must not
+    # hang the setup forever.
+    with urllib.request.urlopen(FFMPEG_URL, timeout=120) as r, open(z, "wb") as f:
+        shutil.copyfileobj(r, f)
     h = hashlib.sha256()
     with open(z, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -222,31 +227,58 @@ def launch(target: str, args: list[str], steam: bool = False):
             return
         subprocess.run(["cmd.exe", "/c", "start", "", url], cwd="/mnt/c", timeout=30)
         return
-    exe = to_win(target)
     # Start in the exe's own folder: games open their data files relative to the working directory
     # (Tomb Raider: Legend dies with "Failed to open BIGFILE.000" when started from anywhere else).
-    exe_dir = ntpath.dirname(exe)
-    cmd = ["cmd.exe" if is_wsl() else "cmd", "/c", "start", ""]
-    if exe_dir:
-        cmd += ["/D", exe_dir]
-    subprocess.run([*cmd, exe, *args], cwd="/mnt/c" if is_wsl() else None, timeout=30)
+    # No cmd.exe anywhere in this path: spawned directly, an argument's `&`, `|`, `<`, `>` or `^`
+    # is just bytes to the child. The exe path needs Windows semantics for the dirname, and WSL
+    # needs the /mnt/<drive> form to chdir into; each gets its own.
+    if is_windows():
+        exe = to_win(target)
+        spawn, cwd = exe, ntpath.dirname(exe) or None
+    else:  # WSL: the interop layer runs the Windows binary by its Linux path and translates cwd
+        spawn_path = PurePosixPath(posixpath.expanduser(to_posix(target)))
+        spawn = str(spawn_path)
+        cwd = str(spawn_path.parent) if spawn_path.parent != PurePosixPath(".") else None
+    try:
+        subprocess.Popen([spawn, *args], cwd=cwd)
+    except OSError as e:
+        die(f"could not launch {spawn}: {e} (a path to .exe that does not exist, or not executable from here)")
 
 
 # --------------------------------------------------------------------------- capture
 
 
+def _ff_filter_value(value) -> str:
+    r"""A value as one ffmpeg filter option.
+
+    The filtergraph is `filter=option=value:option=value,nextfilter`, with `[..]` for links: a
+    value carrying `:`, `,`, `;`, `[` or `]` breaks the graph apart (`window_title=PAYDAY 2:
+    Crimewar` used to parse the title as the next option), and `\` and `\'` are the escapes.
+    Backslash-escaping the structural characters keeps the value whole and keeps regexes working
+    (`window_exe` is documented as one).
+    """
+    return re.sub(r"([\\':,;\[\]])", r"\\\1", str(value))
+
+
 def _source(exe=None, hwnd=None, title=None, cursor=False, crop=None) -> str:
     if hwnd:
-        sel = f"hwnd={hwnd}"
+        try:
+            sel = f"hwnd={int(hwnd)}"
+        except (TypeError, ValueError):
+            die(f"--hwnd must be an integer (a window handle), got {hwnd!r}")
     elif exe:
-        sel = f"window_exe={exe if exe.lower().endswith('.exe') else exe + '.exe'}"
+        name = exe if exe.lower().endswith(".exe") else exe + ".exe"
+        sel = f"window_exe={_ff_filter_value(name)}"
     elif title:
-        sel = f"window_title={title}"
+        sel = f"window_title={_ff_filter_value(title)}"
     else:
         die("give --exe, --hwnd or --title")
     c = ""
     if crop:  # left:top:right:bottom pixels to cut
-        l, t, r, b = crop
+        try:
+            l, t, r, b = (int(v) for v in crop)
+        except (TypeError, ValueError):
+            die(f"--crop must be four pixels left:top:right:bottom, got {crop!r}")
         c = f":crop_left={l}:crop_top={t}:crop_right={r}:crop_bottom={b}"
     return f"gfxcapture={sel}:capture_cursor={1 if cursor else 0}:max_framerate=60{c},hwdownload,format=bgra"
 

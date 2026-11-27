@@ -109,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
         # reads. Until 2026-11-13 the budget ran the suite a second time, two minutes of the seven.
         with tempfile.TemporaryDirectory() as scratch:
             report = Path(scratch) / "pytest-rsxX.txt"
-            results.append(stage("pytest suite", ["-m", "pytest", "-q", "-rsxX", "tests", "--cov", "--cov-fail-under=58"], keep=report))
+            results.append(stage("pytest suite", ["-m", "pytest", "-q", "-rsxX", "tests", "--cov", "--cov-fail-under=61"], keep=report))
             results.append(stage("skip budget", [str(HERE / "check_skip_budget.py"), "--report", str(report)]))
         RERUN["skip budget"] = ".venv/bin/python tools/pd2-port/check_skip_budget.py"
         results.append(stage("every tracked zip, built again",

@@ -81,4 +81,23 @@ rules below.
 - **Examples (`examples/`):** your own code and assets only. Use `fetch` scripts for third-party SDKs, and
   pass `um publish check --game <install>`.
 
+## Environment variables
+
+`um` reads a handful of environment variables. The ones you are most likely to set:
+
+| Variable | What it does |
+|---|---|
+| `UM_HOME` | Per-user state: backups and downloaded tools (default `~/.universal-modder`). |
+| `UM_FFMPEG_WIN` | Full path to the Windows ffmpeg `um win` should use — an ffmpeg you trust — instead of the one `um win setup` downloads. |
+| `UM_FFMPEG_SHA256` | Expected SHA-256 of the ffmpeg zip that `um win setup` downloads. Without a pin, `um` uses the checksum the release publishes for itself, which catches corrupt or truncated downloads but cannot catch a compromised release — the attacker would pick both. Set this to a hash you verified yourself to close that gap. |
+| `UM_KB_REPO` | `owner/repo` of the knowledge base `um kb` syncs from and opens PRs against. Without it, the default is this clone's `origin` when it is a GitHub URL, else upstream — set it in a fork if notes belong elsewhere. |
+| `UM_KB_BRANCH` | Branch `um kb` forks from and opens PRs against (default `main`). |
+| `UM_KB` | Explicit local path of the knowledge base root `um kb` searches when given no argument. Without it, `um kb` searches this clone first, then its synced cache. |
+| `COMFYUI_URL` | ComfyUI address for `um comfy` (default `http://127.0.0.1:8188`). |
+| `UM_AGENT` | Default `agents:` value for `um kb new` when `--agent` is not given (e.g. `"Codex (gpt-6)"`). |
+| `UM_FAL_KEY_FILE` / `FAL_KEY_FILE` | Plaintext file holding the fal key, tried before the OS keyring; `FAL_KEY` itself is read from the environment first. |
+
+You will not normally set the rest (`BLENDER`, the `tools/` build pipelines' own knobs, …): those are
+documented next to the code that reads them, and default sensibly on a machine that has the tool installed.
+
 CI runs the tests, `um kb check --index` and the CLI help screens on every PR.

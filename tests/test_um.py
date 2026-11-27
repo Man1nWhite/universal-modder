@@ -596,9 +596,11 @@ def test_ffmpeg_download_is_checksummed(tmp_path, monkeypatch):
     good = hashlib.sha256(payload).hexdigest()
     sums = f"{'0' * 64}  ffmpeg-other.zip\n{good}  ffmpeg-master-latest-win64-gpl.zip\n".encode()
     monkeypatch.delenv("UM_FFMPEG_SHA256", raising=False)
-    monkeypatch.setattr(win.urllib.request, "urlopen", lambda url, timeout=None: io.BytesIO(sums))
+    def dispatch(url, timeout=None):
+        return io.BytesIO(sums if url == win.FFMPEG_SUMS else payload)
+
+    monkeypatch.setattr(win.urllib.request, "urlopen", dispatch)
     assert win.ffmpeg_sha256() == good
-    monkeypatch.setattr(win.urllib.request, "urlretrieve", lambda url, dst: Path(dst).write_bytes(payload))
     z = tmp_path / "ffmpeg.zip"
     win.download_ffmpeg(z)
     assert z.read_bytes() == payload
