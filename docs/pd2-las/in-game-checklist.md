@@ -109,7 +109,7 @@ levels are there for motion, and only the game shows motion.
 ## OfficeSuite — the jewelry diffuse (2026-11-18)
 
 Pack to install: `dist/Miranda/OfficeSuite.zip` → drop `OfficeSuite` into `PAYDAY 2\assets\mod_overrides\`.
-Only the jewelry diffuse changed (`references/Honoka/Tex_23(L_23)2.dds`, D50); the geometry, the
+Only the jewelry diffuse changed (`references/honoka/Tex_23(L_23)2.dds`, D50); the geometry, the
 suit and the registration are the same as the build the 2026-11-15 captures show, so a difference
 seen here and nowhere else belongs to `L_23`. The pack also ships a first-person arms unit now
 (D53): the third-person body is untouched, but the first-person check below is new.
@@ -289,7 +289,7 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    word, not a clipped one. If it still sounds cut, the game is stopping the line before the file
    ends, and the next lever is the vanilla length rather than the cut.
 1d. **The sub-8 slots are vanilla now** (2026-11-25 rebuild, not yet heard in game). 33 slots play
-   purpose-authored takes from `references/LAWSON VOICE (PAYDAY 2).7z` (whole takes, 30 ms pre-roll
+   purpose-authored takes from `references/voice/LAWSON VOICE (PAYDAY 2).7z` (whole takes, 30 ms pre-roll
    and 50 ms post-roll kept, −1.5 dBFS); 17 slots with no take — among them `civ.nophone`'s neighbours
    (`civ.talk`, `civ.ties`), the squad-move lines (`move.on_me`, `move.this_way`), the medic/police
    body lines (`hurt.medic`, `kill.taser`, `mark.medic`…) and `pager.clear` — are simply absent from

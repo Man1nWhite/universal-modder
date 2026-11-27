@@ -37,10 +37,10 @@ FONT_BOLD_12 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-B
 FONT_REG_12 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12)
 FONT_REG_11 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 11)
 
-TMC_ZIP = REPO / "references" / "Outfit for Honoka-109-1-1-1628020933.zip"
+TMC_ZIP = REPO / "references" / "templates" / "Outfit for Honoka-109-1-1-1628020933.zip"
 TMC_NAME = "Honoka_DOAXVV_Secret_Report.TMC"
-TEX_DIR = REPO / "references" / "Honoka"
-GLB_PATH = REPO / "references" / "Honoka" / "Honoka_DOAXVV_Secret_Report.rigged.glb"
+TEX_DIR = REPO / "references" / "honoka"
+GLB_PATH = REPO / "references" / "honoka" / "Honoka_DOAXVV_Secret_Report.rigged.glb"
 
 # Use the same material and variant mapping that the packs actually build.
 ALT_DIFFUSES = {name: f"{spec.pack_dir}: {kind} diffuse override"
@@ -220,7 +220,7 @@ def render_dds_sheet(out_dir: Path) -> None:
     _header(
         canvas,
         "Honoka Source .DDS Textures — L_0–L_26 and Variant Diffuses",
-        f"Source: references/Honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are used by the Honoko builds",
+        f"Source: references/honoka/ ({len(dds_files)} DXT5 DDS files) | Highlighted tiles are used by the Honoko builds",
     )
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "honoka_dds_contact_sheet.png"

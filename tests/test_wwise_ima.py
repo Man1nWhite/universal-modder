@@ -1,6 +1,6 @@
 """The Wwise IMA ADPCM container: the bytes a real `.stream` file starts with, and a round trip.
 
-The 64-byte headers below are copied from `references/Tokoyami Hila.7z`
+The 64-byte headers below are copied from `references/voice/Tokoyami Hila.7z`
 (`soundbanks/streamed/regular_vox/100412034.stream`, mono, 612 data bytes; and
 `1001973360.stream`, stereo, 100,224). They are the contract the encoder has to
 reproduce: get the `fmt ` payload, the `JUNK` filler or the byte rate wrong and
@@ -74,7 +74,7 @@ def test_int16_square_wave_extremes_mid_block_keep_their_sign():
 def test_decoding_a_vanilla_stream_reencodes_the_same_wwise_header(tmp_path):
     import pytest
     py7zr = pytest.importorskip("py7zr")
-    source = ROOT / "references" / "Tokoyami Hila.7z"
+    source = ROOT / "references" / "voice" / "Tokoyami Hila.7z"
     if not source.is_file():
         pytest.skip("Tokoyami Hila reference archive is absent")
     with py7zr.SevenZipFile(source) as archive:

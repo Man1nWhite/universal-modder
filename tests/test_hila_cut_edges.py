@@ -8,7 +8,7 @@ down, Shep"), and `call_teammate.hey_you` started at 1.310 s of
 `profre_cover_tutorial_a_S_INT.002.ogg`, on the "-ard" of the same name. `hey_you` was
 re-picked, then (2026-11-25, D67) re-cut to one shouted "You". The `civ.down` and
 `civ.nophone` slots were replaced (2026-11-25) by purpose-authored takes from
-`references/LAWSON VOICE (PAYDAY 2).7z`, so their edges are now the silence at the
+`references/voice/LAWSON VOICE (PAYDAY 2).7z`, so their edges are now the silence at the
 edges of a whole TTS take instead of a hand-trimmed window.
 
 The edges are measured, not guessed: decoded from the tracked archives with the
@@ -57,8 +57,8 @@ def decode_source(tmp_path_factory):
     """`filename -> mono 44.1 kHz float samples`, unpacked from the tracked archives."""
     import py7zr
 
-    archives = [ROOT / "references" / "Голос Лоусон.7z",
-                ROOT / "references" / "LAWSON VOICE (PAYDAY 2).7z"]
+    archives = [ROOT / "references" / "voice" / "Голос Лоусон.7z",
+                ROOT / "references" / "voice" / "LAWSON VOICE (PAYDAY 2).7z"]
     for archive in archives:
         if not archive.is_file():
             raise AssertionError(f"{archive.relative_to(ROOT)} is tracked; it is missing here")

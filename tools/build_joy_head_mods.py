@@ -6,13 +6,13 @@ once per Miranda base (`Miranda_L4D2_LAS.zip`, `Miranda_Romance_LAS.zip`); the
 over Joy/Clover/Bonnie/Sydney variants that the same code used to emit are
 retired, so each base now writes only its over Hila pack.
 
-1. Hila (`npc_criminals_ecp_female`, from `references/npc_criminals_ecp_female.7z`; no Safe House unit):
+1. Hila (`npc_criminals_ecp_female`, from `references/templates/npc_criminals_ecp_female.7z`; no Safe House unit):
    - `dist/Miranda/Miranda_L4D2_over_Hila.zip` (+ `.sha256`)
    - `dist/Miranda/Miranda_Romance_over_Hila.zip` (+ `.sha256`)
-   These two are the only Miranda packs whose eye quadrant is the user's `references/EYE_Diff.png`.
-2. Rust (`npc_criminals_punk` + Safe House `npc_criminal_punk_chill`, from `references/Geralt.7z`):
+   These two are the only Miranda packs whose eye quadrant is the user's `references/textures/EYE_Diff.png`.
+2. Rust (`npc_criminals_punk` + Safe House `npc_criminal_punk_chill`, from `references/characters/Geralt.7z`):
    - `dist/Geralt/Geralt_over_Rust.zip` (+ `.sha256`)
-3. Old Hoxton (`npc_criminals_suit_1`, from `references/Arivus.7z` + the game's suit unit):
+3. Old Hoxton (`npc_criminals_suit_1`, from `references/characters/1581859199_135363.rar` + the game's suit unit):
    - `dist/Arivus/Arivus_over_Hoxton.zip` (+ `.sha256`)
 
 All packages use fixed `2020-01-01 00:00:00` zip timestamps so builds are byte-reproducible.
@@ -84,7 +84,7 @@ ARIVUS_ARCHIVE = "1581859199_135363.rar"
 # and small skin adjustments over the brow, lid, nose and lip rows. Same
 # single-level 2048x2048 BC3 layout and the same alpha cutout, so the builder
 # still ships its base blocks byte for byte; the earlier bytes stay in git.
-ARIVUS_DIFFUSE = ROOT / "references" / "old_hoxton_head_df(1).dds"
+ARIVUS_DIFFUSE = ROOT / "references" / "textures" / "old_hoxton_head_df(1).dds"
 #: Random4 "Head" bone in the source rig (+x up, +y fwd, +z left), anchored to the
 #: PD2 male "Head" bone (Rust/suit rig world). Scale matches crown-to-crown
 #: (source head-top 0.8384 -> Rust g_head top z 187.56).
@@ -94,7 +94,7 @@ ARIVUS_DST_ANCHOR = (0.0, 5.33, 166.76)
 
 # Hila (the H3H3 collaboration heister, DLC folder `ecp`) is not one of the units in the FPS-gloves
 # archive: her heist + menu models, objects and material configs ship in her own reference 7z.
-HILA_ARCHIVE = "references/npc_criminals_ecp_female.7z"
+HILA_ARCHIVE = "references/templates/npc_criminals_ecp_female.7z"
 HILA_DIR = "npc_criminals_ecp_female"
 HILA_UNIT_STEM = "npc_criminal_ecp_female"
 HILA_UNIT_DIR = "units/pd2_dlc_ecp/characters/npc_criminals_ecp_female"
@@ -104,7 +104,7 @@ HILA_ICON_PATH = "guis/dlcs/ecp/textures/pd2/blackmarket/icons/characters/ecp_fe
 #: ~11.7 mm iris in a ~30 mm palpebral opening). The factor is measured off the source, not
 #: guessed: the 2026-11-15 repaint draws its iris 1.38x larger than the first diffuse, so the
 #: factor went 2.8 -> 2.03 to keep the same iris in game (D43).
-HILA_EYE_SOURCE = "references/EYE_Diff.png"
+HILA_EYE_SOURCE = "references/textures/EYE_Diff.png"
 HILA_EYE_ZOOM = 2.03
 
 
@@ -126,13 +126,13 @@ def _ensure_7z(cache: Path, archive: Path, model: Path) -> None:
 
 def ensure_ada_reference(tmp_dir: Path) -> Path:
     ada = Path("Ada Wong over Joy")
-    _ensure_7z(tmp_dir, ROOT / "references" / "Ada Wong over Joy.7z",
+    _ensure_7z(tmp_dir, ROOT / "references" / "templates" / "Ada Wong over Joy.7z",
                ada / JOY_UNIT_DIR / "npc_criminal_joy_1.model")
     return tmp_dir / ada
 
 
 def ensure_me2_extracted(tmp_dir: Path) -> Path:
-    archive = ROOT / "references" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+    archive = ROOT / "references" / "characters" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
     dae = "Miranda Lawson (Romance) - Adjusted Version.dae"
     if (tmp_dir / dae).is_file() and archive_cache.current(archive, tmp_dir):
         return tmp_dir
@@ -158,7 +158,7 @@ def ensure_hila_extracted(tmp_dir: Path) -> Path:
 
 def ensure_geralt_extracted(tmp_dir: Path) -> Path:
     geralt = Path("1259069870")
-    _ensure_7z(tmp_dir, ROOT / "references" / "Geralt.7z", geralt / "models/survivors/survivor_gambler.mdl")
+    _ensure_7z(tmp_dir, ROOT / "references" / "characters" / "Geralt.7z", geralt / "models/survivors/survivor_gambler.mdl")
     return tmp_dir / geralt
 
 
@@ -173,8 +173,8 @@ def _ensure_rar(cache: Path, archive: Path, model: Path) -> None:
 
 
 def ensure_arivus_extracted(tmp_dir: Path) -> Path:
-    """Unpack `references/1581859199_135363.rar` (Random4 GTA SA RenderWare ped)."""
-    _ensure_rar(tmp_dir, ROOT / "references" / ARIVUS_ARCHIVE, Path("Random4.dff"))
+    """Unpack `references/characters/1581859199_135363.rar` (Random4 GTA SA RenderWare ped)."""
+    _ensure_rar(tmp_dir, ROOT / "references" / "characters" / ARIVUS_ARCHIVE, Path("Random4.dff"))
     return tmp_dir
 
 
@@ -187,10 +187,10 @@ def ensure_suit_reference(tmp_dir: Path) -> Path:
     game assets: extract `units/payday2/characters/npc_criminals_suit_1/` with
     DieselBundleViewer (open `assets/bundle_db_blb`) and drop the folder (zipped
     or bare) under `references/`. The Hila precedent is
-    `references/npc_criminals_ecp_female.7z`.
+    `references/templates/npc_criminals_ecp_female.7z`.
     """
     want = f"{SUIT_UNIT_STEM}.model"
-    for archive in sorted((ROOT / "references").iterdir()):
+    for archive in sorted((ROOT / "references").rglob("*")):
         if archive.suffix.lower() not in (".zip", ".7z") or not archive.is_file():
             continue
         try:
@@ -219,8 +219,8 @@ def ensure_suit_reference(tmp_dir: Path) -> Path:
         if found is not None:
             return found.parent
     raise FileNotFoundError(
-        "no archive in references/ contains units/payday2/characters/npc_criminals_suit_1/npc_criminals_suit_1.model; "
-        "extract that folder from the game with DieselBundleViewer and add it to references/"
+        "no archive under references/ contains units/payday2/characters/npc_criminals_suit_1/npc_criminals_suit_1.model; "
+        "extract that folder from the game with DieselBundleViewer and add it to references/templates/"
     )
 
 
@@ -1317,7 +1317,7 @@ def patch_old_hoxton_material_config(xml_bytes: bytes, alpha_ref: str = "0.05") 
 
 
 def load_hila_eye_texture(size: int = 1024) -> np.ndarray:
-    """Scale `references/EYE_Diff.png` into the head atlas' eye quadrant, gloss in the alpha channel.
+    """Scale `references/textures/EYE_Diff.png` into the head atlas' eye quadrant, gloss in the alpha channel.
 
     The supplied diffuse is a 256x256 ME2 eyeball map: the iris is a small disc in the middle of a
     wide sclera field, because the game samples it through the eyeball's own spherical UVs. Both head
@@ -1578,7 +1578,7 @@ def _emit_hila_packages(
     sec_op_dds: bytes,
     icon_dds: bytes,
 ) -> None:
-    """Package Miranda over Hila (npc_criminals_ecp_female) from references/npc_criminals_ecp_female.7z.
+    """Package Miranda over Hila (npc_criminals_ecp_female) from references/templates/npc_criminals_ecp_female.7z.
 
     Hila's `g_head` carries two atoms (head, 3D eyelashes) on `mtr_head` + `mtr_lashes`, and her hair
     lives in `g_hair_mask_off` / `g_hair_mask_on`, which are collapsed to the hidden triangle and
@@ -2211,7 +2211,7 @@ def build_geralt_rust_mod(ada_root: Path, geralt_root: Path, out_zip_paths: list
     )
     icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
 
-    fps_zip = ROOT / "references" / "Heister - FPS Gloves in TPS 2.zip"
+    fps_zip = ROOT / "references" / "templates" / "Heister - FPS Gloves in TPS 2.zip"
     with zipfile.ZipFile(fps_zip) as zf:
         rust_model = patch_female_heister_model(
             zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{WILD_UNIT_DIR}/npc_criminal_wild_1.model"),
@@ -2684,7 +2684,7 @@ def build_arivus_hoxton_mod(
     suit_model = patch_suit_model(suit_bytes(f"{SUIT_UNIT_STEM}.model"))
     suit_menu_model = patch_suit_model(suit_bytes(f"{SUIT_MENU_STEM}.model"))
 
-    fps_zip = ROOT / "references" / "Heister - FPS Gloves in TPS 2.zip"
+    fps_zip = ROOT / "references" / "templates" / "Heister - FPS Gloves in TPS 2.zip"
     with zipfile.ZipFile(fps_zip) as zf:
         chill_model = patch_suit_model(
             zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/npc_criminals_suit_chill.model")

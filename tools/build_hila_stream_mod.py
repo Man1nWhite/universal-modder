@@ -4,12 +4,12 @@
 This is the route the game itself uses: every heister line is a file
 ``soundbanks/streamed/regular_vox/<id>.stream`` and the game plays it by id, so
 writing a file with our audio under Hila's id replaces that one line - no event
-table, no BeardLib, no Lua. ``references/Tokoyami Hila.7z`` is the working pack
+table, no BeardLib, no Lua. ``references/voice/Tokoyami Hila.7z`` is the working pack
 this is modelled on (``docs/tokoyami-hila-voice-mod-analysis.md``).
 
 The clips come from ``slot_picks.csv``, which decides each slot's source - an ogg
-from ``references/Голос Лоусон.7z`` or a purpose-authored MP3 from
-``references/LAWSON VOICE (PAYDAY 2).7z`` - and the sub-ranges it keeps; they are
+from ``references/voice/Голос Лоусон.7z`` or a purpose-authored MP3 from
+``references/voice/LAWSON VOICE (PAYDAY 2).7z`` - and the sub-ranges it keeps; they are
 encoded as IMA ADPCM in Wwise's RIFF container by
 ``tools/pd2-las/wwise_ima.py``. One file per id, so the 885 ids of
 ``hila_intent_cuts.csv`` become 885 files (699 after the 27 ids the vanilla bank
@@ -171,7 +171,7 @@ CONTENTS
   soundbanks/streamed/regular_vox/      {n_files} .stream files, {seconds:.0f}s of audio in all
   hila_stream_map.csv                   id -> slot -> source clip (build manifest)
 
-Source archives: references/Голос Лоусон.7z and references/LAWSON VOICE (PAYDAY 2).7z
+Source archives: references/voice/Голос Лоусон.7z and references/voice/LAWSON VOICE (PAYDAY 2).7z
 Mapping: voice_lines_vox/miranda_lawson/hila_intent_cuts.csv
 Nothing outside this folder is touched: music, radio, other heisters and all
 vanilla files stay as they are.

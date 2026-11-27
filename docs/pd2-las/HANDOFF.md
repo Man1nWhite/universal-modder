@@ -21,7 +21,7 @@ The in-game captures of 2026-11-15 are of `Honoko2`; they are kept as the record
 the outfit looked like before the fit and colourway changes below.
 
 `OfficeSuite` applies the user's revised third colourway (black jacket, light shirt,
-`references/Honoka/Tex_07(L_7)3.dds`, D45/D46), updated jewelry diffuse (`references/Honoka/Tex_23(L_23)2.dds`),
+`references/honoka/Tex_07(L_7)3.dds`, D45/D46), updated jewelry diffuse (`references/honoka/Tex_23(L_23)2.dds`),
 and waist/hip/cuff fit adjustments (D50). It carries the 5% bone-anchored slim (`_slim_groups`, D42) and the
 layer-clearance pass with the trimmed shadow caster that answer the 2026-11-15 neck and chest close-ups (D44).
 Earlier user-supplied captures show `OfficeSuite` prior to the jewelry texture update. It also ships a
@@ -58,7 +58,7 @@ swaps the heister's head and the mask cannot be put back on; the pack's own eyes
 ones. It has not been seen in game; its lashes are the donation's `opacity:` shader with a real alpha cutout,
 which is the one thing the offline checks cannot confirm.
 
-`Arivus_over_Hoxton` (`build_arivus_hoxton_mod`, `references/1581859199_135363.rar`) replaces Old Hoxton's
+`Arivus_over_Hoxton` (`build_arivus_hoxton_mod`, `references/characters/1581859199_135363.rar`) replaces Old Hoxton's
 head — the `g_head_old_hoxton` drawable inside the shared suit model (`npc_criminals_suit_1.model` +
 `npc_criminals_suit_menu_1.model`, plus `npc_criminals_suit_chill.model` for the Safe House) — with the
 head and hair of the GTA SA "Random4" RenderWare ped (materials 5 `head` + 6 `hair`; the necklace and
@@ -127,7 +127,7 @@ installed on 2026-11-15 were identified by the user, not hash-measured from the 
 - **Head packs, coverage.** Clover and Bonnie replace the heist, menu *and* Safe House (`*_chill`) models; Joy,
   Sydney and Hila replace the heist + menu models only, so their Safe House units keep the vanilla head (Hila
   has no Safe House unit to swap). Hila is also the only heister whose head packs carry the user-supplied
-  `references/EYE_Diff.png` in the eye quadrant (D41). There is no checklist for the head packs. Until someone
+  `references/textures/EYE_Diff.png` in the eye quadrant (D41). There is no checklist for the head packs. Until someone
   looks at a throat again the five L4D2 packs are *offline-verified only*.
 
 ## Dead ends — do not retry

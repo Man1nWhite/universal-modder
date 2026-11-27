@@ -1,6 +1,6 @@
 """RenderWare DFF/TXD reader for the GTA-format ped sources (stdlib + numpy).
 
-Written for ``references/1581859199_135363.rar`` (``Random4.dff`` / ``Random4.txd``):
+Written for ``references/characters/1581859199_135363.rar`` (``Random4.dff`` / ``Random4.txd``):
 a GTA V-style ped exported on a GTA SA-era RW 3.6 stream (one Clump, one skinned
 Geometry with per-material triangle groups, RpSkin weights, a TexDictionary of
 DXT rasters). The head-replacement builder uses it to take the head, hair and
@@ -12,7 +12,7 @@ What the fields inside Geometry / Skin / BinMesh / TextureNative mean is version
 and platform specific; this module reads only the layouts this source uses and
 ``--probe`` verifies every parser against the chunk extents.
 
-    python3 tools/pd2-las/rw_dff.py probe  references/1581859199_135363.rar
+    python3 tools/pd2-las/rw_dff.py probe  references/characters/1581859199_135363.rar
     python3 tools/pd2-las/rw_dff.py dump   build/hoxton-source/out
 """
 from __future__ import annotations

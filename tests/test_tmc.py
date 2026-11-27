@@ -1,7 +1,7 @@
 """Tests for the DOAXVV ``.TMC`` reader (Honoka "Secret Report" outfit).
 
 The TMC lives inside the tracked third-party source archive
-``references/Outfit for Honoka-109-1-1-1628020933.zip`` and is extracted to a
+``references/templates/Outfit for Honoka-109-1-1-1628020933.zip`` and is extracted to a
 ``tmp_path`` once per session. The reader must:
 
 * decode the per-mesh skin palettes inline in the ``WGT_*`` ``NodeLay``
@@ -21,7 +21,7 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "tools" / "pd2-las"))
 
-ZIP = REPO / "references" / "Outfit for Honoka-109-1-1-1628020933.zip"
+ZIP = REPO / "references" / "templates" / "Outfit for Honoka-109-1-1-1628020933.zip"
 TMC_NAME = "Honoka_DOAXVV_Secret_Report.TMC"
 
 

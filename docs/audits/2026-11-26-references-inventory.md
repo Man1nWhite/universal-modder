@@ -3,6 +3,12 @@
 Request 2026-11-26: *"Analyse `/references` — what can be deleted safely? How can they be grouped
 in folders?"* This is the report; nothing was deleted or moved to produce it.
 
+**Adopted 2026-11-26.** The owner approved all of it except the PDF: the six folders in §4 are the
+layout now (PR #67), the five files in §1 are gone except `Syndey Voicelines.pdf`, which is kept
+because a VO mod may need the printed table. The sheets in §2 are the next commit. Anything below
+that quotes a flat path (`references/Geralt.7z`) describes the tree the audit was made against; the
+current path is the folder-prefixed one.
+
 **Outcome in one line:** the folder is not full of cruft — of 178.5 MB across 63 files, 161 MB is
 read by a tool or is the only copy of a source, and the defensible deletions (5 files, 17.5 MB) change
 no pack byte and shrink nobody's clone; the grouping is worth doing but is a 33-file edit that
@@ -95,7 +101,7 @@ does not have. `voice_lines_vox/sheets/COVERAGE.md` reports:
 The preambles match the declared counts digit for digit: these are the `File → Download → CSV`
 exports COVERAGE.md is still asking for, and it tells the reader to save them in `references/`,
 which is where somebody already put them. **Do not delete them; import them** —
-`make -sC tools/pd2-las voices_sheets SHEET="references/PAYDAY 2 Sound files - regular_vox.csv" WANT=<tab>`
+`make -sC tools/pd2-las voices_sheets SHEET="references/sheets/PAYDAY 2 Sound files - regular_vox.csv" WANT=<tab>`
 — and then rewrite the coverage table. That is the D76/D77 work, and it is worth more than every
 deletion in §1 combined.
 
@@ -150,7 +156,7 @@ references/
 | Code | 33 Python files hold `references/…` literals (13 of them a single constant); `status.INPUTS` alone is 16 paths; 3 shell/Makefile lines; `extract_2b.py`, `build_las.py`, `build_models.py`, `rw_dff.py`, `tmc.py`, `source_model.py`, `render_honoka.py`, `build_honoko2_dae.py`, `build_joy_head_mods.py` (10 literals), `build_hila_stream_mod.py`, `hila_voice_clips.py`, `wwise_ima.py`, `build_las_pack.py`, `import_voiceline_sheet.py` |
 | Tests | 12 test modules name paths directly, plus `test_dist_layout.test_character_archives_live_in_references` (4 exact names) and `test_repo_weight.ALLOWED` (`references/Marine VO for Rust.7z`, whose reason must stay ≥ 20 chars) |
 | Docs | `references/README.md` (every row), `voice_lines_vox/sheets/COVERAGE.md` ("save it in `references/`"), `tools/pd2-las/README.md`, `references` paths in `docs/pd2-*`, `docs/pd2-las/*`, `knowledge/*` |
-| **Pack bytes** | 5 of the 13 packs embed `references/` strings of their own, so a move in their folder changes their checksum and needs a rebuild: `dist/Miranda/OfficeSuite.zip` and `OfficeSuite_Head.zip` (13 `references/Honoka/…` + the Honoka outfit zip, in `BUILD_INFO.json`), `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`, `dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip`, `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` (one "Source archives" line each in `README.txt`). The other 8 packs name no `references/` path and are byte-safe under any move. |
+| **Pack bytes** | 5 of the 13 packs embed `references/` strings of their own, so a move in their folder changes their checksum and needs a rebuild: `dist/Miranda/OfficeSuite.zip` and `OfficeSuite_Head.zip` (13 `references/honoka/…` + the Honoka outfit zip, in `BUILD_INFO.json`), `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`, `dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip`, `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` (one "Source archives" line each in `README.txt`). The other 8 packs name no `references/` path and are byte-safe under any move. |
 
 So the move is **not** free anywhere except in the 8 packs, and it is cheapest exactly where the
 packaging is already dynamic: `build_honoko2_dae` writes `BUILD_INFO` from `TEX_DIR`/`DAO` constants,

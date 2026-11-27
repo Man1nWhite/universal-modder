@@ -67,8 +67,8 @@ def test_incomplete_extraction_does_not_replace_a_cache(tmp_path):
 
 def test_head_cache_replaces_stale_flattened_textures_and_removed_members(tmp_path, monkeypatch):
     monkeypatch.setattr(heads, "ROOT", tmp_path)
-    refs = tmp_path / "references"
-    refs.mkdir()
+    refs = tmp_path / "references" / "characters"
+    refs.mkdir(parents=True)
     archive = refs / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
     cache = tmp_path / "cache"
     dae = "Miranda Lawson (Romance) - Adjusted Version.dae"

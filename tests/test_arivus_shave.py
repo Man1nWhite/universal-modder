@@ -28,7 +28,7 @@ import build_joy_head_mods as bjh  # noqa: E402
 import rw_dff as rwd  # noqa: E402
 
 #: the Random4 ped the Arivus pack is built from
-ARIVUS_ARCHIVE = ROOT / "references" / bjh.ARIVUS_ARCHIVE
+ARIVUS_ARCHIVE = ROOT / "references" / "characters" / bjh.ARIVUS_ARCHIVE
 needs_arivus = pytest.mark.skipif(
     not ARIVUS_ARCHIVE.exists(),
     reason=f"{ARIVUS_ARCHIVE.name} is a game asset; see references/README.md",

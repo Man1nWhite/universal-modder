@@ -106,7 +106,7 @@ def test_the_bank_module_is_not_the_voice_switch():
 def test_a_dedicated_table_is_measured_not_generated():
     """A dedicated bank's ids cannot be derived, so a table only exists with a reference pack.
 
-    The one tracked is `char_rust`, measured in `references/Marine VO for Rust.7z.001` — the ids
+    The one tracked is `char_rust`, measured in `references/voice/Marine VO for Rust.7z.001` — the ids
     of Rust's own bank, which share nothing with the shared `regular_vox` ids: that 0 is the
     measurement that keeps the two banks from being confused for one another.
     """

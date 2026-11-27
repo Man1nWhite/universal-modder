@@ -6,7 +6,7 @@ Two problems are fixed here, both of them a fresh clone's first five minutes:
   order. That is one `sys.path[:0] = [...]` per file to keep in sync; `pytest` imports this
   module before collecting, so one line here does the same job for all of them.
 
-* The 2B reference templates (`references/2b.rar`, unpacked to `build/pd2-las/2b/`) are
+* The 2B reference templates (`references/templates/2b.rar`, unpacked to `build/pd2-las/2b/`) are
   gitignored build inputs. Without them, `pytest tests` reported four *failures* with
   `FileNotFoundError: .../2b.model` and one *error* per test that imported py7zr — which reads
   like a broken checkout rather than "run `make -sC tools/pd2-las env`". Now the suite tries the

@@ -22,7 +22,7 @@ workspace: everything is derived from the tracked source archive and the
 tracked rig contract. Nothing here is game-verified.
 
 The shipped port. The values in this file port Miranda Lawson from Mass
-Effect 2: source ``references/PC _ Computer - Mass Effect 2 - Non-Playable
+Effect 2: source ``references/characters/PC _ Computer - Mass Effect 2 - Non-Playable
 Characters - Miranda Lawson (Romance).zip`` (rigged COLLADA + textures),
 ``<id>`` = ``lawson``, output ``dist/Miranda_Romance/Miranda_Romance_LAS.zip`` with root
 ``Lawson_LAS/``. That pack is tracked in git, compared byte for byte in CI
@@ -88,7 +88,7 @@ from me2_dae import load_dae  # noqa: E402
 
 # The source archive (a rigged COLLADA file plus its PNG textures), the
 # default output path and the .dae to read inside the archive.
-SOURCE_ZIP = ROOT / "references" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
+SOURCE_ZIP = ROOT / "references" / "characters" / "PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip"
 RIG_JSON = HERE / "reference" / "las_rig.json"
 DEFAULT_OUT = dist_path(ROOT, "lawson_las.zip")
 DAE_NAME = "Miranda Lawson (Romance) - Adjusted Version.dae"

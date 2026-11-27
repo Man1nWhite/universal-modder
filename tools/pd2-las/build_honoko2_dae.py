@@ -4,14 +4,14 @@
 Unlike the earlier TMC-only build (deleted 2026-11-15, D40), which merged the raw
 `.TMC` meshes into 3 material slots and overlaid the unbuttoned `WGT_cap2` jacket
 on top of the buttoned `WGT_headdress2` suit, this driver builds from the Collada
-export `references/Honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
+export `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae`:
 
 * **Clean garment selection + per-submesh materials** — uses the complete
   buttoned suit + skirt (`WGT_headdress2_0..5`) together with all body, bra,
   high-heel, and gold-jewelry submeshes (`WGT_new_aya_body_1..8`), avoiding the
   overlapping `WGT_cap2` shell that z-fights on the torso and back.
 * **6 proper material slots per pack** parsed from the `.dae` bindings and paired
-  with their source normal maps (`references/Honoka/L_*.dds`, plus `Tex_07(L_7) 2.dds`
+  with their source normal maps (`references/honoka/L_*.dds`, plus `Tex_07(L_7)3.dds`
   and `Tex_07(L_7)3.dds` for `Honoko4` and `OfficeSuite`):
   - `<id>_body`: `L_3.dds` / `L_4.dds`
   - `<id>_suit`: `L_7.dds` (or variant `Tex_07`) / `L_8.dds`
@@ -75,10 +75,10 @@ from pack_checksum import write_pack_checksum  # noqa: E402
 DEFAULT_TEMPLATES = extract_2b.TEMPLATES
 DEFAULT_OUT = REPO / "dist" / "Miranda"
 DEFAULT_WORK = REPO / "build" / "honoko2"
-DAE_PATH = REPO / "references" / "Honoka" / "Honoka_DOAXVV_Secret_Reportout.dae"
-SOURCE_ZIP = REPO / "references" / "Outfit for Honoka-109-1-1-1628020933.zip"
+DAE_PATH = REPO / "references" / "honoka" / "Honoka_DOAXVV_Secret_Reportout.dae"
+SOURCE_ZIP = REPO / "references" / "templates" / "Outfit for Honoka-109-1-1-1628020933.zip"
 TMC_NAME = "Honoka_DOAXVV_Secret_Report.TMC"
-TEX_DIR = REPO / "references" / "Honoka"
+TEX_DIR = REPO / "references" / "honoka"
 
 @dataclass(frozen=True)
 class PackSpec:
@@ -214,7 +214,7 @@ TAPER_MAX_CM = 0.35
 CENTRE_WRIST = 1.0
 
 #: The outfit's one tracked pack: the slim, cleared geometry in the user's third colourway,
-#: `references/Honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by
+#: `references/honoka/Tex_07(L_7)3.dds` (revised black jacket and light shirt), updated by
 #: the user at `main` 526480e (D45/D46), hands cut where the palms begin (D59, clipped on the
 #: plane since D60; they were the outfit's own from D55 until then).
 #:
@@ -693,7 +693,7 @@ def build_textures(spec: "PackSpec") -> tuple[dict[str, bytes], dict]:
                 levels = _full_mip_levels(img, colour=False)
             textures[f"{stem}.texture"] = dds_encode.bc3_dds_from_levels(levels)
             report[stem] = {
-                "source": f"references/Honoka/{dds_name}",
+                "source": f"references/honoka/{dds_name}",
                 "source_sha256": _hl.sha256(src_bytes).hexdigest(),
                 "size": list(im.shape[:2]),
                 "mips": len(levels),

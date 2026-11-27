@@ -36,11 +36,11 @@ tags: [payday-2, diesel, las, armor-skin, l4d2, source-engine, vpk, mdl, vtf, ou
 
 ## Setup
 
-- Source material: `references/l4d2_miranda_lawson_1.zip` (GameMaps.com "Miranda Lawson"
+- Source material: `references/characters/l4d2_miranda_lawson_1.zip` (GameMaps.com "Miranda Lawson"
   L4D2 addon; a single-file VPK replacing Rochelle: third-person
   `survivor_producer.{mdl,vvd,phy,dx80/dx90/sw.vtx}`, first-person
   `v_arms_producer_new.*`, 8 VTF + 6 VMT materials). User-supplied private input.
-- Product-contract reference: `references/2b.rar` (2B LAS pack: `LegendaryArmours.twobee`
+- Product-contract reference: `references/templates/2b.rar` (2B LAS pack: `LegendaryArmours.twobee`
   hook on `lib/tweak_data/armorskinstweakdata`, unit + fps_unit, hide_mask /
   hide_armor / replace_all / fps flags, BeardLib `main.xml` + `unit_mat`
   registration). Studied as text/binary, not installed.

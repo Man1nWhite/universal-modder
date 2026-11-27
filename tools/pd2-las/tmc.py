@@ -1,6 +1,6 @@
 """Minimal reader for DOA5/DOAXVV ``.TMC`` model files (Route B).
 
-Written for the Honoka "Secret Report" outfit (``references/Outfit for
+Written for the Honoka "Secret Report" outfit (``references/templates/Outfit for
 Honoka-109-1-1-1628020933.zip``). It parses the same sections the community
 Noesis plugin "doa5pctools" walks, but keeps the skinning data that plugin
 binds to nowhere:

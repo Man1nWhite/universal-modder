@@ -5,7 +5,7 @@ PAYDAY 2 keeps heister voice lines in ``soundbanks/streamed/<bank>/<id>.stream``
 one audio file per voice-line id, no event table, so a voice pack replaces a
 line by naming its file after the id. Almost all of them are Wwise's IMA
 ADPCM in a plain RIFF container, and this module is the whole format, checked
-byte for byte against the 1,062 ADPCM files of ``references/Tokoyami Hila.7z``
+byte for byte against the 1,062 ADPCM files of ``references/voice/Tokoyami Hila.7z``
 (see ``docs/tokoyami-hila-voice-mod-analysis.md``):
 
 * A 64-byte header: ``RIFF``/``WAVE``, ``fmt `` with a **24-byte** payload,

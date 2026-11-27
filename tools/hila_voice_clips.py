@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The clip half of the Miranda-over-Hila voice packs: pick, cut, level-match.
 
-Miranda Lawson's barks live in `references/Голос Лоусон.7z` as ~870 oggs of whole
+Miranda Lawson's barks live in `references/voice/Голос Лоусон.7z` as ~870 oggs of whole
 scenes. `voice_lines_vox/miranda_lawson/hila_intent_cuts.csv` says which Hila slot
 answers which intent; `slot_picks.csv` is the hand-picked (source ogg, window, phrase
 splits) per slot, and the file-hint column plus the stem heuristic below are only a
@@ -29,9 +29,9 @@ sys.path.insert(0, str(ROOT / "tools" / "pd2-las"))
 import determinism  # noqa: E402  (the pinned numeric code path every builder enters)
 CUTS = ROOT / "voice_lines_vox/miranda_lawson/hila_intent_cuts.csv"
 MAP = ROOT / "voice_lines_vox/miranda_lawson/hila_to_miranda_mapping.csv"
-ARCHIVE = ROOT / "references/Голос Лоусон.7z"
+ARCHIVE = ROOT / "references/voice/Голос Лоусон.7z"
 #: purpose-authored Mira takes for individual slots (TTS); slot-keyed by file name
-MIRA_ARCHIVE = ROOT / "references/LAWSON VOICE (PAYDAY 2).7z"
+MIRA_ARCHIVE = ROOT / "references/voice/LAWSON VOICE (PAYDAY 2).7z"
 #: slots deliberately left vanilla: semantic fit < 8 and no take in either archive
 REMOVED = ROOT / "voice_lines_vox/miranda_lawson/removed_slots.csv"
 SPLITS = ROOT / "voice_lines_vox/miranda_lawson/ogg_phrase_splits.csv"
