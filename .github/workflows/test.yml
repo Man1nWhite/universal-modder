@@ -70,8 +70,10 @@ jobs:
         # `packs` job writes only inside build/fresh/.
         run: python tools/pd2-las/pack_checksum.py
       - name: lint
-        # the same pinned ruff/mypy pyproject's [dev] extra installs
+        # this job does not install '.[dev]' (it installs the pins by name), so the linters
+        # come from the same exact versions here that pyproject's [dev] extra carries
         run: |
+          python -m pip install --quiet "ruff==0.17.6" "mypy==2.4.1"
           python -m ruff check .
           python -m mypy
       - name: documentation
@@ -121,7 +123,7 @@ jobs:
         shell: cmd
         run: bin\um.cmd --version
       - name: platform-pure suites
-        run: python -m pytest tests/test_win_quoting.py tests/test_win_launch.py tests/test_encoding.py tests/test_backup_name_safety.py -q
+        run: python -m pytest tests/test_win_quoting.py tests/test_win_launch.py tests/test_encoding.py tests/test_backup_name_safety.py -q -rs
 
   changes:
     # A pull request tells the `packs` job whether it can change the answer. The workflow's own

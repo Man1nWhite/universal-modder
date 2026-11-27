@@ -24,6 +24,7 @@ import hashlib
 import json
 import ntpath
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -31,7 +32,7 @@ import sys
 import time
 import urllib.request
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from um.common import PS_UTF8, die, is_windows, is_wsl, ps_exe, text_console, text_utf8, to_posix, to_win
 
@@ -235,9 +236,9 @@ def launch(target: str, args: list[str], steam: bool = False):
         exe = to_win(target)
         spawn, cwd = exe, ntpath.dirname(exe) or None
     else:  # WSL: the interop layer runs the Windows binary by its Linux path and translates cwd
-        spawn_path = Path(to_posix(target)).expanduser()
+        spawn_path = PurePosixPath(posixpath.expanduser(to_posix(target)))
         spawn = str(spawn_path)
-        cwd = str(spawn_path.parent) if spawn_path.parent != Path(".") else None
+        cwd = str(spawn_path.parent) if spawn_path.parent != PurePosixPath(".") else None
     try:
         subprocess.Popen([spawn, *args], cwd=cwd)
     except OSError as e:
