@@ -5,7 +5,7 @@ in folders?"* This is the report; nothing was deleted or moved to produce it.
 
 **Adopted 2026-11-26.** The owner approved all of it except the PDF: the six folders in §4 are the
 layout now (PR #67), the five files in §1 are gone except `Syndey Voicelines.pdf`, which is kept
-because a VO mod may need the printed table. The sheets in §2 are the next commit. Anything below
+because a VO mod may need the printed table. The sheets in §2 are imported, in full (D81). Anything below
 that quotes a flat path (`references/Geralt.7z`) describes the tree the audit was made against; the
 current path is the folder-prefixed one.
 
@@ -100,7 +100,7 @@ does not have. `voice_lines_vox/sheets/COVERAGE.md` reports:
 
 The preambles match the declared counts digit for digit: these are the `File → Download → CSV`
 exports COVERAGE.md is still asking for, and it tells the reader to save them in `references/`,
-which is where somebody already put them. **Do not delete them; import them** —
+which is where somebody already put them. **Do not delete them; import them** (done 2026-11-26, D81) —
 `make -sC tools/pd2-las voices_sheets SHEET="references/sheets/PAYDAY 2 Sound files - regular_vox.csv" WANT=<tab>`
 — and then rewrite the coverage table. That is the D76/D77 work, and it is worth more than every
 deletion in §1 combined.
