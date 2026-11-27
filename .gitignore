@@ -1,4 +1,5 @@
 .venv/
+.venv
 __pycache__/
 *.pyc
 uv.lock
@@ -28,3 +29,8 @@ dist/*
 preview_tmp/
 
 .hypothesis/
+
+# pytest-cov's data file and its report
+.coverage
+.coverage.*
+htmlcov/

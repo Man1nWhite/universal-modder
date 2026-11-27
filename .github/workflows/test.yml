@@ -1,13 +1,19 @@
 name: test
 # Two jobs, because one of them is ten times the other:
-#   `test`  — every gate that reads the tree: checksums, lint, links, docs index, the suite, the
-#             skip budget, the CLI help, the knowledge base and the publish check. About 3 minutes.
+#   `test`  — every gate that reads the tree: checksums, ruff, mypy, links, docs index, the suite
+#             with its coverage floor, the skip budget, the CLI help, the knowledge base and the
+#             publish check. About 4 minutes.
 #   `packs` — every tracked ZIP built again from scratch and compared byte for byte
 #             (`tools/pd2-las/fresh.py check`). Quarter of an hour; the only slow step.
+# Gates, their settings and the branch rules a repository owner has to set once:
+# docs/ci.md.
 # Until 2026-11-26 both lived in one 35-minute job that ran on every push, so a docs typo cost a
 # 15-minute rebuild and a superseded push kept a runner busy to the end. `packs` now runs when it
-# can change the answer: a push to main, a tag, a nightly schedule, a manual run, or a pull
-# request that carries the `rebuild-packs` label. `make -sC tools/pd2-las green` runs both locally.
+# can change the answer: a push to main, a tag, a nightly schedule, a manual run, a pull request
+# that carries the `rebuild-packs` label, or a pull request that touches what the packs are built
+# from (`dist/`, `tools/`, `references/` — the `changes` job answers that). The label stays for
+# the case the paths miss: a dependency bump in `pins.txt`'s installers, a runner image change.
+# `make -sC tools/pd2-las green` runs both locally.
 on:
   push:
   pull_request:
@@ -31,19 +37,19 @@ jobs:
     runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e  # v6.8.0
       # the LAS pack is a byte-reproducible artifact: it must be built with the
       # same interpreter and library versions as the release workflow, or the
       # deflate output (and so the sha256) differs
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
         with:
           python-version: "3.11"
           # the wheels are the same on every run; only pins.txt decides them
           cache: pip
           cache-dependency-path: tools/pd2-las/pins.txt
       - name: install deps
-        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy py7zr imageio-ffmpeg "pyyaml>=6" pytest hypothesis
+        run: python -m pip install --upgrade pip -c tools/pd2-las/pins.txt pillow numpy py7zr imageio-ffmpeg "pyyaml>=6" pytest pytest-cov hypothesis
         # The versions of pillow and numpy are those of tools/pd2-las/pins.txt.
       # ffmpeg enables the optional video and encoding tests. Without recommends apt skips mesa, VA/VDPAU drivers and
       # pocketsphinx-en-us (about half the download), and with man-db's auto-update off dpkg skips the man-page
@@ -63,8 +69,13 @@ jobs:
         # `packs` job writes only inside build/fresh/.
         run: python tools/pd2-las/pack_checksum.py
       - name: lint
-        # unused imports and dead locals accumulate silently otherwise; this is the whole check
-        run: python -m pip install --quiet pyflakes && python -m pyflakes um tools tests
+        # pyflakes' whole set plus imports and bugbear: unused imports and dead locals
+        # accumulate silently otherwise. The rules and the ignores are in pyproject.toml;
+        # the version is pinned so a new release cannot turn the gate red unannounced.
+        run: |
+          python -m pip install --quiet "ruff==0.17.6" "mypy==2.4.1"
+          python -m ruff check .
+          python -m mypy
       - name: documentation
         # every relative Markdown link resolves, and docs/README.md lists every document
         run: |
@@ -74,13 +85,37 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p build
-          python -m pytest -q -rsxX tests | tee build/pytest-rsxX.txt
+          python -m pytest -q -rsxX tests --cov --cov-fail-under=58 | tee build/pytest-rsxX.txt
           python tools/pd2-port/check_skip_budget.py --report build/pytest-rsxX.txt
       - run: ./bin/um --help && for g in scan fal comfy sprite render3d video win backup publish kb; do ./bin/um $g --help > /dev/null; done
       - name: knowledge base
         run: ./bin/um kb check --index
       - name: nothing that shouldn't ship
         run: ./bin/um publish check .
+
+  changes:
+    # A pull request tells the `packs` job whether it can change the answer. The workflow's own
+    # `paths:` filter cannot do this per job, and skipping the job on paths alone would leave the
+    # required check pending: a filtered-out job reports success, a job `if:`-skipped reports
+    # skipped, so the decision is made in a job that always runs and never builds anything.
+    if: github.event_name == 'pull_request'
+    runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    outputs:
+      packs: ${{ steps.scope.outputs.packs }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+        with:
+          fetch-depth: 0        # the diff needs the merge base, not a shallow tip
+      - name: does this pull request touch what the packs are built from?
+        id: scope
+        run: |
+          set -euo pipefail
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -qE '^(dist|tools|references)/'; then
+            echo "packs=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "packs=false" >> "$GITHUB_OUTPUT"
+          fi
 
   packs:
     # Every tracked pack must equal a fresh build, byte for byte. All 13 are built again in a
@@ -95,18 +130,22 @@ jobs:
     # read what happened.
     # On a runner that is not x86-64 (the one-off ARM comparison) the declared code path does not
     # exist: the builders are left free and the step reports what differs.
-    needs: test
+    needs: [test, changes]
     if: >-
-      github.event_name == 'schedule'
+      !cancelled()
+      && needs.test.result == 'success'
+      && (github.event_name == 'schedule'
       || (github.event_name == 'workflow_dispatch' && inputs.rebuild_packs)
       || (github.event_name == 'push' && github.ref == 'refs/heads/main')
-      || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'rebuild-packs'))
+      || (github.event_name == 'pull_request'
+      && (contains(github.event.pull_request.labels.*.name, 'rebuild-packs')
+      || needs.changes.outputs.packs == 'true')))
     runs-on: ${{ inputs.runner || 'ubuntu-latest' }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e  # v6.8.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5.6.0
         with:
           python-version: "3.11"
       - name: verify the checked-in pack checksums

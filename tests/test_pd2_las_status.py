@@ -148,6 +148,24 @@ def test_status_keeps_incomplete_and_deleted_pairs_in_target_inventory(status_ch
     assert status.main([pack.stem]) == 0
 
 
+def test_a_staged_pack_deletion_leaves_the_inventory_at_once(status_checkout):
+    """`pack_names()` follows the index: `git rm` a pack and it is gone before the commit.
+
+    The suite walks `pack_names()`. When discovery also read HEAD, staging the deletion of
+    nine packs left 87 tests failing on files that were meant to be gone, and the only way
+    to get green was to commit a tree the tests then failed on for the same reason.
+    `status.collect()` keeps naming the pair through `include_head=True`, so `make status`
+    still reports the loss - that is the part that should be loud.
+    """
+    status, pack = status_checkout
+    assert pack.stem in status.pack_names()
+    sidecar = sidecar_path(pack)
+    subprocess.run(["git", "rm", "-q", str(pack.relative_to(status.REPO)),
+                    str(sidecar.relative_to(status.REPO))], cwd=status.REPO, check=True)
+    assert pack.stem not in status.pack_names()
+    assert status.collect(only=["heads"])["packs"][pack.stem]["is"] == "missing"
+
+
 def test_status_does_not_credit_an_untracked_pair_as_a_rebuild(status_checkout):
     status, pack = status_checkout
     probe = pack.with_name("Miranda_Probe.zip")
@@ -312,6 +330,21 @@ def test_readme_keeps_its_contract():
     for row in re.findall(r"^\| (`[^|]+) \| [^|]+ \|$", text, flags=re.M):
         for name in re.findall(r"`([\w.*-]+\.(?:py|json|sh|md)|Makefile)`", row):
             assert list(HERE.glob(name)), f"file map names {name}, which is not in tools/pd2-las"
+
+
+def test_readme_file_map_lists_every_module():
+    """The map is the only index of `tools/pd2-las/`: a module it omits is one nobody finds.
+
+    Fifteen modules (the Arivus GLB writer, `rw_dff`, `pack_checksum`, the one-off
+    diagnostics) had drifted out of it while every test passed, because the map was only
+    checked in the direction it was written: every row names a file, not every file a row.
+    """
+    text = README.read_text()
+    section = text.split("## File map")[1].split("## Invariants")[0]
+    named = set(re.findall(r"`([\w.-]+\.py)`", section))
+    modules = {path.name for path in HERE.glob("*.py")}
+    assert not modules - named, "tools/pd2-las modules missing from the README file map: " \
+        f"{sorted(modules - named)}"
 
 
 def test_readme_invariants_are_the_invariant_tests():

@@ -903,7 +903,7 @@ def test_own_hands_packs_never_draw_a_default_glove(pack):
         # hook is the route for those, and a "default glove = none" rule on a
         # handed-off pack would be a claim the pack cannot keep.
         assert not own, f"{pack}: an own-hands hook on a pack that models no hands: {own}"
-        assert not info.get("hands") is True, f"{pack}: records modelled hands but no hook"
+        assert info.get("hands") is not True, f"{pack}: records modelled hands but no hook"
         return
     assert "hands" in info, "the pack is registered as owning hands but models none"
     assert len(own) == 1, f"{pack}: modelled hands without an own-hands hook: {hooks}"

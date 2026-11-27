@@ -495,7 +495,7 @@ def extend_neck_skirt(
 
     The head models are cut off at the neck: the neck sheet's outer boundary ends
     across the throat, at z 149.5 on the heister rig. Over the bodies measured so
-    far that rim is already hidden - on `dist/Christie/Christie_LAS.zip` **0 of its 98-120
+    far that rim is already hidden - on the retired Christie body **0 of its 98-120
     edges** are the front-most surface, from the front or from behind
     (docs/audits/2026-11-07-christie-slim-diagnosis.md §10.2) - but a rim that
     stops exactly where a collar ends is one wider neckline away from being the
@@ -762,43 +762,6 @@ def extend_neck_into_collar(
     return (np.vstack([p, new_p]), np.vstack([n, new_n]),
             np.vstack([uv, new_uv]),
             np.vstack([tris, np.asarray(new_tris, dtype=tris.dtype)]))
-
-
-def suit_collar_radius(model_bytes: bytes, *, from_z: float = 150.0,
-                       to_z: float = 172.0) -> callable:
-    """The suit body's radius as a function of height, for the neck skirt.
-
-    Measures the ``g_body`` drawable of a suit model: for each 0.5 cm slice it
-    takes the largest radius of any surface within 25 cm of the neck axis. That
-    is the collar's outer wall, which is the surface the skirt has to stay
-    inside. Below the collar (no g_body surface that high) the radius falls back
-    to the last measured value.
-    """
-    mf = dm.ModelFile.read(model_bytes)
-    body = None
-    for s in mf.by_type(dm.MODEL_DATA):
-        md = dm.decode_model_data(s.payload)
-        if md.get("version") != 3 or not md.get("atoms") or md.get("name_hash") != dm.hash64("g_body"):
-            continue
-        gp = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
-        body = np.asarray(dm.decode_geometry(mf.by_id(gp["geometry"]).payload)["verts"], np.float64)
-        break
-    if body is None:
-        raise ValueError("suit model has no g_body drawable to measure the collar on")
-    near = (np.hypot(body[:, 0], body[:, 1]) < 25.0) & (body[:, 2] > from_z) & (body[:, 2] < to_z)
-    heights, radii = [], []
-    for z0 in np.arange(from_z, to_z, 0.5):
-        m = near & (body[:, 2] >= z0) & (body[:, 2] < z0 + 0.5)
-        if m.any():
-            heights.append(z0 + 0.25)
-            radii.append(float(np.hypot(body[m, 0], body[m, 1]).max()))
-
-    def radius(z: float) -> float:
-        if not heights:
-            return 0.0
-        return float(np.interp(z, heights, radii))
-
-    return radius
 
 
 def repair_skin_and_neck_normals(
@@ -1146,46 +1109,6 @@ def _prepare_combined_head_arrays(
     }
 
 
-def patch_joy_model(
-    joy_model_path: Path,
-    atom0_mesh: dict[str, np.ndarray],
-    atom1_mesh: dict[str, np.ndarray],
-) -> bytes:
-    """Replace `g_head_mask_off` (120 -> 228/229) and `g_head` (121 -> 233/234) in `npc_criminal_joy_1.model`."""
-    mf = dm.ModelFile.read(joy_model_path.read_bytes())
-    packed = _prepare_combined_head_arrays(atom0_mesh, atom1_mesh, bone_offset=0)
-
-    new_sections: list[dm.Section] = []
-    for s in mf.sections:
-        if s.id in (228, 233):
-            dec = dm.decode_geometry(s.payload)
-            dec["vert_count"] = len(packed["verts"])
-            dec["verts"] = packed["verts"]
-            dec["normals"] = packed["normals"]
-            dec["uv0"] = packed["uv0"]
-            dec["blendindices"] = packed["blendindices"]
-            dec["blendweights"] = packed["blendweights"]
-            dec["uvdir_v"] = packed["uvdir_v"]
-            dec["uvdir_u"] = packed["uvdir_u"]
-            new_sections.append(dm.Section(s.type, s.id, dm.encode_geometry(dec)))
-        elif s.id in (229, 234):
-            dec = dm.decode_topology(s.payload)
-            dec["indices"] = packed["indices"]
-            new_sections.append(dm.Section(s.type, s.id, dm.encode_topology(dec)))
-        elif s.id in (120, 121):
-            dec = dm.decode_model_data(s.payload)
-            dec["atoms"] = packed["atoms"]
-            dec["bounds_min"] = packed["bmin"]
-            dec["bounds_max"] = packed["bmax"]
-            dec["bounding_radius"] = packed["radius"]
-            new_sections.append(dm.Section(s.type, s.id, dm.encode_model_data(dec)))
-        else:
-            new_sections.append(s)
-
-    out_mf = dm.ModelFile(new_sections)
-    return out_mf.write()
-
-
 def patch_female_heister_model(
     model_bytes: bytes,
     head_drawables: list[str],
@@ -1338,53 +1261,6 @@ def disable_objects_in_xml(xml_bytes: bytes, obj_names: list[str]) -> bytes:
     for name in obj_names:
         pattern = rf'(<object\s+name="{re.escape(name)}"\s+enabled=")true(")'
         text = re.sub(pattern, r"\1false\2", text)
-    return text.encode("utf-8")
-
-
-def patch_clover_material_config(xml_bytes: bytes) -> bytes:
-    """Replace mtr_hair_1 in Clover's .material_config with opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS."""
-    text = xml_bytes.decode("utf-8", errors="ignore")
-    new_hair_1 = (
-        '<material name="mtr_hair_1" render_template="opacity:DIFFUSE_TEXTURE:SKINNED_3WEIGHTS" version="2">\n'
-        '        <opacity_texture file="units/payday2/characters/shared_textures/npc_female_hair_1_op"/>\n'
-        '        <diffuse_texture file="units/payday2/characters/shared_textures/npc_criminal_female_1_hair_df"/>\n'
-        "    </material>"
-    )
-    text = re.sub(
-        r'<material\s+[^>]*name="mtr_hair_1"[^>]*>.*?</material>',
-        new_hair_1,
-        text,
-        flags=re.DOTALL,
-    )
-    return text.encode("utf-8")
-
-
-def patch_bonnie_material_config(xml_bytes: bytes, alpha_ref: str) -> bytes:
-    """Update alpha_ref in Bonnie's mtr_hair material."""
-    text = xml_bytes.decode("utf-8", errors="ignore")
-    text = text.replace('value="0.050000000745058"', f'value="{alpha_ref}"')
-    return text.encode("utf-8")
-
-
-def patch_sydney_material_config(xml_bytes: bytes, alpha_masked: bool) -> bytes:
-    """For ME2 Romance over Sydney, make mtr_hair use ALPHA_MASKED for clean eyelash cutouts."""
-    if not alpha_masked:
-        return xml_bytes
-    text = xml_bytes.decode("utf-8", errors="ignore")
-    new_hair = (
-        '<material name="mtr_hair" unique="true" version="2" '
-        'render_template="generic:ALPHA_MASKED:DIFFUSE_TEXTURE:EXTERNAL_ALPHA_REF:NORMALMAP:SKINNED_3WEIGHTS">\n'
-        '        <diffuse_texture file="units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_hair_df"/>\n'
-        '        <bump_normal_texture file="units/pd2_dlc_opera/characters/npc_criminals_fem_3/npc_criminal_fem_3_hair_nm"/>\n'
-        '        <variable value="0.30" type="scalar" name="alpha_ref"/>\n'
-        "    </material>"
-    )
-    text = re.sub(
-        r'<material\s+[^>]*name="mtr_hair"[^>]*>.*?</material>',
-        new_hair,
-        text,
-        flags=re.DOTALL,
-    )
     return text.encode("utf-8")
 
 
@@ -1748,11 +1624,12 @@ def _emit_hila_packages(
     write_deterministic_zip(files, [dist_path(ROOT, f"Miranda_{variant_tag}_over_Hila.zip")])
 
 
-def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path], sec_nm_dds: bytes) -> None:
-    """Build Version 1 (L4D2 Miranda) head textures and emit the over Hila pack.
+def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> None:
+    """Build the L4D2 Miranda head and emit `Miranda_L4D2_over_Hila.zip`.
 
-    The over Joy/Clover/Bonnie/Sydney variants were retired in the dist clean-up;
-    the shared head assembly still feeds ``_emit_hila_packages``.
+    The over Joy/Clover/Bonnie/Sydney variants this assembly used to write were retired in
+    the dist clean-up, together with their zip; what remains is the assembly and the Hila
+    pack it feeds (D80).
     """
     with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
@@ -1892,45 +1769,13 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
     atom0_suit, atom1_suit = build_l4d2_meshes(for_suit=True)
     packed_suit_head = _prepare_combined_head_arrays(atom0_suit, atom1_suit, bone_offset=1)
 
-    joy_model_path = ada_root / JOY_UNIT_DIR / "npc_criminal_joy_1.model"
-    model_bytes = patch_joy_model(joy_model_path, atom0_joy, atom1_joy)
-
-    head_df_dds = encode_rgba_dds(atlas_df)
-    head_nm_dds = encode_rgba_dds(atlas_nm)
-
     lash_rgba, lashes_df_dds, lashes_op_dds = prepare_crisp_eyelash_textures(me2_dir)
     eyes_df_dds = lashes_df_dds
 
+    head_nm_dds = encode_rgba_dds(atlas_nm)
+
     portrait = render_head_portrait(atom0_joy, atom1_joy, atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
     icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
-
-    mtr_cfg = (
-        (ada_root / JOY_UNIT_DIR / "mtr_criminal_joy_1.material_config")
-        .read_text(encoding="utf-8")
-        .replace('value="0.042000003159046"', 'value="0.30"')
-        .encode("utf-8")
-    )
-    mtr_cc_cfg = (
-        (ada_root / JOY_UNIT_DIR / "mtr_criminal_joy_1_cc.material_config")
-        .read_text(encoding="utf-8")
-        .replace('value="0.042000003159046"', 'value="0.30"')
-        .encode("utf-8")
-    )
-
-    prefix = "Miranda L4D2 over Joy"
-    files = {
-        f"{prefix}/{JOY_ICON_PATH}": icon_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/mtr_criminal_joy_1.material_config": mtr_cfg,
-        f"{prefix}/{JOY_UNIT_DIR}/mtr_criminal_joy_1_cc.material_config": mtr_cc_cfg,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1.model": model_bytes,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_menu.model": model_bytes,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_head_df.texture": head_df_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_head_nm.texture": head_nm_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_eyes_df.texture": eyes_df_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_df.texture": lashes_df_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_op.texture": lashes_op_dds,
-    }
-    write_deterministic_zip(files, out_zip_paths)
 
     hila_atlas_df = atlas_df.copy()
     hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
@@ -1945,11 +1790,12 @@ def build_l4d2_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path],
     )
 
 
-def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list[Path], sec_nm_dds: bytes) -> None:
-    """Build Version 2 (ME2 Romance Miranda) head textures and emit the over Hila pack.
+def build_me2_romance_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> None:
+    """Build the ME2 Romance head and emit `Miranda_Romance_over_Hila.zip`.
 
-    The over Joy/Clover/Bonnie/Sydney variants were retired in the dist clean-up;
-    the shared head assembly still feeds ``_emit_hila_packages``.
+    The over Joy/Clover/Bonnie/Sydney variants this assembly used to write were retired in
+    the dist clean-up, together with their zip; what remains is the assembly and the Hila
+    pack it feeds (D80).
     """
     with zipfile.ZipFile(find_miranda_las_zip()) as zf:
         mir_bytes = zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model")
@@ -2146,45 +1992,10 @@ def build_me2_romance_joy_mod(ada_root: Path, me2_dir: Path, out_zip_paths: list
     atom0_suit, atom1_suit = build_romance_meshes(for_suit=True)
     packed_suit_head = _prepare_combined_head_arrays(atom0_suit, atom1_suit, bone_offset=1)
 
-    joy_model_path = ada_root / JOY_UNIT_DIR / "npc_criminal_joy_1.model"
-    model_bytes = patch_joy_model(joy_model_path, atom0_joy, atom1_joy)
-
-    head_df_dds = encode_rgba_dds(atlas_df)
-    head_nm_dds = encode_rgba_dds(atlas_nm)
-
     lash_rgba, lashes_df_dds, lashes_op_dds = prepare_crisp_eyelash_textures(me2_dir)
     eyes_df_dds = lashes_df_dds
 
-    portrait = render_head_portrait(atom0_joy, atom1_joy, atlas_df[:, :, :3], lash_rgba, alpha_cut=True)
-    icon_dds = make_character_icon_dds(ada_root / JOY_ICON_PATH, portrait)
-
-    mtr_cfg = (
-        (ada_root / JOY_UNIT_DIR / "mtr_criminal_joy_1.material_config")
-        .read_text(encoding="utf-8")
-        .replace('value="0.042000003159046"', 'value="0.30"')
-        .encode("utf-8")
-    )
-    mtr_cc_cfg = (
-        (ada_root / JOY_UNIT_DIR / "mtr_criminal_joy_1_cc.material_config")
-        .read_text(encoding="utf-8")
-        .replace('value="0.042000003159046"', 'value="0.30"')
-        .encode("utf-8")
-    )
-
-    prefix = "Miranda Romance over Joy"
-    files = {
-        f"{prefix}/{JOY_ICON_PATH}": icon_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/mtr_criminal_joy_1.material_config": mtr_cfg,
-        f"{prefix}/{JOY_UNIT_DIR}/mtr_criminal_joy_1_cc.material_config": mtr_cc_cfg,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1.model": model_bytes,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_menu.model": model_bytes,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_head_df.texture": head_df_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_head_nm.texture": head_nm_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_eyes_df.texture": eyes_df_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_df.texture": lashes_df_dds,
-        f"{prefix}/{JOY_UNIT_DIR}/npc_criminal_joy_1_lashes_op.texture": lashes_op_dds,
-    }
-    write_deterministic_zip(files, out_zip_paths)
+    head_nm_dds = encode_rgba_dds(atlas_nm)
 
     hila_atlas_df = match_romance_hila_skin_to_honoka(atlas_df)
     hila_atlas_df[1024:2048, 1024:2048] = load_hila_eye_texture()
@@ -2911,10 +2722,10 @@ def main() -> None:
     flat_nm[:, :] = [255, 128, 0, 128]
     sec_nm_dds = encode_rgba_dds(flat_nm)
 
-    # The over Joy pack is retired: an empty output list keeps the shared head
-    # assembly (which feeds the over Hila pack) without writing a Joy zip.
-    build_l4d2_joy_mod(ada_root, me2_dir, [], sec_nm_dds=sec_nm_dds)
-    build_me2_romance_joy_mod(ada_root, me2_dir, [], sec_nm_dds=sec_nm_dds)
+    # The head assemblies: each emits its over Hila pack and nothing else (the over Joy
+    # zips they used to write are retired, with the code that wrote them).
+    build_l4d2_hila_head(ada_root, me2_dir, sec_nm_dds=sec_nm_dds)
+    build_me2_romance_hila_head(ada_root, me2_dir, sec_nm_dds=sec_nm_dds)
     build_geralt_rust_mod(
         ada_root,
         geralt_root,

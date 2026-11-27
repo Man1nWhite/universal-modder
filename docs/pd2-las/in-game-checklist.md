@@ -108,7 +108,7 @@ levels are there for motion, and only the game shows motion.
 
 ## OfficeSuite — the jewelry diffuse (2026-11-18)
 
-Pack to install: `dist/Honoka/OfficeSuite.zip` → drop `OfficeSuite` into `PAYDAY 2\assets\mod_overrides\`.
+Pack to install: `dist/Miranda/OfficeSuite.zip` → drop `OfficeSuite` into `PAYDAY 2\assets\mod_overrides\`.
 Only the jewelry diffuse changed (`references/Honoka/Tex_23(L_23)2.dds`, D50); the geometry, the
 suit and the registration are the same as the build the 2026-11-15 captures show, so a difference
 seen here and nowhere else belongs to `L_23`. The pack also ships a first-person arms unit now
@@ -129,7 +129,7 @@ first-person unit entirely.
 
 ## OfficeSuite — the palms are cut, and no glove is spawned over them (2026-11-25, D60/D70)
 
-Install `dist/Honoka/OfficeSuite.zip` as above. The body has no hands in it: everything from where
+Install `dist/Miranda/OfficeSuite.zip` as above. The body has no hands in it: everything from where
 the palm begins outwards is gone, and D70 has reverted the D62/D63/D65 extensions, so the cut is back
 **on that line** (`palm_cut` in `BUILD_INFO.json`: `extend_cm` and `clipped_to_cm` both `0.0`,
 `kept_to_cm` -0.76 / -0.79 after the slim) with the rim capped. The plane is D60's: through the PD2
@@ -177,7 +177,7 @@ chosen glove has something to land on.
 
 ## Native Hila body + head override (no LAS)
 
-Install only `dist/Honoka/OfficeSuite_Miranda_Romance_over_Hila.zip` for Hila, following the
+Install only `dist/Miranda/OfficeSuite_Miranda_Romance_over_Hila.zip` for Hila, following the
 [install notes](../renders/honoka/model/over-hila/README.md). Select Hila's default outfit and gloves.
 The ZIP was checked offline; these steps still need the game:
 
@@ -199,7 +199,7 @@ The ZIP was checked offline; these steps still need the game:
 
 ## OfficeSuite_Head — whole character with the Romance head (D56)
 
-Install `dist/Honoka/OfficeSuite_Head.zip`, then pick `OfficeSuite + Miranda Head` under
+Install `dist/Miranda/OfficeSuite_Head.zip`, then pick `OfficeSuite + Miranda Head` under
 `LegendaryArmours.officesuite_head` on any heister. This pack is `replace_all`: it brings the
 body **and** the head, and hides the mask. The checks that the offline build cannot make:
 
@@ -230,7 +230,7 @@ registration, so both entries should sit in the menu and both be selectable.
 
 **This pack no longer ships (D61).** It was installed on 2026-11-24 and vanilla Hila still played;
 the keying was re-verified against the loaders and was right, so the route itself never produced a
-line. The id-keyed stream pack below does, and it is the only one in `dist/Hila/`. The steps stay as
+line. The id-keyed stream pack below does, and it is the only one in `dist/Miranda/`. The steps stay as
 the record of what was asked of it, and as the checklist a future pack on that route would start
 from; the packaging contract (and the reason for the drop) is
 [`docs/pd2-voice-mod-install.md`](../pd2-voice-mod-install.md) §1–§6.

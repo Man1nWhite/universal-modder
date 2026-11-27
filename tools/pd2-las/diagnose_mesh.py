@@ -1,4 +1,4 @@
-"""Deep-diagnose the Christie LAS pack from the shipped `.model` alone.
+"""Deep-diagnose a shipped LAS pack from its `.model` alone (default: Miranda_L4D2_LAS).
 
 The screenshot audits describe *symptoms* (a notch, a sliver, a band). This
 script answers the structural questions behind them:

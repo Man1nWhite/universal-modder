@@ -474,7 +474,7 @@ def decode_geometry(payload: bytes) -> dict:
         et, fmt = _channel_kind(item_size, disk_type)
         headers.append({"item_size": item_size, "enum_type": et,
                         "disk_type": disk_type, "fmt": fmt})
-    chan = {"verts": [], "normals": [], "uv0": [], "uv1": [], "uv2": [],
+    chan: dict[str, list] = {"verts": [], "normals": [], "uv0": [], "uv1": [], "uv2": [],
             "blendindices": [], "blendweights": [], "uvdir_v": [], "uvdir_u": []}
     for head in headers:
         et = head["enum_type"]

@@ -589,7 +589,8 @@ def test_scan_warns_only_for_online_games(tmp_path):
 
 
 def test_ffmpeg_download_is_checksummed(tmp_path, monkeypatch):
-    import hashlib, io
+    import hashlib
+    import io
     from um import win
     payload = b"PK fake ffmpeg zip"
     good = hashlib.sha256(payload).hexdigest()

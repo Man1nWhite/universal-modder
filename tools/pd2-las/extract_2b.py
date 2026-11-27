@@ -116,12 +116,13 @@ def _unpack(node: str, output: Path) -> None:
         npm = shutil.which("npm")
         if not npm:
             raise ValueError("node-unrar-js is not in the repo's node_modules/ and npm is unavailable")
-        (scratch / "package.json").write_text(
-            '{"name": "unrar-js-scratch", "private": true}\n', encoding="utf-8")
-        result = subprocess.run([npm, "install", "--no-audit", "--no-fund", "node-unrar-js"],
-                                cwd=scratch, capture_output=True, text=True)
+        # `npm ci` from the repo's own package.json + package-lock.json: the version is
+        # written in both, so the extractor under test is the one every clone installs.
+        # `npm install node-unrar-js` here would fetch whatever is latest that day.
+        result = subprocess.run([npm, "ci", "--omit=dev", "--no-audit", "--no-fund"],
+                                cwd=REPO, capture_output=True, text=True)
         if result.returncode:
-            raise ValueError(f"npm could not install node-unrar-js:\n{result.stderr}")
+            raise ValueError(f"npm could not install node-unrar-js from package-lock.json:\n{result.stderr}")
     result = subprocess.run([node, str(script), str(RAR), str(output)], capture_output=True, text=True)
     if result.returncode:
         raise ValueError(f"node-unrar-js failed:\n{result.stderr}")

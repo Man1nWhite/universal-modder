@@ -205,13 +205,15 @@ def test_green_runs_what_the_test_workflow_runs():
     assert len(commands) >= 12, commands
 
     setup = re.compile(
-        r"^(sudo |python -m pip install --upgrade pip |make -sC tools/pd2-las env$"
+        r"^(sudo |python -m pip install |make -sC tools/pd2-las env$"
         r"|python tools/pd2-las/extract_2b\.py$|set -o pipefail$|mkdir -p build$)"
     )
     checks = {      # a command of the workflow -> what in check_all.py runs the same check
-        r"pyflakes um tools tests$": '["-m", "pyflakes", "um", "tools", "tests"]',
+        r"python -m ruff check \.$": '["-m", "ruff", "check", "."]',
+        r"^python -m mypy$": '["-m", "mypy"]',
         # -rsxX adds lines to the report and changes no test: the skip budget reads them, so the suite runs once
-        r"^python -m pytest -q(?: -rsxX)? tests(?:\s*\|.*)?$": '["-m", "pytest", "-q", "-rsxX", "tests"]',
+        r"^python -m pytest -q(?: -rsxX)? tests(?: --cov[^|]*)?(?:\s*\|.*)?$":
+            '["-m", "pytest", "-q", "-rsxX", "tests", "--cov", "--cov-fail-under=58"]',
         r"^python tools/pd2-port/check_skip_budget\.py --report ": 'check_skip_budget.py"), "--report"',
         r"^\./bin/um kb check --index$": '["-m", "um", "kb", "check", "--index"]',
         r"^\./bin/um publish check \.$": '["-m", "um", "publish", "check", "."]',

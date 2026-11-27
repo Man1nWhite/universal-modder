@@ -41,7 +41,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Product and routes* — [D1](#d1--ship-an-additive-las-outfit-do-not-replace-whole-heister-models), [D2](#d2--the-2b-pack-is-the-contract-and-the-skeleton-donor-not-an-oracle), [D3](#d3--the-two-las-pipelines-stay-separate-trees), [D4](#d4--no-public-release)
 
-*Building and the build environment* — [D5](#d5--our-own-model-codec-byte-exact-no-blender-or-external-tool-in-the-build), [D6](#d6--retarget-by-anatomical-partition-not-per-bone-and-not-by-frame-deltas), [D7](#d7--geometry-conventions-are-the-2b-models), [D8](#d8--install-under-assetsmod_overrides)
+*Building and the build environment* — [D5](#d5--our-own-model-codec-byte-exact-no-blender-or-external-tool-in-the-build), [D6](#d6--retarget-by-anatomical-partition-not-per-bone-and-not-by-frame-deltas), [D7](#d7--geometry-conventions-are-the-2b-models), [D8](#d8--install-under-assetsmod_overrides), [D80](#d80--the-over-joy-zips-are-gone-the-assembly-that-wrote-them-is-the-over-hila-builder)
 
 *Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette)
 
@@ -395,8 +395,9 @@ from documents, tests and tools, so they never change; the headings are appendix
   `tools/build_joy_head_mods.py`, the rebuilt sidecars, and the renders in
   `docs/renders/miranda/model/over-hila/`.
 - **Held to:** the D41 test, which rebuilds the expected quadrant from the reference at test time and so
-  pins the new bytes without an edit; `make -sC tools/pd2-las green` rebuilds all 20 tracked zips and
-  holds these two to the new sidecars and the other 18 to the old bytes.
+  pins the new bytes without an edit; `make -sC tools/pd2-las green` rebuilds every tracked zip (13 at
+  2026-11-26; 20 when this decision was written) and holds these two to the new sidecars and the rest
+  to the old bytes.
 - **Source:** the user, 2026-11-15.
 - **Status:** holds.
 
@@ -524,7 +525,8 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Decision:** the duplicate force-tracked archives `build/pd2-las/Miranda_LAS.zip` and
   `build/pd2-las/Miranda_Busty_LAS.zip` (and their `.sha256` sidecars), which duplicated
   `dist/Miranda_L4D2/Miranda_L4D2_{LAS,Busty_LAS}.zip` byte for byte inside gitignored `build/`, are
-  untracked and removed. `dist/` holds all 20 tracked packs and sidecars; `build/*` is purely scratch.
+  untracked and removed. `dist/` holds every tracked pack and sidecar (20 then, 13 now);
+  `build/*` is purely scratch.
 - **Status:** holds.
 
 ### D52 — Honoko5 and Miranda Romance directly replace Hila
@@ -2256,3 +2258,22 @@ from documents, tests and tools, so they never change; the headings are appendix
   `AGENTS.md`, `CONTRIBUTING.md`, `tools/README.md`.
 - **Status:** holds; publishing outside the repo is still asked of the owner first.
 
+### D80 — The over Joy zips are gone; the assembly that wrote them is the over Hila builder
+
+- **Decided:** 2026-11-27, by the agent, under the owner's "fix everything" instruction
+- **Decision:** `build_l4d2_joy_mod` / `build_me2_romance_joy_mod` assembled a head, wrote a Joy
+  zip into a caller-supplied path list and then emitted `Miranda_{L4D2,Romance}_over_Hila.zip`;
+  since the dist clean-up `main()` passed `[]`, so every `heads` build patched Joy's model and
+  encoded Joy's textures for a zip nobody wrote. The zip packaging and the five functions only it
+  used (`patch_joy_model`, the Bonnie/Clover/Sydney material-config patchers, `suit_collar_radius`)
+  are deleted, and the two builders are renamed `build_l4d2_hila_head` /
+  `build_me2_romance_hila_head`, which is what they produce.
+- **Why:** the assembly is not dead — it is the only source of the two over Hila packs — so the
+  first attempt (delete the whole cluster) left `heads` unable to produce them, which the `packs`
+  job caught within a build and `fresh.py check --builders heads` reproduced locally. What is dead
+  is the Joy-shaped output path, and only that is gone.
+- **Held to:** `fresh.py check --builders heads` builds the four packs of that target from scratch
+  and compares them with their sidecars: 4 of 4 identical, before and after the deletion.
+- **Source:** `tools/build_joy_head_mods.py`, `tools/pd2-las/fresh.py`, the `packs` job of
+  `.github/workflows/test.yml`, `docs/ci.md`.
+- **Status:** holds.

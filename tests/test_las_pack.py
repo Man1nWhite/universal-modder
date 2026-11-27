@@ -471,7 +471,8 @@ def _drawable():
 
 
 def _read_back(data: bytes):
-    import tempfile, os
+    import tempfile
+    import os
     p = tempfile.mktemp(suffix=".model")
     Path(p).write_bytes(data)
     try:
@@ -886,99 +887,6 @@ def test_the_built_pack_has_no_inverted_faces(lawson_audit_pack):
                         inverted += 1
             assert total, f"{name}: no triangles found"
             assert inverted == 0, f"{name}: {inverted} of {total} triangles are inverted"
-
-
-def _release_notes():
-    """The notes of every release, oldest first. Each is the body of a release page."""
-    import re
-
-    return sorted(PD2.glob("releases/lawson-las-v*.md"), key=lambda p: int(re.search(r"v(\d+)\.md$", p.name).group(1)))
-
-
-def test_the_status_page_says_whether_the_release_serves_the_tracked_pack():
-    """`tools/pd2-port/STATUS.md` is the dated record of the port: it has to say what the release serves.
-
-    Until 2026-11-13 the page quoted the tracked pack's size and sha256 beside the release, and a
-    test here kept those two figures current. The table read as if they were the release's, and
-    the README said outright that the tracked pack "is exactly what the release serves". It was
-    ten rebuilds later. The page quotes no tracked figure now (tests/test_agent_docs.py); what is
-    held here is the one sentence that matters, against the newest release notes and the sidecar,
-    and the item in the list of open work that says the same.
-
-    That release was deleted the same day, with its notes, so there are three states: no release,
-    a release of the tracked pack, a release of an older build. The page has to say which.
-    """
-    import re
-
-    sidecar = dist_path(ROOT, "lawson_las.zip.sha256")
-    if not sidecar.exists():
-        pytest.skip("dist/ is absent from this sandbox snapshot")
-    status = (PD2 / "STATUS.md").read_text()
-    none = "**There is no release.**"
-    sentence = "The tracked pack is not the pack the release serves."
-    # the list of open work, which is where an agent asked "what is open" is sent
-    open_item = "The last release of `lawson_las` serves an older build than the tracked pack"
-    open_work = (ROOT / "tools" / "pd2-las" / "README.md").read_text()
-    if not _release_notes():
-        assert none in status, "tools/pd2-port/releases/ holds no release notes; STATUS.md has to say that there is no release"
-        assert sentence not in status, "there is no release; STATUS.md still says which pack it serves"
-        assert open_item not in open_work, "there is no release; tools/pd2-las/README.md still lists it as open work"
-        return
-    notes = _release_notes()[-1]
-    assert none not in status, f"{notes.name} is the body of a release page; STATUS.md still says there is no release"
-    line = re.search(r"\*\*sha256:\*\*\s*`([0-9a-f]{64})`", notes.read_text())
-    assert line, f"{notes.name} has no **sha256:** line with the checksum of the pack it releases"
-    released, tracked = line.group(1), sidecar.read_text().split()[0]
-    assert f"`{notes.stem}`" in status and f"`{released[:8]}…`" in status, (
-        f"STATUS.md does not name the last release, {notes.stem}, with the pack it serves ({released[:8]}…)")
-    if released == tracked:
-        assert sentence not in status, f"{notes.stem} serves the tracked pack; STATUS.md still says it does not"
-        assert open_item not in open_work, (
-            f"{notes.stem} serves the tracked pack; tools/pd2-las/README.md still lists the release as open work")
-    else:
-        assert sentence in status, (
-            f"{notes.stem} serves {released[:8]}… and the tracked pack is {tracked[:8]}…; STATUS.md has to say so")
-        assert open_item in open_work, (
-            f"{notes.stem} serves {released[:8]}… and the tracked pack is {tracked[:8]}…; "
-            "\"Next\" in tools/pd2-las/README.md has to list it")
-
-
-def test_the_builder_version_matches_the_latest_release_notes():
-    """Two sources of truth for the pack version - they must agree.
-
-    The release workflow stamps the version from the release notes of the
-    tag; a push without notes falls back to the builder's own VERSION. If
-    the two drift, the workflow builds a pack with a different version in
-    its manifest and the byte check fails (which is how it was found).
-
-    With no release there are no notes, and the builder's VERSION stands alone.
-    """
-    import re
-
-    builder = (PD2 / "build_las_pack.py").read_text()
-    version = re.search(r'^VERSION\s*=\s*"([^"]+)"', builder, re.M).group(1)
-
-    notes = _release_notes()
-    if not notes:
-        return
-    latest = notes[-1]
-    stamped = re.search(r"<!--\s*pack_version:\s*([^>]+?)\s*-->", latest.read_text()).group(1)
-    assert version == stamped, (
-        f"the builder stamps {version} but {latest.name} says {stamped}")
-
-
-def test_a_release_number_is_not_used_twice():
-    """`lawson-las-v1` and `lawson-las-v2` were tags until 2026-11-13; the next release is v3.
-
-    Both were deleted on GitHub that day, v2 with its pre-release (tools/pd2-port/STATUS.md). A
-    clone made before then still has the tags, and git does not move a tag that exists, so a new
-    release under an old number would be two different commits by one name.
-    """
-    import re
-
-    for notes in _release_notes():
-        number = int(re.search(r"v(\d+)\.md$", notes.name).group(1))
-        assert number >= 3, f"{notes.name}: the numbers 1 and 2 are used; the next release is lawson-las-v3"
 
 
 def test_the_tracked_pack_carries_the_builder_version():

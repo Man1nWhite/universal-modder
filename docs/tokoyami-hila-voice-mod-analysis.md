@@ -87,7 +87,7 @@ Vorbis.
 format (read, decode, encode, write) and is what the tests pin.
 
 ```
-make -sC tools/pd2-las voices_stream        # -> dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip
+make -sC tools/pd2-las voices_stream        # -> dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip
 python tools/pd2-las/wwise_ima.py FILE.stream [--wav out.wav]   # what is in a file, or hear it
 ```
 

@@ -425,7 +425,9 @@ def test_adapter_table_merge_does_not_crash(lua):
     # simulate_visual_state already runs table.merge; reaching here means no
     # crash. Belt-and-braces: force a boolean and confirm the harness raises.
     lua.execute(f"bm.player_styles['{KEY}'].glove_adapter = true")
-    with pytest.raises(Exception):
+    # either runtime may serve this fixture (lupa's LuaError or the luajit21 shim's),
+    # and the point is that the harness refuses the bad table at all
+    with pytest.raises(Exception):  # noqa: B017
         lua.eval(f"simulate_visual_state('{KEY}', 'default', false, 'female_1')")
 
 

@@ -446,7 +446,7 @@ def build_icon(png: bytes, size: int = 256, view: int = 3) -> bytes:
     fw, fh = figure.size
     scale = (size * 0.82) / max(fw, fh)
     figure = figure.resize((max(int(fw * scale), 1), max(int(fh * scale), 1)),
-                           Image.LANCZOS)
+                           Image.Resampling.LANCZOS)
 
     # the crop is rectangular but the figure is not: keep the sheet's background
     # out of the tile with the same difference test

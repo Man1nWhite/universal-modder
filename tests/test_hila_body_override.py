@@ -173,7 +173,7 @@ def test_the_outfits_hands_end_where_the_palm_begins(models, side):
     The plane is `build_models.palm_planes`: through the rig's `Hand` joint, along
     the axis to the four knuckles. D70 reverted the extensions, so `PALM_EXTEND_CM`
     is 0.0 and the arm ends on that plane; the body inherits the cut from
-    `dist/Honoka/OfficeSuite.zip`.
+    `dist/Miranda/OfficeSuite.zip`.
     """
     output, native, _ = models
     body = hila.Drawable.read(output, "g_body")

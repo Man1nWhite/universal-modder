@@ -7,7 +7,7 @@ Start with [AGENTS.md](../AGENTS.md) if you are new here: it has one command per
 The field notes (how a game was actually modded) live in [`knowledge/`](../knowledge/INDEX.md);
 this directory holds the project's own guides, audits and evidence.
 
-24 documents, plus the [render and capture index](renders/README.md) (25 archived sets).
+26 documents, plus the [render and capture index](renders/README.md) (25 archived sets).
 
 ## Guides
 
@@ -15,6 +15,7 @@ The install contract, the voice-line tables and the format write-ups.
 
 | Document | Path |
 |---|---|
+| [CI: what runs, what must pass, how to change it](ci.md) | `ci.md` |
 | [Packaging & installing the Hila VO mod (PAYDAY 2 · any BLT / SuperBLT)](pd2-voice-mod-install.md) | `pd2-voice-mod-install.md` |
 | [Stream tables for Rust and Old Hoxton (where the VO packs' ids live)](pd2-voice-stream-tables.md) | `pd2-voice-stream-tables.md` |
 | [How a PAYDAY 2 voice pack is made: dissecting `references/Tokoyami Hila.7z`](tokoyami-hila-voice-mod-analysis.md) | `tokoyami-hila-voice-mod-analysis.md` |
@@ -25,6 +26,7 @@ Handoffs, decisions and format notes for the packs in `dist/`.
 
 | Document | Path |
 |---|---|
+| [Add or retire a distribution pack](pd2-las/ADD-A-PACK.md) | `pd2-las/ADD-A-PACK.md` |
 | [pd2-las — decisions, and why](pd2-las/DECISIONS.md) | `pd2-las/DECISIONS.md` |
 | [HANDOFF — where the pd2-las packs stand](pd2-las/HANDOFF.md) | `pd2-las/HANDOFF.md` |
 | [Honoka "Secret Report" TMC — decode findings and rigged export (2026-11-14/15)](pd2-las/honoka-tmc-format.md) | `pd2-las/honoka-tmc-format.md` |

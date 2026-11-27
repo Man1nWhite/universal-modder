@@ -6,7 +6,7 @@ are drawn as lines between world joints (arm chain highlighted), and the PD2
 arm pivots are marked. Usage:
 
   .venv/bin/python tools/pd2-las/render_mesh_skeleton.py \
-      --zip dist/Christie/Christie_LAS.zip --pack Christie_LAS \
+      --zip dist/Miranda/OfficeSuite.zip --pack OfficeSuite \
       --item christie --templates "build/pd2-las/2b/2B - LAS/assets/units/2b/skins/2b" \
       --out build/pd2-las/previews
 """
@@ -253,7 +253,7 @@ def rest_skeleton(template: bm.Template, skinbones: dict | None):
     """Animation hierarchy with the geometry's encoded authoring rest worlds.
 
     Ordinary packs inherit ``template.worlds`` and this is identical to
-    :func:`skeleton`. A deliberately rebound group (Christie's idle arms) must
+    :func:`skeleton`. A deliberately rebound group (a clip's idle arms) must
     instead show the inverse-bind worlds shipped in its skinbones; drawing the
     old template elbows over its rest mesh would be a false misalignment.
     """

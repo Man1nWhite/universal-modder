@@ -3,7 +3,7 @@
 Working data for the Hila (`rb21`) voice-line replacement: Miranda Lawson clips from
 `references/Голос Лоусон.7z` and purpose-authored Mira Lawson takes from
 `references/LAWSON VOICE (PAYDAY 2).7z`, mapped to Hila's PAYDAY 2 lines. The only shipped pack is the id-keyed
-stream pack, `dist/Hila/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
+stream pack, `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
 [`docs/pd2-voice-mod-install.md`](../docs/pd2-voice-mod-install.md) §7.
 
 ## Slot rule: Call vs Follow
