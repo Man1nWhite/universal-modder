@@ -1,5 +1,74 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-28 (merge 2) — `main` landed its own D86 (Miranda posture); the VO entries renumber again
+
+PR #78 (`a33d248a`, "tilt Miranda_L4D2_over_Hila onto female heister posture") merged into `main`
+with its entry renumbered from D85 to D86 (`main` already held D85 = OfficeSuite_over_Bunny). The VO
+entries on this branch — D86 (the VO workbook), D87 (the Sydney .docx two-table fold) and D88 (the
+Geralt/Arivus VO-pack retirement) — collided with it, so in this merge they become **D87, D88 and
+D89**. `main`'s D85 and D86 are unchanged. The renumbered entries carry a second `**Renumbered:**`
+note; every citation went with them — `tools/build_vo_master.py`, the tracked workbook CSVs
+(rebuilt, `--check` passes), the `README`s, `HANDOFF.md`, `in-game-checklist.md`, this journal and
+the tests.
+
+## 2026-11-28 (merge) — the branch merged `main`; the three VO entries were renumbered (D86–D88)
+
+`main` landed `OfficeSuite_over_Bunny` as D85 (2026-11-27, the day before the VO entries on this
+branch), so this branch's D85 (the VO workbook), D86 (the Sydney .docx two-table fold) and D87 (the
+Geralt/Arivus VO-pack retirement) became D86, D87 and D88 in the merge. The renumbered entries carry
+a `**Renumbered:**` note; every citation went with them — `tools/build_vo_master.py`, the tracked
+workbook CSVs (rebuilt, `--check` passes), the `README`s, `HANDOFF.md`, `in-game-checklist.md`, this
+journal and the tests. `D85` on the merged tree is and stays the OfficeSuite_over_Bunny entry.
+
+## 2026-11-28 (later still) — the Geralt/Arivus VO stream packs are retired and deleted (D89)
+
+`Geralt_VO_over_Rust_Stream.zip` and `Arivus_VO_over_Hoxton_Stream.zip` (and their `.sha256`
+sidecars) are deleted from `dist/` on the user's request. Both shipped 2026-11-25 and were never
+heard in game; the shared-`regular_vox` route was unverified for these heisters (O1). Every
+registry/view of the packs was updated in the same pass: `packs.py`, the `Makefile`
+(`voices_geralt`/`voices_arivus` removed, `all` trimmed), `tools/tasks.py`, `fresh.py`, `status.py`
+(through the table), the workbook (`packs`/`SOURCES`/`coverage`: the two packs stay as rows marked
+RETIRED 2026-11-28), `AGENTS.md`, the `README`s, `HANDOFF.md`, `in-game-checklist.md` (1e/1f are now
+retirement notices; the O1 question they tracked is untouched) and the overview-render caption (the
+tracked PNG predates this; next re-render carries it). The four zip-reading tests were removed; the
+builder's contract tests and the `char_rust` refusal tests remain, as do the builder and the pick
+tables — the route exists again the moment someone commissions it. The non-VO packs
+(`Geralt_over_Rust`, `Arivus_over_Hoxton`, `Arivus_Head_over_Old_Hoxton_GLB`) are untouched.
+
+## 2026-11-28 — the VO workbook replaces the three VO guides (D87)
+
+`voice_lines_vox/vo_master.xlsx` is the single source of truth for every voice-line source in the
+repository: one row per id, all banks joined — community `regular_vox` (20,404 rows),
+`robbers_mission_gen` (5,513 rows: 5,499 community + 13 pack-only + 1 Sydney .docx-only),
+`char_sydney` (CSV ∪ the .docx's first table: 1,037 ∪ 1,077, 1,078 rows), the measured
+`char_rust` bank (1,046), Hila's 885 pack-bank ids, Bodhi (1,351 rows), the Heister callout table
+and machine transcripts of every reference audio file. Built by `tools/build_vo_master.py`
+(`make -sC tools/pd2-las voices_master`); the per-tab CSVs in `voice_lines_vox/vo_master/` are the
+tracked mirror and `--check` fails when they are stale (wired into `check_all.py --full` and the
+test workflow).
+
+`docs/pd2-voice-mod-install.md`, `docs/pd2-voice-stream-tables.md` and
+`docs/tokoyami-hila-voice-mod-analysis.md` are deleted; their content lives in the `format`,
+`install`, `packs`, `char_rust` and `README` (findings F1–F4) tabs. The community `regular_vox`
+export covers a different bank than the one the packs write (0 of the 885 ids appear in it) — that
+is finding F1, and it was measured, not assumed.
+
+Machine transcripts are pocketsphinx output and are labelled as unverified drafts on every row
+(whisper's model hosts are unreachable from this environment); nothing in the workbook is
+in-game-verified beyond the Hila pack (2026-11-25, user report).
+
+## 2026-11-28 (later) — the Sydney .docx has two tables; the second is her robbers chatter (D88)
+
+Re-reading `references/sheets/Syndey Voicelines.docx` against the workbook found the sheet was parsed
+as one table. It holds two: table 0 is `char_sydney` (1,078 rows, 1,077 distinct ids; 1,036 shared
+with the CSV, 41 docx-only, CSV covers 1,037 with 1 id — `75103998` — in neither), and table 1 is
+Sydney-voiced `robbers_mission_gen` chatter (224 ids). The workbook now folds table 1 into the
+`robbers_mission_gen` tab: 145 community rows that had neither `who` nor line are backfilled
+(labelled document-sourced in `notes`/`needs_review`, 145 ids), 78 already-written community rows are
+kept verbatim with the .docx wording carried beside them in `sydney_what`, and 1 id (`221703642`) is
+new. `char_sydney` keeps table 0 only; its `in_pdf` flags come from the print of the same document.
+Measured from the tracked CSV: the community export carries 1,811 `who` rows (1,720 with a line),
+1,722 line rows, 3,686 with neither — the earlier "1,813" was wrong, and the sheets docs say so now.
 ## 2026-11-27 — `Miranda_L4D2_over_Hila` leans forward onto the female heister posture (D86)
 
 `dist/Miranda/Miranda_L4D2_over_Hila.zip` is rebuilt (`make -sC tools/pd2-las heads`) after an in-game
@@ -1065,3 +1134,11 @@ walks `references/` recursively instead of one level; `references/README.md` doc
 voice packs it had never named. The suite is 1060 passed, 13 skipped (2 `test_repo_weight` tests read
 HEAD and pass once this lands); `pack_checksum.py` 13 match; `check_links.py` 433/0; `um publish
 check .` PASS, 0 warnings.
+## 2026-11-28 (merge fix) — the one zip-reading test the retirement missed
+
+CI's `tests and skip budget` gate failed on the merged tree: `tests/test_stream_tables.py`
+`test_the_written_column_is_the_pack_coverage_minus_the_vorbis_ids` skipped with an unbudgeted
+reason ("dist/ is absent from this sandbox snapshot") because the two zips it read were retired
+and deleted on 2026-11-28 (D89) — it had been passing silently and skipped only after the
+deletion. It now pins `written=yes` against the pick tables and the Vorbis ids (the same inputs
+the builder writes from), so the tables cannot drift from their sources; no unbudgeted skip.

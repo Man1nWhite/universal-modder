@@ -103,7 +103,7 @@ workflow comment.
 | types | `python -m mypy` | `[tool.mypy]` — scoped to the byte-critical modules, by file list |
 | tests | `python -m pytest -q -rsxX tests --cov --cov-fail-under=61` | `[tool.pytest.ini_options]`, `[tool.coverage.*]` |
 | skip budget | `tools/pd2-port/check_skip_budget.py --report …` | the budget in that script |
-| links, docs index | `tools/pd2-port/check_links.py`, `tools/gen_docs_index.py --check` | — |
+| links, docs index, VO workbook fresh | `tools/pd2-port/check_links.py`, `tools/gen_docs_index.py --check`, `tools/build_vo_master.py --check` | — |
 | packs | `tools/pd2-las/fresh.py check` | `tools/pd2-las/packs.py` |
 
 `make -sC tools/pd2-las green` runs the same list locally; `tests/test_agent_docs.py` fails if

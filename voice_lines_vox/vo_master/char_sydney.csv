@@ -1,0 +1,1099 @@
+id,what,category,in_csv,in_docx,in_pdf,notes
+92286,Come break me out!,Cuffed,yes,yes,yes,Arrested
+147619,Fuck! This hurts...,Injured,yes,yes,yes,Hurt
+386800,Follow me!,Follow (C),yes,yes,yes,Command
+703263,Watch out! Sniper!,Sniper (C),yes,yes,yes,Special Unit
+992378,"Ugh, I guess I should say thanks.",Revived,yes,yes,yes,Hurt
+1048167,Follow me!,Follow (C),yes,yes,yes,Command
+1501659,Fuck! Turret!,Turret (A),yes,yes,yes,Special Unit
+1738518,Gimme some bloody bullets!,Out Of Ammo,yes,yes,yes,Low Ammo
+2126540,"You wish to see tomorrow, ya bastard?!",Threaten,yes,yes,yes,
+2900531,Come on!,Follow (C),yes,yes,yes,Command
+2957637,Follow me!,Follow (A),yes,yes,yes,Command
+3192831,Dallas!,Dallas,yes,yes,yes,Name
+3545276,Bonnie!,Bonnie,yes,yes,yes,Name
+4026251,"Eat that, ya tosser!",Taser Kill,yes,yes,yes,
+4244562,"Take that, ya assholes!",Grenade,yes,yes,yes,
+4322200,Let’s get you back up!(?),Revive,yes,yes,yes,Revive
+4522874,Watch out! Sniper!,Sniper (A),yes,yes,yes,Special Unit
+4618308,We gotta fuckin’ fix it!,"Drill Jammed
+Or
+Hack Stopped",yes,yes,yes,Timer
+4783841,Oi! Wick!,Wick (A),yes,yes,yes,Name
+4926260,We got a shield over here!,Shield (C),yes,yes,yes,Special Unit
+5128095,"Get stuffed, sniper fuck!",Sniper Kill (A),yes,yes,yes,Special Unit
+5150211,"Hey, Hoxton.",Hoxton (C),yes,yes,yes,Name
+5243782,Help me!,Downed (A),yes,yes,yes,Hurt
+5338806,I’ll show you how we Aussies do things!,,yes,yes,yes,
+5582753,"Aren’t you enjoying this, ya bloody tool?",Civ Stay Down,yes,yes,yes,
+6035018,"Taser spotted, look out.",Taser (C),yes,yes,yes,Special Unit
+6055323,Get these cuffs off!,Cuffed,yes,yes,yes,Arrested
+6342519,Someone’s gotta fix it.,Broken Drill (C),yes,yes,yes,Timer
+6753139,Right.,Direction Right,yes,yes,yes,Direction
+6914057,"I’ll stomp your face if you move, got it?",Civ Stay Down,yes,yes,yes,Command
+7038725,"Fuck me, that bullet hurt!",Injured,yes,yes,yes,Hurt
+7080616,Dragan!,Dragan (A),yes,yes,yes,Name
+7424745,"Fuck off, ya stupid shield!",Shield Kill (A),yes,yes,yes,Special Unit
+7548740,"Eat that, cloaker fuck.",Cloaker Kill (C),yes,yes,yes,Special Unit
+7722639,What the fuck kept you?,Revived,yes,yes,yes,
+7780444,Careful now!,,yes,yes,yes,
+8266839,Hoxton.,Hoxton (C),yes,yes,yes,Name
+8812102,Bonnie!,Bonnie (Injured),yes,yes,yes,Name
+8874248,Hurry! I’m gettin’ cold!,Downed,yes,yes,yes,Hurt
+9007164,"Eheh, eheh! Christ, this shit hurts!",Injured,yes,yes,yes,Hurt
+9098655,Help!,Downed,,yes,yes,
+9144711,You’re not bloody done yet!,Reviving,yes,yes,yes,Command
+9164232,"Hey, control, come over here after your shift ends. I’ll show you my sweet Melbourne shuffle moves.",Pager,yes,yes,yes,Pager
+9539553,I’ll fuckin’ kill ya!,Threaten,yes,yes,yes,
+9849028,"Hey, Houston!",Houston (Injured),yes,yes,yes,Name
+10658319,Who’s got a medic bag...,Injured,yes,yes,yes,Hurt
+11362415,Jimmy!,Jimmy (Injured),yes,yes,yes,Name
+11498072,Dallas,Dallas,yes,yes,yes,Name
+11671644,Augh! Jacket!,Jacket (Injured),yes,yes,yes,Name
+12514915,Stay still.,Civ Stay Down (C),yes,yes,yes,Command
+12570022,Get down on your knees!,Cop Dominate 2,yes,yes,yes,Command
+13878240,Ya gotta help me!,Downed,yes,yes,yes,Hurt
+14151160,Gimme a hand!,Downed,yes,yes,yes,Hurt
+14213989,"No wuckin’ furries, control. We’re all good here.",Pager,,yes,yes,
+15818803,Get me out!,Cuffed,yes,yes,yes,
+15920827,Ya gotta get me outta here.,Cuffed (C),yes,yes,yes,
+16043028,Hey! Hoxton!,Hoxton (A),yes,yes,yes,Name
+16252078,I’m comin’!,Called,yes,yes,yes,
+17481368,Gimme a bloody hand here!,,yes,yes,yes,
+17782533,I need a hand!,Downed,,yes,yes,
+17871520,This is right!,Correct,yes,yes,yes,
+17915536,Time to make the world burn...,Mask Up,yes,yes,yes,Mask On
+18124341,Clover!,Clover (Injured),yes,yes,yes,Name
+18393039,Down here!,Direction Down (A),yes,yes,yes,Direction
+18728086,"When I was a young girl, they used to call me Biscuit Mama. Ah, I missed that nickname. Can you start calling me that?",Pager,yes,yes,yes,Pager
+18800078,The cops are retreating!,Assault Wave End,yes,yes,yes,Wave End
+18875499,Hoxton!,Hoxton (Injured),yes,yes,yes,Name
+18948064,"Fuck off, Taser.",Taser Kill (C),yes,yes,yes,Special Unit
+19797143,"That was easy enough, but not as much fun.",Stealth Heist Success,yes,yes,yes,Heist End
+19868606,"Hey, Bodhi!",Bodhi,yes,yes,yes,Name
+20110159,Stay down!,Civ Down (A),yes,yes,yes,Command
+20593089,This might actually be the world’s most boring job.,Pager,yes,yes,yes,Pager
+20689720,Smoke!,Smoke Bomb,yes,yes,yes,Hurt
+20887402,I’m gonna enjoy tearing these cops to shreds.,,yes,yes,yes,
+20930821,"Fuck off, Medic.",Medic Kill (C),yes,yes,yes,Direction
+21887100,Down there.,Direction Down (C),yes,yes,yes,Special Unit
+22061814,Get me up!,Downed,yes,yes,yes,Hurt
+22236216,Hurry up!,Command,yes,yes,yes,Command
+22278576,"Hey, Jiro.",Jiro (C),yes,yes,yes,Name
+22731416,"Hey, Wolf.",Wolf (C),yes,yes,yes,Name
+23347914,I’m comin’!,Called,yes,yes,yes,Command
+23526087,"Sit on my dick, Cloaker!",Cloaker Kill (A),yes,yes,yes,Special Unit
+24501921,I need a hand!,Downed,yes,yes,yes,Hurt
+25093624,Come pick these cuffs for me!,Cuffed (C),yes,yes,yes,Arrested
+25156283,Down on the ground.,Civ Get Down (C),yes,yes,yes,Command
+25280313,"Get stuffed, Shield fuck.",Shield Kill (C),yes,yes,yes,Special Unit
+25364911,"Ah, hey, Hoxton!",Hoxton (Injured),yes,yes,yes,Name
+25499122,Follow me now!,Follow (A),yes,yes,yes,Command
+25617959,Can’t take much more of this!,Injured,yes,yes,yes,Hurt
+25982809,Come with me.,Follow (C),,yes,yes,
+27419125,Get a move on!,Faster (A),yes,yes,yes,Command
+27612033,Clover!,Clover (A),yes,yes,yes,Name
+27665930,"Hey, wait over there.",Wait (C),,yes,yes,
+27746434,Help!,Downed,yes,yes,yes,Hurt
+28023553,"I’m making some vegemite sandwiches for the lads. You want some, control?",Pager,yes,yes,yes,Pager
+28308975,Help!,Downed,yes,yes,yes,Hurt
+28611560,Don’t move!,Civ Stay Down (A),yes,yes,yes,Command
+28803757,Hey! Bonnie!,Bonnie (A),yes,yes,yes,Name
+29105012,Haa! This is what I live for!,,yes,yes,yes,
+29207984,Cocksucker!,Threaten,yes,yes,yes,
+29403059,"Hey, Wick!","Wick (A)
+Or
+Wick (Injured)",yes,yes,yes,Name
+29529936,"Get stuffed, Cloaker.",Cloaker Kill (C),yes,yes,yes,Special Unit
+29684812,Don’t move!,Civ Stay Down (A),yes,yes,yes,Command
+31146887,Look out! Medic!,Medic (C),yes,yes,yes,Special Unit
+31321247,"Nope, no problem over here. Everything is A-OK.",Pager,,yes,yes,
+31384256,On me now!,Follow (A),,yes,yes,
+31406507,Clover,Clover (A),yes,yes,yes,Name
+31497569,Did I stutter?,"Civ Stay Down
+Or
+Cop Dominate",yes,yes,yes,
+31646518,Get me some ammo!,Out Of Ammo,yes,yes,yes,Low Ammo
+32200808,Why is the computer beeping?,Hack Stopped,yes,yes,yes,Timer
+32471874,It’s a cloaker.,Cloaker (C),yes,yes,yes,Special Unit
+32540422,"Ah, shit! Shield!",Shied (A),yes,yes,yes,Special Unit
+32773904,"Get stuffed, Taser fuck.",Taser Kill (C),yes,yes,yes,Special Unit
+33192434,Give it to ‘em!,,yes,yes,yes,
+33497943,On me now!,Follow (A),yes,yes,yes,Command
+33672895,Fuck! Bulldozer!,Bulldozer (A),yes,yes,yes,Special Unit
+33887094,Wick!,Wick (A),yes,yes,yes,Name
+33997416,We gotta get it fixed.,"Hack Stopped
+Or
+Drill Jammed",yes,yes,yes,Timer
+34112497,Break me out!,Cuffed,yes,yes,yes,
+34533026,Chains!,Chains (A),yes,yes,yes,Name
+34757677,Cuff yourself.,Cop Dominate 3,yes,yes,yes,Command
+35185087,I’m low on ammo!,Out Of Ammo,yes,yes,yes,
+35190012,I promised ya! That’s the last time you’ll get up!,"Threaten
+Or
+Cop Dominate",yes,yes,yes,
+35553198,Tie everybody down.,Control Civs,yes,yes,yes,
+36403539,Got a Bulldozer.,Bulldozer (C),yes,yes,yes,
+37215883,"Close up, don’t let ‘em through!",Assault Advice,yes,yes,yes,
+37328509,Dragan.,Dragan (C),yes,yes,yes,Name
+38389518,Wick!,Wick (A),yes,yes,yes,Name
+38437459,I just can’t get over the season finale of The Walking Dead. I need to talk to someone about it.,Pager,,yes,yes,
+38697944,"Oi, Chains.",Chains (C),yes,yes,yes,Name
+38740156,Crikey! I’m completely blind!,Flashbang,yes,yes,yes,Hurt
+39205670,Tony!,"Scarface (A)
+Or
+Scarface (Injured)",,yes,yes,
+39624524,Taser!,Taser (A),yes,yes,yes,Special Unit
+39991662,"Fuck off, Taser!",Taser Kill (A),yes,yes,yes,Special Unit
+40108470,"Body bag case, right here!",Body Bag Case,yes,yes,yes,Deployable
+40287519,Get the fuck up.,Inspire,yes,yes,yes,Command
+41788115,Careful!,,yes,yes,yes,
+42136052,"Oi, Jacket.",Jacket (C),yes,yes,yes,Name
+42321369,It’s a Bulldozer.,Bulldozer (C),yes,yes,yes,
+42615743,Shit. Medic,Medic (C),yes,yes,yes,Special Unit
+43025184,Ugh! Jiro!,Jiro (Injured),yes,yes,yes,Name
+43142493,"Hey, Hoxton.",Hoxton (C),yes,yes,yes,Name
+43236937,Ahh! Teargas!,Teargas,yes,yes,yes,Hurt
+43810599,Tony.,Scarface (C),,yes,yes,
+43887223,Downstairs.,Direction Down (C),yes,yes,yes,Direction
+43951243,Get ready.,,yes,yes,yes,
+44783396,Hey! Wolf!,Wolf (Injured),yes,yes,yes,Name
+44818445,Houston!,Houston (Injured),yes,yes,yes,Name
+45312863,Get me out of these cuffs.,Cuffed (C),,yes,yes,
+45659673,Dragan!,Dragan (Injured),yes,yes,yes,Name
+45734119,I enjoy killing! That’s the simple truth of the matter.,,yes,yes,yes,
+46182944,There!,,yes,yes,yes,
+47007456,Come with me!,Follow (A),,yes,yes,
+47025741,"Hey, Wolf!",Wolf (A),yes,yes,yes,Name
+47244541,Cloaker’s dead!,Cloaker Kill (C),yes,yes,yes,Special Unit
+47472491,Took care of the Shield.,Shield Kill (A),yes,yes,yes,Special Unit
+47508905,It’s a Shield!,Shield (A),yes,yes,yes,Special Unit
+47643684,Watch out! Captain!,Captain,yes,yes,yes,Special Unit
+47693391,Wolf!,Wolf (Injured),yes,yes,yes,Name
+47990452,Hey! Dragan!,Dragan (Injured),yes,yes,yes,Name
+48253186,Hoxton!,Hoxton (Injured),yes,yes,yes,Name
+48283528,Fuck! Teargas!,Teargas,yes,yes,yes,Hurt
+48865529,"Hey, Chains!",Chains (A),yes,yes,yes,Name
+48986372,Augh! Wolf!,Wolf (Injured),yes,yes,yes,Name
+49215960,Come on...,,yes,yes,yes,
+49295127,Don’t play tough with me!,Threaten,yes,yes,yes,
+49792965,"Move, move!",Faster,yes,yes,yes,
+49988111,"Oi, Jiro.",Jiro (C),yes,yes,yes,Name
+50715933,Get me out of these cuffs.,Cuffed (C),yes,yes,yes,Arrested
+50825992,Hey! Clover.,Clover (C),yes,yes,yes,Name
+50882029,You look like minced fuckin’ meat!,Reviving,yes,yes,yes,Revive
+51342507,Come with me!,Follow,yes,yes,yes,Command
+51546788,Just in time.,Hurt,yes,yes,yes,Hurt
+52741137,Taser spotted.,Taser (C),yes,yes,yes,Special Unit
+52751548,"I’m thinking of getting myself a dog, and naming him Bloodlord. Come here, Bloodlord! That’s right, that’s a good boy!",Pager,,yes,yes,
+52948490,Get me some ammo!,Out Of Ammo,yes,yes,yes,
+53356585,Haha! Boom!,Grenade,yes,yes,yes,Explosion
+54618552,"Keep fighting, ya tosser!",Inspire,yes,yes,yes,Command
+54694508,"What?! You want me to kiss it better, ya pussy?!",Inspire,yes,yes,yes,Command
+54821920,Time to go!,Escape Available,yes,yes,yes,
+54872611,Hoxton!,Hoxton (A),yes,yes,yes,Name
+55048076,Turret! Bloody careful now!,Turret (A),yes,yes,yes,Special Unit
+55178213,"Get stuffed, Dozer fuck!",Bulldozer Kill (A),yes,yes,yes,Special Unit
+56905699,Tie these tools up.,Control Civs,yes,yes,yes,
+57629597,Turret. Bloody careful now.,Turret (C),yes,yes,yes,Special Unit
+58112843,Dragan!,Dragan (Injured),yes,yes,yes,Name
+58218982,Bodhi.,Bodhi (C),yes,yes,yes,Name
+58562677,Get up and fight!,Inspire,yes,yes,yes,Command
+58663971,"Uh, what? N-No, I mean yes! No, everything is fine here, okay?",Pager,,yes,yes,
+58755626,Help!,Downed,yes,yes,yes,Hurt
+59264341,Fuck! I took a flashbang in the face!,Flashbang,yes,yes,yes,Hurt
+59667474,"Put ‘em up, fuckwit.",Cop Dominate 1,yes,yes,yes,Command
+60583079,We got a Shield!,Shield (A),yes,yes,yes,Special Unit
+61068320,We need to get it fixed.,"Drill Jammed
+Or
+Hack Stopped",yes,yes,yes,Timer
+61256537,To the left!,Direction Left (A),yes,yes,yes,Direction
+62087381,Show me what the hype’s all about!,,yes,yes,yes,
+62592082,"Hey, Rust.",Rust (C),yes,yes,yes,Name
+62608097,"Oh, Sokol!",Sokol (Injured),yes,yes,yes,Name
+63276230,"Hey, Hoxton!",Hoxton (Injured),yes,yes,yes,Name
+63700015,"Oh, I swear to christ, if you try any shit at all, I’ll unleash some fucking fury on all your asses.","Civ Stay Down
+Or
+???",yes,yes,yes,Command
+63761945,"No wuckin’ furries, control. We’re all good here.",Pager,yes,yes,yes,
+63778596,"Guard, stay alert!",Guard Marked,yes,yes,yes,Stealth
+63869629,"Bye bye, Medic fuck!",Medic Kill (A),yes,yes,yes,Special Unit
+63914048,"Hey, control, my band the Sandwich Babies are playing on Friday. You really need to come check us out, it’s gonna be a ripper of a show.",Pager,yes,yes,yes,Pager
+64302748,"Let’s go, let’s go!","Faster
+Or
+Objective",yes,yes,yes,
+64390104,"I’ll make you wish you were dead, you understand?!",Threaten,yes,yes,yes,
+64431129,The drill’s fucking up!,Drill Jammed,yes,yes,yes,Timer
+65017532,Watch out!,Guard Marked,yes,yes,yes,Stealth
+65259401,"Get the fuck up, I’m not kiddin’!",Inspire,yes,yes,yes,Command
+65683189,Sokol!,Sokol (A),yes,yes,yes,Name
+65856911,"Augh, medic bag, anyone!",Injured,yes,yes,yes,Hurt
+65868320,Move it!,Faster,yes,yes,yes,Command
+66486971,"Crikey, this is boring.",,yes,yes,yes,
+66760172,"Hey, Bonnie!",Bonnie (A),yes,yes,yes,Name
+67333591,"Just ugh, get it done or I’ll do it myself!",Hurt,yes,yes,yes,Hurt
+67987808,Tony!,Scarface (Injured),,yes,yes,
+67998809,Who’s got some?,,yes,yes,yes,
+68178404,"Sorry to disturb, control. I thought I saw something suspicious, but it was nothing.",Pager,yes,yes,yes,Pager
+68270425,What’s that.,,yes,yes,yes,
+68644997,Bulldozer.,Bulldozer (C),yes,yes,yes,Special Unit
+68803765,Jacket!,Jacket (Injured),yes,yes,yes,Name
+70678726,These fuckers will learn my name...,Mask Up,yes,yes,yes,Mask On
+70716903,The blood computer is stuck!,Hack Stopped,yes,yes,yes,Timer
+71095106,Come with me.,Follow (C),yes,yes,yes,Command
+71943575,"Hurry, hurry.",,yes,yes,yes,
+71973897,It’s jammed.,"Hack Stopped
+Or
+Drill Jammed",yes,yes,yes,Timer
+72025668,Come with me!,Follow (A),yes,yes,yes,Command
+72193529,"Sorry, control, did you hear any of that? Just my pet rat, Ernie, attacking Leroy. But we’re fine now.",Pager,,yes,yes,
+72741626,"Hey, Jacket.",Jacket (C),yes,yes,yes,Name
+74746923,"Crikey, get a move on, then!",Inspire (C),yes,yes,yes,Timer
+75103998,"Crikey, get a move on then.",Command,yes,,,Command; not in the .docx; not in the .pdf
+75415255,They’re retreating!,Assault Wave End,yes,yes,yes,Wave End
+76305316,I just can’t get over the season finale on the Walking Dead! I need to talk to someone about it.,Pager,yes,yes,yes,Pager
+76348302,"*cough, cough* I’ll fucking kill the bastard who threw that!",Tear Gas,yes,yes,yes,Hurt
+76703443,"Pull yourself together, ya tosser!",Inspire (A),yes,yes,yes,Command
+76854904,"Hurry, hurry!",Inspire/Straight Ahead (?),yes,yes,yes,
+77517945,Sniper!,Sniper (A),yes,yes,yes,Special Unit
+77532376,Down the stairs.,Down (C),yes,yes,yes,Direction
+77699863,"*cough, cough* We need gas masks, not clown masks!",Tear Gas,yes,yes,yes,Hurt
+77820919,Stay.,Civilian Stay Down,yes,yes,yes,Command
+78550918,"Ugh, I need a fuckin’ medic bag!",Injured,yes,yes,yes,Hurt
+78881004,"Any second now, come on!",Objective Almost Done,yes,yes,yes,
+79135151,"Hey, you! Get on your feet!",Inspire/Move,yes,yes,yes,Command
+79362742,Jacket!,Jacket (A),yes,yes,yes,Name
+79372895,"Crikey, I’m getting bored. I might just kill one of you for fun.",Civilian Stay Down (C),yes,yes,yes,Command
+80155058,Come break me out!,Cuffed,,yes,yes,
+80491551,Look out! Taser!,Taser (A),yes,yes,yes,Special Unit
+80538822,"Bye bye, asshole Shield.",Shield Kill (C),yes,yes,yes,Special Unit
+80957324,Body bag case.,Body Bag Deployed,yes,yes,yes,Deployable
+80963219,The bloody computer is stuck.,Computer Stopped,yes,yes,yes,Timer
+80984679,I got the Taser.,Taser Kill (C),yes,yes,yes,Special Unit
+81261374,"Sleep tight, Cloaker.",Cloaker Kill (C),yes,yes,yes,Special Unit
+81355170,That was fuckin’ fun!,Heist Success,yes,yes,yes,
+81590798,I’ve spotted a shield.,Shield (C),yes,yes,yes,Special Unit
+81640546,Jiro.,Jiro (C),yes,yes,yes,Name
+81763748,Can’t imagine you’ve been a part of anything REMOTELY as exciting as this.,Civilian Stay Down (C),yes,yes,yes,Command
+82397005,Chains!,Chains (A),yes,yes,yes,Name
+82875899,"Hey, Bonnie!",Bonnie (C),yes,yes,yes,Name
+82998194,Houston!,Houston (Injured),yes,yes,yes,Name
+83087030,Houston!,Houston (A),yes,yes,yes,Name
+83199316,"Move your ass, ya tosser.",Inspire/Move (C),yes,yes,yes,Command
+83397327,Taser spotted.,Taser (C),yes,yes,yes,
+84465896,Hit the floor.,Civilian Get Down (C),yes,yes,yes,Command
+84626528,I’ve spotted a shield!,Shield (C),yes,yes,yes,
+85136175,Someone’s gotta fix it!,Drill Jammed/Computer Stopped,yes,yes,yes,Timer
+85753738,"No wuckin’ furries, we got this.",,yes,yes,yes,
+87487667,Hoxton!,Hoxton (A),yes,yes,yes,Name
+87692303,Fuckin’ ‘ell!,,yes,yes,yes,
+87770053,Fuck ‘em up good.,Interrogation Objective?,yes,yes,yes,
+87812911,Killed a dozer!,Bulldozer Kill (C),yes,yes,yes,Special Unit
+88592537,Don’t make me bring out the fury!,Intimidation/Civilian Get Down,yes,yes,yes,
+88616842,Jimmy.,Jimmy (C),yes,yes,yes,Name
+88747325,"Guard, watch it.",Guard,yes,yes,yes,Stealth
+88784171,"Don’t you just love watching panicked people running for their lives? No? I’m just joking, mate. Loosen up. You think I’m off my rocker?",Pager,yes,yes,yes,Pager
+89183795,Chains,Chains (C),yes,yes,yes,Name
+89711250,Medic bag right here!,Medic Bag (C),yes,yes,yes,Deployable
+89934004,Guard!,Guard,yes,yes,yes,Stealth
+90029439,"Ha! Leeroy is such a tosser. I ate his Snickers and now he’s crying about it. Get some bollocks, man, I’ll get you another one.",Pager,yes,yes,yes,Pager
+91057531,"*cough, cough* Fuck, that stings bad!",Tear Gas,yes,yes,yes,Hurt
+91678959,Drilling!,Drill In Place,yes,yes,yes,Timer
+92348771,Medic bag over here.,Medic Bag (C),yes,yes,yes,Deployable
+92461343,Give it all ya got!,,yes,yes,yes,
+92649431,"Grrr, someone get me a medic bag!",Injured,yes,yes,yes,Hurt
+92724777,One down!,One Bag Secured,yes,yes,yes,
+93470243,"Hey, Jimmy!",Jimmy (C),yes,yes,yes,Name
+93850908,Why the look? It’s a ripper of a day. SMILE.,Civilian Stay Down (C),yes,yes,yes,
+94438145,"Don’t test me, ya hear?",Civilian Stay Down (C),yes,yes,yes,
+94918332,You aren’t done yet!,Inspire,yes,yes,yes,
+96299299,Shield!,Shield (A),yes,yes,yes,
+96677057,Sydney’s coming!,Called,yes,yes,yes,Command
+97071970,"How’s it going, Control? You good? We’re fine over here, just checkin’ in.",Pager,yes,yes,yes,Pager
+97483332,Houston!,Houston (A),yes,yes,yes,Name
+98853094,Haha! Grenade!,Grenade,yes,yes,yes,Deployable
+99043214,Wicky!,Wick (C),yes,yes,yes,Name
+99387196,"Right now, dipshit!",Move,yes,yes,yes,Command
+99967573,Shield!,Shield (C),yes,yes,yes,Special Unit
+100046307,Not this way.,Wrong Direction,yes,yes,yes,Direction
+101559929,Somebody better fix it.,Drill Jammed/Computer Stopped,yes,yes,yes,Timer
+102500778,Rust.,Rust (C),yes,yes,yes,Name
+104471792,Oie! Jacket!,Jacket (A),yes,yes,yes,Name
+104576455,Camera.,Camera,yes,yes,yes,Stealth
+104710732,"Hey, Houston.",Houston (C),yes,yes,yes,Name
+104817955,Keep shooting!,,yes,yes,yes,
+105041167,Bring it!,,yes,yes,yes,
+105361514,Who’s watchin’ the flanks?,,yes,yes,yes,
+105396456,Taser!,Taser (A),yes,yes,yes,Special Unit
+105509422,Crikey! How many bullets did I eat?,Injured,yes,yes,yes,Hurt
+105912412,The fucker is stuck.,Drill Jammed/Computer Stopped,yes,yes,yes,Timer
+106077763,"Haha, would ya look at that.",,yes,yes,yes,
+106094669,Shield!,Shield (A),yes,yes,yes,Special Unit
+106142585,Look out! Medic!,Medic (A),yes,yes,yes,Special Unit
+106708466,We gotta get out.,Leave,yes,yes,yes,
+107056063,Running low on bullets!,Out Of Ammo,yes,yes,yes,Low Ammo
+107150114,"Hey, Dallas!",Dallas (A),yes,yes,yes,Name
+107975733,"No problem, Control, Leroy is just being a fuckwit.",Pager,,yes,yes,
+108664375,Watch out. Camera.,Camera,yes,yes,yes,Stealth
+109300279,Mother fuckin’ Bulldozer!,Bulldozer (A),yes,yes,yes,Special Unit
+109576741,Enemy Medic.,Medic (C),yes,yes,yes,Special Unit
+110098444,Rust!,Rust (A),yes,yes,yes,Name
+110666574,Drill placed.,Drill Placed (C),yes,yes,yes,Timer
+111192176,"I’m such a drongo, should NOT have been hit.",Injured (C) or Being Revived?,yes,yes,yes,Hurt
+111607025,I’ll stomp your bloody throat!,Civilian Stay Down (C),yes,yes,yes,
+112206357,"Augh, Rust!",Rust (Injured),yes,yes,yes,Name
+112776544,You little fuckwit!,Taxman Threaten,yes,yes,yes,
+113307288,Down on the ground!,Civilian Get Down (A),yes,yes,yes,Command
+113394791,"Sory, Control, did you hear any of that? Just my pet rat, Ernie, attacking Leroy, but we’re fine now.",Pager,yes,yes,yes,Pager
+114537444,Lower your weapon.,Dominate 1 (C),yes,yes,yes,Command
+114652449,Dozer’s history!,Bulldozer Kill (C),yes,yes,yes,Special Unit
+115763316,This way.,Forward Direction,yes,yes,yes,Direction
+115882308,Houston.,Houston (C),yes,yes,yes,Name
+116072726,You can do better than that!,Inspire (C),yes,yes,yes,
+117220037,On your knees!,Dominate 2 (A),yes,yes,yes,Command
+118531828,"Ah, shit!",,yes,yes,yes,
+119468389,They’re pullin’ back!,Assault Wave End,yes,yes,yes,Wave End
+120072119,Wolf!,Wolf (Injured),yes,yes,yes,Name
+120268674,Jacket!,Jacket (A),yes,yes,yes,Name
+120379230,"That was fun and all, but now I’m buggered!",Heist Complete,yes,yes,yes,
+121163393,Careful now.,Stealth,yes,yes,yes,Stealth
+121850066,Watch out. Guard.,Guard,yes,yes,yes,Stealth
+122019983,"Get back in the fight, fuckwit!",Inspire (A),yes,yes,yes,Command
+122348970,Stay put!,Stay/Civilian Stay Down,yes,yes,yes,Command
+122616683,Kiss the fucking ground.,Civilian Get Down (C),yes,yes,yes,
+122856055,Move!,Inspire Speed Boost,yes,yes,yes,Command
+124340222,"Fuck, I was almost to the end of the tunnel!",Revived,yes,yes,yes,
+124936839,Stay down!,Civilian Stay Down,yes,yes,yes,Command
+125476281,"Can’t touch this, duh nuh nuh nuh, mm mm, can’t touch this! Oh, I pressed the button, sorry control!",Pager,yes,yes,yes,Pager
+127073439,"Ha! Leroy is such a tosser! He thinks he can out drink me, yeah right, like that would ever happen.",Pager,yes,yes,yes,Pager
+127167234,Put your handcuffs on!,Dominate 3,yes,yes,yes,
+127552918,This is it.,Objective Here,yes,yes,yes,
+128443297,Bodybag case here!,Bodybag Case Deployed,yes,yes,yes,
+129122803,On the way!,Called,yes,yes,yes,
+130694473,Stay back! Sniper!,Sniper (A),yes,yes,yes,
+130724640,We got a Taser.,Taser (C),yes,yes,yes,
+131185851,"Fuck off, Medic!",Medic Kill (A),yes,yes,yes,
+131382048,"Aah, Dragan!",Dragan (Injured),yes,yes,yes,
+132731051,Chains.,Chains (C),yes,yes,yes,
+135065425,Come on!,Civilian Follow or Taxman Threat?,yes,yes,yes,
+135340013,"Ugh, anyone got a medic bag?!",Injured,yes,yes,yes,
+135638288,Took care of the Sniper.,Sniper Kill (C),yes,yes,yes,
+135995539,The Dingos wouldn’t believe their eyes if they saw me do this!,Heist Complete,yes,yes,yes,
+137927670,Hahaha! And that’s how we FUCKIN’ do it!,Heist Complete,yes,yes,yes,
+138931903,Okay.,Called,yes,yes,yes,
+139561812,"Hey, Jiro!",Jiro (Injured),yes,yes,yes,
+140642508,We got a Shield!,Shield (C),yes,yes,yes,
+140789721,Sniper!,Sniper (A),yes,yes,yes,
+141053774,Straight Ahead,Straight Direction,yes,yes,yes,
+141099907,Cloaker!,Cloaker (A),yes,yes,yes,
+141773464,Hey! Wick!,Wick (C),yes,yes,yes,
+142161514,"Augh, Wick!",Wick (Injured),yes,yes,yes,
+142931039,"You know, I could REALLY go for a croc burger right now. A good and juicy croc burger. That’d be something, yeah?",Pager,yes,yes,yes,
+143024627,Cloaker son of a bitch!,Cloaker (A),yes,yes,yes,
+143301772,"Nope, no problem over here. Everything is A-OK.",Pager,yes,yes,yes,
+143505281,Grenade out!,Grenade (C),yes,yes,yes,
+143747770,I got it!,Gage Package Collected/Bag Secure,yes,yes,yes,
+145122188,"You dipshit, you’re all busted up!",Reviving,yes,yes,yes,
+145547908,Bodhi!,Bodhi (Injured),yes,yes,yes,
+146881803,Dallas!,Dallas (A),yes,yes,yes,
+147095033,This is it!,Objective Here,yes,yes,yes,
+147115472,"Uh, nope, everything is clear here, Control. Nothing weird happening. Nothing at all.",Pager,yes,yes,yes,
+147579751,"Hey, Jiro!",Jiro (A),yes,yes,yes,
+147707525,It’s secured.,Gage Package Collected/Bag Secure,yes,yes,yes,
+147773929,Rust!,Rust (Injured),yes,yes,yes,
+148242835,Get down!,Civilian Get Down (A),yes,yes,yes,
+148892838,Got a Sniper.,Sniper (C),yes,yes,yes,
+149327073,Got it.,Gage Package Collected/Bag Secure,yes,yes,yes,
+149923533,Boom!,Grenade (C),yes,yes,yes,
+151138019,On the ground!,Civilian Get Down (C),yes,yes,yes,
+152280308,"Hey, Chains!",Chains (C),yes,yes,yes,
+153058836,The drill is jammed!,Drill Jammed,yes,yes,yes,
+153687634,"Bye bye, asshole Shield!",Shield Kill (A),yes,yes,yes,
+154555686,"*cough, cough* These fuckwits are using gas!",Tear Gas,yes,yes,yes,
+155428730,Jimmy!,Jimmy (C),yes,yes,yes,
+155960324,"Kneel, dipshit!",Dominate 2 (C),yes,yes,yes,
+156580586,Cloaker!,Cloaker (A),yes,yes,yes,
+156648189,Enemy Medic!,Medic (A),yes,yes,yes,
+157070079,"Rust, hey!",Rust (Injured),yes,yes,yes,
+157212164,I got a medic bag right here.,Medic Bag Deployed (C),yes,yes,yes,
+157678207,Almost out of ammo!,Out of Ammo,yes,yes,yes,
+158769665,Watch your ammo!,Wave Advice,yes,yes,yes,
+158939597,Let’s show those fuckwits who they’re messing with.,,yes,yes,yes,
+159414048,"On your feet, tosser!",Inspire (A)/Taxman Move,yes,yes,yes,
+160210591,Here’s a first aid kit!,First Aid Kit Deployed (A),yes,yes,yes,
+160394321,Jimmy!,Jimmy (A),yes,yes,yes,
+160552742,This is the place!,Objective Here,yes,yes,yes,
+160641012,You! Up! Now!,Inspire (A)/Taxman Move,yes,yes,yes,
+160647325,I see a Bulldozer.,Bulldozer (C),yes,yes,yes,
+161430235,Watch the camera.,Camera,yes,yes,yes,
+161718154,Bulldozer.,Bulldozer (C),yes,yes,yes,
+162994740,"You tosser, how am I supposed to help you?",Reviving,yes,yes,yes,
+163026329,Ugh! Clover!,Clover (A),yes,yes,yes,
+163589732,Plan A was some drongo’s plan to begin with.,Heist Goes Loud or Heist Complete?,yes,yes,yes,
+164129699,"Hey, Sokol!",Sokol (Injured),yes,yes,yes,
+164178098,This is what I live for!,Heist Complete,yes,yes,yes,
+164282101,"Come on then, I’m right bloody here.",Reviving?,yes,yes,yes,
+165105259,Dragan.,Dragan (C),yes,yes,yes,
+166720283,Jiro!,Jiro (Injured),yes,yes,yes,
+167472608,"Aw, come on.",,yes,yes,yes,
+168374460,Silent and deadly. Fascinating combo.,Heist Complete (Stealth),yes,yes,yes,
+169080894,"Get stuffed, Sniper fuck.",Sniper Kill (C),yes,yes,yes,
+169117708,Up the stairs!,Upstairs Direction,yes,yes,yes,
+169477596,This is right.,Objective Here,yes,yes,yes,
+169526059,On the ground.,Civilian Get Down (C),yes,yes,yes,
+169571424,Over there!,Direction?,yes,yes,yes,
+169661695,Get on your knees!,Dominate 2 (A),yes,yes,yes,
+170430098,"Hurray, we did the job silently. I’m still bored as batshit.",Heist Complete (Stealth),yes,yes,yes,
+172295771,"Run faster, dipshit.",Inspire Speed Boost (C),yes,yes,yes,
+174826155,"Ugh, thanks for that.",Revived,yes,yes,yes,
+175282936,Can someone make this shit go faster?,,yes,yes,yes,
+175391048,Upstairs.,Upstairs Direction,yes,yes,yes,
+176006692,Bloody teargas!,Tear Gas,yes,yes,yes,
+176991045,Here’s a first aid kit.,First Aid Kit Deployed (C),yes,yes,yes,
+178260388,About to kill me some facist pigs.,,yes,yes,yes,
+179015734,Don’t get caught on tape.,Camea,yes,yes,yes,
+180034566,Let’s head out!,Escape Here?,yes,yes,yes,
+180275842,"Oh, Bonnie!",Bonnie (Injured),yes,yes,yes,
+181543411,"Ugh, finally!",Revived?,yes,yes,yes,
+181894564,Stay put!,Stay or Civilian Stay Down,yes,yes,yes,
+182620913,Perfect execution. Can’t say otherwise.,Heist Complete (Stealth),yes,yes,yes,
+182771265,"Ugh, I need a god damn medic bag!",Injured,yes,yes,yes,
+183015795,Not much ammo left!,Out of Ammo,yes,yes,yes,
+183135909,Up with ya!,Inspire (C),yes,yes,yes,
+183254554,I’m thinking of writing a novel about a woman hunting dragons to eat ‘em. The title could be ‘Moira The Dragon Eater’. What do you think?,Pager,yes,yes,yes,
+183350277,"Pull yourself up, ya fuckin’ drongo!",Inspire (A),yes,yes,yes,
+183468191,Let’s go!,Escape Here?,yes,yes,yes,
+183648283,"If I don’t see some action soon, I’ll turn into a fuckin’ basket case.",Pager,yes,yes,yes,
+185818515,On it!,Called,,yes,yes,
+186346578,Wick!,Wick (A),yes,yes,yes,
+186525917,Can somebody spare a medic bag?,Injured,yes,yes,yes,
+187055632,Time to spill some pig’s blood!,Assault Wave Incoming?,yes,yes,yes,
+187117640,Sokol!,Sokol (A),yes,yes,yes,
+187581830,Get down!,Civilian Stay Down (A),yes,yes,yes,
+188345616,"Sorry, Control, I must’ve pressed the wrong button.",Pager,yes,yes,yes,
+188838428,Stay back! Sniper!,Sniper (A),yes,yes,yes,
+190929293,On it!,Called,yes,yes,yes,
+191068894,I’m runnin’ outta ammo!,Out of Ammo (C),yes,yes,yes,
+191410825,My story doesn’t end today! It’s barely begun!,,yes,yes,yes,
+192355690,I had a good burger before we got here. That might honestly be the only reason I haven’t killed you yet!,Civilian Stay Down (C),yes,yes,yes,
+193403822,"No problem, Control, Leroy’s just being a fuckwit.",Pager,yes,yes,yes,
+193444914,Cuffs on!,Dominate 3 (C),yes,yes,yes,
+193769883,"Never gonna give you up, never gonna let you down, never gonna run around and desert you. Oh, sorry, is this on?",Pager,yes,yes,yes,
+194274601,"Hey, Dallas.",Dallas (C),yes,yes,yes,
+194351795,"Oh, I’m such a tool. I forgot my dinner at home. What am I supposed to eat now...Control, you got any leftovers?",Pager,,yes,yes,
+195437163,Up the stairs.,Upstairs Direction (C),yes,yes,yes,
+197163077,Bodhi!,Bodhi (A),yes,yes,yes,
+198194886,Nice and quiet.,Civilian Stay Down?,yes,yes,yes,
+198230412,Jacket!,Jacket (A),yes,yes,yes,
+198401054,On the ground.,Civilian Get Down (C),yes,yes,yes,
+198646721,"It’s a ripper of a day, isn’t it, Control? Life’s good, yeah?",Pager,,yes,yes,
+198921340,Kneel down.,Dominate 2 (C),yes,yes,yes,
+198944504,You look like shit!,Reviving,yes,yes,yes,
+199459582,I’ll show you the definition of chaos.,,yes,yes,yes,
+199509778,"I come from a land down under, where beer flows and men chunder. Oh, sorry, is this on? Hello?",Pager,,yes,yes,
+199705275,Kneel!,Dominate 2 (A),yes,yes,yes,
+200195023,Locked and loaded! It’s always darkest before dawn. Or some bullshit like that!,Assault Wave Incoming?,yes,yes,yes,
+200740924,Keep going down!,Down Direction,yes,yes,yes,
+201029434,Time to kill some dipshits.,Assault Wave Incoming?,yes,yes,yes,
+201616774,Time to show I belong in the big leagues...,Mask Up,yes,yes,yes,
+201926281,Get your cuffs on.,Dominate 3 (C),yes,yes,yes,
+201975505,Get stuffed! No one can stop us!,,yes,yes,yes,
+203206799,Right!,Right Direction,yes,yes,yes,
+204038851,Wolf!,Wolf (A),yes,yes,yes,
+204132922,"Augh, Houston!",Houston (Injured),yes,yes,yes,Hurt
+206429140,Hey! The shit has jammed!,Drill Jammed/Hack Stopped,yes,yes,yes,
+206603377,Took care of the shield!,Shield Kill (A),yes,yes,yes,
+208973174,Hoxon!,Hoxton (C),yes,yes,yes,
+209158086,Don’t move.,Stay/Civilian Stay Down,yes,yes,yes,
+209350717,Haaaa!,Loud as fuck,yes,yes,yes,Loud as fuck
+209759009,Get the fuck up!,Inspire (A),yes,yes,yes,
+210741731,Don’t make me say it again.,Civilian Stay Down or Taxman Threat?,yes,yes,yes,
+211814938,Stay still!,Stay/Civilian Stay Down,,yes,yes,
+212560438,Sokol!,Sokol (Injured),yes,yes,yes,
+213101094,"Augh, Jimmy!",Jimmy (Injured),yes,yes,yes,Hurt
+213613390,"Hey, Jiro!",Jiro (A),yes,yes,yes,
+214287177,This way!,Direction Ahead,yes,yes,yes,
+215856303,"Hey, Bodhi!",Bodhi (A),yes,yes,yes,
+215995574,Lookout. Sniper.,Sniper (C),yes,yes,yes,
+216452713,"Bye bye, Medic fuck.",Medic Kill (C),yes,yes,yes,
+217273109,"Hey, Dallas!",Dallas (Injured),yes,yes,yes,
+217300657,I think the drill is stuck.,Drill Jammed,yes,yes,yes,
+217525395,Taser’s dead!,Taser Kill (A),yes,yes,yes,
+218447511,Tell us what we need to know!,Taxman Threat,yes,yes,yes,
+220433839,"Blood’s pissing out of me, here!",Injured,yes,yes,yes,
+220529667,Hurry.,Direction?,yes,yes,yes,
+222429554,Jimmy!,Jimmy (A),yes,yes,yes,
+223176058,"I come from a land down under, where beer flows and men chunder...Oh, sorry, is this on? Hello?",Pager,yes,yes,yes,Pager
+224016149,Let’s be off!,Escape Arrived?,yes,yes,yes,
+224578283,Rust.,Rust (C),yes,yes,yes,
+224947355,Put your hands up.,Dominate 1 (C),yes,yes,yes,
+225989268,Cuffs. Put ‘em on!,Dominate 2 (C),yes,yes,yes,
+226184167,Hey! Dragan!,Dragan (A),yes,yes,yes,
+226571562,Kneel!,Dominate 2 (A),yes,yes,yes,
+226652110,It’s gonna be a ripper of a day...,Mask Up,yes,yes,yes,
+226886527,Jacket.,Jacket (C),yes,yes,yes,
+227066080,Dozer’s history.,Bulldozer Kill (C),yes,yes,yes,
+227162140,"Hey, Sokol!",Sokol (A),yes,yes,yes,
+227589440,"Extra ammo, right here.",Amo Bag Deployed (C),yes,yes,yes,
+227935650,Clover!,Clover (A),yes,yes,yes,
+227981032,Bloody hang in there!,Reviving,yes,yes,yes,
+228879593,"Crikey, keep the civvies in check.",Entering Civilian Populated Area,yes,yes,yes,
+229106717,Hands up!,Dominate 1 (A),yes,yes,yes,
+229465348,The dipshit police just arrived.,Police Arrival,yes,yes,yes,
+229644076,Come on then!,Follow?,yes,yes,yes,
+230144613,Let’s get you up.,Reviving,yes,yes,yes,
+230236733,"Consider yourselves lucky that I woke up in good spirits today! Christ, I woulda fuckin’ killed you all otherwise.",Civilian Stay Down (C),yes,yes,yes,
+230339464,We got a Shield over here!,Shield (C),yes,yes,yes,
+230967426,There’s ammo over here.,Ammo bag Deployed (C),yes,yes,yes,
+231209566,Drill in place!,Drill Placed,yes,yes,yes,
+231533657,"Hey, Chains!",Chains (Injured),yes,yes,yes,
+233161263,Shift it!,Inspire Speed Boost (A),yes,yes,yes,
+233825612,"Hey, Jimmy!",Jimmy (C),yes,yes,yes,
+234010904,Drop the weapon now!,Dominate 1 (C),yes,yes,yes,
+234124088,"Augh, what the fuck?!",Flashbang,yes,yes,yes,
+234790861,"No problem here control, everything is alright! Aha, oh! I’m good at doing different voices, right?",Pager,,yes,yes,
+235717549,Fuckin’ answer!,Taxman Threat,yes,yes,yes,
+235877509,Got the drill up.,Drill Placed,yes,yes,yes,
+237211833,"Sorry, Control. I’m just really craving some good pudding. You got any?",Pager,,yes,yes,
+238040798,Get fucking ready.,Assault Wave Incoming,yes,yes,yes,
+239021926,Cloaker.,Cloaker (C),yes,yes,yes,
+239509294,"Hey, Houston!",Houston (A),yes,yes,yes,
+240083820,Get down.,Civilian Get Down (C),yes,yes,yes,Command
+240242934,Don’t let the fuckers get around us!,Wave Advice,yes,yes,yes,
+240317137,Fuck me!,,yes,yes,yes,
+240706638,"So, tell me, Control. Jared Leto as the new Joker, yay or nay? I think he’ll pull it off, I must say.",Pager,,yes,yes,
+241722063,This is the wrong way!,Wrong Direction,yes,yes,yes,
+242350249,Don’t move.,Civilian Stay Down,yes,yes,yes,Command
+242716685,Hands where I can see ‘em!,Dominate 1 (C),yes,yes,yes,Command
+242873494,"No, no real problem, Control. Leroy is upset because I said I don’t believe he would last long if a zombie outbreak happened.",Pager,,yes,yes,
+244958505,Sokol!,Sokol (A),yes,yes,yes,
+245347590,"Crikey, I’m bored as batshit. You seeing any action, Control?",Pager,,yes,yes,
+246043635,Wait over there.,Stay,,yes,yes,
+246366582,Down! Down!,Down Direction,yes,yes,yes,Command
+247490356,Got a Sniper!,Sniper (A),yes,yes,yes,
+247517277,Down.,Civilian Stay Down (C) or Down Direction?,yes,yes,yes,Command
+247926155,"*yawn* God, I’m buggered. Can I get off my shift early?",Pager,,yes,yes,
+247933896,Straight ahead!,Forward Direction,yes,yes,yes,
+249598997,I’ll rip your fuckin’ face off!,Taxman Threat,yes,yes,yes,
+249705251,Clover!,Clover (A),yes,yes,yes,
+250638927,"Steady now, boys and girls, it’s about to get real!",Assault Wave Incoming,yes,yes,yes,
+251209784,"Hit the ground, fucker!",Civilian Get Down (C),yes,yes,yes,Command
+253743556,"Get stuffed, ya assholes!",,yes,yes,yes,
+254365813,"Ha! It’s fuckin’ pathetic how scared you look! Christ, how can someone be such a coward?",Civilian Stay Down (C),yes,yes,yes,
+255156082,CCTV.,Camera,yes,yes,yes,
+255566837,Shit! Medic!,Medic (A),yes,yes,yes,
+256094624,"*cough, cough* Crikey! How can gassing be legal?!",Tear Gas,yes,yes,yes,
+260149862,I’ll be there as fast as I can!,Called (From Injured),yes,yes,yes,
+260565886,Oie. Dallas.,Dallas (C),yes,yes,yes,
+260887874,Stay back! Sniper!,Sniper (A),yes,yes,yes,
+261394226,Killed a Shield!,Shield Kill (A),yes,yes,yes,
+261410987,Down!,Civilian Stay Down (A),yes,yes,yes,Command
+261779175,Let’s see what you got then.,,yes,yes,yes,
+263160385,"Get your hands up, dipshit!",Dominate 1 (A),yes,yes,yes,Command
+264058328,Sokol!,Sokol (Injured),yes,yes,yes,
+264452818,"Yeah, I’ll admit, that was smooth.",Heist Complete (Stealth),yes,yes,yes,
+264778180,Bloody computer stopped working!,Hack Stopped,yes,yes,yes,
+265646044,Hey! Tony!,Scarface (A),,yes,yes,
+267591244,"Ugh, I’m such a drongo. I thought I saw a group of clowns in masks running by? Geeze, I must be tired. Sorry about that, Control.",Pager,,yes,yes,
+268122142,Down.,Civilain Get Down (C),yes,yes,yes,
+268767767,Get your hands up!,Dominate 1 (A),yes,yes,yes,Command
+269111698,Ugh! Hoxton!,Hoxton (Injured),yes,yes,yes,Hurt
+269245013,"Your face is annoying me, look away or I’ll kill ya.",Civilian Stay Down (C),yes,yes,yes,
+270007421,Wolf.,Wolf (C),yes,yes,yes,
+271145679,"Faster, faster!",Inspire Speed Boost (A),yes,yes,yes,
+271194939,Jump down.,Jump Down Direction,yes,yes,yes,
+271229706,Tony!,Scarface (A),,yes,yes,
+271609215,Tony!,Scarface (Injured),,yes,yes,
+271869377,You’ll be up in no time.,Reviving,yes,yes,yes,
+272281256,Fuckin’ ‘ell!,,yes,yes,yes,
+273987621,"Ugh, Chains!",Chains (Injured),yes,yes,yes,Hurt
+274142203,Computer is having a fucking meltdown!,Hack stopped,yes,yes,yes,
+275029328,Did I stutter?!,Taxman Threat,yes,yes,yes,
+275071511,Wolfie!,Wolf (A),yes,yes,yes,
+275675380,Taser’s history!,Taser Kill (A),yes,yes,yes,
+276306338,Stay!,Stay/Civilian Stay Down (A),yes,yes,yes,Command
+276350751,Get me some fucking ammo!,Out of Ammo (C),yes,yes,yes,
+276622081,Here’s a first aid kit!,First Aid Kit Deployed (A),yes,yes,yes,
+276665473,Kneel!,Dominate 2 (C),yes,yes,yes,Command
+276974113,Mag’s almost empty!,Out of Ammo,yes,yes,yes,
+277708945,As soon as I can!,Called,yes,yes,yes,
+277818972,‘Bout fuckin’ time!,Objective Complete?,yes,yes,yes,
+277876330,"Get stuffed, shield fuck!",Shield Kill (A),yes,yes,yes,
+278275644,"Christ, can you move any slower?",Inspire Speed Boost (C) or Civilian Follow?,yes,yes,yes,
+280082331,"Bloody hell, hurry up.",,yes,yes,yes,
+280979910,Come break me out!,Cuffed,,yes,yes,
+281383186,Drop on your knees.,Dominate 2 (C),yes,yes,yes,Command
+282159206,"Nah, we’re good. Just a random man walkin’ around. I gave him a slice of cheddar and sent him away.",Pager,yes,yes,yes,Pager
+283038751,"Ugh, how much more, I got some bullets to dish out!",,yes,yes,yes,
+283695855,Bodhi!,Bodhi (Injured),yes,yes,yes,
+284763916,"I’m thinking of getting myself a dog and naming him ‘Bloodlord’. Come here, Bloodlord! That’s right! That’s a good boy!",Pager,yes,yes,yes,Pager
+285275457,"Oie, Sokol!",Sokol (C),yes,yes,yes,
+286780257,Put your cuffs on.,Dominate 3 (C),yes,yes,yes,Command
+287763396,I said down.,Civilian Get Down (C),yes,yes,yes,Command
+288928571,I’ll get you up!,Reviving or Called (From Injured)?,yes,yes,yes,
+289096553,"Stay down, little doggie.",Civilian Stay Down (C),yes,yes,yes,Command
+290285338,Medic bag! Get patched up!,Medic bag Deployed (?),yes,yes,yes,
+291123535,Don’t make me crush your fuckin’ head!,Civilian Stay Down (C),yes,yes,yes,Command?
+291560402,Stuff ‘em good!,,yes,yes,yes,
+293483730,Dallas!,Dallas (Injured),yes,yes,yes,
+294282588,Turret!,SWAT Turret (A),yes,yes,yes,
+294891075,I’ll get ya back up!,Reviving,yes,yes,yes,
+295582294,Drill up!,Drill Placed,yes,yes,yes,
+296979387,"Leg it, drongo!",Inspire Speed Boost (A),yes,yes,yes,
+297558258,No wuckin’ furries!,,yes,yes,yes,
+297698463,"Try and heal those wounds, ya pussy.",Medic Kill (C),yes,yes,yes,
+298007159,Could you bloody hurry up?,,yes,yes,yes,
+298575435,"Sit on my dick, Cloaker.",Cloaker Kill (C),yes,yes,yes,
+298810234,I’ve put up the drill.,Drill Placed,yes,yes,yes,
+299064887,Dragan!,Dragan (A),yes,yes,yes,
+299435580,It’s stuck!,Drill Jammed/Hack Stopped,yes,yes,yes,
+300069758,There!,Objective Here?,yes,yes,yes,
+300327715,"Aw, fuck!",,yes,yes,yes,
+300783823,Let me get you up.,Reviving,yes,yes,yes,
+301177246,Clover.,Clover (C),yes,yes,yes,
+301565555,Bonnie!,Bonnie (A),yes,yes,yes,
+301772806,We gotta get outta here.,Escape Arrived?,yes,yes,yes,
+302119774,"I don’t wanna put you on the spot, but I gotta ask. Vampires, or werewolves? Who wins in a battle? Me and Leroy can’t decide.",Pager,yes,yes,yes,Pager
+302704103,"See ya, Cloaker dipshit!",Cloaker Kill (A),yes,yes,yes,
+302751518,Get on your fuckin’ feet.,Inspire (C),yes,yes,yes,
+303195147,"Ugh, I’m such a drongo. I thought I saw a group of clowns in masks running by? Geeze, I must be tired, sorry about that, Control.",Pager,yes,yes,yes,Pager
+303472331,Jiro!,Jiro (A),yes,yes,yes,
+305133398,It’s jammed!,Drill Jammed/Hack Stopped,yes,yes,yes,
+306333711,Drill placed.,Drill Placed,yes,yes,yes,
+306394321,"Hey, Bodhi!",Bodhi (A),yes,yes,yes,
+306667662,Look out! Guard!,Guard,yes,yes,yes,
+306709936,Tosser!,Taxman Threat,yes,yes,yes,
+307967255,"Fuck off, Dozer!",Dozer Kill (A),yes,yes,yes,
+308330685,We gotta get outta here!,Escape Here?,yes,yes,yes,
+309058818,Hold on!,Called (From Injured)?,yes,yes,yes,
+309262412,Down.,Civilian Get Down (C),yes,yes,yes,Command
+309687487,This is more my style.,Heist Complete?,yes,yes,yes,
+311034978,Hey! Houston!,Houston (A),yes,yes,yes,
+311482353,Here’s one!,Gage Package Secured/Bag Secured,yes,yes,yes,
+312580834,We got a Shield!,Shield (C),yes,yes,yes,
+313064729,"Whatever, fuck that silenced shit.",Heist Complete?,yes,yes,yes,
+313163662,"If they think I’m backin’ down, they’re dead wrong.",Assault Wave Incoming?,yes,yes,yes,
+314450985,Hey. Sokol.,Sokol (C),yes,yes,yes,
+315692782,Keep going up.,Up Direction,yes,yes,yes,
+316129254,Inside!,Inside Direction,yes,yes,yes,
+316956501,Hey! Clover!,Clover (Injured),yes,yes,yes,
+317106152,Spit it out!,Taxman Threat,yes,yes,yes,
+317160971,It’s a RIPPER of a day! Yes it is!,Heist Complete,yes,yes,yes,
+317325192,"You go down again, just fuckin’ stay down!",Reviving?,yes,yes,yes,
+318656508,Let’s bloody go.,Mask Up,yes,yes,yes,
+319938443,Dallas!,Dallas (A),yes,yes,yes,
+320491261,Bodhi!,Bodhi (A),yes,yes,yes,
+321439709,"Well bugger me, that was easy!",Heist Complete (Stealth),yes,yes,yes,
+321941556,Chains!,Chains (Injured),yes,yes,yes,
+323767019,Fuckin’ fix it then!,Drill Jammed/Hack Stopped,yes,yes,yes,
+323793971,Fuckin’ dipshits got me good...,Injured (C),yes,yes,yes,Hurt
+324910259,Gonna need to bloody scrape you up next time!,Reviving,yes,yes,yes,
+325583198,"Fuck me, that was so much fun!",Heist Complete,yes,yes,yes,
+328302577,"Fuck off, Sniper!",Sniper Kill (A),yes,yes,yes,
+328524217,Oie! Dragan!,Dragan (A),yes,yes,yes,
+331218542,Hang tight.,Called,yes,yes,yes,
+332581000,Be right there!,Called,yes,yes,yes,
+334136611,We have to fix it.,Drill Jammed/Hack Stopped,yes,yes,yes,
+334354929,It’s an enemy Medic!,Medic (A),yes,yes,yes,
+335582741,Hey! Chains!,Chains (A),yes,yes,yes,
+336010222,Shit. I’m bleeding bad.,Injured (C),yes,yes,yes,Hurt
+336051035,The drill’s jammed.,Drill Jammed,yes,yes,yes,
+337309382,"Hey, Tony.",Scarface (C),,yes,yes,
+338710849,This is the place.,Objective Here,yes,yes,yes,
+339196317,We got a Cloaker.,Cloaker (C),yes,yes,yes,
+339785609,Hang in there!,Called (From Injured)?,yes,yes,yes,
+341094395,Drilling.,Drill Placed,yes,yes,yes,
+341602845,Down!,Civilian Get Down (A),yes,yes,yes,Command?
+342688929,Not this way!,Wrong Direction,yes,yes,yes,
+344509112,I’ll put the fuckin’ hurt on the dipshit that did this to me...,Injured (C),yes,yes,yes,Hurt
+344621516,"Hey, Rust!",Rust (A),yes,yes,yes,
+347199224,"Get back in the fight, ya tosser!",Inspire (A),yes,yes,yes,
+347665847,"Move it, ya drongo.",Inspire Speed Boost (C),yes,yes,yes,
+349646763,Jimmy!,Jimmy (Injured),yes,yes,yes,
+353225944,"Hey, Rust.",Rust (C),yes,yes,yes,
+355390519,"Eat that, ya tosser.",Grenade (C)?,yes,yes,yes,
+356978903,"Bloody hell, I’ve been flashed!",Flashbang,yes,yes,yes,
+357469908,The cops are here.,Police Arrival,yes,yes,yes,
+357848949,"Hey, Dallas!",Dallas (C),yes,yes,yes,
+358498680,Get out.,,yes,yes,yes,
+359330565,Guard.,Guard,yes,yes,yes,
+359376191,"Cuffs, put ‘em on!",Dominate 3 (C),yes,yes,yes,
+360041793,"No wuckin’ furries, we’re unstoppable!",Heist Complete,yes,yes,yes,
+360488100,"Fuck you, Bolldozer!",Bulldozer Kill (A),yes,yes,yes,
+360830280,You hear that shit? The drill must be jammed!,Drill Jammed,yes,yes,yes,
+361055466,Houston!,Houston (A),yes,yes,yes,
+361264364,Time to build my legacy.,Mask Up,yes,yes,yes,
+361366898,Fuckin’ cowards got me...,Injured (C),yes,yes,yes,Hurt
+364831815,"Hey, Bodhi!",Bodhi (Injured),yes,yes,yes,
+365018096,Careful.,,yes,yes,yes,
+365465523,"Hey, Jimmy.",Jimmy (C),yes,yes,yes,
+365936763,Don’t fuckin’ die!,Wave Advice or Inspire (A)?,yes,yes,yes,
+366976462,To the right.,Right Direction,yes,yes,yes,
+367181559,Taser!,Taser (A),yes,yes,yes,
+367227316,And stay down.,Civilian Stay Down (C),yes,yes,yes,Command
+369171109,Wick!,Wick (Injured),yes,yes,yes,
+372088036,Clover!,Clover (Injured),yes,yes,yes,
+372718633,More ammo over here.,Ammo Bag Deployed (C),yes,yes,yes,
+373189479,More bullets for you over here!,Ammo Bag Deployed (C),yes,yes,yes,
+374266956,Medic bag for whoever needs it!,Medic Bag Deployed (C),yes,yes,yes,
+374691814,"Try and heal those wounds, ya pussy!",Medic Kill (A),yes,yes,yes,
+376815027,Spotted a Cloaker!,Cloaker (C),yes,yes,yes,
+378127622,"Fuck off, Medic.",Medic Kill (C),yes,yes,yes,
+379250535,Tear gas!,Tear Gas,yes,yes,yes,
+379769614,I guess that’s how the pros do it.,Heist Complete (Stealth),yes,yes,yes,
+380089969,"Get stuffed, Cloaker fuck!",Cloaker Kill (A),yes,yes,yes,
+380422816,"Aw, fuck!",,yes,yes,yes,
+381224098,Sniper’s dead!,Sniper Kill (A),yes,yes,yes,
+381566109,That’s how we do it!,Heist Complete,yes,yes,yes,
+381597351,"Sleep tight, Cloaker!",Cloaker Kill (A),yes,yes,yes,
+384622264,"I had the weirdest dream last night. I dreamt that my head was replaced by an actual hamburger, and then people started calling me Hamburger Head.",Pager,yes,yes,yes,Pager
+385626905,I gotcha!,Called?,yes,yes,yes,
+386342859,Stay out of the smoke!,Smoke Grenade,yes,yes,yes,
+389066941,Hands in the fuckin’ air.,Dominate 1 (C),yes,yes,yes,Command
+389362764,Medic bag over here!,Medic Bag Deployed (C),yes,yes,yes,
+390266640,Going as fast as I can!,Called,yes,yes,yes,
+390748211,"Try and heal those wounds, ya pussy.",Medic Kill (C),yes,yes,yes,
+390890050,"What’s that, you’re scared? Grow some fucking bollocks, ya pussy.",Civilian Stay Down (C),yes,yes,yes,
+392996648,"Leroy is being a fucking drongo, can we switch partners?",Pager,,yes,yes,
+393379508,"Ya fuckwit, I should just kill you based off your stupid face.",Civilian Stay Down (C),yes,yes,yes,
+394466691,Get down on teh ground!,Civlian Get Down (A),yes,yes,yes,Command
+394981278,Jiro!,Jiro (A),yes,yes,yes,
+395646177,It’s a captain!,Captain,yes,yes,yes,
+398054143,Watch your backs!,Wave Advice,yes,yes,yes,
+398733907,Bonnie!,Bonnie (A),yes,yes,yes,
+398958355,"Well how ‘bout using the cable ties, dipshit?",Entering Civilian Populated Area?,yes,yes,yes,
+402970983,Straight on.,Forward Direction,yes,yes,yes,
+404749726,Bulldozer!,Bulldozer (A),yes,yes,yes,
+406592101,"No wuckin’ furries, we got this!",Wave Advice?,yes,yes,yes,
+407181139,"Take that, ya assholes!",Grenade (C)?,yes,yes,yes,
+407309655,This is how legends are created!,Heist Complete,yes,yes,yes,
+407841990,And stay there.,Stay,yes,yes,yes,Command
+408237259,"Eat that, Cloaker fuck!",Cloaker Kill (A),yes,yes,yes,
+408757735,Move it!,Inspire Speed Boost (C),yes,yes,yes,
+409250447,Let’s get you back in business!,Inspire (A)?,yes,yes,yes,
+409343163,Hey! Bonnie!,Bonnie (C),yes,yes,yes,
+409804542,"Just hang on, ya drongos, the smoke will clear!",Smoke Grenade,yes,yes,yes,
+412412292,Get down or get killed!,Civilian Get Down (A),yes,yes,yes,Command
+414227557,Tie ‘em up.,Entering Civilian Populated Area,yes,yes,yes,
+414595507,Let’s make things crazy.,Mask Up,yes,yes,yes,
+417501754,Out with it!,Taxman Threat,yes,yes,yes,
+419938390,"Hey, Jimmy!",Jimmy (A),yes,yes,yes,
+420421299,"Answer me, fucker!",Taxman Threat,yes,yes,yes,
+421985370,Shit! Taser!,Taser (A),yes,yes,yes,
+422850958,Jacket.,Jacket (C),yes,yes,yes,
+423677592,"Ay, Jimmy!",Jimmy (Injured),yes,yes,yes,
+424778999,Shit! Cloaker!,Cloaker (A),yes,yes,yes,
+426002173,Get in.,Inside Direction,yes,yes,yes,
+426973937,And don’t fucking move!,Civilian Stay Down (C),yes,yes,yes,Command
+427110537,"Hey, Wick.",Wick (C),yes,yes,yes,
+427451000,We’re drilling!,Drill Placed,yes,yes,yes,
+427911916,Get down.,Civilian Get Down (C),yes,yes,yes,Command
+428505300,We got a taser!,Taser (C),yes,yes,yes,
+430332827,Ugh! Bodhi!,Bodhi (Injured),yes,yes,yes,Hurt
+431536167,Time to go.,Escape Here?,yes,yes,yes,
+432084295,Put your bloody hands up!,Dominate 1 (A),yes,yes,yes,Command
+432805036,Hey! Jacket!,Jacket (Injured),yes,yes,yes,
+433370765,It’s a Captain!,Captain,yes,yes,yes,
+438405426,Don’t bloody alert the guard.,Guard,yes,yes,yes,
+438733887,Stay put.,Stay or Civilian Stay Down (C),yes,yes,yes,Command
+438743360,Dallas!,Dallas (A),yes,yes,yes,
+439119593,Crikey! Get the fuck up!,Inspire (A),yes,yes,yes,
+441672868,"Oh, fuck!",,yes,yes,yes,
+441934369,"I had my doubts about coming to America, but this was so fucking worth it!",Heist Complete,yes,yes,yes,
+443188783,Hurry up.,Inspire Speed Boost (C)?,yes,yes,yes,
+443477554,"Aw, shit.",,yes,yes,yes,
+443715549,Stop bitching and get off your arse!,Inspire,yes,yes,yes,
+444807779,Stay down.,Civilian Stay Down (C),yes,yes,yes,Command
+445348737,We gotta get out.,Escape Here?,yes,yes,yes,
+447748671,Some medic supplies here.,Medic Bag deployed (C),yes,yes,yes,
+447954108,"Hands up, ya fucker.",Dominate 1 (C),yes,yes,yes,Command
+449494974,Drop the gun!,Dominate 1 (A),yes,yes,yes,Command
+450048967,It’s a Cloaker!,Cloaker (C),yes,yes,yes,
+451409082,"Faster, come on!",Inspire Speed Boost (A),yes,yes,yes,
+452151658,"Shit’s about to hit the fan, ya ready?",Assault Wave Incoming,yes,yes,yes,
+452914089,"Hey, Wolfie.",Wolf (C),yes,yes,yes,
+453194048,"Hey, Bodhi.",Bodhi (C),yes,yes,yes,
+453256174,"Fuckin’ cocksuckers, bring it then.",,yes,yes,yes,
+457347825,"Uh, what? No, no. I mean yes! No, everything is fine here, okay?",Pager,yes,yes,yes,Pager
+458558127,What?! You hurt fuckin’ tool!? (???),,yes,yes,yes,
+458762053,"No, no real problem, Control. Leroy is upset because I said I don’t believe he’d last long if a zombie outbreak happened.",Pager,yes,yes,yes,Pager
+459489221,Chains!,Chains (Injured),yes,yes,yes,
+459495127,Get in!,Inside Direction,yes,yes,yes,
+460300202,Sokol.,Sokol (C),yes,yes,yes,
+462245324,Stay still!,Stay/Civilian Get Down (C),yes,yes,yes,Command
+465746576,"If you go down again, you won’t be getting up.",Reviving (Third Down?),yes,yes,yes,
+465892316,Got the fuckin’ Shield.,Shield Kill (C),yes,yes,yes,
+468586199,Crikey! Were you hit by a truck or something?,Reviving,yes,yes,yes,
+468614048,Bloody fuckwits are using smoke!,Smoke Grenade,yes,yes,yes,
+471442709,"Stop being a bitch, and patch me up!",Revived?,yes,yes,yes,
+471782882,Drop it!,Dominate 1 (C),yes,yes,yes,Command
+473230433,Hey. Clover.,Clover (C),yes,yes,yes,
+473621978,"Ugh, Dallas!",Dallas (Injured),yes,yes,yes,Hurt
+474090486,"Well, bugger me! I think I left my stove on at home. Well, nothing to do about that now.",Pager,yes,yes,yes,Pager
+478689675,"Don’t get your panties in a bunch, Control. We’re fine and dandy over here.",Pager,yes,yes,yes,Pager
+480684367,"That noise doesn’t sound good, does it?",Drill Jammed/Hack Stopped,yes,yes,yes,
+483903231,Watch out! Sniper!,Sniper (C),yes,yes,yes,
+484839105,Camera over there.,Camera,yes,yes,yes,
+485020874,You hear the drill? I think it’s bloody stuck.,Drill Jammed,yes,yes,yes,
+486312389,Those fuckwits got me good!,Injured (C),yes,yes,yes,
+487142068,Bloody Bulldozer!,Bulldozer (A),yes,yes,yes,
+490507080,I’ll break your fuckin’ face!,Taxman Threat,yes,yes,yes,
+491594165,Just lay still and shut your mouth.,Civilian Stay Down (C),yes,yes,yes,Command?
+492143485,These dickheads fucked you up!,Reviving,yes,yes,yes,
+493110113,It’s a Captain!,Captain,yes,yes,yes,
+494644223,"Come on, for fuck’s sake!",Inspire (A)?,yes,yes,yes,
+495135713,"Die, you dipshits!",,yes,yes,yes,
+496054532,I said down!,Civilian Get Down (C),yes,yes,yes,Command
+496090551,"Watch out, Captain.",Captain,yes,yes,yes,
+497549248,"Look out, Sniper!",Sniper (C),yes,yes,yes,
+498038815,And stay there!,Stay/Civilian Stay Down (C),yes,yes,yes,Command
+498140773,"Ooh, medic bag, now!",Injured (A),yes,yes,yes,Hurt
+499245960,Fuck me! Turret!,SWAT Turret (A),yes,yes,yes,
+500175960,Don’t act stupid and I won’t kill ya. Simple.,Civilian Stay Down (C),yes,yes,yes,
+502358337,Get more ammo!,Ammo Bag Deployed (A),yes,yes,yes,
+503130633,Tell me!,Taxman Threat,yes,yes,yes,
+504476976,"No problem here, Control! Everything is alright! Aha, oh! I’m good at doing different voices, right?",Pager,yes,yes,yes,Pager
+505176816,Don’t move!,Civilian Stay Down (A),yes,yes,yes,Command
+506475295,"Oh, I might be fucked, gang!",Injured (C),yes,yes,yes,
+513301817,Fuck. Turret.,SWAT Turret (C),yes,yes,yes,
+513868676,Something’s wrong with this SHITTY computer.,Hack Stopped,yes,yes,yes,
+515754674,Medic bag over here.,Medic Bag Deployed (C),yes,yes,yes,
+519703607,I’ve put up the drill.,Drill Placed,yes,yes,yes,
+520389349,"*yawn* God, I’m buggered. Can I get off my shift early?",Pager,yes,yes,yes,Pager
+520677472,Guard. Stay back.,Guard,yes,yes,yes,
+521053937,Get down on the ground.,Civilian Get Down (C),yes,yes,yes,Command
+522936918,They’re smoking us!,Smoke Grenade,yes,yes,yes,
+524385336,Time to cement my place in this crew.,Mask Up,yes,yes,yes,
+524941377,Ammo low!,Out of Ammo,yes,yes,yes,
+525597355,Keep it up!,Wave Advice,yes,yes,yes,
+525810854,Over there.,Direction,yes,yes,yes,
+527618350,Hey. Dragan.,Dragan (C),yes,yes,yes,
+527620244,"Taser spotted, look out.",Taser (C),yes,yes,yes,
+529535776,"You’re not jogging in the park, ya idiot.",Inspire Speed Boost (C),yes,yes,yes,
+531200646,Put your cuffs on!,Dominate 3 (A),yes,yes,yes,
+532045185,Got the drill up.,Drill Placed,yes,yes,yes,
+533082034,First aid kit here!,First Aid Kit Deployed (A),yes,yes,yes,
+538552700,Down on your knees!,Dominate 2 (A),yes,yes,yes,Command
+539230196,SWAT turret!,SWAT Turret (C),yes,yes,yes,
+540179061,Don’t make me say it again!,Taxman Threat,yes,yes,yes,Command
+541783290,Move!,Inspire Speed Boost (A),yes,yes,yes,
+542764402,"Hey, Clover!",Clover (A),yes,yes,yes,
+543010341,The computer process is jammed.,Hack Stopped,yes,yes,yes,
+546121722,Left!,Left Direction,yes,yes,yes,
+546568357,Rust!,Rust (A),yes,yes,yes,
+547077685,It’s a Bulldozer!,Bulldozer (C),yes,yes,yes,
+548358834,I’m right there.,Called?,yes,yes,yes,
+549482672,Turret.,SWAT Turret (C),yes,yes,yes,
+553205616,"Hey, Sokol!",Sokol (A),yes,yes,yes,
+553235829,Sniper’s dead.,Sniper Kill (C),yes,yes,yes,
+553789922,Get up and kill these dipshits!,Inspire (A),yes,yes,yes,
+554044971,They’re retreating!,Assault Wave Ending,yes,yes,yes,
+562435817,I’m almost out of ammo.,Out of Ammo (C),yes,yes,yes,
+562956489,"Hahaha, boom!",Grenade,yes,yes,yes,
+563071783,I’ll show you why you made the right choice by letting me join the gang!,,yes,yes,yes,
+563694596,Don’t try to be a fuckin’ hero.,Civilian Stay Down (C),yes,yes,yes,Command
+563848159,"Hey, Wolf!",Wolf (A),yes,yes,yes,
+563882811,"Time we made an example of these fuckwits, don’t mess with us!",,yes,yes,yes,
+564499235,Bonnie!,Bonnie (A),yes,yes,yes,
+567247758,Push them the fuck back!,Wave Advice,yes,yes,yes,
+567335109,Spotted a Cloaker.,Cloaker (C),yes,yes,yes,
+567444311,"Hey, Tony!",Scarface (A),,yes,yes,
+568328814,"Listen up, tosser!",Taxman Threat,yes,yes,yes,
+568635192,This is the wrong way.,Wrong Direction,yes,yes,yes,
+572509224,Guard. Stay quiet.,Guard,yes,yes,yes,
+576246516,"You ready for some fun, or what?",,yes,yes,yes,
+578726914,Upstairs.,Upstairs Direction,yes,yes,yes,
+580612568,Here they come.,Assault Wave Incoming,yes,yes,yes,
+581124643,Hey! Wick!,Wick (Injured),yes,yes,yes,
+583570655,"Fuck off, Dozer.",Bulldozer Kill (C),yes,yes,yes,
+584051240,"Hahaha, this a fuckin’ slaughter!",Wave Advice?,yes,yes,yes,
+587153781,"Crikey, this hurts like a bastard.",Injured (C),yes,yes,yes,Hurt
+590184265,"Fuck off, drongo Shield.",Shield Kill (C),yes,yes,yes,
+590261809,"So, this Saturday, are we going to party or what? I’m lookin’ to get my groove on.",Pager,yes,yes,yes,Pager
+597940880,To the left.,Left Direction,yes,yes,yes,
+599477378,Bulldozer down!,Bulldozer Kill (A),yes,yes,yes,
+600425242,Let’s just fucking go.,,yes,yes,yes,
+600679035,I guess that’s one way of doing things.,Heist Complete (Stealth),yes,yes,yes,
+604080972,Ha! Well bugger me.,Heist Complete?,yes,yes,yes,
+605485958,Right on it.,Objective Here?,yes,yes,yes,
+610889584,Hey! Bonnie!,Bonnie (Injured),yes,yes,yes,
+611769067,The police are pulling back!,Assault Wave Ending,yes,yes,yes,
+612836080,Taser’s dead.,Taser Kill (C),yes,yes,yes,
+618583131,Bodhi!,Bodhi (A),yes,yes,yes,
+619645276,"Hahaha, fuckin’ look at that.",,yes,yes,yes,
+622108312,Drop it!,Dominate 1 (A),yes,yes,yes,
+624250386,"Ugh, I guess I owe you one.",Revived,yes,yes,yes,
+624521360,"Fuck off, Sniper.",Sniper Kill (C),yes,yes,yes,
+625026914,Cloaker’s dead.,Cloaker Kill (C),yes,yes,yes,
+625522002,Get down on your knees!,Dominate 2 (A),yes,yes,yes,Command
+630316036,You havin’ fun? Stop fuckin’ playing around and fix me up!,Being Revived?,yes,yes,yes,
+631943974,Got one!,Gage Package Secured/Bag Secured,yes,yes,yes,
+632159984,"Ugh, Christ, this shit hurts...",Injured (C),yes,yes,yes,Hurt
+632372767,Anybody got a medic bag?,Injured (C),yes,yes,yes,
+634806915,Keep going down.,Down Direction,yes,yes,yes,
+635581775,"Fuck you, Bulldozer.",Bulldozer Kill (C),yes,yes,yes,
+639026902,Time to unleash some fury.,Mask Up,yes,yes,yes,
+639444014,Don’t give ‘em an inch!,Wave Advice,yes,yes,yes,
+641449705,Down on your knees!,Dominate 2 (A),yes,yes,yes,
+641790142,"So, tell me, Control. Jared Leto as the new Joker, yay or nay? I think he’ll pull it off, I must say.",Pager,yes,yes,yes,Pager
+642415646,And stay put!,Civilian Stay Down (C),yes,yes,yes,Command
+642501198,Find some cover and start sprayin’ lead.,Wave Advice,yes,yes,yes,
+642557084,And don’t fucking move.,Civilian Stay Down (C),yes,yes,yes,Command
+642767040,On your fuckin’ knees.,Dominate 2 (C),yes,yes,yes,Command
+643444399,"Turret, watch out.",SWAT Turret (C),yes,yes,yes,
+645433896,Now! Cuffs!,Dominate 3 (A),yes,yes,yes,Command
+645695038,SWAT Turret!,SWAT Turret (A),yes,yes,yes,
+646081703,"Leroy is being a fucking drongo, can we switch partners?",Pager,yes,yes,yes,Pager
+647803860,On my bloody way!,Called,yes,yes,yes,
+651013710,"Rise and shine, fuckwit!",Inspire,yes,yes,yes,
+651387559,Blue hilos incoming.,Helicopter Incoming?,yes,yes,yes,
+653147344,The police are here.,Police Arrival,yes,yes,yes,
+653877374,I got the Taser!,Taser Kill (C),yes,yes,yes,
+655379464,"Crikey, I’m bored as batshit. You seeing any action, Control?",Pager,yes,yes,yes,Pager
+655792461,Up! Up!,Inspire,yes,yes,yes,
+656806352,"Ooh, get me a bloody medic bag!",Injured (A),yes,yes,yes,
+657664857,"Hurry up, hurry up!",Inspire Speed Boost?,yes,yes,yes,
+657722853,Down the stairs!,Downstairs Direction,yes,yes,yes,
+660494075,"Haha, grenade!",Grenade,yes,yes,yes,
+663062678,Come on!,Follow,yes,yes,yes,
+665131006,We did it! Nice!,Heist Complete,yes,yes,yes,
+667998488,That was a ripper.,Heist Complete,yes,yes,yes,
+669537691,"Crikey, that was close, but we fuckin’ did it!",Heist Complete,yes,yes,yes,
+671026916,"Next time we hit the ground, you’ll need a priest!",Reviving (Third Down?),yes,yes,yes,
+675159992,Get on your feet!,Inspire (A),yes,yes,yes,
+675497735,Anyone got an ammo bag?!,Out of Ammo (A),yes,yes,yes,
+678081660,Get out!,Outside Direction,yes,yes,yes,
+678566435,Taser!,Taser (A),yes,yes,yes,
+679047309,Grenade!,Grenade,yes,yes,yes,
+680856059,This is how legends begin.,Heist Complete?,yes,yes,yes,
+685243043,Mother FUCKIN’ tear gas!,Tear Gas,yes,yes,yes,
+687702197,Careful. Guard.,Guard,yes,yes,yes,
+687850420,They should not have messed with us!,Wave Advice?,yes,yes,yes,
+688707295,Shit! I’m hurting bad...,Injured (A),yes,yes,yes,
+690079047,"Hey, Rust!",Rust (A),yes,yes,yes,
+690373863,Jacket!,Jacket (Injured),yes,yes,yes,
+691584881,Hey! Dragan!,Dragan (C),yes,yes,yes,
+693261092,"They want a war, we’ll give it to ‘em!",Wave Advice?,yes,yes,yes,
+703899865,Cuffs on!,Dominate 3 (A),yes,yes,yes,Command
+705363178,Come get more ammo!,Ammo Bag Deployed (A),yes,yes,yes,
+706687801,Get ‘em up!,Dominate 1 (A),yes,yes,yes,
+706719562,"Come on, faster!",Inspire Speed Boost (A),yes,yes,yes,
+709811124,"I can take it, just get it done!",Being Revived?,yes,yes,yes,
+710460676,"Pretend your dead and you’ll keep living, got it?",Civilian Stay Down (C),yes,yes,yes,
+710857394,"Fuck, you’re hurt bad.",Reviving,yes,yes,yes,
+715082202,Drop your weapon!,Dominate 1 (C),yes,yes,yes,Command
+717213961,Shred them to pieces!,Wave Advice?,yes,yes,yes,
+719008511,Jump down!,Jump Down Direction,yes,yes,yes,
+720276494,Stay clear of that bloody turret!,SWAT Turret (C),yes,yes,yes,
+720357289,"I’m thinkin’ of eating a good steak after this. I deserve it, don’t I?",Heist Complete?,yes,yes,yes,
+723755339,Here’s a first aid kit.,First Aid Kit Deployed (C),yes,yes,yes,
+725429649,Smoke!,Smoke Grenade,yes,yes,yes,
+727416001,Houston!,Houston (C),yes,yes,yes,
+733036244,Wolfie!,Wolf (C),yes,yes,yes,
+737232670,Let’s go!,Escape Here?,yes,yes,yes,
+738075262,I’ll go down in history as one of the greatest.,Mask Up,yes,yes,yes,
+740145848,Stop fuckin’ whining!,Civilian Stay Down (C) or Inspire (A)?,yes,yes,yes,
+743494731,"If you try anything and I mean anything, I’ll put a bullet in your head!",Civilian Stay Down (C),yes,yes,yes,
+744368989,"Come on, faster.",Inspire Speed Boost (C)?,yes,yes,yes,
+744446672,Time to dance!,Assault Wave Starting?,yes,yes,yes,
+744831598,Extra ammo over here.,Ammo Bag Deployed (C),yes,yes,yes,
+747505918,We got a Cloaker!,Cloaker (C),yes,yes,yes,
+748318772,The cops are pulling back!,Assault Wave Ending,yes,yes,yes,
+749558590,I could really use a medic bag!,Injured (C),yes,yes,yes,
+749811190,Inside.,Inside Direction,yes,yes,yes,
+751016469,Bulldozer down.,Bulldozer Kill (C),yes,yes,yes,
+755617693,That’s a ripper! Good job!,Heist Complete?,yes,yes,yes,
+756373631,Drill in place!,Drill Placed,yes,yes,yes,
+756565536,Hey. Watch the bloody civilians.,Entering Civilian Populated Area,yes,yes,yes,
+757683097,Killed a Dozer.,Bulldozer Kill (C),yes,yes,yes,
+761864594,"Whatcha crying about, dipshit?!",Inspire (A) or Civilian Stay Down (C)?,yes,yes,yes,
+765543151,I can feel ‘em getting closer.,Assault Wave Incoming?,yes,yes,yes,
+770492536,You better state your last wishes if you go down again.,Reviving (Third Down?),yes,yes,yes,
+772795253,Drop your gun.,Dominate 1 (C),yes,yes,yes,
+774539986,Cloaker!,Cloaker (C),yes,yes,yes,
+775385962,"Haha, oh, I like it.",Heist Complete (Stealth)?,yes,yes,yes,
+778489409,Up!,Inspire,yes,yes,yes,
+779443138,"It’s a ripper of a day, isn’t it, Control? Life’s good, yeah?",Pager,yes,yes,yes,Pager
+780488149,I dropped an ammo bag over here.,Ammo Bag Deployed (C),yes,yes,yes,
+784363738,"It’s not brain surgery for fuck’s sake, just close it.",Being Revived?,yes,yes,yes,
+788171718,Shit.,,yes,yes,yes,
+790896047,Grenade!,Grenade,yes,yes,yes,
+791846906,"Fuck, something’s not right with the computer.",Hack Stopped,yes,yes,yes,
+792202267,Sniper!,Sniper (A),yes,yes,yes,
+794592093,This! Is how legends are made!,Heist Complete,yes,yes,yes,
+795235710,Took care of the Sniper.,Sniper Kill (C),yes,yes,yes,
+795745071,"Well, bugger me. They really think they can take us on?",Assault Wave Incoming?,yes,yes,yes,
+799366124,I’ll fuckin’ burn down the place.,,yes,yes,yes,
+808463828,"Fuck off, Medic!",Medic Kill (A),yes,yes,yes,
+813487064,Got the fuckin’ Shield!,Shield Kill (A),yes,yes,yes,
+815291727,"Get stuffed, Taser fuck!",Taser Kill (A),yes,yes,yes,
+817114364,Smile for the camera.,Camera,yes,yes,yes,
+824234610,"If you go down again, just fucking stay there.",Reviving?,yes,yes,yes,
+826422418,I’ll show them they made the right choice in letting me join.,Mask Up,yes,yes,yes,
+828934243,"Sorry, Control. I’m just really craving some good pudding. You got any?",Pager,yes,yes,yes,
+829907414,Fuck me!,,yes,yes,yes,
+832023098,"Aw, fuck! FUCK!",Injured (A),yes,yes,yes,
+832234121,Don’t back down!,Wave Advice,yes,yes,yes,
+833422488,"Come on then, ya fuckin’ tossers.",,yes,yes,yes,
+834104793,"Fuck, you got this hurt, ya tosser?",Reviving,yes,yes,yes,
+834339501,Can’t see shit! Wait it out!,Smoke Grenade,yes,yes,yes,
+836436392,Something’s not right.,Drill Jammed/Hack Stopped?,yes,yes,yes,
+837652342,"Look at them drongos, haha! They think they have an actual chance!",Assault Wave Incoming?,yes,yes,yes,
+840742979,Sniper!,Sniper (C),yes,yes,yes,
+842360521,Stay put.,Stay/Civilian Stay Down (C),yes,yes,yes,
+847694964,No wuckin’ furries whatsoever.,Heist Completed (Stealth)?,yes,yes,yes,
+848503257,They’re pullin’ back!,Assault Wave Ending,yes,yes,yes,
+850065482,Watch out. Camera.,Camera,yes,yes,yes,
+853915013,You ready for this? It’s them or us.,Assault Wave Incoming,yes,yes,yes,
+867976317,On the way!,Called,yes,yes,yes,
+869347022,"Aw, fuck.",,yes,yes,yes,
+870270741,"You won’t be getting up, ya dipshit!",Taxman Threat?,yes,yes,yes,
+873039215,Tones.,Scarface (C),,yes,yes,
+874728508,I see a Bulldozer.,Bulldozer (C),yes,yes,yes,
+880173475,"No rest for the wicked, get up!",Inspire (A),yes,yes,yes,
+881912099,Aw yeah? ‘Bout god damn time.,Objective Complete?,yes,yes,yes,
+884136465,To the right!,Right Direction,yes,yes,yes,
+888304192,Show these dipshits what death’s really about.,Assault Wave Incoming?,yes,yes,yes,
+888626387,And don’t move.,Civilian Stay Down (C),yes,yes,yes,Command
+888852434,Now THIS is why there’s so much fuss about ya!,Heist Complete,yes,yes,yes,
+890550655,I need some bloody ammo.,Out of Ammo,yes,yes,yes,
+890760525,"Oh, I’m such a tool. I forgot my dinner at home. What am I supposed to eat now...Control, you got any leftovers?",Pager,yes,yes,yes,Pager
+893293939,We’re about to retire some cops today.,Assault Wave Incoming?,yes,yes,yes,
+893565056,I love me some good action.,Heist Complete?,yes,yes,yes,
+899149874,Straight on!,Forward Direction,yes,yes,yes,
+900389711,First aid kit here.,First Aid Kit Deployed (C),yes,yes,yes,
+901347418,Killed a Shield.,Shield Kill (C),yes,yes,yes,
+903042087,I’d rather DIE than surrender!,Wave Advice?,yes,yes,yes,
+903494401,Let’s make this a ripper of a day.,,yes,yes,yes,
+907698585,Just get it done!,,yes,yes,yes,
+908235477,I was born for this.,Mask Up,yes,yes,yes,
+909634045,Bloody smoke bomb!,Smoke Grenade,yes,yes,yes,
+920546522,Grenade out!,Grenade,yes,yes,yes,
+928452167,Got a Bulldozer.,Bulldozer (C),yes,yes,yes,
+929032585,Just hang on.,Called,yes,yes,yes,
+929731652,Let’s make this bloody.,Assault Wave Incoming?,yes,yes,yes,
+937050668,Fuckin’ hell.,,yes,yes,yes,
+938174638,Got a body bag case here.,Body Bag Case Deployed,yes,yes,yes,
+938229236,"Rrf, who’s got a medic bag?!",Injured (A),yes,yes,yes,Hurt
+943703891,Downstairs!,Downstairs Direction,yes,yes,yes,
+951398976,"Fuck me, what happened to you?",Reviving,yes,yes,yes,
+954187590,We’re drilling!,Drill Placed,yes,yes,yes,
+960901465,Down.,Down Direction or Civilian Get Down (C),yes,yes,yes,
+975695956,Left.,Left Direction,yes,yes,yes,
+978146049,It’s an enemy Medic.,Medic (C),yes,yes,yes,
+978163951,"Get down, or get killed.",Civilian Get Down (C),yes,yes,yes,
+979278119,"Ah, shit.",,yes,yes,yes,
+997531542,"Up, up!",Up Direction?,yes,yes,yes,
+1002948286,"So, show me why you’re the best.",Assault Wave Incoming?,yes,yes,yes,
+1005999352,I’m ready for a good fight.,Assault Wave Incoming?,yes,yes,yes,
+1011893976,They call Sydney a basket case? I’ll fuckin’ show ‘em a basket case.,Assault Wave Incoming?,yes,yes,yes,
+1017807763,Time to party.,Assault Wave Incoming?,yes,yes,yes,
+1034708355,Brace yourselves!,Assault Wave Incoming?,yes,yes,yes,
+1035839727,"Don’t chicken out now, it’s about to get real interesting.",Assault Wave Incoming?,yes,yes,yes,
+1041935963,They say I’m a basket case? I’ll show ‘em a basket case!,Assault Wave Incoming?,yes,yes,yes,
+1047356311,"Ah, shit!",,yes,yes,yes,
+1053306656,Come break me out!,Cuffed,,yes,yes,
+1055021728,Just stay there.,Stay,,yes,yes,
+1057740711,Can barely see the fuckers!,Smoke Grenade,yes,yes,yes,
+1069449887,"Want mommy to take care of you, yeah? Get stuffed!",Inspire?,yes,yes,yes,
+1073669103,"Come on then, come on!",Inspire Speed Boost?,yes,yes,yes,

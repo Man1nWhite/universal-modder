@@ -19,7 +19,7 @@ from this checkout: nothing here paged a website, and nothing here needs one.
 | `regular_vox_keys.csv` | 3,994 | — | The slot leads the whole tab supports, over 65 of the intent slots and 22 speakers. Similarity only, and the loudest lesson of the tab: the same line scores for several heisters. |
 | `regular_vox_hoxton.csv` | 1,550 | — | The `--who Hoxton` slice of the tab: one heister, every line, showing what a per-speaker import looks like. |
 | `regular_vox_hoxton_keys.csv` | 434 | — | That slice's leads, 50 slots. A per-heister slice is the shape a real mapping would take — after the line is checked against the audio. |
-| `robbers_mission_gen.csv` | 5,499 | 4,220 declared | The objective-callout bank: 1,813 rows carry a `who` and a line, 3,686 are ids the sheet lists with nothing filled in yet. It names Rust lines by id (`3115131` It's delivered); they are **not** `char_rust` ids (D78). |
+| `robbers_mission_gen.csv` | 5,499 | 4,220 declared | The objective-callout bank: 1,811 rows carry a `who` (1,720 with a line), 3,686 are ids the sheet lists with nothing filled in yet. It names Rust lines by id (`3115131` It's delivered); they are **not** `char_rust` ids (D78). |
 | `char_sydney.csv` | 1,037 | 1,037 declared | A dedicated bank, complete: every row is Sydney, none needs review. The importer keeps the first four columns, so the tab's `Type` column lands in `notes` and `Sub-Type`/the second `Notes` are not carried — the export in `references/sheets/` keeps them. |
 
 The importer prints the tab's own coverage beside the file's row count and measures one against the

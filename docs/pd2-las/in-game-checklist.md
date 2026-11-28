@@ -187,8 +187,8 @@ under the collar, and whether the mask came back — none of them was ever seen 
 the keying was re-verified against the loaders and was right, so the route itself never produced a
 line. The id-keyed stream pack below does, and it is the only one in `dist/Miranda/`. The steps stay as
 the record of what was asked of it, and as the checklist a future pack on that route would start
-from; the packaging contract (and the reason for the drop) is
-[`docs/pd2-voice-mod-install.md`](../pd2-voice-mod-install.md) §1–§6.
+from; the packaging contract (and the reason for the drop) is the `install` tab of
+[`voice_lines_vox/vo_master.xlsx`](../../voice_lines_vox/vo_master.xlsx).
 
 1. **The mod list.** BeardLib's Mods menu lists *Miranda Lawson VO over Hila*, enabled, no red error line.
 2. **It replaces at all.** Play Hila in any heist: the interaction and movement barks ("On me.", "Follow
@@ -251,29 +251,15 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    the pack, so those ids play vanilla Hila. If one of those sounds like vanilla Hila instead of
    Miranda, that is by design, not a miss. The TTS wording itself has not been verified by ear: if a
    new take says something odd in context, that is the take, not the cut.
-1e. **`Geralt_VO_over_Rust_Stream` is NOT heard in game** (2026-11-25 build). Install it ALONE
-   (it writes the same `regular_vox` ids as the Hila and Arivus packs — two installed, last loaded
-   wins). Rust is the punk heister (`npc_criminal_wild_1`). What to check: (i) whether his barks are
-   Geralt's at all — the shared bank is verified for the crew, but whether this DLC heister plays
-   from it is an open question; if his voice is vanilla, he is not on `regular_vox` and the pack
-   cannot fix that. The ids either pack writes, per bank, are tracked in `voice_lines_vox/targets/`
-   (the shared tables and the measured `char_rust` one — `docs/pd2-voice-stream-tables.md`, D73);
-   A Rust pack on his own bank exists but is not shipped (D76: it waits on
-   `voice_lines_vox/geralt/char_rust_ids.csv`, the slot → id map); so this check still decides whether the
-   *shared* pack can reach him at all.
-   (ii) the lines the Geralt set covers (29 slots: assault.incoming/retreat,
-   civ.dontmove/down/killthreat/nophone, inspire.faster, kill.*, mark.*, mask.go, move.generic,
-   nade.*, revive.*, tech.drill_jam, win.generic, ammo.low, drop.ammo); (iii) the 49 uncovered slots
-   are vanilla by design; (iv) `kill.taser`/`mark.taser` ship the Geralt takes deliberately.
-1f. **`Arivus_VO_over_Hoxton_Stream` is NOT heard in game** (2026-11-25 build). Install it ALONE
-   (same shared ids; see 1e). Old Hoxton is the shared-suit heister (`mtr_old_hoxton`). What to
-   check: (i) the 18 Arivus slots (ammo.low, civ.down, civ.killthreat, civ.nophone, drop.ammo,
-   kill.*, mark.*, nade.*); (ii) `call_teammate.hey_you` is Geralt's voice saying the 'Hoxton.'
-   callout, borrowed from the GERALT archive — if it sounds wrong, note it: the set has no Arivus
-   callout and the borrow was a deliberate trade; (iii) everything else is vanilla by design.
-   The Arivus files peak at −2.8…−7.5 dBFS and are peak-matched to −1.5 dBFS, the loudest take boost
-   is ~+6 dB.
-
+1e. **`Geralt_VO_over_Rust_Stream` — removed 2026-11-28 (D89).** The pack was never heard in game
+   and the zip was deleted with its Arivus sibling; there is nothing to install for Rust VO any
+   more. The question this item was to answer — whether Rust barks from the shared `regular_vox`
+   bank or his own `char_rust` bank — stays open (O1; the measured bank is recorded in the
+   `char_rust` tab of `voice_lines_vox/vo_master.xlsx`, and the `char_rust` route stays blocked on
+   `voice_lines_vox/geralt/char_rust_ids.csv`, D76). Do not go looking for the pack.
+1f. **`Arivus_VO_over_Hoxton_Stream` — removed 2026-11-28 (D89).** Never heard in game; the zip was
+   deleted. Nothing to install for Old Hoxton VO any more; the slot picks stay in
+   `voice_lines_vox/arivus/slot_picks.csv` as the record of what the set carried.
 2. **No loader noise.** `mods/logs/` should show the mod folder loaded and no error from it: the pack
    has no Lua, no hooks and no XML to parse beyond `<mod name=…>`.
 3. **Line-by-line, not event-by-event.** A heist-scripted line Hila speaks as an NPC keeps Hila's

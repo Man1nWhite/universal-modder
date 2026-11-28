@@ -6,3 +6,8 @@ pillow==13.0.0
 numpy==2.4.6
 imageio-ffmpeg==0.8.1
 py7zr==1.1.4
+# The VO workbook builder (tools/build_vo_master.py): openpyxl writes the .xlsx,
+# python-docx/pypdf read the Sydney sheet the char_sydney tab joins
+openpyxl==3.1.5
+python-docx==1.2.0
+pypdf==7.2.0

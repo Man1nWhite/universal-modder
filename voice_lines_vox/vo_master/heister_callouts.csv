@@ -1,0 +1,237 @@
+category,event,meaning,raw_cell
+Specials and Deployables,g30x_any,BullDozer Killed (Delayed),g30x_any - BullDozer Killed (Delayed)
+Teammate Callouts,f11a_sin,Dallas Help me up!,f11a_sin - Dallas Help me up!
+Marking and Yelling at Hostages,f02x_plu,Get Down! (Everybody),f02x_plu - Get Down! (Everybody)
+Drills and Misc,d01x_sin,Hear a Drill Jammed,d01x_sin - Hear a Drill Jammed
+Third person only (Bot lines),g90,"Taunt (Only when Heist has gone Loud, otherwise blank)","g90 - Taunt (Only when Heist has gone Loud, otherwise blank)"
+General Callouts,g01,Downstairs,g01 - Downstairs
+,p01,"Alright, Let's do this.","p01 - Alright, Let's do this."
+,v01,"Okay, On it!","v01 - Okay, On it!"
+Specials and Deployables,g31x_any,Sheild Killed (Delayed),g31x_any - Sheild Killed (Delayed)
+Teammate Callouts,f11e_plu,Guys I need Help!,f11e_plu - Guys I need Help!
+Marking and Yelling at Hostages,f02x_sin,Get Down! (To Hostage),f02x_sin - Get Down! (To Hostage)
+Drills and Misc,d02x_sin,Drill Jammed again,d02x_sin - Drill Jammed again
+Third person only (Bot lines),s09a,"First revive by bot (Hey man, you're not looking too good)","s09a - First revive by bot (Hey man, you're not looking too good)"
+General Callouts,g02,Upstairs,g02 - Upstairs
+,p02,Let's do this.,p02 - Let's do this.
+,v03,"We're in, We're Through","v03 - We're in, We're Through"
+Specials and Deployables,g32x_any,Tazer Killed (Delayed),g32x_any - Tazer Killed (Delayed)
+Teammate Callouts,f13a_sin,Dallas come uncuff me!,f13a_sin - Dallas come uncuff me!
+Marking and Yelling at Hostages,f02b_sin,I told *you* to get down!,f02b_sin - I told *you* to get down!
+Drills and Misc,d03_plu,Hear a Jammed Computer,d03_plu - Hear a Jammed Computer
+Third person only (Bot lines),s09b,Second revive by bot (You look worse than before),s09b - Second revive by bot (You look worse than before)
+General Callouts,g03,Left,g03 - Left
+,p03,Time to go to work.,p03 - Time to go to work.
+,v04,"Found it, It's here","v04 - Found it, It's here"
+Specials and Deployables,g33x_any,Cloaker Killed (Delayed),g33x_any - Cloaker Killed (Delayed)
+Teammate Callouts,f21a_sin,Dallas Follow me!,f21a_sin - Dallas Follow me!
+Marking and Yelling at Hostages,f03a_plu,Stay Down! (Everybody),f03a_plu - Stay Down! (Everybody)
+Drills and Misc,d03_sin,Hear a Jammed Thermal Lance,d03_sin - Hear a Jammed Thermal Lance
+Third person only (Bot lines),s09c,"Third revive by bot (You're almost dead, use a medic bag)","s09c - Third revive by bot (You're almost dead, use a medic bag)"
+General Callouts,g04,Right,g04 - Right
+,p04,Hurry up and Freakin' Wait,p04 - Hurry up and Freakin' Wait
+,v05,"Found one, Got one","v05 - Found one, Got one"
+Specials and Deployables,g35x_any,Sniper Killed,g35x_any - Sniper Killed
+Marking and Yelling at Hostages,f03a_sin,Stay Down! (You),f03a_sin - Stay Down! (You)
+Drills and Misc,d04_plu,Computer Jammed Again,d04_plu - Computer Jammed Again
+Third person only (Bot lines),s05a_sin,"(I feel terrible, c'mon heal me)","s05a_sin - (I feel terrible, c'mon heal me)"
+General Callouts,g05,Go Up,g05 - Go Up
+,p05,Cops just got here,p05 - Cops just got here
+,v06,"Found another one, Found one more","v06 - Found another one, Found one more"
+Specials and Deployables,g36x_any,Medic Killed,g36x_any - Medic Killed
+Teammate Callouts,,"(For above, replace ""a"" with desired character id)","(For above, replace ""a"" with desired character id)"
+Marking and Yelling at Hostages,f03b_any,And don't move! (To Hostage),f03b_any - And don't move! (To Hostage)
+Drills and Misc,d04_sin,Thermal Lance Jammed Again,d04_sin - Thermal Lance Jammed Again
+Third person only (Bot lines),s05b_sin,"(Whew, Thanks. You revived me right on time)","s05b_sin - (Whew, Thanks. You revived me right on time)"
+General Callouts,g06,Go Down,g06 - Go Down
+,p06,Ok,p06 - Ok
+,v07,"It's Done, It's finished","v07 - It's Done, It's finished"
+Teammate Callouts,,(Characters who call themselves are usually blank),(Characters who call themselves are usually blank)
+Drills and Misc,d05,Generic Shit's broke,d05 - Generic Shit's broke
+General Callouts,g07,We gotta get out,g07 - We gotta get out
+,p07,We gotta go through with the hostage trade,p07 - We gotta go through with the hostage trade
+,v08,"DONE, We're done","v08 - DONE, We're done"
+Specials and Deployables,f30x_any,Spot BullDozer,f30x_any - Spot BullDozer
+Teammate Callouts,,"{a, b, c, d} = Dallas, Chains, Wolf, Hoxton","{a, b, c, d} = Dallas, Chains, Wolf, Hoxton"
+Marking and Yelling at Hostages,f36x_any,Inspire Revive,f36x_any - Inspire Revive
+General Callouts,g08,Get Inside,g08 - Get Inside
+,p08,Computer is Jammed (d03_plu is better),p08 - Computer is Jammed (d03_plu is better)
+,v09,C'mon onto the next objective,v09 - C'mon onto the next objective
+Specials and Deployables,f30y_any,Oh Shit BullDozer!,f30y_any - Oh Shit BullDozer!
+Teammate Callouts,,"{l, m, n, o} = Houston, Wick, Clover, Dragan","{l, m, n, o} = Houston, Wick, Clover, Dragan"
+Marking and Yelling at Hostages,f37_any,Mark Guard Line,f37_any - Mark Guard Line
+Drills and Misc,a01x_any,(Putting mask on) Let's do this,a01x_any - (Putting mask on) Let's do this
+General Callouts,g09,Hurry,g09 - Hurry
+,p09,Computer Jammed Again (d04_plu is better),p09 - Computer Jammed Again (d04_plu is better)
+,v10,Found a Keycard (See),v10 - Found a Keycard (See)
+Specials and Deployables,f31x_any,Spot Sheild,f31x_any - Spot Sheild
+Teammate Callouts,,"{p, q, r, s} = Jacket, Bonnie, Sokol, Gyro","{p, q, r, s} = Jacket, Bonnie, Sokol, Gyro"
+Marking and Yelling at Hostages,f38_any,Follow me (Generic),f38_any - Follow me (Generic)
+Drills and Misc,i01x_any,(Assault only) Anticipation,i01x_any - (Assault only) Anticipation
+General Callouts,g10,Careful,g10 - Careful
+,p10,"Piece of Shit hardware (Jammed Drill, Chains/Hoxton)","p10 - Piece of Shit hardware (Jammed Drill, Chains/Hoxton)"
+,v11,I got the Keycard (Pickup),v11 - I got the Keycard (Pickup)
+Specials and Deployables,f31y_any,Oh Shit Sheild!,f31y_any - Oh Shit Sheild!
+Teammate Callouts,,{t} = Bodhi,{t} = Bodhi
+Marking and Yelling at Hostages,f39_any,Mark Camera Line,f39_any - Mark Camera Line
+General Callouts,g11,Wrong Way,g11 - Wrong Way
+,p12,Go go,p12 - Go go
+,v12,BEEP BEEP MOTHERFUCKER (use Keycard),v12 - BEEP BEEP MOTHERFUCKER (use Keycard)
+Specials and Deployables,f32x_any,Spot Taser,f32x_any - Spot Taser
+Marking and Yelling at Hostages,f40_any,(To Hostage) Get Moving!,f40_any - (To Hostage) Get Moving!
+Drills and Misc,r01x_sin,(Delayed) Affirmative (Bot Follow me Response),r01x_sin - (Delayed) Affirmative (Bot Follow me Response)
+General Callouts,g12,Right Way,g12 - Right Way
+,p13,Get a move on!,p13 - Get a move on!
+,v13,"Back up, Clear the blast zone (Plant mission C4)","v13 - Back up, Clear the blast zone (Plant mission C4)"
+Specials and Deployables,f32y_any,Oh Shit Taser!,f32y_any - Oh Shit Taser!
+Teammate Callouts,s20x_sin,(To self) Gonna slip these cuffs.,s20x_sin - (To self) Gonna slip these cuffs.
+Marking and Yelling at Hostages,f41_any,Wake up sleepyhead (Sokol only),f41_any - Wake up sleepyhead (Sokol only)
+Drills and Misc,r02a_sin,(Delayed) I'm on my way! (Bot Rescue response),r02a_sin - (Delayed) I'm on my way! (Bot Rescue response)
+General Callouts,g13,Let's Go,g13 - Let's Go
+,p14,MOVE IT!,p14 - MOVE IT!
+,v14,"Knock Knock, We make our own doors (Blow mission C4)","v14 - Knock Knock, We make our own doors (Blow mission C4)"
+Specials and Deployables,f33x_any,Spot Cloaker,f33x_any - Spot Cloaker
+Teammate Callouts,s21x_sin,(To self) I got out of my cuffs.,s21x_sin - (To self) I got out of my cuffs.
+Marking and Yelling at Hostages,f43_any,Wake up (Sokol only),f43_any - Wake up (Sokol only)
+General Callouts,g14,This is the place,g14 - This is the place
+,p15,Get Moving!,p15 - Get Moving!
+,v15,Get this Motherfucking door open,v15 - Get this Motherfucking door open
+Specials and Deployables,f33y_any,Oh Shit Cloaker!,f33y_any - Oh Shit Cloaker!
+Marking and Yelling at Hostages,f46x_any,Taxman Interrogation lines,f46x_any - Taxman Interrogation lines
+Drills and Misc,t01x_sin,Few Minutes Left,t01x_sin - Few Minutes Left
+General Callouts,g15,There! (Look),g15 - There! (Look)
+,p16,MOVE,p16 - MOVE
+,v16,Let's open this door,v16 - Let's open this door
+Specials and Deployables,f34x_any,Spot Sniper,f34x_any - Spot Sniper
+Marking and Yelling at Hostages,f48x_any,"Stop, Halt, Wait","f48x_any - Stop, Halt, Wait"
+Drills and Misc,t02x_sin,Halfway there,t02x_sin - Halfway there
+General Callouts,g16,Keep Defending,g16 - Keep Defending
+,p17,"Almost, Any second now!","p17 - Almost, Any second now!"
+,v17,Lets go team,v17 - Lets go team
+Specials and Deployables,f34y_any,Oh Shit Sniper!,f34y_any - Oh Shit Sniper!
+Drills and Misc,t03x_sin,Any Second Now!,t03x_sin - Any Second Now!
+General Callouts,g17,Time to Go,g17 - Time to Go
+,p18,What're you waiting for!? (Wolf Only),p18 - What're you waiting for!? (Wolf Only)
+,v18,"Wipe em out, Clear the room","v18 - Wipe em out, Clear the room"
+Specials and Deployables,f44x_any,There's a Swat Turret!,f44x_any - There's a Swat Turret!
+General Callouts,g18,Move (Inspire Go Faster),g18 - Move (Inspire Go Faster)
+,p19,I'm coming for ya (as in Revive),p19 - I'm coming for ya (as in Revive)
+,v19,Here it comes,v19 - Here it comes
+Specials and Deployables,f42_any,Look Out! (Generic),f42_any - Look Out! (Generic)
+Drills and Misc,l01x_sin,"Hands up! (Intimidate, ""L""01x)","l01x_sin - Hands up! (Intimidate, ""L""01x)"
+General Callouts,g19,Go Straight,g19 - Go Straight
+,p20,Come with me,p20 - Come with me
+,v20,"It's here, It has Arrived","v20 - It's here, It has Arrived"
+Specials and Deployables,f45x_any,Watch out! (Generic),f45x_any - Watch out! (Generic)
+Drills and Misc,l02x_sin,"On your knees! (Intimidate ""L""02x)","l02x_sin - On your knees! (Intimidate ""L""02x)"
+General Callouts,g20,Jump Down,g20 - Jump Down
+,p21,Plan B Time,p21 - Plan B Time
+,v21,Its P A Y D A Y,v21 - Its P A Y D A Y
+Specials and Deployables,f47x_any,There's a Medic!,f47x_any - There's a Medic!
+Drills and Misc,l03x_sin,"Cuffs, Now. (Intimidate ""L""03x)","l03x_sin - Cuffs, Now. (Intimidate ""L""03x)"
+General Callouts,g21,Drill Mounted,g21 - Drill Mounted
+,p22,Police Assault Incoming,p22 - Police Assault Incoming
+,v22,We got all of it,v22 - We got all of it
+Drills and Misc,whistling_attention,Whistle Command,whistling_attention - Whistle Command
+General Callouts,g22,POS Drill (Post drill repair),g22 - POS Drill (Post drill repair)
+,p23,Get ready for action,p23 - Get ready for action
+,v23,The Drill is done,v23 - The Drill is done
+Specials and Deployables,g40x_any,SMOKE! (Third Person),g40x_any - SMOKE! (Third Person)
+General Callouts,g23,Shoot em!,g23 - Shoot em!
+,p24,"Alright, back to work (Police assault over)","p24 - Alright, back to work (Police assault over)"
+,v24,The Computer is done,v24 - The Computer is done
+Specials and Deployables,g41x_any,FLASHBANG!,g41x_any - FLASHBANG!
+Drills and Misc,dsp_radio_checking_1,Player Pager Answering Lines,dsp_radio_checking_1   - Player Pager Answering Lines
+General Callouts,g24,Mission Success Lines,g24 - Mission Success Lines
+,p25,Flashbang! (g41x_any is better),p25 - Flashbang! (g41x_any is better)
+,v25,It's done lets move on,v25 - It's done lets move on
+Specials and Deployables,g42x_any,TEARGAS!,g42x_any - TEARGAS!
+Drills and Misc,dsp_stop_all,Stop Radio Static,dsp_stop_all                 - Stop Radio Static
+General Callouts,g25,Take out Cameras,g25 - Take out Cameras
+,p26,Cover their flanks,p26 - Cover their flanks
+,v26,"There's our ride, There's our escape","v26 - There's our ride, There's our escape"
+Specials and Deployables,g80x_plu,Need Medic Bag!,g80x_plu - Need Medic Bag!
+General Callouts,g26,Use Cable Ties,g26 - Use Cable Ties
+,p27,Loot Bag Secured,p27 - Loot Bag Secured
+,v27,There are cops in the vents,v27 - There are cops in the vents
+Specials and Deployables,g81x_plu,Need Ammo Bag!,g81x_plu - Need Ammo Bag!
+General Callouts,g27,Watch the Civilians,g27 - Watch the Civilians
+,p28,That's all the loot bags,p28 - That's all the loot bags
+,v28,Spotted the mark,v28 - Spotted the mark
+General Callouts,g28,Almost there! (Escape),g28 - Almost there! (Escape)
+,p29,Picking the lock!,p29 - Picking the lock!
+,v29,There she is,v29 - There she is
+Specials and Deployables,s01x_plu,I Placed Ammo Bag,s01x_plu - I Placed Ammo Bag
+General Callouts,g29,FUCK!,g29 - FUCK!
+,p30,Using a keycard!,p30 - Using a keycard!
+,v30,There he is,v30 - There he is
+Specials and Deployables,s02x_plu,I placed Doctor Bag,s02x_plu - I placed Doctor Bag
+General Callouts,g30,BullDozer Killed,g30 - BullDozer Killed
+,p31,Cops are stealing our loot,p31 - Cops are stealing our loot
+,v31,There they are,v31 - There they are
+Specials and Deployables,s05x_sin,Thanks (Helped up),s05x_sin - Thanks (Helped up)
+General Callouts,g43,Grenade! (Throwing),g43 - Grenade! (Throwing)
+,p32,"You go case the place, I'll wait here as backup","p32 - You go case the place, I'll wait here as backup"
+,v32,There it is,v32 - There it is
+Specials and Deployables,s07x_sin,Tazed (Wolf/Chains/Hous),s07x_sin - Tazed (Wolf/Chains/Hous)
+General Callouts,g50,Get ready for action (Third Person),g50 - Get ready for action (Third Person)
+,p33,They're coming in through the Skylights,p33 - They're coming in through the Skylights
+,v33,Where's the manager!?,v33 - Where's the manager!?
+Specials and Deployables,s08x_sin,"Hang on, I'm reviving you","s08x_sin - Hang on, I'm reviving you"
+General Callouts,g60,SHIT!,g60 - SHIT!
+,p34,They're on the roof,p34 - They're on the roof
+,v34,LISTEN UP THIS IS A ROBBERY (Heat Speech),v34 - LISTEN UP THIS IS A ROBBERY (Heat Speech)
+Specials and Deployables,s12,Placed First Aid Kit,s12 - Placed First Aid Kit
+General Callouts,g61,I got the Drill,g61 - I got the Drill
+,p35,They're coming down the sides (or walls),p35 - They're coming down the sides (or walls)
+,v35,Bain!?,v35 - Bain!?
+Specials and Deployables,s13,Bodybag Case Placed,s13 - Bodybag Case Placed
+General Callouts,g62,Thirty Seconds,g62 - Thirty Seconds
+,p36,They're coming through the wall panel,p36 - They're coming through the wall panel
+,v36,Fuck! Now what?,v36 - Fuck! Now what?
+Specials and Deployables,s14,Bodybag Secured (Hoxton Only?),s14 - Bodybag Secured (Hoxton Only?)
+General Callouts,g63,One Minute,g63 - One Minute
+,p37,They're coming from the floors,p37 - They're coming from the floors
+,v37,"Stay sharp, I got a bad feeling about this","v37 - Stay sharp, I got a bad feeling about this"
+Specials and Deployables,s32x_sin,That was my Last Cable Tie,s32x_sin - That was my Last Cable Tie
+General Callouts,g64,One Thirty,g64 - One Thirty
+,p38,They're coming from outside,p38 - They're coming from outside
+,v38,Search the place,v38 - Search the place
+General Callouts,g65,Two Minutes,g65 - Two Minutes
+,p39,They're Climbing down on the outside,p39 - They're Climbing down on the outside
+,v39,"Find the mark, Find the target","v39 - Find the mark, Find the target"
+General Callouts,g66,Two Thirty,g66 - Two Thirty
+,p40,They're Climbing up on the outside,p40 - They're Climbing up on the outside
+,v40,C'mon find her,v40 - C'mon find her
+General Callouts,g67,Any Second Now,g67 - Any Second Now
+,p41,Swat Helicopter inbound,p41 - Swat Helicopter inbound
+,v41,C'mon find him,v41 - C'mon find him
+General Callouts,g68,Overrun with Cops,g68 - Overrun with Cops
+,p42,Swat insertion,p42 - Swat insertion
+,v42,C'mon find them,v42 - C'mon find them
+General Callouts,g69,We're Easy Targets (Can't Stay),g69 - We're Easy Targets (Can't Stay)
+,p43,"Snipers! (Responding to spawn, not a callout)","p43 - Snipers! (Responding to spawn, not a callout)"
+,v43,C'mon find it,v43 - C'mon find it
+General Callouts,g70,Cops just got here (Third Person),g70 - Cops just got here (Third Person)
+,p44,They're coming from the woods,p44 - They're coming from the woods
+,v44,Keep looking,v44 - Keep looking
+General Callouts,g72,I'm on it! (Wolf Only),g72 - I'm on it! (Wolf Only)
+,p45,"Anybody, HEEEELP! (Help I'm dying)","p45 - Anybody, HEEEELP! (Help I'm dying)"
+,v45,"Oh no a turret, Aw shit they brought a turret","v45 - Oh no a turret, Aw shit they brought a turret"
+General Callouts,g92,Found it (Gage Package),g92 - Found it (Gage Package)
+,p46,Jump!,p46 - Jump!
+,v46,YES (Excited),v46 - YES (Excited)
+,p47,"Let's get the Party Started!"" (Excited about going Loud)","p47 - ""Let's get the Party Started!"" (Excited about going Loud)"
+,v47,Is that enough?,v47 - Is that enough?
+,v48,Nah get all of it,v48 - Nah get all of it
+,v49,"Shoot it down, Fire at it","v49 - Shoot it down, Fire at it"
+,v50,Murkies!,v50 - Murkies!
+,v51,Let's get this loot moving,v51 - Let's get this loot moving
+,v52,Shit it's stuck,v52 - Shit it's stuck
+,v53,This place smells bad,v53 - This place smells bad
+,v54,God DAMN that was loud,v54 - God DAMN that was loud
+,v55,Skydive Hype,v55 - Skydive Hype
+,v56,Hey (Counterfiet Greeting),v56 - Hey (Counterfiet Greeting)
+Drills and Misc,v54,God DAMN that was loud,v54 - God DAMN that was loud
+,v57,Found Crowbar,v57 - Found Crowbar
+,v58,SIT (Telling Taxman to get in the chair),v58 - SIT (Telling Taxman to get in the chair)

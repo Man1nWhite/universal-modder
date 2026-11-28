@@ -51,8 +51,6 @@ BUILDERS = {
     "bunny": ["tools/pd2-las/build_bunny_body_mod.py"],
     "voices_stream": ["tools/build_hila_stream_mod.py"],
     # One pack per purpose-authored bark set, same id-keyed route as voices_stream.
-    "voices_geralt": ["tools/build_character_stream_mod.py", "--pack", "geralt-rust"],
-    "voices_arivus": ["tools/build_character_stream_mod.py", "--pack", "arivus-old-hoxton"],
     # Reads the tracked Arivus head pack, so it runs after `heads`.
     "glb": ["tools/pd2-las/build_arivus_glb_pack.py"],
 }
