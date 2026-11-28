@@ -1,5 +1,21 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-27 — `Miranda_L4D2_over_Hila` leans forward onto the female heister posture (D86)
+
+`dist/Miranda/Miranda_L4D2_over_Hila.zip` is rebuilt (`make -sC tools/pd2-las heads`) after an in-game
+side-profile menu capture with Tailor Pack turtleneck outerwear and `a_head` sunglasses showed the L4D2 Zoey
+head standing upright (`Eye` centres at `y ~ 12.00` cm, ~4 cm behind the sunglasses and vanilla Joy's
+`y ~ 16.06` cm, with the throat leaning backwards above the collar). `rigid_l4d2_head_posture` pitches the
+face, eyes (after planar `project_me2_eye_uv_img`), teeth, 3D eyelashes, and upper scalp/hair (`z >= 163.2`
+cm) forward by `+10.5°` via exact rational `tan(5.25°)` arithmetic onto `(15.70, 173.80)` cm (`cornea_max_y =
+17.29` cm, strictly inside `[Joy 17.00, Hila 17.43]` cm behind `a_head` eyewear), while
+`blend_l4d2_scalp_and_neck_posture` smoothsteps from the unchanged collar rim and skirt (`z <= 156.0` cm,
+`4,508` verts, `7,305` tris, `min_z = 142.98` cm, `0/114` rim edges exposed) into the tilted head with a
+monotonic forward throat line, lower side-hair clearance, and orthonormal `tangents.tangent_frames` (`|U·V| =
+6.35e-8`). `Miranda_L4D2_LAS.zip`, `Geralt_over_Rust.zip`, and `Arivus_over_Hoxton.zip` are untouched; unified
+preview sheets (`miranda_l4d2_over_hila_sheet.png`, `miranda_l4d2_over_hila_posture_before-after.png`,
+`all_dist_mods_sheet.png`) are regenerated. Reasoning: D86.
+
 ## 2026-11-27 — `OfficeSuite_over_Bunny` ships `OfficeSuite` over the vanilla Hop to It outfit (D85)
 
 `dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,

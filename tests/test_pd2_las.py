@@ -1303,6 +1303,95 @@ class TestLasScaffold:
             f"- a skirt above the collar is a skirt that is not there"
         )
 
+    def test_l4d2_hila_head_is_tilted_forward_to_heister_posture(self):
+        """`Miranda_L4D2_over_Hila` leans forward onto PD2's female heister posture (D86).
+
+        L4D2 Zoey stands upright (eyes y ~ 12.0 cm, chin->brow -0.4°), ~4 cm behind
+        Joy/Hila and `a_head` eyewear, with a backward-sloping throat above the collar.
+        Pin the forward eye/brow/nose/chin posture, eyelash alignment, and monotonic
+        forward throat profile between collar (z 156) and submental jaw (z 164).
+        """
+        import math
+        import numpy as np
+
+        import diesel_model as dm
+
+        zp = dist_path(REPO, "Miranda_L4D2_over_Hila.zip")
+        with zipfile.ZipFile(zp) as z:
+            raw = z.read(
+                "Miranda L4D2 over Hila/units/pd2_dlc_ecp/characters/"
+                "npc_criminals_ecp_female/npc_criminal_ecp_female.model"
+            )
+            raw_menu = z.read(
+                "Miranda L4D2 over Hila/units/pd2_dlc_ecp/characters/"
+                "npc_criminals_ecp_female/npc_criminal_ecp_female_menu.model"
+            )
+        mf = dm.ModelFile.read(raw)
+        md = next(
+            dm.decode_model_data(s.payload)
+            for s in mf.by_type(dm.MODEL_DATA)
+            if dm.decode_model_data(s.payload).get("name_hash") == dm.hash64("g_head")
+        )
+        pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+        v = np.asarray(geo["verts"], dtype=np.float64)
+        uv = np.asarray(geo["uv0"], dtype=np.float64)
+        a0, a1 = md["atoms"][0], md["atoms"][1]
+        v_head = v[a0["base_vertex"] : a0["base_vertex"] + a0["slice_len"]]
+        uv_head = uv[a0["base_vertex"] : a0["base_vertex"] + a0["slice_len"]]
+        v_lash = v[a1["base_vertex"] : a1["base_vertex"] + a1["slice_len"]]
+
+        # Both heist and menu g_head geometries must carry an orthonormal tangent basis (U.V == 0)
+        for m_tag, m_bytes in (("heist", raw), ("menu", raw_menu)):
+            mf_c = dm.ModelFile.read(m_bytes)
+            md_c = next(
+                dm.decode_model_data(s.payload)
+                for s in mf_c.by_type(dm.MODEL_DATA)
+                if dm.decode_model_data(s.payload).get("name_hash") == dm.hash64("g_head")
+            )
+            geo_c = dm.decode_geometry(mf_c.by_id(dm.decode_passthroughgp(mf_c.by_id(md_c["passthroughgp"]).payload)["geometry"]).payload)
+            n_c = np.asarray(geo_c["normals"], dtype=np.float64)
+            u_c = np.asarray(geo_c["uvdir_u"], dtype=np.float64)
+            tv_c = np.asarray(geo_c["uvdir_v"], dtype=np.float64)
+            assert np.abs((n_c * u_c).sum(1)).max() < 1e-4, f"{m_tag}: N.U"
+            assert np.abs((n_c * tv_c).sum(1)).max() < 1e-4, f"{m_tag}: N.V"
+            assert np.abs((u_c * tv_c).sum(1)).max() < 1e-4, f"{m_tag}: U.V sheared tangent basis"
+
+        def front_yz(z_lo: float, z_hi: float) -> np.ndarray:
+            m = (v_head[:, 2] >= z_lo) & (v_head[:, 2] <= z_hi) & (np.abs(v_head[:, 0]) < 1.5)
+            sub = v_head[m]
+            return sub[int(np.argmax(sub[:, 1])), 1:3]
+
+        eye_mask = (np.abs(v_head[:, 0]) >= 2.3) & (np.abs(v_head[:, 0]) <= 3.9) & (uv_head[:, 0] >= 0.5) & (uv_head[:, 1] < 0.5)
+        cornea_max_y = float(v_head[eye_mask, 1].max())
+        chin_y, chin_z = front_yz(163.5, 165.5)
+        nose_y, nose_z = front_yz(169.0, 172.0)
+        brow_y, brow_z = front_yz(175.0, 178.5)
+        face_angle_deg = math.degrees(math.atan2(brow_y - chin_y, brow_z - chin_z))
+
+        # Cornea apex sits strictly inside [Joy 17.00, Hila 17.43] so eyewear/masks never poke through
+        assert 17.00 <= cornea_max_y <= 17.43, f"cornea max y {cornea_max_y:.2f} cm outside [Joy 17.00, Hila 17.43]"
+        assert 16.5 <= chin_y <= 17.6, f"chin y {chin_y:.2f} cm out of Joy/Hila posture range"
+        assert 19.1 <= nose_y <= 20.3, f"nose y {nose_y:.2f} cm out of Joy/Hila posture range"
+        assert 18.2 <= brow_y <= 19.3, f"brow y {brow_y:.2f} cm out of Joy/Hila posture range"
+        assert 8.0 <= face_angle_deg <= 11.5, f"chin->brow angle {face_angle_deg:.2f}° not pitched forward"
+        assert 16.6 <= float(v_lash[:, 1].mean()) <= 17.8, "3D eyelashes did not follow tilted head"
+        assert 172.8 <= float(v_lash[:, 2].mean()) <= 174.4, "3D eyelashes z drifted off eye socket"
+
+        throat = v_head[
+            (np.abs(v_head[:, 0]) < 0.5)
+            & (v_head[:, 1] > 8.0)
+            & (v_head[:, 1] < 11.5)
+            & (v_head[:, 2] >= 156.0)
+            & (v_head[:, 2] <= 163.5)
+        ]
+        _, uniq_idx = np.unique(np.round(throat[:, 1:3], 3), axis=0, return_index=True)
+        throat_sorted = throat[uniq_idx][np.argsort(throat[uniq_idx, 2])]
+        assert len(throat_sorted) >= 4
+        assert np.all(np.diff(throat_sorted[:, 1]) > 0.05), (
+            f"throat centerline is not monotonically leaning forward: {throat_sorted[:, 1:3].tolist()}"
+        )
+
     def test_tracked_pack_specular_alpha_and_pd2_normal_layout(self):
         """Diffuse alpha carries attenuated specular (< 80) and normal maps use PD2 layout."""
         import numpy as np
