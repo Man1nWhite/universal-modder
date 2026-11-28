@@ -270,7 +270,7 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    longer than the vanilla one. No subtitle changes: those still show Hila's line.
 5. **First person.** Nothing to check — audio only.
 
-## Arivus over Old Hoxton v2 — the re-sculpted crown (2026-11-28, D96)
+## Arivus over Old Hoxton v2 — the re-sculpted crown (2026-11-28, D97)
 
 Install `dist/Arivus/Arivus_over_Hoxton_v2.zip` (**instead of** `Arivus_over_Hoxton.zip` — both write
 the same `Arivus over Hoxton*` units and the same four `shared_textures/old_hoxton_head*` overrides, so
@@ -337,7 +337,9 @@ head texture and the build inpaints it. These are the checks the offline render 
 ## OfficeSuite over Bunny — native Hop to It outfit override (2026-11-27, D85)
 
 Pack to install: `dist/Miranda/OfficeSuite_over_Bunny.zip` → extract the `OfficeSuite over Bunny`
-folder into `PAYDAY 2\assets\mod_overrides\`. No SuperBLT, BeardLib or Legendary Armour Skins needed.
+folder into `PAYDAY 2\assets\mod_overrides\`. Copy its `OfficeSuite Bunny Forearm Fix` folder
+into `PAYDAY 2\mods\` and restart. The companion needs SuperBLT; BeardLib and Legendary Armour Skins
+are not required. Remove the companion if reverting to the vanilla Bunny outfit.
 In-game, open **Outfits** in the BlackMarket and equip **Hop to It** (`bunny`, community / free outfit).
 
 1. **Menu icon & turntable preview.** In the Outfits tab, the **Hop to It** tile shows the OfficeSuite
@@ -346,10 +348,12 @@ In-game, open **Outfits** in the BlackMarket and equip **Hop to It** (`bunny`, c
    heisters with no scrambled UVs or pink materials.
 2. **Neck & head seam.** Because `player_styles.bunny` keeps `head = false`, the equipped heister's
    own head (or a head replacement such as `Miranda_L4D2_over_Hila`) sits above the OfficeSuite collar;
-   turn the character in the lobby and check the base of the neck from front, side and behind.
-3. **Gloves.** Without Lua hooks, leaving Gloves on **Default** spawns vanilla `heist_default` gloves
-   plus `hnd_forearms`; equip a short or dress glove in the **Gloves** tab and check both third-person
-   and first-person cuffs against the D70 palm cut and D75 `ForeArmRoll` wrist twist.
+   turn the character in the lobby and check the base of the neck from front, side and behind. With
+   the new Miranda head, also check the pictured beret, tiara and glasses for hair/face intersections;
+   the accessory-clearance adjustment is a trial and has not been checked in game.
+3. **Gloves.** With the companion installed, check Default and selected gloves in third and first person:
+   the selected gloves should remain, with no separate `hnd_forearms` band over OfficeSuite skin.
+   Check cuffs against the D70 palm cut and D75 `ForeArmRoll` wrist twist. Check another outfit too.
 4. **First-person viewmodel.** Load a heist solo with **Hop to It** equipped: verify the black sleeves,
    white cuffs and wrist watch appear at normal weapon-holding height, do not vanish when looking up or
    down (`co_box` culling), and twist cleanly when aiming, reloading and interacting.

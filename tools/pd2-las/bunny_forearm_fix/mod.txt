@@ -1,0 +1,12 @@
+{
+  "name": "OfficeSuite over Bunny - Forearm Fix",
+  "description": "Suppresses the vanilla glove forearm adapter only for Hop to It, for use with OfficeSuite over Bunny.",
+  "author": "Universal Modder",
+  "version": "1.0",
+  "hooks": [
+    {
+      "hook_id": "lib/tweak_data/blackmarkettweakdata",
+      "script_path": "forearm_fix.lua"
+    }
+  ]
+}

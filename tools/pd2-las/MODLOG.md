@@ -32,7 +32,7 @@ pack. The two Arivus sheets and the dist overview re-rendered; every other sheet
 `runtime_verified` stays false — how the warmer skin reads under the game's lighting is still a
 check waiting for a person with the game.
 
-## 2026-11-28 — `Arivus_over_Hoxton_v2.zip`: the owner's Blender scene as a pack (D96)
+## 2026-11-28 — `Arivus_over_Hoxton_v2.zip`: the owner's Blender scene as a pack (D97)
 
 The tracked `references/templates/Arivus Head BLEND.7z` holds the owner's edit of the v1 Arivus head
 (`g_head_old_hoxton`, re-rigged onto three bones) with v1's atlas packed in. It becomes a second
@@ -69,6 +69,35 @@ gets a sheet of v1 and v2 from the same three cameras; and the make-target regex
 learn `[a-z0-9_]+`, because `heads_v2` was the first target with a digit in its name.
 
 # PAYDAY 2 LAS — review journal
+
+## 2026-11-28 — Bunny forearm adapter
+
+The user reports extra forearm skin in the Bunny replacement. The native Bunny style can spawn
+`hnd_forearms` separately from the unchanged OfficeSuite mesh. A bundled SuperBLT companion sets
+only Bunny’s adapter to false and adds Bunny to the exclusion list; selected gloves remain. The
+companion must be copied to `mods/` separately. Offline tests exercise the BeardLib decision path;
+the new bytes have not been verified in game. After the user asked to try again, the head now has
+a conservative continuous accessory-clearance warp: the face, eyes, lashes and scalp all follow the
+same deformation; the upper hair is eased back and down, and the collar skirt remains unchanged. The
+original and rebuilt head both report the same pre-existing flipped triangles in the mesh diagnostic;
+the accessory meshes are not available, so the fit must be checked in game.
+
+## 2026-11-28 — rebuild `Geralt_over_Rust` from the supplied 1024x1024 face DDS pair (D96)
+
+PR #80 (`fa06f5a`) replaced `references/textures/geralt_head_{df,nm}.dds` with 1024x1024
+single-level DXT5 edits painting silver-white beard and moustache strands plus matching PD2-packed
+normal relief (`R~255, G=Y+, B~0, A=X`) onto the lower face behind the 3D beard cards.
+`build_joy_head_mods.build_geralt_rust_mod` now reads both files via `load_geralt_face_diffuse` and
+`load_geralt_face_normal`, splicing the supplied BC1 colour halves verbatim into level 0 of
+`npc_criminal_wild_1_head_df.texture`'s `[0:1024, 0:1024]` face quadrant (with solid specular alpha
+`18`) and clamping RGB-compressor bleed (`R=255, B=0`) on `npc_criminal_wild_1_head_nm.texture`,
+plus regenerating `wild.texture` (HUD/menu icon). `dist/Geralt/Geralt_over_Rust.zip` updates from
+`8,120,780` B (`20b26e8175f9…`) to `8,208,044` B (`48f4a5bc43aa…`); `Miranda_L4D2_over_Hila.zip`
+and `Arivus_over_Hoxton.zip` remain byte-identical. `tools/extract_face_textures.py` leaves
+`references/textures/geralt_head_{df,nm}.dds` untouched unless `--dds` is passed, `status.py`
+registers the face and beard `.dds` pairs in `INPUTS`, `render_geralt_beard_closeup` fixes
+`is_cut=True` for `ALPHA_MASKED` cutout rendering, and the three Geralt-bearing preview sheets are
+refreshed.
 
 ## 2026-11-28 (merge 2) — `main` landed its own D86 (Miranda posture); the VO entries renumber again
 

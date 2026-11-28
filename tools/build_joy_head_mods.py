@@ -84,6 +84,9 @@ SUIT_MENU_STEM = "npc_criminals_suit_menu_1"
 OLD_HOXTON_ICON_PATH = "guis/textures/pd2/blackmarket/icons/characters/old_hoxton.texture"
 OLD_HOXTON_TEX_DIR = "units/payday2/characters/shared_textures"
 ARIVUS_ARCHIVE = "1581859199_135363.rar"
+#: Supplied 1024x1024 DXT5 Geralt face maps (painted beard & moustache diffuse + PD2 normal relief).
+GERALT_HEAD_DF = ROOT / "references" / "textures" / "geralt_head_df.dds"
+GERALT_HEAD_NM = ROOT / "references" / "textures" / "geralt_head_nm.dds"
 # The supplied DDS is an edited Arivus atlas (not vanilla Hoxton UVs).
 # `old_hoxton_head_df.dds` is the 2026-11-28 upload: it supersedes the
 # `old_hoxton_head_df(1).dds` retouch, repainting 73,493 texels (1.75%) inside
@@ -528,6 +531,48 @@ def rigid_l4d2_head_posture(
     n_out[:, 1] = ny * c + nz * s
     n_out[:, 2] = -ny * s + nz * c
     return p_out.astype(np.float32), n_out.astype(np.float32)
+
+
+
+def fit_l4d2_accessory_clearance(
+    positions: np.ndarray, normals: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Gently reduce the tilted head's accessory envelope, preserving the collar.
+
+    The screenshots show contact at the eyewear and crown. This is a continuous
+    coordinate-space warp, shared by scalp, face, eyes and lashes, not a cut in
+    the hair mesh: coincident seams and the eyes stay together. Measurements of
+    the native Hila head put her crown below Miranda's; the upper hair is eased
+    down and back. No accessory meshes are available, so clearance is a trial,
+    not a claim of collision-free fit with every hat or pair of glasses.
+    """
+    p = np.asarray(positions, dtype=np.float64)
+    n = np.asarray(normals, dtype=np.float64)
+    x, y, z = p[:, 0], p[:, 1], p[:, 2]
+
+    def ramp(lo: float, hi: float) -> tuple[np.ndarray, np.ndarray]:
+        t = np.clip((z - lo) / (hi - lo), 0.0, 1.0)
+        return t * t * (3.0 - 2.0 * t), 6.0 * t * (1.0 - t) / (hi - lo)
+
+    w, dw = ramp(159.0, 164.0)
+    crown, dcrown = ramp(180.0, 184.0)
+    top, dtop = ramp(178.5, 182.5)
+    dx = -0.04 * x
+    dy = -0.35 - 0.03 * (y - 15.70)
+    top_distance = np.maximum(z - 178.5, 0.0)
+    out = p.copy()
+    out[:, 0] += w * dx
+    out[:, 1] += w * dy - 0.75 * crown
+    out[:, 2] -= 0.10 * top_distance * top
+
+    # Inverse transpose of the local Jacobian, including both smooth ramps.
+    nx = n[:, 0] / (1.0 - 0.04 * w)
+    ny = n[:, 1] / (1.0 - 0.03 * w)
+    dz_dz = 1.0 - 0.10 * (top + top_distance * dtop)
+    nz = (n[:, 2] - nx * dw * dx - ny * (dw * dy - 0.75 * dcrown)) / dz_dz
+    normal = np.column_stack((nx, ny, nz))
+    normal /= np.maximum(np.linalg.norm(normal, axis=1, keepdims=True), 1e-8)
+    return out.astype(np.float32), normal.astype(np.float32)
 
 
 def blend_l4d2_scalp_and_neck_posture(
@@ -1864,6 +1909,8 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
                     n_s = soften_eyeball_normals(n_s)
                 if for_suit:
                     p_s, n_s = rigid_l4d2_head_posture(p_s, n_s)
+            if for_suit:
+                p_s, n_s = fit_l4d2_accessory_clearance(p_s, n_s)
             atoms_by_mid.setdefault(mid, []).append((p_s, n_s, uv_s, t_s))
 
         face_p, face_n, face_uv, face_t = atoms_by_mid[1][0]
@@ -1883,6 +1930,7 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
 
         if for_suit:
             lp_out, ln_out = rigid_l4d2_head_posture(lash_p, lash_n)
+            lp_out, ln_out = fit_l4d2_accessory_clearance(lp_out, ln_out)
         else:
             lp_out, ln_out = lash_p.copy(), lash_n.copy()
 
@@ -1926,6 +1974,48 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
         sec_op_dds=lashes_op_dds,
         icon_dds=icon_dds,
     )
+
+
+def _read_geralt_face_dds(path: Path) -> tuple[np.ndarray, bytes]:
+    """Read a 1024x1024 DXT5 Geralt face DDS (single-level or mipmapped) and its level-0 BC3 blocks."""
+    if not path.is_file():
+        raise FileNotFoundError(f"missing {path}")
+    data = path.read_bytes()
+    if len(data) < 128 or data[:4] != b"DDS " or data[84:88] != b"DXT5":
+        raise ValueError(f"{path}: expected a 1024x1024 DXT5 DDS")
+    height, width = struct.unpack_from("<II", data, 12)
+    mips = max(1, struct.unpack_from("<I", data, 28)[0])
+    expected = 128 + sum(
+        max(1, (width >> i) // 4) * max(1, (height >> i) // 4) * 16 for i in range(mips)
+    )
+    if (height, width) != (1024, 1024) or len(data) != expected:
+        raise ValueError(f"{path}: expected a 1024x1024 DXT5 DDS")
+    base_bc3 = data[128 : 128 + 1024 * 1024]
+    blocks = np.frombuffer(base_bc3, dtype=np.uint8).reshape(-1, 16)
+    c0 = blocks[:, 8].astype(np.int32) | (blocks[:, 9].astype(np.int32) << 8)
+    c1 = blocks[:, 10].astype(np.int32) | (blocks[:, 11].astype(np.int32) << 8)
+    if (c0 < c1).any():
+        raise ValueError(f"{path}: BC3 colour blocks contain c0 < c1 transparent mode")
+    with Image.open(io.BytesIO(data)) as image:
+        pixels = np.array(image.convert("RGBA"), dtype=np.uint8)
+    return pixels, base_bc3
+
+
+def load_geralt_face_diffuse(path: Path = GERALT_HEAD_DF) -> tuple[np.ndarray, bytes]:
+    """Read the supplied 1024x1024 BC3 Geralt face diffuse, setting solid specular alpha=18."""
+    pixels, base_bc3 = _read_geralt_face_dds(path)
+    pixels[:, :, 3] = 18
+    return pixels, base_bc3
+
+
+def load_geralt_face_normal(path: Path = GERALT_HEAD_NM) -> np.ndarray:
+    """Read the supplied 1024x1024 BC3 Geralt face normal in PD2 layout (X=alpha, Y+=green)."""
+    pixels, _ = _read_geralt_face_dds(path)
+    if pixels[:, :, 0].mean() < 240.0 or pixels[:, :, 2].mean() > 15.0:
+        raise ValueError(f"{path}: expected PAYDAY 2 normal layout (R~255, G=Y+, B~0, A=X)")
+    pixels[:, :, 0] = 255
+    pixels[:, :, 2] = 0
+    return pixels
 
 
 def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
@@ -1980,8 +2070,11 @@ def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
     head_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_df_atlas[0:1024, 0:2048, 3] = 18
 
-    head_bm_arr = load_vtf_rgba("geralt_head_bm", (1024, 1024))
-    head_bm_arr[:, :, 3] = 18
+    # The face's two maps are tracked 1024x1024 DXT5 build inputs in `references/textures/`
+    # (`geralt_head_df.dds`, `geralt_head_nm.dds`), carrying the painted beard/moustache
+    # diffuse and matching PD2 normal relief. Preserve the supplied BC1 colour halves in
+    # level 0 of the face quadrant while setting solid specular alpha=18.
+    head_bm_arr, head_bm_bc3 = load_geralt_face_diffuse()
     teeth_bm_arr = load_vtf_rgba("teeths_bm", (1024, 512))
     teeth_bm_arr[:, :, 3] = 18
     eyes_bm_arr = load_vtf_rgba("eyes_bm", (512, 512))
@@ -2025,7 +2118,7 @@ def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
 
     head_nm_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_nm_atlas[:, :] = [255, 128, 0, 128]
-    head_nm_atlas[0:1024, 0:1024] = load_pd2_nm("geralt_head_nm", (1024, 1024))
+    head_nm_atlas[0:1024, 0:1024] = load_geralt_face_normal()
     head_nm_atlas[0:512, 1024:2048] = load_pd2_nm("teeths_nm", (1024, 512))
     head_nm_atlas[1024:2048, 0:1024] = load_pd2_nm("hair_n", (1024, 1024))
     head_nm_atlas[1024:1536, 1024:2048] = load_beard_texture("nm")
@@ -2136,11 +2229,15 @@ def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
         double_side_atom1=True,
     )
 
-    def encode_geralt_head_df_dds(arr: np.ndarray) -> bytes:
-        """Encode Geralt's 2048x2048 head_df atlas with coverage-preserving alpha mipmaps in the cutout bottom half."""
-        return encode_cutout_head_df_dds(arr)
+    def encode_geralt_head_df_dds(arr: np.ndarray, face_bc3: bytes) -> bytes:
+        """Encode Geralt's 2048x2048 head_df atlas with supplied face BC1 colour blocks and cutout mips."""
+        lvl0 = np.frombuffer(dds._level_payload(arr), dtype=np.uint8).reshape(512, 512, 16).copy()
+        face_blocks = np.frombuffer(face_bc3, dtype=np.uint8).reshape(256, 256, 16)
+        lvl0[:256, :256, 0:8] = [18, 18, 0, 0, 0, 0, 0, 0]
+        lvl0[:256, :256, 8:16] = face_blocks[:, :, 8:16]
+        return encode_cutout_head_df_dds(arr, base_payload=lvl0.tobytes())
 
-    head_df_dds = encode_geralt_head_df_dds(head_df_atlas)
+    head_df_dds = encode_geralt_head_df_dds(head_df_atlas, head_bm_bc3)
     head_nm_dds = encode_rgba_dds(head_nm_atlas)
 
     portrait = render_head_portrait(

@@ -1078,14 +1078,13 @@ def heister_head_parts(zip_name: str) -> list[tuple]:
 
 
 def render_geralt_beard_closeup(out_path: Path, size: int = 900) -> Image.Image:
-    """The beard quadrant of Geralt's `g_head`, close up and at high zoom.
+    """The face and beard quadrants of Geralt's `g_head`, close up and at high zoom.
 
-    The pack's beard is the tracked `references/textures/geralt_beard_df.dds` laid into the
-    atlas' `[1024:1536, 1024:2048]` quadrant -- the builder's `load_beard_texture` / the atlas
-    comment in `build_joy_head_mods.py`. That edit is about 4 of 255 on the texel and the
-    main sheet's 2x supersample averages it away, so the sheet shows the beard but cannot show
-    *which* beard; this close-up renders the chin at 3x the portrait's scale, exactly that
-    quadrant's geometry, so the tracked map's hair ends and coverage are legible.
+    The pack's face (`[0:1024, 0:1024]`) comes from `references/textures/geralt_head_df.dds`
+    (with painted beard/moustache strands, D96) and its 3D beard cards (`[1024:1536, 1024:2048]`)
+    from `references/textures/geralt_beard_df.dds` (D90). Rendering `g_head` with `ALPHA_MASKED`
+    cutout at 3x the portrait's scale makes both the 3D hair ends and the underlying painted
+    beard strands legible.
     """
     zp = dist_path(ROOT, "Geralt_over_Rust.zip")
     with zipfile.ZipFile(zp) as zf:
@@ -1111,7 +1110,7 @@ def render_geralt_beard_closeup(out_path: Path, size: int = 900) -> Image.Image:
         topo,
         np.asarray(geo_head["uv0"], np.float32).reshape(-1, 2),
         head_df,
-        False,
+        True,
         False,
     )
 
@@ -1122,9 +1121,8 @@ def render_geralt_beard_closeup(out_path: Path, size: int = 900) -> Image.Image:
     canvas.paste(portrait, (0, 58))
     add_header_and_badges(
         canvas,
-        "dist/Geralt/Geralt_over_Rust.zip — Beard Close-Up (g_head atlas quadrant)",
-        "Chin and jaw at 3x the portrait's scale | Source: references/textures/geralt_beard_df.dds "
-        "(D90)",
+        "dist/Geralt/Geralt_over_Rust.zip — Face & Beard Close-Up (g_head ALPHA_MASKED)",
+        "Chin and jaw at 3x the portrait's scale | Sources: geralt_head_df.dds + geralt_beard_df.dds (D90, D96)",
         None,
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1531,7 +1529,7 @@ def main(argv: list[str] | None = None) -> None:
             (64, 58, 52),
             (48, 44, 42),
             "dist/Geralt/Geralt_over_Rust.zip — Rust Head Replacement (Witcher 3 Geralt of Rivia)",
-            "Replaces Rust's head, hair & beard (heist, menu & Safe House chill) + FPS gloves in TPS + character icon",
+            "Replaces Rust's head, hair & beard + FPS gloves in TPS + icon | face: references/textures/geralt_head_{df,nm}.dds",
             "Geralt_over_Rust.zip",
         ),
         (

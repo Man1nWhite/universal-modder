@@ -1369,8 +1369,10 @@ class TestLasScaffold:
         brow_y, brow_z = front_yz(175.0, 178.5)
         face_angle_deg = math.degrees(math.atan2(brow_y - chin_y, brow_z - chin_z))
 
-        # Cornea apex sits strictly inside [Joy 17.00, Hila 17.43] so eyewear/masks never poke through
-        assert 17.00 <= cornea_max_y <= 17.43, f"cornea max y {cornea_max_y:.2f} cm outside [Joy 17.00, Hila 17.43]"
+        # A small setback from the D86 posture gives the eyewear trial more room.
+        # This is not proof of intersection-free fit without the accessory meshes.
+        assert 16.85 <= cornea_max_y <= 16.95, f"cornea max y {cornea_max_y:.2f} cm outside trial range"
+        assert 188.1 <= float(v_head[:, 2].max()) <= 188.3, "crown clearance warp missing"
         assert 16.5 <= chin_y <= 17.6, f"chin y {chin_y:.2f} cm out of Joy/Hila posture range"
         assert 19.1 <= nose_y <= 20.3, f"nose y {nose_y:.2f} cm out of Joy/Hila posture range"
         assert 18.2 <= brow_y <= 19.3, f"brow y {brow_y:.2f} cm out of Joy/Hila posture range"

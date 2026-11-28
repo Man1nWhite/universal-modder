@@ -518,3 +518,48 @@ def test_a_deliberately_chosen_glove_still_wins_on_an_own_hands_outfit():
     state = _own_hands_state(with_hook=True, fixed_las=False, glove="bonemittens")
     assert state["unit"] and state["unit"].endswith("hnd_glv_bonemittens"), state
     assert state["hands_replace"] == 1, "a spawned glove replaces the hands, so it must hide them"
+
+
+@pytest.mark.parametrize("companion_first", [False, True])
+def test_bunny_companion_disables_only_forearm_adapter(companion_first):
+    """Run the shipped hook with BeardLib in either init order, without changing gloves."""
+    import json
+    import zipfile
+
+    pack = REPO / "dist/Miranda/OfficeSuite_over_Bunny.zip"
+    prefix = "OfficeSuite over Bunny/OfficeSuite Bunny Forearm Fix/"
+    with zipfile.ZipFile(pack) as z:
+        manifest = json.loads(z.read(prefix + "mod.txt"))
+        assert manifest["hooks"] == [{"hook_id": "lib/tweak_data/blackmarkettweakdata",
+                                      "script_path": "forearm_fix.lua"}]
+        hook = z.read(prefix + "forearm_fix.lua").decode()
+    lua = _runtime()
+    lua.execute(LUA_HOST)
+    if companion_first:
+        lua.execute(hook)
+    _load_beardlib(lua)
+    if not companion_first:
+        lua.execute(hook)
+    lua.execute('''
+        bm = build_blackmarket()
+        bm.player_styles.bunny = {body_replacement = {hands=true},
+                                  third_body_replacement = {hands=true}}
+        bm.suit_default_gloves.bunny = "heist_default"
+        Hooks:run_init(bm)
+        Hooks:run_init(bm) -- safe to reinitialize without duplicate exclusions
+    ''')
+    assert lua.eval('''function()
+        local n = 0
+        for _, id in pairs(bm.glove_adapter.player_style_exclude_list) do
+            if id == "bunny" then n = n + 1 end
+        end
+        return n
+    end''')() == 1
+    for glove, expected in (("default", HEIST_UNIT), ("bonemittens", BONE_UNIT)):
+        for local_peer in (True, False):
+            bunny = lua.eval("simulate_visual_state")("bunny", glove, local_peer, "female_1")
+            other = lua.eval("simulate_visual_state")("hitman", glove, local_peer, "female_1")
+            assert bunny["char_glove_adapter"] is None
+            assert bunny["char_gloves"] == expected
+            assert other["char_glove_adapter"] == ADAPTER_UNIT
+            assert other["char_gloves"] == expected
