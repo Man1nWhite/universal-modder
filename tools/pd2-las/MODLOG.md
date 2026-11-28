@@ -1,5 +1,16 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-28 (merge 2) — `main` landed its own D86 (Miranda posture); the VO entries renumber again
+
+PR #78 (`a33d248a`, "tilt Miranda_L4D2_over_Hila onto female heister posture") merged into `main`
+with its entry renumbered from D85 to D86 (`main` already held D85 = OfficeSuite_over_Bunny). The VO
+entries on this branch — D86 (the VO workbook), D87 (the Sydney .docx two-table fold) and D88 (the
+Geralt/Arivus VO-pack retirement) — collided with it, so in this merge they become **D87, D88 and
+D89**. `main`'s D85 and D86 are unchanged. The renumbered entries carry a second `**Renumbered:**`
+note; every citation went with them — `tools/build_vo_master.py`, the tracked workbook CSVs
+(rebuilt, `--check` passes), the `README`s, `HANDOFF.md`, `in-game-checklist.md`, this journal and
+the tests.
+
 ## 2026-11-28 (merge) — the branch merged `main`; the three VO entries were renumbered (D86–D88)
 
 `main` landed `OfficeSuite_over_Bunny` as D85 (2026-11-27, the day before the VO entries on this
@@ -9,7 +20,7 @@ a `**Renumbered:**` note; every citation went with them — `tools/build_vo_mast
 workbook CSVs (rebuilt, `--check` passes), the `README`s, `HANDOFF.md`, `in-game-checklist.md`, this
 journal and the tests. `D85` on the merged tree is and stays the OfficeSuite_over_Bunny entry.
 
-## 2026-11-28 (later still) — the Geralt/Arivus VO stream packs are retired and deleted (D88)
+## 2026-11-28 (later still) — the Geralt/Arivus VO stream packs are retired and deleted (D89)
 
 `Geralt_VO_over_Rust_Stream.zip` and `Arivus_VO_over_Hoxton_Stream.zip` (and their `.sha256`
 sidecars) are deleted from `dist/` on the user's request. Both shipped 2026-11-25 and were never
@@ -24,7 +35,7 @@ builder's contract tests and the `char_rust` refusal tests remain, as do the bui
 tables — the route exists again the moment someone commissions it. The non-VO packs
 (`Geralt_over_Rust`, `Arivus_over_Hoxton`, `Arivus_Head_over_Old_Hoxton_GLB`) are untouched.
 
-## 2026-11-28 — the VO workbook replaces the three VO guides (D86)
+## 2026-11-28 — the VO workbook replaces the three VO guides (D87)
 
 `voice_lines_vox/vo_master.xlsx` is the single source of truth for every voice-line source in the
 repository: one row per id, all banks joined — community `regular_vox` (20,404 rows),
@@ -46,7 +57,7 @@ Machine transcripts are pocketsphinx output and are labelled as unverified draft
 (whisper's model hosts are unreachable from this environment); nothing in the workbook is
 in-game-verified beyond the Hila pack (2026-11-25, user report).
 
-## 2026-11-28 (later) — the Sydney .docx has two tables; the second is her robbers chatter (D87)
+## 2026-11-28 (later) — the Sydney .docx has two tables; the second is her robbers chatter (D88)
 
 Re-reading `references/sheets/Syndey Voicelines.docx` against the workbook found the sheet was parsed
 as one table. It holds two: table 0 is `char_sydney` (1,078 rows, 1,077 distinct ids; 1,036 shared
@@ -58,6 +69,22 @@ kept verbatim with the .docx wording carried beside them in `sydney_what`, and 1
 new. `char_sydney` keeps table 0 only; its `in_pdf` flags come from the print of the same document.
 Measured from the tracked CSV: the community export carries 1,811 `who` rows (1,720 with a line),
 1,722 line rows, 3,686 with neither — the earlier "1,813" was wrong, and the sheets docs say so now.
+## 2026-11-27 — `Miranda_L4D2_over_Hila` leans forward onto the female heister posture (D86)
+
+`dist/Miranda/Miranda_L4D2_over_Hila.zip` is rebuilt (`make -sC tools/pd2-las heads`) after an in-game
+side-profile menu capture with Tailor Pack turtleneck outerwear and `a_head` sunglasses showed the L4D2 Zoey
+head standing upright (`Eye` centres at `y ~ 12.00` cm, ~4 cm behind the sunglasses and vanilla Joy's
+`y ~ 16.06` cm, with the throat leaning backwards above the collar). `rigid_l4d2_head_posture` pitches the
+face, eyes (after planar `project_me2_eye_uv_img`), teeth, 3D eyelashes, and upper scalp/hair (`z >= 163.2`
+cm) forward by `+10.5°` via exact rational `tan(5.25°)` arithmetic onto `(15.70, 173.80)` cm (`cornea_max_y =
+17.29` cm, strictly inside `[Joy 17.00, Hila 17.43]` cm behind `a_head` eyewear), while
+`blend_l4d2_scalp_and_neck_posture` smoothsteps from the unchanged collar rim and skirt (`z <= 156.0` cm,
+`4,508` verts, `7,305` tris, `min_z = 142.98` cm, `0/114` rim edges exposed) into the tilted head with a
+monotonic forward throat line, lower side-hair clearance, and orthonormal `tangents.tangent_frames` (`|U·V| =
+6.35e-8`). `Miranda_L4D2_LAS.zip`, `Geralt_over_Rust.zip`, and `Arivus_over_Hoxton.zip` are untouched; unified
+preview sheets (`miranda_l4d2_over_hila_sheet.png`, `miranda_l4d2_over_hila_posture_before-after.png`,
+`all_dist_mods_sheet.png`) are regenerated. Reasoning: D86.
+
 ## 2026-11-27 — `OfficeSuite_over_Bunny` ships `OfficeSuite` over the vanilla Hop to It outfit (D85)
 
 `dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,
@@ -1067,6 +1094,6 @@ check .` PASS, 0 warnings.
 CI's `tests and skip budget` gate failed on the merged tree: `tests/test_stream_tables.py`
 `test_the_written_column_is_the_pack_coverage_minus_the_vorbis_ids` skipped with an unbudgeted
 reason ("dist/ is absent from this sandbox snapshot") because the two zips it read were retired
-and deleted on 2026-11-28 (D88) — it had been passing silently and skipped only after the
+and deleted on 2026-11-28 (D89) — it had been passing silently and skipped only after the
 deletion. It now pins `written=yes` against the pick tables and the Vorbis ids (the same inputs
 the builder writes from), so the tables cannot drift from their sources; no unbudgeted skip.

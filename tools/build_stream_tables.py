@@ -107,7 +107,7 @@ def write_shared(target: str) -> Path:
             note = "the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it"
             written = "no"
         elif slot in picks:
-            note = f"covered by the {cfg['heister']} takes (pack retired 2026-11-28, D88)"
+            note = f"covered by the {cfg['heister']} takes (pack retired 2026-11-28, D89)"
             written = "yes"
         else:
             note = f"no take for this slot in the {cfg['heister']} set; left vanilla"

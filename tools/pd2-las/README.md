@@ -25,7 +25,7 @@ From the repo root, `make -sC tools/pd2-las` with no target lists them.
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or honokodae | bunny | heads | voices_stream | glb | all  (the former voices_geralt / voices_arivus targets were removed with the retired packs, D88)
+make -sC tools/pd2-las build    # or honokodae | bunny | heads | voices_stream | glb | all  (the former voices_geralt / voices_arivus targets were removed with the retired packs, D89)
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each

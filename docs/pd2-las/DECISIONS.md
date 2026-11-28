@@ -43,9 +43,9 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Building and the build environment* — [D5](#d5--our-own-model-codec-byte-exact-no-blender-or-external-tool-in-the-build), [D6](#d6--retarget-by-anatomical-partition-not-per-bone-and-not-by-frame-deltas), [D7](#d7--geometry-conventions-are-the-2b-models), [D8](#d8--install-under-assetsmod_overrides), [D80](#d80--the-over-joy-zips-are-gone-the-assembly-that-wrote-them-is-the-over-hila-builder)
 
-*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names), [D85](#d85--officesuite_over_bunny-ships-officesuite-as-a-native-mod_overrides-replacement-of-hop-to-it-bunny)
+*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names), [D85](#d85--officesuite_over_bunny-ships-officesuite-as-a-native-mod_overrides-replacement-of-hop-to-it-bunny), [D86](#d86--miranda_l4d2_over_hila-leans-forward-onto-the-female-heister-neck-and-eyewear-posture)
 
-*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree), [D86](#d86--the-three-vo-guides-are-replaced-by-the-vo-workbook), [D87](#d87--the-sydney-docx-has-two-tables-the-second-one-is-her-robbers_mission_gen-lines), [D88](#d88--the-geralt-and-arivus-vo-stream-packs-are-retired-and-deleted)
+*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree), [D87](#d87--the-three-vo-guides-are-replaced-by-the-vo-workbook), [D88](#d88--the-sydney-docx-has-two-tables-the-second-one-is-her-robbers_mission_gen-lines), [D89](#d89--the-geralt-and-arivus-vo-stream-packs-are-retired-and-deleted)
 
 *Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed)
 
@@ -1449,6 +1449,51 @@ from documents, tests and tools, so they never change; the headings are appendix
   `tools/pd2-las/hila_texture_atlas.py`; D70, D75, D82.
 - **Status:** holds; not yet seen in game (`runtime_verified: false`, D31).
 
+### D86 — `Miranda_L4D2_over_Hila` leans forward onto the female heister neck and eyewear posture
+
+- **Decided:** 2026-11-27, by the user ("fix the lawson head mod by tilting the head forward"), from two
+  side-profile menu captures in the same Tailor Pack turtleneck coat and `a_head` sunglasses: vanilla Joy as
+  the posture reference and Hila wearing `Miranda_L4D2_over_Hila` with green forward-tilt arrows from the
+  collar base and a red chin-to-throat contour.
+- **Diagnosis, measured:** L4D2 Zoey's source head stands upright (`Eye` centres at `(±3.05, 12.00, 174.72)`
+  cm, `chin -> brow` `-0.42°`), whereas PAYDAY 2's female heister rig (`Joy`, `Hila`, `Sydney`) leans
+  `Neck (0, 2.29, 159.33) -> Head (0, 5.33, 166.76)` forward by `+22.25°`, placing vanilla Joy's eyeballs at
+  `(±3.1, 16.06, 174.79)` cm (`chin -> brow` `+4.42°`) and Hila's at `y ~ 16.43, z ~ 174.50` cm. Because
+  `shape_neck_and_hair_for_suit_collar` previously pushed only the collar rim (`z < 162`) forward while
+  leaving the head behind, Miranda's face sat ~4 cm behind the `a_head` sunglasses, her brow cleared the top
+  of the frames, and her throat leaned **backwards** from `y = 10.18` cm (`z = 156.1`) to `y = 8.65` cm
+  (`z = 162.2`) before jumping to the chin (`y = 14.84` cm).
+- **Decision:** `build_l4d2_hila_head` (`for_suit=True`) applies an exact rigid forward posture transform
+  (`rigid_l4d2_head_posture`, `+10.5°` pitch via rational half-angle `tan(5.25°) = 0.09188709102124269` so no
+  `libm` `sin`/`cos` enters the build, mapping L4D2's recessed eyeball hemisphere centre `(12.00, 174.72)` cm
+  — cornea apex `13.59` cm — to `(15.70, 173.80)` cm so Miranda's cornea apex lands at `y = 17.29` cm,
+  strictly inside `[Joy 17.00, Hila 17.43]` cm behind `a_head` eyewear) to the face, eyes (after planar
+  `project_me2_eye_uv_img` so iris UVs do not roll), mouth/teeth, 3D eyelashes, and all scalp/hair vertices
+  at `z_raw >= 163.2` cm (below every `Face <-> Scalp` seam vertex at `z >= 163.49` cm, keeping all `65/65`
+  seam vertices bit-exact welded). Across `z = 156.0..163.2` cm, `blend_l4d2_scalp_and_neck_posture`
+  smoothsteps directly from the collar-shaped, skirted base (`p_skirted`) to `rigid(p_raw)` with a `+0.90` cm
+  physical-height throat arch on the neck-skin island and a `1.55` cm lower-hair clearance so the side hair
+  curtains sit behind the exposed throat profile, while keeping all collar-rim and skirt vertices at
+  `z <= 156.0` cm untouched (`4,508` verts, `7,305` tris, `min_z = 142.98` cm, `0` of `114` rim edges exposed
+  and `0.0 %` see-through over both `OfficeSuite.zip` and `Miranda_L4D2_LAS.zip`). Both heist and menu
+  `g_head` meshes also switch to `tangents.tangent_frames` (`orthonormal_tangents=True`), eliminating the
+  legacy `|U·V|` shear (`max |U·V| = 6.35e-8`). `Miranda_L4D2_LAS.zip`, `Geralt_over_Rust.zip`, and
+  `Arivus_over_Hoxton.zip` are untouched.
+- **Measured after the pass:** `cornea_max_y = 17.29` cm (Joy `17.00`, Hila `17.43`), `chin = (17.06, 165.69)`
+  cm, `nose = (19.86, 169.78)` cm, `brow = (18.89, 176.56)` cm, `chin -> brow = +9.54°`, `lash mean = (17.22,
+  173.47)` cm, and the exposed throat centreline rises monotonically `10.06 -> 10.42 -> 10.62 -> 10.97` cm
+  from `z = 156.5` to `163.3` cm (`7,283,895` B, `e004ce8ee1ca`). Moving the jaw forward past `y = 9.5` cm
+  also activates `compute_joy_head_weights`'s `jaw_lift` term so the chin and submental jaw lock `100 %` to
+  `Head` under menu/heist animations.
+- **Held to:** `tests/test_pd2_las.py::TestLasScaffold::test_l4d2_hila_head_is_tilted_forward_to_heister_posture`
+  and `::test_neck_skirt_is_on_the_l4d2_head`; `neck_junction.py` (`0` exposed edges, `0.0 %` see-through).
+- **Source:** the user, 2026-11-27; `tools/build_joy_head_mods.py`;
+  `docs/renders/miranda/model/over-hila/miranda_l4d2_over_hila_sheet.png`;
+  `docs/renders/miranda/model/over-hila/miranda_l4d2_over_hila_posture_before-after.png`;
+  `docs/renders/overview/model/all_dist_mods_sheet.png`.
+- **Status:** holds; the D84-era posture was seen in game on 2026-11-27 (driving this fix), and the rebuilt
+  D86 bytes are offline-verified only (`runtime_verified` stays false, D31).
+
 ## Voice lines and the stream packs
 
 ### D61 — Only the id-keyed stream pack ships; the BeardLib voice pack is dropped
@@ -2484,10 +2529,10 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Source:** `tools/build_joy_head_mods.py`, `tools/pd2-las/fresh.py`, the `packs` job of
   `.github/workflows/test.yml`, `docs/ci.md`.
 - **Status:** holds.
-### D86 — The three VO guides are replaced by the VO workbook
+### D87 — The three VO guides are replaced by the VO workbook
 
 - **Decided:** 2026-11-28, by the user ("create the single spreadsheet source of truth for VO mods … Delete other non complete documentation")
-- **Renumbered:** this entry was D85 on the branch; it became D86 in the merge with `main`, whose D85 is the OfficeSuite_over_Bunny entry (2026-11-27).
+- **Renumbered:** D85 on the branch -> D86 in the first merge with `main` (whose D85 is the OfficeSuite_over_Bunny entry), then D87 in the second merge (`main` had meanwhile landed its own D86, the Miranda_L4D2_over_Hila posture entry).
 - **Decision:** `docs/pd2-voice-mod-install.md`, `docs/pd2-voice-stream-tables.md` and
   `docs/tokoyami-hila-voice-mod-analysis.md` are deleted. Their load-bearing content lives in the
   VO workbook `voice_lines_vox/vo_master.xlsx` (rebuilt by `tools/build_vo_master.py`, make
@@ -2509,11 +2554,11 @@ from documents, tests and tools, so they never change; the headings are appendix
   CSVs), `voice_lines_vox/vo_master.xlsx`, `voice_lines_vox/vo_master/`.
 - **Status:** holds.
 
-### D87 — The Sydney .docx has two tables: the second one is her robbers_mission_gen lines
+### D88 — The Sydney .docx has two tables: the second one is her robbers_mission_gen lines
 
 - **Decided:** 2026-11-28, by re-reading `references/sheets/Syndey Voicelines.docx` against the
-  workbook sources (a "double check" of the D86 row-accounting).
-- **Renumbered:** this entry was D86 on the branch; it became D87 in the merge with `main` (whose D85 is OfficeSuite_over_Bunny).
+  workbook sources (a "double check" of the D87 row-accounting).
+- **Renumbered:** D86 on the branch -> D87 in the first merge with `main`, then D88 in the second merge (`main` had meanwhile landed its own D86, the Miranda_L4D2_over_Hila posture entry).
 - **Decision:** the .docx holds table 0 = `char_sydney` (1,078 rows, 1,077 distinct ids; the 41 docx-only
   ids beyond the CSV are 1,077 − 1,036 shared) and table 1 = Sydney-voiced `robbers_mission_gen`
   chatter (224 ids) keyed to the same numeric ids. Table 1 is folded into the `robbers_mission_gen`
@@ -2543,11 +2588,11 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Source:** `tools/build_vo_master.py`, `voice_lines_vox/vo_master/robbers_mission_gen.csv`.
 - **Status:** holds.
 
-### D88 — The Geralt and Arivus VO stream packs are retired and deleted
+### D89 — The Geralt and Arivus VO stream packs are retired and deleted
 
 - **Decided:** 2026-11-28, by the user ("delete old Geralt VO and Arivus VO mods"; the full-retirement
   scope was the user's choice: packs, registry entries and views — the source data stays).
-- **Renumbered:** this entry was D87 on the branch; it became D88 in the merge with `main` (whose D85 is OfficeSuite_over_Bunny).
+- **Renumbered:** D87 on the branch -> D88 in the first merge with `main`, then D89 in the second merge (`main` had meanwhile landed its own D86, the Miranda_L4D2_over_Hila posture entry).
 - **Decision:** `Geralt_VO_over_Rust_Stream.zip` (+ `.sha256`) and `Arivus_VO_over_Hoxton_Stream.zip`
   (+ `.sha256`) are deleted from `dist/`. They left every registry and view of the packs:
   `tools/pd2-las/packs.py`, the `Makefile` (`voices_geralt` / `voices_arivus` gone, `all` and `.PHONY`

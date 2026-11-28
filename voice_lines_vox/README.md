@@ -6,7 +6,7 @@ Working data for the Hila (`rb21`) voice-line replacement: Miranda Lawson clips 
 stream pack, `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
 the `install`/`format` tabs of the VO workbook [`vo_master.xlsx`](vo_master.xlsx) (the three VO
 guides that used to live under `docs/` were folded into it on 2026-11-28). The two
-character-route VO packs that shipped alongside it were retired and deleted 2026-11-28 (D88).
+character-route VO packs that shipped alongside it were retired and deleted 2026-11-28 (D89).
 
 ## Slot rule: Call vs Follow
 
@@ -47,8 +47,8 @@ tools/pd2-las voices_tables`) and pinned to the zips by `tests/test_stream_table
 
 | Table (`targets/`) | Target | Rows written by the pack |
 | --- | --- | --- |
-| `rust_shared_regular_vox.csv` | Rust, `regular_vox` (switch `rb16`) | 315 — the picks of the retired Geralt pack (D88); kept as the measurement |
-| `old_hoxton_shared_regular_vox.csv` | Old Hoxton, `regular_vox` (switch `rb5`) | 324 — the picks of the retired Arivus pack (D88); kept as the measurement |
+| `rust_shared_regular_vox.csv` | Rust, `regular_vox` (switch `rb16`) | 315 — the picks of the retired Geralt pack (D89); kept as the measurement |
+| `old_hoxton_shared_regular_vox.csv` | Old Hoxton, `regular_vox` (switch `rb5`) | 324 — the picks of the retired Arivus pack (D89); kept as the measurement |
 | `rust_dedicated_char_rust.csv` | Rust, `char_rust` — **measured** in `references/voice/Marine VO for Rust.7z.001` | none (no id shared with the table above) |
 
 Both leave the 27 Wwise Vorbis ids and the slots without a take vanilla, and both name the
@@ -62,7 +62,7 @@ takes every id from [`geralt/char_rust_ids.csv`](geralt/char_rust_ids.csv) — a
 rows** — and refuses to build until a source names each one, because the measured bank says which
 files exist, not which line each file is. Fill that map (an extract of the game's
 `soundbanks/streamed/char_rust`, decoded line by line) and the next build produces the re-keyed
-pack; the shared-bank pack that shipped until 2026-11-28 was retired and deleted with it (D88), so there is no tracked pack until the map exists.
+pack; the shared-bank pack that shipped until 2026-11-28 was retired and deleted with it (D89), so there is no tracked pack until the map exists.
 
 The community `regular_vox` sheet the user supplied is **not** that map: it is the shared
 bank, and its speakers are the vanilla crew. It is imported into [`sheets/`](sheets/README.md)
@@ -83,7 +83,7 @@ analysis is retained in the `install` tab of [`vo_master.xlsx`](vo_master.xlsx).
 ## The character packs (retired 2026-11-28)
 
 **`Geralt_VO_over_Rust_Stream` and `Arivus_VO_over_Hoxton_Stream` were retired and deleted from
-`dist/` on 2026-11-28 (D88)** — never heard in game, and superseded by no shipped pack; the builder
+`dist/` on 2026-11-28 (D89)** — never heard in game, and superseded by no shipped pack; the builder
 (`tools/build_character_stream_mod.py`) and the pick tables remain for the `char_rust` route (D76).
 They were built from purpose-authored bark sets:
 
@@ -107,7 +107,7 @@ barks from `regular_vox` or a `char_wild` bank) is an open in-game check, see
 ## Package & install
 
 One zip ships: `Miranda_Lawson_VO_over_Hila_Stream.zip` (the Hila pack); the two character packs
-above were retired and deleted on 2026-11-28 (D88). The Hila pack contains Wwise IMA ADPCM
+above were retired and deleted on 2026-11-28 (D89). The Hila pack contains Wwise IMA ADPCM
 `.stream` files at `soundbanks/streamed/regular_vox/<hila_id>.stream`, plus a `main.xml` marker and
 `mod.txt`. The game resolves these by voice-line id; no BeardLib, XAudio API, Lua, or bark-event
 mapping is needed. It is built by `tools/build_hila_stream_mod.py` using the format implementation in

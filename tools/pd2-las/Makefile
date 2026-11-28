@@ -59,7 +59,7 @@ voices_tables:  ## the Rust and Old Hoxton stream tables (slot -> bank -> id) ->
 	@cd "$(ROOT)" && $(PY) tools/build_stream_tables.py
 
 # voices_geralt / voices_arivus (and the Geralt_VO_over_Rust_Stream / Arivus_VO_over_Hoxton_Stream
-# packs) are gone: retired and deleted from dist/ 2026-11-28 (D88); never heard in game.
+# packs) are gone: retired and deleted from dist/ 2026-11-28 (D89); never heard in game.
 # The builder remains for the char_rust route below.
 # Not a BUILD target: the re-keyed pack is not tracked in dist/ until the id map exists (D74),
 # so `fresh` and `status` do not own it - the builder prints its own state.

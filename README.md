@@ -17,7 +17,7 @@ Lawson's barks over Hila's `rb21` voice lines, as one Wwise IMA ADPCM `.stream` 
 format in the VO workbook [`voice_lines_vox/vo_master.xlsx`](voice_lines_vox/vo_master.xlsx),
 `install` and `format` tabs). The two character-route packs that used to ship alongside it
 (`Geralt_VO_over_Rust_Stream`, `Arivus_VO_over_Hoxton_Stream`) were retired and deleted on
-2026-11-28 (D88) — never heard in game; the Hila pack is the only VO stream pack.
+2026-11-28 (D89) — never heard in game; the Hila pack is the only VO stream pack.
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share. The Arivus head also ships as a tracked `.glb` + `.dds`
 interchange export ([`Arivus_Head_over_Old_Hoxton_GLB.zip`](dist/Arivus/Arivus_Head_over_Old_Hoxton_GLB.zip)),

@@ -251,13 +251,13 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    the pack, so those ids play vanilla Hila. If one of those sounds like vanilla Hila instead of
    Miranda, that is by design, not a miss. The TTS wording itself has not been verified by ear: if a
    new take says something odd in context, that is the take, not the cut.
-1e. **`Geralt_VO_over_Rust_Stream` — removed 2026-11-28 (D88).** The pack was never heard in game
+1e. **`Geralt_VO_over_Rust_Stream` — removed 2026-11-28 (D89).** The pack was never heard in game
    and the zip was deleted with its Arivus sibling; there is nothing to install for Rust VO any
    more. The question this item was to answer — whether Rust barks from the shared `regular_vox`
    bank or his own `char_rust` bank — stays open (O1; the measured bank is recorded in the
    `char_rust` tab of `voice_lines_vox/vo_master.xlsx`, and the `char_rust` route stays blocked on
    `voice_lines_vox/geralt/char_rust_ids.csv`, D76). Do not go looking for the pack.
-1f. **`Arivus_VO_over_Hoxton_Stream` — removed 2026-11-28 (D88).** Never heard in game; the zip was
+1f. **`Arivus_VO_over_Hoxton_Stream` — removed 2026-11-28 (D89).** Never heard in game; the zip was
    deleted. Nothing to install for Old Hoxton VO any more; the slot picks stay in
    `voice_lines_vox/arivus/slot_picks.csv` as the record of what the set carried.
 2. **No loader noise.** `mods/logs/` should show the mod folder loaded and no error from it: the pack

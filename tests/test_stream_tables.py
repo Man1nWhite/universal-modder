@@ -59,7 +59,7 @@ def test_the_written_column_is_the_picks_coverage_minus_the_vorbis_ids():
     """`written=yes` is exactly the non-Vorbis ids whose slot the picks name.
 
     The two packs that wrote these tables were retired and deleted from `dist/` on 2026-11-28
-    (D88), so the coverage is pinned against the pick tables instead of a zip that no longer
+    (D89), so the coverage is pinned against the pick tables instead of a zip that no longer
     exists — the tables stay as the record of what the packs carried.
     """
     vorbis = set(hila.load_vorbis_ids())

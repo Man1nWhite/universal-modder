@@ -2,7 +2,7 @@
 
 `Geralt_VO_over_Rust_Stream` and `Arivus_VO_over_Hoxton_Stream` followed the Hila
 pack's route: one Wwise ADPCM file per shared `regular_vox` voice-line id, named
-after the id. The packs were retired and deleted from `dist/` on 2026-11-28 (D88);
+after the id. The packs were retired and deleted from `dist/` on 2026-11-28 (D89);
 these tests pin the source-set contract the builder still enforces (the char_rust
 route in D76/D74 runs through the same code), so they read the tracked CSVs - no
 ffmpeg, no archives beyond the configured sources, and no `dist/` zips.
