@@ -96,19 +96,22 @@ def test_the_dds_is_a_full_pyramid_of_the_same_picture(name, _atlas, written):
 
 
 def test_what_is_tracked_is_what_the_tool_writes(written):
-    """The files under `references/textures/` are the tracked pack's crops, byte for byte.
-
-    They are inputs for other work, so they are committed; this is what keeps a
-    rebuild of the Geralt pack from leaving them describing an atlas that is gone.
+    """The PNGs under `references/textures/` are the tracked pack's crops, byte for byte;
+    the DDS files are either those crops or the user's supplied 1024x512 DXT5 edits (`f54c41a`).
     """
     missing = [f"{name}{suffix}" for name, _ in CROPS for suffix in (".png", ".dds")
                if not (TEXTURES / f"{name}{suffix}").is_file()]
     assert not missing, f"not in the tree: {missing}; run python tools/extract_beard_textures.py"
     for name, _ in CROPS:
-        for suffix in (".png", ".dds"):
-            tracked = (TEXTURES / f"{name}{suffix}").read_bytes()
-            assert tracked == (written / f"{name}{suffix}").read_bytes(), (
-                f"{name}{suffix} is stale: run python tools/extract_beard_textures.py")
+        tracked_png = (TEXTURES / f"{name}.png").read_bytes()
+        assert tracked_png == (written / f"{name}.png").read_bytes(), (
+            f"{name}.png is stale: run python tools/extract_beard_textures.py")
+        raw_dds = (TEXTURES / f"{name}.dds").read_bytes()
+        assert raw_dds[:4] == b"DDS " and len(raw_dds) == len((written / f"{name}.dds").read_bytes())
+        height, width = struct.unpack_from("<2I", raw_dds, 12)
+        mips = struct.unpack_from("<I", raw_dds, 28)[0]
+        assert (height, width, mips) == (512, 1024, 11)
+        assert struct.unpack_from("<4s", raw_dds, 84)[0] == b"DXT5"
 
 
 def test_the_tool_only_reads_the_pack():

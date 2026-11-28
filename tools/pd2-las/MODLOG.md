@@ -1,5 +1,17 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-27 — `OfficeSuite_over_Bunny` ships `OfficeSuite` over the vanilla Hop to It outfit (D85)
+
+`dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,
+`tools/pd2-las/build_bunny_body_mod.py`) packages the tracked `OfficeSuite` body, shadow caster, first-person
+arms and menu icon over the vanilla **Hop to It** (`player_styles.bunny`,
+`references/templates/ccmt_acc_bunny.7z`) outfit for native `mod_overrides` installation without BeardLib or
+LAS. All six `OfficeSuite` material slices are packed into one 4096×2048 BC3 diffuse/normal atlas
+(`hila_texture_atlas.py`) and written across all five third-person `ccmt_acc_bunny_*.model` variants plus
+`ccmt_acc_fps_bunny_male.model` (shifted by `Hips_bunny - Hips_source` into the FPS rig frame inside
+`co_box`), with preview sheets rendered under `docs/renders/honoka/model/over-bunny/` and the 6-pack
+`all_dist_mods_sheet.png` overview refreshed. `runtime_verified` is false; see D85.
+
 ## 2026-11-27 — the supplied eye reaches the outfit pack, and the head pack catches up with it
 
 `dist/Miranda_L4D2_LAS.zip` and `dist/Miranda/Miranda_L4D2_over_Hila.zip` are rebuilt. The outfit's
