@@ -91,7 +91,7 @@ if [ "$EXTRAS" = 1 ]; then
 fi
 
 # ------------------------------------------------------------ 2. the templates
-# references/templates/2b/{2b,fps_2b}.model are tracked since 2026-11-27 (D87): no unpacking
+# references/templates/2b/{2b,fps_2b}.model are tracked since 2026-11-27 (D88): no unpacking
 # step, no node, no npm package between a clone and its first build. extract_2b.py still owns
 # the path and checks the models are the archive's bytes; this reports it and restores nothing.
 echo "== 2B templates"

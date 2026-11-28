@@ -109,7 +109,9 @@ def test_what_is_tracked_is_what_the_tool_writes(written):
 
     They are build inputs for the Geralt pack and hand-outs for other work, so they
     are committed; this is what keeps a re-run of the tool from leaving them silently
-    behind, or the tracked copy from being something no command writes.
+    behind, or the tracked copy from being something no command writes. The DDS files
+    were user-supplied edits on `main` (`f54c41a`); since the extractor writes them from
+    the archive they are held to it exactly, like the PNGs.
     """
     missing = [f"{name}{suffix}" for name, _ in MAPS for suffix in (".png", ".dds")
                if not (TEXTURES / f"{name}{suffix}").is_file()]

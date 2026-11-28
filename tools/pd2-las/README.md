@@ -9,6 +9,7 @@ no Source compile step, Blender, or running game is needed.
 | --- | --- | --- | --- |
 | `Miranda_L4D2_LAS` — full body and first-person arms | `references/characters/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses, palms cut *on* the line where they begin, with no extension past it (`palm_cut`, `extend_cm`/`clipped_to_cm: 0.0` in `BUILD_INFO.json`, D70; no default glove, a chosen one wins), in TPP and FPS | `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
+| `OfficeSuite_over_Bunny` — the same `OfficeSuite` body, shadow caster and FPS arms packed into a 4096×2048 BC3 6-tile atlas over the vanilla **Hop to It** (`player_styles.bunny`, `ccmt_acc_bunny`) outfit across all five body types plus the `bunny` outfit icon; native `mod_overrides`, no BeardLib or LAS (D85) | `OfficeSuite.zip` + `references/templates/ccmt_acc_bunny.7z` | `build_bunny_body_mod.py` | `bunny` |
 | `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | references/voice/Голос Лоусон.7z (clips), `references/voice/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/voice/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
 | `Geralt_VO_over_Rust_Stream` — the purpose-authored Geralt barks, one `.stream` per shared `regular_vox` id for the 29 slots the set covers (315 files); slots without a take are vanilla (`docs/pd2-voice-mod-install.md` §8) | `references/voice/GERALT VOICE (PAYDAY 2).zip` (CP866 file names) | `tools/build_character_stream_mod.py --pack geralt-rust` over `wwise_ima.py` | `voices_geralt` |
 | `Arivus_VO_over_Hoxton_Stream` — the purpose-authored Arivus barks for 18 slots plus the borrowed Geralt 'Hoxton.' callout for `call_teammate.hey_you` (324 files); uncovered slots vanilla | `references/voice/ARIVUS VOICE (PAYDAY 2).zip` (+ the one callout file from the GERALT archive) | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` over `wwise_ima.py` | `voices_arivus` |
@@ -26,7 +27,7 @@ From the repo root, `make -sC tools/pd2-las` with no target lists them.
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B template models; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or honokodae | heads | voices_stream | voices_geralt | voices_arivus | glb | all
+make -sC tools/pd2-las build    # or honokodae | bunny | heads | voices_stream | voices_geralt | voices_arivus | glb | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
@@ -36,10 +37,10 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 - Windows: `env` is a bash script. Make the venv once by hand (`py -3.11 -m venv .venv`), install with
   `pip install -c tools/pd2-las/pins.txt` (the versions the packs rebuild byte for byte with), then the
   same `make` calls work under git-bash/MSYS: they find `.venv/Scripts/python.exe` themselves.
-- The two 2B template models are tracked in `references/templates/2b/` (D87): `env` unpacks nothing and a
-  build needs no unpacker. The rest of the pack - its textures, `ss.model`, the manifest - stays in
+- The two 2B template models are tracked in `references/templates/2b/` (D88): `env` unpacks nothing and a
+  build needs no unpacker. The rest of the pack - textures, `ss.model`, the manifest - stays in
   `references/templates/2b.rar`, and `extract_2b.read_member()` reads one file out of it on demand
-  (`uv_check.py` needs its atlas); `PD2_2B_TEMPLATES` still points diagnostics at a unit unpacked by hand.
+  (`uv_check.py` needs its atlas); `PD2_2B_TEMPLATES` still points diagnostics at a hand-unpacked unit.
 - The LAS outfit's eye is `references/textures/EYE_Diff.png`, the same picture the Hila head pack wears, cropped to the eyeball's own planar map (`EYE_ZOOM`, D84); it is not converted from the source, whose eye is drawn by a shader and has no texture to convert.
 - A build **overwrites the tracked zips** in dist/, so only
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
@@ -66,7 +67,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `mip_audit.py` | for the two Miranda textures the build writes itself (the repainted face and the supplied eye): which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (make -sC tools/pd2-las audit) |
 | `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of the distribution packs, environment (`env` runs `recover_env.sh`), the tracked 2B template models and the one reader of a member out of their archive, and the pinned Pillow/NumPy versions |
 | `pack_checksum.py`, `archive_cache.py` | the sha256 sidecars of the tracked and scratch packs (`python tools/pd2-las/pack_checksum.py`), and validating extracted build inputs by archive and payload instead of sentinel files |
-| `build_arivus_glb_pack.py`, `model_to_glb.py`, `rw_dff.py`, `hila_texture_atlas.py`, `wwise_ima.py` | the Arivus `.glb` interchange pack and its readers: Diesel `.model` → glTF + DDS, RenderWare DFF/TXD, the OfficeSuite texture fit into Hila's suit slots, Wwise IMA in a `.stream` |
+| `build_arivus_glb_pack.py`, `build_bunny_body_mod.py`, `model_to_glb.py`, `rw_dff.py`, `hila_texture_atlas.py`, `wwise_ima.py` | the Arivus `.glb` interchange pack, the `OfficeSuite_over_Bunny` native outfit replacement, and their shared readers/packers: Diesel `.model` → glTF + DDS, RenderWare DFF/TXD, the 6-tile BC3 atlas packer for single-material outfit overrides, Wwise IMA in a `.stream` |
 | `audit_metrics.py`, `diagnose_mesh.py`, `neck_junction.py`, `elbow_before_after.py`, `glove_check.py`, `pose_zoom.py`, `uv_check.py`, `wrist_compare.py` | one measurement or before/after sheet each, over a shipped pack: the audit numbers, a mesh deep-dive, the neck seam, elbow and wrist, sleeve/glove junctions, the UV convention |
 | `determinism.py`, `tangents.py`, `fresh.py`, `trace_run.py` | what keeps the bytes independent of the machine: the declared code path and rounding margin; tangent frames from stored values; the rebuild check behind `fresh` and its variation matrix; a checkpoint trace for any builder |
 
@@ -74,8 +75,6 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 
 One test each in `tests/test_pd2_las_invariants.py`, named after its row. They read the tracked
 packs, so they need no build and no 2B templates; the authoring suites check more, during a build.
-The template models themselves are tracked build inputs (D87): `extract_2b.py --check` fails when a
-checkout's copy is not the archive's bytes.
 
 | Invariant | Test |
 | --- | --- |

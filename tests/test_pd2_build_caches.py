@@ -18,7 +18,7 @@ import extract_2b  # noqa: E402
 
 
 def test_a_tracked_template_that_is_not_the_archives_bytes_is_refused(tmp_path, monkeypatch):
-    """The two 2B models are tracked (D87); a checkout whose copy was edited is not trusted.
+    """The two 2B models are tracked (D88); a checkout whose copy was edited is not trusted.
 
     `require_templates` used to fight a stale extraction cache. There is no extraction any
     more, so what it guards is the tracked file itself: a byte that is not the archive's

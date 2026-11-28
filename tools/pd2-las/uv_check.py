@@ -46,7 +46,7 @@ MAT_TEX = {
 def template_atlas(templates: Path) -> Path:
     """The 2B body atlas: beside the templates if the whole unit is unpacked, else out of the archive.
 
-    Only the two `.model` templates are tracked (D87); `base_df.texture` is one of the
+    Only the two `.model` templates are tracked (D88); `base_df.texture` is one of the
     archive's own textures (22 MB), so a clone reads it from `references/templates/2b.rar`
     when it needs it rather than carrying it beside the models.
     """

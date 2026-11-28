@@ -8,8 +8,6 @@ downloads are grouped under `dist/`, and previews with their source provenance a
 | Folder | Files | Size | What it is |
 |---|---|---|---|
 | `characters/` | 4 | 30.5 MB | the character sources the LAS and head packs are cut from |
-| `templates/` | 6 | 52.9 MB | reference mods supplying skeletons, heister units and material paths |
-| `textures/` | 12 | 33.0 MB | the supplied textures, the one reference texture mod, Geralt's beard and face as textures of their own, and the head packs' 128-byte icon header |
 | `honoka/` | 31 | 17.4 MB | the DOAXVV export, this repo's own glTF of it, and the DDS dump |
 | `voice/` | 7 | 65.1 MB | the packs the three VO routes copy containers, tables and clips from |
 | `sheets/` | 7 | 2.3 MB | the community voice-line sheets, held as the full exports |
@@ -28,16 +26,17 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 | `Geralt.7z` | Witcher 3 Geralt of Rivia L4D2 port archive (a subscribed Garry's Mod addon: `.mdl`/`.vvd`/`.vtx`/`.vtf`, LZMA `.gma` layout). Its `beard_d.vtf` / `beard_n.vtf` are the source of the tracked beard textures in `textures/` | `tools/build_joy_head_mods.py`; `tools/extract_beard_textures.py` (reads the two VTF) | `dist/Geralt/Geralt_over_Rust.zip` |
 | `1581859199_135363.rar` | GTA San Andreas RenderWare 3.6 ped (LibertyCity "Random4" CJ replacement: `Random4.dff` model + `Random4.txd` textures, 19,727 tris, 7-material body) | `tools/build_joy_head_mods.py` (via `tools/pd2-las/rw_dff.py`) | `dist/Arivus/Arivus_over_Hoxton.zip` (head materials 5 "head" + 6 "hair" only) |
 
-## `templates/` — 52.9 MB
+## `templates/` — 57.1 MB
 
 | Archive | Purpose | Consumed By |
 |---|---|---|
-| `2b.rar` | Reference Legendary Armour Skins (`LAS`) pack (`2B - LAS`): the pack shape (`main.xml`, the hook, the material configs) and the textures. Its two 136-bone Diesel `.model` skeleton templates are tracked beside it in `2b/` (D87), so the archive is no longer needed to build | `tools/pd2-las/extract_2b.py` (`read_member`, for a diagnostic that wants a texture, e.g. `uv_check.py`'s `base_df.texture`); `tools/pd2-port/extract_las_rig.py` (the rig contract `reference/las_rig.json` was extracted from its model once) |
+| `2b.rar` | Reference Legendary Armour Skins (`LAS`) pack (`2B - LAS`) providing the 136-bone Diesel `.model` skeleton template (`2b.model`, `fps_2b.model`) | `tools/pd2-las/` (templates, unpacked to `build/pd2-las/2b/` by `recover_env.sh`); `tools/pd2-port/extract_las_rig.py` (the rig contract `reference/las_rig.json` was extracted from its model once) |
 | `2b/2b.model`, `2b/fps_2b.model` | The two template models cut from `2b.rar` (3,897,376 B and 527,171 B), tracked since 2026-11-27 so no clone needs a RAR unpacker before its first build. Game-derived, committed at the owner's call; `tools/pd2-las/extract_2b.py --check` fails when a copy is not the archive's bytes | all of `tools/pd2-las/` (the default `--templates`), `tools/build_joy_head_mods.py` via them |
 | `Outfit for Honoka-109-1-1-1628020933.zip` | Source: a Dead or Alive Xtreme Venus Vacation (DOAXVV) costume — the "Secret Report" office-lady outfit for the custom character Honoka (`Honoka_DOAXVV_Secret_Report.{TMC,TMCL,PHYD,texch,dlicon}`) | `tools/pd2-las/tmc.py` + `tmc_export.py` read the TMC (Route B, 2026-11-14); exports extracted under `Honoka/` (OBJ + DDS + `Honoka_DOAXVV_Secret_Report.rigged.glb`, the 171-joint skinned export; findings in `docs/pd2-las/honoka-tmc-format.md`); source of the skin weights and joint binds transferred by `build_honoko2_dae.py` into the tracked Honoka packs (`dist/Miranda/OfficeSuite.zip`; the earlier `Honoko2`..`Honoko4` builds of this route were removed on 2026-11-23, D57) |
 | `Heister - FPS Gloves in TPS 2.zip` | Reference heister third-person & Safe House `.model` templates (`npc_criminal_female_1.model`, `npc_criminal_bonnie.model`, `npc_criminal_sydney.model`, `npc_criminal_female_chill.model`, `npc_criminal_bonnie_chill.model`, plus the Joy, Wild and Max units) | `tools/build_joy_head_mods.py` |
 | `npc_criminals_ecp_female.7z` | Reference Hila `mod_overrides` unit (H3H3 collaboration heister, DLC folder `ecp`): `npc_criminal_ecp_female.model` / `_menu.model`, both `.object` files and `mtr_criminal_ecp_female[_cc].material_config`; her hair is `g_hair_mask_off` / `g_hair_mask_on` and her head `g_head` carries two atoms (head, 3D eyelashes) on `mtr_head` + `mtr_lashes` | `tools/build_joy_head_mods.py` (`_emit_hila_packages`) |
 | `npc_criminals_suit_1.7z` | Vanilla Old Hoxton shared-suit unit folder (user game extract 2026-11-24, DieselBundleViewer): cooked DODB `npc_criminals_suit_1.model`, `npc_criminals_suit_menu_1.model` (byte-identical), `.object`s, `mtr_old_hoxton[_cc].material_config`, per-heister `.unit`s | `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) -> `dist/Arivus/Arivus_over_Hoxton.zip` |
+| `ccmt_acc_bunny.7z` | Vanilla **Hop to It** (`player_styles.bunny`) outfit folder (`units/pd2_dlc_ccmt/characters/ccmt_acc_bunny/`): the five third-person body `.model`/`.object`/`.unit` variants (`female_average`, `female_fat`, `male_average`, `male_big`, `male_fat`), first-person `ccmt_acc_fps_bunny_male`, `shared_materials/ccmt_acc_bunny[_fps].material_config`, outfit `.dds` textures and `bunny.dds` menu icon | `tools/pd2-las/build_bunny_body_mod.py` -> `dist/Miranda/OfficeSuite_over_Bunny.zip` (D85) |
 
 ## `textures/` — 33.0 MB
 

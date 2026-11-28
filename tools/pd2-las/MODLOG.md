@@ -35,7 +35,7 @@ DXT5 re-encoding of the same picture. `Geralt_over_Rust.zip`: 8,121,550 -> 8,120
 `references/templates/Ada Wong over Joy.7z` is gone. The head builder unpacked all 11.7 MB of it for the
 first 128 bytes of its icon: those bytes are `references/textures/icon_header_128x128_bgra8.dds` now
 (`tools/extract_icon_header.py`), and with the archive moved out of the tree and `build/head-mods/`
-emptied, a full `heads` build wrote all three packs byte for byte as tracked (D86).
+emptied, a full `heads` build wrote all three packs byte for byte as tracked (D87).
 
 `2b.rar` stops being a build input. Its two template models are tracked in `references/templates/2b/`,
 so a clone needs no node, npm or RAR unpacker before its first build; `extract_2b.py` checks them
@@ -43,7 +43,19 @@ so a clone needs no node, npm or RAR unpacker before its first build; `extract_2
 one of the archive's textures (`uv_check.py`). With the archive moved away, `build`, `honokodae` and
 `heads` rebuilt `Miranda_L4D2_LAS` (`14485fcb…`), `OfficeSuite` (`1b34bbea…`), `Miranda_L4D2_over_Hila`
 (`1bee840f…`), `Geralt_over_Rust` (`20b26e81…`) and `Arivus_over_Hoxton` (`d5f56961…`) - all as tracked
-(D87). The archive stays as the pack-shape contract and the textures' only copy.
+(D88). The archive stays as the pack-shape contract and the textures' only copy.
+
+## 2026-11-27 — `OfficeSuite_over_Bunny` ships `OfficeSuite` over the vanilla Hop to It outfit (D85)
+
+`dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,
+`tools/pd2-las/build_bunny_body_mod.py`) packages the tracked `OfficeSuite` body, shadow caster, first-person
+arms and menu icon over the vanilla **Hop to It** (`player_styles.bunny`,
+`references/templates/ccmt_acc_bunny.7z`) outfit for native `mod_overrides` installation without BeardLib or
+LAS. All six `OfficeSuite` material slices are packed into one 4096×2048 BC3 diffuse/normal atlas
+(`hila_texture_atlas.py`) and written across all five third-person `ccmt_acc_bunny_*.model` variants plus
+`ccmt_acc_fps_bunny_male.model` (shifted by `Hips_bunny - Hips_source` into the FPS rig frame inside
+`co_box`), with preview sheets rendered under `docs/renders/honoka/model/over-bunny/` and the 6-pack
+`all_dist_mods_sheet.png` overview refreshed. `runtime_verified` is false; see D85.
 
 ## 2026-11-27 — the supplied eye reaches the outfit pack, and the head pack catches up with it
 
