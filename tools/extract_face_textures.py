@@ -26,12 +26,16 @@ The diffuse keeps the port's alpha as it is (255 everywhere): the head is solid,
 and the pack's own `18` in the atlas' specular channel is the builder's, not
 this picture's.
 
-`build_joy_head_mods.build_geralt_rust_mod` still reads the archive directly;
-these files are the face as a texture of its own, beside the beard pair, for
-another mod or another engine. Re-run this tool after the archive changes:
+Since 2026-11-28 (D96), `references/textures/geralt_head_{df,nm}.dds` are the
+user's supplied 1024x1024 DXT5 face edits (with painted beard/moustache strands
+and matching PD2 normal relief) read directly by `build_geralt_rust_mod`, while
+`geralt_head_{df,nm}.png` remain the unedited 2048x2048 archive extracts. When
+writing into `references/textures/`, this tool writes only the two PNGs unless
+`--dds` is explicitly passed, so the supplied `.dds` build inputs are never
+clobbered by accident:
 
-    python tools/extract_face_textures.py
-    python tools/extract_face_textures.py --out build/geralt-face   # elsewhere
+    python tools/extract_face_textures.py                          # refreshes the PNG pair only
+    python tools/extract_face_textures.py --out build/geralt-face  # all four files elsewhere
 """
 from __future__ import annotations
 
@@ -97,8 +101,8 @@ def read_vtf(pack: Path, suffix: str) -> np.ndarray:
     return arr
 
 
-def write_outputs(pack: Path, out: Path) -> list[Path]:
-    """Write the four files; return the paths, PNGs first."""
+def write_outputs(pack: Path, out: Path, *, include_dds: bool = True) -> list[Path]:
+    """Write the PNG pair (and, when ``include_dds`` is true, the 2048x2048 DDS pair)."""
     out.mkdir(parents=True, exist_ok=True)
     df, nm = read_vtf(pack, "df"), read_vtf(pack, "nm")
     # the same Y flip the pack builder applies to this VTF, so the two cannot disagree
@@ -113,14 +117,15 @@ def write_outputs(pack: Path, out: Path) -> list[Path]:
     nm_png.write_bytes(_png(normal))
     written.append(nm_png)
 
-    # DXT5, full mip chain, exactly as the pack encodes its textures
-    df_dds = out / "geralt_head_df.dds"
-    df_dds.write_bytes(_dds(df))
-    written.append(df_dds)
+    if include_dds:
+        # DXT5, full mip chain, matching the port's unedited 2048x2048 maps
+        df_dds = out / "geralt_head_df.dds"
+        df_dds.write_bytes(_dds(df))
+        written.append(df_dds)
 
-    nm_dds = out / "geralt_head_nm.dds"
-    nm_dds.write_bytes(_dds(normal))
-    written.append(nm_dds)
+        nm_dds = out / "geralt_head_nm.dds"
+        nm_dds.write_bytes(_dds(normal))
+        written.append(nm_dds)
     return written
 
 
@@ -170,11 +175,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--archive", type=Path, default=DEFAULT_ARCHIVE,
                         help="the Witcher 3 port archive (default: references/characters/Geralt.7z)")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--dds", action="store_true",
+                        help="also write 2048x2048 archive DDS files when --out is references/textures")
     args = parser.parse_args(argv)
     if not args.archive.is_file():
         print(f"error: {args.archive} is not there; restore the tracked reference archive", file=sys.stderr)
         return 2
-    for path in write_outputs(args.archive, args.out):
+    include_dds = (args.out.resolve() != DEFAULT_OUT.resolve()) or args.dds
+    for path in write_outputs(args.archive, args.out, include_dds=include_dds):
         print(f"{path.relative_to(ROOT) if path.is_relative_to(ROOT) else path}  {path.stat().st_size} B")
     return 0
 
