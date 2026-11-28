@@ -40,15 +40,10 @@ rules below.
 - **Leaks:** knowledge from beta builds and leaked SDKs or source is fine to write up in your own words, and
   so is saying where it came from. The leaked material itself stays out: no pasted code, attached files,
   download links or license keys, and no instructions to fetch them.
-- **DRM-wrapped executables** (Steam stub, Arxan, Denuvo, iOS FairPlay): analysing your own legally installed
-  copy is fine, from the running game's memory or a private dump kept outside any repository, and so is
-  writing up what you learned in your own words. A note never explains how to strip or unpack the protection,
-  never links an unpacked executable or a DRM-removal tool, and never gives steps whose result is the game
-  running without its DRM.
 - **No cheating other players, and no bypasses:**
   - nothing that gives an edge over other players on servers you don't run (aimbots, ESP, speed hacks,
     bots);
-  - no anti-cheat, DRM or ownership-check bypasses;
+  - no anti-cheat bypasses;
   - no instructions for injecting into online clients protected by anti-cheat;
   - one exception, for games that can no longer be bought anywhere: a note may say that a community route for
     people without a copy exists and link the community's guide page. Its steps, keys, serials and files
@@ -65,10 +60,10 @@ rules below.
 - **Tools (`um/`):**
   - one module per CLI group, with a docstring that doubles as `--help`;
   - add a test in `tests/`;
-  - For the full suite, use Python 3.11+, run `make -sC tools/pd2-las env` to install the pinned dependencies
-    and unpack the 2B fixtures, then run `make -sC tools/pd2-las test`. Running pytest alone in a fresh
-    `uv` environment leaves the template-dependent tests skipped. Use `make -sC tools/pd2-las green`
-    for the full verification workflow on x86-64 Linux.
+  - For the full suite, use Python 3.11+, run `make -sC tools/pd2-las env` to install the pinned
+    dependencies (the 2B template models are tracked since D92, so that step unpacks nothing), then run
+    `make -sC tools/pd2-las test`. Use `make -sC tools/pd2-las green` for the full verification workflow
+    on x86-64 Linux.
 - **Skills (`skills/`):** the Agent Skills format (`SKILL.md` with `name` + `description`). Keep them
   agent-neutral: say "the agent", not a specific product. Put deep material in `references/`.
   - Edit `skills/` only. `.agents/skills` and `.claude/skills` are copies (no symlinks, so Windows clones

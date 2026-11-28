@@ -1412,7 +1412,7 @@ def build_pack(
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--templates", type=Path, default=DEFAULT_TEMPLATES,
-                    help="directory containing 2b.model (default: where extract_2b.py unpacks it)")
+                    help="directory containing 2b.model (default: the tracked references/templates/2b/)")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT,
                     help="directory for the OfficeSuite*.zip packs + .sha256 (default: dist/Miranda)")
     ap.add_argument("--work-dir", type=Path, default=DEFAULT_WORK,

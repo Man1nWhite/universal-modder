@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the environment of a fresh clone, or rebuild it after a sandbox restart:
-# the tracked files the restart deleted, .venv and the 2B templates. Then print
+# the tracked files the restart deleted, .venv and the 2B template models. Then print
 # the state (status.py). Idempotent and safe to re-run. It is the one script that
 # does this: `make -sC tools/pd2-las env` runs it, and so does CI.
 #
@@ -8,7 +8,7 @@
 # build/ and node_modules/, tracked files included. When that happens:
 #   * `git status` lists the packs as deleted,
 #   * `pytest tests` cannot collect (no pytest),
-#   * every test that needs the 2B templates skips,
+#   * every test that needs the 2B template models skips,
 #   * the builders and `diagnose_mesh.py --templates` cannot run.
 # This script restores all of it. Under dist/, build/ and node_modules/ it only
 # puts back tracked files that are missing: a file that is there, changed or not,
@@ -91,11 +91,11 @@ if [ "$EXTRAS" = 1 ]; then
 fi
 
 # ------------------------------------------------------------ 2. the templates
-# references/templates/2b.rar (RAR5) -> build/pd2-las/2b/. extract_2b.py owns both the
-# location and the unpacking (node-unrar-js; there is no system unrar/7z/bsdtar
-# in the sandbox), and reuses the cache only when the archive and extracted files still match.
+# references/templates/2b/{2b,fps_2b}.model are tracked since 2026-11-27 (D88): no unpacking
+# step, no node, no npm package between a clone and its first build. extract_2b.py still owns
+# the path and checks the models are the archive's bytes; this reports it and restores nothing.
 echo "== 2B templates"
-"$PY" tools/pd2-las/extract_2b.py | sed 's/^/   /'
+"$PY" tools/pd2-las/extract_2b.py --check | sed 's/^/   /'
 
 # ------------------------------------------- 3. optional verification
 if [ "$VERIFY" = 1 ]; then

@@ -46,7 +46,7 @@ import extract_2b  # noqa: E402
 import packs  # noqa: E402
 from pack_checksum import read_checksum, sha256_file, sidecar_path  # noqa: E402
 
-#: where references/templates/2b.rar is unpacked: the default of every builder's --templates
+#: the tracked 2B template models: the default of every builder's --templates
 TEMPLATES = extract_2b.TEMPLATES
 
 #: archives and inputs the builders read (repo-relative)
@@ -60,8 +60,8 @@ INPUTS = (
     "references/templates/npc_criminals_ecp_female.7z",
     "references/templates/ccmt_acc_bunny.7z",
     "references/textures/EYE_Diff.png",
+    "references/textures/icon_header_128x128_bgra8.dds",   # the head packs' icon header
     "references/templates/2b.rar",
-    "references/templates/Ada Wong over Joy.7z",
     "references/templates/Heister - FPS Gloves in TPS 2.zip",
     "references/honoka/Honoka_DOAXVV_Secret_Reportout.dae",
     "references/honoka/Tex_07(L_7)3.dds",

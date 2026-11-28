@@ -3,6 +3,12 @@
 Request 2026-11-26: *"Analyse `/references` — what can be deleted safely? How can they be grouped
 in folders?"* This is the report; nothing was deleted or moved to produce it.
 
+**Later that week (2026-11-27):** `templates/Ada Wong over Joy.7z` is gone. The only thing the head
+builder read from it was the 128-byte DDS header of its character icon; those bytes are now
+`references/textures/icon_header_128x128_bgra8.dds` (`tools/extract_icon_header.py`), and all three
+head packs rebuild byte for byte without the archive (D91). Everything below describes the tree as
+it stood on 2026-11-26 and is left as written.
+
 **Adopted 2026-11-26.** The owner approved all of it except the PDF: the six folders in §4 are the
 layout now (PR #67), the five files in §1 are gone except `Syndey Voicelines.pdf`, which is kept
 because a VO mod may need the printed table. The sheets in §2 are imported, in full (D81). Anything below

@@ -206,7 +206,7 @@ def test_green_runs_what_the_test_workflow_runs():
 
     setup = re.compile(
         r"^(sudo |python -m pip install |make -sC tools/pd2-las env$"
-        r"|python tools/pd2-las/extract_2b\.py$|set -o pipefail$|mkdir -p build$)"
+        r"|python tools/pd2-las/extract_2b\.py( --check)?$|set -o pipefail$|mkdir -p build$)"
     )
     checks = {      # a command of the workflow -> what in check_all.py runs the same check
         r"python -m ruff check \.$": '["-m", "ruff", "check", "."]',

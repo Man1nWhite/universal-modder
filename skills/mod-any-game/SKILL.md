@@ -157,9 +157,8 @@ documented dead end saves the next agent hours.
 - **Online play.** Stay in single-player/offline, or on servers the user controls. Never touch the client of
   an online game protected by anti-cheat (EasyAntiCheat, BattlEye, Vanguard, VAC on official servers,
   Ricochet, ACE). Never write cheats (aimbots, ESP, speedhacks) for multiplayer.
-- **No bypasses.** Never bypass anti-cheat, DRM or ownership checks. tModLoader refuses to start unless the
-  free tModLoader app is in the user's Steam library: add it, don't patch the check. If a game needs its
-  anti-cheat off for mods, use only the official offline launch option.
+- **No bypasses.** Never bypass anti-cheat. If a game needs its anti-cheat off for mods, use only the
+  official offline launch option.
 - **Provenance.** Game-derived assets and exports may ship at the owner's call; name the source and credits.
   Don't ship decompiled source; patches and converters that run on the user's own install are always fine.
 - **Back up first.** Run `um backup` before changing saves, profiles or game folders. Keep the restore path

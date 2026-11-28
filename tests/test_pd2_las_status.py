@@ -233,12 +233,12 @@ def test_status_only_names_inputs_and_targets_that_exist():
 
 @pytest.mark.parametrize("builder", ["build_models"])
 def test_builders_default_to_the_templates_status_reports(builder, tmp_path, monkeypatch):
-    """`--templates` is optional: a builder looks where extract_2b.py unpacks the 2B pack.
+    """`--templates` is optional: a builder looks where extract_2b.py says the 2B models are.
 
     The path used to be a required argument that every README spelled out, pointing into a
     /tmp that a fresh session does not have. Now it is one constant, status.py reports
     whether it is populated, and a builder that finds it empty names the command that
-    fills it instead of dying on a missing file halfway through.
+    restores it instead of dying on a missing file halfway through.
     """
     pytest.importorskip("numpy")
     monkeypatch.syspath_prepend(str(HERE))
@@ -254,7 +254,7 @@ def test_builders_default_to_the_templates_status_reports(builder, tmp_path, mon
     with pytest.raises(SystemExit) as stop:
         module.main(argv)
     message = str(stop.value)
-    assert "no-templates-here" in message and "recover_env.sh" in message, message
+    assert "no-templates-here" in message and "git checkout" in message, message
     assert not (tmp_path / "out").exists(), "the builder started work before checking its inputs"
 
 
@@ -419,23 +419,31 @@ def test_the_2b_templates_have_one_home_inside_the_repo():
 
     They used to be unpacked to a fixed directory under /tmp, and that path was written
     out in thirty files: every builder command, seven test modules, the skip budget.
-    /tmp does not outlive a session and does not exist on Windows, so the templates now
-    go to build/pd2-las/2b/, which is inside the checkout and gitignored (the pack is
-    somebody else's mod: it must never be committed unpacked). Nothing else may spell
-    either the old path or the new one; code imports `extract_2b.TEMPLATES`.
+    /tmp does not outlive a session and does not exist on Windows. Since 2026-11-27 the
+    two models are tracked in references/templates/2b/ (D92), so a clone has them without
+    an unpacking step; `extract_2b.OUT` still names the build/ cache a hand unpack of the
+    whole 2b.rar can use. Nothing else may spell either path; code imports
+    `extract_2b.TEMPLATES`.
     """
     sys.path.insert(0, str(HERE))
     import extract_2b
 
+    assert extract_2b.TEMPLATES == REPO / "references" / "templates" / "2b"
     assert extract_2b.OUT == REPO / "build" / "pd2-las" / "2b"
     assert (extract_2b.OUT / extract_2b.UNIT).relative_to(extract_2b.OUT)
     assert _load().TEMPLATES == extract_2b.TEMPLATES
+    for name in extract_2b.TEMPLATE_FILES:
+        assert (extract_2b.TEMPLATES / name).is_file(), f"{name} is not tracked in references/templates/2b/"
 
     git = shutil.which("git")
     if git and (REPO / ".git").exists():
         unpacked = (extract_2b.OUT / extract_2b.UNIT / "2b.model").relative_to(REPO)
         ignored = subprocess.run([git, "check-ignore", "-q", str(unpacked)], cwd=REPO)
         assert ignored.returncode == 0, "build/pd2-las/2b/ must stay gitignored"
+        tracked = subprocess.run([git, "ls-files", "--error-unmatch",
+                                  (extract_2b.TEMPLATES / "2b.model").relative_to(REPO).as_posix()],
+                                 cwd=REPO, capture_output=True)
+        assert tracked.returncode == 0, "references/templates/2b/2b.model must be tracked"
 
     for script in ("recover_env.sh",):
         assert "tools/pd2-las/extract_2b.py" in (HERE / script).read_text(), script

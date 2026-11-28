@@ -85,6 +85,51 @@ monotonic forward throat line, lower side-hair clearance, and orthonormal `tange
 preview sheets (`miranda_l4d2_over_hila_sheet.png`, `miranda_l4d2_over_hila_posture_before-after.png`,
 `all_dist_mods_sheet.png`) are regenerated. Reasoning: D86.
 
+## 2026-11-27 — Geralt's face maps as textures of their own, from the port's VTF pair
+
+The beard now comes from the VTF (above); the face did not yet. `Geralt.7z` carries
+`geralt_head_bm.vtf` and `geralt_head_nm.vtf`, both 2048x2048, and the head builder had read them
+straight out of the archive and halved them into the head atlas on every build. `tools/extract_face_textures.py`
+is that read made a file: `references/textures/geralt_head_{df,nm}.{png,dds}`, written at the VTF's own
+2048x2048 - the picture *before* the builder's 1024 halving, not a copy of the pack's quadrant - with the
+normal in Diesel's packed layout under the same Y flip. A re-run is byte-identical; the four files are
+33.0 MB in total, 19 MB of it new, and the `textures/` row in `references/README.md` says so.
+
+The diffuse keeps the port's alpha (255 everywhere): the head is solid, and the pack's `18` in the
+atlas' specular channel is the builder's own. Nothing in `dist/` reads the new files back - the builder
+still reads the archive - so they are hand-outs beside the beard pair, not build inputs, and a changed
+archive means re-running the tool, not a pack rebuild.
+
+`tests/test_face_textures.py` holds the two ends together: the tracked bytes must be what the tool
+writes from the archive (a one-byte edit to either tracked file fails it), and the shipped pack's head
+quadrant must be the tracked diffuse halved as the builder halves it, to within DXT5 (mean |diff|
+2.10/255) - so the files cannot become something the pack was never built from.
+
+## 2026-11-27 — Geralt's beard from the port's VTF, and two reference archives out of the build path
+
+Geralt's beard is no longer cut out of the built pack. `references/characters/Geralt.7z`'s
+`beard_d.vtf` / `beard_n.vtf` are the source; `tools/extract_beard_textures.py` reads them out of the
+archive and writes `references/textures/geralt_beard_{df,nm}.{png,dds}` - the colour with the VTF's
+coverage at the game's own `alpha_ref` threshold (12 of 255, not a 50 % cut, which would erase 4.6 % of
+the faint hair ends), the normal with the builder's Y flip - and `build_geralt_rust_mod` now assembles
+the pack's beard quadrant from those tracked DDS. The committed beard pair from PR #75 decoded to a flat,
+fully transparent image and the beard test was failing on it; with the texture rebuilt from the VTF the
+test passes, and the shipped beard changes by mean |diff| 0.16 of 255 (colour) and 0.00-0.02 (normal) -
+DXT5 re-encoding of the same picture. `Geralt_over_Rust.zip`: 8,121,550 -> 8,120,780 bytes.
+
+`references/templates/Ada Wong over Joy.7z` is gone. The head builder unpacked all 11.7 MB of it for the
+first 128 bytes of its icon: those bytes are `references/textures/icon_header_128x128_bgra8.dds` now
+(`tools/extract_icon_header.py`), and with the archive moved out of the tree and `build/head-mods/`
+emptied, a full `heads` build wrote all three packs byte for byte as tracked (D91).
+
+`2b.rar` stops being a build input. Its two template models are tracked in `references/templates/2b/`,
+so a clone needs no node, npm or RAR unpacker before its first build; `extract_2b.py` checks them
+(`--check`, run by CI and `recover_env.sh`) and keeps `read_member()` for the one diagnostic that wants
+one of the archive's textures (`uv_check.py`). With the archive moved away, `build`, `honokodae` and
+`heads` rebuilt `Miranda_L4D2_LAS` (`14485fcb…`), `OfficeSuite` (`1b34bbea…`), `Miranda_L4D2_over_Hila`
+(`1bee840f…`), `Geralt_over_Rust` (`20b26e81…`) and `Arivus_over_Hoxton` (`d5f56961…`) - all as tracked
+(D92). The archive stays as the pack-shape contract and the textures' only copy.
+
 ## 2026-11-27 — `OfficeSuite_over_Bunny` ships `OfficeSuite` over the vanilla Hop to It outfit (D85)
 
 `dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,

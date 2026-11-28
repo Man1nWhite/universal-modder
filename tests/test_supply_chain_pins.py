@@ -2,18 +2,22 @@
 
 A tag is a moving pointer: `actions/checkout@v4` is whatever commit the maintainer moved `v4`
 to this morning, and one of the jobs that ran it holds `contents: write`. The same is true of
-`node-unrar-js@^2.0.2`, which unpacks the 2B templates every OfficeSuite pack is skinned onto:
-a patch release on npm changes the bytes of a tracked pack with no commit in this repository.
+`node-unrar-js@2.0.2`, which reads members out of the 2B reference archive (the two template
+models every OfficeSuite pack is skinned onto are tracked since D92, but the archive's textures
+are still read on demand): a patch release on npm changes what a diagnostic sees with no commit
+in this repository.
 
 So: actions name a 40-character commit with the release in a comment, `package.json` names an
-exact version, `package-lock.json` agrees with it, and the extractor's npm fallback installs
-from that lockfile (`npm ci`) instead of fetching latest. `dependabot.yml` moves all of it
-weekly, as a commit that can be reviewed like any other.
+exact version, and `package-lock.json` agrees with it. `dependabot.yml` moves all of it weekly,
+as a commit that can be reviewed like any other. The unpacker itself must sit in the repo's
+tracked `node_modules/` (41 files): `extract_2b.read_member` runs it from there, and the tests
+below fail if that copy is gone.
 """
 from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -82,11 +86,21 @@ def test_the_lockfile_agrees_with_package_json():
         assert installed == version, f"{name}: package.json {version}, lockfile {installed}"
 
 
-def test_the_extractor_installs_from_the_lockfile():
+def test_the_tracked_unpacker_is_what_reads_the_archive():
+    """`extract_2b.read_member` requires the tracked node_unrar_js; nothing installs a latest.
+
+    The npm fallback (`npm ci` from the lockfile) was removed with the per-clone unpacking
+    step (D92). What is left is one script that `require()`s the package the repository
+    tracks, so a change to the unpacker can only arrive as a reviewed commit.
+    """
     source = (ROOT / "tools" / "pd2-las" / "extract_2b.py").read_text(encoding="utf-8")
-    assert '"ci"' in source, "the npm fallback must install the lockfile (`npm ci`)"
-    assert not re.search(r'"install",[^)]*"node-unrar-js"\)', source), \
-        "the npm fallback must not fetch node-unrar-js by name; that is whatever is latest today"
+    assert 'require("node-unrar-js")' in source
+    assert not re.search(r'"npm"|"ci"|npm install|npm ci', source), \
+        "the extractor must not fetch anything: the unpacker is the tracked node_modules copy"
+    tracked = subprocess.run(["git", "ls-files", "node_modules/node-unrar-js/package.json"],
+                             cwd=ROOT, capture_output=True, text=True)
+    if tracked.returncode == 0:
+        assert tracked.stdout.strip(), "node-unrar-js must stay tracked; read_member runs only that copy"
 
 
 def test_dependabot_watches_both_ecosystems():

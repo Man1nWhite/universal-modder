@@ -23,7 +23,7 @@ The toolkit requires Python 3.11+ everywhere (the CLI floor and CI).
 From the repo root, `make -sC tools/pd2-las` with no target lists them.
 
 ```sh
-make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
+make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B template models; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
 make -sC tools/pd2-las build    # or honokodae | bunny | heads | voices_stream | glb | all  (the former voices_geralt / voices_arivus targets were removed with the retired packs, D89)
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
@@ -35,9 +35,10 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 - Windows: `env` is a bash script. Make the venv once by hand (`py -3.11 -m venv .venv`), install with
   `pip install -c tools/pd2-las/pins.txt` (the versions the packs rebuild byte for byte with), then the
   same `make` calls work under git-bash/MSYS: they find `.venv/Scripts/python.exe` themselves.
-- `env` unpacks the 2B templates into `build/pd2-las/2b/` (gitignored) or refreshes a stale one.
-  `PD2_2B_TEMPLATES` points setup, builds and `fresh` at a shared unit folder; `extract_2b.py` manages
-  only the default cache. Of tracked files, `env` restores only missing ones.
+- The two 2B template models are tracked in `references/templates/2b/` (D92): `env` unpacks nothing and a
+  build needs no unpacker. The rest of the pack - textures, `ss.model`, the manifest - stays in
+  `references/templates/2b.rar`, and `extract_2b.read_member()` reads one file out of it on demand
+  (`uv_check.py` needs its atlas); `PD2_2B_TEMPLATES` still points diagnostics at a hand-unpacked unit.
 - The LAS outfit's eye is `references/textures/EYE_Diff.png`, the same picture the Hila head pack wears, cropped to the eyeball's own planar map (`EYE_ZOOM`, D84); it is not converted from the source, whose eye is drawn by a shader and has no texture to convert.
 - A build **overwrites the tracked zips** in dist/, so only
   `"is": "tracked"` (the zip is what git holds) proves a rebuild; the builder's output is in
@@ -62,7 +63,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 | `pose_preview.py`, `preview_textured.py`, `shellview.py` | what those diagnostics render with: the arms-down pose and two rasterisers, one lit, one flat per face |
 | `gma.py`, `smd.py`, `inspect_gma.py`, `inspect_textures.py` | GMod/Source addon inspection and SMD export, off the build path |
 | `mip_audit.py` | for the two Miranda textures the build writes itself (the repainted face and the supplied eye): which mip level is on screen at which distance, how far each level is from the picture it stands for, and the before/after render (make -sC tools/pd2-las audit) |
-| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of the distribution packs, environment (`env` runs `recover_env.sh`), where the 2B pack is unpacked, and the pinned Pillow/NumPy versions |
+| `Makefile`, `status.py`, `recover_env.sh`, `extract_2b.py`, `pins.txt` | the commands above, the state of the distribution packs, environment (`env` runs `recover_env.sh`), the tracked 2B template models and the one reader of a member out of their archive, and the pinned Pillow/NumPy versions |
 | `pack_checksum.py`, `archive_cache.py` | the sha256 sidecars of the tracked and scratch packs (`python tools/pd2-las/pack_checksum.py`), and validating extracted build inputs by archive and payload instead of sentinel files |
 | `build_arivus_glb_pack.py`, `build_bunny_body_mod.py`, `model_to_glb.py`, `rw_dff.py`, `hila_texture_atlas.py`, `wwise_ima.py` | the Arivus `.glb` interchange pack, the `OfficeSuite_over_Bunny` native outfit replacement, and their shared readers/packers: Diesel `.model` → glTF + DDS, RenderWare DFF/TXD, the 6-tile BC3 atlas packer for single-material outfit overrides, Wwise IMA in a `.stream` |
 | `audit_metrics.py`, `diagnose_mesh.py`, `neck_junction.py`, `elbow_before_after.py`, `glove_check.py`, `pose_zoom.py`, `uv_check.py`, `wrist_compare.py` | one measurement or before/after sheet each, over a shipped pack: the audit numbers, a mesh deep-dive, the neck seam, elbow and wrist, sleeve/glove junctions, the UV convention |

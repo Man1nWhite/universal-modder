@@ -6,13 +6,11 @@ Two problems are fixed here, both of them a fresh clone's first five minutes:
   order. That is one `sys.path[:0] = [...]` per file to keep in sync; `pytest` imports this
   module before collecting, so one line here does the same job for all of them.
 
-* The 2B reference templates (`references/templates/2b.rar`, unpacked to `build/pd2-las/2b/`) are
-  gitignored build inputs. Without them, `pytest tests` reported four *failures* with
-  `FileNotFoundError: .../2b.model` and one *error* per test that imported py7zr — which reads
-  like a broken checkout rather than "run `make -sC tools/pd2-las env`". Now the suite tries the
-  documented extraction once and, if it still cannot, skips the tests that read the templates
-  with `tools/pd2-las/extract_2b.MISSING` as the reason — the wording the skip budget already
-  knows (`tools/pd2-port/check_skip_budget.py`).
+* The 2B reference templates (`references/templates/2b/{2b,fps_2b}.model`) are tracked build
+  inputs (from 2026-11-27, D92). A checkout that has lost them used to report four *failures*
+  with `FileNotFoundError: .../2b.model`; now the suite skips the tests that read them with
+  `tools/pd2-las/extract_2b.MISSING` as the reason — the wording the skip budget knows
+  (`tools/pd2-port/check_skip_budget.py`), and the command that restores them is in it.
 """
 from __future__ import annotations
 
@@ -50,17 +48,7 @@ def _templates_missing() -> str | None:
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip the tests that read the templates, once, with the command that fixes it."""
-    reason = _templates_missing()
-    if reason is None:
-        return
-    # Try the extraction the repository documents (`make -sC tools/pd2-las env` runs this).
-    # It is idempotent and cached by SHA-256, and it needs `node`: if either is absent the
-    # reason below still names the fix, so nothing is lost by trying.
-    try:
-        _extract_2b().main()
-    except (Exception, SystemExit):  # noqa: BLE001 - a failed bootstrap is the skip, not an error
-        pass
+    """Skip the tests that read the templates, once, with the command that restores them."""
     if (reason := _templates_missing()) is None:
         return
     for item in items:

@@ -51,7 +51,7 @@ const GROUPS = [
   { name: "video", blurb: "build contact sheets and EDL-driven showcase video edits with ffmpeg" },
   { name: "win", blurb: "launch, screenshot, send input to and record a game window on Windows (also from WSL)" },
   { name: "backup", blurb: "snapshot and restore a game's save files before a modded launch" },
-  { name: "publish", blurb: "pre-release lint for a mod: no game files, no decompiled code, no leaked keys" },
+  { name: "publish", blurb: "pre-release lint for a mod: no decompiled code, no leaked keys; game assets allowed" },
   { name: "kb", blurb: "search, scaffold, check and index the field-note knowledge base (search / new / check / index)" },
 ]
 

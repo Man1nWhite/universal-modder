@@ -35,7 +35,7 @@ The repo's hard rules apply in full: the mod-any-game skill's Hard rules, with t
 - Close native error boxes and crash reporters that block the game instead of working around a frozen game.
 - If another machine is part of the test, change only what the brief allows there. When told it is busy: restore its default settings, close the game without saving, stop your helpers, and do not touch it again until told.
 - After a test that changes the configuration (role, installed packages, flags), restore it exactly and verify the restore.
-- Never push, upload or publish. Never read or print credentials. Stay offline or on servers the user controls; never bypass anti-cheat or DRM.
+- Never push, upload or publish. Never read or print credentials. Stay offline or on servers the user controls; never bypass anti-cheat.
 
 ## Reporting
 
