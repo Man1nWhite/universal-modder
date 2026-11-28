@@ -221,6 +221,7 @@ def test_green_runs_what_the_test_workflow_runs():
         r"^python tools/pd2-las/pack_checksum\.py$": '"pack_checksum.py")]',
         r"^python tools/pd2-port/check_links\.py$": '"check_links.py")]',
         r"^python tools/gen_docs_index\.py --check$": '"gen_docs_index.py"), "--check"]',
+        r"^python tools/build_vo_master\.py --check$": '"build_vo_master.py"), "--check"]',
     }
     for command in commands:
         groups = re.match(r"^\./bin/um --help && for g in (.+); do \./bin/um \$g --help > /dev/null; done$", command)

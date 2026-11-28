@@ -1,5 +1,55 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-28 (later still) — the Geralt/Arivus VO stream packs are retired and deleted (D87)
+
+`Geralt_VO_over_Rust_Stream.zip` and `Arivus_VO_over_Hoxton_Stream.zip` (and their `.sha256`
+sidecars) are deleted from `dist/` on the user's request. Both shipped 2026-11-25 and were never
+heard in game; the shared-`regular_vox` route was unverified for these heisters (O1). Every
+registry/view of the packs was updated in the same pass: `packs.py`, the `Makefile`
+(`voices_geralt`/`voices_arivus` removed, `all` trimmed), `tools/tasks.py`, `fresh.py`, `status.py`
+(through the table), the workbook (`packs`/`SOURCES`/`coverage`: the two packs stay as rows marked
+RETIRED 2026-11-28), `AGENTS.md`, the `README`s, `HANDOFF.md`, `in-game-checklist.md` (1e/1f are now
+retirement notices; the O1 question they tracked is untouched) and the overview-render caption (the
+tracked PNG predates this; next re-render carries it). The four zip-reading tests were removed; the
+builder's contract tests and the `char_rust` refusal tests remain, as do the builder and the pick
+tables — the route exists again the moment someone commissions it. The non-VO packs
+(`Geralt_over_Rust`, `Arivus_over_Hoxton`, `Arivus_Head_over_Old_Hoxton_GLB`) are untouched.
+
+## 2026-11-28 — the VO workbook replaces the three VO guides (D85)
+
+`voice_lines_vox/vo_master.xlsx` is the single source of truth for every voice-line source in the
+repository: one row per id, all banks joined — community `regular_vox` (20,404 rows),
+`robbers_mission_gen` (5,513 rows: 5,499 community + 13 pack-only + 1 Sydney .docx-only),
+`char_sydney` (CSV ∪ the .docx's first table: 1,037 ∪ 1,077, 1,078 rows), the measured
+`char_rust` bank (1,046), Hila's 885 pack-bank ids, Bodhi (1,351 rows), the Heister callout table
+and machine transcripts of every reference audio file. Built by `tools/build_vo_master.py`
+(`make -sC tools/pd2-las voices_master`); the per-tab CSVs in `voice_lines_vox/vo_master/` are the
+tracked mirror and `--check` fails when they are stale (wired into `check_all.py --full` and the
+test workflow).
+
+`docs/pd2-voice-mod-install.md`, `docs/pd2-voice-stream-tables.md` and
+`docs/tokoyami-hila-voice-mod-analysis.md` are deleted; their content lives in the `format`,
+`install`, `packs`, `char_rust` and `README` (findings F1–F4) tabs. The community `regular_vox`
+export covers a different bank than the one the packs write (0 of the 885 ids appear in it) — that
+is finding F1, and it was measured, not assumed.
+
+Machine transcripts are pocketsphinx output and are labelled as unverified drafts on every row
+(whisper's model hosts are unreachable from this environment); nothing in the workbook is
+in-game-verified beyond the Hila pack (2026-11-25, user report).
+
+## 2026-11-28 (later) — the Sydney .docx has two tables; the second is her robbers chatter (D86)
+
+Re-reading `references/sheets/Syndey Voicelines.docx` against the workbook found the sheet was parsed
+as one table. It holds two: table 0 is `char_sydney` (1,078 rows, 1,077 distinct ids; 1,036 shared
+with the CSV, 41 docx-only, CSV covers 1,037 with 1 id — `75103998` — in neither), and table 1 is
+Sydney-voiced `robbers_mission_gen` chatter (224 ids). The workbook now folds table 1 into the
+`robbers_mission_gen` tab: 145 community rows that had neither `who` nor line are backfilled
+(labelled document-sourced in `notes`/`needs_review`, 145 ids), 78 already-written community rows are
+kept verbatim with the .docx wording carried beside them in `sydney_what`, and 1 id (`221703642`) is
+new. `char_sydney` keeps table 0 only; its `in_pdf` flags come from the print of the same document.
+Measured from the tracked CSV: the community export carries 1,811 `who` rows (1,720 with a line),
+1,722 line rows, 3,686 with neither — the earlier "1,813" was wrong, and the sheets docs say so now.
+
 ## 2026-11-27 — the supplied eye reaches the outfit pack, and the head pack catches up with it
 
 `dist/Miranda_L4D2_LAS.zip` and `dist/Miranda/Miranda_L4D2_over_Hila.zip` are rebuilt. The outfit's

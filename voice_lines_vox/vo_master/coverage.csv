@@ -1,0 +1,33 @@
+metric,value,notes
+regular_vox — community export declares,"20,343 rows (20,293 complete · 50 partial · 0 incomplete · 32 marked (?))",status block of the export; the block is stale — rows were added after it was written
+regular_vox — rows held / distinct ids,"21,289 / 21,288","one repeated id (1052460785) kept, not merged; 29 rows carry needs_review"
+regular_vox — speakers (top 3),"Cop (static) 3,159 · Cop 2,291 · Chains 1,911",22 speakers in the export
+regular_vox ∩ Hila pack bank (885),0,MEASURED: the pack bank's 885 ids appear nowhere in the community export — the export is a different bank than the one the packs write (finding F1)
+Hila pack bank — in this workbook,"885 rows, all 885 ids",two of the list's 887 rows repeat ids; all 885 appear as hila-dlc-bank rows
+Tokoyami regular_vox transcription,"887 of 887 files, 548 non-empty drafts",pocketsphinx; cross-checked against hila_regular_vox speech text — see match columns
+…high match (≥0.6 word overlap),0,text and draft agree
+…partial match (0.35–0.6),0,"directionally right, needs review"
+…low / no match,547,draft does not corroborate the line text
+robbers_mission_gen — declares,"4,220 rows (1,720 complete · 93 partial · 2,407 incomplete · 14 marked (?))",status block of the export; stale the same way
+robbers_mission_gen — rows held / distinct ids,"5,513 / 5,513","5,499 community rows (+13 pack-only, +1 Sydney .docx-only = 5,513 in this tab); 1,868 rows carry a line after the Sydney .docx backfill, 3,645 carry none (measured)"
+robbers_mission_gen — packs present,Tokoyami 202 files (196 ids in the community tab) · Marine 220 files (213 in it),every pack file transcribed; 6 (Tokoyami) and 7 (Marine) ids appear in no community row
+robbers_mission_gen — machine drafts,Tokoyami 116 non-empty · Marine 127 non-empty,pocketsphinx; unverified; the community text wins where it exists
+char_rust — measured bank,"1,046 ids",Marine VO for Rust.7z.001; 0 shared with community regular_vox; 1 shared with community robbers_mission_gen (200445677)
+char_rust — machine drafts,"627 of 1,046 non-empty (364 files produced no draft)",line↔id mapping impossible from the pack; needs a game extraction (D76)
+char_rust — Vorbis files in the reference pack,55,"MEASURED: Marine char_rust carries this many Wwise Vorbis files (fmt tag 0xFFFF), not decodable with the ADPCM codec — the Tokoyami pack has its own 27 (the hila_vorbis_ids list); a dedicated-bank pack must filter both the same way"
+char_sydney — CSV,"1,037 ids (0 needs_review)",the complete written-up dedicated bank
+char_sydney — .docx,"1,077 ids (a fuller sheet, not a duplicate; table 0 only — table 1 is mission chatter, in the robbers tab)","41 ids beyond the CSV; overlap with CSV is 1,036; 1 CSV-only id"
+char_sydney — .pdf,"1,077 ids",printed edition of the .docx (both tables); the char_sydney tab holds the char_sydney share; text not re-parsed
+char_sydney — union in this workbook,"1,078 ids",what the char_sydney tab holds; flags say which source has each
+char_sydney — pdf-only ids (no line text anywhere),0,the print adds no id beyond the .docx; flags only
+robbers_mission_gen — Sydney .docx lines,"224 rows (145 backfilled community audio-only rows, 1 new id)","Sydney-voiced mission chatter from the same .docx; 223 of the 224 sit in the community export (9 word-identical, 75 sharing ≥1 word; wording is Sydney’s own)"
+Bodhi — rows / distinct ids,"1,351 / 1,344",25 tabs; the only Bodhi data in the tree; blank tab excluded
+packs — Miranda_Lawson_VO_over_Hila_Stream,699 .stream files · 62 slots · 885 ids mapped,heard in game 2026-11-25 (user): works
+packs — Geralt_VO_over_Rust_Stream,315 .stream files · 29 slots,RETIRED 2026-11-28: deleted from dist/ (D87); never heard in game
+packs — Arivus_VO_over_Hoxton_Stream,324 .stream files · 19 slots (18 + call_teammate.hey_you),RETIRED 2026-11-28: deleted from dist/ (D87); never heard in game; carried the borrowed Geralt callout
+machine transcription — engine,pocketsphinx 5.x en-us,whisper models unreachable from this environment (HF/Azure blocked); every draft is unverified and flagged
+machine transcription — coverage,"2,450 files, 1,513 transcribed, 82 Vorbis (not decodable)","Voices transcribed: Tokoyami regular_vox + robbers_mission_gen, Marine char_rust + robbers_mission_gen, Mira/Geralt/Arivus takes, 4 medic_kill takes"
+Miranda source oggs — transcribed,866/866 (whisper + hand corrections),miranda_lawson/miranda_transcripts_corrected.csv; corrected_transcript is the text of record
+needs_review — regular_vox rows,29,community flags; plus machine-draft rows everywhere
+needs_review — robbers_mission_gen rows,14,community flags
+needs_review — char_sydney rows,0,complete bank

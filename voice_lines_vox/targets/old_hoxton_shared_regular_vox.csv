@@ -1,11 +1,11 @@
 slot,bank,id,vanilla_kind,written,target,model,dedicated_bank,note
 revive.hold,regular_vox,1001973360,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,100412034,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,100412034,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,1008024854,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,101151328,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,1012341788,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,1012341788,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.hold,regular_vox,101271003,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.sniper,regular_vox,101611732,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.sniper,regular_vox,101611732,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 caution.watch,regular_vox,101639907,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.retreat,regular_vox,1021664295,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 revive.hold,regular_vox,1029679628,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -14,35 +14,35 @@ move.generic,regular_vox,1036631734,adpcm,no,Old Hoxton,npc_criminals_suit_1,cha
 pager.clear,regular_vox,103668556,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,1041037974,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.dontmove,regular_vox,105461661,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.tear,regular_vox,105962157,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.tear,regular_vox,105962157,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.retreat,regular_vox,106075211,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 mark.turret,regular_vox,106479821,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,1067107433,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,1068286906,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,106860196,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,106937455,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.smoke,regular_vox,1070243495,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,107211812,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,106937455,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.smoke,regular_vox,1070243495,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,107211812,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.in,regular_vox,107668707,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.talk,regular_vox,10767856,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.killthreat,regular_vox,108233147,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.grenade,regular_vox,108414273,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,108802057,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.killthreat,regular_vox,108233147,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.grenade,regular_vox,108414273,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,108802057,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 hurt.hit,regular_vox,109991197,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.dozer,regular_vox,111866469,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.dozer,regular_vox,111866469,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 win.generic,regular_vox,112261018,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.retreat,regular_vox,112605938,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,112780582,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.move,regular_vox,113267085,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,113313295,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,113313295,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.comp,regular_vox,11336755,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.incoming,regular_vox,113530814,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,114013197,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,114222846,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,114013197,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,114222846,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.get_up,regular_vox,1149328,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,116834972,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,117530395,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,120078764,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,116834972,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,117530395,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,120078764,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.incoming,regular_vox,120562467,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,120638084,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drill_jam,regular_vox,120864113,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -50,51 +50,51 @@ move.generic,regular_vox,120990697,adpcm,no,Old Hoxton,npc_criminals_suit_1,char
 move.go,regular_vox,121232196,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,122140721,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,122197228,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.taser,regular_vox,122647751,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.taser,regular_vox,122647751,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,123133230,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,12352202,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,123908190,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.dozer,regular_vox,124521265,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,123908190,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.dozer,regular_vox,124521265,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.hold,regular_vox,124587299,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla; the id also answers drop.ammo
-call_teammate.hey_you,regular_vox,125866102,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,125866102,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.drilling,regular_vox,125973272,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.shield,regular_vox,126299091,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.shield,regular_vox,126439259,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.shield,regular_vox,126299091,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.shield,regular_vox,126439259,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 cuffed.pick,regular_vox,12651471,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 downed.need_help,regular_vox,12840920,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,12917222,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,130493548,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,12917222,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,130493548,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,130720407,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.medic,regular_vox,130811711,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.cloaker,regular_vox,130859193,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
-call_teammate.hey_you,regular_vox,132551829,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,132551829,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,13450280,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,134605380,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip; the id also answers move.go
-ammo.low,regular_vox,135239856,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,134605380,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87); the id also answers move.go
+ammo.low,regular_vox,135239856,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,135278368,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,135346911,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,135641862,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,13565624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,135641862,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,13565624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mask.go,regular_vox,136512045,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,13663504,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.generic,regular_vox,137252366,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,137850560,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,137850560,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.right,regular_vox,137880362,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,138424177,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,138424177,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,138738562,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,138909262,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,138909262,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.medic,regular_vox,139329478,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.move,regular_vox,140409813,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.killthreat,regular_vox,140883476,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.killthreat,regular_vox,140883476,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.hold,regular_vox,141438519,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cuffed.pick,regular_vox,14192205,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,142299276,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.taser,regular_vox,143235036,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.taser,regular_vox,143717224,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,142299276,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.taser,regular_vox,143235036,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.taser,regular_vox,143717224,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,144430074,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drill_jam,regular_vox,145631441,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.shield,regular_vox,146534951,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
-kill.shield,regular_vox,146791506,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,146791506,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,147066633,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,147601729,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,148316428,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -102,37 +102,37 @@ inspire.move,regular_vox,148654663,adpcm,no,Old Hoxton,npc_criminals_suit_1,char
 assault.ready,regular_vox,148667655,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.up,regular_vox,14916926,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 caution.watch,regular_vox,150238217,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,15069966,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,151204021,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,15069966,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,151204021,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 nade.generic,regular_vox,151275512,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drilling,regular_vox,151983472,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,152693469,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,153253285,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.taser,regular_vox,153297963,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,153253285,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.taser,regular_vox,153297963,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.up,regular_vox,153349992,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.left,regular_vox,154070709,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 downed.want_fight,regular_vox,15477016,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.tear,regular_vox,155404682,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.tear,regular_vox,155404682,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mask.go,regular_vox,155941628,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.captain,regular_vox,156054794,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.dontmove,regular_vox,157218705,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.dontmove,regular_vox,157308488,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,158742829,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,158742829,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.talk,regular_vox,159825962,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,160735974,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 drop.medic,regular_vox,16113018,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,161197672,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.run,regular_vox,161709394,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drilling,regular_vox,161846212,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,163666886,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,163666886,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.this_way,regular_vox,164278810,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.turret,regular_vox,164377190,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mask.go,regular_vox,16456601,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.faster,regular_vox,165206730,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.incoming,regular_vox,165650032,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,165880624,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,165950540,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,166385533,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,165950540,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,166385533,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 win.generic,regular_vox,166437134,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 nade.generic,regular_vox,166718975,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.camera,regular_vox,168075996,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -140,122 +140,122 @@ revive.hold,regular_vox,168644482,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_
 move.go,regular_vox,169513614,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,17072196,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,17150976,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,171614543,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,171623921,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,171614543,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,171623921,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,173181437,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.right,regular_vox,174322045,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,17436170,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,174707640,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,175302272,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,175927349,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,176613229,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,178196989,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,178944284,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,17436170,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,174707640,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,175302272,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,175927349,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,176613229,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,178196989,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,178944284,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.go,regular_vox,179163471,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,179717450,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.shield,regular_vox,17975779,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,179717450,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.shield,regular_vox,17975779,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.ties,regular_vox,180008979,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 move.up,regular_vox,180206718,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,1806387,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,182483678,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,183245596,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,183761559,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,183881230,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.taser,regular_vox,184360773,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,1806387,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,182483678,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,183245596,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,183761559,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,183881230,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.taser,regular_vox,184360773,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.camera,regular_vox,18442008,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,185565868,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-drop.ammo,regular_vox,185702489,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,185565868,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+drop.ammo,regular_vox,185702489,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.camera,regular_vox,186294121,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.taser,regular_vox,18633009,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.taser,regular_vox,18633009,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.body,regular_vox,187568327,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,18765061,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,188069214,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,18765061,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,188069214,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.on_me,regular_vox,1884286,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,189759294,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,190339578,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,190339578,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,191339565,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 kill.medic,regular_vox,191726614,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,191733893,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,191786442,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,191733893,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,191786442,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,192513693,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,193567327,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,193567327,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.follow,regular_vox,19403899,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,194144547,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,194144547,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.dozer,regular_vox,19464577,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
-civ.down,regular_vox,195239764,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.cloaker,regular_vox,195479092,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,195239764,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.cloaker,regular_vox,195479092,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 spot.generic,regular_vox,195776709,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 loot.secured,regular_vox,197046340,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,197344844,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.dozer,regular_vox,197975793,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 mark.sniper,regular_vox,199417180,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 move.generic,regular_vox,200748758,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,201117291,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,201428224,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,201117291,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,201428224,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.camera,regular_vox,201792539,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.grenade,regular_vox,202945309,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,203326203,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.grenade,regular_vox,202945309,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,203326203,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.sniper,regular_vox,203920730,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 cuffed.pick,regular_vox,20422574,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.generic,regular_vox,204760317,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,206309940,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,206309940,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 caution.watch,regular_vox,20669691,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,208465641,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,209090262,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,209477805,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,208465641,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,209090262,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,209477805,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.critical,regular_vox,209792435,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,210434210,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,212169879,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,210434210,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,212169879,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.guard,regular_vox,213469675,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,21348768,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,21348768,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.talk,regular_vox,213724598,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.taser,regular_vox,213835843,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 revived.thanks,regular_vox,214936466,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.camera,regular_vox,214984592,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,215056467,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.cloaker,regular_vox,217223942,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,215056467,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.cloaker,regular_vox,217223942,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.go,regular_vox,217694504,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,218260537,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,21831033,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,218260537,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,21831033,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.captain,regular_vox,218567506,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.hands,regular_vox,21951798,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,220807506,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,221567123,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,221721081,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,221910023,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,221721081,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,221910023,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 win.generic,regular_vox,221921609,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,223507290,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,224196270,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,224620993,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,224620993,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.go,regular_vox,22620499,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,226873037,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,226987217,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.dozer,regular_vox,227041204,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,226987217,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.dozer,regular_vox,227041204,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 spot.generic,regular_vox,227715826,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,229031743,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,22945418,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,22945418,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.fak,regular_vox,229665819,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,229762148,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.dontmove,regular_vox,230563670,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,230604447,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,232366092,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,232366092,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.left,regular_vox,232693516,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,232836185,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,232836185,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 kill.medic,regular_vox,232887839,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.hold,regular_vox,233720555,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.go,regular_vox,233837757,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,234213065,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-ammo.low,regular_vox,234291616,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,234371426,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,234213065,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+ammo.low,regular_vox,234291616,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,234371426,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.slow,regular_vox,234763697,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.move,regular_vox,235248491,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.taser,regular_vox,23671359,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 tech.fix,regular_vox,23771464,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,237853546,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,238057031,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,238057031,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,238190789,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,241409516,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.taser,regular_vox,241666771,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,241409516,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.taser,regular_vox,241666771,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.this_way,regular_vox,241802335,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.fix,regular_vox,24201607,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,242159822,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -263,56 +263,56 @@ curse.shit,regular_vox,242249243,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_h
 move.on_me,regular_vox,2425875,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.turret,regular_vox,243103183,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.talk,regular_vox,243464593,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.grenade,regular_vox,244077832,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.smoke,regular_vox,245462380,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.grenade,regular_vox,244077832,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.smoke,regular_vox,245462380,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.medic,regular_vox,246326296,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.taser,regular_vox,246922862,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,247891200,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.taser,regular_vox,246922862,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,247891200,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.drill_jam,regular_vox,248096016,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,248470875,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,250073154,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,25015608,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cuffed.pick,regular_vox,25179200,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,25223303,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,25223303,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revived.thanks,regular_vox,25227191,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,252347288,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-ammo.low,regular_vox,252440010,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,252347288,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+ammo.low,regular_vox,252440010,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 win.generic,regular_vox,252561897,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.right,regular_vox,253300849,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.generic,regular_vox,253712795,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,256692301,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,256692301,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,256840580,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.up,regular_vox,256857993,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,257706439,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,25869127,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,25869127,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 loot.secured,regular_vox,258714659,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.comp,regular_vox,25898405,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.run,regular_vox,25981636,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,260170061,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,260346549,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,260170061,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,260346549,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.medic,regular_vox,260918556,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,261047341,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,261047341,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.faster,regular_vox,262642471,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,2643233,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,266650384,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,267904550,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,268733336,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,2643233,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,266650384,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,267904550,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,268733336,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.ready,regular_vox,269111937,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,269114652,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.get_up,regular_vox,269175478,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,270099262,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drilling,regular_vox,272546978,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,274179976,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,275673952,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,275673952,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,275797261,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.incoming,regular_vox,276378330,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 drop.medic,regular_vox,277629280,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,277805206,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,27791329,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,27791329,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,282714011,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.hold,regular_vox,283011197,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.generic,regular_vox,283251835,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,283448227,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,283448227,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.comp,regular_vox,284022890,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 nade.generic,regular_vox,284106102,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revived.thanks,regular_vox,285050332,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -320,30 +320,30 @@ pager.clear,regular_vox,285562613,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_
 move.hold,regular_vox,28653028,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,286809095,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.get_up,regular_vox,287895833,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,288115525,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,288115525,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.taser,regular_vox,288173111,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 revive.hold,regular_vox,288584219,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,28862520,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,28862520,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.captain,regular_vox,288740889,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,28880249,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 nade.generic,regular_vox,289727490,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.hold,regular_vox,292392831,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,29263470,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,29263470,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mask.go,regular_vox,29320553,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,293400143,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.fix,regular_vox,293418070,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,29342489,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,294322928,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,29342489,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,294322928,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.guard,regular_vox,294530470,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.on_me,regular_vox,29476265,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,295178733,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,295889439,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,295889439,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revived.thanks,regular_vox,29656571,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,296647770,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,298035204,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,298035204,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 cop.drop,regular_vox,299701935,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.sniper,regular_vox,29989176,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
-nade.tear,regular_vox,300802813,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.tear,regular_vox,300802813,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 hurt.hit,regular_vox,301592523,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.right,regular_vox,30240564,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,30285069,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -351,27 +351,27 @@ revive.hold,regular_vox,304861566,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_
 inspire.move,regular_vox,304990667,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 kill.medic,regular_vox,309121594,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,309893279,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,309893552,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.sniper,regular_vox,311356263,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,311745845,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,312195319,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.grenade,regular_vox,314040527,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,309893552,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.sniper,regular_vox,311356263,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,311745845,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,312195319,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.grenade,regular_vox,314040527,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,31488955,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.retreat,regular_vox,31514573,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
-call_teammate.hey_you,regular_vox,31565714,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,31565714,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.turret,regular_vox,31595544,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drilling,regular_vox,317420406,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,318681474,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,319581967,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,319581967,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.cloaker,regular_vox,319712703,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
-call_teammate.hey_you,regular_vox,320021097,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,320021097,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.critical,regular_vox,320058935,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,320478599,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,320478599,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.get_up,regular_vox,321272692,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 kill.medic,regular_vox,322419892,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.go,regular_vox,322572569,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,324143036,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,324394484,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,324143036,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,324394484,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.guard,regular_vox,324400985,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mask.go,regular_vox,324865574,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,325140795,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -379,39 +379,39 @@ cop.kneel,regular_vox,326101393,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_ho
 spot.place,regular_vox,327548561,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 downed.need_help,regular_vox,32799900,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.kneel,regular_vox,329738971,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.shield,regular_vox,329960406,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,329960406,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.guard,regular_vox,33079031,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.medic,regular_vox,332580980,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,334461628,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,334984034,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,335050314,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,334461628,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,334984034,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,335050314,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.move,regular_vox,3358066,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.shield,regular_vox,336150807,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,336150807,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.shit,regular_vox,336929007,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,338541936,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,338541936,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.go,regular_vox,341455364,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,342025694,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 spot.generic,regular_vox,34260111,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,342759590,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.sniper,regular_vox,343817333,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,342759590,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.sniper,regular_vox,343817333,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 downed.need_help,regular_vox,3439862,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,344281795,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,344978029,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,344281795,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,344978029,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,348644644,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.killthreat,regular_vox,349638833,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.dozer,regular_vox,350472624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.killthreat,regular_vox,349638833,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.dozer,regular_vox,350472624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.move,regular_vox,350583635,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,351107635,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,353348303,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,354026747,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,351107635,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,353348303,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,354026747,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.shit,regular_vox,354353421,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.hit,regular_vox,354725859,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.dontmove,regular_vox,35750267,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,35804455,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,35804455,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.get_up,regular_vox,360192217,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.get_up,regular_vox,360212887,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,363332505,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,363341056,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,363332505,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,363341056,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.up,regular_vox,367121922,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 spot.generic,regular_vox,36726963,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.on_me,regular_vox,36727215,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -420,210 +420,210 @@ cop.kneel,regular_vox,367896263,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_ho
 nade.generic,regular_vox,368435520,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.hold,regular_vox,36882393,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revived.thanks,regular_vox,369464771,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.taser,regular_vox,369916102,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.taser,regular_vox,369916102,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.up,regular_vox,371279776,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.ties,regular_vox,373282599,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,374050932,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,375261727,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,374050932,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,375261727,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.shit,regular_vox,377964926,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,378357184,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,37865430,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.hold,regular_vox,379255040,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.right,regular_vox,380599965,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.faster,regular_vox,38061287,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,3809559,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.dozer,regular_vox,38122979,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,38154759,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,381683978,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,3809559,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.dozer,regular_vox,38122979,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,38154759,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,381683978,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 hurt.medic,regular_vox,38194864,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 spot.generic,regular_vox,382316543,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 downed.need_help,regular_vox,38255886,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,383831196,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,383831196,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.medic,regular_vox,384114804,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 loot.secured,regular_vox,384158668,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,385815264,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,385815264,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.drilling,regular_vox,386692695,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 downed.need_help,regular_vox,38674220,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,38675368,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 nade.generic,regular_vox,388394052,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.incoming,regular_vox,388901144,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 kill.medic,regular_vox,388951061,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.taser,regular_vox,389326660,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.dozer,regular_vox,391068138,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.taser,regular_vox,389326660,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.dozer,regular_vox,391068138,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.get_up,regular_vox,391398970,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,391405397,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,391846174,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.talk,regular_vox,392134484,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,392146405,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-ammo.low,regular_vox,393204881,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,392146405,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+ammo.low,regular_vox,393204881,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 downed.need_help,regular_vox,39349334,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,39454845,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,39454845,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.ties,regular_vox,395725229,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 mark.camera,regular_vox,396652326,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,399002153,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,399323312,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,399854050,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,400715189,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-drop.ammo,regular_vox,401122076,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,399323312,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,399854050,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,400715189,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+drop.ammo,regular_vox,401122076,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mask.go,regular_vox,40199905,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,40427227,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,40427227,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,404327409,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,405739105,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,405745039,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.drop,regular_vox,406522973,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.up,regular_vox,406879784,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,407113624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,407113624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.dontmove,regular_vox,407710018,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,407814348,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,407814348,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 win.generic,regular_vox,409721748,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.follow,regular_vox,41252363,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-drop.ammo,regular_vox,413371446,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+drop.ammo,regular_vox,413371446,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.in,regular_vox,414830910,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,41522521,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.cuffs,regular_vox,416031068,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,419538427,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.follow,regular_vox,42020235,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,422210784,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,422804169,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,422210784,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,422804169,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,423538719,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.hands,regular_vox,425462213,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 spot.place,regular_vox,426380444,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.turret,regular_vox,429772799,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cuffed.pick,regular_vox,43001300,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,430685651,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,430914905,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,430685651,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,430914905,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.ready,regular_vox,433064792,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,433437576,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,437536225,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,437536225,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.right,regular_vox,439037097,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 spot.place,regular_vox,439192620,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.right,regular_vox,439425193,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.taser,regular_vox,443395643,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.taser,regular_vox,443395643,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 cop.hands,regular_vox,443492507,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 drop.body,regular_vox,444483965,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.shield,regular_vox,447719148,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 civ.ties,regular_vox,449915269,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.shield,regular_vox,450602732,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-ammo.low,regular_vox,451633360,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.sniper,regular_vox,452024420,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.shield,regular_vox,450602732,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+ammo.low,regular_vox,451633360,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.sniper,regular_vox,452024420,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 cop.drop,regular_vox,452221416,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,455523676,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,455796360,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,456734101,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,455796360,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,456734101,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.turret,regular_vox,456749780,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,457123364,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,458220519,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,458220519,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.in,regular_vox,459079525,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.generic,regular_vox,459932360,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,460106078,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,460106078,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.shit,regular_vox,460980325,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,46133662,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,46133662,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.incoming,regular_vox,461416857,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.up,regular_vox,462133823,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,46229853,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.cloaker,regular_vox,462562884,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,46229853,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.cloaker,regular_vox,462562884,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,463164676,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.follow,regular_vox,46330127,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,4646339,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,4646339,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.left,regular_vox,464829317,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 drop.fak,regular_vox,465649241,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,466684770,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,467121303,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-drop.ammo,regular_vox,468655691,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.shield,regular_vox,468818626,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,466684770,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,467121303,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+drop.ammo,regular_vox,468655691,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.shield,regular_vox,468818626,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.follow,regular_vox,46948660,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,471026130,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,472606849,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,471026130,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,472606849,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.drill_jam,regular_vox,4733345,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.left,regular_vox,474888182,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,475171720,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,475171720,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,47568290,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.run,regular_vox,476442215,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,477026688,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 caution.watch,regular_vox,478405239,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.smoke,regular_vox,478843020,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.smoke,regular_vox,478843020,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.incoming,regular_vox,479048204,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.cloaker,regular_vox,479939084,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,480206207,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.cloaker,regular_vox,479939084,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,480206207,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 hurt.medic,regular_vox,480540444,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.critical,regular_vox,480863489,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,481565704,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-drop.ammo,regular_vox,481584178,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,48422921,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+drop.ammo,regular_vox,481584178,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,48422921,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.follow,regular_vox,48700578,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 nade.generic,regular_vox,488475479,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.kneel,regular_vox,48870786,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,489286856,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,489439120,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 spot.generic,regular_vox,490549145,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,490984009,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,494249054,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,490984009,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,494249054,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,494479527,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,495631288,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.camera,regular_vox,495650186,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,495922302,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,495922302,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.ties,regular_vox,496418207,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.drop,regular_vox,49788282,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,500189845,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,500189845,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.body,regular_vox,500837386,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,503280546,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,504230052,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,504230052,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.follow,regular_vox,50447831,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,50730555,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.shield,regular_vox,50775744,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,508593709,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,50730555,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.shield,regular_vox,50775744,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,508593709,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,508876262,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.critical,regular_vox,509970905,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,51172570,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,512029441,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,512029441,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.run,regular_vox,513444483,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,513639447,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,513639447,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.talk,regular_vox,51486768,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,51500457,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,516724286,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,516724286,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.fak,regular_vox,519660594,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,520677644,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.cloaker,regular_vox,522101569,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,520677644,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.cloaker,regular_vox,522101569,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.guard,regular_vox,523651810,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.faster,regular_vox,524751436,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.go,regular_vox,526927228,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.kneel,regular_vox,527282782,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cuffed.pick,regular_vox,53109029,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.slow,regular_vox,53200928,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,534458151,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.tear,regular_vox,53477525,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,534458151,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.tear,regular_vox,53477525,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,535025887,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 drop.fak,regular_vox,535212922,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,536597253,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.grenade,regular_vox,537112995,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,536597253,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.grenade,regular_vox,537112995,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,537913996,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.cuffs,regular_vox,538251563,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.cuffs,regular_vox,539666314,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mask.go,regular_vox,540488538,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,5406681,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,5406681,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.medic,regular_vox,541330673,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.fix,regular_vox,542502707,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,545177398,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,546641723,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,546641723,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 win.generic,regular_vox,548178235,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.taser,regular_vox,550973938,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.taser,regular_vox,550973938,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,55114421,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.killthreat,regular_vox,553339070,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,554652682,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.killthreat,regular_vox,553339070,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,554652682,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.hold,regular_vox,555820154,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,556334489,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.shield,regular_vox,558517510,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,558517510,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 loot.secured,regular_vox,559916036,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,56065099,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,56065099,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.hold,regular_vox,561981031,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.hit,regular_vox,562154452,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-drop.ammo,regular_vox,562377594,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+drop.ammo,regular_vox,562377594,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.shit,regular_vox,562650315,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,562677931,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,562677931,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 hurt.medic,regular_vox,562709345,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.camera,regular_vox,563813970,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.up,regular_vox,565117173,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,566814113,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,566814113,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.hold,regular_vox,567392391,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,568110854,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 drop.fak,regular_vox,568203887,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -631,57 +631,57 @@ win.generic,regular_vox,568302690,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_
 move.this_way,regular_vox,569861874,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cuffed.pick,regular_vox,57048755,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.cuffs,regular_vox,570704320,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.smoke,regular_vox,571340296,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.smoke,regular_vox,571340296,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.ready,regular_vox,571360487,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.go,regular_vox,57175721,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,57249869,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,57249869,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.incoming,regular_vox,572646998,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,574741367,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,574741367,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,578203602,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.dozer,regular_vox,57837082,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 cop.drop,regular_vox,578477068,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.taser,regular_vox,579654373,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-ammo.low,regular_vox,579793803,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.taser,regular_vox,579654373,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+ammo.low,regular_vox,579793803,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 kill.medic,regular_vox,582411158,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,584608475,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,585641286,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drill_jam,regular_vox,5884207,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.medic,regular_vox,588692121,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,59054985,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,592198284,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,592198284,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.ready,regular_vox,595559381,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.cuffs,regular_vox,595724960,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,598121556,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.shield,regular_vox,598455420,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,598455420,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,598550257,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,598750928,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,598750928,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.follow,regular_vox,60039454,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 kill.medic,regular_vox,60096046,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,60133243,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.cloaker,regular_vox,60171458,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.cloaker,regular_vox,60171458,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.hold,regular_vox,603367705,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revived.thanks,regular_vox,605349182,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,607360219,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,607360219,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.turret,regular_vox,608403873,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,610081633,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,610081633,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 inspire.faster,regular_vox,610454750,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,611761996,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 pager.clear,regular_vox,614468840,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.cloaker,regular_vox,615445658,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
-civ.killthreat,regular_vox,617787624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,619494009,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.killthreat,regular_vox,617787624,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,619494009,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.talk,regular_vox,62129805,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.move,regular_vox,623338779,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.medic,regular_vox,624041560,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.captain,regular_vox,624531892,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.hands,regular_vox,625749737,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,628090649,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,628090649,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 hurt.medic,regular_vox,63199875,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.cover,regular_vox,63349578,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,634155321,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.generic,regular_vox,634323553,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 downed.need_help,regular_vox,6352252,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,64053990,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,64053990,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.cloaker,regular_vox,643109388,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 mark.turret,regular_vox,644329162,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,645681081,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -692,33 +692,33 @@ caution.wait,regular_vox,647665008,adpcm,no,Old Hoxton,npc_criminals_suit_1,char
 caution.wait,regular_vox,648546553,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.generic,regular_vox,64872191,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.medic,regular_vox,649219742,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,6497207,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,6497207,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.medic,regular_vox,650301953,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,65094768,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,65094768,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.generic,regular_vox,651098269,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.taser,regular_vox,651243456,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 assault.ready,regular_vox,652982357,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,65707289,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,658571177,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,658571177,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,659408216,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-mark.dozer,regular_vox,65952437,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+mark.dozer,regular_vox,65952437,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.this_way,regular_vox,66233421,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.drop,regular_vox,66270605,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.captain,regular_vox,665161635,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,668650291,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.shield,regular_vox,669341923,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,67131743,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,669341923,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,67131743,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.go,regular_vox,671848077,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.hit,regular_vox,672852511,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,672951354,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,672951354,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.ready,regular_vox,675006401,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,675589112,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,676473111,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,675589112,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,676473111,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.talk,regular_vox,67770398,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.comp,regular_vox,67793031,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.generic,regular_vox,67918619,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mask.go,regular_vox,684759174,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.killthreat,regular_vox,68496372,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.killthreat,regular_vox,68496372,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.hold,regular_vox,685968434,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.kneel,regular_vox,689817322,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,690602822,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -726,95 +726,95 @@ mark.captain,regular_vox,69257662,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_
 revive.hold,regular_vox,694755249,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,696052113,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,704727336,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,70810198,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,70810198,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 downed.need_help,regular_vox,712675,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,715665708,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,715665708,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 cop.drop,regular_vox,71632553,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,719002915,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revived.thanks,regular_vox,719564905,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,71979512,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,71979512,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 nade.generic,regular_vox,719870860,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,722117908,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,722117908,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 cop.cuffs,regular_vox,723467394,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.cuffs,regular_vox,724475702,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,725240412,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,72538971,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,725240412,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,72538971,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mask.go,regular_vox,726039706,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,726470812,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.smoke,regular_vox,727661840,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,726470812,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.smoke,regular_vox,727661840,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.medic,regular_vox,727907714,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.shield,regular_vox,728693097,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,72938199,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,73306592,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,73478115,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,728693097,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,72938199,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,73306592,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,73478115,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.shield,regular_vox,73612626,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 curse.shit,regular_vox,736423257,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,741035152,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,74193580,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,74283047,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,74323576,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,741035152,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,74193580,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,74283047,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,74323576,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.up,regular_vox,746759378,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.hold,regular_vox,749357881,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 spot.generic,regular_vox,750434665,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 win.generic,regular_vox,751528169,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,753516722,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,753516722,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 nade.generic,regular_vox,755895073,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.comp,regular_vox,75649716,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,757753608,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,758277076,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.captain,regular_vox,758295804,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cuffed.pick,regular_vox,7591312,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.smoke,regular_vox,759463727,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,76083230,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-kill.shield,regular_vox,76166528,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.smoke,regular_vox,759463727,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,76083230,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+kill.shield,regular_vox,76166528,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,762205162,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.incoming,regular_vox,769001338,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.dozer,regular_vox,769372715,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.dozer,regular_vox,769372715,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.medic,regular_vox,769420386,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,770137780,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.guard,regular_vox,773690095,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.incoming,regular_vox,775739450,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mask.go,regular_vox,776893315,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.up,regular_vox,77789407,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,77931645,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,77931645,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.generic,regular_vox,780968219,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,784324218,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,78485353,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,78485353,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.turret,regular_vox,78512648,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,785908211,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-nade.grenade,regular_vox,7874395,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,790495467,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,785908211,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+nade.grenade,regular_vox,7874395,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,790495467,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 assault.incoming,regular_vox,791306479,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.cloaker,regular_vox,792535391,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.cloaker,regular_vox,792535391,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mask.go,regular_vox,793209321,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,797412389,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,80374011,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,797412389,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,80374011,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 nade.generic,regular_vox,80410541,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.right,regular_vox,809728410,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.dozer,regular_vox,814815156,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 mark.dozer,regular_vox,815328029,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 curse.shit,regular_vox,81580957,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 kill.medic,regular_vox,815918763,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,8173908,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,8173908,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 hurt.hit,regular_vox,81740689,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.taser,regular_vox,819412796,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,8208111,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,82684468,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.taser,regular_vox,819412796,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,8208111,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,82684468,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 caution.watch,regular_vox,828468886,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 pager.clear,regular_vox,83072968,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,83379609,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,83379609,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.guard,regular_vox,834821755,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.in,regular_vox,836198869,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.shield,regular_vox,83688756,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.shield,regular_vox,83688756,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 kill.medic,regular_vox,837348811,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,839279510,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,839279510,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.medic,regular_vox,841728126,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,842356879,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,842356879,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 tech.fix,regular_vox,84461972,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 curse.shit,regular_vox,84531155,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-ammo.low,regular_vox,848268101,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-ammo.low,regular_vox,848454731,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,85071354,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+ammo.low,regular_vox,848268101,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+ammo.low,regular_vox,848454731,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,85071354,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.body,regular_vox,85865199,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,860981202,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mask.go,regular_vox,861919055,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -822,14 +822,14 @@ tech.fix,regular_vox,86465451,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxt
 pager.clear,regular_vox,86537177,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revived.thanks,regular_vox,87107871,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.dontmove,regular_vox,872254048,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,87233072,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-ammo.low,regular_vox,87277211,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,87233072,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+ammo.low,regular_vox,87277211,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.go,regular_vox,87374911,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,87556193,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,87556193,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 drop.fak,regular_vox,876009515,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,878145374,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.medic,regular_vox,88087986,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,88149280,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,88149280,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.right,regular_vox,882630061,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.hit,regular_vox,886077902,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 revive.hold,regular_vox,888387188,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
@@ -838,49 +838,49 @@ caution.watch,regular_vox,898366043,adpcm,no,Old Hoxton,npc_criminals_suit_1,cha
 move.go,regular_vox,899784302,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.hit,regular_vox,900495465,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 civ.dontmove,regular_vox,900588469,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,90339926,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,90339926,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.shit,regular_vox,911373116,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,91403409,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,91403409,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 civ.talk,regular_vox,91594349,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cop.cuffs,regular_vox,91611063,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.hold,regular_vox,916206534,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.go,regular_vox,917137089,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.this_way,regular_vox,91765018,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.get_up,regular_vox,919311946,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.nophone,regular_vox,9204524,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-civ.down,regular_vox,92229830,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.nophone,regular_vox,9204524,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+civ.down,regular_vox,92229830,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 revive.hold,regular_vox,922363103,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.camera,regular_vox,92652955,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,926797561,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,926797561,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,927549723,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 inspire.get_up,regular_vox,931348216,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,93272676,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,93272676,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.sniper,regular_vox,93274119,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 mark.shield,regular_vox,94270922,vorbis,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it
 assault.ready,regular_vox,943768999,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,944191559,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 mark.turret,regular_vox,948619005,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,94894296,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-mark.sniper,regular_vox,94915891,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,94894296,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+mark.sniper,regular_vox,94915891,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.follow,regular_vox,9493679,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-drop.ammo,regular_vox,954346150,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+drop.ammo,regular_vox,954346150,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,954551150,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 assault.ready,regular_vox,957940090,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-nade.smoke,regular_vox,959015414,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+nade.smoke,regular_vox,959015414,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 mark.captain,regular_vox,95955618,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.killthreat,regular_vox,96005975,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.killthreat,regular_vox,96005975,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 pager.clear,regular_vox,96100490,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,96179233,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,96179233,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.generic,regular_vox,961943608,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.follow,regular_vox,9639198,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 move.generic,regular_vox,97042443,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 tech.drill_jam,regular_vox,97113610,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-civ.down,regular_vox,9726729,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+civ.down,regular_vox,9726729,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 win.generic,regular_vox,97284969,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-call_teammate.hey_you,regular_vox,97968730,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+call_teammate.hey_you,regular_vox,97968730,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 move.hold,regular_vox,983982773,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
-kill.sniper,regular_vox,988136139,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
-call_teammate.hey_you,regular_vox,99069140,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,written by Arivus_VO_over_Hoxton_Stream.zip
+kill.sniper,regular_vox,988136139,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
+call_teammate.hey_you,regular_vox,99069140,adpcm,yes,Old Hoxton,npc_criminals_suit_1,char_hoxton,covered by the Old Hoxton takes (pack retired 2026-11-28, D87)
 curse.shit,regular_vox,991305314,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 hurt.medic,regular_vox,99778908,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla
 cuffed.pick,regular_vox,99807660,adpcm,no,Old Hoxton,npc_criminals_suit_1,char_hoxton,no take for this slot in the Old Hoxton set; left vanilla

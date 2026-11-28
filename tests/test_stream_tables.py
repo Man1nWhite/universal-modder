@@ -121,12 +121,21 @@ def test_a_dedicated_table_is_measured_not_generated():
         assert all(r["slot"] == "" for r in rows), "a measured id has no slot until a source names it"
 
 
-def test_the_character_doc_names_the_tables_and_the_open_question():
-    """The doc an agent reads before a Rust/Hoxton VO build points at the tables and the gap."""
-    text = (ROOT / "docs" / "pd2-voice-stream-tables.md").read_text()
+def test_the_workbook_names_the_tables_and_the_open_question():
+    """The source of truth an agent reads before a Rust/Hoxton VO build names the tables and the gap.
+
+    docs/pd2-voice-stream-tables.md was replaced by the VO workbook (voice_lines_vox/vo_master.xlsx,
+    rebuilt by tools/build_vo_master.py); the per-tab CSVs in voice_lines_vox/vo_master/ are its
+    tracked mirror. This keeps the same contract: tables named, the open bank question stated.
+    """
+    base = ROOT / "voice_lines_vox" / "vo_master"
+    sources = (base / "SOURCES.csv").read_text(encoding="utf-8")
+    fmt = (base / "format.csv").read_text(encoding="utf-8")
+    readme = (base / "README.csv").read_text(encoding="utf-8")
+    both = sources + fmt + readme
     for target, cfg in tables.TARGETS.items():
         name = f"{target.replace('-', '_')}_shared_{tables.SHARED}.csv"
-        assert name in text, target
-        assert cfg["bank"] in text, target
-        assert cfg["voice"] in text, target
-    assert "open" in text.lower() and "regular_vox" in text
+        assert name in sources, target
+        assert cfg["bank"] in both, target
+        assert cfg["voice"] in both, target
+    assert "open" in readme.lower() and "regular_vox" in readme

@@ -4,7 +4,9 @@ Working data for the Hila (`rb21`) voice-line replacement: Miranda Lawson clips 
 `references/voice/Голос Лоусон.7z` and purpose-authored Mira Lawson takes from
 `references/voice/LAWSON VOICE (PAYDAY 2).7z`, mapped to Hila's PAYDAY 2 lines. The only shipped pack is the id-keyed
 stream pack, `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
-[`docs/pd2-voice-mod-install.md`](../docs/pd2-voice-mod-install.md) §7.
+the `install`/`format` tabs of the VO workbook [`vo_master.xlsx`](vo_master.xlsx) (the three VO
+guides that used to live under `docs/` were folded into it on 2026-11-28). The two
+character-route VO packs that shipped alongside it were retired and deleted 2026-11-28 (D87).
 
 ## Slot rule: Call vs Follow
 
@@ -31,8 +33,11 @@ stream pack, `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install 
 | `miranda_lawson/removed_slots.csv` | The 17 slots whose best clip scored below 8 with no take in `LAWSON VOICE (PAYDAY 2).7z`, left vanilla 2026-11-25 — slot, use count, score, the clip they replaced, and why. The builders refuse to pick for these and the stream pack leaves their ids alone. |
 | `miranda_lawson/hila_slot_pieces.csv` | Build record of the exact source ogg/time range cut for each slot. Written by `tools/hila_voice_clips.py` or `tools/fit_hila_intents.py`; not shipped (the stream pack carries `hila_stream_map.csv`). |
 | `miranda_lawson/slot_event_ids.csv` | Historical BeardLib-route record of PD2 bark events per intent slot. The shipped `.stream` pack does not use event names. |
-| `miranda_lawson/hila_vorbis_ids.csv` | The 27 voice-line ids the vanilla bank streams as Wwise Vorbis (`fmt` tag `0xFFFF`). The pack leaves these vanilla because this pipeline writes IMA ADPCM, not Vorbis. See `docs/tokoyami-hila-voice-mod-analysis.md`. |
+| `miranda_lawson/hila_vorbis_ids.csv` | The 27 voice-line ids the vanilla bank streams as Wwise Vorbis (`fmt` tag `0xFFFF`). The pack leaves these vanilla because this pipeline writes IMA ADPCM, not Vorbis. See the `format` tab of [`vo_master.xlsx`](vo_master.xlsx). |
 | `sheets/` | Community voice-line sheets (`id,who,what,notes,needs_review`) imported by `tools/import_voiceline_sheet.py` (make `voices_sheets`), with the slot *leads* each tab's text supports. A sheet names its own bank: the `regular_vox` tab says nothing about `char_rust` ids, so importing it does not fill `geralt/char_rust_ids.csv` (D77). |
+| `vo_master.xlsx` | **The single source of truth for every VO mod** (2026-11-28): one row per voice-line id, joined across the community sheets, the VO packs, the Sydney and Bodhi documents, and machine transcripts of every reference audio file. Built by `tools/build_vo_master.py` (`make -sC tools/pd2-las voices_master`); do not hand-edit. |
+| `vo_master/` | The per-tab CSVs of `vo_master.xlsx` — same rows, for diffs and tooling. `--check` fails if they are stale. |
+| `vo_transcripts.csv` | Machine transcripts of every `.stream`/`.ogg`/`.mp3` in the reference packs (pocketsphinx; whisper models unreachable from this environment). Unverified drafts, engine named per row; the evidence behind every `*_transcript` column in `vo_master.xlsx`. |
 
 ## The stream tables (Rust, Old Hoxton)
 
@@ -42,14 +47,14 @@ tools/pd2-las voices_tables`) and pinned to the zips by `tests/test_stream_table
 
 | Table (`targets/`) | Target | Rows written by the pack |
 | --- | --- | --- |
-| `rust_shared_regular_vox.csv` | Rust, `regular_vox` (switch `rb16`) | 315 = `Geralt_VO_over_Rust_Stream.zip` |
-| `old_hoxton_shared_regular_vox.csv` | Old Hoxton, `regular_vox` (switch `rb5`) | 324 = `Arivus_VO_over_Hoxton_Stream.zip` |
+| `rust_shared_regular_vox.csv` | Rust, `regular_vox` (switch `rb16`) | 315 — the picks of the retired Geralt pack (D87); kept as the measurement |
+| `old_hoxton_shared_regular_vox.csv` | Old Hoxton, `regular_vox` (switch `rb5`) | 324 — the picks of the retired Arivus pack (D87); kept as the measurement |
 | `rust_dedicated_char_rust.csv` | Rust, `char_rust` — **measured** in `references/voice/Marine VO for Rust.7z.001` | none (no id shared with the table above) |
 
 Both leave the 27 Wwise Vorbis ids and the slots without a take vanilla, and both name the
 folder a *dedicated* bank would be (`char_rust`, `char_hoxton`). Why the two banks are not
 interchangeable, and the open question of which one Rust barks from:
-[`docs/pd2-voice-stream-tables.md`](../docs/pd2-voice-stream-tables.md) (D73).
+the `format`/`char_rust`/`packs` tabs of [`vo_master.xlsx`](vo_master.xlsx) (D73).
 
 **The re-key (D76).** `make -sC tools/pd2-las voices_char_rust` writes the same Geralt takes into
 `soundbanks/streamed/char_rust/` instead of `regular_vox/`, so the pack would change Rust alone. It
@@ -57,7 +62,7 @@ takes every id from [`geralt/char_rust_ids.csv`](geralt/char_rust_ids.csv) — a
 rows** — and refuses to build until a source names each one, because the measured bank says which
 files exist, not which line each file is. Fill that map (an extract of the game's
 `soundbanks/streamed/char_rust`, decoded line by line) and the next build produces the re-keyed
-pack; `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` stays the shared-bank pack until then.
+pack; the shared-bank pack that shipped until 2026-11-28 was retired and deleted with it (D87), so there is no tracked pack until the map exists.
 
 The community `regular_vox` sheet the user supplied is **not** that map: it is the shared
 bank, and its speakers are the vanilla crew. It is imported into [`sheets/`](sheets/README.md)
@@ -73,20 +78,22 @@ python3 tools/build_hila_stream_mod.py    # the .stream pack, named by voice-lin
 
 `make -sC tools/pd2-las voices_stream` builds the sole shipped voice pack and prints its state.
 The former BeardLib `SoundsModule` pack was dropped on 2026-11-25 (D61); its historical packaging
-analysis is retained in [`docs/pd2-voice-mod-install.md`](../docs/pd2-voice-mod-install.md) §§1–6.
+analysis is retained in the `install` tab of [`vo_master.xlsx`](vo_master.xlsx).
 
-## The character packs (Geralt over Rust, Arivus over Old Hoxton)
+## The character packs (retired 2026-11-28)
 
-Since 2026-11-25, two more packs of the same route ship for other characters, built by
-`tools/build_character_stream_mod.py` from purpose-authored bark sets:
+**`Geralt_VO_over_Rust_Stream` and `Arivus_VO_over_Hoxton_Stream` were retired and deleted from
+`dist/` on 2026-11-28 (D87)** — never heard in game, and superseded by no shipped pack; the builder
+(`tools/build_character_stream_mod.py`) and the pick tables remain for the `char_rust` route (D76).
+They were built from purpose-authored bark sets:
 
 | Pack | Source | Coverage |
 | --- | --- | --- |
-| `dist/Geralt/Geralt_VO_over_Rust_Stream.zip` | `references/voice/GERALT VOICE (PAYDAY 2).zip` ("Геральт", CP866 file names) | the 29 slots the set carries (315 `.stream` files over the shared ids); alternate takes (`civ.down (2..4)`, `mask.go (2)`, `inspire.faster (2)`) are left unused, noted in `geralt/slot_picks.csv` |
-| `dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip` | `references/voice/ARIVUS VOICE (PAYDAY 2).zip` (+ one borrowed file) | the 18 slots the set carries, plus `call_teammate.hey_you` ← the Geralt 'Hoxton.' callout borrowed from the GERALT archive per the user's 2026-11-25 decision, so that slot is Geralt's voice too |
+| `Geralt_VO_over_Rust_Stream.zip` (deleted) | `references/voice/GERALT VOICE (PAYDAY 2).zip` ("Геральт", CP866 file names) | the 29 slots the set carries (315 `.stream` files over the shared ids); alternate takes (`civ.down (2..4)`, `mask.go (2)`, `inspire.faster (2)`) are left unused, noted in `geralt/slot_picks.csv` |
+| `Arivus_VO_over_Hoxton_Stream.zip` (deleted) | `references/voice/ARIVUS VOICE (PAYDAY 2).zip` (+ one borrowed file) | the 18 slots the set carries, plus `call_teammate.hey_you` ← the Geralt 'Hoxton.' callout borrowed from the GERALT archive per the user's 2026-11-25 decision, so that slot is Geralt's voice too |
 
 Both write the **same shared `regular_vox` voice-line ids** as the Hila pack — they are alternatives,
-not companions; install only one of the three. Slots with no take in the pack's source set are left
+not companions; install only one of them. Slots with no take in the pack's source set are left
 vanilla (the pack records `no take in <archive>; left vanilla` per id in its manifest). The Geralt pack
 ships `kill.taser`/`mark.taser` although those slots scored below 8 for the Hila pick: the removal logic
 was Hila-specific, and purpose-authored takes are shipped as they are. Neither pack has been heard in game.
@@ -99,13 +106,13 @@ barks from `regular_vox` or a `char_wild` bank) is an open in-game check, see
 
 ## Package & install
 
-Three zips ship: `Miranda_Lawson_VO_over_Hila_Stream.zip` (the Hila pack) and the two character packs
-above — alternatives, install one. The Hila pack contains Wwise IMA ADPCM
+One zip ships: `Miranda_Lawson_VO_over_Hila_Stream.zip` (the Hila pack); the two character packs
+above were retired and deleted on 2026-11-28 (D87). The Hila pack contains Wwise IMA ADPCM
 `.stream` files at `soundbanks/streamed/regular_vox/<hila_id>.stream`, plus a `main.xml` marker and
 `mod.txt`. The game resolves these by voice-line id; no BeardLib, XAudio API, Lua, or bark-event
 mapping is needed. It is built by `tools/build_hila_stream_mod.py` using the format implementation in
 `tools/pd2-las/wwise_ima.py`. Install with SuperBLT (or another BLT build) following §7 of the
-[install contract](../docs/pd2-voice-mod-install.md).
+[install contract](vo_master.xlsx) (`install` tab).
 
 The old BeardLib route keyed `<Sounds>` on PD2 bark event names, not numeric voice-line ids. Its
 builder and zip were removed; the rationale and technical investigation remain as historical

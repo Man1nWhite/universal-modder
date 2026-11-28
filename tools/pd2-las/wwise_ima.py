@@ -6,7 +6,7 @@ one audio file per voice-line id, no event table, so a voice pack replaces a
 line by naming its file after the id. Almost all of them are Wwise's IMA
 ADPCM in a plain RIFF container, and this module is the whole format, checked
 byte for byte against the 1,062 ADPCM files of ``references/voice/Tokoyami Hila.7z``
-(see ``docs/tokoyami-hila-voice-mod-analysis.md``):
+(see the ``format`` tab of ``voice_lines_vox/vo_master.xlsx``):
 
 * A 64-byte header: ``RIFF``/``WAVE``, ``fmt `` with a **24-byte** payload,
   a ``JUNK`` chunk of 4 zero bytes, then ``data``.

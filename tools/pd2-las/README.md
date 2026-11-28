@@ -9,9 +9,7 @@ no Source compile step, Blender, or running game is needed.
 | --- | --- | --- | --- |
 | `Miranda_L4D2_LAS` — full body and first-person arms | `references/characters/l4d2_miranda_lawson_1.zip` | `build_models.py` | `build` |
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses, palms cut *on* the line where they begin, with no extension past it (`palm_cut`, `extend_cm`/`clipped_to_cm: 0.0` in `BUILD_INFO.json`, D70; no default glove, a chosen one wins), in TPP and FPS | `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
-| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`docs/pd2-voice-mod-install.md` §7) | references/voice/Голос Лоусон.7z (clips), `references/voice/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/voice/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
-| `Geralt_VO_over_Rust_Stream` — the purpose-authored Geralt barks, one `.stream` per shared `regular_vox` id for the 29 slots the set covers (315 files); slots without a take are vanilla (`docs/pd2-voice-mod-install.md` §8) | `references/voice/GERALT VOICE (PAYDAY 2).zip` (CP866 file names) | `tools/build_character_stream_mod.py --pack geralt-rust` over `wwise_ima.py` | `voices_geralt` |
-| `Arivus_VO_over_Hoxton_Stream` — the purpose-authored Arivus barks for 18 slots plus the borrowed Geralt 'Hoxton.' callout for `call_teammate.hey_you` (324 files); uncovered slots vanilla | `references/voice/ARIVUS VOICE (PAYDAY 2).zip` (+ the one callout file from the GERALT archive) | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` over `wwise_ima.py` | `voices_arivus` |
+| `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`install` tab of voice_lines_vox/vo_master.xlsx) | references/voice/Голос Лоусон.7z (clips), `references/voice/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/voice/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
 | `Arivus_Head_over_Old_Hoxton_GLB` — the `g_head_old_hoxton` drawable as a bind-pose `.glb` plus the five pack `.texture` files as `.dds`; a viewer export, not an installable mod | `Arivus_over_Hoxton.zip` (the tracked pack itself) | `build_arivus_glb_pack.py` over `model_to_glb.py` | `glb` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
@@ -26,7 +24,7 @@ From the repo root, `make -sC tools/pd2-las` with no target lists them.
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B templates; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or honokodae | heads | voices_stream | voices_geralt | voices_arivus | glb | all
+make -sC tools/pd2-las build    # or honokodae | heads | voices_stream | glb | all  (the former voices_geralt / voices_arivus targets were removed with the retired packs, D87)
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each

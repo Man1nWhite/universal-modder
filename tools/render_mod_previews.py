@@ -907,9 +907,9 @@ def main(argv: list[str] | None = None) -> None:
     add_header_and_badges(
         grid,
         f"PAYDAY 2 — All {len(all_dist_cells)} Model Packages in dist/ (Complete Overview)",
-        "Miranda L4D2 LAS | OfficeSuite | Geralt, Arivus, Hila | the audio-only packs"
-        " (Miranda_Lawson_VO_over_Hila_Stream, Geralt_VO_over_Rust_Stream,"
-        " Arivus_VO_over_Hoxton_Stream) have no model sheet",
+        "Miranda L4D2 LAS | OfficeSuite | Geralt, Arivus, Hila | the audio-only pack"
+        " (Miranda_Lawson_VO_over_Hila_Stream) has no model sheet"
+        " (the Geralt/Arivus VO packs were retired and deleted 2026-11-28, D87)",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

@@ -13,12 +13,11 @@ PAYDAY 2 packs, tracked in `dist/` and rebuilt byte for byte by CI: full-body an
 Skins outfits (Miranda Lawson, Christie, Honoka), head replacements (Miranda, Geralt), a native
 OfficeSuite + Miranda Romance body-and-head replacement for Hila, and the fork's audio — Miranda
 Lawson's barks over Hila's `rb21` voice lines, as one Wwise IMA ADPCM `.stream` per voice-line id
-(`Miranda_Lawson_VO_over_Hila_Stream`, no BeardLib: [packaging and install
-contract](docs/pd2-voice-mod-install.md), and the route dissected in
-[`docs/tokoyami-hila-voice-mod-analysis.md`](docs/tokoyami-hila-voice-mod-analysis.md)). Two more packs
-of the same route ship alongside it: `Geralt_VO_over_Rust_Stream` (`dist/Geralt/`) and
-`Arivus_VO_over_Hoxton_Stream` (`dist/Arivus/`) — the three are alternatives writing the same shared
-ids, so exactly one should be installed.
+(`Miranda_Lawson_VO_over_Hila_Stream`, no BeardLib; install contract and
+format in the VO workbook [`voice_lines_vox/vo_master.xlsx`](voice_lines_vox/vo_master.xlsx),
+`install` and `format` tabs). The two character-route packs that used to ship alongside it
+(`Geralt_VO_over_Rust_Stream`, `Arivus_VO_over_Hoxton_Stream`) were retired and deleted on
+2026-11-28 (D87) — never heard in game; the Hila pack is the only VO stream pack.
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share. The Arivus head also ships as a tracked `.glb` + `.dds`
 interchange export ([`Arivus_Head_over_Old_Hoxton_GLB.zip`](dist/Arivus/Arivus_Head_over_Old_Hoxton_GLB.zip)),

@@ -59,7 +59,7 @@ SHARED = "regular_vox"
 OUT = ROOT / "voice_lines_vox" / "targets"
 
 #: The heisters the fork ships a VO pack for. `voice` is the Wwise `robber` switch value (the
-#: speaker switch, not a file name, docs/pd2-voice-mod-install.md §4c); `model` is the unit the
+#: speaker switch, not a file name — see the `format` tab of voice_lines_vox/vo_master.xlsx); `model` is the unit the
 #: head packs already target; `bank` is the dedicated folder for the heisters that have one.
 TARGETS = {
     "rust": {
@@ -107,7 +107,7 @@ def write_shared(target: str) -> Path:
             note = "the vanilla bank streams this id as Wwise Vorbis; an ADPCM pack cannot write it"
             written = "no"
         elif slot in picks:
-            note = f"written by {cfg['pack']}"
+            note = f"covered by the {cfg['heister']} takes (pack retired 2026-11-28, D87)"
             written = "yes"
         else:
             note = f"no take for this slot in the {cfg['heister']} set; left vanilla"
