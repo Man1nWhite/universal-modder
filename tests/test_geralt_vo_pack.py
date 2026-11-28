@@ -28,12 +28,6 @@ from pathlib import Path
 
 import pytest
 
-lupa = pytest.importorskip("lupa")
-try:
-    from lupa import luajit21  # PD2's exact LuaJIT 2.1 dialect
-except ImportError:
-    luajit21 = None
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "tools"), str(ROOT / "tools" / "pd2-las")]
 
@@ -50,6 +44,11 @@ EVENT_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
 def _lua_runtime():
+    lupa = pytest.importorskip("lupa", reason="lupa (LuaJIT) not installed")
+    try:
+        from lupa import luajit21  # PD2's exact LuaJIT 2.1 dialect
+    except ImportError:
+        luajit21 = None
     if luajit21 is not None:
         return luajit21.LuaRuntime(unpack_returned_tuples=True)
     return lupa.LuaRuntime(unpack_returned_tuples=True)
