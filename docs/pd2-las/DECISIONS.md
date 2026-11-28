@@ -1410,6 +1410,10 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 ### D85 — `OfficeSuite_over_Bunny` ships `OfficeSuite` as a native `mod_overrides` replacement of Hop to It (`bunny`)
 
+> Update 2026-11-28: the asset replacement is unchanged, but the pack now includes a separately
+> installed SuperBLT companion to suppress Bunny’s vanilla forearm adapter. The original no-Lua
+> behavior described below is historical; see the in-game checklist for current installation.
+
 - **Decided:** 2026-11-27, from the user's supplied `references/templates/ccmt_acc_bunny.7z` template and
   request for an `OfficeSuite` outfit replacement mod.
 - **Decision:** `dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,
@@ -1452,6 +1456,10 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Status:** holds; not yet seen in game (`runtime_verified: false`, D31).
 
 ### D86 — `Miranda_L4D2_over_Hila` leans forward onto the female heister neck and eyewear posture
+
+> Update 2026-11-28: after the user reported clipping, a conservative continuous face and crown
+> clearance trial follows the D86 transform. The original measurements below describe the prior
+> build; the trial has not been validated against accessory meshes or in game.
 
 - **Decided:** 2026-11-27, by the user ("fix the lawson head mod by tilting the head forward"), from two
   side-profile menu captures in the same Tailor Pack turtleneck coat and `a_head` sunglasses: vanilla Joy as

@@ -1,5 +1,17 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-28 — Bunny forearm adapter
+
+The user reports extra forearm skin in the Bunny replacement. The native Bunny style can spawn
+`hnd_forearms` separately from the unchanged OfficeSuite mesh. A bundled SuperBLT companion sets
+only Bunny’s adapter to false and adds Bunny to the exclusion list; selected gloves remain. The
+companion must be copied to `mods/` separately. Offline tests exercise the BeardLib decision path;
+the new bytes have not been verified in game. After the user asked to try again, the head now has
+a conservative continuous accessory-clearance warp: the face, eyes, lashes and scalp all follow the
+same deformation; the upper hair is eased back and down, and the collar skirt remains unchanged. The
+original and rebuilt head both report the same pre-existing flipped triangles in the mesh diagnostic;
+the accessory meshes are not available, so the fit must be checked in game.
+
 ## 2026-11-28 — rebuild `Geralt_over_Rust` from the supplied 1024x1024 face DDS pair (D96)
 
 PR #80 (`fa06f5a`) replaced `references/textures/geralt_head_{df,nm}.dds` with 1024x1024

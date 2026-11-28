@@ -531,6 +531,48 @@ def rigid_l4d2_head_posture(
     return p_out.astype(np.float32), n_out.astype(np.float32)
 
 
+
+def fit_l4d2_accessory_clearance(
+    positions: np.ndarray, normals: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Gently reduce the tilted head's accessory envelope, preserving the collar.
+
+    The screenshots show contact at the eyewear and crown. This is a continuous
+    coordinate-space warp, shared by scalp, face, eyes and lashes, not a cut in
+    the hair mesh: coincident seams and the eyes stay together. Measurements of
+    the native Hila head put her crown below Miranda's; the upper hair is eased
+    down and back. No accessory meshes are available, so clearance is a trial,
+    not a claim of collision-free fit with every hat or pair of glasses.
+    """
+    p = np.asarray(positions, dtype=np.float64)
+    n = np.asarray(normals, dtype=np.float64)
+    x, y, z = p[:, 0], p[:, 1], p[:, 2]
+
+    def ramp(lo: float, hi: float) -> tuple[np.ndarray, np.ndarray]:
+        t = np.clip((z - lo) / (hi - lo), 0.0, 1.0)
+        return t * t * (3.0 - 2.0 * t), 6.0 * t * (1.0 - t) / (hi - lo)
+
+    w, dw = ramp(159.0, 164.0)
+    crown, dcrown = ramp(180.0, 184.0)
+    top, dtop = ramp(178.5, 182.5)
+    dx = -0.04 * x
+    dy = -0.35 - 0.03 * (y - 15.70)
+    top_distance = np.maximum(z - 178.5, 0.0)
+    out = p.copy()
+    out[:, 0] += w * dx
+    out[:, 1] += w * dy - 0.75 * crown
+    out[:, 2] -= 0.10 * top_distance * top
+
+    # Inverse transpose of the local Jacobian, including both smooth ramps.
+    nx = n[:, 0] / (1.0 - 0.04 * w)
+    ny = n[:, 1] / (1.0 - 0.03 * w)
+    dz_dz = 1.0 - 0.10 * (top + top_distance * dtop)
+    nz = (n[:, 2] - nx * dw * dx - ny * (dw * dy - 0.75 * dcrown)) / dz_dz
+    normal = np.column_stack((nx, ny, nz))
+    normal /= np.maximum(np.linalg.norm(normal, axis=1, keepdims=True), 1e-8)
+    return out.astype(np.float32), normal.astype(np.float32)
+
+
 def blend_l4d2_scalp_and_neck_posture(
     p_raw: np.ndarray,
     n_raw: np.ndarray,
@@ -1865,6 +1907,8 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
                     n_s = soften_eyeball_normals(n_s)
                 if for_suit:
                     p_s, n_s = rigid_l4d2_head_posture(p_s, n_s)
+            if for_suit:
+                p_s, n_s = fit_l4d2_accessory_clearance(p_s, n_s)
             atoms_by_mid.setdefault(mid, []).append((p_s, n_s, uv_s, t_s))
 
         face_p, face_n, face_uv, face_t = atoms_by_mid[1][0]
@@ -1884,6 +1928,7 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
 
         if for_suit:
             lp_out, ln_out = rigid_l4d2_head_posture(lash_p, lash_n)
+            lp_out, ln_out = fit_l4d2_accessory_clearance(lp_out, ln_out)
         else:
             lp_out, ln_out = lash_p.copy(), lash_n.copy()
 

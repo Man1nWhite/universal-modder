@@ -8,7 +8,8 @@ Reads the tracked ``dist/Miranda/OfficeSuite.zip`` (the 5% slim DOAXVV Honoka
 "Secret Report" outfit with D70 palm cut and D75 ``ForeArmRoll`` wrist twist) and
 ``references/templates/ccmt_acc_bunny.7z`` (the vanilla ``player_styles.bunny``
 units), and emits ``dist/Miranda/OfficeSuite_over_Bunny.zip`` for installation in
-``PAYDAY 2\\assets\\mod_overrides\\`` without BeardLib or Legendary Armour Skins.
+``PAYDAY 2\\assets\\mod_overrides\\`` without BeardLib or Legendary Armour Skins. A bundled SuperBLT companion disables
+the vanilla glove forearm adapter for Bunny; install it separately in ``mods/``.
 
 All five third-person body variants (``female_average``, ``female_fat``,
 ``male_average``, ``male_big``, ``male_fat``) share ``shared_materials/ccmt_acc_bunny``
@@ -55,6 +56,8 @@ DEFAULT_CACHE = ROOT / "build/pd2-las/ccmt_acc_bunny"
 DEFAULT_OUT = dist_path(ROOT, "OfficeSuite_over_Bunny.zip")
 
 MOD_PREFIX = "OfficeSuite over Bunny"
+COMPANION = "OfficeSuite Bunny Forearm Fix"
+COMPANION_SOURCE = HERE / "bunny_forearm_fix"
 UNIT_ROOT = "units/pd2_dlc_ccmt/characters/ccmt_acc_bunny"
 ICON_PATH = "guis/dlcs/ccmt/textures/pd2/blackmarket/icons/player_styles/bunny.texture"
 STAMP = (2020, 1, 1, 0, 0, 0)
@@ -543,6 +546,9 @@ def build_members(
     ]] = {}
 
     files: dict[str, bytes] = {
+        f"{MOD_PREFIX}/README.txt": (COMPANION_SOURCE / "README.txt").read_bytes(),
+        **{f"{MOD_PREFIX}/{COMPANION}/{name}": (COMPANION_SOURCE / name).read_bytes()
+           for name in ("mod.txt", "forearm_fix.lua")},
         f"{MOD_PREFIX}/{ICON_PATH}": icon_dds,
         f"{MOD_PREFIX}/{UNIT_ROOT}/shared_materials/ccmt_acc_bunny.material_config": (
             bunny_dir / "shared_materials/ccmt_acc_bunny.material_config"
