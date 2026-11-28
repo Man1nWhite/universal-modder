@@ -4,11 +4,13 @@
 - **Source packs:** every mod package in `dist/` that ships a `.model`.
 - **Files:**
   - [`all_dist_mods_sheet.png`](all_dist_mods_sheet.png): complete overview grid covering every
-    model-bearing `.zip` in `dist/` — `Miranda_L4D2_LAS`, `OfficeSuite`, `Miranda_L4D2_over_Hila`,
-    `Geralt_over_Rust`, `Arivus_over_Hoxton`. **Re-rendered 2026-11-26 (D82/D83):** the grid had not
-    been regenerated since the first retirements and still carried two rows of packs that were gone;
-    it is now the five packs that exist. The audio-only packs — `Miranda_Lawson_VO_over_Hila_Stream`,
-    `Geralt_VO_over_Rust_Stream`, `Arivus_VO_over_Hoxton_Stream` — have no model and no sheet.
+    installable model-bearing `.zip` in `dist/` — `Miranda_L4D2_LAS`, `OfficeSuite`,
+    `OfficeSuite_over_Bunny`, `Miranda_L4D2_over_Hila`, `Geralt_over_Rust`, `Arivus_over_Hoxton`.
+    **Re-rendered 2026-11-27 (D85):** adds `OfficeSuite_over_Bunny` and drops the duplicate
+    `Miranda_L4D2_LAS` cell, filling one 6-column row with the six distinct model packs. The audio-only
+    packs — `Miranda_Lawson_VO_over_Hila_Stream`, `Geralt_VO_over_Rust_Stream`,
+    `Arivus_VO_over_Hoxton_Stream` — have no model and no sheet, and `Arivus_Head_over_Old_Hoxton_GLB`
+    is a viewer export of `Arivus_over_Hoxton`.
   - [`all_miranda_mods_sheet.png`](all_miranda_mods_sheet.png): **archived.** The 6x2 grid of the
     twelve Miranda head/full-body packs (Joy, Clover, Bonnie, Sydney, Busty, Christie) that shipped
     before 2026-11-26; those packs are retired and the current tool renders only

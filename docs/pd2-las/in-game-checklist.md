@@ -321,3 +321,25 @@ head texture and the build inpaints it. These are the checks the offline render 
    it and nothing showing through. Watch also for the neck creasing or pinching when the head turns
    (the rim now sits ~5 cm lower than the cut did, and it is the part the `Neck` bone moves).
    The menu portrait should match the in-game head, and the HUD icon is the same face.
+
+## OfficeSuite over Bunny — native Hop to It outfit override (2026-11-27, D85)
+
+Pack to install: `dist/Miranda/OfficeSuite_over_Bunny.zip` → extract the `OfficeSuite over Bunny`
+folder into `PAYDAY 2\assets\mod_overrides\`. No SuperBLT, BeardLib or Legendary Armour Skins needed.
+In-game, open **Outfits** in the BlackMarket and equip **Hop to It** (`bunny`, community / free outfit).
+
+1. **Menu icon & turntable preview.** In the Outfits tab, the **Hop to It** tile shows the OfficeSuite
+   icon (`bunny.texture`), and equipping it displays the black blazer, white blouse, skirt, heels,
+   anklet, brooch/chain and wrist watch cleanly on both female (Clover/Hila/Joy/Sydney/Bonnie) and male
+   heisters with no scrambled UVs or pink materials.
+2. **Neck & head seam.** Because `player_styles.bunny` keeps `head = false`, the equipped heister's
+   own head (or a head replacement such as `Miranda_L4D2_over_Hila`) sits above the OfficeSuite collar;
+   turn the character in the lobby and check the base of the neck from front, side and behind.
+3. **Gloves.** Without Lua hooks, leaving Gloves on **Default** spawns vanilla `heist_default` gloves
+   plus `hnd_forearms`; equip a short or dress glove in the **Gloves** tab and check both third-person
+   and first-person cuffs against the D70 palm cut and D75 `ForeArmRoll` wrist twist.
+4. **First-person viewmodel.** Load a heist solo with **Hop to It** equipped: verify the black sleeves,
+   white cuffs and wrist watch appear at normal weapon-holding height, do not vanish when looking up or
+   down (`co_box` culling), and twist cleanly when aiming, reloading and interacting.
+5. **Shadow caster.** Check the character's ground shadow in third person (`s_body` on `shadow_caster`).
+
