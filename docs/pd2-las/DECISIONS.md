@@ -47,7 +47,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree), [D87](#d87--the-three-vo-guides-are-replaced-by-the-vo-workbook), [D88](#d88--the-sydney-docx-has-two-tables-the-second-one-is-her-robbers_mission_gen-lines), [D89](#d89--the-geralt-and-arivus-vo-stream-packs-are-retired-and-deleted), [D99](#d99--geralt_vo_over_rust-ships-via-beardlib-sounds-prefixrb16-plus-a-lua-soundmanager-lifecycle-fix)
 
-*Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed), [D93](#d93--a-change-too-small-for-a-sheet-gets-its-own-close-up-render-and-the-beard-gets-one), [D94](#d94--geralts-face-maps-are-tracked-beside-the-beard-at-the-vtfs-own-size), [D95](#d95--the-drm-and-in-game-asset-restrictions-are-removed-anti-cheat-for-online-play-stays)
+*Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed), [D93](#d93--a-change-too-small-for-a-sheet-gets-its-own-close-up-render-and-the-beard-gets-one), [D94](#d94--geralts-face-maps-are-tracked-beside-the-beard-at-the-vtfs-own-size), [D95](#d95--the-drm-and-in-game-asset-restrictions-are-removed-anti-cheat-for-online-play-stays), [D100](#d100--the-over-hila-accessory-fit-is-measured-against-vanilla-hilas-own-head-envelope)
 
 ## Product and routes
 
@@ -2942,5 +2942,42 @@ from documents, tests and tools, so they never change; the headings are appendix
   `CONTRIBUTING.md`.
 - **Status:** holds.
 
+### D100 — The over Hila accessory fit is measured against vanilla Hila's own head envelope
 
-
+- **Decided:** 2026-11-28, after the user's in-game screenshots of the day showed the Derby-style
+  eyewear cutting Miranda's brow and cheek, its temple arm riding over the hair curtain at the temple,
+  and its metal tip glinting through the jaw curtain.
+- **Decision:** every `a_head` accessory was authored to sit on vanilla Hila's head, so her own measured
+  head (`g_head` + `g_hair_mask_off` of `npc_criminal_ecp_female.model`, decoded from the tracked
+  `references/templates/npc_criminals_ecp_female.7z`) is the offline stand-in for the missing accessory
+  meshes. `fit_l4d2_accessory_clearance` keeps the D86 trial base (whole-head setback + crown ease) and
+  layers two measured clamps on it, all pure functions of position so the welded Face <-> Scalp seam and
+  the eyeballs stay together:
+  1. **front-envelope tuck** — face surface in the brow band (`|x| <= 3.8..4.8`, `z 166.5..179.5..181.5`)
+     is clamped to Hila's front envelope + 5 mm. Measured on the D86 bytes, the brow/forehead sat
+     0.3-0.9 cm in front of her envelope (49 violating face verts, max +0.58) exactly where `a_head`
+     frames were authored to sit. The fringe is excluded by the corridor and the z-band: its violating
+     verts sit at `z >= 179.8`, outside the band.
+  2. **two side-corridor floors** — the temple sweep is floored to `|x| = 9.45` (F1, `y 10..17.5`,
+     `z 169.5..179.5`, gate `|x| >= 6.9`) and the jaw curtain to `|x| = 10.6` (F2, `y 0.5..6.5`,
+     `z 164.5..173`, gate `|x| >= 7.5`), outside the eyewear arm's measured ride over the ear
+     (outer edge `|x| <= 10.55`) and its crossing of the sweep (observed contact up to `|x| ~8.6`
+     at `y 12..16`). The gates start beyond the face shell (its max `|x|` is 6.68 and its x-moves are
+     exactly 0 now), the fringe edge sits below them, and the ear lobes sit in the y-band gaps.
+- **Measured, not assumed:** on the rebuilt head, every in-band face vert is within 0.33 cm of Hila's
+  envelope + 5 mm (the corridor fade), the face shell's x-moves are exactly 0, the F1 sweep zone is
+  floored to 9.45, the F2 tip zone to 10.44-11.73, and the eye/teeth/lash atoms are bit-identical to
+  the D86 bytes (the eye bundle rides the base only — clamping the lashes to the same sheet as the
+  tucked lid would sink them into it). Normals are the exact inverse transpose of the composed
+  Jacobian (cofactor form; only +, *, / enter, so the bytes do not depend on the machine's libm, D26).
+- **Why Hila's envelope and not the accessories:** no `a_head` mesh exists in the repo or the tracked
+  extracts; her head is the surface those accessories were fitted to, and it can be measured offline.
+  This is a measured fit to that envelope, not a claim of collision-free clearance with every hat or
+  pair of glasses: the final check is the user's in-game one.
+- **Held to:** `tests/test_miranda_accessory_fit.py` (the base contract, unchanged and passing),
+  the posture pins updated to the tucked brow (17.6-18.1 cm) and the flattened chin->brow angle
+  (7.0-8.0°; the brow now follows Hila's envelope, so the D86 8-11.5° trial pitch no longer applies),
+  and `make -sC tools/pd2-las green`.
+- **Source:** the user's 2026-11-28 in-game screenshots (`build/uploads-2026-11-28/`); measurement
+  scripts in `build/` (`violation_analysis.py`, `measure_envelopes.py`, `armcheck.py`).
+- **Status:** holds; awaiting the user's in-game check of the rebuilt bytes.

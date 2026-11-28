@@ -91,7 +91,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_LAS` (eye is the supplied picture since D84) | no record | — |
 | `Geralt_over_Rust` | no record | — |
 | `Arivus_over_Hoxton` | 2026-11-25 (face, D66/D69-era bytes) | **no** — rebuilt again for D79 (neck rim, skirt, skinning); the D72 neck and the `bone_offset` fix have never been in game |
-| `Miranda_L4D2_over_Hila` (eye quadrant D84; tilted posture D86; accessory-clearance trial) | 2026-11-28, user supplied screenshots and reported some head clipping | **no** — the head was rebuilt after the report; hair and eyewear clearance still need in-game checks |
+| `Miranda_L4D2_over_Hila` (eye quadrant D84; tilted posture D86; measured accessory fit D100) | 2026-11-28, user supplied screenshots and reported head clipping: the eyewear cutting the brow/cheek, the temple arm riding over the hair, the tip glinting through the jaw curtain | **no** — the head was rebuilt the same day against vanilla Hila's own head envelope (D100) to answer all three; the corrected bytes still need the in-game check |
 | `OfficeSuite_Miranda_Romance_over_Hila` (**retired 2026-11-26, D82**) | no record | — (native body and head override; retired in favour of `OfficeSuite_Head`, which carried the same body, cut and head as a registered LAS item — and that one went too, D83) |
 | `OfficeSuite_Head` (**retired 2026-11-26, D83**) | no record | — (the whole-character pack; the D75 wrist pass and its palettes are still checked on the `OfficeSuite` body it shared) |
 | `Miranda_Romance_LAS` (**retired 2026-11-26, D83**) | no record | — (the ME2 Romance LAS outfit and the port that built it; [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) is its record) |
@@ -99,7 +99,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Honoko2` (removed, D57) | 2026-11-15, outfit-menu preview, user report | yes per the user — the captures are of this pack; installed hashes not measured |
 | `Honoko3`, `Honoko4` (removed, D57) | no record | — (built after the captures; the close-ups that drove D44 were of `Honoko3`) |
 | `OfficeSuite` | 2026-11-15, user-supplied menu/lobby captures; 2026-11-25, user-supplied wrist screenshots of the D60 and D62 builds; 2026-11-26, the same user-supplied wrist captures in first person, with white dress gloves, that drove D75 (a **partial** — the wrist, not the whole outfit) | **no** — captures precede the `Tex_23(L_23)2.dds` jewelry diffuse rebuild, the first-person arms (D53) and every hand build (D55's own hands, D59's palm cut, D60's cut on the plane with no default glove, D62/D63/D65's extensions, D70's reversion to the plane and D75's wrist pass); installed hash not measured |
-| `OfficeSuite_over_Bunny` (native override plus SuperBLT forearm companion, D85) | 2026-11-28, user reported extra forearm skin | **no** — companion added after the report; not yet checked in game; see [the checklist](in-game-checklist.md#officesuite-over-bunny--native-hop-to-it-outfit-override-2026-11-27-d85) |
+| `OfficeSuite_over_Bunny` (native override plus SuperBLT forearm companion, D85) | 2026-11-28, user supplied screenshots of the D85 companion build and reported it **good** | **yes** per the user — the forearm companion and the native override are what the screenshots show; installed hashes not measured; see [the checklist](in-game-checklist.md#officesuite-over-bunny--native-hop-to-it-outfit-override-2026-11-27-d85) |
 | `Miranda_Lawson_VO_over_Hila` (audio/BeardLib, **dropped 2026-11-25, D61**) | 2026-11-24, user installed in `mods/` and reported vanilla Hila still playing | **no** — the keying was re-verified against BeardLib's SoundManager and the game Lua (`rb21` in both the player and team-AI paths) and still nothing played, so the pack is out of `dist/` and its builder with it; the reasoning stays in the `install` tab of `voice_lines_vox/vo_master.xlsx` |
 | `Geralt_VO_over_Rust` (audio, BeardLib `<Sounds>` on `prefix="rb16"` + Lua `SoundManager` lifecycle fix, D97) | no record | — (built 2026-11-28 from all 36 `GERALT VOICE (PAYDAY 2).zip` takes; verified in LuaJIT against BeardLib 5.2.0; see [the checklist](in-game-checklist.md)) |
 | `Geralt_VO_over_Rust_Stream` / `Arivus_VO_over_Hoxton_Stream` (audio, id-keyed; **retired and deleted 2026-11-28, D89**) | no record | — (built 2026-11-25; never heard in game; whether Rust plays from the shared `regular_vox` bank is an open question — O1) |
@@ -146,3 +146,16 @@ installed on 2026-11-15 were identified by the user, not hash-measured from the 
   triangle closes a pair that is already coincident at post-weld positions).
 - Spanning a run gap of 3+ rim pairs while stitching → that "gap" is the
   armhole. The sleeve seam only ever jumps 1-2 rim pairs.
+- Envelope "violations" measured as per-cell max-vs-max (the head's max y in a
+  cell against Hila's max y in the cell) → phantom clips: the two maxima belong
+  to different verts. The jaw-corner "+1.86" and cheekbone "+0.85" of the
+  2026-11-28 analysis were this artifact; pointwise vertex-vs-envelope is the
+  only reading to design from.
+- A position-based clamp of several surfaces onto one target sheet → the layers
+  collapse onto each other (skin pulled into the hair curtain, eyelashes sunk
+  onto the tucked lid, z-fighting at the sheet). Gates must exclude every other
+  surface by measurement, and the eye bundle (eyeballs, teeth, lashes) rides the
+  D86 base only.
+- Clamping against the pre-warp coordinate while the base warp still moves that
+  axis → the composed map folds (negative Jacobian, flipped shading normals) at
+  full clamp. Each stage clamps against the position the previous stage left.

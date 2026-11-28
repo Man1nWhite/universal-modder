@@ -534,43 +534,319 @@ def rigid_l4d2_head_posture(
 
 
 
-def fit_l4d2_accessory_clearance(
-    positions: np.ndarray, normals: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Gently reduce the tilted head's accessory envelope, preserving the collar.
+def _catmull_sample(grid: np.ndarray, a: np.ndarray, b: np.ndarray
+                    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Bicubic (Catmull-Rom) sample of ``grid[row=b, col=a]`` and its two slopes.
 
-    The screenshots show contact at the eyewear and crown. This is a continuous
-    coordinate-space warp, shared by scalp, face, eyes and lashes, not a cut in
-    the hair mesh: coincident seams and the eyes stay together. Measurements of
-    the native Hila head put her crown below Miranda's; the upper hair is eased
-    down and back. No accessory meshes are available, so clearance is a trial,
-    not a claim of collision-free fit with every hat or pair of glasses.
+    Row/column coordinates are in grid-index units. Only +, *, / enter, so the
+    bytes do not depend on the machine's libm (D26).
     """
+    def _weights(t):
+        t2 = t * t
+        t3 = t2 * t
+        w0 = -0.5 * t3 + t2 - 0.5 * t
+        w1 = 1.5 * t3 - 2.5 * t2 + 1.0
+        w2 = -1.5 * t3 + 2.0 * t2 + 0.5 * t
+        w3 = 0.5 * t3 - 0.5 * t2
+        d0 = -1.5 * t2 + 2.0 * t - 0.5
+        d1 = 4.5 * t2 - 5.0 * t
+        d2 = -4.5 * t2 + 4.0 * t + 0.5
+        d3 = 1.5 * t2 - t
+        return (w0, w1, w2, w3), (d0, d1, d2, d3)
+
+    rows, cols = grid.shape
+    fa = np.clip(a, 1.0, cols - 3.0)
+    fb = np.clip(b, 1.0, rows - 3.0)
+    ia = np.floor(fa - 1.0).astype(np.int64)
+    ib = np.floor(fb - 1.0).astype(np.int64)
+    ta = fa - 1.0 - ia
+    tb = fb - 1.0 - ib
+    (wa, dwa), (wb, dwb) = _weights(ta), _weights(tb)
+    val = np.zeros_like(fa)
+    da = np.zeros_like(fa)
+    db = np.zeros_like(fa)
+    for m in range(4):
+        for k in range(4):
+            g = grid[ib + m, ia + k]
+            val += wb[m] * wa[k] * g
+            da += wb[m] * dwa[k] * g
+            db += dwb[m] * wa[k] * g
+    return val, da, db
+
+
+def _smooth_grid(values: np.ndarray, valid: np.ndarray) -> np.ndarray:
+    """Fill invalid cells from the nearest valid cell, then a 5-tap separable blur."""
+    filled = values.copy()
+    if not valid.all():
+        flat = np.where(valid.ravel())[0]
+        for r in range(values.shape[0]):
+            for c in range(values.shape[1]):
+                if not valid[r, c]:
+                    if flat.size:
+                        # nearest valid by index distance in the flattened grid
+                        dist = np.abs(flat - (r * values.shape[1] + c))
+                        filled[r, c] = values.ravel()[flat[int(np.argmin(dist))]]
+    kernel = np.array([1.0, 4.0, 6.0, 4.0, 1.0]) / 16.0
+    tmp = np.empty_like(filled)
+    for r in range(filled.shape[0]):
+        tmp[r] = np.convolve(filled[r], kernel, mode="same")
+    out = np.empty_like(filled)
+    for c in range(filled.shape[1]):
+        out[:, c] = np.convolve(tmp[:, c], kernel, mode="same")
+    return out
+
+
+_HILA_ENVELOPES: dict | None = None
+
+
+def hila_accessory_envelopes() -> dict:
+    """Vanilla Hila's accessory envelopes, as two smoothed grids with slopes.
+
+    Every `a_head` accessory was authored to sit on Hila's own head, so her head
+    is the offline stand-in for the missing accessory meshes: her front surface
+    bounds where eyewear frames may reach (face may not poke past it), and her
+    side profile bounds where the eyewear arm rides (the hair curtain must stay
+    outside it). ``front`` is max-y of her head+hair per (|x|, z); ``side`` is
+    max-|x| of her head skin per (y, z).
+    """
+    global _HILA_ENVELOPES
+    if _HILA_ENVELOPES is not None:
+        return _HILA_ENVELOPES
+    hila_dir = ensure_hila_extracted(EXTRACT_DIR / "ecp_female")
+    mf = dm.ModelFile.read((hila_dir / f"{HILA_UNIT_STEM}.model").read_bytes())
+
+    def _verts(name: str) -> np.ndarray:
+        h = dm.hash64(name)
+        for s in mf.by_type(dm.MODEL_DATA):
+            md = dm.decode_model_data(s.payload)
+            if md.get("name_hash") == h:
+                pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+                geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+                return np.asarray(geo["verts"], dtype=np.float64)
+        raise ValueError(f"{HILA_UNIT_STEM}.model: no drawable {name}")
+
+    head = _verts("g_head")
+    hair = _verts("g_hair_mask_off")
+    both = np.vstack([head, hair])
+
+    def _cell_max(points: np.ndarray, u_of, z_of, value_of, u_grid, z_grid, half=1.0):
+        vals = np.full((len(z_grid), len(u_grid)), np.nan)
+        u_pts = u_of(points)
+        z_pts = z_of(points)
+        v_pts = value_of(points)
+        for iz, zc in enumerate(z_grid):
+            zm = (z_pts >= zc - half) & (z_pts < zc + half)
+            for iu, uc in enumerate(u_grid):
+                m = zm & (u_pts >= uc - half) & (u_pts < uc + half)
+                if m.any():
+                    vals[iz, iu] = v_pts[m].max()
+        valid = ~np.isnan(vals)
+        return _smooth_grid(np.where(valid, vals, 0.0), valid), valid
+
+    # front: rows z, cols |x| mirrored to [-12, 12] so the slope at x = 0 is 0
+    u_front = np.arange(-12.0, 12.0 + 1e-9, 0.5)
+    z_front = np.arange(160.0, 190.0 + 1e-9, 0.5)
+    front_vals = np.full((len(z_front), len(u_front)), np.nan)
+    u_pts = np.abs(both[:, 0])
+    for iz, zc in enumerate(z_front):
+        zm = (both[:, 2] >= zc - 1.0) & (both[:, 2] < zc + 1.0) & (both[:, 1] > 6.0)
+        for iu, uc in enumerate(u_front):
+            m = zm & (u_pts >= abs(uc) - 1.0) & (u_pts < abs(uc) + 1.0)
+            if m.any():
+                front_vals[iz, iu] = both[m, 1].max()
+    front_valid = ~np.isnan(front_vals)
+    front_grid = _smooth_grid(np.where(front_valid, front_vals, 0.0), front_valid)
+
+    # side: rows z, cols y
+    y_side = np.arange(-3.0, 20.0 + 1e-9, 0.5)
+    z_side = np.arange(155.0, 190.0 + 1e-9, 0.5)
+    side_grid, _ = _cell_max(head, lambda v: v[:, 1], lambda v: v[:, 2],
+                             lambda v: np.abs(v[:, 0]), y_side, z_side)
+    _HILA_ENVELOPES = {
+        "front_grid": front_grid, "front_u": u_front, "front_z": z_front,
+        "side_grid": side_grid, "side_y": y_side, "side_z": z_side,
+    }
+    return _HILA_ENVELOPES
+
+
+def _smoothmax_poly(e: np.ndarray, k: float) -> tuple[np.ndarray, np.ndarray]:
+    """C1 polynomial smooth ``max(e, 0)`` with compact support, and its slope.
+
+    ``g = 0`` below ``-k``, ``g = e`` above ``+k``; between, ``(e+k)^2 / (4k)``.
+    Only +, *, / - no libm - and exactly zero away from the band, so points that
+    need no correction are moved by exactly nothing.
+    """
+    band = np.abs(e) < k
+    g = np.where(band, np.maximum(e + k, 0.0) ** 2 / (4.0 * k), np.maximum(e, 0.0))
+    dg = np.where(band, np.maximum(e + k, 0.0) / (2.0 * k), (e >= k).astype(np.float64))
+    return g, dg
+
+
+def fit_l4d2_accessory_clearance(
+    positions: np.ndarray, normals: np.ndarray, *, fit_envelope: bool = True,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Fit the tilted head inside the envelope vanilla Hila's accessories were made for.
+
+    Three continuous coordinate-space warps compose (face, scalp, eyes and lashes
+    all receive the same function of position, so the welded Face <-> Scalp seam
+    and the eyeballs stay together; the collar rim at z <= 156 is untouched):
+
+    1. the D86 trial base - a small whole-head setback and the crown ease down
+       and back below Hila's own crown (kept from the earlier trial, it is what
+       keeps the throat/collar junction and the crown clearance validated then);
+    2. **front-envelope tuck** - face surface in the eyewear band is clamped to
+       vanilla Hila's own front envelope + 5 mm, so brow, forehead and cheek sit
+       where her face sat behind `a_head` frames (the 2026-11-28 in-game report
+       showed the frames cutting Miranda's brow and cheek, which sat 0.3-0.9 cm
+       in front of Hila's);
+    3. **two side-corridor floors** - the temple sweep is floored to |x| = 9.45
+       (past the arm's crossing) and the jaw curtain to |x| = 10.6 (past the
+       arm's tip), so the arms pass under the hair sheets instead of riding over
+       them (the same report showed the arm riding the hair and its tip piercing
+       it). The gates start beyond the face shell (|x| 6.68), so only hair and
+       the welded ear rim move; the eye bundle rides stage 1 only.
+
+    No accessory meshes exist offline, so Hila's own measured head is the
+    stand-in for them; this is a measured fit to her envelope, not a claim of
+    collision-free clearance with every hat or pair of glasses. Normals follow
+    the exact inverse transpose of the composed Jacobian (adjugate form, so only
+    +, *, / enter the build).
+    """
+    env = hila_accessory_envelopes()
     p = np.asarray(positions, dtype=np.float64)
     n = np.asarray(normals, dtype=np.float64)
     x, y, z = p[:, 0], p[:, 1], p[:, 2]
 
-    def ramp(lo: float, hi: float) -> tuple[np.ndarray, np.ndarray]:
+    def ramp(lo: float, hi: float):
         t = np.clip((z - lo) / (hi - lo), 0.0, 1.0)
         return t * t * (3.0 - 2.0 * t), 6.0 * t * (1.0 - t) / (hi - lo)
 
+    def framp(lo: float, hi: float, v: np.ndarray):
+        t = np.clip((v - lo) / (hi - lo), 0.0, 1.0)
+        return t * t * (3.0 - 2.0 * t), 6.0 * t * (1.0 - t) / (hi - lo)
+
+    # ---- 1) base: whole-head setback + crown ease (the validated D86 trial) ----
     w, dw = ramp(159.0, 164.0)
     crown, dcrown = ramp(180.0, 184.0)
     top, dtop = ramp(178.5, 182.5)
-    dx = -0.04 * x
-    dy = -0.35 - 0.03 * (y - 15.70)
+    dx_field = -0.04 * x
+    dy_field = -0.35 - 0.03 * (y - 15.70)
     top_distance = np.maximum(z - 178.5, 0.0)
     out = p.copy()
-    out[:, 0] += w * dx
-    out[:, 1] += w * dy - 0.75 * crown
+    out[:, 0] += w * dx_field
+    out[:, 1] += w * dy_field - 0.75 * crown
     out[:, 2] -= 0.10 * top_distance * top
+    j1 = np.zeros((len(p), 3, 3))
+    j1[:, 0, 0] = 1.0 - 0.04 * w
+    j1[:, 0, 2] = dw * dx_field
+    j1[:, 1, 1] = 1.0 - 0.03 * w
+    j1[:, 1, 2] = dw * dy_field - 0.75 * dcrown
+    j1[:, 2, 2] = 1.0 - 0.10 * (top + top_distance * dtop)
 
-    # Inverse transpose of the local Jacobian, including both smooth ramps.
-    nx = n[:, 0] / (1.0 - 0.04 * w)
-    ny = n[:, 1] / (1.0 - 0.03 * w)
-    dz_dz = 1.0 - 0.10 * (top + top_distance * dtop)
-    nz = (n[:, 2] - nx * dw * dx - ny * (dw * dy - 0.75 * dcrown)) / dz_dz
-    normal = np.column_stack((nx, ny, nz))
+    # Every later stage measures against the position the previous stage left,
+    # so each stage's Jacobian is exactly the derivative of its own step and the
+    # composition cannot fold (a clamp at its ceiling holds, it never reverses).
+    absx = np.abs(out[:, 0])
+    signx = np.where(out[:, 0] >= 0.0, 1.0, -1.0)
+
+    # ---- 2) front-envelope tuck: face surface behind Hila's own front + 5 mm ----
+    # The eye bundle (eyeballs, teeth, lashes) rides the base only: clamping the
+    # lashes to the same envelope sheet as the tucked lid would sink them into it,
+    # and the pinned cornea apex is the D86 trial's clearance anchor.
+    if not fit_envelope:
+        # closed-form inverse transpose of the triangular j1, per vertex
+        a = j1[:, 0, 0]
+        b = j1[:, 1, 1]
+        c = j1[:, 1, 2]
+        d = j1[:, 2, 2]
+        e0 = j1[:, 0, 2]
+        nx = n[:, 0] / a
+        ny = n[:, 1] / b
+        nz = (n[:, 2] - nx * e0 - ny * c) / d
+        normal = np.column_stack((nx, ny, nz))
+        normal /= np.maximum(np.linalg.norm(normal, axis=1, keepdims=True), 1e-8)
+        return out.astype(np.float32), normal.astype(np.float32)
+    gu, gz = env["front_u"], env["front_z"]
+    col = (out[:, 0] - gu[0]) / (gu[1] - gu[0]) + 1.0
+    row = (out[:, 2] - gz[0]) / (gz[1] - gz[0]) + 1.0
+    t_val, t_da, t_db = _catmull_sample(env["front_grid"], col, row)
+    t_x = t_da / (gu[1] - gu[0])
+    t_z = t_db / (gz[1] - gz[0])
+    wc, dwc = framp(4.8, 3.8, absx)  # 1 on the brow corridor, 0 past |x| 4.8
+    z_up, dz_up = ramp(166.5, 168.5)
+    z_dn, dz_dn = ramp(179.5, 181.5)
+    wz = z_up * (1.0 - z_dn)
+    dwz = dz_up * (1.0 - z_dn) - z_up * dz_dn
+    w_tuck = wc * wz
+    e = out[:, 1] - (t_val + 0.05)
+    g, dg = _smoothmax_poly(e, 0.35)
+    out[:, 1] -= w_tuck * g
+    j2 = np.tile(np.eye(3), (len(p), 1, 1))
+    wt_x = dwc * signx * wz
+    wt_z = wc * dwz
+    j2[:, 1, 0] = -wt_x * g + w_tuck * dg * t_x
+    j2[:, 1, 1] = 1.0 - w_tuck * dg
+    j2[:, 1, 2] = -wt_z * g + w_tuck * dg * t_z
+
+    # ---- 3) side-corridor floors: hair outside the eyewear arm's ride (2 sheets)
+    # The arm rides outside Hila's head over her ear and temple; its tip crosses
+    # the jaw curtain. Two clamped floors put the hair sheets outside the arm's
+    # measured corridor: F1 lifts the temple sweep above the arm crossing (the
+    # in-game report showed the arm riding the hair there), F2 swings the jaw
+    # curtain out past the tip (the report showed the tip's metal glinting
+    # through it). Gates start at 6.9 cm - the face shell ends at |x| 6.68, so
+    # neither the face, the fringe edge below the gate, nor the ear lobes in the
+    # y-fade gaps can move; every other surface is either the hair itself or the
+    # welded ear rim that shares the hair's own edge verts.
+    # F1: temple sweep, target 9.45 cm (outside the arm at its crossing)
+    wx1, dwx1 = framp(6.9, 7.5, absx)
+    wy1, dwy1 = framp(10.0, 11.0, out[:, 1])
+    wy1 = wy1 * (1.0 - framp(16.5, 17.5, out[:, 1])[0])
+    dwy1 = dwy1 * (1.0 - framp(16.5, 17.5, out[:, 1])[0]) \
+        - framp(10.0, 11.0, out[:, 1])[0] * framp(16.5, 17.5, out[:, 1])[1]
+    z1_up, dz1_up = ramp(169.5, 171.0)
+    z1_dn, dz1_dn = ramp(178.5, 179.5)
+    wz1 = z1_up * (1.0 - z1_dn)
+    dwz1 = dz1_up * (1.0 - z1_dn) - z1_up * dz1_dn
+    w1 = wx1 * wy1 * wz1
+    h1, dh1 = _smoothmax_poly(9.45 - absx, 0.5)
+
+    # F2: jaw curtain past the arm tip, target 10.6 cm
+    wx2, dwx2 = framp(7.5, 8.1, absx)
+    wy2, dwy2 = framp(0.5, 1.5, out[:, 1])
+    wy2 = wy2 * (1.0 - framp(5.5, 6.5, out[:, 1])[0])
+    dwy2 = dwy2 * (1.0 - framp(5.5, 6.5, out[:, 1])[0]) \
+        - framp(0.5, 1.5, out[:, 1])[0] * framp(5.5, 6.5, out[:, 1])[1]
+    z2_up, dz2_up = ramp(164.5, 165.5)
+    z2_dn, dz2_dn = ramp(172.0, 173.0)
+    wz2 = z2_up * (1.0 - z2_dn)
+    dwz2 = dz2_up * (1.0 - z2_dn) - z2_up * dz2_dn
+    w2 = wx2 * wy2 * wz2
+    h2, dh2 = _smoothmax_poly(10.6 - absx, 0.5)
+
+    out[:, 0] += signx * (w1 * h1 + w2 * h2)
+    j3 = np.tile(np.eye(3), (len(p), 1, 1))
+    # The floor targets are constants, so each stage's Jacobian row is
+    # d/d(u,y,z) of sign(u)*(w*h): the weight slope term plus the clamp slope.
+    du = (dwx1 * wy1 * wz1 * h1 - w1 * dh1) + (dwx2 * wy2 * wz2 * h2 - w2 * dh2)
+    ddy = wx1 * dwy1 * wz1 * h1 + wx2 * dwy2 * wz2 * h2
+    ddz = wx1 * wy1 * dwz1 * h1 + wx2 * wy2 * dwz2 * h2
+    j3[:, 0, 0] = 1.0 + du
+    j3[:, 0, 1] = signx * ddy
+    j3[:, 0, 2] = signx * ddz
+
+    # ---- normals: adjugate of the composed Jacobian, applied to n ----
+    jt = j3 @ j2 @ j1
+    normal = np.empty_like(n)
+    normal[:, 0] = (jt[:, 1, 1] * jt[:, 2, 2] - jt[:, 1, 2] * jt[:, 2, 1]) * n[:, 0] \
+        + (jt[:, 1, 2] * jt[:, 2, 0] - jt[:, 1, 0] * jt[:, 2, 2]) * n[:, 1] \
+        + (jt[:, 1, 0] * jt[:, 2, 1] - jt[:, 1, 1] * jt[:, 2, 0]) * n[:, 2]
+    normal[:, 1] = (jt[:, 0, 2] * jt[:, 2, 1] - jt[:, 0, 1] * jt[:, 2, 2]) * n[:, 0] \
+        + (jt[:, 0, 0] * jt[:, 2, 2] - jt[:, 0, 2] * jt[:, 2, 0]) * n[:, 1] \
+        + (jt[:, 0, 1] * jt[:, 2, 0] - jt[:, 0, 0] * jt[:, 2, 1]) * n[:, 2]
+    normal[:, 2] = (jt[:, 0, 1] * jt[:, 1, 2] - jt[:, 0, 2] * jt[:, 1, 1]) * n[:, 0] \
+        + (jt[:, 0, 2] * jt[:, 1, 0] - jt[:, 0, 0] * jt[:, 1, 2]) * n[:, 1] \
+        + (jt[:, 0, 0] * jt[:, 1, 1] - jt[:, 0, 1] * jt[:, 1, 0]) * n[:, 2]
     normal /= np.maximum(np.linalg.norm(normal, axis=1, keepdims=True), 1e-8)
     return out.astype(np.float32), normal.astype(np.float32)
 
@@ -1910,7 +2186,7 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
                 if for_suit:
                     p_s, n_s = rigid_l4d2_head_posture(p_s, n_s)
             if for_suit:
-                p_s, n_s = fit_l4d2_accessory_clearance(p_s, n_s)
+                p_s, n_s = fit_l4d2_accessory_clearance(p_s, n_s, fit_envelope=mid in (1, 3))
             atoms_by_mid.setdefault(mid, []).append((p_s, n_s, uv_s, t_s))
 
         face_p, face_n, face_uv, face_t = atoms_by_mid[1][0]
@@ -1930,7 +2206,7 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
 
         if for_suit:
             lp_out, ln_out = rigid_l4d2_head_posture(lash_p, lash_n)
-            lp_out, ln_out = fit_l4d2_accessory_clearance(lp_out, ln_out)
+            lp_out, ln_out = fit_l4d2_accessory_clearance(lp_out, ln_out, fit_envelope=False)
         else:
             lp_out, ln_out = lash_p.copy(), lash_n.copy()
 
