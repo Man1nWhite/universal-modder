@@ -1,3 +1,39 @@
+## 2026-11-28 (latest) — `Arivus_over_Hoxton_v2.zip`: the owner's Blender scene as a pack (D96)
+
+The tracked `references/templates/Arivus Head BLEND.7z` holds the owner's edit of the v1 Arivus head
+(`g_head_old_hoxton`, re-rigged onto three bones) with v1's atlas packed in. It becomes a second
+pack beside v1, not a replacement: measured against v1's shipped drawable, the scene's mesh differs
+by 0.03 cm median / 0.26 p95 / 0.68 max, every largest move above z 168.6 cm at the crown and the
+back of the skull, with the neck, the UVs and the weights unchanged. The new pack is built by
+`tools/build_arivus_v2_mod.py`, which calls the v1 builder with the head handed in (`parts=`,
+`close_neck=False`) instead of cutting `Random4.dff`; the atlas, the flat normal map, the icon, the
+`.object` files, the three material configs and the heist/menu/Safe-House models are v1's own code
+and v1's own bytes.
+
+The scene is read **once** by `tools/pd2-las/arivus_v2_from_blend.py` into the tracked digest
+`references/arivus_v2/head_v2.json` (positions, UVs, corner normals, triangles; integer rows; `--check`
+re-reads the archive), so the pack build stays pure Python and Blender stays off the build path
+(D5). What the read had to get right, each caught by a measurement and not by a guess: the scene is
+already in Diesel's axes and centimetres (`(x, −z, y)·100` put the chin at z 148 and was rejected by
+the bbox), its UVs need no `1−v` flip (they match v1's corner for corner to 1.3e-8), it already
+carries the D79 neck skirt (22 vertices at z 148.001, so stitching a second one grew the mesh by 27
+vertices), and its doubled hair means normal comparisons must accept either copy.
+
+The tracked `.blend` was saved by Blender 5.1 (501.30); 4.2 — the version this repository pins
+(`docs/audits/2026-11-14-christie-rebuild-redo.md`) — refuses it. `tools/pd2-las/resave_arivus_blend.py`
+now rewrites it with 4.2.23: stage 1 dumps the scene's data with 5.0.1, stage 2 rebuilds it in a fresh
+4.2 document (armature and pose, mesh, UVs, vertex groups, material's eight nodes, two packed 2048²
+images) and repacks the `.7z`. A plain open-and-save in 5.x does **not** work: `bpy.data.version`
+inherits the opened file's stamp, so the re-save still says 501 and 4.2 still refuses it. The
+rebuilt scene's evaluated mesh matches the original to 8e-6 cm and the pack rebuilt from it is
+byte-identical.
+
+Also in this pass: `tests/test_arivus_v2.py` (22 tests) holds the digest, the archive's version
+stamp, the files that must stay v1's byte for byte, the topology/weights, the re-sculpt's measured
+size and height, and the neck ring's enclosure on all three models; `docs/renders/arivus/model/over-hoxton-v2/`
+gets a sheet of v1 and v2 from the same three cameras; and the make-target regexes in five tests
+learn `[a-z0-9_]+`, because `heads_v2` was the first target with a digit in its name.
+
 # PAYDAY 2 LAS — review journal
 
 ## 2026-11-28 (merge 2) — `main` landed its own D86 (Miranda posture); the VO entries renumber again

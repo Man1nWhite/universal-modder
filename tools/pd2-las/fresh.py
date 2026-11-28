@@ -52,6 +52,8 @@ BUILDERS = {
     "voices_stream": ["tools/build_hila_stream_mod.py"],
     # One pack per purpose-authored bark set, same id-keyed route as voices_stream.
     # Reads the tracked Arivus head pack, so it runs after `heads`.
+    # Reads the tracked mesh digest, not another pack, so it runs anywhere after `env`.
+    "heads_v2": ["tools/build_arivus_v2_mod.py"],
     "glb": ["tools/pd2-las/build_arivus_glb_pack.py"],
 }
 

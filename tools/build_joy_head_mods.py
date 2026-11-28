@@ -2506,7 +2506,13 @@ def load_arivus_diffuse(path: Path = ARIVUS_DIFFUSE) -> tuple[np.ndarray, bytes]
 
 
 def build_arivus_hoxton_mod(
-    arivus_root: Path, suit_unit_dir: Path, out_zip_paths: list[Path]
+    arivus_root: Path,
+    suit_unit_dir: Path,
+    out_zip_paths: list[Path],
+    *,
+    parts: dict[str, dict] | None = None,
+    prefix: str = "Arivus over Hoxton",
+    close_neck: bool = True,
 ) -> None:
     """Build the Arivus (Random4 GTA ped) head replacement over Old Hoxton.
 
@@ -2519,9 +2525,20 @@ def build_arivus_hoxton_mod(
     (material 4) and shirt (material 7) are clothing
     and stay out. Transform: source rig axes (+x up, +y fwd, +z left) map to
     Diesel world (+x right, +y fwd, +z up) around the Head-bone anchors below.
+
+    ``parts`` replaces the mesh the pack ships, keeping everything else: it is a
+    ``{"head": atom0_mesh, "hair": atom1_mesh}`` pair of Diesel-space meshes with
+    "verts"/"normals"/"uvs"/"tris", where the head and hair meshes are already
+    cut, placed, and UV-mapped onto the 2048 atlas. The v2 pack
+    (`tools/build_arivus_v2_mod.py`) supplies the owner's re-sculpted scene that
+    way; with ``parts=None`` the Random4 `.dff` is read and cut by the material
+    groups, as the v1 pack has always done. Nothing downstream can tell the two
+    apart: same neck skirt, same hair doubling, same weights, same atlas.
     """
-    dff = rwd.read_dff((arivus_root / "Random4.dff").read_bytes())
-    V, Nrm, UV = dff.positions, dff.normals, dff.uvs
+    dff = None if parts is not None else rwd.read_dff((arivus_root / "Random4.dff").read_bytes())
+    V = dff.positions if dff is not None else None
+    Nrm = dff.normals if dff is not None else None
+    UV = dff.uvs if dff is not None else None
 
     def _rot(pts: np.ndarray) -> np.ndarray:
         return np.column_stack([-pts[:, 2], pts[:, 1], pts[:, 0]])
@@ -2579,17 +2596,24 @@ def build_arivus_hoxton_mod(
             raise FileNotFoundError(f"{name} missing from the npc_criminals_suit_1 reference")
         return p.read_bytes()
 
-    atom0_mesh = extract_arivus_part(5, 0.0, 0.5, 0.0, 0.5)  # head: top-left cell
-    atom1_mesh = extract_arivus_part(6, 0.0, 0.5, 0.5, 0.5)  # hair: bottom-left cell
+    if parts is None:
+        atom0_mesh = extract_arivus_part(5, 0.0, 0.5, 0.0, 0.5)  # head: top-left cell
+        atom1_mesh = extract_arivus_part(6, 0.0, 0.5, 0.5, 0.5)  # hair: bottom-left cell
+    else:
+        # Already cut, placed and UV-mapped by the caller: the v2 scene. The neck skirt
+        # and the hair doubling below are applied to it exactly as to the `.dff` cut.
+        atom0_mesh = {key: np.array(value) for key, value in parts["head"].items()}
+        atom1_mesh = {key: np.array(value) for key, value in parts["hair"].items()}
     # Close the neck (D79): drop the ped's V-shaped cut to the collar's height, then
     # stitch a skirt from the rim down to z 148 tucked inside the suit. The extract
     # is triangle soup (one vertex per corner), so the rim only exists as an *open
     # edge* after welding: dedup first, then close it.
-    welded = deduplicate_mesh(atom0_mesh["verts"], atom0_mesh["normals"],
-                              atom0_mesh["uvs"], atom0_mesh["tris"])
-    neck_skirt = extend_neck_into_collar(*welded)
-    atom0_mesh = {"verts": neck_skirt[0], "normals": neck_skirt[1],
-                  "uvs": neck_skirt[2], "tris": neck_skirt[3]}
+    if close_neck:
+        welded = deduplicate_mesh(atom0_mesh["verts"], atom0_mesh["normals"],
+                                  atom0_mesh["uvs"], atom0_mesh["tris"])
+        neck_skirt = extend_neck_into_collar(*welded)
+        atom0_mesh = {"verts": neck_skirt[0], "normals": neck_skirt[1],
+                      "uvs": neck_skirt[2], "tris": neck_skirt[3]}
     packed_head = _prepare_combined_head_arrays(
         atom0_mesh,
         atom1_mesh,
@@ -2628,7 +2652,6 @@ def build_arivus_hoxton_mod(
             zf.read(f"{FPS_GLOVES_ZIP_PREFIX}{CHILL_UNIT_DIR}/mtr_old_hoxton.material_config")
         )
 
-    prefix = "Arivus over Hoxton"
     files: dict[str, bytes] = {
         f"{prefix}/{OLD_HOXTON_ICON_PATH}": icon_dds,
         f"{prefix}/{SUIT_UNIT_DIR}/{SUIT_UNIT_STEM}.model": suit_model,
