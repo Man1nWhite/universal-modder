@@ -19,7 +19,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build honokodae bunny heads heads_v2 voices_stream voices_tables voices_char_rust voices_sheets voices_master glb all inventory audit fresh test green
+.PHONY: help status env build honokodae bunny heads heads_v2 voices_stream voices_geralt voices_tables
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -58,12 +58,15 @@ heads_v2: ## Arivus_over_Hoxton_v2: the owner's re-sculpted head from references
 voices_stream:  ## Miranda_Lawson_VO_over_Hila_Stream: the same clips as one Wwise ADPCM .stream per Hila voice-line id, no BeardLib -> dist/Miranda/
 	$(call BUILD,tools/build_hila_stream_mod.py)
 
+voices_geralt:  ## Geralt_VO_over_Rust: Geralt's 36 Ogg Vorbis takes over Rust (prefix rb16) via BeardLib <Sounds> + XAudio lifecycle fix -> dist/Geralt/
+	$(call BUILD,tools/build_geralt_vo_mod.py)
+
 voices_tables:  ## the Rust and Old Hoxton stream tables (slot -> bank -> id) -> voice_lines_vox/targets/
 	@cd "$(ROOT)" && $(PY) tools/build_stream_tables.py
 
-# voices_geralt / voices_arivus (and the Geralt_VO_over_Rust_Stream / Arivus_VO_over_Hoxton_Stream
-# packs) are gone: retired and deleted from dist/ 2026-11-28 (D89); never heard in game.
-# The builder remains for the char_rust route below.
+# Geralt_VO_over_Rust_Stream / Arivus_VO_over_Hoxton_Stream (shared regular_vox .stream packs)
+# were retired and deleted from dist/ 2026-11-28 (D89); Geralt_VO_over_Rust now ships via
+# BeardLib <Sounds> + lifecycle fix above (voices_geralt). The stream builder remains for char_rust.
 # Not a BUILD target: the re-keyed pack is not tracked in dist/ until the id map exists (D74),
 # so `fresh` and `status` do not own it - the builder prints its own state.
 voices_char_rust:  ## Geralt's takes onto Rust's own char_rust bank (refuses until voice_lines_vox/geralt/char_rust_ids.csv names every id)
@@ -95,7 +98,7 @@ ifneq ($(filter all heads,$(MAKECMDGOALS)),)
 glb: heads
 endif
 
-all: build honokodae bunny heads heads_v2 voices_stream glb  ## every tracked pack
+all: build honokodae bunny heads heads_v2 voices_stream voices_geralt glb  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

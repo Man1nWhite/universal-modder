@@ -23,6 +23,7 @@ char_sydney — pdf-only ids (no line text anywhere),0,the print adds no id beyo
 robbers_mission_gen — Sydney .docx lines,"224 rows (145 backfilled community audio-only rows, 1 new id)","Sydney-voiced mission chatter from the same .docx; 223 of the 224 sit in the community export (9 word-identical, 75 sharing ≥1 word; wording is Sydney’s own)"
 Bodhi — rows / distinct ids,"1,351 / 1,344",25 tabs; the only Bodhi data in the tree; blank tab excluded
 packs — Miranda_Lawson_VO_over_Hila_Stream,699 .stream files · 62 slots · 885 ids mapped,heard in game 2026-11-25 (user): works
+packs — Geralt_VO_over_Rust,36 .ogg files · 29 slots + 2 callouts · 45 bark events on rb16,BeardLib <Sounds> + Lua XAudio lifecycle fix (D97); uncovered Rust lines stay vanilla
 packs — Geralt_VO_over_Rust_Stream,315 .stream files · 29 slots,RETIRED 2026-11-28: deleted from dist/ (D89); never heard in game
 packs — Arivus_VO_over_Hoxton_Stream,324 .stream files · 19 slots (18 + call_teammate.hey_you),RETIRED 2026-11-28: deleted from dist/ (D89); never heard in game; carried the borrowed Geralt callout
 machine transcription — engine,pocketsphinx 5.x en-us,whisper models unreachable from this environment (HF/Azure blocked); every draft is unverified and flagged
