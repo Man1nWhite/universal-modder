@@ -91,7 +91,7 @@ pack that has one. The flag does not say whether the tracked bytes were in game.
 | `Miranda_L4D2_LAS` (eye is the supplied picture since D84) | no record | — |
 | `Geralt_over_Rust` | no record | — |
 | `Arivus_over_Hoxton` | 2026-11-25 (face, D66/D69-era bytes) | **no** — rebuilt again for D79 (neck rim, skirt, skinning); the D72 neck and the `bone_offset` fix have never been in game |
-| `Miranda_L4D2_over_Hila` (eye quadrant rebuilt from the tracked `EYE_Diff.png`, D84) | no record | — |
+| `Miranda_L4D2_over_Hila` (eye quadrant rebuilt from the tracked `EYE_Diff.png`, D84; tilted forward onto female heister posture with orthonormal tangents, D86) | 2026-11-27, user-supplied side-profile menu screenshot (with Tailor Pack coat/turtleneck and sunglasses, pre-D86 upright posture) | **no** — rebuilt for D86 (`+10.5°` forward posture tilt, cornea-matched eye-socket alignment, monotonic throat blend, and orthonormal `tangents.py` frame); the D86 bytes have not been seen in game |
 | `OfficeSuite_Miranda_Romance_over_Hila` (**retired 2026-11-26, D82**) | no record | — (native body and head override; retired in favour of `OfficeSuite_Head`, which carried the same body, cut and head as a registered LAS item — and that one went too, D83) |
 | `OfficeSuite_Head` (**retired 2026-11-26, D83**) | no record | — (the whole-character pack; the D75 wrist pass and its palettes are still checked on the `OfficeSuite` body it shared) |
 | `Miranda_Romance_LAS` (**retired 2026-11-26, D83**) | no record | — (the ME2 Romance LAS outfit and the port that built it; [`tools/pd2-port/STATUS.md`](../../tools/pd2-port/STATUS.md) is its record) |

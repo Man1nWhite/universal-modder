@@ -7,7 +7,7 @@ Two problems are fixed here, both of them a fresh clone's first five minutes:
   module before collecting, so one line here does the same job for all of them.
 
 * The 2B reference templates (`references/templates/2b/{2b,fps_2b}.model`) are tracked build
-  inputs (from 2026-11-27, D88). A checkout that has lost them used to report four *failures*
+  inputs (from 2026-11-27, D89). A checkout that has lost them used to report four *failures*
   with `FileNotFoundError: .../2b.model`; now the suite skips the tests that read them with
   `tools/pd2-las/extract_2b.MISSING` as the reason — the wording the skip budget knows
   (`tools/pd2-port/check_skip_budget.py`), and the command that restores them is in it.

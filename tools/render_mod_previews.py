@@ -13,7 +13,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `31`/`35`/`36` `*_fps.png` (first-person `fps_*.model` / `ccmt_acc_fps_bunny_male.model` sheets —
     Miranda_L4D2_LAS, OfficeSuite, and OfficeSuite_over_Bunny — player, three-quarter, side and top-down views, auto-framed)
   - `37_OfficeSuite_wrist.png` (the D75 wrist junction)
-  - `39_Geralt_beard.png` (the beard quadrant's own close-up, where the D86 tracked DDS is legible)
+  - `40_Geralt_beard.png` (the beard quadrant's own close-up, where the D87 tracked DDS is legible)
 
 The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie, and the ME2
 Romance line — `Miranda_Romance_LAS`, `Miranda_Romance_over_Hila`, `OfficeSuite_Head`, D83) stay
@@ -1032,13 +1032,240 @@ def render_geralt_beard_closeup(out_path: Path, size: int = 900) -> Image.Image:
         canvas,
         "dist/Geralt/Geralt_over_Rust.zip — Beard Close-Up (g_head atlas quadrant)",
         "Chin and jaw at 3x the portrait's scale | Source: references/textures/geralt_beard_df.dds "
-        "(D86)",
+        "(D87)",
         None,
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(out_path)
     print(f"Saved {out_path}")
     return canvas
+
+
+def render_hila_posture_sheet(out_path: Path) -> None:
+    """Render the 6-panel D86 posture, collar-throat & macro verification sheet for `Miranda_L4D2_over_Hila`."""
+    import build_joy_head_mods as bj
+
+    hila_zip = dist_path(ROOT, "Miranda_L4D2_over_Hila.zip")
+    mir_zip = dist_path(ROOT, "Miranda_L4D2_LAS.zip")
+    os_zip = dist_path(ROOT, "OfficeSuite.zip")
+
+    with zipfile.ZipFile(hila_zip) as zf:
+        m_raw = zf.read("Miranda L4D2 over Hila/units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model")
+        hdf_raw = zf.read("Miranda L4D2 over Hila/units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture")
+        ldf_raw = zf.read("Miranda L4D2 over Hila/units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_lashes_df.texture")
+    mf_aft = dm.ModelFile.read(m_raw)
+    hdf = np.asarray(Image.open(io.BytesIO(hdf_raw)).convert("RGBA"))
+    ldf = np.asarray(Image.open(io.BytesIO(ldf_raw)).convert("RGBA"))
+
+    md_aft = next(
+        dm.decode_model_data(s.payload)
+        for s in mf_aft.by_type(dm.MODEL_DATA)
+        if dm.decode_model_data(s.payload).get("name_hash") == dm.hash64("g_head")
+    )
+    pg_aft = dm.decode_passthroughgp(mf_aft.by_id(md_aft["passthroughgp"]).payload)
+    geo_aft = dm.decode_geometry(mf_aft.by_id(pg_aft["geometry"]).payload)
+    topo_aft = np.asarray(dm.decode_topology(mf_aft.by_id(pg_aft["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+    v_aft = np.asarray(geo_aft["verts"], dtype=np.float32)
+    n_aft = np.asarray(geo_aft["normals"], dtype=np.float32)
+    uv_aft = np.asarray(geo_aft["uv0"], dtype=np.float32)
+    a0, a1 = md_aft["atoms"][0], md_aft["atoms"][1]
+    t0_aft = topo_aft[a0["base_index"] // 3 : a0["base_index"] // 3 + a0["tri_count"]]
+    t1_aft = topo_aft[a1["base_index"] // 3 : a1["base_index"] // 3 + a1["tri_count"]]
+
+    # Reconstruct the pre-D86 upright L4D2 bind head deterministically from Miranda_L4D2_LAS + inverse rigid eyelashes
+    c_p, s_p = bj._l4d2_posture_cos_sin()
+    src_ey, src_ez = bj.L4D2_SRC_EYE_YZ
+    tgt_ey, tgt_ez = bj.L4D2_TGT_EYE_YZ
+    lash_v_aft = v_aft[a1["base_vertex"] : a1["base_vertex"] + a1["slice_len"]].astype(np.float64)
+    lash_n_aft = n_aft[a1["base_vertex"] : a1["base_vertex"] + a1["slice_len"]].astype(np.float64)
+    lash_uv_aft = uv_aft[a1["base_vertex"] : a1["base_vertex"] + a1["slice_len"]]
+    lash_t_loc = t1_aft - a1["base_vertex"]
+    lash_v_bef = lash_v_aft.copy()
+    dy_l, dz_l = lash_v_aft[:, 1] - tgt_ey, lash_v_aft[:, 2] - tgt_ez
+    lash_v_bef[:, 1] = src_ey + dy_l * c_p - dz_l * s_p
+    lash_v_bef[:, 2] = src_ez + dy_l * s_p + dz_l * c_p
+    lash_n_bef = lash_n_aft.copy()
+    lash_n_bef[:, 1] = lash_n_aft[:, 1] * c_p - lash_n_aft[:, 2] * s_p
+    lash_n_bef[:, 2] = lash_n_aft[:, 1] * s_p + lash_n_aft[:, 2] * c_p
+
+    with zipfile.ZipFile(mir_zip) as zf:
+        pm_mir = dm.ModelFile.read(zf.read("Miranda_LAS/assets/units/miranda/skins/miranda/miranda.model"))
+    md_h0 = dm.decode_model_data(pm_mir.by_id(94).payload)
+    pg_h0 = dm.decode_passthroughgp(pm_mir.by_id(md_h0["passthroughgp"]).payload)
+    geo_h0 = dm.decode_geometry(pm_mir.by_id(pg_h0["geometry"]).payload)
+    topo_h0 = np.asarray(dm.decode_topology(pm_mir.by_id(pg_h0["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+    vh0 = np.asarray(geo_h0["verts"], dtype=np.float64)
+    nh0 = np.asarray(geo_h0["normals"], dtype=np.float64)
+    uvh0 = np.column_stack([np.asarray(geo_h0["uv0"])[:, 0], 1.0 - np.asarray(geo_h0["uv0"])[:, 1]])
+
+    atoms_bef: dict[int, list[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]] = {}
+    for atom in md_h0["atoms"]:
+        bv, sl, bi, tc, mid = atom["base_vertex"], atom["slice_len"], atom["base_index"], atom["tri_count"], atom["material_id"]
+        ps, ns, uvs = vh0[bv : bv + sl].copy(), nh0[bv : bv + sl].copy(), uvh0[bv : bv + sl].copy()
+        ts = topo_h0[bi // 3 : bi // 3 + tc] - bv
+        if mid == 3:
+            ps_sh = bj.shape_neck_and_hair_for_suit_collar(ps.astype(np.float32), uvs.astype(np.float32), tris=ts)
+            ps_sk, ns_sk, uvs_sk, ts_sk = bj.extend_neck_skirt(ps_sh, ns.astype(np.float32), uvs.astype(np.float32), ts)
+            ps, ns, uvs, ts = ps_sk.astype(np.float64), ns_sk.astype(np.float64), uvs_sk.astype(np.float64), ts_sk
+        elif mid == 0:
+            uvs = bj.project_me2_eye_uv_img(ps)
+            ns = bj.soften_eyeball_normals(ns.astype(np.float32)).astype(np.float64)
+        atoms_bef.setdefault(mid, []).append((ps, ns, uvs, ts))
+    fp0, fn0, fuv0, ft0 = atoms_bef[1][0]
+    sp0, sn0, suv0, st0 = atoms_bef[3][0]
+    fn0, sn0 = bj.repair_skin_and_neck_normals(fp0, fn0, ft0, sp0, sn0, suv0, st0)
+    atoms_bef[1][0] = (fp0, fn0.astype(np.float64), fuv0, ft0)
+    atoms_bef[3][0] = (sp0, sn0.astype(np.float64), suv0, st0)
+    mat_quad = {1: (0, 0), 2: (1, 0), 3: (1, 0), 0: (1, 1)}
+    b_v, b_n, b_uv, b_t = [], [], [], []
+    for mid in (3, 0, 1, 2):
+        qx, qy = mat_quad[mid]
+        for ps, ns, uvs, ts in atoms_bef[mid]:
+            off = sum(len(x) for x in b_v)
+            b_v.append(ps.astype(np.float32))
+            b_n.append(ns.astype(np.float32))
+            b_uv.append(bj.map_uv_to_quadrant(uvs, qx, qy))
+            b_t.append(ts + off)
+    v_bef0 = np.vstack(b_v)
+    n_bef0 = np.vstack(b_n)
+    uv_bef0 = np.vstack(b_uv)
+    t0_bef = np.vstack(b_t)
+
+    with zipfile.ZipFile(os_zip) as zf:
+        os_mf = dm.ModelFile.read(zf.read("OfficeSuite/assets/units/officesuite/skins/officesuite/officesuite.model"))
+    md_os = next(
+        dm.decode_model_data(s.payload)
+        for s in os_mf.by_type(dm.MODEL_DATA)
+        if dm.decode_model_data(s.payload).get("name_hash") == dm.hash64("g_body")
+    )
+    pg_os = dm.decode_passthroughgp(os_mf.by_id(md_os["passthroughgp"]).payload)
+    os_geo = dm.decode_geometry(os_mf.by_id(pg_os["geometry"]).payload)
+    os_topo = np.asarray(dm.decode_topology(os_mf.by_id(pg_os["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+    suit_tex = np.full((32, 32, 4), [24, 27, 34, 255], dtype=np.uint8)
+    os_v = np.asarray(os_geo["verts"], dtype=np.float32)
+    os_n = np.asarray(os_geo["normals"], dtype=np.float32)
+    os_uv = np.asarray(os_geo["uv0"], dtype=np.float32)
+
+    # Menu LBS pose on AFTER (`Neck` +3.5°, `Head` +4.0°)
+    vp = v_aft.astype(np.float64)
+    np_a = n_aft.astype(np.float64)
+    bi_a = np.asarray(geo_aft["blendindices"], dtype=np.int32)
+    bw_a = np.asarray(geo_aft["blendweights"], dtype=np.float64)
+    p_neck = np.array([0.0, 2.29, 159.33])
+    p_head = np.array([0.0, 5.33, 166.76])
+
+    def _rx(deg: float) -> np.ndarray:
+        r = np.radians(deg)
+        c, s = np.cos(r), np.sin(r)
+        return np.array([[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]])
+
+    rn = _rx(3.5)
+    rh = rn @ _rx(4.0)
+    ph_p = p_neck + rn @ (p_head - p_neck)
+    mp = {1: vp, 2: p_neck + (rn @ (vp - p_neck).T).T, 3: ph_p + (rh @ (vp - p_head).T).T}
+    mn = {1: np_a, 2: (rn @ np_a.T).T, 3: (rh @ np_a.T).T}
+    vo_a = np.zeros_like(vp)
+    no_a = np.zeros_like(np_a)
+    for k in range(3):
+        ik = bi_a[:, k]
+        wk = bw_a[:, k][:, None]
+        for bid in (1, 2, 3):
+            m = ik == bid
+            if m.any():
+                vo_a[m] += wk[m] * mp[bid][m]
+                no_a[m] += wk[m] * mn[bid][m]
+    no_a /= np.maximum(np.linalg.norm(no_a, axis=1, keepdims=True), 1e-8)
+    vo_f = vo_a.astype(np.float32)
+    no_f = no_a.astype(np.float32)
+
+    def _shift(parts_list: list[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, bool, bool]], dy: float):
+        out = []
+        for vx, nx, tx, uvx, texx, is_l, ds in parts_list:
+            vc = vx.copy()
+            vc[:, 1] += dy
+            out.append((vc, nx, tx, uvx, texx, is_l, ds))
+        return out
+
+    bef_parts = [
+        (os_v, os_n, os_topo, os_uv, suit_tex, False, False),
+        (v_bef0, n_bef0, t0_bef, uv_bef0, hdf, False, False),
+        (lash_v_bef.astype(np.float32), lash_n_bef.astype(np.float32), lash_t_loc, lash_uv_aft, ldf, True, False),
+    ]
+    aft_parts = [
+        (os_v, os_n, os_topo, os_uv, suit_tex, False, False),
+        (v_aft, n_aft, t0_aft, uv_aft, hdf, False, False),
+        (v_aft, n_aft, t1_aft, uv_aft, ldf, True, False),
+    ]
+    posed_parts = [
+        (os_v, os_n, os_topo, os_uv, suit_tex, False, False),
+        (vo_f, no_f, t0_aft, uv_aft, hdf, False, False),
+        (vo_f, no_f, t1_aft, uv_aft, ldf, True, False),
+    ]
+
+    pw, th, bh = 460, 510, 460
+    scale_side, zc_side = 12.6, 171.2
+    p1 = rasterize_parts(_shift(bef_parts, -7.2), pw, th, -90, zc_side, scale_side, z_min_clip=145.0)
+    p2 = rasterize_parts(_shift(aft_parts, -7.2), pw, th, -90, zc_side, scale_side, z_min_clip=145.0)
+    p3 = rasterize_parts(_shift(posed_parts, -8.2), pw, th, -90, zc_side, scale_side, z_min_clip=145.0)
+
+    for im, dy_sh, show_before_eye in ((p1, -7.2, True), (p2, -7.2, False)):
+        dr = ImageDraw.Draw(im)
+        jx = int(round(pw * 0.5 + (tgt_ey + dy_sh) * scale_side))
+        jz = int(round(th * 0.5 - (tgt_ez - zc_side) * scale_side))
+        dr.ellipse([jx - 5, jz - 5, jx + 5, jz + 5], outline=(90, 230, 255), width=2)
+        dr.text((jx + 8, jz - 7), "PD2 Eye Target", fill=(90, 230, 255), font=FONT_REG_11)
+        if show_before_eye:
+            bx = int(round(pw * 0.5 + (src_ey + dy_sh) * scale_side))
+            bz = int(round(th * 0.5 - (src_ez - zc_side) * scale_side))
+            dr.ellipse([bx - 5, bz - 5, bx + 5, bz + 5], outline=(255, 120, 120), width=2)
+            dr.line([(bx + 5, bz), (jx - 5, jz)], fill=(255, 200, 90), width=2)
+            dr.text((bx - 108, bz - 18), "L4D2 Eye (-3.7 cm)", fill=(255, 145, 145), font=FONT_REG_11)
+
+    p4 = rasterize_parts(aft_parts, pw, bh, 0, 168.5, 13.2, z_min_clip=145.0)
+    p5 = rasterize_parts(aft_parts, pw, bh, 32, 168.5, 13.2, z_min_clip=145.0)
+    p6 = rasterize_parts(aft_parts, pw, bh, 25, 173.8, 24.0, z_min_clip=158.0)
+
+    labels_top = [
+        (p1, "BEFORE: Upright L4D2 Bind (-90°)", (255, 160, 160)),
+        (p2, "AFTER: +10.5° Heister Posture (-90°)", (135, 255, 175)),
+        (p3, "AFTER: Menu Pose + Suit Collar (-90°)", (135, 235, 255)),
+    ]
+    labels_bot = [
+        (p4, "AFTER: Portrait Front (0°)", (235, 240, 250)),
+        (p5, "AFTER: 3/4 Jawline & Throat (32°)", (235, 240, 250)),
+        (p6, "AFTER: Eye, Lash & Seam Macro (25°)", (235, 240, 250)),
+    ]
+    for im, txt, col in labels_top + labels_bot:
+        dr = ImageDraw.Draw(im)
+        dr.rectangle([8, 8, pw - 8, 34], fill=(14, 17, 24))
+        dr.text((14, 13), txt, fill=col, font=FONT_BOLD_13)
+
+    gap, hdr = 10, 62
+    w_tot = pw * 3 + gap * 4
+    h_tot = hdr + th + bh + gap * 3
+    sheet = Image.new("RGB", (w_tot, h_tot), (11, 13, 18))
+    drs = ImageDraw.Draw(sheet)
+    drs.text(
+        (gap + 4, 12),
+        "dist/Miranda/Miranda_L4D2_over_Hila.zip — Forward Heister Posture & Throat Verification (D86)",
+        fill=(242, 245, 252),
+        font=FONT_BOLD_16,
+    )
+    drs.text(
+        (gap + 4, 36),
+        "+10.5° rational pitch | Eyeball (12.00, 174.72) -> (15.70, 173.80) cm (cornea 17.29 cm) | Orthonormal TBN | 0/114 rim edges exposed",
+        fill=(165, 178, 200),
+        font=FONT_REG_12,
+    )
+    drs.line([(0, hdr - 4), (w_tot, hdr - 4)], fill=(58, 128, 220), width=2)
+    for i, (im, _, _) in enumerate(labels_top):
+        sheet.paste(im, (gap + i * (pw + gap), hdr))
+    for i, (im, _, _) in enumerate(labels_bot):
+        sheet.paste(im, (gap + i * (pw + gap), hdr + th + gap))
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(out_path)
+    print(f"Saved {out_path}")
 
 
 UNIFIED_PATHS = {
@@ -1055,8 +1282,10 @@ UNIFIED_PATHS = {
     # not in the numbered overview: the wrist junction D75 changed, before and after the pass
     "37_OfficeSuite_wrist.png": "honoka/model/wrist/officesuite_wrist_ext30_twist.png",
     "38_OfficeSuite_over_Bunny_posed.png": "honoka/model/over-bunny/officesuite_over_bunny_posed_sheet.png",
-    # not in the numbered overview: the beard quadrant's own close-up (D86's tracked DDS)
-    "39_Geralt_beard.png": "geralt/model/over-rust/geralt_beard_closeup.png",
+    # not in the numbered overview: the beard quadrant's own close-up (D87's tracked DDS)
+    "40_Geralt_beard.png": "geralt/model/over-rust/geralt_beard_closeup.png",
+    # D86 side-profile posture & throat contour comparison for Miranda_L4D2_over_Hila
+    "39_Miranda_L4D2_over_Hila_posture.png": "miranda/model/over-hila/miranda_l4d2_over_hila_posture_before-after.png",
 }
 
 
@@ -1068,10 +1297,12 @@ def main(argv: list[str] | None = None) -> None:
                     help="write sheets into <out>/<project>/model/... per docs/renders/README.md")
     ap.add_argument("--only-wrist", action="store_true",
                     help="render only the OfficeSuite wrist junction (the D75 comparison)")
+    ap.add_argument("--only-hila-posture", action="store_true",
+                    help="render only the Miranda_L4D2_over_Hila forward posture before/after sheet (D86)")
     ap.add_argument("--only-officesuite", action="store_true",
                     help="render only the OfficeSuite LAS sheet, with its FPS arms panel")
     ap.add_argument("--only-beard", action="store_true",
-                    help="render only the Geralt beard close-up (the D86 tracked-DDS quadrant)")
+                    help="render only the Geralt beard close-up (the D87 tracked-DDS quadrant)")
     args = ap.parse_args(argv)
     out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1082,7 +1313,11 @@ def main(argv: list[str] | None = None) -> None:
         return out_dir / name
 
     if args.only_beard:
-        render_geralt_beard_closeup(target_for("39_Geralt_beard.png"))
+        render_geralt_beard_closeup(target_for("40_Geralt_beard.png"))
+
+
+    if args.only_hila_posture:
+        render_hila_posture_sheet(target_for("39_Miranda_L4D2_over_Hila_posture.png"))
         return
 
     if args.only_wrist:
@@ -1244,7 +1479,7 @@ def main(argv: list[str] | None = None) -> None:
         )
         thumbs.append((short_lbl, th))
 
-    render_geralt_beard_closeup(target_for("39_Geralt_beard.png"))
+    render_geralt_beard_closeup(target_for("40_Geralt_beard.png"))
 
     # Arivus replaces a drawable inside the shared suit model, so its frame sits a
     # little higher than the female heisters' heads and needs its own portrait framing.
@@ -1294,6 +1529,8 @@ def main(argv: list[str] | None = None) -> None:
     dist_ov_path.parent.mkdir(parents=True, exist_ok=True)
     grid.save(dist_ov_path)
     print(f"Saved {dist_ov_path}")
+
+    render_hila_posture_sheet(target_for("39_Miranda_L4D2_over_Hila_posture.png"))
 
 
 if __name__ == "__main__":
