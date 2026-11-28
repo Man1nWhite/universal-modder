@@ -2,7 +2,7 @@
 
 Checks the native `mod_overrides` Hop to It (`player_styles.bunny`, `ccmt_acc_bunny`)
 replacement pack offline without needing the 2B templates unpacked:
-- checksum sidecar, pack registration, and exact 19-file archive layout (no `.unit` overrides);
+- checksum sidecar, pack registration, and archive layout (no `.unit` overrides);
 - every `.material_config` texture reference resolves inside the zip, and `bunny.texture`
   matches `OfficeSuite`'s 256x256 BC3 icon byte for byte;
 - all five third-person `.model` variants and `ccmt_acc_fps_bunny_male.model` decode in both
@@ -32,7 +32,7 @@ import diesel_model as dm  # noqa: E402
 import dmodel  # noqa: E402
 import hila_texture_atlas as hta  # noqa: E402
 import model_to_glb as mtg  # noqa: E402
-from build_bunny_body_mod import FPS_UNIT, ICON_PATH, MOD_PREFIX, TPP_UNITS, UNIT_ROOT  # noqa: E402
+from build_bunny_body_mod import COMPANION, FPS_UNIT, ICON_PATH, MOD_PREFIX, TPP_UNITS, UNIT_ROOT  # noqa: E402
 from dist_paths import dist_path  # noqa: E402
 from pack_checksum import verify_checksum  # noqa: E402
 from status import target as make_target  # noqa: E402
@@ -85,6 +85,9 @@ def test_pack_is_paired_and_registered():
 
 def test_members_cover_all_five_body_types_fps_materials_textures_and_icon():
     expected = sorted([
+        f"{PREFIX}README.txt",
+        f"{PREFIX}{COMPANION}/mod.txt",
+        f"{PREFIX}{COMPANION}/forearm_fix.lua",
         f"{PREFIX}{ICON_PATH}",
         f"{PREFIX}{UNIT_ROOT}/shared_materials/ccmt_acc_bunny.material_config",
         f"{PREFIX}{UNIT_ROOT}/shared_materials/ccmt_acc_bunny_fps.material_config",
