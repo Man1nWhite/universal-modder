@@ -12,6 +12,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `31`/`35` `*_fps.png` (first-person `fps_*.model` sheets for the two packs that ship one —
     Miranda_L4D2_LAS and OfficeSuite — player, three-quarter, side and top-down views, auto-framed)
   - `37_OfficeSuite_wrist.png` (the D75 wrist junction)
+  - `38_Geralt_beard.png` (the beard quadrant's own close-up, where the D85 tracked DDS is legible)
 
 The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie, and the ME2
 Romance line — `Miranda_Romance_LAS`, `Miranda_Romance_over_Hila`, `OfficeSuite_Head`, D83) stay
@@ -711,6 +712,62 @@ def render_heister_head_sheet(
     return p_34
 
 
+def render_geralt_beard_closeup(out_path: Path, size: int = 900) -> Image.Image:
+    """The beard quadrant of Geralt's `g_head`, close up and at high zoom.
+
+    The pack's beard is the tracked `references/textures/geralt_beard_df.dds` laid into the
+    atlas' `[1024:1536, 1024:2048]` quadrant -- the builder's `load_beard_texture` / the atlas
+    comment in `build_joy_head_mods.py`. That edit is about 4 of 255 on the texel and the
+    main sheet's 2x supersample averages it away, so the sheet shows the beard but cannot show
+    *which* beard; this close-up renders the chin at 3x the portrait's scale, exactly that
+    quadrant's geometry, so the tracked map's hair ends and coverage are legible.
+    """
+    zp = dist_path(ROOT, "Geralt_over_Rust.zip")
+    with zipfile.ZipFile(zp) as zf:
+        prefix = [n.split("/")[0] for n in zf.namelist()][0]
+        mbytes = zf.read(f"{prefix}/units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1.model")
+        head_df = np.asarray(
+            Image.open(io.BytesIO(zf.read(
+                f"{prefix}/units/pd2_dlc_wild/characters/npc_criminals_wild_1/npc_criminal_wild_1_head_df.texture"
+            ))).convert("RGBA")
+        )
+
+    mf = dm.ModelFile.read(mbytes)
+    md_by_hash = {dm.decode_model_data(s.payload)["name_hash"]: s for s in mf.by_type(dm.MODEL_DATA)}
+    md_head = dm.decode_model_data(md_by_hash[dm.hash64("g_head")].payload)
+    pg_head = dm.decode_passthroughgp(mf.by_id(md_head["passthroughgp"]).payload)
+    geo_head = dm.decode_geometry(mf.by_id(pg_head["geometry"]).payload)
+    topo = np.array(
+        dm.decode_topology(mf.by_id(pg_head["topology"]).payload)["indices"], np.int32
+    ).reshape(-1, 3)
+    part = (
+        np.asarray(geo_head["verts"], np.float32),
+        np.asarray(geo_head["normals"], np.float32),
+        topo,
+        np.asarray(geo_head["uv0"], np.float32).reshape(-1, 2),
+        head_df,
+        False,
+        False,
+    )
+
+    # Same camera as the main sheet's portrait, 3x the scale: chin and jaw fill the frame.
+    W, H = size, int(size * 4 / 3)
+    portrait = rasterize_parts([part], W, H, 0, 171.8, 11.4 * 3, z_min_clip=135.0)
+    canvas = Image.new("RGB", (W, H + 58), (18, 22, 30))
+    canvas.paste(portrait, (0, 58))
+    add_header_and_badges(
+        canvas,
+        "dist/Geralt/Geralt_over_Rust.zip — Beard Close-Up (g_head atlas quadrant)",
+        "Chin and jaw at 3x the portrait's scale | Source: references/textures/geralt_beard_df.dds "
+        "(D85)",
+        None,
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out_path)
+    print(f"Saved {out_path}")
+    return canvas
+
+
 UNIFIED_PATHS = {
     "01_Miranda_LAS.png": "miranda/model/las/miranda_las_sheet.png",
     "11_Geralt_over_Rust.png": "geralt/model/over-rust/geralt_over_rust_sheet.png",
@@ -722,6 +779,8 @@ UNIFIED_PATHS = {
     "35_OfficeSuite_fps.png": "honoka/model/dae/officesuite_las_fps_sheet.png",
     # not in the numbered overview: the wrist junction D75 changed, before and after the pass
     "37_OfficeSuite_wrist.png": "honoka/model/wrist/officesuite_wrist_ext30_twist.png",
+    # not in the numbered overview: the beard quadrant's own close-up (D85's tracked DDS)
+    "38_Geralt_beard.png": "geralt/model/over-rust/geralt_beard_closeup.png",
 }
 
 
@@ -735,6 +794,8 @@ def main(argv: list[str] | None = None) -> None:
                     help="render only the OfficeSuite wrist junction (the D75 comparison)")
     ap.add_argument("--only-officesuite", action="store_true",
                     help="render only the OfficeSuite LAS sheet, with its FPS arms panel")
+    ap.add_argument("--only-beard", action="store_true",
+                    help="render only the Geralt beard close-up (the D85 tracked-DDS quadrant)")
     args = ap.parse_args(argv)
     out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -743,6 +804,10 @@ def main(argv: list[str] | None = None) -> None:
         if args.unified:
             return out_dir / UNIFIED_PATHS[name]
         return out_dir / name
+
+    if args.only_beard:
+        render_geralt_beard_closeup(target_for("38_Geralt_beard.png"))
+        return
 
     if args.only_wrist:
         import wrist_compare
@@ -875,6 +940,8 @@ def main(argv: list[str] | None = None) -> None:
             target_for(out_name),
         )
         thumbs.append((short_lbl, th))
+
+    render_geralt_beard_closeup(target_for("38_Geralt_beard.png"))
 
     # Arivus replaces a drawable inside the shared suit model, so its frame sits a
     # little higher than the female heisters' heads and needs its own portrait framing.
