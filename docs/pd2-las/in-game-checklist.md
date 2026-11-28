@@ -251,12 +251,15 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    the pack, so those ids play vanilla Hila. If one of those sounds like vanilla Hila instead of
    Miranda, that is by design, not a miss. The TTS wording itself has not been verified by ear: if a
    new take says something odd in context, that is the take, not the cut.
-1e. **`Geralt_VO_over_Rust_Stream` — removed 2026-11-28 (D89).** The pack was never heard in game
-   and the zip was deleted with its Arivus sibling; there is nothing to install for Rust VO any
-   more. The question this item was to answer — whether Rust barks from the shared `regular_vox`
-   bank or his own `char_rust` bank — stays open (O1; the measured bank is recorded in the
-   `char_rust` tab of `voice_lines_vox/vo_master.xlsx`, and the `char_rust` route stays blocked on
-   `voice_lines_vox/geralt/char_rust_ids.csv`, D76). Do not go looking for the pack.
+1e. **`Geralt_VO_over_Rust` — BeardLib `<Sounds>` + XAudio lifecycle fix (2026-11-28, D97).** Extract
+   `Geralt VO over Rust` from `dist/Geralt/Geralt_VO_over_Rust.zip` into `PAYDAY 2\assets\mod_overrides\`
+   (or `PAYDAY 2\mods\`, never both at once; requires SuperBLT + BeardLib). Play a heist as Rust (or with
+   Rust + Hila + Old Hoxton in the squad): verify Geralt speaks on mask-on (`a01x_any` / `p01`), civilian
+   shouts (`f02x_sin`, 4-take rotation on `f03a_sin`), Inspire (`g18`, 2-take rotation), special marks/kills,
+   calling Hila (`f21ab_sin` -> "Hila.") and calling Old Hoxton (`f21d_sin` -> "Hoxton."), that uncovered
+   Rust lines stay vanilla Rust, that Hila/Old Hoxton keep their own voices, and that Geralt still plays
+   after returning to the main menu and starting a second heist (`Setup:unload_packages` -> `Sound:Open()`).
+   (The earlier shared-bank `Geralt_VO_over_Rust_Stream` pack was retired and deleted 2026-11-28, D89.)
 1f. **`Arivus_VO_over_Hoxton_Stream` — removed 2026-11-28 (D89).** Never heard in game; the zip was
    deleted. Nothing to install for Old Hoxton VO any more; the slot picks stay in
    `voice_lines_vox/arivus/slot_picks.csv` as the record of what the set carried.

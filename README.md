@@ -15,9 +15,11 @@ OfficeSuite + Miranda Romance body-and-head replacement for Hila, and the fork's
 Lawson's barks over Hila's `rb21` voice lines, as one Wwise IMA ADPCM `.stream` per voice-line id
 (`Miranda_Lawson_VO_over_Hila_Stream`, no BeardLib; install contract and
 format in the VO workbook [`voice_lines_vox/vo_master.xlsx`](voice_lines_vox/vo_master.xlsx),
-`install` and `format` tabs). The two character-route packs that used to ship alongside it
+`install` and `format` tabs), plus Geralt's barks and squad summon callouts over Rust (`rb16`)
+via BeardLib `<Sounds>` and a companion XAudio lifecycle fix (`Geralt_VO_over_Rust`, D97).
+The two shared-bank character packs that used to ship alongside Hila's
 (`Geralt_VO_over_Rust_Stream`, `Arivus_VO_over_Hoxton_Stream`) were retired and deleted on
-2026-11-28 (D89) — never heard in game; the Hila pack is the only VO stream pack.
+2026-11-28 (D89) — never heard in game; the Hila pack is the only VO `.stream` pack.
 Three pipelines under `tools/` build them; [`tools/README.md`](tools/README.md) says which builds what, how a
 pack is installed and what the pipelines share. The Arivus head also ships as a tracked `.glb` + `.dds`
 interchange export ([`Arivus_Head_over_Old_Hoxton_GLB.zip`](dist/Arivus/Arivus_Head_over_Old_Hoxton_GLB.zip)),

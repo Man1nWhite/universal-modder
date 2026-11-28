@@ -2,11 +2,13 @@
 
 Working data for the Hila (`rb21`) voice-line replacement: Miranda Lawson clips from
 `references/voice/Голос Лоусон.7z` and purpose-authored Mira Lawson takes from
-`references/voice/LAWSON VOICE (PAYDAY 2).7z`, mapped to Hila's PAYDAY 2 lines. The only shipped pack is the id-keyed
-stream pack, `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
+`references/voice/LAWSON VOICE (PAYDAY 2).7z`, mapped to Hila's PAYDAY 2 lines, plus Geralt's
+36 Ogg Vorbis takes over Rust (`rb16`) in `dist/Geralt/Geralt_VO_over_Rust.zip` (`voices_geralt`,
+BeardLib `<Sounds>` + Lua `SoundManager` lifecycle fix, D97). The only shipped `.stream` pack is
+`dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
 the `install`/`format` tabs of the VO workbook [`vo_master.xlsx`](vo_master.xlsx) (the three VO
-guides that used to live under `docs/` were folded into it on 2026-11-28). The two
-character-route VO packs that shipped alongside it were retired and deleted 2026-11-28 (D89).
+guides that used to live under `docs/` were folded into it on 2026-11-28). The two shared-bank
+`.stream` character packs that shipped alongside it were retired and deleted 2026-11-28 (D89).
 
 ## Slot rule: Call vs Follow
 
@@ -32,7 +34,8 @@ character-route VO packs that shipped alongside it were retired and deleted 2026
 | `miranda_lawson/hila_semantic_fit.csv` | Hand-scored semantic fit (0–10) of each pinned clip to the slot's *game intention* — the engine event from `slot_event_ids.csv` plus the dominant PD2 category, not Hila's wording. A 2026-11-25 review round; rationale per row; `status` marks `kept` / `replaced_tts` / `removed`. Nothing reads it at build time. |
 | `miranda_lawson/removed_slots.csv` | The 17 slots whose best clip scored below 8 with no take in `LAWSON VOICE (PAYDAY 2).7z`, left vanilla 2026-11-25 — slot, use count, score, the clip they replaced, and why. The builders refuse to pick for these and the stream pack leaves their ids alone. |
 | `miranda_lawson/hila_slot_pieces.csv` | Build record of the exact source ogg/time range cut for each slot. Written by `tools/hila_voice_clips.py` or `tools/fit_hila_intents.py`; not shipped (the stream pack carries `hila_stream_map.csv`). |
-| `miranda_lawson/slot_event_ids.csv` | Historical BeardLib-route record of PD2 bark events per intent slot. The shipped `.stream` pack does not use event names. |
+| `miranda_lawson/slot_event_ids.csv` | PD2 bark event names per intent slot (`PlayerSound:say`). Used by `Geralt_VO_over_Rust` (`<redirect prefix="rb16"/>`, D97); the Hila `.stream` pack does not use event names. |
+| `geralt/rust_beardlib_takes.csv` | All 36 Geralt takes -> OGG trim windows, `<random>` pools (`civ.down` x4, `inspire.faster` x2, `mask.go` x2), and `rb16` bark event redirects (`f21ab_sin` Hila, `f21d_sin` Old Hoxton) read by `tools/build_geralt_vo_mod.py`. |
 | `miranda_lawson/hila_vorbis_ids.csv` | The 27 voice-line ids the vanilla bank streams as Wwise Vorbis (`fmt` tag `0xFFFF`). The pack leaves these vanilla because this pipeline writes IMA ADPCM, not Vorbis. See the `format` tab of [`vo_master.xlsx`](vo_master.xlsx). |
 | `sheets/` | Community voice-line sheets (`id,who,what,notes,needs_review`) imported by `tools/import_voiceline_sheet.py` (make `voices_sheets`), with the slot *leads* each tab's text supports. A sheet names its own bank: the `regular_vox` tab says nothing about `char_rust` ids, so importing it does not fill `geralt/char_rust_ids.csv` (D77). |
 | `vo_master.xlsx` | **The single source of truth for every VO mod** (2026-11-28): one row per voice-line id, joined across the community sheets, the VO packs, the Sydney and Bodhi documents, and machine transcripts of every reference audio file. Built by `tools/build_vo_master.py` (`make -sC tools/pd2-las voices_master`); do not hand-edit. |

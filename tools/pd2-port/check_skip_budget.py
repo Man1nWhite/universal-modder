@@ -52,11 +52,12 @@ ALLOWED: dict[str, int] = {
     # Present-by-design skips (fixtures absent by design, not regressed):
     "needs ffmpeg": 4,
     "sourcepp is an optional extra": 2,
-    # CI installs neither lupa nor sourcepp. Without lupa, pytest reports 2 skipped
-    # tests in test_glove_behavior_lua.py (module-level importorskip) and 5 in
-    # test_las_outfit_pack.py (the shared compile helper). A dev checkout made with
-    # `--extras` reports none; this is the CI count, not the dev count.
-    "lupa (LuaJIT) not installed": 7,
+    # CI installs neither lupa nor sourcepp. Without lupa, pytest reports 1 module
+    # skip in test_glove_behavior_lua.py (module-level importorskip), 5 in
+    # test_las_outfit_pack.py (the shared compile helper) and 6 in
+    # test_geralt_vo_pack.py (the BeardLib <Sounds> harness). A dev checkout made
+    # with `--extras` reports none; this is the CI count, not the dev count.
+    "lupa (LuaJIT) not installed": 12,
     "Git Bash / MSYS only": 1,
     "declared code path requires x86-64 Linux": 1,
     # Regression to watch for: the fixture and tracked packs are present, so these

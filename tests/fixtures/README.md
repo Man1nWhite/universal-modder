@@ -25,6 +25,22 @@ It is loaded and executed directly by `tests/test_glove_behavior_lua.py` for the
 resolution and initialization branches. The upstream BeardLib repository is
 MIT-licensed; its `LICENSE.md` is reproduced below.
 
+### `beardlib_sound/{SoundManager,MixedSoundSource,SoundsModule}.lua`
+
+Verbatim copies of BeardLib 5.2.0's `Classes/Managers/SoundManager.lua`
+(SHA-256 `d29989e13f1212a6afb57d8b7e89d9da09ab32efc6a2cdc03e72ecd85544d6f3`),
+`Classes/MixedSoundSource.lua`
+(SHA-256 `d1150f03aba77a7c1b976e38f0aefe068b5ebeeacab9fe9d349ffed0fc61adb7`),
+and `Modules/Utils/SoundsModule.lua`
+(SHA-256 `d23fc7572d1953d13c91e0cfafdfbec8321502946ed23a3ca758e54caeefa708`) at
+`simon-wh/PAYDAY-2-BeardLib` commit
+`95eb1c0c84e3f07d36f28a5e69197ec3b5c59046`. Executed unmodified by
+`tests/test_geralt_vo_pack.py` inside LuaJIT 2.1 to reproduce the three
+BeardLib `<Sounds>` lifecycle bugs (`blt.xaudio.setup()` skipped when SuperBLT
+pre-defines `_G.XAudio`, `Closed`/`MixedSoundSource` boot ordering, and
+`Setup:unload_packages` -> `Close()` wiping `self.buffers`) and verify that
+`Geralt_VO_over_Rust`'s companion `hooks/beardlib_sound_fix.lua` fixes all three.
+
 ### `playerstyletweakdata.lua`
 
 Two function excerpts (the player-style and material-variation lookup functions)

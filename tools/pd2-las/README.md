@@ -11,6 +11,7 @@ no Source compile step, Blender, or running game is needed.
 | `OfficeSuite` — the DOAXVV "Secret Report" costume, built from `.dae` (6 mats), 5% slim with the user's suit and jewelry diffuses, palms cut *on* the line where they begin, with no extension past it (`palm_cut`, `extend_cm`/`clipped_to_cm: 0.0` in `BUILD_INFO.json`, D70; no default glove, a chosen one wins), in TPP and FPS | `references/honoka/Honoka_DOAXVV_Secret_Reportout.dae` | `build_honoko2_dae.py` | `honokodae` |
 | `OfficeSuite_over_Bunny` — the same `OfficeSuite` body, shadow caster and FPS arms packed into a 4096×2048 BC3 6-tile atlas over the vanilla **Hop to It** (`player_styles.bunny`, `ccmt_acc_bunny`) outfit across all five body types plus the `bunny` outfit icon; native `mod_overrides`, no BeardLib or LAS; bundled SuperBLT companion disables the extra forearm adapter (D85) | `OfficeSuite.zip` + `references/templates/ccmt_acc_bunny.7z` | `build_bunny_body_mod.py` | `bunny` |
 | `Miranda_Lawson_VO_over_Hila_Stream` — the same audio on the id-keyed route: 699 Wwise IMA ADPCM `.stream` files named after Hila's voice-line ids in `soundbanks/streamed/regular_vox/`, no BeardLib (`install` tab of voice_lines_vox/vo_master.xlsx) | references/voice/Голос Лоусон.7z (clips), `references/voice/LAWSON VOICE (PAYDAY 2).7z` (purpose-authored takes for the slots below the fit floor), `references/voice/Tokoyami Hila.7z` (the container it copies) | `tools/build_hila_stream_mod.py` over `wwise_ima.py` | `voices_stream` |
+| `Geralt_VO_over_Rust` — all 36 Geralt takes as mono 44.1 kHz Ogg Vorbis clips over Rust (`prefix="rb16"`): 29 bark slots (`<random>` on `civ.down`, `inspire.faster`, `mask.go`) + 2 summon shouts (`f21ab_sin` Hila, `f21d_sin` Old Hoxton), paired with a companion Lua `SoundManager` lifecycle fix (`beardlib_sound_fix.lua`) so BeardLib 5.2.0 keeps `<Sounds>` buffers open in heists (D97) | `references/voice/GERALT VOICE (PAYDAY 2).zip` + `voice_lines_vox/geralt/rust_beardlib_takes.csv` | `tools/build_geralt_vo_mod.py` | `voices_geralt` |
 | `Arivus_Head_over_Old_Hoxton_GLB` — the `g_head_old_hoxton` drawable as a bind-pose `.glb` plus the five pack `.texture` files as `.dds`; a viewer export, not an installable mod | `Arivus_over_Hoxton.zip` (the tracked pack itself) | `build_arivus_glb_pack.py` over `model_to_glb.py` | `glb` |
 
 See `docs/pd2-las/HANDOFF.md` for in-game evidence.
@@ -25,7 +26,7 @@ From the repo root, `make -sC tools/pd2-las` with no target lists them.
 ```sh
 make -sC tools/pd2-las env      # fresh clone or restarted sandbox: missing tracked files, pinned .venv, 2B template models; ends with status
 make -sC tools/pd2-las status   # the JSON above; when something is missing, its "hint" is the command to run
-make -sC tools/pd2-las build    # or honokodae | bunny | heads | voices_stream | glb | all  (the former voices_geralt / voices_arivus targets were removed with the retired packs, D89)
+make -sC tools/pd2-las build    # or honokodae | bunny | heads | voices_stream | voices_geralt | glb | all
 make -sC tools/pd2-las fresh    # every tracked pack built again in a copy, each zip against its sha256, no tolerance
 make -sC tools/pd2-las test     # the whole suite, offline
 make -sC tools/pd2-las green    # everything the test workflow checks, test and fresh included, one line each
