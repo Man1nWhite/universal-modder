@@ -1304,7 +1304,7 @@ class TestLasScaffold:
         )
 
     def test_l4d2_hila_head_is_tilted_forward_to_heister_posture(self):
-        """`Miranda_L4D2_over_Hila` leans forward onto PD2's female heister posture (D85).
+        """`Miranda_L4D2_over_Hila` leans forward onto PD2's female heister posture (D86).
 
         L4D2 Zoey stands upright (eyes y ~ 12.0 cm, chin->brow -0.4°), ~4 cm behind
         Joy/Hila and `a_head` eyewear, with a backward-sloping throat above the collar.

@@ -1,6 +1,6 @@
 # PAYDAY 2 LAS — review journal
 
-## 2026-11-27 — `Miranda_L4D2_over_Hila` leans forward onto the female heister posture (D85)
+## 2026-11-27 — `Miranda_L4D2_over_Hila` leans forward onto the female heister posture (D86)
 
 `dist/Miranda/Miranda_L4D2_over_Hila.zip` is rebuilt (`make -sC tools/pd2-las heads`) after an in-game
 side-profile menu capture with Tailor Pack turtleneck outerwear and `a_head` sunglasses showed the L4D2 Zoey
@@ -14,7 +14,19 @@ cm) forward by `+10.5°` via exact rational `tan(5.25°)` arithmetic onto `(15.7
 monotonic forward throat line, lower side-hair clearance, and orthonormal `tangents.tangent_frames` (`|U·V| =
 6.35e-8`). `Miranda_L4D2_LAS.zip`, `Geralt_over_Rust.zip`, and `Arivus_over_Hoxton.zip` are untouched; unified
 preview sheets (`miranda_l4d2_over_hila_sheet.png`, `miranda_l4d2_over_hila_posture_before-after.png`,
-`all_dist_mods_sheet.png`) are regenerated. Reasoning: D85.
+`all_dist_mods_sheet.png`) are regenerated. Reasoning: D86.
+
+## 2026-11-27 — `OfficeSuite_over_Bunny` ships `OfficeSuite` over the vanilla Hop to It outfit (D85)
+
+`dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,
+`tools/pd2-las/build_bunny_body_mod.py`) packages the tracked `OfficeSuite` body, shadow caster, first-person
+arms and menu icon over the vanilla **Hop to It** (`player_styles.bunny`,
+`references/templates/ccmt_acc_bunny.7z`) outfit for native `mod_overrides` installation without BeardLib or
+LAS. All six `OfficeSuite` material slices are packed into one 4096×2048 BC3 diffuse/normal atlas
+(`hila_texture_atlas.py`) and written across all five third-person `ccmt_acc_bunny_*.model` variants plus
+`ccmt_acc_fps_bunny_male.model` (shifted by `Hips_bunny - Hips_source` into the FPS rig frame inside
+`co_box`), with preview sheets rendered under `docs/renders/honoka/model/over-bunny/` and the 6-pack
+`all_dist_mods_sheet.png` overview refreshed. `runtime_verified` is false; see D85.
 
 ## 2026-11-27 — the supplied eye reaches the outfit pack, and the head pack catches up with it
 

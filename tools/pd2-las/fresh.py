@@ -48,6 +48,7 @@ BUILDERS = {
     "miranda": ["tools/pd2-las/build_models.py"],
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
+    "bunny": ["tools/pd2-las/build_bunny_body_mod.py"],
     "voices_stream": ["tools/build_hila_stream_mod.py"],
     # One pack per purpose-authored bark set, same id-keyed route as voices_stream.
     "voices_geralt": ["tools/build_character_stream_mod.py", "--pack", "geralt-rust"],
