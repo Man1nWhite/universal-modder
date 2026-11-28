@@ -1,6 +1,15 @@
 # PAYDAY 2 LAS — review journal
 
-## 2026-11-28 (later still) — the Geralt/Arivus VO stream packs are retired and deleted (D87)
+## 2026-11-28 (merge) — the branch merged `main`; the three VO entries were renumbered (D86–D88)
+
+`main` landed `OfficeSuite_over_Bunny` as D85 (2026-11-27, the day before the VO entries on this
+branch), so this branch's D85 (the VO workbook), D86 (the Sydney .docx two-table fold) and D87 (the
+Geralt/Arivus VO-pack retirement) became D86, D87 and D88 in the merge. The renumbered entries carry
+a `**Renumbered:**` note; every citation went with them — `tools/build_vo_master.py`, the tracked
+workbook CSVs (rebuilt, `--check` passes), the `README`s, `HANDOFF.md`, `in-game-checklist.md`, this
+journal and the tests. `D85` on the merged tree is and stays the OfficeSuite_over_Bunny entry.
+
+## 2026-11-28 (later still) — the Geralt/Arivus VO stream packs are retired and deleted (D88)
 
 `Geralt_VO_over_Rust_Stream.zip` and `Arivus_VO_over_Hoxton_Stream.zip` (and their `.sha256`
 sidecars) are deleted from `dist/` on the user's request. Both shipped 2026-11-25 and were never
@@ -15,7 +24,7 @@ builder's contract tests and the `char_rust` refusal tests remain, as do the bui
 tables — the route exists again the moment someone commissions it. The non-VO packs
 (`Geralt_over_Rust`, `Arivus_over_Hoxton`, `Arivus_Head_over_Old_Hoxton_GLB`) are untouched.
 
-## 2026-11-28 — the VO workbook replaces the three VO guides (D85)
+## 2026-11-28 — the VO workbook replaces the three VO guides (D86)
 
 `voice_lines_vox/vo_master.xlsx` is the single source of truth for every voice-line source in the
 repository: one row per id, all banks joined — community `regular_vox` (20,404 rows),
@@ -37,7 +46,7 @@ Machine transcripts are pocketsphinx output and are labelled as unverified draft
 (whisper's model hosts are unreachable from this environment); nothing in the workbook is
 in-game-verified beyond the Hila pack (2026-11-25, user report).
 
-## 2026-11-28 (later) — the Sydney .docx has two tables; the second is her robbers chatter (D86)
+## 2026-11-28 (later) — the Sydney .docx has two tables; the second is her robbers chatter (D87)
 
 Re-reading `references/sheets/Syndey Voicelines.docx` against the workbook found the sheet was parsed
 as one table. It holds two: table 0 is `char_sydney` (1,078 rows, 1,077 distinct ids; 1,036 shared
@@ -49,6 +58,17 @@ kept verbatim with the .docx wording carried beside them in `sydney_what`, and 1
 new. `char_sydney` keeps table 0 only; its `in_pdf` flags come from the print of the same document.
 Measured from the tracked CSV: the community export carries 1,811 `who` rows (1,720 with a line),
 1,722 line rows, 3,686 with neither — the earlier "1,813" was wrong, and the sheets docs say so now.
+## 2026-11-27 — `OfficeSuite_over_Bunny` ships `OfficeSuite` over the vanilla Hop to It outfit (D85)
+
+`dist/Miranda/OfficeSuite_over_Bunny.zip` (`make -sC tools/pd2-las bunny`,
+`tools/pd2-las/build_bunny_body_mod.py`) packages the tracked `OfficeSuite` body, shadow caster, first-person
+arms and menu icon over the vanilla **Hop to It** (`player_styles.bunny`,
+`references/templates/ccmt_acc_bunny.7z`) outfit for native `mod_overrides` installation without BeardLib or
+LAS. All six `OfficeSuite` material slices are packed into one 4096×2048 BC3 diffuse/normal atlas
+(`hila_texture_atlas.py`) and written across all five third-person `ccmt_acc_bunny_*.model` variants plus
+`ccmt_acc_fps_bunny_male.model` (shifted by `Hips_bunny - Hips_source` into the FPS rig frame inside
+`co_box`), with preview sheets rendered under `docs/renders/honoka/model/over-bunny/` and the 6-pack
+`all_dist_mods_sheet.png` overview refreshed. `runtime_verified` is false; see D85.
 
 ## 2026-11-27 — the supplied eye reaches the outfit pack, and the head pack catches up with it
 

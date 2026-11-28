@@ -8,9 +8,10 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `11_Geralt_over_Rust.png`
   - `19_Miranda_L4D2_over_Hila.png`
   - `24_OfficeSuite.png` (the 5% slim outfit in the user's third suit & jewelry colourway, palms cut on the line where they begin, no extension past it (D70), the wrist twisting on ForeArmRoll (D75), plus the first-person arms panel)
+  - `25_OfficeSuite_over_Bunny.png` (native `mod_overrides` replacement of Hop to It / `bunny`, 6-tile BC3 atlas + FPS arms)
   - `30_Arivus_over_Hoxton.png` (GTA SA Arivus head over Old Hoxton, FPS gloves in TPS)
-  - `31`/`35` `*_fps.png` (first-person `fps_*.model` sheets for the two packs that ship one —
-    Miranda_L4D2_LAS and OfficeSuite — player, three-quarter, side and top-down views, auto-framed)
+  - `31`/`35`/`36` `*_fps.png` (first-person `fps_*.model` / `ccmt_acc_fps_bunny_male.model` sheets —
+    Miranda_L4D2_LAS, OfficeSuite, and OfficeSuite_over_Bunny — player, three-quarter, side and top-down views, auto-framed)
   - `37_OfficeSuite_wrist.png` (the D75 wrist junction)
 
 The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie, and the ME2
@@ -296,13 +297,21 @@ def add_header_and_badges(
     return canvas
 
 
+_KNOWN_DRAWABLE_NAMES = {
+    dm.hash64(n): n
+    for n in ("g_body", "s_body", "g_arms", "g_head", "g_hands", "co_box")
+}
+
+
 def _drawable_name(mf, name_hash: int) -> str:
-    """Resolve a MODEL_DATA drawable hash through the file's own hashlist."""
-    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
-    for n in hl["names"]:
-        if dm.hash64(n) == name_hash:
-            return n
-    return f"#{name_hash:016x}"
+    """Resolve a MODEL_DATA drawable hash through the file's own hashlist or known names."""
+    hl_secs = mf.by_type(dm.CUSTOM_HASHLIST)
+    if hl_secs:
+        hl = dm.decode_custom_hashlist(hl_secs[0].payload)
+        for n in hl["names"]:
+            if dm.hash64(n) == name_hash:
+                return n
+    return _KNOWN_DRAWABLE_NAMES.get(name_hash, f"#{name_hash:016x}")
 
 
 def _model_drawables(mf) -> dict:
@@ -410,10 +419,12 @@ def _parts_from_model_with_matcfg(
     cutout_materials: frozenset = frozenset(),
     asset_root: str = "assets",
 ) -> list:
-    hl = dm.decode_custom_hashlist(mf.by_type(dm.CUSTOM_HASHLIST)[0].payload)
-    # the matcfg's own names fill any gap in the model's hashlist (the ecp unit's lists no mtr names)
+    # the matcfg's own names fill any gap in the model's hashlist (cooked vanilla units carry none)
     hmap = {dm.hash64(name): name for name in mat_to_asset}
-    hmap.update({dm.hash64(name): name for name in hl["names"]})
+    hl_secs = mf.by_type(dm.CUSTOM_HASHLIST)
+    if hl_secs:
+        hl = dm.decode_custom_hashlist(hl_secs[0].payload)
+        hmap.update({dm.hash64(name): name for name in hl["names"]})
     tpp = _model_drawables(mf)
     geo, topo, md = tpp[drawable]
     mg = dm.decode_material_group(mf.by_id(md["matgroup"]).payload)
@@ -465,6 +476,268 @@ def load_multi_mat_las_parts(
             io.BytesIO(zf.read(f"{tag}/assets/guis/dlcs/{prefix}/armor_skins/{prefix}.texture"))
         ).convert("RGBA")
     return tpp_parts, fps_parts, icon_im
+
+
+def load_bunny_body_parts(zip_path: Path) -> tuple[list, list, Image.Image]:
+    """Load TPP body, FPS arms, and outfit icon from `OfficeSuite_over_Bunny.zip`."""
+    tag = "OfficeSuite over Bunny"
+    unit_root = f"{tag}/units/pd2_dlc_ccmt/characters/ccmt_acc_bunny"
+    tex_cache: dict[str, np.ndarray] = {}
+    with zipfile.ZipFile(zip_path) as zf:
+        mf_tpp = dm.ModelFile.read(
+            zf.read(f"{unit_root}/ccmt_acc_bunny_female_average/ccmt_acc_bunny_female_average.model")
+        )
+        tpp_mats = _parse_matcfg_diffuse(
+            zf.read(f"{unit_root}/shared_materials/ccmt_acc_bunny.material_config")
+        )
+        tpp_parts = _parts_from_model_with_matcfg(
+            zf, tag, mf_tpp, tpp_mats, tex_cache, drawable="g_body", asset_root=""
+        )
+        mf_fps = dm.ModelFile.read(
+            zf.read(f"{unit_root}/ccmt_acc_fps_bunny_male/ccmt_acc_fps_bunny_male.model")
+        )
+        fps_mats = _parse_matcfg_diffuse(
+            zf.read(f"{unit_root}/shared_materials/ccmt_acc_bunny_fps.material_config")
+        )
+        fps_parts = _parts_from_model_with_matcfg(
+            zf, tag, mf_fps, fps_mats, tex_cache, drawable="g_arms", asset_root=""
+        )
+        icon_im = Image.open(
+            io.BytesIO(
+                zf.read(f"{tag}/guis/dlcs/ccmt/textures/pd2/blackmarket/icons/player_styles/bunny.texture")
+            )
+        ).convert("RGBA")
+    return tpp_parts, fps_parts, icon_im
+
+
+def _rot_axis_row(axis: tuple[float, float, float], deg: float) -> np.ndarray:
+    a = np.asarray(axis, dtype=np.float64)
+    a /= np.linalg.norm(a)
+    th = np.deg2rad(deg)
+    c, s = float(np.cos(th)), float(np.sin(th))
+    x, y, z = float(a[0]), float(a[1]), float(a[2])
+    K = np.array([[0.0, -z, y], [z, 0.0, -x], [-y, x, 0.0]], dtype=np.float64)
+    R = np.eye(3) * c + (1.0 - c) * np.outer(a, a) + s * K
+    M = np.eye(4, dtype=np.float64)
+    M[:3, :3] = R.T
+    return M
+
+
+def _skin_drawable_posed(
+    mf,
+    drawable_name: str,
+    bone_hash_to_name: dict[int, str],
+    local_rots: dict[str, np.ndarray],
+    *,
+    one_weight_only: bool = False,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    objs = {s.id: dm.decode_object3d(s.payload) for s in mf.sections if s.type in (dm.OBJECT3D, dm.MODEL_DATA)}
+    posed_worlds: dict[int, np.ndarray] = {}
+
+    def get_posed(sid: int) -> np.ndarray:
+        if sid not in posed_worlds:
+            loc = np.asarray(objs[sid]["matrix"], dtype=np.float64).reshape(4, 4).copy()
+            bname = bone_hash_to_name.get(objs[sid]["name_hash"], "")
+            if bname in local_rots:
+                loc = local_rots[bname] @ loc
+            pid = objs[sid]["parent"]
+            posed_worlds[sid] = loc @ get_posed(pid) if pid in objs and pid != sid else loc
+        return posed_worlds[sid]
+
+    for sid in objs:
+        get_posed(sid)
+
+    dhash = dm.hash64(drawable_name)
+    md_sec = next(
+        s for s in mf.by_type(dm.MODEL_DATA)
+        if dm.decode_model_data(s.payload)["version"] != 6
+        and dm.decode_model_data(s.payload)["name_hash"] == dhash
+    )
+    md = dm.decode_model_data(md_sec.payload)
+    sb = dm.decode_skinbones(mf.by_id(md["skinbones"]).payload)
+    pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+    geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+    topo = np.array(dm.decode_topology(mf.by_id(pg["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+
+    skin_mats = np.stack([
+        np.asarray(sb["rotations"][p_idx], dtype=np.float64).reshape(4, 4) @ posed_worlds[sb["objects"][p_idx]]
+        for p_idx in sb["maps"][0]
+    ], axis=0)
+
+    verts = np.asarray(geo["verts"], dtype=np.float64)
+    v4 = np.column_stack([verts, np.ones(len(verts), dtype=np.float64)])
+    bi = np.asarray(geo["blendindices"], dtype=np.int64)
+    bw = np.asarray(geo["blendweights"], dtype=np.float64)
+    w_all = np.column_stack([bw, np.maximum(0.0, 1.0 - bw.sum(axis=1, keepdims=True))])
+    if one_weight_only:
+        w_all = np.zeros_like(w_all)
+        w_all[:, 0] = 1.0
+
+    out_v = np.zeros((len(verts), 3), dtype=np.float64)
+    out_n = np.zeros((len(verts), 3), dtype=np.float64)
+    has_n = bool(geo.get("normals"))
+    norms = np.asarray(geo["normals"], dtype=np.float64) if has_n else np.zeros_like(verts)
+    for k in range(w_all.shape[1]):
+        wk = w_all[:, k:k + 1]
+        if np.all(wk == 0.0):
+            continue
+        mk = skin_mats[bi[:, k]]
+        out_v += wk * np.einsum("vi,vij->vj", v4, mk)[:, :3]
+        if has_n:
+            out_n += wk * np.einsum("vi,vij->vj", norms, mk[:, :3, :3])
+    if not has_n:
+        fn = np.cross(out_v[topo[:, 1]] - out_v[topo[:, 0]], out_v[topo[:, 2]] - out_v[topo[:, 0]])
+        for c in range(3):
+            np.add.at(out_n, topo[:, c], fn)
+    out_n /= np.maximum(np.linalg.norm(out_n, axis=1, keepdims=True), 1e-8)
+    uv = np.asarray(geo["uv0"], dtype=np.float32) if geo.get("uv0") else np.zeros((len(verts), 2), dtype=np.float32)
+    return out_v.astype(np.float32), out_n.astype(np.float32), topo, uv
+
+
+def render_bunny_posed_audit_sheet(
+    bunny_zip: Path,
+    office_zip: Path,
+    hila_zip: Path,
+    tpp_bunny: list,
+    fps_bunny: list,
+    icon_im: Image.Image,
+    out_path: Path,
+) -> Image.Image:
+    """Six-panel verification sheet: heister collar, posed LBS, 1-weight shadow, normal relief, glove cuff, FPS alignment."""
+    from build_bunny_body_mod import FPS_UNIT, MOD_PREFIX, UNIT_ROOT, ensure_bunny_extracted
+
+    with zipfile.ZipFile(office_zip) as zos:
+        mf_os = dm.ModelFile.read(zos.read("OfficeSuite/assets/units/officesuite/skins/officesuite/officesuite.model"))
+    hl_names = dm.decode_custom_hashlist(mf_os.by_type(dm.CUSTOM_HASHLIST)[0].payload)["names"]
+    h2name = {dm.hash64(n): n for n in hl_names}
+
+    with zipfile.ZipFile(bunny_zip) as zb:
+        df_atlas = np.asarray(Image.open(io.BytesIO(zb.read(f"{MOD_PREFIX}/{UNIT_ROOT}/acc_bunny_df.texture"))).convert("RGBA"))
+        nm_atlas = np.asarray(Image.open(io.BytesIO(zb.read(f"{MOD_PREFIX}/{UNIT_ROOT}/acc_bunny_nm.texture"))).convert("RGBA"))
+        mf_favg = dm.ModelFile.read(zb.read(f"{MOD_PREFIX}/{UNIT_ROOT}/ccmt_acc_bunny_female_average/ccmt_acc_bunny_female_average.model"))
+
+    with zipfile.ZipFile(hila_zip) as zh:
+        hpfx = zh.namelist()[0].split("/")[0]
+        mf_hila = dm.ModelFile.read(zh.read(f"{hpfx}/units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female.model"))
+        h_df = np.asarray(Image.open(io.BytesIO(zh.read(f"{hpfx}/units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_head_df.texture"))).convert("RGBA"))
+        l_df = np.asarray(Image.open(io.BytesIO(zh.read(f"{hpfx}/units/pd2_dlc_ecp/characters/npc_criminals_ecp_female/npc_criminal_ecp_female_lashes_df.texture"))).convert("RGBA"))
+    md_h = next(
+        dm.decode_model_data(s.payload) for s in mf_hila.by_type(dm.MODEL_DATA)
+        if dm.decode_model_data(s.payload)["version"] != 6 and dm.decode_model_data(s.payload)["name_hash"] == dm.hash64("g_head")
+    )
+    pg_h = dm.decode_passthroughgp(mf_hila.by_id(md_h["passthroughgp"]).payload)
+    geo_h = dm.decode_geometry(mf_hila.by_id(pg_h["geometry"]).payload)
+    topo_h = np.array(dm.decode_topology(mf_hila.by_id(pg_h["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+    vh, nh, uvh = np.asarray(geo_h["verts"], np.float32), np.asarray(geo_h["normals"], np.float32), np.asarray(geo_h["uv0"], np.float32)
+    a0, a1 = md_h["atoms"][0], md_h["atoms"][1]
+    comp_hila = [
+        *tpp_bunny,
+        (vh, nh, topo_h[a0["base_index"] // 3 : a0["base_index"] // 3 + a0["tri_count"]], uvh, h_df, False, False),
+        (vh, nh, topo_h[a1["base_index"] // 3 : a1["base_index"] // 3 + a1["tri_count"]], uvh, l_df, True, False),
+    ]
+
+    pose = {
+        "LeftShoulder": _rot_axis_row((0.0, 1.0, 0.0), -18.0),
+        "RightShoulder": _rot_axis_row((0.0, 1.0, 0.0), 18.0),
+        "LeftArm": _rot_axis_row((0.0, 1.0, 0.0), -22.0),
+        "RightArm": _rot_axis_row((0.0, 1.0, 0.0), 22.0),
+        "LeftForeArm": _rot_axis_row((0.0, 1.0, 0.0), -35.0),
+        "RightForeArm": _rot_axis_row((0.0, 1.0, 0.0), -35.0),
+        "LeftForeArmRoll": _rot_axis_row((1.0, 0.0, 0.0), 40.0),
+        "RightForeArmRoll": _rot_axis_row((1.0, 0.0, 0.0), -40.0),
+        "LeftUpLeg": _rot_axis_row((0.0, 1.0, 0.0), 12.0),
+        "RightUpLeg": _rot_axis_row((0.0, 1.0, 0.0), -10.0),
+        "LeftLeg": _rot_axis_row((0.0, 1.0, 0.0), -18.0),
+        "RightLeg": _rot_axis_row((0.0, 1.0, 0.0), -8.0),
+    }
+    vp, np_, tp, uvp = _skin_drawable_posed(mf_favg, "g_body", h2name, pose)
+    vs, ns, ts, uvs = _skin_drawable_posed(mf_favg, "s_body", h2name, pose, one_weight_only=True)
+    shadow_tex = np.full((32, 32, 4), [158, 170, 192, 255], dtype=np.uint8)
+
+    md_b = next(
+        dm.decode_model_data(s.payload) for s in mf_favg.by_type(dm.MODEL_DATA)
+        if dm.decode_model_data(s.payload)["version"] != 6 and dm.decode_model_data(s.payload)["name_hash"] == dm.hash64("g_body")
+    )
+    geo_b = dm.decode_geometry(mf_favg.by_id(dm.decode_passthroughgp(mf_favg.by_id(md_b["passthroughgp"]).payload)["geometry"]).payload)
+    topo_b = np.array(dm.decode_topology(mf_favg.by_id(dm.decode_passthroughgp(mf_favg.by_id(md_b["passthroughgp"]).payload)["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+    v0 = np.asarray(geo_b["verts"], np.float32)
+    n0 = np.asarray(geo_b["normals"], np.float32)
+    u0 = np.asarray(geo_b["uvdir_u"], np.float32)
+    b0 = np.asarray(geo_b["uvdir_v"], np.float32)
+    uv0 = np.asarray(geo_b["uv0"], np.float32)
+    ah, aw = nm_atlas.shape[:2]
+    px = np.clip(((uv0[:, 0] % 1.0) * aw).astype(np.int64), 0, aw - 1)
+    py = np.clip((((-uv0[:, 1]) % 1.0) * ah).astype(np.int64), 0, ah - 1)
+    nsamp = nm_atlas[py, px].astype(np.float32)
+    nx, ny = (nsamp[:, 3] / 255.0) * 2.0 - 1.0, (nsamp[:, 1] / 255.0) * 2.0 - 1.0
+    nz = np.sqrt(np.maximum(0.0, 1.0 - nx * nx - ny * ny))
+    pert_n = nx[:, None] * u0 + ny[:, None] * b0 + nz[:, None] * n0
+    pert_n /= np.maximum(np.linalg.norm(pert_n, axis=1, keepdims=True), 1e-8)
+    clay_tex = np.full((32, 32, 4), [220, 225, 235, 255], dtype=np.uint8)
+
+    with zipfile.ZipFile(ROOT / "references/templates/Heister - FPS Gloves in TPS 2.zip") as zg:
+        sy_name = next(n for n in zg.namelist() if n.endswith("npc_criminal_sydney.model") and "chill" not in n)
+        mf_sy = dm.ModelFile.read(zg.read(sy_name))
+    md_sy = next(
+        dm.decode_model_data(s.payload) for s in mf_sy.by_type(dm.MODEL_DATA)
+        if dm.decode_model_data(s.payload)["version"] != 6 and dm.decode_model_data(s.payload)["name_hash"] == dm.hash64("g_hands")
+    )
+    geo_sy = dm.decode_geometry(mf_sy.by_id(dm.decode_passthroughgp(mf_sy.by_id(md_sy["passthroughgp"]).payload)["geometry"]).payload)
+    topo_sy = np.array(dm.decode_topology(mf_sy.by_id(dm.decode_passthroughgp(mf_sy.by_id(md_sy["passthroughgp"]).payload)["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+    sy_tex = np.full((32, 32, 4), [175, 78, 96, 255], dtype=np.uint8)
+    wrist_parts = []
+    for v_w, n_w, t_w, uv_w, tx_w, co_w, ds_w in [
+        *tpp_bunny,
+        (np.asarray(geo_sy["verts"], np.float32), np.asarray(geo_sy["normals"], np.float32), topo_sy, np.zeros((geo_sy["vert_count"], 2), np.float32), sy_tex, False, True),
+    ]:
+        keep = (v_w[t_w, 0].mean(axis=1) < -24.0) & (v_w[t_w, 2].mean(axis=1) > 90.0)
+        if np.any(keep):
+            kt = t_w[keep]
+            used = np.unique(kt)
+            remap = np.zeros(len(v_w), dtype=np.int32)
+            remap[used] = np.arange(len(used), dtype=np.int32)
+            wrist_parts.append((v_w[used], n_w[used], remap[kt], uv_w[used], tx_w, co_w, ds_w))
+
+    bdir = ensure_bunny_extracted()
+    vmf_fps = dm.ModelFile.read((bdir / FPS_UNIT / f"{FPS_UNIT}.model").read_bytes())
+    v_md = next(
+        dm.decode_model_data(s.payload) for s in vmf_fps.by_type(dm.MODEL_DATA)
+        if dm.decode_model_data(s.payload)["version"] != 6 and dm.decode_model_data(s.payload)["name_hash"] == dm.hash64("g_arms")
+    )
+    v_geo = dm.decode_geometry(vmf_fps.by_id(dm.decode_passthroughgp(vmf_fps.by_id(v_md["passthroughgp"]).payload)["geometry"]).payload)
+    v_topo = np.array(dm.decode_topology(vmf_fps.by_id(dm.decode_passthroughgp(vmf_fps.by_id(v_md["passthroughgp"]).payload)["topology"]).payload)["indices"], dtype=np.int32).reshape(-1, 3)
+    ghost_tex = np.full((32, 32, 4), [90, 155, 245, 255], dtype=np.uint8)
+    fps_overlay = [
+        (np.asarray(v_geo["verts"], np.float32), np.asarray(v_geo["normals"], np.float32), v_topo, np.zeros((v_geo["vert_count"], 2), np.float32), ghost_tex, False, True),
+        *fps_bunny,
+    ]
+
+    W_cell, H_cell = 480, 360
+    canvas = Image.new("RGB", (W_cell * 3, H_cell * 2 + 58), (18, 22, 30))
+    cells = [
+        (rasterize_parts(comp_hila, W_cell, H_cell, 18.0, 150.0, 7.2, z_min_clip=120.0), "1. Hila Head + Bunny Override Collar (18°)"),
+        (rasterize_parts([(vp, np_, tp, uvp, df_atlas, False, True)], W_cell, H_cell, 20.0, 82.0, 1.95), "2. Posed LBS Deformation + Wrist Roll 40°"),
+        (rasterize_parts([(vs, ns, ts, uvs, shadow_tex, False, True)], W_cell, H_cell, 20.0, 82.0, 1.95), "3. s_body Shadow Caster (SKINNED_1WEIGHT)"),
+        (rasterize_parts([(v0, pert_n, topo_b, uv0, clay_tex, False, True)], W_cell, H_cell, -24.0, 128.0, 4.3, z_min_clip=92.0), "4. Clay + acc_bunny_nm Tangent Normal Relief"),
+        (rasterize_fitted(wrist_parts, W_cell, H_cell, 35.0, -25.0, margin=0.88, pad=(12, 12, 12, 36)), "5. Sydney Glove (g_hands) + Watch Cuff"),
+        (rasterize_fitted(fps_overlay, W_cell, H_cell, 0.0, -25.0, margin=0.90, pad=(12, 12, 12, 36)), "6. FPS Arms Overlay vs Vanilla Bunny (Blue)"),
+    ]
+    for idx, (im, lbl) in enumerate(cells):
+        r, c = divmod(idx, 3)
+        d = ImageDraw.Draw(im)
+        d.rectangle([8, H_cell - 30, 355, H_cell - 8], fill=(14, 17, 24))
+        d.text((14, H_cell - 26), lbl, fill=(230, 235, 245), font=FONT_REG_12)
+        canvas.paste(im, (c * W_cell, 58 + r * H_cell))
+    add_header_and_badges(
+        canvas,
+        "dist/Miranda/OfficeSuite_over_Bunny.zip — Collar, Posed LBS, Shadow, Normal-Map, Glove & FPS Audit",
+        "Hila head seam | Posed 3-weight LBS & 1-weight s_body | DXT5nm tangent relief | Sydney glove cuff | FPS alignment vs vanilla bunny",
+        icon_im,
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out_path)
+    print(f"Saved {out_path}")
+    return canvas
 
 
 def render_las_sheet(
@@ -717,11 +990,14 @@ UNIFIED_PATHS = {
     "18_all_dist_mods_overview.png": "overview/model/all_dist_mods_sheet.png",
     "19_Miranda_L4D2_over_Hila.png": "miranda/model/over-hila/miranda_l4d2_over_hila_sheet.png",
     "24_OfficeSuite.png": "honoka/model/dae/officesuite_las_sheet.png",
+    "25_OfficeSuite_over_Bunny.png": "honoka/model/over-bunny/officesuite_over_bunny_sheet.png",
     "30_Arivus_over_Hoxton.png": "arivus/model/over-hoxton/arivus_over_hoxton_sheet.png",
     "31_Miranda_LAS_fps.png": "miranda/model/las/miranda_las_fps_sheet.png",
     "35_OfficeSuite_fps.png": "honoka/model/dae/officesuite_las_fps_sheet.png",
+    "36_OfficeSuite_over_Bunny_fps.png": "honoka/model/over-bunny/officesuite_over_bunny_fps_sheet.png",
     # not in the numbered overview: the wrist junction D75 changed, before and after the pass
     "37_OfficeSuite_wrist.png": "honoka/model/wrist/officesuite_wrist_ext30_twist.png",
+    "38_OfficeSuite_over_Bunny_posed.png": "honoka/model/over-bunny/officesuite_over_bunny_posed_sheet.png",
 }
 
 
@@ -788,7 +1064,6 @@ def main(argv: list[str] | None = None) -> None:
         icon_mir,
         target_for("01_Miranda_LAS.png"),
     )
-    thumbs.append(("Miranda_L4D2_LAS.zip (Full-Body L4D2)", th_mir))
     render_fps_sheet(
         "dist/Miranda_L4D2/Miranda_L4D2_LAS.zip — First-Person Arms (fps_miranda.model)",
         "Player, three-quarter, side and top-down views, auto-framed | the L4D2 outfit's arms unit, hands only",
@@ -814,6 +1089,34 @@ def main(argv: list[str] | None = None) -> None:
         "Player, three-quarter, side and top-down views, auto-framed | sleeves, cuffs and jewelry cuff, ending at the palm line, the bracelet on the forearm's roll",
         fps_os,
         target_for("35_OfficeSuite_fps.png"),
+    )
+
+    tpp_bunny, fps_bunny, icon_bunny = load_bunny_body_parts(
+        dist_path(ROOT, "OfficeSuite_over_Bunny.zip")
+    )
+    th_bunny = render_las_sheet(
+        "dist/Miranda/OfficeSuite_over_Bunny.zip — Native mod_overrides Outfit over Hop to It (bunny)",
+        "Replaces all 5 third-person ccmt_acc_bunny_*.model variants + ccmt_acc_fps_bunny_male.model + bunny.texture icon | 4096x2048 BC3 6-tile atlas (D85), no BeardLib / LAS",
+        tpp_bunny,
+        fps_bunny,
+        icon_bunny,
+        target_for("25_OfficeSuite_over_Bunny.png"),
+        has_head=False,
+    )
+    render_fps_sheet(
+        "dist/Miranda/OfficeSuite_over_Bunny.zip — First-Person Arms (ccmt_acc_fps_bunny_male.model)",
+        "Player, three-quarter, side and top-down views, auto-framed | shifted into the bunny FPS rig frame, inside co_box bounds",
+        fps_bunny,
+        target_for("36_OfficeSuite_over_Bunny_fps.png"),
+    )
+    render_bunny_posed_audit_sheet(
+        dist_path(ROOT, "OfficeSuite_over_Bunny.zip"),
+        dist_path(ROOT, "OfficeSuite.zip"),
+        dist_path(ROOT, "Miranda_L4D2_over_Hila.zip"),
+        tpp_bunny,
+        fps_bunny,
+        icon_bunny,
+        target_for("38_OfficeSuite_over_Bunny_posed.png"),
     )
 
     heister_specs = [
@@ -899,6 +1202,7 @@ def main(argv: list[str] | None = None) -> None:
     all_dist_cells = [
         ("Miranda_L4D2_LAS.zip", th_mir),
         ("OfficeSuite.zip", th_os),
+        ("OfficeSuite_over_Bunny.zip", th_bunny),
         *thumbs,  # Geralt, Hila L4D2
         ("Arivus_over_Hoxton.zip", th_arivus),
     ]
@@ -907,9 +1211,9 @@ def main(argv: list[str] | None = None) -> None:
     add_header_and_badges(
         grid,
         f"PAYDAY 2 — All {len(all_dist_cells)} Model Packages in dist/ (Complete Overview)",
-        "Miranda L4D2 LAS | OfficeSuite | Geralt, Arivus, Hila | the audio-only pack"
+        "Miranda L4D2 LAS | OfficeSuite (LAS & Hop to It override) | Geralt, Arivus, Hila | the audio-only pack"
         " (Miranda_Lawson_VO_over_Hila_Stream) has no model sheet"
-        " (the Geralt/Arivus VO packs were retired and deleted 2026-11-28, D87)",
+        " (the Geralt/Arivus VO packs were retired and deleted 2026-11-28, D88)",
     )
     for idx, (lbl, im) in enumerate(all_dist_cells):
         row_i, col_i = divmod(idx, 6)

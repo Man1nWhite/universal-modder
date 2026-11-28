@@ -8,7 +8,7 @@ downloads are grouped under `dist/`, and previews with their source provenance a
 | Folder | Files | Size | What it is |
 |---|---|---|---|
 | `characters/` | 4 | 30.5 MB | the character sources the LAS and head packs are cut from |
-| `templates/` | 6 | 45.4 MB | reference mods supplying skeletons, heister units and material paths |
+| `templates/` | 7 | 49.4 MB | reference mods and vanilla outfit/heister extracts supplying skeletons, units and material paths |
 | `textures/` | 7 | 14.8 MB | the supplied textures, the one reference texture mod, and the beard cut out of the Geralt atlas |
 | `honoka/` | 31 | 17.4 MB | the DOAXVV export, this repo's own glTF of it, and the DDS dump |
 | `voice/` | 7 | 65.1 MB | the packs the three VO routes copy containers, tables and clips from |
@@ -28,7 +28,7 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 | `Geralt.7z` | Witcher 3 Geralt of Rivia L4D2 port archive (a subscribed Garry's Mod addon: `.mdl`/`.vvd`/`.vtx`/`.vtf`, LZMA `.gma` layout) | `tools/build_joy_head_mods.py` | `dist/Geralt/Geralt_over_Rust.zip` |
 | `1581859199_135363.rar` | GTA San Andreas RenderWare 3.6 ped (LibertyCity "Random4" CJ replacement: `Random4.dff` model + `Random4.txd` textures, 19,727 tris, 7-material body) | `tools/build_joy_head_mods.py` (via `tools/pd2-las/rw_dff.py`) | `dist/Arivus/Arivus_over_Hoxton.zip` (head materials 5 "head" + 6 "hair" only) |
 
-## `templates/` — 45.4 MB
+## `templates/` — 49.4 MB
 
 | Archive | Purpose | Consumed By |
 |---|---|---|
@@ -38,6 +38,7 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 | `Heister - FPS Gloves in TPS 2.zip` | Reference heister third-person & Safe House `.model` templates (`npc_criminal_female_1.model`, `npc_criminal_bonnie.model`, `npc_criminal_sydney.model`, `npc_criminal_female_chill.model`, `npc_criminal_bonnie_chill.model`, plus the Joy, Wild and Max units) | `tools/build_joy_head_mods.py` |
 | `npc_criminals_ecp_female.7z` | Reference Hila `mod_overrides` unit (H3H3 collaboration heister, DLC folder `ecp`): `npc_criminal_ecp_female.model` / `_menu.model`, both `.object` files and `mtr_criminal_ecp_female[_cc].material_config`; her hair is `g_hair_mask_off` / `g_hair_mask_on` and her head `g_head` carries two atoms (head, 3D eyelashes) on `mtr_head` + `mtr_lashes` | `tools/build_joy_head_mods.py` (`_emit_hila_packages`) |
 | `npc_criminals_suit_1.7z` | Vanilla Old Hoxton shared-suit unit folder (user game extract 2026-11-24, DieselBundleViewer): cooked DODB `npc_criminals_suit_1.model`, `npc_criminals_suit_menu_1.model` (byte-identical), `.object`s, `mtr_old_hoxton[_cc].material_config`, per-heister `.unit`s | `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) -> `dist/Arivus/Arivus_over_Hoxton.zip` |
+| `ccmt_acc_bunny.7z` | Vanilla **Hop to It** (`player_styles.bunny`) outfit folder (`units/pd2_dlc_ccmt/characters/ccmt_acc_bunny/`): the five third-person body `.model`/`.object`/`.unit` variants (`female_average`, `female_fat`, `male_average`, `male_big`, `male_fat`), first-person `ccmt_acc_fps_bunny_male`, `shared_materials/ccmt_acc_bunny[_fps].material_config`, outfit `.dds` textures and `bunny.dds` menu icon | `tools/pd2-las/build_bunny_body_mod.py` -> `dist/Miranda/OfficeSuite_over_Bunny.zip` (D85) |
 
 ## `textures/` — 14.8 MB
 
@@ -47,7 +48,7 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 | `EYE_Diff.png` | The Miranda Lawson eye diffuse (256×256 RGB: blue iris, veined sclera), supplied by the user on 2026-11-15 and repainted again the same day (rounder iris, 1.38× the first repaint's, with a catchlight; the earlier bytes stay in git history). It is a repaint of `EYE_Diff.png` inside `characters/PC _ Computer - Mass Effect 2 … (Romance).zip`, kept here as its own input because the archives are read in place and not edited. | Both Miranda packs: `Miranda_L4D2_over_Hila` through `load_hila_eye_texture()` in `tools/build_joy_head_mods.py`, which crops and magnifies it about its centre into the head atlas' eye quadrant by a factor measured off the iris it finds (2.03 since the second repaint, D43); and `Miranda_L4D2_LAS` through `supplied_eye_values()` in `tools/pd2-las/build_las.py`, which crops it to the eyeball's own planar map at `EYE_ZOOM` 2.7 (D84). Geralt's and Arivus' packs do not read it |
 | `geralt_beard_df.png` | The beard cut out of Geralt's head atlas: 1024×512 RGBA, the colour and the hair's 0/255 cutout, cropped from `dist/Geralt/Geralt_over_Rust.zip`'s `npc_criminal_wild_1_head_df.texture` (rows 1024–1536, columns 1024–2048) by `python tools/extract_beard_textures.py`. Nothing in `dist/` reads it back: it is the beard as a texture of its own, for another mod or another engine | `tools/extract_beard_textures.py`, which writes it, its `.dds`, and the normal map beside it; no builder reads it |
 | `geralt_beard_nm.png` | The same rectangle of the pack's `npc_criminal_wild_1_head_nm.texture`: 1024×512 in Diesel's packed normal layout — X in alpha, Y in green, 255 in red and 0 in blue, which the shader does not read (a standard RGB normal map is X = alpha, Y = green, Z from the unit length) | the same tool |
-| `geralt_beard_df.dds`, `geralt_beard_nm.dds` | The same two pictures as DXT5 DDS with the full mip chain, for a viewer or an engine that takes DDS rather than PNG | the same tool |
+| `geralt_beard_df.dds`, `geralt_beard_nm.dds` | User-supplied 1024×512 11-mip DXT5 DDS edits of the same two beard crops (uploaded 2026-11-27, PR #75 `f54c41a`), for a viewer or an engine that takes DDS rather than PNG | initially seeded by `tools/extract_beard_textures.py`, then retouched and re-saved by the user; no builder reads them |
 | `Hoxier Hoxton V2.zip` | Old Hoxton `mod_overrides` texture mod ("Hox's Mask No Burns"): proves the Old Hoxton texture override paths and the icon DDS format, carries no models | reference for `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) |
 
 ## `honoka/` — 17.4 MB
@@ -70,8 +71,8 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 | `Marine VO for Rust.7z.001` + `.002` | Reference **Rust voice pack** ("Houshou Marine VO for Rust", kzn, ModWorkshop; two-volume 7z, 29.3 MB joined): `soundbanks/streamed/char_rust/` 1,046 ids, `robbers_mission_gen/` 220 ids, `main.xml` with one `<Sounds>` entry — `g36x_any` (`prefix="rb16"`) redirected to four `rust_med_kill` OGGs | The measured `char_rust` table: `tools/build_stream_tables.py --bank dedicated --dedicated references/"Marine VO for Rust.7z.001"` writes `voice_lines_vox/targets/rust_dedicated_char_rust.csv` (ids only; the pack does not name slots). Its 1,046 ids share none with the 885 shared `regular_vox` ids, which is the measurement behind D73 (see the `format`/`char_rust` tabs of `voice_lines_vox/vo_master.xlsx`). Nothing is copied out of it into `dist/` |
 | `Голос Лоусон.7z` | Miranda Lawson's own barks as ~870 whole-line oggs, the clips every Miranda VO route cuts from | `tools/hila_voice_clips.py` (the clip/segmenter) and `tools/build_hila_stream_mod.py`; the audio of `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip` |
 | `LAWSON VOICE (PAYDAY 2).7z` | Purpose-authored Miranda takes for the slots the real barks do not cover (the ones below the fit floor) | `tools/hila_voice_clips.py` (`MIRA_ARCHIVE`), `tools/build_hila_stream_mod.py` |
-| `ARIVUS VOICE (PAYDAY 2).zip` | The Arivus voice set: the barks for the slots the Arivus route covers, plus the borrowed "Hoxton." callout | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` → wrote the Arivus VO over Old Hoxton pack until it was retired and deleted 2026-11-28 (D87) |
-| `GERALT VOICE (PAYDAY 2).zip` | Geralt's barks (names read as cp866) for the 29 slots the set covers; the Arivus route also borrows the "Hoxton." callout from here | `tools/build_character_stream_mod.py --pack geralt-rust` → wrote the Geralt VO over Rust pack until it was retired and deleted 2026-11-28 (D87); `--pack arivus-old-hoxton` |
+| `ARIVUS VOICE (PAYDAY 2).zip` | The Arivus voice set: the barks for the slots the Arivus route covers, plus the borrowed "Hoxton." callout | `tools/build_character_stream_mod.py --pack arivus-old-hoxton` → wrote the Arivus VO over Old Hoxton pack until it was retired and deleted 2026-11-28 (D88) |
+| `GERALT VOICE (PAYDAY 2).zip` | Geralt's barks (names read as cp866) for the 29 slots the set covers; the Arivus route also borrows the "Hoxton." callout from here | `tools/build_character_stream_mod.py --pack geralt-rust` → wrote the Geralt VO over Rust pack until it was retired and deleted 2026-11-28 (D88); `--pack arivus-old-hoxton` |
 
 ## `sheets/` — 2.3 MB
 
@@ -88,7 +89,7 @@ offline.
 | `PAYDAY 2 Sound files - robbers_mission_gen.csv` | the same export of the `robbers_mission_gen` tab: 4,220 declared — 1,720 complete, 93 partial, 2,407 incomplete, 14 `(?)`; the export holds 5,499, measured from the tracked file: 1,811 rows carry a `who` (1,720 also carry a line), 2 carry a line and no speaker, 3,686 neither. The tab that names Rust lines by id, in a third bank |
 | `PAYDAY 2 Sound files - char_sydney.csv` | the same export of the `char_sydney` tab: 1,037 rows, all complete, every one Sydney — the one dedicated bank that is written up in full |
 | `Payday 2 Voiceline IDs - Heister Voice IDs.csv` | the community callout sheet (`g01`–`g92`, `p01`–`p28`, `v04`/`v08`/`v23`/`v32`, the drill and pager lines) that the `heister_callouts` tab of `voice_lines_vox/vo_master.xlsx` now carries |
-| `Syndey Voicelines.docx` | a Word export of the Sydney sheet with **two tables**: the first (`char_sydney`, 1,077 distinct ids against the CSV tab's 1,037 — a fuller sheet) and the second (Sydney's `robbers_mission_gen` chatter, 224 ids). The char_sydney tab uses the first; the second is folded into the robbers_mission_gen tab of the VO workbook (D86) |
+| `Syndey Voicelines.docx` | a Word export of the Sydney sheet with **two tables**: the first (`char_sydney`, 1,077 distinct ids against the CSV tab's 1,037 — a fuller sheet) and the second (Sydney's `robbers_mission_gen` chatter, 224 ids). The char_sydney tab uses the first; the second is folded into the robbers_mission_gen tab of the VO workbook (D87) |
 | `Syndey Voicelines.pdf` | the same document printed to 68 pages — the printed id set is both .docx tables together (1,301) — kept because a VO mod may need the printed table |
 | `Bodhi Voicelines.zip` | one `Bodhi Voicelines.xlsx`: the only Bodhi data in the repository |
 

@@ -11,7 +11,7 @@ Two banks, and the pack you get depends on which ids it is given:
 * ``shared`` — the ids are the shared ``regular_vox`` ones from
   ``voice_lines_vox/miranda_lawson/hila_intent_cuts.csv`` (885 ids). The two packs that
   wrote this bank (``Geralt_VO_over_Rust_Stream``, ``Arivus_VO_over_Hoxton_Stream``)
-  were retired and deleted from ``dist/`` on 2026-11-28 (D87) — never heard in game.
+  were retired and deleted from ``dist/`` on 2026-11-28 (D88) — never heard in game.
   Running ``--pack all`` here would stage them under ``build/character_stream/``
   (gitignored scratch); shipping one means re-adding it to ``tools/pd2-las/packs.py``
   and passing ``--out dist/<group>/<pack>.zip``.
@@ -23,8 +23,8 @@ Two banks, and the pack you get depends on which ids it is given:
 
 See the ``packs`` tab of ``voice_lines_vox/vo_master.xlsx`` for the record of the retired packs and how they related to the Hila one.
 
-    python tools/build_character_stream_mod.py --pack geralt-rust      # retired 2026-11-28 (D87); stages into build/character_stream/
-    python tools/build_character_stream_mod.py --pack arivus-old-hoxton # retired 2026-11-28 (D87); stages into build/character_stream/
+    python tools/build_character_stream_mod.py --pack geralt-rust      # retired 2026-11-28 (D88); stages into build/character_stream/
+    python tools/build_character_stream_mod.py --pack arivus-old-hoxton # retired 2026-11-28 (D88); stages into build/character_stream/
     python tools/build_character_stream_mod.py --pack all
     python tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust   # needs the named id map
 """

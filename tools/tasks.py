@@ -39,6 +39,7 @@ TASKS: dict[str, tuple[list[str], str]] = {
     "env": (["bash", "tools/pd2-las/recover_env.sh"], "once per fresh clone: pinned .venv, 2B composition, then status"),
     "build": (["{py}", "tools/pd2-las/build_models.py"], "Miranda_L4D2_LAS -> dist/Miranda_L4D2/"),
     "honokodae": (["{py}", "tools/pd2-las/build_honoko2_dae.py"], "OfficeSuite -> dist/Miranda/"),
+    "bunny": (["{py}", "tools/pd2-las/build_bunny_body_mod.py"], "OfficeSuite_over_Bunny -> dist/Miranda/"),
     "heads": (["{py}", "tools/build_joy_head_mods.py"], "the over Hila heads, Geralt_over_Rust, Arivus_over_Hoxton -> dist/"),
     "voices_stream": (["{py}", "tools/build_hila_stream_mod.py"], "Miranda_Lawson_VO_over_Hila_Stream -> dist/Miranda/"),
     "voices_tables": (["{py}", "tools/build_stream_tables.py"], "the Rust and Old Hoxton stream tables -> voice_lines_vox/targets/"),
@@ -56,10 +57,10 @@ TASKS: dict[str, tuple[list[str], str]] = {
 }
 
 #: targets that write a pack and are therefore logged to build/pd2-las/<target>.log
-BUILDERS = {"build", "honokodae", "heads", "voices_stream",
+BUILDERS = {"build", "honokodae", "bunny", "heads", "voices_stream",
             "glb"}
 #: `all` is the Makefile's list of every tracked pack; task order matters (heads reads the base ZIP)
-ALL = ["build", "honokodae", "heads", "voices_stream",
+ALL = ["build", "honokodae", "bunny", "heads", "voices_stream",
        "glb"]
 
 
