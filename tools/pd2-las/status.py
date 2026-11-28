@@ -59,7 +59,7 @@ INPUTS = (
     "references/textures/geralt_beard_df.dds",
     "references/textures/geralt_beard_nm.dds",
     "references/characters/1581859199_135363.rar",
-    "references/textures/old_hoxton_head_df(1).dds",
+    "references/textures/old_hoxton_head_df.dds",
     "references/templates/npc_criminals_suit_1.7z",
     "references/templates/npc_criminals_ecp_female.7z",
     "references/templates/ccmt_acc_bunny.7z",
@@ -67,6 +67,9 @@ INPUTS = (
     "references/textures/icon_header_128x128_bgra8.dds",   # the head packs' icon header
     "references/templates/2b.rar",
     "references/templates/Heister - FPS Gloves in TPS 2.zip",
+    # Arivus_over_Hoxton_v2: the owner's scene, and the digest the builder actually reads
+    "references/templates/Arivus Head BLEND.7z",
+    "references/arivus_v2/head_v2.json",
     "references/honoka/Honoka_DOAXVV_Secret_Reportout.dae",
     "references/honoka/Tex_07(L_7)3.dds",
     "references/honoka/Tex_23(L_23)2.dds",

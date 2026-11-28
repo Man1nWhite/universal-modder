@@ -55,7 +55,7 @@ def test_status_targets_are_the_table():
 
 def test_the_makefile_builds_every_target_in_the_table():
     text = (PD2 / "Makefile").read_text(encoding="utf-8")
-    rules = set(re.findall(r"^([a-z_]+):(?!=)", text, flags=re.M))
+    rules = set(re.findall(r"^([a-z0-9_]+):(?!=)", text, flags=re.M))
     missing = sorted(set(packs.TARGETS.values()) - rules)
     assert not missing, f"packs.py names make targets the Makefile does not define: {missing}"
     for make, argv in packs.builders().items():

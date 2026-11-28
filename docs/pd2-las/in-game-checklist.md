@@ -273,6 +273,32 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    longer than the vanilla one. No subtitle changes: those still show Hila's line.
 5. **First person.** Nothing to check — audio only.
 
+## Arivus over Old Hoxton v2 — the re-sculpted crown (2026-11-28, D97)
+
+Install `dist/Arivus/Arivus_over_Hoxton_v2.zip` (**instead of** `Arivus_over_Hoxton.zip` — both write
+the same `Arivus over Hoxton*` units and the same four `shared_textures/old_hoxton_head*` overrides, so
+only one of them may be in `mod_overrides/` at a time). Put Old Hoxton in a heist, in the lobby, and in
+the Safe House. v2 is the owner's Blender scene of the same head: v1's atlas, materials and suit, with
+the crown and the back of the skull re-sculpted by up to 0.68 cm. The checks a bind-pose render cannot
+make:
+
+1. **The crown reads as hair, from above and behind.** Stand in third person and look down at him in
+   the lobby: the top and back of the head should keep the hair card's volume and the same cutout
+   edges as v1 — no hole through the scalp, no floating cards, and no sawtooth edge where the crown
+   meets the sides.
+2. **The neck still closes.** The scene already carried v1's D79 skirt; v2 ships it rather than
+   stitching a second one. In the collar opening, at the throat and at the back of the neck, there
+   must be no skin gap, no band of the throat's far wall, and no second rim standing inside the suit.
+3. **The mask and the alpha test.** The head material keeps v1's `ALPHA_MASKED` template and its 0.05
+   cutoff. The hair's cutout edges should be crisp at close range in the blackmarket preview, and the
+   hair should be dark but not black through from behind (both faces of each card are in the mesh).
+4. **Skinning at the seams.** Turn the head hard left and right in the lobby. The crown's extra
+   vertices are weighted to the same `Spine2 / Neck / Head` palette as v1's; a crease, a pinch or a
+   patch of head that stays behind belongs in the report with the view it happened in.
+5. **Which pack is installed.** If the head looks exactly like v1, check that `Arivus over Hoxton v2`
+   is the folder in `mod_overrides/` and that the v1 folder is not beside it — the two cannot be
+   installed together, and whichever loads last wins.
+
 ## Arivus over Old Hoxton — the shaved face (2026-11-25, D64)
 
 Install `dist/Arivus/Arivus_over_Hoxton.zip` and put Old Hoxton in a heist (and in the Safe House —

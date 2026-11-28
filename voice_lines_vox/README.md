@@ -4,7 +4,7 @@ Working data for the Hila (`rb21`) voice-line replacement: Miranda Lawson clips 
 `references/voice/Голос Лоусон.7z` and purpose-authored Mira Lawson takes from
 `references/voice/LAWSON VOICE (PAYDAY 2).7z`, mapped to Hila's PAYDAY 2 lines, plus Geralt's
 36 Ogg Vorbis takes over Rust (`rb16`) in `dist/Geralt/Geralt_VO_over_Rust.zip` (`voices_geralt`,
-BeardLib `<Sounds>` + Lua `SoundManager` lifecycle fix, D97). The only shipped `.stream` pack is
+BeardLib `<Sounds>` + Lua `SoundManager` lifecycle fix, D99). The only shipped `.stream` pack is
 `dist/Miranda/Miranda_Lawson_VO_over_Hila_Stream.zip`; its install and format contract is
 the `install`/`format` tabs of the VO workbook [`vo_master.xlsx`](vo_master.xlsx) (the three VO
 guides that used to live under `docs/` were folded into it on 2026-11-28). The two shared-bank

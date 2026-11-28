@@ -19,7 +19,7 @@ HERE := tools/pd2-las
 LOGS := build/pd2-las
 
 .DEFAULT_GOAL := help
-.PHONY: help status env build honokodae bunny heads voices_stream voices_geralt voices_tables voices_char_rust voices_sheets voices_master glb all inventory audit fresh test green
+.PHONY: help status env build honokodae bunny heads heads_v2 voices_stream voices_geralt voices_tables
 
 # A build target prints the state of the packs it wrote and nothing else: `tracked`
 # says the rebuild reproduced the committed bytes. What the builder printed is in
@@ -50,6 +50,9 @@ bunny:      ## OfficeSuite_over_Bunny: native mod_overrides replacement of Hop t
 
 heads:      ## the over Hila heads, Geralt_over_Rust, Arivus_over_Hoxton -> dist/Miranda/, dist/Geralt/, dist/Arivus/; they read dist/Miranda_L4D2/Miranda_L4D2_LAS.zip
 	$(call BUILD,tools/build_joy_head_mods.py)
+
+heads_v2: ## Arivus_over_Hoxton_v2: the owner's re-sculpted head from references/arivus_v2/head_v2.json -> dist/Arivus/
+	$(call BUILD,tools/build_arivus_v2_mod.py)
 
 
 voices_stream:  ## Miranda_Lawson_VO_over_Hila_Stream: the same clips as one Wwise ADPCM .stream per Hila voice-line id, no BeardLib -> dist/Miranda/
@@ -95,7 +98,7 @@ ifneq ($(filter all heads,$(MAKECMDGOALS)),)
 glb: heads
 endif
 
-all: build honokodae bunny heads voices_stream voices_geralt glb  ## every tracked pack
+all: build honokodae bunny heads heads_v2 voices_stream voices_geralt glb  ## every tracked pack
 
 inventory:  ## what the source archive contains -> tools/pd2-las/source_inventory.json, the tracked record (and stdout)
 	cd "$(ROOT)" && $(PY) $(HERE)/build_las.py --stage inventory --out $(HERE)

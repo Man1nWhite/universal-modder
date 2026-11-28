@@ -49,9 +49,11 @@ BUILDERS = {
     "heads": ["tools/build_joy_head_mods.py"],
     "honokodae": ["tools/pd2-las/build_honoko2_dae.py"],
     "bunny": ["tools/pd2-las/build_bunny_body_mod.py"],
-    "voices_stream": ["tools/build_hila_stream_mod.py"],
-    "voices_geralt": ["tools/build_geralt_vo_mod.py"],
     # One pack per purpose-authored bark set, same id-keyed route as voices_stream.
+    "voices_stream": ["tools/build_hila_stream_mod.py"],
+    # Reads the tracked mesh digest, not another pack, so it runs anywhere after `env`.
+    "heads_v2": ["tools/build_arivus_v2_mod.py"],
+    "voices_geralt": ["tools/build_geralt_vo_mod.py"],
     # Reads the tracked Arivus head pack, so it runs after `heads`.
     "glb": ["tools/pd2-las/build_arivus_glb_pack.py"],
 }
