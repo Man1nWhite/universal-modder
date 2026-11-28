@@ -1,0 +1,28 @@
+key,value
+what_this_tab_is,"The .stream file format the stream packs write, and WHY the game plays them. Moved here verbatim-in-substance from docs/tokoyami-hila-voice-mod-analysis.md (deleted 2026-11-28); the dissection of Tokoyami Hila.7z is the evidence."
+the_rule,"A PAYDAY 2 heister line is a file soundbanks/streamed/<bank>/<id>.stream. The id is the file NAME, a 32-bit Wwise id; the bank folder says which heister/lines. The game plays the file under the id — no Lua, no event table, no BeardLib."
+bank_folders,"regular_vox = the shared bank (original crew; every pack here writes it) · robbers_mission_gen = heist-scripted mission chatter · char_<module> = dedicated heister banks (char_rust, char_sydney, char_joy…) · safehouse_vo = safe house. The packs write regular_vox; the re-key (char_rust) is blocked on the id map (D76)."
+bank_modules,"NEVER MIX THE BANKS. Rust is switch rb16 (dedicated bank char_rust); Old Hoxton is switch rb5 and his lines are the shared bank — no documented char_hoxton folder exists and none is tracked. A file written to a folder the heister does not stream from is inert, and it replaces the wrong heister’s line if that other heister streams from it. The packs write the shared bank; whether Rust barks from it is the open question O1 (one in-game install decides it)."
+reference_pack,"Tokoyami Hila.7z (“Tokoyami Towa Voice for Hila”, the evidence this format comes from): main.xml with one <Hooks> node → hooks/localization.lua renaming Hila → “Towa” (cosmetic; audio works without it); 1,089 .stream files — regular_vox 887, robbers_mission_gen 202; 1,062 IMA ADPCM + 27 Wwise Vorbis; two DDS-wrapped ecp_female.texture icons. No <Sounds>, no BeardLib module, no OGG — the soundbanks are the entire mod."
+reference_pack_ids,"the 887 regular_vox files are the 885 hila_regular_vox ids plus 124616049 and 134711817, which appear in NO tracked table (noted, unused — do not adopt them). The 202 robbers files: 196 ids sit in the community robbers_mission_gen export; 6 do not."
+,
+"CONTAINER (RIFF, 64-byte header, both variants)",
+mono_layout,"0000 RIFF size=filesize-8 WAVE · 000c ""fmt "" payload 24 · 0014 wFormatTag 2 (IMA ADPCM) channels 1 · 0018 sample rate 44100 · 001c byte rate 24804 · 0020 block align 36, 4 bits/sample, cbSize 6 · 0028 six-byte Wwise tail 00 00 04 00 00 00 · 002e ""JUNK"" 4 zeros · 003a ""data"" <size> · 0040 audio"
+stereo_tail,"stereo differs only in channels=2, block align 72, byte rate 49608, and the six-byte fmt tail 00 00 03 00 00 00"
+byte_rate_rule,"byte rate = (sample_rate // 64) * block_align  → 44.1 kHz mono 24,804 · 22.05 kHz mono 12,384 · 22.05 stereo 24,768 · stereo 44.1 kHz 49,608. The textbook rate*block_align/64 gives 24,806 — the game reads the floored form; wwise_ima.py writes it and tests/test_wwise_ima.py pins it."
+variants_measured,"across the 1,089 files in Tokoyami Hila.7z only four ADPCM variants exist: 44.1 kHz mono (394), 44.1 kHz stereo (631), 22.05 kHz mono (33), 22.05 kHz stereo (4). data is always a whole number of blocks and RIFF size = filesize − 8."
+,
+PER BLOCK,
+block,"one 36-byte sub-block per channel, in channel order (72 bytes stereo): +0 int16 predictor (first sample, verbatim) · +2 uint8 step index 0..88 · +3 reserved 0 · +4 32 bytes nibbles, low nibble first"
+frames,a block is 64 frames: the header sample plus 63 coded samples; the 64th nibble is padding and is 0 in practice
+nibble,"3 bits magnitude (0–7) + sign bit (8). delta = ((2*mag + 1) * step) >> 3, added or subtracted, clamped to int16. Index moves by (-1,-1,-1,-1,2,4,6,8)[mag], clamped 0..88"
+blocks_independent,predictor and index restart from the header every 36 bytes — which is what makes offline encoding possible and what makes the per-block start index matter (13 dB SNR from index 0 vs 30–35 dB when chosen per block)
+,
+"THE 27 VORBIS IDS (fmt tag 0xFFFF, cbSize 48, Wwise Vorbis — NOT decodable by the codec here)",
+vorbis_ids,"19464577, 23671359, 29989176, 31514573, 57837082, 73612626, 93274119, 94270922, 106075211, 130859193, 146534951, 180008979, 197975793, 199417180, 203920730, 213835843, 288173111, 319712703, 395725229, 447719148, 611761996, 615445658, 643109388, 651243456, 814815156, 815328029, 1021664295"
+vorbis_rule,an ADPCM pack cannot write these ids — they are left vanilla. Any dedicated bank measured in full will contain its own Vorbis files and must be filtered the same way. (hila_vorbis_ids.csv is the tracked list; every regular_vox row here carries the flag.)
+,
+CODEC AND BUILD,
+codec_location,"tools/pd2-las/wwise_ima.py — read, decode, encode, write. Reads a .stream and prints header/duration/peak (python tools/pd2-las/wwise_ima.py FILE.stream [--wav out.wav]); encodes reproducibly (integer-only numpy batches; -fflags +bitexact everywhere; per-block start-index search)"
+verification,"header bytes identical to a real mono file; every stream decodes; manifest agrees with zip; packs heard in game: Hila pack yes (user, 2026-11-25), Geralt/Arivus no. Vorbis ids and removed slots are intentionally vanilla — that is coverage, not failure."
+manifests,"each pack carries its build manifest: hila_stream_map.csv / geralt_rust_stream_map.csv / arivus_hoxton_stream_map.csv (id → slot → clip), plus main.xml (a <mod> marker only, no <Sounds>/<Hooks>) and mod.txt (BLT list metadata)"

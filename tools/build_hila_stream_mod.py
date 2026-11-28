@@ -5,7 +5,7 @@ This is the route the game itself uses: every heister line is a file
 ``soundbanks/streamed/regular_vox/<id>.stream`` and the game plays it by id, so
 writing a file with our audio under Hila's id replaces that one line - no event
 table, no BeardLib, no Lua. ``references/voice/Tokoyami Hila.7z`` is the working pack
-this is modelled on (``docs/tokoyami-hila-voice-mod-analysis.md``).
+this is modelled on (the ``format`` tab of ``voice_lines_vox/vo_master.xlsx``).
 
 The clips come from ``slot_picks.csv``, which decides each slot's source - an ogg
 from ``references/voice/Голос Лоусон.7z`` or a purpose-authored MP3 from

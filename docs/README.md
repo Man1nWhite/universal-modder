@@ -7,18 +7,15 @@ Start with [AGENTS.md](../AGENTS.md) if you are new here: it has one command per
 The field notes (how a game was actually modded) live in [`knowledge/`](../knowledge/INDEX.md);
 this directory holds the project's own guides, audits and evidence.
 
-27 documents, plus the [render and capture index](renders/README.md) (24 archived sets).
+24 documents, plus the [render and capture index](renders/README.md) (24 archived sets).
 
 ## Guides
 
-The install contract, the voice-line tables and the format write-ups.
+The CI contract. The VO install contract, the voice-line tables and the format write-up moved to the VO workbook `voice_lines_vox/vo_master.xlsx` on 2026-11-28.
 
 | Document | Path |
 |---|---|
 | [CI: what runs, what must pass, how to change it](ci.md) | `ci.md` |
-| [Packaging & installing the Hila VO mod (PAYDAY 2 · any BLT / SuperBLT)](pd2-voice-mod-install.md) | `pd2-voice-mod-install.md` |
-| [Stream tables for Rust and Old Hoxton (where the VO packs' ids live)](pd2-voice-stream-tables.md) | `pd2-voice-stream-tables.md` |
-| [How a PAYDAY 2 voice pack is made: dissecting `references/voice/Tokoyami Hila.7z`](tokoyami-hila-voice-mod-analysis.md) | `tokoyami-hila-voice-mod-analysis.md` |
 
 ## PAYDAY 2 work
 

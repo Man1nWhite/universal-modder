@@ -6,8 +6,8 @@
 
 `knowledge/` has had a generated `INDEX.md` and a `--check` mode since it grew past fifty notes;
 `docs/` did not, and by 2026-11 it held 200+ files across `audits/`, `pd2-las/` and `renders/`
-with no entry point — an agent landing in the repository had to guess whether the install
-contract was `docs/pd2-voice-mod-install.md` or `docs/pd2-las/HANDOFF.md`.
+with no entry point — an agent landing in the repository had to guess where the install
+contract lived (it is the VO workbook, `voice_lines_vox/vo_master.xlsx`, since 2026-11-28).
 
 Every file is listed with its own first heading, so the index says what a document is for rather
 than only what it is called. `docs/renders/` is listed as one entry: it is 130 capture folders
@@ -69,7 +69,7 @@ def build() -> str:
     docs = documents()
     top = [p for p in docs if p.parent == DOCS]
     sections: list[tuple[str, list[Path], str]] = [
-        ("Guides", top, "The install contract, the voice-line tables and the format write-ups."),
+        ("Guides", top, "The CI contract. The VO install contract, the voice-line tables and the format write-up moved to the VO workbook `voice_lines_vox/vo_master.xlsx` on 2026-11-28."),
         ("PAYDAY 2 work", sorted((DOCS / "pd2-las").rglob("*.md")),
          "Handoffs, decisions and format notes for the packs in `dist/`."),
         ("Audits", sorted((DOCS / "audits").rglob("*.md"), reverse=True),

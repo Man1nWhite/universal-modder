@@ -45,7 +45,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names), [D85](#d85--officesuite_over_bunny-ships-officesuite-as-a-native-mod_overrides-replacement-of-hop-to-it-bunny), [D86](#d86--miranda_l4d2_over_hila-leans-forward-onto-the-female-heister-neck-and-eyewear-posture)
 
-*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree)
+*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree), [D87](#d87--the-three-vo-guides-are-replaced-by-the-vo-workbook), [D88](#d88--the-sydney-docx-has-two-tables-the-second-one-is-her-robbers_mission_gen-lines), [D89](#d89--the-geralt-and-arivus-vo-stream-packs-are-retired-and-deleted)
 
 *Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed)
 
@@ -1355,7 +1355,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 ### D84 — The supplied eye reaches the outfit pack too, and the head pack is rebuilt from the picture it names
 
-- **Decided:** 2026-11-27, by the user, who asked for "the eye texture of `Miranda_Lawson_VO_over_Hila_Stream.zip`"
+- **Decided:** 2026-11-28, by the user, who asked for "the eye texture of `Miranda_Lawson_VO_over_Hila_Stream.zip`"
   to be replaced with `references/textures/EYE_Diff.png`, and, told that pack is audio only, chose both
   Miranda packs.
 - **Why the request could not be taken literally:** the stream pack is 699 Wwise `.stream` files, a
@@ -2528,4 +2528,89 @@ from documents, tests and tools, so they never change; the headings are appendix
   and compares them with their sidecars: 4 of 4 identical, before and after the deletion.
 - **Source:** `tools/build_joy_head_mods.py`, `tools/pd2-las/fresh.py`, the `packs` job of
   `.github/workflows/test.yml`, `docs/ci.md`.
+- **Status:** holds.
+### D87 — The three VO guides are replaced by the VO workbook
+
+- **Decided:** 2026-11-28, by the user ("create the single spreadsheet source of truth for VO mods … Delete other non complete documentation")
+- **Renumbered:** D85 on the branch -> D86 in the first merge with `main` (whose D85 is the OfficeSuite_over_Bunny entry), then D87 in the second merge (`main` had meanwhile landed its own D86, the Miranda_L4D2_over_Hila posture entry).
+- **Decision:** `docs/pd2-voice-mod-install.md`, `docs/pd2-voice-stream-tables.md` and
+  `docs/tokoyami-hila-voice-mod-analysis.md` are deleted. Their load-bearing content lives in the
+  VO workbook `voice_lines_vox/vo_master.xlsx` (rebuilt by `tools/build_vo_master.py`, make
+  `voices_master`): the format contract and Vorbis exception in `format`, the install/uninstall/
+  post-mortem in `install`, the bank split and open questions in `format`/`char_rust`/`packs`/
+  `README` (findings F1–F4), the install alternatives in `packs`. One row per id across every bank
+  joined on the id — community `regular_vox` (20,404 rows), `robbers_mission_gen` (5,499),
+  `char_sydney` (CSV ∪ the .docx's first table: 1,037 ∪ 1,077, 1,078 rows), the measured
+  `char_rust` bank (1,046), Hila's 885 pack-bank ids, Bodhi (1,351), the Heister callout table
+  and machine transcripts of every reference audio file. Per-tab CSVs in `voice_lines_vox/vo_master/`
+  are the tracked, diffable mirror. Sheets/COVERAGE stays.
+- **Why:** three partial guides drifted from the data; the ids, the banks and the packs were never
+  in one place. The workbook is generated from the sources, so it cannot drift silently (`--check`
+  fails when the tracked CSVs are stale).
+- **Not claimed:** whisper transcription is impossible here (model hosts unreachable; pocketsphinx
+  output is labelled per row, unverified). Nothing in the workbook is in-game-verified beyond the
+  Hila pack (2026-11-25, user report).
+- **Source:** `tools/build_vo_master.py`, `tests/test_stream_tables.py` (ported to the workbook
+  CSVs), `voice_lines_vox/vo_master.xlsx`, `voice_lines_vox/vo_master/`.
+- **Status:** holds.
+
+### D88 — The Sydney .docx has two tables: the second one is her robbers_mission_gen lines
+
+- **Decided:** 2026-11-28, by re-reading `references/sheets/Syndey Voicelines.docx` against the
+  workbook sources (a "double check" of the D87 row-accounting).
+- **Renumbered:** D86 on the branch -> D87 in the first merge with `main`, then D88 in the second merge (`main` had meanwhile landed its own D86, the Miranda_L4D2_over_Hila posture entry).
+- **Decision:** the .docx holds table 0 = `char_sydney` (1,078 rows, 1,077 distinct ids; the 41 docx-only
+  ids beyond the CSV are 1,077 − 1,036 shared) and table 1 = Sydney-voiced `robbers_mission_gen`
+  chatter (224 ids) keyed to the same numeric ids. Table 1 is folded into the `robbers_mission_gen`
+  tab, not `char_sydney`:
+
+  | table 1 outcome in the community tab | ids |
+  | --- | --- |
+  | backfilled an audio-only community row (who/line were blank; line now from the .docx, labelled document-sourced in `notes`/`needs_review`) | 145 |
+  | already-written community rows kept verbatim (typed rows win; the .docx text rides beside it in `sydney_what`; verbatim on 9 of the 78) | 78 (77 who `Sydney`, 1 `Syndey`) |
+  | new id not in the community export at all | 1 (`221703642` — "Bloody hell, computer is finally done.", `who=Sydney`, marked `needs_review (document-sourced line, not in-game-verified)`) |
+
+  `char_sydney` flags: CSV 1,037 / docx 1,077 / both 1,036 / csv-only 1 (`75103998`) / union 1,078.
+  No id of table 1 appears in `char_sydney`, and table 0 ids do not overlap the community
+  `robbers_mission_gen` export. The `.pdf` is the same document printed (1,301 ids = both tables); its
+  flags stay in `char_sydney` for the CSV∪ table-0 union (1,077), and line text is never parsed from
+  the print.
+- **Why:** folding 224 Sydney callouts into the robbers bank (rather than `char_sydney`) is what the
+  document's own table layout says, and it recovers 145 lines for ids the community sheet lists with
+  nothing filled in.
+- **Measured:** the community export measures 1,811 rows with a `who` (1,720 also with a line),
+  1,722 with a line (91 `who`-only, 2 `what`-only), 3,686 with neither — the older "1,813" figure
+  was wrong. After the merge, the robbers tab holds 5,513 rows: 1,867 rows with a typed-or-backfilled
+  line (1,868 counting the new Sydney id) and 3,645 without.
+- **Not claimed:** Sydney .docx lines are document-sourced, not in-game-verified. Wording differences
+  between typed community rows and the .docx are expected (9 of the 78 already-written rows match
+  verbatim; most differ).
+- **Source:** `tools/build_vo_master.py`, `voice_lines_vox/vo_master/robbers_mission_gen.csv`.
+- **Status:** holds.
+
+### D89 — The Geralt and Arivus VO stream packs are retired and deleted
+
+- **Decided:** 2026-11-28, by the user ("delete old Geralt VO and Arivus VO mods"; the full-retirement
+  scope was the user's choice: packs, registry entries and views — the source data stays).
+- **Renumbered:** D87 on the branch -> D88 in the first merge with `main`, then D89 in the second merge (`main` had meanwhile landed its own D86, the Miranda_L4D2_over_Hila posture entry).
+- **Decision:** `Geralt_VO_over_Rust_Stream.zip` (+ `.sha256`) and `Arivus_VO_over_Hoxton_Stream.zip`
+  (+ `.sha256`) are deleted from `dist/`. They left every registry and view of the packs:
+  `tools/pd2-las/packs.py`, the `Makefile` (`voices_geralt` / `voices_arivus` gone, `all` and `.PHONY`
+  trimmed), `tools/tasks.py`, `tools/pd2-las/fresh.py`, `status.py` (through the table), the workbook
+  tabs (`packs`, `SOURCES`, `coverage`: the two keep rows marked RETIRED 2026-11-28, not delete/erase),
+  the docs (`README.md`, `AGENTS.md`, `tools/README.md`, `tools/pd2-las/README.md`, `voice_lines_vox/README.md`,
+  `references/README.md`, `docs/pd2-las/HANDOFF.md`, `docs/pd2-las/in-game-checklist.md` items 1e/1f)
+  and the overview-render caption (next re-render carries it; the tracked PNG predates this entry).
+  The four zip-reading tests in `tests/test_character_stream_packs.py` are removed; the builder's
+  source-set contract and the `char_rust` refusal tests remain. The builders and pick tables
+  (`tools/build_character_stream_mod.py`, `voice_lines_vox/geralt|arivus/`, `references/voice/*.zip`)
+  are kept deliberately, so the route can be rebuilt or superseded by the `char_rust` route (D76).
+- **Why:** both packs shipped 2026-11-25 and were never heard in game; the shared-`regular_vox`
+  route is unverified for these heisters (O1), and the user asked for the old VO mods to be deleted.
+- **Not claimed:** the `char_rust` route (D76) is unchanged — `--bank char_rust` still refuses until
+  `voice_lines_vox/geralt/char_rust_ids.csv` names every id. The non-VO packs (`Geralt_over_Rust`,
+  `Arivus_over_Hoxton`, `Arivus_Head_over_Old_Hoxton_GLB`) are untouched. No game-side state is
+  undone (nothing was ever installed from these two beyond the 2026-11-25 builds, and their
+  install checks no longer exist).
+- **Source:** the deletion of the four files; `tests/test_one_pack_table.py` keeps the views agreeing.
 - **Status:** holds.

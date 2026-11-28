@@ -26,6 +26,11 @@ dev = [
     "ruff==0.17.6",
     "mypy==2.4.1",
     "imageio-ffmpeg==0.8.1",
+    # tools/build_vo_master.py (the VO workbook builder): openpyxl writes the .xlsx,
+    # python-docx/pypdf read the Sydney sheet the char_sydney tab joins
+    "openpyxl==3.1.5",
+    "python-docx==1.2.0",
+    "pypdf==7.2.0",
 ]
 # The two optional readers that a dev checkout can use to cross-check more (`--extras` of
 # tools/pd2-las/recover_env.sh). Tests that need them skip without them, here and in CI.

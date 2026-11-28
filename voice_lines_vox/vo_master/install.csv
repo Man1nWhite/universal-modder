@@ -1,0 +1,41 @@
+key,value
+what_this_tab_is,"How to install, check and uninstall the VO pack — and what was already tried. Moved here from docs/pd2-voice-mod-install.md (deleted 2026-11-28). The decision to keep only the id-keyed route is D61 in docs/pd2-las/DECISIONS.md."
+prerequisites,"Any BLT / SuperBLT build. No BeardLib, no Lua, no XAudio API, nothing to enable in the mod list beyond the mod itself."
+,
+"INSTALL (one pack — see packs tab, install exactly one)",
+layout,"PAYDAY 2/
+ └─ mods/
+     └─ <Mod Folder>/            ← folder name is free-form, one folder deep
+         ├─ main.xml              ← <mod name=""…""> and nothing else; BLT serves the files
+         ├─ mod.txt               ← makes the folder appear in the main-menu mod list
+         ├─ README.txt
+         ├─ <pack>_stream_map.csv     ← build manifest: id → slot → clip
+         └─ soundbanks/streamed/regular_vox/<id>.stream   ← one file per written voice-line id"
+steps,"1. Unzip the pack into PAYDAY 2/mods/ so that mods/<Mod Folder>/main.xml exists (one folder deep — double nesting is the classic failure).
+2. Start the game.
+3. Play a heist as the pack's heister (or with them as AI teammate).
+4. Nothing in mods/logs/ is expected: the pack has no Lua and no loader API to fail."
+uninstall,"Remove the folder, or toggle the mod off in the main-menu list. Nothing is written anywhere else; removal is complete."
+if_a_line_still_sounds_vanilla,"It is one of: (a) the 27 Vorbis ids (format tab) — no pack can fix those; (b) a slot left vanilla by rule (removed_slots; slots with no take); (c) another pack installed after this one writing the same ids — last wins; (d) Rust barks from char_rust, not regular_vox — the shared bank pack then changes everyone else, not Rust (open question O1; docs/pd2-las/in-game-checklist.md 1e)."
+verify_offline,"make -sC tools/pd2-las voices_stream   # rebuild + print state (is: tracked)
+unzip -p <pack>.zip ""<folder>/soundbanks/streamed/regular_vox/712675.stream"" > 712675.stream
+python tools/pd2-las/wwise_ima.py 712675.stream --wav 712675.wav   # header, duration, audio"
+,
+"TROUBLESHOOTING THE INSTALL (from the dropped-route post-mortem, still applies to the .stream route)",
+t1_layout,"mods/<folder>/main.xml must exist exactly one folder deep. BeardLib (when present) scans only mods/* — no recursion, no other roots."
+t2_superblt_log,mods/logs/: if anything about the BLT build failed to load the folder it will say so there. The .stream pack logs nothing on success — silence is normal.
+t3_mod_list,Main menu → Mods: the pack (from mod.txt) is listed and enabled. BeardLib needs no entries for this pack.
+t4_hear_it,"A replaced id sounds like the pack voice; a vanilla id sounds like Hila/Rust/whoever. There is no per-line log line — check by ear, one slot at a time."
+t5_double_nesting,The zips are named with underscores; the folder inside uses spaces — extract into mods/ directly and do not create a folder after the zip's name.
+t6_one_pack_only,With several packs installed the last loaded wins for the ids they share; uninstall the others to reason about one pack at a time.
+,
+THE ROUTE THAT WAS TRIED AND DROPPED (record),
+beardlib_route,"Miranda_Lawson_VO_over_Hila.zip (dropped 2026-11-25, D61) keyed BeardLib <Sounds prefix=""rb21""> on PD2 bark EVENT names (g18 …) with OGG clips. It re-verified correct against the loaders (Frameworks.lua FindMods; SoundsModule; SoundManager:CheckSoundID; tweak_data rb21 for player and AI teammate; BeardLibSetSwitch maps the robber switch into engine_source prefixes and ComparePrefixes matches on them) — and it never made a line play. Kept on 2026-11-24/25 as evidence; removed from dist/ on 2026-11-25. The .stream route is what the game itself uses (the reference pack proves it) and is the only one heard working."
+why_dropped,"Not because the keying was wrong — because nothing came out of it in game. The investigation (loader internals, Lua paths, tweak_data) is recorded in D61 (docs/pd2-las/DECISIONS.md); the HISTORICAL packaging analysis of that route was deleted with the install doc on 2026-11-28 and its load-bearing facts live here (T-rows) and in the format tab."
+xp,"If you ever rebuild a BeardLib/OGG pack: prerequisites were SuperBLT (blt.xaudio — vanilla BLT/BLT4 errors ""Sounds module requires the XAudio API!"") and BeardLib 5.x; SoundsModule resolves paths relative to the mod folder, substitutes <id>.ogg for missing <path>, and CheckSoundID intercepts every posted sound comparing (id, prefixes). The pack shipped 78 clips over 176 bark events with mod.txt present. It still did not play. Do not resurrect it without a new reason."
+,
+PACK NOTES,
+hila_pack,"Miranda over Hila: 699 .stream files (661 s), all of Hila's 885 ids minus 27 Vorbis and the 162 below-fit ids of the 17 removed slots. Manifest hila_stream_map.csv. Heard in game (user, 2026-11-25): works; two clips were re-cut after that report (civ.down, call_teammate.hey_you), so the tracked bytes are newer than what was heard."
+geralt_pack,"Geralt over Rust: 315 .stream files for the 29 slots the set carries (alternate takes civ.down (2..4), mask.go (2), inspire.faster (2) left unused). kill.taser/mark.taser ship although they score below 8 for Hila — purpose-authored takes ship as-is. Retired and deleted from dist/ 2026-11-28 (D89); never heard in game. Kept here as the record of the route; the picks CSVs stay. Rust bank question: O1."
+arivus_pack,"Arivus over Old Hoxton: 324 .stream files — 18 slots the set carries plus call_teammate.hey_you, which plays the GERALT 'Hoxton.' callout (borrowed per the user's 2026-11-25 decision); that slot is Geralt's voice. The pack otherwise is Arivus's. Hog: Old Hoxton is on the shared bank, so the pack replaces the line for every heister on regular_vox, not for Hoxton alone. Retired and deleted from dist/ 2026-11-28 (D89); never heard in game."
+rekey,A re-keyed Geralt build (same takes into soundbanks/streamed/char_rust/) is wired as make -sC tools/pd2-las voices_char_rust and refuses until voice_lines_vox/geralt/char_rust_ids.csv names every id (D76). The name would make the pack change Rust alone. Do not ship it until the map is filled from a game extraction.

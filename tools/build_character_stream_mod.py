@@ -9,20 +9,22 @@ vanilla audio plays there.
 Two banks, and the pack you get depends on which ids it is given:
 
 * ``shared`` — the ids are the shared ``regular_vox`` ones from
-  ``voice_lines_vox/miranda_lawson/hila_intent_cuts.csv`` (885 ids). That is what
-  ``Geralt_VO_over_Rust_Stream`` and ``Arivus_VO_over_Hoxton_Stream`` write today:
-  the pack replaces those lines for every heister on the bank, not only its target.
+  ``voice_lines_vox/miranda_lawson/hila_intent_cuts.csv`` (885 ids). The two packs that
+  wrote this bank (``Geralt_VO_over_Rust_Stream``, ``Arivus_VO_over_Hoxton_Stream``)
+  were retired and deleted from ``dist/`` on 2026-11-28 (D89) — never heard in game.
+  Running ``--pack all`` here would stage them under ``build/character_stream/``
+  (gitignored scratch); shipping one means re-adding it to ``tools/pd2-las/packs.py``
+  and passing ``--out dist/<group>/<pack>.zip``.
 * ``char_rust`` — Rust's own bank, whose 1,046 ids were measured out of the reference
   Rust pack (``voice_lines_vox/targets/rust_dedicated_char_rust.csv``, D73). Writing
   here changes Rust alone. The ids cannot be derived: Wwise keeps no name for a
   streamed file, so a slot take may only ship once a source *names* its id in
-  ``voice_lines_vox/geralt/char_rust_ids.csv``. Until then ``--bank char_rust``
-  refuses and the shared pack stays the only shipped Geralt pack.
+  ``voice_lines_vox/geralt/char_rust_ids.csv``. Until then ``--bank char_rust`` refuses.
 
-See ``docs/pd2-voice-mod-install.md`` §8 for how the packs relate to the Hila one.
+See the ``packs`` tab of ``voice_lines_vox/vo_master.xlsx`` for the record of the retired packs and how they related to the Hila one.
 
-    python tools/build_character_stream_mod.py --pack geralt-rust      # dist/Geralt/Geralt_VO_over_Rust_Stream.zip
-    python tools/build_character_stream_mod.py --pack arivus-old-hoxton # dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip
+    python tools/build_character_stream_mod.py --pack geralt-rust      # retired 2026-11-28 (D89); stages into build/character_stream/
+    python tools/build_character_stream_mod.py --pack arivus-old-hoxton # retired 2026-11-28 (D89); stages into build/character_stream/
     python tools/build_character_stream_mod.py --pack all
     python tools/build_character_stream_mod.py --pack geralt-rust --bank char_rust   # needs the named id map
 """
@@ -80,10 +82,12 @@ CHAR_RUST_IDS = VOX / "geralt" / "char_rust_ids.csv"
 #: the two character packs. `archives` are scanned in order for the picks' sources
 #: (first hit wins); a take is keyed by its file name, which is what slot_picks.csv
 #: carries in `source_ogg`.
+#: retired packs stage into the gitignored build/ scratch tree by default; shipping means
+#: re-adding the pack to tools/pd2-las/packs.py and building with --out dist/<group>/<pack>.zip
 PACKS = {
     "geralt-rust": {
         "install": "Geralt VO over Rust Stream",
-        "out": ROOT / "dist/Geralt/Geralt_VO_over_Rust_Stream.zip",
+        "out": ROOT / "build/character_stream/Geralt_VO_over_Rust_Stream.zip",
         "picks": VOX / "geralt/slot_picks.csv",
         "archives": [(ROOT / "references/voice/GERALT VOICE (PAYDAY 2).zip", "cp866")],
         "archive_note": "references/voice/GERALT VOICE (PAYDAY 2).zip",
@@ -108,7 +112,7 @@ PACKS = {
     },
     "arivus-old-hoxton": {
         "install": "Arivus VO over Old Hoxton Stream",
-        "out": ROOT / "dist/Arivus/Arivus_VO_over_Hoxton_Stream.zip",
+        "out": ROOT / "build/character_stream/Arivus_VO_over_Hoxton_Stream.zip",
         "picks": VOX / "arivus/slot_picks.csv",
         "archives": [(ROOT / "references/voice/ARIVUS VOICE (PAYDAY 2).zip", None),
                      (ROOT / "references/voice/GERALT VOICE (PAYDAY 2).zip", "cp866")],
@@ -253,7 +257,7 @@ posted - no event table, no BeardLib, no XAudio.
 WHY THIS BANK
 Rust is on his own bank (char_rust, {cfg['voice']}); the shared regular_vox ids that the other
 packs write are a different set of files. Measured on the reference Rust pack: 1,046 char_rust ids,
-none of them shared with regular_vox (docs/pd2-voice-stream-tables.md, D73). The Marine reference
+none of them shared with regular_vox (D73; the ``char_rust`` tab of voice_lines_vox/vo_master.xlsx). The Marine reference
 pack (references/voice/Marine VO for Rust.7z.001) has no regular_vox folder at all on the 64-bit build.
 
 WHAT A DEDICATED BANK COSTS
