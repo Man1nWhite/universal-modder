@@ -70,7 +70,7 @@ um kb pr knowledge/games/<game>/<note>.md --yes    # branch, commit, push (fork 
   - uncredited game-derived assets (name the source when the owner ships them);
   - decompiled code dumps;
   - leaked code, SDKs, builds or license keys (what you learned from them, in your own words, is fine);
-  - anything that cheats other players or bypasses anti-cheat, DRM or ownership checks (every game is in
+  - anything that cheats other players or bypasses anti-cheat (every game is in
     scope, multiplayer and servers you host included). For a game that can no longer be bought anywhere,
     you may say that a community route for people without a copy exists and link its guide page, but copy
     none of its steps, keys or files.

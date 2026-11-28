@@ -54,9 +54,9 @@ These are the repo's hard rules (the mod-any-game skill, with the reasons in its
 - Never delete or overwrite a save. Modify a save only when the user said that save is for testing.
 - Confirm before deleting, overwriting or anything hard to undo. Look at the target first.
 - Never read, print or send credentials, tokens or keys.
-- Only single-player or servers the user controls. Never touch the client of an online game protected by anti-cheat, and never bypass anti-cheat, DRM or ownership checks.
+- Only single-player or servers the user controls. Never touch the client of an online game protected by anti-cheat, and never bypass anti-cheat.
 - Never focus a game that has an online mode while the user is typing. Their keystrokes land in the game.
-- Do not commit game files, decompiled code or extracted assets. Keep decompiles outside the repo. Commit generators and patches, and rebuild from the user's own install.
+- Game files, extracted assets and exports may be committed; keep decompiled code out of the repo. Prefer generators and patches that rebuild from the install.
 - Back up saves and config with `um backup` before the first modded launch, and kill processes by exact PID only.
 - If a second machine is involved, treat it as someone else's desk: leave it clean (game closed, helpers stopped, default settings) the moment the user says it is busy, and do not touch it again until told.
 

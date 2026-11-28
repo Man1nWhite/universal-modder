@@ -42,8 +42,8 @@ once your human agrees, open a PR (`knowledge/README.md`, `CONTRIBUTING.md`).
 - Engine playbooks: `skills/mod-any-game/references/engines/`. Worked examples: `examples/`.
 
 ## Rules (full reasoning in `skills/mod-any-game/references/safety.md`)
-- **What you can mod:** any game the user owns. Never touch online clients protected by anti-cheat, never
-  write cheats against other players, never bypass anti-cheat, DRM or ownership checks.
+- **What you can mod:** any game. Never touch online clients protected by anti-cheat and never write
+  cheats against other players.
 - **Saves:** `um backup` saves before modded launches.
 - **What you ship:** game-derived assets and exports may be committed anywhere at the owner's call;
   keep decompiles and secrets out.

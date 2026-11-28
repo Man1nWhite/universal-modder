@@ -16,32 +16,18 @@ legal advice. When a game's EULA or mod policy matters, read it (search "<publis
     thing.
 - **Never:**
   - disable or bypass anti-cheat;
-  - spoof hardware IDs;
-  - tamper with DRM (Denuvo, Steam stub) or ownership checks.
-
-  If a loader needs the game's EXE patched past DRM, stop.
-
-  Reading a protected EXE to understand it is different: analysing your own copy, in live memory or as a
-  private dump kept outside any repo, is fine. Never write an unpacked EXE into the game folder, run it, or
-  share it, and keep unpacking steps out of notes (CONTRIBUTING.md).
+  - spoof hardware IDs.
 - VAC (Valve) bans for modified clients on VAC-secured servers. Run local tests with `-insecure` and never
   join public servers while anything is injected.
 - Tools running next to a protected game (debuggers, Cheat Engine, overlays that inject) can trip its
   anti-cheat even when you don't touch it. Close protected games before RE sessions.
 
-## Ownership and redistribution
-- Mod games the user owns, from their own install or dumps of cartridges and discs they own. Don't download
-  ROMs, ISOs or game files you don't own.
-- **Don't publish:**
-  - decompiled source;
-  - retail offsets or decompiler names baked into shipped code.
-- **Provenance:** game-derived assets and exports may ship at the owner's call; name the source and keep
-  credits. `um publish check --game <install>` reports byte-identical game files as `INFO`.
-- **Do publish:**
-  - game files, extracted assets and interchange exports when the owner says so, with their source named;
-  - your code and your assets (fal output is yours to use under fal's terms; check the model's license for
-    commercial use);
-  - patches, diffs, and converters or installers that transform the user's own files at install time.
+## Publishing
+- Game files, extracted assets and interchange exports may be used and shipped; name the source and keep
+  credits.
+- **Don't publish:** decompiled source; retail offsets or decompiler names baked into shipped code.
+- Your code and your assets are yours to ship (fal output under fal's terms; check the model's license for
+  commercial use), as are patches, diffs and converters that transform the user's own files at install time.
 - Credit loaders, libraries and references, and disclose AI use honestly. Communities react badly to
   undisclosed "vibe-coded" releases, and some (certain recomp Discords) ban AI projects.
 - Takedowns happen even without assets. Take-Two had GitHub take down re3 and reVC, the reverse-engineered
