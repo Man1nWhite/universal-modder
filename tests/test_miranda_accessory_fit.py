@@ -1,4 +1,4 @@
-"""Geometry-level guardrails for Miranda's measured accessory fit (D97)."""
+"""Geometry-level guardrails for Miranda's measured accessory fit (D100)."""
 import sys
 from pathlib import Path
 

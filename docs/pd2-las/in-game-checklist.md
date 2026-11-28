@@ -251,7 +251,7 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    the pack, so those ids play vanilla Hila. If one of those sounds like vanilla Hila instead of
    Miranda, that is by design, not a miss. The TTS wording itself has not been verified by ear: if a
    new take says something odd in context, that is the take, not the cut.
-1e. **`Geralt_VO_over_Rust` — BeardLib `<Sounds>` + XAudio lifecycle fix (2026-11-28, D97).** Extract
+1e. **`Geralt_VO_over_Rust` — BeardLib `<Sounds>` + XAudio lifecycle fix (2026-11-28, D100).** Extract
    `Geralt VO over Rust` from `dist/Geralt/Geralt_VO_over_Rust.zip` into `PAYDAY 2\assets\mod_overrides\`
    (or `PAYDAY 2\mods\`, never both at once; requires SuperBLT + BeardLib). Play a heist as Rust (or with
    Rust + Hila + Old Hoxton in the squad): verify Geralt speaks on mask-on (`a01x_any` / `p01`), civilian
@@ -273,7 +273,7 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    longer than the vanilla one. No subtitle changes: those still show Hila's line.
 5. **First person.** Nothing to check — audio only.
 
-## Arivus over Old Hoxton v2 — the re-sculpted crown (2026-11-28, D97)
+## Arivus over Old Hoxton v2 — the re-sculpted crown (2026-11-28, D100)
 
 Install `dist/Arivus/Arivus_over_Hoxton_v2.zip` (**instead of** `Arivus_over_Hoxton.zip` — both write
 the same `Arivus over Hoxton*` units and the same four `shared_textures/old_hoxton_head*` overrides, so
@@ -366,7 +366,7 @@ In-game, open **Outfits** in the BlackMarket and equip **Hop to It** (`bunny`, c
    down (`co_box` culling), and twist cleanly when aiming, reloading and interacting.
 5. **Shadow caster.** Check the character's ground shadow in third person (`s_body` on `shadow_caster`).
 
-## `Miranda_L4D2_over_Hila` — the measured accessory fit (2026-11-28, D97)
+## `Miranda_L4D2_over_Hila` — the measured accessory fit (2026-11-28, D100)
 
 Pack to install: `dist/Miranda/Miranda_L4D2_over_Hila.zip` → extract the `Miranda L4D2 over Hila`
 folder into `PAYDAY 2\\assets\\mod_overrides\\` (Hila only; she has no Safe House unit).
@@ -377,7 +377,7 @@ folder into `PAYDAY 2\\assets\\mod_overrides\\` (Hila only; she has no Safe Hous
    Hila's forehead envelope + 5 mm, so it sits where her face sat behind `a_head` accessories.
 2. **Temple arms vs the hair.** From the side and 3/4, the arms should pass under the hair curtain at
    the temple, not ride over it, and the metal tip should not glint through the jaw curtain. The
-   temple sweep is floored outside the arm's ride and the jaw curtain past the tip (D97).
+   temple sweep is floored outside the arm's ride and the jaw curtain past the tip (D100).
 3. **Hair shape.** The bob should still read as the 2026-11-27 silhouette: the temple sweep is up to
    ~1 cm fuller at the arm's crossing and the bangs' edge slightly tucked at the temples (the fit
    clamps them to Hila's hairline); report if either reads wrong.
