@@ -227,7 +227,7 @@ def test_status_only_names_inputs_and_targets_that_exist():
     status = _load()
     for rel in status.INPUTS:
         assert (REPO / rel).is_file(), rel
-    targets = set(re.findall(r"^([a-z_]+):", (HERE / "Makefile").read_text(), flags=re.M))
+    targets = set(re.findall(r"^([a-z0-9_]+):", (HERE / "Makefile").read_text(), flags=re.M))
     assert set(status.TARGETS.values()) | {status.HEADS} <= targets
 
 
@@ -262,7 +262,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     """The README's commands are make targets, and each target runs a script that exists."""
     makefile = (HERE / "Makefile").read_text()
     readme = README.read_text()
-    targets = set(re.findall(r"^([a-z_]+):", makefile, flags=re.M))
+    targets = set(re.findall(r"^([a-z0-9_]+):", makefile, flags=re.M))
 
     assert "make -C tools/pd2-las" not in readme, (
         "the README's commands need -s: a bare `make -C` wraps the output in directory lines")
@@ -282,7 +282,7 @@ def test_makefile_targets_match_the_readme_and_the_scripts():
     sys.path.insert(0, str(HERE))
     fresh = pytest.importorskip("fresh", reason="fresh.py imports numpy")
     built = {name: command.replace("$(HERE)", "tools/pd2-las")
-             for name, command in re.findall(r"^([a-z_]+):.*\n\t\$\(call BUILD,(.+)\)$", makefile, flags=re.M)}
+             for name, command in re.findall(r"^([a-z0-9_]+):.*\n\t\$\(call BUILD,(.+)\)$", makefile, flags=re.M)}
     assert sorted(built.values()) == sorted(" ".join(argv) for argv in fresh.BUILDERS.values()), built
     status = _load()
     assert set(built) == set(status.TARGETS.values()) | {status.HEADS}
@@ -404,7 +404,7 @@ def test_pd2_las_has_one_entry_point():
         assert script not in agents, f"AGENTS.md names {script}; the README's commands are make targets"
     assert "Invariant" not in agents, "AGENTS.md has invariants of its own again: tools/README.md and this README hold them"
 
-    targets = set(re.findall(r"^([a-z_]+):", (HERE / "Makefile").read_text(), flags=re.M))
+    targets = set(re.findall(r"^([a-z0-9_]+):", (HERE / "Makefile").read_text(), flags=re.M))
     for name, text in (("AGENTS.md", agents), ("HANDOFF.md", handoff)):
         used = set(re.findall(r"make -sC tools/pd2-las (\w+)", text))
         assert used <= targets, f"{name} names make targets that do not exist: {sorted(used - targets)}"

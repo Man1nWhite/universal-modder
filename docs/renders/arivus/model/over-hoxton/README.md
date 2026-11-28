@@ -7,12 +7,12 @@ render, not evidence of the game's lighting, animation or runtime behavior.
 
 The Arivus head and hair geometry still come from the Random4 ped in
 `references/characters/1581859199_135363.rar`. The supplied
-`references/textures/old_hoxton_head_df(1).dds` is an edited **Arivus atlas**, despite its
-name: its face, eye and hair regions already match the Arivus UVs. It is the
-2026-11-26 retouch of the first edit (`old_hoxton_head_df.dds`, which left the tree on 2026-11-26 and
-stays in git history):
-softer brows, a single catchlight on the iris, small skin adjustments — same
-layout, same alpha cutout. The builder
+`references/textures/old_hoxton_head_df.dds` is an edited **Arivus atlas**, despite its
+name: its face, eye and hair regions already match the Arivus UVs. The file now under that name
+is the 2026-11-28 upload that supersedes the `old_hoxton_head_df(1).dds` retouch — 73,493 texels
+(1.75%) repainted inside one face box (x 171–851, y 328–734), softer and warmer skin with lighter
+brows, and every other texel and the whole alpha cutout left alone. (The *first* edit once carried
+this filename and was removed on 2026-11-26; this is a different file, sha256 `c1397b75…`.) The builder
 preserves the supplied BC3 base-level blocks exactly, adds coverage-preserving
 mipmaps for the cutout hair, and regenerates the icon from the supplied diffuse.
 The normal map remains flat. The heist, menu and Safe House models are unchanged.

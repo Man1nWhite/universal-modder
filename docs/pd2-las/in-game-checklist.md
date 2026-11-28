@@ -251,12 +251,15 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
    the pack, so those ids play vanilla Hila. If one of those sounds like vanilla Hila instead of
    Miranda, that is by design, not a miss. The TTS wording itself has not been verified by ear: if a
    new take says something odd in context, that is the take, not the cut.
-1e. **`Geralt_VO_over_Rust_Stream` — removed 2026-11-28 (D89).** The pack was never heard in game
-   and the zip was deleted with its Arivus sibling; there is nothing to install for Rust VO any
-   more. The question this item was to answer — whether Rust barks from the shared `regular_vox`
-   bank or his own `char_rust` bank — stays open (O1; the measured bank is recorded in the
-   `char_rust` tab of `voice_lines_vox/vo_master.xlsx`, and the `char_rust` route stays blocked on
-   `voice_lines_vox/geralt/char_rust_ids.csv`, D76). Do not go looking for the pack.
+1e. **`Geralt_VO_over_Rust` — BeardLib `<Sounds>` + XAudio lifecycle fix (2026-11-28, D97).** Extract
+   `Geralt VO over Rust` from `dist/Geralt/Geralt_VO_over_Rust.zip` into `PAYDAY 2\assets\mod_overrides\`
+   (or `PAYDAY 2\mods\`, never both at once; requires SuperBLT + BeardLib). Play a heist as Rust (or with
+   Rust + Hila + Old Hoxton in the squad): verify Geralt speaks on mask-on (`a01x_any` / `p01`), civilian
+   shouts (`f02x_sin`, 4-take rotation on `f03a_sin`), Inspire (`g18`, 2-take rotation), special marks/kills,
+   calling Hila (`f21ab_sin` -> "Hila.") and calling Old Hoxton (`f21d_sin` -> "Hoxton."), that uncovered
+   Rust lines stay vanilla Rust, that Hila/Old Hoxton keep their own voices, and that Geralt still plays
+   after returning to the main menu and starting a second heist (`Setup:unload_packages` -> `Sound:Open()`).
+   (The earlier shared-bank `Geralt_VO_over_Rust_Stream` pack was retired and deleted 2026-11-28, D89.)
 1f. **`Arivus_VO_over_Hoxton_Stream` — removed 2026-11-28 (D89).** Never heard in game; the zip was
    deleted. Nothing to install for Old Hoxton VO any more; the slot picks stay in
    `voice_lines_vox/arivus/slot_picks.csv` as the record of what the set carried.
@@ -269,6 +272,32 @@ the sub-8 lines are vanilla now. The bytes it heard are not the tracked ones.
 4. **Length.** A replacement keeps its clip length (0.22–1.95 s), so a replaced line can be shorter or
    longer than the vanilla one. No subtitle changes: those still show Hila's line.
 5. **First person.** Nothing to check — audio only.
+
+## Arivus over Old Hoxton v2 — the re-sculpted crown (2026-11-28, D97)
+
+Install `dist/Arivus/Arivus_over_Hoxton_v2.zip` (**instead of** `Arivus_over_Hoxton.zip` — both write
+the same `Arivus over Hoxton*` units and the same four `shared_textures/old_hoxton_head*` overrides, so
+only one of them may be in `mod_overrides/` at a time). Put Old Hoxton in a heist, in the lobby, and in
+the Safe House. v2 is the owner's Blender scene of the same head: v1's atlas, materials and suit, with
+the crown and the back of the skull re-sculpted by up to 0.68 cm. The checks a bind-pose render cannot
+make:
+
+1. **The crown reads as hair, from above and behind.** Stand in third person and look down at him in
+   the lobby: the top and back of the head should keep the hair card's volume and the same cutout
+   edges as v1 — no hole through the scalp, no floating cards, and no sawtooth edge where the crown
+   meets the sides.
+2. **The neck still closes.** The scene already carried v1's D79 skirt; v2 ships it rather than
+   stitching a second one. In the collar opening, at the throat and at the back of the neck, there
+   must be no skin gap, no band of the throat's far wall, and no second rim standing inside the suit.
+3. **The mask and the alpha test.** The head material keeps v1's `ALPHA_MASKED` template and its 0.05
+   cutoff. The hair's cutout edges should be crisp at close range in the blackmarket preview, and the
+   hair should be dark but not black through from behind (both faces of each card are in the mesh).
+4. **Skinning at the seams.** Turn the head hard left and right in the lobby. The crown's extra
+   vertices are weighted to the same `Spine2 / Neck / Head` palette as v1's; a crease, a pinch or a
+   patch of head that stays behind belongs in the report with the view it happened in.
+5. **Which pack is installed.** If the head looks exactly like v1, check that `Arivus over Hoxton v2`
+   is the folder in `mod_overrides/` and that the v1 folder is not beside it — the two cannot be
+   installed together, and whichever loads last wins.
 
 ## Arivus over Old Hoxton — the shaved face (2026-11-25, D64)
 

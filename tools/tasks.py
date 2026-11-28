@@ -42,10 +42,12 @@ TASKS: dict[str, tuple[list[str], str]] = {
     "bunny": (["{py}", "tools/pd2-las/build_bunny_body_mod.py"], "OfficeSuite_over_Bunny -> dist/Miranda/"),
     "heads": (["{py}", "tools/build_joy_head_mods.py"], "the over Hila heads, Geralt_over_Rust, Arivus_over_Hoxton -> dist/"),
     "voices_stream": (["{py}", "tools/build_hila_stream_mod.py"], "Miranda_Lawson_VO_over_Hila_Stream -> dist/Miranda/"),
+    "voices_geralt": (["{py}", "tools/build_geralt_vo_mod.py"], "Geralt_VO_over_Rust -> dist/Geralt/"),
     "voices_tables": (["{py}", "tools/build_stream_tables.py"], "the Rust and Old Hoxton stream tables -> voice_lines_vox/targets/"),
     "voices_char_rust": (["{py}", "tools/build_character_stream_mod.py", "--pack", "geralt-rust", "--bank", "char_rust"], "Geralt's takes onto Rust's own bank (refuses until the id map exists)"),
     "voices_sheets": (["{py}", "tools/import_voiceline_sheet.py"], "import a community voice-line sheet; needs SHEET= (and WANT=/TAB=/LEADS=1)"),
     "voices_master": (["{py}", "tools/build_vo_master.py"], "the VO source-of-truth workbook + per-tab CSVs -> voice_lines_vox/vo_master.xlsx, voice_lines_vox/vo_master/"),
+    "heads_v2": (["{py}", "tools/build_arivus_v2_mod.py"], "Arivus_over_Hoxton_v2 -> dist/Arivus/"),
     "glb": (["{py}", "tools/pd2-las/build_arivus_glb_pack.py"], "Arivus_Head_over_Old_Hoxton_GLB -> dist/Arivus/"),
     "inventory": (["{py}", "tools/pd2-las/build_las.py", "--stage", "inventory", "--out", "tools/pd2-las"], "what the source archive contains -> tools/pd2-las/source_inventory.json"),
     "audit": (["{py}", "tools/pd2-las/mip_audit.py"], "the mip levels of the face and eye textures (Markdown on stdout)"),
@@ -57,11 +59,11 @@ TASKS: dict[str, tuple[list[str], str]] = {
 }
 
 #: targets that write a pack and are therefore logged to build/pd2-las/<target>.log
-BUILDERS = {"build", "honokodae", "bunny", "heads", "voices_stream",
+BUILDERS = {"build", "honokodae", "bunny", "heads", "voices_stream", "voices_geralt",
             "glb"}
 #: `all` is the Makefile's list of every tracked pack; task order matters (heads reads the base ZIP)
-ALL = ["build", "honokodae", "bunny", "heads", "voices_stream",
-       "glb"]
+ALL = ["build", "honokodae", "bunny", "heads", "heads_v2", "voices_stream",
+       "voices_geralt", "glb"]
 
 
 def python() -> str:

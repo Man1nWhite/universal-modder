@@ -43,11 +43,11 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Building and the build environment* — [D5](#d5--our-own-model-codec-byte-exact-no-blender-or-external-tool-in-the-build), [D6](#d6--retarget-by-anatomical-partition-not-per-bone-and-not-by-frame-deltas), [D7](#d7--geometry-conventions-are-the-2b-models), [D8](#d8--install-under-assetsmod_overrides), [D80](#d80--the-over-joy-zips-are-gone-the-assembly-that-wrote-them-is-the-over-hila-builder)
 
-*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names), [D85](#d85--officesuite_over_bunny-ships-officesuite-as-a-native-mod_overrides-replacement-of-hop-to-it-bunny), [D86](#d86--miranda_l4d2_over_hila-leans-forward-onto-the-female-heister-neck-and-eyewear-posture),  [D90](#d90--geralts-beard-is-a-tracked-pair-of-textures-and-both-the-pack-and-the-hand-out-read-it), [D91](#d91--the-ada-reference-archive-leaves-the-tree-128-bytes-of-its-icon-header-stay), [D92](#d92--the-two-2b-template-models-are-tracked-the-rar-is-provenance-not-a-build-step), [D96](#d96--geralt_over_rust-reads-the-supplied-1024x1024-face-dds-pair-as-build-inputs)
+*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names), [D85](#d85--officesuite_over_bunny-ships-officesuite-as-a-native-mod_overrides-replacement-of-hop-to-it-bunny), [D86](#d86--miranda_l4d2_over_hila-leans-forward-onto-the-female-heister-neck-and-eyewear-posture),  [D90](#d90--geralts-beard-is-a-tracked-pair-of-textures-and-both-the-pack-and-the-hand-out-read-it), [D91](#d91--the-ada-reference-archive-leaves-the-tree-128-bytes-of-its-icon-header-stay), [D92](#d92--the-two-2b-template-models-are-tracked-the-rar-is-provenance-not-a-build-step), [D96](#d96--geralt_over_rust-reads-the-supplied-1024x1024-face-dds-pair-as-build-inputs), [D97](#d97--arivus-v2-ships-the-owners-blender-scene-as-a-second-head-pack), [D98](#d98--the-arivus-atlas-is-the-file-not-the-name-and-both-packs-rebuild-from-one-diffuse)
 
-*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree), [D87](#d87--the-three-vo-guides-are-replaced-by-the-vo-workbook), [D88](#d88--the-sydney-docx-has-two-tables-the-second-one-is-her-robbers_mission_gen-lines), [D89](#d89--the-geralt-and-arivus-vo-stream-packs-are-retired-and-deleted)
+*Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree), [D87](#d87--the-three-vo-guides-are-replaced-by-the-vo-workbook), [D88](#d88--the-sydney-docx-has-two-tables-the-second-one-is-her-robbers_mission_gen-lines), [D89](#d89--the-geralt-and-arivus-vo-stream-packs-are-retired-and-deleted), [D99](#d99--geralt_vo_over_rust-ships-via-beardlib-sounds-prefixrb16-plus-a-lua-soundmanager-lifecycle-fix)
 
-*Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed), [D93](#d93--a-change-too-small-for-a-sheet-gets-its-own-close-up-render-and-the-beard-gets-one), [D94](#d94--geralts-face-maps-are-tracked-beside-the-beard-at-the-vtfs-own-size), [D95](#d95--the-drm-and-in-game-asset-restrictions-are-removed-anti-cheat-for-online-play-stays), [D97](#d97--the-over-hila-accessory-fit-is-measured-against-vanilla-hilas-own-head-envelope)
+*Environment, tests and documents* — [D14](#d14--inputs-live-in-models-and-references), [D15](#d15--the-2b-templates-are-unpacked-into-buildpd2-las2b-never-committed-unpacked), [D16](#d16--skips-have-a-budget), [D17](#d17--the-readme-is-the-entry-point-and-carries-no-dates), [D19](#d19--scratch-and-caches-live-under-build-nothing-names-a-fixed-temp-path), [D20](#d20--the-source-inventory-is-tracked-and-says-only-what-the-source-contains), [D21](#d21--each-invariant-has-one-test-named-after-it-that-reads-the-tracked-packs), [D22](#d22--one-entry-point-the-readme-agentsmd-routes-to-it-handoffmd-is-the-dated-record), [D23](#d23--a-units-object-is-written-from-the-model-beside-it), [D24](#d24--the-build-encodes-only-what-it-changed-and-its-mip-levels-are-judged-as-pictures), [D25](#d25--a-pack-built-from-another-pack-is-rebuilt-with-it), [D26](#d26--the-tracked-bytes-do-not-depend-on-the-cpu-that-builds-them), [D27](#d27--one-writer-for-the-files-that-register-a-pack), [D28](#d28--one-environment-script-and-the-pins-are-written-once), [D29](#d29--the-idstring-hash-is-written-once-the-two-model-readers-stay-two), [D30](#d30--one-command-per-question-one-instruction-file-and-no-figure-in-a-document-that-a-command-prints), [D31](#d31--runtime_verified-is-false-in-every-pack), [D32](#d32--no-pack-carries-a-redistribution-restriction), [D33](#d33--what-is-stale-is-deleted-not-kept-for-later), [D34](#d34--lawson_las-ships-no-creditstxt), [D35](#d35--the-projects-self-description-starts-from-the-present), [D39](#d39--unified-rules-for-renders-docsrendersprojectext-old-tracked-renders-deleted), [D74](#d74--game-derived-exports-may-be-committed), [D93](#d93--a-change-too-small-for-a-sheet-gets-its-own-close-up-render-and-the-beard-gets-one), [D94](#d94--geralts-face-maps-are-tracked-beside-the-beard-at-the-vtfs-own-size), [D95](#d95--the-drm-and-in-game-asset-restrictions-are-removed-anti-cheat-for-online-play-stays), [D100](#d100--the-over-hila-accessory-fit-is-measured-against-vanilla-hilas-own-head-envelope)
 
 ## Product and routes
 
@@ -1626,6 +1626,71 @@ from documents, tests and tools, so they never change; the headings are appendix
   `tools/render_mod_previews.py`, `tests/test_face_textures.py`; D90, D93, D94.
 - **Status:** holds; runtime_verified false until seen in game.
 
+### D97 — Arivus v2 ships the owner's Blender scene as a second head pack
+
+- **Decided:** 2026-11-28, by the user: *"Make Arivus v2 over Hoxton.zip"* from the tracked
+  `references/templates/Arivus Head BLEND.7z`, and *"Re-save it in the repo"* for the scene itself.
+- **Decision:** `Arivus_over_Hoxton_v2.zip` is its own pack, built by
+  `tools/build_arivus_v2_mod.py` through `build_arivus_hoxton_mod` with the head handed in instead of
+  cut from `Random4.dff`. The mesh comes from the tracked digest `references/arivus_v2/head_v2.json`,
+  which `tools/pd2-las/arivus_v2_from_blend.py` wrote once from the scene. v1 stays exactly as it
+  was: same builder, same bytes.
+- **Why a second pack and not a replacement:** the scene is the owner's edit of the same head, and
+  the edit is small. Against v1's shipped drawable it is 0.03 cm median, 0.26 cm p95, 0.68 cm max,
+  with every move above z 168.6 cm (the crown and the back of the skull); the neck, the UVs and the
+  weights are unchanged. Replacing v1 would have thrown away a pack that works for a change a player
+  cannot see at gameplay distance. Shipping both lets the owner pick, and the v2 sheet shows the two
+  side by side so the difference is visible before install.
+- **What the pipeline had to learn, measured rather than assumed:** the scene's coordinates are
+  already Diesel's (`(x, −z, y)·100` was wrong by the bbox, and its UVs need no `1−v` flip — pairing
+  the corners with the shipped head matches them to 1.3e-8). The scene already carries v1's D79 neck
+  skirt (22 vertices at z 148.001), so the builder gets `close_neck=False` instead of stitching a
+  second one; and its corner normals are the scene's own, carried in the digest rather than derived
+  from the triangles.
+- **The scene is re-saved into the repo with Blender 4.2.23** (the version
+  `docs/audits/2026-11-14-christie-rebuild-redo.md` pins), because the tracked file was saved by
+  5.1 and 4.2 refuses it outright. Opening it in 5.x and saving does *not* fix that:
+  `bpy.data.version` inherits the opened file's stamp, so the re-save still says 501 (measured).
+  `tools/pd2-las/resave_arivus_blend.py` therefore dumps the scene's data with 5.0.1 and rebuilds it
+  in a fresh 4.2 document — armature, pose, mesh, UVs, vertex groups, material nodes, packed images —
+  copying every value, with no importer on the path. The rebuilt scene's evaluated mesh matches the
+  original to 8e-6 cm, and the pack rebuilt from it is byte-identical to the one built before the
+  re-save.
+- **Held to:** `tests/test_arivus_v2.py` (22 tests) measures the digest, the archive's version stamp,
+  the files that are v1's byte for byte, the topology and weights, the re-sculpt's size and height,
+  and the neck ring's enclosure on all three models. The full suite and `make -sC tools/pd2-las green`
+  pass; `status` reports the pack `tracked`.
+- **Source:** the user, 2026-11-28; `references/templates/Arivus Head BLEND.7z`,
+  `references/arivus_v2/head_v2.json`, `tools/build_arivus_v2_mod.py`.
+- **Status:** holds.
+
+### D98 — the Arivus atlas is the file, not the name, and both packs rebuild from one diffuse
+
+- **Decided:** 2026-11-28, by the user: *"I want you to use references/textures/old_hoxton_head_df.dds
+  and rebuild it."*
+- **Decision:** `ARIVUS_DIFFUSE` reads `references/textures/old_hoxton_head_df.dds`, and v1 and v2
+  both build from it. `status.py`'s INPUTS and the preview caption name the same file.
+- **Why the name needed a decision at all.** The path has carried two different images. It was the
+  *first* Arivus atlas edit, deleted on 2026-11-26 as superseded by `old_hoxton_head_df(1).dds`; it
+  was then re-uploaded (commit `d33c035`) and `(1).dds` deleted in turn. So the surviving *name* is
+  not the surviving *image*, and anyone reading the 2026-11-26 notes will assume the file is gone.
+  The identity is the sha256 (`c1397b75…`, against the retouch's `c8dea3e9…`), which is what the
+  builder comment and `references/README.md` now say.
+- **What the new upload is, measured:** the same single-level 2048² BC3 layout and the same alpha
+  cutout, byte-identical; 73,493 texels (1.75%) repainted inside one face box (x 171–851,
+  y 328–734), max channel delta 42, and nothing outside the face cell touched — tidier than the
+  retouch, which also moved 100 texels on two cell seams.
+- **Why one diffuse and not two:** v2 reuses v1's nine non-model members byte for byte (D97), so a
+  texture change is a change to both packs or to neither. Splitting the input would make v2's
+  "same atlas" claim false for no gain.
+- **Held to:** `tests/test_arivus_diffuse.py` pins the new base blocks inside the shipped pack, with
+  the cutout mips regenerated over them; the changed members are exactly the three textures, and
+  Miranda_L4D2_over_Hila and Geralt_over_Rust rebuild byte-identical. v1 is `a232ec137f0f`,
+  8,540,877 B; v2 is `f300c551c411`, 8,510,982 B; the GLB export is `a5073995b52e`, 3,429,204 B.
+- **Source:** the user, 2026-11-28; `references/textures/old_hoxton_head_df.dds`,
+  `tools/build_joy_head_mods.py`, `references/README.md`.
+- **Status:** holds.
+
 ## Voice lines and the stream packs
 
 ### D61 — Only the id-keyed stream pack ships; the BeardLib voice pack is dropped
@@ -2027,6 +2092,50 @@ from documents, tests and tools, so they never change; the headings are appendix
   `references/sheets/`; `docs/pd2-voice-stream-tables.md` §"The voice-line sheet";
   `tests/test_voiceline_sheet_import.py`; `docs/audits/2026-11-26-references-inventory.md` §2.
 - **Status:** holds; the four tabs are held in full and the coverage table now says so.
+
+### D99 — `Geralt_VO_over_Rust` ships via BeardLib `<Sounds>` (`prefix="rb16"`) plus a Lua `SoundManager` lifecycle fix
+
+- **Decided:** 2026-11-28, by the user (`route = beardlib_patched`, `takes = all_36`, `uncovered = vanilla`).
+- **Decision:** `dist/Geralt/Geralt_VO_over_Rust.zip` (`make -sC tools/pd2-las voices_geralt`, built by
+  `tools/build_geralt_vo_mod.py` from `voice_lines_vox/geralt/rust_beardlib_takes.csv` and
+  `references/voice/GERALT VOICE (PAYDAY 2).zip`) ships all 36 Geralt takes as trimmed, `-1.0 dBFS`
+  level-matched, 44.1 kHz mono Ogg Vorbis clips in `Geralt VO over Rust/voicelines/*.ogg`:
+  - 29 combat/stealth bark slots mapped via `voice_lines_vox/miranda_lawson/slot_event_ids.csv` with
+    `<random>` multi-take rotation on `civ.down` (4 takes), `inspire.faster` (2 takes), and `mask.go`
+    (2 takes), mirroring `Marine VO for Rust`'s `<sound>` / `<random>` / `<redirect ... prefix="rb16"/>`
+    XML layout (`min_lib_ver="3.38"`).
+  - 2 character-specific squad summon callouts (`PlayerStandard` `voice_type == "come"`):
+    `Геральт-Hila.mp3` -> `f21ab_sin` (`ecp_female`, `ssuffix = "ab"`) and `Геральт-Hoxton.mp3` ->
+    `f21d_sin` (`old_hoxton`, `ssuffix = "d"`), both gated on `prefix="rb16"`.
+  - Uncovered Rust lines remain vanilla (zero `.stream` stubs), and non-Rust heisters (`rb21`, `rb5`,
+    etc.) are untouched, so `Geralt_VO_over_Rust` coexists cleanly alongside
+    `Miranda_Lawson_VO_over_Hila_Stream`.
+- **Root cause of D61 (why unpatched BeardLib 5.2.0 `<Sounds>` stayed silent in heists) and the fix:**
+  Inspecting BeardLib 5.2.0 (`95eb1c0c`) and `PAYDAY2-SuperBLT-Lua` revealed three lifecycle bugs:
+  1. `Setup:unload_packages` (`Hooks/GeneralHooks.lua:39`) calls `BeardLib.Managers.Sound:Close()`,
+     which wipes `self.buffers = {}` and sets `self.Closed = true` (`SoundManager.lua:280-292`) when
+     leaving `MenuSetup` to load a heist, while `Sound:Open()` (`SoundManager.lua:326`) returns early
+     on `if self.Closed then return end` — leaving `self.buffers` empty and `Closed = true` inside
+     every heist.
+  2. When `_G.XAudio` is `nil` at `Core.lua` load time, `BeardLibSoundManager:init()` sets
+     `self.Closed = true` and `Classes/MixedSoundSource.lua` returns at line 1 (`if not XAudio then return end`)
+     before `SoundsModule` initializes XAudio, so `AddBuffer` drops every registered sound.
+  3. If SuperBLT resets `blt.xaudio` across state transitions, `Sound:Open()` never calls
+     `blt.xaudio.setup()`; additionally, `MixedSoundSource` only applies 2D/3D `is_relative` /
+     `set_position` on the second `update` tick and `MixedSoundSource:stop()` leaves `_queue` open.
+  `hooks/beardlib_sound_fix.lua` (loaded via `core_class="hooks/beardlib_sound_fix.lua"` before
+  `<Sounds>` runs and via `<Hooks>` on `lib/setups/setup`) fixes all three idempotently: ensures
+  `blt.xaudio.setup()`, loads `MixedSoundSource` if skipped and primes frame-1 positioning + clean
+  `stop()`, records persistent (`not data.unload`) sound specs in `AddBuffer`, and restores
+  `self.Closed = false` + `self.buffers` + `StoreFloat` redirect IDs inside `Sound:Open()`.
+- **Held to:** `tests/test_geralt_vo_pack.py`, executing BeardLib 5.2.0's verbatim `SoundManager.lua`,
+  `MixedSoundSource.lua`, and `SoundsModule.lua` (`tests/fixtures/beardlib_sound/`) inside LuaJIT 2.1
+  both without the fix (reproducing the failures) and with the shipped `main.xml` +
+  `beardlib_sound_fix.lua` across all 45 redirected events and repeated `unload_packages` ->
+  `init_finalize` cycles.
+- **Source:** the user, 2026-11-28; `tools/build_geralt_vo_mod.py`,
+  `voice_lines_vox/geralt/rust_beardlib_takes.csv`, `tests/test_geralt_vo_pack.py`.
+- **Status:** holds (offline-verified in LuaJIT; pending in-game ear check).
 
 ## Environment, tests and documents
 
@@ -2833,7 +2942,7 @@ from documents, tests and tools, so they never change; the headings are appendix
   `CONTRIBUTING.md`.
 - **Status:** holds.
 
-### D97 — The over Hila accessory fit is measured against vanilla Hila's own head envelope
+### D100 — The over Hila accessory fit is measured against vanilla Hila's own head envelope
 
 - **Decided:** 2026-11-28, after the user's in-game screenshots of the day showed the Derby-style
   eyewear cutting Miranda's brow and cheek, its temple arm riding over the hair curtain at the temple,

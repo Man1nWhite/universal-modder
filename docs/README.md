@@ -7,7 +7,7 @@ Start with [AGENTS.md](../AGENTS.md) if you are new here: it has one command per
 The field notes (how a game was actually modded) live in [`knowledge/`](../knowledge/INDEX.md);
 this directory holds the project's own guides, audits and evidence.
 
-24 documents, plus the [render and capture index](renders/README.md) (24 archived sets).
+24 documents, plus the [render and capture index](renders/README.md) (25 archived sets).
 
 ## Guides
 

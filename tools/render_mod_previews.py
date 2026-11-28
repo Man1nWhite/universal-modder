@@ -14,6 +14,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
     Miranda_L4D2_LAS, OfficeSuite, and OfficeSuite_over_Bunny — player, three-quarter, side and top-down views, auto-framed)
   - `37_OfficeSuite_wrist.png` (the D75 wrist junction)
   - `40_Geralt_beard.png` (the beard quadrant's own close-up, where the D90 tracked DDS is legible)
+  - `41_Arivus_over_Hoxton_v2.png` (the v2 Arivus head next to v1's portrait, at the crown's scale)
 
 The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie, and the ME2
 Romance line — `Miranda_Romance_LAS`, `Miranda_Romance_over_Hila`, `OfficeSuite_Head`, D83) stay
@@ -985,6 +986,97 @@ def render_heister_head_sheet(
     return p_34
 
 
+def render_arivus_v2_sheet(out_path: Path) -> Image.Image:
+    """v1 and v2 from the same three cameras: portrait, back three-quarter, crown.
+
+    Every panel is the pack's own `g_head_old_hoxton` drawable over flat-coloured body
+    parts, drawn by `rasterize_parts` from the same atlas. The change from v1 to v2 is at
+    the crown and the back of the skull (0.03 cm median, 0.68 cm max, none of it below
+    z 168.6 cm), so the second and third pairs are where it shows.
+    """
+    v1 = heister_head_parts("Arivus_over_Hoxton.zip")
+    v2 = heister_head_parts("Arivus_over_Hoxton_v2.zip")
+    W, H = 360, 480
+    cameras = (
+        (0.0, 173.8, 10.8, 135.0, 0.0, "portrait 0°"),
+        (150.0, 174.5, 9.4, 150.0, 0.0, "back 3/4 (150°)"),
+        (150.0, 180.5, 17.0, 170.0, 22.0, "crown, from above"),
+    )
+    panels: list[tuple[Image.Image, str]] = []
+    for deg, z, scale, clip, pitch, what in cameras:
+        for label, parts in (("v1", v1), ("v2", v2)):
+            image = rasterize_parts(parts, W, H, deg, z, scale, z_min_clip=clip, pitch_deg=pitch,
+                                    center=(0.0, 9.0, 179.0) if pitch else None)
+            panels.append((image, f"{label} — {what}"))
+
+    header = 58
+    canvas = Image.new("RGB", (W * len(panels), H + header), (18, 22, 30))
+    for i, (image, label) in enumerate(panels):
+        draw = ImageDraw.Draw(image)
+        draw.rectangle([8, H - 30, W - 8, H - 8], fill=(14, 17, 24))
+        draw.text((14, H - 26), label, fill=(230, 235, 245), font=FONT_REG_12)
+        canvas.paste(image, (i * W, header))
+    draw = ImageDraw.Draw(canvas)
+    draw.text((12, 12), "Arivus over Old Hoxton — v2 from the Blender scene, beside v1",
+              fill=(242, 245, 252), font=FONT_BOLD_16)
+    draw.text((12, 34),
+              "5,716 triangles, single-sided hair (v1: 8,692, hair doubled) | same atlas, same "
+              "material | crown re-sculpted, max 0.68 cm | Offline preview",
+              fill=(165, 178, 200), font=FONT_REG_12)
+    draw.line([(0, header - 4), (canvas.width, header - 4)], fill=(58, 128, 220), width=2)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out_path)
+    print(f"Saved {out_path}")
+    return canvas
+
+
+def heister_head_parts(zip_name: str) -> list[tuple]:
+    """The head and a suit stand-in of one head pack, as `rasterize_parts` wants them.
+
+    The same parts `render_heister_head_sheet` assembles: the pack's `g_head_old_hoxton`
+    with its own atlas, over flat-coloured body/hands/arms. Neither the suit's textures nor
+    its materials are in a head pack, so those are stand-ins and the sheet says so.
+    """
+    zp = dist_path(ROOT, zip_name)
+    with zipfile.ZipFile(zp) as zf:
+        prefix = [n.split("/")[0] for n in zf.namelist()][0]
+        model_bytes = zf.read(f"{prefix}/units/payday2/characters/npc_criminals_suit_1/npc_criminals_suit_1.model")
+        atlas = np.asarray(Image.open(io.BytesIO(
+            zf.read(f"{prefix}/units/payday2/characters/shared_textures/old_hoxton_head_df.texture"))).convert("RGBA"))
+    mf = dm.ModelFile.read(model_bytes)
+    hashes = {dm.decode_model_data(s.payload)["name_hash"]: s for s in mf.by_type(dm.MODEL_DATA)}
+
+    def drawable(name: str):
+        md = dm.decode_model_data(hashes[dm.hash64(name)].payload)
+        pg = dm.decode_passthroughgp(mf.by_id(md["passthroughgp"]).payload)
+        geo = dm.decode_geometry(mf.by_id(pg["geometry"]).payload)
+        topo = np.array(dm.decode_topology(mf.by_id(pg["topology"]).payload)["indices"]).reshape(-1, 3)
+        atoms = md["atoms"]
+        return (np.asarray(geo["verts"], np.float32), np.asarray(geo["normals"], np.float32),
+                topo, np.asarray(geo["uv0"], np.float32), atoms)
+
+    suit = np.full((32, 32, 4), [58, 62, 68, 255], dtype=np.uint8)
+    glove = np.full((32, 32, 4), [42, 44, 48, 255], dtype=np.uint8)
+    skin = np.full((32, 32, 4), [198, 155, 132, 255], dtype=np.uint8)
+    parts = []
+    for name, tex in (("g_body", suit), ("g_hands", glove), ("g_arms", skin),
+                      ("g_female_forearms", skin), ("g_male_forearms", skin)):
+        if dm.hash64(name) not in hashes:
+            continue
+        verts, normals, topo, uv, atoms = drawable(name)
+        parts.append((verts, normals, topo, uv, tex, False, False))
+    verts, normals, topo, uv, atoms = drawable("g_head_old_hoxton")
+    if len(atoms) == 1:
+        a0 = atoms[0]
+        tris = topo[a0["base_index"] // 3: a0["base_index"] // 3 + a0["tri_count"]]
+        parts.append((verts, normals, tris, uv, atlas, True, False))
+    else:
+        for index, atom in enumerate(atoms):
+            tris = topo[atom["base_index"] // 3: atom["base_index"] // 3 + atom["tri_count"]]
+            parts.append((verts, normals, tris, uv, atlas, index > 0, False))
+    return parts
+
+
 def render_geralt_beard_closeup(out_path: Path, size: int = 900) -> Image.Image:
     """The face and beard quadrants of Geralt's `g_head`, close up and at high zoom.
 
@@ -1282,6 +1374,8 @@ UNIFIED_PATHS = {
     "38_OfficeSuite_over_Bunny_posed.png": "honoka/model/over-bunny/officesuite_over_bunny_posed_sheet.png",
     # not in the numbered overview: the beard quadrant's own close-up (D90's tracked DDS)
     "40_Geralt_beard.png": "geralt/model/over-rust/geralt_beard_closeup.png",
+    # not in the numbered overview: v2 next to the v1 portrait it replaces
+    "41_Arivus_over_Hoxton_v2.png": "arivus/model/over-hoxton-v2/arivus_over_hoxton_v2_sheet.png",
     # D86 side-profile posture & throat contour comparison for Miranda_L4D2_over_Hila
     "39_Miranda_L4D2_over_Hila_posture.png": "miranda/model/over-hila/miranda_l4d2_over_hila_posture_before-after.png",
 }
@@ -1301,6 +1395,8 @@ def main(argv: list[str] | None = None) -> None:
                     help="render only the OfficeSuite LAS sheet, with its FPS arms panel")
     ap.add_argument("--only-beard", action="store_true",
                     help="render only the Geralt beard close-up (the D90 tracked-DDS quadrant)")
+    ap.add_argument("--only-arivus-v2", action="store_true",
+                    help="render only the Arivus v2 sheet (v2 beside v1, plus the crown views)")
     args = ap.parse_args(argv)
     out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1312,6 +1408,10 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.only_beard:
         render_geralt_beard_closeup(target_for("40_Geralt_beard.png"))
+
+    if args.only_arivus_v2:
+        render_arivus_v2_sheet(target_for("41_Arivus_over_Hoxton_v2.png"))
+        return
 
 
     if args.only_hila_posture:
@@ -1491,11 +1591,12 @@ def main(argv: list[str] | None = None) -> None:
         (58, 62, 68),
         (42, 44, 48),
         "Arivus over Old Hoxton — supplied diffuse",
-        "Arivus mesh and hair; user-supplied old_hoxton_head_df(1).dds | Offline preview",
+        "Arivus mesh and hair; user-supplied old_hoxton_head_df.dds | Offline preview",
         target_for("30_Arivus_over_Hoxton.png"),
         portrait=(173.8, 10.8),
         full=(82.0, 2.55),
     )
+    render_arivus_v2_sheet(target_for("41_Arivus_over_Hoxton_v2.png"))
 
     # Complete dist/ overview grid: every tracked pack's model sheet
     tw, th_h = 330, 440
