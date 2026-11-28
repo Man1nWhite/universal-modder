@@ -1062,3 +1062,11 @@ walks `references/` recursively instead of one level; `references/README.md` doc
 voice packs it had never named. The suite is 1060 passed, 13 skipped (2 `test_repo_weight` tests read
 HEAD and pass once this lands); `pack_checksum.py` 13 match; `check_links.py` 433/0; `um publish
 check .` PASS, 0 warnings.
+## 2026-11-28 (merge fix) — the one zip-reading test the retirement missed
+
+CI's `tests and skip budget` gate failed on the merged tree: `tests/test_stream_tables.py`
+`test_the_written_column_is_the_pack_coverage_minus_the_vorbis_ids` skipped with an unbudgeted
+reason ("dist/ is absent from this sandbox snapshot") because the two zips it read were retired
+and deleted on 2026-11-28 (D88) — it had been passing silently and skipped only after the
+deletion. It now pins `written=yes` against the pick tables and the Vorbis ids (the same inputs
+the builder writes from), so the tables cannot drift from their sources; no unbudgeted skip.

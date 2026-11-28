@@ -3,8 +3,8 @@
 A VO pack replaces a line by writing the file the game streams, so the only two things that
 decide whether a line is replaced are *the bank folder* the heister streams from and *the
 numeric id* of the line. `tools/build_stream_tables.py` writes both to
-`voice_lines_vox/targets/`; these tests keep them equal to the cut table, the picks and the
-tracked zips, so a table cannot drift into a second, stale copy of the keying.
+`voice_lines_vox/targets/`; these tests keep them equal to the cut table and the picks, so a table
+cannot drift into a second, stale copy of the keying.
 
 The two facts these tests also pin, because both were inferred rather than read anywhere:
 
@@ -13,23 +13,20 @@ The two facts these tests also pin, because both were inferred rather than read 
 * a *dedicated* bank folder is `char_<module>` — `char_rust` for Rust, whose `robber` switch is
   `rb16`, and no documented folder at all for Old Hoxton (his packs are shared-bank packs).
 
-All of it reads tracked CSVs and zips: no ffmpeg, no archives, no game install.
+All of it reads tracked CSVs: no ffmpeg, no archives, no game install.
 """
 from __future__ import annotations
 
 import csv
 import sys
-import zipfile
 from pathlib import Path
 
-import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "tools"), str(ROOT / "tools" / "pd2-las")]
 
 import build_stream_tables as tables  # noqa: E402
 import build_hila_stream_mod as hila  # noqa: E402
-from dist_paths import dist_path  # noqa: E402
 
 TARGETS = ROOT / "voice_lines_vox" / "targets"
 
@@ -48,11 +45,6 @@ def _picks(rel: str) -> set[str]:
         return {r["slot"] for r in csv.DictReader(f) if r.get("slot")}
 
 
-def _zip_ids(pack: str) -> set[str]:
-    with zipfile.ZipFile(dist_path(ROOT, pack)) as z:
-        return {n.split("/")[-1][:-len(".stream")] for n in z.namelist() if n.endswith(".stream")}
-
-
 def test_every_target_has_a_shared_table_with_the_shared_ids():
     """One row per shared `regular_vox` id, and the id set is the Hila cut table's, nothing else."""
     expected = [hila_id for hila_id, _slot, _also in hila.load_ids()]
@@ -63,17 +55,21 @@ def test_every_target_has_a_shared_table_with_the_shared_ids():
         assert {r["slot"] for r in rows} <= {slot for _i, slot, _a in hila.load_ids()}
 
 
-def test_the_written_column_is_the_pack_coverage_minus_the_vorbis_ids():
-    """`written=yes` has to be exactly what the tracked zip of that target carries."""
+def test_the_written_column_is_the_picks_coverage_minus_the_vorbis_ids():
+    """`written=yes` is exactly the non-Vorbis ids whose slot the picks name.
+
+    The two packs that wrote these tables were retired and deleted from `dist/` on 2026-11-28
+    (D88), so the coverage is pinned against the pick tables instead of a zip that no longer
+    exists — the tables stay as the record of what the packs carried.
+    """
     vorbis = set(hila.load_vorbis_ids())
     for target, cfg in tables.TARGETS.items():
         rows = _shared(target)
+        picks = _picks(cfg["picks"])
         written = {r["id"] for r in rows if r["written"] == "yes"}
         assert not written & vorbis, f"{target} claims to write a Vorbis id"
-        pack = dist_path(ROOT, cfg["pack"])
-        if not pack.is_file():
-            pytest.skip("dist/ is absent from this sandbox snapshot")
-        assert written == _zip_ids(cfg["pack"]), target
+        expected = {r["id"] for r in rows if r["slot"] in picks and r["id"] not in vorbis}
+        assert written == expected, target
 
 
 def test_a_slot_without_a_pick_is_vanilla_and_says_so():
