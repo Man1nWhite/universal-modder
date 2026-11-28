@@ -478,6 +478,116 @@ NECK_SKIRT_DROP_CM = 6.5   # how far the new ring dives below that rim
 NECK_SKIRT_TUCK = 0.88     # radial scale of the new ring about the neck axis
 NECK_SKIRT_FORWARD_CM = 0.5  # and this far towards +y, the character's front
 
+# L4D2 Zoey's head stands on an upright neck (recessed eyeball hemisphere centre at y ~ 12.00 cm,
+# cornea apex at y ~ 13.58 cm, z ~ 174.72 cm), whereas PAYDAY 2's female heister rig (Joy/Hila)
+# leans `Neck -> Head` forward by +22.25° with cornea apex at y = 17.00..17.43 cm behind `a_head`
+# eyewear and the face pitched forward by +10.5°. Mapping eyeball centre (12.00, 174.72) to
+# (15.70, 173.80) places Miranda's cornea apex at y = 17.29 cm (strictly between Joy 17.00 and
+# Hila 17.43) and aligns brow, nose, lips, chin, and throat with Joy/Hila without poking through
+# sunglasses/masks. Rational half-angle tan(10.5° / 2) gives exact orthogonal `(cos, sin)` with
+# IEEE-754 arithmetic only (no libm sin/cos drift).
+L4D2_POSTURE_HALF_TAN = 0.09188709102124269  # tan(5.25 deg) -> +10.5 deg forward pitch
+L4D2_SRC_EYE_YZ = (12.00, 174.72)
+L4D2_TGT_EYE_YZ = (15.70, 173.80)
+L4D2_POSTURE_BLEND_Z = (156.0, 163.2)  # 0 at collar rim/skirt (z<=156.0), 1 on head/seam (z>=163.2)
+L4D2_THROAT_ARCH_CM = 0.90
+L4D2_HAIR_THROAT_CLEAR_CM = 1.55
+
+
+def _l4d2_posture_cos_sin(half_tan: float = L4D2_POSTURE_HALF_TAN) -> tuple[float, float]:
+    t2 = half_tan * half_tan
+    denom = 1.0 + t2
+    return (1.0 - t2) / denom, (2.0 * half_tan) / denom
+
+
+def rigid_l4d2_head_posture(
+    positions: np.ndarray,
+    normals: np.ndarray,
+    *,
+    src_eye_yz: tuple[float, float] = L4D2_SRC_EYE_YZ,
+    tgt_eye_yz: tuple[float, float] = L4D2_TGT_EYE_YZ,
+    half_tan: float = L4D2_POSTURE_HALF_TAN,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Apply the rigid forward pitch + eye-socket alignment from L4D2 bind pose to PD2 female heister posture."""
+    c, s = _l4d2_posture_cos_sin(half_tan)
+    src_y, src_z = src_eye_yz
+    tgt_y, tgt_z = tgt_eye_yz
+
+    p = np.asarray(positions, dtype=np.float64)
+    p_out = p.copy()
+    dy = p[:, 1] - src_y
+    dz = p[:, 2] - src_z
+    p_out[:, 1] = tgt_y + dy * c + dz * s
+    p_out[:, 2] = tgt_z - dy * s + dz * c
+
+    n = np.asarray(normals, dtype=np.float64)
+    n_out = n.copy()
+    ny, nz = n[:, 1], n[:, 2]
+    n_out[:, 1] = ny * c + nz * s
+    n_out[:, 2] = -ny * s + nz * c
+    return p_out.astype(np.float32), n_out.astype(np.float32)
+
+
+def blend_l4d2_scalp_and_neck_posture(
+    p_raw: np.ndarray,
+    n_raw: np.ndarray,
+    p_skirted: np.ndarray,
+    n_skirted: np.ndarray,
+    is_neck_skin_raw: np.ndarray,
+    *,
+    blend_z: tuple[float, float] = L4D2_POSTURE_BLEND_Z,
+    throat_arch_cm: float = L4D2_THROAT_ARCH_CM,
+    hair_throat_clear_cm: float = L4D2_HAIR_THROAT_CLEAR_CM,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Lean the L4D2 neck cylinder and hair smoothly from the collar socket into the tilted head.
+
+    Vertices at or below ``blend_z[0]`` (156.0 cm, the collar rim and extruded skirt) stay fixed
+    inside the body collar, while vertices at or above ``blend_z[1]`` (163.2 cm, below every
+    `Face <-> Scalp` seam vertex at z >= 163.49 cm) receive the exact rigid head transform.
+    Interpolating directly between the collar-shaped mesh ``p_skirted`` and ``rigid(p_raw)``
+    avoids double-shifting the mid-neck and hair tuck zone, while gently keeping lower side
+    hair locks tucked behind the forward-leaning throat silhouette.
+    """
+    p0 = np.asarray(p_raw, dtype=np.float64)
+    n0 = np.asarray(n_raw, dtype=np.float64)
+    ps = np.asarray(p_skirted, dtype=np.float64)
+    ns = np.asarray(n_skirted, dtype=np.float64)
+    n_orig = len(p0)
+
+    p_raw_ext = ps.copy()
+    p_raw_ext[:n_orig] = p0
+    n_raw_ext = ns.copy()
+    n_raw_ext[:n_orig] = n0
+
+    p_rig, n_rig = rigid_l4d2_head_posture(p_raw_ext, n_raw_ext)
+    p_rig64 = np.asarray(p_rig, dtype=np.float64)
+    n_rig64 = np.asarray(n_rig, dtype=np.float64)
+
+    z_lo, z_hi = blend_z
+    z_blend = ps[:, 2].copy()
+    z_blend[:n_orig] = np.where(p0[:, 2] >= z_hi, p0[:, 2], 0.5 * (ps[:n_orig, 2] + p0[:, 2]))
+    z_blend = np.where(ps[:, 2] <= z_lo, ps[:, 2], z_blend)
+    w = smoothstep((z_blend - z_lo) / (z_hi - z_lo))
+
+    p_out = ps * (1.0 - w[:, None]) + p_rig64 * w[:, None]
+
+    is_ns_ext = np.zeros(len(ps), dtype=bool)
+    is_ns_ext[: len(is_neck_skin_raw)] = is_neck_skin_raw
+    u_phys = np.clip((p_out[:, 2] - 156.5) / (z_hi - 156.5), 0.0, 1.0) * np.where((w > 0.0) & (w < 1.0), 1.0, 0.0)
+    w_arch = 4.0 * u_phys * (1.0 - u_phys) * (0.75 + 0.50 * u_phys)
+    w_throat = np.clip((ps[:, 1] - 1.5) / 5.0, 0.0, 1.0)
+    p_out[is_ns_ext, 1] += throat_arch_cm * w_arch[is_ns_ext] * w_throat[is_ns_ext]
+
+    is_hr = ~is_ns_ext
+    if is_hr.any() and hair_throat_clear_cm > 0.0:
+        w_hr_band = 4.0 * w[is_hr] * (1.0 - w[is_hr])
+        p_out[is_hr, 1] -= hair_throat_clear_cm * w_hr_band * smoothstep((p_out[is_hr, 1] - 4.0) / 5.0)
+
+    n_out = ns * (1.0 - w[:, None]) + n_rig64 * w[:, None]
+    n_len = np.sqrt(np.sum(n_out * n_out, axis=1, keepdims=True))
+    n_out /= np.maximum(n_len, 1e-8)
+    return p_out.astype(np.float32), n_out.astype(np.float32)
+
 
 def extend_neck_skirt(
     p: np.ndarray,
@@ -1033,6 +1143,7 @@ def _prepare_combined_head_arrays(
     jaw_lift: float = 3.0,
     single_atom: bool = False,
     double_side_atom1: bool = False,
+    orthonormal_tangents: bool = False,
 ) -> dict:
     """Deduplicate and pack Atom 0 and Atom 1 into Diesel Geometry/Topology/ModelData arrays."""
     v0, n0, uv0, t0 = deduplicate_mesh(
@@ -1050,7 +1161,12 @@ def _prepare_combined_head_arrays(
     tris_primary = np.vstack([t0, t1 + len(v0)])
 
     pal_idx, pal_w = compute_joy_head_weights(verts_all, bone_offset=bone_offset, jaw_lift=jaw_lift)
-    uvdir_u, uvdir_v = compute_tangents(verts_all, norms_all, uvs_all, tris_primary)
+    if orthonormal_tangents:
+        import tangents
+
+        uvdir_u, uvdir_v = tangents.tangent_frames(verts_all, norms_all, uvs_all, tris_primary)
+    else:
+        uvdir_u, uvdir_v = compute_tangents(verts_all, norms_all, uvs_all, tris_primary)
 
     if double_side_atom1:
         t1 = np.vstack([t1, t1[:, [0, 2, 1]]])
@@ -1724,14 +1840,22 @@ def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> No
             t_s = topo_head[bi // 3 : bi // 3 + tc] - bv
             if mid == 3:
                 if for_suit:
+                    p_raw = p_s.copy()
+                    n_raw = n_s.copy()
+                    is_ns_raw = neck_skin_uv_island_mask(uv_s, t_s)
                     p_s = shape_neck_and_hair_for_suit_collar(p_s, uv_s, z_drop=5.4, y_push=3.0, x_flare=0.28, tris=t_s)
+                    p_s, n_s, uv_s, t_s = extend_neck_skirt(p_s, n_s, uv_s, t_s)
+                    p_s, n_s = blend_l4d2_scalp_and_neck_posture(p_raw, n_raw, p_s, n_s, is_ns_raw)
                 else:
                     p_s = extend_scalp_neck_skin_into_collar(p_s, uv_s, z_drop=3.2, y_push=2.0, tris=t_s)
                     p_s = tuck_hair_for_joy_hood(p_s, uv_s, tris=t_s)
-                p_s, n_s, uv_s, t_s = extend_neck_skirt(p_s, n_s, uv_s, t_s)
-            elif mid == 0:
-                uv_s = project_me2_eye_uv_img(p_s)
-                n_s = soften_eyeball_normals(n_s)
+                    p_s, n_s, uv_s, t_s = extend_neck_skirt(p_s, n_s, uv_s, t_s)
+            else:
+                if mid == 0:
+                    uv_s = project_me2_eye_uv_img(p_s)
+                    n_s = soften_eyeball_normals(n_s)
+                if for_suit:
+                    p_s, n_s = rigid_l4d2_head_posture(p_s, n_s)
             atoms_by_mid.setdefault(mid, []).append((p_s, n_s, uv_s, t_s))
 
         face_p, face_n, face_uv, face_t = atoms_by_mid[1][0]
@@ -1749,6 +1873,11 @@ def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> No
                 uv_q = map_uv_to_quadrant(uv_s, qx, qy)
                 append_part(a0_verts, a0_norms, a0_uvs, a0_tris, p_s, n_s, uv_q, t_s)
 
+        if for_suit:
+            lp_out, ln_out = rigid_l4d2_head_posture(lash_p, lash_n)
+        else:
+            lp_out, ln_out = lash_p.copy(), lash_n.copy()
+
         return (
             {
                 "verts": np.vstack(a0_verts),
@@ -1757,8 +1886,8 @@ def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> No
                 "tris": np.vstack(a0_tris),
             },
             {
-                "verts": lash_p.copy(),
-                "normals": lash_n.copy(),
+                "verts": lp_out,
+                "normals": ln_out,
                 "uvs": lash_uv.copy(),
                 "tris": lash_tris.copy(),
             },
@@ -1766,7 +1895,9 @@ def build_l4d2_hila_head(ada_root: Path, me2_dir: Path, sec_nm_dds: bytes) -> No
 
     atom0_joy, atom1_joy = build_l4d2_meshes(for_suit=False)
     atom0_suit, atom1_suit = build_l4d2_meshes(for_suit=True)
-    packed_suit_head = _prepare_combined_head_arrays(atom0_suit, atom1_suit, bone_offset=1)
+    packed_suit_head = _prepare_combined_head_arrays(
+        atom0_suit, atom1_suit, bone_offset=1, orthonormal_tangents=True
+    )
 
     lash_rgba, lashes_df_dds, lashes_op_dds = prepare_crisp_eyelash_textures(me2_dir)
     eyes_df_dds = lashes_df_dds
