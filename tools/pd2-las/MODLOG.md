@@ -1,4 +1,38 @@
-## 2026-11-28 (latest) — `Arivus_over_Hoxton_v2.zip`: the owner's Blender scene as a pack (D96)
+## 2026-11-28 — Arivus rebuilt with the new `old_hoxton_head_df.dds` upload
+
+**The ask.** *"I want you to use references/textures/old_hoxton_head_df.dds and rebuild it."*
+
+**A name that had moved.** That path was the *first* Arivus atlas edit, and the 2026-11-26 sweep
+deleted it as "superseded by `(1).dds`". It is back, from a different upload (commit `d33c035`,
+"Add files via upload"), and this time `(1).dds` was deleted instead — so the surviving name is not
+the surviving image. The bytes settle it: `c1397b75…` against the retouch's `c8dea3e9…`, same
+4,194,432 B. The tree now holds exactly one of the two.
+
+**What the upload is.** Decoded and compared with the retouch it replaces: the same single-level
+2048² BC3 layout and the same alpha cutout (three values, `{0, 18, 24}` in the hair half, skin
+≥ 18 — byte-identical), with **73,493 texels (1.75%) repainted inside one face box** (x 171–851,
+y 328–734), max channel delta 42. Softer, warmer skin and lighter brows; nothing outside the face
+cell moved at all, which is tidier than the retouch's two seam leftovers.
+
+**The rebuild.** `ARIVUS_DIFFUSE` now reads the upload, and `status.py`'s INPUTS and the preview
+caption name it. Both Arivus packs rebuild from it, since v2 shares v1's non-model members: v1
+`Arivus_over_Hoxton.zip` is **8,540,877 B, `a232ec137f0f`** (was `d5f569610d2c`, 8,546,107 B) and
+v2 `Arivus_over_Hoxton_v2.zip` is **8,510,982 B, `f300c551c411`** (was 8,516,191 B,
+`257ddf0e…`). The builder still ships the supplied base-level BC3 blocks verbatim and regenerates
+the cutout mips and the HUD icon, so the 12-level texture is 5,592,560 B in both. The GLB
+interchange export, built from v1's pack, is **3,429,204 B, `a5073995b52e`**.
+
+**What did not move.** Miranda_L4D2_over_Hila and Geralt_over_Rust came back byte-identical, and
+inside each Arivus pack only the three texture members changed (`old_hoxton_head_df.texture`,
+`old_hoxton_head_p_df.texture`, the icon `old_hoxton.texture`) — the other ten, the `.dff`, the
+`.object` files, the material configs and the manifest, are byte-for-byte what they were. Geometry,
+rig and animation are untouched. The suite is 1117 passed / 1 failed, the failure being the
+pre-existing `test_face_textures` one; `test_arivus_diffuse.py` pins the new base blocks inside the
+pack. The two Arivus sheets and the dist overview re-rendered; every other sheet came back identical.
+`runtime_verified` stays false — how the warmer skin reads under the game's lighting is still a
+check waiting for a person with the game.
+
+## 2026-11-28 — `Arivus_over_Hoxton_v2.zip`: the owner's Blender scene as a pack (D96)
 
 The tracked `references/templates/Arivus Head BLEND.7z` holds the owner's edit of the v1 Arivus head
 (`g_head_old_hoxton`, re-rigged onto three bones) with v1's atlas packed in. It becomes a second

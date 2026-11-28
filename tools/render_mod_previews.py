@@ -1593,7 +1593,7 @@ def main(argv: list[str] | None = None) -> None:
         (58, 62, 68),
         (42, 44, 48),
         "Arivus over Old Hoxton — supplied diffuse",
-        "Arivus mesh and hair; user-supplied old_hoxton_head_df(1).dds | Offline preview",
+        "Arivus mesh and hair; user-supplied old_hoxton_head_df.dds | Offline preview",
         target_for("30_Arivus_over_Hoxton.png"),
         portrait=(173.8, 10.8),
         full=(82.0, 2.55),

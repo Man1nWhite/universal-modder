@@ -18,9 +18,9 @@ UVs and the skin weights are v1's. That is what the sheet is for — side by sid
 the back of the head are where the two differ, and nowhere else is.
 
 **What v2 is not.** It is not a new head and not a re-texture. The 2048² atlas, its cutout mip
-chain, the flat normal map and the icon are byte-identical to v1's, because the scene's packed
-diffuse is the same image v1 builds from (`references/textures/old_hoxton_head_df(1).dds`, zero
-pixel difference). The two material configs, the two `.object` files and the heist, menu and Safe
+chain, the flat normal map and the icon are byte-identical to v1's, because both packs are built
+from the same diffuse (`references/textures/old_hoxton_head_df.dds`) — the scene's own packed
+diffuse was the earlier edit, and the builder supplies the tracked atlas instead. The two material configs, the two `.object` files and the heist, menu and Safe
 House units are v1's own code and v1's own bytes.
 
 **The neck.** v1's D79 skirt is in the scene already — 22 vertices at z 148.001 — so v2 ships

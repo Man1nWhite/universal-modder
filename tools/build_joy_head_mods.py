@@ -85,12 +85,14 @@ OLD_HOXTON_ICON_PATH = "guis/textures/pd2/blackmarket/icons/characters/old_hoxto
 OLD_HOXTON_TEX_DIR = "units/payday2/characters/shared_textures"
 ARIVUS_ARCHIVE = "1581859199_135363.rar"
 # The supplied DDS is an edited Arivus atlas (not vanilla Hoxton UVs).
-# The 2026-11-26 retouch `old_hoxton_head_df(1).dds` supersedes the first edit:
-# softer brows, one catchlight on the iris instead of two plus the stray wedge,
-# and small skin adjustments over the brow, lid, nose and lip rows. Same
-# single-level 2048x2048 BC3 layout and the same alpha cutout, so the builder
-# still ships its base blocks byte for byte; the earlier bytes stay in git.
-ARIVUS_DIFFUSE = ROOT / "references" / "textures" / "old_hoxton_head_df(1).dds"
+# `old_hoxton_head_df.dds` is the 2026-11-28 upload: it supersedes the
+# `old_hoxton_head_df(1).dds` retouch, repainting 73,493 texels (1.75%) inside
+# one face box (x 171-851, y 328-734) and leaving every other texel, and the
+# whole alpha cutout, untouched. Same single-level 2048x2048 BC3 layout, so the
+# builder still ships its base blocks byte for byte; the earlier bytes stay in
+# git. Note the name: the *first* edit once carried this filename and was
+# removed on 2026-11-26, but this is a different file (sha256 c1397b75...).
+ARIVUS_DIFFUSE = ROOT / "references" / "textures" / "old_hoxton_head_df.dds"
 #: Random4 "Head" bone in the source rig (+x up, +y fwd, +z left), anchored to the
 #: PD2 male "Head" bone (Rust/suit rig world). Scale matches crown-to-crown
 #: (source head-top 0.8384 -> Rust g_head top z 187.56).

@@ -55,7 +55,7 @@ INPUTS = (
     "references/characters/PC _ Computer - Mass Effect 2 - Non-Playable Characters - Miranda Lawson (Romance).zip",
     "references/characters/Geralt.7z",
     "references/characters/1581859199_135363.rar",
-    "references/textures/old_hoxton_head_df(1).dds",
+    "references/textures/old_hoxton_head_df.dds",
     "references/templates/npc_criminals_suit_1.7z",
     "references/templates/npc_criminals_ecp_female.7z",
     "references/templates/ccmt_acc_bunny.7z",
