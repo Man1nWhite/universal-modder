@@ -9,7 +9,7 @@ downloads are grouped under `dist/`, and previews with their source provenance a
 |---|---|---|---|
 | `characters/` | 4 | 30.5 MB | the character sources the LAS and head packs are cut from |
 | `templates/` | 6 | 52.9 MB | reference mods supplying skeletons, heister units and material paths |
-| `textures/` | 8 | 14.8 MB | the supplied textures, the one reference texture mod, Geralt's beard as textures of its own, and the head packs' 128-byte icon header |
+| `textures/` | 12 | 33.0 MB | the supplied textures, the one reference texture mod, Geralt's beard and face as textures of their own, and the head packs' 128-byte icon header |
 | `honoka/` | 31 | 17.4 MB | the DOAXVV export, this repo's own glTF of it, and the DDS dump |
 | `voice/` | 7 | 65.1 MB | the packs the three VO routes copy containers, tables and clips from |
 | `sheets/` | 7 | 2.3 MB | the community voice-line sheets, held as the full exports |
@@ -39,7 +39,7 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 | `npc_criminals_ecp_female.7z` | Reference Hila `mod_overrides` unit (H3H3 collaboration heister, DLC folder `ecp`): `npc_criminal_ecp_female.model` / `_menu.model`, both `.object` files and `mtr_criminal_ecp_female[_cc].material_config`; her hair is `g_hair_mask_off` / `g_hair_mask_on` and her head `g_head` carries two atoms (head, 3D eyelashes) on `mtr_head` + `mtr_lashes` | `tools/build_joy_head_mods.py` (`_emit_hila_packages`) |
 | `npc_criminals_suit_1.7z` | Vanilla Old Hoxton shared-suit unit folder (user game extract 2026-11-24, DieselBundleViewer): cooked DODB `npc_criminals_suit_1.model`, `npc_criminals_suit_menu_1.model` (byte-identical), `.object`s, `mtr_old_hoxton[_cc].material_config`, per-heister `.unit`s | `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) -> `dist/Arivus/Arivus_over_Hoxton.zip` |
 
-## `textures/` — 14.8 MB
+## `textures/` — 33.0 MB
 
 | File | Purpose | Consumed By |
 |---|---|---|
@@ -48,6 +48,9 @@ move costs — is `docs/audits/2026-11-26-references-inventory.md`.
 | `geralt_beard_df.png` | The beard cut out of Geralt's head atlas: 1024×512 RGBA, the colour and the hair's 0/255 cutout, cropped from `dist/Geralt/Geralt_over_Rust.zip`'s `npc_criminal_wild_1_head_df.texture` (rows 1024–1536, columns 1024–2048) by `python tools/extract_beard_textures.py`. Nothing in `dist/` reads it back: it is the beard as a texture of its own, for another mod or another engine | `tools/extract_beard_textures.py`, which writes it, its `.dds`, and the normal map beside it; no builder reads it |
 | `geralt_beard_nm.png` | The same rectangle of the pack's `npc_criminal_wild_1_head_nm.texture`: 1024×512 in Diesel's packed normal layout — X in alpha, Y in green, 255 in red and 0 in blue, which the shader does not read (a standard RGB normal map is X = alpha, Y = green, Z from the unit length) | the same tool |
 | `geralt_beard_df.dds`, `geralt_beard_nm.dds` | The same two pictures as DXT5 DDS with the full mip chain, for a viewer or an engine that takes DDS rather than PNG. These two are **build inputs**: `build_geralt_rust_mod` assembles the Geralt pack's beard quadrant from them, so the texture handed out here and the texture the pack ships are the same bytes until DXT5 re-encoding | `tools/build_joy_head_mods.py` (reads them); `tools/extract_beard_textures.py` (writes them) |
+| `geralt_head_df.png` | Geralt's head diffuse as the Witcher 3 port draws it: 2048×2048 RGBA, opaque. Read out of `characters/Geralt.7z`'s `geralt_head_bm.vtf` by `python tools/extract_face_textures.py` at the VTF's native size — the pack's head atlas holds the 1024×1024 halving, so this is the picture *before* that downsample. Nothing in `dist/` reads it back: it is the face as a texture of its own | `tools/extract_face_textures.py`, which writes it, its `.dds`, and the normal map beside it; no builder reads it |
+| `geralt_head_nm.png` | The same map's normal: 2048×2048 in Diesel's packed layout — X in alpha, Y in green, 255 in red and 0 in blue, with the same Y flip the builder applies to this VTF | the same tool |
+| `geralt_head_df.dds`, `geralt_head_nm.dds` | The same two pictures as DXT5 DDS with the full mip chain, for a viewer or an engine that takes DDS rather than PNG. These two are **not** build inputs: `build_geralt_rust_mod` still reads the archive's VTF for the pack's own atlas | `tools/extract_face_textures.py` (writes them); `tests/test_face_textures.py` holds them to the archive |
 | `icon_header_128x128_bgra8.dds` | A 128-byte DDS header, no pixels: the header the earlier reference Joy icon carried, which every head pack's 128x128 character icon is written under. Written once by `python tools/extract_icon_header.py` from `Ada Wong over Joy.7z`, which is no longer in the tree (2026-11-27) because this file is all of it the builders read | `tools/build_joy_head_mods.py` (`ICON_HEADER`); `tools/extract_icon_header.py` writes it |
 | `Hoxier Hoxton V2.zip` | Old Hoxton `mod_overrides` texture mod ("Hox's Mask No Burns"): proves the Old Hoxton texture override paths and the icon DDS format, carries no models | reference for `tools/build_joy_head_mods.py` (`build_arivus_hoxton_mod`) |
 
