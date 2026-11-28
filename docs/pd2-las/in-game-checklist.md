@@ -310,6 +310,10 @@ head texture and the build inpaints it. These are the checks the offline render 
 
 ## OfficeSuite over Bunny — native Hop to It outfit override (2026-11-27, D85)
 
+**Checked 2026-11-28:** the user supplied screenshots of the D85 companion build and reported it
+**good** (the native override, the outfit itself and the forearm companion included). Nothing below
+is open unless the user raises it again.
+
 Pack to install: `dist/Miranda/OfficeSuite_over_Bunny.zip` → extract the `OfficeSuite over Bunny`
 folder into `PAYDAY 2\assets\mod_overrides\`. Copy its `OfficeSuite Bunny Forearm Fix` folder
 into `PAYDAY 2\mods\` and restart. The companion needs SuperBLT; BeardLib and Legendary Armour Skins
@@ -332,4 +336,23 @@ In-game, open **Outfits** in the BlackMarket and equip **Hop to It** (`bunny`, c
    white cuffs and wrist watch appear at normal weapon-holding height, do not vanish when looking up or
    down (`co_box` culling), and twist cleanly when aiming, reloading and interacting.
 5. **Shadow caster.** Check the character's ground shadow in third person (`s_body` on `shadow_caster`).
+
+## `Miranda_L4D2_over_Hila` — the measured accessory fit (2026-11-28, D97)
+
+Pack to install: `dist/Miranda/Miranda_L4D2_over_Hila.zip` → extract the `Miranda L4D2 over Hila`
+folder into `PAYDAY 2\\assets\\mod_overrides\\` (Hila only; she has no Safe House unit).
+
+1. **Eyewear on the face.** With the pictured glasses (the chunky wraparound sport sunglasses of the
+   2026-11-28 report), check the brow, forehead and cheek under the frames from the front and in a
+   close-up: the frames should sit on the face, not cut into it. The brow is now clamped to vanilla
+   Hila's forehead envelope + 5 mm, so it sits where her face sat behind `a_head` accessories.
+2. **Temple arms vs the hair.** From the side and 3/4, the arms should pass under the hair curtain at
+   the temple, not ride over it, and the metal tip should not glint through the jaw curtain. The
+   temple sweep is floored outside the arm's ride and the jaw curtain past the tip (D97).
+3. **Hair shape.** The bob should still read as the 2026-11-27 silhouette: the temple sweep is up to
+   ~1 cm fuller at the arm's crossing and the bangs' edge slightly tucked at the temples (the fit
+   clamps them to Hila's hairline); report if either reads wrong.
+4. **Other hats/masks.** The fit is measured against Hila's own head, not accessory meshes (the repo
+   has none): try the beret/tiara of the other screenshots and any mask, and report any new
+   intersection — each one is another envelope point to measure.
 

@@ -1375,8 +1375,15 @@ class TestLasScaffold:
         assert 188.1 <= float(v_head[:, 2].max()) <= 188.3, "crown clearance warp missing"
         assert 16.5 <= chin_y <= 17.6, f"chin y {chin_y:.2f} cm out of Joy/Hila posture range"
         assert 19.1 <= nose_y <= 20.3, f"nose y {nose_y:.2f} cm out of Joy/Hila posture range"
-        assert 18.2 <= brow_y <= 19.3, f"brow y {brow_y:.2f} cm out of Joy/Hila posture range"
-        assert 8.0 <= face_angle_deg <= 11.5, f"chin->brow angle {face_angle_deg:.2f}° not pitched forward"
+        assert 17.6 <= brow_y <= 18.1, (
+            f"brow y {brow_y:.2f} cm out of the eyewear-clearance range: the D86 trial's "
+            f"brow sat 0.3-0.9 cm in front of vanilla Hila's forehead, where `a_head` "
+            f"frames were authored to sit, so the brow is now clamped to her envelope + 5 mm"
+        )
+        assert 7.0 <= face_angle_deg <= 8.0, (
+            f"chin->brow angle {face_angle_deg:.2f}° out of range: the brow now follows "
+            f"Hila's envelope, so the D86 8-11.5° trial pitch flattens to ~7.5°"
+        )
         assert 16.6 <= float(v_lash[:, 1].mean()) <= 17.8, "3D eyelashes did not follow tilted head"
         assert 172.8 <= float(v_lash[:, 2].mean()) <= 174.4, "3D eyelashes z drifted off eye socket"
 

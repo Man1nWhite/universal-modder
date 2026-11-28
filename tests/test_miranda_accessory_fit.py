@@ -1,4 +1,4 @@
-"""Geometry-level guardrails for Miranda's unverified accessory-fit trial."""
+"""Geometry-level guardrails for Miranda's measured accessory fit (D97)."""
 import sys
 from pathlib import Path
 
@@ -40,3 +40,41 @@ def test_warp_normals_match_the_inverse_transpose_of_local_surface():
         expected = np.linalg.solve(jacobian.T, normal[0])
         expected /= np.linalg.norm(expected)
         np.testing.assert_allclose(transformed[0], expected, atol=0.001)
+
+
+def test_face_front_tuck_clamps_to_hila_envelope_but_never_moves_the_face_shell():
+    # The brow sat 0.3-0.9 cm in front of vanilla Hila's forehead, where the
+    # eyewear frames were authored to sit: it is clamped to her envelope + 5 mm.
+    # The face shell ends at |x| 6.68; past the tuck corridor only the base
+    # setback may act on it (a stretched temple skin pokes through the hair).
+    p = np.array([[1.5, 18.3, 176.5], [6.68, 8.91, 172.41]], dtype=np.float64)
+    n = np.tile([0.0, 1.0, 0.0], (len(p), 1))
+    result, _ = heads.fit_l4d2_accessory_clearance(p, n)
+    assert 17.55 < result[0, 1] < 17.85, f"brow clamped to {result[0, 1]:.2f}"
+    assert abs(result[0, 0] - 0.96 * 1.5) < 1e-3, "x sees only the base -4%"
+    assert abs(result[1, 0] - 0.96 * 6.68) < 1e-3, "face shell was x-warped"
+    assert abs(result[1, 1] - (8.91 - 0.35 - 0.03 * (8.91 - 15.70))) < 1e-3
+
+
+def test_side_floors_put_the_hair_outside_the_eyewear_arm_corridor():
+    # The arm rides outside Hila's ear (outer edge |x| <= 10.55) and crosses the
+    # temple sweep at |x| ~7-8.6; the floors clamp the hair sheets outside it.
+    p = np.array([[7.9, 13.5, 175.5], [9.0, 2.5, 168.0], [6.4, 16.8, 177.0]],
+                 dtype=np.float64)
+    n = np.tile([0.0, 1.0, 0.0], (len(p), 1))
+    result, _ = heads.fit_l4d2_accessory_clearance(p, n)
+    assert abs(result[0, 0]) >= 9.4, f"temple sweep at {result[0, 0]:.2f}"
+    assert 10.55 < abs(result[1, 0]) < 10.65, f"jaw curtain at {abs(result[1, 0]):.2f}"
+    assert abs(result[2, 0] - 0.96 * 6.4) < 1e-3, "fringe edge below the gate was moved"
+
+
+def test_eye_bundle_rides_the_base_setback_only():
+    # Eyeballs, teeth and lashes skip the envelope clamps: clamping a lash to
+    # the same sheet as the tucked lid sinks it into the lid.
+    p = np.array([[4.07, 17.65, 174.24]], dtype=np.float64)
+    n = np.tile([0.0, 1.0, 0.0], (len(p), 1))
+    base, _ = heads.fit_l4d2_accessory_clearance(p, n, fit_envelope=False)
+    fitted, _ = heads.fit_l4d2_accessory_clearance(p, n)
+    assert abs((p[0, 1] - base[0, 1]) - (0.35 + 0.03 * (17.65 - 15.70))) < 1e-3
+    assert abs(base[0, 0] - 0.96 * 4.07) < 1e-3
+    assert fitted[0, 1] < base[0, 1] - 0.1, "the lash point must differ from the tucked one"
