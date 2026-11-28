@@ -1,5 +1,22 @@
 # PAYDAY 2 LAS — review journal
 
+## 2026-11-28 — rebuild `Geralt_over_Rust` from the supplied 1024x1024 face DDS pair (D96)
+
+PR #80 (`fa06f5a`) replaced `references/textures/geralt_head_{df,nm}.dds` with 1024x1024
+single-level DXT5 edits painting silver-white beard and moustache strands plus matching PD2-packed
+normal relief (`R~255, G=Y+, B~0, A=X`) onto the lower face behind the 3D beard cards.
+`build_joy_head_mods.build_geralt_rust_mod` now reads both files via `load_geralt_face_diffuse` and
+`load_geralt_face_normal`, splicing the supplied BC1 colour halves verbatim into level 0 of
+`npc_criminal_wild_1_head_df.texture`'s `[0:1024, 0:1024]` face quadrant (with solid specular alpha
+`18`) and clamping RGB-compressor bleed (`R=255, B=0`) on `npc_criminal_wild_1_head_nm.texture`,
+plus regenerating `wild.texture` (HUD/menu icon). `dist/Geralt/Geralt_over_Rust.zip` updates from
+`8,120,780` B (`20b26e8175f9…`) to `8,208,044` B (`48f4a5bc43aa…`); `Miranda_L4D2_over_Hila.zip`
+and `Arivus_over_Hoxton.zip` remain byte-identical. `tools/extract_face_textures.py` leaves
+`references/textures/geralt_head_{df,nm}.dds` untouched unless `--dds` is passed, `status.py`
+registers the face and beard `.dds` pairs in `INPUTS`, `render_geralt_beard_closeup` fixes
+`is_cut=True` for `ALPHA_MASKED` cutout rendering, and the three Geralt-bearing preview sheets are
+refreshed.
+
 ## 2026-11-28 (merge 2) — `main` landed its own D86 (Miranda posture); the VO entries renumber again
 
 PR #78 (`a33d248a`, "tilt Miranda_L4D2_over_Hila onto female heister posture") merged into `main`

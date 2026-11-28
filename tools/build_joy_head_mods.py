@@ -84,6 +84,9 @@ SUIT_MENU_STEM = "npc_criminals_suit_menu_1"
 OLD_HOXTON_ICON_PATH = "guis/textures/pd2/blackmarket/icons/characters/old_hoxton.texture"
 OLD_HOXTON_TEX_DIR = "units/payday2/characters/shared_textures"
 ARIVUS_ARCHIVE = "1581859199_135363.rar"
+#: Supplied 1024x1024 DXT5 Geralt face maps (painted beard & moustache diffuse + PD2 normal relief).
+GERALT_HEAD_DF = ROOT / "references" / "textures" / "geralt_head_df.dds"
+GERALT_HEAD_NM = ROOT / "references" / "textures" / "geralt_head_nm.dds"
 # The supplied DDS is an edited Arivus atlas (not vanilla Hoxton UVs).
 # The 2026-11-26 retouch `old_hoxton_head_df(1).dds` supersedes the first edit:
 # softer brows, one catchlight on the iris instead of two plus the stray wedge,
@@ -1926,6 +1929,48 @@ def build_l4d2_hila_head(me2_dir: Path, sec_nm_dds: bytes) -> None:
     )
 
 
+def _read_geralt_face_dds(path: Path) -> tuple[np.ndarray, bytes]:
+    """Read a 1024x1024 DXT5 Geralt face DDS (single-level or mipmapped) and its level-0 BC3 blocks."""
+    if not path.is_file():
+        raise FileNotFoundError(f"missing {path}")
+    data = path.read_bytes()
+    if len(data) < 128 or data[:4] != b"DDS " or data[84:88] != b"DXT5":
+        raise ValueError(f"{path}: expected a 1024x1024 DXT5 DDS")
+    height, width = struct.unpack_from("<II", data, 12)
+    mips = max(1, struct.unpack_from("<I", data, 28)[0])
+    expected = 128 + sum(
+        max(1, (width >> i) // 4) * max(1, (height >> i) // 4) * 16 for i in range(mips)
+    )
+    if (height, width) != (1024, 1024) or len(data) != expected:
+        raise ValueError(f"{path}: expected a 1024x1024 DXT5 DDS")
+    base_bc3 = data[128 : 128 + 1024 * 1024]
+    blocks = np.frombuffer(base_bc3, dtype=np.uint8).reshape(-1, 16)
+    c0 = blocks[:, 8].astype(np.int32) | (blocks[:, 9].astype(np.int32) << 8)
+    c1 = blocks[:, 10].astype(np.int32) | (blocks[:, 11].astype(np.int32) << 8)
+    if (c0 < c1).any():
+        raise ValueError(f"{path}: BC3 colour blocks contain c0 < c1 transparent mode")
+    with Image.open(io.BytesIO(data)) as image:
+        pixels = np.array(image.convert("RGBA"), dtype=np.uint8)
+    return pixels, base_bc3
+
+
+def load_geralt_face_diffuse(path: Path = GERALT_HEAD_DF) -> tuple[np.ndarray, bytes]:
+    """Read the supplied 1024x1024 BC3 Geralt face diffuse, setting solid specular alpha=18."""
+    pixels, base_bc3 = _read_geralt_face_dds(path)
+    pixels[:, :, 3] = 18
+    return pixels, base_bc3
+
+
+def load_geralt_face_normal(path: Path = GERALT_HEAD_NM) -> np.ndarray:
+    """Read the supplied 1024x1024 BC3 Geralt face normal in PD2 layout (X=alpha, Y+=green)."""
+    pixels, _ = _read_geralt_face_dds(path)
+    if pixels[:, :, 0].mean() < 240.0 or pixels[:, :, 2].mean() > 15.0:
+        raise ValueError(f"{path}: expected PAYDAY 2 normal layout (R~255, G=Y+, B~0, A=X)")
+    pixels[:, :, 0] = 255
+    pixels[:, :, 2] = 0
+    return pixels
+
+
 def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
     """Build Witcher 3 Geralt of Rivia head replacement over Rust (npc_criminal_wild_1)."""
     gm = sm.load_model(
@@ -1978,8 +2023,11 @@ def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
     head_df_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_df_atlas[0:1024, 0:2048, 3] = 18
 
-    head_bm_arr = load_vtf_rgba("geralt_head_bm", (1024, 1024))
-    head_bm_arr[:, :, 3] = 18
+    # The face's two maps are tracked 1024x1024 DXT5 build inputs in `references/textures/`
+    # (`geralt_head_df.dds`, `geralt_head_nm.dds`), carrying the painted beard/moustache
+    # diffuse and matching PD2 normal relief. Preserve the supplied BC1 colour halves in
+    # level 0 of the face quadrant while setting solid specular alpha=18.
+    head_bm_arr, head_bm_bc3 = load_geralt_face_diffuse()
     teeth_bm_arr = load_vtf_rgba("teeths_bm", (1024, 512))
     teeth_bm_arr[:, :, 3] = 18
     eyes_bm_arr = load_vtf_rgba("eyes_bm", (512, 512))
@@ -2023,7 +2071,7 @@ def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
 
     head_nm_atlas = np.zeros((2048, 2048, 4), dtype=np.uint8)
     head_nm_atlas[:, :] = [255, 128, 0, 128]
-    head_nm_atlas[0:1024, 0:1024] = load_pd2_nm("geralt_head_nm", (1024, 1024))
+    head_nm_atlas[0:1024, 0:1024] = load_geralt_face_normal()
     head_nm_atlas[0:512, 1024:2048] = load_pd2_nm("teeths_nm", (1024, 512))
     head_nm_atlas[1024:2048, 0:1024] = load_pd2_nm("hair_n", (1024, 1024))
     head_nm_atlas[1024:1536, 1024:2048] = load_beard_texture("nm")
@@ -2134,11 +2182,15 @@ def build_geralt_rust_mod(geralt_root: Path, out_zip_paths: list[Path]) -> None:
         double_side_atom1=True,
     )
 
-    def encode_geralt_head_df_dds(arr: np.ndarray) -> bytes:
-        """Encode Geralt's 2048x2048 head_df atlas with coverage-preserving alpha mipmaps in the cutout bottom half."""
-        return encode_cutout_head_df_dds(arr)
+    def encode_geralt_head_df_dds(arr: np.ndarray, face_bc3: bytes) -> bytes:
+        """Encode Geralt's 2048x2048 head_df atlas with supplied face BC1 colour blocks and cutout mips."""
+        lvl0 = np.frombuffer(dds._level_payload(arr), dtype=np.uint8).reshape(512, 512, 16).copy()
+        face_blocks = np.frombuffer(face_bc3, dtype=np.uint8).reshape(256, 256, 16)
+        lvl0[:256, :256, 0:8] = [18, 18, 0, 0, 0, 0, 0, 0]
+        lvl0[:256, :256, 8:16] = face_blocks[:, :, 8:16]
+        return encode_cutout_head_df_dds(arr, base_payload=lvl0.tobytes())
 
-    head_df_dds = encode_geralt_head_df_dds(head_df_atlas)
+    head_df_dds = encode_geralt_head_df_dds(head_df_atlas, head_bm_bc3)
     head_nm_dds = encode_rgba_dds(head_nm_atlas)
 
     portrait = render_head_portrait(
