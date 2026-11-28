@@ -420,7 +420,7 @@ def test_the_2b_templates_have_one_home_inside_the_repo():
     They used to be unpacked to a fixed directory under /tmp, and that path was written
     out in thirty files: every builder command, seven test modules, the skip budget.
     /tmp does not outlive a session and does not exist on Windows. Since 2026-11-27 the
-    two models are tracked in references/templates/2b/ (D89), so a clone has them without
+    two models are tracked in references/templates/2b/ (D92), so a clone has them without
     an unpacking step; `extract_2b.OUT` still names the build/ cache a hand unpack of the
     whole 2b.rar can use. Nothing else may spell either path; code imports
     `extract_2b.TEMPLATES`.

@@ -61,7 +61,7 @@ rules below.
   - one module per CLI group, with a docstring that doubles as `--help`;
   - add a test in `tests/`;
   - For the full suite, use Python 3.11+, run `make -sC tools/pd2-las env` to install the pinned
-    dependencies (the 2B template models are tracked since D89, so that step unpacks nothing), then run
+    dependencies (the 2B template models are tracked since D92, so that step unpacks nothing), then run
     `make -sC tools/pd2-las test`. Use `make -sC tools/pd2-las green` for the full verification workflow
     on x86-64 Linux.
 - **Skills (`skills/`):** the Agent Skills format (`SKILL.md` with `name` + `description`). Keep them

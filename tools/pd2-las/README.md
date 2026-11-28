@@ -37,7 +37,7 @@ make -sC tools/pd2-las green    # everything the test workflow checks, test and 
 - Windows: `env` is a bash script. Make the venv once by hand (`py -3.11 -m venv .venv`), install with
   `pip install -c tools/pd2-las/pins.txt` (the versions the packs rebuild byte for byte with), then the
   same `make` calls work under git-bash/MSYS: they find `.venv/Scripts/python.exe` themselves.
-- The two 2B template models are tracked in `references/templates/2b/` (D89): `env` unpacks nothing and a
+- The two 2B template models are tracked in `references/templates/2b/` (D92): `env` unpacks nothing and a
   build needs no unpacker. The rest of the pack - textures, `ss.model`, the manifest - stays in
   `references/templates/2b.rar`, and `extract_2b.read_member()` reads one file out of it on demand
   (`uv_check.py` needs its atlas); `PD2_2B_TEMPLATES` still points diagnostics at a hand-unpacked unit.

@@ -3,7 +3,7 @@
 `tools/build_joy_head_mods.py` writes every character icon under one DDS header (128x128
 uncompressed BGRA8), and used to take it from the first 128 bytes of
 `references/templates/Ada Wong over Joy.7z`'s `joy.texture`. That archive left the tree on
-2026-11-27 (D88): `tools/extract_icon_header.py` wrote the header out to
+2026-11-27 (D91): `tools/extract_icon_header.py` wrote the header out to
 `references/textures/icon_header_128x128_bgra8.dds`, and this holds the tracked bytes to
 what the builder needs, and to the archive itself while history can still produce it.
 """

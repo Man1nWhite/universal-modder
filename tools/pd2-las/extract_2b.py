@@ -11,7 +11,7 @@ skins onto. A builder wants two files out of it:
 They are tracked, so a clone needs no unpacking step and no unpacker. (Until
 2026-11-27 they were extracted from the RAR5 archive on every fresh clone with
 `node-unrar-js`, which meant node, npm and a pinned npm package stood between a
-clone and the first build. D89.) The archive is still the provenance record for
+clone and the first build. D92.) The archive is still the provenance record for
 the pack shape - `main.xml`, the hook, the material configs, the `ss.model`
 sidecar, its two textures - and is kept.
 

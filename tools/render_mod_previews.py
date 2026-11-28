@@ -13,7 +13,7 @@ By default outputs to `build/previews/` (gitignored scratch). Pass `--unified` t
   - `31`/`35`/`36` `*_fps.png` (first-person `fps_*.model` / `ccmt_acc_fps_bunny_male.model` sheets —
     Miranda_L4D2_LAS, OfficeSuite, and OfficeSuite_over_Bunny — player, three-quarter, side and top-down views, auto-framed)
   - `37_OfficeSuite_wrist.png` (the D75 wrist junction)
-  - `40_Geralt_beard.png` (the beard quadrant's own close-up, where the D87 tracked DDS is legible)
+  - `40_Geralt_beard.png` (the beard quadrant's own close-up, where the D90 tracked DDS is legible)
 
 The sheets of the retired packs (Joy, Clover, Bonnie, Sydney, Busty, Christie, and the ME2
 Romance line — `Miranda_Romance_LAS`, `Miranda_Romance_over_Hila`, `OfficeSuite_Head`, D83) stay
@@ -1032,7 +1032,7 @@ def render_geralt_beard_closeup(out_path: Path, size: int = 900) -> Image.Image:
         canvas,
         "dist/Geralt/Geralt_over_Rust.zip — Beard Close-Up (g_head atlas quadrant)",
         "Chin and jaw at 3x the portrait's scale | Source: references/textures/geralt_beard_df.dds "
-        "(D87)",
+        "(D90)",
         None,
     )
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1282,7 +1282,7 @@ UNIFIED_PATHS = {
     # not in the numbered overview: the wrist junction D75 changed, before and after the pass
     "37_OfficeSuite_wrist.png": "honoka/model/wrist/officesuite_wrist_ext30_twist.png",
     "38_OfficeSuite_over_Bunny_posed.png": "honoka/model/over-bunny/officesuite_over_bunny_posed_sheet.png",
-    # not in the numbered overview: the beard quadrant's own close-up (D87's tracked DDS)
+    # not in the numbered overview: the beard quadrant's own close-up (D90's tracked DDS)
     "40_Geralt_beard.png": "geralt/model/over-rust/geralt_beard_closeup.png",
     # D86 side-profile posture & throat contour comparison for Miranda_L4D2_over_Hila
     "39_Miranda_L4D2_over_Hila_posture.png": "miranda/model/over-hila/miranda_l4d2_over_hila_posture_before-after.png",
@@ -1302,7 +1302,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--only-officesuite", action="store_true",
                     help="render only the OfficeSuite LAS sheet, with its FPS arms panel")
     ap.add_argument("--only-beard", action="store_true",
-                    help="render only the Geralt beard close-up (the D87 tracked-DDS quadrant)")
+                    help="render only the Geralt beard close-up (the D90 tracked-DDS quadrant)")
     args = ap.parse_args(argv)
     out_dir = args.out or (ROOT / "docs" / "renders" if args.unified else ROOT / "build" / "previews")
     out_dir.mkdir(parents=True, exist_ok=True)

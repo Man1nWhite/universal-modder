@@ -43,7 +43,7 @@ from documents, tests and tools, so they never change; the headings are appendix
 
 *Building and the build environment* — [D5](#d5--our-own-model-codec-byte-exact-no-blender-or-external-tool-in-the-build), [D6](#d6--retarget-by-anatomical-partition-not-per-bone-and-not-by-frame-deltas), [D7](#d7--geometry-conventions-are-the-2b-models), [D8](#d8--install-under-assetsmod_overrides), [D80](#d80--the-over-joy-zips-are-gone-the-assembly-that-wrote-them-is-the-over-hila-builder)
 
-*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names), [D85](#d85--officesuite_over_bunny-ships-officesuite-as-a-native-mod_overrides-replacement-of-hop-to-it-bunny), [D86](#d86--miranda_l4d2_over_hila-leans-forward-onto-the-female-heister-neck-and-eyewear-posture), [D86](#d86--miranda_l4d2_over_hila-leans-forward-onto-the-female-heister-neck-and-eyewear-posture), [D87](#d87--geralts-beard-is-a-tracked-pair-of-textures-and-both-the-pack-and-the-hand-out-read-it), [D88](#d88--the-ada-reference-archive-leaves-the-tree-128-bytes-of-its-icon-header-stay), [D90](#d90--a-change-too-small-for-a-sheet-gets-its-own-close-up-render-and-the-beard-gets-one), [D91](#d91--geralts-face-maps-are-tracked-beside-the-beard-at-the-vtfs-own-size), [D92](#d92--the-drm-and-in-game-asset-restrictions-are-removed-anti-cheat-for-online-play-stays)
+*Packs and characters* — [D9](#d9--built-packs-are-tracked-in-git-and-must-rebuild-byte-for-byte), [D10](#d10--a-variant-is-its-own-pack-with-its-own-las-id), [D13](#d13--the-skyrim-outfit-route-is-cancelled), [D36](#d36--the-honoka-pack-is-committed-to-dist-tracked-but-not-fresh-verified), [D37](#d37--the-tracked-honoka-pack-was-rebuilt-with-the-source-connector-filter), [D38](#d38--in-game-menu-captures-were-supplied-for-honoka-and-both-christie-packs-the-handoff-table-is-the-truth-for-what-was-in-game), [D40](#d40--the-tmc-only-honoka-pack-is-deleted-the-dae-build-honoko2-is-the-one-that-stays), [D41](#d41--hilas-head-packs-are-built-from-her-own-unit-and-only-they-wear-the-supplied-eye), [D42](#d42--honoko3-is-honoko2s-mesh-scaled-5-about-the-rigs-bones-both-packs-ship), [D43](#d43--the-supplied-eye-is-repainted-the-two-hila-packs-rebuild-at-a-re-measured-zoom), [D44](#d44--honoko4-is-honoko3-in-the-users-alternate-suit-honoko34-open-the-layer-gaps-the), [D45](#d45--honoko5-the-third-colourway-of-the-same-slim-build), [D46](#d46--revised-honoko5-colourway-and-miranda-nostril-normals), [D47](#d47--group-shipped-packs-and-consolidate-source-archives), [D48](#d48--match-romance-over-hila-head-skin-closer-to-the-honoko-body), [D49](#d49--christie-is-rebuilt-from-source-without-head-or-hands-christie_las_slim-is-removed), [D50](#d50--honoko5-fitjewelry-updates-christie_clover_las-glb-outfit-and-archived-menu-captures), [D51](#d51--dist-is-the-sole-tracked-home-for-built-zips-duplicate-buildpd2-laszip-copies-removed), [D52](#d52--honoko5-and-miranda-romance-directly-replace-hila), [D53](#d53--officesuite-ships-a-first-person-arms-unit), [D54](#d54--honoko5-is-renamed-to-officesuite), [D55](#d55--officesuite-ships-the-outfits-own-hands-the-hila-override-drops-the-stock-gloves), [D56](#d56--officesuite_head-is-a-separate-whole-character-pack-not-a-change-to-officesuite), [D57](#d57--honoko2-honoko3-and-honoko4-are-removed-officesuite-is-the-working-pack), [D58](#d58--an-outfit-with-its-own-modelled-hands-never-draws-a-default-glove), [D59](#d59--the-officesuite-packs-cut-the-hands-where-the-palm-begins-not-at-the-wrist), [D60](#d60--the-palm-cut-is-made-on-the-plane-and-a-handless-outfit-spawns-no-glove-and-no-forearm), [D62](#d62--the-palms-are-cut-4-cm-past-the-palm-line-so-the-arm-ends-inside-the-glove), [D63](#d63--the-extension-is-15-cm-as-far-into-the-glove-as-its-own-geometry-allows), [D64](#d64--the-arivus-shave-fills-from-grown-beard-matched-skin-and-real-structure--no-ring-no-seam-no-flat-panel), [D65](#d65--the-palm-cut-goes-back-to-125-cm-the-arms-fattest-half-centimetre-was-still-in-the-gloves-cuff), [D66](#d66--the-shave-fills-the-beard-not-the-face), [D69](#d69--arivus-the-shaved-area-takes-the-skins-chroma-not-a-new-one), [D70](#d70--the-palm-extensions-are-reverted-the-cut-is-on-the-crease-again), [D72](#d72--arivus-the-beard-is-found-the-rectangle-and-the-collar-gap-are-gone), [D79](#d79--arivus-the-neck-is-a-neck-again-and-the-head-is-skinned-to-its-own-palette), [D82](#d82--the-native-hila-override-is-retired-officesuite_head-carries-the-same-body-and-head), [D83](#d83--the-romance-line-is-retired-and-the-tracker-chain-that-only-it-used), [D84](#d84--the-supplied-eye-reaches-the-outfit-pack-too-and-the-head-pack-is-rebuilt-from-the-picture-it-names), [D85](#d85--officesuite_over_bunny-ships-officesuite-as-a-native-mod_overrides-replacement-of-hop-to-it-bunny), [D86](#d86--miranda_l4d2_over_hila-leans-forward-onto-the-female-heister-neck-and-eyewear-posture),  [D90](#d90--geralts-beard-is-a-tracked-pair-of-textures-and-both-the-pack-and-the-hand-out-read-it), [D91](#d91--the-ada-reference-archive-leaves-the-tree-128-bytes-of-its-icon-header-stay), [D92](#d92--the-two-2b-template-models-are-tracked-the-rar-is-provenance-not-a-build-step), [D93](#d93--a-change-too-small-for-a-sheet-gets-its-own-close-up-render-and-the-beard-gets-one), [D94](#d94--geralts-face-maps-are-tracked-beside-the-beard-at-the-vtfs-own-size), [D95](#d95--the-drm-and-in-game-asset-restrictions-are-removed-anti-cheat-for-online-play-stays)
 
 *Voice lines and the stream packs* — [D61](#d61--only-the-id-keyed-stream-pack-ships-the-beardlib-voice-pack-is-dropped), [D67](#d67--call_teammatehey_you-is-one-shouted-word-not-a-phrase), [D68](#d68--the-hila-stream-pack-ships-61-slots-lawson-voice-takes-in-sub-8-slots-out), [D71](#d71--the-character-packs-write-the-shared-bank-and-only-one-pack-ships-at-a-time), [D73](#d73--the-stream-tables-are-tracked-and-the-rust-bank-question-stays-open), [D75](#d75--the-wrist-twists-on-forearmroll-and-its-ring-is-centred-on-the-glove-officesuites-cuff-fix), [D76](#d76--geralts-takes-are-re-keyed-to-char_rust-the-map-that-names-the-ids-is-the-one-open-input), [D77](#d77--the-community-voice-line-sheet-is-a-shared-bank-source-imported-not-trusted), [D78](#d78--tab-inventory-which-bank-each-community-sheet-actually-covers), [D81](#d81--the-three-sheet-tabs-are-imported-in-full-from-exports-that-were-already-in-the-tree)
 
@@ -1496,9 +1496,10 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Status:** holds; the D84-era posture was seen in game on 2026-11-27 (driving this fix), and the rebuilt
   D86 bytes are offline-verified only (`runtime_verified` stays false, D31).
 
-### D87 — Geralt's beard is a tracked pair of textures, and both the pack and the hand-out read it
+### D90 — Geralt's beard is a tracked pair of textures, and both the pack and the hand-out read it
 
 - **Decided:** 2026-11-27, by the owner, who asked to "replace Geralt beard textures from references"
+- **Renumbered:** D87 on the branch -> D90 when `main` landed its own D87-D89 (the VO workbook work); the branch's entries move up three to keep one number per entry.
   and, asked where the beard should come from, chose the tracked `references/textures/` files.
 - **What was wrong:** `tools/extract_beard_textures.py` cut the beard out of the *built* pack,
   `dist/Geralt/Geralt_over_Rust.zip`, and ``tests/test_beard_textures.py`` held the two to each other.
@@ -1524,9 +1525,10 @@ from documents, tests and tools, so they never change; the headings are appendix
   `tests/test_beard_textures.py`, `references/README.md`.
 - **Status:** holds.
 
-### D88 — The Ada reference archive leaves the tree; 128 bytes of its icon header stay
+### D91 — The Ada reference archive leaves the tree; 128 bytes of its icon header stay
 
 - **Decided:** 2026-11-27, by the owner, who asked whether "Ada Wong over Joy" could be removed if it was
+- **Renumbered:** D88 on the branch -> D91 when `main` landed its own D87-D89 (the VO workbook work); the branch's entries move up three to keep one number per entry.
   safe, and chose to try when told what still read it.
 - **What still read it:** `ensure_ada_reference` unpacked the whole 11.7 MB archive for the head builder, and
   the builder used exactly one thing out of it: the first 128 bytes of
@@ -1540,16 +1542,17 @@ from documents, tests and tools, so they never change; the headings are appendix
 - **Held to:** with the archive moved out of the tree and `build/head-mods/` emptied, a full `heads` build
   wrote all three packs byte for byte as tracked - `Miranda_L4D2_over_Hila` and `Arivus_over_Hoxton`
   identical to their committed bytes, and `Geralt_over_Rust` identical to the bytes this same change rebuilt
-  (`20b26e81…`, see D87). That is the proof, not a reading of the imports.
-- **Not this:** the `2b.rar` question, answered separately (D87). Ada's model and textures are still in git
+  (`20b26e81…`, see D90). That is the proof, not a reading of the imports.
+- **Not this:** the `2b.rar` question, answered separately (D92). Ada's model and textures are still in git
   history at `f54c41a` if a future pack wants the reference back.
 - **Source:** the user, 2026-11-27; `tools/build_joy_head_mods.py`, `tools/extract_icon_header.py`,
   `references/README.md`, `docs/audits/2026-11-26-references-inventory.md`.
 - **Status:** holds.
 
-### D89 — The two 2B template models are tracked; the RAR is provenance, not a build step
+### D92 — The two 2B template models are tracked; the RAR is provenance, not a build step
 
 - **Decided:** 2026-11-27, by the owner, told that freeing `2b.rar` meant committing the two
+- **Renumbered:** D89 on the branch -> D92 when `main` landed its own D87-D89 (the VO workbook work); the branch's entries move up three to keep one number per entry.
   template models, and choosing to try it.
 - **What the archive was for:** `references/templates/2b.rar` (6.3 MB, RAR5) is the working LAS pack
   the pipeline was modelled on. Every builder skins onto two files out of it - `2b.model` (3,897,376 B)
@@ -2613,9 +2616,10 @@ from documents, tests and tools, so they never change; the headings are appendix
   `.github/workflows/test.yml`, `docs/ci.md`.
 - **Status:** holds.
 
-### D90 — A change too small for a sheet gets its own close-up render, and the beard gets one
+### D93 — A change too small for a sheet gets its own close-up render, and the beard gets one
 
 - **Decided:** 2026-11-27, by the agent, under the owner's "render and double check" instruction
+- **Renumbered:** D90 on the branch -> D93 when `main` landed its own D87-D89 (the VO workbook work); the branch's entries move up three to keep one number per entry.
 - **What was found:** re-rendering every tracked sheet reproduced the beard pack's sheet
   **byte for byte** from the pre-change pack (`0dfb5806…`, the parent commit's `Geralt_over_Rust.zip`)
   and the tracked one (`20b26e81…`), even though the pack's head atlas changed on 5.9 % of the beard
@@ -2640,9 +2644,10 @@ from documents, tests and tools, so they never change; the headings are appendix
   `docs/renders/geralt/model/over-rust/README.md`.
 - **Status:** holds.
 
-### D91 — Geralt's face maps are tracked beside the beard, at the VTF's own size
+### D94 — Geralt's face maps are tracked beside the beard, at the VTF's own size
 
 - **Decided:** 2026-11-27, by the owner, who asked to "extract face textures and normal map"
+- **Renumbered:** D91 on the branch -> D94 when `main` landed its own D87-D89 (the VO workbook work); the branch's entries move up three to keep one number per entry.
 - **What it is:** `tools/extract_face_textures.py` reads `references/characters/Geralt.7z`'s
   `geralt_head_bm.vtf` (head diffuse) and `geralt_head_nm.vtf` (head normal), both 2048x2048, and writes
   `references/textures/geralt_head_{df,nm}.{png,dds}` — the normal in Diesel's packed layout (X in alpha,
@@ -2668,9 +2673,10 @@ from documents, tests and tools, so they never change; the headings are appendix
   `references/README.md`.
 - **Status:** holds.
 
-### D92 — The DRM and in-game-asset restrictions are removed; anti-cheat for online play stays
+### D95 — The DRM and in-game-asset restrictions are removed; anti-cheat for online play stays
 
 - **Decided:** 2026-11-27, by the owner: *"I don't plan to break for DRM. I want to optimize repo to save
+- **Renumbered:** D92 on the branch -> D95 when `main` landed its own D87-D89 (the VO workbook work); the branch's entries move up three to keep one number per entry.
   tokens. Remove those restrictions about drm or using in-game assets."*
 - **Decision:** every rule that told an agent not to tamper with DRM or ownership checks, and every rule that
   restricted committing or shipping game files, is gone from the instruction set: `AGENTS.md`,

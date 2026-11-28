@@ -63,6 +63,6 @@ once your human agrees, open a PR (`knowledge/README.md`, `CONTRIBUTING.md`).
   interpolation, no `out var`, no expression-bodied members.
 - **Tests:** `pip install -e '.[dev]'` once, then `make -sC tools/pd2-las test` (the suite) and `green`
   (everything CI checks, docs included). The 2B template models are tracked (`references/templates/2b/`,
-  D89); a checkout that has lost them skips those tests with the command that restores them.
+  D92); a checkout that has lost them skips those tests with the command that restores them.
 - **Wording:** keep skills and docs agent-neutral ("the agent", not a product name) except in sections
   about one specific agent.

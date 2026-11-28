@@ -64,7 +64,7 @@ jobs:
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 update
           sudo apt-get -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 -o Acquire::Retries=1 install -y --no-install-recommends ffmpeg
       - name: check the tracked 2B templates
-        # The two template models are tracked since 2026-11-27 (D87); this fails when a
+        # The two template models are tracked since 2026-11-27 (D90); this fails when a
         # checkout has lost them or a tracked byte is not the archive's.
         run: python tools/pd2-las/extract_2b.py --check
       - name: verify the checked-in pack checksums
@@ -164,7 +164,7 @@ jobs:
     # Every tracked pack must equal a fresh build, byte for byte. All 9 are built again in a
     # copy of the checkout, on this runner, and each generated ZIP is compared to the verified
     # byte digest of the original. No copied outputs can count. `env` makes the pinned .venv
-    # (the 2B template models are tracked since D87, so nothing is unpacked there). The builders put
+    # (the 2B template models are tracked since D90, so nothing is unpacked there). The builders put
     # themselves on the declared code path (tools/pd2-las/determinism.py), which is why a runner
     # with AVX-512 and one without build the same bytes. Before 2026-11-12 they did not:
     # docs/audits/2026-11-12-cpu-independence.md.

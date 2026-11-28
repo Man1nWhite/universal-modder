@@ -3,7 +3,7 @@
 A tag is a moving pointer: `actions/checkout@v4` is whatever commit the maintainer moved `v4`
 to this morning, and one of the jobs that ran it holds `contents: write`. The same is true of
 `node-unrar-js@2.0.2`, which reads members out of the 2B reference archive (the two template
-models every OfficeSuite pack is skinned onto are tracked since D89, but the archive's textures
+models every OfficeSuite pack is skinned onto are tracked since D92, but the archive's textures
 are still read on demand): a patch release on npm changes what a diagnostic sees with no commit
 in this repository.
 
@@ -90,7 +90,7 @@ def test_the_tracked_unpacker_is_what_reads_the_archive():
     """`extract_2b.read_member` requires the tracked node_unrar_js; nothing installs a latest.
 
     The npm fallback (`npm ci` from the lockfile) was removed with the per-clone unpacking
-    step (D89). What is left is one script that `require()`s the package the repository
+    step (D92). What is left is one script that `require()`s the package the repository
     tracks, so a change to the unpacker can only arrive as a reviewed commit.
     """
     source = (ROOT / "tools" / "pd2-las" / "extract_2b.py").read_text(encoding="utf-8")
